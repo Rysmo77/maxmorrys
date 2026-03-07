@@ -37,17 +37,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
+        const uid = firebaseUser.uid;
         (async () => {
           try {
-            const docRef = doc(db, 'users', firebaseUser.uid);
+            const docRef = doc(db, 'users', uid);
             const docSnap = await getDoc(docRef);
+            // Guard contre la race condition : ignorer si l'utilisateur a changé entre-temps
+            if (auth.currentUser?.uid !== uid) return;
             if (docSnap.exists()) {
               setUserData(docSnap.data() as User);
+            } else {
+              setUserData(null);
             }
           } catch {
             setUserData(null);
           } finally {
-            setLoading(false);
+            if (auth.currentUser?.uid === uid || !auth.currentUser) {
+              setLoading(false);
+            }
           }
         })();
       } else {

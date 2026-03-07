@@ -70,8 +70,8 @@ export default function Header({ onSearchOpen }: HeaderProps) {
         className={cn(
           'fixed top-0 left-0 right-0 z-40 transition-all duration-300',
           scrolled
-            ? 'bg-white/98 dark:bg-neutral-900/98 backdrop-blur-xl shadow-[0_1px_0_0_rgba(0,0,0,0.08)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.06)]'
-            : 'bg-white/90 dark:bg-neutral-950/85 backdrop-blur-md border-b border-neutral-200/50 dark:border-neutral-800/50'
+            ? 'bg-white dark:bg-neutral-900 shadow-[0_1px_0_0_rgba(0,0,0,0.08)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.06)]'
+            : 'bg-white dark:bg-neutral-950 border-b border-neutral-200/50 dark:border-neutral-800/50'
         )}
       >
         {/* Brand accent stripe */}
@@ -81,7 +81,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
         )} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-[68px]">
+          <div className="flex items-center h-16 lg:h-[68px]">
 
             {/* Logo */}
             <Link to="/" className="group shrink-0 flex items-center gap-2">
@@ -93,7 +93,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
             </Link>
 
             {/* Nav desktop */}
-            <nav className="hidden lg:flex items-center gap-0.5">
+            <nav className="hidden lg:flex items-center gap-0.5 ml-auto">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.path || location.pathname.startsWith(link.path + '/');
                 return (
@@ -101,7 +101,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     key={link.path}
                     to={link.path}
                     className={cn(
-                      'relative px-3.5 py-2 text-[0.8125rem] font-medium transition-colors duration-150 rounded-lg group',
+                      'relative px-3.5 py-2 text-[0.8125rem] font-semibold transition-colors duration-150 rounded-lg group',
                       isActive
                         ? 'text-neutral-900 dark:text-white font-semibold'
                         : 'text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
@@ -129,7 +129,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   aria-haspopup="true"
                   aria-label="Je te transforme — contenu gratuit"
                   className={cn(
-                    'relative flex items-center gap-1 px-3.5 py-2 text-[0.8125rem] font-medium transition-colors duration-150 rounded-lg group',
+                    'relative flex items-center gap-1 px-3.5 py-2 text-[0.8125rem] font-semibold transition-colors duration-150 rounded-lg group',
                     isTransformerActive
                       ? 'text-neutral-900 dark:text-white font-semibold'
                       : 'text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
@@ -195,7 +195,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
             </nav>
 
             {/* Actions droite */}
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-0.5 ml-auto lg:ml-0">
               <button
                 onClick={onSearchOpen}
                 className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors rounded-lg hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60"
@@ -256,7 +256,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                       </div>
                       <div className="pt-1 border-t border-neutral-100 dark:border-neutral-800">
                         <button
-                          onClick={() => { if (confirm('Se déconnecter ?')) { signOut(); setProfileOpen(false); } }}
+                          onClick={() => { signOut(); setProfileOpen(false); }}
                           className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 w-full transition-colors"
                         >
                           <LogOut className="w-4 h-4" />
@@ -376,7 +376,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     Mon espace étudiant
                   </Link>
                   <button
-                    onClick={() => { if (confirm('Se déconnecter ?')) signOut(); }}
+                    onClick={() => { signOut(); }}
                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl w-full"
                   >
                     <LogOut className="w-4 h-4" />

@@ -11,6 +11,7 @@ import { useToast } from '../../components/ui/Toast';
 import { getAllPosts, savePost, deletePost } from '../../lib/firestore';
 import { formatDate, slugify, calculateReadTime } from '../../lib/utils';
 import type { BlogPost } from '../../types';
+import SEOPanel from '../../components/shared/SEOPanel';
 
 type FormState = {
   title: string;
@@ -22,14 +23,26 @@ type FormState = {
   tags: string;
   status: 'draft' | 'published';
   featured: boolean;
+  // SEO
+  focusKeyword: string;
+  metaTitle: string;
   metaDescription: string;
+  ogTitle: string;
+  ogDescription: string;
   ogImage: string;
+  twitterTitle: string;
+  twitterDescription: string;
+  twitterImage: string;
+  noIndex: boolean;
+  canonicalUrl: string;
 };
 
 const EMPTY_FORM: FormState = {
   title: '', slug: '', excerpt: '', content: '', category: '',
   coverImage: '', tags: '', status: 'draft', featured: false,
-  metaDescription: '', ogImage: '',
+  focusKeyword: '', metaTitle: '', metaDescription: '', ogTitle: '',
+  ogDescription: '', ogImage: '', twitterTitle: '', twitterDescription: '',
+  twitterImage: '', noIndex: false, canonicalUrl: '',
 };
 
 export default function AdminArticles() {
@@ -79,8 +92,17 @@ export default function AdminArticles() {
       tags: post.tags?.join(', ') ?? '',
       status: post.status === 'published' ? 'published' : 'draft',
       featured: post.featured ?? false,
-      metaDescription: (post as BlogPost & { metaDescription?: string }).metaDescription ?? post.excerpt,
-      ogImage: (post as BlogPost & { ogImage?: string }).ogImage ?? post.coverImage,
+      focusKeyword: post.focusKeyword ?? '',
+      metaTitle: post.metaTitle ?? '',
+      metaDescription: post.metaDescription ?? post.excerpt,
+      ogTitle: post.ogTitle ?? '',
+      ogDescription: post.ogDescription ?? '',
+      ogImage: post.ogImage ?? post.coverImage,
+      twitterTitle: post.twitterTitle ?? '',
+      twitterDescription: post.twitterDescription ?? '',
+      twitterImage: post.twitterImage ?? '',
+      noIndex: post.noIndex ?? false,
+      canonicalUrl: post.canonicalUrl ?? '',
     });
     setActiveTab('content');
     setShowModal(true);
@@ -109,9 +131,18 @@ export default function AdminArticles() {
         readTime: calculateReadTime(form.content),
         featured: form.featured,
         status,
+        focusKeyword: form.focusKeyword.trim(),
+        metaTitle: form.metaTitle.trim(),
         metaDescription: form.metaDescription.trim() || form.excerpt.trim(),
+        ogTitle: form.ogTitle.trim(),
+        ogDescription: form.ogDescription.trim(),
         ogImage: form.ogImage.trim() || form.coverImage.trim(),
-      } as Omit<BlogPost, 'id'> & { metaDescription: string; ogImage: string };
+        twitterTitle: form.twitterTitle.trim(),
+        twitterDescription: form.twitterDescription.trim(),
+        twitterImage: form.twitterImage.trim(),
+        noIndex: form.noIndex,
+        canonicalUrl: form.canonicalUrl.trim(),
+      } as Omit<BlogPost, 'id'>;
       await savePost(postData, editingId ?? undefined);
       addToast('success', editingId ? 'Article mis à jour.' : 'Article créé.');
       setShowModal(false);
@@ -309,20 +340,8 @@ export default function AdminArticles() {
         )}
 
         {activeTab === 'seo' && (
-          <div className="space-y-4">
-            <Input
-              label="Slug (URL)"
-              value={form.slug}
-              onChange={(e) => set('slug', slugify(e.target.value))}
-              placeholder="mon-super-article"
-            />
-            <Input
-              label="Meta description"
-              value={form.metaDescription}
-              onChange={(e) => set('metaDescription', e.target.value)}
-              placeholder="Description pour les moteurs de recherche (150-160 car.)"
-            />
-            <ImageInput label="Image Open Graph (réseaux sociaux)" value={form.ogImage} onChange={(url) => set('ogImage', url)} folder="articles" placeholder="https://... (laissez vide pour utiliser l'image de couverture)" />
+          <div className="space-y-5">
+            {/* Toggle featured — option éditoriale, hors SEOPanel */}
             <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-700/30 rounded-xl">
               <div>
                 <p className="text-sm font-medium text-neutral-900 dark:text-white">Article à la une</p>
@@ -336,13 +355,35 @@ export default function AdminArticles() {
                 {form.featured ? <Star className="w-5 h-5 fill-current" /> : <StarOff className="w-5 h-5" />}
               </button>
             </div>
-            {/* Google preview */}
-            <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800">
-              <p className="text-xs text-neutral-400 mb-2 font-medium uppercase tracking-wide">Aperçu Google</p>
-              <p className="text-blue-600 dark:text-blue-400 text-sm font-medium truncate">{form.title || 'Titre de l\'article'}</p>
-              <p className="text-green-700 dark:text-green-500 text-xs mb-1">maxmorrys.com/blog/{form.slug || 'slug-de-larticle'}</p>
-              <p className="text-neutral-600 dark:text-neutral-400 text-xs line-clamp-2">{form.metaDescription || form.excerpt || 'Description de l\'article...'}</p>
-            </div>
+            {/* Slug */}
+            <Input
+              label="Slug (URL)"
+              value={form.slug}
+              onChange={(e) => set('slug', slugify(e.target.value))}
+              placeholder="mon-super-article"
+            />
+            {/* SEOPanel complet */}
+            <SEOPanel
+              title={form.title}
+              slug={form.slug}
+              content={form.content}
+              excerpt={form.excerpt}
+              coverImage={form.coverImage}
+              siteUrl="https://maxmorrys.me"
+              basePath="blog"
+              focusKeyword={form.focusKeyword}
+              metaTitle={form.metaTitle}
+              metaDescription={form.metaDescription}
+              ogTitle={form.ogTitle}
+              ogDescription={form.ogDescription}
+              ogImage={form.ogImage}
+              twitterTitle={form.twitterTitle}
+              twitterDescription={form.twitterDescription}
+              twitterImage={form.twitterImage}
+              noIndex={form.noIndex}
+              canonicalUrl={form.canonicalUrl}
+              onChange={(field, value) => setForm((prev) => ({ ...prev, [field]: value }))}
+            />
           </div>
         )}
 

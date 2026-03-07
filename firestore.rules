@@ -29,6 +29,12 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + formationId));
     }
 
+    function hasActiveClubSub() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/club_subscriptions/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/club_subscriptions/$(request.auth.uid)).data.status == 'active';
+    }
+
     // Users collection
     match /users/{userId} {
       // Users can read their own profile; admins can read all
@@ -138,13 +144,34 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    // Appointments collection
+    match /appointments/{appointmentId} {
+      // Anyone can book an appointment (public contact form)
+      allow create: if true;
+
+      // Admins and support can read and update appointments
+      allow read, update: if isAdminOrSupport();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
     // Contact messages collection
     match /messages/{messageId} {
       // Users can read their own messages, admins and support can read all
       allow read: if isOwner(resource.data.userId) || isAdminOrSupport();
 
       // Anyone can create a contact message (even non-authenticated)
-      allow create: if true;
+      // Validation : champs requis + tailles max pour limiter le spam
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'message'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 10
+        && request.resource.data.message.size() <= 5000;
 
       // Only admins and support can update (to mark as read/replied)
       allow update: if isAdminOrSupport();
@@ -274,6 +301,85 @@ service cloud.firestore {
 
       // Admins can read all
       allow read: if isAdmin();
+    }
+
+    // Club des Digitos — abonnements
+    match /club_subscriptions/{userId} {
+      // L'utilisateur peut lire son propre abonnement (StudentDashboard)
+      allow read: if isOwner(userId) || isAdmin();
+
+      // L'utilisateur peut créer/mettre à jour le sien (flux de paiement)
+      // L'admin peut créer/mettre à jour n'importe quel abonnement (activation manuelle)
+      allow create, update: if isOwner(userId) || isAdmin();
+
+      // Seul l'admin peut supprimer
+      allow delete: if isAdmin();
+    }
+
+    // Club des Digitos — posts du feed
+    match /club_posts/{postId} {
+      // Membres actifs et admins peuvent lire
+      allow read: if hasActiveClubSub() || isAdmin();
+
+      // Membres actifs peuvent créer leurs propres posts
+      allow create: if (hasActiveClubSub() || isAdmin())
+        && request.auth.uid == request.resource.data.userId;
+
+      // L'auteur peut modifier son post (userId immuable) ; admin peut tout faire
+      // Les membres peuvent mettre à jour uniquement les champs likes, reposts, commentsCount
+      allow update: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin()
+        || ((hasActiveClubSub() || isAdmin()) &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'reposts', 'commentsCount']));
+
+      // L'auteur ou l'admin peut supprimer
+      allow delete: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+
+      // Commentaires (sous-collection)
+      match /comments/{commentId} {
+        allow read: if hasActiveClubSub() || isAdmin();
+        allow create: if (hasActiveClubSub() || isAdmin())
+          && request.auth.uid == request.resource.data.userId;
+        allow delete: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+        allow update: if false;
+      }
+    }
+
+    // Club des Digitos — événements (lecture membres, écriture admin)
+    match /club_events/{eventId} {
+      allow read: if hasActiveClubSub() || isAdmin();
+      allow create, update, delete: if isAdmin();
+
+      // Inscriptions aux événements (sous-collection)
+      match /registrations/{userId} {
+        allow read, create, delete: if (hasActiveClubSub() || isAdmin()) && isOwner(userId);
+        allow read: if isAdmin();
+      }
+    }
+
+    // Club des Digitos — sessions live (lecture membres, écriture admin)
+    match /club_sessions/{sessionId} {
+      allow read: if hasActiveClubSub() || isAdmin();
+      allow create, update, delete: if isAdmin();
+
+      // Inscriptions aux sessions live (sous-collection)
+      match /registrations/{userId} {
+        allow read, create, delete: if (hasActiveClubSub() || isAdmin()) && isOwner(userId);
+        allow read: if isAdmin();
+      }
+    }
+
+    // Club des Digitos — infos exclusives (lecture membres, like membres, écriture admin)
+    match /club_infos/{infoId} {
+      allow read: if hasActiveClubSub() || isAdmin();
+      // Les membres peuvent liker (mettre à jour uniquement le champ likes)
+      allow update: if (hasActiveClubSub() || isAdmin()) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Rate limiting collection (backend only — écrit uniquement par les Cloud Functions)
+    match /_ratelimits/{docId} {
+      allow read, write: if false;
     }
 
     // Default deny all other collections

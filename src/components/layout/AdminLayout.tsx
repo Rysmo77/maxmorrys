@@ -3,28 +3,29 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, GraduationCap, Users, BarChart3, Settings,
   MessageSquare, Tag, Megaphone, HelpCircle, Menu, X, ChevronLeft,
-  Mic, Video, CreditCard, Moon, Sun, LogOut, Calendar, Star
+  Mic, Video, CreditCard, Moon, Sun, LogOut, Calendar, Star, Crown
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 
-const navItems = [
-  { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin' },
-  { icon: FileText, label: 'Articles', path: '/admin/articles' },
-  { icon: GraduationCap, label: 'Formations', path: '/admin/formations' },
-  { icon: Mic, label: 'Podcasts', path: '/admin/podcasts' },
-  { icon: Video, label: 'Videos', path: '/admin/videos' },
-  { icon: Users, label: 'Utilisateurs', path: '/admin/utilisateurs' },
-  { icon: CreditCard, label: 'Transactions', path: '/admin/transactions' },
-  { icon: MessageSquare, label: 'Messages', path: '/admin/messages' },
-  { icon: Tag, label: 'Coupons', path: '/admin/coupons' },
-  { icon: Megaphone, label: 'Annonces', path: '/admin/annonces' },
-  { icon: HelpCircle, label: 'FAQ', path: '/admin/faq' },
-  { icon: Star, label: 'Témoignages', path: '/admin/temoignages' },
-  { icon: Calendar, label: 'Rendez-vous', path: '/admin/rendez-vous' },
-  { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
-  { icon: Settings, label: 'Parametres', path: '/admin/parametres' },
+const ALL_NAV_ITEMS = [
+  { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin', adminOnly: true },
+  { icon: FileText, label: 'Articles', path: '/admin/articles', adminOnly: true },
+  { icon: GraduationCap, label: 'Formations', path: '/admin/formations', adminOnly: true },
+  { icon: Mic, label: 'Podcasts', path: '/admin/podcasts', adminOnly: true },
+  { icon: Video, label: 'Videos', path: '/admin/videos', adminOnly: true },
+  { icon: Users, label: 'Utilisateurs', path: '/admin/utilisateurs', adminOnly: true },
+  { icon: CreditCard, label: 'Transactions', path: '/admin/transactions', adminOnly: true },
+  { icon: MessageSquare, label: 'Messages', path: '/admin/messages', adminOnly: false },
+  { icon: Tag, label: 'Coupons', path: '/admin/coupons', adminOnly: true },
+  { icon: Megaphone, label: 'Annonces', path: '/admin/annonces', adminOnly: true },
+  { icon: HelpCircle, label: 'FAQ', path: '/admin/faq', adminOnly: true },
+  { icon: Star, label: 'Témoignages', path: '/admin/temoignages', adminOnly: false },
+  { icon: Calendar, label: 'Rendez-vous', path: '/admin/rendez-vous', adminOnly: false },
+  { icon: Crown, label: 'Club des Digitos', path: '/admin/club-digitos', adminOnly: true },
+  { icon: BarChart3, label: 'Analytics', path: '/admin/analytics', adminOnly: true },
+  { icon: Settings, label: 'Parametres', path: '/admin/parametres', adminOnly: true },
 ];
 
 export default function AdminLayout() {
@@ -33,7 +34,9 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { signOut } = useAuth();
+  const { signOut, userData } = useAuth();
+  const isAdmin = userData?.role === 'admin';
+  const navItems = ALL_NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
   const handleSignOut = async () => {
     await signOut();
@@ -89,7 +92,7 @@ export default function AdminLayout() {
         </Link>
         <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors">
           <LogOut className="w-5 h-5" />
-          {!collapsed && <span>Deconnexion</span>}
+          {!collapsed && <span>Déconnexion</span>}
         </button>
       </div>
     </div>

@@ -69,8 +69,8 @@ export default function AdminTransactions() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Chiffre d\'affaires', value: `${totalRevenue.toLocaleString('fr-FR')} €`, color: 'text-success-600' },
-          { label: 'Remboursements', value: `${totalRefunded.toLocaleString('fr-FR')} €`, color: 'text-error-600' },
+          { label: 'Chiffre d\'affaires', value: `${totalRevenue.toLocaleString('fr-FR')} FCFA`, color: 'text-success-600' },
+          { label: 'Remboursements', value: `${totalRefunded.toLocaleString('fr-FR')} FCFA`, color: 'text-error-600' },
           { label: 'En attente', value: transactions.filter((t) => t.status === 'pending').length, color: 'text-warning-600' },
         ].map((s, i) => (
           <div key={i} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4">

@@ -5,7 +5,9 @@
       "Bash(firebase functions:log --only rysmo)",
       "Bash(firebase deploy --only storage)",
       "Bash(firebase deploy --only firestore:rules)",
-      "Bash(firebase functions:secrets:access OPENAI_API_KEY)"
+      "Bash(firebase functions:secrets:access OPENAI_API_KEY)",
+      "Bash(npx eslint src/)",
+      "Bash(npm run typecheck)"
     ]
   }
 }

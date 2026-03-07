@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, TrendingUp, Users, Award, BookOpen } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
@@ -34,6 +34,8 @@ export default function Login() {
   const { signIn, signInWithGoogle } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/mon-espace';
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -51,9 +53,9 @@ export default function Login() {
     try {
       await signIn(email, password);
       addToast('success', 'Connexion réussie !');
-      navigate('/mon-espace');
-    } catch (error: any) {
-      addToast('error', error.message || 'Erreur de connexion');
+      navigate(from, { replace: true });
+    } catch (error: unknown) {
+      addToast('error', (error as Error).message || 'Erreur de connexion');
     }
     setLoading(false);
   };
@@ -63,9 +65,9 @@ export default function Login() {
     try {
       await signInWithGoogle();
       addToast('success', 'Connexion réussie !');
-      navigate('/mon-espace');
-    } catch (error: any) {
-      addToast('error', error.message || 'Erreur de connexion avec Google');
+      navigate(from, { replace: true });
+    } catch (error: unknown) {
+      addToast('error', (error as Error).message || 'Erreur de connexion avec Google');
     }
     setGoogleLoading(false);
   };

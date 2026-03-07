@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Users, TrendingUp, BookOpen, FileText, MessageSquare, Mail, Loader2, RefreshCw } from 'lucide-react';
+import { Users, BookOpen, FileText, MessageSquare, Mail, Loader2, RefreshCw } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
+import { useToast } from '../../components/ui/Toast';
 import { getPlatformStats, getAllPosts, getAllFormations, subscribeMessages } from '../../lib/firestore';
 import { formatDate } from '../../lib/utils';
 import type { BlogPost, Formation, ContactMessage } from '../../types';
@@ -19,6 +20,7 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
+  const { addToast } = useToast();
   const [stats, setStats] = useState<Stats | null>(null);
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [formations, setFormations] = useState<Formation[]>([]);
@@ -37,7 +39,7 @@ export default function AdminDashboard() {
       setPosts(p.slice(0, 5));
       setFormations(f.slice(0, 4));
     } catch {
-      // fail silently
+      addToast('error', 'Erreur lors du chargement du tableau de bord.');
     } finally {
       setLoading(false);
     }

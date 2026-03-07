@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Search, Trash2, Edit2, Video as VideoIcon, Loader2, ChevronDown } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import ImageInput from '../../components/ui/ImageInput';
 import { useToast } from '../../components/ui/Toast';
 import { getAllVideos, saveVideo, deleteVideo } from '../../lib/firestore';
-import { slugify, formatDate } from '../../lib/utils';
+import { slugify, formatDate, extractYoutubeVideoId, parseISODuration } from '../../lib/utils';
 import type { Video } from '../../types';
 
 const EMPTY: Omit<Video, 'id'> = {
@@ -23,6 +23,8 @@ export default function AdminVideos() {
   const [editing, setEditing] = useState<Video | null>(null);
   const [form, setForm] = useState<Omit<Video, 'id'>>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [fetchingMeta, setFetchingMeta] = useState(false);
+  const lastFetchedId = useRef<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -31,13 +33,50 @@ export default function AdminVideos() {
 
   useEffect(() => { load(); }, []);
 
+  useEffect(() => {
+    if (!modalOpen) return;
+    const videoId = extractYoutubeVideoId(form.videoUrl);
+    if (!videoId || videoId === lastFetchedId.current) return;
+    lastFetchedId.current = videoId;
+    const fetchMeta = async () => {
+      setFetchingMeta(true);
+      try {
+        const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
+        if (!apiKey) { addToast('error', 'Clé API YouTube manquante (VITE_YOUTUBE_API_KEY).'); return; }
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails,statistics&key=${apiKey}`);
+        const data = await res.json();
+        if (data.error) { addToast('error', `Erreur API YouTube : ${data.error.message}`); return; }
+        const item = data.items?.[0];
+        if (!item) { addToast('error', 'Vidéo YouTube introuvable ou privée.'); return; }
+        const thumb = item.snippet.thumbnails.maxres?.url ?? item.snippet.thumbnails.high?.url ?? item.snippet.thumbnails.medium?.url ?? '';
+        setForm((p) => ({
+          ...p,
+          title: item.snippet.title,
+          description: item.snippet.description,
+          thumbnailUrl: thumb,
+          duration: parseISODuration(item.contentDetails.duration),
+          publishedAt: item.snippet.publishedAt.split('T')[0],
+          views: parseInt(item.statistics?.viewCount ?? '0', 10),
+        }));
+      } catch {
+        addToast('error', 'Impossible de récupérer les infos YouTube.');
+      } finally {
+        setFetchingMeta(false);
+      }
+    };
+    fetchMeta();
+  }, [form.videoUrl, modalOpen]);
+
   const openNew = () => {
+    lastFetchedId.current = null;
     setEditing(null);
     setForm({ ...EMPTY, publishedAt: new Date().toISOString().split('T')[0] });
     setModalOpen(true);
   };
 
   const openEdit = (v: Video) => {
+    // Mémoriser l'ID déjà associé pour ne pas re-fetcher à l'ouverture
+    lastFetchedId.current = extractYoutubeVideoId(v.videoUrl) ?? null;
     setEditing(v);
     setForm({ title: v.title, slug: v.slug, description: v.description, videoUrl: v.videoUrl, thumbnailUrl: v.thumbnailUrl, duration: v.duration, publishedAt: v.publishedAt?.split('T')[0] ?? '', category: v.category, status: v.status, views: v.views });
     setModalOpen(true);
@@ -208,8 +247,15 @@ export default function AdminVideos() {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-500">URL Vidéo (YouTube / Vimeo embed)</label>
-                <input value={form.videoUrl} onChange={(e) => setForm((p) => ({ ...p, videoUrl: e.target.value }))} placeholder="https://www.youtube.com/embed/..." className={inputCls} />
+                <label className="text-xs font-medium text-neutral-500">URL Vidéo (YouTube)</label>
+                <div className="relative">
+                  <input value={form.videoUrl} onChange={(e) => setForm((p) => ({ ...p, videoUrl: e.target.value }))} placeholder="https://www.youtube.com/watch?v=... ou youtu.be/..." className={`${inputCls} pr-9`} />
+                  {fetchingMeta && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-500" />
+                    </div>
+                  )}
+                </div>
               </div>
               <ImageInput label="Miniature" value={form.thumbnailUrl} onChange={(url) => setForm((p) => ({ ...p, thumbnailUrl: url }))} folder="videos" />
               <div className="space-y-1">

@@ -45,7 +45,7 @@ export default function VideoDetail() {
   return (
     <div>
       {/* ── HERO ── */}
-      <section className="pt-28 pb-0 lg:pt-36 bg-neutral-50 dark:bg-neutral-900">
+      <section className="pt-28 pb-12 lg:pt-36 lg:pb-16 bg-neutral-50 dark:bg-neutral-900">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             to="/videos"
@@ -134,9 +134,16 @@ export default function VideoDetail() {
                 )}
               </div>
 
-              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                {video.description}
-              </p>
+              {video.description && (
+                <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800 p-6">
+                  <h2 className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 mb-3">
+                    Description
+                  </h2>
+                  <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed whitespace-pre-line">
+                    {video.description}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Autres vidéos */}

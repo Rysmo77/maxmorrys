@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Clock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Clock, ArrowRight, Loader2, AlertCircle, MessageSquare, Rss } from 'lucide-react';
 import { getPublishedPosts } from '../lib/firestore';
 import { formatDate, truncate } from '../lib/utils';
 import type { BlogPost } from '../types';
@@ -23,13 +23,16 @@ export default function Blog() {
 
   useEffect(() => { load(); }, []);
 
-  const categories = ['Tous', ...Array.from(new Set(posts.map((p) => p.category).filter(Boolean)))];
+  const categories = useMemo(
+    () => ['Tous', ...Array.from(new Set(posts.map((p) => p.category).filter(Boolean)))],
+    [posts]
+  );
 
-  const filtered = posts.filter((post) => {
+  const filtered = useMemo(() => posts.filter((post) => {
     const matchesSearch = post.title.toLowerCase().includes(search.toLowerCase()) || post.excerpt.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = activeCategory === 'Tous' || post.category === activeCategory;
     return matchesSearch && matchesCategory;
-  });
+  }), [posts, search, activeCategory]);
 
   const featuredPost = activeCategory === 'Tous' && !search ? filtered[0] : null;
   const gridPosts = featuredPost ? filtered.slice(1) : filtered;
@@ -41,14 +44,14 @@ export default function Blog() {
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
-            RESSOURCES
+            BLOG
           </p>
           <div className="grid lg:grid-cols-2 gap-8 items-end mb-12">
             <h1 className="text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
-              Blog
+              Ne manque aucune news
             </h1>
             <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed lg:pb-2">
-              Articles, analyses et conseils pratiques pour maîtriser le marketing digital, le SEO et l'IA.
+              Les choses vont tellement vite en marketing qu'il ne faut rien rater des tendaces et nouveautés. Mais je te dis tout ; pas de secret entre nous !
             </p>
           </div>
 
@@ -179,6 +182,62 @@ export default function Blog() {
           )}
         </div>
       </div>
+
+      {/* ── CLUB DES DIGITOS PROMO ── */}
+      <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-3xl bg-neutral-900 dark:bg-neutral-900 dark:border dark:border-white/10 overflow-hidden">
+            <div className="grid lg:grid-cols-2 gap-0">
+
+              {/* Left: yellow panel */}
+              <div className="bg-yellow-400 p-10 lg:p-12 flex flex-col justify-between">
+                <div>
+                  <p className="text-xs font-bold tracking-[0.3em] uppercase text-yellow-900/60 mb-5">CLUB DES DIGITOS</p>
+                  <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 leading-[0.95] mb-4">
+                    Échange avec moi<br />& la communauté
+                  </h2>
+                  <p className="text-neutral-900/70 leading-relaxed text-base mb-8">
+                    Le blog, c'est bien. Mais dans le Club, on va plus loin : pose tes questions directement dans le forum, réagis aux actus du moment sur le fil, et discute avec moi et les autres membres.
+                  </p>
+                </div>
+                <Link
+                  to="/mon-espace"
+                  className="inline-flex items-center gap-2 self-start px-7 py-3.5 bg-neutral-900 text-white font-bold rounded-full hover:bg-neutral-800 transition-colors text-sm tracking-wide"
+                >
+                  Rejoindre le Club <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              {/* Right: features */}
+              <div className="p-10 lg:p-12 flex flex-col justify-center gap-8">
+                <div className="flex gap-5 items-start">
+                  <div className="w-12 h-12 rounded-2xl bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center flex-shrink-0">
+                    <Rss className="w-5 h-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-white text-base mb-1">Fil d'actualité</h3>
+                    <p className="text-neutral-400 text-sm leading-relaxed">Les dernières infos du digital filtrées et commentées par moi — directement dans ton feed.</p>
+                  </div>
+                </div>
+                <div className="flex gap-5 items-start">
+                  <div className="w-12 h-12 rounded-2xl bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center flex-shrink-0">
+                    <MessageSquare className="w-5 h-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-white text-base mb-1">Forum & discussions avec moi</h3>
+                    <p className="text-neutral-400 text-sm leading-relaxed">Pose tes questions, partage tes avancées et discute directement avec moi et toute la communauté.</p>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-white/10 flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-white">10 000</span>
+                  <span className="text-yellow-400 font-bold">FCFA / an</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── CTA croisé → Podcast ── */}
       <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">

@@ -284,6 +284,7 @@ export const podcasts: Podcast[] = [
     duration: '45min',
     publishedAt: '2026-02-18',
     category: 'Marketing',
+    status: 'published',
   },
   {
     id: '2',
@@ -295,6 +296,7 @@ export const podcasts: Podcast[] = [
     duration: '38min',
     publishedAt: '2026-02-10',
     category: 'Personal Branding',
+    status: 'published',
   },
   {
     id: '3',
@@ -306,6 +308,7 @@ export const podcasts: Podcast[] = [
     duration: '52min',
     publishedAt: '2026-01-25',
     category: 'IA',
+    status: 'published',
   },
 ];
 
@@ -321,6 +324,7 @@ export const videos: Video[] = [
     publishedAt: '2026-02-22',
     category: 'SEO',
     views: 12500,
+    status: 'published',
   },
   {
     id: '2',
@@ -333,6 +337,7 @@ export const videos: Video[] = [
     publishedAt: '2026-02-14',
     category: 'Reseaux Sociaux',
     views: 8900,
+    status: 'published',
   },
   {
     id: '3',
@@ -345,6 +350,7 @@ export const videos: Video[] = [
     publishedAt: '2026-02-06',
     category: 'IA',
     views: 21300,
+    status: 'published',
   },
 ];
 

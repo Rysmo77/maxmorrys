@@ -56,10 +56,10 @@ export default function AdminSettings() {
   useEffect(() => {
     getSiteSettings().then((data) => {
       if (data && Object.keys(data).length > 0) {
-        setSettings({ ...DEFAULT, ...(data as Settings) });
+        setSettings({ ...DEFAULT, ...(data as Partial<Settings>) });
       }
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch(() => { addToast('error', 'Erreur lors du chargement des paramètres.'); setLoading(false); });
   }, []);
 
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) =>
@@ -68,7 +68,7 @@ export default function AdminSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveSiteSettings(settings as unknown as Record<string, unknown>);
+      await saveSiteSettings(settings as Record<string, unknown>);
       addToast('success', 'Paramètres enregistrés avec succès.');
     } catch {
       addToast('error', 'Erreur lors de l\'enregistrement. Veuillez réessayer.');

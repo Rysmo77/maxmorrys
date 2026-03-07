@@ -35,6 +35,18 @@ export const rysmo = onCall(
       throw new HttpsError('invalid-argument', 'Le message ne peut pas être vide.');
     }
 
+    // Rate limiting : max 50 appels par heure par utilisateur
+    const uid = request.auth.uid;
+    const windowStart = Date.now() - 60 * 60 * 1000; // 1 heure
+    const rateLimitRef = admin.firestore().doc(`_ratelimits/rysmo_${uid}`);
+    const rateLimitSnap = await rateLimitRef.get();
+    const rateLimitData = rateLimitSnap.data() ?? { calls: [] as number[] };
+    const recentCalls: number[] = (rateLimitData.calls as number[]).filter((t) => t > windowStart);
+    if (recentCalls.length >= 50) {
+      throw new HttpsError('resource-exhausted', 'Limite d\'utilisation atteinte. Réessaie dans une heure.');
+    }
+    await rateLimitRef.set({ calls: [...recentCalls, Date.now()] });
+
     // Tronquer le message à 2000 caractères
     const safeMessage = message.trim().slice(0, 2000);
 
@@ -132,8 +144,12 @@ export const adminCreateUser = onCall(
     if (!email || !password || !displayName) {
       throw new HttpsError('invalid-argument', 'Email, mot de passe et nom sont obligatoires.');
     }
-    if (password.length < 6) {
-      throw new HttpsError('invalid-argument', 'Le mot de passe doit contenir au moins 6 caractères.');
+    const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!EMAIL_RE.test(email.trim())) {
+      throw new HttpsError('invalid-argument', 'Format d\'email invalide.');
+    }
+    if (password.length < 8) {
+      throw new HttpsError('invalid-argument', 'Le mot de passe doit contenir au moins 8 caractères.');
     }
 
     // Create Firebase Auth user

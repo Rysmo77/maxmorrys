@@ -15,6 +15,7 @@ import { getAllFormations, saveFormation, deleteFormation } from '../../lib/fire
 import { formatPrice, slugify } from '../../lib/utils';
 import { cn } from '../../lib/utils';
 import type { Formation, Module, Lesson } from '../../types';
+import SEOPanel from '../../components/shared/SEOPanel';
 
 const levelLabels: Record<string, string> = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
 const lessonTypeIcons: Record<string, React.FC<{ className?: string }>> = {
@@ -39,7 +40,15 @@ type FormState = {
   status: 'draft' | 'published';
   featured: boolean;
   certificateEnabled: boolean;
+  // SEO
+  focusKeyword: string;
+  metaTitle: string;
   metaDescription: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogImage: string;
+  noIndex: boolean;
+  canonicalUrl: string;
   modules: Module[];
 };
 
@@ -47,11 +56,13 @@ const EMPTY_FORM: FormState = {
   title: '', slug: '', description: '', longDescription: '', category: '',
   price: '', promoPrice: '', level: 'debutant', coverImage: '', duration: '',
   tags: '', status: 'draft', featured: false, certificateEnabled: true,
-  metaDescription: '', modules: [],
+  focusKeyword: '', metaTitle: '', metaDescription: '', ogTitle: '',
+  ogDescription: '', ogImage: '', noIndex: false, canonicalUrl: '',
+  modules: [],
 };
 
 function generateId() {
-  return Math.random().toString(36).substring(2, 10);
+  return crypto.randomUUID();
 }
 
 export default function AdminFormations() {
@@ -108,7 +119,14 @@ export default function AdminFormations() {
       status: f.status,
       featured: f.featured ?? false,
       certificateEnabled: f.certificateEnabled ?? true,
-      metaDescription: (f as Formation & { metaDescription?: string }).metaDescription ?? f.description,
+      focusKeyword: f.focusKeyword ?? '',
+      metaTitle: f.metaTitle ?? '',
+      metaDescription: f.metaDescription ?? f.description,
+      ogTitle: f.ogTitle ?? '',
+      ogDescription: f.ogDescription ?? '',
+      ogImage: f.ogImage ?? f.coverImage,
+      noIndex: f.noIndex ?? false,
+      canonicalUrl: f.canonicalUrl ?? '',
       modules: f.modules ?? [],
     });
     setExpandedModules(new Set());
@@ -140,11 +158,18 @@ export default function AdminFormations() {
         status,
         featured: form.featured,
         certificateEnabled: form.certificateEnabled,
+        focusKeyword: form.focusKeyword.trim(),
+        metaTitle: form.metaTitle.trim(),
         metaDescription: form.metaDescription.trim() || form.description.trim(),
+        ogTitle: form.ogTitle.trim(),
+        ogDescription: form.ogDescription.trim(),
+        ogImage: form.ogImage.trim() || form.coverImage.trim(),
+        noIndex: form.noIndex,
+        canonicalUrl: form.canonicalUrl.trim(),
         modules: form.modules,
         students: existing?.students ?? 0,
         rating: existing?.rating ?? 0,
-      } as Omit<Formation, 'id'> & { metaDescription: string };
+      } as Omit<Formation, 'id'>;
       await saveFormation(data, editingId ?? undefined);
       addToast('success', editingId ? 'Formation mise à jour.' : 'Formation créée.');
       setShowModal(false);
@@ -158,9 +183,13 @@ export default function AdminFormations() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer cette formation ?')) return;
-    await deleteFormation(id).catch(() => addToast('error', 'Erreur de suppression.'));
-    addToast('success', 'Formation supprimée.');
-    setList((prev) => prev.filter((f) => f.id !== id));
+    try {
+      await deleteFormation(id);
+      setList((prev) => prev.filter((f) => f.id !== id));
+      addToast('success', 'Formation supprimée.');
+    } catch {
+      addToast('error', 'Erreur lors de la suppression.');
+    }
   };
 
   const toggleStatus = async (f: Formation) => {
@@ -386,7 +415,7 @@ export default function AdminFormations() {
                       <div className="flex items-center gap-0.5">
                         <button onClick={() => moveModule(mIndex, -1)} disabled={mIndex === 0} className="p-1 rounded text-neutral-400 hover:text-neutral-600 disabled:opacity-30 transition-colors"><ChevronUp className="w-3.5 h-3.5" /></button>
                         <button onClick={() => moveModule(mIndex, 1)} disabled={mIndex === form.modules.length - 1} className="p-1 rounded text-neutral-400 hover:text-neutral-600 disabled:opacity-30 transition-colors"><ChevronDown className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setExpandedModules((prev) => { const n = new Set(prev); n.has(module.id) ? n.delete(module.id) : n.add(module.id); return n; })} className="p-1 rounded text-neutral-400 hover:text-neutral-600 transition-colors">
+                        <button onClick={() => setExpandedModules((prev) => { const n = new Set(prev); if (n.has(module.id)) { n.delete(module.id); } else { n.add(module.id); } return n; })} className="p-1 rounded text-neutral-400 hover:text-neutral-600 transition-colors">
                           {expandedModules.has(module.id) ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                         </button>
                         <button onClick={() => deleteModule(module.id)} className="p-1 rounded text-neutral-400 hover:text-error-600 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -430,9 +459,8 @@ export default function AdminFormations() {
         )}
 
         {activeTab === 'settings' && (
-          <div className="space-y-4">
-            <Input label="Slug (URL)" value={form.slug} onChange={(e) => set('slug', slugify(e.target.value))} placeholder="nom-de-la-formation" />
-            <Input label="Meta description SEO" value={form.metaDescription} onChange={(e) => set('metaDescription', e.target.value)} placeholder="Description pour les moteurs de recherche (150-160 car.)" />
+          <div className="space-y-5">
+            {/* Toggles éditoriaux */}
             <div className="space-y-2">
               {[
                 { key: 'featured' as const, label: 'Formation à la une', desc: 'Mettre en avant sur la page d\'accueil' },
@@ -449,12 +477,27 @@ export default function AdminFormations() {
                 </div>
               ))}
             </div>
-            <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800">
-              <p className="text-xs text-neutral-400 mb-2 font-medium uppercase tracking-wide">Aperçu Google</p>
-              <p className="text-blue-600 dark:text-blue-400 text-sm font-medium truncate">{form.title || 'Titre de la formation'}</p>
-              <p className="text-green-700 dark:text-green-500 text-xs mb-1">maxmorrys.com/formations/{form.slug || 'slug-formation'}</p>
-              <p className="text-neutral-600 dark:text-neutral-400 text-xs line-clamp-2">{form.metaDescription || form.description || 'Description...'}</p>
-            </div>
+            {/* Slug */}
+            <Input label="Slug (URL)" value={form.slug} onChange={(e) => set('slug', slugify(e.target.value))} placeholder="nom-de-la-formation" />
+            {/* SEOPanel complet (sans Twitter) */}
+            <SEOPanel
+              title={form.title}
+              slug={form.slug}
+              content={form.longDescription || form.description}
+              excerpt={form.description}
+              coverImage={form.coverImage}
+              siteUrl="https://maxmorrys.me"
+              basePath="formations"
+              focusKeyword={form.focusKeyword}
+              metaTitle={form.metaTitle}
+              metaDescription={form.metaDescription}
+              ogTitle={form.ogTitle}
+              ogDescription={form.ogDescription}
+              ogImage={form.ogImage}
+              noIndex={form.noIndex}
+              canonicalUrl={form.canonicalUrl}
+              onChange={(field, value) => setForm((prev) => ({ ...prev, [field]: value }))}
+            />
           </div>
         )}
 

@@ -36,6 +36,18 @@ export interface BlogPost {
   readTime: number;
   featured: boolean;
   status: 'draft' | 'published' | 'scheduled';
+  // SEO
+  metaTitle?: string;
+  metaDescription?: string;
+  focusKeyword?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImage?: string;
+  noIndex?: boolean;
+  canonicalUrl?: string;
 }
 
 export interface Formation {
@@ -57,6 +69,15 @@ export interface Formation {
   status: 'draft' | 'published';
   featured: boolean;
   certificateEnabled: boolean;
+  // SEO
+  metaTitle?: string;
+  metaDescription?: string;
+  focusKeyword?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  noIndex?: boolean;
+  canonicalUrl?: string;
 }
 
 export interface Module {
@@ -176,6 +197,7 @@ export interface ContactMessage {
   message: string;
   sentAt: string;
   status: 'new' | 'read' | 'replied';
+  userId?: string;
 }
 
 export interface Coupon {
@@ -227,4 +249,110 @@ export interface Certificate {
   formationTitle: string;
   issuedAt: string;
   certificateCode: string;
+}
+
+// ── Club des Digitos ──────────────────────────────────────────────────────────
+
+export interface ClubDigitosSubscription {
+  id: string;
+  userId: string;
+  userEmail?: string;
+  userName?: string;
+  startedAt: string;
+  expiresAt: string;
+  autoRenew: boolean;
+  status: 'active' | 'expired' | 'cancelled' | 'pending';
+  amount: number;
+}
+
+export type ClubPostCategory =
+  | 'general'
+  | 'question'
+  | 'ressource'
+  | 'temoignage'
+  | 'opportunite'
+  | 'discussion';
+
+export interface ClubDigitosPost {
+  id: string;
+  userId: string;
+  userName: string;
+  userPhoto?: string;
+  content: string;
+  createdAt: string;
+  likes: string[];
+  reposts: string[];
+  commentsCount: number;
+  type: 'post' | 'discussion';
+  category: ClubPostCategory;
+  title?: string;
+  mood?: string;
+  mediaUrl?: string;
+  isAdmin?: boolean;
+  sharedFrom?: string;
+}
+
+export interface ClubDigitosComment {
+  id: string;
+  postId: string;
+  userId: string;
+  userName: string;
+  userPhoto?: string;
+  content: string;
+  createdAt: string;
+  isAdmin?: boolean;
+}
+
+export interface ClubDigitosEvent {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time?: string;
+  location: string;
+  type: 'online' | 'physical';
+  link?: string;
+  imageUrl?: string;
+  status: 'upcoming' | 'past';
+  createdAt: string;
+}
+
+export interface ClubDigitosSession {
+  id: string;
+  title: string;
+  description: string;
+  scheduledAt: string;
+  link?: string;
+  imageUrl?: string;
+  status: 'upcoming' | 'past';
+  duration?: string;
+  createdAt: string;
+}
+
+export interface ClubDigitosInfo {
+  id: string;
+  title: string;
+  content: string;
+  publishedAt: string;
+  type: 'article' | 'resource' | 'announcement';
+  link?: string;
+  likes: string[];
+}
+
+export interface ClubEventRegistration {
+  id: string;
+  eventId: string;
+  userId: string;
+  userName: string;
+  userEmail?: string;
+  registeredAt: string;
+}
+
+export interface ClubSessionRegistration {
+  id: string;
+  sessionId: string;
+  userId: string;
+  userName: string;
+  userEmail?: string;
+  registeredAt: string;
 }

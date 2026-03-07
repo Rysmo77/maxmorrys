@@ -1,6 +1,7 @@
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, where, orderBy, limit, onSnapshot, serverTimestamp, documentId,
+  arrayUnion, arrayRemove, getCountFromServer, increment,
   type QueryConstraint, type Unsubscribe, type DocumentData,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -84,8 +85,8 @@ export async function getPublishedFormations(): Promise<Formation[]> {
   const data = await getCollection<Formation>('formations', where('status', '==', 'published'));
   return data.sort((a, b) => {
     const da = (a as Formation & { createdAt?: string }).createdAt ?? '';
-    const db_ = (b as Formation & { createdAt?: string }).createdAt ?? '';
-    return db_.localeCompare(da);
+    const bCreatedAt = (b as Formation & { createdAt?: string }).createdAt ?? '';
+    return bCreatedAt.localeCompare(da);
   });
 }
 
@@ -210,27 +211,30 @@ export async function getNewsletterCount(): Promise<number> {
 // ── Platform stats ────────────────────────────────────────────────────────────
 
 export async function getPlatformStats() {
-  const [users, formations, blog, messages, enrollments, newsletter] = await Promise.all([
-    getDocs(collection(db, 'users')),
-    getDocs(collection(db, 'formations')),
-    getDocs(collection(db, 'blog')),
-    getDocs(collection(db, 'messages')),
-    getDocs(collection(db, 'enrollments')),
-    getDocs(collection(db, 'newsletter')),
+  const [
+    usersSnap, formationsSnap, blogSnap, messagesSnap, enrollmentsSnap, newsletterSnap,
+    publishedFormationsSnap, publishedPostsSnap, newMessagesSnap,
+  ] = await Promise.all([
+    getCountFromServer(collection(db, 'users')),
+    getCountFromServer(collection(db, 'formations')),
+    getCountFromServer(collection(db, 'blog')),
+    getCountFromServer(collection(db, 'messages')),
+    getCountFromServer(collection(db, 'enrollments')),
+    getCountFromServer(collection(db, 'newsletter')),
+    getCountFromServer(query(collection(db, 'formations'), where('status', '==', 'published'))),
+    getCountFromServer(query(collection(db, 'blog'), where('status', '==', 'published'))),
+    getCountFromServer(query(collection(db, 'messages'), where('status', '==', 'new'))),
   ]);
-  const newMessages = messages.docs.filter((d) => d.data().status === 'new').length;
-  const publishedPosts = blog.docs.filter((d) => d.data().status === 'published').length;
-  const publishedFormations = formations.docs.filter((d) => d.data().status === 'published').length;
   return {
-    users: users.size,
-    formations: formations.size,
-    publishedFormations,
-    articles: blog.size,
-    publishedPosts,
-    messages: messages.size,
-    newMessages,
-    enrollments: enrollments.size,
-    subscribers: newsletter.size,
+    users: usersSnap.data().count,
+    formations: formationsSnap.data().count,
+    publishedFormations: publishedFormationsSnap.data().count,
+    articles: blogSnap.data().count,
+    publishedPosts: publishedPostsSnap.data().count,
+    messages: messagesSnap.data().count,
+    newMessages: newMessagesSnap.data().count,
+    enrollments: enrollmentsSnap.data().count,
+    subscribers: newsletterSnap.data().count,
   };
 }
 
@@ -279,7 +283,7 @@ export async function issueCertificate(userId: string, formationId: string, form
   const certId = `${userId}_${formationId}`;
   const existing = await getDocById<Certificate>('certificates', certId);
   if (existing) return certId;
-  const certificateCode = `MM-${Date.now().toString(36).toUpperCase()}`;
+  const certificateCode = `MM-${crypto.randomUUID().replace(/-/g, '').substring(0, 10).toUpperCase()}`;
   await setDocById('certificates', certId, {
     userId,
     formationId,
@@ -290,8 +294,8 @@ export async function issueCertificate(userId: string, formationId: string, form
   return certId;
 }
 
-export async function getUserMessages(email: string): Promise<import('../types').ContactMessage[]> {
-  const data = await getCollection<import('../types').ContactMessage>('messages', where('email', '==', email));
+export async function getUserMessages(userId: string): Promise<import('../types').ContactMessage[]> {
+  const data = await getCollection<import('../types').ContactMessage>('messages', where('userId', '==', userId));
   return data.sort((a, b) => b.sentAt.localeCompare(a.sentAt));
 }
 
@@ -496,3 +500,221 @@ export async function submitTestimonial(data: {
 
 // Export serverTimestamp for use in components
 export { serverTimestamp };
+
+// ── Club des Digitos ──────────────────────────────────────────────────────────
+
+import type {
+  ClubDigitosSubscription, ClubDigitosPost, ClubDigitosEvent,
+  ClubDigitosSession, ClubDigitosInfo, ClubDigitosComment,
+  ClubEventRegistration, ClubSessionRegistration,
+} from '../types';
+
+export async function getClubSubscription(userId: string): Promise<ClubDigitosSubscription | null> {
+  return getDocById<ClubDigitosSubscription>('club_subscriptions', userId);
+}
+
+export async function activateClubSubscription(
+  userId: string, userEmail: string, userName: string, autoRenew: boolean,
+): Promise<void> {
+  const now = new Date();
+  const expiresAt = new Date(now);
+  expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+  await setDocById('club_subscriptions', userId, {
+    userId,
+    userEmail,
+    userName,
+    startedAt: now.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    autoRenew,
+    status: 'pending',
+    amount: 10000,
+  } as DocumentData);
+}
+
+export async function updateClubSubscriptionStatus(
+  userId: string, status: ClubDigitosSubscription['status'],
+): Promise<void> {
+  return updateDocById('club_subscriptions', userId, { status });
+}
+
+export async function getAllClubSubscriptions(): Promise<ClubDigitosSubscription[]> {
+  const data = await getCollection<ClubDigitosSubscription>('club_subscriptions');
+  return data.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+}
+
+// Club Posts
+export async function getClubPosts(limitN = 50): Promise<ClubDigitosPost[]> {
+  const data = await getCollection<ClubDigitosPost>('club_posts');
+  return data.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limitN);
+}
+
+export async function createClubPost(
+  data: Omit<ClubDigitosPost, 'id' | 'likes' | 'reposts' | 'commentsCount' | 'createdAt'>,
+): Promise<string> {
+  return createDoc('club_posts', {
+    ...data,
+    likes: [],
+    reposts: [],
+    commentsCount: 0,
+    createdAt: new Date().toISOString(),
+  } as DocumentData);
+}
+
+export async function deleteClubPost(id: string): Promise<void> {
+  return deleteDocById('club_posts', id);
+}
+
+export async function likeClubPost(postId: string, userId: string, liked: boolean): Promise<void> {
+  await updateDoc(doc(db, 'club_posts', postId), {
+    likes: liked ? arrayUnion(userId) : arrayRemove(userId),
+  });
+}
+
+export async function repostClubPost(postId: string, userId: string, reposted: boolean): Promise<void> {
+  await updateDoc(doc(db, 'club_posts', postId), {
+    reposts: reposted ? arrayUnion(userId) : arrayRemove(userId),
+  });
+}
+
+// Club Comments (subcollection under club_posts)
+export async function getClubComments(postId: string): Promise<ClubDigitosComment[]> {
+  const data = await getCollection<ClubDigitosComment>(`club_posts/${postId}/comments`);
+  return data.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+export async function addClubComment(
+  postId: string,
+  data: Omit<ClubDigitosComment, 'id' | 'postId' | 'createdAt'>,
+): Promise<string> {
+  const id = await createDoc(`club_posts/${postId}/comments`, {
+    ...data,
+    postId,
+    createdAt: new Date().toISOString(),
+  });
+  // Increment commentsCount on the post
+  await updateDoc(doc(db, 'club_posts', postId), {
+    commentsCount: increment(1),
+  });
+  return id;
+}
+
+export async function deleteClubComment(postId: string, commentId: string): Promise<void> {
+  await deleteDocById(`club_posts/${postId}/comments`, commentId);
+  await updateDoc(doc(db, 'club_posts', postId), {
+    commentsCount: increment(-1),
+  });
+}
+
+// Club Events
+export async function getClubEvents(): Promise<ClubDigitosEvent[]> {
+  const data = await getCollection<ClubDigitosEvent>('club_events');
+  return data.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export async function saveClubEvent(
+  data: Omit<ClubDigitosEvent, 'id'> & { id?: string },
+): Promise<string> {
+  const { id, ...rest } = data;
+  if (id) {
+    await setDocById('club_events', id, rest as DocumentData);
+    return id;
+  }
+  return createDoc('club_events', rest as DocumentData);
+}
+
+export async function deleteClubEvent(id: string): Promise<void> {
+  return deleteDocById('club_events', id);
+}
+
+// Club Live Sessions
+export async function getClubSessions(): Promise<ClubDigitosSession[]> {
+  const data = await getCollection<ClubDigitosSession>('club_sessions');
+  return data.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+}
+
+export async function saveClubSession(
+  data: Omit<ClubDigitosSession, 'id'> & { id?: string },
+): Promise<string> {
+  const { id, ...rest } = data;
+  if (id) {
+    await setDocById('club_sessions', id, rest as DocumentData);
+    return id;
+  }
+  return createDoc('club_sessions', rest as DocumentData);
+}
+
+export async function deleteClubSession(id: string): Promise<void> {
+  return deleteDocById('club_sessions', id);
+}
+
+// Club Exclusive Infos
+export async function getClubExclusiveInfos(): Promise<ClubDigitosInfo[]> {
+  const data = await getCollection<ClubDigitosInfo>('club_infos');
+  return data.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+}
+
+export async function saveClubInfo(
+  data: Omit<ClubDigitosInfo, 'id'> & { id?: string },
+): Promise<string> {
+  const { id, likes, ...rest } = data;
+  if (id) {
+    // Use updateDoc to preserve the existing likes array
+    await updateDoc(doc(db, 'club_infos', id), rest as DocumentData);
+    return id;
+  }
+  return createDoc('club_infos', { likes: likes ?? [], ...rest } as DocumentData);
+}
+
+export async function deleteClubInfo(id: string): Promise<void> {
+  return deleteDocById('club_infos', id);
+}
+
+export async function likeClubInfo(infoId: string, userId: string, liked: boolean): Promise<void> {
+  await updateDoc(doc(db, 'club_infos', infoId), {
+    likes: liked ? arrayUnion(userId) : arrayRemove(userId),
+  });
+}
+
+// Club Event Registrations
+export async function registerForClubEvent(
+  eventId: string, userId: string, userName: string, userEmail?: string,
+): Promise<void> {
+  await setDoc(doc(db, 'club_events', eventId, 'registrations', userId), {
+    eventId, userId, userName, userEmail: userEmail ?? '', registeredAt: new Date().toISOString(),
+  });
+}
+
+export async function unregisterFromClubEvent(eventId: string, userId: string): Promise<void> {
+  await deleteDoc(doc(db, 'club_events', eventId, 'registrations', userId));
+}
+
+export async function isRegisteredForEvent(eventId: string, userId: string): Promise<boolean> {
+  const snap = await getDoc(doc(db, 'club_events', eventId, 'registrations', userId));
+  return snap.exists();
+}
+
+export async function getEventRegistrations(eventId: string): Promise<ClubEventRegistration[]> {
+  return getCollection<ClubEventRegistration>(`club_events/${eventId}/registrations`);
+}
+
+// Club Session Registrations
+export async function registerForClubSession(
+  sessionId: string, userId: string, userName: string, userEmail?: string,
+): Promise<void> {
+  await setDoc(doc(db, 'club_sessions', sessionId, 'registrations', userId), {
+    sessionId, userId, userName, userEmail: userEmail ?? '', registeredAt: new Date().toISOString(),
+  });
+}
+
+export async function unregisterFromClubSession(sessionId: string, userId: string): Promise<void> {
+  await deleteDoc(doc(db, 'club_sessions', sessionId, 'registrations', userId));
+}
+
+export async function isRegisteredForSession(sessionId: string, userId: string): Promise<boolean> {
+  const snap = await getDoc(doc(db, 'club_sessions', sessionId, 'registrations', userId));
+  return snap.exists();
+}
+
+export async function getSessionRegistrations(sessionId: string): Promise<ClubSessionRegistration[]> {
+  return getCollection<ClubSessionRegistration>(`club_sessions/${sessionId}/registrations`);
+}

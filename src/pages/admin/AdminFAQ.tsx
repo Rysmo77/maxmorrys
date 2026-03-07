@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, HelpCircle, Loader2, ChevronDown, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Edit2, HelpCircle, Loader2, GripVertical } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import { getAllFAQ, saveFAQItem, deleteFAQItem } from '../../lib/firestore';
@@ -19,7 +19,8 @@ export default function AdminFAQ() {
 
   const load = () => {
     setLoading(true);
-    getAllFAQ().then((data) => { setFaq(data); setLoading(false); }).catch(() => setLoading(false));
+    getAllFAQ().then((data) => { setFaq(data); setLoading(false); })
+      .catch(() => { addToast('error', 'Erreur lors du chargement des questions.'); setLoading(false); });
   };
 
   useEffect(() => { load(); }, []);
@@ -55,9 +56,13 @@ export default function AdminFAQ() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer cette question ?')) return;
-    await deleteFAQItem(id).catch(() => addToast('error', 'Erreur de suppression.'));
-    setFaq((prev) => prev.filter((f) => f.id !== id));
-    addToast('success', 'Question supprimée.');
+    try {
+      await deleteFAQItem(id);
+      setFaq((prev) => prev.filter((f) => f.id !== id));
+      addToast('success', 'Question supprimée.');
+    } catch {
+      addToast('error', 'Erreur lors de la suppression.');
+    }
   };
 
   const filtered = faq.filter((f) => categoryFilter === 'all' || f.category === categoryFilter);

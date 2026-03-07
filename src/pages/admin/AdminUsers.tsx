@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Search, Mail, Calendar, Shield, Loader2, UserCog,
-  Plus, X, Save, Trash2, BookOpen, CheckCircle,
+  Plus, X, Save, Trash2, BookOpen, CheckCircle, Crown,
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -10,6 +10,7 @@ import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import {
   getAllUsers, adminUpdateUser, getUserEnrollments, getAllFormations,
+  getClubSubscription, updateClubSubscriptionStatus, activateClubSubscription,
 } from '../../lib/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../config/firebase';
@@ -18,14 +19,16 @@ const adminManageEnrollment = httpsCallable<
   { action: 'create' | 'delete'; userId: string; formationId: string },
   { success: boolean; enrollmentId?: string }
 >(functions, 'adminManageEnrollment');
-import type { User, Enrollment, Formation } from '../../types';
+
+const adminCreateUser = httpsCallable(functions, 'adminCreateUser');
+import type { User, Enrollment, Formation, ClubDigitosSubscription } from '../../types';
 
 const roleLabels: Record<string, string> = { admin: 'Admin', support: 'Support', student: 'Étudiant' };
 const roleVariants: Record<string, 'error' | 'warning' | 'default'> = { admin: 'error', support: 'warning', student: 'default' };
 
 const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
 
-type EditTab = 'info' | 'formations';
+type EditTab = 'info' | 'formations' | 'club';
 
 const emptyEditForm = {
   displayName: '',
@@ -62,6 +65,11 @@ export default function AdminUsers() {
   const [addingFormation, setAddingFormation] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
+  // Club des Digitos tab
+  const [clubSub, setClubSub] = useState<ClubDigitosSubscription | null>(null);
+  const [loadingClubSub, setLoadingClubSub] = useState(false);
+  const [togglingClub, setTogglingClub] = useState(false);
+
   // Add user modal
   const [showAddUser, setShowAddUser] = useState(false);
   const [addForm, setAddForm] = useState({
@@ -96,6 +104,7 @@ export default function AdminUsers() {
   const openEditUser = (u: User) => {
     setEditUser(u);
     setEditTab('info');
+    setClubSub(null);
     setEditForm({
       displayName: u.displayName || '',
       firstName: u.firstName || '',
@@ -126,6 +135,50 @@ export default function AdminUsers() {
     setEditTab(tab);
     if (tab === 'formations' && editUser) {
       loadUserEnrollments(editUser.uid);
+    }
+    if (tab === 'club' && editUser) {
+      setLoadingClubSub(true);
+      getClubSubscription(editUser.uid)
+        .then((sub) => { setClubSub(sub); setLoadingClubSub(false); })
+        .catch(() => setLoadingClubSub(false));
+    }
+  };
+
+  const handleGrantClub = async () => {
+    if (!editUser) return;
+    setTogglingClub(true);
+    try {
+      await activateClubSubscription(
+        editUser.uid,
+        editUser.email,
+        editUser.displayName || editUser.email,
+        true,
+      );
+      // Immediately set to active (admin bypass)
+      await updateClubSubscriptionStatus(editUser.uid, 'active');
+      const sub = await getClubSubscription(editUser.uid);
+      setClubSub(sub);
+      addToast('success', 'Accès Club des Digitos activé.');
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message || 'Erreur lors de l\'activation du Club des Digitos.';
+      addToast('error', msg);
+    } finally {
+      setTogglingClub(false);
+    }
+  };
+
+  const handleRevokeClub = async (status: ClubDigitosSubscription['status']) => {
+    if (!editUser) return;
+    setTogglingClub(true);
+    try {
+      await updateClubSubscriptionStatus(editUser.uid, status);
+      const sub = await getClubSubscription(editUser.uid);
+      setClubSub(sub);
+      addToast('success', status === 'cancelled' ? 'Accès révoqué.' : 'Statut mis à jour.');
+    } catch {
+      addToast('error', 'Erreur lors de la mise à jour.');
+    } finally {
+      setTogglingClub(false);
     }
   };
 
@@ -191,7 +244,6 @@ export default function AdminUsers() {
     }
     setCreatingUser(true);
     try {
-      const adminCreateUser = httpsCallable(functions, 'adminCreateUser');
       await adminCreateUser({
         email: addForm.email.trim(),
         password: addForm.password,
@@ -213,10 +265,10 @@ export default function AdminUsers() {
     }
   };
 
-  const filtered = users.filter((u) =>
+  const filtered = useMemo(() => users.filter((u) =>
     u.displayName?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  ), [users, search]);
 
   const enrolledFormationIds = new Set(userEnrollments.map((e) => e.formationId));
   const unenrolledFormations = allFormations.filter((f) => !enrolledFormationIds.has(f.id));
@@ -350,17 +402,22 @@ export default function AdminUsers() {
 
             {/* Tabs */}
             <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1">
-              {(['info', 'formations'] as const).map((tab) => (
+              {([
+                { id: 'info', label: 'Informations' },
+                { id: 'formations', label: 'Formations' },
+                { id: 'club', label: 'Club des Digitos', icon: Crown },
+              ] as const).map((tab) => (
                 <button
-                  key={tab}
-                  onClick={() => handleEditTabChange(tab)}
-                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                    editTab === tab
+                  key={tab.id}
+                  onClick={() => handleEditTabChange(tab.id)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                    editTab === tab.id
                       ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm'
                       : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
                   }`}
                 >
-                  {tab === 'info' ? 'Informations' : 'Formations'}
+                  {'icon' in tab && <tab.icon className="w-3.5 h-3.5 text-yellow-500" />}
+                  {tab.label}
                 </button>
               ))}
             </div>
@@ -486,6 +543,112 @@ export default function AdminUsers() {
                       );
                     })}
                   </div>
+                )}
+              </div>
+            )}
+
+            {/* Club des Digitos tab */}
+            {editTab === 'club' && (
+              <div className="space-y-4">
+                {loadingClubSub ? (
+                  <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
+                ) : (
+                  <>
+                    {/* Status card */}
+                    <div className={`rounded-2xl p-5 border ${
+                      clubSub?.status === 'active'
+                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                        : clubSub?.status === 'pending'
+                        ? 'bg-warning-50 dark:bg-warning-900/20 border-warning-200 dark:border-warning-800'
+                        : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
+                    }`}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                          clubSub?.status === 'active'
+                            ? 'bg-yellow-200 dark:bg-yellow-800/50'
+                            : 'bg-neutral-200 dark:bg-neutral-700'
+                        }`}>
+                          <Crown className={`w-5 h-5 ${clubSub?.status === 'active' ? 'text-yellow-600 dark:text-yellow-400' : 'text-neutral-400'}`} />
+                        </div>
+                        <div>
+                          <p className="font-bold text-neutral-900 dark:text-white text-sm">Club des Digitos</p>
+                          <p className={`text-xs font-semibold ${
+                            clubSub?.status === 'active' ? 'text-yellow-600 dark:text-yellow-400' :
+                            clubSub?.status === 'pending' ? 'text-warning-600 dark:text-warning-400' :
+                            'text-neutral-400'
+                          }`}>
+                            {!clubSub ? 'Aucun abonnement' :
+                             clubSub.status === 'active' ? 'Actif' :
+                             clubSub.status === 'pending' ? 'En attente de paiement' :
+                             clubSub.status === 'expired' ? 'Expiré' : 'Annulé'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {clubSub && (
+                        <div className="space-y-1 text-xs text-neutral-500 dark:text-neutral-400 mb-0">
+                          <p>Début : {new Date(clubSub.startedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                          <p>Expiration : {new Date(clubSub.expiresAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                          <p>Renouvellement : {clubSub.autoRenew ? 'Automatique' : 'Manuel'}</p>
+                          <p>Montant : {clubSub.amount?.toLocaleString()} FCFA</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="space-y-2">
+                      {(!clubSub || clubSub.status !== 'active') && (
+                        <Button
+                          className="w-full"
+                          onClick={handleGrantClub}
+                          disabled={togglingClub}
+                          icon={togglingClub ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
+                        >
+                          {togglingClub ? 'Activation...' : 'Accorder l\'accès Club (1 an)'}
+                        </Button>
+                      )}
+
+                      {clubSub?.status === 'active' && (
+                        <>
+                          <Button
+                            className="w-full"
+                            onClick={() => {
+                              // Renew 1 more year from now
+                              handleGrantClub();
+                            }}
+                            disabled={togglingClub}
+                            variant="outline"
+                            icon={togglingClub ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
+                          >
+                            Renouveler (+ 1 an)
+                          </Button>
+                          <button
+                            onClick={() => handleRevokeClub('cancelled')}
+                            disabled={togglingClub}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-error-300 dark:border-error-700 text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 text-sm font-medium transition-colors disabled:opacity-50"
+                          >
+                            {togglingClub ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                            Révoquer l'accès
+                          </button>
+                        </>
+                      )}
+
+                      {clubSub?.status === 'pending' && (
+                        <Button
+                          className="w-full"
+                          onClick={() => handleRevokeClub('active')}
+                          disabled={togglingClub}
+                          icon={togglingClub ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                        >
+                          {togglingClub ? 'Activation...' : 'Confirmer paiement & activer'}
+                        </Button>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-neutral-400 text-center">
+                      L'activation manuelle bypasse le paiement. Utiliser uniquement après confirmation de paiement hors-plateforme.
+                    </p>
+                  </>
                 )}
               </div>
             )}

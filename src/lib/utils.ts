@@ -38,7 +38,8 @@ export function calculateReadTime(content: string): number {
   return Math.max(1, Math.ceil(words / wordsPerMinute));
 }
 
-export function debounce<T extends (...args: unknown[]) => void>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function debounce<T extends (...args: any[]) => void>(
   fn: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -59,7 +60,40 @@ export function getInitials(name: string): string {
 }
 
 export function generateId(): string {
-  return Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+  return crypto.randomUUID().replace(/-/g, '');
+}
+
+export function extractSpotifyEpisodeId(url: string): string | null {
+  const match = url.match(/open\.spotify\.com\/episode\/([a-zA-Z0-9]+)/);
+  return match?.[1] ?? null;
+}
+
+export function parseMsDuration(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  if (hours > 0) return `${hours}h ${String(minutes).padStart(2, '0')} min`;
+  return `${minutes} min`;
+}
+
+export function extractYoutubeVideoId(url: string): string | null {
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+  );
+  return match?.[1] ?? null;
+}
+
+export function parseISODuration(iso: string): string {
+  const h = iso.match(/(\d+)H/)?.[1];
+  const m = iso.match(/(\d+)M/)?.[1];
+  const s = iso.match(/(\d+)S/)?.[1];
+  const hours = parseInt(h ?? '0', 10);
+  const minutes = parseInt(m ?? '0', 10);
+  const seconds = parseInt(s ?? '0', 10);
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
 function sanitizeUrl(url: string): string {
@@ -92,7 +126,7 @@ export function markdownToHtml(md: string): string {
         return `<ol class="list-decimal pl-6 space-y-1.5 my-4 text-neutral-600 dark:text-neutral-400">${items}</ol>`;
       }
       if (!block.trim()) return '';
-      return `<p class="text-neutral-600 dark:text-neutral-400 leading-relaxed">${block.trim()}</p>`;
+      return `<p class="text-neutral-600 dark:text-neutral-400 leading-relaxed my-5">${block.trim()}</p>`;
     })
     .join('\n');
 }

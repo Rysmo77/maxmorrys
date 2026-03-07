@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Search, Trash2, Edit2, Headphones, Loader2, ChevronDown } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import ImageInput from '../../components/ui/ImageInput';
 import { useToast } from '../../components/ui/Toast';
 import { getAllPodcasts, savePodcast, deletePodcast } from '../../lib/firestore';
-import { slugify, formatDate } from '../../lib/utils';
+import { slugify, formatDate, extractSpotifyEpisodeId, parseMsDuration } from '../../lib/utils';
 import type { Podcast } from '../../types';
 
 const EMPTY: Omit<Podcast, 'id'> = {
@@ -23,6 +23,8 @@ export default function AdminPodcasts() {
   const [editing, setEditing] = useState<Podcast | null>(null);
   const [form, setForm] = useState<Omit<Podcast, 'id'>>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [fetchingMeta, setFetchingMeta] = useState(false);
+  const lastFetchedId = useRef<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -31,13 +33,61 @@ export default function AdminPodcasts() {
 
   useEffect(() => { load(); }, []);
 
+  useEffect(() => {
+    if (!modalOpen) return;
+    const episodeId = extractSpotifyEpisodeId(form.audioUrl);
+    if (!episodeId || episodeId === lastFetchedId.current) return;
+    lastFetchedId.current = episodeId;
+    const fetchMeta = async () => {
+      setFetchingMeta(true);
+      try {
+        const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+        const clientSecret = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
+        if (!clientId || !clientSecret) {
+          addToast('error', 'Identifiants Spotify manquants (VITE_SPOTIFY_CLIENT_ID / VITE_SPOTIFY_CLIENT_SECRET).');
+          return;
+        }
+        const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+          },
+          body: 'grant_type=client_credentials',
+        });
+        const tokenData = await tokenRes.json();
+        if (!tokenData.access_token) { addToast('error', "Erreur d'authentification Spotify."); return; }
+        const epRes = await fetch(`https://api.spotify.com/v1/episodes/${episodeId}?market=FR`, {
+          headers: { Authorization: `Bearer ${tokenData.access_token}` },
+        });
+        const ep = await epRes.json();
+        if (ep.error) { addToast('error', `Erreur Spotify : ${ep.error.message}`); return; }
+        setForm((p) => ({
+          ...p,
+          title: ep.name,
+          description: ep.description,
+          coverImage: ep.images?.[0]?.url ?? p.coverImage,
+          duration: parseMsDuration(ep.duration_ms),
+          publishedAt: ep.release_date,
+        }));
+      } catch {
+        addToast('error', 'Impossible de récupérer les infos Spotify.');
+      } finally {
+        setFetchingMeta(false);
+      }
+    };
+    fetchMeta();
+  }, [form.audioUrl, modalOpen]);
+
   const openNew = () => {
+    lastFetchedId.current = null;
     setEditing(null);
     setForm({ ...EMPTY, publishedAt: new Date().toISOString().split('T')[0] });
     setModalOpen(true);
   };
 
   const openEdit = (p: Podcast) => {
+    lastFetchedId.current = extractSpotifyEpisodeId(p.audioUrl) ?? null;
     setEditing(p);
     setForm({ title: p.title, slug: p.slug, description: p.description, audioUrl: p.audioUrl, coverImage: p.coverImage, duration: p.duration, publishedAt: p.publishedAt?.split('T')[0] ?? '', category: p.category, status: p.status, transcript: p.transcript ?? '' });
     setModalOpen(true);
@@ -196,7 +246,17 @@ export default function AdminPodcasts() {
                   </div>
                 ))}
               </div>
-              {field('URL Audio (Spotify / Anchor / MP3)', <input value={form.audioUrl} onChange={(e) => setForm((p) => ({ ...p, audioUrl: e.target.value }))} placeholder="https://open.spotify.com/..." className={inputCls} />)}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-neutral-500">URL Audio (Spotify / MP3)</label>
+                <div className="relative">
+                  <input value={form.audioUrl} onChange={(e) => setForm((p) => ({ ...p, audioUrl: e.target.value }))} placeholder="https://open.spotify.com/episode/..." className={`${inputCls} pr-9`} />
+                  {fetchingMeta && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-500" />
+                    </div>
+                  )}
+                </div>
+              </div>
               <ImageInput label="Image de couverture" value={form.coverImage} onChange={(url) => setForm((p) => ({ ...p, coverImage: url }))} folder="podcasts" />
               {field('Description', <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={4} placeholder="Description de l'épisode..." className={inputCls} />)}
               {field('Transcription (optionnel)', <textarea value={form.transcript} onChange={(e) => setForm((p) => ({ ...p, transcript: e.target.value }))} rows={5} placeholder="Texte de la transcription..." className={inputCls} />)}

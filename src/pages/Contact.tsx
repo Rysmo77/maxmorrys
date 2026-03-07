@@ -13,13 +13,11 @@ const contactInfo = [
   { icon: Mail, label: 'Email', value: 'hello@maxmorrys.me', link: 'mailto:hello@maxmorrys.me' },
   { icon: Phone, label: 'Téléphone', value: '+221 77 604 19 85', link: 'tel:+221776041985' },
   { icon: MapPin, label: 'Localisation', value: 'Dakar, Sénégal', link: '' },
-  { icon: MessageSquare, label: 'WhatsApp', value: 'Discutons sur WhatsApp', link: 'https://wa.me/22177000000' },
+  { icon: MessageSquare, label: 'WhatsApp', value: 'Discutons sur WhatsApp', link: 'https://wa.me/221776041985' },
 ];
 
 const TIME_SLOTS = [
-  '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
-  '11:00', '11:30', '13:00', '13:30', '14:00', '14:30',
-  '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+  '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
 ];
 
 const SUBJECTS = [
@@ -30,7 +28,7 @@ const SUBJECTS = [
   'Autre',
 ];
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '', _hp: '' });
@@ -73,7 +71,8 @@ export default function Contact() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const { _hp: _, ...payload } = form;
+      const { _hp: _honeypot, ...payload } = form;
+      void _honeypot; // honeypot — exclu de l'envoi
       await addDoc(collection(db, 'messages'), {
         ...payload,
         sentAt: new Date().toISOString(),
@@ -82,7 +81,7 @@ export default function Contact() {
       addToast('success', 'Message envoyé avec succès ! Je te répondrai rapidement.');
       setForm({ name: '', email: '', subject: '', message: '', _hp: '' });
     } catch {
-      addToast('error', "Erreur lors de l'envoi. Veuillez réessayer.");
+      addToast('error', "Erreur lors de l'envoi. Essaie à nouveau s'il te plaît.");
     }
     setLoading(false);
   };
@@ -150,10 +149,10 @@ export default function Contact() {
           </p>
           <div className="grid lg:grid-cols-2 gap-8 items-end">
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
-              Prenons<br />contact.
+              Parlons de<br />ta stratégie
             </h1>
             <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed lg:pb-2">
-              Une question, un projet ou simplement envie d'échanger ? Je suis disponible pour toi.
+              Tu as un projet, une question, ou besoin d'une consultation ? Je suis là pour t'aider à atteindre tes objectifs de marketing digital !
             </p>
           </div>
         </div>
@@ -387,7 +386,7 @@ export default function Contact() {
                     <input
                       value={bookingForm.name}
                       onChange={(e) => { setBookingForm((p) => ({ ...p, name: e.target.value })); if (bookingErrors.name) setBookingErrors((p) => ({ ...p, name: '' })); }}
-                      placeholder="Votre nom"
+                      placeholder="Ton nom"
                       className={`${inputCls} ${bookingErrors.name ? 'border-error-500' : ''}`}
                     />
                     {bookingErrors.name && <p className="text-xs text-error-500">{bookingErrors.name}</p>}
@@ -409,7 +408,7 @@ export default function Contact() {
                     type="email"
                     value={bookingForm.email}
                     onChange={(e) => { setBookingForm((p) => ({ ...p, email: e.target.value })); if (bookingErrors.email) setBookingErrors((p) => ({ ...p, email: '' })); }}
-                    placeholder="votre@email.com"
+                    placeholder="ton@email.com"
                     className={`${inputCls} ${bookingErrors.email ? 'border-error-500' : ''}`}
                   />
                   {bookingErrors.email && <p className="text-xs text-error-500">{bookingErrors.email}</p>}
@@ -421,7 +420,7 @@ export default function Contact() {
                     value={bookingForm.message}
                     onChange={(e) => setBookingForm((p) => ({ ...p, message: e.target.value }))}
                     rows={3}
-                    placeholder="Précisez votre besoin pour préparer l'appel..."
+                    placeholder="Précise ton besoin pour préparer l'appel..."
                     className={inputCls}
                   />
                 </div>

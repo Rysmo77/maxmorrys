@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Search, RefreshCw, Loader2, ChevronDown, Check, X, Clock } from 'lucide-react';
+import { Calendar, Search, RefreshCw, Loader2, ChevronDown, Check, X } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import { getAllAppointments, updateAppointmentStatus } from '../../lib/firestore';
@@ -28,7 +28,8 @@ export default function AdminAppointments() {
 
   const load = () => {
     setLoading(true);
-    getAllAppointments().then((data) => { setAppointments(data); setLoading(false); }).catch(() => setLoading(false));
+    getAllAppointments().then((data) => { setAppointments(data); setLoading(false); })
+      .catch(() => { addToast('error', 'Erreur lors du chargement des rendez-vous.'); setLoading(false); });
   };
 
   useEffect(() => { load(); }, []);

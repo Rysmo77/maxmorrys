@@ -96,8 +96,13 @@ export default function BlogPost() {
 
       {/* ── CONTENU ── */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        {post.excerpt && (
+          <p className="text-xl text-neutral-600 dark:text-neutral-300 leading-relaxed border-l-4 border-brand-500 pl-5 mb-10 italic">
+            {post.excerpt}
+          </p>
+        )}
         <div
-          className="prose prose-lg max-w-none dark:prose-invert mb-12"
+          className="prose prose-lg dark:prose-invert mb-12"
           dangerouslySetInnerHTML={{ __html: markdownToHtml(post.content) }}
         />
 

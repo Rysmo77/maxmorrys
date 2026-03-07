@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Headphones, Clock, Calendar, Play, ArrowRight, Loader2, AlertCircle, Mic } from 'lucide-react';
+import { Headphones, Clock, Calendar, Play, ArrowRight, Loader2, AlertCircle, Mic, Bell, Users } from 'lucide-react';
 import { getPublishedPodcasts } from '../lib/firestore';
 import { formatDate } from '../lib/utils';
 import type { Podcast } from '../types';
@@ -76,7 +76,7 @@ export default function Podcasts() {
                 <span className="text-brand-600 dark:text-brand-400">du Marketing</span>
               </h1>
               <p className="text-neutral-600 dark:text-neutral-300 text-lg leading-relaxed max-w-xl">
-                Analyses, interviews et stratégies en marketing digital, SEO et IA — directement dans tes oreilles.
+                Chaque semaine, découvre de nouvelles stratégies, interviews d'experts et conseils pratiques pour te cultiver ou développer ton business en ligne.
               </p>
             </div>
 
@@ -266,6 +266,60 @@ export default function Podcasts() {
           </div>
         )}
       </div>
+
+      {/* ── CLUB DES DIGITOS PROMO ── */}
+      <section className="py-16 bg-white dark:bg-neutral-950 border-t border-neutral-100 dark:border-neutral-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-[1fr_1.2fr] gap-10 lg:gap-16 items-center">
+
+            {/* Left */}
+            <div>
+              <div className="inline-flex items-center gap-2 bg-yellow-50 dark:bg-yellow-400/10 border border-yellow-200 dark:border-yellow-400/20 text-yellow-700 dark:text-yellow-400 rounded-full px-4 py-1.5 text-xs font-bold tracking-[0.2em] uppercase mb-6">
+                <Users className="w-3.5 h-3.5" /> CLUB DES DIGITOS
+              </div>
+              <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-5">
+                Sois là<br />quand ça se passe
+              </h2>
+              <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed text-base mb-8">
+                En plus du podcast, je participe à des événements et j'en organise régulièrement. Les membres du Club sont les premiers informés — et souvent invités.
+              </p>
+              <Link
+                to="/mon-espace"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-yellow-400 text-neutral-900 font-black rounded-full hover:bg-yellow-300 transition-colors text-sm tracking-wide shadow-md shadow-yellow-400/30"
+              >
+                Rejoindre le Club <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Right: cards */}
+            <div className="space-y-4">
+              <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-6 flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
+                </div>
+                <div>
+                  <h3 className="font-black text-neutral-900 dark:text-white mb-1">Événements exclusifs</h3>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">Conférences, masterclasses et rencontres — accès prioritaire et invitations réservés aux membres du Club.</p>
+                </div>
+              </div>
+              <div className="rounded-2xl bg-neutral-900 dark:bg-yellow-400/10 border border-neutral-800 dark:border-yellow-400/20 p-6 flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-yellow-400/20 flex items-center justify-center flex-shrink-0">
+                  <Bell className="w-5 h-5 text-yellow-400" />
+                </div>
+                <div>
+                  <h3 className="font-black text-white dark:text-yellow-300 mb-1">Annonces en avant-première</h3>
+                  <p className="text-sm text-neutral-400 dark:text-yellow-400/70 leading-relaxed">Tu seras toujours le premier au courant de mes prochaines participations et des événements à ne pas rater.</p>
+                </div>
+              </div>
+              <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-6 py-4 flex items-center justify-between">
+                <span className="text-neutral-500 dark:text-neutral-400 text-sm">Abonnement annuel</span>
+                <span className="text-xl font-black text-neutral-900 dark:text-white">10 000 <span className="text-yellow-500 dark:text-yellow-400 text-sm font-bold">FCFA</span></span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
 
       {/* ── CTA → Vidéos ── */}
       <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">

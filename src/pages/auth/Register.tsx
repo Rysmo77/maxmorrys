@@ -57,8 +57,8 @@ export default function Register() {
       await signUp(email, password, name);
       addToast('success', 'Compte créé avec succès ! Bienvenue.');
       navigate('/mon-espace');
-    } catch (error: any) {
-      addToast('error', error.message || 'Une erreur est survenue');
+    } catch (error: unknown) {
+      addToast('error', (error as Error).message || 'Une erreur est survenue');
     }
     setLoading(false);
   };
@@ -69,8 +69,8 @@ export default function Register() {
       await signInWithGoogle();
       addToast('success', 'Compte créé avec succès ! Bienvenue.');
       navigate('/mon-espace');
-    } catch (error: any) {
-      addToast('error', error.message || 'Erreur de connexion avec Google');
+    } catch (error: unknown) {
+      addToast('error', (error as Error).message || 'Erreur de connexion avec Google');
     }
     setGoogleLoading(false);
   };

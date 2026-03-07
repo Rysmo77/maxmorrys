@@ -227,6 +227,27 @@ service firebase.storage {
       allow delete: if isAdmin();
     }
 
+    // Club des Digitos — flyers d'événements (admin uniquement)
+    match /club_events/{fileName} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidImageType() && isUnder10MB();
+      allow delete: if isAdmin();
+    }
+
+    // Club des Digitos — créas de sessions live (admin uniquement)
+    match /club_sessions/{fileName} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidImageType() && isUnder10MB();
+      allow delete: if isAdmin();
+    }
+
+    // Club des Digitos — médias de posts (membres connectés)
+    match /club_media/{userId}/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) && isValidImageType() && isUnder10MB();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
     // Default deny all other paths
     match /{allPaths=**} {
       allow read, write: if false;

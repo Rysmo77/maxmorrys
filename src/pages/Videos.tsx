@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Play, Eye, Calendar, ArrowRight, Loader2, AlertCircle, Clapperboard } from 'lucide-react';
+import { Play, Eye, Calendar, ArrowRight, Loader2, AlertCircle, Clapperboard, Bell, Users, Video as VideoIcon } from 'lucide-react';
 
 function YtIcon({ className }: { className?: string }) {
   return (
@@ -29,13 +29,19 @@ export default function Videos() {
 
   useEffect(() => { load(); }, []);
 
-  const categories = ['Tous', ...Array.from(new Set(videos.map((v) => v.category).filter(Boolean)))];
-  const filtered = activeCategory === 'Tous' ? videos : videos.filter((v) => v.category === activeCategory);
+  const categories = useMemo(
+    () => ['Tous', ...Array.from(new Set(videos.map((v) => v.category).filter(Boolean)))],
+    [videos]
+  );
+  const filtered = useMemo(
+    () => activeCategory === 'Tous' ? videos : videos.filter((v) => v.category === activeCategory),
+    [videos, activeCategory]
+  );
   const featured = filtered[0];
   const rest = filtered.slice(1);
 
   const heroVideo = videos[0];
-  const totalViews = videos.reduce((sum, v) => sum + (v.views || 0), 0);
+  const totalViews = useMemo(() => videos.reduce((sum, v) => sum + (v.views || 0), 0), [videos]);
 
   return (
     <div className="bg-white dark:bg-neutral-950 min-h-screen">
@@ -63,16 +69,16 @@ export default function Videos() {
               </div>
 
               <h1 className="text-5xl sm:text-6xl xl:text-7xl font-black text-neutral-900 dark:text-white tracking-tight leading-[0.95] mb-6">
-                La Chaîne<br />
-                <span className="text-red-600 dark:text-red-400">YouTube</span>
+                Le Marketing<br />
+                <span className="text-red-600 dark:text-red-400">En Pratique</span>
               </h1>
 
               <p className="text-neutral-600 dark:text-neutral-400 text-lg leading-relaxed mb-8 max-w-md">
-                Tutoriels, analyses et stratégies marketing en vidéo — du contenu actionnable pour passer à l'action.
+                Si tu es plus à l'aise avec des vidéos, abonne-toi à ma chaine Youtube pour ne manquer des tutoriels, analyses et stratégies marketing que je te propose.
               </p>
 
               <a
-                href="https://youtube.com"
+                href="https://youtube.com/@maxmorrys"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-[#FF0000] text-white text-sm font-bold hover:bg-red-700 transition-all duration-200 shadow-lg shadow-red-900/30"
@@ -325,6 +331,80 @@ export default function Videos() {
           </div>
         )}
       </div>
+
+      {/* ── CLUB DES DIGITOS PROMO ── */}
+      <section className="py-16 bg-white dark:bg-neutral-950 border-t border-neutral-100 dark:border-neutral-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative rounded-3xl overflow-hidden bg-neutral-900">
+            {/* Background glows */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-yellow-400/10 blur-[120px]" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-brand-600/10 blur-[100px]" />
+            </div>
+
+            <div className="relative z-10 grid lg:grid-cols-2 gap-0">
+
+              {/* Left */}
+              <div className="p-10 lg:p-12 flex flex-col justify-center">
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="flex items-center gap-1.5 bg-red-500/20 border border-red-500/30 text-red-400 rounded-full px-3 py-1 text-xs font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" /> LIVE
+                  </span>
+                  <span className="text-xs font-bold tracking-[0.25em] uppercase text-yellow-400">CLUB DES DIGITOS</span>
+                </div>
+                <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-white leading-[0.95] mb-5">
+                  Rejoins mes<br />sessions Live
+                </h2>
+                <p className="text-neutral-400 leading-relaxed text-base mb-8">
+                  Les vidéos, c'est en replay. Mais dans le Club, je fais des sessions Live interactives où tu peux poser tes questions en direct et vraiment progresser avec moi.
+                </p>
+                <Link
+                  to="/mon-espace"
+                  className="inline-flex items-center gap-2 self-start px-7 py-3.5 bg-yellow-400 text-neutral-900 font-black rounded-full hover:bg-yellow-300 transition-colors text-sm tracking-wide shadow-lg shadow-yellow-400/20"
+                >
+                  Rejoindre le Club <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              {/* Right: features */}
+              <div className="p-10 lg:p-12 border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-center gap-6">
+                <div className="flex gap-4 items-start">
+                  <div className="w-11 h-11 rounded-xl bg-yellow-400/15 border border-yellow-400/20 flex items-center justify-center flex-shrink-0">
+                    <VideoIcon className="w-5 h-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-white text-sm mb-1">Sessions Live avec moi</h3>
+                    <p className="text-neutral-500 text-sm leading-relaxed">Des séances interactives en direct où je réponds à tes questions et on travaille ensemble en temps réel.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 items-start">
+                  <div className="w-11 h-11 rounded-xl bg-yellow-400/15 border border-yellow-400/20 flex items-center justify-center flex-shrink-0">
+                    <Bell className="w-5 h-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-white text-sm mb-1">Notifications exclusives</h3>
+                    <p className="text-neutral-500 text-sm leading-relaxed">Ne manque jamais un Live : les membres sont notifiés en priorité avant tout le monde.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 items-start">
+                  <div className="w-11 h-11 rounded-xl bg-yellow-400/15 border border-yellow-400/20 flex items-center justify-center flex-shrink-0">
+                    <Users className="w-5 h-5 text-yellow-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-white text-sm mb-1">Communauté active</h3>
+                    <p className="text-neutral-500 text-sm leading-relaxed">Rejoins un réseau de professionnels du digital pour avancer ensemble après chaque Live.</p>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-white/10 flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-white">10 000</span>
+                  <span className="text-yellow-400 font-bold">FCFA / an</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── CTA → Podcast ── */}
       <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">

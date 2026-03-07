@@ -52,6 +52,7 @@ const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements')
 const AdminFAQ = lazy(() => import('./pages/admin/AdminFAQ'));
 const AdminTestimonials = lazy(() => import('./pages/admin/AdminTestimonials'));
 const AdminAppointments = lazy(() => import('./pages/admin/AdminAppointments'));
+const AdminClubDigitos = lazy(() => import('./pages/admin/AdminClubDigitos'));
 
 function PageLoader() {
   return (
@@ -180,6 +181,7 @@ const router = createBrowserRouter([
       { path: 'faq', element: <Suspense fallback={<PageLoader />}><AdminFAQ /></Suspense> },
       { path: 'temoignages', element: <Suspense fallback={<PageLoader />}><AdminTestimonials /></Suspense> },
       { path: 'rendez-vous', element: <Suspense fallback={<PageLoader />}><AdminAppointments /></Suspense> },
+      { path: 'club-digitos', element: <Suspense fallback={<PageLoader />}><AdminClubDigitos /></Suspense> },
     ],
   },
 ]);

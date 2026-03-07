@@ -21,8 +21,8 @@ export default function ResetPassword() {
       await resetPassword(email);
       setSent(true);
       addToast('success', 'Email de réinitialisation envoyé.');
-    } catch (error: any) {
-      addToast('error', error.message || 'Une erreur est survenue');
+    } catch (error: unknown) {
+      addToast('error', (error as Error).message || 'Une erreur est survenue');
     }
     setLoading(false);
   };
