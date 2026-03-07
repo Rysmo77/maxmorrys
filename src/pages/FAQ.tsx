@@ -1,0 +1,161 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, MessageCircle, ArrowRight, Loader2 } from 'lucide-react';
+import Button from '../components/ui/Button';
+import { getAllFAQ } from '../lib/firestore';
+import { useToast } from '../components/ui/Toast';
+import type { FAQ } from '../types';
+
+export default function FAQPage() {
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState('Tous');
+  const [openIds, setOpenIds] = useState<string[]>([]);
+  const [helpfulIds, setHelpfulIds] = useState<string[]>([]);
+  const { addToast } = useToast();
+
+  useEffect(() => {
+    getAllFAQ().then((data) => { setFaqs(data); setLoading(false); }).catch(() => setLoading(false));
+  }, []);
+
+  const categories = ['Tous', ...Array.from(new Set(faqs.map((f) => f.category).filter(Boolean)))];
+  const filtered = faqs.filter((faq) => activeCategory === 'Tous' || faq.category === activeCategory);
+
+  const toggle = (id: string) => {
+    setOpenIds((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
+  };
+
+  const markHelpful = (id: string, helpful: boolean) => {
+    if (!helpfulIds.includes(id)) {
+      setHelpfulIds((prev) => [...prev, id]);
+      addToast('success', helpful ? 'Merci pour ton retour !' : 'Merci, je vais améliorer cette réponse.');
+    }
+  };
+
+  return (
+    <div>
+
+      {/* ── HERO ── */}
+      <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
+            FAQ
+          </p>
+          <h1 className="text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-6">
+            Questions<br />fréquentes
+          </h1>
+          <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
+            Trouvez rapidement des réponses à vos questions les plus courantes.
+          </p>
+        </div>
+      </section>
+
+      <div className="bg-white dark:bg-neutral-950 pb-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* Filtres */}
+          <div className="flex flex-wrap justify-center gap-2 pt-12 pb-10">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${
+                  activeCategory === cat
+                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
+                    : 'bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Accordéon */}
+          {loading && (
+            <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>
+          )}
+          <div className="space-y-3">
+            {filtered.map((faq) => {
+              const isOpen = openIds.includes(faq.id);
+              const hasVoted = helpfulIds.includes(faq.id);
+              return (
+                <div key={faq.id} className="border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden bg-neutral-50 dark:bg-neutral-900">
+                  <button
+                    onClick={() => toggle(faq.id)}
+                    aria-expanded={isOpen}
+                    aria-controls={`faq-answer-${faq.id}`}
+                    id={`faq-btn-${faq.id}`}
+                    className="w-full flex items-center justify-between p-5 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800/50 transition-colors"
+                  >
+                    <span className="font-bold text-neutral-900 dark:text-white pr-4">{faq.question}</span>
+                    {isOpen
+                      ? <ChevronUp className="w-5 h-5 text-neutral-400 shrink-0" aria-hidden="true" />
+                      : <ChevronDown className="w-5 h-5 text-neutral-400 shrink-0" aria-hidden="true" />
+                    }
+                  </button>
+                  {isOpen && (
+                    <div id={`faq-answer-${faq.id}`} role="region" aria-labelledby={`faq-btn-${faq.id}`} className="px-5 pb-5 border-t border-neutral-200 dark:border-neutral-700 pt-4">
+                      <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-5">{faq.answer}</p>
+                      {!hasVoted ? (
+                        <div className="flex items-center gap-3 text-sm text-neutral-500">
+                          <span>Cette réponse t'a-t-elle aidé ?</span>
+                          <button
+                            onClick={() => markHelpful(faq.id, true)}
+                            className="p-1.5 rounded-full hover:bg-success-50 dark:hover:bg-success-900/20 text-neutral-400 hover:text-success-600 transition-colors"
+                          >
+                            <ThumbsUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => markHelpful(faq.id, false)}
+                            className="p-1.5 rounded-full hover:bg-error-50 dark:hover:bg-error-900/20 text-neutral-400 hover:text-error-600 transition-colors"
+                          >
+                            <ThumbsDown className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-success-600 dark:text-success-400 font-semibold">Merci pour ton retour !</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* CTA contact */}
+          <div className="mt-16 text-center bg-neutral-50 dark:bg-neutral-900 rounded-3xl p-10 border border-neutral-100 dark:border-neutral-800">
+            <MessageCircle className="w-10 h-10 text-brand-500 mx-auto mb-5" />
+            <h2 className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white mb-3">
+              Tu ne trouves pas ta réponse ?
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
+              N'hésite pas à me contacter directement.
+            </p>
+            <Link to="/contact">
+              <Button>Nous contacter</Button>
+            </Link>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ── CTA croisé → Contact ── */}
+      <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
+            ENCORE DES QUESTIONS ?
+          </p>
+          <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white mb-4">
+            Écrivez-moi directement
+          </h2>
+          <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
+            Je réponds personnellement à chaque message. N'hésitez pas à me contacter.
+          </p>
+          <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-colors text-sm tracking-wide">
+            Me contacter <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(firebase functions:log --only rysmo)",
+      "Bash(firebase deploy --only storage)",
+      "Bash(firebase deploy --only firestore:rules)",
+      "Bash(firebase functions:secrets:access OPENAI_API_KEY)"
+    ]
+  }
+}

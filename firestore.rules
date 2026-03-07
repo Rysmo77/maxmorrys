@@ -1,0 +1,284 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isAdminOrSupport() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'support'];
+    }
+
+    function isEnrolled(formationId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + formationId));
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own profile; admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Users can only create their own profile during signup
+      allow create: if isSignedIn() &&
+        request.auth.uid == userId &&
+        request.resource.data.role == 'student' &&
+        request.resource.data.uid == userId;
+
+      // Users can update their own profile, but cannot change their role
+      allow update: if isOwner(userId) &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.uid == resource.data.uid;
+
+      // Only admins can delete users
+      allow delete: if isAdmin();
+
+      // Admins can update any user including role changes
+      allow update: if isAdmin();
+    }
+
+    // Blog posts collection
+    match /blog/{postId} {
+      // Everyone can read published posts
+      allow read: if resource.data.status == 'published' || isAdmin();
+
+      // Only admins can create, update, or delete posts
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Formations collection
+    match /formations/{formationId} {
+      // Everyone can read published formations
+      allow read: if resource.data.status == 'published' || isAdmin();
+
+      // Only admins can create, update, or delete formations
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Enrollments collection
+    match /enrollments/{enrollmentId} {
+      // Users can read their own enrollments, admins can read all
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+
+      // Admins can create enrollments manually; payment webhook creates paid ones
+      allow create: if isAdmin();
+
+      // Users can update their own progress
+      allow update: if isOwner(resource.data.userId) &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.formationId == resource.data.formationId;
+
+      // Admins can update any enrollment (for manual enrollments, refunds, etc.)
+      allow update: if isAdmin();
+
+      // Only admins can delete enrollments
+      allow delete: if isAdmin();
+    }
+
+    // Podcasts collection
+    match /podcasts/{podcastId} {
+      // Published podcasts are readable by all; drafts only by admins
+      allow read: if resource.data.status == 'published' || isAdmin();
+
+      // Only admins can create, update, or delete
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Videos collection
+    match /videos/{videoId} {
+      // Published videos are readable by all; drafts only by admins
+      allow read: if resource.data.status == 'published' || isAdmin();
+
+      // Only admins can create, update, or delete
+      allow create, update, delete: if isAdmin();
+
+      // Allow incrementing view count
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) &&
+        request.resource.data.views == resource.data.views + 1;
+    }
+
+    // Testimonials collection
+    match /testimonials/{testimonialId} {
+      // Everyone can read featured/approved testimonials; users can read their own; admins read all
+      allow read: if resource.data.featured == true ||
+        resource.data.status == 'approved' ||
+        (isSignedIn() && resource.data.userId == request.auth.uid) ||
+        isAdmin();
+
+      // Students can submit a testimonial (status must be pending, userId must match)
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+
+      // Only admins can update or delete testimonials
+      allow update, delete: if isAdmin();
+    }
+
+    // FAQ collection
+    match /faq/{faqId} {
+      // Everyone can read FAQs
+      allow read: if true;
+
+      // Only admins can manage FAQs
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Contact messages collection
+    match /messages/{messageId} {
+      // Users can read their own messages, admins and support can read all
+      allow read: if isOwner(resource.data.userId) || isAdminOrSupport();
+
+      // Anyone can create a contact message (even non-authenticated)
+      allow create: if true;
+
+      // Only admins and support can update (to mark as read/replied)
+      allow update: if isAdminOrSupport();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Newsletter subscribers collection
+    match /newsletter/{subscriberId} {
+      // Only admins can read subscribers
+      allow read: if isAdmin();
+
+      // Anyone can subscribe
+      allow create: if true;
+
+      // Only admins can update or delete
+      allow update, delete: if isAdmin();
+    }
+
+    // Transactions collection
+    match /transactions/{transactionId} {
+      // Users can read their own transactions, admins can read all
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+
+      // Only backend/payment webhooks should create transactions
+      allow create: if false;
+
+      // Only admins can update (for refunds, status changes)
+      allow update: if isAdmin();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Coupons collection
+    match /coupons/{couponId} {
+      // Everyone can read active coupons to validate them
+      allow read: if resource.data.active == true || isAdmin();
+
+      // Only admins can manage coupons
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Announcements collection
+    match /announcements/{announcementId} {
+      // Everyone can read active announcements
+      allow read: if resource.data.active == true || isAdmin();
+
+      // Only admins can manage announcements
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Analytics collection (for storing analytics data)
+    match /analytics/{docId} {
+      // Only admins can read analytics
+      allow read: if isAdmin();
+
+      // Backend can write analytics
+      allow create, update: if false;
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // User activity logs (for admin dashboard)
+    match /activity_logs/{logId} {
+      // Only admins can read logs
+      allow read: if isAdmin();
+
+      // System can create logs
+      allow create: if false;
+
+      // Nobody can update or delete logs (immutable audit trail)
+      allow update, delete: if false;
+    }
+
+    // Certificates collection
+    match /certificates/{certificateId} {
+      // Users can read their own certificates
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+
+      // Certificates are auto-generated by backend
+      allow create: if false;
+
+      // Nobody can update certificates (immutable)
+      allow update: if false;
+
+      // Only admins can delete (in case of fraud)
+      allow delete: if isAdmin();
+    }
+
+    // User progress in lessons (subcollection under enrollments)
+    match /enrollments/{enrollmentId}/progress/{lessonId} {
+      // Users can read their own progress
+      allow read: if isOwner(get(/databases/$(database)/documents/enrollments/$(enrollmentId)).data.userId) || isAdmin();
+
+      // Users can update their own progress
+      allow create, update: if isOwner(get(/databases/$(database)/documents/enrollments/$(enrollmentId)).data.userId);
+
+      // Admins can manage progress
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Site settings (single document)
+    match /settings/site {
+      // Everyone can read site settings (for public info like site name, colors)
+      allow read: if true;
+
+      // Admins can create or update settings
+      allow create, update: if isAdmin();
+
+      // Cannot delete the settings document
+      allow delete: if false;
+    }
+
+    // User notes (personal notes per student)
+    match /users/{userId}/notes/{noteId} {
+      allow read, create, update, delete: if isOwner(userId);
+      allow read: if isAdmin();
+    }
+
+    // Notifications preferences (per user)
+    match /users/{userId}/notifications/{notificationId} {
+      // Users can read and manage their own notification preferences
+      allow read, create, update, delete: if isOwner(userId);
+
+      // Admins can read all
+      allow read: if isAdmin();
+    }
+
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,446 @@
+import { useState, useEffect } from 'react';
+import { Mail, Phone, MapPin, MessageSquare, Send, Calendar, X, Clock, Loader2, ChevronDown } from 'lucide-react';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import { Textarea } from '../components/ui/Input';
+import { useToast } from '../components/ui/Toast';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { saveAppointment, getAllFAQ } from '../lib/firestore';
+import type { FAQ } from '../types';
+
+const contactInfo = [
+  { icon: Mail, label: 'Email', value: 'hello@maxmorrys.me', link: 'mailto:hello@maxmorrys.me' },
+  { icon: Phone, label: 'Téléphone', value: '+221 77 604 19 85', link: 'tel:+221776041985' },
+  { icon: MapPin, label: 'Localisation', value: 'Dakar, Sénégal', link: '' },
+  { icon: MessageSquare, label: 'WhatsApp', value: 'Discutons sur WhatsApp', link: 'https://wa.me/22177000000' },
+];
+
+const TIME_SLOTS = [
+  '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+  '11:00', '11:30', '13:00', '13:30', '14:00', '14:30',
+  '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+];
+
+const SUBJECTS = [
+  'Coaching personnalisé',
+  'Informations sur une formation',
+  'Partenariat / Collaboration',
+  'Conseil en stratégie marketing',
+  'Autre',
+];
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export default function Contact() {
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '', _hp: '' });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { addToast } = useToast();
+
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
+
+  useEffect(() => {
+    getAllFAQ().then(setFaqs).catch(() => {});
+  }, []);
+
+  // Booking modal
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    name: '', email: '', phone: '',
+    date: '', time: '10:00',
+    subject: SUBJECTS[0], message: '',
+  });
+  const [bookingErrors, setBookingErrors] = useState<Record<string, string>>({});
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+
+  const validate = () => {
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) errs.name = 'Le nom est requis';
+    if (!form.email.trim()) errs.email = "L'email est requis";
+    else if (!EMAIL_RE.test(form.email.trim())) errs.email = 'Adresse email invalide';
+    if (!form.subject.trim()) errs.subject = 'Le sujet est requis';
+    if (!form.message.trim()) errs.message = 'Le message est requis';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form._hp) return; // honeypot — silently drop bot submissions
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      const { _hp: _, ...payload } = form;
+      await addDoc(collection(db, 'messages'), {
+        ...payload,
+        sentAt: new Date().toISOString(),
+        status: 'new',
+      });
+      addToast('success', 'Message envoyé avec succès ! Je te répondrai rapidement.');
+      setForm({ name: '', email: '', subject: '', message: '', _hp: '' });
+    } catch {
+      addToast('error', "Erreur lors de l'envoi. Veuillez réessayer.");
+    }
+    setLoading(false);
+  };
+
+  const update = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      if (field === 'email' && value && !EMAIL_RE.test(value)) return; // keep error while still invalid
+      setErrors((prev) => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validateBooking = () => {
+    const errs: Record<string, string> = {};
+    if (!bookingForm.name.trim()) errs.name = 'Le nom est requis';
+    if (!bookingForm.email.trim()) errs.email = "L'email est requis";
+    else if (!EMAIL_RE.test(bookingForm.email.trim())) errs.email = 'Adresse email invalide';
+    if (!bookingForm.date) errs.date = 'La date est requise';
+    if (!bookingForm.time) errs.time = "L'heure est requise";
+    setBookingErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateBooking()) return;
+    setBookingLoading(true);
+    try {
+      await saveAppointment({
+        name: bookingForm.name.trim(),
+        email: bookingForm.email.trim(),
+        phone: bookingForm.phone.trim() || undefined,
+        date: bookingForm.date,
+        time: bookingForm.time,
+        subject: bookingForm.subject,
+        message: bookingForm.message.trim() || undefined,
+      });
+      setBookingSuccess(true);
+    } catch {
+      addToast('error', 'Erreur lors de la prise de rendez-vous. Veuillez réessayer.');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const closeBooking = () => {
+    setBookingOpen(false);
+    setBookingSuccess(false);
+    setBookingForm({ name: '', email: '', phone: '', date: '', time: '10:00', subject: SUBJECTS[0], message: '' });
+    setBookingErrors({});
+  };
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const inputCls = 'w-full px-3 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 placeholder-neutral-400';
+
+  return (
+    <div>
+
+      {/* ── HERO ── */}
+      <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
+            CONTACT
+          </p>
+          <div className="grid lg:grid-cols-2 gap-8 items-end">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
+              Prenons<br />contact.
+            </h1>
+            <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed lg:pb-2">
+              Une question, un projet ou simplement envie d'échanger ? Je suis disponible pour toi.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="bg-white dark:bg-neutral-950 pb-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+
+            {/* Formulaire */}
+            <div className="lg:col-span-2">
+              <div className="bg-neutral-50 dark:bg-neutral-900 rounded-3xl p-8 lg:p-10 border border-neutral-100 dark:border-neutral-800">
+                <h2 className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white mb-8">
+                  Envoie-moi un message
+                </h2>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Honeypot — hidden from users, filled only by bots */}
+                  <div aria-hidden="true" className="hidden">
+                    <input
+                      type="text"
+                      name="_hp"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={form._hp}
+                      onChange={(e) => setForm((p) => ({ ...p, _hp: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-5">
+                    <Input
+                      label="Nom complet"
+                      value={form.name}
+                      onChange={(e) => update('name', e.target.value)}
+                      error={errors.name}
+                      placeholder="Ton nom"
+                    />
+                    <Input
+                      label="Email"
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => update('email', e.target.value)}
+                      error={errors.email}
+                      placeholder="ton@email.com"
+                    />
+                  </div>
+                  <Input
+                    label="Sujet"
+                    value={form.subject}
+                    onChange={(e) => update('subject', e.target.value)}
+                    error={errors.subject}
+                    placeholder="L'objet de ton message"
+                  />
+                  <Textarea
+                    label="Message"
+                    value={form.message}
+                    onChange={(e) => update('message', e.target.value)}
+                    error={errors.message}
+                    placeholder="Décris ta demande..."
+                    rows={5}
+                  />
+                  <Button type="submit" loading={loading} icon={<Send className="w-4 h-4" />}>
+                    Envoyer le message
+                  </Button>
+                </form>
+              </div>
+            </div>
+
+            {/* Infos contact */}
+            <div className="space-y-4">
+              {contactInfo.map((info) => (
+                <div key={info.label}>
+                  {info.link ? (
+                    <a
+                      href={info.link}
+                      target={info.link.startsWith('http') ? '_blank' : undefined}
+                      rel="noopener noreferrer"
+                      className="group flex items-center gap-4 p-5 rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center shrink-0">
+                        <info.icon className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold tracking-widest uppercase text-neutral-400 mb-0.5">{info.label}</p>
+                        <p className="font-semibold text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors text-sm">{info.value}</p>
+                      </div>
+                    </a>
+                  ) : (
+                    <div className="flex items-center gap-4 p-5 rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900">
+                      <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center shrink-0">
+                        <info.icon className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold tracking-widest uppercase text-neutral-400 mb-0.5">{info.label}</p>
+                        <p className="font-semibold text-neutral-900 dark:text-white text-sm">{info.value}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Rendez-vous */}
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-white">
+                <Calendar className="w-8 h-8 text-brand-200 mb-4" />
+                <h3 className="font-black text-lg mb-2">Prendre rendez-vous</h3>
+                <p className="text-brand-100 text-sm mb-5 leading-relaxed">
+                  Réserve un créneau pour un échange personnalisé.
+                </p>
+                <button
+                  onClick={() => setBookingOpen(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-brand-700 font-bold rounded-full hover:bg-brand-50 transition-colors text-sm"
+                >
+                  <Clock className="w-4 h-4" />
+                  Planifier un appel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── FAQ ── */}
+      {faqs.length > 0 && (
+        <section className="bg-neutral-50 dark:bg-neutral-900 py-24 border-t border-neutral-100 dark:border-neutral-800">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4 text-center">
+              FAQ
+            </p>
+            <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white text-center mb-14">
+              Questions fréquentes
+            </h2>
+            <div className="divide-y divide-neutral-200 dark:divide-neutral-700">
+              {faqs.map((faq) => {
+                const isOpen = openFaq === faq.id;
+                return (
+                  <div key={faq.id}>
+                    <button
+                      onClick={() => setOpenFaq(isOpen ? null : faq.id)}
+                      aria-expanded={isOpen}
+                      className="w-full flex items-center justify-between gap-4 py-5 text-left group"
+                    >
+                      <span className="font-semibold text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors text-sm sm:text-base">
+                        {faq.question}
+                      </span>
+                      <ChevronDown
+                        className={`w-5 h-5 text-neutral-400 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180 text-brand-500' : ''}`}
+                      />
+                    </button>
+                    {isOpen && (
+                      <div className="pb-5 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                        {faq.answer}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── BOOKING MODAL ── */}
+      {bookingOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh] px-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={closeBooking} />
+          <div className="relative w-full max-w-lg bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex items-center justify-between z-10">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-brand-500" />
+                <h2 className="font-bold text-neutral-900 dark:text-white">Planifier un appel</h2>
+              </div>
+              <button onClick={closeBooking} className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {bookingSuccess ? (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 rounded-full bg-success-100 dark:bg-success-900/30 flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="w-8 h-8 text-success-500" />
+                </div>
+                <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">Demande envoyée !</h3>
+                <p className="text-neutral-500 text-sm mb-6">
+                  Ta demande de rendez-vous a bien été reçue.<br />
+                  Je te confirmerai le créneau par email très prochainement.
+                </p>
+                <Button onClick={closeBooking}>Fermer</Button>
+              </div>
+            ) : (
+              <form onSubmit={handleBooking} className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-neutral-500">Date *</label>
+                    <input
+                      type="date"
+                      min={today}
+                      value={bookingForm.date}
+                      onChange={(e) => { setBookingForm((p) => ({ ...p, date: e.target.value })); if (bookingErrors.date) setBookingErrors((p) => ({ ...p, date: '' })); }}
+                      className={`${inputCls} ${bookingErrors.date ? 'border-error-500' : ''}`}
+                    />
+                    {bookingErrors.date && <p className="text-xs text-error-500">{bookingErrors.date}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-neutral-500">Heure *</label>
+                    <select
+                      value={bookingForm.time}
+                      onChange={(e) => setBookingForm((p) => ({ ...p, time: e.target.value }))}
+                      className={inputCls}
+                    >
+                      {TIME_SLOTS.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-neutral-500">Objet de l'appel *</label>
+                  <select
+                    value={bookingForm.subject}
+                    onChange={(e) => setBookingForm((p) => ({ ...p, subject: e.target.value }))}
+                    className={inputCls}
+                  >
+                    {SUBJECTS.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-neutral-500">Nom complet *</label>
+                    <input
+                      value={bookingForm.name}
+                      onChange={(e) => { setBookingForm((p) => ({ ...p, name: e.target.value })); if (bookingErrors.name) setBookingErrors((p) => ({ ...p, name: '' })); }}
+                      placeholder="Votre nom"
+                      className={`${inputCls} ${bookingErrors.name ? 'border-error-500' : ''}`}
+                    />
+                    {bookingErrors.name && <p className="text-xs text-error-500">{bookingErrors.name}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-neutral-500">Téléphone (optionnel)</label>
+                    <input
+                      value={bookingForm.phone}
+                      onChange={(e) => setBookingForm((p) => ({ ...p, phone: e.target.value }))}
+                      placeholder="+221 77..."
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-neutral-500">Email *</label>
+                  <input
+                    type="email"
+                    value={bookingForm.email}
+                    onChange={(e) => { setBookingForm((p) => ({ ...p, email: e.target.value })); if (bookingErrors.email) setBookingErrors((p) => ({ ...p, email: '' })); }}
+                    placeholder="votre@email.com"
+                    className={`${inputCls} ${bookingErrors.email ? 'border-error-500' : ''}`}
+                  />
+                  {bookingErrors.email && <p className="text-xs text-error-500">{bookingErrors.email}</p>}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-neutral-500">Notes (optionnel)</label>
+                  <textarea
+                    value={bookingForm.message}
+                    onChange={(e) => setBookingForm((p) => ({ ...p, message: e.target.value }))}
+                    rows={3}
+                    placeholder="Précisez votre besoin pour préparer l'appel..."
+                    className={inputCls}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button type="button" variant="outline" onClick={closeBooking}>Annuler</Button>
+                  <Button
+                    type="submit"
+                    disabled={bookingLoading}
+                    icon={bookingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
+                  >
+                    {bookingLoading ? 'Envoi...' : 'Confirmer la demande'}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

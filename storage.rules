@@ -1,0 +1,235 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isValidVideoType() {
+      return request.resource.contentType.matches('video/.*');
+    }
+
+    function isValidAudioType() {
+      return request.resource.contentType.matches('audio/.*');
+    }
+
+    function isValidDocumentType() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('application/msword') ||
+             request.resource.contentType.matches('application/vnd.openxmlformats.*');
+    }
+
+    function isUnder10MB() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    function isUnder50MB() {
+      return request.resource.size < 50 * 1024 * 1024;
+    }
+
+    function isUnder100MB() {
+      return request.resource.size < 100 * 1024 * 1024;
+    }
+
+    // User profile pictures
+    match /avatars/{userId}/{fileName} {
+      // Anyone can read avatars (public)
+      allow read: if true;
+
+      // Users can upload their own avatar
+      allow create, update: if isOwner(userId) &&
+        isValidImageType() &&
+        isUnder10MB();
+
+      // Users can delete their own avatar
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // Blog post images
+    match /blog/{postId}/{fileName} {
+      // Anyone can read blog images (public)
+      allow read: if true;
+
+      // Only admins can upload blog images
+      allow create, update: if isAdmin() &&
+        isValidImageType() &&
+        isUnder10MB();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Formation cover images
+    match /formations/{formationId}/cover/{fileName} {
+      // Anyone can read formation covers (public)
+      allow read: if true;
+
+      // Only admins can upload
+      allow create, update: if isAdmin() &&
+        isValidImageType() &&
+        isUnder10MB();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Formation lesson videos
+    match /formations/{formationId}/videos/{lessonId}/{fileName} {
+      // Only enrolled students and admins can access lesson videos
+      allow read: if isAdmin() ||
+        (isSignedIn() &&
+         firestore.exists(/databases/(default)/documents/enrollments/$(request.auth.uid + '_' + formationId)));
+
+      // Only admins can upload videos
+      allow create, update: if isAdmin() &&
+        isValidVideoType() &&
+        isUnder100MB();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Formation resources (PDFs, templates, files)
+    match /formations/{formationId}/resources/{lessonId}/{fileName} {
+      // Only enrolled students and admins can access resources
+      allow read: if isAdmin() ||
+        (isSignedIn() &&
+         firestore.exists(/databases/(default)/documents/enrollments/$(request.auth.uid + '_' + formationId)));
+
+      // Only admins can upload resources
+      allow create, update: if isAdmin() &&
+        (isValidDocumentType() || request.resource.contentType.matches('application/zip')) &&
+        isUnder50MB();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Podcast audio files
+    match /podcasts/{podcastId}/{fileName} {
+      // Anyone can read podcasts (public)
+      allow read: if true;
+
+      // Only admins can upload
+      allow create, update: if isAdmin() &&
+        isValidAudioType() &&
+        isUnder100MB();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Podcast cover images
+    match /podcasts/{podcastId}/cover/{fileName} {
+      // Anyone can read covers (public)
+      allow read: if true;
+
+      // Only admins can upload
+      allow create, update: if isAdmin() &&
+        isValidImageType() &&
+        isUnder10MB();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Video thumbnails
+    match /videos/{videoId}/thumbnail/{fileName} {
+      // Anyone can read thumbnails (public)
+      allow read: if true;
+
+      // Only admins can upload
+      allow create, update: if isAdmin() &&
+        isValidImageType() &&
+        isUnder10MB();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Testimonial avatars
+    match /testimonials/{testimonialId}/{fileName} {
+      // Anyone can read testimonial avatars (public)
+      allow read: if true;
+
+      // Only admins can upload
+      allow create, update: if isAdmin() &&
+        isValidImageType() &&
+        isUnder10MB();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Certificates (generated PDFs)
+    match /certificates/{userId}/{certificateId} {
+      // Users can read their own certificates
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Only backend can generate certificates
+      allow create: if false;
+
+      // Certificates are immutable
+      allow update: if false;
+
+      // Only admins can delete (in case of fraud)
+      allow delete: if isAdmin();
+    }
+
+    // Temporary uploads (for admin uploads before processing)
+    match /temp/{userId}/{fileName} {
+      // Only the uploader can read their temp files
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Users can upload temp files
+      allow create: if isSignedIn() &&
+        isOwner(userId) &&
+        isUnder50MB();
+
+      // Users can delete their own temp files
+      allow delete: if isOwner(userId) || isAdmin();
+
+      // Auto-cleanup after 24h (handled by Cloud Functions)
+    }
+
+    // Backup folder (admin only)
+    match /backups/{fileName} {
+      // Only admins can read backups
+      allow read: if isAdmin();
+
+      // Only backend can create backups
+      allow create: if false;
+
+      // Cannot update or delete backups
+      allow update, delete: if false;
+    }
+
+    // Generic admin uploads (images imported via CMS forms)
+    match /uploads/{folder}/{fileName} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidImageType() && isUnder10MB();
+      allow delete: if isAdmin();
+    }
+
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
