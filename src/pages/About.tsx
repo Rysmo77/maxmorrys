@@ -319,7 +319,7 @@ export default function About() {
             </div>
             <div className="text-center py-6 px-8">
               <Users className="w-6 h-6 text-brand-500 mx-auto mb-3" />
-              <p className="text-5xl lg:text-6xl font-black text-neutral-900 dark:text-white tracking-tight">1 486+</p>
+              <p className="text-5xl lg:text-6xl font-black text-neutral-900 dark:text-white tracking-tight">50+</p>
               <p className="text-xs font-medium tracking-[0.15em] uppercase text-neutral-400 dark:text-neutral-500 mt-2">Étudiants formés</p>
             </div>
             <div className="text-center py-6 px-8">

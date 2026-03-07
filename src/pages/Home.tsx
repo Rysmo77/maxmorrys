@@ -8,7 +8,7 @@ import type { Formation, BlogPost, Testimonial } from '../types';
 const stats = [
   { icon: TrendingUp, value: '+340%', label: 'Croissance trafic en 1 an', color: 'text-brand-500' },
   { icon: BookOpen, value: '10+', label: 'Cours crees', color: 'text-accent-500' },
-  { icon: Users, value: '2 000+', label: 'Étudiants formés', color: 'text-success-500' },
+  { icon: Users, value: '50+', label: 'Étudiants formés', color: 'text-success-500' },
   { icon: Award, value: '94%', label: 'Taux de reussite', color: 'text-warning-500' },
 ];
 
@@ -143,7 +143,7 @@ export default function Home() {
               {/* Badge flottant */}
               <div className="absolute -bottom-6 -left-6 bg-white dark:bg-neutral-800 rounded-2xl shadow-xl p-5 hidden lg:block">
                 <p className="text-3xl font-black text-neutral-900 dark:text-white leading-none">
-                  2 000+
+                  50+
                 </p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 font-medium">étudiants formés</p>
               </div>
