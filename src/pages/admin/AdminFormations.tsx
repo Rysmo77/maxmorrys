@@ -174,8 +174,9 @@ export default function AdminFormations() {
       addToast('success', editingId ? 'Formation mise à jour.' : 'Formation créée.');
       setShowModal(false);
       load();
-    } catch {
-      addToast('error', 'Erreur lors de l\'enregistrement.');
+    } catch (error: unknown) {
+      console.error('Save formation failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
     } finally {
       setSaving(false);
     }
@@ -187,8 +188,9 @@ export default function AdminFormations() {
       await deleteFormation(id);
       setList((prev) => prev.filter((f) => f.id !== id));
       addToast('success', 'Formation supprimée.');
-    } catch {
-      addToast('error', 'Erreur lors de la suppression.');
+    } catch (error: unknown) {
+      console.error('Delete formation failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
     }
   };
 

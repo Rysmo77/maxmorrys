@@ -36,6 +36,8 @@ const Register = lazy(() => import('./pages/auth/Register'));
 const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
 const StudentDashboard = lazy(() => import('./pages/lms/StudentDashboard'));
 const CoursePlayer = lazy(() => import('./pages/lms/CoursePlayer'));
+const Checkout = lazy(() => import('./pages/lms/Checkout'));
+const PaymentReturn = lazy(() => import('./pages/lms/PaymentReturn'));
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminArticles = lazy(() => import('./pages/admin/AdminArticles'));
@@ -53,6 +55,7 @@ const AdminFAQ = lazy(() => import('./pages/admin/AdminFAQ'));
 const AdminTestimonials = lazy(() => import('./pages/admin/AdminTestimonials'));
 const AdminAppointments = lazy(() => import('./pages/admin/AdminAppointments'));
 const AdminClubDigitos = lazy(() => import('./pages/admin/AdminClubDigitos'));
+const CertificatePage = lazy(() => import('./pages/lms/Certificate'));
 
 function PageLoader() {
   return (
@@ -66,11 +69,14 @@ function PublicLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
   return (
     <>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold">
+        Aller au contenu principal
+      </a>
       <AnnouncementBanner />
       <ScrollProgress />
       <Header onSearchOpen={() => setSearchOpen(true)} />
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <main className="min-h-screen">
+      <main id="main-content" className="min-h-screen">
         <Outlet />
       </main>
       <Footer />
@@ -144,6 +150,26 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: '/checkout/:slug',
+        element: (
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <Checkout />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/paiement/retour',
+        element: (
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <PaymentReturn />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
   {
@@ -152,6 +178,7 @@ const router = createBrowserRouter([
       { path: '/connexion', element: <Suspense fallback={<PageLoader />}><Login /></Suspense> },
       { path: '/inscription', element: <Suspense fallback={<PageLoader />}><Register /></Suspense> },
       { path: '/mot-de-passe-oublie', element: <Suspense fallback={<PageLoader />}><ResetPassword /></Suspense> },
+      { path: '/certificat/:code', element: <Suspense fallback={<PageLoader />}><CertificatePage /></Suspense> },
       { path: '/403', element: <Forbidden403 /> },
       { path: '*', element: <NotFound /> },
     ],

@@ -5,7 +5,7 @@ import {
   type QueryConstraint, type Unsubscribe, type DocumentData,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { BlogPost, Formation, User, ContactMessage, Enrollment } from '../types';
+import type { BlogPost, Formation, User, ContactMessage, Enrollment, AppNotification } from '../types';
 
 // ── Generic helpers ──────────────────────────────────────────────────────────
 
@@ -132,8 +132,13 @@ export async function updateUserRole(uid: string, role: 'student' | 'admin' | 's
   return updateDocById('users', uid, { role });
 }
 
+const ALLOWED_PROFILE_FIELDS = ['displayName', 'firstName', 'lastName', 'phone', 'avatar', 'bio', 'preferences'] as const;
+
 export async function updateUserProfile(uid: string, data: Partial<User>): Promise<void> {
-  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+  const clean = Object.fromEntries(
+    Object.entries(data).filter(([k, v]) => v !== undefined && (ALLOWED_PROFILE_FIELDS as readonly string[]).includes(k))
+  );
+  if (Object.keys(clean).length === 0) return;
   return updateDocById('users', uid, clean as Partial<DocumentData>);
 }
 
@@ -717,4 +722,46 @@ export async function isRegisteredForSession(sessionId: string, userId: string):
 
 export async function getSessionRegistrations(sessionId: string): Promise<ClubSessionRegistration[]> {
   return getCollection<ClubSessionRegistration>(`club_sessions/${sessionId}/registrations`);
+}
+
+// ── Notifications ──────────────────────────────────────────────────────────
+
+export async function getUserNotifications(userId: string, max = 20): Promise<AppNotification[]> {
+  return getCollection<AppNotification>(
+    `notifications/${userId}/items`,
+    orderBy('createdAt', 'desc'),
+    limit(max),
+  );
+}
+
+export async function markNotificationRead(userId: string, notificationId: string): Promise<void> {
+  await updateDoc(doc(db, `notifications/${userId}/items`, notificationId), { read: true });
+}
+
+export async function markAllNotificationsRead(userId: string): Promise<void> {
+  const items = await getUserNotifications(userId, 50);
+  const unread = items.filter((n) => !n.read);
+  await Promise.all(unread.map((n) => markNotificationRead(userId, n.id)));
+}
+
+export async function createNotification(userId: string, data: Omit<AppNotification, 'id' | 'userId'>): Promise<string> {
+  const ref = await addDoc(collection(db, `notifications/${userId}/items`), {
+    ...data,
+    userId,
+  });
+  return ref.id;
+}
+
+export function subscribeNotifications(userId: string, callback: (notifications: AppNotification[]) => void): Unsubscribe {
+  const q = query(
+    collection(db, `notifications/${userId}/items`),
+    orderBy('createdAt', 'desc'),
+    limit(20),
+  );
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppNotification)));
+  }, () => {
+    // Permission denied or collection doesn't exist yet — return empty
+    callback([]);
+  });
 }

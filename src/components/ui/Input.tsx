@@ -9,6 +9,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export default function Input({ label, error, icon, className, id, ...props }: InputProps) {
   const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+  const errorId = error ? `${inputId}-error` : undefined;
   return (
     <div className="space-y-1.5">
       {label && (
@@ -20,6 +21,8 @@ export default function Input({ label, error, icon, className, id, ...props }: I
         {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">{icon}</div>}
         <input
           id={inputId}
+          aria-invalid={!!error}
+          aria-describedby={errorId}
           className={cn(
             'w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors',
             'focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none',
@@ -31,7 +34,7 @@ export default function Input({ label, error, icon, className, id, ...props }: I
           {...props}
         />
       </div>
-      {error && <p className="text-sm text-error-600 dark:text-error-400">{error}</p>}
+      {error && <p id={errorId} role="alert" className="text-sm text-error-600 dark:text-error-400">{error}</p>}
     </div>
   );
 }
@@ -43,6 +46,7 @@ interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
 
 export function Textarea({ label, error, className, id, ...props }: TextareaProps) {
   const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+  const errorId = error ? `${inputId}-error` : undefined;
   return (
     <div className="space-y-1.5">
       {label && (
@@ -52,6 +56,8 @@ export function Textarea({ label, error, className, id, ...props }: TextareaProp
       )}
       <textarea
         id={inputId}
+        aria-invalid={!!error}
+        aria-describedby={errorId}
         className={cn(
           'w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors resize-y min-h-[100px]',
           'focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none',
@@ -61,7 +67,7 @@ export function Textarea({ label, error, className, id, ...props }: TextareaProp
         )}
         {...props}
       />
-      {error && <p className="text-sm text-error-600 dark:text-error-400">{error}</p>}
+      {error && <p id={errorId} role="alert" className="text-sm text-error-600 dark:text-error-400">{error}</p>}
     </div>
   );
 }

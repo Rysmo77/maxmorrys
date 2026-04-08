@@ -1,11 +1,18 @@
-import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { defineSecret } from 'firebase-functions/params';
 
 admin.initializeApp();
 
+// ── Notification triggers ──────────────────────────────────────────────────
+export { onEnrollmentCreated, onCertificateCreated, streakReminder, courseReminder } from './notifications';
+
 const googleAiKey = defineSecret('GOOGLE_AI_API_KEY');
+const spotifyClientId = defineSecret('SPOTIFY_CLIENT_ID');
+const spotifyClientSecret = defineSecret('SPOTIFY_CLIENT_SECRET');
+const youtubeApiKey = defineSecret('YOUTUBE_API_KEY');
+const bictorysApiKey = defineSecret('BICTORYS_API_KEY');
 
 interface ConversationMessage {
   role: 'user' | 'assistant';
@@ -219,5 +226,300 @@ export const adminManageEnrollment = onCall(
     } else {
       throw new HttpsError('invalid-argument', 'Action invalide. Utilisez "create" ou "delete".');
     }
+  }
+);
+
+// ── Spotify Proxy (admin-only) ──────────────────────────────────────────────
+
+export const spotifyProxy = onCall(
+  { region: 'us-central1', secrets: [spotifyClientId, spotifyClientSecret] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentification requise.');
+    }
+
+    const callerDoc = await admin.firestore().doc(`users/${request.auth.uid}`).get();
+    if (!callerDoc.exists || callerDoc.data()?.role !== 'admin') {
+      throw new HttpsError('permission-denied', 'Accès réservé aux administrateurs.');
+    }
+
+    const { episodeId } = request.data as { episodeId: string };
+    if (!episodeId || typeof episodeId !== 'string') {
+      throw new HttpsError('invalid-argument', 'episodeId est obligatoire.');
+    }
+
+    const clientId = spotifyClientId.value();
+    const clientSecret = spotifyClientSecret.value();
+    if (!clientId || !clientSecret) {
+      throw new HttpsError('internal', 'Identifiants Spotify non configurés.');
+    }
+
+    try {
+      const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+        },
+        body: 'grant_type=client_credentials',
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenData.access_token) {
+        throw new HttpsError('internal', "Erreur d'authentification Spotify.");
+      }
+
+      const epRes = await fetch(`https://api.spotify.com/v1/episodes/${episodeId}?market=FR`, {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
+      const ep = await epRes.json();
+      if (ep.error) {
+        throw new HttpsError('not-found', `Erreur Spotify : ${ep.error.message}`);
+      }
+
+      return {
+        name: ep.name,
+        description: ep.description,
+        coverImage: ep.images?.[0]?.url ?? '',
+        durationMs: ep.duration_ms,
+        releaseDate: ep.release_date,
+      };
+    } catch (error: unknown) {
+      if (error instanceof HttpsError) throw error;
+      throw new HttpsError('internal', 'Impossible de récupérer les infos Spotify.');
+    }
+  }
+);
+
+// ── YouTube Proxy (admin-only) ──────────────────────────────────────────────
+
+export const youtubeProxy = onCall(
+  { region: 'us-central1', secrets: [youtubeApiKey] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentification requise.');
+    }
+
+    const callerDoc = await admin.firestore().doc(`users/${request.auth.uid}`).get();
+    if (!callerDoc.exists || callerDoc.data()?.role !== 'admin') {
+      throw new HttpsError('permission-denied', 'Accès réservé aux administrateurs.');
+    }
+
+    const { videoId } = request.data as { videoId: string };
+    if (!videoId || typeof videoId !== 'string') {
+      throw new HttpsError('invalid-argument', 'videoId est obligatoire.');
+    }
+
+    const apiKey = youtubeApiKey.value();
+    if (!apiKey) {
+      throw new HttpsError('internal', 'Clé API YouTube non configurée.');
+    }
+
+    try {
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?id=${encodeURIComponent(videoId)}&part=snippet,contentDetails,statistics&key=${apiKey}`
+      );
+      const data = await res.json();
+      if (data.error) {
+        throw new HttpsError('internal', `Erreur API YouTube : ${data.error.message}`);
+      }
+
+      const item = data.items?.[0];
+      if (!item) {
+        throw new HttpsError('not-found', 'Vidéo YouTube introuvable ou privée.');
+      }
+
+      return {
+        title: item.snippet.title,
+        description: item.snippet.description,
+        thumbnail: item.snippet.thumbnails.maxres?.url
+          ?? item.snippet.thumbnails.high?.url
+          ?? item.snippet.thumbnails.medium?.url
+          ?? '',
+        duration: item.contentDetails.duration,
+        publishedAt: item.snippet.publishedAt,
+        viewCount: item.statistics?.viewCount ?? '0',
+      };
+    } catch (error: unknown) {
+      if (error instanceof HttpsError) throw error;
+      throw new HttpsError('internal', 'Impossible de récupérer les infos YouTube.');
+    }
+  }
+);
+
+// ── Bictorys Payment ──────────────────────────────────────────────────────
+
+const BICTORYS_API_URL = 'https://api.test.bictorys.com/pay/v1/charges';
+
+export const createBictorysCharge = onCall(
+  { region: 'us-central1', secrets: [bictorysApiKey] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentification requise.');
+    }
+
+    const { formationId, formationSlug } = request.data as {
+      formationId: string;
+      formationSlug: string;
+    };
+
+    if (!formationId || !formationSlug) {
+      throw new HttpsError('invalid-argument', 'formationId et formationSlug sont obligatoires.');
+    }
+
+    // Read formation from Firestore for canonical price
+    const formationDoc = await admin.firestore().doc(`formations/${formationId}`).get();
+    if (!formationDoc.exists) {
+      throw new HttpsError('not-found', 'Formation introuvable.');
+    }
+
+    const formation = formationDoc.data()!;
+    const finalPrice = formation.promoPrice ?? formation.price;
+
+    if (finalPrice <= 0) {
+      throw new HttpsError('invalid-argument', 'Cette formation est gratuite, pas besoin de paiement.');
+    }
+
+    // Get user info
+    const uid = request.auth.uid;
+    const userDoc = await admin.firestore().doc(`users/${uid}`).get();
+    const userData = userDoc.data();
+
+    // Check if already enrolled
+    const enrollmentId = `${uid}_${formationId}`;
+    const existingEnrollment = await admin.firestore().doc(`enrollments/${enrollmentId}`).get();
+    if (existingEnrollment.exists) {
+      throw new HttpsError('already-exists', 'Tu es déjà inscrit à cette formation.');
+    }
+
+    // Call Bictorys API
+    const apiKey = bictorysApiKey.value();
+    if (!apiKey) {
+      throw new HttpsError('internal', 'Service de paiement non configuré.');
+    }
+
+    let bictorysResponse: { link: string; chargeId: string; opToken: string };
+    try {
+      const res = await fetch(BICTORYS_API_URL, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'content-type': 'application/json',
+          'X-API-Key': apiKey,
+        },
+        body: JSON.stringify({ amount: finalPrice, currency: 'XOF' }),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.text();
+        console.error('Bictorys API error:', res.status, errBody);
+        throw new Error(`Bictorys returned ${res.status}`);
+      }
+
+      bictorysResponse = await res.json();
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      console.error('Bictorys charge creation failed:', errMsg);
+      throw new HttpsError('internal', 'Erreur lors de la création du paiement. Réessaie.');
+    }
+
+    // Create transaction record server-side
+    const txnRef = admin.firestore().collection('transactions').doc();
+    await txnRef.set({
+      id: txnRef.id,
+      userId: uid,
+      userEmail: request.auth.token.email ?? userData?.email ?? '',
+      userName: userData?.displayName ?? request.auth.token.name ?? '',
+      formationId,
+      formationSlug,
+      formationTitle: formation.title ?? '',
+      amount: finalPrice,
+      currency: 'XOF',
+      status: 'pending',
+      paymentMethod: 'bictorys',
+      chargeId: bictorysResponse.chargeId,
+      opToken: bictorysResponse.opToken,
+      createdAt: new Date().toISOString(),
+    });
+
+    return {
+      checkoutUrl: bictorysResponse.link,
+      transactionId: txnRef.id,
+    };
+  }
+);
+
+export const bictorysWebhook = onRequest(
+  { region: 'us-central1' },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).send('Method Not Allowed');
+      return;
+    }
+
+    const body = req.body;
+    const chargeId: string | undefined = body?.chargeId ?? body?.charge_id;
+    const status: string | undefined = body?.status;
+
+    if (!chargeId) {
+      console.warn('Bictorys webhook: missing chargeId', body);
+      res.status(200).send('OK');
+      return;
+    }
+
+    // Find the pending transaction matching this chargeId
+    const txnQuery = await admin.firestore()
+      .collection('transactions')
+      .where('chargeId', '==', chargeId)
+      .where('status', '==', 'pending')
+      .limit(1)
+      .get();
+
+    if (txnQuery.empty) {
+      // Already processed or unknown — acknowledge to prevent retries
+      console.log('Bictorys webhook: no pending transaction for chargeId', chargeId);
+      res.status(200).send('OK');
+      return;
+    }
+
+    const txnDoc = txnQuery.docs[0];
+    const txnData = txnDoc.data();
+
+    const isSuccess = status === 'succeeded' || status === 'completed' || status === 'successful';
+    const isFailed = status === 'failed' || status === 'expired' || status === 'cancelled';
+
+    if (isSuccess) {
+      // Mark transaction as completed
+      await txnDoc.ref.update({
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+      });
+
+      // Auto-create enrollment
+      const enrollmentId = `${txnData.userId}_${txnData.formationId}`;
+      const enrollmentRef = admin.firestore().doc(`enrollments/${enrollmentId}`);
+      const existing = await enrollmentRef.get();
+      if (!existing.exists) {
+        await enrollmentRef.set({
+          id: enrollmentId,
+          userId: txnData.userId,
+          formationId: txnData.formationId,
+          enrolledAt: new Date().toISOString(),
+          progress: 0,
+          completedLessons: [],
+          certificateIssued: false,
+        });
+      }
+
+      console.log('Bictorys webhook: payment succeeded, enrollment created for', enrollmentId);
+    } else if (isFailed) {
+      await txnDoc.ref.update({
+        status: 'failed',
+      });
+      console.log('Bictorys webhook: payment failed for chargeId', chargeId);
+    } else {
+      console.log('Bictorys webhook: unhandled status', status, 'for chargeId', chargeId);
+    }
+
+    res.status(200).send('OK');
   }
 );

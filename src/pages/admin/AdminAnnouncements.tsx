@@ -55,8 +55,9 @@ export default function AdminAnnouncements() {
       addToast('success', editing ? 'Annonce mise à jour.' : 'Annonce créée.');
       setModalOpen(false);
       load();
-    } catch {
-      addToast('error', 'Erreur lors de la sauvegarde.');
+    } catch (error: unknown) {
+      console.error('Save announcement failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }

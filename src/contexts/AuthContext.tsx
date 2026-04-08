@@ -159,7 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: unknown) {
       const errorCode = (error as { code?: string })?.code ?? '';
       if (errorCode === 'auth/user-not-found') {
-        throw new Error('Aucun compte associé à cet email');
+        // Ne pas révéler si l'email existe — retourner silencieusement
+        return;
       } else if (errorCode === 'auth/invalid-email') {
         throw new Error('Email invalide');
       } else {

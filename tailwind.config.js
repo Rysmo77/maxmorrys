@@ -88,6 +88,15 @@ export default {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      fontSize: {
+        'heading-hero': ['clamp(2.5rem, 5vw + 1rem, 5rem)', { lineHeight: '1.05', letterSpacing: '-0.02em', fontWeight: '900' }],
+        'heading-section': ['clamp(2rem, 4vw + 0.5rem, 3.75rem)', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '900' }],
+        'heading-card': ['clamp(1.25rem, 2vw + 0.25rem, 1.5rem)', { lineHeight: '1.3', fontWeight: '700' }],
+        'heading-sub': ['1.125rem', { lineHeight: '1.4', fontWeight: '700' }],
+        'body-lg': ['1.125rem', { lineHeight: '1.75' }],
+        'body-sm': ['0.875rem', { lineHeight: '1.7' }],
+        'caption': ['0.625rem', { lineHeight: '1.5', letterSpacing: '0.15em', fontWeight: '700' }],
+      },
       spacing: {
         18: '4.5rem',
         88: '22rem',

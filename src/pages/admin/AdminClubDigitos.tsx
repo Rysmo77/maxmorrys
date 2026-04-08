@@ -117,8 +117,9 @@ export default function AdminClubDigitos() {
       await updateClubSubscriptionStatus(userId, status);
       setSubscriptions((prev) => prev.map((s) => s.userId === userId ? { ...s, status } : s));
       addToast('success', status === 'active' ? 'Abonnement activé.' : 'Abonnement mis à jour.');
-    } catch {
-      addToast('error', 'Erreur lors de la mise à jour.');
+    } catch (error: unknown) {
+      console.error('Update subscription status failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la mise à jour.');
     }
   };
 
@@ -127,8 +128,9 @@ export default function AdminClubDigitos() {
       await deleteClubPost(id);
       setPosts((prev) => prev.filter((p) => p.id !== id));
       addToast('success', 'Publication supprimée.');
-    } catch {
-      addToast('error', 'Erreur lors de la suppression.');
+    } catch (error: unknown) {
+      console.error('Delete club post failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
     }
   };
 
@@ -167,8 +169,9 @@ export default function AdminClubDigitos() {
       const updated = await getClubPosts(100);
       setPosts(updated);
       addToast('success', 'Publication admin créée.');
-    } catch {
-      addToast('error', 'Erreur lors de la publication.');
+    } catch (error: unknown) {
+      console.error('Create admin post failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la publication.');
     } finally {
       setPublishingPost(false);
     }
@@ -218,8 +221,9 @@ export default function AdminClubDigitos() {
       const updated = await getClubEvents();
       setEvents(updated);
       addToast('success', editEvent ? 'Événement mis à jour.' : 'Événement créé.');
-    } catch {
-      addToast('error', 'Erreur lors de l\'enregistrement.');
+    } catch (error: unknown) {
+      console.error('Save event failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
     } finally {
       setSavingEvent(false);
       setUploadingEventImage(false);
@@ -231,8 +235,9 @@ export default function AdminClubDigitos() {
       await deleteClubEvent(id);
       setEvents((prev) => prev.filter((e) => e.id !== id));
       addToast('success', 'Événement supprimé.');
-    } catch {
-      addToast('error', 'Erreur lors de la suppression.');
+    } catch (error: unknown) {
+      console.error('Delete event failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
     }
   };
 
@@ -280,8 +285,9 @@ export default function AdminClubDigitos() {
       const updated = await getClubSessions();
       setSessions(updated);
       addToast('success', editSession ? 'Session mise à jour.' : 'Session créée.');
-    } catch {
-      addToast('error', 'Erreur lors de l\'enregistrement.');
+    } catch (error: unknown) {
+      console.error('Save session failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
     } finally {
       setSavingSession(false);
       setUploadingSessionImage(false);
@@ -293,8 +299,9 @@ export default function AdminClubDigitos() {
       await deleteClubSession(id);
       setSessions((prev) => prev.filter((s) => s.id !== id));
       addToast('success', 'Session supprimée.');
-    } catch {
-      addToast('error', 'Erreur lors de la suppression.');
+    } catch (error: unknown) {
+      console.error('Delete session failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
     }
   };
 
@@ -319,8 +326,9 @@ export default function AdminClubDigitos() {
       const updated = await getClubExclusiveInfos();
       setInfos(updated);
       addToast('success', editInfo ? 'Info mise à jour.' : 'Info créée.');
-    } catch {
-      addToast('error', 'Erreur lors de l\'enregistrement.');
+    } catch (error: unknown) {
+      console.error('Save info failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
     } finally {
       setSavingInfo(false);
     }
@@ -331,8 +339,9 @@ export default function AdminClubDigitos() {
       await deleteClubInfo(id);
       setInfos((prev) => prev.filter((i) => i.id !== id));
       addToast('success', 'Info supprimée.');
-    } catch {
-      addToast('error', 'Erreur lors de la suppression.');
+    } catch (error: unknown) {
+      console.error('Delete info failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
     }
   };
 

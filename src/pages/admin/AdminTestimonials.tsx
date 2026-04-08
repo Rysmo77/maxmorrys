@@ -54,8 +54,9 @@ export default function AdminTestimonials() {
       addToast('success', editing ? 'Témoignage mis à jour.' : 'Témoignage créé.');
       setModalOpen(false);
       load();
-    } catch {
-      addToast('error', 'Erreur lors de la sauvegarde.');
+    } catch (error: unknown) {
+      console.error('Save testimonial failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }
@@ -66,8 +67,9 @@ export default function AdminTestimonials() {
       await saveTestimonial({ ...t, status: 'approved', featured: true, id: t.id });
       addToast('success', 'Témoignage approuvé et mis à la une.');
       load();
-    } catch {
-      addToast('error', 'Erreur lors de l\'approbation.');
+    } catch (error: unknown) {
+      console.error('Approve testimonial failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'approbation.');
     }
   };
 

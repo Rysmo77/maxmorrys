@@ -91,7 +91,7 @@ export default function Footer() {
             <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5">A propos</h3>
             <ul className="space-y-3">
               {footerLinks.apropos.map((link) => (
-                <li key={link.path}>
+                <li key={link.label}>
                   <Link to={link.path} className="text-sm hover:text-white transition-colors inline-flex items-center gap-1 group">
                     {link.label}
                     <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />

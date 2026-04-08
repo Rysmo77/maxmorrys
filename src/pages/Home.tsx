@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { ArrowRight, TrendingUp, Users, Award, BookOpen, Play, ChevronDown, Star, Zap, Target, BarChart3 } from 'lucide-react';
+import { ArrowRight, TrendingUp, Users, Award, BookOpen, Play, ChevronDown, Star, Zap, Target, BarChart3, Shield, Infinity, BadgeCheck } from 'lucide-react';
 import { getPublishedFormations, getPublishedPosts, getFeaturedTestimonials } from '../lib/firestore';
 import { formatPrice, truncate } from '../lib/utils';
 import type { Formation, BlogPost, Testimonial } from '../types';
@@ -18,6 +18,58 @@ const services = [
   { icon: BarChart3, title: 'Je te transforme', desc: 'Coaching et consulting pour accélérer ta croissance.', link: '/contact' },
 ];
 
+
+function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) {
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    if (testimonials.length <= 1) return;
+    const timer = setInterval(() => {
+      setActive((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [testimonials.length]);
+
+  const t = testimonials[active];
+  if (!t) return null;
+
+  return (
+    <div className="max-w-4xl mx-auto text-center">
+      <div className="min-h-[200px] flex flex-col items-center justify-center px-4">
+        <div className="flex items-center gap-1 mb-4 justify-center">
+          {[...Array(t.rating)].map((_, i) => (
+            <Star key={i} className="w-4 h-4 text-accent-500 fill-accent-500" />
+          ))}
+        </div>
+        <p className="text-xl lg:text-2xl font-bold italic text-neutral-800 dark:text-neutral-200 leading-relaxed mb-6 transition-opacity duration-500">
+          "{t.content}"
+        </p>
+        <div className="flex items-center justify-center gap-3">
+          {t.avatar && <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-full object-cover" loading="lazy" />}
+          <div className="text-left">
+            <p className="font-bold text-neutral-900 dark:text-white text-sm">{t.name}</p>
+            <p className="text-xs text-neutral-500">{t.role}{t.company ? `, ${t.company}` : ''}</p>
+          </div>
+        </div>
+      </div>
+      {/* Dots */}
+      {testimonials.length > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-8">
+          {testimonials.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                i === active ? 'bg-brand-500 w-6' : 'bg-neutral-300 dark:bg-neutral-600'
+              }`}
+              aria-label={`Témoignage ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   const [formations, setFormations] = useState<Formation[]>([]);
@@ -97,7 +149,7 @@ export default function Home() {
       </section>
 
       {/* ── SERVICES : "JE SUIS MAX-MORRYS." split editorial ── */}
-      <section className="py-24 lg:py-36 bg-neutral-50 dark:bg-neutral-900">
+      <section id="services" className="py-24 lg:py-36 bg-neutral-50 dark:bg-neutral-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
 
@@ -169,13 +221,11 @@ export default function Home() {
                 <p className="text-sm text-neutral-600 dark:text-neutral-500 max-w-xs lg:text-right leading-relaxed">
                   Des formations pratiques pour maîtriser le marketing digital, le SEO et l'IA.
                 </p>
-                <Link to="/formations">
-                  <button className="group inline-flex items-center gap-2 text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
+                <Link to="/formations" className="group inline-flex items-center gap-2 text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
                     Voir toutes les formations
                     <span className="w-7 h-7 rounded-full border border-neutral-300 dark:border-neutral-700 group-hover:border-brand-500 group-hover:bg-brand-500/10 flex items-center justify-center transition-all">
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </span>
-                  </button>
                 </Link>
               </div>
             </div>
@@ -322,11 +372,9 @@ export default function Home() {
 
             {/* CTA */}
             <div className="flex justify-center mt-12">
-              <Link to="/formations">
-                <button className="group inline-flex items-center gap-3 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 hover:border-neutral-300 text-neutral-900 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 dark:hover:border-white/20 dark:text-white font-semibold px-8 py-4 rounded-full transition-all text-sm tracking-wide">
+              <Link to="/formations" className="group inline-flex items-center gap-3 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 hover:border-neutral-300 text-neutral-900 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 dark:hover:border-white/20 dark:text-white font-semibold px-8 py-4 rounded-full transition-all text-sm tracking-wide">
                   Découvrir toutes les formations
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
               </Link>
             </div>
 
@@ -445,10 +493,8 @@ export default function Home() {
               ))}
 
               <div className="mt-10">
-                <Link to="/blog">
-                  <button className="border border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100 font-semibold px-8 py-4 rounded-full hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-colors text-sm tracking-wide">
+                <Link to="/blog" className="inline-flex border border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100 font-semibold px-8 py-4 rounded-full hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-colors text-sm tracking-wide">
                     Lire tous les articles
-                  </button>
                 </Link>
               </div>
             </div>
@@ -468,39 +514,28 @@ export default function Home() {
             </h2>
           </div>
 
-          {/* Citation principale */}
-          {featuredTestimonials[0] && (
-            <blockquote className="max-w-4xl mx-auto text-center mb-16 px-4">
-              <p className="text-2xl lg:text-3xl font-bold italic text-neutral-800 dark:text-neutral-200 leading-relaxed mb-8">
-                "{featuredTestimonials[0].content}"
-              </p>
-              <div className="flex items-center justify-center gap-3">
-                <img src={featuredTestimonials[0].avatar} alt={featuredTestimonials[0].name} className="w-12 h-12 rounded-full object-cover" loading="lazy" />
-                <div className="text-left">
-                  <p className="font-bold text-neutral-900 dark:text-white">{featuredTestimonials[0].name}</p>
-                  <p className="text-sm text-neutral-500">{featuredTestimonials[0].role}</p>
-                </div>
-              </div>
-            </blockquote>
+          {/* Rotating testimonial carousel */}
+          {featuredTestimonials.length > 0 && (
+            <TestimonialCarousel testimonials={featuredTestimonials} />
           )}
+        </div>
+      </section>
 
-          {/* Grille des autres */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {featuredTestimonials.slice(1).map((t) => (
-              <div key={t.id} className="p-8 bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(t.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-accent-500 fill-accent-500" />
-                  ))}
+      {/* ── TRUST BADGES ── */}
+      <section className="py-12 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+            {[
+              { icon: BadgeCheck, title: 'Certificat inclus', desc: 'Chaque formation délivre un certificat vérifiable' },
+              { icon: Infinity, title: 'Accès à vie', desc: 'Tes formations restent accessibles sans limite' },
+              { icon: Shield, title: 'Garantie satisfait', desc: 'Remboursement sous 7 jours si insatisfaction' },
+            ].map((badge) => (
+              <div key={badge.title} className="flex flex-col items-center gap-3 p-4">
+                <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center">
+                  <badge.icon className="w-6 h-6 text-brand-600 dark:text-brand-400" />
                 </div>
-                <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed mb-6 text-sm">"{t.content}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-                  <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-full object-cover" loading="lazy" />
-                  <div>
-                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">{t.name}</p>
-                    <p className="text-xs text-neutral-500">{t.role}{t.company ? `, ${t.company}` : ''}</p>
-                  </div>
-                </div>
+                <p className="font-bold text-neutral-900 dark:text-white text-sm">{badge.title}</p>
+                <p className="text-xs text-neutral-500 max-w-[200px]">{badge.desc}</p>
               </div>
             ))}
           </div>
@@ -517,15 +552,11 @@ export default function Home() {
             Que tu sois entrepreneur, marketeur ou en reconversion, il y a une formation faite pour toi.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/formations">
-              <button className="bg-white text-brand-700 font-bold px-8 py-4 rounded-full hover:bg-brand-50 transition-colors text-sm tracking-wide">
+            <Link to="/formations" className="inline-flex items-center bg-white text-brand-700 font-bold px-8 py-4 rounded-full hover:bg-brand-50 transition-colors text-sm tracking-wide">
                 Voir les formations <ArrowRight className="inline w-4 h-4 ml-1" />
-              </button>
             </Link>
-            <Link to="/contact">
-              <button className="border border-white/40 text-white font-bold px-8 py-4 rounded-full hover:bg-white/10 transition-colors text-sm tracking-wide">
+            <Link to="/contact" className="inline-flex items-center border border-white/40 text-white font-bold px-8 py-4 rounded-full hover:bg-white/10 transition-colors text-sm tracking-wide">
                 Prendre contact
-              </button>
             </Link>
           </div>
         </div>

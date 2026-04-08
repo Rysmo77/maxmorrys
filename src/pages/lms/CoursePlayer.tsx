@@ -1,13 +1,82 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Play, FileText, CheckCircle, Award, ChevronDown, ChevronUp, Download, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, Play, FileText, CheckCircle, Award, ChevronDown, ChevronUp, Download, Check, Loader2, Lock, ArrowRight, List } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
+import Sheet from '../../components/ui/Sheet';
+import Breadcrumbs from '../../components/ui/Breadcrumbs';
 import { useToast } from '../../components/ui/Toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { getFormationBySlug, getUserEnrollments, updateEnrollmentProgress } from '../../lib/firestore';
 import { markdownToHtml } from '../../lib/utils';
 import type { Formation, Lesson, Enrollment } from '../../types';
+
+function CourseOutline({
+  formation, totalLessons, expandedModules, toggleModule,
+  completedLessons, activeLesson, setActiveLesson, lessonIcons,
+}: {
+  formation: Formation;
+  totalLessons: number;
+  expandedModules: string[];
+  toggleModule: (id: string) => void;
+  completedLessons: string[];
+  activeLesson: Lesson | null;
+  setActiveLesson: (lesson: Lesson) => void;
+  lessonIcons: Record<string, typeof Play>;
+}) {
+  return (
+    <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden lg:sticky lg:top-20">
+      <div className="p-4 border-b border-neutral-200 dark:border-neutral-700 hidden lg:block">
+        <h3 className="font-bold text-neutral-900 dark:text-white">Contenu du cours</h3>
+        <p className="text-xs text-neutral-500 mt-0.5">{formation.modules?.length ?? 0} modules · {totalLessons} leçons</p>
+      </div>
+      <div className="max-h-[65vh] overflow-y-auto">
+        {(formation.modules ?? []).map((module) => {
+          const isExpanded = expandedModules.includes(module.id);
+          const moduleCompleted = module.lessons.length > 0 && module.lessons.every((l) => completedLessons.includes(l.id));
+          return (
+            <div key={module.id}>
+              <button
+                onClick={() => toggleModule(module.id)}
+                className="w-full flex items-center justify-between p-3 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors border-b border-neutral-100 dark:border-neutral-700"
+              >
+                <div className="flex items-center gap-2 text-left">
+                  {moduleCompleted && <CheckCircle className="w-4 h-4 text-success-500 flex-shrink-0" />}
+                  <span className="text-sm font-medium text-neutral-900 dark:text-white">{module.title}</span>
+                </div>
+                {isExpanded ? <ChevronUp className="w-4 h-4 text-neutral-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-neutral-400 flex-shrink-0" />}
+              </button>
+              {isExpanded && module.lessons.map((lesson) => {
+                const Icon = lessonIcons[lesson.type] ?? FileText;
+                const isComplete = completedLessons.includes(lesson.id);
+                const isActive = activeLesson?.id === lesson.id;
+                return (
+                  <button
+                    key={lesson.id}
+                    onClick={() => setActiveLesson(lesson)}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                      isActive ? 'bg-brand-50 dark:bg-brand-900/20 border-l-2 border-brand-500' : 'hover:bg-neutral-50 dark:hover:bg-neutral-700/30'
+                    }`}
+                  >
+                    {isComplete ? (
+                      <CheckCircle className="w-4 h-4 text-success-500 flex-shrink-0" />
+                    ) : (
+                      <Icon className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+                    )}
+                    <span className={`text-sm flex-1 ${isActive ? 'text-brand-600 dark:text-brand-400 font-medium' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                      {lesson.title}
+                    </span>
+                    <span className="text-xs text-neutral-400 flex-shrink-0">{lesson.duration}</span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function CoursePlayer() {
   const { slug } = useParams();
@@ -21,6 +90,7 @@ export default function CoursePlayer() {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [mobileOutlineOpen, setMobileOutlineOpen] = useState(false);
 
   useEffect(() => {
     if (!slug || !user) return;
@@ -69,8 +139,9 @@ export default function CoursePlayer() {
     setSaving(true);
     try {
       await updateEnrollmentProgress(enrollment.id, updated, newProgress);
-    } catch {
-      addToast('error', 'Erreur lors de la sauvegarde de la progression.');
+    } catch (error: unknown) {
+      console.error('Failed to save enrollment progress:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde de la progression.');
     } finally {
       setSaving(false);
     }
@@ -99,10 +170,31 @@ export default function CoursePlayer() {
 
   if (!enrollment) {
     return (
-      <div className="pt-32 pb-20 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Accès non autorisé</h1>
-        <p className="text-neutral-500 mb-4">Tu n'es pas inscrit à cette formation.</p>
-        <Link to={`/formations/${formation.slug}`} className="text-brand-600 dark:text-brand-400 hover:underline">Voir la formation</Link>
+      <div className="pt-24 pb-20 text-center max-w-md mx-auto px-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/20 flex items-center justify-center mx-auto mb-5">
+          <Lock className="w-8 h-8 text-brand-500" />
+        </div>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Cette formation requiert une inscription</h1>
+        <p className="text-neutral-500 mb-2 text-sm">
+          Tu n'es pas encore inscrit à <strong className="text-neutral-700 dark:text-neutral-300">{formation.title}</strong>.
+        </p>
+        <p className="text-neutral-400 text-sm mb-6">
+          Inscris-toi pour accéder à tous les modules, leçons et obtenir ton certificat à la fin.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link
+            to={`/formations/${formation.slug}`}
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-full transition-colors text-sm"
+          >
+            Voir la formation <ArrowRight className="w-4 h-4" />
+          </Link>
+          <Link
+            to="/formations"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 font-semibold rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm"
+          >
+            Toutes les formations
+          </Link>
+        </div>
       </div>
     );
   }
@@ -111,11 +203,11 @@ export default function CoursePlayer() {
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 pt-0 pb-20">
       {/* Top bar */}
       <div className="sticky top-0 z-30 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-4 sm:px-6 h-14 flex items-center gap-4">
-        <Link to="/mon-espace" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors flex-shrink-0">
-          <ArrowLeft className="w-4 h-4" /> Mon espace
-        </Link>
-        <span className="text-neutral-300 dark:text-neutral-600">/</span>
-        <span className="text-sm text-neutral-700 dark:text-neutral-300 font-medium truncate flex-1">{formation.title}</span>
+        <Breadcrumbs items={[
+          { label: 'Mon espace', href: '/mon-espace' },
+          { label: formation.title },
+        ]} />
+        <div className="flex-1" />
         {saving && <Loader2 className="w-4 h-4 animate-spin text-brand-500 flex-shrink-0" />}
       </div>
 
@@ -199,61 +291,48 @@ export default function CoursePlayer() {
             )}
           </div>
 
-          {/* Sidebar — course outline */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden sticky top-20">
-              <div className="p-4 border-b border-neutral-200 dark:border-neutral-700">
-                <h3 className="font-bold text-neutral-900 dark:text-white">Contenu du cours</h3>
-                <p className="text-xs text-neutral-500 mt-0.5">{formation.modules?.length ?? 0} modules · {totalLessons} leçons</p>
-              </div>
-              <div className="max-h-[65vh] overflow-y-auto">
-                {(formation.modules ?? []).map((module) => {
-                  const isExpanded = expandedModules.includes(module.id);
-                  const moduleCompleted = module.lessons.length > 0 && module.lessons.every((l) => completedLessons.includes(l.id));
-                  return (
-                    <div key={module.id}>
-                      <button
-                        onClick={() => toggleModule(module.id)}
-                        className="w-full flex items-center justify-between p-3 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors border-b border-neutral-100 dark:border-neutral-700"
-                      >
-                        <div className="flex items-center gap-2 text-left">
-                          {moduleCompleted && <CheckCircle className="w-4 h-4 text-success-500 flex-shrink-0" />}
-                          <span className="text-sm font-medium text-neutral-900 dark:text-white">{module.title}</span>
-                        </div>
-                        {isExpanded ? <ChevronUp className="w-4 h-4 text-neutral-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-neutral-400 flex-shrink-0" />}
-                      </button>
-                      {isExpanded && module.lessons.map((lesson) => {
-                        const Icon = lessonIcons[lesson.type] ?? FileText;
-                        const isComplete = completedLessons.includes(lesson.id);
-                        const isActive = activeLesson?.id === lesson.id;
-                        return (
-                          <button
-                            key={lesson.id}
-                            onClick={() => setActiveLesson(lesson)}
-                            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                              isActive ? 'bg-brand-50 dark:bg-brand-900/20 border-l-2 border-brand-500' : 'hover:bg-neutral-50 dark:hover:bg-neutral-700/30'
-                            }`}
-                          >
-                            {isComplete ? (
-                              <CheckCircle className="w-4 h-4 text-success-500 flex-shrink-0" />
-                            ) : (
-                              <Icon className="w-4 h-4 text-neutral-400 flex-shrink-0" />
-                            )}
-                            <span className={`text-sm flex-1 ${isActive ? 'text-brand-600 dark:text-brand-400 font-medium' : 'text-neutral-700 dark:text-neutral-300'}`}>
-                              {lesson.title}
-                            </span>
-                            <span className="text-xs text-neutral-400 flex-shrink-0">{lesson.duration}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+          {/* Sidebar — course outline (desktop only) */}
+          <div className="hidden lg:block lg:col-span-1">
+            <CourseOutline
+              formation={formation}
+              totalLessons={totalLessons}
+              expandedModules={expandedModules}
+              toggleModule={toggleModule}
+              completedLessons={completedLessons}
+              activeLesson={activeLesson}
+              setActiveLesson={setActiveLesson}
+              lessonIcons={lessonIcons}
+            />
           </div>
         </div>
       </div>
+
+      {/* Mobile floating button for course outline */}
+      <button
+        onClick={() => setMobileOutlineOpen(true)}
+        className="lg:hidden fixed bottom-6 right-6 z-40 flex items-center gap-2 px-5 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm rounded-full shadow-lg transition-colors"
+      >
+        <List className="w-4 h-4" />
+        Plan du cours
+      </button>
+
+      {/* Mobile bottom sheet for course outline */}
+      <Sheet
+        open={mobileOutlineOpen}
+        onClose={() => setMobileOutlineOpen(false)}
+        title="Plan du cours"
+      >
+        <CourseOutline
+          formation={formation}
+          totalLessons={totalLessons}
+          expandedModules={expandedModules}
+          toggleModule={toggleModule}
+          completedLessons={completedLessons}
+          activeLesson={activeLesson}
+          setActiveLesson={(lesson) => { setActiveLesson(lesson); setMobileOutlineOpen(false); }}
+          lessonIcons={lessonIcons}
+        />
+      </Sheet>
     </div>
   );
 }

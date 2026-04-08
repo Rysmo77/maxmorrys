@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify';
+
 export function cn(...classes: (string | boolean | undefined | null)[]): string {
   return classes.filter(Boolean).join(' ');
 }
@@ -104,7 +106,7 @@ function sanitizeUrl(url: string): string {
 
 export function markdownToHtml(md: string): string {
   if (!md) return '';
-  return md
+  const raw = md
     .replace(/^### (.+)$/gm, '<h3 class="text-xl font-black mt-8 mb-3 text-neutral-900 dark:text-white">$1</h3>')
     .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-black mt-10 mb-4 text-neutral-900 dark:text-white">$1</h2>')
     .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-black mt-10 mb-4 text-neutral-900 dark:text-white">$1</h1>')
@@ -129,4 +131,9 @@ export function markdownToHtml(md: string): string {
       return `<p class="text-neutral-600 dark:text-neutral-400 leading-relaxed my-5">${block.trim()}</p>`;
     })
     .join('\n');
+
+  return DOMPurify.sanitize(raw, {
+    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'p', 'strong', 'em', 'code', 'a', 'img', 'ul', 'ol', 'li', 'br'],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel', 'loading'],
+  });
 }

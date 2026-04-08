@@ -70,8 +70,9 @@ export default function AdminSettings() {
     try {
       await saveSiteSettings(settings as Record<string, unknown>);
       addToast('success', 'Paramètres enregistrés avec succès.');
-    } catch {
-      addToast('error', 'Erreur lors de l\'enregistrement. Veuillez réessayer.');
+    } catch (error: unknown) {
+      console.error('Save settings failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement. Veuillez réessayer.');
     } finally {
       setSaving(false);
     }

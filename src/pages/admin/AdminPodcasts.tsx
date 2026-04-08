@@ -1,11 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Search, Trash2, Edit2, Headphones, Loader2, ChevronDown } from 'lucide-react';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../config/firebase';
 import Button from '../../components/ui/Button';
 import ImageInput from '../../components/ui/ImageInput';
 import { useToast } from '../../components/ui/Toast';
 import { getAllPodcasts, savePodcast, deletePodcast } from '../../lib/firestore';
 import { slugify, formatDate, extractSpotifyEpisodeId, parseMsDuration } from '../../lib/utils';
 import type { Podcast } from '../../types';
+
+const spotifyProxyCallable = httpsCallable<
+  { episodeId: string },
+  { name: string; description: string; coverImage: string; durationMs: number; releaseDate: string }
+>(functions, 'spotifyProxy');
 
 const EMPTY: Omit<Podcast, 'id'> = {
   title: '', slug: '', description: '', audioUrl: '', coverImage: '',
@@ -41,34 +48,15 @@ export default function AdminPodcasts() {
     const fetchMeta = async () => {
       setFetchingMeta(true);
       try {
-        const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-        const clientSecret = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
-        if (!clientId || !clientSecret) {
-          addToast('error', 'Identifiants Spotify manquants (VITE_SPOTIFY_CLIENT_ID / VITE_SPOTIFY_CLIENT_SECRET).');
-          return;
-        }
-        const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-          },
-          body: 'grant_type=client_credentials',
-        });
-        const tokenData = await tokenRes.json();
-        if (!tokenData.access_token) { addToast('error', "Erreur d'authentification Spotify."); return; }
-        const epRes = await fetch(`https://api.spotify.com/v1/episodes/${episodeId}?market=FR`, {
-          headers: { Authorization: `Bearer ${tokenData.access_token}` },
-        });
-        const ep = await epRes.json();
-        if (ep.error) { addToast('error', `Erreur Spotify : ${ep.error.message}`); return; }
+        const result = await spotifyProxyCallable({ episodeId });
+        const ep = result.data;
         setForm((p) => ({
           ...p,
           title: ep.name,
           description: ep.description,
-          coverImage: ep.images?.[0]?.url ?? p.coverImage,
-          duration: parseMsDuration(ep.duration_ms),
-          publishedAt: ep.release_date,
+          coverImage: ep.coverImage || p.coverImage,
+          duration: parseMsDuration(ep.durationMs),
+          publishedAt: ep.releaseDate,
         }));
       } catch {
         addToast('error', 'Impossible de récupérer les infos Spotify.');
@@ -101,8 +89,9 @@ export default function AdminPodcasts() {
       addToast('success', editing ? 'Podcast mis à jour.' : 'Podcast créé.');
       setModalOpen(false);
       load();
-    } catch {
-      addToast('error', 'Erreur lors de la sauvegarde.');
+    } catch (error: unknown) {
+      console.error('Save podcast failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }

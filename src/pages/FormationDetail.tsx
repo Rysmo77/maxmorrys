@@ -49,10 +49,10 @@ export default function FormationDetail() {
 
   const handleEnroll = () => {
     if (!user) {
-      navigate('/connexion');
+      navigate('/connexion', { state: { from: { pathname: `/checkout/${formation?.slug}` } } });
       return;
     }
-    addToast('info', 'Le paiement en ligne sera disponible prochainement. Contacte-nous pour t\'inscrire.');
+    navigate(`/checkout/${formation?.slug}`);
   };
 
   return (

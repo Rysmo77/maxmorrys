@@ -47,8 +47,9 @@ export default function AdminFAQ() {
       addToast('success', editing ? 'Question mise à jour.' : 'Question créée.');
       setModalOpen(false);
       load();
-    } catch {
-      addToast('error', 'Erreur lors de la sauvegarde.');
+    } catch (error: unknown) {
+      console.error('Save FAQ item failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }
@@ -60,8 +61,9 @@ export default function AdminFAQ() {
       await deleteFAQItem(id);
       setFaq((prev) => prev.filter((f) => f.id !== id));
       addToast('success', 'Question supprimée.');
-    } catch {
-      addToast('error', 'Erreur lors de la suppression.');
+    } catch (error: unknown) {
+      console.error('Delete FAQ item failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
     }
   };
 

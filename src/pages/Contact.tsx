@@ -47,7 +47,7 @@ export default function Contact() {
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookingForm, setBookingForm] = useState({
     name: '', email: '', phone: '',
-    date: '', time: '10:00',
+    date: '', time: TIME_SLOTS[0],
     subject: SUBJECTS[0], message: '',
   });
   const [bookingErrors, setBookingErrors] = useState<Record<string, string>>({});
@@ -80,8 +80,9 @@ export default function Contact() {
       });
       addToast('success', 'Message envoyé avec succès ! Je te répondrai rapidement.');
       setForm({ name: '', email: '', subject: '', message: '', _hp: '' });
-    } catch {
-      addToast('error', "Erreur lors de l'envoi. Essaie à nouveau s'il te plaît.");
+    } catch (error: unknown) {
+      console.error('Send contact message failed:', error);
+      addToast('error', error instanceof Error ? error.message : "Erreur lors de l'envoi. Essaie à nouveau s'il te plaît.");
     }
     setLoading(false);
   };
@@ -120,8 +121,9 @@ export default function Contact() {
         message: bookingForm.message.trim() || undefined,
       });
       setBookingSuccess(true);
-    } catch {
-      addToast('error', 'Erreur lors de la prise de rendez-vous. Veuillez réessayer.');
+    } catch (error: unknown) {
+      console.error('Save appointment failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la prise de rendez-vous. Veuillez réessayer.');
     } finally {
       setBookingLoading(false);
     }
@@ -130,7 +132,7 @@ export default function Contact() {
   const closeBooking = () => {
     setBookingOpen(false);
     setBookingSuccess(false);
-    setBookingForm({ name: '', email: '', phone: '', date: '', time: '10:00', subject: SUBJECTS[0], message: '' });
+    setBookingForm({ name: '', email: '', phone: '', date: '', time: TIME_SLOTS[0], subject: SUBJECTS[0], message: '' });
     setBookingErrors({});
   };
 

@@ -48,8 +48,9 @@ export default function AdminCoupons() {
       addToast('success', editing ? 'Coupon mis à jour.' : 'Coupon créé.');
       setModalOpen(false);
       load();
-    } catch {
-      addToast('error', 'Erreur lors de la sauvegarde.');
+    } catch (error: unknown) {
+      console.error('Save coupon failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }

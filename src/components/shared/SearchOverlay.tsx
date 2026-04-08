@@ -34,10 +34,29 @@ let cachedPodcasts: Podcast[] | null = null;
 let cachedVideos: VideoType[] | null = null;
 let cachedFAQ: FAQ[] | null = null;
 
+const RECENT_KEY = 'mm-recent-searches';
+const MAX_RECENT = 5;
+
+function getRecentSearches(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]').slice(0, MAX_RECENT);
+  } catch {
+    return [];
+  }
+}
+
+function addRecentSearch(q: string) {
+  const recent = getRecentSearches().filter((s) => s !== q);
+  recent.unshift(q);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
+}
+
 export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -46,8 +65,10 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
     if (!open) {
       setQuery('');
       setResults([]);
+      setHighlightedIndex(-1);
       return;
     }
+    setRecentSearches(getRecentSearches());
     setTimeout(() => inputRef.current?.focus(), 100);
     const allCached = cachedPosts && cachedFormations && cachedPodcasts && cachedVideos && cachedFAQ;
     if (allCached) return;
@@ -108,16 +129,33 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   useEffect(() => { search(query); }, [query, search]);
 
   const goToResult = (result: SearchResult) => {
+    if (query.trim()) addRecentSearch(query.trim());
     const path = typeConfig[result.type].path;
     navigate(result.slug ? `${path}/${result.slug}` : path);
     onClose();
   };
 
+  // Keyboard: Escape, Arrow keys, Enter
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setHighlightedIndex((prev) => Math.min(prev + 1, results.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setHighlightedIndex((prev) => Math.max(prev - 1, -1));
+      } else if (e.key === 'Enter' && highlightedIndex >= 0 && results[highlightedIndex]) {
+        e.preventDefault();
+        goToResult(results[highlightedIndex]);
+      }
+    };
     if (open) window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [open, onClose]);
+  }, [open, onClose, highlightedIndex, results]);
+
+  // Reset highlight when results change
+  useEffect(() => { setHighlightedIndex(-1); }, [results]);
 
   if (!open) return null;
 
@@ -189,14 +227,33 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         )}
 
         {!query && !loading && (
-          <div className="py-8 px-5 text-center text-neutral-400 dark:text-neutral-500">
-            <p className="text-sm mb-3">Recherchez dans tout le contenu du site</p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {(Object.values(typeConfig)).map((cfg) => (
-                <span key={cfg.label} className={cn('text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800', cfg.color)}>
-                  {cfg.label}s
-                </span>
-              ))}
+          <div className="py-6 px-5">
+            {recentSearches.length > 0 && (
+              <div className="mb-5">
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-neutral-400 mb-2">Recherches récentes</p>
+                <div className="space-y-0.5">
+                  {recentSearches.map((recent) => (
+                    <button
+                      key={recent}
+                      onClick={() => setQuery(recent)}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-left"
+                    >
+                      <Search className="w-3.5 h-3.5 text-neutral-300 flex-shrink-0" />
+                      {recent}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="text-center text-neutral-400 dark:text-neutral-500">
+              <p className="text-sm mb-3">Recherchez dans tout le contenu du site</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {(Object.values(typeConfig)).map((cfg) => (
+                  <span key={cfg.label} className={cn('text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800', cfg.color)}>
+                    {cfg.label}s
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         )}

@@ -147,8 +147,9 @@ export default function AdminArticles() {
       addToast('success', editingId ? 'Article mis à jour.' : 'Article créé.');
       setShowModal(false);
       load();
-    } catch {
-      addToast('error', 'Erreur lors de l\'enregistrement.');
+    } catch (error: unknown) {
+      console.error('Save article failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
     } finally {
       setSaving(false);
     }

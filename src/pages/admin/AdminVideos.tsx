@@ -1,11 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Search, Trash2, Edit2, Video as VideoIcon, Loader2, ChevronDown } from 'lucide-react';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../config/firebase';
 import Button from '../../components/ui/Button';
 import ImageInput from '../../components/ui/ImageInput';
 import { useToast } from '../../components/ui/Toast';
 import { getAllVideos, saveVideo, deleteVideo } from '../../lib/firestore';
 import { slugify, formatDate, extractYoutubeVideoId, parseISODuration } from '../../lib/utils';
 import type { Video } from '../../types';
+
+const youtubeProxyCallable = httpsCallable<
+  { videoId: string },
+  { title: string; description: string; thumbnail: string; duration: string; publishedAt: string; viewCount: string }
+>(functions, 'youtubeProxy');
 
 const EMPTY: Omit<Video, 'id'> = {
   title: '', slug: '', description: '', videoUrl: '', thumbnailUrl: '',
@@ -41,22 +48,16 @@ export default function AdminVideos() {
     const fetchMeta = async () => {
       setFetchingMeta(true);
       try {
-        const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
-        if (!apiKey) { addToast('error', 'Clé API YouTube manquante (VITE_YOUTUBE_API_KEY).'); return; }
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails,statistics&key=${apiKey}`);
-        const data = await res.json();
-        if (data.error) { addToast('error', `Erreur API YouTube : ${data.error.message}`); return; }
-        const item = data.items?.[0];
-        if (!item) { addToast('error', 'Vidéo YouTube introuvable ou privée.'); return; }
-        const thumb = item.snippet.thumbnails.maxres?.url ?? item.snippet.thumbnails.high?.url ?? item.snippet.thumbnails.medium?.url ?? '';
+        const result = await youtubeProxyCallable({ videoId });
+        const item = result.data;
         setForm((p) => ({
           ...p,
-          title: item.snippet.title,
-          description: item.snippet.description,
-          thumbnailUrl: thumb,
-          duration: parseISODuration(item.contentDetails.duration),
-          publishedAt: item.snippet.publishedAt.split('T')[0],
-          views: parseInt(item.statistics?.viewCount ?? '0', 10),
+          title: item.title,
+          description: item.description,
+          thumbnailUrl: item.thumbnail,
+          duration: parseISODuration(item.duration),
+          publishedAt: item.publishedAt.split('T')[0],
+          views: parseInt(item.viewCount, 10),
         }));
       } catch {
         addToast('error', 'Impossible de récupérer les infos YouTube.');
@@ -90,8 +91,9 @@ export default function AdminVideos() {
       addToast('success', editing ? 'Vidéo mise à jour.' : 'Vidéo créée.');
       setModalOpen(false);
       load();
-    } catch {
-      addToast('error', 'Erreur lors de la sauvegarde.');
+    } catch (error: unknown) {
+      console.error('Save video failed:', error);
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }

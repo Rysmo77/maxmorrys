@@ -146,8 +146,15 @@ service cloud.firestore {
 
     // Appointments collection
     match /appointments/{appointmentId} {
-      // Anyone can book an appointment (public contact form)
-      allow create: if true;
+      // Anyone can book an appointment (public contact form) — with field validation
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'date', 'type'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 5
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.date is string;
 
       // Admins and support can read and update appointments
       allow read, update: if isAdminOrSupport();
@@ -185,8 +192,12 @@ service cloud.firestore {
       // Only admins can read subscribers
       allow read: if isAdmin();
 
-      // Anyone can subscribe
-      allow create: if true;
+      // Anyone can subscribe — with field validation
+      allow create: if request.resource.data.keys().hasAll(['email'])
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 5
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.keys().size() <= 3;
 
       // Only admins can update or delete
       allow update, delete: if isAdmin();
@@ -197,8 +208,13 @@ service cloud.firestore {
       // Users can read their own transactions, admins can read all
       allow read: if isOwner(resource.data.userId) || isAdmin();
 
-      // Only backend/payment webhooks should create transactions
-      allow create: if false;
+      // Client-side creation restricted to free courses only
+      // Paid transactions are created server-side by the createBictorysCharge Cloud Function
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'completed' &&
+        request.resource.data.paymentMethod == 'free' &&
+        request.resource.data.amount == 0;
 
       // Only admins can update (for refunds, status changes)
       allow update: if isAdmin();
@@ -308,9 +324,16 @@ service cloud.firestore {
       // L'utilisateur peut lire son propre abonnement (StudentDashboard)
       allow read: if isOwner(userId) || isAdmin();
 
-      // L'utilisateur peut créer/mettre à jour le sien (flux de paiement)
-      // L'admin peut créer/mettre à jour n'importe quel abonnement (activation manuelle)
-      allow create, update: if isOwner(userId) || isAdmin();
+      // L'utilisateur ne peut créer qu'avec status 'pending' (pas d'auto-activation)
+      allow create: if isOwner(userId) &&
+        request.resource.data.status == 'pending';
+
+      // L'utilisateur ne peut PAS changer le status lui-même
+      allow update: if isOwner(userId) &&
+        request.resource.data.status == resource.data.status;
+
+      // L'admin peut tout créer/mettre à jour (activation manuelle, etc.)
+      allow create, update: if isAdmin();
 
       // Seul l'admin peut supprimer
       allow delete: if isAdmin();
@@ -375,6 +398,18 @@ service cloud.firestore {
       allow update: if (hasActiveClubSub() || isAdmin()) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
       allow create, update, delete: if isAdmin();
+    }
+
+    // Notifications collection (per-user subcollection)
+    match /notifications/{userId}/items/{notificationId} {
+      // Users can read and update (mark as read) their own notifications
+      allow read, update: if isOwner(userId);
+
+      // Only backend/admin can create notifications
+      allow create: if isAdmin();
+
+      // Users can delete their own notifications
+      allow delete: if isOwner(userId) || isAdmin();
     }
 
     // Rate limiting collection (backend only — écrit uniquement par les Cloud Functions)

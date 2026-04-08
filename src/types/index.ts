@@ -14,6 +14,7 @@ export interface User {
   whatsapp?: string;
   linkedin?: string;
   bio?: string;
+  onboardingCompleted?: boolean;
 }
 
 export interface UserPreferences {
@@ -215,12 +216,21 @@ export interface Transaction {
   id: string;
   userId: string;
   formationId: string;
+  formationSlug?: string;
+  formationTitle?: string;
   amount: number;
   currency: string;
-  status: 'pending' | 'completed' | 'refunded';
+  status: 'pending' | 'completed' | 'refunded' | 'failed';
   paymentMethod: string;
   createdAt: string;
+  completedAt?: string;
   couponId?: string;
+  couponCode?: string;
+  userEmail?: string;
+  userName?: string;
+  transactionRef?: string;
+  chargeId?: string;
+  opToken?: string;
 }
 
 export interface SiteStats {
@@ -355,4 +365,19 @@ export interface ClubSessionRegistration {
   userName: string;
   userEmail?: string;
   registeredAt: string;
+}
+
+// ── Notifications ──────────────────────────────────────────────────────────
+
+export type NotificationType = 'enrollment' | 'certificate' | 'content' | 'club' | 'system';
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  link?: string;
 }

@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { httpsCallable } from 'firebase/functions';
+import DOMPurify from 'dompurify';
 import { functions } from '../../config/firebase';
 import { useAuth } from '../../contexts/AuthContext';
-import { X, Send, Mic, MicOff, Bot, Loader2, Volume2, VolumeX } from 'lucide-react';
+import { X, Send, Mic, MicOff, Bot, Loader2, Volume2, VolumeX, Trash2 } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -66,6 +67,29 @@ const rysmoCallable = httpsCallable<
   RysmoResponse
 >(functions, 'rysmo');
 
+const STORAGE_KEY = 'rysmo_conversation';
+
+function loadPersistedMessages(uid: string): Message[] {
+  try {
+    const raw = sessionStorage.getItem(`${STORAGE_KEY}_${uid}`);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Message[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistMessages(uid: string, messages: Message[]) {
+  try {
+    // Keep last 50 messages to avoid storage bloat
+    const toStore = messages.slice(-50);
+    sessionStorage.setItem(`${STORAGE_KEY}_${uid}`, JSON.stringify(toStore));
+  } catch {
+    // sessionStorage full or unavailable — silently ignore
+  }
+}
+
 export default function RysmoWidget() {
   const { user, userData } = useAuth();
   const [open, setOpen] = useState(false);
@@ -82,6 +106,23 @@ export default function RysmoWidget() {
   const displayName = user
     ? (userData?.displayName || user.displayName || user.email?.split('@')[0] || 'Étudiant')
     : '';
+
+  // Restore persisted messages on mount
+  useEffect(() => {
+    if (!user) return;
+    const persisted = loadPersistedMessages(user.uid);
+    if (persisted.length > 0) {
+      setMessages(persisted);
+      setHasGreeted(true);
+    }
+  }, [user]);
+
+  // Persist messages whenever they change
+  useEffect(() => {
+    if (user && messages.length > 0) {
+      persistMessages(user.uid, messages);
+    }
+  }, [messages, user]);
 
   // Scroll auto vers le bas
   useEffect(() => {
@@ -202,11 +243,15 @@ export default function RysmoWidget() {
     }
   };
 
-  // Formater le texte markdown basique (gras)
+  // Formater le texte markdown basique (gras) + sanitisation XSS
   const formatText = (text: string) => {
-    return text
+    const raw = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br />');
+    return DOMPurify.sanitize(raw, {
+      ALLOWED_TAGS: ['strong', 'br'],
+      ALLOWED_ATTR: [],
+    });
   };
 
   return (
@@ -237,6 +282,21 @@ export default function RysmoWidget() {
               >
                 {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
               </button>
+              {messages.length > 1 && (
+                <button
+                  onClick={() => {
+                    if (user) {
+                      sessionStorage.removeItem(`${STORAGE_KEY}_${user.uid}`);
+                    }
+                    setMessages([]);
+                    setHasGreeted(false);
+                  }}
+                  className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
+                  title="Effacer la conversation"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
               <button
                 onClick={() => setOpen(false)}
                 className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
