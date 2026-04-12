@@ -1,0 +1,162 @@
+{
+  "name": "WF-02 — Calendrier Éditorial Hebdomadaire",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 7 * * 0" }]
+        }
+      },
+      "id": "wf02-cron",
+      "name": "Cron — Dimanche 7h00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Social" },
+        "options": {}
+      },
+      "id": "wf02-read-ideas",
+      "name": "Sheets — Lire idées social",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [300, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Calendrier Editorial" },
+        "options": {}
+      },
+      "id": "wf02-read-calendar",
+      "name": "Sheets — Calendrier existant",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [300, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ideas = $('Sheets — Lire idées social').all().map(i => i.json);\nconst calendar = $('Sheets — Calendrier existant').all().map(i => i.json);\n\nconst newIdeas = ideas.filter(i => i.Status === 'nouveau' || i.Status === 'validé');\nconst existingSubjects = calendar.map(c => c.Sujet).filter(Boolean);\n\nreturn [{\n  json: {\n    available_ideas: newIdeas.slice(0, 20),\n    existing_subjects: existingSubjects,\n    week_start: new Date(Date.now() + 86400000).toISOString().split('T')[0]\n  }\n}];"
+      },
+      "id": "wf02-prepare",
+      "name": "Préparer — Données pour Gemini",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un Community Manager expert pour Max-Morrys, plateforme de marketing digital en Afrique de l\\'Ouest francophone.\\n\\nCONTEXTE GÉOGRAPHIQUE ET CULTUREL :\\n- Pays : Sénégal, Côte d\\'Ivoire, Cameroun\\n- Fuseau : GMT+0 / GMT+1\\n- Contexte culturel : calendrier musulman et chrétien, fêtes locales\\n- Expressions locales populaires\\n\\nHORAIRES PAR RÉSEAU (GMT) :\\n- Facebook : 8h, 12h, 17h\\n- Instagram : 7h30, 12h, 18h30\\n- LinkedIn : 7h, 12h, 17h (jours ouvrés)\\n- Twitter : 8h, 12h, 15h, 19h\\n- YouTube : 14h-17h\\n- TikTok : 12h, 18h, 21h\\n\\nSEMAINE DU : ' + $json.week_start + '\\n\\nIDÉES DISPONIBLES :\\n' + JSON.stringify($json.available_ideas) + '\\n\\nDÉJÀ PLANIFIÉ (éviter) :\\n' + JSON.stringify($json.existing_subjects) + '\\n\\nCrée un calendrier éditorial pour la semaine (Lundi à Dimanche) avec :\\n- 2-3 posts par jour, répartis sur différents réseaux\\n- Varier les formats : texte, carrousel, reel/short, story, live\\n- Rubriques récurrentes : Tips mardi, Étude de cas mercredi, Motivation vendredi\\n- Intégrer les tendances locales et événements à venir\\n\\nRÉPONSE JSON :\\n{\\n  \"calendar\": [{\\n    \"day\": \"Lundi\",\\n    \"date\": \"YYYY-MM-DD\",\\n    \"posts\": [{\\n      \"time\": \"08:00\",\\n      \"network\": \"facebook|instagram|linkedin|twitter|tiktok|youtube\",\\n      \"format\": \"texte|carrousel|reel|story|live|article\",\\n      \"rubrique\": \"Tips|Étude de cas|Motivation|Promo|Actu|Behind the scenes\",\\n      \"subject\": \"\",\\n      \"hook\": \"accroche en 1 ligne\",\\n      \"hashtags\": [],\\n      \"media_needed\": \"image|carrousel|video|none\",\\n      \"media_prompt\": \"description du visuel si besoin\"\\n    }]\\n  }],\\n  \"weekly_theme\": \"\",\\n  \"cultural_events_this_week\": []\\n}' }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 4096, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf02-gemini",
+      "name": "Gemini Flash — Calendrier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\nlet parsed;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  parsed = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing calendrier: ' + e.message);\n}\n\nconst rows = [];\nconst weekNum = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 86400000));\n\nfor (const day of (parsed.calendar || [])) {\n  for (const post of (day.posts || [])) {\n    rows.push({\n      Semaine: `S${weekNum}`,\n      Jour: day.day,\n      Date: day.date,\n      Heure_GMT: post.time,\n      Reseau: post.network,\n      Format: post.format,\n      Rubrique: post.rubrique,\n      Sujet: post.subject,\n      Contenu: post.hook,\n      Media_URL: '',\n      Hashtags: (post.hashtags || []).join(' '),\n      Status_Contenu: 'à_produire',\n      Status_Media: post.media_needed !== 'none' ? 'à_produire' : 'n/a',\n      Status_Publication: 'planifié',\n      URL_Post: '',\n      Media_Prompt: post.media_prompt || ''\n    });\n  }\n}\n\nreturn rows.map(r => ({ json: r }));"
+      },
+      "id": "wf02-parse",
+      "name": "Parse — Structurer le calendrier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Calendrier Editorial" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Semaine": "={{ $json.Semaine }}",
+            "Jour": "={{ $json.Jour }}",
+            "Date": "={{ $json.Date }}",
+            "Heure_GMT": "={{ $json.Heure_GMT }}",
+            "Reseau": "={{ $json.Reseau }}",
+            "Format": "={{ $json.Format }}",
+            "Rubrique": "={{ $json.Rubrique }}",
+            "Sujet": "={{ $json.Sujet }}",
+            "Contenu": "={{ $json.Contenu }}",
+            "Hashtags": "={{ $json.Hashtags }}",
+            "Status_Contenu": "={{ $json.Status_Contenu }}",
+            "Status_Media": "={{ $json.Status_Media }}",
+            "Status_Publication": "={{ $json.Status_Publication }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf02-sheets",
+      "name": "Sheets — Écrire le calendrier",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1500, 300],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=📅 Calendrier éditorial Max-Morrys — Semaine du {{ $('Préparer — Données pour Gemini').first().json.week_start }}",
+        "emailType": "html",
+        "html": "=<h2>Calendrier éditorial de la semaine</h2><p>Le calendrier a été généré et ajouté dans Google Sheets.</p><p><a href='https://docs.google.com/spreadsheets/d/%%GOOGLE_SHEETS_ID%%'>Ouvrir le Google Sheet</a></p>"
+      },
+      "id": "wf02-email",
+      "name": "Email — Notification",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1800, 300],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Cron — Dimanche 7h00": {
+      "main": [
+        [
+          { "node": "Sheets — Lire idées social", "type": "main", "index": 0 },
+          { "node": "Sheets — Calendrier existant", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Sheets — Lire idées social": { "main": [[{ "node": "Préparer — Données pour Gemini", "type": "main", "index": 0 }]] },
+    "Sheets — Calendrier existant": { "main": [[{ "node": "Préparer — Données pour Gemini", "type": "main", "index": 0 }]] },
+    "Préparer — Données pour Gemini": { "main": [[{ "node": "Gemini Flash — Calendrier", "type": "main", "index": 0 }]] },
+    "Gemini Flash — Calendrier": { "main": [[{ "node": "Parse — Structurer le calendrier", "type": "main", "index": 0 }]] },
+    "Parse — Structurer le calendrier": { "main": [[{ "node": "Sheets — Écrire le calendrier", "type": "main", "index": 0 }]] },
+    "Sheets — Écrire le calendrier": { "main": [[{ "node": "Email — Notification", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "community-management" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

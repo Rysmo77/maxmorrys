@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Award, CheckCircle, Loader2, Share2, Download, ArrowLeft } from 'lucide-react';
+import { Award, CheckCircle, Loader2, Share2, ArrowLeft } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { getCollection } from '../../lib/firestore';
 import { formatDate } from '../../lib/utils';
 import type { Certificate as CertificateType } from '../../types';
+import { trackCertificateEarned, trackShareContent } from '../../lib/meta-pixel';
 import { where } from 'firebase/firestore';
 
 export default function Certificate() {
@@ -19,6 +20,7 @@ export default function Certificate() {
       .then((certs) => {
         if (certs.length > 0) {
           setCertificate(certs[0]);
+          trackCertificateEarned(certs[0].formationTitle, certs[0].certificateCode);
         } else {
           setNotFound(true);
         }
@@ -35,6 +37,7 @@ export default function Certificate() {
     else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${text}%20${url}`;
     else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
     if (shareUrl) window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    if (certificate) trackShareContent('certificate', certificate.certificateCode, platform);
   };
 
   if (loading) {

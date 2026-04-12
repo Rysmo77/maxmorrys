@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import type { ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../ui/Toast';
 
@@ -30,6 +30,14 @@ export function AdminRoute({ children }: RouteGuardProps) {
   const { user, userData, loading } = useAuth();
   const location = useLocation();
   const { addToast } = useToast();
+  const allowedRoles = ['admin', 'support'];
+  const isUnauthorized = !!user && !allowedRoles.includes(userData?.role ?? '');
+
+  useEffect(() => {
+    if (isUnauthorized) {
+      addToast('error', "Tu n'as pas les droits pour accéder à cette page.");
+    }
+  }, [isUnauthorized, addToast]);
 
   if (loading) {
     return (
@@ -43,8 +51,7 @@ export function AdminRoute({ children }: RouteGuardProps) {
     return <Navigate to="/connexion" replace state={{ from: location }} />;
   }
 
-  if (userData?.role !== 'admin') {
-    addToast('error', "Tu n'as pas les droits administrateur pour accéder à cette page.");
+  if (!allowedRoles.includes(userData?.role ?? '')) {
     return <Navigate to="/403" replace state={{ from: location }} />;
   }
 

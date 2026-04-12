@@ -1,0 +1,147 @@
+{
+  "name": "WF-12 — Génération de Contenu de Leçons",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf12-generer-lecons",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf12-webhook",
+      "name": "Webhook — Générer les leçons",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst body = input.body || input;\nconst curriculum = body.curriculum || {};\nconst modules = curriculum.modules || body.modules || [];\nconst courseTitle = curriculum.course?.title || body.course_title || '';\nconst level = curriculum.course?.level || body.level || 'debutant';\nconst audience = curriculum.course?.target_audience || body.target_audience || '';\n\n// Flatten all lessons for batch processing\nconst lessons = [];\nlet prevSummary = '';\n\nfor (const mod of modules) {\n  for (const lesson of (mod.lessons || [])) {\n    lessons.push({\n      course_title: courseTitle,\n      level,\n      target_audience: audience,\n      module_title: mod.title,\n      module_number: mod.module_number,\n      total_modules: modules.length,\n      lesson_title: lesson.title,\n      lesson_number: lesson.lesson_number,\n      total_lessons_in_module: (mod.lessons || []).length,\n      lesson_type: lesson.type,\n      duration_minutes: lesson.duration_minutes,\n      bloom_level: lesson.bloom_level,\n      content_brief: lesson.content_brief,\n      key_concepts: lesson.key_concepts || [],\n      local_example: lesson.local_example || '',\n      media_needed: lesson.media_needed || {},\n      teaching_method: lesson.teaching_method || 'expositive'\n    });\n  }\n}\n\nreturn lessons.map(l => ({ json: l }));"
+      },
+      "id": "wf12-flatten",
+      "name": "Flatten — Toutes les leçons",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "wf12-batch",
+      "name": "Batch — Par leçon",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un formateur expert et pédagogue dans le domaine du marketing digital, spécialisé dans l\\'enseignement en ligne pour le public d\\'Afrique de l\\'Ouest francophone.\\n\\nCONTEXTE DU COURS :\\n- Cours : ' + $json.course_title + '\\n- Module : ' + $json.module_title + ' (Module ' + $json.module_number + '/' + $json.total_modules + ')\\n- Leçon : ' + $json.lesson_title + ' (Leçon ' + $json.lesson_number + '/' + $json.total_lessons_in_module + ')\\n- Niveau : ' + $json.level + '\\n- Audience : ' + $json.target_audience + '\\n- Niveau Bloom : ' + $json.bloom_level + '\\n\\nSTRUCTURE DE LA LEÇON :\\n1. INTRODUCTION (2-3 phrases) — Pourquoi cette leçon est importante\\n2. CONTENU PRINCIPAL — structuré en sections H2/H3\\n3. EXEMPLES CONCRETS — Au moins 2 exemples ancrés en Afrique de l\\'Ouest\\n4. POINTS CLÉS — 3-5 bullet points\\n5. ASTUCE PRATIQUE — conseil actionnable\\n6. À RETENIR — 1-2 phrases\\n7. TRANSITION — lien vers la leçon suivante\\n\\nRÈGLES :\\n- Langage clair, accessible\\n- Phrases courtes, paragraphes courts (3-4 lignes max)\\n- Ton : pédagogue, encourageant, bienveillant, tutoyant\\n- Exemples LOCAUX : noms, lieux, situations d\\'Afrique de l\\'Ouest\\n- FCFA pour les montants\\n- Longueur : ~' + ($json.duration_minutes * 150) + ' mots\\n\\nBRIEF : ' + $json.content_brief + '\\nCONCEPTS CLÉS : ' + JSON.stringify($json.key_concepts) + '\\nEXEMPLE LOCAL : ' + $json.local_example + '\\n\\nRÉPONSE JSON :\\n{\\n  \"lesson\": {\\n    \"title\": \"\",\\n    \"content_html\": \"<h2>Introduction</h2><p>...</p>...\",\\n    \"word_count\": 0,\\n    \"reading_time_minutes\": 0,\\n    \"key_points\": [],\\n    \"practical_tip\": \"\",\\n    \"takeaway\": \"\",\\n    \"transition_to_next\": \"\",\\n    \"media_prompts\": [{ \"type\": \"diagram|illustration\", \"prompt\": \"\", \"alt_text\": \"\" }],\\n    \"vocabulary\": [{ \"term\": \"\", \"definition\": \"\" }]\\n  }\\n}' }] }], generationConfig: { temperature: 0.5, maxOutputTokens: 8192, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 180000 }
+      },
+      "id": "wf12-gemini",
+      "name": "Gemini Pro — Contenu de la leçon",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 10000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst lessonMeta = $('Batch — Par leçon').first().json;\n\nlet lessonContent;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  lessonContent = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing leçon: ' + e.message);\n}\n\nconst lesson = lessonContent.lesson || {};\n\n// Build n8n-compatible Lesson object matching src/types/index.ts\nconst lessonDoc = {\n  id: crypto.randomUUID(),\n  title: lesson.title || lessonMeta.lesson_title,\n  type: lessonMeta.lesson_type || 'text',\n  duration: `${lesson.reading_time_minutes || lessonMeta.duration_minutes} min`,\n  content: lesson.content_html || '',\n  order: lessonMeta.lesson_number,\n  isFree: lessonMeta.lesson_number === 1 && lessonMeta.module_number === 1,\n  // Extra metadata for assembly\n  module_number: lessonMeta.module_number,\n  module_title: lessonMeta.module_title,\n  course_title: lessonMeta.course_title,\n  media_prompts: lesson.media_prompts || [],\n  key_points: lesson.key_points || [],\n  vocabulary: lesson.vocabulary || []\n};\n\nreturn [{ json: lessonDoc }];"
+      },
+      "id": "wf12-parse",
+      "name": "Parse — Construire Lesson",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [{ "value1": "={{ $json.media_prompts.length }}", "operation": "larger", "value2": 0 }]
+        }
+      },
+      "id": "wf12-needs-media",
+      "name": "IF — Besoin de médias ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1500, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.WF18_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "id": "wf12-call-wf18",
+      "name": "Execute — WF-18 Visuels cours",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1800, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Cours en Production" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cours": "={{ $json.course_title }}",
+            "Module": "=M{{ $json.module_number }}: {{ $json.module_title }}",
+            "Lecon": "=L{{ $json.order }}: {{ $json.title }}",
+            "Type": "={{ $json.type }}",
+            "Duree": "={{ $json.duration }}",
+            "Status_Contenu": "=produit"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf12-sheets",
+      "name": "Sheets — Mettre à jour status",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1800, 500],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook — Générer les leçons": { "main": [[{ "node": "Flatten — Toutes les leçons", "type": "main", "index": 0 }]] },
+    "Flatten — Toutes les leçons": { "main": [[{ "node": "Batch — Par leçon", "type": "main", "index": 0 }]] },
+    "Batch — Par leçon": { "main": [[{ "node": "Gemini Pro — Contenu de la leçon", "type": "main", "index": 0 }]] },
+    "Gemini Pro — Contenu de la leçon": { "main": [[{ "node": "Parse — Construire Lesson", "type": "main", "index": 0 }]] },
+    "Parse — Construire Lesson": { "main": [[{ "node": "IF — Besoin de médias ?", "type": "main", "index": 0 }]] },
+    "IF — Besoin de médias ?": {
+      "main": [
+        [{ "node": "Execute — WF-18 Visuels cours", "type": "main", "index": 0 }],
+        [{ "node": "Sheets — Mettre à jour status", "type": "main", "index": 0 }]
+      ]
+    },
+    "Execute — WF-18 Visuels cours": { "main": [[{ "node": "Sheets — Mettre à jour status", "type": "main", "index": 0 }]] },
+    "Sheets — Mettre à jour status": { "main": [[{ "node": "Batch — Par leçon", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "lms-course-builder" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

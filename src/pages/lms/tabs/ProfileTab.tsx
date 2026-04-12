@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Camera, Phone, Linkedin, Globe2, ExternalLink, Star, MessageSquareQuote, Loader2, Save, Send } from 'lucide-react';
+import { Camera, Linkedin, Globe2, ExternalLink, Star, MessageSquareQuote, Loader2, Save, Send } from 'lucide-react';
+import PhoneInput from '../../../components/ui/PhoneInput';
 import Button from '../../../components/ui/Button';
 import { cn, formatDate } from '../../../lib/utils';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -10,6 +11,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { storage } from '../../../config/firebase';
 import type { Testimonial } from '../../../types';
 import type { EnrolledFormation } from '../hooks/useStudentData';
+import { captureError } from '../../../lib/sentry';
 
 const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
 
@@ -85,7 +87,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
       await refreshUserData();
       addToast('success', 'Photo de profil mise à jour.');
     } catch (error: unknown) {
-      console.error('Failed to upload profile photo:', error);
+      captureError(error, { context: 'Failed to upload profile photo' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors du téléchargement de la photo.');
     } finally {
       setUploadingPhoto(false);
@@ -116,7 +118,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
       await refreshUserData();
       addToast('success', 'Profil mis à jour avec succès.');
     } catch (error: unknown) {
-      console.error('Failed to update user profile:', error);
+      captureError(error, { context: 'Failed to update user profile' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la mise à jour du profil.');
     } finally {
       setSavingProfile(false);
@@ -140,7 +142,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
       setTestimonialForm({ content: '', rating: 5 });
       addToast('success', 'Merci pour ton témoignage ! Il sera visible après validation.');
     } catch (error: unknown) {
-      console.error('Failed to submit testimonial:', error);
+      captureError(error, { context: 'Failed to submit testimonial' });
       addToast('error', error instanceof Error ? error.message : "Erreur lors de l'envoi du témoignage.");
     } finally {
       setSubmittingTestimonial(false);
@@ -203,12 +205,12 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
             <input type="date" value={profileForm.birthDate} onChange={(e) => setProfileForm((p) => ({ ...p, birthDate: e.target.value }))} className={inputCls} />
           </div>
           <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500 flex items-center gap-1.5"><Phone className="w-3 h-3" /> Téléphone</label>
-            <input type="tel" value={profileForm.phone} onChange={(e) => setProfileForm((p) => ({ ...p, phone: e.target.value }))} placeholder="+221 77 000 00 00" className={inputCls} />
+            <label className="block text-xs font-semibold text-neutral-500">Téléphone</label>
+            <PhoneInput value={profileForm.phone} onChange={(v) => setProfileForm((p) => ({ ...p, phone: v }))} placeholder="77 123 45 67" />
           </div>
           <div className="space-y-1">
             <label className="block text-xs font-semibold text-neutral-500">WhatsApp</label>
-            <input type="tel" value={profileForm.whatsapp} onChange={(e) => setProfileForm((p) => ({ ...p, whatsapp: e.target.value }))} placeholder="+221 77 000 00 00" className={inputCls} />
+            <PhoneInput value={profileForm.whatsapp} onChange={(v) => setProfileForm((p) => ({ ...p, whatsapp: v }))} placeholder="77 123 45 67" />
           </div>
           <div className="space-y-1">
             <label className="block text-xs font-semibold text-neutral-500 flex items-center gap-1.5"><Linkedin className="w-3 h-3" /> LinkedIn</label>

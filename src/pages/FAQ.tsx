@@ -5,18 +5,25 @@ import Button from '../components/ui/Button';
 import { getAllFAQ } from '../lib/firestore';
 import { useToast } from '../components/ui/Toast';
 import type { FAQ } from '../types';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
 
 export default function FAQPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [openIds, setOpenIds] = useState<string[]>([]);
   const [helpfulIds, setHelpfulIds] = useState<string[]>([]);
   const { addToast } = useToast();
 
-  useEffect(() => {
-    getAllFAQ().then((data) => { setFaqs(data); setLoading(false); }).catch(() => setLoading(false));
-  }, []);
+  const load = () => {
+    setLoading(true);
+    setError(false);
+    getAllFAQ().then((data) => { setFaqs(data); setLoading(false); }).catch(() => { setError(true); setLoading(false); });
+  };
+
+  useEffect(() => { load(); }, []);
 
   const categories = ['Tous', ...Array.from(new Set(faqs.map((f) => f.category).filter(Boolean)))];
   const filtered = faqs.filter((faq) => activeCategory === 'Tous' || faq.category === activeCategory);
@@ -32,8 +39,23 @@ export default function FAQPage() {
     }
   };
 
+  const faqJsonLd = faqs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+    })),
+  } : null;
+
   return (
     <div>
+      <SEOHead
+        title="FAQ — Questions Fréquentes"
+        description="Retrouve les réponses aux questions les plus fréquentes sur les formations, le coaching et les services de Max-Morrys."
+      />
+      {faqJsonLd && <JsonLd data={faqJsonLd} />}
 
       {/* ── HERO ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
@@ -73,6 +95,12 @@ export default function FAQPage() {
           {/* Accordéon */}
           {loading && (
             <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>
+          )}
+          {error && !loading && (
+            <div className="text-center py-12">
+              <p className="text-neutral-500 mb-4">Impossible de charger la FAQ.</p>
+              <button onClick={load} className="px-5 py-2.5 bg-brand-600 text-white rounded-full text-sm font-semibold hover:bg-brand-500 transition-colors">Reessayer</button>
+            </div>
           )}
           <div className="space-y-3">
             {filtered.map((faq) => {

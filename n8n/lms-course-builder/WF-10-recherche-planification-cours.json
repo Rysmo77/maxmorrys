@@ -1,0 +1,189 @@
+{
+  "name": "WF-10 — Recherche & Planification de Cours",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 18 * * 0" }]
+        }
+      },
+      "id": "wf10-cron",
+      "name": "Cron — Dimanche 18h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf10-recherche-cours",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf10-webhook",
+      "name": "Webhook — Manuel",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 500]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Cours" },
+        "options": {}
+      },
+      "id": "wf10-read-existing",
+      "name": "Sheets — Cours existants",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [300, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.googleapis.com/customsearch/v1?key=%%GOOGLE_SEARCH_API_KEY%%&cx=%%GOOGLE_SEARCH_CX%%&q=formation+marketing+digital+Senegal+Afrique+2026+competences&gl=sn&hl=fr&num=10",
+        "options": { "timeout": 15000 }
+      },
+      "id": "wf10-search-local",
+      "name": "Google Search — Besoins locaux",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.googleapis.com/customsearch/v1?key=%%GOOGLE_SEARCH_API_KEY%%&cx=%%GOOGLE_SEARCH_CX%%&q=best+online+courses+digital+marketing+2026+trending+skills&gl=us&hl=en&num=10",
+        "options": { "timeout": 15000 }
+      },
+      "id": "wf10-search-intl",
+      "name": "Google Search — Benchmark international",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 800],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const existing = $('Sheets — Cours existants').all().map(i => i.json.Titre || '').filter(Boolean);\nconst localItems = ($('Google Search — Besoins locaux').first().json?.items || []).map(i => ({ title: i.title, snippet: i.snippet, url: i.link }));\nconst intlItems = ($('Google Search — Benchmark international').first().json?.items || []).map(i => ({ title: i.title, snippet: i.snippet, url: i.link }));\n\nreturn [{ json: { existing_courses: existing, local_search_results: localItems, international_results: intlItems } }];"
+      },
+      "id": "wf10-merge",
+      "name": "Merge — Compiler les données",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un Instructional Designer expert et stratège de formation en ligne spécialisé dans le marché Afrique de l\\'Ouest francophone.\\n\\nCONTEXTE :\\n- Plateforme : Max-Morrys (maxmorrys.me)\\n- Zone : Sénégal (Dakar), Côte d\\'Ivoire (Abidjan), Cameroun (Douala)\\n- Audience : Entrepreneurs, PME, professionnels du digital en Afrique francophone\\n- Thématiques : Marketing digital, réseaux sociaux, entrepreneuriat, e-commerce, personal branding, création de contenu\\n- Niveaux : débutant, intermédiaire, avancé\\n- Monnaie : XOF (FCFA)\\n- Catégories existantes : Marketing Digital, Réseaux Sociaux, Entrepreneuriat, E-commerce, Personal Branding\\n- Cours DÉJÀ dans le catalogue : ' + JSON.stringify($json.existing_courses) + '\\n\\nMISSION :\\nPropose 5 sujets de cours complets, classés par priorité.\\n\\nCRITÈRES DE PERTINENCE LOCALE :\\n- Le cours répond à un besoin identifié en Afrique de l\\'Ouest\\n- Les exemples sont contextualisés localement\\n- Le cours tient compte des contraintes locales (bande passante, mobile, temps)\\n- Les compétences enseignées sont applicables dans l\\'économie locale\\n\\nSOURCES :\\nLocal : ' + JSON.stringify($json.local_search_results) + '\\nInternational : ' + JSON.stringify($json.international_results) + '\\n\\nRÉPONSE JSON :\\n{\\n  \"course_proposals\": [{\\n    \"title\": \"\",\\n    \"slug_suggested\": \"\",\\n    \"category\": \"\",\\n    \"level\": \"debutant|intermediaire|avance\",\\n    \"target_audience\": \"\",\\n    \"why_needed_locally\": \"\",\\n    \"learning_objectives\": [\"\"],\\n    \"prerequisites\": [\"\"],\\n    \"estimated_duration_hours\": 10,\\n    \"estimated_modules\": 5,\\n    \"estimated_lessons\": 20,\\n    \"content_gap\": \"\",\\n    \"competitive_advantage\": \"\",\\n    \"monetization_potential\": \"gratuit|freemium|payant\",\\n    \"suggested_price_range\": \"XOF min - max\",\\n    \"priority_score\": 9,\\n    \"difficulty_to_create\": \"faible|moyen|élevé\",\\n    \"outline_preview\": [\"Module 1 : ...\", \"Module 2 : ...\"]\\n  }]\\n}' }] }], generationConfig: { temperature: 0.6, maxOutputTokens: 4096, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 120000 }
+      },
+      "id": "wf10-gemini",
+      "name": "Gemini Pro — Proposer des cours",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 500],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 10000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\nlet parsed;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  parsed = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing propositions de cours: ' + e.message);\n}\n\nconst courses = (parsed.course_proposals || []).map(c => ({\n  Date: today,\n  Titre: c.title,\n  Niveau: c.level,\n  Audience: c.target_audience,\n  Besoin_Local: c.why_needed_locally,\n  Duree: `${c.estimated_duration_hours}h (${c.estimated_modules} modules, ${c.estimated_lessons} leçons)`,\n  Score: c.priority_score,\n  Status: 'nouveau',\n  // Extra data for WF-11\n  slug: c.slug_suggested,\n  category: c.category,\n  objectives: JSON.stringify(c.learning_objectives),\n  prerequisites: JSON.stringify(c.prerequisites),\n  outline: JSON.stringify(c.outline_preview),\n  price_range: c.suggested_price_range,\n  monetization: c.monetization_potential\n}));\n\nreturn courses.map(c => ({ json: c }));"
+      },
+      "id": "wf10-parse",
+      "name": "Parse — Structurer les propositions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 500]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Cours" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.Date }}",
+            "Titre": "={{ $json.Titre }}",
+            "Niveau": "={{ $json.Niveau }}",
+            "Audience": "={{ $json.Audience }}",
+            "Besoin_Local": "={{ $json.Besoin_Local }}",
+            "Duree": "={{ $json.Duree }}",
+            "Score": "={{ $json.Score }}",
+            "Status": "={{ $json.Status }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf10-sheets",
+      "name": "Sheets — Sauvegarder propositions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1600, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=📚 Propositions de cours Max-Morrys — {{ new Date().toISOString().split('T')[0] }}",
+        "emailType": "html",
+        "html": "=<h2>Nouvelles propositions de cours</h2><p>5 sujets de cours ont été analysés et ajoutés dans Google Sheets.</p><p><a href='https://docs.google.com/spreadsheets/d/%%GOOGLE_SHEETS_ID%%'>Voir les propositions</a></p><p>Validez les sujets retenus pour lancer la conception pédagogique (WF-11).</p>"
+      },
+      "id": "wf10-email",
+      "name": "Email — Propositions envoyées",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1900, 500],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Cron — Dimanche 18h": {
+      "main": [[
+        { "node": "Sheets — Cours existants", "type": "main", "index": 0 },
+        { "node": "Google Search — Besoins locaux", "type": "main", "index": 0 },
+        { "node": "Google Search — Benchmark international", "type": "main", "index": 0 }
+      ]]
+    },
+    "Webhook — Manuel": {
+      "main": [[
+        { "node": "Sheets — Cours existants", "type": "main", "index": 0 },
+        { "node": "Google Search — Besoins locaux", "type": "main", "index": 0 },
+        { "node": "Google Search — Benchmark international", "type": "main", "index": 0 }
+      ]]
+    },
+    "Sheets — Cours existants": { "main": [[{ "node": "Merge — Compiler les données", "type": "main", "index": 0 }]] },
+    "Google Search — Besoins locaux": { "main": [[{ "node": "Merge — Compiler les données", "type": "main", "index": 0 }]] },
+    "Google Search — Benchmark international": { "main": [[{ "node": "Merge — Compiler les données", "type": "main", "index": 0 }]] },
+    "Merge — Compiler les données": { "main": [[{ "node": "Gemini Pro — Proposer des cours", "type": "main", "index": 0 }]] },
+    "Gemini Pro — Proposer des cours": { "main": [[{ "node": "Parse — Structurer les propositions", "type": "main", "index": 0 }]] },
+    "Parse — Structurer les propositions": { "main": [[{ "node": "Sheets — Sauvegarder propositions", "type": "main", "index": 0 }]] },
+    "Sheets — Sauvegarder propositions": { "main": [[{ "node": "Email — Propositions envoyées", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "lms-course-builder" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

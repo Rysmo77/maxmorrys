@@ -104,36 +104,58 @@ function sanitizeUrl(url: string): string {
   return '#'; // protocole dangereux (javascript:, data:, vbscript:…) → lien neutre
 }
 
+// Detecte si le contenu est deja du HTML (genere par Gemini ou colle dans l'editeur)
+function isHtmlContent(input: string): boolean {
+  const trimmed = input.trim();
+  if (!trimmed) return false;
+  // Match les balises bloc courantes au debut, ou n'importe quelle balise sur la 1ere ligne
+  return /^<(h[1-6]|p|div|section|article|ul|ol|figure|blockquote|pre|table|img|!--)\b/i.test(trimmed);
+}
+
 export function markdownToHtml(md: string): string {
   if (!md) return '';
-  const raw = md
-    .replace(/^### (.+)$/gm, '<h3 class="text-xl font-black mt-8 mb-3 text-neutral-900 dark:text-white">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-black mt-10 mb-4 text-neutral-900 dark:text-white">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-black mt-10 mb-4 text-neutral-900 dark:text-white">$1</h1>')
-    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code class="bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, alt: string, src: string) => `<img src="${sanitizeUrl(src)}" alt="${alt.replace(/"/g, '&quot;')}" class="rounded-xl max-w-full my-4" loading="lazy" />`)
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text: string, href: string) => `<a href="${sanitizeUrl(href)}" class="text-brand-600 dark:text-brand-400 hover:underline" target="_blank" rel="noopener noreferrer">${text}</a>`)
-    .split('\n\n')
-    .map((block) => {
-      if (/^<h[123]/.test(block) || block.startsWith('<img')) return block;
-      if (/^- /.test(block)) {
-        const items = block.split('\n').filter((l) => l.startsWith('- ')).map((l) => `<li>${l.slice(2)}</li>`).join('');
-        return `<ul class="list-disc pl-6 space-y-1.5 my-4 text-neutral-600 dark:text-neutral-400">${items}</ul>`;
-      }
-      if (/^\d+\. /.test(block)) {
-        const items = block.split('\n').filter((l) => /^\d+\. /.test(l)).map((l) => `<li>${l.replace(/^\d+\. /, '')}</li>`).join('');
-        return `<ol class="list-decimal pl-6 space-y-1.5 my-4 text-neutral-600 dark:text-neutral-400">${items}</ol>`;
-      }
-      if (!block.trim()) return '';
-      return `<p class="text-neutral-600 dark:text-neutral-400 leading-relaxed my-5">${block.trim()}</p>`;
-    })
-    .join('\n');
 
+  // Si le contenu est deja du HTML, on bypass le parsing markdown.
+  // Le wrapper `prose` de Tailwind Typography gere automatiquement le styling.
+  let raw: string;
+  if (isHtmlContent(md)) {
+    raw = md;
+  } else {
+    raw = md
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, alt: string, src: string) => `<img src="${sanitizeUrl(src)}" alt="${alt.replace(/"/g, '&quot;')}" loading="lazy" />`)
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text: string, href: string) => `<a href="${sanitizeUrl(href)}" target="_blank" rel="noopener noreferrer">${text}</a>`)
+      .split('\n\n')
+      .map((block) => {
+        if (/^<(h[1-6]|img|ul|ol|blockquote|pre|figure|table)/i.test(block)) return block;
+        if (/^- /.test(block)) {
+          const items = block.split('\n').filter((l) => l.startsWith('- ')).map((l) => `<li>${l.slice(2)}</li>`).join('');
+          return `<ul>${items}</ul>`;
+        }
+        if (/^\d+\. /.test(block)) {
+          const items = block.split('\n').filter((l) => /^\d+\. /.test(l)).map((l) => `<li>${l.replace(/^\d+\. /, '')}</li>`).join('');
+          return `<ol>${items}</ol>`;
+        }
+        if (!block.trim()) return '';
+        return `<p>${block.trim()}</p>`;
+      })
+      .join('\n');
+  }
+
+  // Whitelist large : on s'appuie sur la liste safe par défaut de DOMPurify
+  // (couvre toutes les balises HTML standard sauf script/style/iframe/etc.),
+  // qu'on étend aux quelques balises sémantiques utiles, et on autorise tous
+  // les attributs HTML/data/ARIA standards via ALLOW_DATA_ATTR + ALLOW_ARIA_ATTR.
   return DOMPurify.sanitize(raw, {
-    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'p', 'strong', 'em', 'code', 'a', 'img', 'ul', 'ol', 'li', 'br'],
-    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'target', 'rel', 'loading'],
+    ADD_TAGS: ['figure', 'figcaption', 'picture', 'source', 'details', 'summary', 'mark', 'kbd', 'samp', 'var', 'time', 'address', 'abbr', 'cite', 'dfn', 'sub', 'sup'],
+    ADD_ATTR: ['class', 'style', 'target', 'rel', 'loading', 'colspan', 'rowspan', 'datetime', 'cite', 'open', 'controls', 'autoplay', 'muted', 'loop', 'poster', 'preload', 'srcset', 'sizes', 'media'],
+    ALLOW_DATA_ATTR: true,
+    ALLOW_ARIA_ATTR: true,
   });
 }

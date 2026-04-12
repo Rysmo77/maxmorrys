@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Target, Heart, Users, BookOpen, TrendingUp, Award, Lightbulb, Globe, Share2, BarChart3, CheckCircle } from 'lucide-react';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL } from '../components/seo/seo-config';
 
 const values = [
   { icon: Heart, title: 'Passion Authentique', desc: "Une passion pour le marketing digital née d'une découverte qui a changé ma vie en 2021." },
@@ -56,6 +59,23 @@ const milestones = [
 export default function About() {
   return (
     <div>
+      <SEOHead
+        title="A propos de Max-Morrys — Formateur en Marketing Digital"
+        description="Découvrez le parcours de Max-Morrys, formateur et consultant en marketing digital basé à Dakar. Expertise en SEO, growth marketing et stratégie digitale pour l'Afrique."
+      />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: 'Max-Morrys',
+        url: `${SITE_URL}/a-propos`,
+        jobTitle: 'Formateur & Consultant en Marketing Digital',
+        worksFor: { '@type': 'Organization', name: 'Max-Morrys' },
+        address: { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
+        sameAs: [
+          'https://www.linkedin.com/in/maxmorrys',
+          'https://www.youtube.com/@maxmorrys',
+        ],
+      }} />
 
       {/* ── HERO ── */}
       <section className="pt-28 pb-24 lg:pt-36 lg:pb-32 bg-neutral-50 dark:bg-neutral-900">

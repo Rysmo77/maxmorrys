@@ -1,0 +1,245 @@
+{
+  "name": "WF-01 — Veille Géolocalisée & Recherche de Contenu",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 5 * * *" }]
+        }
+      },
+      "id": "wf01-cron",
+      "name": "Cron — 5h00 quotidien",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.googleapis.com/customsearch/v1?key=%%GOOGLE_SEARCH_API_KEY%%&cx=%%GOOGLE_SEARCH_CX%%&q=marketing+digital+entrepreneuriat+Senegal+Afrique&gl=sn&hl=fr&dateRestrict=d1&num=10",
+        "options": { "timeout": 15000 }
+      },
+      "id": "wf01-google-search-sn",
+      "name": "Google Search — Sénégal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 100],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.googleapis.com/customsearch/v1?key=%%GOOGLE_SEARCH_API_KEY%%&cx=%%GOOGLE_SEARCH_CX%%&q=marketing+digital+formation+business+Cote+Ivoire+Cameroun&gl=ci&hl=fr&dateRestrict=d1&num=10",
+        "options": { "timeout": 15000 }
+      },
+      "id": "wf01-google-search-ci",
+      "name": "Google Search — CI & Cameroun",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 300],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://trends.google.com/trending/rss?geo=SN",
+        "options": { "timeout": 15000 }
+      },
+      "id": "wf01-trends-sn",
+      "name": "Google Trends — Sénégal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.googleapis.com/customsearch/v1?key=%%GOOGLE_SEARCH_API_KEY%%&cx=%%GOOGLE_SEARCH_CX%%&q=formation+en+ligne+marketing+digital+Afrique+2026&gl=sn&hl=fr&num=10",
+        "options": { "timeout": 15000 }
+      },
+      "id": "wf01-elearning-trends",
+      "name": "Google Search — Tendances e-learning",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 700],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const searchSN = $('Google Search — Sénégal').first().json;\nconst searchCI = $('Google Search — CI & Cameroun').first().json;\nconst trendsSN = $('Google Trends — Sénégal').first().json;\nconst elearning = $('Google Search — Tendances e-learning').first().json;\n\nconst allResults = [];\n\n// Parse Google Search results\nfor (const source of [searchSN, searchCI, elearning]) {\n  const items = source?.items || [];\n  for (const item of items) {\n    allResults.push({\n      title: item.title || '',\n      snippet: item.snippet || '',\n      url: item.link || '',\n      source: 'google_search'\n    });\n  }\n}\n\n// Parse Google Trends RSS (XML as string)\nif (typeof trendsSN === 'string' || trendsSN?.data) {\n  const raw = typeof trendsSN === 'string' ? trendsSN : JSON.stringify(trendsSN);\n  const titles = raw.match(/<title>([^<]+)<\\/title>/g) || [];\n  for (const t of titles.slice(1, 11)) {\n    allResults.push({\n      title: t.replace(/<\\/?title>/g, ''),\n      snippet: 'Tendance Google Trends Sénégal',\n      url: '',\n      source: 'google_trends'\n    });\n  }\n}\n\n// Deduplicate by title similarity\nconst seen = new Set();\nconst unique = allResults.filter(r => {\n  const key = r.title.toLowerCase().substring(0, 50);\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\nreturn [{ json: { merged_sources: unique, count: unique.length, date: new Date().toISOString() } }];"
+      },
+      "id": "wf01-merge",
+      "name": "Merge — Fusionner & Dédupliquer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un stratège de contenu digital expert francophone spécialisé dans le marché Afrique de l\\'Ouest (Sénégal, Côte d\\'Ivoire, Cameroun).\\n\\nCONTEXTE :\\n- Plateforme : Max-Morrys (maxmorrys.me) — Formation en marketing digital\\n- Audience : Entrepreneurs, PME, professionnels du digital en Afrique francophone\\n- Zone géographique : Sénégal (Dakar), Côte d\\'Ivoire (Abidjan), Cameroun (Douala)\\n- Thématiques : Marketing digital, réseaux sociaux, entrepreneuriat, e-commerce, personal branding\\n- Langue : Français\\n- Monnaie : XOF (FCFA)\\n- Contexte culturel : Calendrier musulman et chrétien, fêtes locales, Tabaski, Magal, Noël\\n\\nMISSION :\\nAnalyse les sources suivantes et propose exactement 15 idées classées par pertinence :\\n- 5 idées pour les réseaux sociaux (posts)\\n- 5 idées pour des articles de blog\\n- 5 idées pour des sujets de cours/formation\\n\\nCRITÈRES :\\n- Pertinent pour l\\'audience d\\'Afrique de l\\'Ouest\\n- Ancré dans le contexte local (pas générique occidental)\\n- Répond à un besoin réel\\n- D\\'actualité ou evergreen\\n\\nSOURCES :\\n' + JSON.stringify($json.merged_sources) + '\\n\\nRÉPONSE JSON STRICT :\\n{\\n  \"geo_context\": { \"region\": \"Afrique de l\\'Ouest\", \"trending_topics_local\": [], \"cultural_events_upcoming\": [], \"local_news_relevant\": [] },\\n  \"social_media_ideas\": [{ \"subject\": \"\", \"angle\": \"\", \"why_relevant_locally\": \"\", \"networks\": [], \"format\": \"\", \"relevance_score\": 0, \"source_url\": \"\", \"hashtags_local\": [], \"suggested_hook\": \"\", \"best_time_local\": \"\" }],\\n  \"article_ideas\": [{ \"subject\": \"\", \"angle\": \"\", \"why_relevant_locally\": \"\", \"main_keyword\": \"\", \"search_volume_estimate\": \"\", \"relevance_score\": 0, \"source_url\": \"\" }],\\n  \"course_ideas\": [{ \"subject\": \"\", \"why_needed_locally\": \"\", \"target_level\": \"\", \"target_audience\": \"\", \"estimated_duration\": \"\", \"relevance_score\": 0, \"market_gap\": \"\" }]\\n}' }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 4096, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf01-gemini-analyze",
+      "name": "Gemini Flash — Analyser & Proposer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\nlet parsed;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  parsed = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing réponse Gemini: ' + e.message);\n}\n\nconst socialIdeas = (parsed.social_media_ideas || []).map(idea => ({\n  Date: today,\n  Sujet: idea.subject,\n  Angle: idea.angle,\n  Pertinence_Locale: idea.why_relevant_locally,\n  Reseaux: (idea.networks || []).join(', '),\n  Format: idea.format,\n  Score: idea.relevance_score,\n  Source: idea.source_url,\n  Hashtags_Locaux: (idea.hashtags_local || []).join(', '),\n  Status: 'nouveau'\n}));\n\nconst articleIdeas = (parsed.article_ideas || []).map(idea => ({\n  Date: today,\n  Titre_SEO: idea.subject,\n  Mot_Cle: idea.main_keyword,\n  Angle_Local: idea.why_relevant_locally,\n  Volume_Estime: idea.search_volume_estimate,\n  Score: idea.relevance_score,\n  Status: 'nouveau'\n}));\n\nconst courseIdeas = (parsed.course_ideas || []).map(idea => ({\n  Date: today,\n  Titre: idea.subject,\n  Niveau: idea.target_level,\n  Audience: idea.target_audience,\n  Besoin_Local: idea.why_needed_locally,\n  Duree: idea.estimated_duration,\n  Score: idea.relevance_score,\n  Status: 'nouveau'\n}));\n\nconst highScoreItems = [\n  ...socialIdeas.filter(i => i.Score >= 8),\n  ...articleIdeas.filter(i => i.Score >= 8),\n  ...courseIdeas.filter(i => i.Score >= 8)\n];\n\nreturn [{\n  json: {\n    social_ideas: socialIdeas,\n    article_ideas: articleIdeas,\n    course_ideas: courseIdeas,\n    geo_context: parsed.geo_context || {},\n    high_score_items: highScoreItems,\n    has_urgent: highScoreItems.length > 0\n  }\n}];"
+      },
+      "id": "wf01-parse-ideas",
+      "name": "Parse — Router les idées",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 300]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Social" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.social_ideas[0]?.Date }}",
+            "Sujet": "={{ $json.social_ideas.map(i => i.Sujet).join(' | ') }}",
+            "Status": "=batch_{{ new Date().toISOString().split('T')[0] }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf01-sheets-social",
+      "name": "Sheets — Idées Social",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1600, 100],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Articles" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.article_ideas[0]?.Date }}",
+            "Titre_SEO": "={{ $json.article_ideas.map(i => i.Titre_SEO).join(' | ') }}",
+            "Status": "=batch_{{ new Date().toISOString().split('T')[0] }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf01-sheets-articles",
+      "name": "Sheets — Idées Articles",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1600, 300],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Cours" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.course_ideas[0]?.Date }}",
+            "Titre": "={{ $json.course_ideas.map(i => i.Titre).join(' | ') }}",
+            "Status": "=batch_{{ new Date().toISOString().split('T')[0] }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf01-sheets-cours",
+      "name": "Sheets — Idées Cours",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1600, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.has_urgent }}", "value2": true }]
+        }
+      },
+      "id": "wf01-check-urgent",
+      "name": "IF — Score ≥ 8 ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1600, 700]
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=🔥 Veille Max-Morrys — {{ $('Parse — Router les idées').first().json.high_score_items.length }} idées à fort potentiel",
+        "emailType": "html",
+        "html": "=<h2>Idées à fort potentiel (score ≥ 8)</h2><pre>{{ JSON.stringify($('Parse — Router les idées').first().json.high_score_items, null, 2) }}</pre>"
+      },
+      "id": "wf01-email-urgent",
+      "name": "Email — Notification urgente",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1900, 700],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Cron — 5h00 quotidien": {
+      "main": [
+        [
+          { "node": "Google Search — Sénégal", "type": "main", "index": 0 },
+          { "node": "Google Search — CI & Cameroun", "type": "main", "index": 0 },
+          { "node": "Google Trends — Sénégal", "type": "main", "index": 0 },
+          { "node": "Google Search — Tendances e-learning", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Google Search — Sénégal": { "main": [[{ "node": "Merge — Fusionner & Dédupliquer", "type": "main", "index": 0 }]] },
+    "Google Search — CI & Cameroun": { "main": [[{ "node": "Merge — Fusionner & Dédupliquer", "type": "main", "index": 0 }]] },
+    "Google Trends — Sénégal": { "main": [[{ "node": "Merge — Fusionner & Dédupliquer", "type": "main", "index": 0 }]] },
+    "Google Search — Tendances e-learning": { "main": [[{ "node": "Merge — Fusionner & Dédupliquer", "type": "main", "index": 0 }]] },
+    "Merge — Fusionner & Dédupliquer": { "main": [[{ "node": "Gemini Flash — Analyser & Proposer", "type": "main", "index": 0 }]] },
+    "Gemini Flash — Analyser & Proposer": { "main": [[{ "node": "Parse — Router les idées", "type": "main", "index": 0 }]] },
+    "Parse — Router les idées": {
+      "main": [
+        [
+          { "node": "Sheets — Idées Social", "type": "main", "index": 0 },
+          { "node": "Sheets — Idées Articles", "type": "main", "index": 0 },
+          { "node": "Sheets — Idées Cours", "type": "main", "index": 0 },
+          { "node": "IF — Score ≥ 8 ?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "IF — Score ≥ 8 ?": { "main": [[{ "node": "Email — Notification urgente", "type": "main", "index": 0 }], []] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "community-management" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

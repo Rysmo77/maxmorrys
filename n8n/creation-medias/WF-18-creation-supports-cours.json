@@ -1,0 +1,173 @@
+{
+  "name": "WF-18 — Création de Supports de Cours Visuels",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "wf18-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst mediaPrompts = input.media_prompts || [];\nconst courseTitle = input.course_title || '';\nconst lessonTitle = input.lesson_title || '';\n\nreturn mediaPrompts.map(mp => ({\n  json: {\n    type: mp.type || 'illustration',\n    prompt: mp.prompt || mp.description || '',\n    alt_text: mp.alt_text || '',\n    position: mp.position || '',\n    course_title: courseTitle,\n    lesson_title: lessonTitle\n  }\n}));"
+      },
+      "id": "wf18-flatten",
+      "name": "Flatten — Media prompts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "wf18-batch",
+      "name": "Batch — Par média",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            { "outputKey": "diagram", "value": "diagram" },
+            { "outputKey": "infographic", "value": "infographic" },
+            { "outputKey": "illustration", "value": "illustration" }
+          ]
+        },
+        "fallbackOutput": "illustration",
+        "dataPropertyName": "={{ $json.type }}"
+      },
+      "id": "wf18-switch",
+      "name": "Switch — Type de média",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un expert en design d\\'information pédagogique. Crée un diagramme clair pour une leçon de cours en ligne.\\n\\nSujet : ' + $json.prompt + '\\nCours : ' + $json.course_title + '\\nLeçon : ' + $json.lesson_title + '\\n\\nCrée le diagramme en code Mermaid.js.\\nLe diagramme doit être compréhensible par un apprenant de niveau débutant/intermédiaire.\\nUtilise des couleurs claires et un style professionnel.\\n\\nRéponse JSON :\\n{ \"diagram_type\": \"flowchart|sequence|mindmap|timeline\", \"mermaid_code\": \"code mermaid complet\", \"title\": \"\", \"alt_text\": \"\" }' }] }], generationConfig: { temperature: 0.5, maxOutputTokens: 2048, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf18-gemini-diagram",
+      "name": "Gemini — Diagramme Mermaid",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 100],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un designer d\\'infographies pédagogiques pour des cours en ligne.\\nCrée la structure HTML/CSS d\\'une infographie pour la leçon.\\nContenu : ' + $json.prompt + '\\nStyle : professionnel, lisible sur mobile, max 800x600px.\\nRéponse JSON : { \"html\": \"code HTML complet avec CSS inline\", \"title\": \"\", \"alt_text\": \"\" }' }] }], generationConfig: { temperature: 0.6, maxOutputTokens: 4096, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf18-gemini-infographic",
+      "name": "Gemini — Infographie HTML",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 300],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.WF15_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "id": "wf18-call-wf15",
+      "name": "Execute — WF-15 Illustration",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1200, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nlet result = { type: '', url: '', mermaid_code: '', html: '', alt_text: '' };\n\ntry {\n  if (input.candidates) {\n    // Gemini response (diagram or infographic)\n    const text = input.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n    const parsed = JSON.parse(text);\n    result.mermaid_code = parsed.mermaid_code || '';\n    result.html = parsed.html || '';\n    result.alt_text = parsed.alt_text || '';\n    result.type = result.mermaid_code ? 'diagram' : 'infographic';\n  } else if (input.file_url) {\n    // WF-15 response (illustration)\n    result.url = input.file_url;\n    result.type = 'illustration';\n    result.alt_text = input.original_prompt || '';\n  }\n} catch (e) {\n  // continue with empty result\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "wf18-normalize-result",
+      "name": "Normalize — Résultat média",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 300]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Medias Generes" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ new Date().toISOString() }}",
+            "Type": "=support_cours_{{ $json.type }}",
+            "Pour": "=cours",
+            "Prompt": "={{ $json.alt_text }}",
+            "URL_Drive": "={{ $json.url }}",
+            "Dimensions": "=800x600",
+            "Status": "=produit"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf18-sheets",
+      "name": "Sheets — Log média cours",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1800, 300],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [[{ "node": "Flatten — Media prompts", "type": "main", "index": 0 }]] },
+    "Flatten — Media prompts": { "main": [[{ "node": "Batch — Par média", "type": "main", "index": 0 }]] },
+    "Batch — Par média": { "main": [[{ "node": "Switch — Type de média", "type": "main", "index": 0 }]] },
+    "Switch — Type de média": {
+      "main": [
+        [{ "node": "Gemini — Diagramme Mermaid", "type": "main", "index": 0 }],
+        [{ "node": "Gemini — Infographie HTML", "type": "main", "index": 0 }],
+        [{ "node": "Execute — WF-15 Illustration", "type": "main", "index": 0 }]
+      ]
+    },
+    "Gemini — Diagramme Mermaid": { "main": [[{ "node": "Normalize — Résultat média", "type": "main", "index": 0 }]] },
+    "Gemini — Infographie HTML": { "main": [[{ "node": "Normalize — Résultat média", "type": "main", "index": 0 }]] },
+    "Execute — WF-15 Illustration": { "main": [[{ "node": "Normalize — Résultat média", "type": "main", "index": 0 }]] },
+    "Normalize — Résultat média": { "main": [[{ "node": "Sheets — Log média cours", "type": "main", "index": 0 }]] },
+    "Sheets — Log média cours": { "main": [[{ "node": "Batch — Par média", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "media-creation" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

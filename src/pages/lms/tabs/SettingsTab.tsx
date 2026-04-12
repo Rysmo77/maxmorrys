@@ -2,8 +2,8 @@ import { LogOut } from 'lucide-react';
 import Toggle from '../../../components/ui/Toggle';
 
 interface SettingsTabProps {
-  theme: string;
-  setTheme: (theme: string) => void;
+  theme: 'light' | 'dark';
+  setTheme: (theme: 'light' | 'dark') => void;
   onSignOut: () => void;
 }
 

@@ -4,6 +4,9 @@ import { ArrowRight, TrendingUp, Users, Award, BookOpen, Play, ChevronDown, Star
 import { getPublishedFormations, getPublishedPosts, getFeaturedTestimonials } from '../lib/firestore';
 import { formatPrice, truncate } from '../lib/utils';
 import type { Formation, BlogPost, Testimonial } from '../types';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION } from '../components/seo/seo-config';
 
 const stats = [
   { icon: TrendingUp, value: '+340%', label: 'Croissance trafic en 1 an', color: 'text-brand-500' },
@@ -102,6 +105,43 @@ export default function Home() {
 
   return (
     <div>
+      <SEOHead
+        title={DEFAULT_TITLE}
+        description={DEFAULT_DESCRIPTION}
+        isHomePage
+      />
+      <JsonLd data={[
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: SITE_NAME,
+          url: SITE_URL,
+          logo: `${SITE_URL}/og-default.jpg`,
+          contactPoint: {
+            '@type': 'ContactPoint',
+            telephone: '+221776041985',
+            contactType: 'customer service',
+            areaServed: ['SN', 'CI', 'CM', 'FR'],
+            availableLanguage: 'French',
+          },
+          sameAs: [
+            'https://www.linkedin.com/in/maxmorrys',
+            'https://www.youtube.com/@maxmorrys',
+          ],
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: SITE_NAME,
+          url: SITE_URL,
+          inLanguage: 'fr',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: `${SITE_URL}/blog?q={search_term_string}`,
+            'query-input': 'required name=search_term_string',
+          },
+        },
+      ]} />
 
       {/* ── HERO : vidéo plein écran en fond ── */}
       <section className="relative mt-16 lg:mt-[68px] h-[calc(100vh-4rem)] lg:h-[calc(100vh-68px)] min-h-[560px] overflow-hidden">

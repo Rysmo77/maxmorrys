@@ -13,6 +13,7 @@ import { BADGES } from '../../../types/gamification';
 import type { GamificationProfile } from '../../../types/gamification';
 import type { Certificate } from '../../../types';
 import type { EnrolledFormation } from '../hooks/useStudentData';
+import { captureError } from '../../../lib/sentry';
 
 interface AchievementsTabProps {
   userId: string;
@@ -54,7 +55,7 @@ export default function AchievementsTab({
       fireConfetti();
       addToast('success', 'Certificat généré ! Partage-le sur LinkedIn !');
     } catch (error: unknown) {
-      console.error('Failed to issue certificate:', error);
+      captureError(error, { context: 'Failed to issue certificate' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la génération.');
     }
   };

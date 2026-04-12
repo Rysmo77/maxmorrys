@@ -2,8 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Play, Eye, Calendar, ArrowLeft, Clock, Loader2 } from 'lucide-react';
 import { getVideoBySlug, getPublishedVideos } from '../lib/firestore';
-import { formatDate } from '../lib/utils';
+import { formatDate, markdownToHtml } from '../lib/utils';
 import type { Video } from '../types';
+import { trackViewContent } from '../lib/meta-pixel';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL } from '../components/seo/seo-config';
 
 function resolveVideoEmbed(url: string): { type: 'iframe' | 'native'; src: string } {
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -24,6 +28,7 @@ export default function VideoDetail() {
     getVideoBySlug(slug).then((data) => {
       setVideo(data);
       if (data) {
+        trackViewContent({ content_type: 'video', content_ids: [data.id], content_name: data.title });
         getPublishedVideos().then((all) => setOthers(all.filter((v) => v.id !== data.id).slice(0, 4))).catch(() => null);
       }
     }).catch(() => setVideo(null));
@@ -44,6 +49,39 @@ export default function VideoDetail() {
 
   return (
     <div>
+      <SEOHead
+        title={video.title}
+        description={video.description}
+        ogImage={video.thumbnailUrl}
+      />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'VideoObject',
+        name: video.title,
+        description: video.description,
+        thumbnailUrl: video.thumbnailUrl,
+        uploadDate: video.publishedAt,
+        duration: video.duration,
+        embedUrl: video.videoUrl,
+        url: `${SITE_URL}/videos/${video.slug}`,
+        ...(video.views > 0 && {
+          interactionStatistic: {
+            '@type': 'InteractionCounter',
+            interactionType: 'https://schema.org/WatchAction',
+            userInteractionCount: video.views,
+          },
+        }),
+      }} />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Vidéos', item: `${SITE_URL}/videos` },
+          { '@type': 'ListItem', position: 3, name: video.title, item: `${SITE_URL}/videos/${video.slug}` },
+        ],
+      }} />
+
       {/* ── HERO ── */}
       <section className="pt-28 pb-12 lg:pt-36 lg:pb-16 bg-neutral-50 dark:bg-neutral-900">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -139,9 +177,10 @@ export default function VideoDetail() {
                   <h2 className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 mb-3">
                     Description
                   </h2>
-                  <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed whitespace-pre-line">
-                    {video.description}
-                  </p>
+                  <div
+                    className="prose dark:prose-invert max-w-none prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium"
+                    dangerouslySetInnerHTML={{ __html: markdownToHtml(video.description) }}
+                  />
                 </div>
               )}
             </div>

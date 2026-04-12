@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, Shield, Clock, BookOpen, Award, Loader2, ShoppingBag } from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
+import { writeBatch, doc, collection } from 'firebase/firestore';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
-import { getFormationBySlug, createDoc } from '../../lib/firestore';
-import { functions } from '../../config/firebase';
+import { getFormationBySlug } from '../../lib/firestore';
+import { db, functions } from '../../config/firebase';
 import { formatPrice } from '../../lib/utils';
 import type { Formation } from '../../types';
+import { trackInitiateCheckout, trackPurchase, generateEventId } from '../../lib/meta-pixel';
 
 const createBictorysCharge = httpsCallable<
-  { formationId: string; formationSlug: string },
+  { formationId: string; formationSlug: string; metaEventId?: string },
   { checkoutUrl: string; transactionId: string }
 >(functions, 'createBictorysCharge');
 
@@ -28,7 +30,17 @@ export default function Checkout() {
 
   useEffect(() => {
     if (!slug) return;
-    getFormationBySlug(slug).then(setFormation).catch(() => setFormation(null));
+    getFormationBySlug(slug).then((data) => {
+      setFormation(data);
+      if (data) {
+        trackInitiateCheckout({
+          content_ids: [data.id],
+          content_name: data.title,
+          value: data.promoPrice ?? data.price,
+          num_items: 1,
+        });
+      }
+    }).catch(() => setFormation(null));
   }, [slug]);
 
   useEffect(() => {
@@ -63,8 +75,13 @@ export default function Checkout() {
 
     try {
       if (isFree) {
-        // Free courses: create transaction + enrollment client-side
-        await createDoc('transactions', {
+        // Free courses: create transaction + enrollment atomically via batch
+        const batch = writeBatch(db);
+        const now = new Date().toISOString();
+
+        // Transaction document (auto-ID)
+        const txRef = doc(collection(db, 'transactions'));
+        batch.set(txRef, {
           userId: user.uid,
           userEmail: user.email,
           userName: user.displayName || user.email,
@@ -76,24 +93,37 @@ export default function Checkout() {
           status: 'completed',
           paymentMethod: 'free',
           couponCode: couponCode.trim() || undefined,
-          createdAt: new Date().toISOString(),
+          createdAt: now,
         });
 
-        await createDoc('enrollments', {
+        // Enrollment document (deterministic ID: uid_formationId)
+        const enrollRef = doc(db, 'enrollments', `${user.uid}_${formation.id}`);
+        batch.set(enrollRef, {
           userId: user.uid,
           formationId: formation.id,
           progress: 0,
           completedLessons: [],
-          enrolledAt: new Date().toISOString(),
+          enrolledAt: now,
           certificateIssued: false,
+        });
+
+        await batch.commit();
+
+        trackPurchase({
+          content_ids: [formation.id],
+          content_name: formation.title,
+          value: 0,
+          content_type: 'formation',
         });
 
         setSuccess(true);
       } else {
         // Paid courses: call Cloud Function -> redirect to Bictorys
+        const eventId = generateEventId();
         const result = await createBictorysCharge({
           formationId: formation.id,
           formationSlug: formation.slug,
+          metaEventId: eventId,
         });
 
         // Redirect to Bictorys hosted checkout

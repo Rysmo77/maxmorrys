@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Search, RefreshCw, CreditCard, Loader2, ChevronDown, ArrowDownLeft } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import Pagination from '../../components/ui/Pagination';
 import { useToast } from '../../components/ui/Toast';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
+import { usePagination } from '../../hooks/usePagination';
 import { getAllTransactions, updateTransactionStatus } from '../../lib/firestore';
 import { formatDate } from '../../lib/utils';
 import type { Transaction } from '../../types';
@@ -10,16 +14,19 @@ const STATUS_LABELS: Record<Transaction['status'], string> = {
   pending: 'En attente',
   completed: 'Complétée',
   refunded: 'Remboursée',
+  failed: 'Échouée',
 };
 
 const STATUS_COLORS: Record<Transaction['status'], string> = {
   pending: 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400',
   completed: 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400',
   refunded: 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500',
+  failed: 'bg-error-100 dark:bg-error-900/30 text-error-700 dark:text-error-400',
 };
 
 export default function AdminTransactions() {
   const { addToast } = useToast();
+  const confirm = useConfirmDialog();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -33,25 +40,33 @@ export default function AdminTransactions() {
 
   useEffect(() => { load(); }, []);
 
-  const handleRefund = async (id: string) => {
-    if (!confirm('Marquer comme remboursée ?')) return;
-    setRefunding(id);
-    try {
-      await updateTransactionStatus(id, 'refunded');
-      setTransactions((prev) => prev.map((t) => t.id === id ? { ...t, status: 'refunded' } : t));
-      addToast('success', 'Transaction marquée comme remboursée.');
-    } catch {
-      addToast('error', 'Erreur lors du remboursement.');
-    } finally {
-      setRefunding(null);
-    }
+  const handleRefund = (id: string) => {
+    confirm.requestConfirm('Marquer cette transaction comme remboursée ?', async () => {
+      setRefunding(id);
+      try {
+        await updateTransactionStatus(id, 'refunded');
+        setTransactions((prev) => prev.map((t) => t.id === id ? { ...t, status: 'refunded' } : t));
+        addToast('success', 'Transaction marquée comme remboursée.');
+      } catch {
+        addToast('error', 'Erreur lors du remboursement.');
+      } finally {
+        setRefunding(null);
+      }
+      confirm.closeConfirm();
+    });
   };
 
   const filtered = transactions.filter((t) => {
-    const matchSearch = t.id.toLowerCase().includes(search.toLowerCase()) || t.userId.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase();
+    const matchSearch = !q || t.id.toLowerCase().includes(q) || t.userId.toLowerCase().includes(q)
+      || (t.userName ?? '').toLowerCase().includes(q)
+      || (t.userEmail ?? '').toLowerCase().includes(q)
+      || (t.formationTitle ?? '').toLowerCase().includes(q);
     const matchStatus = statusFilter === 'all' || t.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   const totalRevenue = transactions.filter((t) => t.status === 'completed').reduce((sum, t) => sum + t.amount, 0);
   const totalRefunded = transactions.filter((t) => t.status === 'refunded').reduce((sum, t) => sum + t.amount, 0);
@@ -117,13 +132,16 @@ export default function AdminTransactions() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100 dark:divide-neutral-700">
-              {filtered.map((t) => (
+              {paged.map((t) => (
                 <tr key={t.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/30 transition-colors">
                   <td className="px-4 py-3">
                     <p className="font-mono text-xs text-neutral-500">{t.id.slice(0, 12)}...</p>
                     <p className="text-xs text-neutral-400">{t.paymentMethod}</p>
                   </td>
-                  <td className="px-4 py-3 text-neutral-500 hidden md:table-cell font-mono text-xs">{t.userId.slice(0, 12)}...</td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    <p className="text-sm text-neutral-700 dark:text-neutral-300 truncate max-w-[180px]">{t.userName || t.userEmail || t.userId.slice(0, 12) + '...'}</p>
+                    {t.formationTitle && <p className="text-xs text-neutral-400 truncate max-w-[180px]">{t.formationTitle}</p>}
+                  </td>
                   <td className="px-4 py-3 text-neutral-500 hidden sm:table-cell">{formatDate(t.createdAt)}</td>
                   <td className="px-4 py-3 font-semibold text-neutral-900 dark:text-white">{t.amount.toLocaleString('fr-FR')} {t.currency}</td>
                   <td className="px-4 py-3">
@@ -149,6 +167,12 @@ export default function AdminTransactions() {
           </table>
         </div>
       )}
+
+      <div className="flex justify-center mt-4">
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+      </div>
+
+      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title="Confirmer" message={confirm.message} confirmLabel="Rembourser" variant="warning" />
     </div>
   );
 }

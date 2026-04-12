@@ -1,0 +1,176 @@
+{
+  "name": "WF-07 — Recherche d'Idées Articles (Géolocalisé)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "30 6 * * *" }]
+        }
+      },
+      "id": "wf07-cron",
+      "name": "Cron — 6h30 quotidien",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf07-recherche-idees",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf07-webhook",
+      "name": "Webhook — Manuel",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 500]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.googleapis.com/customsearch/v1?key=%%GOOGLE_SEARCH_API_KEY%%&cx=%%GOOGLE_SEARCH_CX%%&q=marketing+digital+Senegal+Afrique+Ouest+2026&gl=sn&hl=fr&dateRestrict=w1&num=10",
+        "options": { "timeout": 15000 }
+      },
+      "id": "wf07-search-local",
+      "name": "Google Search — Local",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.googleapis.com/customsearch/v1?key=%%GOOGLE_SEARCH_API_KEY%%&cx=%%GOOGLE_SEARCH_CX%%&q=digital+marketing+trends+best+practices+2026&gl=us&hl=en&dateRestrict=w1&num=10",
+        "options": { "timeout": 15000 }
+      },
+      "id": "wf07-search-intl",
+      "name": "Google Search — International",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Articles" },
+        "options": {}
+      },
+      "id": "wf07-read-existing",
+      "name": "Sheets — Articles existants",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [300, 800],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const localResults = $('Google Search — Local').first().json;\nconst intlResults = $('Google Search — International').first().json;\nconst existing = $('Sheets — Articles existants').all().map(i => i.json);\n\nconst localItems = (localResults?.items || []).map(i => ({ title: i.title, snippet: i.snippet, url: i.link }));\nconst intlItems = (intlResults?.items || []).map(i => ({ title: i.title, snippet: i.snippet, url: i.link }));\nconst existingTitles = existing.map(e => e.Titre_SEO || '').filter(Boolean);\n\nreturn [{\n  json: {\n    local_search_results: localItems,\n    international_results: intlItems,\n    existing_articles: existingTitles\n  }\n}];"
+      },
+      "id": "wf07-merge",
+      "name": "Merge — Compiler les données",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un rédacteur en chef SEO expert spécialisé dans le marché Afrique de l\\'Ouest francophone (Sénégal, Côte d\\'Ivoire, Cameroun).\\n\\nPLATEFORME : Max-Morrys (maxmorrys.me) — Marketing digital, entrepreneuriat\\nAUDIENCE : Entrepreneurs, PME, professionnels du digital en Afrique francophone\\nLANGUE : Français\\nMONNAIE : XOF (FCFA)\\n\\nMISSION : Propose 5 sujets d\\'articles de blog optimisés pour le SEO LOCAL.\\n\\nCRITÈRES :\\n- Les sujets doivent répondre à des recherches RÉELLES des internautes d\\'Afrique de l\\'Ouest\\n- Les mots-clés ciblent le trafic FRANCOPHONE de la zone\\n- Les sujets tiennent compte du contexte économique, social et culturel local\\n- Les sujets ne doivent PAS être des copies des articles déjà publiés\\n- Privilégier les angles locaux sur des sujets universels\\n  Ex: pas \"Comment méditer\" mais \"Stratégie Instagram pour les PME à Dakar\"\\n  Ex: pas \"Créer une entreprise\" mais \"Lancer son business digital au Sénégal : guide complet 2026\"\\n\\nSOURCES LOCALES : ' + JSON.stringify($json.local_search_results) + '\\nSOURCES INTERNATIONALES : ' + JSON.stringify($json.international_results) + '\\nARTICLES DÉJÀ PUBLIÉS (éviter les doublons) : ' + JSON.stringify($json.existing_articles) + '\\n\\nRÉPONSE JSON :\\n{\\n  \"articles\": [{\\n    \"title_seo\": \"max 60 chars, mot-clé en début\",\\n    \"meta_description\": \"155 chars, incitative\",\\n    \"main_keyword\": \"mot-clé principal\",\\n    \"secondary_keywords\": [\"kw1\", \"kw2\", \"kw3\", \"kw4\", \"kw5\"],\\n    \"search_intent\": \"informationnel|transactionnel|navigationnel\",\\n    \"local_angle\": \"ce qui rend cet article pertinent LOCALEMENT\",\\n    \"suggested_structure\": [\"H2: ...\", \"H2: ...\"],\\n    \"recommended_length\": 1200,\\n    \"seo_potential_score\": 8,\\n    \"competition_level\": \"faible|moyen|élevé\",\\n    \"content_gap\": \"ce que les articles existants ne couvrent pas\"\\n  }]\\n}' }] }], generationConfig: { temperature: 0.6, maxOutputTokens: 4096, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 90000 }
+      },
+      "id": "wf07-gemini",
+      "name": "Gemini Pro — Proposer des sujets",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 400],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\nlet parsed;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  parsed = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing réponse Gemini: ' + e.message);\n}\n\nconst articles = (parsed.articles || []).map(a => ({\n  Date: today,\n  Titre_SEO: a.title_seo,\n  Mot_Cle: a.main_keyword,\n  Angle_Local: a.local_angle,\n  Volume_Estime: a.competition_level,\n  Score: a.seo_potential_score,\n  Status: 'nouveau',\n  Meta_Description: a.meta_description,\n  Keywords_Secondaires: (a.secondary_keywords || []).join(', '),\n  Structure: (a.suggested_structure || []).join(' | '),\n  Longueur_Recommandee: a.recommended_length,\n  Intent: a.search_intent,\n  Content_Gap: a.content_gap\n}));\n\nreturn articles.map(a => ({ json: a }));"
+      },
+      "id": "wf07-parse",
+      "name": "Parse — Structurer les sujets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 400]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Articles" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.Date }}",
+            "Titre_SEO": "={{ $json.Titre_SEO }}",
+            "Mot_Cle": "={{ $json.Mot_Cle }}",
+            "Angle_Local": "={{ $json.Angle_Local }}",
+            "Volume_Estime": "={{ $json.Volume_Estime }}",
+            "Score": "={{ $json.Score }}",
+            "Status": "={{ $json.Status }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf07-sheets",
+      "name": "Sheets — Sauvegarder les idées",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1600, 400],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Cron — 6h30 quotidien": {
+      "main": [
+        [
+          { "node": "Google Search — Local", "type": "main", "index": 0 },
+          { "node": "Google Search — International", "type": "main", "index": 0 },
+          { "node": "Sheets — Articles existants", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Webhook — Manuel": {
+      "main": [
+        [
+          { "node": "Google Search — Local", "type": "main", "index": 0 },
+          { "node": "Google Search — International", "type": "main", "index": 0 },
+          { "node": "Sheets — Articles existants", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Google Search — Local": { "main": [[{ "node": "Merge — Compiler les données", "type": "main", "index": 0 }]] },
+    "Google Search — International": { "main": [[{ "node": "Merge — Compiler les données", "type": "main", "index": 0 }]] },
+    "Sheets — Articles existants": { "main": [[{ "node": "Merge — Compiler les données", "type": "main", "index": 0 }]] },
+    "Merge — Compiler les données": { "main": [[{ "node": "Gemini Pro — Proposer des sujets", "type": "main", "index": 0 }]] },
+    "Gemini Pro — Proposer des sujets": { "main": [[{ "node": "Parse — Structurer les sujets", "type": "main", "index": 0 }]] },
+    "Parse — Structurer les sujets": { "main": [[{ "node": "Sheets — Sauvegarder les idées", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "redaction-web" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

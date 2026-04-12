@@ -134,7 +134,7 @@ export default function RichEditor({ value, onChange, label, placeholder = 'Réd
 
         {preview ? (
           <div
-            className="p-4 bg-white dark:bg-neutral-800 overflow-auto prose prose-sm max-w-none"
+            className="p-6 bg-white dark:bg-neutral-800 overflow-auto prose prose-sm dark:prose-invert max-w-none prose-headings:font-display prose-img:rounded-xl"
             style={{ minHeight }}
             dangerouslySetInnerHTML={{ __html: markdownToHtml(value) || `<p class="text-neutral-400 italic">${placeholder}</p>` }}
           />

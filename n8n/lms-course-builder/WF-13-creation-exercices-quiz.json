@@ -1,0 +1,111 @@
+{
+  "name": "WF-13 — Création d'Exercices, Quiz & Évaluations",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf13-generer-quiz",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf13-webhook",
+      "name": "Webhook — Générer quiz",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {},
+      "id": "wf13-exec-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst body = input.body || input;\n\nreturn [{\n  json: {\n    course_title: body.course_title || '',\n    module_title: body.module_title || '',\n    module_number: body.module_number || 1,\n    module_objectives: body.module_objectives || body.learning_objectives || [],\n    module_lessons_summary: body.module_lessons_summary || body.lessons_summary || '',\n    questions_count: body.questions_count || 5,\n    pass_score: body.pass_score || 70,\n    level: body.level || 'debutant'\n  }\n}];"
+      },
+      "id": "wf13-normalize",
+      "name": "Normaliser — Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un expert en évaluation pédagogique (assessment design) et psychométrie pour l\\'Afrique de l\\'Ouest francophone.\\n\\nMISSION :\\nCrée un quiz de ' + $json.questions_count + ' questions pour le Module ' + $json.module_number + ' : \"' + $json.module_title + '\" du cours \"' + $json.course_title + '\".\\n\\nCONTENU DU MODULE :\\n' + (typeof $json.module_lessons_summary === 'string' ? $json.module_lessons_summary : JSON.stringify($json.module_lessons_summary)) + '\\n\\nOBJECTIFS DU MODULE :\\n' + JSON.stringify($json.module_objectives) + '\\n\\nRÈGLES :\\n1. Varier les types : QCM (4 choix, 1 bonne réponse), Vrai/Faux, texte à trous\\n2. Varier les niveaux de Bloom : 30% connaissance, 30% compréhension, 30% application, 10% analyse\\n3. Les distracteurs doivent être PLAUSIBLES\\n4. Chaque question a une EXPLICATION de la bonne réponse\\n5. Les questions sont contextualisées pour l\\'Afrique de l\\'Ouest quand pertinent\\n6. Langage clair, pas de questions pièges\\n7. Score de passage : ' + $json.pass_score + '%\\n\\nCrée aussi un exercice pratique avec une mise en situation locale.\\n\\nRÉPONSE JSON :\\n{\\n  \"quiz\": {\\n    \"title\": \"Quiz — Module ' + $json.module_number + '\",\\n    \"pass_score_percent\": 70,\\n    \"shuffle_questions\": true,\\n    \"questions\": [{\\n      \"question_number\": 1,\\n      \"type\": \"multiple_choice|true_false|fill_blank\",\\n      \"bloom_level\": \"knowledge|comprehension|application|analysis\",\\n      \"question_text\": \"\",\\n      \"options\": [{ \"id\": \"a\", \"text\": \"\", \"is_correct\": false }],\\n      \"correct_answer\": \"b\",\\n      \"explanation\": \"\",\\n      \"points\": 1,\\n      \"difficulty\": \"easy|medium|hard\"\\n    }]\\n  },\\n  \"practical_exercise\": {\\n    \"title\": \"\",\\n    \"type\": \"project|case_study|reflection\",\\n    \"instructions\": \"instructions détaillées\",\\n    \"context_local\": \"mise en situation Afrique de l\\'Ouest\",\\n    \"deliverable\": \"\",\\n    \"evaluation_rubric\": [{ \"criterion\": \"\", \"weight_percent\": 0, \"excellent\": \"\", \"good\": \"\", \"needs_improvement\": \"\" }],\\n    \"estimated_duration_minutes\": 30\\n  }\\n}' }] }], generationConfig: { temperature: 0.5, maxOutputTokens: 4096, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 120000 }
+      },
+      "id": "wf13-gemini",
+      "name": "Gemini Pro — Générer quiz & exercices",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [600, 300],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 10000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst meta = $('Normaliser — Input').first().json;\n\nlet parsed;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  parsed = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing quiz: ' + e.message);\n}\n\nconst quiz = parsed.quiz || {};\nconst exercise = parsed.practical_exercise || {};\n\n// Build quiz as a Lesson of type 'quiz' matching the Formation data model\nconst quizLesson = {\n  id: crypto.randomUUID(),\n  title: quiz.title || `Quiz — Module ${meta.module_number}`,\n  type: 'quiz',\n  duration: `${Math.ceil((quiz.questions || []).length * 2)} min`,\n  content: JSON.stringify({\n    pass_score_percent: quiz.pass_score_percent || 70,\n    shuffle_questions: quiz.shuffle_questions || true,\n    questions: quiz.questions || []\n  }),\n  order: 99,\n  isFree: false\n};\n\n// Build exercise as a Lesson of type 'mission'\nconst missionLesson = {\n  id: crypto.randomUUID(),\n  title: exercise.title || `Exercice pratique — Module ${meta.module_number}`,\n  type: 'mission',\n  duration: `${exercise.estimated_duration_minutes || 30} min`,\n  content: JSON.stringify({\n    instructions: exercise.instructions || '',\n    context_local: exercise.context_local || '',\n    deliverable: exercise.deliverable || '',\n    evaluation_rubric: exercise.evaluation_rubric || []\n  }),\n  order: 98,\n  isFree: false\n};\n\nreturn [{\n  json: {\n    quiz_lesson: quizLesson,\n    mission_lesson: missionLesson,\n    course_title: meta.course_title,\n    module_number: meta.module_number,\n    module_title: meta.module_title,\n    questions_count: (quiz.questions || []).length\n  }\n}];"
+      },
+      "id": "wf13-parse",
+      "name": "Parse — Construire Quiz & Mission",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Cours en Production" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cours": "={{ $json.course_title }}",
+            "Module": "=M{{ $json.module_number }}: {{ $json.module_title }}",
+            "Lecon": "=Quiz + Exercice pratique",
+            "Type": "=quiz+mission",
+            "Status_Quiz": "=produit"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf13-sheets",
+      "name": "Sheets — Mettre à jour status quiz",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1200, 300],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook — Générer quiz": { "main": [[{ "node": "Normaliser — Input", "type": "main", "index": 0 }]] },
+    "Execute Workflow Trigger": { "main": [[{ "node": "Normaliser — Input", "type": "main", "index": 0 }]] },
+    "Normaliser — Input": { "main": [[{ "node": "Gemini Pro — Générer quiz & exercices", "type": "main", "index": 0 }]] },
+    "Gemini Pro — Générer quiz & exercices": { "main": [[{ "node": "Parse — Construire Quiz & Mission", "type": "main", "index": 0 }]] },
+    "Parse — Construire Quiz & Mission": { "main": [[{ "node": "Sheets — Mettre à jour status quiz", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "lms-course-builder" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

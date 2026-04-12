@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Plus, X, Send, Inbox, Loader2, ArrowRight } from 'lucide-react';
+import { Plus, X, Send, Inbox, Loader2 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { cn, formatDate } from '../../../lib/utils';
 import { createDoc, getUserMessages } from '../../../lib/firestore';
 import type { ContactMessage } from '../../../types';
+import { captureError } from '../../../lib/sentry';
 
 const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
 
@@ -48,7 +49,7 @@ export default function MessagesTab({
       addToast('success', 'Message envoyé avec succès !');
       getUserMessages(userEmail).then(setSentMessages).catch(() => null);
     } catch (error: unknown) {
-      console.error('Failed to send message:', error);
+      captureError(error, { context: 'Failed to send message' });
       addToast('error', error instanceof Error ? error.message : "Erreur lors de l'envoi. Veuillez réessayer.");
     } finally {
       setSendingMsg(false);

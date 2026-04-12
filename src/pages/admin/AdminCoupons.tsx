@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, Edit2, Tag, Loader2, ChevronDown, ToggleLeft, ToggleRight } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import Pagination from '../../components/ui/Pagination';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
+import { usePagination } from '../../hooks/usePagination';
 import { getAllCoupons, saveCoupon, deleteCoupon } from '../../lib/firestore';
 import { formatDate } from '../../lib/utils';
 import type { Coupon } from '../../types';
+import { captureError } from '../../lib/sentry';
 
 const EMPTY: Omit<Coupon, 'id'> = {
   code: '', type: 'percentage', value: 10, maxUses: 100,
@@ -13,6 +18,7 @@ const EMPTY: Omit<Coupon, 'id'> = {
 
 export default function AdminCoupons() {
   const { addToast } = useToast();
+  const confirm = useConfirmDialog();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -49,18 +55,24 @@ export default function AdminCoupons() {
       setModalOpen(false);
       load();
     } catch (error: unknown) {
-      console.error('Save coupon failed:', error);
+      captureError(error, { context: 'Save coupon failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer ce coupon ?')) return;
-    await deleteCoupon(id).catch(() => addToast('error', 'Erreur de suppression.'));
-    setCoupons((prev) => prev.filter((c) => c.id !== id));
-    addToast('success', 'Coupon supprimé.');
+  const handleDelete = (id: string) => {
+    confirm.requestConfirm('Supprimer ce coupon ? Cette action est irréversible.', async () => {
+      try {
+        await deleteCoupon(id);
+        setCoupons((prev) => prev.filter((c) => c.id !== id));
+        addToast('success', 'Coupon supprimé.');
+      } catch {
+        addToast('error', 'Erreur de suppression.');
+      }
+      confirm.closeConfirm();
+    });
   };
 
   const handleToggleActive = async (c: Coupon) => {
@@ -71,6 +83,8 @@ export default function AdminCoupons() {
   const filtered = coupons.filter((c) =>
     c.code.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   const inputCls = 'w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500';
 
@@ -97,6 +111,7 @@ export default function AdminCoupons() {
           <p className="text-neutral-500">Aucun coupon trouvé.</p>
         </div>
       ) : (
+        <>
         <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
@@ -110,7 +125,7 @@ export default function AdminCoupons() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100 dark:divide-neutral-700">
-              {filtered.map((c) => (
+              {paged.map((c) => (
                 <tr key={c.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/30 transition-colors">
                   <td className="px-4 py-3">
                     <span className="font-mono font-bold text-neutral-900 dark:text-white bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">{c.code}</span>
@@ -138,6 +153,8 @@ export default function AdminCoupons() {
             </tbody>
           </table>
         </div>
+        <div className="flex justify-center mt-4"><Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} /></div>
+        </>
       )}
 
       {/* Modal */}
@@ -206,6 +223,7 @@ export default function AdminCoupons() {
           </div>
         </div>
       )}
+      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title="Supprimer" message={confirm.message} confirmLabel="Supprimer" />
     </div>
   );
 }

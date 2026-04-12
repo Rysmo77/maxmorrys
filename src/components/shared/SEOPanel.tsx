@@ -4,7 +4,7 @@ import {
   Monitor, Smartphone, ChevronDown, ChevronUp,
   Globe, AlertTriangle,
 } from 'lucide-react';
-import Input, { Textarea } from '../ui/Input';
+import Input from '../ui/Input';
 import { cn } from '../../lib/utils';
 
 interface SEOPanelProps {

@@ -1,0 +1,118 @@
+{
+  "name": "WF-17 — Création de Visuels Reels/Shorts",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "wf17-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un créateur de contenu vidéo court (Reels/Shorts/TikTok) expert pour l\\'Afrique de l\\'Ouest francophone.\\n\\nCrée un storyboard complet pour une vidéo courte (30-60 secondes) sur :\\nSUJET : ' + $json.subject + '\\nPLATEFORME : ' + ($json.platform || 'instagram_reels') + '\\nCONTEXTE : Max-Morrys, marketing digital, audience Sénégal/CI/Cameroun\\n\\nRÈGLES :\\n- Hook dans les 3 premières secondes (question choc ou affirmation surprenante)\\n- Format vertical 9:16 (1080x1920)\\n- Rythme rapide, changements de plan fréquents\\n- Texte superposé lisible sur mobile\\n- Musique/son tendance suggéré\\n- CTA final (suivre, commenter, partager, lien en bio)\\n- Exemples et références locales (Dakar, Abidjan, etc.)\\n\\nRÉPONSE JSON :\\n{\\n  \"title\": \"titre du reel\",\\n  \"duration_seconds\": 30,\\n  \"hook\": \"les 3 premières secondes — texte ou action\",\\n  \"scenes\": [{\\n    \"scene_number\": 1,\\n    \"duration_seconds\": 3,\\n    \"visual\": \"description de ce qu\\'on voit\",\\n    \"text_overlay\": \"texte affiché à l\\'écran\",\\n    \"voiceover\": \"texte narratif\",\\n    \"transition\": \"cut|zoom|slide|fade\",\\n    \"thumbnail_prompt\": \"prompt pour générer une image de cette scène\"\\n  }],\\n  \"caption\": \"caption pour accompagner la vidéo\",\\n  \"hashtags\": [],\\n  \"suggested_audio\": \"type de musique ou son tendance\",\\n  \"thumbnail_prompt\": \"prompt pour la miniature de la vidéo\",\\n  \"cta\": \"appel à l\\'action final\"\\n}' }] }], generationConfig: { temperature: 0.8, maxOutputTokens: 4096, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf17-gemini",
+      "name": "Gemini Flash — Storyboard Reel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst input = $('Execute Workflow Trigger').first().json;\n\nlet storyboard;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  storyboard = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing storyboard: ' + e.message);\n}\n\nreturn [{\n  json: {\n    ...storyboard,\n    subject: input.subject,\n    platform: input.platform || 'instagram_reels',\n    generated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "wf17-parse",
+      "name": "Parse — Storyboard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.thumbnail_prompt }}", "operation": "isNotEmpty" }]
+        }
+      },
+      "id": "wf17-needs-thumb",
+      "name": "IF — Générer miniature ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.WF15_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "id": "wf17-call-wf15",
+      "name": "Execute — WF-15 Miniature",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1200, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Medias Generes" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $('Parse — Storyboard').first().json.generated_at }}",
+            "Type": "=reel_storyboard",
+            "Pour": "={{ $('Parse — Storyboard').first().json.platform }}",
+            "Prompt": "={{ $('Parse — Storyboard').first().json.subject }}",
+            "Dimensions": "=1080x1920",
+            "Status": "=storyboard_pret"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf17-sheets",
+      "name": "Sheets — Log reel",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1500, 300],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [[{ "node": "Gemini Flash — Storyboard Reel", "type": "main", "index": 0 }]] },
+    "Gemini Flash — Storyboard Reel": { "main": [[{ "node": "Parse — Storyboard", "type": "main", "index": 0 }]] },
+    "Parse — Storyboard": { "main": [[{ "node": "IF — Générer miniature ?", "type": "main", "index": 0 }]] },
+    "IF — Générer miniature ?": {
+      "main": [
+        [{ "node": "Execute — WF-15 Miniature", "type": "main", "index": 0 }],
+        [{ "node": "Sheets — Log reel", "type": "main", "index": 0 }]
+      ]
+    },
+    "Execute — WF-15 Miniature": { "main": [[{ "node": "Sheets — Log reel", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "media-creation" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

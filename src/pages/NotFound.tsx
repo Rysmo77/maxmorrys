@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
+import SEOHead from '../components/seo/SEOHead';
 
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 px-4">
+      <SEOHead title="Page introuvable" noIndex />
       <div className="max-w-md w-full text-center space-y-6">
         <div>
           <p className="text-sm font-semibold tracking-wider text-brand-600 uppercase mb-2">Erreur 404</p>

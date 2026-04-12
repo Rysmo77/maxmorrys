@@ -8,6 +8,8 @@ import { updateUserProfile } from '../../lib/firestore';
 import { updateProfile } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../config/firebase';
+import { captureError } from '../../lib/sentry';
+import { trackCompleteRegistration } from '../../lib/meta-pixel';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -47,7 +49,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       await updateUserProfile(user.uid, { photoURL: url });
       setPreviewUrl(url);
     } catch (error: unknown) {
-      console.error('Failed to upload onboarding photo:', error);
+      captureError(error, { context: 'Failed to upload onboarding photo' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors du téléchargement.');
     } finally {
       setUploading(false);
@@ -68,7 +70,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       await refreshUserData();
       setStep(1);
     } catch (error: unknown) {
-      console.error('Failed to save onboarding profile:', error);
+      captureError(error, { context: 'Failed to save onboarding profile' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
@@ -80,8 +82,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     try {
       await updateUserProfile(user.uid, { onboardingCompleted: true });
       await refreshUserData();
+      trackCompleteRegistration({ content_name: 'Onboarding', status: 'complete' });
     } catch (error: unknown) {
-      console.error('Failed to mark onboarding as completed:', error);
+      captureError(error, { context: 'Failed to mark onboarding as completed' });
       // Continue anyway
     }
     onComplete();

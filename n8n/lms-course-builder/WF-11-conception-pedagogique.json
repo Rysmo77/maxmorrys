@@ -1,0 +1,122 @@
+{
+  "name": "WF-11 — Conception Pédagogique (Curriculum Design)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf11-conception-pedagogique",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf11-webhook",
+      "name": "Webhook — Lancer la conception",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un Instructional Designer certifié (ADDIE, Bloom\\'s Taxonomy, Gagné\\'s 9 Events) avec une expertise dans la création de cours en ligne pour le marché Afrique de l\\'Ouest francophone.\\n\\nMISSION :\\nConçois l\\'architecture pédagogique COMPLÈTE du cours suivant. Chaque décision pédagogique doit être justifiée.\\n\\nCOURS :\\n- Titre : ' + ($json.body?.title || $json.title || '') + '\\n- Niveau : ' + ($json.body?.level || $json.level || 'debutant') + '\\n- Audience : ' + ($json.body?.target_audience || $json.target_audience || 'Entrepreneurs Afrique de l\\'Ouest') + '\\n- Objectifs : ' + JSON.stringify($json.body?.learning_objectives || $json.learning_objectives || []) + '\\n- Durée totale : ' + ($json.body?.duration_hours || $json.duration_hours || 10) + ' heures\\n- Structure préliminaire : ' + JSON.stringify($json.body?.outline_preview || $json.outline_preview || []) + '\\n\\nPRINCIPES PÉDAGOGIQUES :\\n1. Taxonomie de Bloom : connaissance → compréhension → application → analyse\\n2. Chunking : chaque leçon ≤ 15 minutes (micro-learning)\\n3. Pratique espacée : exercices de révision réguliers\\n4. Scaffolding : concepts complexes construits sur les bases\\n5. Contextualisation : exemples TOUJOURS ancrés en Afrique de l\\'Ouest\\n6. Multimodal : varier texte, vidéo, image, exercice, quiz\\n7. Évaluation formative : quiz fin de chaque module\\n8. Évaluation sommative : examen final ou projet\\n\\nCONTRAINTES AFRIQUE DE L\\'OUEST :\\n- Contenu consultable sur mobile (80%+ de l\\'audience)\\n- Formats légers (optimiser pour la bande passante)\\n- Exemples culturellement pertinents (Dakar, Abidjan, Douala)\\n- Langue claire et accessible\\n- Monnaie : FCFA (XOF)\\n\\nRÉPONSE JSON :\\n{\\n  \"course\": {\\n    \"title\": \"\",\\n    \"slug\": \"\",\\n    \"description\": \"200-300 mots, engageante, SEO\",\\n    \"short_description\": \"50 mots\",\\n    \"level\": \"debutant|intermediaire|avance\",\\n    \"category\": \"\",\\n    \"tags\": [],\\n    \"duration_total_hours\": 0,\\n    \"total_modules\": 0,\\n    \"total_lessons\": 0,\\n    \"language\": \"fr\",\\n    \"target_audience\": \"\",\\n    \"prerequisites\": [],\\n    \"learning_objectives\": [],\\n    \"skills_acquired\": [],\\n    \"certification\": true,\\n    \"thumbnail_prompt\": \"description du visuel de couverture\"\\n  },\\n  \"modules\": [{\\n    \"module_number\": 1,\\n    \"title\": \"\",\\n    \"description\": \"\",\\n    \"learning_objectives\": [],\\n    \"duration_minutes\": 60,\\n    \"lessons\": [{\\n      \"lesson_number\": 1,\\n      \"title\": \"\",\\n      \"type\": \"text|video|quiz|resource|mission\",\\n      \"duration_minutes\": 10,\\n      \"bloom_level\": \"knowledge|comprehension|application|analysis\",\\n      \"content_brief\": \"100-200 mots décrivant le contenu\",\\n      \"key_concepts\": [],\\n      \"local_example\": \"exemple ancré en Afrique de l\\'Ouest\",\\n      \"media_needed\": { \"type\": \"image|diagram|infographic\", \"description\": \"\" },\\n      \"teaching_method\": \"expositive|démonstrative|interrogative|active\"\\n    }],\\n    \"module_quiz\": {\\n      \"questions_count\": 5,\\n      \"pass_score_percent\": 70,\\n      \"questions_brief\": \"\"\\n    },\\n    \"practical_exercise\": {\\n      \"title\": \"\",\\n      \"type\": \"project|case_study|reflection\",\\n      \"description\": \"\",\\n      \"duration_minutes\": 20,\\n      \"deliverable\": \"\",\\n      \"evaluation_criteria\": []\\n    }\\n  }],\\n  \"final_assessment\": {\\n    \"type\": \"exam|project|portfolio\",\\n    \"description\": \"\",\\n    \"duration_minutes\": 60,\\n    \"pass_score_percent\": 70\\n  },\\n  \"certificate\": {\\n    \"enabled\": true,\\n    \"title\": \"\",\\n    \"requirements\": \"\"\\n  }\\n}' }] }], generationConfig: { temperature: 0.5, maxOutputTokens: 8192, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 180000 }
+      },
+      "id": "wf11-gemini",
+      "name": "Gemini Pro — Concevoir le curriculum",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 300],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 15000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\nlet curriculum;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  curriculum = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing curriculum: ' + e.message);\n}\n\nconst course = curriculum.course || {};\nconst modules = curriculum.modules || [];\n\n// Build rows for Google Sheets tracking\nconst sheetRows = [];\nfor (const mod of modules) {\n  for (const lesson of (mod.lessons || [])) {\n    sheetRows.push({\n      Cours: course.title,\n      Module: `M${mod.module_number}: ${mod.title}`,\n      Lecon: `L${lesson.lesson_number}: ${lesson.title}`,\n      Type: lesson.type,\n      Duree: `${lesson.duration_minutes} min`,\n      Status_Contenu: 'a_produire',\n      Status_Quiz: mod.module_quiz ? 'a_produire' : 'n/a',\n      Status_Media: lesson.media_needed?.type ? 'a_produire' : 'n/a',\n      Status_Publication: 'en_conception'\n    });\n  }\n}\n\nreturn [{\n  json: {\n    curriculum,\n    sheet_rows: sheetRows,\n    course_title: course.title,\n    total_modules: modules.length,\n    total_lessons: sheetRows.length\n  }\n}];"
+      },
+      "id": "wf11-parse",
+      "name": "Parse — Structurer le curriculum",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Cours en Production" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cours": "={{ $json.sheet_rows[0]?.Cours }}",
+            "Module": "=CURRICULUM COMPLET",
+            "Status_Publication": "=en_conception"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf11-sheets",
+      "name": "Sheets — Écrire le curriculum",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [900, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.WF15_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "id": "wf11-call-wf15",
+      "name": "Execute — WF-15 Couverture du cours",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [900, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=🎓 Curriculum prêt pour validation — {{ $('Parse — Structurer le curriculum').first().json.course_title }}",
+        "emailType": "html",
+        "html": "=<h2>Curriculum conçu</h2><p><strong>Cours :</strong> {{ $('Parse — Structurer le curriculum').first().json.course_title }}</p><p><strong>Modules :</strong> {{ $('Parse — Structurer le curriculum').first().json.total_modules }}</p><p><strong>Leçons :</strong> {{ $('Parse — Structurer le curriculum').first().json.total_lessons }}</p><p>Le curriculum est dans Google Sheets. Validez-le pour lancer la génération du contenu (WF-12).</p><p><a href='https://docs.google.com/spreadsheets/d/%%GOOGLE_SHEETS_ID%%'>Voir le curriculum</a></p>"
+      },
+      "id": "wf11-email",
+      "name": "Email — Curriculum prêt",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1200, 300],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook — Lancer la conception": { "main": [[{ "node": "Gemini Pro — Concevoir le curriculum", "type": "main", "index": 0 }]] },
+    "Gemini Pro — Concevoir le curriculum": { "main": [[{ "node": "Parse — Structurer le curriculum", "type": "main", "index": 0 }]] },
+    "Parse — Structurer le curriculum": {
+      "main": [[
+        { "node": "Sheets — Écrire le curriculum", "type": "main", "index": 0 },
+        { "node": "Execute — WF-15 Couverture du cours", "type": "main", "index": 0 },
+        { "node": "Email — Curriculum prêt", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "lms-course-builder" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

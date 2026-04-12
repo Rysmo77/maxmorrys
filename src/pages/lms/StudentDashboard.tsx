@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   BookOpen, Award, ArrowLeft, GraduationCap, LayoutDashboard,
-  Settings, Bell, BookMarked, Crown, Lock, LogOut, Sun, Moon,
+  Settings, BookMarked, Crown, Lock, LogOut, Sun, Moon,
   User, Inbox, Loader2,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -71,7 +71,7 @@ export default function StudentDashboard() {
     getUserMessages(user.uid).then((data) => {
       setSentMessages(data);
       setLoadingMessages(false);
-    }).catch(() => { setLoadingMessages(false); });
+    }).catch(() => { setLoadingMessages(false); addToast('error', 'Impossible de charger tes messages.'); });
   }, [user, activeTab]);
 
   // Load certificates when tab opens
@@ -81,7 +81,7 @@ export default function StudentDashboard() {
     getUserCertificates(user.uid).then((data) => {
       setCertificates(data);
       setLoadingCerts(false);
-    }).catch(() => { setLoadingCerts(false); });
+    }).catch(() => { setLoadingCerts(false); addToast('error', 'Impossible de charger tes certificats.'); });
   }, [user, activeTab]);
 
   // Load club subscription status for sidebar

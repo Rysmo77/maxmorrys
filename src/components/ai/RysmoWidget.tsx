@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { httpsCallable } from 'firebase/functions';
 import DOMPurify from 'dompurify';
 import { functions } from '../../config/firebase';
+import { captureError } from '../../lib/sentry';
+import { trackChatbotInteraction } from '../../lib/meta-pixel';
 import { useAuth } from '../../contexts/AuthContext';
 import { X, Send, Mic, MicOff, Bot, Loader2, Volume2, VolumeX, Trash2 } from 'lucide-react';
 
@@ -148,6 +150,7 @@ export default function RysmoWidget() {
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
+    trackChatbotInteraction();
 
     const userMessage: Message = { role: 'user', content: trimmed };
     const newMessages = [...messages, userMessage];
@@ -180,7 +183,7 @@ export default function RysmoWidget() {
         window.speechSynthesis.speak(utterance);
       }
     } catch (err: unknown) {
-      console.error('Rysmo error:', err);
+      captureError(err, { context: 'Rysmo error' });
 
       let errorMessage = "Désolé, une erreur s'est produite. Réessaie dans quelques instants.";
       if (err && typeof err === 'object' && 'code' in err) {

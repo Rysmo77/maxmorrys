@@ -12,6 +12,9 @@ function YtIcon({ className }: { className?: string }) {
 import { getPublishedVideos } from '../lib/firestore';
 import { formatDate } from '../lib/utils';
 import type { Video } from '../types';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL } from '../components/seo/seo-config';
 
 export default function Videos() {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -45,6 +48,18 @@ export default function Videos() {
 
   return (
     <div className="bg-white dark:bg-neutral-950 min-h-screen">
+      <SEOHead
+        title="Vidéos Marketing Digital"
+        description="Regarde les vidéos de Max-Morrys sur le marketing digital, le SEO et l'IA. Tutoriels pratiques et analyses sur YouTube."
+      />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Vidéos Marketing Digital',
+        description: 'Tutoriels et analyses vidéo sur le marketing digital par Max-Morrys.',
+        url: `${SITE_URL}/videos`,
+        isPartOf: { '@type': 'WebSite', name: 'Max-Morrys', url: SITE_URL },
+      }} />
 
       {/* ── HERO ── */}
       <div className="relative overflow-hidden bg-white dark:bg-neutral-950 pt-28 pb-20 lg:pt-36 lg:pb-0">
@@ -321,7 +336,7 @@ export default function Videos() {
         {!loading && !error && videos.length > 0 && (
           <div className="mt-16 text-center">
             <a
-              href="https://youtube.com"
+              href="https://youtube.com/@maxmorrys"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF0000] text-white font-bold rounded-full hover:bg-red-700 transition-colors text-sm tracking-wide"

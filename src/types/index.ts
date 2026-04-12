@@ -120,6 +120,12 @@ export interface Podcast {
   category: string;
   status: 'published' | 'draft';
   transcript?: string;
+  // SEO
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string;
+  canonicalUrl?: string;
+  noIndex?: boolean;
 }
 
 export interface Video {
@@ -134,6 +140,12 @@ export interface Video {
   category: string;
   status: 'published' | 'draft';
   views: number;
+  // SEO
+  metaTitle?: string;
+  metaDescription?: string;
+  ogImage?: string;
+  canonicalUrl?: string;
+  noIndex?: boolean;
 }
 
 export interface Appointment {
@@ -231,6 +243,7 @@ export interface Transaction {
   transactionRef?: string;
   chargeId?: string;
   opToken?: string;
+  metaEventId?: string;
 }
 
 export interface SiteStats {

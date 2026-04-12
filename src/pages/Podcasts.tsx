@@ -4,6 +4,9 @@ import { Headphones, Clock, Calendar, Play, ArrowRight, Loader2, AlertCircle, Mi
 import { getPublishedPodcasts } from '../lib/firestore';
 import { formatDate } from '../lib/utils';
 import type { Podcast } from '../types';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL } from '../components/seo/seo-config';
 
 const PLATFORMS = [
   { name: 'Spotify', color: '#1DB954' },
@@ -37,6 +40,18 @@ export default function Podcasts() {
 
   return (
     <div className="bg-white dark:bg-neutral-950 min-h-screen">
+      <SEOHead
+        title="Podcasts Marketing Digital"
+        description="Écoute le podcast de Max-Morrys : stratégies marketing digital, SEO, IA et croissance en Afrique. Disponible sur Spotify, Apple Podcasts et Deezer."
+      />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'PodcastSeries',
+        name: 'Le Podcast du Marketing — Max-Morrys',
+        description: 'Stratégies marketing digital, SEO, IA et croissance en Afrique.',
+        url: `${SITE_URL}/podcasts`,
+        webFeed: `${SITE_URL}/podcasts`,
+      }} />
 
       {/* ── HERO ── */}
       <div className="relative overflow-hidden bg-white dark:bg-neutral-950 pt-28 pb-20 lg:pt-36 lg:pb-28">

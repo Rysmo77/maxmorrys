@@ -16,6 +16,11 @@ import { formatPrice, slugify } from '../../lib/utils';
 import { cn } from '../../lib/utils';
 import type { Formation, Module, Lesson } from '../../types';
 import SEOPanel from '../../components/shared/SEOPanel';
+import Pagination from '../../components/ui/Pagination';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
+import { usePagination } from '../../hooks/usePagination';
+import { captureError } from '../../lib/sentry';
 
 const levelLabels: Record<string, string> = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
 const lessonTypeIcons: Record<string, React.FC<{ className?: string }>> = {
@@ -67,6 +72,7 @@ function generateId() {
 
 export default function AdminFormations() {
   const { addToast } = useToast();
+  const confirm = useConfirmDialog();
   const [list, setList] = useState<Formation[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -150,7 +156,7 @@ export default function AdminFormations() {
         longDescription: form.longDescription,
         category: form.category.trim(),
         price: Number(form.price) || 0,
-        promoPrice: form.promoPrice ? Number(form.promoPrice) : undefined,
+        promoPrice: form.promoPrice ? Number(form.promoPrice) : null,
         level: form.level,
         coverImage: form.coverImage.trim(),
         duration: form.duration.trim(),
@@ -175,23 +181,26 @@ export default function AdminFormations() {
       setShowModal(false);
       load();
     } catch (error: unknown) {
-      console.error('Save formation failed:', error);
+      captureError(error, { context: 'Save formation failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cette formation ?')) return;
-    try {
-      await deleteFormation(id);
-      setList((prev) => prev.filter((f) => f.id !== id));
-      addToast('success', 'Formation supprimée.');
-    } catch (error: unknown) {
-      console.error('Delete formation failed:', error);
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
-    }
+  const handleDelete = (id: string) => {
+    confirm.requestConfirm('Supprimer cette formation ? Cette action est irréversible.', async () => {
+      try {
+        await deleteFormation(id);
+        setList((prev) => prev.filter((f) => f.id !== id));
+        addToast('success', 'Formation supprimée.');
+        confirm.closeConfirm();
+      } catch (error: unknown) {
+        captureError(error, { context: 'Delete formation failed' });
+        addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+        confirm.closeConfirm();
+      }
+    });
   };
 
   const toggleStatus = async (f: Formation) => {
@@ -280,6 +289,7 @@ export default function AdminFormations() {
 
   const totalLessons = form.modules.reduce((acc, m) => acc + m.lessons.length, 0);
   const filtered = list.filter((f) => f.title.toLowerCase().includes(search.toLowerCase()) || f.category?.toLowerCase().includes(search.toLowerCase()));
+  const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   return (
     <div>
@@ -305,46 +315,51 @@ export default function AdminFormations() {
       ) : filtered.length === 0 ? (
         <Card><p className="text-center text-neutral-500 py-8">Aucune formation. Créez-en une !</p></Card>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((f) => (
-            <Card key={f.id} padding="none" className="overflow-hidden">
-              {f.coverImage && <img src={f.coverImage} alt={f.title} className="w-full h-36 object-cover" loading="lazy" />}
-              <div className="p-4">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <Badge variant="brand" size="sm">{f.category}</Badge>
-                  <Badge size="sm">{levelLabels[f.level]}</Badge>
-                  <button onClick={() => toggleStatus(f)}>
-                    <Badge variant={f.status === 'published' ? 'success' : 'warning'} size="sm">
-                      {f.status === 'published' ? 'Publiée' : 'Brouillon'}
-                    </Badge>
-                  </button>
-                </div>
-                <h3 className="font-bold text-neutral-900 dark:text-white mb-1 text-sm line-clamp-2">{f.title}</h3>
-                <div className="flex items-center gap-3 text-xs text-neutral-500 mb-3">
-                  <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {f.students ?? 0}</span>
-                  <span className="flex items-center gap-1"><Star className="w-3 h-3 text-accent-500" /> {f.rating ?? 0}</span>
-                  <span>{f.modules?.length ?? 0} mod · {f.modules?.reduce((a, m) => a + m.lessons.length, 0) ?? 0} leçons</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="font-bold text-brand-600 dark:text-brand-400">{formatPrice(f.promoPrice || f.price)}</p>
-                  <div className="flex gap-1">
-                    <button onClick={() => openEdit(f)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors">
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    {f.status === 'published' && (
-                      <a href={`/formations/${f.slug}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                    <button onClick={() => handleDelete(f.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors">
-                      <Trash2 className="w-4 h-4" />
+        <>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paged.map((f) => (
+              <Card key={f.id} padding="none" className="overflow-hidden">
+                {f.coverImage && <img src={f.coverImage} alt={f.title} className="w-full h-36 object-cover" loading="lazy" />}
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <Badge variant="brand" size="sm">{f.category}</Badge>
+                    <Badge size="sm">{levelLabels[f.level]}</Badge>
+                    <button onClick={() => toggleStatus(f)}>
+                      <Badge variant={f.status === 'published' ? 'success' : 'warning'} size="sm">
+                        {f.status === 'published' ? 'Publiée' : 'Brouillon'}
+                      </Badge>
                     </button>
                   </div>
+                  <h3 className="font-bold text-neutral-900 dark:text-white mb-1 text-sm line-clamp-2">{f.title}</h3>
+                  <div className="flex items-center gap-3 text-xs text-neutral-500 mb-3">
+                    <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {f.students ?? 0}</span>
+                    <span className="flex items-center gap-1"><Star className="w-3 h-3 text-accent-500" /> {f.rating ?? 0}</span>
+                    <span>{f.modules?.length ?? 0} mod · {f.modules?.reduce((a, m) => a + m.lessons.length, 0) ?? 0} leçons</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-brand-600 dark:text-brand-400">{formatPrice(f.promoPrice || f.price)}</p>
+                    <div className="flex gap-1">
+                      <button onClick={() => openEdit(f)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors">
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      {f.status === 'published' && (
+                        <a href={`/formations/${f.slug}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                      <button onClick={() => handleDelete(f.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+              </Card>
+            ))}
+          </div>
+          <div className="flex justify-center mt-4">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
+        </>
       )}
 
       {/* Formation builder */}
@@ -515,6 +530,15 @@ export default function AdminFormations() {
           </Button>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={confirm.open}
+        onClose={confirm.closeConfirm}
+        onConfirm={confirm.onConfirm}
+        title="Supprimer"
+        message={confirm.message}
+        confirmLabel="Supprimer"
+      />
 
       {/* Lesson editor */}
       {editingLesson && (

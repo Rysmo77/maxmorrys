@@ -1,0 +1,156 @@
+{
+  "name": "WF-06 — Reporting & Analytics Hebdomadaire",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 9 * * 1" }]
+        }
+      },
+      "id": "wf06-cron",
+      "name": "Cron — Lundi 9h00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Calendrier Editorial" },
+        "options": {}
+      },
+      "id": "wf06-read-calendar",
+      "name": "Sheets — Calendrier",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [300, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Interactions" },
+        "options": {}
+      },
+      "id": "wf06-read-interactions",
+      "name": "Sheets — Interactions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [300, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const calendar = $('Sheets — Calendrier').all().map(i => i.json);\nconst interactions = $('Sheets — Interactions').all().map(i => i.json);\n\n// Filter to last 7 days\nconst weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];\nconst weekPosts = calendar.filter(c => c.Date >= weekAgo);\nconst weekInteractions = interactions.filter(i => i.Date >= weekAgo);\n\nconst stats = {\n  total_posts_planned: weekPosts.length,\n  total_posts_published: weekPosts.filter(p => p.Status_Publication === 'publié').length,\n  total_interactions: weekInteractions.length,\n  sentiment_breakdown: {\n    positif: weekInteractions.filter(i => i.Sentiment === 'positif').length,\n    negatif: weekInteractions.filter(i => i.Sentiment === 'négatif').length,\n    neutre: weekInteractions.filter(i => i.Sentiment === 'neutre').length,\n    question: weekInteractions.filter(i => i.Sentiment === 'question').length\n  },\n  networks_breakdown: {},\n  posts_by_status: {\n    published: weekPosts.filter(p => p.Status_Publication === 'publié').length,\n    pending: weekPosts.filter(p => p.Status_Publication === 'planifié').length,\n    produced: weekPosts.filter(p => p.Status_Contenu === 'produit').length\n  }\n};\n\n// Count by network\nfor (const p of weekPosts) {\n  const net = p.Reseau || 'unknown';\n  stats.networks_breakdown[net] = (stats.networks_breakdown[net] || 0) + 1;\n}\n\nreturn [{ json: { stats, week_posts: weekPosts, week_interactions: weekInteractions, period: `${weekAgo} — ${new Date().toISOString().split('T')[0]}` } }];"
+      },
+      "id": "wf06-compile",
+      "name": "Compile — Statistiques",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un analyste social media expert pour Max-Morrys (marketing digital, Afrique de l\\'Ouest).\\n\\nAnalyse les données de la semaine et génère un rapport avec des recommandations actionnables.\\n\\nPÉRIODE : ' + $json.period + '\\nSTATISTIQUES : ' + JSON.stringify($json.stats) + '\\n\\nRéponse JSON :\\n{\\n  \"summary\": \"résumé en 3 phrases\",\\n  \"score_global\": 0,\\n  \"highlights\": [\"point positif 1\", \"point positif 2\"],\\n  \"improvements\": [\"amélioration 1\", \"amélioration 2\"],\\n  \"recommendations\": [{\\n    \"action\": \"action concrète\",\\n    \"priority\": \"haute|moyenne|basse\",\\n    \"expected_impact\": \"\"\\n  }],\\n  \"content_insights\": {\\n    \"best_format\": \"\",\\n    \"best_network\": \"\",\\n    \"best_time\": \"\",\\n    \"topic_to_explore\": \"\"\\n  }\\n}' }] }], generationConfig: { temperature: 0.6, maxOutputTokens: 2048, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf06-gemini",
+      "name": "Gemini Flash — Analyser & Recommander",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst stats = $('Compile — Statistiques').first().json;\n\nlet report;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  report = JSON.parse(text);\n} catch (e) {\n  report = { summary: 'Erreur génération du rapport', score_global: 0, highlights: [], improvements: [], recommendations: [] };\n}\n\nconst weekNum = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 86400000));\n\nreturn [{\n  json: {\n    Semaine: `S${weekNum}`,\n    Score: report.score_global,\n    Reach: stats.stats.total_posts_published,\n    Engagement: stats.stats.total_interactions,\n    Top_Posts: (report.highlights || []).join(' | '),\n    Recommandations: (report.recommendations || []).map(r => r.action).join(' | '),\n    report_full: report,\n    period: stats.period\n  }\n}];"
+      },
+      "id": "wf06-parse",
+      "name": "Parse — Rapport",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Rapports Hebdo" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Semaine": "={{ $json.Semaine }}",
+            "Score": "={{ $json.Score }}",
+            "Reach": "={{ $json.Reach }}",
+            "Engagement": "={{ $json.Engagement }}",
+            "Top_Posts": "={{ $json.Top_Posts }}",
+            "Recommandations": "={{ $json.Recommandations }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf06-sheets",
+      "name": "Sheets — Sauvegarder rapport",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1500, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=📊 Rapport hebdo Max-Morrys — {{ $json.Semaine }} (Score: {{ $json.Score }}/10)",
+        "emailType": "html",
+        "html": "=<h2>Rapport Social Media — {{ $json.period }}</h2><p><strong>Score global :</strong> {{ $json.Score }}/10</p><p><strong>Posts publiés :</strong> {{ $json.Reach }}</p><p><strong>Interactions :</strong> {{ $json.Engagement }}</p><h3>Points forts</h3><ul>{{ ($json.report_full.highlights || []).map(h => '<li>' + h + '</li>').join('') }}</ul><h3>Améliorations</h3><ul>{{ ($json.report_full.improvements || []).map(i => '<li>' + i + '</li>').join('') }}</ul><h3>Recommandations</h3><ul>{{ ($json.report_full.recommendations || []).map(r => '<li><strong>' + r.priority + '</strong> : ' + r.action + '</li>').join('') }}</ul>"
+      },
+      "id": "wf06-email",
+      "name": "Email — Rapport hebdomadaire",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1500, 500],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Cron — Lundi 9h00": {
+      "main": [[
+        { "node": "Sheets — Calendrier", "type": "main", "index": 0 },
+        { "node": "Sheets — Interactions", "type": "main", "index": 0 }
+      ]]
+    },
+    "Sheets — Calendrier": { "main": [[{ "node": "Compile — Statistiques", "type": "main", "index": 0 }]] },
+    "Sheets — Interactions": { "main": [[{ "node": "Compile — Statistiques", "type": "main", "index": 0 }]] },
+    "Compile — Statistiques": { "main": [[{ "node": "Gemini Flash — Analyser & Recommander", "type": "main", "index": 0 }]] },
+    "Gemini Flash — Analyser & Recommander": { "main": [[{ "node": "Parse — Rapport", "type": "main", "index": 0 }]] },
+    "Parse — Rapport": {
+      "main": [[
+        { "node": "Sheets — Sauvegarder rapport", "type": "main", "index": 0 },
+        { "node": "Email — Rapport hebdomadaire", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "community-management" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

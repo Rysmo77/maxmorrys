@@ -8,6 +8,11 @@ import { useToast } from '../../components/ui/Toast';
 import { getAllPodcasts, savePodcast, deletePodcast } from '../../lib/firestore';
 import { slugify, formatDate, extractSpotifyEpisodeId, parseMsDuration } from '../../lib/utils';
 import type { Podcast } from '../../types';
+import { captureError } from '../../lib/sentry';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
+import Pagination from '../../components/ui/Pagination';
+import { usePagination } from '../../hooks/usePagination';
 
 const spotifyProxyCallable = httpsCallable<
   { episodeId: string },
@@ -22,6 +27,7 @@ const EMPTY: Omit<Podcast, 'id'> = {
 
 export default function AdminPodcasts() {
   const { addToast } = useToast();
+  const confirm = useConfirmDialog();
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -90,18 +96,24 @@ export default function AdminPodcasts() {
       setModalOpen(false);
       load();
     } catch (error: unknown) {
-      console.error('Save podcast failed:', error);
+      captureError(error, { context: 'Save podcast failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer ce podcast ?')) return;
-    await deletePodcast(id).catch(() => addToast('error', 'Erreur de suppression.'));
-    setPodcasts((prev) => prev.filter((p) => p.id !== id));
-    addToast('success', 'Podcast supprimé.');
+  const handleDelete = (id: string) => {
+    confirm.requestConfirm('Supprimer ce podcast ? Cette action est irréversible.', async () => {
+      try {
+        await deletePodcast(id);
+        setPodcasts((prev) => prev.filter((p) => p.id !== id));
+        addToast('success', 'Podcast supprimé.');
+      } catch {
+        addToast('error', 'Erreur de suppression.');
+      }
+      confirm.closeConfirm();
+    });
   };
 
   const handleToggleStatus = async (p: Podcast) => {
@@ -115,6 +127,8 @@ export default function AdminPodcasts() {
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   const field = (label: string, node: React.ReactNode) => (
     <div className="space-y-1">
@@ -158,6 +172,7 @@ export default function AdminPodcasts() {
           <p className="text-neutral-500">Aucun podcast trouvé.</p>
         </div>
       ) : (
+        <>
         <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
@@ -170,7 +185,7 @@ export default function AdminPodcasts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100 dark:divide-neutral-700">
-              {filtered.map((p) => (
+              {paged.map((p) => (
                 <tr key={p.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/30 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -205,6 +220,8 @@ export default function AdminPodcasts() {
             </tbody>
           </table>
         </div>
+        <div className="flex justify-center mt-4"><Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} /></div>
+        </>
       )}
 
       {/* Modal */}
@@ -259,6 +276,15 @@ export default function AdminPodcasts() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirm.open}
+        onClose={confirm.closeConfirm}
+        onConfirm={confirm.onConfirm}
+        title="Supprimer"
+        message={confirm.message}
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }

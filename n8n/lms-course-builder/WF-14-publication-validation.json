@@ -1,0 +1,177 @@
+{
+  "name": "WF-14 — Publication de Cours sous Validation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf14-publier-cours",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf14-webhook",
+      "name": "Webhook — Publier le cours",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst body = input.body || input;\nconst curriculum = body.curriculum || {};\nconst course = curriculum.course || body.course || {};\nconst modules = curriculum.modules || body.modules || [];\nconst generatedLessons = body.generated_lessons || [];\nconst generatedQuizzes = body.generated_quizzes || [];\n\n// Validation checks\nconst errors = [];\n\nif (!course.title) errors.push('Titre du cours manquant');\nif (!modules.length) errors.push('Aucun module trouvé');\n\nfor (const mod of modules) {\n  if (!(mod.lessons || []).length) {\n    errors.push(`Module ${mod.module_number}: aucune leçon`);\n  }\n  for (const lesson of (mod.lessons || [])) {\n    if (!lesson.content && !lesson.content_html) {\n      // May need content from generated_lessons\n    }\n  }\n}\n\nconst totalLessons = modules.reduce((sum, m) => sum + (m.lessons || []).length, 0);\nconst totalHours = modules.reduce((sum, m) => sum + (m.duration_minutes || 60), 0) / 60;\n\nreturn [{\n  json: {\n    course,\n    modules,\n    generated_lessons: generatedLessons,\n    generated_quizzes: generatedQuizzes,\n    validation: {\n      errors,\n      is_valid: errors.length === 0,\n      total_modules: modules.length,\n      total_lessons: totalLessons,\n      estimated_hours: Math.round(totalHours * 10) / 10\n    }\n  }\n}];"
+      },
+      "id": "wf14-validate",
+      "name": "Validation — Intégrité du cours",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.validation.is_valid }}", "value2": true }]
+        }
+      },
+      "id": "wf14-check-valid",
+      "name": "IF — Cours valide ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst course = data.course;\nconst modules = data.modules;\nconst now = new Date().toISOString();\n\n// Build the complete Formation document matching src/types/index.ts\nconst slug = (course.slug || course.title || '')\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-|-$/g, '')\n  .substring(0, 80);\n\n// Build modules with lessons in the exact Formation.modules format\nconst formationModules = modules.map((mod, mi) => {\n  const lessons = (mod.lessons || []).map((lesson, li) => ({\n    id: lesson.id || crypto.randomUUID(),\n    title: lesson.title,\n    type: lesson.type || 'text',\n    duration: lesson.duration || `${lesson.duration_minutes || 10} min`,\n    content: lesson.content || lesson.content_html || '',\n    videoUrl: lesson.videoUrl || '',\n    resources: (lesson.resources || []).map(r => ({\n      id: r.id || crypto.randomUUID(),\n      title: r.title || '',\n      type: r.type || 'link',\n      url: r.url || '',\n      size: r.size || ''\n    })),\n    order: lesson.order || li + 1,\n    isFree: lesson.isFree || (mi === 0 && li === 0)\n  }));\n\n  return {\n    id: mod.id || crypto.randomUUID(),\n    title: mod.title,\n    order: mod.module_number || mi + 1,\n    lessons\n  };\n});\n\nconst formation = {\n  title: course.title,\n  slug,\n  description: course.short_description || course.description?.substring(0, 200) || '',\n  longDescription: course.description || '',\n  coverImage: course.coverImage || '',\n  level: course.level || 'debutant',\n  price: 0,\n  promoPrice: 0,\n  duration: `${data.validation.estimated_hours}h`,\n  modules: formationModules,\n  category: course.category || 'Marketing Digital',\n  tags: course.tags || [],\n  students: 0,\n  rating: 0,\n  status: 'draft',\n  featured: false,\n  certificateEnabled: course.certification !== false,\n  metaTitle: course.title,\n  metaDescription: course.short_description || '',\n  focusKeyword: (course.tags || [])[0] || '',\n  ogTitle: course.title,\n  ogDescription: course.short_description || '',\n  ogImage: '',\n  noIndex: false,\n  createdAt: now\n};\n\nreturn [{ json: { formation, slug } }];"
+      },
+      "id": "wf14-build-formation",
+      "name": "Build — Document Formation Firestore",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const f = $json.formation;\n\n// Serialize to Firestore REST API format\nfunction toFirestoreValue(value) {\n  if (value === null || value === undefined) return { nullValue: null };\n  if (typeof value === 'string') return { stringValue: value };\n  if (typeof value === 'number') {\n    if (Number.isInteger(value)) return { integerValue: String(value) };\n    return { doubleValue: value };\n  }\n  if (typeof value === 'boolean') return { booleanValue: value };\n  if (Array.isArray(value)) {\n    return { arrayValue: { values: value.map(toFirestoreValue) } };\n  }\n  if (typeof value === 'object') {\n    const fields = {};\n    for (const [k, v] of Object.entries(value)) {\n      fields[k] = toFirestoreValue(v);\n    }\n    return { mapValue: { fields } };\n  }\n  return { stringValue: String(value) };\n}\n\nconst fields = {};\nfor (const [key, value] of Object.entries(f)) {\n  fields[key] = toFirestoreValue(value);\n}\n\nreturn [{ json: { firestoreDoc: { fields }, slug: $json.slug } }];"
+      },
+      "id": "wf14-serialize",
+      "name": "Serialize — Format Firestore",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://firestore.googleapis.com/v1/projects/%%FIREBASE_PROJECT_ID%%/databases/(default)/documents/formations",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleServiceAccount",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.firestoreDoc) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf14-firestore-write",
+      "name": "Firestore — Créer formation (draft)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1500, 200],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const firestoreResponse = $input.first().json;\nconst docName = firestoreResponse.name || '';\nconst docId = docName.split('/').pop() || '';\n\nreturn [{\n  json: {\n    success: !!docId,\n    document_id: docId,\n    document_path: docName,\n    slug: $('Serialize — Format Firestore').first().json.slug\n  }\n}];"
+      },
+      "id": "wf14-parse-response",
+      "name": "Parse — Réponse Firestore",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1800, 200]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Cours en Production" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cours": "={{ $('Validation — Intégrité du cours').first().json.course.title }}",
+            "Status_Publication": "=pending_review",
+            "URL_LMS": "=https://maxmorrys.me/formations/{{ $json.slug }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf14-sheets",
+      "name": "Sheets — Status pending_review",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2100, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=🎓 Cours prêt pour validation — {{ $('Validation — Intégrité du cours').first().json.course.title }}",
+        "emailType": "html",
+        "html": "=<h2>Nouveau cours prêt pour validation</h2><p><strong>Titre :</strong> {{ $('Validation — Intégrité du cours').first().json.course.title }}</p><p><strong>Modules :</strong> {{ $('Validation — Intégrité du cours').first().json.validation.total_modules }}</p><p><strong>Leçons :</strong> {{ $('Validation — Intégrité du cours').first().json.validation.total_lessons }}</p><p><strong>Durée :</strong> {{ $('Validation — Intégrité du cours').first().json.validation.estimated_hours }}h</p><p>Le cours est en statut <strong>draft</strong> dans Firestore.</p><p>Connectez-vous à l'admin Max-Morrys pour le relire :</p><p><a href='https://maxmorrys.me/admin/formations'>Admin Formations</a></p><p><em>Après validation, passez le statut à 'published' dans l'admin.</em></p>"
+      },
+      "id": "wf14-email",
+      "name": "Email — Cours prêt pour validation",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2100, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=❌ Erreur validation cours — {{ $('Validation — Intégrité du cours').first().json.course.title || 'inconnu' }}",
+        "emailType": "html",
+        "html": "=<h2>Erreurs de validation du cours</h2><pre>{{ JSON.stringify($('Validation — Intégrité du cours').first().json.validation.errors, null, 2) }}</pre>"
+      },
+      "id": "wf14-email-error",
+      "name": "Email — Erreurs de validation",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [900, 500],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook — Publier le cours": { "main": [[{ "node": "Validation — Intégrité du cours", "type": "main", "index": 0 }]] },
+    "Validation — Intégrité du cours": { "main": [[{ "node": "IF — Cours valide ?", "type": "main", "index": 0 }]] },
+    "IF — Cours valide ?": {
+      "main": [
+        [{ "node": "Build — Document Formation Firestore", "type": "main", "index": 0 }],
+        [{ "node": "Email — Erreurs de validation", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build — Document Formation Firestore": { "main": [[{ "node": "Serialize — Format Firestore", "type": "main", "index": 0 }]] },
+    "Serialize — Format Firestore": { "main": [[{ "node": "Firestore — Créer formation (draft)", "type": "main", "index": 0 }]] },
+    "Firestore — Créer formation (draft)": { "main": [[{ "node": "Parse — Réponse Firestore", "type": "main", "index": 0 }]] },
+    "Parse — Réponse Firestore": {
+      "main": [[
+        { "node": "Sheets — Status pending_review", "type": "main", "index": 0 },
+        { "node": "Email — Cours prêt pour validation", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "lms-course-builder" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Cookie, X } from 'lucide-react';
 import Button from '../ui/Button';
+import { grantPixelConsent, revokePixelConsent } from '../../lib/meta-pixel';
 
 /** Returns the stored consent level, or null if not yet given. */
 export function getCookieConsent(): { level: 'all' | 'essential'; date: string } | null {
@@ -31,6 +32,11 @@ export default function CookieBanner() {
 
   const accept = (level: 'all' | 'essential') => {
     localStorage.setItem('mm-cookie-consent', JSON.stringify({ level, date: new Date().toISOString() }));
+    if (level === 'all') {
+      grantPixelConsent();
+    } else {
+      revokePixelConsent();
+    }
     setVisible(false);
   };
 

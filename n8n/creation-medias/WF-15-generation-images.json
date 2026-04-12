@@ -1,0 +1,166 @@
+{
+  "name": "WF-15 — Génération d'Images & Illustrations",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "wf15-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un expert en création de prompts pour la génération d\\'images. Enrichis le prompt suivant pour générer une image professionnelle, moderne et culturellement pertinente pour l\\'Afrique de l\\'Ouest francophone. Le visuel doit représenter la diversité ethnique africaine, des contextes locaux (Dakar, Abidjan, Douala), et éviter les clichés occidentaux. Style: professionnel, chaleureux, inspirant.\\n\\nPROMPT ORIGINAL: ' + $json.prompt + '\\n\\nDIMENSIONS: ' + ($json.dimensions || '1080x1080') + '\\nTYPE: ' + ($json.type || 'social_post') + '\\nCONTEXTE: ' + ($json.context || 'Marketing digital Afrique de l\\'Ouest') + '\\n\\nRéponds en JSON: { \"enhanced_prompt\": \"prompt enrichi en anglais pour la génération d\\'image\", \"negative_prompt\": \"ce qu\\'il faut éviter\", \"style_notes\": \"notes sur le style\" }' }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 1024, responseMimeType: 'application/json' } }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "wf15-enhance-prompt",
+      "name": "Gemini — Enrichir le prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 300],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst triggerData = $('Execute Workflow Trigger').first().json;\n\nlet enhancedPrompt = triggerData.prompt;\nlet negativePrompt = '';\n\ntry {\n  const geminiResponse = input.candidates?.[0]?.content?.parts?.[0]?.text;\n  if (geminiResponse) {\n    const parsed = JSON.parse(geminiResponse);\n    enhancedPrompt = parsed.enhanced_prompt || enhancedPrompt;\n    negativePrompt = parsed.negative_prompt || '';\n  }\n} catch (e) {\n  // fallback to original prompt\n}\n\nreturn [{\n  json: {\n    prompt: enhancedPrompt,\n    negative_prompt: negativePrompt,\n    original_prompt: triggerData.prompt,\n    type: triggerData.type || 'social_post',\n    dimensions: triggerData.dimensions || '1080x1080',\n    context: triggerData.context || '',\n    for_workflow: triggerData.for_workflow || 'manual'\n  }\n}];"
+      },
+      "id": "wf15-parse-prompt",
+      "name": "Parse — Prompt enrichi",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.prompt }] }], generationConfig: { responseModalities: ['IMAGE', 'TEXT'], imageDimension: $json.dimensions === '1920x1080' ? 'LANDSCAPE_16_9' : $json.dimensions === '1080x1920' ? 'PORTRAIT_9_16' : $json.dimensions === '1280x720' ? 'LANDSCAPE_16_9' : 'SQUARE_1_1' } }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "wf15-generate-image",
+      "name": "Gemini Imagen — Générer l'image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst promptData = $('Parse — Prompt enrichi').first().json;\n\nlet imageBase64 = null;\nlet mimeType = 'image/png';\n\ntry {\n  const parts = response.candidates?.[0]?.content?.parts || [];\n  for (const part of parts) {\n    if (part.inlineData) {\n      imageBase64 = part.inlineData.data;\n      mimeType = part.inlineData.mimeType || 'image/png';\n      break;\n    }\n  }\n} catch (e) {\n  throw new Error('Erreur parsing réponse Gemini Imagen: ' + e.message);\n}\n\nif (!imageBase64) {\n  throw new Error('Aucune image générée par Gemini Imagen. Vérifiez que le modèle supporte la génération d\\'images.');\n}\n\nconst extension = mimeType.includes('png') ? 'png' : mimeType.includes('jpeg') ? 'jpg' : 'png';\nconst timestamp = new Date().toISOString().replace(/[:.]/g, '-');\nconst filename = `maxmorrys-${promptData.type}-${timestamp}.${extension}`;\n\nreturn [{\n  json: {\n    filename,\n    mimeType,\n    imageBase64,\n    type: promptData.type,\n    dimensions: promptData.dimensions,\n    original_prompt: promptData.original_prompt,\n    enhanced_prompt: promptData.prompt,\n    for_workflow: promptData.for_workflow,\n    context: promptData.context,\n    generated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "wf15-parse-image",
+      "name": "Parse — Extraire l'image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "multipart/related; boundary=boundary_maxmorrys" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "=--boundary_maxmorrys\nContent-Type: application/json; charset=UTF-8\n\n{\"name\": \"{{ $json.filename }}\", \"parents\": [\"%%GOOGLE_DRIVE_FOLDER_ID%%\"]}\n\n--boundary_maxmorrys\nContent-Type: {{ $json.mimeType }}\nContent-Transfer-Encoding: base64\n\n{{ $json.imageBase64 }}\n--boundary_maxmorrys--",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "wf15-upload-drive",
+      "name": "Google Drive — Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1500, 300],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const uploadResponse = $input.first().json;\nconst imageData = $('Parse — Extraire l\\'image').first().json;\n\nlet driveUrl = '';\nlet driveFileId = '';\n\ntry {\n  driveFileId = uploadResponse.id || '';\n  driveUrl = driveFileId ? `https://drive.google.com/uc?id=${driveFileId}` : '';\n} catch (e) {\n  // upload may have failed, continue with base64\n}\n\nreturn [{\n  json: {\n    success: !!driveFileId,\n    file_id: driveFileId,\n    file_url: driveUrl,\n    filename: imageData.filename,\n    type: imageData.type,\n    dimensions: imageData.dimensions,\n    original_prompt: imageData.original_prompt,\n    enhanced_prompt: imageData.enhanced_prompt,\n    for_workflow: imageData.for_workflow,\n    context: imageData.context,\n    generated_at: imageData.generated_at\n  }\n}];"
+      },
+      "id": "wf15-build-result",
+      "name": "Build — Résultat final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1800, 300]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Medias Generes" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.generated_at }}",
+            "Type": "={{ $json.type }}",
+            "Pour": "={{ $json.for_workflow }}",
+            "Prompt": "={{ $json.original_prompt }}",
+            "URL_Drive": "={{ $json.file_url }}",
+            "Dimensions": "={{ $json.dimensions }}",
+            "Status": "={{ $json.success ? 'uploaded' : 'erreur_upload' }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf15-log-sheets",
+      "name": "Google Sheets — Log média",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2100, 300],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [[{ "node": "Gemini — Enrichir le prompt", "type": "main", "index": 0 }]] },
+    "Gemini — Enrichir le prompt": { "main": [[{ "node": "Parse — Prompt enrichi", "type": "main", "index": 0 }]] },
+    "Parse — Prompt enrichi": { "main": [[{ "node": "Gemini Imagen — Générer l'image", "type": "main", "index": 0 }]] },
+    "Gemini Imagen — Générer l'image": { "main": [[{ "node": "Parse — Extraire l'image", "type": "main", "index": 0 }]] },
+    "Parse — Extraire l'image": { "main": [[{ "node": "Google Drive — Upload", "type": "main", "index": 0 }]] },
+    "Google Drive — Upload": { "main": [[{ "node": "Build — Résultat final", "type": "main", "index": 0 }]] },
+    "Build — Résultat final": { "main": [[{ "node": "Google Sheets — Log média", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "media-creation" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

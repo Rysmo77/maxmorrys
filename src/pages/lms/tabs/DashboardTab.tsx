@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, CheckCircle, BarChart2, Award, Play, ArrowRight, Loader2, GraduationCap } from 'lucide-react';
+import { BookOpen, CheckCircle, BarChart2, Award, Play, ArrowRight, Loader2 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { staggerContainer, staggerItem } from '../../../lib/animations';
 import XPBar from '../../../components/lms/XPBar';

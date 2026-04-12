@@ -2,8 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Headphones, Clock, Calendar, ArrowLeft, Loader2 } from 'lucide-react';
 import { getPodcastBySlug, getPublishedPodcasts } from '../lib/firestore';
-import { formatDate } from '../lib/utils';
+import { formatDate, markdownToHtml } from '../lib/utils';
 import type { Podcast } from '../types';
+import { trackViewContent } from '../lib/meta-pixel';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL } from '../components/seo/seo-config';
 
 function resolveAudioEmbed(url: string): { type: 'iframe' | 'native'; src: string } {
   const spotifyMatch = url.match(/open\.spotify\.com\/(episode|show|track)\/([a-zA-Z0-9]+)/);
@@ -24,6 +28,7 @@ export default function PodcastDetail() {
     getPodcastBySlug(slug).then((data) => {
       setPodcast(data);
       if (data) {
+        trackViewContent({ content_type: 'podcast', content_ids: [data.id], content_name: data.title });
         getPublishedPodcasts().then((all) => setOthers(all.filter((p) => p.id !== data.id).slice(0, 4))).catch(() => null);
       }
     }).catch(() => setPodcast(null));
@@ -44,6 +49,42 @@ export default function PodcastDetail() {
 
   return (
     <div>
+      <SEOHead
+        title={podcast.title}
+        description={podcast.description}
+        ogImage={podcast.coverImage}
+      />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'PodcastEpisode',
+        name: podcast.title,
+        description: podcast.description,
+        datePublished: podcast.publishedAt,
+        timeRequired: podcast.duration,
+        image: podcast.coverImage,
+        url: `${SITE_URL}/podcasts/${podcast.slug}`,
+        partOfSeries: {
+          '@type': 'PodcastSeries',
+          name: 'Le Podcast du Marketing — Max-Morrys',
+          url: `${SITE_URL}/podcasts`,
+        },
+        ...(podcast.audioUrl && {
+          associatedMedia: {
+            '@type': 'MediaObject',
+            contentUrl: podcast.audioUrl,
+          },
+        }),
+      }} />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Podcasts', item: `${SITE_URL}/podcasts` },
+          { '@type': 'ListItem', position: 3, name: podcast.title, item: `${SITE_URL}/podcasts/${podcast.slug}` },
+        ],
+      }} />
+
       {/* ── HERO ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -73,9 +114,10 @@ export default function PodcastDetail() {
             {podcast.title}
           </h1>
 
-          <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-8">
-            {podcast.description}
-          </p>
+          <div
+            className="prose dark:prose-invert max-w-none mb-8 prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-blockquote:not-italic prose-blockquote:font-medium"
+            dangerouslySetInnerHTML={{ __html: markdownToHtml(podcast.description) }}
+          />
 
           <div className="flex items-center gap-5 text-sm text-neutral-400">
             <span className="flex items-center gap-1.5">
@@ -148,9 +190,10 @@ export default function PodcastDetail() {
               {podcast.transcript && (
                 <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-6">
                   <h3 className="font-bold text-neutral-900 dark:text-white mb-3">Transcription</h3>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed whitespace-pre-line">
-                    {podcast.transcript}
-                  </p>
+                  <div
+                    className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-display prose-a:transition-colors"
+                    dangerouslySetInnerHTML={{ __html: markdownToHtml(podcast.transcript) }}
+                  />
                 </div>
               )}
             </div>

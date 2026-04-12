@@ -4,6 +4,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { db } from '../../config/firebase';
 import Button from '../../components/ui/Button';
+import { trackPurchase } from '../../lib/meta-pixel';
 import type { Transaction } from '../../types';
 
 type PaymentStatus = 'loading' | 'completed' | 'pending' | 'failed';
@@ -34,6 +35,15 @@ export default function PaymentReturn() {
 
         if (data.status === 'completed') {
           setStatus('completed');
+          trackPurchase(
+            {
+              content_ids: [data.formationId],
+              content_name: data.formationTitle ?? '',
+              value: data.amount,
+              content_type: 'formation',
+            },
+            data.metaEventId,
+          );
         } else if (data.status === 'failed') {
           setStatus('failed');
         } else {

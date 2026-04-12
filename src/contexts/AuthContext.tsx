@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
+import { setUserData as setPixelUserData, trackCompleteRegistration } from '../lib/meta-pixel';
 import type { User } from '../types';
 
 interface AuthContextType {
@@ -46,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (auth.currentUser?.uid !== uid) return;
             if (docSnap.exists()) {
               setUserData(docSnap.data() as User);
+              if (firebaseUser.email) setPixelUserData(firebaseUser.email);
             } else {
               setUserData(null);
             }
@@ -98,6 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
       await setDoc(doc(db, 'users', cred.user.uid), newUser);
       setUserData(newUser);
+      trackCompleteRegistration({ content_name: 'Email Signup', status: 'complete' });
+      setPixelUserData(email);
     } catch (error: unknown) {
       const errorCode = (error as { code?: string })?.code ?? '';
       if (errorCode === 'auth/email-already-in-use') {
@@ -129,6 +133,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         await setDoc(docRef, newUser);
         setUserData(newUser);
+        trackCompleteRegistration({ content_name: 'Google Signup', status: 'complete' });
+        if (cred.user.email) setPixelUserData(cred.user.email);
       } else {
         setUserData(docSnap.data() as User);
       }

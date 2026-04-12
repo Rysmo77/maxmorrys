@@ -4,7 +4,9 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { subscribeMessages, updateMessageStatus, deleteMessage } from '../../lib/firestore';
 import type { ContactMessage } from '../../types';
 
@@ -13,6 +15,7 @@ const statusVariants = { new: 'error' as const, read: 'warning' as const, replie
 
 export default function AdminMessages() {
   const { addToast } = useToast();
+  const confirm = useConfirmDialog();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -39,10 +42,17 @@ export default function AdminMessages() {
     if (selected?.id === id) setSelected((prev) => prev ? { ...prev, status: 'replied' } : prev);
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteMessage(id).catch(() => addToast('error', 'Erreur de suppression.'));
-    addToast('success', 'Message supprimé.');
-    setSelected(null);
+  const handleDelete = (id: string) => {
+    confirm.requestConfirm('Supprimer ce message ? Cette action est irréversible.', async () => {
+      try {
+        await deleteMessage(id);
+        addToast('success', 'Message supprimé.');
+        setSelected(null);
+      } catch {
+        addToast('error', 'Erreur de suppression.');
+      }
+      confirm.closeConfirm();
+    });
   };
 
   const filtered = messages.filter((m) => {
@@ -182,6 +192,15 @@ export default function AdminMessages() {
           </div>
         )}
       </Modal>
+
+      <ConfirmDialog
+        open={confirm.open}
+        onClose={confirm.closeConfirm}
+        onConfirm={confirm.onConfirm}
+        title="Supprimer"
+        message={confirm.message}
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }

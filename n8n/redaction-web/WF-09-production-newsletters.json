@@ -1,0 +1,145 @@
+{
+  "name": "WF-09 — Production de Newsletters",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf09-newsletter",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf09-webhook",
+      "name": "Webhook — Créer newsletter",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 8 * * 4" }]
+        }
+      },
+      "id": "wf09-cron",
+      "name": "Cron — Jeudi 8h00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 500]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Articles" },
+        "options": {}
+      },
+      "id": "wf09-read-articles",
+      "name": "Sheets — Articles récents",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [300, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Cours" },
+        "options": {}
+      },
+      "id": "wf09-read-courses",
+      "name": "Sheets — Cours récents",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [300, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const articles = $('Sheets — Articles récents').all().map(i => i.json).filter(a => a.Status === 'produit_draft' || a.Status === 'publié').slice(-5);\nconst courses = $('Sheets — Cours récents').all().map(i => i.json).filter(c => c.Status !== 'nouveau').slice(-3);\n\nreturn [{ json: { recent_articles: articles, recent_courses: courses } }];"
+      },
+      "id": "wf09-prepare",
+      "name": "Préparer — Contenu newsletter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es le rédacteur de la newsletter de Max-Morrys, expert en marketing digital pour l\\'Afrique de l\\'Ouest.\\n\\nCrée une newsletter hebdomadaire engageante.\\n\\nRÈGLES :\\n- Objet d\\'email accrocheur (max 60 chars)\\n- Ton : pédagogue, inspirant, tutoyant, comme un ami expert\\n- Contenu ancré en Afrique de l\\'Ouest (Dakar, Abidjan, Douala)\\n- CTA vers les articles et formations de maxmorrys.me\\n- Pas de jargon excessif\\n- Structure : intro personnelle → tips de la semaine → articles → formations → CTA final\\n\\nARTICLES RÉCENTS : ' + JSON.stringify($json.recent_articles) + '\\nFORMATIONS RÉCENTES : ' + JSON.stringify($json.recent_courses) + '\\n\\nRéponse JSON :\\n{\\n  \"subject\": \"objet d\\'email accrocheur\",\\n  \"preview_text\": \"texte de preview (100 chars)\",\\n  \"html_body\": \"<html>contenu HTML complet de la newsletter</html>\",\\n  \"plain_text\": \"version texte brut\",\\n  \"main_cta\": { \"text\": \"\", \"url\": \"\" }\\n}' }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 4096, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf09-gemini",
+      "name": "Gemini Flash — Rédiger newsletter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\nlet newsletter;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  newsletter = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing newsletter: ' + e.message);\n}\n\nreturn [{\n  json: {\n    subject: newsletter.subject || 'Newsletter Max-Morrys',\n    preview_text: newsletter.preview_text || '',\n    html_body: newsletter.html_body || '',\n    plain_text: newsletter.plain_text || '',\n    main_cta: newsletter.main_cta || {},\n    generated_at: new Date().toISOString(),\n    status: 'draft'\n  }\n}];"
+      },
+      "id": "wf09-parse",
+      "name": "Parse — Newsletter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=📧 Newsletter prête pour relecture — {{ $json.subject }}",
+        "emailType": "html",
+        "html": "=<h2>Newsletter générée — À valider avant envoi</h2><p><strong>Objet :</strong> {{ $json.subject }}</p><p><strong>Preview :</strong> {{ $json.preview_text }}</p><hr>{{ $json.html_body }}<hr><p><em>Pour envoyer cette newsletter, validez-la et déclenchez l'envoi manuellement.</em></p>"
+      },
+      "id": "wf09-email-preview",
+      "name": "Email — Preview à l'admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1500, 300],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook — Créer newsletter": {
+      "main": [[
+        { "node": "Sheets — Articles récents", "type": "main", "index": 0 },
+        { "node": "Sheets — Cours récents", "type": "main", "index": 0 }
+      ]]
+    },
+    "Cron — Jeudi 8h00": {
+      "main": [[
+        { "node": "Sheets — Articles récents", "type": "main", "index": 0 },
+        { "node": "Sheets — Cours récents", "type": "main", "index": 0 }
+      ]]
+    },
+    "Sheets — Articles récents": { "main": [[{ "node": "Préparer — Contenu newsletter", "type": "main", "index": 0 }]] },
+    "Sheets — Cours récents": { "main": [[{ "node": "Préparer — Contenu newsletter", "type": "main", "index": 0 }]] },
+    "Préparer — Contenu newsletter": { "main": [[{ "node": "Gemini Flash — Rédiger newsletter", "type": "main", "index": 0 }]] },
+    "Gemini Flash — Rédiger newsletter": { "main": [[{ "node": "Parse — Newsletter", "type": "main", "index": 0 }]] },
+    "Parse — Newsletter": { "main": [[{ "node": "Email — Preview à l'admin", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "redaction-web" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

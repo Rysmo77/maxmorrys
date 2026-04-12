@@ -5,6 +5,10 @@ import NewsletterForm from '../components/shared/NewsletterForm';
 import { getPostBySlug, getPublishedPosts } from '../lib/firestore';
 import { formatDate, markdownToHtml } from '../lib/utils';
 import type { BlogPost as BlogPostType } from '../types';
+import { trackViewContent, trackShareContent } from '../lib/meta-pixel';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
 
 export default function BlogPost() {
   const { slug } = useParams();
@@ -17,6 +21,11 @@ export default function BlogPost() {
     getPostBySlug(slug).then((data) => {
       setPost(data);
       if (data) {
+        trackViewContent({
+          content_type: 'article',
+          content_ids: [data.id],
+          content_name: data.title,
+        });
         getPublishedPosts().then((all) => {
           setRelatedPosts(all.filter((p) => p.id !== data.id && p.category === data.category).slice(0, 3));
         }).catch(() => null);
@@ -45,17 +54,60 @@ export default function BlogPost() {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    trackShareContent('article', post.id, 'copy_link');
   };
 
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({ title: post.title, text: post.excerpt, url: window.location.href });
+      trackShareContent('article', post.id, 'native_share');
     }
   };
 
 
   return (
     <div className="bg-white dark:bg-neutral-950">
+      <SEOHead
+        title={post.metaTitle || post.title}
+        description={post.metaDescription || post.excerpt}
+        ogType="article"
+        ogTitle={post.ogTitle}
+        ogDescription={post.ogDescription}
+        ogImage={post.ogImage || post.coverImage}
+        twitterTitle={post.twitterTitle}
+        twitterDescription={post.twitterDescription}
+        twitterImage={post.twitterImage}
+        canonical={post.canonicalUrl}
+        noIndex={post.noIndex}
+        publishedAt={post.publishedAt}
+        author={post.author}
+      />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: post.title,
+        description: post.excerpt,
+        image: post.coverImage,
+        datePublished: post.publishedAt,
+        author: { '@type': 'Person', name: post.author || 'Max-Morrys' },
+        publisher: {
+          '@type': 'Organization',
+          name: SITE_NAME,
+          logo: { '@type': 'ImageObject', url: `${SITE_URL}/og-default.jpg` },
+        },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${post.slug}` },
+        articleSection: post.category,
+        keywords: post.tags?.join(', '),
+      }} />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+          { '@type': 'ListItem', position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
+        ],
+      }} />
 
       {/* ── HERO article ── */}
       <div className="pt-28 pb-12 lg:pt-36 bg-neutral-50 dark:bg-neutral-900">
@@ -90,7 +142,7 @@ export default function BlogPost() {
       {/* Image hero full-width */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-0 pt-8">
         <div className="aspect-[16/7] rounded-2xl overflow-hidden">
-          <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
+          <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" width={1200} height={525} />
         </div>
       </div>
 
@@ -101,8 +153,8 @@ export default function BlogPost() {
             {post.excerpt}
           </p>
         )}
-        <div
-          className="prose prose-lg dark:prose-invert mb-12"
+        <article
+          className="prose-article prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mb-12 prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium prose-blockquote:text-neutral-700 dark:prose-blockquote:text-neutral-200"
           dangerouslySetInnerHTML={{ __html: markdownToHtml(post.content) }}
         />
 
@@ -124,6 +176,7 @@ export default function BlogPost() {
           <a
             href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
             target="_blank" rel="noopener noreferrer"
+            onClick={() => trackShareContent('article', post.id, 'linkedin')}
             className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-200 dark:border-neutral-700 text-sm text-neutral-600 dark:text-neutral-300 hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
           >
             <Linkedin className="w-4 h-4" /> LinkedIn

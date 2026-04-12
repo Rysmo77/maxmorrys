@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, HelpCircle, Loader2, GripVertical } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import Pagination from '../../components/ui/Pagination';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
+import { usePagination } from '../../hooks/usePagination';
 import { getAllFAQ, saveFAQItem, deleteFAQItem } from '../../lib/firestore';
 import type { FAQ } from '../../types';
+import { captureError } from '../../lib/sentry';
 
 const EMPTY: Omit<FAQ, 'id'> = { question: '', answer: '', category: '', order: 0 };
 
 export default function AdminFAQ() {
   const { addToast } = useToast();
+  const confirm = useConfirmDialog();
   const [faq, setFaq] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -48,26 +54,30 @@ export default function AdminFAQ() {
       setModalOpen(false);
       load();
     } catch (error: unknown) {
-      console.error('Save FAQ item failed:', error);
+      captureError(error, { context: 'Save FAQ item failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cette question ?')) return;
-    try {
-      await deleteFAQItem(id);
-      setFaq((prev) => prev.filter((f) => f.id !== id));
-      addToast('success', 'Question supprimée.');
-    } catch (error: unknown) {
-      console.error('Delete FAQ item failed:', error);
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
-    }
+  const handleDelete = (id: string) => {
+    confirm.requestConfirm('Supprimer cette question ?', async () => {
+      try {
+        await deleteFAQItem(id);
+        setFaq((prev) => prev.filter((f) => f.id !== id));
+        addToast('success', 'Question supprimée.');
+      } catch (error: unknown) {
+        captureError(error, { context: 'Delete FAQ item failed' });
+        addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+      }
+      confirm.closeConfirm();
+    });
   };
 
   const filtered = faq.filter((f) => categoryFilter === 'all' || f.category === categoryFilter);
+
+  const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   const inputCls = 'w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500';
 
@@ -103,8 +113,9 @@ export default function AdminFAQ() {
           <p className="text-neutral-500">Aucune question. Ajoutez-en une.</p>
         </div>
       ) : (
+        <>
         <div className="space-y-3">
-          {filtered.map((f) => (
+          {paged.map((f) => (
             <div key={f.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-5">
               <div className="flex items-start gap-3">
                 <GripVertical className="w-4 h-4 text-neutral-300 dark:text-neutral-600 mt-0.5 flex-shrink-0 cursor-grab" />
@@ -124,6 +135,8 @@ export default function AdminFAQ() {
             </div>
           ))}
         </div>
+        <div className="flex justify-center mt-4"><Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} /></div>
+        </>
       )}
 
       {/* Modal */}
@@ -164,6 +177,7 @@ export default function AdminFAQ() {
           </div>
         </div>
       )}
+      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title="Supprimer" message={confirm.message} confirmLabel="Supprimer" />
     </div>
   );
 }

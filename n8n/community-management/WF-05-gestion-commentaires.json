@@ -1,0 +1,138 @@
+{
+  "name": "WF-05 — Gestion des Commentaires & Réponses",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf05-commentaire",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf05-webhook",
+      "name": "Webhook — Nouveau commentaire",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst body = input.body || input;\n\nreturn [{\n  json: {\n    network: body.network || 'facebook',\n    post_id: body.post_id || '',\n    comment_id: body.comment_id || '',\n    comment_text: body.comment_text || body.message || '',\n    author_name: body.author_name || body.from?.name || '',\n    author_id: body.author_id || body.from?.id || '',\n    post_subject: body.post_subject || '',\n    received_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "wf05-normalize",
+      "name": "Normaliser — Commentaire",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es le Community Manager de Max-Morrys. Tu réponds aux commentaires sur les réseaux sociaux.\\n\\nRÈGLES :\\n- Tu réponds dans le style conversationnel d\\'Afrique de l\\'Ouest\\n- Tu comprends les expressions locales courantes (wolof, nouchi, camfranglais)\\n- Ton bienveillant, pédagogue, tutoyant\\n- Si le commentaire est négatif : rester professionnel, empathique, proposer de l\\'aide\\n- Si le commentaire est positif : remercier chaleureusement, encourager\\n- Si c\\'est une question : répondre avec expertise, rediriger vers maxmorrys.me si pertinent\\n- Max 200 caractères pour Twitter, 500 pour les autres réseaux\\n- JAMAIS de réponse générique type \"Merci pour votre commentaire\"\\n\\nRÉSEAU : ' + $json.network + '\\nSUJET DU POST : ' + $json.post_subject + '\\nCOMMENTAIRE DE ' + $json.author_name + ' : \"' + $json.comment_text + '\"\\n\\nRéponse JSON :\\n{\\n  \"sentiment\": \"positif|négatif|neutre|question\",\\n  \"response\": \"réponse proposée\",\\n  \"needs_human_review\": false,\\n  \"reason_for_review\": \"\",\\n  \"suggested_action\": \"reply|like_only|ignore|escalate\"\\n}' }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 512, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "wf05-gemini",
+      "name": "Gemini Flash — Analyser & Répondre",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [600, 300],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst comment = $('Normaliser — Commentaire').first().json;\n\nlet parsed;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  parsed = JSON.parse(text);\n} catch (e) {\n  parsed = { sentiment: 'neutre', response: '', needs_human_review: true, suggested_action: 'escalate' };\n}\n\nreturn [{\n  json: {\n    ...comment,\n    sentiment: parsed.sentiment,\n    suggested_response: parsed.response,\n    needs_human_review: parsed.needs_human_review,\n    reason_for_review: parsed.reason_for_review || '',\n    suggested_action: parsed.suggested_action\n  }\n}];"
+      },
+      "id": "wf05-parse",
+      "name": "Parse — Réponse analysée",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.needs_human_review }}", "value2": true }]
+        }
+      },
+      "id": "wf05-needs-review",
+      "name": "IF — Review humain ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=💬 Commentaire à traiter — {{ $('Parse — Réponse analysée').first().json.network }} ({{ $('Parse — Réponse analysée').first().json.sentiment }})",
+        "emailType": "html",
+        "html": "=<h2>Commentaire nécessitant une action</h2><p><strong>De :</strong> {{ $('Parse — Réponse analysée').first().json.author_name }}</p><p><strong>Commentaire :</strong> \"{{ $('Parse — Réponse analysée').first().json.comment_text }}\"</p><p><strong>Sentiment :</strong> {{ $('Parse — Réponse analysée').first().json.sentiment }}</p><p><strong>Réponse suggérée :</strong></p><blockquote>{{ $('Parse — Réponse analysée').first().json.suggested_response }}</blockquote><p><strong>Raison :</strong> {{ $('Parse — Réponse analysée').first().json.reason_for_review }}</p>"
+      },
+      "id": "wf05-email-review",
+      "name": "Email — Escalade",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1500, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Interactions" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $('Parse — Réponse analysée').first().json.received_at }}",
+            "Reseau": "={{ $('Parse — Réponse analysée').first().json.network }}",
+            "Post": "={{ $('Parse — Réponse analysée').first().json.post_subject }}",
+            "Commentaire": "={{ $('Parse — Réponse analysée').first().json.comment_text }}",
+            "Auteur": "={{ $('Parse — Réponse analysée').first().json.author_name }}",
+            "Sentiment": "={{ $('Parse — Réponse analysée').first().json.sentiment }}",
+            "Reponse": "={{ $('Parse — Réponse analysée').first().json.suggested_response }}",
+            "Auto_Manuel": "={{ $('Parse — Réponse analysée').first().json.needs_human_review ? 'escaladé' : 'auto' }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf05-sheets",
+      "name": "Sheets — Log interaction",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1500, 500],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook — Nouveau commentaire": { "main": [[{ "node": "Normaliser — Commentaire", "type": "main", "index": 0 }]] },
+    "Normaliser — Commentaire": { "main": [[{ "node": "Gemini Flash — Analyser & Répondre", "type": "main", "index": 0 }]] },
+    "Gemini Flash — Analyser & Répondre": { "main": [[{ "node": "Parse — Réponse analysée", "type": "main", "index": 0 }]] },
+    "Parse — Réponse analysée": { "main": [[{ "node": "IF — Review humain ?", "type": "main", "index": 0 }]] },
+    "IF — Review humain ?": {
+      "main": [
+        [{ "node": "Email — Escalade", "type": "main", "index": 0 }],
+        [{ "node": "Sheets — Log interaction", "type": "main", "index": 0 }]
+      ]
+    },
+    "Email — Escalade": { "main": [[{ "node": "Sheets — Log interaction", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "community-management" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

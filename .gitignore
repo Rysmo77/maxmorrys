@@ -21,3 +21,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# n8n credentials (ne jamais committer les vraies clés)
+n8n/credentials.json

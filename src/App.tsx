@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider, Outlet, ScrollRestoration } from 'react-router-dom';
 import { useState, lazy, Suspense } from 'react';
+import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './components/ui/Toast';
@@ -9,24 +10,28 @@ import ScrollProgress from './components/shared/ScrollProgress';
 import CookieBanner from './components/shared/CookieBanner';
 import AnnouncementBanner from './components/shared/AnnouncementBanner';
 import SearchOverlay from './components/shared/SearchOverlay';
+import ErrorBoundary from './components/shared/ErrorBoundary';
+import MetaPixelTracker from './components/tracking/MetaPixelTracker';
 import Home from './pages/Home';
-import About from './pages/About';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
-import Formations from './pages/Formations';
-import FormationDetail from './pages/FormationDetail';
-import Podcasts from './pages/Podcasts';
-import PodcastDetail from './pages/PodcastDetail';
-import Videos from './pages/Videos';
-import VideoDetail from './pages/VideoDetail';
-import FAQPage from './pages/FAQ';
-import Contact from './pages/Contact';
-import MentionsLegales from './pages/legal/MentionsLegales';
-import Confidentialite from './pages/legal/Confidentialite';
-import CGV from './pages/legal/CGV';
-import CookiesPage from './pages/legal/CookiesPage';
 import Forbidden403 from './pages/Forbidden403';
 import NotFound from './pages/NotFound';
+
+// Lazy-loaded public pages
+const About = lazy(() => import('./pages/About'));
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogPost = lazy(() => import('./pages/BlogPost'));
+const Formations = lazy(() => import('./pages/Formations'));
+const FormationDetail = lazy(() => import('./pages/FormationDetail'));
+const Podcasts = lazy(() => import('./pages/Podcasts'));
+const PodcastDetail = lazy(() => import('./pages/PodcastDetail'));
+const Videos = lazy(() => import('./pages/Videos'));
+const VideoDetail = lazy(() => import('./pages/VideoDetail'));
+const FAQPage = lazy(() => import('./pages/FAQ'));
+const Contact = lazy(() => import('./pages/Contact'));
+const MentionsLegales = lazy(() => import('./pages/legal/MentionsLegales'));
+const Confidentialite = lazy(() => import('./pages/legal/Confidentialite'));
+const CGV = lazy(() => import('./pages/legal/CGV'));
+const CookiesPage = lazy(() => import('./pages/legal/CookiesPage'));
 import { AdminRoute, ProtectedRoute } from './components/routing/ProtectedRoute';
 import RysmoWidget from './components/ai/RysmoWidget';
 
@@ -69,6 +74,7 @@ function PublicLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
   return (
     <>
+      <MetaPixelTracker />
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold">
         Aller au contenu principal
       </a>
@@ -89,6 +95,7 @@ function PublicLayout() {
 function AuthLayout() {
   return (
     <>
+      <MetaPixelTracker />
       <Outlet />
       <ScrollRestoration />
     </>
@@ -98,6 +105,7 @@ function AuthLayout() {
 function LmsLayout() {
   return (
     <>
+      <MetaPixelTracker />
       <Outlet />
       <RysmoWidget />
       <ScrollRestoration />
@@ -110,21 +118,21 @@ const router = createBrowserRouter([
     element: <PublicLayout />,
     children: [
       { path: '/', element: <Home /> },
-      { path: '/a-propos', element: <About /> },
-      { path: '/blog', element: <Blog /> },
-      { path: '/blog/:slug', element: <BlogPost /> },
-      { path: '/formations', element: <Formations /> },
-      { path: '/formations/:slug', element: <FormationDetail /> },
-      { path: '/podcasts', element: <Podcasts /> },
-      { path: '/podcasts/:slug', element: <PodcastDetail /> },
-      { path: '/videos', element: <Videos /> },
-      { path: '/videos/:slug', element: <VideoDetail /> },
-      { path: '/faq', element: <FAQPage /> },
-      { path: '/contact', element: <Contact /> },
-      { path: '/legal/mentions-legales', element: <MentionsLegales /> },
-      { path: '/legal/confidentialite', element: <Confidentialite /> },
-      { path: '/legal/cgv', element: <CGV /> },
-      { path: '/legal/cookies', element: <CookiesPage /> },
+      { path: '/a-propos', element: <Suspense fallback={<PageLoader />}><About /></Suspense> },
+      { path: '/blog', element: <Suspense fallback={<PageLoader />}><Blog /></Suspense> },
+      { path: '/blog/:slug', element: <Suspense fallback={<PageLoader />}><BlogPost /></Suspense> },
+      { path: '/formations', element: <Suspense fallback={<PageLoader />}><Formations /></Suspense> },
+      { path: '/formations/:slug', element: <Suspense fallback={<PageLoader />}><FormationDetail /></Suspense> },
+      { path: '/podcasts', element: <Suspense fallback={<PageLoader />}><Podcasts /></Suspense> },
+      { path: '/podcasts/:slug', element: <Suspense fallback={<PageLoader />}><PodcastDetail /></Suspense> },
+      { path: '/videos', element: <Suspense fallback={<PageLoader />}><Videos /></Suspense> },
+      { path: '/videos/:slug', element: <Suspense fallback={<PageLoader />}><VideoDetail /></Suspense> },
+      { path: '/faq', element: <Suspense fallback={<PageLoader />}><FAQPage /></Suspense> },
+      { path: '/contact', element: <Suspense fallback={<PageLoader />}><Contact /></Suspense> },
+      { path: '/legal/mentions-legales', element: <Suspense fallback={<PageLoader />}><MentionsLegales /></Suspense> },
+      { path: '/legal/confidentialite', element: <Suspense fallback={<PageLoader />}><Confidentialite /></Suspense> },
+      { path: '/legal/cgv', element: <Suspense fallback={<PageLoader />}><CGV /></Suspense> },
+      { path: '/legal/cookies', element: <Suspense fallback={<PageLoader />}><CookiesPage /></Suspense> },
     ],
   },
   {
@@ -215,12 +223,16 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <ToastProvider>
-          <RouterProvider router={router} />
-        </ToastProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <HelmetProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <RouterProvider router={router} />
+            </ToastProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   );
 }

@@ -3,10 +3,13 @@ import { ArrowLeft, ArrowRight, Star, Users, Clock, BookOpen, Award, Play, FileT
 import { useState, useEffect } from 'react';
 import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../components/ui/Toast';
 import { getFormationBySlug } from '../lib/firestore';
-import { formatPrice } from '../lib/utils';
+import { formatPrice, markdownToHtml } from '../lib/utils';
 import type { Formation } from '../types';
+import { trackViewContent, trackAddToCart } from '../lib/meta-pixel';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
 
 const levelLabels: Record<string, string> = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
 const lessonIcons: Record<string, typeof Play> = { video: Play, text: FileText, quiz: CheckCircle, resource: FileText, mission: Award };
@@ -14,14 +17,24 @@ const lessonIcons: Record<string, typeof Play> = { video: Play, text: FileText, 
 export default function FormationDetail() {
   const { slug } = useParams();
   const { user } = useAuth();
-  const { addToast } = useToast();
   const navigate = useNavigate();
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [formation, setFormation] = useState<Formation | null | undefined>(undefined);
 
   useEffect(() => {
     if (!slug) return;
-    getFormationBySlug(slug).then(setFormation).catch(() => setFormation(null));
+    getFormationBySlug(slug).then((data) => {
+      setFormation(data);
+      if (data) {
+        trackViewContent({
+          content_type: 'formation',
+          content_ids: [data.id],
+          content_name: data.title,
+          value: data.promoPrice ?? data.price,
+          currency: 'XOF',
+        });
+      }
+    }).catch(() => setFormation(null));
   }, [slug]);
 
   if (formation === undefined) {
@@ -52,11 +65,60 @@ export default function FormationDetail() {
       navigate('/connexion', { state: { from: { pathname: `/checkout/${formation?.slug}` } } });
       return;
     }
+    trackAddToCart({
+      content_ids: [formation!.id],
+      content_name: formation!.title,
+      value: formation!.promoPrice ?? formation!.price,
+      content_type: 'formation',
+    });
     navigate(`/checkout/${formation?.slug}`);
   };
 
   return (
     <div className="bg-white dark:bg-neutral-950">
+      <SEOHead
+        title={formation.metaTitle || formation.title}
+        description={formation.metaDescription || formation.description}
+        ogTitle={formation.ogTitle}
+        ogDescription={formation.ogDescription}
+        ogImage={formation.ogImage || formation.coverImage}
+        canonical={formation.canonicalUrl}
+        noIndex={formation.noIndex}
+      />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'Course',
+        name: formation.title,
+        description: formation.description,
+        provider: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+        educationalLevel: formation.level,
+        inLanguage: 'fr',
+        image: formation.coverImage,
+        offers: {
+          '@type': 'Offer',
+          price: formation.promoPrice ?? formation.price,
+          priceCurrency: 'XOF',
+          availability: 'https://schema.org/InStock',
+          url: `${SITE_URL}/formations/${formation.slug}`,
+        },
+        ...(formation.rating > 0 && {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: formation.rating,
+            bestRating: 5,
+            ratingCount: formation.students || 1,
+          },
+        }),
+      }} />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Formations', item: `${SITE_URL}/formations` },
+          { '@type': 'ListItem', position: 3, name: formation.title, item: `${SITE_URL}/formations/${formation.slug}` },
+        ],
+      }} />
 
       {/* ── HERO ── */}
       <div className="pt-28 pb-12 lg:pt-36 bg-neutral-50 dark:bg-neutral-900">
@@ -97,7 +159,7 @@ export default function FormationDetail() {
       {/* Image hero */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="aspect-[16/7] rounded-2xl overflow-hidden">
-          <img src={formation.coverImage} alt={formation.title} className="w-full h-full object-cover" />
+          <img src={formation.coverImage} alt={formation.title} className="w-full h-full object-cover" width={1200} height={525} />
         </div>
       </div>
 
@@ -107,9 +169,10 @@ export default function FormationDetail() {
 
           {/* Contenu principal */}
           <div className="lg:col-span-2">
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed text-lg mb-12">
-              {formation.longDescription}
-            </p>
+            <div
+              className="prose-article prose prose-sm sm:prose-base dark:prose-invert max-w-none mb-12 prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium"
+              dangerouslySetInnerHTML={{ __html: markdownToHtml(formation.longDescription) }}
+            />
 
             {/* Contenu du cours */}
             <div className="mb-12">

@@ -44,6 +44,77 @@
   }
 }
 
+@layer components {
+  /* ── Prose responsive mobile fixes ─────────────────────────── */
+  .prose-article {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Tables : scroll horizontal au lieu de déborder */
+  .prose-article table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  /* Pre / code blocks : ne débordent plus sur mobile */
+  .prose-article pre {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  .prose-article pre code {
+    white-space: pre;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+
+  /* Images : jamais plus larges que le viewport */
+  .prose-article img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Iframes / embeds : ratio responsive */
+  .prose-article iframe,
+  .prose-article video,
+  .prose-article embed,
+  .prose-article object {
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  /* Blockquotes : padding réduit sur mobile */
+  @media (max-width: 639px) {
+    .prose-article blockquote {
+      padding-left: 0.75rem;
+      margin-left: 0;
+      margin-right: 0;
+    }
+
+    .prose-article h1 {
+      font-size: 1.5rem;
+    }
+
+    .prose-article h2 {
+      font-size: 1.25rem;
+    }
+
+    .prose-article h3 {
+      font-size: 1.125rem;
+    }
+
+    .prose-article ul,
+    .prose-article ol {
+      padding-left: 1rem;
+    }
+  }
+}
+
 @layer utilities {
   .animate-in {
     animation: fadeIn 0.5s ease-out;

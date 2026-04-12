@@ -1,0 +1,200 @@
+{
+  "name": "WF-08 — Rédaction Article SEO Complet",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf08-redaction-article",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf08-webhook",
+      "name": "Webhook — Déclencher article",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un chercheur expert sur le marché Afrique de l\\'Ouest francophone (Sénégal, Côte d\\'Ivoire, Cameroun).\\n\\nPour le sujet \"' + ($json.body?.subject || $json.subject || '') + '\", compile :\\n- 5 statistiques récentes SPÉCIFIQUES À l\\'Afrique de l\\'Ouest (avec sources)\\n- 3 citations d\\'experts locaux ou régionaux\\n- 5 points clés spécifiques au contexte local\\n- Les questions fréquemment posées par l\\'audience\\n- Les différences culturelles à prendre en compte\\n\\nRéponse JSON :\\n{\\n  \"statistics\": [{ \"stat\": \"\", \"source\": \"\" }],\\n  \"expert_quotes\": [{ \"quote\": \"\", \"author\": \"\", \"role\": \"\" }],\\n  \"key_points\": [\"\"],\\n  \"faq\": [{ \"question\": \"\", \"brief_answer\": \"\" }],\\n  \"cultural_notes\": [\"\"]\\n}' }] }], generationConfig: { temperature: 0.5, maxOutputTokens: 2048, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 90000 }
+      },
+      "id": "wf08-research",
+      "name": "Gemini Pro — Phase Recherche",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst input = $('Webhook — Déclencher article').first().json;\nconst body = input.body || input;\n\nlet research;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  research = JSON.parse(text);\n} catch (e) {\n  research = { statistics: [], expert_quotes: [], key_points: [], faq: [], cultural_notes: [] };\n}\n\nreturn [{\n  json: {\n    subject: body.subject || '',\n    main_keyword: body.main_keyword || body.Mot_Cle || '',\n    secondary_keywords: body.secondary_keywords || body.Keywords_Secondaires || '',\n    structure: body.structure || body.Structure || '',\n    length: body.length || body.Longueur_Recommandee || 1500,\n    local_angle: body.local_angle || body.Angle_Local || '',\n    meta_description: body.meta_description || body.Meta_Description || '',\n    research_data: research\n  }\n}];"
+      },
+      "id": "wf08-parse-research",
+      "name": "Parse — Données recherche",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un rédacteur web SEO expert francophone spécialisé dans l\\'Afrique de l\\'Ouest.\\n\\nRÈGLES SEO :\\n- Titre H1 contenant \"' + $json.main_keyword + '\"\\n- Introduction : mot-clé dans les 100 premiers mots\\n- Densité mot-clé principal : 1-2%\\n- Paragraphes courts (3-4 lignes)\\n- Liens internes suggérés : [LIEN_INTERNE : texte → /url]\\n\\nRÈGLES DE CONTEXTUALISATION LOCALE :\\n- Les exemples sont ancrés dans la réalité d\\'Afrique de l\\'Ouest\\n- Les montants sont en FCFA (XOF)\\n- Les références culturelles sont locales (Dakar, Abidjan, Douala)\\n- Le ton est adapté au lectorat francophone africain\\n- Écrire POUR le lecteur local, pas SUR le lecteur local\\n- Tutoiement, ton pédagogue et encourageant\\n\\nSUJET : ' + $json.subject + '\\nANGLE LOCAL : ' + $json.local_angle + '\\nMOT-CLÉ : ' + $json.main_keyword + '\\nMOTS-CLÉS SECONDAIRES : ' + $json.secondary_keywords + '\\nSTRUCTURE : ' + $json.structure + '\\nDONNÉES RECHERCHE : ' + JSON.stringify($json.research_data) + '\\nLONGUEUR : ' + $json.length + ' mots\\n\\nRÉPONSE JSON :\\n{\\n  \"title\": \"\",\\n  \"meta_description\": \"155 chars\",\\n  \"content_html\": \"<h1>...</h1>...\",\\n  \"word_count\": 0,\\n  \"reading_time_minutes\": 0,\\n  \"suggested_slug\": \"\",\\n  \"featured_image_prompt\": \"description du visuel — contexte Afrique de l\\'Ouest\",\\n  \"excerpt\": \"extrait de 2-3 phrases\",\\n  \"internal_links\": [{ \"anchor\": \"\", \"url\": \"\" }],\\n  \"faq\": [{ \"question\": \"\", \"answer\": \"\" }],\\n  \"tags\": [\"tag1\", \"tag2\"],\\n  \"category\": \"\"\\n}' }] }], generationConfig: { temperature: 0.6, maxOutputTokens: 8192, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 120000 }
+      },
+      "id": "wf08-write-article",
+      "name": "Gemini Pro — Rédiger l'article",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 10000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst inputData = $('Parse — Données recherche').first().json;\n\nlet article;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  article = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing article: ' + e.message);\n}\n\n// Generate Firestore-compatible BlogPost document\nconst now = new Date().toISOString();\nconst slug = (article.suggested_slug || article.title || '')\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-|-$/g, '')\n  .substring(0, 80);\n\nconst blogPost = {\n  title: article.title || inputData.subject,\n  slug: slug,\n  excerpt: article.excerpt || (article.meta_description || ''),\n  content: article.content_html || '',\n  coverImage: '',\n  category: article.category || 'Marketing Digital',\n  tags: article.tags || [],\n  author: 'Max-Morrys',\n  publishedAt: now,\n  readTime: article.reading_time_minutes || Math.ceil((article.word_count || 1500) / 200),\n  featured: false,\n  status: 'draft',\n  metaTitle: article.title || '',\n  metaDescription: article.meta_description || '',\n  focusKeyword: inputData.main_keyword || '',\n  ogTitle: article.title || '',\n  ogDescription: article.meta_description || '',\n  ogImage: '',\n  noIndex: false,\n  createdAt: now\n};\n\nreturn [{\n  json: {\n    blogPost,\n    featured_image_prompt: article.featured_image_prompt || '',\n    internal_links: article.internal_links || [],\n    faq: article.faq || [],\n    word_count: article.word_count || 0\n  }\n}];"
+      },
+      "id": "wf08-parse-article",
+      "name": "Parse — Construire BlogPost",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://firestore.googleapis.com/v1/projects/%%FIREBASE_PROJECT_ID%%/databases/(default)/documents/blog",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleServiceAccount",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (() => { const bp = $json.blogPost; return JSON.stringify({ fields: { title: { stringValue: bp.title }, slug: { stringValue: bp.slug }, excerpt: { stringValue: bp.excerpt }, content: { stringValue: bp.content }, coverImage: { stringValue: bp.coverImage }, category: { stringValue: bp.category }, tags: { arrayValue: { values: bp.tags.map(t => ({ stringValue: t })) } }, author: { stringValue: bp.author }, publishedAt: { stringValue: bp.publishedAt }, readTime: { integerValue: String(bp.readTime) }, featured: { booleanValue: bp.featured }, status: { stringValue: bp.status }, metaTitle: { stringValue: bp.metaTitle }, metaDescription: { stringValue: bp.metaDescription }, focusKeyword: { stringValue: bp.focusKeyword }, ogTitle: { stringValue: bp.ogTitle }, ogDescription: { stringValue: bp.ogDescription }, ogImage: { stringValue: bp.ogImage }, noIndex: { booleanValue: bp.noIndex }, createdAt: { stringValue: bp.createdAt } } }); })() }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "wf08-firestore-write",
+      "name": "Firestore — Créer article (draft)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1500, 300],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $('Parse — Construire BlogPost').first().json.featured_image_prompt }}", "operation": "isNotEmpty" }]
+        }
+      },
+      "id": "wf08-needs-image",
+      "name": "IF — Générer image ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1500, 600]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.WF15_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "id": "wf08-call-wf15",
+      "name": "Execute — WF-15 Image article",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1800, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Banque Idees Articles" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Titre_SEO": "={{ $('Parse — Construire BlogPost').first().json.blogPost.title }}",
+            "Status": "=produit_draft"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf08-sheets-update",
+      "name": "Sheets — Mettre à jour statut",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1800, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=✍️ Article prêt pour relecture — {{ $('Parse — Construire BlogPost').first().json.blogPost.title }}",
+        "emailType": "html",
+        "html": "=<h2>Nouvel article généré (brouillon)</h2><p><strong>Titre :</strong> {{ $('Parse — Construire BlogPost').first().json.blogPost.title }}</p><p><strong>Mots :</strong> {{ $('Parse — Construire BlogPost').first().json.word_count }}</p><p><strong>Slug :</strong> /blog/{{ $('Parse — Construire BlogPost').first().json.blogPost.slug }}</p><p><strong>Mot-clé :</strong> {{ $('Parse — Construire BlogPost').first().json.blogPost.focusKeyword }}</p><p>L'article est en statut <strong>draft</strong> dans Firestore. Connectez-vous à l'admin pour le relire et le publier.</p>"
+      },
+      "id": "wf08-email",
+      "name": "Email — Article prêt",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2100, 300],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook — Déclencher article": { "main": [[{ "node": "Gemini Pro — Phase Recherche", "type": "main", "index": 0 }]] },
+    "Gemini Pro — Phase Recherche": { "main": [[{ "node": "Parse — Données recherche", "type": "main", "index": 0 }]] },
+    "Parse — Données recherche": { "main": [[{ "node": "Gemini Pro — Rédiger l'article", "type": "main", "index": 0 }]] },
+    "Gemini Pro — Rédiger l'article": { "main": [[{ "node": "Parse — Construire BlogPost", "type": "main", "index": 0 }]] },
+    "Parse — Construire BlogPost": {
+      "main": [
+        [
+          { "node": "Firestore — Créer article (draft)", "type": "main", "index": 0 },
+          { "node": "IF — Générer image ?", "type": "main", "index": 0 },
+          { "node": "Sheets — Mettre à jour statut", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Firestore — Créer article (draft)": { "main": [[{ "node": "Email — Article prêt", "type": "main", "index": 0 }]] },
+    "IF — Générer image ?": {
+      "main": [
+        [{ "node": "Execute — WF-15 Image article", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "redaction-web" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

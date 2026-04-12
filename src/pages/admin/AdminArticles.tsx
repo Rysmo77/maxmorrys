@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Edit2, Trash2, ExternalLink, Loader2, Star, StarOff } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -12,6 +12,11 @@ import { getAllPosts, savePost, deletePost } from '../../lib/firestore';
 import { formatDate, slugify, calculateReadTime } from '../../lib/utils';
 import type { BlogPost } from '../../types';
 import SEOPanel from '../../components/shared/SEOPanel';
+import { captureError } from '../../lib/sentry';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
+import Pagination from '../../components/ui/Pagination';
+import { usePagination } from '../../hooks/usePagination';
 
 type FormState = {
   title: string;
@@ -56,6 +61,7 @@ export default function AdminArticles() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [activeTab, setActiveTab] = useState<'content' | 'seo'>('content');
+  const confirm = useConfirmDialog();
 
   const load = () => {
     setLoading(true);
@@ -148,18 +154,26 @@ export default function AdminArticles() {
       setShowModal(false);
       load();
     } catch (error: unknown) {
-      console.error('Save article failed:', error);
+      captureError(error, { context: 'Save article failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cet article ?')) return;
-    await deletePost(id).catch(() => addToast('error', 'Erreur de suppression.'));
-    addToast('success', 'Article supprimé.');
-    setPosts((prev) => prev.filter((p) => p.id !== id));
+  const doDelete = useCallback(async (id: string) => {
+    try {
+      await deletePost(id);
+      setPosts((prev) => prev.filter((p) => p.id !== id));
+      addToast('success', 'Article supprime.');
+    } catch {
+      addToast('error', 'Erreur de suppression.');
+    }
+    confirm.closeConfirm();
+  }, [addToast, confirm]);
+
+  const handleDelete = (id: string) => {
+    confirm.requestConfirm('Supprimer cet article ? Cette action est irreversible.', () => doDelete(id));
   };
 
   const toggleStatus = async (post: BlogPost) => {
@@ -178,6 +192,8 @@ export default function AdminArticles() {
     const matchStatus = filterStatus === 'all' || p.status === filterStatus;
     return matchSearch && matchStatus;
   });
+
+  const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   return (
     <div>
@@ -223,70 +239,75 @@ export default function AdminArticles() {
           <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
         </div>
       ) : (
-        <Card padding="none">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">Article</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden md:table-cell">Catégorie</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden sm:table-cell">Date</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">Statut</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-neutral-500">Aucun article trouvé.</td></tr>
-                ) : (
-                  filtered.map((post) => (
-                    <tr key={post.id} className="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          {post.coverImage && (
-                            <img src={post.coverImage} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 hidden sm:block" loading="lazy" />
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-neutral-900 dark:text-white truncate max-w-xs">{post.title}</p>
-                            <p className="text-xs text-neutral-400">{post.readTime} min{post.featured ? ' · ⭐ À la une' : ''}</p>
+        <>
+          <Card padding="none">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-neutral-200 dark:border-neutral-700">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">Article</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden md:table-cell">Catégorie</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden sm:table-cell">Date</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">Statut</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.length === 0 ? (
+                    <tr><td colSpan={5} className="px-4 py-8 text-center text-neutral-500">Aucun article trouvé.</td></tr>
+                  ) : (
+                    paged.map((post) => (
+                      <tr key={post.id} className="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            {post.coverImage && (
+                              <img src={post.coverImage} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 hidden sm:block" loading="lazy" />
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-neutral-900 dark:text-white truncate max-w-xs">{post.title}</p>
+                              <p className="text-xs text-neutral-400">{post.readTime} min{post.featured ? ' · ⭐ À la une' : ''}</p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        {post.category && <Badge variant="brand" size="sm">{post.category}</Badge>}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-neutral-500 hidden sm:table-cell">
-                        {post.publishedAt ? formatDate(post.publishedAt) : '—'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <button onClick={() => toggleStatus(post)}>
-                          <Badge variant={post.status === 'published' ? 'success' : 'warning'} size="sm">
-                            {post.status === 'published' ? 'Publié' : 'Brouillon'}
-                          </Badge>
-                        </button>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => openEdit(post)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors" title="Modifier">
-                            <Edit2 className="w-4 h-4" />
+                        </td>
+                        <td className="px-4 py-3 hidden md:table-cell">
+                          {post.category && <Badge variant="brand" size="sm">{post.category}</Badge>}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-neutral-500 hidden sm:table-cell">
+                          {post.publishedAt ? formatDate(post.publishedAt) : '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button onClick={() => toggleStatus(post)}>
+                            <Badge variant={post.status === 'published' ? 'success' : 'warning'} size="sm">
+                              {post.status === 'published' ? 'Publié' : 'Brouillon'}
+                            </Badge>
                           </button>
-                          {post.status === 'published' && post.slug && (
-                            <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" title="Voir">
-                              <ExternalLink className="w-4 h-4" />
-                            </a>
-                          )}
-                          <button onClick={() => handleDelete(post.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" title="Supprimer">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end gap-1">
+                            <button onClick={() => openEdit(post)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors" title="Modifier">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            {post.status === 'published' && post.slug && (
+                              <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" title="Voir">
+                                <ExternalLink className="w-4 h-4" />
+                              </a>
+                            )}
+                            <button onClick={() => handleDelete(post.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" title="Supprimer">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          <div className="flex justify-center mt-4">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
-        </Card>
+        </>
       )}
 
       {/* Article editor modal */}
@@ -400,6 +421,15 @@ export default function AdminArticles() {
           </Button>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={confirm.open}
+        onClose={confirm.closeConfirm}
+        onConfirm={confirm.onConfirm}
+        title="Supprimer"
+        message={confirm.message}
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }

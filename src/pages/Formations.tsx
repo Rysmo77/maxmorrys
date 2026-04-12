@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Star, Users, Clock, ArrowRight, Play, Loader2, Calendar, MessageSquare, Video, Bell, Building2, Lock, Rss } from 'lucide-react';
 import { getPublishedFormations } from '../lib/firestore';
+import { trackSearch, trackClubJoinIntent } from '../lib/meta-pixel';
 import type { Formation } from '../types';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
 
 const clubMembers = [
   { id: 'KD', name: 'Kouassi David', role: 'Marketing Digital', gradient: 'from-brand-700 via-brand-900 to-neutral-950' },
@@ -22,17 +26,28 @@ const levelOptions = [
 export default function Formations() {
   const [formations, setFormations] = useState<Formation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [search, setSearch] = useState('');
   const [activeLevel, setActiveLevel] = useState('Tous');
   const [activeCategory, setActiveCategory] = useState('Toutes');
   const [activeCard, setActiveCard] = useState(0);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
+    setError(false);
     getPublishedFormations().then((data) => {
       setFormations(data);
       setLoading(false);
-    }).catch(() => setLoading(false));
-  }, []);
+    }).catch(() => { setError(true); setLoading(false); });
+  };
+
+  useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (!search.trim()) return;
+    const timer = setTimeout(() => trackSearch(search.trim()), 500);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     const t = setInterval(() => setActiveCard((p) => (p + 1) % clubMembers.length), 3500);
@@ -54,6 +69,30 @@ export default function Formations() {
 
   return (
     <div>
+      <SEOHead
+        title="Formations Marketing Digital"
+        description="Formations pratiques en marketing digital, SEO et IA pour accélérer ta croissance. Cours en ligne accessibles depuis l'Afrique et le monde entier."
+      />
+      {formations.length > 0 && (
+        <JsonLd data={{
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: 'Formations Marketing Digital',
+          url: `${SITE_URL}/formations`,
+          numberOfItems: formations.length,
+          itemListElement: formations.slice(0, 10).map((f, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            item: {
+              '@type': 'Course',
+              name: f.title,
+              description: f.description,
+              url: `${SITE_URL}/formations/${f.slug}`,
+              provider: { '@type': 'Organization', name: SITE_NAME },
+            },
+          })),
+        }} />
+      )}
 
       {/* ── HERO éditorial ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
@@ -121,6 +160,15 @@ export default function Formations() {
           {loading && (
             <div className="flex justify-center py-20">
               <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+            </div>
+          )}
+
+          {error && !loading && (
+            <div className="text-center py-20">
+              <p className="text-neutral-500 mb-4">Impossible de charger les formations. Verifie ta connexion et reessaie.</p>
+              <button onClick={load} className="px-5 py-2.5 bg-brand-600 text-white rounded-full text-sm font-semibold hover:bg-brand-500 transition-colors">
+                Reessayer
+              </button>
             </div>
           )}
 
@@ -279,6 +327,7 @@ export default function Formations() {
             <div className="flex flex-wrap gap-3">
               <Link
                 to="/mon-espace"
+                onClick={() => trackClubJoinIntent()}
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-yellow-400 text-neutral-900 font-black rounded-full hover:bg-yellow-300 transition-colors text-sm tracking-wide shadow-md shadow-yellow-400/30"
               >
                 Rejoindre le Club <ArrowRight className="w-4 h-4" />

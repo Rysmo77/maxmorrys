@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Star, Loader2, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import Pagination from '../../components/ui/Pagination';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import ImageInput from '../../components/ui/ImageInput';
 import Badge from '../../components/ui/Badge';
 import { useToast } from '../../components/ui/Toast';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
+import { usePagination } from '../../hooks/usePagination';
 import { getAllTestimonials, saveTestimonial, deleteTestimonial } from '../../lib/firestore';
 import type { Testimonial } from '../../types';
+import { captureError } from '../../lib/sentry';
 
 const EMPTY: Omit<Testimonial, 'id'> = {
   name: '', role: '', company: '', content: '', avatar: '', rating: 5, featured: false, status: 'approved',
@@ -15,6 +20,7 @@ type Filter = 'all' | 'pending' | 'approved' | 'rejected';
 
 export default function AdminTestimonials() {
   const { addToast } = useToast();
+  const confirm = useConfirmDialog();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -55,7 +61,7 @@ export default function AdminTestimonials() {
       setModalOpen(false);
       load();
     } catch (error: unknown) {
-      console.error('Save testimonial failed:', error);
+      captureError(error, { context: 'Save testimonial failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
@@ -68,7 +74,7 @@ export default function AdminTestimonials() {
       addToast('success', 'Témoignage approuvé et mis à la une.');
       load();
     } catch (error: unknown) {
-      console.error('Approve testimonial failed:', error);
+      captureError(error, { context: 'Approve testimonial failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'approbation.');
     }
   };
@@ -83,11 +89,18 @@ export default function AdminTestimonials() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer ce témoignage ?')) return;
-    await deleteTestimonial(id).catch(() => addToast('error', 'Erreur de suppression.'));
-    setTestimonials((prev) => prev.filter((t) => t.id !== id));
-    addToast('success', 'Témoignage supprimé.');
+  const handleDelete = (id: string) => {
+    confirm.requestConfirm('Supprimer ce témoignage ?', async () => {
+      try {
+        await deleteTestimonial(id).catch(() => addToast('error', 'Erreur de suppression.'));
+        setTestimonials((prev) => prev.filter((t) => t.id !== id));
+        addToast('success', 'Témoignage supprimé.');
+      } catch (error: unknown) {
+        captureError(error, { context: 'Delete testimonial failed' });
+        addToast('error', 'Erreur de suppression.');
+      }
+      confirm.closeConfirm();
+    });
   };
 
   const set = (field: keyof Omit<Testimonial, 'id'>, value: string | number | boolean) =>
@@ -97,6 +110,8 @@ export default function AdminTestimonials() {
     if (filter === 'all') return true;
     return (t.status || 'approved') === filter;
   });
+
+  const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   const pendingCount = testimonials.filter((t) => t.status === 'pending').length;
 
@@ -166,8 +181,9 @@ export default function AdminTestimonials() {
       )}
 
       {!loading && filtered.length > 0 && (
+        <>
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {filtered.map((t) => (
+          {paged.map((t) => (
             <div key={t.id} className={`bg-white dark:bg-neutral-900 rounded-2xl border ${t.status === 'pending' ? 'border-warning-300 dark:border-warning-700' : 'border-neutral-200 dark:border-neutral-800'} p-6 flex flex-col gap-3`}>
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
@@ -222,6 +238,8 @@ export default function AdminTestimonials() {
             </div>
           ))}
         </div>
+        <div className="flex justify-center mt-4"><Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} /></div>
+        </>
       )}
 
       {/* Modal */}
@@ -288,6 +306,8 @@ export default function AdminTestimonials() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title="Supprimer" message={confirm.message} confirmLabel="Supprimer" />
     </div>
   );
 }

@@ -8,6 +8,11 @@ import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { saveAppointment, getAllFAQ } from '../lib/firestore';
 import type { FAQ } from '../types';
+import { captureError } from '../lib/sentry';
+import { trackLead, trackContact } from '../lib/meta-pixel';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL } from '../components/seo/seo-config';
 
 const contactInfo = [
   { icon: Mail, label: 'Email', value: 'hello@maxmorrys.me', link: 'mailto:hello@maxmorrys.me' },
@@ -78,10 +83,11 @@ export default function Contact() {
         sentAt: new Date().toISOString(),
         status: 'new',
       });
+      trackLead('Contact Form');
       addToast('success', 'Message envoyé avec succès ! Je te répondrai rapidement.');
       setForm({ name: '', email: '', subject: '', message: '', _hp: '' });
     } catch (error: unknown) {
-      console.error('Send contact message failed:', error);
+      captureError(error, { context: 'Send contact message failed' });
       addToast('error', error instanceof Error ? error.message : "Erreur lors de l'envoi. Essaie à nouveau s'il te plaît.");
     }
     setLoading(false);
@@ -120,9 +126,10 @@ export default function Contact() {
         subject: bookingForm.subject,
         message: bookingForm.message.trim() || undefined,
       });
+      trackLead('Booking');
       setBookingSuccess(true);
     } catch (error: unknown) {
-      console.error('Save appointment failed:', error);
+      captureError(error, { context: 'Save appointment failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la prise de rendez-vous. Veuillez réessayer.');
     } finally {
       setBookingLoading(false);
@@ -142,6 +149,23 @@ export default function Contact() {
 
   return (
     <div>
+      <SEOHead
+        title="Contact"
+        description="Contacte Max-Morrys pour du coaching personnalisé, des formations en marketing digital, ou un partenariat. Basé à Dakar, Sénégal."
+      />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'ContactPage',
+        name: 'Contact Max-Morrys',
+        url: `${SITE_URL}/contact`,
+        mainEntity: {
+          '@type': 'Organization',
+          name: 'Max-Morrys',
+          telephone: '+221776041985',
+          email: 'hello@maxmorrys.me',
+          address: { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
+        },
+      }} />
 
       {/* ── HERO ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
@@ -230,6 +254,7 @@ export default function Contact() {
                       href={info.link}
                       target={info.link.startsWith('http') ? '_blank' : undefined}
                       rel="noopener noreferrer"
+                      onClick={() => trackContact()}
                       className="group flex items-center gap-4 p-5 rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
                     >
                       <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center shrink-0">

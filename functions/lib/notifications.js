@@ -101,8 +101,11 @@ exports.courseReminder = (0, scheduler_1.onSchedule)('0 10 * * *', async () => {
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
     const cutoff = threeDaysAgo.toISOString();
     // Find users with enrollments that haven't been updated in 3+ days
+    // Bound reads with limit(500) and orderBy lastActivityAt asc to process most inactive first
     const enrollmentsSnap = await db.collection('enrollments')
         .where('progress', '<', 100)
+        .orderBy('lastActivityAt', 'asc')
+        .limit(500)
         .get();
     for (const enrollDoc of enrollmentsSnap.docs) {
         const data = enrollDoc.data();

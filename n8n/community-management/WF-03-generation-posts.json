@@ -1,0 +1,140 @@
+{
+  "name": "WF-03 — Génération de Posts Multi-Réseaux",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf03-generate-posts",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf03-webhook",
+      "name": "Webhook — Déclencher",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {},
+      "id": "wf03-exec-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nreturn [{\n  json: {\n    subject: input.subject || input.Sujet || 'Marketing digital en Afrique',\n    network: input.network || input.Reseau || 'all',\n    format: input.format || input.Format || 'texte',\n    rubrique: input.rubrique || input.Rubrique || 'Tips',\n    hook: input.hook || input.Contenu || '',\n    hashtags: input.hashtags || input.Hashtags || '',\n    media_prompt: input.media_prompt || input.Media_Prompt || '',\n    context: input.context || ''\n  }\n}];"
+      },
+      "id": "wf03-normalize",
+      "name": "Normaliser — Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es le Community Manager de Max-Morrys, expert en marketing digital pour l\\'Afrique de l\\'Ouest francophone.\\n\\nRÈGLES :\\n- Tu écris pour une audience de Sénégal, Côte d\\'Ivoire, Cameroun\\n- Utilise des références culturelles locales quand pertinent\\n- Les hashtags incluent des hashtags locaux : #MarketingAfrique #DigitalSenegal #EntrepreneurAfricain #MaxMorrys\\n- Le ton est pédagogue, inspirant, accessible et tutoyant\\n- Les exemples et analogies sont compréhensibles par l\\'audience locale\\n- Si tu mentionnes des prix, utilise le FCFA (XOF)\\n\\nSUJET : ' + $json.subject + '\\nFORMAT DEMANDÉ : ' + $json.format + '\\nRUBRIQUE : ' + $json.rubrique + '\\nACCROCHE SUGGÉRÉE : ' + $json.hook + '\\nHASHTAGS SUGGÉRÉS : ' + $json.hashtags + '\\n\\nGénère le contenu pour CHAQUE réseau social avec les contraintes spécifiques :\\n\\nRÉPONSE JSON :\\n{\\n  \"posts\": {\\n    \"facebook\": {\\n      \"text\": \"Post Facebook (max 500 mots, storytelling, emojis modérés, CTA clair)\",\\n      \"hashtags\": [\"#tag1\"],\\n      \"cta\": \"appel à l\\'action\",\\n      \"best_time\": \"08:00|12:00|17:00\"\\n    },\\n    \"instagram\": {\\n      \"caption\": \"Caption Instagram (max 2200 chars, hook en 1ère ligne, emojis, ligne vide après le hook)\",\\n      \"hashtags\": [\"max 30 hashtags pertinents\"],\\n      \"cta\": \"\",\\n      \"best_time\": \"07:30|12:00|18:30\",\\n      \"alt_text\": \"description de l\\'image pour accessibilité\"\\n    },\\n    \"linkedin\": {\\n      \"text\": \"Post LinkedIn (professionnel, pas d\\'emojis excessifs, insights, max 3000 chars)\",\\n      \"hashtags\": [\"max 5 hashtags pro\"],\\n      \"cta\": \"\",\\n      \"best_time\": \"07:00|12:00|17:00\"\\n    },\\n    \"twitter\": {\\n      \"text\": \"Tweet (max 280 chars, percutant)\",\\n      \"hashtags\": [\"max 3 hashtags\"],\\n      \"thread\": [\"tweet 1\", \"tweet 2\", \"tweet 3\"],\\n      \"best_time\": \"08:00|12:00|19:00\"\\n    },\\n    \"tiktok\": {\\n      \"caption\": \"Caption TikTok (court, accrocheur, max 150 chars)\",\\n      \"hashtags\": [\"tendances TikTok\"],\\n      \"hook_video\": \"les 3 premières secondes de la vidéo\",\\n      \"script_outline\": \"structure du contenu vidéo\"\\n    }\\n  },\\n  \"media_suggestion\": {\\n    \"type\": \"image|carrousel|video|reel\",\\n    \"prompt\": \"description du visuel à générer\",\\n    \"dimensions\": \"1080x1080|1080x1920|1920x1080\"\\n  }\\n}' }] }], generationConfig: { temperature: 0.8, maxOutputTokens: 4096, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf03-gemini",
+      "name": "Gemini Flash — Générer les posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [600, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst inputData = $('Normaliser — Input').first().json;\n\nlet parsed;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  parsed = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing posts: ' + e.message);\n}\n\nconst posts = parsed.posts || {};\nconst mediaSuggestion = parsed.media_suggestion || {};\n\nreturn [{\n  json: {\n    subject: inputData.subject,\n    posts,\n    media_suggestion: mediaSuggestion,\n    generated_at: new Date().toISOString(),\n    status: 'à_valider'\n  }\n}];"
+      },
+      "id": "wf03-parse",
+      "name": "Parse — Structurer les posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.media_suggestion?.prompt }}", "operation": "isNotEmpty" }]
+        }
+      },
+      "id": "wf03-needs-media",
+      "name": "IF — Besoin de média ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.WF15_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "id": "wf03-call-wf15",
+      "name": "Execute — WF-15 Images",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1500, 200],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Calendrier Editorial" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Sujet": "={{ $('Parse — Structurer les posts').first().json.subject }}",
+            "Status_Contenu": "=produit",
+            "Contenu": "={{ JSON.stringify($('Parse — Structurer les posts').first().json.posts).substring(0, 500) }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf03-sheets",
+      "name": "Sheets — Mettre à jour",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1500, 500],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook — Déclencher": { "main": [[{ "node": "Normaliser — Input", "type": "main", "index": 0 }]] },
+    "Execute Workflow Trigger": { "main": [[{ "node": "Normaliser — Input", "type": "main", "index": 0 }]] },
+    "Normaliser — Input": { "main": [[{ "node": "Gemini Flash — Générer les posts", "type": "main", "index": 0 }]] },
+    "Gemini Flash — Générer les posts": { "main": [[{ "node": "Parse — Structurer les posts", "type": "main", "index": 0 }]] },
+    "Parse — Structurer les posts": { "main": [[{ "node": "IF — Besoin de média ?", "type": "main", "index": 0 }]] },
+    "IF — Besoin de média ?": {
+      "main": [
+        [{ "node": "Execute — WF-15 Images", "type": "main", "index": 0 }],
+        [{ "node": "Sheets — Mettre à jour", "type": "main", "index": 0 }]
+      ]
+    },
+    "Execute — WF-15 Images": { "main": [[{ "node": "Sheets — Mettre à jour", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "community-management" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

@@ -1,0 +1,124 @@
+{
+  "name": "WF-16 — Création de Carrousels",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "wf16-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%%GOOGLE_AI_API_KEY%%",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Tu es un designer de carrousels pour les réseaux sociaux, spécialisé dans le contenu pour l\\'Afrique de l\\'Ouest francophone.\\n\\nCrée un carrousel de 5-8 slides sur le sujet suivant :\\nSUJET : ' + $json.subject + '\\nRÉSEAU : ' + ($json.network || 'instagram') + '\\nCONTEXTE : Plateforme Max-Morrys, marketing digital, audience Sénégal/CI/Cameroun\\n\\nRÈGLES :\\n- Slide 1 : hook accrocheur (question ou affirmation choc)\\n- Slides 2-N : un point clé par slide, texte court, exemples locaux\\n- Dernière slide : CTA clair (suivre le compte, visiter maxmorrys.me, s\\'inscrire)\\n- Palette : couleurs de la marque Max-Morrys\\n- Texte lisible sur mobile (gros caractères)\\n- Emojis utilisés avec parcimonie\\n\\nPour chaque slide, donne aussi un prompt de génération d\\'image de fond.\\n\\nRÉPONSE JSON :\\n{\\n  \"carousel_title\": \"\",\\n  \"total_slides\": 0,\\n  \"slides\": [{\\n    \"slide_number\": 1,\\n    \"headline\": \"texte principal gros\",\\n    \"body_text\": \"texte secondaire\",\\n    \"background_prompt\": \"prompt pour générer le fond de la slide\",\\n    \"layout\": \"centered|left|right|split\",\\n    \"accent_color\": \"#hex\"\\n  }],\\n  \"caption\": \"caption pour accompagner le carrousel\",\\n  \"hashtags\": []\\n}' }] }], generationConfig: { temperature: 0.8, maxOutputTokens: 4096, responseMimeType: 'application/json' } }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "wf16-gemini",
+      "name": "Gemini Flash — Concevoir le carrousel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst input = $('Execute Workflow Trigger').first().json;\n\nlet carousel;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  carousel = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing carrousel: ' + e.message);\n}\n\n// Output each slide as separate item for batch processing\nconst slides = (carousel.slides || []).map(slide => ({\n  ...slide,\n  carousel_title: carousel.carousel_title,\n  caption: carousel.caption,\n  hashtags: carousel.hashtags,\n  subject: input.subject,\n  network: input.network || 'instagram'\n}));\n\nreturn slides.map(s => ({ json: s }));"
+      },
+      "id": "wf16-parse",
+      "name": "Parse — Extraire les slides",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "wf16-batch",
+      "name": "Batch — Par slide",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.WF15_WORKFLOW_ID || '' }}",
+        "options": {}
+      },
+      "id": "wf16-call-wf15",
+      "name": "Execute — WF-15 Image slide",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1200, 300],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allSlides = $('Batch — Par slide').all();\nconst imageResults = $input.all();\n\nconst result = allSlides.map((slide, i) => ({\n  slide_number: slide.json.slide_number,\n  headline: slide.json.headline,\n  body_text: slide.json.body_text,\n  image_url: imageResults[i]?.json?.file_url || '',\n  layout: slide.json.layout\n}));\n\nconst firstSlide = allSlides[0]?.json || {};\n\nreturn [{\n  json: {\n    carousel_title: firstSlide.carousel_title,\n    slides: result,\n    caption: firstSlide.caption,\n    hashtags: firstSlide.hashtags,\n    subject: firstSlide.subject,\n    network: firstSlide.network,\n    generated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "wf16-assemble",
+      "name": "Assembler — Carrousel final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 300]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Medias Generes" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.generated_at }}",
+            "Type": "=carrousel",
+            "Pour": "={{ $json.network }}",
+            "Prompt": "={{ $json.subject }}",
+            "URL_Drive": "={{ $json.slides.map(s => s.image_url).join(', ') }}",
+            "Dimensions": "=1080x1080",
+            "Status": "=produit"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf16-sheets",
+      "name": "Sheets — Log carrousel",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1800, 300],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [[{ "node": "Gemini Flash — Concevoir le carrousel", "type": "main", "index": 0 }]] },
+    "Gemini Flash — Concevoir le carrousel": { "main": [[{ "node": "Parse — Extraire les slides", "type": "main", "index": 0 }]] },
+    "Parse — Extraire les slides": { "main": [[{ "node": "Batch — Par slide", "type": "main", "index": 0 }]] },
+    "Batch — Par slide": { "main": [[{ "node": "Execute — WF-15 Image slide", "type": "main", "index": 0 }]] },
+    "Execute — WF-15 Image slide": { "main": [[{ "node": "Batch — Par slide", "type": "main", "index": 0 }]] },
+    "Assembler — Carrousel final": { "main": [[{ "node": "Sheets — Log carrousel", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "media-creation" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

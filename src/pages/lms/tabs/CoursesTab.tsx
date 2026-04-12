@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Play, CheckCircle, Award, Loader2, GraduationCap, ArrowRight } from 'lucide-react';
+import { Play, CheckCircle, Award, Loader2, GraduationCap, ArrowRight } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Play, FileText, CheckCircle, Award, ChevronDown, ChevronUp, Download, Check, Loader2, Lock, ArrowRight, List } from 'lucide-react';
+import { Play, FileText, CheckCircle, Award, ChevronDown, ChevronUp, Download, Check, Loader2, Lock, ArrowRight, List } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Sheet from '../../components/ui/Sheet';
@@ -10,6 +10,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getFormationBySlug, getUserEnrollments, updateEnrollmentProgress } from '../../lib/firestore';
 import { markdownToHtml } from '../../lib/utils';
 import type { Formation, Lesson, Enrollment } from '../../types';
+import { captureError } from '../../lib/sentry';
+import { trackViewContent, trackLessonCompleted, trackCourseProgress } from '../../lib/meta-pixel';
 
 function CourseOutline({
   formation, totalLessons, expandedModules, toggleModule,
@@ -101,6 +103,7 @@ export default function CoursePlayer() {
     ]).then(([f, enrollments]) => {
       setFormation(f);
       if (f) {
+        trackViewContent({ content_type: 'course', content_ids: [f.id], content_name: f.title });
         const e = enrollments.find((en) => en.formationId === f.id);
         if (e) {
           setEnrollment(e);
@@ -131,16 +134,22 @@ export default function CoursePlayer() {
 
     setCompletedLessons(updated);
 
+    const isMarking = !completedLessons.includes(lessonId);
     const newProgress = totalLessons > 0 ? Math.round((updated.length / totalLessons) * 100) : 0;
-    if (newProgress === 100 && !completedLessons.includes(lessonId)) {
+    if (newProgress === 100 && isMarking) {
       addToast('success', 'Félicitations ! Tu as terminé cette formation !');
+    }
+
+    if (isMarking && formation) {
+      trackLessonCompleted(formation.id, lessonId);
+      trackCourseProgress(formation.id, newProgress);
     }
 
     setSaving(true);
     try {
       await updateEnrollmentProgress(enrollment.id, updated, newProgress);
     } catch (error: unknown) {
-      console.error('Failed to save enrollment progress:', error);
+      captureError(error, { context: 'Failed to save enrollment progress' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde de la progression.');
     } finally {
       setSaving(false);
@@ -256,7 +265,7 @@ export default function CoursePlayer() {
                     <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-4">{activeLesson.title}</h2>
                     {activeLesson.content ? (
                       <div
-                        className="prose prose-sm max-w-none"
+                        className="prose-article prose prose-sm sm:prose-base dark:prose-invert max-w-none prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium"
                         dangerouslySetInnerHTML={{ __html: markdownToHtml(activeLesson.content) }}
                       />
                     ) : (

@@ -3,7 +3,11 @@ import { Link } from 'react-router-dom';
 import { Search, Clock, ArrowRight, Loader2, AlertCircle, MessageSquare, Rss } from 'lucide-react';
 import { getPublishedPosts } from '../lib/firestore';
 import { formatDate, truncate } from '../lib/utils';
+import { trackSearch } from '../lib/meta-pixel';
 import type { BlogPost } from '../types';
+import SEOHead from '../components/seo/SEOHead';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_URL } from '../components/seo/seo-config';
 
 export default function Blog() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -23,6 +27,12 @@ export default function Blog() {
 
   useEffect(() => { load(); }, []);
 
+  useEffect(() => {
+    if (!search.trim()) return;
+    const timer = setTimeout(() => trackSearch(search.trim()), 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const categories = useMemo(
     () => ['Tous', ...Array.from(new Set(posts.map((p) => p.category).filter(Boolean)))],
     [posts]
@@ -39,6 +49,18 @@ export default function Blog() {
 
   return (
     <div>
+      <SEOHead
+        title="Blog Marketing Digital — Articles et Conseils"
+        description="Articles, analyses et conseils pratiques en marketing digital, SEO, IA et stratégie de croissance. Par Max-Morrys depuis Dakar."
+      />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Blog Marketing Digital',
+        description: 'Articles et conseils en marketing digital, SEO et IA.',
+        url: `${SITE_URL}/blog`,
+        isPartOf: { '@type': 'WebSite', name: 'Max-Morrys', url: SITE_URL },
+      }} />
 
       {/* ── HERO editorial ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">

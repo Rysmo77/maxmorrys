@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /mon-espace
+Disallow: /checkout
+Disallow: /paiement
+Disallow: /403
+Sitemap: https://maxmorrys.me/sitemap.xml

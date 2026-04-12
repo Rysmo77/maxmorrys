@@ -1,0 +1,225 @@
+{
+  "name": "WF-04 — Publication Automatique (Réseaux Sociaux)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf04-publier",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wf04-webhook",
+      "name": "Webhook — Déclencher publication",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst body = input.body || input;\n\nconst post = {\n  network: body.network || 'facebook',\n  text: body.text || body.content || '',\n  hashtags: body.hashtags || [],\n  media_url: body.media_url || '',\n  media_type: body.media_type || 'image',\n  scheduled_time: body.scheduled_time || '',\n  subject: body.subject || '',\n  status: body.status || 'à_valider'\n};\n\nreturn [{ json: post }];"
+      },
+      "id": "wf04-normalize",
+      "name": "Normaliser — Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.status }}", "operation": "equals", "value2": "validé" }]
+        }
+      },
+      "id": "wf04-check-validated",
+      "name": "IF — Post validé ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "%%SMTP_EMAIL%%",
+        "toEmail": "%%ADMIN_EMAIL%%",
+        "subject": "=📱 Post à valider — {{ $('Normaliser — Input').first().json.network }} — {{ $('Normaliser — Input').first().json.subject }}",
+        "emailType": "html",
+        "html": "=<h2>Post en attente de validation</h2><p><strong>Réseau :</strong> {{ $('Normaliser — Input').first().json.network }}</p><p><strong>Sujet :</strong> {{ $('Normaliser — Input').first().json.subject }}</p><p><strong>Contenu :</strong></p><blockquote>{{ $('Normaliser — Input').first().json.text }}</blockquote><p><strong>Hashtags :</strong> {{ $('Normaliser — Input').first().json.hashtags.join(' ') }}</p><p>Pour valider et publier, renvoyez ce post au webhook avec status='validé'.</p>"
+      },
+      "id": "wf04-email-validate",
+      "name": "Email — Demande de validation",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [900, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            { "outputKey": "facebook", "value": "facebook" },
+            { "outputKey": "instagram", "value": "instagram" },
+            { "outputKey": "linkedin", "value": "linkedin" },
+            { "outputKey": "twitter", "value": "twitter" }
+          ]
+        },
+        "fallbackOutput": "facebook",
+        "dataPropertyName": "={{ $json.network }}"
+      },
+      "id": "wf04-switch-network",
+      "name": "Switch — Réseau social",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/me/feed",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "Bearer %%FB_PAGE_ACCESS_TOKEN%%" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $json.text + '\\n\\n' + $json.hashtags.join(' '), link: $json.media_url || undefined }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "wf04-publish-fb",
+      "name": "Facebook — Publier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 0],
+      "onError": "continueRegularOutput",
+      "notesInFlow": true,
+      "notes": "PLACEHOLDER: Remplacer %%FB_PAGE_ACCESS_TOKEN%% par le token réel"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/me/media",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "Bearer %%FB_PAGE_ACCESS_TOKEN%%" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ caption: $json.text + '\\n\\n' + $json.hashtags.join(' '), image_url: $json.media_url }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "wf04-publish-ig",
+      "name": "Instagram — Publier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 200],
+      "onError": "continueRegularOutput",
+      "notesInFlow": true,
+      "notes": "PLACEHOLDER: Nécessite Instagram Graph API via Facebook Business"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.linkedin.com/v2/ugcPosts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer %%LINKEDIN_ACCESS_TOKEN%%" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ author: 'urn:li:person:%%LINKEDIN_PERSON_ID%%', lifecycleState: 'PUBLISHED', specificContent: { 'com.linkedin.ugc.ShareContent': { shareCommentary: { text: $json.text }, shareMediaCategory: 'NONE' } }, visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' } }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "wf04-publish-li",
+      "name": "LinkedIn — Publier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 400],
+      "onError": "continueRegularOutput",
+      "notesInFlow": true,
+      "notes": "PLACEHOLDER: Remplacer tokens et LINKEDIN_PERSON_ID"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twitter.com/2/tweets",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer %%TWITTER_BEARER_TOKEN%%" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: ($json.text + ' ' + $json.hashtags.join(' ')).substring(0, 280) }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "wf04-publish-tw",
+      "name": "Twitter — Publier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 600],
+      "onError": "continueRegularOutput",
+      "notesInFlow": true,
+      "notes": "PLACEHOLDER: Remplacer %%TWITTER_BEARER_TOKEN%%"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "%%GOOGLE_SHEETS_ID%%" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Calendrier Editorial" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Sujet": "={{ $('Normaliser — Input').first().json.subject }}",
+            "Reseau": "={{ $('Normaliser — Input').first().json.network }}",
+            "Status_Publication": "=publié",
+            "URL_Post": "={{ $input.first().json?.id || 'published' }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "wf04-sheets",
+      "name": "Sheets — Status publié",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1500, 300],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook — Déclencher publication": { "main": [[{ "node": "Normaliser — Input", "type": "main", "index": 0 }]] },
+    "Normaliser — Input": { "main": [[{ "node": "IF — Post validé ?", "type": "main", "index": 0 }]] },
+    "IF — Post validé ?": {
+      "main": [
+        [{ "node": "Switch — Réseau social", "type": "main", "index": 0 }],
+        [{ "node": "Email — Demande de validation", "type": "main", "index": 0 }]
+      ]
+    },
+    "Switch — Réseau social": {
+      "main": [
+        [{ "node": "Facebook — Publier", "type": "main", "index": 0 }],
+        [{ "node": "Instagram — Publier", "type": "main", "index": 0 }],
+        [{ "node": "LinkedIn — Publier", "type": "main", "index": 0 }],
+        [{ "node": "Twitter — Publier", "type": "main", "index": 0 }]
+      ]
+    },
+    "Facebook — Publier": { "main": [[{ "node": "Sheets — Status publié", "type": "main", "index": 0 }]] },
+    "Instagram — Publier": { "main": [[{ "node": "Sheets — Status publié", "type": "main", "index": 0 }]] },
+    "LinkedIn — Publier": { "main": [[{ "node": "Sheets — Status publié", "type": "main", "index": 0 }]] },
+    "Twitter — Publier": { "main": [[{ "node": "Sheets — Status publié", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    { "name": "maxmorrys" },
+    { "name": "community-management" }
+  ],
+  "pinData": {},
+  "staticData": null
+}

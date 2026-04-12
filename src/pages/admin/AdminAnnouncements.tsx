@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Megaphone, Loader2, ChevronDown, ToggleLeft, ToggleRight } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import Pagination from '../../components/ui/Pagination';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
+import { usePagination } from '../../hooks/usePagination';
 import { getAllAnnouncements, saveAnnouncement, deleteAnnouncement } from '../../lib/firestore';
 import { formatDate } from '../../lib/utils';
 import type { Announcement } from '../../types';
+import { captureError } from '../../lib/sentry';
 
 const EMPTY: Omit<Announcement, 'id'> = {
   title: '', content: '', type: 'info', active: true,
@@ -21,6 +26,7 @@ const TYPE_COLORS: Record<Announcement['type'], string> = {
 
 export default function AdminAnnouncements() {
   const { addToast } = useToast();
+  const confirm = useConfirmDialog();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,24 +62,34 @@ export default function AdminAnnouncements() {
       setModalOpen(false);
       load();
     } catch (error: unknown) {
-      console.error('Save announcement failed:', error);
+      captureError(error, { context: 'Save announcement failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cette annonce ?')) return;
-    await deleteAnnouncement(id).catch(() => addToast('error', 'Erreur de suppression.'));
-    setAnnouncements((prev) => prev.filter((a) => a.id !== id));
-    addToast('success', 'Annonce supprimée.');
+  const handleDelete = (id: string) => {
+    confirm.requestConfirm('Supprimer cette annonce ?', async () => {
+      try {
+        await deleteAnnouncement(id).catch(() => addToast('error', 'Erreur de suppression.'));
+        setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+        addToast('success', 'Annonce supprimée.');
+      } catch (error: unknown) {
+        captureError(error, { context: 'Delete announcement failed' });
+        addToast('error', 'Erreur de suppression.');
+      }
+      confirm.closeConfirm();
+    });
   };
 
   const handleToggleActive = async (a: Announcement) => {
     await saveAnnouncement({ ...a, active: !a.active }).catch(() => addToast('error', 'Erreur.'));
     setAnnouncements((prev) => prev.map((ea) => ea.id === a.id ? { ...ea, active: !a.active } : ea));
   };
+
+  const filtered = announcements;
+  const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   const inputCls = 'w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500';
 
@@ -95,8 +111,9 @@ export default function AdminAnnouncements() {
           <p className="text-neutral-500">Aucune annonce. Créez la première.</p>
         </div>
       ) : (
+        <>
         <div className="space-y-3">
-          {announcements.map((a) => (
+          {paged.map((a) => (
             <div key={a.id} className={`bg-white dark:bg-neutral-800 border rounded-2xl p-5 transition-colors ${a.active ? 'border-neutral-200 dark:border-neutral-700' : 'border-dashed border-neutral-200 dark:border-neutral-700 opacity-60'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
@@ -123,6 +140,8 @@ export default function AdminAnnouncements() {
             </div>
           ))}
         </div>
+        <div className="flex justify-center mt-4"><Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} /></div>
+        </>
       )}
 
       {/* Modal */}
@@ -186,6 +205,8 @@ export default function AdminAnnouncements() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title="Supprimer" message={confirm.message} confirmLabel="Supprimer" />
     </div>
   );
 }

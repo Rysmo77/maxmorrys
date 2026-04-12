@@ -6,6 +6,7 @@ import Card from '../../components/ui/Card';
 import { useToast } from '../../components/ui/Toast';
 import { getSiteSettings, saveSiteSettings } from '../../lib/firestore';
 import { cn } from '../../lib/utils';
+import { captureError } from '../../lib/sentry';
 
 interface Settings {
   siteName: string;
@@ -68,10 +69,10 @@ export default function AdminSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveSiteSettings(settings as Record<string, unknown>);
+      await saveSiteSettings(settings as unknown as Record<string, unknown>);
       addToast('success', 'Paramètres enregistrés avec succès.');
     } catch (error: unknown) {
-      console.error('Save settings failed:', error);
+      captureError(error, { context: 'Save settings failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement. Veuillez réessayer.');
     } finally {
       setSaving(false);

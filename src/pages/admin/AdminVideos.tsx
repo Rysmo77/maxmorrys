@@ -3,11 +3,16 @@ import { Plus, Search, Trash2, Edit2, Video as VideoIcon, Loader2, ChevronDown }
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../config/firebase';
 import Button from '../../components/ui/Button';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import ImageInput from '../../components/ui/ImageInput';
 import { useToast } from '../../components/ui/Toast';
+import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { getAllVideos, saveVideo, deleteVideo } from '../../lib/firestore';
 import { slugify, formatDate, extractYoutubeVideoId, parseISODuration } from '../../lib/utils';
 import type { Video } from '../../types';
+import { captureError } from '../../lib/sentry';
+import Pagination from '../../components/ui/Pagination';
+import { usePagination } from '../../hooks/usePagination';
 
 const youtubeProxyCallable = httpsCallable<
   { videoId: string },
@@ -22,6 +27,7 @@ const EMPTY: Omit<Video, 'id'> = {
 
 export default function AdminVideos() {
   const { addToast } = useToast();
+  const confirm = useConfirmDialog();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -92,18 +98,24 @@ export default function AdminVideos() {
       setModalOpen(false);
       load();
     } catch (error: unknown) {
-      console.error('Save video failed:', error);
+      captureError(error, { context: 'Save video failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cette vidéo ?')) return;
-    await deleteVideo(id).catch(() => addToast('error', 'Erreur de suppression.'));
-    setVideos((prev) => prev.filter((v) => v.id !== id));
-    addToast('success', 'Vidéo supprimée.');
+  const handleDelete = (id: string) => {
+    confirm.requestConfirm('Supprimer cette vidéo ? Cette action est irréversible.', async () => {
+      try {
+        await deleteVideo(id);
+        setVideos((prev) => prev.filter((v) => v.id !== id));
+        addToast('success', 'Vidéo supprimée.');
+      } catch {
+        addToast('error', 'Erreur de suppression.');
+      }
+      confirm.closeConfirm();
+    });
   };
 
   const handleToggleStatus = async (v: Video) => {
@@ -117,6 +129,8 @@ export default function AdminVideos() {
     const matchStatus = statusFilter === 'all' || v.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   const inputCls = 'w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500';
 
@@ -153,6 +167,7 @@ export default function AdminVideos() {
           <p className="text-neutral-500">Aucune vidéo trouvée.</p>
         </div>
       ) : (
+        <>
         <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
@@ -166,7 +181,7 @@ export default function AdminVideos() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100 dark:divide-neutral-700">
-              {filtered.map((v) => (
+              {paged.map((v) => (
                 <tr key={v.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/30 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -202,6 +217,8 @@ export default function AdminVideos() {
             </tbody>
           </table>
         </div>
+        <div className="flex justify-center mt-4"><Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} /></div>
+        </>
       )}
 
       {/* Modal */}
@@ -274,6 +291,14 @@ export default function AdminVideos() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={confirm.open}
+        onClose={confirm.closeConfirm}
+        onConfirm={confirm.onConfirm}
+        title="Supprimer"
+        message={confirm.message}
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }

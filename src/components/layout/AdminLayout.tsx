@@ -36,7 +36,10 @@ export default function AdminLayout() {
   const { theme, toggleTheme } = useTheme();
   const { signOut, userData } = useAuth();
   const isAdmin = userData?.role === 'admin';
+  const isSupport = userData?.role === 'support';
   const navItems = ALL_NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+  // Support users see a limited label
+  const panelLabel = isSupport ? 'Support' : 'Admin';
 
   const handleSignOut = async () => {
     await signOut();
@@ -48,7 +51,7 @@ export default function AdminLayout() {
       <div className="p-4 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700">
         <Link to="/admin" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold text-xs">MM</div>
-          {!collapsed && <span className="font-bold text-neutral-900 dark:text-white text-sm">Admin</span>}
+          {!collapsed && <span className="font-bold text-neutral-900 dark:text-white text-sm">{panelLabel}</span>}
         </Link>
         <button onClick={() => setCollapsed(!collapsed)} className="hidden lg:block p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-400">
           <ChevronLeft className={cn('w-4 h-4 transition-transform', collapsed && 'rotate-180')} />

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, BookOpen, Award, Rss, Crown, Info, Check, X } from 'lucide-react';
+import { Bell, BookOpen, Award, Rss, Crown, Info, Check } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { subscribeNotifications, markNotificationRead, markAllNotificationsRead } from '../../lib/firestore';
 import { cn, formatDate } from '../../lib/utils';
