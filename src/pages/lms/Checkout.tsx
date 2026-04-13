@@ -13,7 +13,7 @@ import type { Formation } from '../../types';
 import { trackInitiateCheckout, trackPurchase, generateEventId } from '../../lib/meta-pixel';
 
 const createBictorysCharge = httpsCallable<
-  { formationId: string; formationSlug: string; metaEventId?: string },
+  { formationId: string; formationSlug: string; metaEventId?: string; couponCode?: string },
   { checkoutUrl: string; transactionId: string }
 >(functions, 'createBictorysCharge');
 
@@ -124,6 +124,7 @@ export default function Checkout() {
           formationId: formation.id,
           formationSlug: formation.slug,
           metaEventId: eventId,
+          ...(couponCode.trim() && { couponCode: couponCode.trim() }),
         });
 
         // Redirect to Bictorys hosted checkout

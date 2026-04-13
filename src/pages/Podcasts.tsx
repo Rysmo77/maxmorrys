@@ -328,7 +328,7 @@ export default function Podcasts() {
               </div>
               <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-6 py-4 flex items-center justify-between">
                 <span className="text-neutral-500 dark:text-neutral-400 text-sm">Abonnement annuel</span>
-                <span className="text-xl font-black text-neutral-900 dark:text-white">10 000 <span className="text-yellow-500 dark:text-yellow-400 text-sm font-bold">FCFA</span></span>
+                <span className="text-xl font-black text-neutral-900 dark:text-white">19 900 <span className="text-yellow-500 dark:text-yellow-400 text-sm font-bold">FCFA</span></span>
               </div>
             </div>
 

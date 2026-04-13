@@ -29,7 +29,7 @@ export async function activateClubSubscription(
     expiresAt: expiresAt.toISOString(),
     autoRenew,
     status: 'pending',
-    amount: 10000,
+    amount: 19900,
   } as DocumentData);
 }
 

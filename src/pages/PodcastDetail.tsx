@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Headphones, Clock, Calendar, ArrowLeft, Loader2 } from 'lucide-react';
 import { getPodcastBySlug, getPublishedPodcasts } from '../lib/firestore';
+import FormationCTA from '../components/shared/FormationCTA';
 import { formatDate, markdownToHtml } from '../lib/utils';
 import type { Podcast } from '../types';
 import { trackViewContent } from '../lib/meta-pixel';
@@ -196,6 +197,11 @@ export default function PodcastDetail() {
                   />
                 </div>
               )}
+            </div>
+
+            {/* Formation CTA */}
+            <div className="mb-8">
+              <FormationCTA category={podcast.category} />
             </div>
 
             {/* Autres épisodes */}

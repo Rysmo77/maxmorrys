@@ -340,7 +340,7 @@ export function useAdminClub() {
 
   const activeCount = subscriptions.filter((s) => s.status === 'active').length;
   const pendingCount = subscriptions.filter((s) => s.status === 'pending').length;
-  const revenue = subscriptions.filter((s) => s.status === 'active').length * 10000;
+  const revenue = subscriptions.filter((s) => s.status === 'active').length * 19900;
 
   return {
     // Tab

@@ -12,7 +12,7 @@ export { adminCreateUser, adminManageEnrollment } from './admin';
 export { spotifyProxy, youtubeProxy } from './proxy';
 
 // ── Payments ──────────────────────────────────────────────────────────────
-export { createBictorysCharge, bictorysWebhook } from './payment';
+export { createBictorysCharge, createClubCharge, bictorysWebhook } from './payment';
 
 // ── Notification triggers ─────────────────────────────────────────────────
 export { onEnrollmentCreated, onCertificateCreated, streakReminder, courseReminder } from './notifications';

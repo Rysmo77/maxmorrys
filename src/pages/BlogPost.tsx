@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Clock, Calendar, Share2, Linkedin, Copy, Check, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import NewsletterForm from '../components/shared/NewsletterForm';
+import FormationCTA from '../components/shared/FormationCTA';
 import { getPostBySlug, getPublishedPosts } from '../lib/firestore';
 import { formatDate, markdownToHtml } from '../lib/utils';
 import type { BlogPost as BlogPostType } from '../types';
@@ -185,6 +186,11 @@ export default function BlogPost() {
             {copied ? <Check className="w-4 h-4 text-success-500" /> : <Copy className="w-4 h-4" />}
             {copied ? 'Copie !' : 'Copier le lien'}
           </button>
+        </div>
+
+        {/* Formation CTA */}
+        <div className="mb-12">
+          <FormationCTA category={post.category} tags={post.tags} />
         </div>
 
         {/* Newsletter */}

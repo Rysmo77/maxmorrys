@@ -251,7 +251,7 @@ export default function Blog() {
                   </div>
                 </div>
                 <div className="pt-4 border-t border-white/10 flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-white">10 000</span>
+                  <span className="text-3xl font-black text-white">19 900</span>
                   <span className="text-yellow-400 font-bold">FCFA / an</span>
                 </div>
               </div>

@@ -53,6 +53,32 @@ export const rysmo = onCall(
     // Garder les 10 derniers messages pour le contexte
     const recentHistory = conversationHistory.slice(-10);
 
+    // Fetch available formations to enrich recommendations
+    let courseCatalog = '';
+    try {
+      const formationsSnap = await admin.firestore()
+        .collection('formations')
+        .where('status', '==', 'published')
+        .get();
+      if (!formationsSnap.empty) {
+        const courses = formationsSnap.docs.map((d) => {
+          const f = d.data();
+          const price = f.promoPrice ?? f.price;
+          return `- "${f.title}" (${f.category}, ${f.level}, ${price > 0 ? price + ' FCFA' : 'gratuit'}) → /formations/${f.slug}`;
+        });
+        courseCatalog = [
+          '',
+          'Catalogue de formations disponibles sur la plateforme :',
+          ...courses,
+          '',
+          "Quand l'étudiant pose une question sur un sujet couvert par une formation, recommande-lui le cours pertinent avec le lien.",
+          "Exemple : « Ce sujet est justement traité dans la formation \"Titre\". Tu peux la consulter ici : /formations/slug »",
+        ].join('\n');
+      }
+    } catch {
+      // Non-blocking: continue without catalog
+    }
+
     const systemPrompt = [
       "Tu es Rysmo, l'assistant répétiteur IA de la plateforme Max-Morrys.",
       "Max-Morrys est une plateforme de formation en marketing digital, SEO et intelligence artificielle.",
@@ -75,6 +101,7 @@ export const rysmo = onCall(
       userContext?.enrolledCourses?.length
         ? `Cours actuellement suivis : ${userContext.enrolledCourses.join(', ')}.`
         : '',
+      courseCatalog,
     ]
       .filter(Boolean)
       .join('\n');

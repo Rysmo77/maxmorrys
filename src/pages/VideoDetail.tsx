@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Play, Eye, Calendar, ArrowLeft, Clock, Loader2 } from 'lucide-react';
 import { getVideoBySlug, getPublishedVideos } from '../lib/firestore';
+import FormationCTA from '../components/shared/FormationCTA';
 import { formatDate, markdownToHtml } from '../lib/utils';
 import type { Video } from '../types';
 import { trackViewContent } from '../lib/meta-pixel';
@@ -183,6 +184,11 @@ export default function VideoDetail() {
                   />
                 </div>
               )}
+            </div>
+
+            {/* Formation CTA */}
+            <div className="mb-8">
+              <FormationCTA category={video.category} />
             </div>
 
             {/* Autres vidéos */}

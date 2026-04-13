@@ -300,7 +300,7 @@ export default function Formations() {
 
             {/* Price */}
             <div className="flex items-baseline gap-3 mb-5 pb-5 border-b border-neutral-200 dark:border-neutral-800">
-              <span className="text-4xl font-black text-neutral-900 dark:text-white">10 000</span>
+              <span className="text-4xl font-black text-neutral-900 dark:text-white">19 900</span>
               <div>
                 <span className="block text-yellow-500 dark:text-yellow-400 font-bold text-base">FCFA / an</span>
                 <span className="block text-neutral-400 dark:text-neutral-500 text-xs mt-0.5">Renouvellement auto ou manuel</span>

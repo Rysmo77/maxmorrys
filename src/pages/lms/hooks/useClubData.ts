@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/ui/Toast';
 import {
-  getClubSubscription, activateClubSubscription,
+  getClubSubscription,
   getClubPosts, createClubPost, likeClubPost, deleteClubPost, repostClubPost,
   getClubEvents, getClubSessions, getClubExclusiveInfos, likeClubInfo,
   getClubComments, addClubComment, deleteClubComment,
@@ -10,9 +10,15 @@ import {
   registerForClubSession, unregisterFromClubSession,
 } from '../../../lib/firestore';
 import { doc, getDoc } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { captureError } from '../../../lib/sentry';
-import { db, storage } from '../../../config/firebase';
+import { db, storage, functions } from '../../../config/firebase';
+
+const createClubCharge = httpsCallable<
+  { autoRenew?: boolean },
+  { checkoutUrl: string; transactionId: string }
+>(functions, 'createClubCharge');
 import type { ClubDigitosSubscription, ClubDigitosPost, ClubDigitosEvent, ClubDigitosSession, ClubDigitosInfo, ClubDigitosComment, ClubPostCategory } from '../../../types';
 
 export type ClubSubTab = 'feed' | 'events' | 'sessions' | 'infos';
@@ -109,14 +115,13 @@ export function useClubData() {
     if (!user?.email) return;
     setActivatingClub(true);
     try {
-      await activateClubSubscription(user.uid, user.email, displayName, clubAutoRenew);
-      const sub = await getClubSubscription(user.uid);
-      setClubSubscription(sub);
-      addToast('success', 'Demande envoyée ! Effectue le paiement de 10 000 FCFA pour finaliser ton accès.');
+      const result = await createClubCharge({ autoRenew: clubAutoRenew });
+      // Redirect to Bictorys hosted checkout
+      window.location.href = result.data.checkoutUrl;
     } catch (error: unknown) {
-      captureError(error, { context: 'Failed to activate club subscription' });
-      addToast('error', error instanceof Error ? error.message : "Erreur lors de la demande d'activation.");
-    } finally {
+      captureError(error, { context: 'Failed to create club charge' });
+      const msg = error instanceof Error ? error.message : "Erreur lors de la création du paiement. Réessaie.";
+      addToast('error', msg);
       setActivatingClub(false);
     }
   };
