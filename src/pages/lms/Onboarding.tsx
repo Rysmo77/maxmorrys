@@ -9,7 +9,7 @@ import { updateProfile } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../config/firebase';
 import { captureError } from '../../lib/sentry';
-import { trackCompleteRegistration } from '../../lib/meta-pixel';
+import { trackEvent } from '../../lib/tracking';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -82,12 +82,12 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     try {
       await updateUserProfile(user.uid, { onboardingCompleted: true });
       await refreshUserData();
-      trackCompleteRegistration({ content_name: 'Onboarding', status: 'complete' });
+      trackEvent('onboarding_completed', { method: 'profile_form' });
+      onComplete();
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to mark onboarding as completed' });
-      // Continue anyway
+      addToast('error', error instanceof Error ? error.message : "Impossible d'enregistrer. Reessaie.");
     }
-    onComplete();
   };
 
   const initials = (displayName || user?.email?.split('@')[0] || 'É')

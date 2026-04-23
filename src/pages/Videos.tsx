@@ -140,6 +140,8 @@ export default function Videos() {
                     alt={heroVideo.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     loading="eager"
+                    width={1280}
+                    height={720}
                   />
                   {/* Dark overlay + play button */}
                   <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
@@ -304,6 +306,8 @@ export default function Videos() {
                     alt={video.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
+                    width={480}
+                    height={270}
                   />
                   <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <div className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center shadow-lg">

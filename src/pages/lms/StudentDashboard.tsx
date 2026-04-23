@@ -74,9 +74,9 @@ export default function StudentDashboard() {
     }).catch(() => { setLoadingMessages(false); addToast('error', 'Impossible de charger tes messages.'); });
   }, [user, activeTab]);
 
-  // Load certificates when tab opens
+  // Load certificates when tab opens (achievements or courses)
   useEffect(() => {
-    if (!user || activeTab !== 'achievements') return;
+    if (!user || (activeTab !== 'achievements' && activeTab !== 'courses')) return;
     setLoadingCerts(true);
     getUserCertificates(user.uid).then((data) => {
       setCertificates(data);
@@ -226,6 +226,7 @@ export default function StudentDashboard() {
               <CoursesTab
                 enrolledFormations={enrolledFormations}
                 loadingEnrollments={loadingEnrollments}
+                certificates={certificates}
               />
             )}
             {activeTab === 'notes' && (

@@ -198,6 +198,8 @@ export default function Podcasts() {
                   alt={featured.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="eager"
+                  width={560}
+                  height={560}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 <div className="absolute top-4 left-4">
@@ -251,6 +253,8 @@ export default function Podcasts() {
                     alt={podcast.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
+                    width={400}
+                    height={400}
                   />
                   <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <div className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center shadow-lg">

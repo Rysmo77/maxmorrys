@@ -46,22 +46,24 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
             {inProgress && inProgress.formation ? (
               <div className="mt-3">
                 <p className="text-brand-100 text-sm mb-2">Reprends où tu t'es arrêté :</p>
-                <div className="flex items-center gap-4 bg-white/10 rounded-xl p-3">
-                  {inProgress.formation.coverImage && (
-                    <img src={inProgress.formation.coverImage} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{inProgress.formation.title}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white rounded-full transition-all" style={{ width: `${inProgress.enrollment.progress}%` }} />
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 bg-white/10 rounded-xl p-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {inProgress.formation.coverImage && (
+                      <img src={inProgress.formation.coverImage} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm truncate">{inProgress.formation.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                          <div className="h-full bg-white rounded-full transition-all" style={{ width: `${inProgress.enrollment.progress}%` }} />
+                        </div>
+                        <span className="text-xs text-brand-100 flex-shrink-0">{inProgress.enrollment.progress}%</span>
                       </div>
-                      <span className="text-xs text-brand-100 flex-shrink-0">{inProgress.enrollment.progress}%</span>
                     </div>
                   </div>
                   <Link
                     to={`/cours/${inProgress.formation.slug}`}
-                    className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-white text-brand-700 font-bold text-sm rounded-full hover:bg-brand-50 transition-colors"
+                    className="flex-shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-white text-brand-700 font-bold text-sm rounded-full hover:bg-brand-50 transition-colors w-full sm:w-auto"
                   >
                     <Play className="w-3.5 h-3.5" /> Reprendre
                   </Link>
@@ -140,22 +142,24 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
         ) : (
           <div className="space-y-3">
             {enrolledFormations.filter((ef) => ef.enrollment.progress < 100).slice(0, 3).map(({ enrollment, formation }) => (
-              <div key={enrollment.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 flex items-center gap-4">
-                {formation?.coverImage && (
-                  <img src={formation.coverImage} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" loading="lazy" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-neutral-900 dark:text-white truncate">{formation?.title ?? 'Formation'}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-1 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${enrollment.progress}%` }} />
+              <div key={enrollment.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                  {formation?.coverImage && (
+                    <img src={formation.coverImage} alt="" className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover flex-shrink-0" loading="lazy" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-neutral-900 dark:text-white truncate">{formation?.title ?? 'Formation'}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex-1 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${enrollment.progress}%` }} />
+                      </div>
+                      <span className="text-xs text-neutral-500 flex-shrink-0">{enrollment.progress}%</span>
                     </div>
-                    <span className="text-xs text-neutral-500 flex-shrink-0">{enrollment.progress}%</span>
                   </div>
                 </div>
                 {formation && (
-                  <Link to={`/cours/${formation.slug}`}>
-                    <Button size="sm" icon={<Play className="w-3.5 h-3.5" />}>Continuer</Button>
+                  <Link to={`/cours/${formation.slug}`} className="w-full sm:w-auto">
+                    <Button size="sm" className="w-full sm:w-auto" icon={<Play className="w-3.5 h-3.5" />}>Continuer</Button>
                   </Link>
                 )}
               </div>

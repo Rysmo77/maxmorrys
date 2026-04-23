@@ -9,7 +9,7 @@ import { db } from '../config/firebase';
 import { saveAppointment, getAllFAQ } from '../lib/firestore';
 import type { FAQ } from '../types';
 import { captureError } from '../lib/sentry';
-import { trackLead, trackContact } from '../lib/meta-pixel';
+import { trackGenerateLead, trackContact } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
@@ -66,6 +66,7 @@ export default function Contact() {
     else if (!EMAIL_RE.test(form.email.trim())) errs.email = 'Adresse email invalide';
     if (!form.subject.trim()) errs.subject = 'Le sujet est requis';
     if (!form.message.trim()) errs.message = 'Le message est requis';
+    else if (form.message.trim().length < 10) errs.message = 'Le message doit faire au moins 10 caractères';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -83,7 +84,7 @@ export default function Contact() {
         sentAt: new Date().toISOString(),
         status: 'new',
       });
-      trackLead('Contact Form');
+      trackGenerateLead('contact_form');
       addToast('success', 'Message envoyé avec succès ! Je te répondrai rapidement.');
       setForm({ name: '', email: '', subject: '', message: '', _hp: '' });
     } catch (error: unknown) {
@@ -126,7 +127,7 @@ export default function Contact() {
         subject: bookingForm.subject,
         message: bookingForm.message.trim() || undefined,
       });
-      trackLead('Booking');
+      trackGenerateLead('appointment_booking');
       setBookingSuccess(true);
     } catch (error: unknown) {
       captureError(error, { context: 'Save appointment failed' });
@@ -254,7 +255,7 @@ export default function Contact() {
                       href={info.link}
                       target={info.link.startsWith('http') ? '_blank' : undefined}
                       rel="noopener noreferrer"
-                      onClick={() => trackContact()}
+                      onClick={() => trackContact('appointment_cta')}
                       className="group flex items-center gap-4 p-5 rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
                     >
                       <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center shrink-0">

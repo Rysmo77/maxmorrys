@@ -5,6 +5,7 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
+import { localizeAuthError } from '../../lib/auth-errors';
 
 export default function ResetPassword() {
   const [email, setEmail] = useState('');
@@ -22,7 +23,7 @@ export default function ResetPassword() {
       setSent(true);
       addToast('success', 'Email de réinitialisation envoyé.');
     } catch (error: unknown) {
-      addToast('error', (error as Error).message || 'Une erreur est survenue');
+      addToast('error', localizeAuthError(error));
     }
     setLoading(false);
   };

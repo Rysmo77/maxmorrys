@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Star, Users, Clock, ArrowRight, Play, Loader2, Calendar, MessageSquare, Video, Bell, Building2, Lock, Rss } from 'lucide-react';
 import { getPublishedFormations } from '../lib/firestore';
-import { trackSearch, trackClubJoinIntent } from '../lib/meta-pixel';
+import { trackSearch, trackClubJoinIntent } from '../lib/tracking';
 import type { Formation } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
@@ -182,6 +182,8 @@ export default function Formations() {
                     alt={featuredFormation.title}
                     className="w-full h-full object-cover"
                     loading="eager"
+                    width={800}
+                    height={450}
                   />
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                     <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center">
@@ -241,6 +243,8 @@ export default function Formations() {
                       alt={formation.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
+                      width={400}
+                      height={225}
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
                       <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">

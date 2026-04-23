@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
+import { localizeAuthError } from '../../lib/auth-errors';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -58,7 +59,7 @@ export default function Register() {
       addToast('success', 'Compte créé avec succès ! Bienvenue.');
       navigate('/mon-espace');
     } catch (error: unknown) {
-      addToast('error', (error as Error).message || 'Une erreur est survenue');
+      addToast('error', localizeAuthError(error));
     }
     setLoading(false);
   };
@@ -70,7 +71,7 @@ export default function Register() {
       addToast('success', 'Compte créé avec succès ! Bienvenue.');
       navigate('/mon-espace');
     } catch (error: unknown) {
-      addToast('error', (error as Error).message || 'Erreur de connexion avec Google');
+      addToast('error', localizeAuthError(error));
     }
     setGoogleLoading(false);
   };

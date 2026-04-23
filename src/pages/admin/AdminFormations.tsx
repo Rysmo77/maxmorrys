@@ -288,7 +288,7 @@ export default function AdminFormations() {
   };
 
   const totalLessons = form.modules.reduce((acc, m) => acc + m.lessons.length, 0);
-  const filtered = list.filter((f) => f.title.toLowerCase().includes(search.toLowerCase()) || f.category?.toLowerCase().includes(search.toLowerCase()));
+  const filtered = list.filter((f) => (f.title ?? '').toLowerCase().includes(search.toLowerCase()) || (f.category ?? '').toLowerCase().includes(search.toLowerCase()));
   const { paged, page, totalPages, setPage } = usePagination(filtered);
 
   return (

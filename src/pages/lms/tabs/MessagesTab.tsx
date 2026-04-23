@@ -47,7 +47,7 @@ export default function MessagesTab({
       setMsgForm({ subject: '', message: '' });
       setShowMsgForm(false);
       addToast('success', 'Message envoyé avec succès !');
-      getUserMessages(userEmail).then(setSentMessages).catch(() => null);
+      getUserMessages(userId).then(setSentMessages).catch(() => null);
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to send message' });
       addToast('error', error instanceof Error ? error.message : "Erreur lors de l'envoi. Veuillez réessayer.");

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import Modal from './Modal';
 import Button from './Button';
@@ -7,7 +8,8 @@ interface ConfirmDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   title?: string;
-  message: string;
+  message?: string;
+  children?: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
@@ -20,6 +22,7 @@ export default function ConfirmDialog({
   onConfirm,
   title = 'Confirmation',
   message,
+  children,
   confirmLabel = 'Confirmer',
   cancelLabel = 'Annuler',
   loading = false,
@@ -40,7 +43,8 @@ export default function ConfirmDialog({
           }`} />
         </div>
         <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">{title}</h3>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">{message}</p>
+        {message && <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">{message}</p>}
+        {children && <div className="text-left mb-6">{children}</div>}
         <div className="flex gap-3 justify-center">
           <Button variant="outline" onClick={onClose} disabled={loading}>
             {cancelLabel}

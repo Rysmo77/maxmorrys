@@ -131,7 +131,7 @@ export default function AdminCoupons() {
                     <span className="font-mono font-bold text-neutral-900 dark:text-white bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">{c.code}</span>
                   </td>
                   <td className="px-4 py-3 font-semibold text-brand-600 dark:text-brand-400">
-                    {c.type === 'percentage' ? `${c.value}%` : `${c.value} €`}
+                    {c.type === 'percentage' ? `${c.value}%` : `${c.value.toLocaleString('fr-FR')} FCFA`}
                   </td>
                   <td className="px-4 py-3 text-neutral-500 hidden sm:table-cell">{c.usedCount} / {c.maxUses}</td>
                   <td className="px-4 py-3 text-neutral-500 hidden md:table-cell">{c.expiresAt ? formatDate(c.expiresAt) : '∞'}</td>
@@ -188,7 +188,7 @@ export default function AdminCoupons() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">Valeur {form.type === 'percentage' ? '(%)' : '(€)'}</label>
+                  <label className="text-xs font-medium text-neutral-500">Valeur {form.type === 'percentage' ? '(%)' : '(FCFA)'}</label>
                   <input type="number" min={0} value={form.value} onChange={(e) => setForm((p) => ({ ...p, value: Number(e.target.value) }))} className={inputCls} />
                 </div>
               </div>

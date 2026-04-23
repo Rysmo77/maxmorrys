@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import {
@@ -24,6 +25,7 @@ interface SEOHeadProps {
   modifiedAt?: string;
   author?: string;
   isHomePage?: boolean;
+  children?: ReactNode;
 }
 
 export default function SEOHead({
@@ -42,6 +44,7 @@ export default function SEOHead({
   modifiedAt,
   author,
   isHomePage = false,
+  children,
 }: SEOHeadProps) {
   const { pathname } = useLocation();
   const fullTitle = isHomePage ? title : `${title} | ${SITE_NAME}`;
@@ -83,6 +86,8 @@ export default function SEOHead({
       <meta name="twitter:title" content={resolvedTwitterTitle} />
       <meta name="twitter:description" content={resolvedTwitterDescription} />
       <meta name="twitter:image" content={resolvedTwitterImage} />
+
+      {children}
     </Helmet>
   );
 }

@@ -5,7 +5,7 @@ import Button from '../../components/ui/Button';
 import { getCollection } from '../../lib/firestore';
 import { formatDate } from '../../lib/utils';
 import type { Certificate as CertificateType } from '../../types';
-import { trackCertificateEarned, trackShareContent } from '../../lib/meta-pixel';
+import { trackCertificateEarned, trackShare } from '../../lib/tracking';
 import { where } from 'firebase/firestore';
 
 export default function Certificate() {
@@ -37,7 +37,7 @@ export default function Certificate() {
     else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${text}%20${url}`;
     else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
     if (shareUrl) window.open(shareUrl, '_blank', 'noopener,noreferrer');
-    if (certificate) trackShareContent('certificate', certificate.certificateCode, platform);
+    if (certificate) trackShare(platform, 'certificate', certificate.certificateCode);
   };
 
   if (loading) {
@@ -100,13 +100,13 @@ export default function Certificate() {
               <span className="font-semibold text-sm">Formation complétée à 100%</span>
             </div>
 
-            <div className="flex items-center justify-center gap-8 text-sm text-neutral-500">
-              <div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-neutral-500">
+              <div className="text-center">
                 <p className="text-xs text-neutral-400 mb-0.5">Date d'obtention</p>
                 <p className="font-medium text-neutral-700 dark:text-neutral-300">{formatDate(certificate.issuedAt)}</p>
               </div>
-              <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-700" />
-              <div>
+              <div className="hidden sm:block w-px h-8 bg-neutral-200 dark:bg-neutral-700" />
+              <div className="text-center">
                 <p className="text-xs text-neutral-400 mb-0.5">Code de vérification</p>
                 <p className="font-mono font-medium text-neutral-700 dark:text-neutral-300">{certificate.certificateCode}</p>
               </div>

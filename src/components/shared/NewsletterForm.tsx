@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Mail, ArrowRight } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import { trackSubscribe } from '../../lib/meta-pixel';
+import { trackSubscribeNewsletter } from '../../lib/tracking';
 import { useToast } from '../ui/Toast';
 
 interface NewsletterFormProps {
@@ -25,7 +25,7 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
         subscribedAt: new Date().toISOString(),
         source,
       });
-      trackSubscribe('Newsletter');
+      trackSubscribeNewsletter(source || 'newsletter');
       addToast('success', 'Inscription reussie ! Bienvenue dans la communaute.');
       setEmail('');
     } catch {

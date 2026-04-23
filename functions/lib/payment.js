@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bictorysWebhook = exports.createBictorysCharge = void 0;
+exports.bictorysWebhook = exports.createClubCharge = exports.createBictorysCharge = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const params_1 = require("firebase-functions/params");
@@ -45,12 +45,44 @@ const bictorysApiUrl = (0, params_1.defineString)('BICTORYS_API_URL', {
     default: 'https://api.bictorys.com/pay/v1/charges',
     description: 'Bictorys API URL (use https://api.test.bictorys.com/pay/v1/charges for testing)',
 });
+/**
+ * Validate a coupon code against the coupons collection.
+ * Returns the validated coupon data and discount amount, or null if invalid.
+ */
+async function validateCoupon(couponCode, originalPrice) {
+    var _a;
+    const couponsQuery = await admin.firestore()
+        .collection('coupons')
+        .where('code', '==', couponCode.trim().toUpperCase())
+        .where('active', '==', true)
+        .limit(1)
+        .get();
+    if (couponsQuery.empty)
+        return null;
+    const couponDoc = couponsQuery.docs[0];
+    const coupon = couponDoc.data();
+    // Check expiration
+    if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date())
+        return null;
+    // Check usage limit
+    if (coupon.maxUses && ((_a = coupon.usedCount) !== null && _a !== void 0 ? _a : 0) >= coupon.maxUses)
+        return null;
+    // Calculate discount
+    let discount = 0;
+    if (coupon.type === 'percentage') {
+        discount = Math.round(originalPrice * (coupon.value / 100));
+    }
+    else {
+        discount = Math.min(coupon.value, originalPrice);
+    }
+    return { couponId: couponDoc.id, discount };
+}
 exports.createBictorysCharge = (0, https_1.onCall)({ region: 'us-central1', secrets: [bictorysApiKey] }, async (request) => {
     var _a, _b, _c, _d, _e, _f;
     if (!request.auth) {
         throw new https_1.HttpsError('unauthenticated', 'Authentification requise.');
     }
-    const { formationId, formationSlug, metaEventId } = request.data;
+    const { formationId, formationSlug, metaEventId, couponCode } = request.data;
     if (!formationId || !formationSlug) {
         throw new https_1.HttpsError('invalid-argument', 'formationId et formationSlug sont obligatoires.');
     }
@@ -60,9 +92,24 @@ exports.createBictorysCharge = (0, https_1.onCall)({ region: 'us-central1', secr
         throw new https_1.HttpsError('not-found', 'Formation introuvable.');
     }
     const formation = formationDoc.data();
-    const finalPrice = (_a = formation.promoPrice) !== null && _a !== void 0 ? _a : formation.price;
+    let finalPrice = (_a = formation.promoPrice) !== null && _a !== void 0 ? _a : formation.price;
     if (finalPrice <= 0) {
         throw new https_1.HttpsError('invalid-argument', 'Cette formation est gratuite, pas besoin de paiement.');
+    }
+    // Validate and apply coupon if provided
+    let couponId;
+    let couponDiscount = 0;
+    if (couponCode === null || couponCode === void 0 ? void 0 : couponCode.trim()) {
+        const couponResult = await validateCoupon(couponCode, finalPrice);
+        if (!couponResult) {
+            throw new https_1.HttpsError('invalid-argument', 'Code promo invalide, expiré ou déjà utilisé.');
+        }
+        couponId = couponResult.couponId;
+        couponDiscount = couponResult.discount;
+        finalPrice = finalPrice - couponDiscount;
+        if (finalPrice <= 0) {
+            throw new https_1.HttpsError('invalid-argument', 'Ce coupon rend la formation gratuite. Utilise l\'inscription gratuite.');
+        }
     }
     // Get user info
     const uid = request.auth.uid;
@@ -102,10 +149,104 @@ exports.createBictorysCharge = (0, https_1.onCall)({ region: 'us-central1', secr
         console.error('Bictorys charge creation failed:', errMsg);
         throw new https_1.HttpsError('internal', 'Erreur lors de la création du paiement. Réessaie.');
     }
+    // Increment coupon usage count atomically
+    if (couponId) {
+        await admin.firestore().doc(`coupons/${couponId}`).update({
+            usedCount: admin.firestore.FieldValue.increment(1),
+        });
+    }
     // Create transaction record server-side
     const txnRef = admin.firestore().collection('transactions').doc();
-    await txnRef.set(Object.assign(Object.assign({ id: txnRef.id, userId: uid, userEmail: (_c = (_b = request.auth.token.email) !== null && _b !== void 0 ? _b : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _c !== void 0 ? _c : '', userName: (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _d !== void 0 ? _d : request.auth.token.name) !== null && _e !== void 0 ? _e : '', formationId,
-        formationSlug, formationTitle: (_f = formation.title) !== null && _f !== void 0 ? _f : '', amount: finalPrice, currency: 'XOF', status: 'pending', paymentMethod: 'bictorys', chargeId: bictorysResponse.chargeId, opToken: bictorysResponse.opToken }, (metaEventId && { metaEventId })), { createdAt: new Date().toISOString() }));
+    await txnRef.set(Object.assign(Object.assign(Object.assign({ id: txnRef.id, userId: uid, userEmail: (_c = (_b = request.auth.token.email) !== null && _b !== void 0 ? _b : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _c !== void 0 ? _c : '', userName: (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _d !== void 0 ? _d : request.auth.token.name) !== null && _e !== void 0 ? _e : '', formationId,
+        formationSlug, formationTitle: (_f = formation.title) !== null && _f !== void 0 ? _f : '', amount: finalPrice, currency: 'XOF', status: 'pending', paymentMethod: 'bictorys', chargeId: bictorysResponse.chargeId, opToken: bictorysResponse.opToken }, (couponId && { couponId, couponCode: couponCode.trim().toUpperCase(), couponDiscount })), (metaEventId && { metaEventId })), { createdAt: new Date().toISOString() }));
+    return {
+        checkoutUrl: bictorysResponse.link,
+        transactionId: txnRef.id,
+    };
+});
+exports.createClubCharge = (0, https_1.onCall)({ region: 'us-central1', secrets: [bictorysApiKey] }, async (request) => {
+    var _a, _b, _c, _d, _e, _f, _g, _h;
+    if (!request.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'Authentification requise.');
+    }
+    const { autoRenew } = request.data;
+    const uid = request.auth.uid;
+    // Check if already has active or pending subscription
+    const existingSub = await admin.firestore().doc(`club_subscriptions/${uid}`).get();
+    if (existingSub.exists) {
+        const subData = existingSub.data();
+        if (subData.status === 'active' && new Date(subData.expiresAt) > new Date()) {
+            throw new https_1.HttpsError('already-exists', 'Tu es déjà membre actif du Club des Digitos.');
+        }
+        if (subData.status === 'pending') {
+            throw new https_1.HttpsError('already-exists', 'Un paiement est déjà en cours pour le Club.');
+        }
+    }
+    const CLUB_PRICE = 19900;
+    // Get user info
+    const userDoc = await admin.firestore().doc(`users/${uid}`).get();
+    const userData = userDoc.data();
+    // Call Bictorys API
+    const apiKey = bictorysApiKey.value();
+    if (!apiKey) {
+        throw new https_1.HttpsError('internal', 'Service de paiement non configuré.');
+    }
+    let bictorysResponse;
+    try {
+        const res = await fetch(bictorysApiUrl.value(), {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+                'content-type': 'application/json',
+                'X-API-Key': apiKey,
+            },
+            body: JSON.stringify({ amount: CLUB_PRICE, currency: 'XOF' }),
+        });
+        if (!res.ok) {
+            const errBody = await res.text();
+            console.error('Bictorys API error:', res.status, errBody);
+            throw new Error(`Bictorys returned ${res.status}`);
+        }
+        bictorysResponse = await res.json();
+    }
+    catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        console.error('Bictorys club charge creation failed:', errMsg);
+        throw new https_1.HttpsError('internal', 'Erreur lors de la création du paiement. Réessaie.');
+    }
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    // Create club subscription with pending status
+    await admin.firestore().doc(`club_subscriptions/${uid}`).set({
+        userId: uid,
+        userEmail: (_b = (_a = request.auth.token.email) !== null && _a !== void 0 ? _a : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _b !== void 0 ? _b : '',
+        userName: (_d = (_c = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _c !== void 0 ? _c : request.auth.token.name) !== null && _d !== void 0 ? _d : '',
+        startedAt: now.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        autoRenew: autoRenew !== null && autoRenew !== void 0 ? autoRenew : true,
+        status: 'pending',
+        amount: CLUB_PRICE,
+        chargeId: bictorysResponse.chargeId,
+    });
+    // Create transaction record
+    const txnRef = admin.firestore().collection('transactions').doc();
+    await txnRef.set({
+        id: txnRef.id,
+        userId: uid,
+        userEmail: (_f = (_e = request.auth.token.email) !== null && _e !== void 0 ? _e : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _f !== void 0 ? _f : '',
+        userName: (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _g !== void 0 ? _g : request.auth.token.name) !== null && _h !== void 0 ? _h : '',
+        formationId: 'club_digitos',
+        formationSlug: 'club-des-digitos',
+        formationTitle: 'Club des Digitos — Abonnement annuel',
+        amount: CLUB_PRICE,
+        currency: 'XOF',
+        status: 'pending',
+        paymentMethod: 'bictorys',
+        chargeId: bictorysResponse.chargeId,
+        opToken: bictorysResponse.opToken,
+        createdAt: now.toISOString(),
+    });
     return {
         checkoutUrl: bictorysResponse.link,
         transactionId: txnRef.id,
@@ -129,24 +270,24 @@ function verifyWebhookSignature(rawBody, signature, secret) {
     }
 }
 exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secrets: [bictorysWebhookSecret, meta_capi_1.metaAccessToken] }, async (req, res) => {
-    var _a;
+    var _a, _b;
     if (req.method !== 'POST') {
         res.status(405).send('Method Not Allowed');
         return;
     }
-    // ── Signature verification ───────────────────────────────────────────
+    // ── Signature verification (fail-closed) ─────────────────────────────
     const webhookSecret = bictorysWebhookSecret.value();
-    if (webhookSecret) {
-        const signature = req.headers['x-bictorys-signature'];
-        const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-        if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
-            console.warn('Bictorys webhook: invalid or missing signature');
-            res.status(403).send('Forbidden');
-            return;
-        }
+    if (!webhookSecret) {
+        console.error('Bictorys webhook: BICTORYS_WEBHOOK_SECRET not configured — refusing webhook');
+        res.status(500).send('Server misconfigured');
+        return;
     }
-    else {
-        console.warn('Bictorys webhook: BICTORYS_WEBHOOK_SECRET not configured — signature verification skipped');
+    const signature = req.headers['x-bictorys-signature'];
+    const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+    if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
+        console.warn('Bictorys webhook: invalid or missing signature');
+        res.status(403).send('Forbidden');
+        return;
     }
     const body = req.body;
     const chargeId = (_a = body === null || body === void 0 ? void 0 : body.chargeId) !== null && _a !== void 0 ? _a : body === null || body === void 0 ? void 0 : body.charge_id;
@@ -156,6 +297,15 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
         res.status(200).send('OK');
         return;
     }
+    // ── Idempotency: track processed chargeIds ──────────────────────────
+    const eventRef = admin.firestore().doc(`webhook_events/${chargeId}`);
+    const eventSnap = await eventRef.get();
+    if (eventSnap.exists && ((_b = eventSnap.data()) === null || _b === void 0 ? void 0 : _b.status) === status) {
+        console.log('Bictorys webhook: duplicate event ignored', chargeId, status);
+        res.status(200).send('OK');
+        return;
+    }
+    await eventRef.set({ chargeId, status, receivedAt: new Date().toISOString() }, { merge: true });
     // Find the pending transaction matching this chargeId
     const txnQuery = await admin.firestore()
         .collection('transactions')
@@ -179,22 +329,31 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
             status: 'completed',
             completedAt: new Date().toISOString(),
         });
-        // Auto-create enrollment
-        const enrollmentId = `${txnData.userId}_${txnData.formationId}`;
-        const enrollmentRef = admin.firestore().doc(`enrollments/${enrollmentId}`);
-        const existing = await enrollmentRef.get();
-        if (!existing.exists) {
-            await enrollmentRef.set({
-                id: enrollmentId,
-                userId: txnData.userId,
-                formationId: txnData.formationId,
-                enrolledAt: new Date().toISOString(),
-                progress: 0,
-                completedLessons: [],
-                certificateIssued: false,
-            });
+        const isClubPayment = txnData.formationId === 'club_digitos';
+        if (isClubPayment) {
+            // Activate club subscription
+            const subRef = admin.firestore().doc(`club_subscriptions/${txnData.userId}`);
+            await subRef.update({ status: 'active' });
+            console.log('Bictorys webhook: club subscription activated for user', txnData.userId);
         }
-        console.log('Bictorys webhook: payment succeeded, enrollment created for', enrollmentId);
+        else {
+            // Auto-create enrollment for course
+            const enrollmentId = `${txnData.userId}_${txnData.formationId}`;
+            const enrollmentRef = admin.firestore().doc(`enrollments/${enrollmentId}`);
+            const existing = await enrollmentRef.get();
+            if (!existing.exists) {
+                await enrollmentRef.set({
+                    id: enrollmentId,
+                    userId: txnData.userId,
+                    formationId: txnData.formationId,
+                    enrolledAt: new Date().toISOString(),
+                    progress: 0,
+                    completedLessons: [],
+                    certificateIssued: false,
+                });
+            }
+            console.log('Bictorys webhook: payment succeeded, enrollment created for', enrollmentId);
+        }
         // Send server-side Purchase event via Meta Conversions API
         await (0, meta_capi_1.sendConversionEvent)('Purchase', {
             content_ids: [txnData.formationId],

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, Clock, ArrowRight, Loader2, AlertCircle, MessageSquare, Rss } from 'lucide-react';
 import { getPublishedPosts } from '../lib/firestore';
 import { formatDate, truncate } from '../lib/utils';
-import { trackSearch } from '../lib/meta-pixel';
+import { trackSearch } from '../lib/tracking';
 import type { BlogPost } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
@@ -121,6 +121,8 @@ export default function Blog() {
                     alt={featuredPost.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="eager"
+                    width={800}
+                    height={450}
                   />
                   {featuredPost.featured && (
                     <div className="absolute top-4 left-4">
@@ -182,6 +184,8 @@ export default function Blog() {
                       alt={post.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
+                      width={400}
+                      height={225}
                     />
                   </div>
                   <p className="text-xs font-bold tracking-[0.25em] uppercase text-brand-600 dark:text-brand-400 mb-2">

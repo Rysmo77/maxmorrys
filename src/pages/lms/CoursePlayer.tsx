@@ -1,17 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Play, FileText, CheckCircle, Award, ChevronDown, ChevronUp, Download, Check, Loader2, Lock, ArrowRight, List, HelpCircle, Target, RotateCcw } from 'lucide-react';
+import { Play, FileText, CheckCircle, ChevronDown, ChevronUp, Download, Check, Loader2, Lock, ArrowRight, List, HelpCircle, Target, RotateCcw } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Sheet from '../../components/ui/Sheet';
 import Breadcrumbs from '../../components/ui/Breadcrumbs';
 import { useToast } from '../../components/ui/Toast';
 import { useAuth } from '../../contexts/AuthContext';
-import { getFormationBySlug, getUserEnrollments, updateEnrollmentProgress } from '../../lib/firestore';
+import { getFormationBySlug, getUserEnrollments, updateEnrollmentProgress, issueCertificate } from '../../lib/firestore';
+import { updateDocById } from '../../lib/firestore/helpers';
 import { markdownToHtml } from '../../lib/utils';
 import type { Formation, Lesson, Enrollment } from '../../types';
 import { captureError } from '../../lib/sentry';
-import { trackViewContent, trackLessonCompleted, trackCourseProgress } from '../../lib/meta-pixel';
+import { trackViewItem, trackLessonCompleted, trackCourseProgress } from '../../lib/tracking';
 
 function CourseOutline({
   formation, totalLessons, expandedModules, toggleModule,
@@ -278,7 +279,7 @@ export default function CoursePlayer() {
     ]).then(([f, enrollments]) => {
       setFormation(f);
       if (f) {
-        trackViewContent({ content_type: 'course', content_ids: [f.id], content_name: f.title });
+        trackViewItem({ id: f.id, name: f.title, category: f.category, content_type: 'formation' });
         const e = enrollments.find((en) => en.formationId === f.id);
         if (e) {
           setEnrollment(e);
@@ -323,6 +324,16 @@ export default function CoursePlayer() {
     setSaving(true);
     try {
       await updateEnrollmentProgress(enrollment.id, updated, newProgress);
+      if (newProgress === 100 && !enrollment.certificateIssued && formation) {
+        try {
+          await issueCertificate(user.uid, formation.id, formation.title);
+          await updateDocById('enrollments', enrollment.id, { certificateIssued: true });
+          setEnrollment((prev) => (prev ? { ...prev, certificateIssued: true } : prev));
+          addToast('success', 'Ton certificat a ete emis !');
+        } catch (certError: unknown) {
+          captureError(certError, { context: 'Failed to auto-issue certificate' });
+        }
+      }
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to save enrollment progress' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde de la progression.');
@@ -481,6 +492,7 @@ export default function CoursePlayer() {
                     </div>
                   </div>
                 )}
+              </div>
             ) : (
               <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-12 text-center">
                 <Play className="w-16 h-16 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />

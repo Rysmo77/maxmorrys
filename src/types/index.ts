@@ -34,6 +34,7 @@ export interface BlogPost {
   tags: string[];
   author: string;
   publishedAt: string;
+  updatedAt?: string;
   readTime: number;
   featured: boolean;
   status: 'draft' | 'published' | 'scheduled';

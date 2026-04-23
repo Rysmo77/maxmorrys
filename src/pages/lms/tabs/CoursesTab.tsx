@@ -2,13 +2,16 @@ import { Link } from 'react-router-dom';
 import { Play, CheckCircle, Award, Loader2, GraduationCap, ArrowRight } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import type { EnrolledFormation } from '../hooks/useStudentData';
+import type { Certificate } from '../../../types';
 
 interface CoursesTabProps {
   enrolledFormations: EnrolledFormation[];
   loadingEnrollments: boolean;
+  certificates?: Certificate[];
 }
 
-export default function CoursesTab({ enrolledFormations, loadingEnrollments }: CoursesTabProps) {
+export default function CoursesTab({ enrolledFormations, loadingEnrollments, certificates = [] }: CoursesTabProps) {
+  const certByFormation = new Map(certificates.map((c) => [c.formationId, c]));
   return (
     <div className="space-y-4">
       {loadingEnrollments ? (
@@ -51,8 +54,10 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments }: C
                       </Button>
                     </Link>
                   )}
-                  {enrollment.progress === 100 && enrollment.certificateIssued && (
-                    <Button size="sm" variant="outline" icon={<Award className="w-3.5 h-3.5" />}>Certificat</Button>
+                  {enrollment.progress === 100 && enrollment.certificateIssued && certByFormation.get(enrollment.formationId) && (
+                    <Link to={`/certificat/${certByFormation.get(enrollment.formationId)!.certificateCode}`}>
+                      <Button size="sm" variant="outline" icon={<Award className="w-3.5 h-3.5" />}>Certificat</Button>
+                    </Link>
                   )}
                 </div>
               </div>

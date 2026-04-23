@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.prerender = exports.sitemap = exports.backupFirestore = exports.cleanupTempStorage = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createBictorysCharge = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageEnrollment = exports.adminCreateUser = exports.rysmo = void 0;
+exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createClubCharge = exports.createBictorysCharge = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageEnrollment = exports.adminCreateUser = exports.rysmo = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ── AI Chatbot ────────────────────────────────────────────────────────────
@@ -50,6 +50,7 @@ Object.defineProperty(exports, "youtubeProxy", { enumerable: true, get: function
 // ── Payments ──────────────────────────────────────────────────────────────
 var payment_1 = require("./payment");
 Object.defineProperty(exports, "createBictorysCharge", { enumerable: true, get: function () { return payment_1.createBictorysCharge; } });
+Object.defineProperty(exports, "createClubCharge", { enumerable: true, get: function () { return payment_1.createClubCharge; } });
 Object.defineProperty(exports, "bictorysWebhook", { enumerable: true, get: function () { return payment_1.bictorysWebhook; } });
 // ── Notification triggers ─────────────────────────────────────────────────
 var notifications_1 = require("./notifications");
@@ -61,6 +62,16 @@ Object.defineProperty(exports, "courseReminder", { enumerable: true, get: functi
 var maintenance_1 = require("./maintenance");
 Object.defineProperty(exports, "cleanupTempStorage", { enumerable: true, get: function () { return maintenance_1.cleanupTempStorage; } });
 Object.defineProperty(exports, "backupFirestore", { enumerable: true, get: function () { return maintenance_1.backupFirestore; } });
+// ── Storage cleanup on Firestore delete ───────────────────────────────────
+var storage_cleanup_1 = require("./storage-cleanup");
+Object.defineProperty(exports, "onBlogDeleted", { enumerable: true, get: function () { return storage_cleanup_1.onBlogDeleted; } });
+Object.defineProperty(exports, "onFormationDeleted", { enumerable: true, get: function () { return storage_cleanup_1.onFormationDeleted; } });
+Object.defineProperty(exports, "onVideoDeleted", { enumerable: true, get: function () { return storage_cleanup_1.onVideoDeleted; } });
+Object.defineProperty(exports, "onPodcastDeleted", { enumerable: true, get: function () { return storage_cleanup_1.onPodcastDeleted; } });
+// ── GDPR (user data export + account deletion) ────────────────────────────
+var gdpr_1 = require("./gdpr");
+Object.defineProperty(exports, "exportUserData", { enumerable: true, get: function () { return gdpr_1.exportUserData; } });
+Object.defineProperty(exports, "deleteUserAccount", { enumerable: true, get: function () { return gdpr_1.deleteUserAccount; } });
 // ── SEO ──────────────────────────────────────────────────────────────────
 var sitemap_1 = require("./sitemap");
 Object.defineProperty(exports, "sitemap", { enumerable: true, get: function () { return sitemap_1.sitemap; } });

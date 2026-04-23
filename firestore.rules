@@ -441,6 +441,17 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Webhook idempotency log (backend only)
+    match /webhook_events/{chargeId} {
+      allow read, write: if false;
+    }
+
+    // GDPR data exports (owner read only, backend writes)
+    match /data_exports/{exportId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
     // Default deny all other collections
     match /{document=**} {
       allow read, write: if false;

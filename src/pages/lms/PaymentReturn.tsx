@@ -4,7 +4,8 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { db } from '../../config/firebase';
 import Button from '../../components/ui/Button';
-import { trackPurchase } from '../../lib/meta-pixel';
+import { trackPurchase } from '../../lib/tracking';
+import { useAuth } from '../../contexts/AuthContext';
 import type { Transaction } from '../../types';
 
 type PaymentStatus = 'loading' | 'completed' | 'pending' | 'failed';
@@ -12,6 +13,7 @@ type PaymentStatus = 'loading' | 'completed' | 'pending' | 'failed';
 export default function PaymentReturn() {
   const [searchParams] = useSearchParams();
   const transactionId = searchParams.get('transactionId');
+  const { user } = useAuth();
 
   const [status, setStatus] = useState<PaymentStatus>('loading');
   const [transaction, setTransaction] = useState<Transaction | null>(null);
@@ -31,19 +33,26 @@ export default function PaymentReturn() {
         }
 
         const data = { id: snap.id, ...snap.data() } as Transaction;
+
+        if (user && data.userId && data.userId !== user.uid) {
+          setStatus('failed');
+          return;
+        }
+
         setTransaction(data);
 
         if (data.status === 'completed') {
           setStatus('completed');
-          trackPurchase(
-            {
-              content_ids: [data.formationId],
-              content_name: data.formationTitle ?? '',
-              value: data.amount,
-              content_type: 'formation',
+          trackPurchase({
+            transactionId: data.metaEventId || data.id,
+            item: {
+              id: data.formationId,
+              name: data.formationTitle ?? '',
+              category: 'formation',
+              price: data.amount,
+              currency: data.currency || 'XOF',
             },
-            data.metaEventId,
-          );
+          });
         } else if (data.status === 'failed') {
           setStatus('failed');
         } else {
@@ -64,7 +73,7 @@ export default function PaymentReturn() {
       unsubscribe();
       clearTimeout(timeout);
     };
-  }, [transactionId]);
+  }, [transactionId, user]);
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center px-4">

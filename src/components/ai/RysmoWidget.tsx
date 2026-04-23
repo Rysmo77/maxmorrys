@@ -3,7 +3,7 @@ import { httpsCallable } from 'firebase/functions';
 import DOMPurify from 'dompurify';
 import { functions } from '../../config/firebase';
 import { captureError } from '../../lib/sentry';
-import { trackChatbotInteraction } from '../../lib/meta-pixel';
+import { trackChatbotInteraction } from '../../lib/tracking';
 import { useAuth } from '../../contexts/AuthContext';
 import { X, Send, Mic, MicOff, Bot, Loader2, Volume2, VolumeX, Trash2 } from 'lucide-react';
 

@@ -50,19 +50,20 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex gap-2 flex-wrap border-b border-neutral-200 dark:border-neutral-700 pb-0">
+      <div className="flex gap-1 sm:gap-2 overflow-x-auto sm:flex-wrap border-b border-neutral-200 dark:border-neutral-700 pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
         {([
-          { id: 'feed' as ClubSubTab, icon: Rss, label: "Fil d'actualité" },
-          { id: 'events' as ClubSubTab, icon: Calendar, label: 'Événements' },
-          { id: 'sessions' as ClubSubTab, icon: Video, label: 'Sessions Live' },
-          { id: 'infos' as ClubSubTab, icon: Info, label: 'Infos exclusives' },
+          { id: 'feed' as ClubSubTab, icon: Rss, label: 'Fil', fullLabel: "Fil d'actualité" },
+          { id: 'events' as ClubSubTab, icon: Calendar, label: 'Events', fullLabel: 'Événements' },
+          { id: 'sessions' as ClubSubTab, icon: Video, label: 'Live', fullLabel: 'Sessions Live' },
+          { id: 'infos' as ClubSubTab, icon: Info, label: 'Infos', fullLabel: 'Infos exclusives' },
         ] as const).map((tab) => (
           <button key={tab.id} onClick={() => setClubTab(tab.id)} className={cn(
-            'flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors',
+            'flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap',
             clubTab === tab.id ? 'border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400' : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300',
           )}>
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
+            <tab.icon className="w-4 h-4 flex-shrink-0" />
+            <span className="sm:hidden">{tab.label}</span>
+            <span className="hidden sm:inline">{tab.fullLabel}</span>
           </button>
         ))}
       </div>

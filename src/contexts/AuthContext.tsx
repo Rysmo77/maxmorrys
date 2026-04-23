@@ -12,7 +12,8 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
-import { setUserData as setPixelUserData, trackCompleteRegistration } from '../lib/meta-pixel';
+import { setUserData as setPixelUserData } from '../lib/meta-pixel';
+import { trackSignUp, trackLogin } from '../lib/tracking';
 import type { User } from '../types';
 
 interface AuthContextType {
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      trackLogin('email');
     } catch (error: unknown) {
       const errorCode = (error as { code?: string })?.code ?? '';
       if (errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password' || errorCode === 'auth/invalid-credential') {
@@ -100,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
       await setDoc(doc(db, 'users', cred.user.uid), newUser);
       setUserData(newUser);
-      trackCompleteRegistration({ content_name: 'Email Signup', status: 'complete' });
+      trackSignUp('email');
       setPixelUserData(email);
     } catch (error: unknown) {
       const errorCode = (error as { code?: string })?.code ?? '';
@@ -133,10 +135,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         await setDoc(docRef, newUser);
         setUserData(newUser);
-        trackCompleteRegistration({ content_name: 'Google Signup', status: 'complete' });
+        trackSignUp('google');
         if (cred.user.email) setPixelUserData(cred.user.email);
       } else {
         setUserData(docSnap.data() as User);
+        trackLogin('google');
       }
     } catch (error: unknown) {
       const errorCode = (error as { code?: string })?.code ?? '';

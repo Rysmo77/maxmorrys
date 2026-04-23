@@ -20,6 +20,17 @@ export { onEnrollmentCreated, onCertificateCreated, streakReminder, courseRemind
 // ── Maintenance tasks ─────────────────────────────────────────────────────
 export { cleanupTempStorage, backupFirestore } from './maintenance';
 
+// ── Storage cleanup on Firestore delete ───────────────────────────────────
+export {
+  onBlogDeleted,
+  onFormationDeleted,
+  onVideoDeleted,
+  onPodcastDeleted,
+} from './storage-cleanup';
+
+// ── GDPR (user data export + account deletion) ────────────────────────────
+export { exportUserData, deleteUserAccount } from './gdpr';
+
 // ── SEO ──────────────────────────────────────────────────────────────────
 export { sitemap } from './sitemap';
 export { prerender } from './prerender';

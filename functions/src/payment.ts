@@ -301,18 +301,19 @@ export const bictorysWebhook = onRequest(
       return;
     }
 
-    // ── Signature verification ───────────────────────────────────────────
+    // ── Signature verification (fail-closed) ─────────────────────────────
     const webhookSecret = bictorysWebhookSecret.value();
-    if (webhookSecret) {
-      const signature = req.headers['x-bictorys-signature'] as string | undefined;
-      const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-      if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
-        console.warn('Bictorys webhook: invalid or missing signature');
-        res.status(403).send('Forbidden');
-        return;
-      }
-    } else {
-      console.warn('Bictorys webhook: BICTORYS_WEBHOOK_SECRET not configured — signature verification skipped');
+    if (!webhookSecret) {
+      console.error('Bictorys webhook: BICTORYS_WEBHOOK_SECRET not configured — refusing webhook');
+      res.status(500).send('Server misconfigured');
+      return;
+    }
+    const signature = req.headers['x-bictorys-signature'] as string | undefined;
+    const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+    if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
+      console.warn('Bictorys webhook: invalid or missing signature');
+      res.status(403).send('Forbidden');
+      return;
     }
 
     const body = req.body;
@@ -324,6 +325,19 @@ export const bictorysWebhook = onRequest(
       res.status(200).send('OK');
       return;
     }
+
+    // ── Idempotency: track processed chargeIds ──────────────────────────
+    const eventRef = admin.firestore().doc(`webhook_events/${chargeId}`);
+    const eventSnap = await eventRef.get();
+    if (eventSnap.exists && eventSnap.data()?.status === status) {
+      console.log('Bictorys webhook: duplicate event ignored', chargeId, status);
+      res.status(200).send('OK');
+      return;
+    }
+    await eventRef.set(
+      { chargeId, status, receivedAt: new Date().toISOString() },
+      { merge: true },
+    );
 
     // Find the pending transaction matching this chargeId
     const txnQuery = await admin.firestore()

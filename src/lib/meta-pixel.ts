@@ -1,4 +1,4 @@
-import { hasFullConsent } from '../components/shared/CookieBanner';
+import { hasMarketingConsent } from '../components/shared/CookieBanner';
 
 declare global {
   interface Window {
@@ -30,7 +30,7 @@ function track(
   params?: Record<string, unknown>,
   options?: { eventID?: string },
 ): void {
-  if (typeof window.fbq !== 'function' || !hasFullConsent()) return;
+  if (typeof window.fbq !== 'function' || !hasMarketingConsent()) return;
 
   if (options?.eventID) {
     window.fbq('track', eventName, params, { eventID: options.eventID });
@@ -43,7 +43,7 @@ function trackCustom(
   eventName: string,
   params?: Record<string, unknown>,
 ): void {
-  if (typeof window.fbq !== 'function' || !hasFullConsent()) return;
+  if (typeof window.fbq !== 'function' || !hasMarketingConsent()) return;
   window.fbq('trackCustom', eventName, params);
 }
 

@@ -5,10 +5,11 @@ import { getVideoBySlug, getPublishedVideos } from '../lib/firestore';
 import FormationCTA from '../components/shared/FormationCTA';
 import { formatDate, markdownToHtml } from '../lib/utils';
 import type { Video } from '../types';
-import { trackViewContent } from '../lib/meta-pixel';
+import { trackViewItem, trackVideoPlay } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
+import Breadcrumbs from '../components/ui/Breadcrumbs';
 
 function resolveVideoEmbed(url: string): { type: 'iframe' | 'native'; src: string } {
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -29,7 +30,8 @@ export default function VideoDetail() {
     getVideoBySlug(slug).then((data) => {
       setVideo(data);
       if (data) {
-        trackViewContent({ content_type: 'video', content_ids: [data.id], content_name: data.title });
+        trackViewItem({ id: data.id, name: data.title, category: data.category, content_type: 'video' });
+        trackVideoPlay(data.id, data.title);
         getPublishedVideos().then((all) => setOthers(all.filter((v) => v.id !== data.id).slice(0, 4))).catch(() => null);
       }
     }).catch(() => setVideo(null));
@@ -54,7 +56,9 @@ export default function VideoDetail() {
         title={video.title}
         description={video.description}
         ogImage={video.thumbnailUrl}
-      />
+      >
+        {video.thumbnailUrl && <link rel="preload" as="image" href={video.thumbnailUrl} />}
+      </SEOHead>
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'VideoObject',
@@ -86,6 +90,15 @@ export default function VideoDetail() {
       {/* ── HERO ── */}
       <section className="pt-28 pb-12 lg:pt-36 lg:pb-16 bg-neutral-50 dark:bg-neutral-900">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <Breadcrumbs
+              items={[
+                { label: 'Accueil', href: '/' },
+                { label: 'Vidéos', href: '/videos' },
+                { label: video.title },
+              ]}
+            />
+          </div>
           <Link
             to="/videos"
             className="inline-flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors mb-8"

@@ -20,9 +20,53 @@
     <meta name="twitter:site" content="@maxmorrys" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" /></noscript>
     <title>Max-Morrys | Maitrisez le digital, accelerez votre croissance</title>
+
+    <!-- Google Consent Mode v2 (must load BEFORE GTM) -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      // Restore saved consent from localStorage (if user has already chosen)
+      (function(){
+        try {
+          var raw = localStorage.getItem('mm-cookie-consent');
+          var saved = raw ? JSON.parse(raw) : null;
+          var analytics = saved && saved.analytics ? 'granted' : 'denied';
+          var marketing = saved && saved.marketing ? 'granted' : 'denied';
+          gtag('consent', 'default', {
+            ad_storage: marketing,
+            ad_user_data: marketing,
+            ad_personalization: marketing,
+            analytics_storage: analytics,
+            functionality_storage: 'granted',
+            security_storage: 'granted',
+            wait_for_update: 500
+          });
+        } catch(e) {
+          gtag('consent', 'default', {
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: 'denied',
+            functionality_storage: 'granted',
+            security_storage: 'granted',
+            wait_for_update: 500
+          });
+        }
+      })();
+    </script>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-PJ3R433M');</script>
+    <!-- End Google Tag Manager -->
+
     <!-- Meta Pixel Code -->
     <script>
     !function(f,b,e,v,n,t,s)
@@ -33,13 +77,28 @@
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('consent', 'revoke');
+    (function(){
+      try {
+        var raw = localStorage.getItem('mm-cookie-consent');
+        var saved = raw ? JSON.parse(raw) : null;
+        if (saved && saved.marketing) {
+          fbq('consent', 'grant');
+        } else {
+          fbq('consent', 'revoke');
+        }
+      } catch(e) { fbq('consent', 'revoke'); }
+    })();
     fbq('init', '925361066071417');
     fbq('track', 'PageView');
     </script>
     <!-- End Meta Pixel Code -->
   </head>
   <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PJ3R433M"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
     <!-- Meta Pixel noscript fallback -->
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=925361066071417&ev=PageView&noscript=1"

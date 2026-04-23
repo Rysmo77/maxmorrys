@@ -6,10 +6,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { getFormationBySlug } from '../lib/firestore';
 import { formatPrice, markdownToHtml } from '../lib/utils';
 import type { Formation } from '../types';
-import { trackViewContent, trackAddToCart } from '../lib/meta-pixel';
+import { trackViewItem, trackAddToCart } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
+import Breadcrumbs from '../components/ui/Breadcrumbs';
 
 const levelLabels: Record<string, string> = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
 const lessonIcons: Record<string, typeof Play> = { video: Play, text: FileText, quiz: CheckCircle, resource: FileText, mission: Award };
@@ -26,11 +27,12 @@ export default function FormationDetail() {
     getFormationBySlug(slug).then((data) => {
       setFormation(data);
       if (data) {
-        trackViewContent({
+        trackViewItem({
+          id: data.id,
+          name: data.title,
+          category: data.category,
           content_type: 'formation',
-          content_ids: [data.id],
-          content_name: data.title,
-          value: data.promoPrice ?? data.price,
+          price: data.promoPrice ?? data.price,
           currency: 'XOF',
         });
       }
@@ -66,10 +68,11 @@ export default function FormationDetail() {
       return;
     }
     trackAddToCart({
-      content_ids: [formation!.id],
-      content_name: formation!.title,
-      value: formation!.promoPrice ?? formation!.price,
-      content_type: 'formation',
+      id: formation!.id,
+      name: formation!.title,
+      category: formation!.category,
+      price: formation!.promoPrice ?? formation!.price,
+      currency: 'XOF',
     });
     navigate(`/checkout/${formation?.slug}`);
   };
@@ -84,7 +87,9 @@ export default function FormationDetail() {
         ogImage={formation.ogImage || formation.coverImage}
         canonical={formation.canonicalUrl}
         noIndex={formation.noIndex}
-      />
+      >
+        {formation.coverImage && <link rel="preload" as="image" href={formation.coverImage} />}
+      </SEOHead>
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'Course',
@@ -123,6 +128,15 @@ export default function FormationDetail() {
       {/* ── HERO ── */}
       <div className="pt-28 pb-12 lg:pt-36 bg-neutral-50 dark:bg-neutral-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <Breadcrumbs
+              items={[
+                { label: 'Accueil', href: '/' },
+                { label: 'Formations', href: '/formations' },
+                { label: formation.title },
+              ]}
+            />
+          </div>
           <Link to="/formations" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-10 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Retour aux formations
           </Link>

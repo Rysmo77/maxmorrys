@@ -26,6 +26,7 @@ type FormState = {
   category: string;
   coverImage: string;
   tags: string;
+  publishedAt: string;
   status: 'draft' | 'published';
   featured: boolean;
   // SEO
@@ -42,13 +43,15 @@ type FormState = {
   canonicalUrl: string;
 };
 
-const EMPTY_FORM: FormState = {
+const todayIso = () => new Date().toISOString().split('T')[0];
+
+const makeEmptyForm = (): FormState => ({
   title: '', slug: '', excerpt: '', content: '', category: '',
-  coverImage: '', tags: '', status: 'draft', featured: false,
+  coverImage: '', tags: '', publishedAt: todayIso(), status: 'draft', featured: false,
   focusKeyword: '', metaTitle: '', metaDescription: '', ogTitle: '',
   ogDescription: '', ogImage: '', twitterTitle: '', twitterDescription: '',
   twitterImage: '', noIndex: false, canonicalUrl: '',
-};
+});
 
 export default function AdminArticles() {
   const { addToast } = useToast();
@@ -59,7 +62,7 @@ export default function AdminArticles() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [form, setForm] = useState<FormState>(makeEmptyForm);
   const [activeTab, setActiveTab] = useState<'content' | 'seo'>('content');
   const confirm = useConfirmDialog();
 
@@ -81,7 +84,7 @@ export default function AdminArticles() {
 
   const openNew = () => {
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setForm(makeEmptyForm());
     setActiveTab('content');
     setShowModal(true);
   };
@@ -96,6 +99,7 @@ export default function AdminArticles() {
       category: post.category,
       coverImage: post.coverImage,
       tags: post.tags?.join(', ') ?? '',
+      publishedAt: post.publishedAt ? post.publishedAt.split('T')[0] : todayIso(),
       status: post.status === 'published' ? 'published' : 'draft',
       featured: post.featured ?? false,
       focusKeyword: post.focusKeyword ?? '',
@@ -131,9 +135,7 @@ export default function AdminArticles() {
         coverImage: form.coverImage.trim(),
         tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
         author: 'Max-Morrys',
-        publishedAt: editingId
-          ? (posts.find((p) => p.id === editingId)?.publishedAt ?? new Date().toISOString().split('T')[0])
-          : new Date().toISOString().split('T')[0],
+        publishedAt: form.publishedAt || todayIso(),
         readTime: calculateReadTime(form.content),
         featured: form.featured,
         status,
@@ -357,6 +359,12 @@ export default function AdminArticles() {
               <Input label="Catégorie" value={form.category} onChange={(e) => set('category', e.target.value)} placeholder="ex: SEO, Marketing..." />
               <Input label="Tags (séparés par virgule)" value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="SEO, Growth, Digital" />
             </div>
+            <Input
+              label="Date de publication"
+              type="date"
+              value={form.publishedAt}
+              onChange={(e) => set('publishedAt', e.target.value)}
+            />
             <ImageInput label="Image de couverture" value={form.coverImage} onChange={(url) => set('coverImage', url)} folder="articles" />
           </div>
         )}

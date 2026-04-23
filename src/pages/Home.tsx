@@ -149,10 +149,12 @@ export default function Home() {
           <video
             ref={videoRef}
             src="https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Le%20Marketing%20en%20Pratique.mp4?alt=media&token=7aebaa77-b33a-4494-92e4-9c3cfdc433c1"
+            poster="/og-default.jpg"
             autoPlay
             muted
             loop
             playsInline
+            preload="metadata"
             className={`w-full h-full object-cover transition-opacity duration-[1200ms] ${videoFading ? 'opacity-0' : 'opacity-100'}`}
           />
           <div className="absolute inset-0 bg-black/80" />

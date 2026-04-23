@@ -82,7 +82,7 @@ export default function AdminTransactions() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: 'Chiffre d\'affaires', value: `${totalRevenue.toLocaleString('fr-FR')} FCFA`, color: 'text-success-600' },
           { label: 'Remboursements', value: `${totalRefunded.toLocaleString('fr-FR')} FCFA`, color: 'text-error-600' },

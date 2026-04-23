@@ -10,7 +10,8 @@ import { getFormationBySlug } from '../../lib/firestore';
 import { db, functions } from '../../config/firebase';
 import { formatPrice } from '../../lib/utils';
 import type { Formation } from '../../types';
-import { trackInitiateCheckout, trackPurchase, generateEventId } from '../../lib/meta-pixel';
+import { generateEventId } from '../../lib/meta-pixel';
+import { trackBeginCheckout, trackPurchase } from '../../lib/tracking';
 
 const createBictorysCharge = httpsCallable<
   { formationId: string; formationSlug: string; metaEventId?: string; couponCode?: string },
@@ -33,11 +34,12 @@ export default function Checkout() {
     getFormationBySlug(slug).then((data) => {
       setFormation(data);
       if (data) {
-        trackInitiateCheckout({
-          content_ids: [data.id],
-          content_name: data.title,
-          value: data.promoPrice ?? data.price,
-          num_items: 1,
+        trackBeginCheckout({
+          id: data.id,
+          name: data.title,
+          category: data.category,
+          price: data.promoPrice ?? data.price,
+          currency: 'XOF',
         });
       }
     }).catch(() => setFormation(null));
@@ -110,10 +112,15 @@ export default function Checkout() {
         await batch.commit();
 
         trackPurchase({
-          content_ids: [formation.id],
-          content_name: formation.title,
-          value: 0,
-          content_type: 'formation',
+          transactionId: txRef.id,
+          item: {
+            id: formation.id,
+            name: formation.title,
+            category: formation.category,
+            price: 0,
+            currency: 'XOF',
+          },
+          coupon: couponCode.trim() || undefined,
         });
 
         setSuccess(true);

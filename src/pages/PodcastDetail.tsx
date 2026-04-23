@@ -5,10 +5,11 @@ import { getPodcastBySlug, getPublishedPodcasts } from '../lib/firestore';
 import FormationCTA from '../components/shared/FormationCTA';
 import { formatDate, markdownToHtml } from '../lib/utils';
 import type { Podcast } from '../types';
-import { trackViewContent } from '../lib/meta-pixel';
+import { trackViewItem, trackPodcastPlay } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
+import Breadcrumbs from '../components/ui/Breadcrumbs';
 
 function resolveAudioEmbed(url: string): { type: 'iframe' | 'native'; src: string } {
   const spotifyMatch = url.match(/open\.spotify\.com\/(episode|show|track)\/([a-zA-Z0-9]+)/);
@@ -29,7 +30,8 @@ export default function PodcastDetail() {
     getPodcastBySlug(slug).then((data) => {
       setPodcast(data);
       if (data) {
-        trackViewContent({ content_type: 'podcast', content_ids: [data.id], content_name: data.title });
+        trackViewItem({ id: data.id, name: data.title, category: data.category, content_type: 'podcast' });
+        trackPodcastPlay(data.id, data.title);
         getPublishedPodcasts().then((all) => setOthers(all.filter((p) => p.id !== data.id).slice(0, 4))).catch(() => null);
       }
     }).catch(() => setPodcast(null));
@@ -54,7 +56,9 @@ export default function PodcastDetail() {
         title={podcast.title}
         description={podcast.description}
         ogImage={podcast.coverImage}
-      />
+      >
+        {podcast.coverImage && <link rel="preload" as="image" href={podcast.coverImage} />}
+      </SEOHead>
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'PodcastEpisode',
@@ -89,6 +93,15 @@ export default function PodcastDetail() {
       {/* ── HERO ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <Breadcrumbs
+              items={[
+                { label: 'Accueil', href: '/' },
+                { label: 'Podcasts', href: '/podcasts' },
+                { label: podcast.title },
+              ]}
+            />
+          </div>
           <Link
             to="/podcasts"
             className="inline-flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors mb-8"
