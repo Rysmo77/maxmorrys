@@ -167,6 +167,22 @@ export default function Contact() {
           address: { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
         },
       }} />
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'LocalBusiness',
+        name: 'Max-Morrys',
+        image: `${SITE_URL}/og-default.jpg`,
+        telephone: '+221776041985',
+        email: 'hello@maxmorrys.me',
+        url: SITE_URL,
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: 'Dakar',
+          addressCountry: 'SN',
+        },
+        priceRange: '€€',
+        sameAs: ['https://wa.me/221776041985'],
+      }} />
 
       {/* ── HERO ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">

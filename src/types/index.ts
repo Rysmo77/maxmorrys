@@ -71,6 +71,8 @@ export interface Formation {
   status: 'draft' | 'published';
   featured: boolean;
   certificateEnabled: boolean;
+  publishedAt?: string;
+  updatedAt?: string;
   // SEO
   metaTitle?: string;
   metaDescription?: string;
@@ -118,6 +120,7 @@ export interface Podcast {
   coverImage: string;
   duration: string;
   publishedAt: string;
+  updatedAt?: string;
   category: string;
   status: 'published' | 'draft';
   transcript?: string;
@@ -138,6 +141,7 @@ export interface Video {
   thumbnailUrl: string;
   duration: string;
   publishedAt: string;
+  updatedAt?: string;
   category: string;
   status: 'published' | 'draft';
   views: number;

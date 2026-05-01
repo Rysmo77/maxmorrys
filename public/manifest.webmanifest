@@ -1,0 +1,13 @@
+{
+  "name": "Max-Morrys",
+  "short_name": "Max-Morrys",
+  "description": "Formations, articles, podcasts et videos pour maitriser le marketing digital, le SEO et l'IA.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0c93e7",
+  "lang": "fr",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -141,6 +141,19 @@ export default function Home() {
             'query-input': 'required name=search_term_string',
           },
         },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          name: 'Max-Morrys',
+          url: SITE_URL,
+          image: `${SITE_URL}/og-default.jpg`,
+          jobTitle: 'Expert en marketing digital, SEO et IA',
+          worksFor: { '@type': 'Organization', name: SITE_NAME },
+          sameAs: [
+            'https://www.linkedin.com/in/maxmorrys',
+            'https://www.youtube.com/@maxmorrys',
+          ],
+        },
       ]} />
 
       {/* ── HERO : vidéo plein écran en fond ── */}

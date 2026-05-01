@@ -17,6 +17,7 @@ interface SEOHeadProps {
   ogTitle?: string;
   ogDescription?: string;
   ogImage?: string;
+  ogImageAlt?: string;
   twitterTitle?: string;
   twitterDescription?: string;
   twitterImage?: string;
@@ -36,6 +37,7 @@ export default function SEOHead({
   ogTitle,
   ogDescription,
   ogImage,
+  ogImageAlt,
   twitterTitle,
   twitterDescription,
   twitterImage,
@@ -52,6 +54,7 @@ export default function SEOHead({
   const resolvedOgTitle = ogTitle || title;
   const resolvedOgDescription = ogDescription || description;
   const resolvedOgImage = ogImage || DEFAULT_OG_IMAGE;
+  const resolvedOgImageAlt = ogImageAlt || resolvedOgTitle;
   const resolvedTwitterTitle = twitterTitle || resolvedOgTitle;
   const resolvedTwitterDescription = twitterDescription || resolvedOgDescription;
   const resolvedTwitterImage = twitterImage || resolvedOgImage;
@@ -72,6 +75,8 @@ export default function SEOHead({
       <meta property="og:image" content={resolvedOgImage} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={resolvedOgImageAlt} />
+      <meta property="og:image:type" content="image/jpeg" />
       <meta property="og:locale" content="fr_FR" />
       <meta property="og:site_name" content={SITE_NAME} />
 
@@ -83,9 +88,11 @@ export default function SEOHead({
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content={TWITTER_HANDLE} />
+      <meta name="twitter:creator" content={TWITTER_HANDLE} />
       <meta name="twitter:title" content={resolvedTwitterTitle} />
       <meta name="twitter:description" content={resolvedTwitterDescription} />
       <meta name="twitter:image" content={resolvedTwitterImage} />
+      <meta name="twitter:image:alt" content={resolvedOgImageAlt} />
 
       {children}
     </Helmet>

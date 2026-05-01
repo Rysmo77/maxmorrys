@@ -34,3 +34,6 @@ export { exportUserData, deleteUserAccount } from './gdpr';
 // ── SEO ──────────────────────────────────────────────────────────────────
 export { sitemap } from './sitemap';
 export { prerender } from './prerender';
+
+// ── Marketing feeds ──────────────────────────────────────────────────────
+export { catalog } from './catalog';

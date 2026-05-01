@@ -44,12 +44,6 @@ export function hasMarketingConsent(): boolean {
   return getCookieConsent()?.marketing === true;
 }
 
-/** Legacy helper — true only if user accepted BOTH analytics & marketing. */
-export function hasFullConsent(): boolean {
-  const c = getCookieConsent();
-  return c?.analytics === true && c?.marketing === true;
-}
-
 function pushConsentToGoogle(analytics: boolean, marketing: boolean): void {
   if (typeof window === 'undefined') return;
   const dataLayer = (window as unknown as { dataLayer?: Array<Record<string, unknown>> }).dataLayer;

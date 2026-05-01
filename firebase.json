@@ -38,15 +38,21 @@
           { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
           { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
           { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-          { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://apis.google.com https://www.gstatic.com https://connect.facebook.net https://www.googletagmanager.com https://www.google-analytics.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data: blob:; font-src 'self' https://fonts.gstatic.com; media-src 'self' https://firebasestorage.googleapis.com blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net wss://*.firebaseio.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.googletagmanager.com https://graph.facebook.com https://*.facebook.com; frame-src https://accounts.google.com https://*.firebaseapp.com https://www.youtube.com https://open.spotify.com https://www.googletagmanager.com https://td.doubleclick.net; object-src 'none'; base-uri 'self'" }
+          { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://apis.google.com https://www.gstatic.com https://connect.facebook.net https://www.googletagmanager.com https://www.google-analytics.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data: blob:; font-src 'self' https://fonts.gstatic.com; media-src 'self' https://firebasestorage.googleapis.com blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net wss://*.firebaseio.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.googletagmanager.com https://*.facebook.com; frame-src https://accounts.google.com https://*.firebaseapp.com https://www.youtube.com https://open.spotify.com https://www.googletagmanager.com https://td.doubleclick.net; object-src 'none'; base-uri 'self'" }
         ]
       }
     ],
     "rewrites": [
       { "source": "/sitemap.xml", "function": "sitemap" },
+      { "source": "/catalog.csv", "function": "catalog" },
+      { "source": "/", "function": "prerender" },
+      { "source": "/blog", "function": "prerender" },
       { "source": "/blog/**", "function": "prerender" },
+      { "source": "/formations", "function": "prerender" },
       { "source": "/formations/**", "function": "prerender" },
+      { "source": "/podcasts", "function": "prerender" },
       { "source": "/podcasts/**", "function": "prerender" },
+      { "source": "/videos", "function": "prerender" },
       { "source": "/videos/**", "function": "prerender" },
       { "source": "/faq", "function": "prerender" },
       { "source": "/a-propos", "function": "prerender" },

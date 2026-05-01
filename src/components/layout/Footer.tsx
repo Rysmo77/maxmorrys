@@ -16,8 +16,8 @@ const footerLinks = {
     { label: 'Prendre rendez-vous', path: '/contact' },
   ],
   legal: [
-    { label: 'Mentions legales', path: '/legal/mentions-legales' },
-    { label: 'Confidentialite', path: '/legal/confidentialite' },
+    { label: 'Mentions légales', path: '/legal/mentions-legales' },
+    { label: 'Confidentialité', path: '/legal/confidentialite' },
     { label: 'CGV', path: '/legal/cgv' },
     { label: 'Cookies', path: '/legal/cookies' },
   ],
@@ -86,9 +86,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* A propos */}
+          {/* À propos */}
           <div>
-            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5">A propos</h3>
+            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5">À propos</h3>
             <ul className="space-y-3">
               {footerLinks.apropos.map((link) => (
                 <li key={link.label}>
@@ -99,7 +99,7 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5 mt-8">Legal</h3>
+            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5 mt-8">Légal</h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.path}>
@@ -126,7 +126,7 @@ export default function Footer() {
               </li>
               <li className="flex items-start gap-3 text-sm">
                 <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>Dakar, Senegal</span>
+                <span>Dakar, Sénégal</span>
               </li>
             </ul>
           </div>
@@ -134,8 +134,18 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="py-6 border-t border-neutral-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs">&copy; {new Date().getFullYear()} Max-Morrys. Tous droits reserves.</p>
-          <p className="text-xs">Fait par moi-même.</p>
+          <p className="text-xs">&copy; {new Date().getFullYear()} Max-Morrys. Tous droits réservés.</p>
+          <p className="text-xs">
+            Max-Morrys est une marque opérée par{' '}
+            <a
+              href="https://myonoma.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-neutral-300 hover:text-white font-medium underline-offset-2 hover:underline transition-colors"
+            >
+              My Onoma SARL
+            </a>
+          </p>
         </div>
       </div>
     </footer>

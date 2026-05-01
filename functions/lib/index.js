@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createClubCharge = exports.createBictorysCharge = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageEnrollment = exports.adminCreateUser = exports.rysmo = void 0;
+exports.catalog = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createClubCharge = exports.createBictorysCharge = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageEnrollment = exports.adminCreateUser = exports.rysmo = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ── AI Chatbot ────────────────────────────────────────────────────────────
@@ -77,4 +77,7 @@ var sitemap_1 = require("./sitemap");
 Object.defineProperty(exports, "sitemap", { enumerable: true, get: function () { return sitemap_1.sitemap; } });
 var prerender_1 = require("./prerender");
 Object.defineProperty(exports, "prerender", { enumerable: true, get: function () { return prerender_1.prerender; } });
+// ── Marketing feeds ──────────────────────────────────────────────────────
+var catalog_1 = require("./catalog");
+Object.defineProperty(exports, "catalog", { enumerable: true, get: function () { return catalog_1.catalog; } });
 //# sourceMappingURL=index.js.map

@@ -41,30 +41,6 @@ const SITE_NAME = 'Max-Morrys';
 const DEFAULT_TITLE = 'Max-Morrys | Maîtrisez le digital, accélérez votre croissance';
 const DEFAULT_DESCRIPTION = 'Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l\'IA. Par Max-Morrys depuis Dakar.';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.jpg`;
-const BOT_USER_AGENTS = [
-    'googlebot',
-    'bingbot',
-    'yandexbot',
-    'duckduckbot',
-    'slurp',
-    'baiduspider',
-    'facebookexternalhit',
-    'facebot',
-    'twitterbot',
-    'linkedinbot',
-    'whatsapp',
-    'slackbot',
-    'telegrambot',
-    'discordbot',
-    'applebot',
-    'pinterestbot',
-    'semrushbot',
-    'ahrefsbot',
-];
-function isBot(userAgent) {
-    const ua = userAgent.toLowerCase();
-    return BOT_USER_AGENTS.some((bot) => ua.includes(bot));
-}
 function escapeHtml(str) {
     return str
         .replace(/&/g, '&amp;')
@@ -72,80 +48,134 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
 }
-// ── Route-specific meta data fetchers ────────────────────────────────────
+// ── Static pages metadata ────────────────────────────────────────────────
 const staticPages = {
     '/': {
         title: DEFAULT_TITLE,
         description: DEFAULT_DESCRIPTION,
         ogType: 'website',
         ogImage: DEFAULT_OG_IMAGE,
-        canonical: SITE_URL,
+        canonical: `${SITE_URL}/`,
         h1: 'Maîtrise le digital, accélère ta croissance',
-        jsonLd: {
-            '@context': 'https://schema.org',
-            '@type': 'Organization',
-            name: SITE_NAME,
-            url: SITE_URL,
-            logo: DEFAULT_OG_IMAGE,
-        },
+        bodyText: 'Max-Morrys propose des formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l\'IA. Plateforme éducative basée à Dakar, dédiée à la croissance digitale en Afrique francophone.',
+        jsonLd: [
+            {
+                '@context': 'https://schema.org',
+                '@type': 'Organization',
+                name: SITE_NAME,
+                url: SITE_URL,
+                logo: DEFAULT_OG_IMAGE,
+                sameAs: [
+                    'https://www.linkedin.com/in/maxmorrys',
+                    'https://www.youtube.com/@maxmorrys',
+                ],
+            },
+            {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: SITE_NAME,
+                url: SITE_URL,
+                inLanguage: 'fr',
+                potentialAction: {
+                    '@type': 'SearchAction',
+                    target: `${SITE_URL}/blog?q={search_term_string}`,
+                    'query-input': 'required name=search_term_string',
+                },
+            },
+        ],
     },
     '/a-propos': {
-        title: `A propos de Max-Morrys — Formateur en Marketing Digital | ${SITE_NAME}`,
-        description: 'Découvrez le parcours de Max-Morrys, formateur et consultant en marketing digital basé à Dakar.',
+        title: `À propos de Max-Morrys — Formateur en Marketing Digital | ${SITE_NAME}`,
+        description: 'Découvrez le parcours de Max-Morrys, formateur et consultant en marketing digital basé à Dakar. Expertise SEO, growth marketing et stratégie digitale pour l\'Afrique.',
         ogType: 'profile',
         ogImage: DEFAULT_OG_IMAGE,
         canonical: `${SITE_URL}/a-propos`,
         h1: 'Je suis Max-Morrys',
+        bodyText: 'Formateur, consultant et créateur de contenu digital basé à Dakar. J\'aide les entreprises et entrepreneurs francophones à maîtriser le marketing digital, le SEO et l\'IA pour accélérer leur croissance.',
+        breadcrumbs: [
+            { name: 'Accueil', url: `${SITE_URL}/` },
+            { name: 'À propos', url: `${SITE_URL}/a-propos` },
+        ],
     },
     '/blog': {
         title: `Blog Marketing Digital — Articles et Conseils | ${SITE_NAME}`,
-        description: 'Articles, analyses et conseils pratiques en marketing digital, SEO, IA et stratégie de croissance.',
+        description: 'Articles, analyses et conseils pratiques en marketing digital, SEO, IA et stratégie de croissance. Par Max-Morrys depuis Dakar.',
         ogType: 'website',
         ogImage: DEFAULT_OG_IMAGE,
         canonical: `${SITE_URL}/blog`,
         h1: 'Blog Marketing Digital',
+        bodyText: 'Retrouvez ici tous les articles de Max-Morrys sur le marketing digital, le SEO, l\'IA, le growth marketing et la stratégie digitale. Conseils pratiques pour entrepreneurs et entreprises africaines.',
+        breadcrumbs: [
+            { name: 'Accueil', url: `${SITE_URL}/` },
+            { name: 'Blog', url: `${SITE_URL}/blog` },
+        ],
     },
     '/formations': {
         title: `Formations Marketing Digital | ${SITE_NAME}`,
-        description: 'Formations pratiques en marketing digital, SEO et IA pour accélérer ta croissance.',
+        description: 'Formations pratiques en marketing digital, SEO et IA pour accélérer ta croissance. Cours en ligne accessibles depuis l\'Afrique et le monde entier.',
         ogType: 'website',
         ogImage: DEFAULT_OG_IMAGE,
         canonical: `${SITE_URL}/formations`,
         h1: 'Formations Marketing Digital',
+        bodyText: 'Découvre les formations Max-Morrys : marketing digital, SEO, growth, IA, contenu. Programmes pratiques avec missions, certificats et accompagnement personnalisé.',
+        breadcrumbs: [
+            { name: 'Accueil', url: `${SITE_URL}/` },
+            { name: 'Formations', url: `${SITE_URL}/formations` },
+        ],
     },
     '/podcasts': {
         title: `Podcasts Marketing Digital | ${SITE_NAME}`,
-        description: 'Écoute le podcast de Max-Morrys : stratégies marketing digital, SEO, IA et croissance en Afrique.',
+        description: 'Écoute le podcast de Max-Morrys : stratégies marketing digital, SEO, IA et croissance en Afrique. Disponible sur Spotify, Apple Podcasts et Deezer.',
         ogType: 'website',
         ogImage: DEFAULT_OG_IMAGE,
         canonical: `${SITE_URL}/podcasts`,
         h1: 'Podcasts Marketing Digital',
+        bodyText: 'Le podcast Max-Morrys décrypte les stratégies marketing digital, le SEO, l\'IA et la croissance des marques en Afrique francophone. Nouveaux épisodes chaque semaine.',
+        breadcrumbs: [
+            { name: 'Accueil', url: `${SITE_URL}/` },
+            { name: 'Podcasts', url: `${SITE_URL}/podcasts` },
+        ],
     },
     '/videos': {
         title: `Vidéos Marketing Digital | ${SITE_NAME}`,
-        description: 'Regarde les vidéos de Max-Morrys sur le marketing digital, le SEO et l\'IA.',
+        description: 'Regarde les vidéos de Max-Morrys sur le marketing digital, le SEO et l\'IA. Tutoriels pratiques et analyses sur YouTube.',
         ogType: 'website',
         ogImage: DEFAULT_OG_IMAGE,
         canonical: `${SITE_URL}/videos`,
         h1: 'Vidéos Marketing Digital',
+        bodyText: 'Les vidéos Max-Morrys : tutoriels marketing digital, analyses SEO, démonstrations IA, growth hacking. Contenu pratique en français pour entrepreneurs africains.',
+        breadcrumbs: [
+            { name: 'Accueil', url: `${SITE_URL}/` },
+            { name: 'Vidéos', url: `${SITE_URL}/videos` },
+        ],
     },
     '/faq': {
         title: `FAQ — Questions Fréquentes | ${SITE_NAME}`,
-        description: 'Retrouve les réponses aux questions les plus fréquentes sur les formations et services de Max-Morrys.',
+        description: 'Retrouve les réponses aux questions les plus fréquentes sur les formations, le coaching et les services de Max-Morrys.',
         ogType: 'website',
         ogImage: DEFAULT_OG_IMAGE,
         canonical: `${SITE_URL}/faq`,
         h1: 'Questions fréquentes',
+        breadcrumbs: [
+            { name: 'Accueil', url: `${SITE_URL}/` },
+            { name: 'FAQ', url: `${SITE_URL}/faq` },
+        ],
     },
     '/contact': {
         title: `Contact | ${SITE_NAME}`,
-        description: 'Contacte Max-Morrys pour du coaching personnalisé, des formations en marketing digital, ou un partenariat.',
+        description: 'Contacte Max-Morrys pour du coaching personnalisé, des formations en marketing digital, ou un partenariat. Basé à Dakar, Sénégal.',
         ogType: 'website',
         ogImage: DEFAULT_OG_IMAGE,
         canonical: `${SITE_URL}/contact`,
         h1: 'Contact',
+        bodyText: 'Contactez Max-Morrys par formulaire, email (hello@maxmorrys.me), téléphone (+221 77 604 19 85) ou WhatsApp pour discuter de coaching, formations sur-mesure ou partenariats.',
+        breadcrumbs: [
+            { name: 'Accueil', url: `${SITE_URL}/` },
+            { name: 'Contact', url: `${SITE_URL}/contact` },
+        ],
     },
 };
+// ── Dynamic content meta lookup ──────────────────────────────────────────
 async function getContentMeta(path) {
     var _a;
     const db = admin.firestore();
@@ -170,8 +200,9 @@ async function getContentMeta(path) {
             canonical: post.canonicalUrl || `${SITE_URL}/blog/${slug}`,
             noIndex: post.noIndex,
             publishedAt: post.publishedAt,
+            modifiedAt: post.updatedAt,
             h1: post.title,
-            bodyText: post.excerpt,
+            bodyText: post.excerpt + (post.content ? '\n\n' + stripMarkdown(post.content).slice(0, 2000) : ''),
             jsonLd: {
                 '@context': 'https://schema.org',
                 '@type': 'Article',
@@ -179,6 +210,7 @@ async function getContentMeta(path) {
                 description: post.excerpt,
                 image: post.coverImage,
                 datePublished: post.publishedAt,
+                dateModified: post.updatedAt || post.publishedAt,
                 author: { '@type': 'Person', name: post.author || 'Max-Morrys' },
                 publisher: {
                     '@type': 'Organization',
@@ -186,7 +218,14 @@ async function getContentMeta(path) {
                     logo: { '@type': 'ImageObject', url: DEFAULT_OG_IMAGE },
                 },
                 mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${slug}` },
+                articleSection: post.category,
+                keywords: Array.isArray(post.tags) ? post.tags.join(', ') : undefined,
             },
+            breadcrumbs: [
+                { name: 'Accueil', url: `${SITE_URL}/` },
+                { name: 'Blog', url: `${SITE_URL}/blog` },
+                { name: post.title, url: `${SITE_URL}/blog/${slug}` },
+            ],
         };
     }
     // Formation: /formations/:slug
@@ -202,6 +241,7 @@ async function getContentMeta(path) {
         if (snap.empty)
             return null;
         const f = snap.docs[0].data();
+        const longDesc = f.longDescription ? stripMarkdown(f.longDescription).slice(0, 2000) : '';
         return {
             title: `${f.metaTitle || f.title} | ${SITE_NAME}`,
             description: f.metaDescription || f.description || '',
@@ -209,22 +249,29 @@ async function getContentMeta(path) {
             ogImage: f.ogImage || f.coverImage || DEFAULT_OG_IMAGE,
             canonical: f.canonicalUrl || `${SITE_URL}/formations/${slug}`,
             noIndex: f.noIndex,
+            publishedAt: f.publishedAt,
+            modifiedAt: f.updatedAt,
             h1: f.title,
-            bodyText: f.description,
-            jsonLd: {
-                '@context': 'https://schema.org',
-                '@type': 'Course',
-                name: f.title,
-                description: f.description,
-                provider: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
-                inLanguage: 'fr',
-                offers: {
+            bodyText: f.description + (longDesc ? '\n\n' + longDesc : ''),
+            jsonLd: Object.assign({ '@context': 'https://schema.org', '@type': 'Course', name: f.title, description: f.description, provider: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL }, educationalLevel: f.level, inLanguage: 'fr', image: f.coverImage, offers: {
                     '@type': 'Offer',
                     price: (_a = f.promoPrice) !== null && _a !== void 0 ? _a : f.price,
                     priceCurrency: 'XOF',
                     availability: 'https://schema.org/InStock',
+                    url: `${SITE_URL}/formations/${slug}`,
+                } }, (typeof f.rating === 'number' && f.rating > 0 && {
+                aggregateRating: {
+                    '@type': 'AggregateRating',
+                    ratingValue: f.rating,
+                    bestRating: 5,
+                    ratingCount: f.students || 1,
                 },
-            },
+            })),
+            breadcrumbs: [
+                { name: 'Accueil', url: `${SITE_URL}/` },
+                { name: 'Formations', url: `${SITE_URL}/formations` },
+                { name: f.title, url: `${SITE_URL}/formations/${slug}` },
+            ],
         };
     }
     // Podcast: /podcasts/:slug
@@ -241,21 +288,36 @@ async function getContentMeta(path) {
             return null;
         const p = snap.docs[0].data();
         return {
-            title: `${p.title} | ${SITE_NAME}`,
-            description: p.description || '',
+            title: `${p.metaTitle || p.title} | ${SITE_NAME}`,
+            description: p.metaDescription || p.description || '',
             ogType: 'music.song',
-            ogImage: p.coverImage || DEFAULT_OG_IMAGE,
-            canonical: `${SITE_URL}/podcasts/${slug}`,
+            ogImage: p.ogImage || p.coverImage || DEFAULT_OG_IMAGE,
+            canonical: p.canonicalUrl || `${SITE_URL}/podcasts/${slug}`,
+            noIndex: p.noIndex,
+            publishedAt: p.publishedAt,
+            modifiedAt: p.updatedAt,
             h1: p.title,
-            bodyText: p.description,
+            bodyText: (p.description || '') + (p.transcript ? '\n\n' + stripMarkdown(p.transcript).slice(0, 2000) : ''),
             jsonLd: {
                 '@context': 'https://schema.org',
                 '@type': 'PodcastEpisode',
                 name: p.title,
                 description: p.description,
                 datePublished: p.publishedAt,
+                timeRequired: p.duration,
+                image: p.coverImage,
                 url: `${SITE_URL}/podcasts/${slug}`,
+                partOfSeries: {
+                    '@type': 'PodcastSeries',
+                    name: 'Le Podcast du Marketing — Max-Morrys',
+                    url: `${SITE_URL}/podcasts`,
+                },
             },
+            breadcrumbs: [
+                { name: 'Accueil', url: `${SITE_URL}/` },
+                { name: 'Podcasts', url: `${SITE_URL}/podcasts` },
+                { name: p.title, url: `${SITE_URL}/podcasts/${slug}` },
+            ],
         };
     }
     // Video: /videos/:slug
@@ -272,13 +334,16 @@ async function getContentMeta(path) {
             return null;
         const v = snap.docs[0].data();
         return {
-            title: `${v.title} | ${SITE_NAME}`,
-            description: v.description || '',
+            title: `${v.metaTitle || v.title} | ${SITE_NAME}`,
+            description: v.metaDescription || v.description || '',
             ogType: 'video.other',
-            ogImage: v.thumbnailUrl || DEFAULT_OG_IMAGE,
-            canonical: `${SITE_URL}/videos/${slug}`,
+            ogImage: v.ogImage || v.thumbnailUrl || DEFAULT_OG_IMAGE,
+            canonical: v.canonicalUrl || `${SITE_URL}/videos/${slug}`,
+            noIndex: v.noIndex,
+            publishedAt: v.publishedAt,
+            modifiedAt: v.updatedAt,
             h1: v.title,
-            bodyText: v.description,
+            bodyText: v.description || '',
             jsonLd: {
                 '@context': 'https://schema.org',
                 '@type': 'VideoObject',
@@ -286,91 +351,176 @@ async function getContentMeta(path) {
                 description: v.description,
                 thumbnailUrl: v.thumbnailUrl,
                 uploadDate: v.publishedAt,
+                duration: v.duration,
                 embedUrl: v.videoUrl,
+                url: `${SITE_URL}/videos/${slug}`,
             },
+            breadcrumbs: [
+                { name: 'Accueil', url: `${SITE_URL}/` },
+                { name: 'Vidéos', url: `${SITE_URL}/videos` },
+                { name: v.title, url: `${SITE_URL}/videos/${slug}` },
+            ],
         };
     }
     return null;
 }
-function buildHtml(meta) {
-    const t = escapeHtml(meta.title);
-    const d = escapeHtml(meta.description);
-    const robots = meta.noIndex ? '<meta name="robots" content="noindex, nofollow" />' : '';
-    const published = meta.publishedAt
-        ? `<meta property="article:published_time" content="${escapeHtml(meta.publishedAt)}" />`
-        : '';
-    const jsonLdScript = meta.jsonLd
-        ? `<script type="application/ld+json">${JSON.stringify(meta.jsonLd)}</script>`
-        : '';
-    return `<!doctype html>
+/** Strips basic markdown syntax for plain-text body extraction. */
+function stripMarkdown(md) {
+    return md
+        .replace(/```[\s\S]*?```/g, '') // code blocks
+        .replace(/`[^`]*`/g, '') // inline code
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // images
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') // links → text
+        .replace(/^#{1,6}\s+/gm, '') // headings
+        .replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, '$1') // bold/italic
+        .replace(/^>\s+/gm, '') // blockquotes
+        .replace(/^[-*+]\s+/gm, '') // list markers
+        .replace(/^\d+\.\s+/gm, '') // numbered list
+        .replace(/\n{3,}/g, '\n\n') // collapse newlines
+        .trim();
+}
+// ── SPA shell fetching & meta-tag injection ──────────────────────────────
+const MINIMAL_FALLBACK = `<!doctype html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${t}</title>
-  <meta name="description" content="${d}" />
-  <link rel="canonical" href="${escapeHtml(meta.canonical)}" />
-  ${robots}
-  <meta property="og:title" content="${t}" />
-  <meta property="og:description" content="${d}" />
-  <meta property="og:type" content="${meta.ogType}" />
-  <meta property="og:url" content="${escapeHtml(meta.canonical)}" />
-  <meta property="og:image" content="${escapeHtml(meta.ogImage)}" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:locale" content="fr_FR" />
-  <meta property="og:site_name" content="${SITE_NAME}" />
-  ${published}
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="${t}" />
-  <meta name="twitter:description" content="${d}" />
-  <meta name="twitter:image" content="${escapeHtml(meta.ogImage)}" />
-  ${jsonLdScript}
+  <title>${SITE_NAME}</title>
 </head>
 <body>
-  <h1>${escapeHtml(meta.h1 || meta.title)}</h1>
-  ${meta.bodyText ? `<p>${escapeHtml(meta.bodyText)}</p>` : ''}
-  <noscript>Ce site nécessite JavaScript pour fonctionner pleinement. Visitez <a href="${SITE_URL}">${SITE_NAME}</a>.</noscript>
+  <div id="root"></div>
 </body>
 </html>`;
-}
-// Cache the SPA index.html content for non-bot requests
-let spaHtml = null;
-async function getSpaHtml() {
-    if (spaHtml)
-        return spaHtml;
+let spaShellCache = null;
+const SHELL_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+async function getSpaShell() {
+    const now = Date.now();
+    if (spaShellCache && now - spaShellCache.timestamp < SHELL_CACHE_TTL_MS) {
+        return spaShellCache.html;
+    }
     try {
-        const fs = await Promise.resolve().then(() => __importStar(require('fs')));
-        const path = await Promise.resolve().then(() => __importStar(require('path')));
-        const indexPath = path.join(__dirname, '../../dist/index.html');
-        spaHtml = fs.readFileSync(indexPath, 'utf-8');
+        const res = await fetch(`${SITE_URL}/index.html`, {
+            headers: { 'User-Agent': 'maxmorrys-prerender/1.0' },
+        });
+        if (res.ok) {
+            const html = await res.text();
+            spaShellCache = { html, timestamp: now };
+            return html;
+        }
+        console.error('SPA shell fetch returned status', res.status);
     }
-    catch (_a) {
-        // Fallback — redirect to the SPA served by Firebase Hosting
-        spaHtml = `<!doctype html><html><head><meta http-equiv="refresh" content="0;url=${SITE_URL}"></head></html>`;
+    catch (e) {
+        console.error('Failed to fetch SPA shell:', e);
     }
-    return spaHtml;
+    return MINIMAL_FALLBACK;
 }
-exports.prerender = (0, https_1.onRequest)({ region: 'europe-west1', memory: '256MiB' }, async (req, res) => {
-    const userAgent = req.headers['user-agent'] || '';
-    // If not a bot, serve the normal SPA
-    if (!isBot(userAgent)) {
-        const html = await getSpaHtml();
-        res.set('Content-Type', 'text/html');
-        res.set('Cache-Control', 'no-cache');
-        res.status(200).send(html);
-        return;
+/** Removes existing meta tags that we will re-inject with page-specific values. */
+function stripDefaultMeta(shell) {
+    return shell
+        .replace(/<title>[\s\S]*?<\/title>/i, '')
+        .replace(/<meta\s+name="description"[^>]*\/?>/gi, '')
+        .replace(/<meta\s+property="og:title"[^>]*\/?>/gi, '')
+        .replace(/<meta\s+property="og:description"[^>]*\/?>/gi, '')
+        .replace(/<meta\s+property="og:type"[^>]*\/?>/gi, '')
+        .replace(/<meta\s+property="og:url"[^>]*\/?>/gi, '')
+        .replace(/<meta\s+property="og:image"[^>]*\/?>/gi, '')
+        .replace(/<meta\s+name="twitter:title"[^>]*\/?>/gi, '')
+        .replace(/<meta\s+name="twitter:description"[^>]*\/?>/gi, '')
+        .replace(/<meta\s+name="twitter:image"[^>]*\/?>/gi, '')
+        .replace(/<link\s+rel="canonical"[^>]*\/?>/gi, '');
+}
+function buildMetaInjection(meta) {
+    const t = escapeHtml(meta.title);
+    const d = escapeHtml(meta.description);
+    const u = escapeHtml(meta.canonical);
+    const img = escapeHtml(meta.ogImage);
+    const lines = [];
+    lines.push(`<title>${t}</title>`);
+    lines.push(`<meta name="description" content="${d}" />`);
+    lines.push(`<link rel="canonical" href="${u}" />`);
+    if (meta.noIndex) {
+        lines.push('<meta name="robots" content="noindex, nofollow" />');
     }
-    // Bot detected — serve pre-rendered HTML
+    lines.push(`<meta property="og:title" content="${t}" />`);
+    lines.push(`<meta property="og:description" content="${d}" />`);
+    lines.push(`<meta property="og:type" content="${escapeHtml(meta.ogType)}" />`);
+    lines.push(`<meta property="og:url" content="${u}" />`);
+    lines.push(`<meta property="og:image" content="${img}" />`);
+    lines.push('<meta property="og:image:width" content="1200" />');
+    lines.push('<meta property="og:image:height" content="630" />');
+    lines.push('<meta property="og:locale" content="fr_FR" />');
+    lines.push(`<meta property="og:site_name" content="${SITE_NAME}" />`);
+    lines.push('<meta name="twitter:card" content="summary_large_image" />');
+    lines.push('<meta name="twitter:site" content="@maxmorrys" />');
+    lines.push(`<meta name="twitter:title" content="${t}" />`);
+    lines.push(`<meta name="twitter:description" content="${d}" />`);
+    lines.push(`<meta name="twitter:image" content="${img}" />`);
+    if (meta.publishedAt) {
+        lines.push(`<meta property="article:published_time" content="${escapeHtml(meta.publishedAt)}" />`);
+    }
+    if (meta.modifiedAt) {
+        lines.push(`<meta property="article:modified_time" content="${escapeHtml(meta.modifiedAt)}" />`);
+    }
+    // JSON-LD blocks
+    if (meta.jsonLd) {
+        const arr = Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd];
+        for (const data of arr) {
+            lines.push(`<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`);
+        }
+    }
+    // BreadcrumbList JSON-LD
+    if (meta.breadcrumbs && meta.breadcrumbs.length > 0) {
+        const breadcrumbJson = {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: meta.breadcrumbs.map((b, i) => ({
+                '@type': 'ListItem',
+                position: i + 1,
+                name: b.name,
+                item: b.url,
+            })),
+        };
+        lines.push(`<script type="application/ld+json">${JSON.stringify(breadcrumbJson).replace(/</g, '\\u003c')}</script>`);
+    }
+    return lines.join('\n    ');
+}
+function buildSeoBody(meta) {
+    if (!meta.h1 && !meta.bodyText)
+        return '';
+    const h1 = meta.h1 ? `<h1>${escapeHtml(meta.h1)}</h1>` : '';
+    // Convert plain text body to paragraphs
+    const paragraphs = (meta.bodyText || '')
+        .split(/\n{2,}/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .map((p) => `<p>${escapeHtml(p)}</p>`)
+        .join('\n      ');
+    // The inner div is what bots see. React will hydrate <div id="root"> and replace.
+    return `<div data-prerendered-seo="true">
+      ${h1}
+      ${paragraphs}
+    </div>`;
+}
+function injectIntoShell(shell, meta) {
+    let result = stripDefaultMeta(shell);
+    const injection = buildMetaInjection(meta);
+    // Insert after <head> opening so it appears near the top
+    result = result.replace(/<head>/i, `<head>\n    ${injection}`);
+    // Inject SEO body content inside <div id="root"></div>
+    const seoBody = buildSeoBody(meta);
+    if (seoBody) {
+        result = result.replace(/<div\s+id="root"[^>]*>\s*<\/div>/i, `<div id="root">${seoBody}</div>`);
+    }
+    return result;
+}
+// ── Cloud Function entry point ───────────────────────────────────────────
+exports.prerender = (0, https_1.onRequest)({ region: 'europe-west1', memory: '256MiB', cpu: 1 }, async (req, res) => {
     try {
         const path = req.path.replace(/\/+$/, '') || '/';
-        // Check static pages first
         let meta = staticPages[path] || null;
-        // Check dynamic content
         if (!meta) {
             meta = await getContentMeta(path);
         }
-        // Fallback to default if route not found
         if (!meta) {
             meta = {
                 title: DEFAULT_TITLE,
@@ -379,19 +529,28 @@ exports.prerender = (0, https_1.onRequest)({ region: 'europe-west1', memory: '25
                 ogImage: DEFAULT_OG_IMAGE,
                 canonical: `${SITE_URL}${path}`,
                 h1: SITE_NAME,
+                noIndex: true, // unknown route → don't index
             };
         }
-        const html = buildHtml(meta);
-        res.set('Content-Type', 'text/html');
-        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+        const shell = await getSpaShell();
+        const html = injectIntoShell(shell, meta);
+        res.set('Content-Type', 'text/html; charset=utf-8');
+        // 5min browser cache, 1h CDN cache
+        res.set('Cache-Control', 'public, max-age=300, s-maxage=3600');
         res.status(200).send(html);
     }
     catch (error) {
         console.error('Prerender error:', error);
-        // Fall back to SPA on error
-        const html = await getSpaHtml();
-        res.set('Content-Type', 'text/html');
-        res.status(200).send(html);
+        // Last-resort fallback: serve the SPA shell as-is
+        try {
+            const shell = await getSpaShell();
+            res.set('Content-Type', 'text/html; charset=utf-8');
+            res.set('Cache-Control', 'no-cache');
+            res.status(200).send(shell);
+        }
+        catch (_a) {
+            res.status(500).send('Server Error');
+        }
     }
 });
 //# sourceMappingURL=prerender.js.map
