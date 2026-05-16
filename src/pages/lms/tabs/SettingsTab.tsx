@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { LogOut, Download, Trash2, Loader2 } from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
 import Toggle from '../../../components/ui/Toggle';
@@ -7,6 +8,7 @@ import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import { functions } from '../../../config/firebase';
 import { useToast } from '../../../components/ui/Toast';
 import { useAuth } from '../../../contexts/AuthContext';
+import { staggerContainer, staggerItem } from '../../../lib/animations';
 
 const exportUserData = httpsCallable<Record<string, never>, { downloadUrl: string; expiresInHours: number }>(
   functions,
@@ -65,8 +67,13 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
   };
 
   return (
-    <div className="max-w-lg space-y-4">
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
+    <motion.div
+      className="max-w-lg space-y-4"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
         <h3 className="font-bold text-neutral-900 dark:text-white mb-5">Apparence</h3>
         <Toggle
           checked={theme === 'dark'}
@@ -74,9 +81,9 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
           label="Mode sombre"
           description="Réduit la fatigue oculaire dans les environnements sombres"
         />
-      </div>
+      </motion.div>
 
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
+      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
         <h3 className="font-bold text-neutral-900 dark:text-white mb-2">Mes donnees</h3>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
           Exerce tes droits RGPD : exporter ou supprimer tes donnees personnelles.
@@ -95,9 +102,9 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
         >
           <Trash2 className="w-4 h-4" /> Supprimer mon compte
         </button>
-      </div>
+      </motion.div>
 
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
+      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
         <h3 className="font-bold text-neutral-900 dark:text-white mb-4">Compte</h3>
         <button
           onClick={onSignOut}
@@ -105,7 +112,7 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
         >
           <LogOut className="w-4 h-4" /> Se déconnecter
         </button>
-      </div>
+      </motion.div>
 
       <ConfirmDialog
         open={showDeleteConfirm}
@@ -141,6 +148,6 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
           </div>
         </div>
       </ConfirmDialog>
-    </div>
+    </motion.div>
   );
 }

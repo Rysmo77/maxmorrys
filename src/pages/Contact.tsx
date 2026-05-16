@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, MessageSquare, Send, Calendar, X, Clock, Loader2, ChevronDown } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -12,7 +13,10 @@ import { captureError } from '../lib/sentry';
 import { trackGenerateLead, trackContact } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
-import { SITE_URL } from '../components/seo/seo-config';
+import { SITE_URL, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
+import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
 const contactInfo = [
   { icon: Mail, label: 'Email', value: 'hello@maxmorrys.me', link: 'mailto:hello@maxmorrys.me' },
@@ -171,7 +175,7 @@ export default function Contact() {
         '@context': 'https://schema.org',
         '@type': 'LocalBusiness',
         name: 'Max-Morrys',
-        image: `${SITE_URL}/og-default.jpg`,
+        image: DEFAULT_OG_IMAGE,
         telephone: '+221776041985',
         email: 'hello@maxmorrys.me',
         url: SITE_URL,
@@ -186,19 +190,24 @@ export default function Contact() {
 
       {/* ── HERO ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
+        <motion.div
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
             CONTACT
-          </p>
+          </motion.p>
           <div className="grid lg:grid-cols-2 gap-8 items-end">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
+            <motion.h1 variants={staggerItem} className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
               Parlons de<br />ta stratégie
-            </h1>
-            <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed lg:pb-2">
+            </motion.h1>
+            <motion.p variants={staggerItem} className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed lg:pb-2">
               Tu as un projet, une question, ou besoin d'une consultation ? Je suis là pour t'aider à atteindre tes objectifs de marketing digital !
-            </p>
+            </motion.p>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       <div className="bg-white dark:bg-neutral-950 pb-24">
@@ -206,7 +215,13 @@ export default function Contact() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
 
             {/* Formulaire */}
-            <div className="lg:col-span-2">
+            <motion.div
+              className="lg:col-span-2"
+              variants={slideUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
               <div className="bg-neutral-50 dark:bg-neutral-900 rounded-3xl p-8 lg:p-10 border border-neutral-100 dark:border-neutral-800">
                 <h2 className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white mb-8">
                   Envoie-moi un message
@@ -260,12 +275,18 @@ export default function Contact() {
                   </Button>
                 </form>
               </div>
-            </div>
+            </motion.div>
 
             {/* Infos contact */}
-            <div className="space-y-4">
+            <motion.div
+              className="space-y-4"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
               {contactInfo.map((info) => (
-                <div key={info.label}>
+                <motion.div key={info.label} variants={staggerItem}>
                   {info.link ? (
                     <a
                       href={info.link}
@@ -293,11 +314,11 @@ export default function Contact() {
                       </div>
                     </div>
                   )}
-                </div>
+                </motion.div>
               ))}
 
               {/* Rendez-vous */}
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-white">
+              <motion.div variants={staggerItem} className="p-6 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-white">
                 <Calendar className="w-8 h-8 text-brand-200 mb-4" />
                 <h3 className="font-black text-lg mb-2">Prendre rendez-vous</h3>
                 <p className="text-brand-100 text-sm mb-5 leading-relaxed">
@@ -310,15 +331,21 @@ export default function Contact() {
                   <Clock className="w-4 h-4" />
                   Planifier un appel
                 </button>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </div>
 
       {/* ── FAQ ── */}
       {faqs.length > 0 && (
-        <section className="bg-neutral-50 dark:bg-neutral-900 py-24 border-t border-neutral-100 dark:border-neutral-800">
+        <motion.section
+          className="bg-neutral-50 dark:bg-neutral-900 py-24 border-t border-neutral-100 dark:border-neutral-800"
+          variants={slideUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4 text-center">
               FAQ
@@ -326,11 +353,17 @@ export default function Contact() {
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white text-center mb-14">
               Questions fréquentes
             </h2>
-            <div className="divide-y divide-neutral-200 dark:divide-neutral-700">
+            <motion.div
+              className="divide-y divide-neutral-200 dark:divide-neutral-700"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
               {faqs.map((faq) => {
                 const isOpen = openFaq === faq.id;
                 return (
-                  <div key={faq.id}>
+                  <motion.div key={faq.id} variants={staggerItem}>
                     <button
                       onClick={() => setOpenFaq(isOpen ? null : faq.id)}
                       aria-expanded={isOpen}
@@ -348,12 +381,12 @@ export default function Contact() {
                         {faq.answer}
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* ── BOOKING MODAL ── */}

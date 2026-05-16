@@ -4,6 +4,8 @@ import * as admin from 'firebase-admin';
 const SITE_URL = 'https://maxmorrys.me';
 const BRAND = 'Max-Morrys';
 const CURRENCY = 'XOF';
+// Placeholder Firebase Storage en attendant l'upload du fichier OG dédié (1200×630).
+const DEFAULT_OG_IMAGE = 'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Je-te-forme%2F2252.jpg?alt=media&token=c7942987-73f4-45e3-9a9e-2735a1eb1927';
 
 interface FormationDoc {
   id: string;
@@ -98,7 +100,7 @@ export const catalog = onRequest(
           'new',
           fullPrice,
           `${SITE_URL}/formations/${f.slug}`,
-          f.coverImage || `${SITE_URL}/og-default.jpg`,
+          f.coverImage || DEFAULT_OG_IMAGE,
           BRAND,
           salePrice,
           f.category || 'Formation',

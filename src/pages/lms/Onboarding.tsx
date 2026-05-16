@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { User, BookOpen, Compass, ArrowRight, ArrowLeft, Camera, Loader2, Check } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -95,7 +96,12 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <motion.div
+        className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+      >
 
         {/* Progress bar */}
         <div className="h-1 bg-neutral-200 dark:bg-neutral-800">
@@ -274,7 +280,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

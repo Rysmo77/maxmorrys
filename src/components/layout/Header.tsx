@@ -121,7 +121,10 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   >
                     {link.label}
                     <span className={cn(
-                      'absolute bottom-1 left-3.5 right-3.5 h-[1.5px] bg-brand-500 rounded-full transition-transform duration-200 origin-left',
+                      'absolute bottom-1 left-3.5 right-3.5 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
+                      link.path === '/a-propos' ? 'bg-morrys-600 dark:bg-morrys-400'
+                        : link.path === '/blog' ? 'bg-coral-600 dark:bg-coral-400'
+                        : 'bg-brand-500',
                       isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                     )} />
                   </Link>
@@ -150,7 +153,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   Je te transforme
                   <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200', dropdownOpen && 'rotate-180')} aria-hidden="true" />
                   <span className={cn(
-                    'absolute bottom-1 left-3.5 right-8 h-[1.5px] bg-brand-500 rounded-full transition-transform duration-200 origin-left',
+                    'absolute bottom-1 left-3.5 right-8 h-[1.5px] bg-white rounded-full transition-transform duration-200 origin-left',
                     isTransformerActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                   )} />
                 </button>
@@ -163,25 +166,50 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                           Contenu gratuit
                         </p>
                       </div>
-                      {transformerLinks.map((item) => (
+                      {transformerLinks.map((item) => {
+                        const isVideos = item.path === '/videos';
+                        const isPodcasts = item.path === '/podcasts';
+                        const iconBoxCls = isVideos
+                          ? 'bg-red-50 dark:bg-red-900/30'
+                          : isPodcasts
+                            ? 'bg-green-50 dark:bg-green-900/30'
+                            : 'bg-brand-50 dark:bg-brand-900/30';
+                        const iconCls = isVideos
+                          ? 'text-red-600 dark:text-red-400'
+                          : isPodcasts
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-brand-600 dark:text-brand-400';
+                        const hoverCls = isVideos
+                          ? 'group-hover/item:text-red-600 dark:group-hover/item:text-red-400'
+                          : isPodcasts
+                            ? 'group-hover/item:text-green-600 dark:group-hover/item:text-green-400'
+                            : 'group-hover/item:text-brand-600 dark:group-hover/item:text-brand-400';
+                        const activeCls = isVideos
+                          ? 'text-red-600 dark:text-red-400'
+                          : isPodcasts
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-brand-600 dark:text-brand-400';
+                        return (
                         <Link
                           key={item.path}
                           to={item.path}
                           className="flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition-colors group/item"
                         >
-                          <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center shrink-0">
-                            <item.icon className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+                          <div className={`w-9 h-9 rounded-xl ${iconBoxCls} flex items-center justify-center shrink-0`}>
+                            <item.icon className={`w-4 h-4 ${iconCls}`} />
                           </div>
                           <p className={cn(
-                            'text-sm font-semibold leading-snug group-hover/item:text-brand-600 dark:group-hover/item:text-brand-400 transition-colors',
+                            'text-sm font-semibold leading-snug transition-colors',
+                            hoverCls,
                             location.pathname.startsWith(item.path)
-                              ? 'text-brand-600 dark:text-brand-400'
+                              ? activeCls
                               : 'text-neutral-800 dark:text-neutral-200'
                           )}>
                             {item.label}
                           </p>
                         </Link>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

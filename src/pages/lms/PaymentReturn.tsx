@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { db } from '../../config/firebase';
@@ -77,7 +78,12 @@ export default function PaymentReturn() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 p-8 text-center">
+      <motion.div
+        className="max-w-md w-full bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 p-8 text-center"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+      >
 
         {status === 'loading' && (
           <>
@@ -155,7 +161,7 @@ export default function PaymentReturn() {
             </div>
           </>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

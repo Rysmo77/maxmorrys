@@ -1,0 +1,659 @@
+{
+  "updatedAt": "2026-04-15T03:33:09.119Z",
+  "createdAt": "2026-04-09T10:30:38.309Z",
+  "id": "gZFlWMuQew5j5R8j",
+  "name": "WF-02 — Calendrier Éditorial Hebdomadaire",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "wf02-cron",
+      "name": "Cron — Dimanche 7h00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        144
+      ]
+    },
+    {
+      "id": "wf02-read-ideas",
+      "name": "Airtable — Lire idées social",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        240
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblOA6igI4bSz3fwS",
+          "mode": "list",
+          "cachedResultName": "Banque Idees Social"
+        },
+        "returnAll": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "wf02-read-calendar",
+      "name": "Airtable — Calendrier existant",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        48
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblTlBSOSI1UOmQ1I",
+          "mode": "list",
+          "cachedResultName": "Calendrier Editorial"
+        },
+        "returnAll": true,
+        "options": {}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ideas = $input.all().filter(i => i.json.Sujet && i.json.Status).map(i => i.json);\nconst calendar = $input.all().filter(i => i.json.Semaine).map(i => i.json);\n\nconst newIdeas = ideas.filter(i => i.Status === 'nouveau' || i.Status === 'validé');\nconst existingSubjects = calendar.map(c => c.Sujet).filter(Boolean);\n\nreturn [{\n  json: {\n    available_ideas: newIdeas.slice(0, 20),\n    existing_subjects: existingSubjects,\n    week_start: new Date(Date.now() + 86400000).toISOString().split('T')[0]\n  }\n}];"
+      },
+      "id": "wf02-prepare",
+      "name": "Préparer — Données pour Gemini",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : CALENDRIER EDITORIAL HEBDOMADAIRE\n\nGenere le planning de publications de la semaine pour Max-Morrys (Lundi-Dimanche), en tenant compte des idees disponibles et des publications existantes.\n\nIDEES DISPONIBLES : {{ JSON.stringify($json.available_ideas) }}\nDEJA PLANIFIE (eviter) : {{ JSON.stringify($json.existing_subjects) }}\nSEMAINE DU : {{ $json.week_start }}\n\nCONTRAINTES :\n- **2-3 posts par jour**, repartis sur les reseaux (pas tous le meme jour sur tous les reseaux)\n- **Rubriques recurrentes** :\n  * Lundi : Motivation de la semaine\n  * Mardi : Tips pratique (astuce actionnable)\n  * Mercredi : Etude de cas (exemple concret d'un entrepreneur africain)\n  * Jeudi : Question-reponse / FAQ\n  * Vendredi : Tendance de la semaine\n  * Samedi : Behind the scenes / personal branding\n  * Dimanche : Recap + CTA formation/newsletter\n- Alterner les **formats** : texte, carrousel, reel/short, story, live\n- Integrer les **fetes locales** et evenements du calendrier Afrique francophone\n- **Horaires adaptes** au fuseau GMT/GMT+1 (Afrique francophone)\n\nREPONSE JSON STRICT :\n{\n  \"calendar\": [{\n    \"day\": \"Lundi|Mardi|...\",\n    \"date\": \"YYYY-MM-DD\",\n    \"posts\": [{\n      \"time\": \"HH:MM\",\n      \"network\": \"facebook|instagram|linkedin|twitter|tiktok|youtube\",\n      \"format\": \"texte|carrousel|reel|story|live|article\",\n      \"rubrique\": \"\",\n      \"subject\": \"\",\n      \"hook\": \"1 ligne accrocheuse au tutoiement\",\n      \"hashtags\": [],\n      \"media_needed\": \"image|carrousel|video|none\",\n      \"media_prompt\": \"description du visuel\"\n    }]\n  }],\n  \"weekly_theme\": \"theme fil rouge de la semaine\",\n  \"cultural_events_this_week\": []\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 4096,
+          "temperature": 0.7
+        }
+      },
+      "id": "wf02-gemini",
+      "name": "Gemini Flash — Calendrier",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        144
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\n// Native Gemini node returns { content: { parts: [{ text: '...' }] }, finishReason, index }\n// Old HTTP API returned { candidates: [{ content: { parts: [{ text: '...' }] } }] }\n\nlet parsed;\ntry {\n  let text = '';\n  \n  if (response.content?.parts) {\n    // Native node format\n    text = response.content.parts.map(p => p.text || '').join('');\n  } else if (response.candidates?.[0]?.content?.parts) {\n    // HTTP API format\n    text = response.candidates[0].content.parts.map(p => p.text || '').join('');\n  } else if (typeof response === 'string') {\n    text = response;\n  } else if (response.calendar) {\n    // Already parsed JSON\n    parsed = response;\n  } else {\n    text = JSON.stringify(response);\n  }\n  \n  if (!parsed && text) {\n    // Strip markdown code fences if present\n    text = text.replace(/^```json\\s*/i, '').replace(/```\\s*$/, '').trim();\n    parsed = JSON.parse(text);\n  }\n} catch (e) {\n  throw new Error('Erreur parsing calendrier Gemini: ' + e.message + ' — texte reçu: ' + JSON.stringify(response).substring(0, 300));\n}\n\nconst rows = [];\nconst now = new Date();\nconst weekNum = Math.ceil((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / (7 * 86400000));\n\nfor (const day of (parsed.calendar || [])) {\n  for (const post of (day.posts || [])) {\n    rows.push({\n      Semaine: 'S' + weekNum,\n      Jour: day.day || '',\n      Date: day.date || '',\n      Heure_GMT: post.time || '',\n      Reseau: post.network || '',\n      Format: post.format || '',\n      Rubrique: post.rubrique || '',\n      Sujet: post.subject || '',\n      Contenu: post.hook || '',\n      Media_URL: '',\n      Hashtags: (post.hashtags || []).join(' '),\n      Status_Contenu: 'a_produire',\n      Status_Media: post.media_needed && post.media_needed !== 'none' ? 'a_produire' : 'n/a',\n      Status_Publication: 'planifie',\n      URL_Post: '',\n      Media_Prompt: post.media_prompt || ''\n    });\n  }\n}\n\nif (rows.length === 0) {\n  throw new Error('Aucune ligne générée. Réponse Gemini parsed: ' + JSON.stringify(parsed).substring(0, 500));\n}\n\nreturn rows.map(r => ({ json: r }));\n"
+      },
+      "id": "wf02-parse",
+      "name": "Parse — Structurer le calendrier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        144
+      ]
+    },
+    {
+      "id": "wf02-sheets",
+      "name": "Airtable — Écrire le calendrier",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1248,
+        144
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "record",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblTlBSOSI1UOmQ1I",
+          "mode": "list",
+          "cachedResultName": "Calendrier Editorial"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Semaine": "={{ $json.Semaine }}",
+            "Jour": "={{ $json.Jour }}",
+            "Date": "={{ $json.Date }}",
+            "Heure_GMT": "={{ $json.Heure_GMT }}",
+            "Reseau": "={{ $json.Reseau }}",
+            "Format": "={{ $json.Format }}",
+            "Rubrique": "={{ $json.Rubrique }}",
+            "Sujet": "={{ $json.Sujet }}",
+            "Contenu": "={{ $json.Contenu }}",
+            "Hashtags": "={{ $json.Hashtags }}",
+            "Status_Contenu": "={{ $json.Status_Contenu }}",
+            "Status_Media": "={{ $json.Status_Media }}",
+            "Status_Publication": "={{ $json.Status_Publication }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron — Dimanche 7h00": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire idées social",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — Calendrier existant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire idées social": {
+      "main": [
+        [
+          {
+            "node": "Préparer — Données pour Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Calendrier existant": {
+      "main": [
+        [
+          {
+            "node": "Préparer — Données pour Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer — Données pour Gemini": {
+      "main": [
+        [
+          {
+            "node": "Gemini Flash — Calendrier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Flash — Calendrier": {
+      "main": [
+        [
+          {
+            "node": "Parse — Structurer le calendrier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Structurer le calendrier": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Écrire le calendrier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Écrire le calendrier": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron — Dimanche 7h00": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "dae333f8-0424-46f7-a093-e592aea715d9",
+  "activeVersionId": "dae333f8-0424-46f7-a093-e592aea715d9",
+  "versionCounter": 50,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-09T10:30:38.312Z",
+      "createdAt": "2026-04-09T10:30:38.312Z",
+      "role": "workflow:owner",
+      "workflowId": "gZFlWMuQew5j5R8j",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-15T03:33:09.120Z",
+    "createdAt": "2026-04-15T03:33:09.120Z",
+    "versionId": "dae333f8-0424-46f7-a093-e592aea715d9",
+    "workflowId": "gZFlWMuQew5j5R8j",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 7 * * 0"
+              }
+            ]
+          }
+        },
+        "id": "wf02-cron",
+        "name": "Cron — Dimanche 7h00",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          144
+        ]
+      },
+      {
+        "id": "wf02-read-ideas",
+        "name": "Airtable — Lire idées social",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          224,
+          240
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblOA6igI4bSz3fwS",
+            "mode": "list",
+            "cachedResultName": "Banque Idees Social"
+          },
+          "returnAll": true,
+          "options": {}
+        }
+      },
+      {
+        "id": "wf02-read-calendar",
+        "name": "Airtable — Calendrier existant",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          224,
+          48
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblTlBSOSI1UOmQ1I",
+            "mode": "list",
+            "cachedResultName": "Calendrier Editorial"
+          },
+          "returnAll": true,
+          "options": {}
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const ideas = $input.all().filter(i => i.json.Sujet && i.json.Status).map(i => i.json);\nconst calendar = $input.all().filter(i => i.json.Semaine).map(i => i.json);\n\nconst newIdeas = ideas.filter(i => i.Status === 'nouveau' || i.Status === 'validé');\nconst existingSubjects = calendar.map(c => c.Sujet).filter(Boolean);\n\nreturn [{\n  json: {\n    available_ideas: newIdeas.slice(0, 20),\n    existing_subjects: existingSubjects,\n    week_start: new Date(Date.now() + 86400000).toISOString().split('T')[0]\n  }\n}];"
+        },
+        "id": "wf02-prepare",
+        "name": "Préparer — Données pour Gemini",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          448,
+          144
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-3-flash-preview",
+            "mode": "list",
+            "cachedResultName": "models/gemini-3-flash-preview"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : CALENDRIER EDITORIAL HEBDOMADAIRE\n\nGenere le planning de publications de la semaine pour Max-Morrys (Lundi-Dimanche), en tenant compte des idees disponibles et des publications existantes.\n\nIDEES DISPONIBLES : {{ JSON.stringify($json.available_ideas) }}\nDEJA PLANIFIE (eviter) : {{ JSON.stringify($json.existing_subjects) }}\nSEMAINE DU : {{ $json.week_start }}\n\nCONTRAINTES :\n- **2-3 posts par jour**, repartis sur les reseaux (pas tous le meme jour sur tous les reseaux)\n- **Rubriques recurrentes** :\n  * Lundi : Motivation de la semaine\n  * Mardi : Tips pratique (astuce actionnable)\n  * Mercredi : Etude de cas (exemple concret d'un entrepreneur africain)\n  * Jeudi : Question-reponse / FAQ\n  * Vendredi : Tendance de la semaine\n  * Samedi : Behind the scenes / personal branding\n  * Dimanche : Recap + CTA formation/newsletter\n- Alterner les **formats** : texte, carrousel, reel/short, story, live\n- Integrer les **fetes locales** et evenements du calendrier Afrique francophone\n- **Horaires adaptes** au fuseau GMT/GMT+1 (Afrique francophone)\n\nREPONSE JSON STRICT :\n{\n  \"calendar\": [{\n    \"day\": \"Lundi|Mardi|...\",\n    \"date\": \"YYYY-MM-DD\",\n    \"posts\": [{\n      \"time\": \"HH:MM\",\n      \"network\": \"facebook|instagram|linkedin|twitter|tiktok|youtube\",\n      \"format\": \"texte|carrousel|reel|story|live|article\",\n      \"rubrique\": \"\",\n      \"subject\": \"\",\n      \"hook\": \"1 ligne accrocheuse au tutoiement\",\n      \"hashtags\": [],\n      \"media_needed\": \"image|carrousel|video|none\",\n      \"media_prompt\": \"description du visuel\"\n    }]\n  }],\n  \"weekly_theme\": \"theme fil rouge de la semaine\",\n  \"cultural_events_this_week\": []\n}"
+              }
+            ]
+          },
+          "jsonOutput": true,
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 4096,
+            "temperature": 0.7
+          }
+        },
+        "id": "wf02-gemini",
+        "name": "Gemini Flash — Calendrier",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          672,
+          144
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\n\n// Native Gemini node returns { content: { parts: [{ text: '...' }] }, finishReason, index }\n// Old HTTP API returned { candidates: [{ content: { parts: [{ text: '...' }] } }] }\n\nlet parsed;\ntry {\n  let text = '';\n  \n  if (response.content?.parts) {\n    // Native node format\n    text = response.content.parts.map(p => p.text || '').join('');\n  } else if (response.candidates?.[0]?.content?.parts) {\n    // HTTP API format\n    text = response.candidates[0].content.parts.map(p => p.text || '').join('');\n  } else if (typeof response === 'string') {\n    text = response;\n  } else if (response.calendar) {\n    // Already parsed JSON\n    parsed = response;\n  } else {\n    text = JSON.stringify(response);\n  }\n  \n  if (!parsed && text) {\n    // Strip markdown code fences if present\n    text = text.replace(/^```json\\s*/i, '').replace(/```\\s*$/, '').trim();\n    parsed = JSON.parse(text);\n  }\n} catch (e) {\n  throw new Error('Erreur parsing calendrier Gemini: ' + e.message + ' — texte reçu: ' + JSON.stringify(response).substring(0, 300));\n}\n\nconst rows = [];\nconst now = new Date();\nconst weekNum = Math.ceil((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / (7 * 86400000));\n\nfor (const day of (parsed.calendar || [])) {\n  for (const post of (day.posts || [])) {\n    rows.push({\n      Semaine: 'S' + weekNum,\n      Jour: day.day || '',\n      Date: day.date || '',\n      Heure_GMT: post.time || '',\n      Reseau: post.network || '',\n      Format: post.format || '',\n      Rubrique: post.rubrique || '',\n      Sujet: post.subject || '',\n      Contenu: post.hook || '',\n      Media_URL: '',\n      Hashtags: (post.hashtags || []).join(' '),\n      Status_Contenu: 'a_produire',\n      Status_Media: post.media_needed && post.media_needed !== 'none' ? 'a_produire' : 'n/a',\n      Status_Publication: 'planifie',\n      URL_Post: '',\n      Media_Prompt: post.media_prompt || ''\n    });\n  }\n}\n\nif (rows.length === 0) {\n  throw new Error('Aucune ligne générée. Réponse Gemini parsed: ' + JSON.stringify(parsed).substring(0, 500));\n}\n\nreturn rows.map(r => ({ json: r }));\n"
+        },
+        "id": "wf02-parse",
+        "name": "Parse — Structurer le calendrier",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1024,
+          144
+        ]
+      },
+      {
+        "id": "wf02-sheets",
+        "name": "Airtable — Écrire le calendrier",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1248,
+          144
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblTlBSOSI1UOmQ1I",
+            "mode": "list",
+            "cachedResultName": "Calendrier Editorial"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Semaine": "={{ $json.Semaine }}",
+              "Jour": "={{ $json.Jour }}",
+              "Date": "={{ $json.Date }}",
+              "Heure_GMT": "={{ $json.Heure_GMT }}",
+              "Reseau": "={{ $json.Reseau }}",
+              "Format": "={{ $json.Format }}",
+              "Rubrique": "={{ $json.Rubrique }}",
+              "Sujet": "={{ $json.Sujet }}",
+              "Contenu": "={{ $json.Contenu }}",
+              "Hashtags": "={{ $json.Hashtags }}",
+              "Status_Contenu": "={{ $json.Status_Contenu }}",
+              "Status_Media": "={{ $json.Status_Media }}",
+              "Status_Publication": "={{ $json.Status_Publication }}"
+            },
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Cron — Dimanche 7h00": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire idées social",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Airtable — Calendrier existant",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire idées social": {
+        "main": [
+          [
+            {
+              "node": "Préparer — Données pour Gemini",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Calendrier existant": {
+        "main": [
+          [
+            {
+              "node": "Préparer — Données pour Gemini",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Préparer — Données pour Gemini": {
+        "main": [
+          [
+            {
+              "node": "Gemini Flash — Calendrier",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Flash — Calendrier": {
+        "main": [
+          [
+            {
+              "node": "Parse — Structurer le calendrier",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Structurer le calendrier": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Écrire le calendrier",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Écrire le calendrier": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-15T03:33:09.339Z",
+        "id": 341,
+        "workflowId": "gZFlWMuQew5j5R8j",
+        "versionId": "dae333f8-0424-46f7-a093-e592aea715d9",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-04-15T03:33:09.250Z",
+        "id": 340,
+        "workflowId": "gZFlWMuQew5j5R8j",
+        "versionId": "dae333f8-0424-46f7-a093-e592aea715d9",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

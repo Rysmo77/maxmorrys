@@ -1,0 +1,697 @@
+{
+  "updatedAt": "2026-04-15T03:33:05.108Z",
+  "createdAt": "2026-04-09T10:30:37.111Z",
+  "id": "51wwJdZX3toiLsHM",
+  "name": "WF-15 — Génération d'Images & Illustrations",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 13 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron — Images test 13h quotidien",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst body = input.body || input;\n\nconst prompt = body.prompt || 'Un entrepreneur africain souriant devant son ordinateur à Dakar';\nconst dimensions = body.dimensions || '1080x1080';\nconst type = body.type || 'social_post';\nconst context = body.context || 'Marketing digital Afrique de l\\'Ouest';\nconst forWorkflow = body.for_workflow || 'manual';\n\nreturn [{\n  json: { prompt, dimensions, type, context, for_workflow: forWorkflow }\n}];"
+      },
+      "id": "wf15-normalize",
+      "name": "Normaliser — Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Tu es un expert en création de prompts pour la génération d'images IA. Enrichis ce prompt pour générer une image professionnelle et culturellement pertinente pour l'Afrique de l'Ouest francophone. Diversité ethnique africaine, contextes locaux (Dakar, Abidjan, Douala), pas de clichés occidentaux. Style: professionnel, chaleureux, inspirant.\n\nPROMPT: {{ $json.prompt }}\nTYPE: {{ $json.type }}\n\nRéponds UNIQUEMENT avec un JSON valide:\n{\"enhanced_prompt\": \"prompt enrichi EN ANGLAIS pour generation image\", \"style_notes\": \"notes\"}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 1024,
+          "temperature": 0.7
+        }
+      },
+      "id": "wf15-gemini-enhance",
+      "name": "Gemini — Enrichir le prompt",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        464
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst originalData = $('Normaliser — Input').first().json;\n\nlet enhancedPrompt = originalData.prompt;\n\ntry {\n  // The native Gemini node returns content in different formats\n  let text = '';\n  if (typeof input === 'string') {\n    text = input;\n  } else if (input.content) {\n    // Native node format: { content: { parts: [{ text: '...' }] } }\n    const parts = input.content?.parts || [];\n    text = parts.map(p => p.text || '').join('');\n  } else if (input.text) {\n    text = input.text;\n  } else if (input.output) {\n    text = input.output;\n  } else {\n    // Try to find text in the raw response\n    text = JSON.stringify(input);\n  }\n\n  if (text) {\n    const jsonMatch = text.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      const parsed = JSON.parse(jsonMatch[0]);\n      if (parsed.enhanced_prompt) {\n        enhancedPrompt = parsed.enhanced_prompt;\n      }\n    }\n  }\n} catch (e) {\n  // Fallback to original\n}\n\nif (!enhancedPrompt || enhancedPrompt.trim() === '') {\n  enhancedPrompt = originalData.prompt;\n}\n\nreturn [{\n  json: {\n    prompt: enhancedPrompt,\n    original_prompt: originalData.prompt,\n    type: originalData.type,\n    dimensions: originalData.dimensions,\n    context: originalData.context,\n    for_workflow: originalData.for_workflow\n  }\n}];"
+      },
+      "id": "wf15-parse-prompt",
+      "name": "Parse — Prompt enrichi",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-image",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-image (Nano Banana)"
+        },
+        "prompt": "={{ $json.prompt }}",
+        "options": {}
+      },
+      "id": "wf15-gemini-image",
+      "name": "Gemini — Générer l'image",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        464
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first();\nconst promptData = $('Parse — Prompt enrichi').first().json;\nconst now = new Date().toISOString();\nconst timestamp = now.replace(/[:.]/g, '-').substring(0, 19);\n\n// Determine R2 prefix based on type\nconst typeMap = {\n  article: 'articles',\n  formation: 'formations',\n  social_post: 'social/posts',\n  carousel: 'social/carousels',\n  reel: 'social/reels',\n  lesson: 'lessons',\n  newsletter: 'newsletter',\n  course_cover: 'formations'\n};\nconst prefix = typeMap[promptData.type] || 'misc';\n\n// Build slug from context\nconst slug = (promptData.slug || promptData.type || 'media')\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-|-$/g, '')\n  .substring(0, 60);\n\nconst filename = slug + '-' + timestamp + '.png';\nconst r2_key = prefix + '/' + filename;\n\nconst result = {\n  json: {\n    filename,\n    r2_key,\n    r2_bucket: 'maxmorrys-lms',\n    type: promptData.type,\n    dimensions: promptData.dimensions,\n    original_prompt: promptData.original_prompt,\n    enhanced_prompt: promptData.prompt,\n    for_workflow: promptData.for_workflow,\n    context: promptData.context,\n    slug: promptData.slug || slug,\n    generated_at: now\n  }\n};\n\nif (input.binary) {\n  result.binary = input.binary;\n}\n\nreturn [result];"
+      },
+      "id": "wf15-prepare-upload",
+      "name": "Préparer — Métadonnées upload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "maxmorrys-lms",
+        "fileName": "={{ $json.r2_key }}",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "additionalFields": {
+          "acl": "publicRead",
+          "contentType": "image/png"
+        }
+      },
+      "id": "wf15-r2-upload",
+      "name": "R2 — Upload image",
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        464
+      ],
+      "credentials": {
+        "s3": {
+          "id": "1jkvWRlxegNgpKto",
+          "name": "Cloudflare R2 Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const uploadResult = $input.first().json;\nconst metadata = $('Préparer — Métadonnées upload').first().json;\n\nconst publicUrl = 'https://pub-98fc057dc71948c7bd129a674b4bcec8.r2.dev/' + metadata.r2_key;\n\nreturn [{\n  json: {\n    success: true,\n    file_key: metadata.r2_key,\n    public_url: publicUrl,\n    file_url: publicUrl,\n    filename: metadata.filename,\n    type: metadata.type,\n    dimensions: metadata.dimensions,\n    original_prompt: metadata.original_prompt,\n    enhanced_prompt: metadata.enhanced_prompt,\n    for_workflow: metadata.for_workflow,\n    generated_at: metadata.generated_at,\n    r2_bucket: 'maxmorrys-lms'\n  }\n}];"
+      },
+      "id": "wf15-build-result",
+      "name": "Build — Résultat final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        464
+      ]
+    },
+    {
+      "id": "wf15-log-sheets",
+      "name": "Google Airtable — Log média",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2400,
+        464
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "record",
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleUm1UoP9qqOdOn",
+          "mode": "list",
+          "cachedResultName": "Medias Generes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.generated_at }}",
+            "Type": "={{ $json.type }}",
+            "Pour": "={{ $json.for_workflow }}",
+            "Prompt": "={{ $json.original_prompt }}",
+            "Dimensions": "={{ $json.dimensions }}",
+            "Status": "=uploaded_r2",
+            "URL_R2": "={{ $json.public_url }}"
+          },
+          "matchingColumns": [
+            "URL_R2"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Normaliser — Input": {
+      "main": [
+        [
+          {
+            "node": "Gemini — Enrichir le prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini — Enrichir le prompt": {
+      "main": [
+        [
+          {
+            "node": "Parse — Prompt enrichi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Prompt enrichi": {
+      "main": [
+        [
+          {
+            "node": "Gemini — Générer l'image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini — Générer l'image": {
+      "main": [
+        [
+          {
+            "node": "Préparer — Métadonnées upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer — Métadonnées upload": {
+      "main": [
+        [
+          {
+            "node": "R2 — Upload image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "R2 — Upload image": {
+      "main": [
+        [
+          {
+            "node": "Build — Résultat final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build — Résultat final": {
+      "main": [
+        [
+          {
+            "node": "Google Airtable — Log média",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron — Images test 13h quotidien": {
+      "main": [
+        [
+          {
+            "node": "Normaliser — Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron — Images test 13h quotidien": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "2451f8b9-3aa9-47f4-8b9e-3c1bd18d32b5",
+  "activeVersionId": "2451f8b9-3aa9-47f4-8b9e-3c1bd18d32b5",
+  "versionCounter": 98,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-09T10:30:37.113Z",
+      "createdAt": "2026-04-09T10:30:37.113Z",
+      "role": "workflow:owner",
+      "workflowId": "51wwJdZX3toiLsHM",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-15T03:33:05.109Z",
+    "createdAt": "2026-04-15T03:33:05.109Z",
+    "versionId": "2451f8b9-3aa9-47f4-8b9e-3c1bd18d32b5",
+    "workflowId": "51wwJdZX3toiLsHM",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 13 * * *"
+              }
+            ]
+          }
+        },
+        "id": "cron-trigger",
+        "name": "Cron — Images test 13h quotidien",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nconst body = input.body || input;\n\nconst prompt = body.prompt || 'Un entrepreneur africain souriant devant son ordinateur à Dakar';\nconst dimensions = body.dimensions || '1080x1080';\nconst type = body.type || 'social_post';\nconst context = body.context || 'Marketing digital Afrique de l\\'Ouest';\nconst forWorkflow = body.for_workflow || 'manual';\n\nreturn [{\n  json: { prompt, dimensions, type, context, for_workflow: forWorkflow }\n}];"
+        },
+        "id": "wf15-normalize",
+        "name": "Normaliser — Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          304,
+          464
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-3-flash-preview",
+            "mode": "list",
+            "cachedResultName": "models/gemini-3-flash-preview"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Tu es un expert en création de prompts pour la génération d'images IA. Enrichis ce prompt pour générer une image professionnelle et culturellement pertinente pour l'Afrique de l'Ouest francophone. Diversité ethnique africaine, contextes locaux (Dakar, Abidjan, Douala), pas de clichés occidentaux. Style: professionnel, chaleureux, inspirant.\n\nPROMPT: {{ $json.prompt }}\nTYPE: {{ $json.type }}\n\nRéponds UNIQUEMENT avec un JSON valide:\n{\"enhanced_prompt\": \"prompt enrichi EN ANGLAIS pour generation image\", \"style_notes\": \"notes\"}"
+              }
+            ]
+          },
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 1024,
+            "temperature": 0.7
+          }
+        },
+        "id": "wf15-gemini-enhance",
+        "name": "Gemini — Enrichir le prompt",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          608,
+          464
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nconst originalData = $('Normaliser — Input').first().json;\n\nlet enhancedPrompt = originalData.prompt;\n\ntry {\n  // The native Gemini node returns content in different formats\n  let text = '';\n  if (typeof input === 'string') {\n    text = input;\n  } else if (input.content) {\n    // Native node format: { content: { parts: [{ text: '...' }] } }\n    const parts = input.content?.parts || [];\n    text = parts.map(p => p.text || '').join('');\n  } else if (input.text) {\n    text = input.text;\n  } else if (input.output) {\n    text = input.output;\n  } else {\n    // Try to find text in the raw response\n    text = JSON.stringify(input);\n  }\n\n  if (text) {\n    const jsonMatch = text.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      const parsed = JSON.parse(jsonMatch[0]);\n      if (parsed.enhanced_prompt) {\n        enhancedPrompt = parsed.enhanced_prompt;\n      }\n    }\n  }\n} catch (e) {\n  // Fallback to original\n}\n\nif (!enhancedPrompt || enhancedPrompt.trim() === '') {\n  enhancedPrompt = originalData.prompt;\n}\n\nreturn [{\n  json: {\n    prompt: enhancedPrompt,\n    original_prompt: originalData.prompt,\n    type: originalData.type,\n    dimensions: originalData.dimensions,\n    context: originalData.context,\n    for_workflow: originalData.for_workflow\n  }\n}];"
+        },
+        "id": "wf15-parse-prompt",
+        "name": "Parse — Prompt enrichi",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          912,
+          464
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "image",
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash-image",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash-image (Nano Banana)"
+          },
+          "prompt": "={{ $json.prompt }}",
+          "options": {}
+        },
+        "id": "wf15-gemini-image",
+        "name": "Gemini — Générer l'image",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          1200,
+          464
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first();\nconst promptData = $('Parse — Prompt enrichi').first().json;\nconst now = new Date().toISOString();\nconst timestamp = now.replace(/[:.]/g, '-').substring(0, 19);\n\n// Determine R2 prefix based on type\nconst typeMap = {\n  article: 'articles',\n  formation: 'formations',\n  social_post: 'social/posts',\n  carousel: 'social/carousels',\n  reel: 'social/reels',\n  lesson: 'lessons',\n  newsletter: 'newsletter',\n  course_cover: 'formations'\n};\nconst prefix = typeMap[promptData.type] || 'misc';\n\n// Build slug from context\nconst slug = (promptData.slug || promptData.type || 'media')\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-|-$/g, '')\n  .substring(0, 60);\n\nconst filename = slug + '-' + timestamp + '.png';\nconst r2_key = prefix + '/' + filename;\n\nconst result = {\n  json: {\n    filename,\n    r2_key,\n    r2_bucket: 'maxmorrys-lms',\n    type: promptData.type,\n    dimensions: promptData.dimensions,\n    original_prompt: promptData.original_prompt,\n    enhanced_prompt: promptData.prompt,\n    for_workflow: promptData.for_workflow,\n    context: promptData.context,\n    slug: promptData.slug || slug,\n    generated_at: now\n  }\n};\n\nif (input.binary) {\n  result.binary = input.binary;\n}\n\nreturn [result];"
+        },
+        "id": "wf15-prepare-upload",
+        "name": "Préparer — Métadonnées upload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1504,
+          464
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "upload",
+          "bucketName": "maxmorrys-lms",
+          "fileName": "={{ $json.r2_key }}",
+          "binaryData": true,
+          "binaryPropertyName": "data",
+          "additionalFields": {
+            "acl": "publicRead",
+            "contentType": "image/png"
+          }
+        },
+        "id": "wf15-r2-upload",
+        "name": "R2 — Upload image",
+        "type": "n8n-nodes-base.s3",
+        "typeVersion": 1,
+        "position": [
+          1808,
+          464
+        ],
+        "credentials": {
+          "s3": {
+            "id": "1jkvWRlxegNgpKto",
+            "name": "Cloudflare R2 Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const uploadResult = $input.first().json;\nconst metadata = $('Préparer — Métadonnées upload').first().json;\n\nconst publicUrl = 'https://pub-98fc057dc71948c7bd129a674b4bcec8.r2.dev/' + metadata.r2_key;\n\nreturn [{\n  json: {\n    success: true,\n    file_key: metadata.r2_key,\n    public_url: publicUrl,\n    file_url: publicUrl,\n    filename: metadata.filename,\n    type: metadata.type,\n    dimensions: metadata.dimensions,\n    original_prompt: metadata.original_prompt,\n    enhanced_prompt: metadata.enhanced_prompt,\n    for_workflow: metadata.for_workflow,\n    generated_at: metadata.generated_at,\n    r2_bucket: 'maxmorrys-lms'\n  }\n}];"
+        },
+        "id": "wf15-build-result",
+        "name": "Build — Résultat final",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2112,
+          464
+        ]
+      },
+      {
+        "id": "wf15-log-sheets",
+        "name": "Google Airtable — Log média",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          2400,
+          464
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "upsert",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbleUm1UoP9qqOdOn",
+            "mode": "list",
+            "cachedResultName": "Medias Generes"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Date": "={{ $json.generated_at }}",
+              "Type": "={{ $json.type }}",
+              "Pour": "={{ $json.for_workflow }}",
+              "Prompt": "={{ $json.original_prompt }}",
+              "Dimensions": "={{ $json.dimensions }}",
+              "Status": "=uploaded_r2",
+              "URL_R2": "={{ $json.public_url }}"
+            },
+            "matchingColumns": [
+              "URL_R2"
+            ],
+            "schema": [],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Normaliser — Input": {
+        "main": [
+          [
+            {
+              "node": "Gemini — Enrichir le prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini — Enrichir le prompt": {
+        "main": [
+          [
+            {
+              "node": "Parse — Prompt enrichi",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Prompt enrichi": {
+        "main": [
+          [
+            {
+              "node": "Gemini — Générer l'image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini — Générer l'image": {
+        "main": [
+          [
+            {
+              "node": "Préparer — Métadonnées upload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Préparer — Métadonnées upload": {
+        "main": [
+          [
+            {
+              "node": "R2 — Upload image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "R2 — Upload image": {
+        "main": [
+          [
+            {
+              "node": "Build — Résultat final",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build — Résultat final": {
+        "main": [
+          [
+            {
+              "node": "Google Airtable — Log média",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cron — Images test 13h quotidien": {
+        "main": [
+          [
+            {
+              "node": "Normaliser — Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-15T03:33:05.286Z",
+        "id": 323,
+        "workflowId": "51wwJdZX3toiLsHM",
+        "versionId": "2451f8b9-3aa9-47f4-8b9e-3c1bd18d32b5",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-04-15T03:33:05.199Z",
+        "id": 322,
+        "workflowId": "51wwJdZX3toiLsHM",
+        "versionId": "2451f8b9-3aa9-47f4-8b9e-3c1bd18d32b5",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

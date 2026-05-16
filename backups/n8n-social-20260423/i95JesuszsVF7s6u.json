@@ -1,0 +1,694 @@
+{
+  "updatedAt": "2026-04-15T03:33:09.507Z",
+  "createdAt": "2026-04-09T10:30:44.209Z",
+  "id": "i95JesuszsVF7s6u",
+  "name": "WF-06 — Reporting & Analytics Hebdomadaire",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "wf06-cron",
+      "name": "Cron — Lundi 9h00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "id": "wf06-read-calendar",
+      "name": "Airtable — Calendrier",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        300,
+        200
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblTlBSOSI1UOmQ1I",
+          "mode": "list",
+          "cachedResultName": "Calendrier Editorial"
+        },
+        "returnAll": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "wf06-read-interactions",
+      "name": "Airtable — Interactions",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        300,
+        500
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblaSee9z4T26Szin",
+          "mode": "list",
+          "cachedResultName": "Interactions"
+        },
+        "returnAll": true,
+        "options": {}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const calendar = $('Airtable — Calendrier').all().map(i => i.json);\nconst interactions = $('Airtable — Interactions').all().map(i => i.json);\n\n// Filter to last 7 days\nconst weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];\nconst weekPosts = calendar.filter(c => c.Date >= weekAgo);\nconst weekInteractions = interactions.filter(i => i.Date >= weekAgo);\n\nconst stats = {\n  total_posts_planned: weekPosts.length,\n  total_posts_published: weekPosts.filter(p => p.Status_Publication === 'publié').length,\n  total_interactions: weekInteractions.length,\n  sentiment_breakdown: {\n    positif: weekInteractions.filter(i => i.Sentiment === 'positif').length,\n    negatif: weekInteractions.filter(i => i.Sentiment === 'négatif').length,\n    neutre: weekInteractions.filter(i => i.Sentiment === 'neutre').length,\n    question: weekInteractions.filter(i => i.Sentiment === 'question').length\n  },\n  networks_breakdown: {},\n  posts_by_status: {\n    published: weekPosts.filter(p => p.Status_Publication === 'publié').length,\n    pending: weekPosts.filter(p => p.Status_Publication === 'planifié').length,\n    produced: weekPosts.filter(p => p.Status_Contenu === 'produit').length\n  }\n};\n\n// Count by network\nfor (const p of weekPosts) {\n  const net = p.Reseau || 'unknown';\n  stats.networks_breakdown[net] = (stats.networks_breakdown[net] || 0) + 1;\n}\n\nreturn [{ json: { stats, week_posts: weekPosts, week_interactions: weekInteractions, period: `${weekAgo} — ${new Date().toISOString().split('T')[0]}` } }];"
+      },
+      "id": "wf06-compile",
+      "name": "Compile — Statistiques",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Tu es un analyste social media expert pour Max-Morrys (marketing digital, Afrique de l'Ouest).\n\nAnalyse les données de la semaine et génère un rapport avec des recommandations actionnables.\n\nPÉRIODE : {{ $json.period }}\nSTATISTIQUES : {{ JSON.stringify($json.stats) }}\n\nRéponse JSON :\n{\n  \"summary\": \"résumé en 3 phrases\",\n  \"score_global\": 0,\n  \"highlights\": [\"point positif 1\", \"point positif 2\"],\n  \"improvements\": [\"amélioration 1\", \"amélioration 2\"],\n  \"recommendations\": [{\n    \"action\": \"action concrète\",\n    \"priority\": \"haute|moyenne|basse\",\n    \"expected_impact\": \"\"\n  }],\n  \"content_insights\": {\n    \"best_format\": \"\",\n    \"best_network\": \"\",\n    \"best_time\": \"\",\n    \"topic_to_explore\": \"\"\n  }\n}"
+            }
+          ]
+        },
+        "options": {
+          "maxOutputTokens": 4096,
+          "temperature": 0.7
+        },
+        "jsonOutput": true
+      },
+      "id": "wf06-gemini",
+      "name": "Gemini Flash — Analyser & Recommander",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst stats = $('Compile — Statistiques').first().json;\n\nlet report;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  report = JSON.parse(text);\n} catch (e) {\n  report = { summary: 'Erreur génération du rapport', score_global: 0, highlights: [], improvements: [], recommendations: [] };\n}\n\nconst weekNum = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 86400000));\n\nreturn [{\n  json: {\n    Semaine: `S${weekNum}`,\n    Score: report.score_global,\n    Reach: stats.stats.total_posts_published,\n    Engagement: stats.stats.total_interactions,\n    Top_Posts: (report.highlights || []).join(' | '),\n    Recommandations: (report.recommendations || []).map(r => r.action).join(' | '),\n    report_full: report,\n    period: stats.period\n  }\n}];"
+      },
+      "id": "wf06-parse",
+      "name": "Parse — Rapport",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "id": "wf06-sheets",
+      "name": "Airtable — Sauvegarder rapport",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1500,
+        200
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "record",
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl1xrxYxVMtTq5MX",
+          "mode": "list",
+          "cachedResultName": "Rapports Hebdo"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Semaine": "={{ $json.Semaine }}",
+            "Score": "={{ $json.Score }}",
+            "Reach": "={{ $json.Reach }}",
+            "Engagement": "={{ $json.Engagement }}",
+            "Top_Posts": "={{ $json.Top_Posts }}",
+            "Recommandations": "={{ $json.Recommandations }}"
+          },
+          "matchingColumns": [
+            "Semaine"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "934156307",
+        "text": "=📊 *Rapport hebdo Max-Morrys* — {{ $json.Semaine }}\n\n*Score global :* {{ $json.Score }}/10\n*Posts publiés :* {{ $json.Reach }}\n*Interactions :* {{ $json.Engagement }}\n\n*Top posts :*\n{{ $json.Top_Posts }}\n\n*Recommandations :*\n{{ $json.Recommandations }}",
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "wf06-email",
+      "name": "Telegram — Rapport hebdomadaire",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1500,
+        500
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "k1sYsv0qUTCbCfRN",
+          "name": "Max-Morrys LMS Notifications Telegram"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Cron — Lundi 9h00": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Calendrier",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — Interactions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Calendrier": {
+      "main": [
+        [
+          {
+            "node": "Compile — Statistiques",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Interactions": {
+      "main": [
+        [
+          {
+            "node": "Compile — Statistiques",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compile — Statistiques": {
+      "main": [
+        [
+          {
+            "node": "Gemini Flash — Analyser & Recommander",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Flash — Analyser & Recommander": {
+      "main": [
+        [
+          {
+            "node": "Parse — Rapport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Rapport": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Sauvegarder rapport",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram — Rapport hebdomadaire",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Cron — Lundi 9h00": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "a0ac7930-82b7-4537-8ffa-166475da528f",
+  "activeVersionId": "a0ac7930-82b7-4537-8ffa-166475da528f",
+  "versionCounter": 21,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-09T10:30:44.211Z",
+      "createdAt": "2026-04-09T10:30:44.211Z",
+      "role": "workflow:owner",
+      "workflowId": "i95JesuszsVF7s6u",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-15T03:33:09.507Z",
+    "createdAt": "2026-04-15T03:33:09.507Z",
+    "versionId": "a0ac7930-82b7-4537-8ffa-166475da528f",
+    "workflowId": "i95JesuszsVF7s6u",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 9 * * 1"
+              }
+            ]
+          }
+        },
+        "id": "wf06-cron",
+        "name": "Cron — Lundi 9h00",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          300
+        ]
+      },
+      {
+        "id": "wf06-read-calendar",
+        "name": "Airtable — Calendrier",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          300,
+          200
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblTlBSOSI1UOmQ1I",
+            "mode": "list",
+            "cachedResultName": "Calendrier Editorial"
+          },
+          "returnAll": true,
+          "options": {}
+        }
+      },
+      {
+        "id": "wf06-read-interactions",
+        "name": "Airtable — Interactions",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          300,
+          500
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblaSee9z4T26Szin",
+            "mode": "list",
+            "cachedResultName": "Interactions"
+          },
+          "returnAll": true,
+          "options": {}
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const calendar = $('Airtable — Calendrier').all().map(i => i.json);\nconst interactions = $('Airtable — Interactions').all().map(i => i.json);\n\n// Filter to last 7 days\nconst weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];\nconst weekPosts = calendar.filter(c => c.Date >= weekAgo);\nconst weekInteractions = interactions.filter(i => i.Date >= weekAgo);\n\nconst stats = {\n  total_posts_planned: weekPosts.length,\n  total_posts_published: weekPosts.filter(p => p.Status_Publication === 'publié').length,\n  total_interactions: weekInteractions.length,\n  sentiment_breakdown: {\n    positif: weekInteractions.filter(i => i.Sentiment === 'positif').length,\n    negatif: weekInteractions.filter(i => i.Sentiment === 'négatif').length,\n    neutre: weekInteractions.filter(i => i.Sentiment === 'neutre').length,\n    question: weekInteractions.filter(i => i.Sentiment === 'question').length\n  },\n  networks_breakdown: {},\n  posts_by_status: {\n    published: weekPosts.filter(p => p.Status_Publication === 'publié').length,\n    pending: weekPosts.filter(p => p.Status_Publication === 'planifié').length,\n    produced: weekPosts.filter(p => p.Status_Contenu === 'produit').length\n  }\n};\n\n// Count by network\nfor (const p of weekPosts) {\n  const net = p.Reseau || 'unknown';\n  stats.networks_breakdown[net] = (stats.networks_breakdown[net] || 0) + 1;\n}\n\nreturn [{ json: { stats, week_posts: weekPosts, week_interactions: weekInteractions, period: `${weekAgo} — ${new Date().toISOString().split('T')[0]}` } }];"
+        },
+        "id": "wf06-compile",
+        "name": "Compile — Statistiques",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          600,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.0-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.0-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Tu es un analyste social media expert pour Max-Morrys (marketing digital, Afrique de l'Ouest).\n\nAnalyse les données de la semaine et génère un rapport avec des recommandations actionnables.\n\nPÉRIODE : {{ $json.period }}\nSTATISTIQUES : {{ JSON.stringify($json.stats) }}\n\nRéponse JSON :\n{\n  \"summary\": \"résumé en 3 phrases\",\n  \"score_global\": 0,\n  \"highlights\": [\"point positif 1\", \"point positif 2\"],\n  \"improvements\": [\"amélioration 1\", \"amélioration 2\"],\n  \"recommendations\": [{\n    \"action\": \"action concrète\",\n    \"priority\": \"haute|moyenne|basse\",\n    \"expected_impact\": \"\"\n  }],\n  \"content_insights\": {\n    \"best_format\": \"\",\n    \"best_network\": \"\",\n    \"best_time\": \"\",\n    \"topic_to_explore\": \"\"\n  }\n}"
+              }
+            ]
+          },
+          "options": {
+            "maxOutputTokens": 4096,
+            "temperature": 0.7
+          },
+          "jsonOutput": true
+        },
+        "id": "wf06-gemini",
+        "name": "Gemini Flash — Analyser & Recommander",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          900,
+          300
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst stats = $('Compile — Statistiques').first().json;\n\nlet report;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  report = JSON.parse(text);\n} catch (e) {\n  report = { summary: 'Erreur génération du rapport', score_global: 0, highlights: [], improvements: [], recommendations: [] };\n}\n\nconst weekNum = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 86400000));\n\nreturn [{\n  json: {\n    Semaine: `S${weekNum}`,\n    Score: report.score_global,\n    Reach: stats.stats.total_posts_published,\n    Engagement: stats.stats.total_interactions,\n    Top_Posts: (report.highlights || []).join(' | '),\n    Recommandations: (report.recommendations || []).map(r => r.action).join(' | '),\n    report_full: report,\n    period: stats.period\n  }\n}];"
+        },
+        "id": "wf06-parse",
+        "name": "Parse — Rapport",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          300
+        ]
+      },
+      {
+        "id": "wf06-sheets",
+        "name": "Airtable — Sauvegarder rapport",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1500,
+          200
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "upsert",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbl1xrxYxVMtTq5MX",
+            "mode": "list",
+            "cachedResultName": "Rapports Hebdo"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Semaine": "={{ $json.Semaine }}",
+              "Score": "={{ $json.Score }}",
+              "Reach": "={{ $json.Reach }}",
+              "Engagement": "={{ $json.Engagement }}",
+              "Top_Posts": "={{ $json.Top_Posts }}",
+              "Recommandations": "={{ $json.Recommandations }}"
+            },
+            "matchingColumns": [
+              "Semaine"
+            ],
+            "schema": [],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "934156307",
+          "text": "=📊 *Rapport hebdo Max-Morrys* — {{ $json.Semaine }}\n\n*Score global :* {{ $json.Score }}/10\n*Posts publiés :* {{ $json.Reach }}\n*Interactions :* {{ $json.Engagement }}\n\n*Top posts :*\n{{ $json.Top_Posts }}\n\n*Recommandations :*\n{{ $json.Recommandations }}",
+          "additionalFields": {
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": true
+          }
+        },
+        "id": "wf06-email",
+        "name": "Telegram — Rapport hebdomadaire",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1500,
+          500
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "k1sYsv0qUTCbCfRN",
+            "name": "Max-Morrys LMS Notifications Telegram"
+          }
+        },
+        "onError": "continueRegularOutput"
+      }
+    ],
+    "connections": {
+      "Cron — Lundi 9h00": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Calendrier",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Airtable — Interactions",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Calendrier": {
+        "main": [
+          [
+            {
+              "node": "Compile — Statistiques",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Interactions": {
+        "main": [
+          [
+            {
+              "node": "Compile — Statistiques",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Compile — Statistiques": {
+        "main": [
+          [
+            {
+              "node": "Gemini Flash — Analyser & Recommander",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Flash — Analyser & Recommander": {
+        "main": [
+          [
+            {
+              "node": "Parse — Rapport",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Rapport": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Sauvegarder rapport",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Telegram — Rapport hebdomadaire",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-15T03:33:09.703Z",
+        "id": 343,
+        "workflowId": "i95JesuszsVF7s6u",
+        "versionId": "a0ac7930-82b7-4537-8ffa-166475da528f",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-04-15T03:33:09.612Z",
+        "id": 342,
+        "workflowId": "i95JesuszsVF7s6u",
+        "versionId": "a0ac7930-82b7-4537-8ffa-166475da528f",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

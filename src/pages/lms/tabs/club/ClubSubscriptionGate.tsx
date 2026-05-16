@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Crown, Rss, Video, Calendar, Info, MessageSquare, Bell, Loader2,
 } from 'lucide-react';
@@ -6,6 +7,7 @@ import Button from '../../../../components/ui/Button';
 import { cn } from '../../../../lib/utils';
 import type { useClubData } from '../../hooks/useClubData';
 import type { EnrolledFormation } from '../../hooks/useStudentData';
+import { slideUp } from '../../../../lib/animations';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -22,7 +24,12 @@ export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubS
   } = data;
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      variants={slideUp}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Header */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 p-8 text-white">
         <div className="relative z-10">
@@ -102,6 +109,6 @@ export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubS
           </Button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

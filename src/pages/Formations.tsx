@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Search, Star, Users, Clock, ArrowRight, Play, Loader2, Calendar, MessageSquare, Video, Bell, Building2, Lock, Rss } from 'lucide-react';
 import { getPublishedFormations } from '../lib/firestore';
 import { trackSearch, trackClubJoinIntent } from '../lib/tracking';
@@ -7,11 +8,14 @@ import type { Formation } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
+import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
 const clubMembers = [
   { id: 'KD', name: 'Kouassi David', role: 'Marketing Digital', gradient: 'from-brand-700 via-brand-900 to-neutral-950' },
   { id: 'AF', name: 'Aminata Fall', role: 'SEO & Contenu', gradient: 'from-neutral-500 via-neutral-700 to-neutral-950' },
-  { id: 'MB', name: 'Moussa Ballo', role: 'E-commerce', gradient: 'from-yellow-800 via-yellow-900 to-neutral-950' },
+  { id: 'MB', name: 'Moussa Ballo', role: 'E-commerce', gradient: 'from-plum-800 via-plum-900 to-neutral-950' },
   { id: 'SN', name: 'Sali Ndiaye', role: 'Réseaux Sociaux', gradient: 'from-brand-800 via-brand-900 to-neutral-950' },
   { id: 'DT', name: 'Diallo Thierno', role: 'Design UI/UX', gradient: 'from-neutral-600 via-neutral-800 to-neutral-950' },
 ];
@@ -96,21 +100,26 @@ export default function Formations() {
 
       {/* ── HERO éditorial ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
+        <motion.div
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
             FORMATIONS
-          </p>
+          </motion.p>
           <div className="grid lg:grid-cols-2 gap-8 items-end mb-12">
-            <h1 className="text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
+            <motion.h1 variants={staggerItem} className="text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
               Forme-toi autrement
-            </h1>
-            <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed lg:pb-2">
+            </motion.h1>
+            <motion.p variants={staggerItem} className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed lg:pb-2">
               J'ai mis en place ces formations parce que je sais que tu en as marre des cours trop théoriques et parfois sans valeur ajoutée. Ici, c'est du concret, de la pratique, et surtout... ça marche vraiment !
-            </p>
+            </motion.p>
           </div>
 
           {/* Recherche + filtres */}
-          <div className="flex flex-col gap-4">
+          <motion.div variants={staggerItem} className="flex flex-col gap-4">
             <div className="relative max-w-md">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input
@@ -150,8 +159,8 @@ export default function Formations() {
                 </button>
               ))}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       <div className="bg-white dark:bg-neutral-950 pb-24">
@@ -174,7 +183,13 @@ export default function Formations() {
 
           {/* Formation featured hero */}
           {!loading && featuredFormation && (
-            <div className="pt-12 mb-16">
+            <motion.div
+              className="pt-12 mb-16"
+              variants={slideUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
               <div className="grid lg:grid-cols-2 gap-0 overflow-hidden rounded-2xl border border-neutral-100 dark:border-neutral-800">
                 <div className="relative overflow-hidden aspect-[16/9] lg:aspect-auto">
                   <img
@@ -229,14 +244,21 @@ export default function Formations() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Grille formations */}
           {gridFormations.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <motion.div
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
               {gridFormations.map((formation) => (
-                <Link key={formation.id} to={`/formations/${formation.slug}`} className="group flex flex-col">
+                <motion.div key={formation.id} variants={staggerItem}>
+                <Link to={`/formations/${formation.slug}`} className="group flex flex-col hover:-translate-y-1 transition-transform duration-300">
                   <div className="relative overflow-hidden rounded-2xl aspect-[16/9] mb-5">
                     <img
                       src={formation.coverImage}
@@ -275,8 +297,9 @@ export default function Formations() {
                     {formation.price === 0 ? 'Gratuit' : `${formation.price.toLocaleString()} FCFA`}
                   </p>
                 </Link>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           ) : (
             !featuredFormation && (
               <div className="text-center py-20">
@@ -288,7 +311,13 @@ export default function Formations() {
       </div>
 
       {/* ── CLUB DES DIGITOS ── */}
-      <section className="relative overflow-hidden py-16 lg:py-24">
+      <motion.section
+        className="relative overflow-hidden py-16 lg:py-24"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-2 min-h-[340px]">
 
@@ -296,7 +325,7 @@ export default function Formations() {
           <div className="py-8 lg:py-10 lg:pr-12 flex flex-col justify-center">
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.9] mb-3">
               Le Club<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 dark:from-yellow-300 dark:to-yellow-500">des Digitos</span>
+              <span className="text-neutral-900 dark:text-white">des Digitos</span>
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed text-base mb-5">
               L'espace communautaire réservé aux étudiants de la plateforme. Forum, sessions Live, événements, infos exclusives — un réseau de professionnels du digital.
@@ -306,7 +335,7 @@ export default function Formations() {
             <div className="flex items-baseline gap-3 mb-5 pb-5 border-b border-neutral-200 dark:border-neutral-800">
               <span className="text-4xl font-black text-neutral-900 dark:text-white">19 900</span>
               <div>
-                <span className="block text-yellow-500 dark:text-yellow-400 font-bold text-base">FCFA / an</span>
+                <span className="block text-neutral-600 dark:text-neutral-400 font-bold text-base">FCFA / an</span>
                 <span className="block text-neutral-400 dark:text-neutral-500 text-xs mt-0.5">Renouvellement auto ou manuel</span>
               </div>
             </div>
@@ -322,7 +351,7 @@ export default function Formations() {
                 { icon: Users, label: 'Réseau digital' },
               ].map((feat) => (
                 <div key={feat.label} className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-                  <feat.icon className="w-3.5 h-3.5 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
+                  <feat.icon className="w-3.5 h-3.5 text-neutral-400 dark:text-neutral-500 flex-shrink-0" />
                   {feat.label}
                 </div>
               ))}
@@ -332,7 +361,7 @@ export default function Formations() {
               <Link
                 to="/mon-espace"
                 onClick={() => trackClubJoinIntent()}
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-yellow-400 text-neutral-900 font-black rounded-full hover:bg-yellow-300 transition-colors text-sm tracking-wide shadow-md shadow-yellow-400/30"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-plum-600 text-white font-black rounded-full hover:bg-plum-700 transition-colors text-sm tracking-wide shadow-md shadow-plum-600/30"
               >
                 Rejoindre le Club <ArrowRight className="w-4 h-4" />
               </Link>
@@ -370,7 +399,7 @@ export default function Formations() {
                     <div className="min-w-0">
                       <p className="text-white font-bold text-sm truncate">{member.name}</p>
                       <p className="text-white/55 text-xs mt-0.5 truncate">{member.role}</p>
-                      <p className="text-yellow-400 text-xs mt-1 tracking-widest">★★★★★</p>
+                      <p className="text-accent-400 text-xs mt-1 tracking-widest">★★★★★</p>
                     </div>
                     <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${isCenter ? 'bg-white' : 'bg-white/15 border border-white/25'}`}>
                       <Play className={`w-3.5 h-3.5 ml-0.5 ${isCenter ? 'text-neutral-900' : 'text-white'}`} fill="currentColor" />
@@ -385,7 +414,7 @@ export default function Formations() {
                 <button
                   key={i}
                   onClick={() => setActiveCard(i)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${activeCard === i ? 'w-5 bg-yellow-400' : 'w-1.5 bg-white/30 hover:bg-white/50'}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${activeCard === i ? 'w-5 bg-plum-400' : 'w-1.5 bg-white/30 hover:bg-white/50'}`}
                 />
               ))}
             </div>
@@ -393,12 +422,16 @@ export default function Formations() {
 
         </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── MAX-MORRYS BUSINESS ── */}
-      <section
+      <motion.section
         className="relative min-h-[600px] flex items-center overflow-hidden bg-cover bg-center"
         style={{ backgroundImage: "url('https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Je-te-forme%2F2252.jpg?alt=media&token=c7942987-73f4-45e3-9a9e-2735a1eb1927')", backgroundAttachment: 'fixed' }}
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
       >
         {/* Subtle texture overlay */}
         <div className="absolute inset-0 bg-black/70" />
@@ -442,10 +475,16 @@ export default function Formations() {
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── CTA croisé → Blog ── */}
-      <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
             DÉCOUVREZ AUSSI
@@ -456,11 +495,11 @@ export default function Formations() {
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
             Articles, analyses et conseils pratiques pour maîtriser le marketing digital, le SEO et l'IA.
           </p>
-          <Link to="/blog" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-colors text-sm tracking-wide">
+          <Link to="/blog" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
             Lire le blog <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

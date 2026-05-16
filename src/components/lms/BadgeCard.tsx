@@ -7,6 +7,13 @@ interface BadgeCardProps {
   unlocked: boolean;
 }
 
+const gradientByCategory: Record<Badge['category'], string> = {
+  learning: 'from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/20',
+  streak: 'from-warning-100 to-warning-50 dark:from-warning-900/40 dark:to-warning-900/20',
+  community: 'from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/20',
+  achievement: 'from-accent-100 to-accent-50 dark:from-accent-900/40 dark:to-accent-900/20',
+};
+
 export default function BadgeCard({ badge, unlocked }: BadgeCardProps) {
   return (
     <div className={cn(
@@ -18,7 +25,7 @@ export default function BadgeCard({ badge, unlocked }: BadgeCardProps) {
       <div className={cn(
         'w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-3',
         unlocked
-          ? 'bg-gradient-to-br from-warning-100 to-warning-50 dark:from-warning-900/40 dark:to-warning-900/20'
+          ? `bg-gradient-to-br ${gradientByCategory[badge.category]}`
           : 'bg-neutral-100 dark:bg-neutral-700',
       )}>
         {unlocked ? badge.icon : <Lock className="w-5 h-5 text-neutral-400" />}

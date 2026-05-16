@@ -1,8 +1,10 @@
+import { motion } from 'framer-motion';
 import {
   Calendar, ExternalLink, Plus, CheckCircle, Loader2,
 } from 'lucide-react';
 import { cn } from '../../../../lib/utils';
 import type { useClubData } from '../../hooks/useClubData';
+import { staggerContainer, staggerItem } from '../../../../lib/animations';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -23,11 +25,16 @@ export default function ClubEvents({ data }: ClubEventsProps) {
   }
 
   return (
-    <div className="grid sm:grid-cols-2 gap-4">
+    <motion.div
+      className="grid sm:grid-cols-2 gap-4"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
       {clubEvents.map((event) => {
         const isReg = registeredEvents.has(event.id);
         return (
-          <div key={event.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden relative">
+          <motion.div key={event.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden relative hover:-translate-y-0.5 hover:shadow-md transition-all duration-300">
             {event.imageUrl && <img src={event.imageUrl} alt={event.title} className="w-full h-44 object-cover" />}
             <div className="p-5">
               <div className="flex items-start justify-between gap-2 mb-3">
@@ -54,9 +61,9 @@ export default function ClubEvents({ data }: ClubEventsProps) {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

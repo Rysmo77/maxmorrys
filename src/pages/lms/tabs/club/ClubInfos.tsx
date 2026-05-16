@@ -1,9 +1,11 @@
+import { motion } from 'framer-motion';
 import {
   Heart, Bell, ExternalLink, Share2, Check,
 } from 'lucide-react';
 import { cn, formatDate } from '../../../../lib/utils';
 import { SHARE_PLATFORMS } from '../../hooks/useClubData';
 import type { useClubData } from '../../hooks/useClubData';
+import { staggerContainer, staggerItem } from '../../../../lib/animations';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -28,11 +30,16 @@ export default function ClubInfos({ data }: ClubInfosProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <motion.div
+      className="space-y-4"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
       {clubInfos.map((info) => {
         const infoLiked = user ? (info.likes ?? []).includes(user.uid) : false;
         return (
-          <div key={info.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-5 relative">
+          <motion.div key={info.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-5 relative">
             <div className="flex items-start justify-between gap-3 mb-2">
               <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide', info.type === 'announcement' ? 'bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400' : info.type === 'resource' ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400' : 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400')}>
                 {info.type === 'announcement' ? 'Annonce' : info.type === 'resource' ? 'Ressource' : 'Article'}
@@ -61,9 +68,9 @@ export default function ClubInfos({ data }: ClubInfosProps) {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

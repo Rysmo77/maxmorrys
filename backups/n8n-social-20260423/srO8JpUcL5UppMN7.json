@@ -1,0 +1,1065 @@
+{
+  "updatedAt": "2026-04-15T03:33:11.590Z",
+  "createdAt": "2026-04-09T10:30:43.507Z",
+  "id": "srO8JpUcL5UppMN7",
+  "name": "WF-04 — Publication Automatique (Réseaux Sociaux)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 15 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron — Publication 15h quotidien",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst body = input.body || input;\n\nconst post = {\n  network: body.network || 'facebook',\n  text: body.text || body.content || '',\n  hashtags: body.hashtags || [],\n  media_url: body.media_url || '',\n  media_type: body.media_type || 'image',\n  scheduled_time: body.scheduled_time || '',\n  subject: body.subject || '',\n  status: body.status || 'à_valider'\n};\n\nreturn [{ json: post }];"
+      },
+      "id": "wf04-normalize",
+      "name": "Normaliser — Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "operation": "equals",
+              "value2": "validé"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wf04-check-validated",
+      "name": "IF — Post validé ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        608,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "934156307",
+        "text": "=🔔 *Post à valider* — {{ $('Normaliser — Input').first().json.network }}\n\n*Sujet :* {{ $('Normaliser — Input').first().json.subject }}\n\n_{{ $('Normaliser — Input').first().json.text }}_\n\n*Hashtags :* {{ $('Normaliser — Input').first().json.hashtags.join(' ') }}\n\n_Pour valider, renvoie au webhook avec status='validé'._",
+        "additionalFields": {
+          "disable_web_page_preview": true,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "wf04-email-validate",
+      "name": "Telegram — Demande de validation",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        512
+      ],
+      "webhookId": "806b0390-6730-4406-abe9-5824479ec3d0",
+      "credentials": {
+        "telegramApi": {
+          "id": "k1sYsv0qUTCbCfRN",
+          "name": "Max-Morrys LMS Notifications Telegram"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.network }}",
+                    "rightValue": "facebook",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "facebook"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.network }}",
+                    "rightValue": "instagram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "instagram"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.network }}",
+                    "rightValue": "linkedin",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "linkedin"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.network }}",
+                    "rightValue": "twitter",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "twitter"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "ignoreCase": false
+        }
+      },
+      "id": "wf04-switch-network",
+      "name": "Switch — Réseau social",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        912,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/me/feed",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer %%FB_PAGE_ACCESS_TOKEN%%"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $json.text + '\\n\\n' + $json.hashtags.join(' '), link: $json.media_url || undefined }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "wf04-publish-fb",
+      "name": "Facebook — Publier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        0
+      ],
+      "notesInFlow": true,
+      "onError": "continueRegularOutput",
+      "notes": "PLACEHOLDER: Remplacer %%FB_PAGE_ACCESS_TOKEN%% par le token réel"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/me/media",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer %%FB_PAGE_ACCESS_TOKEN%%"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ caption: $json.text + '\\n\\n' + $json.hashtags.join(' '), image_url: $json.media_url }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "wf04-publish-ig",
+      "name": "Instagram — Publier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        208
+      ],
+      "notesInFlow": true,
+      "onError": "continueRegularOutput",
+      "notes": "PLACEHOLDER: Nécessite Instagram Graph API via Facebook Business"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.linkedin.com/v2/ugcPosts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer %%LINKEDIN_ACCESS_TOKEN%%"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ author: 'urn:li:person:%%LINKEDIN_PERSON_ID%%', lifecycleState: 'PUBLISHED', specificContent: { 'com.linkedin.ugc.ShareContent': { shareCommentary: { text: $json.text }, shareMediaCategory: 'NONE' } }, visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' } }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "wf04-publish-li",
+      "name": "LinkedIn — Publier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        400
+      ],
+      "notesInFlow": true,
+      "onError": "continueRegularOutput",
+      "notes": "PLACEHOLDER: Remplacer tokens et LINKEDIN_PERSON_ID"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twitter.com/2/tweets",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer %%TWITTER_BEARER_TOKEN%%"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: ($json.text + ' ' + $json.hashtags.join(' ')).substring(0, 280) }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "wf04-publish-tw",
+      "name": "Twitter — Publier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        608
+      ],
+      "notesInFlow": true,
+      "onError": "continueRegularOutput",
+      "notes": "PLACEHOLDER: Remplacer %%TWITTER_BEARER_TOKEN%%"
+    },
+    {
+      "id": "wf04-sheets",
+      "name": "Airtable — Status publié",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1504,
+        304
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "record",
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblTlBSOSI1UOmQ1I",
+          "mode": "list",
+          "cachedResultName": "Calendrier Editorial"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Sujet": "={{ $('Normaliser — Input').first().json.subject }}",
+            "Reseau": "={{ $('Normaliser — Input').first().json.network }}",
+            "URL_Post": "={{ $input.first().json?.id || 'published' }}"
+          },
+          "matchingColumns": [
+            "URL_Post"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Normaliser — Input": {
+      "main": [
+        [
+          {
+            "node": "IF — Post validé ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Post validé ?": {
+      "main": [
+        [
+          {
+            "node": "Switch — Réseau social",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram — Demande de validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch — Réseau social": {
+      "main": [
+        [
+          {
+            "node": "Facebook — Publier",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Instagram — Publier",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LinkedIn — Publier",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Twitter — Publier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook — Publier": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status publié",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram — Publier": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status publié",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn — Publier": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status publié",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twitter — Publier": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status publié",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron — Publication 15h quotidien": {
+      "main": [
+        [
+          {
+            "node": "Normaliser — Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron — Publication 15h quotidien": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": {},
+  "versionId": "228e37d5-172c-4e5c-bcce-d82c002c4021",
+  "activeVersionId": "228e37d5-172c-4e5c-bcce-d82c002c4021",
+  "versionCounter": 27,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-09T10:30:43.508Z",
+      "createdAt": "2026-04-09T10:30:43.508Z",
+      "role": "workflow:owner",
+      "workflowId": "srO8JpUcL5UppMN7",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-15T03:33:11.590Z",
+    "createdAt": "2026-04-15T03:33:11.590Z",
+    "versionId": "228e37d5-172c-4e5c-bcce-d82c002c4021",
+    "workflowId": "srO8JpUcL5UppMN7",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 15 * * *"
+              }
+            ]
+          }
+        },
+        "id": "cron-trigger",
+        "name": "Cron — Publication 15h quotidien",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nconst body = input.body || input;\n\nconst post = {\n  network: body.network || 'facebook',\n  text: body.text || body.content || '',\n  hashtags: body.hashtags || [],\n  media_url: body.media_url || '',\n  media_type: body.media_type || 'image',\n  scheduled_time: body.scheduled_time || '',\n  subject: body.subject || '',\n  status: body.status || 'à_valider'\n};\n\nreturn [{ json: post }];"
+        },
+        "id": "wf04-normalize",
+        "name": "Normaliser — Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          304,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $json.status }}",
+                "operation": "equals",
+                "value2": "validé"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "wf04-check-validated",
+        "name": "IF — Post validé ?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          608,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "chatId": "934156307",
+          "text": "=🔔 *Post à valider* — {{ $('Normaliser — Input').first().json.network }}\n\n*Sujet :* {{ $('Normaliser — Input').first().json.subject }}\n\n_{{ $('Normaliser — Input').first().json.text }}_\n\n*Hashtags :* {{ $('Normaliser — Input').first().json.hashtags.join(' ') }}\n\n_Pour valider, renvoie au webhook avec status='validé'._",
+          "additionalFields": {
+            "disable_web_page_preview": true,
+            "parse_mode": "Markdown"
+          }
+        },
+        "id": "wf04-email-validate",
+        "name": "Telegram — Demande de validation",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          912,
+          512
+        ],
+        "webhookId": "806b0390-6730-4406-abe9-5824479ec3d0",
+        "credentials": {
+          "telegramApi": {
+            "id": "k1sYsv0qUTCbCfRN",
+            "name": "Max-Morrys LMS Notifications Telegram"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.network }}",
+                      "rightValue": "facebook",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "facebook"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.network }}",
+                      "rightValue": "instagram",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "instagram"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.network }}",
+                      "rightValue": "linkedin",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "linkedin"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.network }}",
+                      "rightValue": "twitter",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "twitter"
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra",
+            "ignoreCase": false
+          }
+        },
+        "id": "wf04-switch-network",
+        "name": "Switch — Réseau social",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          912,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://graph.facebook.com/v19.0/me/feed",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer %%FB_PAGE_ACCESS_TOKEN%%"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ message: $json.text + '\\n\\n' + $json.hashtags.join(' '), link: $json.media_url || undefined }) }}",
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "wf04-publish-fb",
+        "name": "Facebook — Publier",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1200,
+          0
+        ],
+        "notesInFlow": true,
+        "onError": "continueRegularOutput",
+        "notes": "PLACEHOLDER: Remplacer %%FB_PAGE_ACCESS_TOKEN%% par le token réel"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://graph.facebook.com/v19.0/me/media",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer %%FB_PAGE_ACCESS_TOKEN%%"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ caption: $json.text + '\\n\\n' + $json.hashtags.join(' '), image_url: $json.media_url }) }}",
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "wf04-publish-ig",
+        "name": "Instagram — Publier",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1200,
+          208
+        ],
+        "notesInFlow": true,
+        "onError": "continueRegularOutput",
+        "notes": "PLACEHOLDER: Nécessite Instagram Graph API via Facebook Business"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.linkedin.com/v2/ugcPosts",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer %%LINKEDIN_ACCESS_TOKEN%%"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ author: 'urn:li:person:%%LINKEDIN_PERSON_ID%%', lifecycleState: 'PUBLISHED', specificContent: { 'com.linkedin.ugc.ShareContent': { shareCommentary: { text: $json.text }, shareMediaCategory: 'NONE' } }, visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' } }) }}",
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "wf04-publish-li",
+        "name": "LinkedIn — Publier",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1200,
+          400
+        ],
+        "notesInFlow": true,
+        "onError": "continueRegularOutput",
+        "notes": "PLACEHOLDER: Remplacer tokens et LINKEDIN_PERSON_ID"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.twitter.com/2/tweets",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "Bearer %%TWITTER_BEARER_TOKEN%%"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ text: ($json.text + ' ' + $json.hashtags.join(' ')).substring(0, 280) }) }}",
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "wf04-publish-tw",
+        "name": "Twitter — Publier",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1200,
+          608
+        ],
+        "notesInFlow": true,
+        "onError": "continueRegularOutput",
+        "notes": "PLACEHOLDER: Remplacer %%TWITTER_BEARER_TOKEN%%"
+      },
+      {
+        "id": "wf04-sheets",
+        "name": "Airtable — Status publié",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1504,
+          304
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "upsert",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblTlBSOSI1UOmQ1I",
+            "mode": "list",
+            "cachedResultName": "Calendrier Editorial"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Sujet": "={{ $('Normaliser — Input').first().json.subject }}",
+              "Reseau": "={{ $('Normaliser — Input').first().json.network }}",
+              "URL_Post": "={{ $input.first().json?.id || 'published' }}"
+            },
+            "matchingColumns": [
+              "URL_Post"
+            ],
+            "schema": [],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Normaliser — Input": {
+        "main": [
+          [
+            {
+              "node": "IF — Post validé ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF — Post validé ?": {
+        "main": [
+          [
+            {
+              "node": "Switch — Réseau social",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Telegram — Demande de validation",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch — Réseau social": {
+        "main": [
+          [
+            {
+              "node": "Facebook — Publier",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Instagram — Publier",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "LinkedIn — Publier",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Twitter — Publier",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Facebook — Publier": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Status publié",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Instagram — Publier": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Status publié",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "LinkedIn — Publier": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Status publié",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Twitter — Publier": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Status publié",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cron — Publication 15h quotidien": {
+        "main": [
+          [
+            {
+              "node": "Normaliser — Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-15T03:33:11.782Z",
+        "id": 351,
+        "workflowId": "srO8JpUcL5UppMN7",
+        "versionId": "228e37d5-172c-4e5c-bcce-d82c002c4021",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-04-15T03:33:11.678Z",
+        "id": 350,
+        "workflowId": "srO8JpUcL5UppMN7",
+        "versionId": "228e37d5-172c-4e5c-bcce-d82c002c4021",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

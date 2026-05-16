@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Award, CheckCircle, Loader2, Share2, ArrowLeft } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { getCollection } from '../../lib/firestore';
@@ -65,7 +66,12 @@ export default function Certificate() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-brand-50/30 dark:from-neutral-950 dark:to-brand-950/20 flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-2xl">
+      <motion.div
+        className="w-full max-w-2xl"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.45, ease: 'easeOut' }}
+      >
         {/* Certificate card */}
         <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800">
           {/* Header gradient */}
@@ -150,7 +156,7 @@ export default function Certificate() {
             ← Retour sur maxmorrys.me
           </Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

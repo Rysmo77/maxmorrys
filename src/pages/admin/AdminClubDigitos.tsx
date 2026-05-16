@@ -24,8 +24,8 @@ export default function AdminClubDigitos() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-            <Crown className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+          <div className="w-10 h-10 rounded-xl bg-plum-100 dark:bg-plum-900/30 flex items-center justify-center">
+            <Crown className="w-5 h-5 text-plum-600 dark:text-plum-400" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Club des Digitos</h1>

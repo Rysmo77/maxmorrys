@@ -156,8 +156,8 @@ export default function StudentDashboard() {
                 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
                 item.club
                   ? activeTab === item.id
-                    ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400'
-                    : 'text-yellow-600 dark:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                    ? 'bg-plum-50 dark:bg-plum-900/30 text-plum-700 dark:text-plum-300'
+                    : 'text-plum-600 dark:text-plum-400 hover:bg-plum-50 dark:hover:bg-plum-900/20'
                   : activeTab === item.id
                     ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
                     : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white',
@@ -167,7 +167,7 @@ export default function StudentDashboard() {
               <span className="flex-1 text-left">{item.label}</span>
               {item.club && !isClubActive && <Lock className="w-3 h-3 flex-shrink-0 opacity-60" />}
               {item.club && isClubPending && (
-                <span className="text-xs bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 px-1.5 py-0.5 rounded-full font-semibold">En attente</span>
+                <span className="text-xs bg-plum-100 dark:bg-plum-900/50 text-plum-700 dark:text-plum-300 px-1.5 py-0.5 rounded-full font-semibold">En attente</span>
               )}
             </button>
           ))}

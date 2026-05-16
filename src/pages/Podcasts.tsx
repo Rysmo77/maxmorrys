@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Headphones, Clock, Calendar, Play, ArrowRight, Loader2, AlertCircle, Mic, Bell, Users } from 'lucide-react';
 import { getPublishedPodcasts } from '../lib/firestore';
 import { formatDate } from '../lib/utils';
@@ -7,6 +8,9 @@ import type { Podcast } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
+import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
 const PLATFORMS = [
   { name: 'Spotify', color: '#1DB954' },
@@ -71,32 +75,37 @@ export default function Podcasts() {
 
         {/* Accent glow on top of image */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-10 left-[8%] w-64 h-64 rounded-full bg-brand-600/20 blur-[100px]" />
+          <div className="absolute top-10 left-[8%] w-64 h-64 rounded-full bg-green-600/20 blur-[100px]" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10">
 
             <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center">
-                  <Mic className="w-6 h-6 text-brand-400" />
+              <motion.div variants={staggerItem} className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-green-500/20 border border-green-500/30 flex items-center justify-center">
+                  <Mic className="w-6 h-6 text-green-400" />
                 </div>
-                <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400">
+                <p className="text-xs font-bold tracking-[0.35em] uppercase text-green-600 dark:text-green-400">
                   PODCAST
                 </p>
-              </div>
-              <h1 className="text-5xl sm:text-7xl font-black text-neutral-900 dark:text-white tracking-tight leading-[0.95] mb-6">
+              </motion.div>
+              <motion.h1 variants={staggerItem} className="text-5xl sm:text-7xl font-black text-neutral-900 dark:text-white tracking-tight leading-[0.95] mb-6">
                 Le Podcast<br />
-                <span className="text-brand-600 dark:text-brand-400">du Marketing</span>
-              </h1>
-              <p className="text-neutral-600 dark:text-neutral-300 text-lg leading-relaxed max-w-xl">
+                <span className="text-green-600 dark:text-green-400">du Marketing</span>
+              </motion.h1>
+              <motion.p variants={staggerItem} className="text-neutral-600 dark:text-neutral-300 text-lg leading-relaxed max-w-xl">
                 Chaque semaine, découvre de nouvelles stratégies, interviews d'experts et conseils pratiques pour te cultiver ou développer ton business en ligne.
-              </p>
+              </motion.p>
             </div>
 
             {/* Platform badges */}
-            <div className="flex flex-col gap-3">
+            <motion.div variants={staggerItem} className="flex flex-col gap-3">
               <p className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-500 mb-1">Disponible sur</p>
               <div className="flex flex-wrap gap-2">
                 {PLATFORMS.map((p) => (
@@ -109,13 +118,13 @@ export default function Podcasts() {
                   </span>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
           </div>
 
           {/* Stats row */}
           {podcasts.length > 0 && (
-            <div className="flex gap-8 mt-12 pt-8 border-t border-neutral-200 dark:border-white/10">
+            <motion.div variants={staggerItem} className="flex gap-8 mt-12 pt-8 border-t border-neutral-200 dark:border-white/10">
               <div>
                 <p className="text-3xl font-black text-neutral-900 dark:text-white">{podcasts.length}</p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">Épisodes</p>
@@ -132,9 +141,9 @@ export default function Podcasts() {
                 </p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">Thèmes</p>
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* ── CONTENT ── */}
@@ -142,7 +151,13 @@ export default function Podcasts() {
 
         {/* Category filter */}
         {categories.length > 1 && (
-          <div className="flex flex-wrap gap-2 mb-12">
+          <motion.div
+            className="flex flex-wrap gap-2 mb-12"
+            variants={slideUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -156,22 +171,22 @@ export default function Podcasts() {
                 {cat}
               </button>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* Loading */}
         {loading && (
           <div className="flex justify-center py-24">
-            <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+            <Loader2 className="w-8 h-8 animate-spin text-green-500" />
           </div>
         )}
 
         {/* Error */}
         {!loading && error && (
           <div className="flex flex-col items-center gap-4 py-24 text-center">
-            <AlertCircle className="w-8 h-8 text-red-500" />
+            <AlertCircle className="w-8 h-8 text-error-500" />
             <p className="text-neutral-600 dark:text-neutral-400">Impossible de charger les épisodes.</p>
-            <button onClick={load} className="px-5 py-2 bg-brand-600 text-white text-sm font-bold rounded-full hover:bg-brand-700 transition-colors">
+            <button onClick={load} className="px-5 py-2 bg-green-600 text-white text-sm font-bold rounded-full hover:bg-green-700 transition-colors">
               Réessayer
             </button>
           </div>
@@ -187,9 +202,15 @@ export default function Podcasts() {
 
         {/* Featured episode */}
         {!loading && !error && featured && (
+          <motion.div
+            variants={slideUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
           <Link
             to={`/podcasts/${featured.slug}`}
-            className="group block mb-12 rounded-3xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-xl transition-all duration-300 bg-neutral-50 dark:bg-neutral-900"
+            className="group block mb-12 rounded-3xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:border-green-200 dark:hover:border-green-800 hover:shadow-xl transition-all duration-300 bg-neutral-50 dark:bg-neutral-900"
           >
             <div className="grid md:grid-cols-[280px_1fr] gap-0">
               <div className="relative overflow-hidden aspect-square md:aspect-auto">
@@ -203,7 +224,7 @@ export default function Podcasts() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1.5 bg-brand-600 text-white text-xs font-black rounded-full uppercase tracking-wider">
+                  <span className="px-3 py-1.5 bg-green-600 text-white text-xs font-black rounded-full uppercase tracking-wider">
                     À la une
                   </span>
                 </div>
@@ -213,10 +234,10 @@ export default function Podcasts() {
               </div>
               <div className="p-8 lg:p-10 flex flex-col justify-between">
                 <div>
-                  <p className="text-xs font-bold tracking-[0.25em] uppercase text-brand-600 dark:text-brand-400 mb-4">
+                  <p className="text-xs font-bold tracking-[0.25em] uppercase text-green-600 dark:text-green-400 mb-4">
                     {featured.category}
                   </p>
-                  <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-4 leading-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                  <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-4 leading-tight group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
                     {featured.title}
                   </h2>
                   <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-sm line-clamp-3">
@@ -228,7 +249,7 @@ export default function Podcasts() {
                     <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{featured.duration}</span>
                     <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{formatDate(featured.publishedAt)}</span>
                   </div>
-                  <div className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white font-bold rounded-full text-sm group-hover:bg-brand-700 transition-colors">
+                  <div className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white font-bold rounded-full text-sm group-hover:bg-green-700 transition-colors">
                     <Play className="w-4 h-4" fill="currentColor" />
                     Écouter
                   </div>
@@ -236,16 +257,23 @@ export default function Podcasts() {
               </div>
             </div>
           </Link>
+          </motion.div>
         )}
 
         {/* Episode grid */}
         {!loading && !error && rest.length > 0 && (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             {rest.map((podcast, i) => (
+              <motion.div key={podcast.id} variants={staggerItem}>
               <Link
-                key={podcast.id}
                 to={`/podcasts/${podcast.slug}`}
-                className="group flex flex-col bg-neutral-50 dark:bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-lg transition-all duration-200"
+                className="group flex flex-col bg-neutral-50 dark:bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:border-green-200 dark:hover:border-green-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="relative aspect-square overflow-hidden">
                   <img
@@ -258,7 +286,7 @@ export default function Podcasts() {
                   />
                   <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <div className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center shadow-lg">
-                      <Play className="w-6 h-6 text-brand-600 ml-0.5" fill="currentColor" />
+                      <Play className="w-6 h-6 text-green-600 ml-0.5" fill="currentColor" />
                     </div>
                   </div>
                   <div className="absolute top-3 right-3">
@@ -269,10 +297,10 @@ export default function Podcasts() {
                 </div>
 
                 <div className="p-5 flex flex-col flex-1">
-                  <p className="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-2">
+                  <p className="text-xs font-bold tracking-widest uppercase text-green-600 dark:text-green-400 mb-2">
                     {podcast.category}
                   </p>
-                  <h3 className="font-black text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors leading-snug text-sm mb-3 flex-1">
+                  <h3 className="font-black text-neutral-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors leading-snug text-sm mb-3 flex-1">
                     {podcast.title}
                   </h3>
                   <div className="flex items-center justify-between text-xs text-neutral-400 mt-auto pt-3 border-t border-neutral-100 dark:border-neutral-800">
@@ -281,19 +309,26 @@ export default function Podcasts() {
                   </div>
                 </div>
               </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
 
       {/* ── CLUB DES DIGITOS PROMO ── */}
-      <section className="py-16 bg-white dark:bg-neutral-950 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-16 bg-white dark:bg-neutral-950 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-[1fr_1.2fr] gap-10 lg:gap-16 items-center">
 
             {/* Left */}
             <div>
-              <div className="inline-flex items-center gap-2 bg-yellow-50 dark:bg-yellow-400/10 border border-yellow-200 dark:border-yellow-400/20 text-yellow-700 dark:text-yellow-400 rounded-full px-4 py-1.5 text-xs font-bold tracking-[0.2em] uppercase mb-6">
+              <div className="inline-flex items-center gap-2 bg-plum-50 dark:bg-plum-400/10 border border-plum-200 dark:border-plum-400/20 text-plum-700 dark:text-plum-400 rounded-full px-4 py-1.5 text-xs font-bold tracking-[0.2em] uppercase mb-6">
                 <Users className="w-3.5 h-3.5" /> CLUB DES DIGITOS
               </div>
               <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-5">
@@ -304,7 +339,7 @@ export default function Podcasts() {
               </p>
               <Link
                 to="/mon-espace"
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-yellow-400 text-neutral-900 font-black rounded-full hover:bg-yellow-300 transition-colors text-sm tracking-wide shadow-md shadow-yellow-400/30"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-plum-600 text-white font-black rounded-full hover:bg-plum-700 transition-colors text-sm tracking-wide shadow-md shadow-plum-600/30"
               >
                 Rejoindre le Club <ArrowRight className="w-4 h-4" />
               </Link>
@@ -313,37 +348,43 @@ export default function Podcasts() {
             {/* Right: cards */}
             <div className="space-y-4">
               <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-6 flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
+                <div className="w-12 h-12 rounded-xl bg-plum-400/15 border border-plum-400/30 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="w-5 h-5 text-plum-600 dark:text-plum-400" />
                 </div>
                 <div>
                   <h3 className="font-black text-neutral-900 dark:text-white mb-1">Événements exclusifs</h3>
                   <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">Conférences, masterclasses et rencontres — accès prioritaire et invitations réservés aux membres du Club.</p>
                 </div>
               </div>
-              <div className="rounded-2xl bg-neutral-900 dark:bg-yellow-400/10 border border-neutral-800 dark:border-yellow-400/20 p-6 flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-yellow-400/20 flex items-center justify-center flex-shrink-0">
-                  <Bell className="w-5 h-5 text-yellow-400" />
+              <div className="rounded-2xl bg-neutral-900 dark:bg-plum-400/10 border border-neutral-800 dark:border-plum-400/20 p-6 flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-plum-400/20 flex items-center justify-center flex-shrink-0">
+                  <Bell className="w-5 h-5 text-plum-400" />
                 </div>
                 <div>
-                  <h3 className="font-black text-white dark:text-yellow-300 mb-1">Annonces en avant-première</h3>
-                  <p className="text-sm text-neutral-400 dark:text-yellow-400/70 leading-relaxed">Tu seras toujours le premier au courant de mes prochaines participations et des événements à ne pas rater.</p>
+                  <h3 className="font-black text-white dark:text-plum-300 mb-1">Annonces en avant-première</h3>
+                  <p className="text-sm text-neutral-400 dark:text-plum-400/70 leading-relaxed">Tu seras toujours le premier au courant de mes prochaines participations et des événements à ne pas rater.</p>
                 </div>
               </div>
               <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-6 py-4 flex items-center justify-between">
                 <span className="text-neutral-500 dark:text-neutral-400 text-sm">Abonnement annuel</span>
-                <span className="text-xl font-black text-neutral-900 dark:text-white">19 900 <span className="text-yellow-500 dark:text-yellow-400 text-sm font-bold">FCFA</span></span>
+                <span className="text-xl font-black text-neutral-900 dark:text-white">19 900 <span className="text-plum-600 dark:text-plum-400 text-sm font-bold">FCFA</span></span>
               </div>
             </div>
 
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── CTA → Vidéos ── */}
-      <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
+          <p className="text-xs font-bold tracking-[0.35em] uppercase text-green-600 dark:text-green-400 mb-4">
             DÉCOUVREZ AUSSI
           </p>
           <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white mb-4">
@@ -352,11 +393,11 @@ export default function Podcasts() {
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
             Des vidéos pratiques sur ma chaîne YouTube pour aller encore plus loin.
           </p>
-          <Link to="/videos" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-colors text-sm tracking-wide">
+          <Link to="/videos" className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-full hover:bg-green-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
             Voir les vidéos <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

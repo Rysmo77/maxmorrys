@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Award, CheckCircle, Loader2, ArrowRight, Share2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import Button from '../../../components/ui/Button';
+import { staggerContainer, staggerItem } from '../../../lib/animations';
 import XPBar from '../../../components/lms/XPBar';
 import StreakWidget from '../../../components/lms/StreakWidget';
 import BadgeCard from '../../../components/lms/BadgeCard';
@@ -74,11 +76,18 @@ export default function AchievementsTab({
       {gamification && (
         <div>
           <h3 className="font-bold text-neutral-900 dark:text-white mb-3">Badges</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
             {BADGES.map((badge) => (
-              <BadgeCard key={badge.id} badge={badge} unlocked={gamification.badges.includes(badge.id)} />
+              <motion.div key={badge.id} variants={staggerItem}>
+                <BadgeCard badge={badge} unlocked={gamification.badges.includes(badge.id)} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       )}
 
@@ -108,9 +117,14 @@ export default function AchievementsTab({
           )}
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <motion.div
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
           {certificates.map((cert) => (
-            <div key={cert.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 text-center">
+            <motion.div key={cert.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 text-center hover:-translate-y-1 hover:shadow-md transition-all duration-300">
               <div className="w-16 h-16 rounded-full bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center mx-auto mb-4">
                 <Award className="w-8 h-8 text-warning-500" />
               </div>
@@ -120,9 +134,9 @@ export default function AchievementsTab({
               <Link to={`/certificat/${cert.certificateCode}`} className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline">
                 <Share2 className="w-3 h-3" /> Partager
               </Link>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Formations to complete */}

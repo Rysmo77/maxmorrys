@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Camera, Linkedin, Globe2, ExternalLink, Star, MessageSquareQuote, Loader2, Save, Send } from 'lucide-react';
 import PhoneInput from '../../../components/ui/PhoneInput';
 import Button from '../../../components/ui/Button';
@@ -12,6 +13,7 @@ import { storage } from '../../../config/firebase';
 import type { Testimonial } from '../../../types';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import { captureError } from '../../../lib/sentry';
+import { staggerContainer, staggerItem } from '../../../lib/animations';
 
 const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
 
@@ -150,9 +152,14 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <motion.div
+      className="max-w-2xl space-y-6"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Photo de profil */}
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
+      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
         <h3 className="font-bold text-neutral-900 dark:text-white mb-5">Photo de profil</h3>
         <div className="flex items-center gap-5">
           <div className="relative flex-shrink-0">
@@ -178,10 +185,10 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
             <p className="text-xs text-neutral-400 mt-1">JPG, PNG ou GIF · Max 2 Mo</p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Informations personnelles */}
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
+      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
         <h3 className="font-bold text-neutral-900 dark:text-white mb-5">Informations personnelles</h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="space-y-1">
@@ -226,10 +233,10 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
             {savingProfile ? 'Enregistrement...' : 'Enregistrer le profil'}
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Rejoindre la communauté */}
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
+      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
         <h3 className="font-bold text-neutral-900 dark:text-white mb-1">Rejoins la communauté</h3>
         <p className="text-sm text-neutral-500 mb-5">Suis Max-Morrys sur les réseaux pour ne rien manquer.</p>
         <div className="space-y-2">
@@ -246,10 +253,10 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
             </a>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Témoignage */}
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
+      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-1">
           <MessageSquareQuote className="w-5 h-5 text-brand-500" />
           <h3 className="font-bold text-neutral-900 dark:text-white">Ton témoignage</h3>
@@ -301,10 +308,10 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Mon parcours */}
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
+      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
         <h3 className="font-bold text-neutral-900 dark:text-white mb-4">Mon parcours</h3>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between py-2 border-b border-neutral-100 dark:border-neutral-700">
@@ -322,7 +329,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
             </span>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

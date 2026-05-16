@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Play, CheckCircle, Award, Loader2, GraduationCap, ArrowRight } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import type { Certificate } from '../../../types';
+import { staggerContainer, staggerItem } from '../../../lib/animations';
 
 interface CoursesTabProps {
   enrolledFormations: EnrolledFormation[];
@@ -28,9 +30,14 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
           <Link to="/formations"><Button icon={<ArrowRight className="w-4 h-4" />}>Explorer les formations</Button></Link>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <motion.div
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
           {enrolledFormations.map(({ enrollment, formation }) => (
-            <div key={enrollment.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden">
+            <motion.div key={enrollment.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-md transition-all duration-300">
               {formation?.coverImage && (
                 <img src={formation.coverImage} alt="" className="w-full h-32 object-cover" loading="lazy" />
               )}
@@ -61,9 +68,9 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );

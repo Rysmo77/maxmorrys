@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Star, Users, Clock, BookOpen, Award, Play, FileText, CheckCircle, Lock, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Button from '../components/ui/Button';
@@ -11,6 +12,9 @@ import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
+import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
 const levelLabels: Record<string, string> = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
 const lessonIcons: Record<string, typeof Play> = { video: Play, text: FileText, quiz: CheckCircle, resource: FileText, mission: Award };
@@ -127,8 +131,13 @@ export default function FormationDetail() {
 
       {/* ── HERO ── */}
       <div className="pt-28 pb-12 lg:pt-36 bg-neutral-50 dark:bg-neutral-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6">
+        <motion.div
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={staggerItem} className="mb-6">
             <Breadcrumbs
               items={[
                 { label: 'Accueil', href: '/' },
@@ -136,20 +145,22 @@ export default function FormationDetail() {
                 { label: formation.title },
               ]}
             />
-          </div>
-          <Link to="/formations" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-10 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Retour aux formations
-          </Link>
+          </motion.div>
+          <motion.div variants={staggerItem}>
+            <Link to="/formations" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-10 transition-colors">
+              <ArrowLeft className="w-4 h-4" /> Retour aux formations
+            </Link>
+          </motion.div>
 
-          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
+          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
             {formation.category} · {levelLabels[formation.level]}
-          </p>
+          </motion.p>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white mb-8 leading-[1.05] max-w-4xl">
+          <motion.h1 variants={staggerItem} className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white mb-8 leading-[1.05] max-w-4xl">
             {formation.title}
-          </h1>
+          </motion.h1>
 
-          <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+          <motion.div variants={staggerItem} className="flex flex-wrap items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
             <span className="flex items-center gap-1.5">
               <Star className="w-4 h-4 text-accent-500" fill="currentColor" />
               <span className="font-bold text-neutral-700 dark:text-neutral-200">{formation.rating}</span>
@@ -166,16 +177,21 @@ export default function FormationDetail() {
                 <span className="flex items-center gap-1.5"><Award className="w-3.5 h-3.5 text-success-500" />Certificat inclus</span>
               </>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Image hero */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <motion.div
+        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8"
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut', delay: 0.3 }}
+      >
         <div className="aspect-[16/7] rounded-2xl overflow-hidden">
           <img src={formation.coverImage} alt={formation.title} className="w-full h-full object-cover" width={1200} height={525} />
         </div>
-      </div>
+      </motion.div>
 
       {/* ── CONTENU + SIDEBAR ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -189,7 +205,13 @@ export default function FormationDetail() {
             />
 
             {/* Contenu du cours */}
-            <div className="mb-12">
+            <motion.div
+              className="mb-12"
+              variants={slideUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
               <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
                 PROGRAMME
               </p>
@@ -201,11 +223,17 @@ export default function FormationDetail() {
                   Le programme détaillé sera disponible prochainement.
                 </p>
               )}
-              <div className="space-y-3">
+              <motion.div
+                className="space-y-3"
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOnce}
+              >
                 {(formation.modules ?? []).map((module) => {
                   const isExpanded = expandedModules.includes(module.id);
                   return (
-                    <div key={module.id} className="border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden">
+                    <motion.div key={module.id} variants={staggerItem} className="border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden">
                       <button
                         onClick={() => toggleModule(module.id)}
                         className="w-full flex items-center justify-between p-5 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
@@ -222,7 +250,13 @@ export default function FormationDetail() {
                         {isExpanded ? <ChevronUp className="w-5 h-5 text-neutral-400 shrink-0" /> : <ChevronDown className="w-5 h-5 text-neutral-400 shrink-0" />}
                       </button>
                       {isExpanded && (
-                        <div className="border-t border-neutral-200 dark:border-neutral-700">
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.25, ease: 'easeOut' }}
+                          className="border-t border-neutral-200 dark:border-neutral-700 overflow-hidden"
+                        >
                           {module.lessons.map((lesson) => {
                             const Icon = lessonIcons[lesson.type] || FileText;
                             return (
@@ -238,20 +272,25 @@ export default function FormationDetail() {
                               </div>
                             );
                           })}
-                        </div>
+                        </motion.div>
                       )}
-                    </div>
+                    </motion.div>
                   );
                 })}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
           </div>
 
           {/* Sidebar sticky */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-700 shadow-xl p-8">
+              <motion.div
+                className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-700 shadow-xl p-8"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: 'easeOut', delay: 0.4 }}
+              >
                 <div className="text-center mb-6">
                   {formation.promoPrice ? (
                     <>
@@ -292,14 +331,20 @@ export default function FormationDetail() {
                     </div>
                   )}
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
       </div>
 
       {/* ── CTA croisé → Blog ── */}
-      <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
             DÉCOUVREZ AUSSI
@@ -310,11 +355,11 @@ export default function FormationDetail() {
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
             Articles, analyses et conseils gratuits pour approfondir vos connaissances en marketing digital.
           </p>
-          <Link to="/blog" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-colors text-sm tracking-wide">
+          <Link to="/blog" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
             Lire le blog <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

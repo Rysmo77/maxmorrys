@@ -1,12 +1,16 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { ArrowRight, TrendingUp, Users, Award, BookOpen, Play, ChevronDown, Star, Zap, Target, BarChart3, Shield, Infinity, BadgeCheck } from 'lucide-react';
 import { getPublishedFormations, getPublishedPosts, getFeaturedTestimonials } from '../lib/firestore';
 import { formatPrice, truncate } from '../lib/utils';
 import type { Formation, BlogPost, Testimonial } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
-import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION } from '../components/seo/seo-config';
+import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
+import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
 const stats = [
   { icon: TrendingUp, value: '+340%', label: 'Croissance trafic en 1 an', color: 'text-brand-500' },
@@ -116,7 +120,7 @@ export default function Home() {
           '@type': 'Organization',
           name: SITE_NAME,
           url: SITE_URL,
-          logo: `${SITE_URL}/og-default.jpg`,
+          logo: DEFAULT_OG_IMAGE,
           contactPoint: {
             '@type': 'ContactPoint',
             telephone: '+221776041985',
@@ -146,7 +150,7 @@ export default function Home() {
           '@type': 'Person',
           name: 'Max-Morrys',
           url: SITE_URL,
-          image: `${SITE_URL}/og-default.jpg`,
+          image: DEFAULT_OG_IMAGE,
           jobTitle: 'Expert en marketing digital, SEO et IA',
           worksFor: { '@type': 'Organization', name: SITE_NAME },
           sameAs: [
@@ -162,7 +166,7 @@ export default function Home() {
           <video
             ref={videoRef}
             src="https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Le%20Marketing%20en%20Pratique.mp4?alt=media&token=7aebaa77-b33a-4494-92e4-9c3cfdc433c1"
-            poster="/og-default.jpg"
+            poster={DEFAULT_OG_IMAGE}
             autoPlay
             muted
             loop
@@ -186,31 +190,50 @@ export default function Home() {
       </section>
 
       {/* ── STATS : bande horizontale editoriale ── */}
-      <section className="py-14 bg-white dark:bg-neutral-950 border-y border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-14 bg-white dark:bg-neutral-950 border-y border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-neutral-100 dark:divide-neutral-800">
+          <motion.div
+            className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-neutral-100 dark:divide-neutral-800"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             {stats.map((stat) => (
-              <div key={stat.label} className="text-center px-6 py-2">
+              <motion.div key={stat.label} variants={staggerItem} className="text-center px-6 py-2">
                 <p className={`text-4xl lg:text-5xl font-bold mb-1 tracking-tight ${stat.color}`}>
                   {stat.value}
                 </p>
                 <p className="text-xs font-medium tracking-[0.15em] uppercase text-neutral-400 dark:text-neutral-500">
                   {stat.label}
                 </p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── SERVICES : "JE SUIS MAX-MORRYS." split editorial ── */}
-      <section id="services" className="py-24 lg:py-36 bg-neutral-50 dark:bg-neutral-900">
+      <motion.section
+        id="services"
+        className="py-24 lg:py-36 bg-neutral-50 dark:bg-neutral-900"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
 
             {/* Texte gauche */}
             <div>
-              <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-6">
+              <p className="text-xs font-bold tracking-[0.35em] uppercase text-morrys-600 dark:text-morrys-400 mb-6">
                 BONJOUR !
               </p>
               <h2 className="text-6xl sm:text-7xl lg:text-8xl font-black leading-[0.95] text-neutral-900 dark:text-white mb-10 tracking-tight">
@@ -221,27 +244,43 @@ export default function Home() {
               </p>
 
               {/* Services en liste editoriale */}
-              <div className="space-y-0 border-t border-neutral-200 dark:border-neutral-700">
-                {services.map((service, i) => (
-                  <Link key={i} to={service.link} className="group flex items-start gap-5 py-6 border-b border-neutral-200 dark:border-neutral-700 hover:pl-2 transition-all duration-300">
-                    <service.icon className="w-5 h-5 mt-0.5 text-brand-500 dark:text-brand-400 shrink-0" />
+              <motion.div
+                className="space-y-0 border-t border-neutral-200 dark:border-neutral-700"
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOnce}
+              >
+                {services.map((service, i) => {
+                  const isBlog = service.link === '/blog';
+                  const iconCls = isBlog ? 'text-coral-600 dark:text-coral-400' : 'text-brand-500 dark:text-brand-400';
+                  const titleHoverCls = isBlog
+                    ? 'group-hover:text-coral-600 dark:group-hover:text-coral-400'
+                    : 'group-hover:text-brand-600 dark:group-hover:text-brand-400';
+                  const arrowHoverCls = isBlog ? 'group-hover:text-coral-600 dark:group-hover:text-coral-400' : 'group-hover:text-brand-500';
+                  return (
+                  <motion.div key={i} variants={staggerItem}>
+                  <Link to={service.link} className="group flex items-start gap-5 py-6 border-b border-neutral-200 dark:border-neutral-700 hover:pl-2 transition-all duration-300">
+                    <service.icon className={`w-5 h-5 mt-0.5 ${iconCls} shrink-0`} />
                     <div className="flex-1">
-                      <p className="font-bold text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                      <p className={`font-bold text-neutral-900 dark:text-white ${titleHoverCls} transition-colors`}>
                         {service.title}
                       </p>
                       <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">{service.desc}</p>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-neutral-300 dark:text-neutral-600 group-hover:text-brand-500 group-hover:translate-x-1 transition-all shrink-0 mt-1" />
+                    <ArrowRight className={`w-4 h-4 text-neutral-300 dark:text-neutral-600 ${arrowHoverCls} group-hover:translate-x-1 transition-all shrink-0 mt-1`} />
                   </Link>
-                ))}
-              </div>
+                  </motion.div>
+                  );
+                })}
+              </motion.div>
             </div>
 
             {/* Image droite */}
             <div className="relative">
               <div className="aspect-[4/5] overflow-hidden rounded-2xl">
                 <img
-                  src="https://images.pexels.com/photos/3184306/pexels-photo-3184306.jpeg?auto=compress&cs=tinysrgb&w=800"
+                  src="https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/A-propos%2FChatGPT%20Image%2014%20mai%202026%2C%2000_49_18%20(3).png?alt=media&token=cc4027ff-c053-40a3-8b22-28d5603ee729"
                   alt="Max-Morrys"
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -258,11 +297,17 @@ export default function Home() {
 
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── Formations vedettes ── */}
       {featuredFormations.length > 0 && (
-        <section className="bg-white dark:bg-neutral-950 py-24 lg:py-36 overflow-hidden">
+        <motion.section
+          className="bg-white dark:bg-neutral-950 py-24 lg:py-36 overflow-hidden"
+          variants={slideUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {/* En-tête éditorial */}
@@ -359,10 +404,16 @@ export default function Home() {
 
             {/* Cartes secondaires (formations 2 & 3) */}
             {featuredFormations.length > 1 && (
-              <div className="grid sm:grid-cols-2 gap-4">
+              <motion.div
+                className="grid sm:grid-cols-2 gap-4"
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOnce}
+              >
                 {featuredFormations.slice(1).map((f, i) => (
+                  <motion.div key={f.id} variants={staggerItem}>
                   <Link
-                    key={f.id}
                     to={`/formations/${f.slug}`}
                     className="group relative flex overflow-hidden rounded-2xl border border-neutral-200 dark:border-white/5 hover:border-brand-500/30 bg-neutral-50 dark:bg-neutral-900 hover:-translate-y-0.5 transition-all duration-300"
                   >
@@ -421,8 +472,9 @@ export default function Home() {
                       </div>
                     </div>
                   </Link>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
 
             {/* CTA */}
@@ -434,11 +486,17 @@ export default function Home() {
             </div>
 
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* ── PODCAST & YOUTUBE : style carte flottante sur image plein-largeur ── */}
-      <section className="relative min-h-[560px] flex items-center overflow-hidden">
+      <motion.section
+        className="relative min-h-[560px] flex items-center overflow-hidden"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         {/* Image de fond pleine largeur */}
         <div className="absolute inset-0">
           <img
@@ -453,7 +511,7 @@ export default function Home() {
         {/* Carte flottante droite */}
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end py-16">
           <div className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-3xl p-10 text-center shadow-2xl">
-            <p className="text-xs font-bold tracking-[0.3em] uppercase text-brand-600 dark:text-brand-400 mb-4">
+            <p className="text-xs font-bold tracking-[0.3em] uppercase text-neutral-500 dark:text-neutral-400 mb-4">
               CONTENU GRATUIT
             </p>
             <h2 className="text-3xl lg:text-4xl font-black text-neutral-900 dark:text-white mb-4 leading-tight">
@@ -467,14 +525,14 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 to="/podcasts"
-                className="flex items-center justify-center gap-2.5 px-6 py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
+                className="flex items-center justify-center gap-2.5 px-6 py-3.5 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-full font-semibold text-sm shadow-sm transition-colors"
               >
                 <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current shrink-0" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4.5a7.5 7.5 0 110 15 7.5 7.5 0 010-15zm0 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-.75 4.5h1.5v6h-1.5v-6z"/></svg>
                 Écouter le Podcast
               </Link>
               <Link
                 to="/videos"
-                className="flex items-center justify-center gap-2.5 px-6 py-3.5 border-2 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white rounded-full font-semibold text-sm hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+                className="flex items-center justify-center gap-2.5 px-6 py-3.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-full font-semibold text-sm shadow-sm transition-colors"
               >
                 <Play className="w-4 h-4 shrink-0" />
                 Voir les Vidéos
@@ -500,10 +558,16 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── BLOG "LES DERNIERS ARTICLES" : style The Latest ── */}
-      <section className="py-24 lg:py-36 bg-accent-50 dark:bg-neutral-900">
+      <motion.section
+        className="py-24 lg:py-36 bg-accent-50 dark:bg-neutral-900"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-5xl lg:text-6xl font-black text-center text-neutral-900 dark:text-white mb-16 tracking-tight">
             Les Derniers Articles
@@ -524,41 +588,54 @@ export default function Home() {
             </div>
 
             {/* Liste numerotee droite */}
-            <div>
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
               {recentPosts.map((post, i) => (
-                <Link key={post.id} to={`/blog/${post.slug}`} className="group flex items-center gap-6 py-7 border-b border-neutral-200 dark:border-neutral-700 first:border-t first:border-neutral-200 dark:first:border-neutral-700 hover:bg-white/60 dark:hover:bg-neutral-800/40 transition-colors rounded-lg px-3 -mx-3">
+                <motion.div key={post.id} variants={staggerItem}>
+                <Link to={`/blog/${post.slug}`} className="group flex items-center gap-6 py-7 border-b border-neutral-200 dark:border-neutral-700 first:border-t first:border-neutral-200 dark:first:border-neutral-700 hover:bg-white/60 dark:hover:bg-neutral-800/40 transition-colors rounded-lg px-3 -mx-3">
                   <span className="text-sm font-bold text-neutral-300 dark:text-neutral-600 w-8 shrink-0 text-right">
                     #{i + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1.5">
+                    <p className="text-xs font-bold tracking-widest uppercase text-coral-600 dark:text-coral-400 mb-1.5">
                       {post.category} · {post.readTime} min de lecture
                     </p>
-                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors leading-snug">
+                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white group-hover:text-coral-600 dark:group-hover:text-coral-400 transition-colors leading-snug">
                       {post.title}
                     </h3>
                     <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-1">
                       {truncate(post.excerpt, 100)}
                     </p>
                   </div>
-                  <div className="w-10 h-10 rounded-full border-2 border-neutral-200 dark:border-neutral-700 group-hover:border-brand-500 dark:group-hover:border-brand-400 flex items-center justify-center shrink-0 transition-colors">
-                    <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors" />
+                  <div className="w-10 h-10 rounded-full border-2 border-neutral-200 dark:border-neutral-700 group-hover:border-coral-500 dark:group-hover:border-coral-400 flex items-center justify-center shrink-0 transition-colors">
+                    <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-coral-500 dark:group-hover:text-coral-400 transition-colors" />
                   </div>
                 </Link>
+                </motion.div>
               ))}
 
-              <div className="mt-10">
+              <motion.div variants={staggerItem} className="mt-10">
                 <Link to="/blog" className="inline-flex border border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100 font-semibold px-8 py-4 rounded-full hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-colors text-sm tracking-wide">
                     Lire tous les articles
                 </Link>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── TEMOIGNAGES : editorial ── */}
-      <section className="py-24 lg:py-36 bg-white dark:bg-neutral-950">
+      <motion.section
+        className="py-24 lg:py-36 bg-white dark:bg-neutral-950"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
@@ -574,31 +651,49 @@ export default function Home() {
             <TestimonialCarousel testimonials={featuredTestimonials} />
           )}
         </div>
-      </section>
+      </motion.section>
 
       {/* ── TRUST BADGES ── */}
-      <section className="py-12 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-12 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             {[
               { icon: BadgeCheck, title: 'Certificat inclus', desc: 'Chaque formation délivre un certificat vérifiable' },
               { icon: Infinity, title: 'Accès à vie', desc: 'Tes formations restent accessibles sans limite' },
               { icon: Shield, title: 'Garantie satisfait', desc: 'Remboursement sous 7 jours si insatisfaction' },
             ].map((badge) => (
-              <div key={badge.title} className="flex flex-col items-center gap-3 p-4">
+              <motion.div key={badge.title} variants={staggerItem} className="flex flex-col items-center gap-3 p-4">
                 <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center">
                   <badge.icon className="w-6 h-6 text-brand-600 dark:text-brand-400" />
                 </div>
                 <p className="font-bold text-neutral-900 dark:text-white text-sm">{badge.title}</p>
                 <p className="text-xs text-neutral-500 max-w-[200px]">{badge.desc}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── CTA FINAL ── */}
-      <section className="py-24 bg-gradient-to-br from-brand-600 to-brand-800 text-white">
+      <motion.section
+        className="py-24 bg-gradient-to-br from-brand-600 to-brand-800 text-white"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl lg:text-5xl font-black mb-5 tracking-tight">
             Prêt à transformer ton business ?
@@ -607,15 +702,15 @@ export default function Home() {
             Que tu sois entrepreneur, marketeur ou en reconversion, il y a une formation faite pour toi.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/formations" className="inline-flex items-center bg-white text-brand-700 font-bold px-8 py-4 rounded-full hover:bg-brand-50 transition-colors text-sm tracking-wide">
+            <Link to="/formations" className="inline-flex items-center bg-white text-brand-700 font-bold px-8 py-4 rounded-full hover:bg-brand-50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
                 Voir les formations <ArrowRight className="inline w-4 h-4 ml-1" />
             </Link>
-            <Link to="/contact" className="inline-flex items-center border border-white/40 text-white font-bold px-8 py-4 rounded-full hover:bg-white/10 transition-colors text-sm tracking-wide">
+            <Link to="/contact" className="inline-flex items-center border border-white/40 text-white font-bold px-8 py-4 rounded-full hover:bg-white/10 hover:-translate-y-0.5 transition-all duration-300 text-sm tracking-wide">
                 Prendre contact
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
 
     </div>
   );

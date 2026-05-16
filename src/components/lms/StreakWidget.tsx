@@ -10,8 +10,8 @@ export default function StreakWidget({ currentStreak, longestStreak, compact }: 
   if (compact) {
     return (
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-          <Flame className="w-4 h-4 text-orange-500" />
+        <div className="w-8 h-8 rounded-full bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center">
+          <Flame className="w-4 h-4 text-accent-500" />
         </div>
         <div>
           <p className="text-sm font-bold text-neutral-900 dark:text-white">{currentStreak} jour{currentStreak > 1 ? 's' : ''}</p>
@@ -24,7 +24,7 @@ export default function StreakWidget({ currentStreak, longestStreak, compact }: 
   return (
     <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-5">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center">
           <Flame className="w-5 h-5 text-white" />
         </div>
         <div>

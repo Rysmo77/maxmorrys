@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Clock, Calendar, Share2, Linkedin, Copy, Check, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import NewsletterForm from '../components/shared/NewsletterForm';
@@ -9,8 +10,11 @@ import type { BlogPost as BlogPostType } from '../types';
 import { trackViewItem, trackShare } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
-import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
+import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
+import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
 export default function BlogPost() {
   const { slug } = useParams();
@@ -100,7 +104,7 @@ export default function BlogPost() {
         publisher: {
           '@type': 'Organization',
           name: SITE_NAME,
-          logo: { '@type': 'ImageObject', url: `${SITE_URL}/og-default.jpg` },
+          logo: { '@type': 'ImageObject', url: DEFAULT_OG_IMAGE },
         },
         mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${post.slug}` },
         articleSection: post.category,
@@ -118,8 +122,13 @@ export default function BlogPost() {
 
       {/* ── HERO article ── */}
       <div className="pt-28 pb-12 lg:pt-36 bg-neutral-50 dark:bg-neutral-900">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6">
+        <motion.div
+          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={staggerItem} className="mb-6">
             <Breadcrumbs
               items={[
                 { label: 'Accueil', href: '/' },
@@ -127,20 +136,22 @@ export default function BlogPost() {
                 { label: post.title },
               ]}
             />
-          </div>
-          <Link to="/blog" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-10 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Retour au blog
-          </Link>
+          </motion.div>
+          <motion.div variants={staggerItem}>
+            <Link to="/blog" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-10 transition-colors">
+              <ArrowLeft className="w-4 h-4" /> Retour au blog
+            </Link>
+          </motion.div>
 
-          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
+          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.35em] uppercase text-coral-600 dark:text-coral-400 mb-5">
             {post.category}
-          </p>
+          </motion.p>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white mb-8 leading-[1.05]">
+          <motion.h1 variants={staggerItem} className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white mb-8 leading-[1.05]">
             {post.title}
-          </h1>
+          </motion.h1>
 
-          <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+          <motion.div variants={staggerItem} className="flex flex-wrap items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center">
                 <span className="text-xs font-black text-brand-600 dark:text-brand-400">M</span>
@@ -151,16 +162,21 @@ export default function BlogPost() {
             <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(post.publishedAt)}</span>
             <span className="text-neutral-300 dark:text-neutral-600">·</span>
             <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{post.readTime} min de lecture</span>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Image hero full-width */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-0 pt-8">
+      <motion.div
+        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-0 pt-8"
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut', delay: 0.3 }}
+      >
         <div className="aspect-[16/7] rounded-2xl overflow-hidden">
           <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" width={1200} height={525} />
         </div>
-      </div>
+      </motion.div>
 
       {/* ── CONTENU ── */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -177,7 +193,7 @@ export default function BlogPost() {
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-10">
           {post.tags.map((tag) => (
-            <span key={tag} className="px-4 py-1.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-xs font-semibold rounded-full uppercase tracking-wider">
+            <span key={tag} className="px-4 py-1.5 bg-coral-50 dark:bg-coral-900/30 text-coral-700 dark:text-coral-300 text-xs font-semibold rounded-full uppercase tracking-wider">
               {tag}
             </span>
           ))}
@@ -215,30 +231,49 @@ export default function BlogPost() {
 
         {/* Articles lies */}
         {relatedPosts.length > 0 && (
-          <div>
+          <motion.div
+            variants={slideUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
               A LIRE AUSSI
             </p>
             <h3 className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white mb-8">Articles similaires</h3>
-            <div className="space-y-4">
+            <motion.div
+              className="space-y-4"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
               {relatedPosts.map((rp, i) => (
-                <Link key={rp.id} to={`/blog/${rp.slug}`} className="group flex items-center gap-5 py-5 border-b border-neutral-100 dark:border-neutral-800 hover:pl-2 transition-all duration-200">
+                <motion.div key={rp.id} variants={staggerItem}>
+                <Link to={`/blog/${rp.slug}`} className="group flex items-center gap-5 py-5 border-b border-neutral-100 dark:border-neutral-800 hover:pl-2 transition-all duration-200">
                   <span className="text-sm font-black text-neutral-300 dark:text-neutral-700 w-6 shrink-0">#{i + 1}</span>
                   <img src={rp.coverImage} alt={rp.title} className="w-16 h-16 rounded-xl object-cover shrink-0" loading="lazy" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">{rp.category}</p>
-                    <p className="font-bold text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors leading-snug">{rp.title}</p>
+                    <p className="text-xs font-bold tracking-widest uppercase text-coral-600 dark:text-coral-400 mb-1">{rp.category}</p>
+                    <p className="font-bold text-neutral-900 dark:text-white group-hover:text-coral-600 dark:group-hover:text-coral-400 transition-colors leading-snug">{rp.title}</p>
                     <p className="text-xs text-neutral-400 mt-1">{rp.readTime} min de lecture</p>
                   </div>
                 </Link>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
       </div>
 
       {/* ── CTA croisé → Formations ── */}
-      <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
             DÉCOUVREZ AUSSI
@@ -249,11 +284,11 @@ export default function BlogPost() {
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
             Des formations pratiques pour aller plus loin et transformer vos connaissances en compétences réelles.
           </p>
-          <Link to="/formations" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-colors text-sm tracking-wide">
+          <Link to="/formations" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
             Voir les formations <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

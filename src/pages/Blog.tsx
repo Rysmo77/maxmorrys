@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Search, Clock, ArrowRight, Loader2, AlertCircle, MessageSquare, Rss } from 'lucide-react';
 import { getPublishedPosts } from '../lib/firestore';
 import { formatDate, truncate } from '../lib/utils';
@@ -8,6 +9,9 @@ import type { BlogPost } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
+import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
 export default function Blog() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -64,21 +68,26 @@ export default function Blog() {
 
       {/* ── HERO editorial ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
+        <motion.div
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.35em] uppercase text-coral-600 dark:text-coral-400 mb-5">
             BLOG
-          </p>
+          </motion.p>
           <div className="grid lg:grid-cols-2 gap-8 items-end mb-12">
-            <h1 className="text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
+            <motion.h1 variants={staggerItem} className="text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
               Ne manque aucune news
-            </h1>
-            <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed lg:pb-2">
+            </motion.h1>
+            <motion.p variants={staggerItem} className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed lg:pb-2">
               Les choses vont tellement vite en marketing qu'il ne faut rien rater des tendaces et nouveautés. Mais je te dis tout ; pas de secret entre nous !
-            </p>
+            </motion.p>
           </div>
 
           {/* Barre recherche + filtres */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <motion.div variants={staggerItem} className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input
@@ -104,8 +113,8 @@ export default function Blog() {
                 </button>
               ))}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       <div className="bg-white dark:bg-neutral-950 pb-24">
@@ -113,6 +122,12 @@ export default function Blog() {
 
           {/* Article featured en grand format horizontal */}
           {featuredPost && (
+            <motion.div
+              variants={slideUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
             <Link to={`/blog/${featuredPost.slug}`} className="group block mb-12 pt-12">
               <div className="grid lg:grid-cols-[5fr_4fr] gap-0 overflow-hidden rounded-2xl border border-neutral-100 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600 transition-colors">
                 <div className="relative overflow-hidden aspect-[16/9] lg:aspect-auto">
@@ -133,10 +148,10 @@ export default function Blog() {
                   )}
                 </div>
                 <div className="p-8 lg:p-10 flex flex-col justify-center bg-neutral-50 dark:bg-neutral-900">
-                  <p className="text-xs font-bold tracking-[0.25em] uppercase text-brand-600 dark:text-brand-400 mb-4">
+                  <p className="text-xs font-bold tracking-[0.25em] uppercase text-coral-600 dark:text-coral-400 mb-4">
                     {featuredPost.category}
                   </p>
-                  <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-4 leading-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                  <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-4 leading-tight group-hover:text-coral-600 dark:group-hover:text-coral-400 transition-colors">
                     {featuredPost.title}
                   </h2>
                   <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6">
@@ -148,13 +163,14 @@ export default function Blog() {
                       <span>·</span>
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {featuredPost.readTime} min</span>
                     </div>
-                    <span className="text-sm font-semibold text-brand-600 dark:text-brand-400 flex items-center gap-1 group-hover:gap-2 transition-all">
+                    <span className="text-sm font-semibold text-coral-600 dark:text-coral-400 flex items-center gap-1 group-hover:gap-2 transition-all">
                       Lire <ArrowRight className="w-4 h-4" />
                     </span>
                   </div>
                 </div>
               </div>
             </Link>
+            </motion.div>
           )}
 
           {/* Loading / error states */}
@@ -175,9 +191,15 @@ export default function Blog() {
 
           {/* Grille articles */}
           {!loading && gridPosts.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <motion.div
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {gridPosts.map((post) => (
-                <Link key={post.id} to={`/blog/${post.slug}`} className="group flex flex-col">
+                <motion.div key={post.id} variants={staggerItem}>
+                <Link to={`/blog/${post.slug}`} className="group flex flex-col hover:-translate-y-1 transition-transform duration-300">
                   <div className="relative overflow-hidden rounded-2xl aspect-[16/9] mb-5">
                     <img
                       src={post.coverImage}
@@ -188,17 +210,18 @@ export default function Blog() {
                       height={225}
                     />
                   </div>
-                  <p className="text-xs font-bold tracking-[0.25em] uppercase text-brand-600 dark:text-brand-400 mb-2">
+                  <p className="text-xs font-bold tracking-[0.25em] uppercase text-coral-600 dark:text-coral-400 mb-2">
                     {post.category} · <span className="font-normal normal-case tracking-normal text-neutral-400">{post.readTime} min de lecture</span>
                   </p>
-                  <h2 className="text-lg font-black tracking-tight text-neutral-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors leading-snug flex-1">
+                  <h2 className="text-lg font-black tracking-tight text-neutral-900 dark:text-white mb-2 group-hover:text-coral-600 dark:group-hover:text-coral-400 transition-colors leading-snug flex-1">
                     {post.title}
                   </h2>
                   <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-3">{truncate(post.excerpt, 100)}</p>
                   <p className="text-xs text-neutral-400">{formatDate(post.publishedAt)}</p>
                 </Link>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           ) : (
             !featuredPost && (
               <div className="text-center py-20">
@@ -210,19 +233,25 @@ export default function Blog() {
       </div>
 
       {/* ── CLUB DES DIGITOS PROMO ── */}
-      <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl bg-neutral-900 dark:bg-neutral-900 dark:border dark:border-white/10 overflow-hidden">
             <div className="grid lg:grid-cols-2 gap-0">
 
-              {/* Left: yellow panel */}
-              <div className="bg-yellow-400 p-10 lg:p-12 flex flex-col justify-between">
+              {/* Left: plum panel (Club universe) */}
+              <div className="bg-plum-600 p-10 lg:p-12 flex flex-col justify-between">
                 <div>
-                  <p className="text-xs font-bold tracking-[0.3em] uppercase text-yellow-900/60 mb-5">CLUB DES DIGITOS</p>
-                  <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 leading-[0.95] mb-4">
+                  <p className="text-xs font-bold tracking-[0.3em] uppercase text-white/70 mb-5">CLUB DES DIGITOS</p>
+                  <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-white leading-[0.95] mb-4">
                     Échange avec moi<br />& la communauté
                   </h2>
-                  <p className="text-neutral-900/70 leading-relaxed text-base mb-8">
+                  <p className="text-white/85 leading-relaxed text-base mb-8">
                     Le blog, c'est bien. Mais dans le Club, on va plus loin : pose tes questions directement dans le forum, réagis aux actus du moment sur le fil, et discute avec moi et les autres membres.
                   </p>
                 </div>
@@ -237,8 +266,8 @@ export default function Blog() {
               {/* Right: features */}
               <div className="p-10 lg:p-12 flex flex-col justify-center gap-8">
                 <div className="flex gap-5 items-start">
-                  <div className="w-12 h-12 rounded-2xl bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center flex-shrink-0">
-                    <Rss className="w-5 h-5 text-yellow-400" />
+                  <div className="w-12 h-12 rounded-2xl bg-plum-400/15 border border-plum-400/30 flex items-center justify-center flex-shrink-0">
+                    <Rss className="w-5 h-5 text-plum-400" />
                   </div>
                   <div>
                     <h3 className="font-black text-white text-base mb-1">Fil d'actualité</h3>
@@ -246,8 +275,8 @@ export default function Blog() {
                   </div>
                 </div>
                 <div className="flex gap-5 items-start">
-                  <div className="w-12 h-12 rounded-2xl bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center flex-shrink-0">
-                    <MessageSquare className="w-5 h-5 text-yellow-400" />
+                  <div className="w-12 h-12 rounded-2xl bg-plum-400/15 border border-plum-400/30 flex items-center justify-center flex-shrink-0">
+                    <MessageSquare className="w-5 h-5 text-plum-400" />
                   </div>
                   <div>
                     <h3 className="font-black text-white text-base mb-1">Forum & discussions avec moi</h3>
@@ -256,17 +285,23 @@ export default function Blog() {
                 </div>
                 <div className="pt-4 border-t border-white/10 flex items-baseline gap-2">
                   <span className="text-3xl font-black text-white">19 900</span>
-                  <span className="text-yellow-400 font-bold">FCFA / an</span>
+                  <span className="text-plum-400 font-bold">FCFA / an</span>
                 </div>
               </div>
 
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── CTA croisé → Podcast ── */}
-      <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
             DÉCOUVREZ AUSSI
@@ -277,11 +312,11 @@ export default function Blog() {
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
             Analyses, interviews et réflexions sur le marketing digital — à écouter partout, tout le temps.
           </p>
-          <Link to="/podcasts" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-colors text-sm tracking-wide">
+          <Link to="/podcasts" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
             Écouter le podcast <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

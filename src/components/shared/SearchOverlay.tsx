@@ -20,11 +20,11 @@ interface SearchResult {
 }
 
 const typeConfig: Record<ResultType, { icon: typeof FileText; label: string; path: string; color: string }> = {
-  blog:      { icon: FileText,     label: 'Article',    path: '/blog',       color: 'text-brand-500' },
-  formation: { icon: GraduationCap,label: 'Formation',  path: '/formations', color: 'text-success-500' },
-  podcast:   { icon: Mic,          label: 'Podcast',    path: '/podcasts',   color: 'text-purple-500' },
+  blog:      { icon: FileText,     label: 'Article',    path: '/blog',       color: 'text-coral-500' },
+  formation: { icon: GraduationCap,label: 'Formation',  path: '/formations', color: 'text-brand-500' },
+  podcast:   { icon: Mic,          label: 'Podcast',    path: '/podcasts',   color: 'text-green-500' },
   video:     { icon: Video,        label: 'Vidéo',      path: '/videos',     color: 'text-red-500' },
-  faq:       { icon: HelpCircle,   label: 'FAQ',        path: '/contact',    color: 'text-yellow-500' },
+  faq:       { icon: HelpCircle,   label: 'FAQ',        path: '/contact',    color: 'text-neutral-500' },
 };
 
 // Cache fetched data across opens

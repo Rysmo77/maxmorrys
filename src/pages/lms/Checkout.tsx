@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle, Shield, Clock, BookOpen, Award, Loader2, ShoppingBag } from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
 import { writeBatch, doc, collection } from 'firebase/firestore';
@@ -172,7 +173,12 @@ export default function Checkout() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-28 lg:pt-36 pb-20">
+      <motion.div
+        className="max-w-4xl mx-auto px-4 sm:px-6 pt-28 lg:pt-36 pb-20"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+      >
         {/* Back link */}
         <Link to={`/formations/${formation.slug}`} className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Retour à la formation
@@ -295,7 +301,7 @@ export default function Checkout() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

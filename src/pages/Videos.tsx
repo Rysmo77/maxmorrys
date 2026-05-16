@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Play, Eye, Calendar, ArrowRight, Loader2, AlertCircle, Clapperboard, Bell, Users, Video as VideoIcon } from 'lucide-react';
 
 function YtIcon({ className }: { className?: string }) {
@@ -15,6 +16,9 @@ import type { Video } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
+import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
 export default function Videos() {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -69,42 +73,48 @@ export default function Videos() {
           <div className="absolute bottom-0 left-[15%] w-96 h-96 rounded-full bg-brand-700/15 blur-[160px]" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="grid lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-16 items-center pb-16 lg:pb-20">
 
             {/* ── Left: text + stats + CTA ── */}
             <div>
-              <div className="flex items-center gap-3 mb-6">
+              <motion.div variants={staggerItem} className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
                   <Clapperboard className="w-6 h-6 text-red-400" />
                 </div>
                 <p className="text-xs font-bold tracking-[0.35em] uppercase text-red-600 dark:text-red-400">
                   YOUTUBE
                 </p>
-              </div>
+              </motion.div>
 
-              <h1 className="text-5xl sm:text-6xl xl:text-7xl font-black text-neutral-900 dark:text-white tracking-tight leading-[0.95] mb-6">
+              <motion.h1 variants={staggerItem} className="text-5xl sm:text-6xl xl:text-7xl font-black text-neutral-900 dark:text-white tracking-tight leading-[0.95] mb-6">
                 Le Marketing<br />
                 <span className="text-red-600 dark:text-red-400">En Pratique</span>
-              </h1>
+              </motion.h1>
 
-              <p className="text-neutral-600 dark:text-neutral-400 text-lg leading-relaxed mb-8 max-w-md">
+              <motion.p variants={staggerItem} className="text-neutral-600 dark:text-neutral-400 text-lg leading-relaxed mb-8 max-w-md">
                 Si tu es plus à l'aise avec des vidéos, abonne-toi à ma chaine Youtube pour ne manquer des tutoriels, analyses et stratégies marketing que je te propose.
-              </p>
+              </motion.p>
 
-              <a
+              <motion.a
+                variants={staggerItem}
                 href="https://youtube.com/@maxmorrys"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-[#FF0000] text-white text-sm font-bold hover:bg-red-700 transition-all duration-200 shadow-lg shadow-red-900/30"
+                className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-[#FF0000] text-white text-sm font-bold hover:bg-red-700 hover:-translate-y-0.5 transition-all duration-300 shadow-lg shadow-red-900/30"
               >
                 <YtIcon className="w-4 h-4" />
                 S'abonner sur YouTube
-              </a>
+              </motion.a>
 
               {/* Stats */}
               {videos.length > 0 && (
-                <div className="flex gap-8 mt-10 pt-8 border-t border-neutral-200 dark:border-white/10">
+                <motion.div variants={staggerItem} className="flex gap-8 mt-10 pt-8 border-t border-neutral-200 dark:border-white/10">
                   <div>
                     <p className="text-3xl font-black text-neutral-900 dark:text-white">{videos.length}</p>
                     <p className="text-xs text-neutral-500 font-medium mt-0.5">Vidéos</p>
@@ -123,12 +133,13 @@ export default function Videos() {
                     </p>
                     <p className="text-xs text-neutral-500 font-medium mt-0.5">Thèmes</p>
                   </div>
-                </div>
+                </motion.div>
               )}
             </div>
 
             {/* ── Right: featured video preview ── */}
             {heroVideo && (
+              <motion.div variants={staggerItem}>
               <Link
                 to={`/videos/${heroVideo.slug}`}
                 className="group block"
@@ -173,19 +184,20 @@ export default function Videos() {
                   </div>
                 </div>
               </Link>
+              </motion.div>
             )}
 
             {/* Placeholder when no videos yet */}
             {!heroVideo && !loading && (
-              <div className="aspect-video rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center">
+              <motion.div variants={staggerItem} className="aspect-video rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center">
                 <div className="text-center">
                   <YtIcon className="w-12 h-12 text-neutral-400 dark:text-neutral-700 mx-auto mb-3" />
                   <p className="text-neutral-400 dark:text-neutral-600 text-sm">Aucune vidéo pour le moment</p>
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* ── CONTENT ── */}
@@ -193,7 +205,13 @@ export default function Videos() {
 
         {/* Category filter */}
         {categories.length > 1 && (
-          <div className="flex flex-wrap gap-2 mb-12">
+          <motion.div
+            className="flex flex-wrap gap-2 mb-12"
+            variants={slideUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -207,7 +225,7 @@ export default function Videos() {
                 {cat}
               </button>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* Loading */}
@@ -238,6 +256,12 @@ export default function Videos() {
 
         {/* Featured video (from active filter) */}
         {!loading && !error && featured && (
+          <motion.div
+            variants={slideUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
           <Link
             to={`/videos/${featured.slug}`}
             className="group block mb-12 rounded-3xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:border-red-200 dark:hover:border-red-900 hover:shadow-xl transition-all duration-300 bg-neutral-50 dark:bg-neutral-900"
@@ -289,16 +313,23 @@ export default function Videos() {
               </div>
             </div>
           </Link>
+          </motion.div>
         )}
 
         {/* Video grid */}
         {!loading && !error && rest.length > 0 && (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             {rest.map((video) => (
+              <motion.div key={video.id} variants={staggerItem}>
               <Link
-                key={video.id}
                 to={`/videos/${video.slug}`}
-                className="group flex flex-col bg-neutral-50 dark:bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:border-red-200 dark:hover:border-red-900 hover:shadow-lg transition-all duration-200"
+                className="group flex flex-col bg-neutral-50 dark:bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:border-red-200 dark:hover:border-red-900 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="relative aspect-video overflow-hidden">
                   <img
@@ -332,32 +363,45 @@ export default function Videos() {
                   </div>
                 </div>
               </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* YouTube CTA */}
         {!loading && !error && videos.length > 0 && (
-          <div className="mt-16 text-center">
+          <motion.div
+            className="mt-16 text-center"
+            variants={slideUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             <a
               href="https://youtube.com/@maxmorrys"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF0000] text-white font-bold rounded-full hover:bg-red-700 transition-colors text-sm tracking-wide"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF0000] text-white font-bold rounded-full hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide"
             >
               <YtIcon className="w-4 h-4" /> S'abonner sur YouTube
             </a>
-          </div>
+          </motion.div>
         )}
       </div>
 
       {/* ── CLUB DES DIGITOS PROMO ── */}
-      <section className="py-16 bg-white dark:bg-neutral-950 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-16 bg-white dark:bg-neutral-950 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative rounded-3xl overflow-hidden bg-neutral-900">
             {/* Background glows */}
             <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-yellow-400/10 blur-[120px]" />
+              <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-plum-400/10 blur-[120px]" />
               <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-brand-600/10 blur-[100px]" />
             </div>
 
@@ -369,7 +413,7 @@ export default function Videos() {
                   <span className="flex items-center gap-1.5 bg-red-500/20 border border-red-500/30 text-red-400 rounded-full px-3 py-1 text-xs font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" /> LIVE
                   </span>
-                  <span className="text-xs font-bold tracking-[0.25em] uppercase text-yellow-400">CLUB DES DIGITOS</span>
+                  <span className="text-xs font-bold tracking-[0.25em] uppercase text-plum-400">CLUB DES DIGITOS</span>
                 </div>
                 <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-white leading-[0.95] mb-5">
                   Rejoins mes<br />sessions Live
@@ -379,7 +423,7 @@ export default function Videos() {
                 </p>
                 <Link
                   to="/mon-espace"
-                  className="inline-flex items-center gap-2 self-start px-7 py-3.5 bg-yellow-400 text-neutral-900 font-black rounded-full hover:bg-yellow-300 transition-colors text-sm tracking-wide shadow-lg shadow-yellow-400/20"
+                  className="inline-flex items-center gap-2 self-start px-7 py-3.5 bg-plum-600 text-white font-black rounded-full hover:bg-plum-700 transition-colors text-sm tracking-wide shadow-lg shadow-plum-600/20"
                 >
                   Rejoindre le Club <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -388,8 +432,8 @@ export default function Videos() {
               {/* Right: features */}
               <div className="p-10 lg:p-12 border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col justify-center gap-6">
                 <div className="flex gap-4 items-start">
-                  <div className="w-11 h-11 rounded-xl bg-yellow-400/15 border border-yellow-400/20 flex items-center justify-center flex-shrink-0">
-                    <VideoIcon className="w-5 h-5 text-yellow-400" />
+                  <div className="w-11 h-11 rounded-xl bg-plum-400/15 border border-plum-400/20 flex items-center justify-center flex-shrink-0">
+                    <VideoIcon className="w-5 h-5 text-plum-400" />
                   </div>
                   <div>
                     <h3 className="font-black text-white text-sm mb-1">Sessions Live avec moi</h3>
@@ -397,8 +441,8 @@ export default function Videos() {
                   </div>
                 </div>
                 <div className="flex gap-4 items-start">
-                  <div className="w-11 h-11 rounded-xl bg-yellow-400/15 border border-yellow-400/20 flex items-center justify-center flex-shrink-0">
-                    <Bell className="w-5 h-5 text-yellow-400" />
+                  <div className="w-11 h-11 rounded-xl bg-plum-400/15 border border-plum-400/20 flex items-center justify-center flex-shrink-0">
+                    <Bell className="w-5 h-5 text-plum-400" />
                   </div>
                   <div>
                     <h3 className="font-black text-white text-sm mb-1">Notifications exclusives</h3>
@@ -406,8 +450,8 @@ export default function Videos() {
                   </div>
                 </div>
                 <div className="flex gap-4 items-start">
-                  <div className="w-11 h-11 rounded-xl bg-yellow-400/15 border border-yellow-400/20 flex items-center justify-center flex-shrink-0">
-                    <Users className="w-5 h-5 text-yellow-400" />
+                  <div className="w-11 h-11 rounded-xl bg-plum-400/15 border border-plum-400/20 flex items-center justify-center flex-shrink-0">
+                    <Users className="w-5 h-5 text-plum-400" />
                   </div>
                   <div>
                     <h3 className="font-black text-white text-sm mb-1">Communauté active</h3>
@@ -416,17 +460,23 @@ export default function Videos() {
                 </div>
                 <div className="pt-4 border-t border-white/10 flex items-baseline gap-2">
                   <span className="text-2xl font-black text-white">19 900</span>
-                  <span className="text-yellow-400 font-bold">FCFA / an</span>
+                  <span className="text-plum-400 font-bold">FCFA / an</span>
                 </div>
               </div>
 
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── CTA → Podcast ── */}
-      <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
             DÉCOUVREZ AUSSI
@@ -437,11 +487,11 @@ export default function Videos() {
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
             Analyses et réflexions en audio — à écouter n'importe où, n'importe quand.
           </p>
-          <Link to="/podcasts" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-colors text-sm tracking-wide">
+          <Link to="/podcasts" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
             Écouter le podcast <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

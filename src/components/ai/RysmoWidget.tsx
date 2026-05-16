@@ -264,14 +264,14 @@ export default function RysmoWidget() {
         <div className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-96 max-h-[600px] z-50 flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 animate-slide-up">
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-brand-600 to-brand-700 text-white flex-shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white flex-shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                 <Bot className="w-4 h-4" />
               </div>
               <div>
                 <p className="text-sm font-black tracking-wide">Rysmo</p>
-                <p className="text-[10px] text-brand-200 font-medium">Répétiteur IA · Max-Morrys</p>
+                <p className="text-[10px] text-teal-200 font-medium">Répétiteur IA · Max-Morrys</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -315,14 +315,14 @@ export default function RysmoWidget() {
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role === 'assistant' && (
-                  <div className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
-                    <Bot className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" />
+                  <div className="w-6 h-6 rounded-full bg-teal-100 dark:bg-teal-900/50 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                    <Bot className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                   </div>
                 )}
                 <div
                   className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-sm leading-relaxed ${
                     msg.role === 'user'
-                      ? 'bg-brand-600 text-white rounded-tr-sm'
+                      ? 'bg-teal-600 text-white rounded-tr-sm'
                       : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-tl-sm'
                   }`}
                   dangerouslySetInnerHTML={{ __html: formatText(msg.content) }}
@@ -333,11 +333,11 @@ export default function RysmoWidget() {
             {/* Indicateur de chargement */}
             {loading && (
               <div className="flex justify-start items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" />
+                <div className="w-6 h-6 rounded-full bg-teal-100 dark:bg-teal-900/50 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                 </div>
                 <div className="bg-neutral-100 dark:bg-neutral-800 rounded-2xl rounded-tl-sm px-3 py-2.5">
-                  <Loader2 className="w-4 h-4 animate-spin text-brand-500" />
+                  <Loader2 className="w-4 h-4 animate-spin text-teal-500" />
                 </div>
               </div>
             )}
@@ -349,7 +349,7 @@ export default function RysmoWidget() {
                   <button
                     key={action}
                     onClick={() => sendMessage(action)}
-                    className="w-full text-left text-xs px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all duration-150"
+                    className="w-full text-left text-xs px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-teal-300 dark:hover:border-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-150"
                   >
                     {action}
                   </button>
@@ -370,7 +370,7 @@ export default function RysmoWidget() {
                 onKeyDown={handleKeyDown}
                 placeholder="Pose ta question à Rysmo..."
                 rows={1}
-                className="flex-1 resize-none bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 dark:focus:border-brand-500 transition-colors max-h-24 overflow-y-auto"
+                className="flex-1 resize-none bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 dark:focus:border-teal-500 transition-colors max-h-24 overflow-y-auto"
                 style={{ height: 'auto' }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;
@@ -393,7 +393,7 @@ export default function RysmoWidget() {
               <button
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || loading}
-                className="p-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                className="p-2 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                 aria-label="Envoyer"
               >
                 <Send className="w-4 h-4" />
@@ -412,7 +412,7 @@ export default function RysmoWidget() {
         className={`fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ${
           open
             ? 'bg-neutral-700 dark:bg-neutral-600 rotate-12 scale-90'
-            : 'bg-brand-600 hover:bg-brand-700 hover:scale-105'
+            : 'bg-teal-600 hover:bg-teal-700 hover:scale-105'
         }`}
         aria-label={open ? 'Fermer Rysmo' : 'Ouvrir Rysmo, répétiteur IA'}
       >
@@ -423,7 +423,7 @@ export default function RysmoWidget() {
         )}
         {/* Pulse quand fermé */}
         {!open && (
-          <span className="absolute inset-0 rounded-full bg-brand-500 animate-ping opacity-20" />
+          <span className="absolute inset-0 rounded-full bg-teal-500 animate-ping opacity-20" />
         )}
       </button>
     </>

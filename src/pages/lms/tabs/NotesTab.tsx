@@ -1,7 +1,9 @@
+import { motion } from 'framer-motion';
 import { Search, Plus, X, Edit3, Trash2, FileText, Save, Loader2 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { formatDate } from '../../../lib/utils';
 import type { Note } from '../../../lib/firestore';
+import { staggerContainer, staggerItem } from '../../../lib/animations';
 
 const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
 
@@ -105,9 +107,14 @@ export default function NotesTab({
               <Button size="sm" onClick={openNewNote} icon={<Plus className="w-4 h-4" />}>Créer ma première note</Button>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <motion.div
+              className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {filteredNotes.map((note) => (
-                <div key={note.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 group">
+                <motion.div key={note.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 group hover:-translate-y-0.5 hover:shadow-md transition-all duration-300">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h4 className="font-semibold text-neutral-900 dark:text-white text-sm line-clamp-1">{note.title}</h4>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
@@ -117,9 +124,9 @@ export default function NotesTab({
                   </div>
                   <p className="text-xs text-neutral-500 line-clamp-3 mb-3">{note.content}</p>
                   <p className="text-xs text-neutral-400">{formatDate(note.updatedAt)}</p>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </>
       )}

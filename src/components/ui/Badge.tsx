@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 interface BadgeProps {
   children: ReactNode;
-  variant?: 'default' | 'brand' | 'success' | 'warning' | 'error' | 'accent';
+  variant?: 'default' | 'brand' | 'success' | 'warning' | 'error' | 'accent' | 'coral' | 'plum' | 'teal';
   size?: 'sm' | 'md';
   className?: string;
 }
@@ -15,6 +15,9 @@ const variants = {
   warning: 'bg-warning-100 text-warning-700 dark:bg-warning-900/40 dark:text-warning-300',
   error: 'bg-error-100 text-error-700 dark:bg-error-900/40 dark:text-error-300',
   accent: 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300',
+  coral: 'bg-coral-100 text-coral-700 dark:bg-coral-900/40 dark:text-coral-300',
+  plum: 'bg-plum-100 text-plum-700 dark:bg-plum-900/40 dark:text-plum-300',
+  teal: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
 };
 
 const sizeMap = {

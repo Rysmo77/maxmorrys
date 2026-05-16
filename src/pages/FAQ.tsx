@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, MessageCircle, ArrowRight, Loader2 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { getAllFAQ } from '../lib/firestore';
@@ -7,6 +8,9 @@ import { useToast } from '../components/ui/Toast';
 import type { FAQ } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
+import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
 export default function FAQPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
@@ -59,24 +63,35 @@ export default function FAQPage() {
 
       {/* ── HERO ── */}
       <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
+        <motion.div
+          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
             FAQ
-          </p>
-          <h1 className="text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-6">
+          </motion.p>
+          <motion.h1 variants={staggerItem} className="text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-6">
             Questions<br />fréquentes
-          </h1>
-          <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          </motion.h1>
+          <motion.p variants={staggerItem} className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
             Trouvez rapidement des réponses à vos questions les plus courantes.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </section>
 
       <div className="bg-white dark:bg-neutral-950 pb-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Filtres */}
-          <div className="flex flex-wrap justify-center gap-2 pt-12 pb-10">
+          <motion.div
+            className="flex flex-wrap justify-center gap-2 pt-12 pb-10"
+            variants={slideUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -90,7 +105,7 @@ export default function FAQPage() {
                 {cat}
               </button>
             ))}
-          </div>
+          </motion.div>
 
           {/* Accordéon */}
           {loading && (
@@ -102,12 +117,18 @@ export default function FAQPage() {
               <button onClick={load} className="px-5 py-2.5 bg-brand-600 text-white rounded-full text-sm font-semibold hover:bg-brand-500 transition-colors">Reessayer</button>
             </div>
           )}
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             {filtered.map((faq) => {
               const isOpen = openIds.includes(faq.id);
               const hasVoted = helpfulIds.includes(faq.id);
               return (
-                <div key={faq.id} className="border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden bg-neutral-50 dark:bg-neutral-900">
+                <motion.div key={faq.id} variants={staggerItem} className="border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden bg-neutral-50 dark:bg-neutral-900">
                   <button
                     onClick={() => toggle(faq.id)}
                     aria-expanded={isOpen}
@@ -145,13 +166,19 @@ export default function FAQPage() {
                       )}
                     </div>
                   )}
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
 
           {/* CTA contact */}
-          <div className="mt-16 text-center bg-neutral-50 dark:bg-neutral-900 rounded-3xl p-10 border border-neutral-100 dark:border-neutral-800">
+          <motion.div
+            className="mt-16 text-center bg-neutral-50 dark:bg-neutral-900 rounded-3xl p-10 border border-neutral-100 dark:border-neutral-800"
+            variants={slideUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
             <MessageCircle className="w-10 h-10 text-brand-500 mx-auto mb-5" />
             <h2 className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white mb-3">
               Tu ne trouves pas ta réponse ?
@@ -162,13 +189,19 @@ export default function FAQPage() {
             <Link to="/contact">
               <Button>Nous contacter</Button>
             </Link>
-          </div>
+          </motion.div>
 
         </div>
       </div>
 
       {/* ── CTA croisé → Contact ── */}
-      <section className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+      <motion.section
+        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
             ENCORE DES QUESTIONS ?
@@ -179,11 +212,11 @@ export default function FAQPage() {
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
             Je réponds personnellement à chaque message. N'hésitez pas à me contacter.
           </p>
-          <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 transition-colors text-sm tracking-wide">
+          <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
             Me contacter <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

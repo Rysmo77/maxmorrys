@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Plus, X, Send, Inbox, Loader2 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { cn, formatDate } from '../../../lib/utils';
 import { createDoc, getUserMessages } from '../../../lib/firestore';
 import type { ContactMessage } from '../../../types';
 import { captureError } from '../../../lib/sentry';
+import { staggerContainer, staggerItem } from '../../../lib/animations';
 
 const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
 
@@ -126,9 +128,14 @@ export default function MessagesTab({
             <Button size="sm" onClick={() => setShowMsgForm(true)} icon={<Send className="w-4 h-4" />}>Envoyer un message</Button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
             {sentMessages.map((msg) => (
-              <div key={msg.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4">
+              <motion.div key={msg.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4">
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className="font-semibold text-neutral-900 dark:text-white text-sm">{msg.subject}</p>
                   <span className={cn(
@@ -142,9 +149,9 @@ export default function MessagesTab({
                 </div>
                 <p className="text-xs text-neutral-500 line-clamp-2">{msg.message}</p>
                 <p className="text-xs text-neutral-400 mt-2">{formatDate(msg.sentAt)}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )
       )}
     </div>

@@ -1,0 +1,567 @@
+{
+  "updatedAt": "2026-04-23T17:30:53.321Z",
+  "createdAt": "2026-04-09T10:30:39.680Z",
+  "id": "SWcSvcXmW1opWgmC",
+  "name": "WF-17 — Création de Visuels Reels/Shorts",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 14 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron — Reels 14h quotidien",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Tu es un créateur de contenu vidéo court (Reels/Shorts/TikTok) expert pour l'Afrique de l'Ouest francophone.\n\nCrée un storyboard complet pour une vidéo courte (30-60 secondes) sur :\nSUJET : {{ $json.Sujet }}\nPLATEFORME : {{ ($json.Reseau || 'instagram_reels') }}\nCONTEXTE : Max-Morrys, marketing digital, audience Sénégal/CI/Cameroun\n\nRÈGLES :\n- Hook dans les 3 premières secondes (question choc ou affirmation surprenante)\n- Format vertical 9:16 (1080x1920)\n- Rythme rapide, changements de plan fréquents\n- Texte superposé lisible sur mobile\n- Musique/son tendance suggéré\n- CTA final (suivre, commenter, partager, lien en bio)\n- Exemples et références locales (Dakar, Abidjan, etc.)\n\nRÉPONSE JSON :\n{\n  \"title\": \"titre du reel\",\n  \"duration_seconds\": 30,\n  \"hook\": \"les 3 premières secondes — texte ou action\",\n  \"scenes\": [{\n    \"scene_number\": 1,\n    \"duration_seconds\": 3,\n    \"visual\": \"description de ce qu'on voit\",\n    \"text_overlay\": \"texte affiché à l'écran\",\n    \"voiceover\": \"texte narratif\",\n    \"transition\": \"cut|zoom|slide|fade\",\n    \"thumbnail_prompt\": \"prompt pour générer une image de cette scène\"\n  }],\n  \"caption\": \"caption pour accompagner la vidéo\",\n  \"hashtags\": [],\n  \"suggested_audio\": \"type de musique ou son tendance\",\n  \"thumbnail_prompt\": \"prompt pour la miniature de la vidéo\",\n  \"cta\": \"appel à l'action final\"\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 4096,
+          "temperature": 0.7
+        }
+      },
+      "id": "wf17-gemini",
+      "name": "Gemini Flash — Storyboard Reel",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        304,
+        304
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst input = $('Airtable — Lire Calendrier reel').item.json;\n\nlet storyboard;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  storyboard = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing storyboard: ' + e.message);\n}\n\nreturn [{\n  json: {\n    ...storyboard,\n    subject: (input.Sujet || input.subject || ''),\n    platform: input.Reseau || input.platform || 'instagram_reels',\n    generated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "wf17-parse",
+      "name": "Parse — Storyboard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.thumbnail_prompt }}",
+              "operation": "isNotEmpty"
+            }
+          ],
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "wf17-needs-thumb",
+      "name": "IF — Générer miniature ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        912,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleUm1UoP9qqOdOn",
+          "mode": "list",
+          "cachedResultName": "Medias Generes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $('Parse — Storyboard').first().json.generated_at }}",
+            "Type": "=reel_storyboard",
+            "Pour": "={{ $('Parse — Storyboard').first().json.platform }}",
+            "Prompt": "={{ $('Parse — Storyboard').first().json.subject }}",
+            "Dimensions": "=1080x1920",
+            "Status": "=storyboard_pret"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "wf17-sheets",
+      "name": "Airtable — Log reel",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1504,
+        304
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblTlBSOSI1UOmQ1I",
+          "mode": "list",
+          "cachedResultName": "Calendrier Editorial"
+        },
+        "filterByFormula": "AND({Format} = 'reel', {Status_Media} = 'a_produire')",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        160,
+        304
+      ],
+      "id": "airtable-read-calendrier-reel",
+      "name": "Airtable — Lire Calendrier reel",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Gemini Flash — Storyboard Reel": {
+      "main": [
+        [
+          {
+            "node": "Parse — Storyboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Storyboard": {
+      "main": [
+        [
+          {
+            "node": "IF — Générer miniature ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Générer miniature ?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Airtable — Log reel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron — Reels 14h quotidien": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Calendrier reel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Calendrier reel": {
+      "main": [
+        [
+          {
+            "node": "Gemini Flash — Storyboard Reel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron — Reels 14h quotidien": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": {},
+  "versionId": "7298b7da-35cb-489a-a616-4a5f2b3a5c3d",
+  "activeVersionId": "a29fdf79-869c-4174-ae08-82944c6f5cfb",
+  "versionCounter": 32,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-09T10:30:39.681Z",
+      "createdAt": "2026-04-09T10:30:39.681Z",
+      "role": "workflow:owner",
+      "workflowId": "SWcSvcXmW1opWgmC",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-15T03:33:07.356Z",
+    "createdAt": "2026-04-15T03:33:07.356Z",
+    "versionId": "a29fdf79-869c-4174-ae08-82944c6f5cfb",
+    "workflowId": "SWcSvcXmW1opWgmC",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 14 * * *"
+              }
+            ]
+          }
+        },
+        "id": "cron-trigger",
+        "name": "Cron — Reels 14h quotidien",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.0-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.0-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Tu es un créateur de contenu vidéo court (Reels/Shorts/TikTok) expert pour l'Afrique de l'Ouest francophone.\n\nCrée un storyboard complet pour une vidéo courte (30-60 secondes) sur :\nSUJET : {{ $json.Sujet }}\nPLATEFORME : {{ ($json.Reseau || 'instagram_reels') }}\nCONTEXTE : Max-Morrys, marketing digital, audience Sénégal/CI/Cameroun\n\nRÈGLES :\n- Hook dans les 3 premières secondes (question choc ou affirmation surprenante)\n- Format vertical 9:16 (1080x1920)\n- Rythme rapide, changements de plan fréquents\n- Texte superposé lisible sur mobile\n- Musique/son tendance suggéré\n- CTA final (suivre, commenter, partager, lien en bio)\n- Exemples et références locales (Dakar, Abidjan, etc.)\n\nRÉPONSE JSON :\n{\n  \"title\": \"titre du reel\",\n  \"duration_seconds\": 30,\n  \"hook\": \"les 3 premières secondes — texte ou action\",\n  \"scenes\": [{\n    \"scene_number\": 1,\n    \"duration_seconds\": 3,\n    \"visual\": \"description de ce qu'on voit\",\n    \"text_overlay\": \"texte affiché à l'écran\",\n    \"voiceover\": \"texte narratif\",\n    \"transition\": \"cut|zoom|slide|fade\",\n    \"thumbnail_prompt\": \"prompt pour générer une image de cette scène\"\n  }],\n  \"caption\": \"caption pour accompagner la vidéo\",\n  \"hashtags\": [],\n  \"suggested_audio\": \"type de musique ou son tendance\",\n  \"thumbnail_prompt\": \"prompt pour la miniature de la vidéo\",\n  \"cta\": \"appel à l'action final\"\n}"
+              }
+            ]
+          },
+          "options": {
+            "maxOutputTokens": 4096,
+            "temperature": 0.7
+          },
+          "jsonOutput": true
+        },
+        "id": "wf17-gemini",
+        "name": "Gemini Flash — Storyboard Reel",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          300,
+          300
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst input = $('Airtable — Lire Calendrier reel').item.json;\n\nlet storyboard;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  storyboard = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing storyboard: ' + e.message);\n}\n\nreturn [{\n  json: {\n    ...storyboard,\n    subject: (input.Sujet || input.subject || ''),\n    platform: input.Reseau || input.platform || 'instagram_reels',\n    generated_at: new Date().toISOString()\n  }\n}];"
+        },
+        "id": "wf17-parse",
+        "name": "Parse — Storyboard",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          600,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $json.thumbnail_prompt }}",
+                "operation": "isNotEmpty"
+              }
+            ]
+          }
+        },
+        "id": "wf17-needs-thumb",
+        "name": "IF — Générer miniature ?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          900,
+          300
+        ]
+      },
+      {
+        "id": "wf17-sheets",
+        "name": "Airtable — Log reel",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1500,
+          300
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbleUm1UoP9qqOdOn",
+            "mode": "list",
+            "cachedResultName": "Medias Generes"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Date": "={{ $('Parse — Storyboard').first().json.generated_at }}",
+              "Type": "=reel_storyboard",
+              "Pour": "={{ $('Parse — Storyboard').first().json.platform }}",
+              "Prompt": "={{ $('Parse — Storyboard').first().json.subject }}",
+              "Dimensions": "=1080x1920",
+              "Status": "=storyboard_pret"
+            },
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "record",
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblTlBSOSI1UOmQ1I",
+            "mode": "list",
+            "cachedResultName": "Calendrier Editorial"
+          },
+          "returnAll": true,
+          "filterByFormula": "AND({Format} = 'reel', {Status_Media} = 'a_produire')",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          200,
+          300
+        ],
+        "id": "airtable-read-calendrier-reel",
+        "name": "Airtable — Lire Calendrier reel",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Gemini Flash — Storyboard Reel": {
+        "main": [
+          [
+            {
+              "node": "Parse — Storyboard",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Storyboard": {
+        "main": [
+          [
+            {
+              "node": "IF — Générer miniature ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF — Générer miniature ?": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Airtable — Log reel",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cron — Reels 14h quotidien": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire Calendrier reel",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire Calendrier reel": {
+        "main": [
+          [
+            {
+              "node": "Gemini Flash — Storyboard Reel",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-15T03:33:07.561Z",
+        "id": 333,
+        "workflowId": "SWcSvcXmW1opWgmC",
+        "versionId": "a29fdf79-869c-4174-ae08-82944c6f5cfb",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-04-23T17:30:53.519Z",
+        "id": 380,
+        "workflowId": "SWcSvcXmW1opWgmC",
+        "versionId": "a29fdf79-869c-4174-ae08-82944c6f5cfb",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-04-15T03:33:07.446Z",
+        "id": 332,
+        "workflowId": "SWcSvcXmW1opWgmC",
+        "versionId": "a29fdf79-869c-4174-ae08-82944c6f5cfb",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-04-23T17:30:53.421Z",
+        "id": 379,
+        "workflowId": "SWcSvcXmW1opWgmC",
+        "versionId": "a29fdf79-869c-4174-ae08-82944c6f5cfb",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

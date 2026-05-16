@@ -1,8 +1,10 @@
+import { motion } from 'framer-motion';
 import {
   Video, Plus, CheckCircle, Loader2,
 } from 'lucide-react';
 import { cn } from '../../../../lib/utils';
 import type { useClubData } from '../../hooks/useClubData';
+import { staggerContainer, staggerItem } from '../../../../lib/animations';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -23,11 +25,16 @@ export default function ClubSessions({ data }: ClubSessionsProps) {
   }
 
   return (
-    <div className="grid sm:grid-cols-2 gap-4">
+    <motion.div
+      className="grid sm:grid-cols-2 gap-4"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
       {clubSessions.map((session) => {
         const isReg = registeredSessions.has(session.id);
         return (
-          <div key={session.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden relative">
+          <motion.div key={session.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden relative hover:-translate-y-0.5 hover:shadow-md transition-all duration-300">
             {session.imageUrl && <img src={session.imageUrl} alt={session.title} className="w-full h-44 object-cover" />}
             <div className="p-5">
               <span className={cn('inline-flex text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide mb-3', session.status === 'upcoming' ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400' : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500')}>
@@ -53,9 +60,9 @@ export default function ClubSessions({ data }: ClubSessionsProps) {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

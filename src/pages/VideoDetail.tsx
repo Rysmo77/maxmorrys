@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Play, Eye, Calendar, ArrowLeft, Clock, Loader2 } from 'lucide-react';
 import { getVideoBySlug, getPublishedVideos } from '../lib/firestore';
 import FormationCTA from '../components/shared/FormationCTA';
@@ -10,6 +11,9 @@ import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
+import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+
+const viewportOnce = { once: true, amount: 0.2 } as const;
 
 function resolveVideoEmbed(url: string): { type: 'iframe' | 'native'; src: string } {
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -38,14 +42,14 @@ export default function VideoDetail() {
   }, [slug]);
 
   if (video === undefined) {
-    return <div className="pt-32 pb-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>;
+    return <div className="pt-32 pb-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-red-500" /></div>;
   }
 
   if (!video) {
     return (
       <div className="pt-32 pb-20 text-center">
         <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">Vidéo introuvable</h1>
-        <Link to="/videos" className="text-brand-600 dark:text-brand-400 hover:underline">Retour aux vidéos</Link>
+        <Link to="/videos" className="text-red-600 dark:text-red-400 hover:underline">Retour aux vidéos</Link>
       </div>
     );
   }
@@ -89,8 +93,13 @@ export default function VideoDetail() {
 
       {/* ── HERO ── */}
       <section className="pt-28 pb-12 lg:pt-36 lg:pb-16 bg-neutral-50 dark:bg-neutral-900">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6">
+        <motion.div
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={staggerItem} className="mb-6">
             <Breadcrumbs
               items={[
                 { label: 'Accueil', href: '/' },
@@ -98,24 +107,26 @@ export default function VideoDetail() {
                 { label: video.title },
               ]}
             />
-          </div>
-          <Link
-            to="/videos"
-            className="inline-flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors mb-8"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Toutes les vidéos
-          </Link>
+          </motion.div>
+          <motion.div variants={staggerItem}>
+            <Link
+              to="/videos"
+              className="inline-flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 transition-colors mb-8"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Toutes les vidéos
+            </Link>
+          </motion.div>
 
-          <p className="text-xs font-bold tracking-[0.25em] uppercase text-brand-600 dark:text-brand-400 mb-4">
+          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.25em] uppercase text-red-600 dark:text-red-400 mb-4">
             {video.category}
-          </p>
+          </motion.p>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.05] mb-6">
+          <motion.h1 variants={staggerItem} className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.05] mb-6">
             {video.title}
-          </h1>
+          </motion.h1>
 
-          <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-400 pb-10">
+          <motion.div variants={staggerItem} className="flex flex-wrap items-center gap-4 text-sm text-neutral-400 pb-10">
             <span className="flex items-center gap-1.5">
               <Eye className="w-4 h-4" />
               {video.views.toLocaleString()} vues
@@ -130,12 +141,18 @@ export default function VideoDetail() {
               <Calendar className="w-4 h-4" />
               {formatDate(video.publishedAt)}
             </span>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* ── PLAYER + SIDEBAR ── */}
-      <div className="bg-white dark:bg-neutral-950 pb-24">
+      <motion.div
+        className="bg-white dark:bg-neutral-950 pb-24"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
           <div className="grid lg:grid-cols-3 gap-10">
 
@@ -209,10 +226,16 @@ export default function VideoDetail() {
               <h3 className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 mb-4">
                 Autres vidéos
               </h3>
-              <div className="space-y-3">
+              <motion.div
+                className="space-y-3"
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOnce}
+              >
                 {others.map((v) => (
+                  <motion.div key={v.id} variants={staggerItem}>
                   <Link
-                    key={v.id}
                     to={`/videos/${v.slug}`}
                     className="flex items-start gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors group"
                   >
@@ -230,7 +253,7 @@ export default function VideoDetail() {
                       </span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors leading-snug line-clamp-2">
+                      <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors leading-snug line-clamp-2">
                         {v.title}
                       </p>
                       <p className="text-xs text-neutral-400 mt-1">
@@ -238,12 +261,13 @@ export default function VideoDetail() {
                       </p>
                     </div>
                   </Link>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

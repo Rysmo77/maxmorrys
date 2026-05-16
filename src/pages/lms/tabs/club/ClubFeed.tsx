@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import {
   Heart, Rss, MessageSquare, Share2, Repeat2, Image as ImageIcon, Smile, X, Send,
   Trash2, Check, Loader2,
@@ -6,6 +7,7 @@ import Button from '../../../../components/ui/Button';
 import { cn, formatDate } from '../../../../lib/utils';
 import { CLUB_CATEGORIES, MOOD_OPTIONS, SHARE_PLATFORMS, inputCls } from '../../hooks/useClubData';
 import type { useClubData } from '../../hooks/useClubData';
+import { slideUp } from '../../../../lib/animations';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -37,7 +39,12 @@ export default function ClubFeed({ data }: ClubFeedProps) {
   const filtered = clubCategoryFilter === 'all' ? clubPosts : clubPosts.filter((p) => p.category === clubCategoryFilter);
 
   return (
-    <div className="space-y-4">
+    <motion.div
+      className="space-y-4"
+      variants={slideUp}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Post composer */}
       <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4">
         <div className="flex items-start gap-3">
@@ -223,6 +230,6 @@ export default function ClubFeed({ data }: ClubFeedProps) {
           })}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

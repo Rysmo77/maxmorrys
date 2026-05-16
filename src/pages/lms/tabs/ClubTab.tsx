@@ -1,5 +1,7 @@
+import { motion } from 'framer-motion';
 import { Crown, Rss, Calendar, Video, Info, RefreshCw, Loader2 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
+import { slideUp } from '../../../lib/animations';
 import { useClubData } from '../hooks/useClubData';
 import type { ClubSubTab } from '../hooks/useClubData';
 import type { EnrolledFormation } from '../hooks/useStudentData';
@@ -29,12 +31,17 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
   }
 
   return (
-    <div className="space-y-5">
+    <motion.div
+      className="space-y-5"
+      variants={slideUp}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Statut */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-            <Crown className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+          <div className="w-10 h-10 rounded-xl bg-plum-100 dark:bg-plum-900/30 flex items-center justify-center">
+            <Crown className="w-5 h-5 text-plum-600 dark:text-plum-400" />
           </div>
           <div>
             <p className="font-bold text-neutral-900 dark:text-white">Club des Digitos · Membre actif</p>
@@ -72,6 +79,6 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
       {clubTab === 'events' && <ClubEvents data={data} />}
       {clubTab === 'sessions' && <ClubSessions data={data} />}
       {clubTab === 'infos' && <ClubInfos data={data} />}
-    </div>
+    </motion.div>
   );
 }
