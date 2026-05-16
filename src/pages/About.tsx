@@ -84,7 +84,7 @@ const expertise = [
       'Monitoring & déploiement',
       'Support utilisateurs',
     ],
-    stat: '4 plateformes en production',
+    stat: 'Plateformes web en production',
     icon: Code2,
   },
   {
@@ -132,6 +132,20 @@ const platforms = [
     url: 'https://holycash.net/',
     tag: 'Fintech',
     desc: "Plateforme web orientée services financiers et paiement.",
+  },
+  {
+    name: 'English Lab',
+    domain: 'yessienglish.com',
+    url: 'https://yessienglish.com/',
+    tag: 'Éducation',
+    desc: "Plateforme d'accompagnement en anglais pour professionnels et étudiants africains francophones.",
+  },
+  {
+    name: 'La Ruche Excellence',
+    domain: 'laruchexcellence.ga',
+    url: 'https://laruchexcellence.ga/',
+    tag: 'Éducation',
+    desc: "Plateforme web d'un établissement éducatif au Gabon.",
   },
 ];
 
@@ -495,7 +509,7 @@ export default function About() {
                   <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">Abonnés</p>
                 </div>
                 <div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">4</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">+5</p>
                   <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">Plateformes</p>
                 </div>
               </motion.div>
@@ -592,9 +606,9 @@ export default function About() {
               <p className="text-xs text-neutral-400 mt-1">Dont +4 000 sur LinkedIn</p>
             </motion.div>
             <motion.div variants={staggerItem} className="text-center py-10 px-8 bg-neutral-50 dark:bg-neutral-900">
-              <p className="text-5xl lg:text-6xl font-black text-morrys-600 dark:text-morrys-400 tracking-tight">4</p>
+              <p className="text-5xl lg:text-6xl font-black text-morrys-600 dark:text-morrys-400 tracking-tight">+5</p>
               <p className="font-bold text-neutral-900 dark:text-white mt-2">Plateformes web</p>
-              <p className="text-xs text-neutral-400 mt-1">Eyone, Wergu Yaram, Topatoko, hôpitaux</p>
+              <p className="text-xs text-neutral-400 mt-1">Santé, e-commerce, éducation, fintech, institutionnel</p>
             </motion.div>
           </motion.div>
         </div>
