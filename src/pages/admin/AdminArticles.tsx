@@ -10,6 +10,7 @@ import RichEditor from '../../components/ui/RichEditor';
 import { useToast } from '../../components/ui/Toast';
 import { getAllPosts, savePost, deletePost } from '../../lib/firestore';
 import { formatDate, slugify, calculateReadTime } from '../../lib/utils';
+import { BLOG_POLES, categoryToPole } from '../../lib/blogCategories';
 import type { BlogPost } from '../../types';
 import SEOPanel from '../../components/shared/SEOPanel';
 import { captureError } from '../../lib/sentry';
@@ -46,7 +47,7 @@ type FormState = {
 const todayIso = () => new Date().toISOString().split('T')[0];
 
 const makeEmptyForm = (): FormState => ({
-  title: '', slug: '', excerpt: '', content: '', category: '',
+  title: '', slug: '', excerpt: '', content: '', category: BLOG_POLES[0],
   coverImage: '', tags: '', publishedAt: todayIso(), status: 'draft', featured: false,
   focusKeyword: '', metaTitle: '', metaDescription: '', ogTitle: '',
   ogDescription: '', ogImage: '', twitterTitle: '', twitterDescription: '',
@@ -96,7 +97,7 @@ export default function AdminArticles() {
       slug: post.slug,
       excerpt: post.excerpt,
       content: post.content,
-      category: post.category,
+      category: categoryToPole(post.category),
       coverImage: post.coverImage,
       tags: post.tags?.join(', ') ?? '',
       publishedAt: post.publishedAt ? post.publishedAt.split('T')[0] : todayIso(),
@@ -356,7 +357,21 @@ export default function AdminArticles() {
               placeholder="Rédigez votre article en markdown..."
             />
             <div className="grid sm:grid-cols-2 gap-4">
-              <Input label="Catégorie" value={form.category} onChange={(e) => set('category', e.target.value)} placeholder="ex: SEO, Marketing..." />
+              <div className="space-y-1.5">
+                <label htmlFor="category" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                  Catégorie
+                </label>
+                <select
+                  id="category"
+                  value={form.category}
+                  onChange={(e) => set('category', e.target.value)}
+                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-brand-400"
+                >
+                  {BLOG_POLES.map((pole) => (
+                    <option key={pole} value={pole}>{pole}</option>
+                  ))}
+                </select>
+              </div>
               <Input label="Tags (séparés par virgule)" value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="SEO, Growth, Digital" />
             </div>
             <Input

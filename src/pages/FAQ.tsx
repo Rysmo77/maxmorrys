@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, MessageCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, MessageCircle, ArrowRight, Loader2, HelpCircle } from 'lucide-react';
+import AnimatedIcon from '../components/shared/AnimatedIcon';
 import Button from '../components/ui/Button';
 import { getAllFAQ } from '../lib/firestore';
 import { useToast } from '../components/ui/Toast';
@@ -69,9 +70,17 @@ export default function FAQPage() {
           initial="hidden"
           animate="visible"
         >
-          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
-            FAQ
-          </motion.p>
+          <motion.div variants={staggerItem} className="flex items-center gap-3 mb-5">
+            <AnimatedIcon
+              icon={HelpCircle}
+              animation="pulse"
+              className="w-11 h-11 rounded-2xl bg-brand-100 dark:bg-brand-900/30 shrink-0"
+              iconClassName="w-5 h-5 text-brand-600 dark:text-brand-400"
+            />
+            <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400">
+              FAQ
+            </p>
+          </motion.div>
           <motion.h1 variants={staggerItem} className="text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-6">
             Questions<br />fréquentes
           </motion.h1>
@@ -142,7 +151,16 @@ export default function FAQPage() {
                       : <ChevronDown className="w-5 h-5 text-neutral-400 shrink-0" aria-hidden="true" />
                     }
                   </button>
+                  <AnimatePresence initial={false}>
                   {isOpen && (
+                    <motion.div
+                      key="answer"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      className="overflow-hidden"
+                    >
                     <div id={`faq-answer-${faq.id}`} role="region" aria-labelledby={`faq-btn-${faq.id}`} className="px-5 pb-5 border-t border-neutral-200 dark:border-neutral-700 pt-4">
                       <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-5">{faq.answer}</p>
                       {!hasVoted ? (
@@ -165,7 +183,9 @@ export default function FAQPage() {
                         <p className="text-sm text-success-600 dark:text-success-400 font-semibold">Merci pour ton retour !</p>
                       )}
                     </div>
+                    </motion.div>
                   )}
+                  </AnimatePresence>
                 </motion.div>
               );
             })}

@@ -1,6 +1,9 @@
-import { createBrowserRouter, RouterProvider, Outlet, ScrollRestoration } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 import { useState, lazy, Suspense } from 'react';
+import type { ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { HelmetProvider } from 'react-helmet-async';
+import { pageVariants, pageTransition } from './lib/animations';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './components/ui/Toast';
@@ -70,6 +73,24 @@ function PageLoader() {
   );
 }
 
+/** Transition d'entrée légère à chaque changement de route (fondu/glissé). */
+function PageTransition({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const reduced = useReducedMotion();
+  if (reduced) return <>{children}</>;
+  return (
+    <motion.div
+      key={location.pathname}
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      transition={pageTransition}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 function PublicLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
   return (
@@ -83,7 +104,9 @@ function PublicLayout() {
       <Header onSearchOpen={() => setSearchOpen(true)} />
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
       <main id="main-content" className="min-h-screen">
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </main>
       <Footer />
       <CookieBanner />

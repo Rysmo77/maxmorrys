@@ -39,6 +39,8 @@ const admin = __importStar(require("firebase-admin"));
 const SITE_URL = 'https://maxmorrys.me';
 const BRAND = 'Max-Morrys';
 const CURRENCY = 'XOF';
+// Placeholder Firebase Storage en attendant l'upload du fichier OG dédié (1200×630).
+const DEFAULT_OG_IMAGE = 'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Je-te-forme%2F2252.jpg?alt=media&token=c7942987-73f4-45e3-9a9e-2735a1eb1927';
 /**
  * CSV escaping per RFC 4180:
  * - If field contains comma, quote, or newline → wrap in double quotes
@@ -107,7 +109,7 @@ exports.catalog = (0, https_1.onRequest)({ region: 'europe-west1', memory: '256M
                 'new',
                 fullPrice,
                 `${SITE_URL}/formations/${f.slug}`,
-                f.coverImage || `${SITE_URL}/og-default.jpg`,
+                f.coverImage || DEFAULT_OG_IMAGE,
                 BRAND,
                 salePrice,
                 f.category || 'Formation',

@@ -1,30 +1,72 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, TrendingUp, Users, Award, BookOpen, Play, ChevronDown, Star, Zap, Target, BarChart3, Shield, Infinity, BadgeCheck } from 'lucide-react';
-import { getPublishedFormations, getPublishedPosts, getFeaturedTestimonials } from '../lib/firestore';
-import { formatPrice, truncate } from '../lib/utils';
-import type { Formation, BlogPost, Testimonial } from '../types';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ArrowRight, Star, Target, Zap, BarChart3, Play, Headphones, BadgeCheck, Infinity as InfinityIcon, Shield, Mail } from 'lucide-react';
+import { getPublishedFormations, getPublishedPosts, getFeaturedTestimonials, getPublishedPodcasts } from '../lib/firestore';
+import { truncate } from '../lib/utils';
+import { categoryToPole } from '../lib/blogCategories';
+import type { Formation, BlogPost, Testimonial, Podcast } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+import { universeThemes, universeFromPath } from '../lib/sectionThemes';
+import EditorialHeading, { CircularBadge } from '../components/shared/EditorialHeading';
+import CourseLibraryCard from '../components/formations/CourseLibraryCard';
+import NewsletterForm from '../components/shared/NewsletterForm';
+import CountUp from '../components/shared/CountUp';
+import ParallaxImage from '../components/shared/ParallaxImage';
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
+const PROFILE_IMG = 'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/A-propos%2FChatGPT%20Image%2014%20mai%202026%2C%2000_49_18%20(3).png?alt=media&token=cc4027ff-c053-40a3-8b22-28d5603ee729';
+
 const stats = [
-  { icon: TrendingUp, value: '+340%', label: 'Croissance trafic en 1 an', color: 'text-brand-500' },
-  { icon: BookOpen, value: '10+', label: 'Cours crees', color: 'text-accent-500' },
-  { icon: Users, value: '50+', label: 'Étudiants formés', color: 'text-success-500' },
-  { icon: Award, value: '94%', label: 'Taux de reussite', color: 'text-warning-500' },
+  { value: 340, prefix: '+', suffix: '%', label: 'Croissance de trafic en 1 an' },
+  { value: 50, prefix: '', suffix: '+', label: 'Étudiants formés' },
+  { value: 94, prefix: '', suffix: '%', label: 'Taux de réussite' },
+  { value: 10, prefix: '', suffix: '+', label: 'Cours créés' },
 ];
 
 const services = [
   { icon: Target, title: 'Je te forme', desc: 'Des formations pratiques et actionnables pour maîtriser le digital.', link: '/formations' },
-  { icon: Zap, title: "Je t'informe", desc: 'Articles, podcasts et videos pour rester a la pointe.', link: '/blog' },
+  { icon: Zap, title: "Je t'informe", desc: 'Articles, podcasts et vidéos pour rester à la pointe.', link: '/blog' },
   { icon: BarChart3, title: 'Je te transforme', desc: 'Coaching et consulting pour accélérer ta croissance.', link: '/contact' },
 ];
 
+const trustBadges = [
+  { icon: BadgeCheck, title: 'Certificat inclus', desc: 'Chaque formation délivre un certificat vérifiable.' },
+  { icon: InfinityIcon, title: 'Accès à vie', desc: 'Tes formations restent accessibles sans limite.' },
+  { icon: Shield, title: 'Garantie satisfait', desc: 'Remboursement sous 7 jours si insatisfaction.' },
+];
+
+/** Indicateur de défilement animé — souris stylisée avec point qui descend. */
+function ScrollCue() {
+  const reduced = useReducedMotion();
+  return (
+    <div className="w-6 h-10 rounded-full border-2 border-white/50 flex justify-center pt-2">
+      <motion.div
+        className="w-1 h-2 rounded-full bg-white/70"
+        animate={reduced ? undefined : { y: [0, 10, 0], opacity: [0.9, 0.2, 0.9] }}
+        transition={reduced ? undefined : { duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+    </div>
+  );
+}
+
+/** Accent Newsletter — icône Mail avec léger flottement vertical. */
+function FloatingMail() {
+  const reduced = useReducedMotion();
+  return (
+    <motion.div
+      className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-white/10 flex items-center justify-center"
+      animate={reduced ? undefined : { y: [0, -6, 0] }}
+      transition={reduced ? undefined : { duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      <Mail className="w-7 h-7 text-brand-400" />
+    </motion.div>
+  );
+}
 
 function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) {
   const [active, setActive] = useState(0);
@@ -41,33 +83,32 @@ function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) 
   if (!t) return null;
 
   return (
-    <div className="max-w-4xl mx-auto text-center">
-      <div className="min-h-[200px] flex flex-col items-center justify-center px-4">
-        <div className="flex items-center gap-1 mb-4 justify-center">
+    <div className="max-w-3xl mx-auto text-center">
+      <div className="min-h-[240px] flex flex-col items-center justify-center px-4">
+        <div className="flex items-center gap-1 mb-6 justify-center">
           {[...Array(t.rating)].map((_, i) => (
             <Star key={i} className="w-4 h-4 text-accent-500 fill-accent-500" />
           ))}
         </div>
-        <p className="text-xl lg:text-2xl font-bold italic text-neutral-800 dark:text-neutral-200 leading-relaxed mb-6 transition-opacity duration-500">
-          "{t.content}"
+        <p className="text-xl lg:text-2xl font-bold italic text-neutral-800 dark:text-neutral-100 leading-snug mb-8 transition-opacity duration-500">
+          «&nbsp;{t.content}&nbsp;»
         </p>
         <div className="flex items-center justify-center gap-3">
-          {t.avatar && <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-full object-cover" loading="lazy" />}
+          {t.avatar && <img src={t.avatar} alt={t.name} className="w-11 h-11 rounded-full object-cover" loading="lazy" />}
           <div className="text-left">
             <p className="font-bold text-neutral-900 dark:text-white text-sm">{t.name}</p>
             <p className="text-xs text-neutral-500">{t.role}{t.company ? `, ${t.company}` : ''}</p>
           </div>
         </div>
       </div>
-      {/* Dots */}
       {testimonials.length > 1 && (
         <div className="flex items-center justify-center gap-2 mt-8">
           {testimonials.map((_, i) => (
             <button
               key={i}
               onClick={() => setActive(i)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                i === active ? 'bg-brand-500 w-6' : 'bg-neutral-300 dark:bg-neutral-600'
+              className={`h-2 rounded-full transition-all ${
+                i === active ? 'bg-brand-500 w-6' : 'bg-neutral-300 dark:bg-neutral-600 w-2'
               }`}
               aria-label={`Témoignage ${i + 1}`}
             />
@@ -81,16 +122,19 @@ function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) 
 export default function Home() {
   const [formations, setFormations] = useState<Formation[]>([]);
   const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
+  const [recentPodcasts, setRecentPodcasts] = useState<Podcast[]>([]);
   const [featuredTestimonials, setFeaturedTestimonials] = useState<Testimonial[]>([]);
 
   useEffect(() => {
     getPublishedFormations().then(setFormations).catch(() => {});
-    getPublishedPosts(4).then(setRecentPosts).catch(() => {});
+    getPublishedPosts(5).then(setRecentPosts).catch(() => {});
+    getPublishedPodcasts().then(setRecentPodcasts).catch(() => {});
     getFeaturedTestimonials().then(setFeaturedTestimonials).catch(() => {});
   }, []);
 
   const featuredFormations = formations.filter((f) => f.featured).slice(0, 3);
-  const featuredFormation = featuredFormations[0];
+  const featuredPost = recentPosts[0];
+  const listPosts = recentPosts.slice(1);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoFading, setVideoFading] = useState(false);
@@ -109,11 +153,7 @@ export default function Home() {
 
   return (
     <div>
-      <SEOHead
-        title={DEFAULT_TITLE}
-        description={DEFAULT_DESCRIPTION}
-        isHomePage
-      />
+      <SEOHead title={DEFAULT_TITLE} description={DEFAULT_DESCRIPTION} isHomePage />
       <JsonLd data={[
         {
           '@context': 'https://schema.org',
@@ -160,8 +200,8 @@ export default function Home() {
         },
       ]} />
 
-      {/* ── HERO : vidéo plein écran en fond ── */}
-      <section className="relative mt-16 lg:mt-[68px] h-[calc(100vh-4rem)] lg:h-[calc(100vh-68px)] min-h-[560px] overflow-hidden">
+      {/* ── HERO : vidéo plein écran + typographie éditoriale ── */}
+      <section className="relative h-screen min-h-[600px] overflow-hidden">
         <div className="absolute inset-0 bg-neutral-950">
           <video
             ref={videoRef}
@@ -174,54 +214,45 @@ export default function Home() {
             preload="metadata"
             className={`w-full h-full object-cover transition-opacity duration-[1200ms] ${videoFading ? 'opacity-0' : 'opacity-100'}`}
           />
-          <div className="absolute inset-0 bg-black/80" />
+          <div className="absolute inset-0 bg-black/75" />
         </div>
 
-        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-6">
-          <h1 className="text-5xl sm:text-7xl lg:text-8xl font-bold leading-[1.05] max-w-5xl">
-            Maîtrise le digital,<br />
-            accélère ta{' '}
-            <em className="not-italic text-brand-400">croissance</em>
-          </h1>
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-            <ChevronDown className="w-6 h-6 text-white/50" />
+        <motion.div
+          className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-6"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.h1
+            variants={staggerItem}
+            className="text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] max-w-5xl text-balance"
+          >
+            Maîtrise le <span className="text-brand-400">digital</span>, accélère ta{' '}
+            <span className="italic text-accent-400">croissance</span>.
+          </motion.h1>
+          <motion.p
+            variants={staggerItem}
+            className="mt-7 max-w-xl text-base sm:text-lg text-white/75 leading-relaxed"
+          >
+            Formations, articles, podcast et vidéos pour transformer ton activité — SEO, IA et marketing digital, sans blabla.
+          </motion.p>
+          <motion.div variants={staggerItem}>
+            <Link
+              to="/formations"
+              className="mt-9 inline-flex items-center gap-2.5 bg-white text-neutral-900 font-bold text-sm px-8 py-4 rounded-full hover:bg-brand-50 hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-300"
+            >
+              Explorer les formations
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+            <ScrollCue />
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* ── STATS : bande horizontale editoriale ── */}
+      {/* ── MANIFESTE : "J'aide les entrepreneurs..." ── */}
       <motion.section
-        className="py-14 bg-white dark:bg-neutral-950 border-y border-neutral-100 dark:border-neutral-800"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-neutral-100 dark:divide-neutral-800"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-          >
-            {stats.map((stat) => (
-              <motion.div key={stat.label} variants={staggerItem} className="text-center px-6 py-2">
-                <p className={`text-4xl lg:text-5xl font-bold mb-1 tracking-tight ${stat.color}`}>
-                  {stat.value}
-                </p>
-                <p className="text-xs font-medium tracking-[0.15em] uppercase text-neutral-400 dark:text-neutral-500">
-                  {stat.label}
-                </p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* ── SERVICES : "JE SUIS MAX-MORRYS." split editorial ── */}
-      <motion.section
-        id="services"
         className="py-24 lg:py-36 bg-neutral-50 dark:bg-neutral-900"
         variants={slideUp}
         initial="hidden"
@@ -229,484 +260,529 @@ export default function Home() {
         viewport={viewportOnce}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+          <EditorialHeading
+            as="h2"
+            eyebrow="Bonjour, moi c'est Max-Morrys"
+            eyebrowColor="morrys"
+            className="max-w-4xl mb-14 lg:mb-20"
+            segments={[
+              { text: "J'aide les " },
+              { text: 'entrepreneurs', color: 'brand' },
+              { text: ' à ' },
+              { text: 'transformer', color: 'accent' },
+              { text: ' leurs idées en ' },
+              { text: 'business rentables', color: 'coral' },
+              { text: '.' },
+            ]}
+          />
 
-            {/* Texte gauche */}
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-start">
+            {/* Texte + verbes */}
             <div>
-              <p className="text-xs font-bold tracking-[0.35em] uppercase text-morrys-600 dark:text-morrys-400 mb-6">
-                BONJOUR !
-              </p>
-              <h2 className="text-6xl sm:text-7xl lg:text-8xl font-black leading-[0.95] text-neutral-900 dark:text-white mb-10 tracking-tight">
-                JE SUIS<br />MAX-<br />MORRYS.
-              </h2>
               <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-10 max-w-lg">
-                Je t'aide à comprendre et maîtriser le marketing digital, le SEO et l'intelligence artificielle pour transformer ton activité. Voici ce que je fais pour toi :
+                Formateur et consultant en marketing digital, SEO et intelligence artificielle.
+                Pas besoin d'une audience énorme ni d'y passer tes nuits : il te faut un plan clair
+                et la prochaine étape. Voici ce que je fais pour toi.
               </p>
 
-              {/* Services en liste editoriale */}
               <motion.div
-                className="space-y-0 border-t border-neutral-200 dark:border-neutral-700"
+                className="border-t border-neutral-200 dark:border-neutral-700"
                 variants={staggerContainer}
                 initial="hidden"
                 whileInView="visible"
                 viewport={viewportOnce}
               >
-                {services.map((service, i) => {
-                  const isBlog = service.link === '/blog';
-                  const iconCls = isBlog ? 'text-coral-600 dark:text-coral-400' : 'text-brand-500 dark:text-brand-400';
-                  const titleHoverCls = isBlog
-                    ? 'group-hover:text-coral-600 dark:group-hover:text-coral-400'
-                    : 'group-hover:text-brand-600 dark:group-hover:text-brand-400';
-                  const arrowHoverCls = isBlog ? 'group-hover:text-coral-600 dark:group-hover:text-coral-400' : 'group-hover:text-brand-500';
+                {services.map((service) => {
+                  const theme = universeThemes[universeFromPath(service.link)];
                   return (
-                  <motion.div key={i} variants={staggerItem}>
-                  <Link to={service.link} className="group flex items-start gap-5 py-6 border-b border-neutral-200 dark:border-neutral-700 hover:pl-2 transition-all duration-300">
-                    <service.icon className={`w-5 h-5 mt-0.5 ${iconCls} shrink-0`} />
-                    <div className="flex-1">
-                      <p className={`font-bold text-neutral-900 dark:text-white ${titleHoverCls} transition-colors`}>
-                        {service.title}
-                      </p>
-                      <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">{service.desc}</p>
-                    </div>
-                    <ArrowRight className={`w-4 h-4 text-neutral-300 dark:text-neutral-600 ${arrowHoverCls} group-hover:translate-x-1 transition-all shrink-0 mt-1`} />
-                  </Link>
-                  </motion.div>
+                    <motion.div key={service.title} variants={staggerItem}>
+                      <Link
+                        to={service.link}
+                        className="group flex items-start gap-5 py-6 border-b border-neutral-200 dark:border-neutral-700 hover:pl-2 transition-all duration-300"
+                      >
+                        <service.icon className={`w-5 h-5 mt-0.5 shrink-0 ${theme.accentText}`} />
+                        <div className="flex-1">
+                          <p className={`text-lg font-bold text-neutral-900 dark:text-white ${theme.titleHover} transition-colors`}>
+                            {service.title}
+                          </p>
+                          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{service.desc}</p>
+                        </div>
+                        <ArrowRight className={`w-4 h-4 mt-1 shrink-0 text-neutral-300 dark:text-neutral-600 ${theme.titleHover} group-hover:translate-x-1 transition-all`} />
+                      </Link>
+                    </motion.div>
                   );
                 })}
               </motion.div>
+
+              <Link
+                to="/formations"
+                className="mt-10 inline-flex items-center gap-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold text-sm px-7 py-3.5 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
+              >
+                Voir les nouveautés
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
 
-            {/* Image droite */}
+            {/* Image + badge circulaire */}
             <div className="relative">
-              <div className="aspect-[4/5] overflow-hidden rounded-2xl">
-                <img
-                  src="https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/A-propos%2FChatGPT%20Image%2014%20mai%202026%2C%2000_49_18%20(3).png?alt=media&token=cc4027ff-c053-40a3-8b22-28d5603ee729"
-                  alt="Max-Morrys"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
+              <div className="aspect-[4/5] overflow-hidden rounded-[2rem]">
+                <img src={PROFILE_IMG} alt="Max-Morrys" className="w-full h-full object-cover" loading="lazy" />
               </div>
-              {/* Badge flottant */}
-              <div className="absolute -bottom-6 -left-6 bg-white dark:bg-neutral-800 rounded-2xl shadow-xl p-5 hidden lg:block">
-                <p className="text-3xl font-black text-neutral-900 dark:text-white leading-none">
-                  50+
-                </p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 font-medium">étudiants formés</p>
+              <CircularBadge
+                text="Ravi de te rencontrer"
+                center="MM"
+                className="absolute -top-6 -left-6 w-28 h-28 hidden lg:block"
+              />
+              <div className="absolute -bottom-6 -right-6 bg-white dark:bg-neutral-800 rounded-2xl shadow-xl p-5 hidden sm:block">
+                <p className="text-3xl font-black text-neutral-900 dark:text-white leading-none">50+</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5 font-medium">étudiants formés</p>
               </div>
             </div>
-
           </div>
         </div>
       </motion.section>
 
-      {/* ── Formations vedettes ── */}
+      {/* ── STATS : superposées sur image plein-largeur ── */}
+      <motion.section
+        className="relative overflow-hidden"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
+        <div className="relative min-h-[440px] lg:min-h-[540px]">
+          <ParallaxImage
+            src="https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=1600"
+            alt="Équipe au travail"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/90 via-neutral-950/65 to-neutral-950/25" />
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+            <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/55 mb-10">
+              Les chiffres parlent
+            </p>
+            <motion.div
+              className="space-y-5 lg:space-y-6 max-w-xl"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
+              {stats.map((stat) => (
+                <motion.div
+                  key={stat.label}
+                  variants={staggerItem}
+                  className="flex items-baseline gap-5 border-b border-white/15 pb-5"
+                >
+                  <CountUp
+                    value={stat.value}
+                    prefix={stat.prefix}
+                    suffix={stat.suffix}
+                    className="text-4xl lg:text-6xl font-black text-white shrink-0"
+                  />
+                  <span className="text-xs lg:text-sm font-bold tracking-[0.2em] uppercase text-white/70">
+                    {stat.label}
+                  </span>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ── CATALOGUE DE FORMATIONS : dossiers à onglets ── */}
       {featuredFormations.length > 0 && (
         <motion.section
-          className="bg-white dark:bg-neutral-950 py-24 lg:py-36 overflow-hidden"
+          className="relative py-24 lg:py-36 overflow-hidden"
+          variants={slideUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          <div className="absolute inset-0">
+            <ParallaxImage src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1600" />
+            <div className="absolute inset-0 bg-neutral-950/60 dark:bg-neutral-950/75" />
+          </div>
+
+          <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12 lg:mb-16">
+              <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/60 mb-5">
+                Le catalogue
+              </p>
+              <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-white text-balance">
+                Range tes compétences dans le bon dossier.
+              </h2>
+            </div>
+
+            <motion.div
+              className="space-y-6"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
+              {featuredFormations.map((formation, i) => (
+                <motion.div key={formation.id} variants={staggerItem}>
+                  <CourseLibraryCard formation={formation} index={i} />
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <div className="text-center mt-12">
+              <Link
+                to="/formations"
+                className="group inline-flex items-center gap-2.5 bg-white text-neutral-900 font-bold text-sm px-8 py-4 rounded-full hover:bg-brand-50 hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-300"
+              >
+                Découvrir toutes les formations
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {/* ── QUIZ / NIVEAU : "Prêt à accélérer ?" ── */}
+      <motion.section
+        className="relative bg-accent-500 overflow-hidden"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
+        <div className="grid lg:grid-cols-2">
+          <div className="px-6 sm:px-10 lg:px-16 py-20 lg:py-32 flex flex-col justify-center order-2 lg:order-1">
+            <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/80 mb-6">
+              Passe au niveau supérieur
+            </p>
+            <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-white text-balance mb-6">
+              Prêt à <span className="italic text-neutral-900">accélérer</span> ?
+            </h2>
+            <p className="text-white/90 leading-relaxed mb-9 max-w-md">
+              Pas un jeu vidéo, mais ton activité IRL. Choisis le bon point de départ et passe
+              à l'action avec une formation taillée pour ton objectif.
+            </p>
+            <Link
+              to="/formations"
+              className="group inline-flex w-fit items-center gap-2.5 bg-white text-accent-700 font-bold text-sm px-8 py-4 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
+            >
+              Trouve ta formation
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+          <div className="relative min-h-[340px] order-1 lg:order-2">
+            <img
+              src="https://images.pexels.com/photos/3760067/pexels-photo-3760067.jpeg?auto=compress&cs=tinysrgb&w=1200"
+              alt="Passer au niveau supérieur"
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ── PODCAST & YOUTUBE ── */}
+      <motion.section
+        className="relative overflow-hidden"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
+        <div className="absolute inset-0">
+          <ParallaxImage src="https://images.pexels.com/photos/3756766/pexels-photo-3756766.jpeg?auto=compress&cs=tinysrgb&w=1600" />
+          <div className="absolute inset-0 bg-neutral-950/82" />
+        </div>
+
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 text-white">
+          <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/55 mb-5">
+            Contenu 100% gratuit
+          </p>
+          <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-balance max-w-3xl mb-6">
+            Le <span className="text-plum-400">Podcast</span> &amp; la chaîne{' '}
+            <span className="text-red-400">YouTube</span>.
+          </h2>
+          <p className="text-white/75 leading-relaxed max-w-xl">
+            Des conseils actionnables en marketing digital, SEO et IA — dans tes oreilles ou sur ton écran.
+          </p>
+
+          {recentPodcasts.length > 0 && (
+            <div className="mt-14">
+              <p className="text-xs font-bold tracking-[0.3em] uppercase text-white/45 mb-2">
+                Épisodes populaires
+              </p>
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOnce}
+              >
+                {recentPodcasts.slice(0, 5).map((podcast, i) => (
+                  <motion.div key={podcast.id} variants={staggerItem}>
+                    <Link
+                      to={`/podcasts/${podcast.slug}`}
+                      className="group flex items-center gap-5 py-4 border-b border-white/12"
+                    >
+                      <span className="text-xl font-bold text-white/40 w-8 shrink-0">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className="flex-1 font-semibold text-white/90 group-hover:text-plum-300 transition-colors leading-snug">
+                        {podcast.title}
+                      </span>
+                      <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0" />
+                    </Link>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 mt-12">
+            <Link
+              to="/podcasts"
+              className={`inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full font-semibold text-sm transition-colors ${universeThemes.podcasts.buttonSolid}`}
+            >
+              <Headphones className="w-4 h-4" />
+              Écouter le podcast
+            </Link>
+            <Link
+              to="/videos"
+              className={`inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full font-semibold text-sm transition-colors ${universeThemes.videos.buttonSolid}`}
+            >
+              <Play className="w-4 h-4" />
+              Voir les vidéos
+            </Link>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ── BLOG : "Pas ton blog business habituel" ── */}
+      {recentPosts.length > 0 && (
+        <motion.section
+          className={`py-24 lg:py-36 ${universeThemes.blog.sectionBg}`}
           variants={slideUp}
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <EditorialHeading
+              as="h2"
+              align="center"
+              eyebrow="Le journal"
+              eyebrowColor="coral"
+              className="mb-14 lg:mb-20"
+              segments={[
+                { text: 'Pas ton ' },
+                { text: 'blog business', color: 'coral' },
+                { text: ' habituel.' },
+              ]}
+            />
 
-            {/* En-tête éditorial */}
-            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-14">
-              <div>
-                <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white mb-4">
-                  Formations
-                </h2>
-              </div>
-              <div className="flex flex-col gap-3 lg:items-end lg:shrink-0">
-                <p className="text-sm text-neutral-600 dark:text-neutral-500 max-w-xs lg:text-right leading-relaxed">
-                  Des formations pratiques pour maîtriser le marketing digital, le SEO et l'IA.
-                </p>
-                <Link to="/formations" className="group inline-flex items-center gap-2 text-sm font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
-                    Voir toutes les formations
-                    <span className="w-7 h-7 rounded-full border border-neutral-300 dark:border-neutral-700 group-hover:border-brand-500 group-hover:bg-brand-500/10 flex items-center justify-center transition-all">
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                    </span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Carte principale (formation 1) */}
-            {featuredFormation && (
-              <Link
-                to={`/formations/${featuredFormation.slug}`}
-                className="group relative flex flex-col lg:flex-row overflow-hidden rounded-3xl border border-neutral-200 dark:border-white/5 hover:border-brand-500/30 transition-all duration-500 mb-4"
-              >
-                {/* Image plein-bleed droite */}
-                <div className="relative lg:order-2 w-full lg:w-[55%] aspect-[16/9] lg:aspect-auto lg:min-h-[420px] overflow-hidden shrink-0">
-                  {featuredFormation.coverImage ? (
+            <div className="grid lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-start">
+              {/* Article vedette */}
+              {featuredPost && (
+                <Link to={`/blog/${featuredPost.slug}`} className="group block">
+                  <div className="aspect-[4/3] sm:aspect-[3/2] lg:aspect-[4/3] overflow-hidden rounded-[2rem] mb-6">
                     <img
-                      src={featuredFormation.coverImage}
-                      alt={featuredFormation.title}
+                      src={featuredPost.coverImage}
+                      alt={featuredPost.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       loading="lazy"
                     />
-                  ) : (
-                    <div className="w-full h-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
-                      <BookOpen className="w-16 h-16 text-neutral-400 dark:text-neutral-600" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-neutral-950 via-white/20 dark:via-neutral-950/20 to-transparent lg:block hidden" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-100/70 dark:from-neutral-950/70 via-transparent to-transparent lg:hidden" />
-                  {featuredFormation.promoPrice && (
-                    <span className="absolute top-5 right-5 bg-brand-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-full tracking-widest uppercase">
-                      Promo
-                    </span>
-                  )}
-                </div>
-
-                {/* Contenu gauche */}
-                <div className="lg:order-1 flex flex-col justify-between p-8 lg:p-12 bg-neutral-100/80 dark:bg-neutral-900/80 lg:bg-transparent dark:lg:bg-transparent lg:w-[45%] shrink-0">
-                  <div>
-                    <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-brand-400 block mb-6">
-                      {featuredFormation.category}
-                    </span>
-                    <h3 className="text-3xl lg:text-4xl xl:text-5xl font-black text-neutral-900 dark:text-white leading-[1.05] mb-5 group-hover:text-brand-600 dark:group-hover:text-brand-200 transition-colors">
-                      {featuredFormation.title}
-                    </h3>
-                    <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-8 text-sm lg:text-base max-w-sm">
-                      {featuredFormation.description}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-600 mb-10">
-                      <span className="flex items-center gap-1.5">
-                        <Star className="w-3.5 h-3.5 text-accent-500 fill-accent-500" />
-                        <strong className="text-neutral-700 dark:text-neutral-300">{featuredFormation.rating}</strong>
-                      </span>
-                      <span>·</span>
-                      <span>{featuredFormation.students} étudiants</span>
-                      <span>·</span>
-                      <span>{featuredFormation.duration}</span>
-                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      {featuredFormation.promoPrice ? (
-                        <>
-                          <p className="text-xs text-neutral-500 dark:text-neutral-600 line-through mb-0.5">{formatPrice(featuredFormation.price)}</p>
-                          <p className="text-3xl font-black text-brand-400">{formatPrice(featuredFormation.promoPrice)}</p>
-                        </>
-                      ) : (
-                        <p className="text-3xl font-black text-brand-400">{formatPrice(featuredFormation.price)}</p>
-                      )}
-                    </div>
-                    <span className="inline-flex items-center gap-2 bg-brand-600 group-hover:bg-brand-500 text-white font-bold text-sm px-6 py-3 rounded-full transition-colors">
-                      Acceder
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            )}
+                  <p className={`text-xs font-bold tracking-[0.25em] uppercase ${universeThemes.blog.eyebrow} mb-3`}>
+                    {categoryToPole(featuredPost.category)} · {featuredPost.readTime} min
+                  </p>
+                  <h3 className={`text-2xl lg:text-3xl font-black tracking-tight leading-[1.15] text-neutral-900 dark:text-white ${universeThemes.blog.titleHover} transition-colors`}>
+                    {featuredPost.title}
+                  </h3>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-3 max-w-md">
+                    {truncate(featuredPost.excerpt, 120)}
+                  </p>
+                </Link>
+              )}
 
-            {/* Cartes secondaires (formations 2 & 3) */}
-            {featuredFormations.length > 1 && (
+              {/* Liste catégorisée */}
               <motion.div
-                className="grid sm:grid-cols-2 gap-4"
                 variants={staggerContainer}
                 initial="hidden"
                 whileInView="visible"
                 viewport={viewportOnce}
               >
-                {featuredFormations.slice(1).map((f, i) => (
-                  <motion.div key={f.id} variants={staggerItem}>
-                  <Link
-                    to={`/formations/${f.slug}`}
-                    className="group relative flex overflow-hidden rounded-2xl border border-neutral-200 dark:border-white/5 hover:border-brand-500/30 bg-neutral-50 dark:bg-neutral-900 hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    {/* Image gauche */}
-                    <div className="relative w-36 sm:w-44 shrink-0 overflow-hidden">
-                      {f.coverImage ? (
-                        <img
-                          src={f.coverImage}
-                          alt={f.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
-                          <BookOpen className="w-8 h-8 text-neutral-400 dark:text-neutral-600" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-neutral-100/30 dark:to-neutral-900/30" />
-                      <span className="absolute top-3 left-3 text-[9px] font-bold tracking-[0.2em] text-neutral-400/50 dark:text-white/30">
-                        {String(i + 2).padStart(2, '0')}
-                      </span>
-                    </div>
-
-                    {/* Contenu droite */}
-                    <div className="flex flex-col justify-between p-5 flex-1 min-w-0">
-                      <div>
-                        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-brand-400 mb-2">{f.category}</p>
-                        <h3 className="font-black text-neutral-900 dark:text-white text-base leading-snug mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-200 transition-colors line-clamp-2">
-                          {f.title}
-                        </h3>
-                        <div className="flex items-center gap-2 text-[10px] text-neutral-500 dark:text-neutral-600">
-                          <span className="flex items-center gap-1">
-                            <Star className="w-2.5 h-2.5 text-accent-500 fill-accent-500" />
-                            {f.rating}
-                          </span>
-                          <span>·</span>
-                          <span>{f.students} étudiants</span>
-                          <span>·</span>
-                          <span>{f.duration}</span>
-                        </div>
+                {listPosts.map((post) => (
+                  <motion.div key={post.id} variants={staggerItem}>
+                    <Link
+                      to={`/blog/${post.slug}`}
+                      className="group flex items-center gap-5 py-6 border-b border-neutral-200 dark:border-neutral-700 first:border-t"
+                    >
+                      <img
+                        src={post.coverImage}
+                        alt={post.title}
+                        className="w-16 h-16 lg:w-20 lg:h-20 rounded-full object-cover shrink-0"
+                        loading="lazy"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[0.7rem] font-bold tracking-[0.2em] uppercase ${universeThemes.blog.eyebrow} mb-1.5`}>
+                          {categoryToPole(post.category)}
+                        </p>
+                        <h4 className={`text-lg font-bold leading-snug text-neutral-900 dark:text-white ${universeThemes.blog.titleHover} transition-colors`}>
+                          {post.title}
+                        </h4>
                       </div>
-                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-neutral-200 dark:border-white/5">
-                        <div>
-                          {f.promoPrice ? (
-                            <>
-                              <p className="text-[10px] text-neutral-500 dark:text-neutral-600 line-through">{formatPrice(f.price)}</p>
-                              <p className="text-lg font-black text-brand-400">{formatPrice(f.promoPrice)}</p>
-                            </>
-                          ) : (
-                            <p className="text-lg font-black text-brand-400">{formatPrice(f.price)}</p>
-                          )}
-                        </div>
-                        <div className="w-7 h-7 rounded-full border border-neutral-300 dark:border-white/10 group-hover:border-brand-400/50 group-hover:bg-brand-400/10 flex items-center justify-center transition-all">
-                          <ArrowRight className="w-3 h-3 text-neutral-500 dark:text-neutral-600 group-hover:text-brand-400 transition-colors" />
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
+                      <ArrowRight className="w-4 h-4 shrink-0 text-neutral-300 dark:text-neutral-600 group-hover:text-coral-500 dark:group-hover:text-coral-400 group-hover:translate-x-1 transition-all" />
+                    </Link>
                   </motion.div>
                 ))}
+
+                <motion.div variants={staggerItem} className="mt-10">
+                  <Link
+                    to="/blog"
+                    className="inline-flex items-center gap-2.5 border border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100 font-semibold text-sm px-8 py-4 rounded-full hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-colors"
+                  >
+                    Lire tous les articles
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </motion.div>
               </motion.div>
-            )}
-
-            {/* CTA */}
-            <div className="flex justify-center mt-12">
-              <Link to="/formations" className="group inline-flex items-center gap-3 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 hover:border-neutral-300 text-neutral-900 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 dark:hover:border-white/20 dark:text-white font-semibold px-8 py-4 rounded-full transition-all text-sm tracking-wide">
-                  Découvrir toutes les formations
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
             </div>
-
           </div>
         </motion.section>
       )}
 
-      {/* ── PODCAST & YOUTUBE : style carte flottante sur image plein-largeur ── */}
+      {/* ── OFFRE PHARE + CRÉDIBILITÉ ── */}
       <motion.section
-        className="relative min-h-[560px] flex items-center overflow-hidden"
+        className="relative bg-brand-700 text-white overflow-hidden"
         variants={slideUp}
         initial="hidden"
         whileInView="visible"
         viewport={viewportOnce}
       >
-        {/* Image de fond pleine largeur */}
-        <div className="absolute inset-0">
-          <img
-            src="https://images.pexels.com/photos/3756766/pexels-photo-3756766.jpeg?auto=compress&cs=tinysrgb&w=1600"
-            alt="Studio podcast"
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-black/40" />
-        </div>
-
-        {/* Carte flottante droite */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end py-16">
-          <div className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-3xl p-10 text-center shadow-2xl">
-            <p className="text-xs font-bold tracking-[0.3em] uppercase text-neutral-500 dark:text-neutral-400 mb-4">
-              CONTENU GRATUIT
+        <div className="grid lg:grid-cols-2">
+          <div className="relative min-h-[340px]">
+            <img
+              src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=1200"
+              alt="La méthode Max-Morrys"
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-brand-900/30" />
+          </div>
+          <div className="px-6 sm:px-10 lg:px-16 py-20 lg:py-32 flex flex-col justify-center">
+            <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-200 mb-6">
+              La méthode complète
             </p>
-            <h2 className="text-3xl lg:text-4xl font-black text-neutral-900 dark:text-white mb-4 leading-tight">
-              Le Podcast &amp; la Chaine YouTube
+            <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-balance mb-6">
+              Tout ce qu'il te faut pour réussir en ligne.
             </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-8 text-sm">
-              Des conseils actionnables en marketing digital, SEO et IA — directement dans tes oreilles ou sur ton écran. Gratuit, concret, sans blabla.
+            <p className="text-brand-100 leading-relaxed mb-10 max-w-md">
+              Des formations structurées, du concret et un accompagnement clair —
+              de la première vidéo à ton activité qui tourne.
             </p>
 
-            {/* Boutons plateformes */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                to="/podcasts"
-                className="flex items-center justify-center gap-2.5 px-6 py-3.5 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-full font-semibold text-sm shadow-sm transition-colors"
-              >
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current shrink-0" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4.5a7.5 7.5 0 110 15 7.5 7.5 0 010-15zm0 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-.75 4.5h1.5v6h-1.5v-6z"/></svg>
-                Écouter le Podcast
-              </Link>
-              <Link
-                to="/videos"
-                className="flex items-center justify-center gap-2.5 px-6 py-3.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-full font-semibold text-sm shadow-sm transition-colors"
-              >
-                <Play className="w-4 h-4 shrink-0" />
-                Voir les Vidéos
-              </Link>
-            </div>
-
-            {/* Stats media */}
-            <div className="flex justify-center gap-8 mt-8 pt-8 border-t border-neutral-100 dark:border-neutral-700">
-              <div className="text-center">
-                <p className="text-2xl font-black text-neutral-900 dark:text-white">50+</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">Épisodes</p>
-              </div>
-              <div className="w-px bg-neutral-100 dark:bg-neutral-700" />
-              <div className="text-center">
-                <p className="text-2xl font-black text-neutral-900 dark:text-white">30+</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">Vidéos</p>
-              </div>
-              <div className="w-px bg-neutral-100 dark:bg-neutral-700" />
-              <div className="text-center">
-                <p className="text-2xl font-black text-neutral-900 dark:text-white">100%</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 font-medium">Gratuit</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ── BLOG "LES DERNIERS ARTICLES" : style The Latest ── */}
-      <motion.section
-        className="py-24 lg:py-36 bg-accent-50 dark:bg-neutral-900"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-5xl lg:text-6xl font-black text-center text-neutral-900 dark:text-white mb-16 tracking-tight">
-            Les Derniers Articles
-          </h2>
-
-          <div className="grid lg:grid-cols-[320px_1fr] gap-12 lg:gap-20 items-start">
-
-            {/* Photo gauche (sticky) */}
-            <div className="hidden lg:block sticky top-24">
-              <div className="aspect-[3/4] overflow-hidden rounded-2xl">
-                <img
-                  src="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=600"
-                  alt="Max-Morrys Blog"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-
-            {/* Liste numerotee droite */}
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOnce}
-            >
-              {recentPosts.map((post, i) => (
-                <motion.div key={post.id} variants={staggerItem}>
-                <Link to={`/blog/${post.slug}`} className="group flex items-center gap-6 py-7 border-b border-neutral-200 dark:border-neutral-700 first:border-t first:border-neutral-200 dark:first:border-neutral-700 hover:bg-white/60 dark:hover:bg-neutral-800/40 transition-colors rounded-lg px-3 -mx-3">
-                  <span className="text-sm font-bold text-neutral-300 dark:text-neutral-600 w-8 shrink-0 text-right">
-                    #{i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold tracking-widest uppercase text-coral-600 dark:text-coral-400 mb-1.5">
-                      {post.category} · {post.readTime} min de lecture
-                    </p>
-                    <h3 className="text-lg font-bold text-neutral-900 dark:text-white group-hover:text-coral-600 dark:group-hover:text-coral-400 transition-colors leading-snug">
-                      {post.title}
-                    </h3>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-1">
-                      {truncate(post.excerpt, 100)}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full border-2 border-neutral-200 dark:border-neutral-700 group-hover:border-coral-500 dark:group-hover:border-coral-400 flex items-center justify-center shrink-0 transition-colors">
-                    <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-coral-500 dark:group-hover:text-coral-400 transition-colors" />
-                  </div>
-                </Link>
-                </motion.div>
-              ))}
-
-              <motion.div variants={staggerItem} className="mt-10">
-                <Link to="/blog" className="inline-flex border border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100 font-semibold px-8 py-4 rounded-full hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-colors text-sm tracking-wide">
-                    Lire tous les articles
-                </Link>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ── TEMOIGNAGES : editorial ── */}
-      <motion.section
-        className="py-24 lg:py-36 bg-white dark:bg-neutral-950"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
-              COMMUNAUTE
-            </p>
-            <h2 className="text-5xl lg:text-6xl font-black text-neutral-900 dark:text-white tracking-tight">
-              Ce qu'ils disent
-            </h2>
-          </div>
-
-          {/* Rotating testimonial carousel */}
-          {featuredTestimonials.length > 0 && (
-            <TestimonialCarousel testimonials={featuredTestimonials} />
-          )}
-        </div>
-      </motion.section>
-
-      {/* ── TRUST BADGES ── */}
-      <motion.section
-        className="py-12 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-          >
-            {[
-              { icon: BadgeCheck, title: 'Certificat inclus', desc: 'Chaque formation délivre un certificat vérifiable' },
-              { icon: Infinity, title: 'Accès à vie', desc: 'Tes formations restent accessibles sans limite' },
-              { icon: Shield, title: 'Garantie satisfait', desc: 'Remboursement sous 7 jours si insatisfaction' },
-            ].map((badge) => (
-              <motion.div key={badge.title} variants={staggerItem} className="flex flex-col items-center gap-3 p-4">
-                <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center">
-                  <badge.icon className="w-6 h-6 text-brand-600 dark:text-brand-400" />
+            <div className="grid sm:grid-cols-3 gap-6 mb-10">
+              {trustBadges.map((badge) => (
+                <div key={badge.title} className="flex flex-col gap-2">
+                  <badge.icon className="w-6 h-6 text-accent-300" />
+                  <p className="font-bold text-sm text-white">{badge.title}</p>
+                  <p className="text-xs text-brand-200 leading-relaxed">{badge.desc}</p>
                 </div>
-                <p className="font-bold text-neutral-900 dark:text-white text-sm">{badge.title}</p>
-                <p className="text-xs text-neutral-500 max-w-[200px]">{badge.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
+              ))}
+            </div>
+
+            <Link
+              to="/formations"
+              className="group inline-flex w-fit items-center gap-2.5 bg-white text-brand-700 font-bold text-sm px-8 py-4 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
+            >
+              Commencer maintenant
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ── TÉMOIGNAGES ── */}
+      {featuredTestimonials.length > 0 && (
+        <motion.section
+          className="py-24 lg:py-36 bg-white dark:bg-neutral-950"
+          variants={slideUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <EditorialHeading
+              as="h2"
+              align="center"
+              eyebrow="La communauté"
+              eyebrowColor="brand"
+              className="mb-16"
+              segments={[
+                { text: 'Ils en parlent mieux ' },
+                { text: 'que moi', color: 'brand' },
+                { text: '.' },
+              ]}
+            />
+            <TestimonialCarousel testimonials={featuredTestimonials} />
+          </div>
+        </motion.section>
+      )}
+
+      {/* ── NEWSLETTER : "Du concret dans ta boîte mail" ── */}
+      <motion.section
+        className="relative overflow-hidden"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
+        <div className="absolute inset-0">
+          <ParallaxImage src="https://images.pexels.com/photos/3184296/pexels-photo-3184296.jpeg?auto=compress&cs=tinysrgb&w=1600" />
+          <div className="absolute inset-0 bg-neutral-950/85" />
+        </div>
+        <div className="relative max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 text-center text-white">
+          <FloatingMail />
+          <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/55 mb-5">
+            La newsletter
+          </p>
+          <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-balance mb-5">
+            Du <span className="italic text-brand-400">concret</span> dans ta boîte mail.
+          </h2>
+          <p className="text-white/75 leading-relaxed mb-9">
+            Chaque semaine : mes meilleures découvertes, mes stratégies qui marchent et des
+            défis pour faire avancer ton activité. Gratuit, sans spam.
+          </p>
+          <div className="max-w-md mx-auto text-left">
+            <NewsletterForm variant="inline" source="home" />
+          </div>
         </div>
       </motion.section>
 
       {/* ── CTA FINAL ── */}
       <motion.section
-        className="py-24 bg-gradient-to-br from-brand-600 to-brand-800 text-white"
+        className="py-24 lg:py-28 bg-gradient-to-br from-brand-600 to-brand-800 text-white"
         variants={slideUp}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl lg:text-5xl font-black mb-5 tracking-tight">
+          <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-balance mb-5">
             Prêt à transformer ton business ?
           </h2>
           <p className="text-brand-100 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
             Que tu sois entrepreneur, marketeur ou en reconversion, il y a une formation faite pour toi.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/formations" className="inline-flex items-center bg-white text-brand-700 font-bold px-8 py-4 rounded-full hover:bg-brand-50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
-                Voir les formations <ArrowRight className="inline w-4 h-4 ml-1" />
+            <Link
+              to="/formations"
+              className="inline-flex items-center gap-2 bg-white text-brand-700 font-bold px-8 py-4 rounded-full hover:bg-brand-50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm"
+            >
+              Voir les formations <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link to="/contact" className="inline-flex items-center border border-white/40 text-white font-bold px-8 py-4 rounded-full hover:bg-white/10 hover:-translate-y-0.5 transition-all duration-300 text-sm tracking-wide">
-                Prendre contact
+            <Link
+              to="/contact"
+              className="inline-flex items-center border border-white/40 text-white font-bold px-8 py-4 rounded-full hover:bg-white/10 hover:-translate-y-0.5 transition-all duration-300 text-sm"
+            >
+              Prendre contact
             </Link>
           </div>
         </div>

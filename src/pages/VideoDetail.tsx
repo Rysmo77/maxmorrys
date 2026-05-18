@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Eye, Calendar, ArrowLeft, Clock, Loader2 } from 'lucide-react';
+import { Play, Eye, Calendar, ArrowLeft, Clock, Loader2, TrendingUp } from 'lucide-react';
 import { getVideoBySlug, getPublishedVideos } from '../lib/firestore';
 import FormationCTA from '../components/shared/FormationCTA';
+import VideoCard from '../components/shared/VideoCard';
 import { formatDate, markdownToHtml } from '../lib/utils';
 import type { Video } from '../types';
 import { trackViewItem, trackVideoPlay } from '../lib/tracking';
@@ -12,6 +13,9 @@ import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+import { universeThemes } from '../lib/sectionThemes';
+
+const theme = universeThemes.videos;
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
@@ -36,20 +40,20 @@ export default function VideoDetail() {
       if (data) {
         trackViewItem({ id: data.id, name: data.title, category: data.category, content_type: 'video' });
         trackVideoPlay(data.id, data.title);
-        getPublishedVideos().then((all) => setOthers(all.filter((v) => v.id !== data.id).slice(0, 4))).catch(() => null);
+        getPublishedVideos().then((all) => setOthers(all.filter((v) => v.id !== data.id).slice(0, 10))).catch(() => null);
       }
     }).catch(() => setVideo(null));
   }, [slug]);
 
   if (video === undefined) {
-    return <div className="pt-32 pb-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-red-500" /></div>;
+    return <div className="pt-32 pb-20 flex justify-center"><Loader2 className={`w-8 h-8 animate-spin ${theme.spinner}`} /></div>;
   }
 
   if (!video) {
     return (
       <div className="pt-32 pb-20 text-center">
         <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">Vidéo introuvable</h1>
-        <Link to="/videos" className="text-red-600 dark:text-red-400 hover:underline">Retour aux vidéos</Link>
+        <Link to="/videos" className={`${theme.accentText} hover:underline`}>Retour aux vidéos</Link>
       </div>
     );
   }
@@ -118,7 +122,7 @@ export default function VideoDetail() {
             </Link>
           </motion.div>
 
-          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.25em] uppercase text-red-600 dark:text-red-400 mb-4">
+          <motion.p variants={staggerItem} className={`text-xs font-bold tracking-[0.25em] uppercase ${theme.eyebrow} mb-4`}>
             {video.category}
           </motion.p>
 
@@ -223,9 +227,13 @@ export default function VideoDetail() {
 
             {/* Autres vidéos */}
             <div>
-              <h3 className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 mb-4">
-                Autres vidéos
-              </h3>
+              <div className="relative overflow-hidden rounded-2xl bg-neutral-900 p-5 mb-4">
+                <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-red-600/25 blur-[50px]" />
+                <div className="relative z-10 flex items-center gap-2.5">
+                  <TrendingUp className="w-4 h-4 text-red-400" />
+                  <h3 className="text-lg font-black tracking-tight text-white">Autres vidéos</h3>
+                </div>
+              </div>
               <motion.div
                 className="space-y-3"
                 variants={staggerContainer}
@@ -233,7 +241,7 @@ export default function VideoDetail() {
                 whileInView="visible"
                 viewport={viewportOnce}
               >
-                {others.map((v) => (
+                {others.slice(0, 4).map((v) => (
                   <motion.div key={v.id} variants={staggerItem}>
                   <Link
                     to={`/videos/${v.slug}`}
@@ -253,7 +261,7 @@ export default function VideoDetail() {
                       </span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors leading-snug line-clamp-2">
+                      <p className={`text-sm font-semibold text-neutral-800 dark:text-neutral-200 ${theme.titleHover} transition-colors leading-snug line-clamp-2`}>
                         {v.title}
                       </p>
                       <p className="text-xs text-neutral-400 mt-1">
@@ -268,6 +276,36 @@ export default function VideoDetail() {
           </div>
         </div>
       </motion.div>
+
+      {/* ── Vidéos à voir ensuite ── */}
+      {others.length > 4 && (
+        <motion.section
+          className="bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 py-16"
+          variants={slideUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-8">
+              Vidéos à voir ensuite
+            </h2>
+            <motion.div
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+            >
+              {others.slice(4, 10).map((v) => (
+                <motion.div key={v.id} variants={staggerItem}>
+                  <VideoCard video={v} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </motion.section>
+      )}
     </div>
   );
 }

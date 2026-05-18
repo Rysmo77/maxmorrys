@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Phone, MapPin, MessageSquare, Send, Calendar, X, Clock, Loader2, ChevronDown } from 'lucide-react';
+import AnimatedIcon from '../components/shared/AnimatedIcon';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { Textarea } from '../components/ui/Input';
@@ -196,9 +197,17 @@ export default function Contact() {
           initial="hidden"
           animate="visible"
         >
-          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
-            CONTACT
-          </motion.p>
+          <motion.div variants={staggerItem} className="flex items-center gap-3 mb-5">
+            <AnimatedIcon
+              icon={Mail}
+              animation="float"
+              className="w-11 h-11 rounded-2xl bg-brand-100 dark:bg-brand-900/30 shrink-0"
+              iconClassName="w-5 h-5 text-brand-600 dark:text-brand-400"
+            />
+            <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400">
+              CONTACT
+            </p>
+          </motion.div>
           <div className="grid lg:grid-cols-2 gap-8 items-end">
             <motion.h1 variants={staggerItem} className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
               Parlons de<br />ta stratégie
@@ -376,11 +385,22 @@ export default function Contact() {
                         className={`w-5 h-5 text-neutral-400 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180 text-brand-500' : ''}`}
                       />
                     </button>
+                    <AnimatePresence initial={false}>
                     {isOpen && (
-                      <div className="pb-5 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                        {faq.answer}
-                      </div>
+                      <motion.div
+                        key="answer"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pb-5 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                          {faq.answer}
+                        </div>
+                      </motion.div>
                     )}
+                    </AnimatePresence>
                   </motion.div>
                 );
               })}

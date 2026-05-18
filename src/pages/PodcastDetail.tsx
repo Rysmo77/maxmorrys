@@ -12,6 +12,9 @@ import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+import { universeThemes } from '../lib/sectionThemes';
+
+const theme = universeThemes.podcasts;
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
@@ -42,14 +45,14 @@ export default function PodcastDetail() {
   }, [slug]);
 
   if (podcast === undefined) {
-    return <div className="pt-32 pb-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-green-500" /></div>;
+    return <div className="pt-32 pb-20 flex justify-center"><Loader2 className={`w-8 h-8 animate-spin ${theme.spinner}`} /></div>;
   }
 
   if (!podcast) {
     return (
       <div className="pt-32 pb-20 text-center">
         <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">Épisode introuvable</h1>
-        <Link to="/podcasts" className="text-green-600 dark:text-green-400 hover:underline">Retour aux podcasts</Link>
+        <Link to="/podcasts" className={`${theme.accentText} hover:underline`}>Retour aux podcasts</Link>
       </div>
     );
   }
@@ -95,9 +98,10 @@ export default function PodcastDetail() {
       }} />
 
       {/* ── HERO ── */}
-      <section className="pt-28 pb-16 lg:pt-36 lg:pb-20 bg-neutral-50 dark:bg-neutral-900">
+      <section className={`relative overflow-hidden pt-28 pb-16 lg:pt-36 lg:pb-20 ${theme.sectionBg}`}>
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-plum-200/60 dark:bg-plum-500/10 pointer-events-none" />
         <motion.div
-          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
+          className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
@@ -114,7 +118,7 @@ export default function PodcastDetail() {
           <motion.div variants={staggerItem}>
             <Link
               to="/podcasts"
-              className="inline-flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors mb-8"
+              className="inline-flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-plum-600 dark:hover:text-plum-400 transition-colors mb-8"
             >
               <ArrowLeft className="w-4 h-4" />
               Tous les épisodes
@@ -122,7 +126,7 @@ export default function PodcastDetail() {
           </motion.div>
 
           <motion.div variants={staggerItem} className="flex items-center gap-2 mb-5">
-            <span className="text-xs font-bold tracking-[0.35em] uppercase text-green-600 dark:text-green-400">
+            <span className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow}`}>
               PODCAST
             </span>
             {podcast.category && (
@@ -210,7 +214,7 @@ export default function PodcastDetail() {
                   />
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                     <div className="text-center text-white space-y-3">
-                      <div className="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center mx-auto">
+                      <div className="w-16 h-16 rounded-full bg-plum-600 flex items-center justify-center mx-auto">
                         <Headphones className="w-7 h-7" />
                       </div>
                       <p className="text-sm font-medium">Lecteur audio disponible prochainement</p>
@@ -256,12 +260,12 @@ export default function PodcastDetail() {
                     <img
                       src={ep.coverImage}
                       alt={ep.title}
-                      className="w-14 h-14 rounded-lg object-cover shrink-0"
+                      className="w-14 h-14 rounded-lg object-cover shrink-0 grayscale group-hover:grayscale-0 transition-all duration-500"
                       loading="lazy"
                     />
                   )}
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors leading-snug line-clamp-2">
+                    <p className={`text-sm font-semibold text-neutral-800 dark:text-neutral-200 ${theme.titleHover} transition-colors leading-snug line-clamp-2`}>
                       {ep.title}
                     </p>
                     <p className="text-xs text-neutral-400 mt-1">{ep.duration}</p>

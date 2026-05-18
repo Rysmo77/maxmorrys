@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import CountUp from '../components/shared/CountUp';
+import AnimatedIcon from '../components/shared/AnimatedIcon';
 import {
   ArrowRight,
   Target,
@@ -13,6 +15,8 @@ import {
   Code2,
   HeartHandshake,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Monitor,
   Smartphone,
   MapPin,
@@ -25,6 +29,9 @@ import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+import { universeThemes } from '../lib/sectionThemes';
+
+const theme = universeThemes.about;
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
@@ -147,6 +154,20 @@ const platforms = [
     tag: 'Éducation',
     desc: "Plateforme web d'un établissement éducatif au Gabon.",
   },
+  {
+    name: 'STEPS Magazine',
+    domain: 'stepsmag.com',
+    url: 'https://stepsmag.com/',
+    tag: 'Média',
+    desc: "Magazine chrétien premium en Afrique de l'Ouest — spiritualité et leadership.",
+  },
+  {
+    name: 'ResHo Konnexion',
+    domain: 'resho.vasesdhonneursenegal.com',
+    url: 'https://resho.vasesdhonneursenegal.com/',
+    tag: 'Communauté',
+    desc: "Plateforme de réseau professionnel et communautaire.",
+  },
 ];
 
 /** Capture desktop — WordPress mShots (gratuit, illimité, cache CDN). */
@@ -207,7 +228,7 @@ function PlatformPreview({ url, domain, name }: { url: string; domain: string; n
       aria-label={`Aperçu ${label.toLowerCase()}`}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
         device === d
-          ? 'bg-morrys-600 text-white'
+          ? theme.buttonSolid
           : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
       }`}
     >
@@ -448,8 +469,92 @@ const milestones = [
   { year: '2025', lieu: 'Dakar, Sénégal', title: "Plateformes web & IA en production", desc: "Lancement et industrialisation des plateformes Eyone Medical, Wergu Yaram, Topatoko et de workflows IA bout en bout pour le marketing et le contenu." },
 ];
 
+const sectionNav = [
+  { id: 'impact', label: 'Impact' },
+  { id: 'expertise', label: 'Expertise' },
+  { id: 'plateformes', label: 'Plateformes' },
+  { id: 'experiences', label: 'Expériences' },
+  { id: 'parcours', label: 'Parcours' },
+];
+
 export default function About() {
   const [openExperience, setOpenExperience] = useState<number | null>(0);
+  const [showAllMilestones, setShowAllMilestones] = useState(false);
+  const [activeSection, setActiveSection] = useState('impact');
+
+  // Carrousel Plateformes
+  const trackRef = useRef<HTMLDivElement>(null);
+  const carouselWrapRef = useRef<HTMLDivElement>(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
+  const [carouselPaused, setCarouselPaused] = useState(false);
+  const [carouselInView, setCarouselInView] = useState(false);
+
+  const updateArrows = () => {
+    const el = trackRef.current;
+    if (!el) return;
+    setAtStart(el.scrollLeft <= 8);
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 8);
+  };
+  const scrollCarousel = (dir: -1 | 1) => {
+    const el = trackRef.current;
+    if (el) el.scrollBy({ left: dir * el.clientWidth, behavior: 'smooth' });
+  };
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    updateArrows();
+    el.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows);
+    return () => {
+      el.removeEventListener('scroll', updateArrows);
+      window.removeEventListener('resize', updateArrows);
+    };
+  }, []);
+
+  // Le carrousel ne s'anime que lorsque la section est visible à l'écran
+  useEffect(() => {
+    const el = carouselWrapRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setCarouselInView(entry.isIntersecting),
+      { threshold: 0.3 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Défilement automatique du carrousel (pause au survol / focus / hors-écran / reduced-motion)
+  useEffect(() => {
+    if (carouselPaused || !carouselInView) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = setInterval(() => {
+      const el = trackRef.current;
+      if (!el) return;
+      const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
+      el.scrollBy({ left: end ? -el.scrollLeft : el.clientWidth, behavior: 'smooth' });
+    }, 4500);
+    return () => clearInterval(id);
+  }, [carouselPaused, carouselInView]);
+
+  // Scroll-spy pour le menu d'ancrage
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActiveSection(e.target.id);
+        });
+      },
+      { rootMargin: '-40% 0px -55% 0px' }
+    );
+    sectionNav.forEach(({ id }) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const visibleMilestones = showAllMilestones ? milestones : milestones.slice(5);
 
   return (
     <div>
@@ -481,9 +586,17 @@ export default function About() {
               initial="hidden"
               animate="visible"
             >
-              <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.35em] uppercase text-morrys-600 dark:text-morrys-400 mb-6">
-                MAX-MORRYS EYOUM
-              </motion.p>
+              <motion.div variants={staggerItem} className="flex items-center gap-3 mb-6">
+                <AnimatedIcon
+                  icon={Sparkles}
+                  animation="pulse"
+                  className="w-10 h-10 rounded-2xl bg-morrys-100 dark:bg-morrys-900/30 shrink-0"
+                  iconClassName="w-5 h-5 text-morrys-600 dark:text-morrys-400"
+                />
+                <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow}`}>
+                  MAX-MORRYS EYOUM
+                </p>
+              </motion.div>
               <motion.h1 variants={staggerItem} className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[0.95] tracking-tight text-neutral-900 dark:text-white mb-6 text-balance max-w-[15ch]">
                 Marketing & Growth Manager.
               </motion.h1>
@@ -501,21 +614,27 @@ export default function About() {
               {/* Mini-stats inline — responsive sans divide-x */}
               <motion.div variants={staggerItem} className="grid grid-cols-3 gap-4 sm:gap-6 mb-10 max-w-2xl">
                 <div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">+1 790 %</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
+                    <CountUp value={1790} prefix="+" suffix=" %" format />
+                  </p>
                   <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">Trafic</p>
                 </div>
                 <div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">+8 000</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
+                    <CountUp value={8000} prefix="+" format />
+                  </p>
                   <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">Abonnés</p>
                 </div>
                 <div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">+5</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
+                    <CountUp value={5} prefix="+" />
+                  </p>
                   <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">Plateformes</p>
                 </div>
               </motion.div>
 
               <motion.div variants={staggerItem} className="flex flex-wrap gap-4">
-                <Link to="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-morrys-600 text-white text-sm font-bold rounded-full hover:bg-morrys-700 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-morrys-600/25 transition-all duration-300 tracking-wide">
+                <Link to="/contact" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} text-sm font-bold rounded-full hover:-translate-y-0.5 active:scale-[0.97] hover:shadow-lg hover:shadow-morrys-600/25 transition-all duration-300 tracking-wide`}>
                   Travaillons ensemble <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a href="#experiences" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-neutral-300 text-neutral-700 dark:border-neutral-600 dark:text-neutral-200 text-sm font-bold rounded-full hover:bg-white dark:hover:bg-neutral-800 hover:-translate-y-0.5 transition-all duration-300 tracking-wide">
@@ -540,7 +659,7 @@ export default function About() {
                 {/* Badge Dakar — INSIDE image on mobile/tablet */}
                 <div className="absolute bottom-4 right-4 lg:hidden bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm rounded-xl px-4 py-3 shadow-xl border border-white/40 dark:border-neutral-700 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-morrys-50 dark:bg-morrys-900/30 flex items-center justify-center shrink-0">
-                    <MapPin className="w-4 h-4 text-morrys-600 dark:text-morrys-400" />
+                    <MapPin className={`w-4 h-4 ${theme.accentText}`} />
                   </div>
                   <div>
                     <p className="text-sm font-black text-neutral-900 dark:text-white leading-none">Dakar · Sénégal</p>
@@ -556,7 +675,7 @@ export default function About() {
                 transition={{ duration: 0.4, ease: 'easeOut', delay: 0.6 }}
               >
                 <div className="w-10 h-10 rounded-full bg-morrys-50 dark:bg-morrys-900/20 flex items-center justify-center shrink-0">
-                  <MapPin className="w-5 h-5 text-morrys-600 dark:text-morrys-400" />
+                  <MapPin className={`w-5 h-5 ${theme.accentText}`} />
                 </div>
                 <div>
                   <p className="text-sm font-black text-neutral-900 dark:text-white leading-none">Dakar · Sénégal</p>
@@ -568,9 +687,32 @@ export default function About() {
         </div>
       </section>
 
+      {/* ── MENU D'ANCRAGE STICKY ── */}
+      <nav className="sticky top-16 lg:top-[68px] z-30 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border-y border-neutral-200/80 dark:border-neutral-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ul className="flex gap-1 sm:gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {sectionNav.map((s) => (
+              <li key={s.id}>
+                <a
+                  href={`#${s.id}`}
+                  className={`block whitespace-nowrap px-3 sm:px-4 py-3.5 text-xs sm:text-sm font-bold tracking-wide border-b-2 transition-colors ${
+                    activeSection === s.id
+                      ? `${theme.accentText} border-morrys-500`
+                      : 'text-neutral-500 dark:text-neutral-400 border-transparent hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  {s.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </nav>
+
       {/* ── 2. RÉSUMÉ D'IMPACT ── */}
       <motion.section
-        className="py-24 bg-white dark:bg-neutral-950"
+        id="impact"
+        className="py-24 bg-white dark:bg-neutral-950 scroll-mt-32"
         variants={slideUp}
         initial="hidden"
         whileInView="visible"
@@ -578,7 +720,7 @@ export default function About() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-14 text-center">
-            <p className="text-xs font-bold tracking-[0.35em] uppercase text-morrys-600 dark:text-morrys-400 mb-5">
+            <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-5`}>
               RÉSUMÉ D'IMPACT
             </p>
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-4">
@@ -596,17 +738,23 @@ export default function About() {
             viewport={viewportOnce}
           >
             <motion.div variants={staggerItem} className="text-center py-10 px-8 bg-neutral-50 dark:bg-neutral-900">
-              <p className="text-5xl lg:text-6xl font-black text-morrys-600 dark:text-morrys-400 tracking-tight">+1 790 %</p>
+              <p className={`text-5xl lg:text-6xl font-black ${theme.accentText} tracking-tight`}>
+                <CountUp value={1790} prefix="+" suffix=" %" format />
+              </p>
               <p className="font-bold text-neutral-900 dark:text-white mt-2">Trafic web Eyone</p>
               <p className="text-xs text-neutral-400 mt-1">De 34 à 643 visites mensuelles en un an</p>
             </motion.div>
             <motion.div variants={staggerItem} className="text-center py-10 px-8 bg-neutral-50 dark:bg-neutral-900">
-              <p className="text-5xl lg:text-6xl font-black text-morrys-600 dark:text-morrys-400 tracking-tight">+8 000</p>
+              <p className={`text-5xl lg:text-6xl font-black ${theme.accentText} tracking-tight`}>
+                <CountUp value={8000} prefix="+" format />
+              </p>
               <p className="font-bold text-neutral-900 dark:text-white mt-2">Abonnés organiques</p>
               <p className="text-xs text-neutral-400 mt-1">Dont +4 000 sur LinkedIn</p>
             </motion.div>
             <motion.div variants={staggerItem} className="text-center py-10 px-8 bg-neutral-50 dark:bg-neutral-900">
-              <p className="text-5xl lg:text-6xl font-black text-morrys-600 dark:text-morrys-400 tracking-tight">+5</p>
+              <p className={`text-5xl lg:text-6xl font-black ${theme.accentText} tracking-tight`}>
+                <CountUp value={5} prefix="+" />
+              </p>
               <p className="font-bold text-neutral-900 dark:text-white mt-2">Plateformes web</p>
               <p className="text-xs text-neutral-400 mt-1">Santé, e-commerce, éducation, fintech, institutionnel</p>
             </motion.div>
@@ -616,7 +764,8 @@ export default function About() {
 
       {/* ── 3. EXPERTISE & COMPÉTENCES (fusion) ── */}
       <motion.section
-        className="py-24 bg-neutral-50 dark:bg-neutral-900"
+        id="expertise"
+        className="py-24 bg-neutral-50 dark:bg-neutral-900 scroll-mt-32"
         variants={slideUp}
         initial="hidden"
         whileInView="visible"
@@ -645,18 +794,18 @@ export default function About() {
                 className="bg-white dark:bg-neutral-950 rounded-2xl p-8 border border-neutral-100 dark:border-neutral-800 flex flex-col hover:border-morrys-300 dark:hover:border-morrys-700 hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
               >
                 <div className="w-10 h-10 rounded-full bg-morrys-50 dark:bg-morrys-900/20 flex items-center justify-center mb-5">
-                  <item.icon className="w-5 h-5 text-morrys-600 dark:text-morrys-400" />
+                  <item.icon className={`w-5 h-5 ${theme.accentText}`} />
                 </div>
                 <h3 className="font-black text-xl text-neutral-900 dark:text-white mb-3">{item.title}</h3>
                 <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-5">{item.desc}</p>
                 <div className="flex flex-wrap gap-2 mb-6 flex-1">
                   {item.tags.map((tag) => (
-                    <span key={tag} className="px-3 py-1 bg-morrys-50 dark:bg-morrys-900/30 text-morrys-700 dark:text-morrys-300 text-xs font-semibold rounded-full">
+                    <span key={tag} className={`px-3 py-1 ${theme.softBadge} text-xs font-semibold rounded-full`}>
                       {tag}
                     </span>
                   ))}
                 </div>
-                <p className="text-sm font-bold text-morrys-600 dark:text-morrys-400 border-t border-neutral-200 dark:border-neutral-700 pt-4">
+                <p className={`text-sm font-bold ${theme.accentText} border-t border-neutral-200 dark:border-neutral-700 pt-4`}>
                   {item.stat}
                 </p>
               </motion.div>
@@ -667,7 +816,8 @@ export default function About() {
 
       {/* ── 4. PLATEFORMES ── */}
       <motion.section
-        className="py-24 bg-white dark:bg-neutral-950"
+        id="plateformes"
+        className="py-24 bg-white dark:bg-neutral-950 scroll-mt-32"
         variants={slideUp}
         initial="hidden"
         whileInView="visible"
@@ -682,31 +832,69 @@ export default function About() {
               Conçues, déployées et maintenues en production — full stack avec base de données, sécurité et monitoring.
             </p>
           </div>
-          <motion.div
-            className="grid gap-8 lg:gap-10 lg:grid-cols-2"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
+          <div
+            ref={carouselWrapRef}
+            className="relative"
+            onMouseEnter={() => setCarouselPaused(true)}
+            onMouseLeave={() => setCarouselPaused(false)}
+            onFocusCapture={() => setCarouselPaused(true)}
+            onBlurCapture={() => setCarouselPaused(false)}
+            onTouchStart={() => setCarouselPaused(true)}
           >
-            {platforms.map((p) => (
-              <motion.div key={p.name} variants={staggerItem} className="group">
-                <PlatformPreview url={p.url} domain={p.domain} name={p.name} />
-                <div className="mt-5 px-1">
-                  <span className="text-[11px] font-bold tracking-wider uppercase text-morrys-600 dark:text-morrys-400">{p.tag}</span>
-                  <h3 className="font-black text-lg text-neutral-900 dark:text-white mt-1.5 mb-1">{p.name}</h3>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">{p.desc}</p>
+            {/* Flèche précédente */}
+            <button
+              type="button"
+              onClick={() => scrollCarousel(-1)}
+              disabled={atStart}
+              aria-label="Plateformes précédentes"
+              className="hidden sm:flex absolute -left-3 lg:-left-5 top-1/2 -translate-y-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-lg text-neutral-700 dark:text-neutral-200 transition-all hover:bg-morrys-600 hover:text-white hover:border-morrys-600 disabled:opacity-0 disabled:pointer-events-none"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            {/* Flèche suivante */}
+            <button
+              type="button"
+              onClick={() => scrollCarousel(1)}
+              disabled={atEnd}
+              aria-label="Plateformes suivantes"
+              className="hidden sm:flex absolute -right-3 lg:-right-5 top-1/2 -translate-y-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-lg text-neutral-700 dark:text-neutral-200 transition-all hover:bg-morrys-600 hover:text-white hover:border-morrys-600 disabled:opacity-0 disabled:pointer-events-none"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+
+            {/* Piste défilante */}
+            <div
+              ref={trackRef}
+              tabIndex={0}
+              className="flex gap-6 lg:gap-8 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {platforms.map((p) => (
+                <div
+                  key={p.name}
+                  className="group snap-start shrink-0 w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(50%-1rem)]"
+                >
+                  <PlatformPreview url={p.url} domain={p.domain} name={p.name} />
+                  <div className="mt-5 px-1">
+                    <span className={`text-[11px] font-bold tracking-wider uppercase ${theme.eyebrow}`}>{p.tag}</span>
+                    <h3 className="font-black text-lg text-neutral-900 dark:text-white mt-1.5 mb-1">{p.name}</h3>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">{p.desc}</p>
+                  </div>
                 </div>
-              </motion.div>
-            ))}
-          </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Indication swipe — mobile */}
+          <p className="sm:hidden text-center text-xs text-neutral-400 dark:text-neutral-500 mt-2">
+            Faites glisser pour parcourir →
+          </p>
         </div>
       </motion.section>
 
       {/* ── 5. EXPÉRIENCES PROFESSIONNELLES ── */}
       <motion.section
         id="experiences"
-        className="py-24 bg-neutral-50 dark:bg-neutral-900 scroll-mt-24"
+        className="py-24 bg-neutral-50 dark:bg-neutral-900 scroll-mt-32"
         variants={slideUp}
         initial="hidden"
         whileInView="visible"
@@ -714,7 +902,7 @@ export default function About() {
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-14">
-            <p className="text-xs font-bold tracking-[0.35em] uppercase text-morrys-600 dark:text-morrys-400 mb-5">
+            <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-5`}>
               EXPÉRIENCES
             </p>
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-4">
@@ -748,12 +936,12 @@ export default function About() {
                     className="w-full grid sm:grid-cols-[3.5rem_1fr_auto_auto] grid-cols-[3rem_1fr_auto] items-center gap-4 sm:gap-6 p-5 sm:p-6 text-left hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors"
                   >
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-morrys-50 dark:bg-morrys-900/30 flex items-center justify-center shrink-0">
-                      <exp.icon className="w-6 h-6 text-morrys-600 dark:text-morrys-400" />
+                      <exp.icon className={`w-6 h-6 ${theme.accentText}`} />
                     </div>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
                         <h3 className="font-black text-lg sm:text-xl text-neutral-900 dark:text-white">{exp.company}</h3>
-                        <span className="text-[11px] font-bold tracking-wider uppercase text-morrys-600 dark:text-morrys-400">{exp.location}</span>
+                        <span className={`text-[11px] font-bold tracking-wider uppercase ${theme.eyebrow}`}>{exp.location}</span>
                       </div>
                       <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 font-medium">{exp.role}</p>
                     </div>
@@ -777,7 +965,7 @@ export default function About() {
                             <div className="space-y-6">
                               {exp.blocks.map((block) => (
                                 <div key={block.title}>
-                                  <h4 className="font-black text-sm uppercase tracking-wider text-morrys-600 dark:text-morrys-400 mb-3">{block.title}</h4>
+                                  <h4 className={`font-black text-sm uppercase tracking-wider ${theme.eyebrow} mb-3`}>{block.title}</h4>
                                   <ul className="space-y-2">
                                     {block.bullets.map((b, j) => (
                                       <li key={j} className="flex items-start gap-3 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
@@ -871,7 +1059,7 @@ export default function About() {
                   className="flex items-start gap-5 py-7 border-b border-neutral-200 dark:border-neutral-800"
                 >
                   <div className="w-10 h-10 rounded-full bg-morrys-50 dark:bg-morrys-900/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <v.icon className="w-5 h-5 text-morrys-600 dark:text-morrys-400" />
+                    <v.icon className={`w-5 h-5 ${theme.accentText}`} />
                   </div>
                   <div>
                     <h3 className="font-black text-lg text-neutral-900 dark:text-white mb-1">{v.title}</h3>
@@ -886,7 +1074,8 @@ export default function About() {
 
       {/* ── 8. PARCOURS (narrative + timeline fusionnés) ── */}
       <motion.section
-        className="py-24 lg:py-32 bg-neutral-50 dark:bg-neutral-900"
+        id="parcours"
+        className="py-24 lg:py-32 bg-neutral-50 dark:bg-neutral-900 scroll-mt-32"
         variants={slideUp}
         initial="hidden"
         whileInView="visible"
@@ -894,7 +1083,7 @@ export default function About() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-14">
-            <p className="text-xs font-bold tracking-[0.35em] uppercase text-morrys-600 dark:text-morrys-400 mb-4">
+            <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-4`}>
               MON HISTOIRE
             </p>
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-6">
@@ -913,6 +1102,16 @@ export default function About() {
             </div>
           </div>
 
+          {/* Bouton condenser / déplier la timeline */}
+          <button
+            type="button"
+            onClick={() => setShowAllMilestones((v) => !v)}
+            className="mb-8 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 text-sm font-bold text-neutral-700 dark:text-neutral-200 hover:bg-white dark:hover:bg-neutral-800 hover:border-morrys-400 dark:hover:border-morrys-600 transition-all"
+          >
+            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showAllMilestones ? 'rotate-180' : ''}`} />
+            {showAllMilestones ? 'Réduire le parcours' : 'Voir tout le parcours (depuis 2014)'}
+          </button>
+
           {/* Timeline — dots & ligne visibles mobile ET desktop */}
           <div className="relative pl-8 sm:pl-0">
             {/* Ligne verticale mobile */}
@@ -930,8 +1129,8 @@ export default function About() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.1 }}
             >
-              {milestones.map((m, i) => (
-                <motion.div key={i} variants={staggerItem} className="relative sm:flex sm:gap-10 sm:items-start">
+              {visibleMilestones.map((m) => (
+                <motion.div key={m.title} variants={staggerItem} className="relative sm:flex sm:gap-10 sm:items-start">
                   {/* Année — desktop */}
                   <div className="shrink-0 text-right w-24 hidden sm:block pt-5">
                     <span className="text-base font-black text-neutral-400 dark:text-neutral-600 whitespace-nowrap tracking-tight">{m.year}</span>
@@ -946,7 +1145,7 @@ export default function About() {
                   </div>
                   <div className="flex-1 sm:pb-10">
                     <div className="flex flex-wrap items-center gap-2 mb-1 sm:pt-4">
-                      <span className="text-xs font-black tracking-tight text-morrys-600 dark:text-morrys-400 sm:hidden">{m.year}</span>
+                      <span className={`text-xs font-black tracking-tight ${theme.accentText} sm:hidden`}>{m.year}</span>
                       <span className="text-[11px] font-bold tracking-wider uppercase text-morrys-500 dark:text-morrys-400">{m.lieu}</span>
                     </div>
                     <h3 className="text-lg font-black text-neutral-900 dark:text-white mb-1">{m.title}</h3>

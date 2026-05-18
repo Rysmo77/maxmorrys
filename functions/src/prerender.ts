@@ -413,7 +413,7 @@ const MINIMAL_FALLBACK = `<!doctype html>
 </html>`;
 
 let spaShellCache: { html: string; timestamp: number } | null = null;
-const SHELL_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const SHELL_CACHE_TTL_MS = 60 * 1000; // 1 minute
 
 async function getSpaShell(): Promise<string> {
   const now = Date.now();
@@ -578,8 +578,9 @@ export const prerender = onRequest(
       const html = injectIntoShell(shell, meta);
 
       res.set('Content-Type', 'text/html; charset=utf-8');
-      // 5min browser cache, 1h CDN cache
-      res.set('Cache-Control', 'public, max-age=300, s-maxage=3600');
+      // HTML prérendu = équivalent SEO de index.html : jamais mis en cache
+      // (sinon il référence des assets hachés supprimés au déploiement suivant).
+      res.set('Cache-Control', 'max-age=0, no-cache, no-store, must-revalidate');
       res.status(200).send(html);
     } catch (error: unknown) {
       console.error('Prerender error:', error);

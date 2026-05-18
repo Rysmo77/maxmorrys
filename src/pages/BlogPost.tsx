@@ -1,11 +1,13 @@
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Clock, Calendar, Share2, Linkedin, Copy, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, Linkedin, Copy, Check, Loader2, Twitter } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import NewsletterForm from '../components/shared/NewsletterForm';
 import FormationCTA from '../components/shared/FormationCTA';
+import ArticleCard from '../components/shared/ArticleCard';
 import { getPostBySlug, getPublishedPosts } from '../lib/firestore';
 import { formatDate, markdownToHtml } from '../lib/utils';
+import { categoryToPole } from '../lib/blogCategories';
 import type { BlogPost as BlogPostType } from '../types';
 import { trackViewItem, trackShare } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
@@ -13,6 +15,9 @@ import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
+import { universeThemes } from '../lib/sectionThemes';
+
+const theme = universeThemes.blog;
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
@@ -43,7 +48,7 @@ export default function BlogPost() {
   if (post === undefined) {
     return (
       <div className="pt-32 pb-20 flex justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+        <Loader2 className={`w-8 h-8 animate-spin ${theme.spinner}`} />
       </div>
     );
   }
@@ -52,7 +57,7 @@ export default function BlogPost() {
     return (
       <div className="pt-32 pb-20 text-center">
         <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">Article introuvable</h1>
-        <Link to="/blog" className="text-brand-600 dark:text-brand-400 hover:underline">Retour au blog</Link>
+        <Link to="/blog" className={`${theme.accentText} hover:underline`}>Retour au blog</Link>
       </div>
     );
   }
@@ -64,13 +69,8 @@ export default function BlogPost() {
     trackShare('copy_link', 'article', post.id);
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({ title: post.title, text: post.excerpt, url: window.location.href });
-      trackShare('native_share', 'article', post.id);
-    }
-  };
-
+  const shareUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.href : `${SITE_URL}/blog/${post.slug}`);
+  const shareBtn = 'w-10 h-10 rounded-lg border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:border-coral-400 hover:text-coral-600 dark:hover:text-coral-400 transition-colors';
 
   return (
     <div className="bg-white dark:bg-neutral-950">
@@ -120,103 +120,115 @@ export default function BlogPost() {
         ],
       }} />
 
-      {/* ── HERO article ── */}
-      <div className="pt-28 pb-12 lg:pt-36 bg-neutral-50 dark:bg-neutral-900">
-        <motion.div
-          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div variants={staggerItem} className="mb-6">
-            <Breadcrumbs
-              items={[
-                { label: 'Accueil', href: '/' },
-                { label: 'Blog', href: '/blog' },
-                { label: post.title },
-              ]}
-            />
-          </motion.div>
-          <motion.div variants={staggerItem}>
-            <Link to="/blog" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-10 transition-colors">
-              <ArrowLeft className="w-4 h-4" /> Retour au blog
-            </Link>
-          </motion.div>
-
-          <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.35em] uppercase text-coral-600 dark:text-coral-400 mb-5">
-            {post.category}
-          </motion.p>
-
-          <motion.h1 variants={staggerItem} className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white mb-8 leading-[1.05]">
-            {post.title}
-          </motion.h1>
-
-          <motion.div variants={staggerItem} className="flex flex-wrap items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center">
-                <span className="text-xs font-black text-brand-600 dark:text-brand-400">M</span>
-              </div>
-              <span className="font-semibold text-neutral-700 dark:text-neutral-300">{post.author}</span>
-            </div>
-            <span className="text-neutral-300 dark:text-neutral-600">·</span>
-            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(post.publishedAt)}</span>
-            <span className="text-neutral-300 dark:text-neutral-600">·</span>
-            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{post.readTime} min de lecture</span>
-          </motion.div>
-        </motion.div>
+      {/* ── Fil d'ariane + retour ── */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-32">
+        <Breadcrumbs
+          items={[
+            { label: 'Accueil', href: '/' },
+            { label: 'Blog', href: '/blog' },
+            { label: post.title },
+          ]}
+        />
+        <Link to="/blog" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-coral-600 dark:hover:text-coral-400 mt-4 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Retour au blog
+        </Link>
       </div>
 
-      {/* Image hero full-width */}
+      {/* ── Image hero pleine largeur ── */}
       <motion.div
-        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-0 pt-8"
+        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6"
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut', delay: 0.3 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
       >
-        <div className="aspect-[16/7] rounded-2xl overflow-hidden">
-          <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" width={1200} height={525} />
+        <div className="aspect-[16/8] rounded-2xl overflow-hidden">
+          <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" width={1200} height={600} />
         </div>
       </motion.div>
 
+      {/* ── Méta auteur/date + partage, puis titre ── */}
+      <motion.div
+        className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-10"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={staggerItem} className="flex flex-wrap items-start justify-between gap-6 pb-8 border-b border-neutral-100 dark:border-neutral-800">
+          <div className="flex gap-10">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">Écrit par</p>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-coral-100 dark:bg-coral-900/40 flex items-center justify-center">
+                  <span className="text-xs font-black text-coral-600 dark:text-coral-400">
+                    {(post.author || 'M').charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">{post.author}</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">Publié le</p>
+              <p className="font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
+                {formatDate(post.publishedAt)}
+                <span className="text-neutral-300 dark:text-neutral-600">·</span>
+                <span className="flex items-center gap-1 font-normal text-neutral-500 dark:text-neutral-400">
+                  <Clock className="w-3.5 h-3.5" />{post.readTime} min
+                </span>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <a
+              href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${encodeURIComponent(post.title)}`}
+              target="_blank" rel="noopener noreferrer"
+              onClick={() => trackShare('twitter', 'article', post.id)}
+              aria-label="Partager sur X"
+              className={shareBtn}
+            >
+              <Twitter className="w-4 h-4" />
+            </a>
+            <a
+              href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
+              target="_blank" rel="noopener noreferrer"
+              onClick={() => trackShare('linkedin', 'article', post.id)}
+              aria-label="Partager sur LinkedIn"
+              className={shareBtn}
+            >
+              <Linkedin className="w-4 h-4" />
+            </a>
+            <button onClick={handleCopy} aria-label="Copier le lien" className={shareBtn}>
+              {copied ? <Check className="w-4 h-4 text-success-500" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
+        </motion.div>
+
+        <motion.p variants={staggerItem} className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mt-8 mb-5`}>
+          {categoryToPole(post.category)}
+        </motion.p>
+        <motion.h1 variants={staggerItem} className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.05]">
+          {post.title}
+        </motion.h1>
+      </motion.div>
+
       {/* ── CONTENU ── */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {post.excerpt && (
-          <p className="text-xl text-neutral-600 dark:text-neutral-300 leading-relaxed border-l-4 border-brand-500 pl-5 mb-10 italic">
+          <p className="text-xl text-neutral-600 dark:text-neutral-300 leading-relaxed border-l-4 border-coral-500 pl-5 mb-10 italic">
             {post.excerpt}
           </p>
         )}
         <article
-          className="prose-article prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mb-12 prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium prose-blockquote:text-neutral-700 dark:prose-blockquote:text-neutral-200"
+          className="prose-article prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mb-12 prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-a:text-coral-600 dark:prose-a:text-coral-400 hover:prose-a:text-coral-700 prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium prose-blockquote:text-neutral-700 dark:prose-blockquote:text-neutral-200"
           dangerouslySetInnerHTML={{ __html: markdownToHtml(post.content) }}
         />
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-10">
+        <div className="flex flex-wrap gap-2 mb-12">
           {post.tags.map((tag) => (
-            <span key={tag} className="px-4 py-1.5 bg-coral-50 dark:bg-coral-900/30 text-coral-700 dark:text-coral-300 text-xs font-semibold rounded-full uppercase tracking-wider">
+            <span key={tag} className={`px-4 py-1.5 ${theme.softBadge} text-xs font-semibold rounded-full uppercase tracking-wider`}>
               {tag}
             </span>
           ))}
-        </div>
-
-        {/* Partage */}
-        <div className="flex items-center gap-3 py-5 border-y border-neutral-100 dark:border-neutral-800 mb-12">
-          <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mr-1">Partager :</span>
-          <button onClick={handleShare} className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-200 dark:border-neutral-700 text-sm text-neutral-600 dark:text-neutral-300 hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-            <Share2 className="w-4 h-4" /> Partager
-          </button>
-          <a
-            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
-            target="_blank" rel="noopener noreferrer"
-            onClick={() => trackShare('linkedin', 'article', post.id)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-200 dark:border-neutral-700 text-sm text-neutral-600 dark:text-neutral-300 hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
-          >
-            <Linkedin className="w-4 h-4" /> LinkedIn
-          </a>
-          <button onClick={handleCopy} className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-200 dark:border-neutral-700 text-sm text-neutral-600 dark:text-neutral-300 hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-            {copied ? <Check className="w-4 h-4 text-success-500" /> : <Copy className="w-4 h-4" />}
-            {copied ? 'Copie !' : 'Copier le lien'}
-          </button>
         </div>
 
         {/* Formation CTA */}
@@ -225,46 +237,33 @@ export default function BlogPost() {
         </div>
 
         {/* Newsletter */}
-        <div className="mb-16">
+        <div className="mb-4">
           <NewsletterForm variant="card" source="blog-post" />
         </div>
-
-        {/* Articles lies */}
-        {relatedPosts.length > 0 && (
-          <motion.div
-            variants={slideUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-          >
-            <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-5">
-              A LIRE AUSSI
-            </p>
-            <h3 className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white mb-8">Articles similaires</h3>
-            <motion.div
-              className="space-y-4"
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOnce}
-            >
-              {relatedPosts.map((rp, i) => (
-                <motion.div key={rp.id} variants={staggerItem}>
-                <Link to={`/blog/${rp.slug}`} className="group flex items-center gap-5 py-5 border-b border-neutral-100 dark:border-neutral-800 hover:pl-2 transition-all duration-200">
-                  <span className="text-sm font-black text-neutral-300 dark:text-neutral-700 w-6 shrink-0">#{i + 1}</span>
-                  <img src={rp.coverImage} alt={rp.title} className="w-16 h-16 rounded-xl object-cover shrink-0" loading="lazy" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold tracking-widest uppercase text-coral-600 dark:text-coral-400 mb-1">{rp.category}</p>
-                    <p className="font-bold text-neutral-900 dark:text-white group-hover:text-coral-600 dark:group-hover:text-coral-400 transition-colors leading-snug">{rp.title}</p>
-                    <p className="text-xs text-neutral-400 mt-1">{rp.readTime} min de lecture</p>
-                  </div>
-                </Link>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-        )}
       </div>
+
+      {/* ── Articles similaires ── */}
+      {relatedPosts.length > 0 && (
+        <motion.section
+          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20"
+          variants={slideUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+        >
+          <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-3`}>
+            À LIRE AUSSI
+          </p>
+          <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-8">
+            Articles similaires
+          </h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
+            {relatedPosts.map((rp) => (
+              <ArticleCard key={rp.id} post={rp} compact />
+            ))}
+          </div>
+        </motion.section>
+      )}
 
       {/* ── CTA croisé → Formations ── */}
       <motion.section
@@ -275,7 +274,7 @@ export default function BlogPost() {
         viewport={{ once: true, amount: 0.3 }}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4">
+          <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-4`}>
             DÉCOUVREZ AUSSI
           </p>
           <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white mb-4">
@@ -284,7 +283,7 @@ export default function BlogPost() {
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
             Des formations pratiques pour aller plus loin et transformer vos connaissances en compétences réelles.
           </p>
-          <Link to="/formations" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-bold rounded-full hover:bg-brand-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
+          <Link to="/formations" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide`}>
             Voir les formations <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

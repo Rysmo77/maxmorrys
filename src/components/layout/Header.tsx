@@ -72,6 +72,9 @@ export default function Header({ onSearchOpen }: HeaderProps) {
 
   const isTransformerActive = location.pathname.startsWith('/podcasts') || location.pathname.startsWith('/videos');
 
+  // Header transparent par-dessus le hero (accueil, haut de page, menu fermé).
+  const transparent = location.pathname === '/' && !scrolled && !mobileOpen;
+
   const userInitials = user?.displayName
     ? user.displayName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : user?.email?.[0]?.toUpperCase() ?? 'U';
@@ -81,9 +84,11 @@ export default function Header({ onSearchOpen }: HeaderProps) {
       <header
         className={cn(
           'fixed top-0 left-0 right-0 z-40 transition-all duration-300',
-          scrolled
-            ? 'bg-white dark:bg-neutral-900 shadow-[0_1px_0_0_rgba(0,0,0,0.08)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.06)]'
-            : 'bg-white dark:bg-neutral-950 border-b border-neutral-200/50 dark:border-neutral-800/50'
+          transparent
+            ? 'bg-transparent'
+            : scrolled
+              ? 'bg-white dark:bg-neutral-900 shadow-[0_1px_0_0_rgba(0,0,0,0.08)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.06)]'
+              : 'bg-white dark:bg-neutral-950 border-b border-neutral-200/50 dark:border-neutral-800/50'
         )}
       >
         {/* Brand accent stripe */}
@@ -98,7 +103,12 @@ export default function Header({ onSearchOpen }: HeaderProps) {
             {/* Logo */}
             <Link to="/" className="group shrink-0 flex items-center gap-2">
               <div className="relative">
-                <span className="font-black text-[1.35rem] tracking-tight text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors duration-200 drop-shadow-sm">
+                <span className={cn(
+                  'font-black text-[1.35rem] tracking-tight transition-colors duration-200 drop-shadow-sm',
+                  transparent
+                    ? 'text-white group-hover:text-brand-200'
+                    : 'text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400'
+                )}>
                   Hellooo<span className="text-brand-500">!</span>
                 </span>
               </div>
@@ -115,8 +125,10 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     className={cn(
                       'relative px-3.5 py-2 text-[0.8125rem] font-semibold transition-colors duration-150 rounded-lg group',
                       isActive
-                        ? 'text-neutral-900 dark:text-white font-semibold'
-                        : 'text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
+                        ? transparent ? 'text-white font-semibold' : 'text-neutral-900 dark:text-white font-semibold'
+                        : transparent
+                          ? 'text-white/85 hover:text-white hover:bg-white/10'
+                          : 'text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
                     )}
                   >
                     {link.label}
@@ -146,8 +158,10 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   className={cn(
                     'relative flex items-center gap-1 px-3.5 py-2 text-[0.8125rem] font-semibold transition-colors duration-150 rounded-lg group',
                     isTransformerActive
-                      ? 'text-neutral-900 dark:text-white font-semibold'
-                      : 'text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
+                      ? transparent ? 'text-white font-semibold' : 'text-neutral-900 dark:text-white font-semibold'
+                      : transparent
+                        ? 'text-white/85 hover:text-white hover:bg-white/10'
+                        : 'text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
                   )}
                 >
                   Je te transforme
@@ -172,22 +186,22 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                         const iconBoxCls = isVideos
                           ? 'bg-red-50 dark:bg-red-900/30'
                           : isPodcasts
-                            ? 'bg-green-50 dark:bg-green-900/30'
+                            ? 'bg-plum-50 dark:bg-plum-900/30'
                             : 'bg-brand-50 dark:bg-brand-900/30';
                         const iconCls = isVideos
                           ? 'text-red-600 dark:text-red-400'
                           : isPodcasts
-                            ? 'text-green-600 dark:text-green-400'
+                            ? 'text-plum-600 dark:text-plum-400'
                             : 'text-brand-600 dark:text-brand-400';
                         const hoverCls = isVideos
                           ? 'group-hover/item:text-red-600 dark:group-hover/item:text-red-400'
                           : isPodcasts
-                            ? 'group-hover/item:text-green-600 dark:group-hover/item:text-green-400'
+                            ? 'group-hover/item:text-plum-600 dark:group-hover/item:text-plum-400'
                             : 'group-hover/item:text-brand-600 dark:group-hover/item:text-brand-400';
                         const activeCls = isVideos
                           ? 'text-red-600 dark:text-red-400'
                           : isPodcasts
-                            ? 'text-green-600 dark:text-green-400'
+                            ? 'text-plum-600 dark:text-plum-400'
                             : 'text-brand-600 dark:text-brand-400';
                         return (
                         <Link
@@ -220,9 +234,11 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                 to="/contact"
                 className={cn(
                   'relative px-3.5 py-2 text-[0.8125rem] font-semibold transition-all duration-150 rounded-lg group',
-                  location.pathname === '/contact'
-                    ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
-                    : 'text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20'
+                  transparent
+                    ? 'text-white hover:bg-white/10'
+                    : location.pathname === '/contact'
+                      ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
+                      : 'text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20'
                 )}
               >
                 Contacte-moi
@@ -238,7 +254,12 @@ export default function Header({ onSearchOpen }: HeaderProps) {
             <div className="flex items-center gap-0.5 ml-auto lg:ml-0">
               <button
                 onClick={onSearchOpen}
-                className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors rounded-lg hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60"
+                className={cn(
+                  'p-2 transition-colors rounded-lg',
+                  transparent
+                    ? 'text-white/80 hover:text-white hover:bg-white/10'
+                    : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
+                )}
                 aria-label="Rechercher"
               >
                 <Search className="w-[18px] h-[18px]" />
@@ -246,7 +267,12 @@ export default function Header({ onSearchOpen }: HeaderProps) {
 
               <button
                 onClick={toggleTheme}
-                className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors rounded-lg hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60"
+                className={cn(
+                  'p-2 transition-colors rounded-lg',
+                  transparent
+                    ? 'text-white/80 hover:text-white hover:bg-white/10'
+                    : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
+                )}
                 aria-label="Changer le thème"
               >
                 {theme === 'dark' ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
@@ -259,15 +285,23 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     aria-expanded={profileOpen}
                     aria-haspopup="true"
                     aria-label={`Menu du compte de ${user.displayName || user.email}`}
-                    className="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-full border border-neutral-200/80 dark:border-neutral-700/80 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition-all duration-200"
+                    className={cn(
+                      'flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-full border transition-all duration-200',
+                      transparent
+                        ? 'border-white/30 hover:border-white/50 hover:bg-white/10'
+                        : 'border-neutral-200/80 dark:border-neutral-700/80 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-neutral-50 dark:hover:bg-neutral-800/60'
+                    )}
                   >
                     <div className="w-7 h-7 rounded-full bg-brand-600 dark:bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
                       {userInitials}
                     </div>
-                    <span className="hidden sm:block text-xs font-semibold text-neutral-700 dark:text-neutral-300 max-w-[80px] truncate">
+                    <span className={cn(
+                      'hidden sm:block text-xs font-semibold max-w-[80px] truncate',
+                      transparent ? 'text-white/90' : 'text-neutral-700 dark:text-neutral-300'
+                    )}>
                       {user.displayName?.split(' ')[0] || 'Mon compte'}
                     </span>
-                    <ChevronDown className={cn('w-3 h-3 text-neutral-400 transition-transform duration-200', profileOpen && 'rotate-180')} />
+                    <ChevronDown className={cn('w-3 h-3 transition-transform duration-200', transparent ? 'text-white/70' : 'text-neutral-400', profileOpen && 'rotate-180')} />
                   </button>
 
                   {profileOpen && (
@@ -309,7 +343,12 @@ export default function Header({ onSearchOpen }: HeaderProps) {
               ) : (
                 <Link
                   to="/connexion"
-                  className="hidden sm:inline-flex items-center gap-2 px-4 py-2 ml-1.5 text-[0.8125rem] font-semibold text-neutral-700 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700 rounded-full hover:border-brand-400 hover:text-brand-600 dark:hover:border-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-all duration-200"
+                  className={cn(
+                    'hidden sm:inline-flex items-center gap-2 px-4 py-2 ml-1.5 text-[0.8125rem] font-semibold border rounded-full transition-all duration-200',
+                    transparent
+                      ? 'text-white border-white/30 hover:border-white/50 hover:bg-white/10'
+                      : 'text-neutral-700 dark:text-neutral-200 border-neutral-200 dark:border-neutral-700 hover:border-brand-400 hover:text-brand-600 dark:hover:border-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/10'
+                  )}
                 >
                   <LogIn className="w-3.5 h-3.5" />
                   Connexion
@@ -318,7 +357,12 @@ export default function Header({ onSearchOpen }: HeaderProps) {
 
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="lg:hidden ml-1 p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors rounded-lg hover:bg-neutral-100/60 dark:hover:bg-neutral-800/50"
+                className={cn(
+                  'lg:hidden ml-1 p-2 transition-colors rounded-lg',
+                  transparent
+                    ? 'text-white hover:bg-white/10'
+                    : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/60 dark:hover:bg-neutral-800/50'
+                )}
                 aria-label="Menu"
               >
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -378,16 +422,31 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     mobileTransformerOpen ? 'max-h-40 mt-0.5 opacity-100' : 'max-h-0 opacity-0'
                   )}
                 >
-                    {transformerLinks.map((item) => (
+                    {transformerLinks.map((item) => {
+                      const isPodcasts = item.path === '/podcasts';
+                      const isActive = location.pathname.startsWith(item.path);
+                      return (
                       <Link
                         key={item.path}
                         to={item.path}
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-neutral-600 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
+                        className={cn(
+                          'flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/60',
+                          isPodcasts
+                            ? cn(
+                                'hover:text-plum-600 dark:hover:text-plum-400',
+                                isActive ? 'text-plum-600 dark:text-plum-400 font-semibold' : 'text-neutral-600 dark:text-neutral-400'
+                              )
+                            : cn(
+                                'hover:text-brand-600 dark:hover:text-brand-400',
+                                isActive ? 'text-brand-600 dark:text-brand-400 font-semibold' : 'text-neutral-600 dark:text-neutral-400'
+                              )
+                        )}
                       >
                         <item.icon className="w-4 h-4" />
                         {item.label}
                       </Link>
-                    ))}
+                      );
+                    })}
                 </div>
               </div>
 
