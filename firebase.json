@@ -57,6 +57,7 @@
       { "source": "/faq", "function": "prerender" },
       { "source": "/a-propos", "function": "prerender" },
       { "source": "/contact", "function": "prerender" },
+      { "source": "/legal/**", "function": "prerender" },
       {
         "source": "**",
         "destination": "/index.html"

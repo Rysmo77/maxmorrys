@@ -5,7 +5,10 @@ import SEOHead from '../../components/seo/SEOHead';
 export default function CGV() {
   return (
     <div className="pt-24 pb-20">
-      <SEOHead title="Conditions Générales de Vente" noIndex />
+      <SEOHead
+        title="Conditions Générales de Vente"
+        description="Conditions Générales de Vente des formations et services Max-Morrys."
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Retour à l'accueil

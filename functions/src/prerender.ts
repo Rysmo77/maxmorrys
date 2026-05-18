@@ -178,6 +178,54 @@ const staticPages: Record<string, PageMeta> = {
       { name: 'Contact', url: `${SITE_URL}/contact` },
     ],
   },
+  '/legal/mentions-legales': {
+    title: `Mentions légales | ${SITE_NAME}`,
+    description: 'Mentions légales de Max-Morrys : éditeur, hébergeur et informations légales du site.',
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/legal/mentions-legales`,
+    h1: 'Mentions légales',
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Mentions légales', url: `${SITE_URL}/legal/mentions-legales` },
+    ],
+  },
+  '/legal/confidentialite': {
+    title: `Politique de confidentialité | ${SITE_NAME}`,
+    description: 'Politique de confidentialité et protection des données personnelles de Max-Morrys (RGPD).',
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/legal/confidentialite`,
+    h1: 'Politique de confidentialité',
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Confidentialité', url: `${SITE_URL}/legal/confidentialite` },
+    ],
+  },
+  '/legal/cgv': {
+    title: `Conditions Générales de Vente | ${SITE_NAME}`,
+    description: 'Conditions Générales de Vente des formations et services Max-Morrys.',
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/legal/cgv`,
+    h1: 'Conditions Générales de Vente',
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'CGV', url: `${SITE_URL}/legal/cgv` },
+    ],
+  },
+  '/legal/cookies': {
+    title: `Politique de cookies | ${SITE_NAME}`,
+    description: 'Politique de gestion des cookies et traceurs sur le site Max-Morrys.',
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/legal/cookies`,
+    h1: 'Politique de cookies',
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Cookies', url: `${SITE_URL}/legal/cookies` },
+    ],
+  },
 };
 
 // ── Dynamic content meta lookup ──────────────────────────────────────────
@@ -225,6 +273,10 @@ async function getContentMeta(path: string): Promise<PageMeta | null> {
         mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${slug}` },
         articleSection: post.category,
         keywords: Array.isArray(post.tags) ? post.tags.join(', ') : undefined,
+        articleBody: post.content ? stripMarkdown(post.content) : post.excerpt,
+        ...(typeof post.readTime === 'number' && post.readTime > 0 && {
+          timeRequired: `PT${post.readTime}M`,
+        }),
       },
       breadcrumbs: [
         { name: 'Accueil', url: `${SITE_URL}/` },

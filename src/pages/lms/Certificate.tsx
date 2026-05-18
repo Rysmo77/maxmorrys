@@ -7,6 +7,7 @@ import { getCollection } from '../../lib/firestore';
 import { formatDate } from '../../lib/utils';
 import type { Certificate as CertificateType } from '../../types';
 import { trackCertificateEarned, trackShare } from '../../lib/tracking';
+import SEOHead from '../../components/seo/SEOHead';
 import { where } from 'firebase/firestore';
 
 export default function Certificate() {
@@ -66,6 +67,11 @@ export default function Certificate() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-brand-50/30 dark:from-neutral-950 dark:to-brand-950/20 flex items-center justify-center px-4 py-16">
+      <SEOHead
+        title={`Certificat — ${certificate.formationTitle}`}
+        description={`Certificat de réussite de la formation « ${certificate.formationTitle} » délivré par Max-Morrys Academy.`}
+        noIndex
+      />
       <motion.div
         className="w-full max-w-2xl"
         initial={{ opacity: 0, scale: 0.95 }}

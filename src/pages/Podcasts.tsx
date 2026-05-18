@@ -131,6 +131,8 @@ export default function Podcasts() {
                     alt="Le Podcast du Marketing"
                     className="w-full h-full object-cover"
                     loading="eager"
+                    width={640}
+                    height={800}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -225,6 +227,8 @@ export default function Podcasts() {
                   alt="Max-Morrys Eyoum"
                   className="w-full h-full object-cover scale-x-[-1]"
                   loading="lazy"
+                  width={640}
+                  height={800}
                 />
               </div>
             </div>
@@ -569,7 +573,7 @@ export default function Podcasts() {
           <div className="grid lg:grid-cols-2 items-stretch rounded-3xl overflow-hidden">
             <div className={`relative min-h-[280px] ${theme.sectionBg}`}>
               {heroImage ? (
-                <img src={heroImage} alt="Le marketing en pratique" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                <img src={heroImage} alt="Le marketing en pratique" className="absolute inset-0 w-full h-full object-cover" loading="lazy" width={800} height={560} />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <Play className="w-16 h-16 text-plum-300 dark:text-neutral-700" />

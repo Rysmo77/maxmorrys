@@ -5,7 +5,10 @@ import SEOHead from '../../components/seo/SEOHead';
 export default function Confidentialite() {
   return (
     <div className="pt-24 pb-20">
-      <SEOHead title="Politique de confidentialité" noIndex />
+      <SEOHead
+        title="Politique de confidentialité"
+        description="Politique de confidentialité et protection des données personnelles de Max-Morrys (RGPD)."
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Retour à l'accueil

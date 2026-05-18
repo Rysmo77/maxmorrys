@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Clock, Linkedin, Copy, Check, Loader2, Twitter } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -23,6 +23,7 @@ const viewportOnce = { once: true, amount: 0.2 } as const;
 
 export default function BlogPost() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [post, setPost] = useState<BlogPostType | null | undefined>(undefined);
   const [relatedPosts, setRelatedPosts] = useState<BlogPostType[]>([]);
@@ -67,6 +68,16 @@ export default function BlogPost() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     trackShare('copy_link', 'article', post.id);
+  };
+
+  // Navigation SPA pour les liens internes insérés dans le contenu HTML.
+  const handleContentClick = (e: React.MouseEvent<HTMLElement>) => {
+    const anchor = (e.target as HTMLElement).closest('a');
+    const href = anchor?.getAttribute('href');
+    if (href && href.startsWith('/') && !href.startsWith('//')) {
+      e.preventDefault();
+      navigate(href);
+    }
   };
 
   const shareUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.href : `${SITE_URL}/blog/${post.slug}`);
@@ -218,6 +229,7 @@ export default function BlogPost() {
           </p>
         )}
         <article
+          onClick={handleContentClick}
           className="prose-article prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mb-12 prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-a:text-coral-600 dark:prose-a:text-coral-400 hover:prose-a:text-coral-700 prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium prose-blockquote:text-neutral-700 dark:prose-blockquote:text-neutral-200"
           dangerouslySetInnerHTML={{ __html: markdownToHtml(post.content) }}
         />

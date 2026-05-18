@@ -94,7 +94,7 @@ function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) 
           «&nbsp;{t.content}&nbsp;»
         </p>
         <div className="flex items-center justify-center gap-3">
-          {t.avatar && <img src={t.avatar} alt={t.name} className="w-11 h-11 rounded-full object-cover" loading="lazy" />}
+          {t.avatar && <img src={t.avatar} alt={t.name} className="w-11 h-11 rounded-full object-cover" loading="lazy" width={44} height={44} />}
           <div className="text-left">
             <p className="font-bold text-neutral-900 dark:text-white text-sm">{t.name}</p>
             <p className="text-xs text-neutral-500">{t.role}{t.company ? `, ${t.company}` : ''}</p>
@@ -326,7 +326,7 @@ export default function Home() {
             {/* Image + badge circulaire */}
             <div className="relative">
               <div className="aspect-[4/5] overflow-hidden rounded-[2rem]">
-                <img src={PROFILE_IMG} alt="Max-Morrys" className="w-full h-full object-cover" loading="lazy" />
+                <img src={PROFILE_IMG} alt="Max-Morrys" className="w-full h-full object-cover" loading="lazy" width={640} height={800} />
               </div>
               <CircularBadge
                 text="Ravi de te rencontrer"
@@ -474,6 +474,8 @@ export default function Home() {
               alt="Passer au niveau supérieur"
               className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
+              width={1200}
+              height={800}
             />
           </div>
         </div>
@@ -587,6 +589,8 @@ export default function Home() {
                       alt={featuredPost.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       loading="lazy"
+                      width={800}
+                      height={600}
                     />
                   </div>
                   <p className={`text-xs font-bold tracking-[0.25em] uppercase ${universeThemes.blog.eyebrow} mb-3`}>
@@ -619,6 +623,8 @@ export default function Home() {
                         alt={post.title}
                         className="w-16 h-16 lg:w-20 lg:h-20 rounded-full object-cover shrink-0"
                         loading="lazy"
+                        width={80}
+                        height={80}
                       />
                       <div className="flex-1 min-w-0">
                         <p className={`text-[0.7rem] font-bold tracking-[0.2em] uppercase ${universeThemes.blog.eyebrow} mb-1.5`}>
@@ -663,6 +669,8 @@ export default function Home() {
               alt="La méthode Max-Morrys"
               className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
+              width={1200}
+              height={800}
             />
             <div className="absolute inset-0 bg-brand-900/30" />
           </div>

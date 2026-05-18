@@ -1,13 +1,18 @@
 {
   "name": "Max-Morrys",
   "short_name": "Max-Morrys",
-  "description": "Formations, articles, podcasts et videos pour maitriser le marketing digital, le SEO et l'IA.",
+  "description": "Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA.",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0c93e7",
   "lang": "fr",
+  "dir": "ltr",
+  "categories": ["education", "business"],
   "icons": [
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
   ]
 }
