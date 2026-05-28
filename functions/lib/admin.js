@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.adminManageEnrollment = exports.adminCreateUser = void 0;
+exports.adminManageEnrollment = exports.adminManageRysmoQuota = exports.adminCreateUser = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 exports.adminCreateUser = (0, https_1.onCall)({ region: 'us-central1' }, async (request) => {
@@ -73,6 +73,50 @@ exports.adminCreateUser = (0, https_1.onCall)({ region: 'us-central1' }, async (
     };
     await admin.firestore().doc(`users/${userRecord.uid}`).set(newUser);
     return { uid: userRecord.uid, success: true };
+});
+exports.adminManageRysmoQuota = (0, https_1.onCall)({ region: 'us-central1' }, async (request) => {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+    if (!request.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'Authentification requise.');
+    }
+    const callerDoc = await admin.firestore().doc(`users/${request.auth.uid}`).get();
+    if (!callerDoc.exists || ((_a = callerDoc.data()) === null || _a === void 0 ? void 0 : _a.role) !== 'admin') {
+        throw new https_1.HttpsError('permission-denied', 'Accès réservé aux administrateurs.');
+    }
+    const { userId, action, amount } = request.data;
+    if (!userId) {
+        throw new https_1.HttpsError('invalid-argument', 'userId est obligatoire.');
+    }
+    const ref = admin.firestore().doc(`_ratelimits/rysmo_${userId}`);
+    if (action === 'get') {
+        const snap = await ref.get();
+        const d = (_b = snap.data()) !== null && _b !== void 0 ? _b : {};
+        return { dayKey: (_c = d.dayKey) !== null && _c !== void 0 ? _c : null, dayCount: (_d = d.dayCount) !== null && _d !== void 0 ? _d : 0, packBalance: (_e = d.packBalance) !== null && _e !== void 0 ? _e : 0 };
+    }
+    if (action === 'add') {
+        if (!Number.isInteger(amount) || amount < 1 || amount > 10000) {
+            throw new https_1.HttpsError('invalid-argument', 'Le nombre de tokens doit être un entier entre 1 et 10000.');
+        }
+        const newBalance = await admin.firestore().runTransaction(async (t) => {
+            var _a, _b;
+            const s = await t.get(ref);
+            const cur = (_b = (_a = s.data()) === null || _a === void 0 ? void 0 : _a.packBalance) !== null && _b !== void 0 ? _b : 0;
+            const next = cur + amount;
+            t.set(ref, { packBalance: next, lastReset: Date.now() }, { merge: true });
+            return next;
+        });
+        const snap = await ref.get();
+        const d = (_f = snap.data()) !== null && _f !== void 0 ? _f : {};
+        return { dayKey: (_g = d.dayKey) !== null && _g !== void 0 ? _g : null, dayCount: (_h = d.dayCount) !== null && _h !== void 0 ? _h : 0, packBalance: newBalance };
+    }
+    if (action === 'reset') {
+        const todayKey = new Date().toISOString().slice(0, 10);
+        await ref.set({ dayKey: todayKey, dayCount: 0, lastReset: Date.now() }, { merge: true });
+        const snap = await ref.get();
+        const d = (_j = snap.data()) !== null && _j !== void 0 ? _j : {};
+        return { dayKey: (_k = d.dayKey) !== null && _k !== void 0 ? _k : null, dayCount: 0, packBalance: (_l = d.packBalance) !== null && _l !== void 0 ? _l : 0 };
+    }
+    throw new https_1.HttpsError('invalid-argument', 'Action invalide. Utilisez "get", "add" ou "reset".');
 });
 exports.adminManageEnrollment = (0, https_1.onCall)({ region: 'us-central1' }, async (request) => {
     var _a;

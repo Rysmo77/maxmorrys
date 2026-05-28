@@ -45,6 +45,9 @@ export default function ArticleCard({ post, compact = false }: ArticleCardProps)
         {' · '}
         <span className="font-normal normal-case tracking-normal text-neutral-400">
           {post.readTime} min de lecture
+          {post.views !== undefined && post.views > 0 && (
+            <> · {post.views.toLocaleString()} lectures</>
+          )}
         </span>
       </p>
       <h3 className={`text-lg font-black tracking-tight text-neutral-900 dark:text-white mb-2 leading-snug ${theme.titleHover} transition-colors flex-1`}>

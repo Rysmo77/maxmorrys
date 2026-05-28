@@ -1,0 +1,871 @@
+{
+  "updatedAt": "2026-04-24T17:41:49.076Z",
+  "createdAt": "2026-04-23T18:02:12.129Z",
+  "id": "774G38cqIvZsJUHm",
+  "name": "WF-SOCIAL-04 — Visuels Gemini 3 Pro Image",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8-20/2 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cron-cron---toutes-2h-8-20h",
+      "name": "Cron — Toutes 2h 8-20h"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPYoyzcZLdtBTO3",
+          "mode": "list"
+        },
+        "filterByFormula": "{Status} = 'rédigé'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "at-s-airtable---lire-rédigés",
+      "name": "Airtable — Lire rédigés",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-pro",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-pro"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Tu es Directeur Artistique senior + CM pro (15 ans). Max-Morrys — agence personal branding + LMS, tagline \"Maîtrise le digital, accélère ta croissance\". Cible : entrepreneurs 25-45 AFW + diaspora.\n\nModèle image : **gemini-3-pro-image-preview** (Nano Banana Pro).\n\nINPUT (1 row = 1 Reseau × 1 Format) :\n- Titre: {{ $json.Titre }}\n- Format_Post: {{ $json.Format_Post }}\n- Reseau: {{ $json.Reseau }}\n- Thematique: {{ $json.Thematique }}\n- Pilier: {{ $json.Pilier }}\n- Texte: {{ $json.Texte }}\n- Brief: {{ $json.Brief }}\n- Mots_Cles: {{ $json.Mots_Cles }}\n\n═══════════════════════════════════════════════\nRÈGLE CRITIQUE — NOMBRE D'IMAGES (strict)\n═══════════════════════════════════════════════\n- Si Format_Post == \"carrousel\" : nombre_images = 5 à 10 (détecter dans Texte)\n- Si Format_Post ∈ (\"post\", \"story\", \"reel\", \"short\", \"community_post\", \"live\", \"thread\") : **nombre_images = 1 (UN SEUL prompt)**\n- `prompts` DOIT contenir EXACTEMENT `nombre_images` entrées (1 pour tout sauf carrousel)\n- NE JAMAIS générer plus d'une image pour un post/story/reel/short/community_post/live/thread\n\n═══════════════════════════════════════════════\nBRAND SYSTEM MAX-MORRYS\n═══════════════════════════════════════════════\nPalette : #0c93e7 (bleu primary), variants #0074c5 #015da0 · #ed9516 (accent orange) · #171717 (dark) · #f5f5f5 / white\nTypo : **Inter** (Black 900 / Bold 700 / Semibold 600)\nEsthétique : minimalisme éditorial, espace négatif, data viz style NYT/Atlantic, entrepreneurs AFW (Dakar/Abidjan/Douala coworking)\n\n═══════════════════════════════════════════════\nDIMENSIONS — 1 Reseau × 1 Format → dimensions uniques\n═══════════════════════════════════════════════\nUtilise la table (reseau, format_post) → aspect_ratio (toutes 2K) :\n\n- (ig, story), (fb, story), (ig, reel), (fb, reel), (youtube, short), (tiktok, reel), (tiktok, short) → 9:16 (1080x1920)\n- (ig, post), (fb, post), (ig, carrousel), (fb, carrousel) → 4:5 (1080x1350)\n- (linkedin, post), (linkedin, carrousel) → 1:1 (1080x1080)  [LinkedIn préfère carré ou 4:5 — privilégier 1:1 pour carrousel PDF]\n- (x, post), (x, thread) → 16:9 (1600x900)\n- (youtube, video), (youtube, live) → 16:9 (1920x1080)\n- (fb, live), (linkedin, live) → 16:9 (1920x1080)\n- (*, community_post) → 1:1 (1080x1080)\n- (linkedin, video) → 16:9 (1920x1080)\n\nDefault si non listé : 4:5 (1080x1350) à 2K.\n\n═══════════════════════════════════════════════\nTYPES DE VISUEL (choisir selon le PILIER)\n═══════════════════════════════════════════════\n- **Éducation** → infographie | typographique | carrousel slide-by-slide\n- **Inspiration** → citation_design | typographique majestueux\n- **Autorité** → data viz | composition_mixte (portrait + stats)\n- **Communauté** → photo_realiste (entrepreneurs AFW authentiques) | behind-the-scenes\n- **Produit** → composition_mixte avec bullets offre + CTA visuel\n\nMax-Morrys = agence digitale → privilégier INFOGRAPHIE, TYPOGRAPHIQUE, COMPOSITION_MIXTE. Photo seulement pour pilier Communauté.\n\n═══════════════════════════════════════════════\nCARROUSELS\n═══════════════════════════════════════════════\n1. Détecter nb slides dans Texte (5-10)\n2. Un prompt par slide, cohérence totale\n3. Chaque prompt inclut : \"Slide X of N in coherent Max-Morrys series. Maintain EXACT same: palette (#0c93e7 primary, #ed9516 accent, #171717 dark, white), Inter typography, minimalist editorial layout.\"\n4. Slide 1 = cover (titre fort) ; intermédiaires = \"01 — [point]\" ; dernière = CTA (\"Sauvegarde\", \"Partage\", \"Suis @maxmorrys\")\n5. ZERO personnes physiques sauf case study explicite\n\n═══════════════════════════════════════════════\nTEXTES SUR VISUEL\n═══════════════════════════════════════════════\n1. Orthographe française relue 3× (accents é è à ç)\n2. <15 mots idéal, 25 max\n3. Dans prompt : \"with the exact text 'TEXTE' rendered in [position] with Inter Black 900\"\n4. Tutoiement respecté\n\n═══════════════════════════════════════════════\nANTI-DÉRIVE (inclure dans CHAQUE prompt)\n═══════════════════════════════════════════════\nAVOID: tribal patterns, wax, masks, scarifications, touristic African stereotypes, generic corporate (handshake, gears, lightbulbs), AI artifacts, distorted text, extra fingers, cartoon style, saturated neon gradients, more than 3 dominant colors, stock photo style, emoji icons in visual.\n\nPRIVILÉGIER : modern professional African environments (Dakar/Abidjan/Douala coworking), authentic contemporary people, Inter typography, Max-Morrys palette (#0c93e7 #ed9516 #171717), minimalist editorial layout.\n\n═══════════════════════════════════════════════\nSORTIE JSON STRICT\n═══════════════════════════════════════════════\nPas de markdown, pas de backticks.\n\n{\n  \"visual_strategy\": {\n    \"type_visuel\": \"photo_realiste | illustration | typographique | infographie | composition_mixte | citation_design\",\n    \"rationale\": \"justification par pilier + réseau\",\n    \"nombre_images\": N,\n    \"format_specs\": {\n      \"dimensions_pixels\": \"1080x1350\",\n      \"aspect_ratio\": \"4:5\",\n      \"resolution\": \"2K\",\n      \"reseau\": \"ig\",\n      \"rationale_dimensions\": \"justification\"\n    },\n    \"coherence_serie\": \"instructions si N>1 sinon null\"\n  },\n  \"prompts\": [\n    {\n      \"image_index\": 1,\n      \"type\": \"cover | content | cta | standalone\",\n      \"prompt_gemini3\": \"prompt anglais 300-500 mots incluant brand system Max-Morrys + AVOID: clause\",\n      \"text_overlay\": {\n        \"has_text\": true,\n        \"text_content\": \"texte français tutoyé SANS FAUTE\",\n        \"text_placement\": \"top | center | bottom | left | right\",\n        \"text_typography_brief\": \"Inter Black 900, taille, couleur hex\"\n      },\n      \"api_config\": {\n        \"model\": \"gemini-3-pro-image-preview\",\n        \"aspectRatio\": \"4:5\",\n        \"resolution\": \"2K\"\n      }\n    }\n  ]\n}\n"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 32768,
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "gem-gemini-pro---stratégie-v3",
+      "name": "Gemini Pro — Stratégie V3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// runOnceForAllItems — parse Gemini V3, expand per prompt, ENFORCE aspect_ratio from deterministic table.\n// Gemini peut halluciner le aspect_ratio → on override selon (Reseau, Format_Post).\n\nconst MULTI_IMAGE_FORMATS = new Set(['carrousel']);\n\n// Table déterministe (reseau, format_post) → aspect_ratio (priorité absolue sur Gemini)\nfunction computeAspectRatio(reseau, format) {\n  const r = String(reseau || '').toLowerCase();\n  const f = String(format || '').toLowerCase();\n  // 9:16 — verticaux\n  if ((r === 'ig' || r === 'fb') && (f === 'story' || f === 'reel')) return '9:16';\n  if (r === 'youtube' && f === 'short') return '9:16';\n  if (r === 'tiktok' && (f === 'reel' || f === 'short')) return '9:16';\n  // 4:5 — portrait social\n  if ((r === 'ig' || r === 'fb') && (f === 'post' || f === 'carrousel')) return '4:5';\n  // 1:1 — carré LinkedIn\n  if (r === 'linkedin' && (f === 'post' || f === 'carrousel')) return '1:1';\n  if (f === 'community_post') return '1:1';\n  // 16:9 — paysage\n  if (r === 'x' && (f === 'post' || f === 'thread')) return '16:9';\n  if (r === 'youtube' && (f === 'video' || f === 'live')) return '16:9';\n  if ((r === 'fb' || r === 'linkedin') && f === 'live') return '16:9';\n  if (r === 'linkedin' && f === 'video') return '16:9';\n  // Default\n  return '4:5';\n}\n\nconst geminiResponses = $input.all();\nconst sources = $('Airtable — Lire rédigés').all();\nconst out = [];\n\nfunction extractJson(t) {\n  let c = (t || '').trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/i, '').trim();\n  try { return JSON.parse(c); } catch (e) {}\n  const m = c.match(/\\{[\\s\\S]*\\}/);\n  if (m) { try { return JSON.parse(m[0]); } catch (e) {} }\n  return null;\n}\n\nfor (let i = 0; i < geminiResponses.length; i++) {\n  const resp = geminiResponses[i].json || {};\n  const src = sources[i]?.json || {};\n  let text = '';\n  if (resp.candidates?.[0]?.content?.parts) text = resp.candidates[0].content.parts.map(p => p.text || '').join('');\n  else if (typeof resp === 'string') text = resp;\n  else if (resp.content?.parts) text = resp.content.parts.map(p => p.text || '').join('');\n  else text = JSON.stringify(resp);\n\n  const data = extractJson(text);\n  if (!data || !Array.isArray(data.prompts) || !data.prompts.length) {\n    out.push({ json: { id: src.id, _skip: true, error: 'Parse échec ou prompts vides', Status: 'rédigé' }});\n    continue;\n  }\n\n  const fmt = String(src.Format_Post || '').toLowerCase();\n  let prompts = data.prompts;\n  if (!MULTI_IMAGE_FORMATS.has(fmt) && prompts.length > 1) prompts = [prompts[0]];\n\n  // OVERRIDE aspect_ratio with deterministic table — ignore whatever Gemini chose\n  const enforcedAspectRatio = computeAspectRatio(src.Reseau, src.Format_Post);\n\n  for (let idx = 0; idx < prompts.length; idx++) {\n    const p = prompts[idx] || {};\n    out.push({ json: {\n      id: src.id,\n      src_titre: src.Titre,\n      src_format: src.Format_Post,\n      src_reseau: src.Reseau,\n      visual_strategy: data.visual_strategy,\n      image_index: p.image_index || (idx + 1),\n      total_images: prompts.length,\n      prompt_gemini3: p.prompt_gemini3,\n      text_overlay: p.text_overlay,\n      aspect_ratio: enforcedAspectRatio, // déterministe, pas celui de Gemini\n      resolution: '2K',\n      model: 'gemini-3-pro-image-preview'\n    }});\n  }\n}\n\nreturn out.length ? out : [{ json: { _empty: true }}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "code-parse---stratégie-visuelle",
+      "name": "Parse — Stratégie visuelle"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "maxmorrys-lms",
+        "fileName": "=social/{{ $json.id }}/{{ $json.image_index }}_{{ Date.now() }}.png",
+        "additionalFields": {
+          "acl": "publicRead"
+        }
+      },
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        0
+      ],
+      "id": "r2-r2---upload-image",
+      "name": "R2 — Upload image",
+      "credentials": {
+        "s3": {
+          "id": "1jkvWRlxegNgpKto",
+          "name": "Cloudflare R2 Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\n// runOnceForEachItem — build public URL from uploaded key\nconst meta = $input.item.json;\nconst batch = $('Parse — Stratégie visuelle').all()[$itemIndex].json;\nconst R2_BASE = 'https://pub-98fc057dc71948c7bd129a674b4bcec8.r2.dev';\nconst key = meta.Key || meta.key || `social/${batch.id}/${batch.image_index}_${Date.now()}.png`;\nreturn { json: {\n  id: batch.id,\n  image_index: batch.image_index,\n  total_images: batch.total_images,\n  visual_strategy: batch.visual_strategy,\n  public_url: `${R2_BASE}/${key}`\n}};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        0
+      ],
+      "id": "code-build---url-publique",
+      "name": "Build — URL publique"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// runOnceForAllItems — groupe par id, collecte les URLs, émet 1 item par contenu\nconst items = $input.all().map(i => i.json);\nconst byId = {};\nfor (const it of items) {\n  if (!byId[it.id]) byId[it.id] = { id: it.id, urls: [], visual_strategy: it.visual_strategy };\n  byId[it.id].urls[it.image_index - 1] = it.public_url;\n}\nreturn Object.values(byId).map(g => ({ json: {\n  id: g.id,\n  Status: 'prêt_à_valider',\n  Visuels_URLs: JSON.stringify(g.urls.filter(Boolean)),\n  Visual_Strategy: JSON.stringify(g.visual_strategy || {})\n}}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        0
+      ],
+      "id": "code-collect---urls-par-contenu",
+      "name": "Collect — URLs par contenu"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPYoyzcZLdtBTO3",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "={{ $json.Status }}",
+            "Visuels_URLs": "={{ $json.Visuels_URLs }}",
+            "Visual_Strategy": "={{ $json.Visual_Strategy }}",
+            "id": "={{ $json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Visuels_URLs",
+              "displayName": "Visuels_URLs",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Visual_Strategy",
+              "displayName": "Visual_Strategy",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2144,
+        0
+      ],
+      "id": "at-u-airtable---status=prêt_à_val",
+      "name": "Airtable — Status=prêt_à_valider",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.prompt_gemini3 }] }], generationConfig: { responseModalities: ['TEXT','IMAGE'] } }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "http-gemini-image-v1",
+      "name": "HTTP — Gemini 2.5 Flash Image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem — parse Gemini API response, extract base64 image, convert to binary\nconst resp = $input.item.json;\nconst meta = $input.item; // to preserve upstream metadata we pass via $('Parse — Stratégie visuelle')\nconst srcMeta = $('Parse — Stratégie visuelle').all()[$itemIndex].json;\n\n// Extract base64 from Gemini response\nlet base64 = null;\nlet mimeType = 'image/png';\nconst candidates = resp.candidates || [];\nfor (const c of candidates) {\n  const parts = c?.content?.parts || [];\n  for (const p of parts) {\n    if (p?.inlineData?.data) {\n      base64 = p.inlineData.data;\n      mimeType = p.inlineData.mimeType || 'image/png';\n      break;\n    }\n  }\n  if (base64) break;\n}\n\nif (!base64) {\n  return { json: { _skip: true, error: 'Gemini response has no inlineData', id: srcMeta.id }};\n}\n\nconst buffer = Buffer.from(base64, 'base64');\nconst ext = mimeType.includes('jpeg') ? 'jpg' : 'png';\nconst fileName = `${srcMeta.id}_${srcMeta.image_index}.${ext}`;\nconst binary = await this.helpers.prepareBinaryData(buffer, fileName, mimeType);\n\nreturn {\n  json: {\n    id: srcMeta.id,\n    image_index: srcMeta.image_index,\n    total_images: srcMeta.total_images,\n    visual_strategy: srcMeta.visual_strategy,\n    aspect_ratio: srcMeta.aspect_ratio,\n    fileName: fileName,\n  },\n  binary: { data: binary }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "decode-base64-img",
+      "name": "Decode — Base64 → Binary"
+    }
+  ],
+  "connections": {
+    "Cron — Toutes 2h 8-20h": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire rédigés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire rédigés": {
+      "main": [
+        [
+          {
+            "node": "Gemini Pro — Stratégie V3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Pro — Stratégie V3": {
+      "main": [
+        [
+          {
+            "node": "Parse — Stratégie visuelle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Stratégie visuelle": {
+      "main": [
+        [
+          {
+            "node": "HTTP — Gemini 2.5 Flash Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "R2 — Upload image": {
+      "main": [
+        [
+          {
+            "node": "Build — URL publique",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build — URL publique": {
+      "main": [
+        [
+          {
+            "node": "Collect — URLs par contenu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect — URLs par contenu": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status=prêt_à_valider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decode — Base64 → Binary": {
+      "main": [
+        [
+          {
+            "node": "R2 — Upload image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP — Gemini 2.5 Flash Image": {
+      "main": [
+        [
+          {
+            "node": "Decode — Base64 → Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron — Toutes 2h 8-20h": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": {},
+  "versionId": "a37b0ddd-16e0-45fc-b52a-c0b6d4938dca",
+  "activeVersionId": "442514ae-4dbd-46e1-a3de-fcd34e8fbb39",
+  "versionCounter": 36,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-23T18:02:12.131Z",
+      "createdAt": "2026-04-23T18:02:12.131Z",
+      "role": "workflow:owner",
+      "workflowId": "774G38cqIvZsJUHm",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-24T17:35:32.894Z",
+    "createdAt": "2026-04-24T17:35:32.894Z",
+    "versionId": "442514ae-4dbd-46e1-a3de-fcd34e8fbb39",
+    "workflowId": "774G38cqIvZsJUHm",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 8-20/2 * * *"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ],
+        "id": "cron-cron---toutes-2h-8-20h",
+        "name": "Cron — Toutes 2h 8-20h"
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblPYoyzcZLdtBTO3",
+            "mode": "list"
+          },
+          "filterByFormula": "{Status} = 'rédigé'",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          256,
+          0
+        ],
+        "id": "at-s-airtable---lire-rédigés",
+        "name": "Airtable — Lire rédigés",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-3-flash-preview",
+            "mode": "list",
+            "cachedResultName": "models/gemini-3-flash-preview"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "Tu es Directeur Artistique senior + CM pro (15 ans). Max-Morrys — agence personal branding + LMS, tagline \"Maîtrise le digital, accélère ta croissance\". Cible : entrepreneurs 25-45 AFW + diaspora.\n\nModèle image : **gemini-3-pro-image-preview** (Nano Banana Pro).\n\nINPUT (1 row = 1 Reseau × 1 Format) :\n- Titre: {{ $json.Titre }}\n- Format_Post: {{ $json.Format_Post }}\n- Reseau: {{ $json.Reseau }}\n- Thematique: {{ $json.Thematique }}\n- Pilier: {{ $json.Pilier }}\n- Texte: {{ $json.Texte }}\n- Brief: {{ $json.Brief }}\n- Mots_Cles: {{ $json.Mots_Cles }}\n\n═══════════════════════════════════════════════\nRÈGLE CRITIQUE — NOMBRE D'IMAGES (strict)\n═══════════════════════════════════════════════\n- Si Format_Post == \"carrousel\" : nombre_images = 5 à 10 (détecter dans Texte)\n- Si Format_Post ∈ (\"post\", \"story\", \"reel\", \"short\", \"community_post\", \"live\", \"thread\") : **nombre_images = 1 (UN SEUL prompt)**\n- `prompts` DOIT contenir EXACTEMENT `nombre_images` entrées (1 pour tout sauf carrousel)\n- NE JAMAIS générer plus d'une image pour un post/story/reel/short/community_post/live/thread\n\n═══════════════════════════════════════════════\nBRAND SYSTEM MAX-MORRYS\n═══════════════════════════════════════════════\nPalette : #0c93e7 (bleu primary), variants #0074c5 #015da0 · #ed9516 (accent orange) · #171717 (dark) · #f5f5f5 / white\nTypo : **Inter** (Black 900 / Bold 700 / Semibold 600)\nEsthétique : minimalisme éditorial, espace négatif, data viz style NYT/Atlantic, entrepreneurs AFW (Dakar/Abidjan/Douala coworking)\n\n═══════════════════════════════════════════════\nDIMENSIONS — 1 Reseau × 1 Format → dimensions uniques\n═══════════════════════════════════════════════\nUtilise la table (reseau, format_post) → aspect_ratio (toutes 2K) :\n\n- (ig, story), (fb, story), (ig, reel), (fb, reel), (youtube, short), (tiktok, reel), (tiktok, short) → 9:16 (1080x1920)\n- (ig, post), (fb, post), (ig, carrousel), (fb, carrousel) → 4:5 (1080x1350)\n- (linkedin, post), (linkedin, carrousel) → 1:1 (1080x1080)  [LinkedIn préfère carré ou 4:5 — privilégier 1:1 pour carrousel PDF]\n- (x, post), (x, thread) → 16:9 (1600x900)\n- (youtube, video), (youtube, live) → 16:9 (1920x1080)\n- (fb, live), (linkedin, live) → 16:9 (1920x1080)\n- (*, community_post) → 1:1 (1080x1080)\n- (linkedin, video) → 16:9 (1920x1080)\n\nDefault si non listé : 4:5 (1080x1350) à 2K.\n\n═══════════════════════════════════════════════\nTYPES DE VISUEL (choisir selon le PILIER)\n═══════════════════════════════════════════════\n- **Éducation** → infographie | typographique | carrousel slide-by-slide\n- **Inspiration** → citation_design | typographique majestueux\n- **Autorité** → data viz | composition_mixte (portrait + stats)\n- **Communauté** → photo_realiste (entrepreneurs AFW authentiques) | behind-the-scenes\n- **Produit** → composition_mixte avec bullets offre + CTA visuel\n\nMax-Morrys = agence digitale → privilégier INFOGRAPHIE, TYPOGRAPHIQUE, COMPOSITION_MIXTE. Photo seulement pour pilier Communauté.\n\n═══════════════════════════════════════════════\nCARROUSELS\n═══════════════════════════════════════════════\n1. Détecter nb slides dans Texte (5-10)\n2. Un prompt par slide, cohérence totale\n3. Chaque prompt inclut : \"Slide X of N in coherent Max-Morrys series. Maintain EXACT same: palette (#0c93e7 primary, #ed9516 accent, #171717 dark, white), Inter typography, minimalist editorial layout.\"\n4. Slide 1 = cover (titre fort) ; intermédiaires = \"01 — [point]\" ; dernière = CTA (\"Sauvegarde\", \"Partage\", \"Suis @maxmorrys\")\n5. ZERO personnes physiques sauf case study explicite\n\n═══════════════════════════════════════════════\nTEXTES SUR VISUEL\n═══════════════════════════════════════════════\n1. Orthographe française relue 3× (accents é è à ç)\n2. <15 mots idéal, 25 max\n3. Dans prompt : \"with the exact text 'TEXTE' rendered in [position] with Inter Black 900\"\n4. Tutoiement respecté\n\n═══════════════════════════════════════════════\nANTI-DÉRIVE (inclure dans CHAQUE prompt)\n═══════════════════════════════════════════════\nAVOID: tribal patterns, wax, masks, scarifications, touristic African stereotypes, generic corporate (handshake, gears, lightbulbs), AI artifacts, distorted text, extra fingers, cartoon style, saturated neon gradients, more than 3 dominant colors, stock photo style, emoji icons in visual.\n\nPRIVILÉGIER : modern professional African environments (Dakar/Abidjan/Douala coworking), authentic contemporary people, Inter typography, Max-Morrys palette (#0c93e7 #ed9516 #171717), minimalist editorial layout.\n\n═══════════════════════════════════════════════\nSORTIE JSON STRICT\n═══════════════════════════════════════════════\nPas de markdown, pas de backticks.\n\n{\n  \"visual_strategy\": {\n    \"type_visuel\": \"photo_realiste | illustration | typographique | infographie | composition_mixte | citation_design\",\n    \"rationale\": \"justification par pilier + réseau\",\n    \"nombre_images\": N,\n    \"format_specs\": {\n      \"dimensions_pixels\": \"1080x1350\",\n      \"aspect_ratio\": \"4:5\",\n      \"resolution\": \"2K\",\n      \"reseau\": \"ig\",\n      \"rationale_dimensions\": \"justification\"\n    },\n    \"coherence_serie\": \"instructions si N>1 sinon null\"\n  },\n  \"prompts\": [\n    {\n      \"image_index\": 1,\n      \"type\": \"cover | content | cta | standalone\",\n      \"prompt_gemini3\": \"prompt anglais 300-500 mots incluant brand system Max-Morrys + AVOID: clause\",\n      \"text_overlay\": {\n        \"has_text\": true,\n        \"text_content\": \"texte français tutoyé SANS FAUTE\",\n        \"text_placement\": \"top | center | bottom | left | right\",\n        \"text_typography_brief\": \"Inter Black 900, taille, couleur hex\"\n      },\n      \"api_config\": {\n        \"model\": \"gemini-3-pro-image-preview\",\n        \"aspectRatio\": \"4:5\",\n        \"resolution\": \"2K\"\n      }\n    }\n  ]\n}\n"
+              }
+            ]
+          },
+          "simplify": false,
+          "jsonOutput": true,
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 32768,
+            "temperature": 0.7
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          464,
+          0
+        ],
+        "id": "gem-gemini-pro---stratégie-v3",
+        "name": "Gemini Pro — Stratégie V3",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// runOnceForAllItems — parse Gemini V3, expand per prompt, ENFORCE aspect_ratio from deterministic table.\n// Gemini peut halluciner le aspect_ratio → on override selon (Reseau, Format_Post).\n\nconst MULTI_IMAGE_FORMATS = new Set(['carrousel']);\n\n// Table déterministe (reseau, format_post) → aspect_ratio (priorité absolue sur Gemini)\nfunction computeAspectRatio(reseau, format) {\n  const r = String(reseau || '').toLowerCase();\n  const f = String(format || '').toLowerCase();\n  // 9:16 — verticaux\n  if ((r === 'ig' || r === 'fb') && (f === 'story' || f === 'reel')) return '9:16';\n  if (r === 'youtube' && f === 'short') return '9:16';\n  if (r === 'tiktok' && (f === 'reel' || f === 'short')) return '9:16';\n  // 4:5 — portrait social\n  if ((r === 'ig' || r === 'fb') && (f === 'post' || f === 'carrousel')) return '4:5';\n  // 1:1 — carré LinkedIn\n  if (r === 'linkedin' && (f === 'post' || f === 'carrousel')) return '1:1';\n  if (f === 'community_post') return '1:1';\n  // 16:9 — paysage\n  if (r === 'x' && (f === 'post' || f === 'thread')) return '16:9';\n  if (r === 'youtube' && (f === 'video' || f === 'live')) return '16:9';\n  if ((r === 'fb' || r === 'linkedin') && f === 'live') return '16:9';\n  if (r === 'linkedin' && f === 'video') return '16:9';\n  // Default\n  return '4:5';\n}\n\nconst geminiResponses = $input.all();\nconst sources = $('Airtable — Lire rédigés').all();\nconst out = [];\n\nfunction extractJson(t) {\n  let c = (t || '').trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/i, '').trim();\n  try { return JSON.parse(c); } catch (e) {}\n  const m = c.match(/\\{[\\s\\S]*\\}/);\n  if (m) { try { return JSON.parse(m[0]); } catch (e) {} }\n  return null;\n}\n\nfor (let i = 0; i < geminiResponses.length; i++) {\n  const resp = geminiResponses[i].json || {};\n  const src = sources[i]?.json || {};\n  let text = '';\n  if (resp.candidates?.[0]?.content?.parts) text = resp.candidates[0].content.parts.map(p => p.text || '').join('');\n  else if (typeof resp === 'string') text = resp;\n  else if (resp.content?.parts) text = resp.content.parts.map(p => p.text || '').join('');\n  else text = JSON.stringify(resp);\n\n  const data = extractJson(text);\n  if (!data || !Array.isArray(data.prompts) || !data.prompts.length) {\n    out.push({ json: { id: src.id, _skip: true, error: 'Parse échec ou prompts vides', Status: 'rédigé' }});\n    continue;\n  }\n\n  const fmt = String(src.Format_Post || '').toLowerCase();\n  let prompts = data.prompts;\n  if (!MULTI_IMAGE_FORMATS.has(fmt) && prompts.length > 1) prompts = [prompts[0]];\n\n  // OVERRIDE aspect_ratio with deterministic table — ignore whatever Gemini chose\n  const enforcedAspectRatio = computeAspectRatio(src.Reseau, src.Format_Post);\n\n  for (let idx = 0; idx < prompts.length; idx++) {\n    const p = prompts[idx] || {};\n    out.push({ json: {\n      id: src.id,\n      src_titre: src.Titre,\n      src_format: src.Format_Post,\n      src_reseau: src.Reseau,\n      visual_strategy: data.visual_strategy,\n      image_index: p.image_index || (idx + 1),\n      total_images: prompts.length,\n      prompt_gemini3: p.prompt_gemini3,\n      text_overlay: p.text_overlay,\n      aspect_ratio: enforcedAspectRatio, // déterministe, pas celui de Gemini\n      resolution: '2K',\n      model: 'gemini-3-pro-image-preview'\n    }});\n  }\n}\n\nreturn out.length ? out : [{ json: { _empty: true }}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          752,
+          0
+        ],
+        "id": "code-parse---stratégie-visuelle",
+        "name": "Parse — Stratégie visuelle"
+      },
+      {
+        "parameters": {
+          "operation": "upload",
+          "bucketName": "maxmorrys-lms",
+          "fileName": "=social/{{ $json.id }}/{{ $json.image_index }}_{{ Date.now() }}.png",
+          "additionalFields": {
+            "acl": "publicRead"
+          }
+        },
+        "type": "n8n-nodes-base.s3",
+        "typeVersion": 1,
+        "position": [
+          1264,
+          0
+        ],
+        "id": "r2-r2---upload-image",
+        "name": "R2 — Upload image",
+        "credentials": {
+          "s3": {
+            "id": "1jkvWRlxegNgpKto",
+            "name": "Cloudflare R2 Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "\n// runOnceForEachItem — build public URL from uploaded key\nconst meta = $input.item.json;\nconst batch = $('Parse — Stratégie visuelle').all()[$itemIndex].json;\nconst R2_BASE = 'https://pub-98fc057dc71948c7bd129a674b4bcec8.r2.dev';\nconst key = meta.Key || meta.key || `social/${batch.id}/${batch.image_index}_${Date.now()}.png`;\nreturn { json: {\n  id: batch.id,\n  image_index: batch.image_index,\n  total_images: batch.total_images,\n  visual_strategy: batch.visual_strategy,\n  public_url: `${R2_BASE}/${key}`\n}};\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1504,
+          0
+        ],
+        "id": "code-build---url-publique",
+        "name": "Build — URL publique"
+      },
+      {
+        "parameters": {
+          "jsCode": "\n// runOnceForAllItems — groupe par id, collecte les URLs, émet 1 item par contenu\nconst items = $input.all().map(i => i.json);\nconst byId = {};\nfor (const it of items) {\n  if (!byId[it.id]) byId[it.id] = { id: it.id, urls: [], visual_strategy: it.visual_strategy };\n  byId[it.id].urls[it.image_index - 1] = it.public_url;\n}\nreturn Object.values(byId).map(g => ({ json: {\n  id: g.id,\n  Status: 'prêt_à_valider',\n  Visuels_URLs: JSON.stringify(g.urls.filter(Boolean)),\n  Visual_Strategy: JSON.stringify(g.visual_strategy || {})\n}}));\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1760,
+          0
+        ],
+        "id": "code-collect---urls-par-contenu",
+        "name": "Collect — URLs par contenu"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblPYoyzcZLdtBTO3",
+            "mode": "list"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Status": "={{ $json.Status }}",
+              "Visuels_URLs": "={{ $json.Visuels_URLs }}",
+              "Visual_Strategy": "={{ $json.Visual_Strategy }}",
+              "id": "={{ $json.id }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Visuels_URLs",
+                "displayName": "Visuels_URLs",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Visual_Strategy",
+                "displayName": "Visual_Strategy",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          2000,
+          0
+        ],
+        "id": "at-u-airtable---status=prêt_à_val",
+        "name": "Airtable — Status=prêt_à_valider",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googlePalmApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.prompt_gemini3 }] }], generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: $json.aspect_ratio, imageSize: $json.resolution || '2K' } } }) }}",
+          "options": {
+            "timeout": 60000
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1008,
+          0
+        ],
+        "id": "http-gemini-image-v1",
+        "name": "HTTP — Gemini 3 Pro Image",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// runOnceForEachItem — parse Gemini API response, extract base64 image, convert to binary\nconst resp = $input.item.json;\nconst meta = $input.item; // to preserve upstream metadata we pass via $('Parse — Stratégie visuelle')\nconst srcMeta = $('Parse — Stratégie visuelle').all()[$itemIndex].json;\n\n// Extract base64 from Gemini response\nlet base64 = null;\nlet mimeType = 'image/png';\nconst candidates = resp.candidates || [];\nfor (const c of candidates) {\n  const parts = c?.content?.parts || [];\n  for (const p of parts) {\n    if (p?.inlineData?.data) {\n      base64 = p.inlineData.data;\n      mimeType = p.inlineData.mimeType || 'image/png';\n      break;\n    }\n  }\n  if (base64) break;\n}\n\nif (!base64) {\n  return { json: { _skip: true, error: 'Gemini response has no inlineData', id: srcMeta.id }};\n}\n\nconst buffer = Buffer.from(base64, 'base64');\nconst ext = mimeType.includes('jpeg') ? 'jpg' : 'png';\nconst fileName = `${srcMeta.id}_${srcMeta.image_index}.${ext}`;\nconst binary = await this.helpers.prepareBinaryData(buffer, fileName, mimeType);\n\nreturn {\n  json: {\n    id: srcMeta.id,\n    image_index: srcMeta.image_index,\n    total_images: srcMeta.total_images,\n    visual_strategy: srcMeta.visual_strategy,\n    aspect_ratio: srcMeta.aspect_ratio,\n    fileName: fileName,\n  },\n  binary: { data: binary }\n};\n",
+          "mode": "runOnceForEachItem"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1258,
+          0
+        ],
+        "id": "decode-base64-img",
+        "name": "Decode — Base64 → Binary"
+      }
+    ],
+    "connections": {
+      "Cron — Toutes 2h 8-20h": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire rédigés",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire rédigés": {
+        "main": [
+          [
+            {
+              "node": "Gemini Pro — Stratégie V3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Pro — Stratégie V3": {
+        "main": [
+          [
+            {
+              "node": "Parse — Stratégie visuelle",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Stratégie visuelle": {
+        "main": [
+          [
+            {
+              "node": "HTTP — Gemini 3 Pro Image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "R2 — Upload image": {
+        "main": [
+          [
+            {
+              "node": "Build — URL publique",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build — URL publique": {
+        "main": [
+          [
+            {
+              "node": "Collect — URLs par contenu",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Collect — URLs par contenu": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Status=prêt_à_valider",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP — Gemini 3 Pro Image": {
+        "main": [
+          [
+            {
+              "node": "Decode — Base64 → Binary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Decode — Base64 → Binary": {
+        "main": [
+          [
+            {
+              "node": "R2 — Upload image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-24T17:35:33.103Z",
+        "id": 441,
+        "workflowId": "774G38cqIvZsJUHm",
+        "versionId": "442514ae-4dbd-46e1-a3de-fcd34e8fbb39",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-04-24T17:35:33.003Z",
+        "id": 440,
+        "workflowId": "774G38cqIvZsJUHm",
+        "versionId": "442514ae-4dbd-46e1-a3de-fcd34e8fbb39",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

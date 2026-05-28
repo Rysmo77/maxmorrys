@@ -1,0 +1,2589 @@
+{
+  "updatedAt": "2026-05-20T10:30:31.580Z",
+  "createdAt": "2026-04-09T10:30:37.910Z",
+  "id": "LOvoUdV3nKCsPd46",
+  "name": "WF-07 — Recherche d'Idées Articles (Géolocalisé)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=marketing+digital+Sénégal+Afrique+Ouest+2026&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf07-search-local",
+      "name": "Alerte — Marketing digital Sénégal",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        128
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=digital+marketing+trends+best+practices+2026&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf07-search-intl",
+      "name": "Alerte — Digital marketing trends",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        320
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblA8gHrbE78CfukY",
+          "mode": "list",
+          "cachedResultName": "Banque Idees Articles"
+        },
+        "options": {}
+      },
+      "id": "wf07-read-existing",
+      "name": "Airtable — Articles existants",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        176,
+        -64
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=marketing+digital+afrique+entrepreneuriat+formation&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf07-google-news",
+      "name": "Google News RSS — Afrique",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        512
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://www.searchenginejournal.com/feed/",
+        "options": {}
+      },
+      "id": "wf07-rss-sej",
+      "name": "RSS — Search Engine Journal",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        704
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://moz.com/devblog/feed",
+        "options": {}
+      },
+      "id": "wf07-rss-moz",
+      "name": "RSS — Moz Blog",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        896
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "=https://firestore.googleapis.com/v1/projects/max-morrys/databases/(default)/documents/messages?pageSize=20&orderBy=createdAt desc",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "wf07-firestore-messages",
+      "name": "Firestore — Messages récents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        1088
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "6iOMFTsDdqjDRDAh",
+          "name": "Firebase Service Account Max-Morrys v1"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://firestore.googleapis.com/v1/projects/max-morrys/databases/(default)/documents/faq?pageSize=50",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "wf07-firestore-faq",
+      "name": "Firestore — FAQ (questions fréquentes)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        176,
+        1280
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "6iOMFTsDdqjDRDAh",
+          "name": "Firebase Service Account Max-Morrys v1"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=comment+créer+stratégie+marketing+digital+Afrique+questions&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf07-people-also-ask",
+      "name": "Alerte — Questions marketing digital Afrique",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        1472
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const existing = $('Airtable \\u2014 Articles existants').all().map(i => i.json);\nconst existingTitles = existing.map(e => e.Titre_SEO || '').filter(Boolean);\n\nconst allSources = [];\n\nconst rssNodes = [\n  { name: 'Marketing digital SN', node: 'Alerte \\u2014 Marketing digital S\\u00e9n\\u00e9gal' },\n  { name: 'Digital marketing intl', node: 'Alerte \\u2014 Digital marketing trends' },\n  { name: 'Questions marketing', node: 'Alerte \\u2014 Questions marketing digital Afrique' },\n  { name: 'Google News Afrique', node: 'Google News RSS \\u2014 Afrique' },\n  { name: 'SEJ', node: 'RSS \\u2014 Search Engine Journal' },\n  { name: 'Moz', node: 'RSS \\u2014 Moz Blog' },\n  { name: 'SEO Afrique', node: 'Alerte \\u2014 SEO Afrique francophone' },\n  { name: 'Content marketing', node: 'Alerte \\u2014 Content marketing Afrique' },\n  { name: 'Email marketing', node: 'Alerte \\u2014 Email marketing & automation' },\n  { name: 'Monetisation blog', node: 'GNews \\u2014 Blog mon\\u00e9tisation Afrique' },\n  { name: 'Copywriting', node: 'GNews \\u2014 Copywriting r\\u00e9daction web' },\n  { name: 'Analytics', node: 'GNews \\u2014 Google Analytics donn\\u00e9es web' },\n  { name: 'YT SEO FR', node: 'YouTube XML \\u2014 SEO & Marketing FR' },\n  { name: 'Product Hunt', node: 'RSS — Product Hunt (nouveaux outils)' },\n  { name: 'Smashing Magazine', node: 'RSS — Smashing Magazine' },\n  { name: 'The Verge AI', node: 'RSS — The Verge AI' },\n  { name: 'IA image & gen', node: 'GNews — IA image & génération' },\n  { name: 'Meta/IG updates', node: 'GNews — Meta / Instagram updates' },\n  { name: 'TikTok updates', node: 'GNews — TikTok updates' },\n  { name: 'LinkedIn updates', node: 'GNews — LinkedIn updates' },\n  { name: 'Search Engine Land', node: 'RSS — Search Engine Land' },\n  { name: 'CMI', node: 'RSS — Content Marketing Institute' },\n  { name: 'Buffer', node: 'RSS — Buffer (social marketing)' },\n  { name: 'Marketing AI Institute', node: 'RSS — Marketing AI Institute' },\n  { name: 'The Rundown AI', node: 'RSS — The Rundown AI' },\n];\n\nfor (const src of rssNodes) {\n  try {\n    const items = $(src.node).all();\n    for (const item of items.slice(0, 5)) {\n      const j = item.json;\n      allSources.push({\n        title: j.title || '', snippet: (j.contentSnippet || j.content || '').substring(0, 300),\n        url: j.link || '', source: src.name\n      });\n    }\n  } catch (e) {}\n}\n\nlet messageQuestions = [];\ntry {\n  const msgs = $('Firestore \\u2014 Messages r\\u00e9cents').first().json;\n  messageQuestions = (msgs?.documents || []).slice(0, 10).map(doc => {\n    const f = doc.fields || {};\n    return { title: f.subject?.stringValue || '', snippet: (f.message?.stringValue || '').substring(0, 200), url: '', source: 'Messages visiteurs' };\n  }).filter(m => m.title || m.snippet);\n} catch(e) {}\n\nlet faqItems = [];\ntry {\n  const faqs = $('Firestore \\u2014 FAQ (questions fr\\u00e9quentes)').first().json;\n  faqItems = (faqs?.documents || []).map(doc => {\n    const f = doc.fields || {};\n    return { title: f.question?.stringValue || '', snippet: (f.answer?.stringValue || '').substring(0, 150), url: '', source: 'FAQ maxmorrys.me' };\n  }).filter(f => f.title);\n} catch(e) {}\n\nreturn [{ json: {\n  rss_results: allSources,\n  user_questions: messageQuestions,\n  faq_questions: faqItems,\n  existing_articles: existingTitles,\n  total_sources: allSources.length + messageQuestions.length + faqItems.length\n} }];"
+      },
+      "id": "wf07-merge",
+      "name": "Merge — Compiler les données",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        2528
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-pro",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-pro"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=═══════════════════════════════════════════════\nRÈGLE DE PRIORISATION (lire en premier)\n═══════════════════════════════════════════════\nSi les sources RSS contiennent une actualité RÉCENTE (≤7 jours) parmi ces signaux :\n  • Rebrand / acquisition d'un outil marketing (ex : Freepik → Magnific)\n  • Lancement d'un nouveau modèle IA (image, vidéo, texte) ou d'une feature majeure\n  • Update d'algorithme sur Meta / Instagram / TikTok / LinkedIn / YouTube / X\n  • Nouveau format de publication (Reels, Threads, Shorts, Live, etc.)\n  • Prix / tarification / accessibilité d'un outil grand public marketing\n\n→ **PRIORISE ces sujets** dans tes 10 idées. Au moins 3-4 des 10 idées doivent être directement liées à ces actus brûlantes.\n→ Le titre SEO doit mentionner le nom de l'outil/plateforme et l'angle \"ce que ça change pour TON marketing en 2026\".\n→ Cible : entrepreneurs AFW qui veulent capitaliser sur le buzz pour rester pertinents.\n\n## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : RECHERCHE D'IDEES D'ARTICLES SEO\n\nPropose **5 sujets d'articles de blog** pour Max-Morrys, en analysant les sources ci-dessous et la base d'articles deja publies pour eviter les doublons.\n\nSOURCES ANALYSEES :\nLocal : {{ JSON.stringify($json.local_search_results) }}\nInternational : {{ JSON.stringify($json.international_results) }}\nGoogle News Afrique : {{ JSON.stringify($json.google_news) }}\nBlogs SEO/marketing : {{ JSON.stringify($json.rss_blogs) }}\nQuestions des visiteurs : {{ JSON.stringify($json.user_questions) }}\nFAQ existante : {{ JSON.stringify($json.faq_questions) }}\nPeople Also Ask : {{ JSON.stringify($json.people_also_ask) }}\n\nDEJA PUBLIE (ne pas reproposer) : {{ JSON.stringify($json.existing_articles) }}\n\nCRITERES :\n- Sujets concrets, actionnables — pas des reflexions philosophiques\n- Angles ancres dans la realite de l'Afrique francophone (Ouest ET Centrale)\n- Reponds a un besoin reel d'un entrepreneur africain debutant/intermediaire\n- Varies les categories : SEO, reseaux sociaux, email marketing, e-commerce, personal branding, IA pour marketing, Mobile Money, WhatsApp Business, growth hacking\n- Titres accrocheurs au tutoiement ou sous forme de question\n\nREPONSE JSON STRICT :\n{\n  \"articles\": [{\n    \"title_seo\": \"titre 60 chars max, mot-cle en debut\",\n    \"meta_description\": \"155 chars, incitative, tutoiement\",\n    \"main_keyword\": \"mot-cle principal\",\n    \"secondary_keywords\": [\"kw1\",\"kw2\",\"kw3\",\"kw4\",\"kw5\"],\n    \"search_intent\": \"informationnel|transactionnel|navigationnel\",\n    \"local_angle\": \"pourquoi c'est pertinent pour l'Afrique francophone\",\n    \"suggested_structure\": [\"H2: verbe d'action ou chiffre...\",\"H2: ...\"],\n    \"recommended_length\": 1200,\n    \"seo_potential_score\": 8,\n    \"competition_level\": \"faible|moyen|eleve\",\n    \"content_gap\": \"ce que les articles existants ne couvrent pas\"\n  }]\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 8192,
+          "temperature": 0.6,
+          "thinkingBudget": 0
+        }
+      },
+      "id": "wf07-gemini-native",
+      "name": "Gemini Pro — Proposer des sujets",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        2528
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\nlet parsed;\ntry {\n  if (input.articles) { parsed = input; }\n  else if (input.content?.parts) {\n    parsed = JSON.parse(input.content.parts.map(p => p.text || '').join(''));\n  } else { parsed = input; }\n} catch (e) {\n  throw new Error('Erreur parsing: ' + e.message);\n}\n\nconst articles = (parsed.articles || []).map(a => ({\n  Date: today, Titre_SEO: a.title_seo, Mot_Cle: a.main_keyword,\n  Angle_Local: a.local_angle, Volume_Estime: a.competition_level,\n  Score: a.seo_potential_score, Status: 'nouveau',\n  Meta_Description: a.meta_description,\n  Keywords_Secondaires: (a.secondary_keywords || []).join(', '),\n  Structure: (a.suggested_structure || []).join(' | '),\n  Longueur_Recommandee: a.recommended_length,\n  Intent: a.search_intent, Content_Gap: a.content_gap,\n  Inspiration: a.inspiration_source || ''\n}));\n\nreturn articles.map(a => ({ json: a }));"
+      },
+      "id": "wf07-parse",
+      "name": "Parse — Structurer les sujets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        2528
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblA8gHrbE78CfukY",
+          "mode": "list",
+          "cachedResultName": "Banque Idees Articles"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.Date }}",
+            "Titre_SEO": "={{ $json.Titre_SEO }}",
+            "Mot_Cle": "={{ $json.Mot_Cle }}",
+            "Angle_Local": "={{ $json.Angle_Local }}",
+            "Volume_Estime": "={{ $json.Volume_Estime }}",
+            "Score": "={{ $json.Score }}",
+            "Status": "={{ $json.Status }}",
+            "Longueur_Recommandee": 0
+          },
+          "matchingColumns": [
+            "Titre_SEO"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Titre_SEO",
+              "displayName": "Titre_SEO",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mot_Cle",
+              "displayName": "Mot_Cle",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Angle_Local",
+              "displayName": "Angle_Local",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Volume_Estime",
+              "displayName": "Volume_Estime",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Meta_Description",
+              "displayName": "Meta_Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Keywords_Secondaires",
+              "displayName": "Keywords_Secondaires",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Structure",
+              "displayName": "Structure",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Longueur_Recommandee",
+              "displayName": "Longueur_Recommandee",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Intent",
+              "displayName": "Intent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Content_Gap",
+              "displayName": "Content_Gap",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "wf07-sheets",
+      "name": "Airtable — Sauvegarder les idées",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1200,
+        2528
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=SEO+r%C3%A9f%C3%A9rencement+site+web+Afrique+francophone&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf07-alerte-seo",
+      "name": "Alerte — SEO Afrique francophone",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        1664
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=content+marketing+strat%C3%A9gie+contenu+Afrique&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf07-alerte-content",
+      "name": "Alerte — Content marketing Afrique",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        1856
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=email+marketing+newsletter+automation+francophone&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf07-alerte-email",
+      "name": "Alerte — Email marketing & automation",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        2048
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=blog+mon%C3%A9tisation+gagner+argent+internet+Afrique+francophone&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf07-gnews-blog-monetisation",
+      "name": "GNews — Blog monétisation Afrique",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        2240
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=copywriting+r%C3%A9daction+web+contenu+francophone+2026&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf07-gnews-copywriting",
+      "name": "GNews — Copywriting rédaction web",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        2432
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=Google+Analytics+donn%C3%A9es+web+performance+marketing&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf07-gnews-analytics",
+      "name": "GNews — Google Analytics données web",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        2624
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC2Aatk6UdrOBjhFXpFN5kew",
+        "options": {}
+      },
+      "id": "wf07-yt-seo-fr",
+      "name": "YouTube XML — SEO & Marketing FR",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        176,
+        2816
+      ],
+      "onError": "continueRegularOutput",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ]
+            }
+          ]
+        }
+      },
+      "id": "wf07-cron",
+      "name": "Chaque Lundi",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        2528
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.producthunt.com/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        3008
+      ],
+      "id": "rss-new-0",
+      "name": "RSS — Product Hunt (nouveaux outils)",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://www.smashingmagazine.com/feed/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        3200
+      ],
+      "id": "rss-new-1",
+      "name": "RSS — Smashing Magazine",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        3392
+      ],
+      "id": "rss-new-2",
+      "name": "RSS — The Verge AI",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=%22AI+image%22+OR+%22image+generation%22+OR+Magnific+OR+Freepik+OR+Midjourney+OR+%22Nano+Banana%22&hl=fr&gl=FR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        3584
+      ],
+      "id": "rss-new-3",
+      "name": "GNews — IA image & génération",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=%22Meta+update%22+OR+%22Instagram+algorithm%22+OR+%22Facebook+update%22&hl=fr&gl=FR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        3776
+      ],
+      "id": "rss-new-4",
+      "name": "GNews — Meta / Instagram updates",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=%22TikTok+algorithm%22+OR+%22TikTok+feature%22+OR+%22TikTok+update%22&hl=fr&gl=FR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        3968
+      ],
+      "id": "rss-new-5",
+      "name": "GNews — TikTok updates",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=%22LinkedIn+update%22+OR+%22LinkedIn+feature%22+OR+%22LinkedIn+algorithm%22&hl=fr&gl=FR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        4160
+      ],
+      "id": "rss-new-6",
+      "name": "GNews — LinkedIn updates",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://searchengineland.com/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        4352
+      ],
+      "id": "rss-new-7",
+      "name": "RSS — Search Engine Land",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://contentmarketinginstitute.com/feed/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        4544
+      ],
+      "id": "rss-new-8",
+      "name": "RSS — Content Marketing Institute",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://buffer.com/library/rss/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        4736
+      ],
+      "id": "rss-new-9",
+      "name": "RSS — Buffer (social marketing)",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://www.marketingaiinstitute.com/blog/rss.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        4928
+      ],
+      "id": "rss-new-10",
+      "name": "RSS — Marketing AI Institute",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://www.therundown.ai/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        5120
+      ],
+      "id": "rss-new-11",
+      "name": "RSS — The Rundown AI",
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Alerte — Marketing digital Sénégal": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — Digital marketing trends": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Articles existants": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google News RSS — Afrique": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — Search Engine Journal": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — Moz Blog": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firestore — Messages récents": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firestore — FAQ (questions fréquentes)": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — Questions marketing digital Afrique": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge — Compiler les données": {
+      "main": [
+        [
+          {
+            "node": "Gemini Pro — Proposer des sujets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Pro — Proposer des sujets": {
+      "main": [
+        [
+          {
+            "node": "Parse — Structurer les sujets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Structurer les sujets": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Sauvegarder les idées",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — SEO Afrique francophone": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — Content marketing Afrique": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — Email marketing & automation": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews — Blog monétisation Afrique": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews — Copywriting rédaction web": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews — Google Analytics données web": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube XML — SEO & Marketing FR": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chaque Lundi": {
+      "main": [
+        [
+          {
+            "node": "Alerte — Marketing digital Sénégal",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alerte — Digital marketing trends",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — Articles existants",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google News RSS — Afrique",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — Search Engine Journal",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — Moz Blog",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Firestore — Messages récents",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Firestore — FAQ (questions fréquentes)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alerte — Questions marketing digital Afrique",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alerte — SEO Afrique francophone",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alerte — Content marketing Afrique",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alerte — Email marketing & automation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GNews — Blog monétisation Afrique",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GNews — Copywriting rédaction web",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GNews — Google Analytics données web",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "YouTube XML — SEO & Marketing FR",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — Product Hunt (nouveaux outils)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — Smashing Magazine",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — The Verge AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GNews — IA image & génération",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GNews — Meta / Instagram updates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GNews — TikTok updates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GNews — LinkedIn updates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — Search Engine Land",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — Content Marketing Institute",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — Buffer (social marketing)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — Marketing AI Institute",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — The Rundown AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — Product Hunt (nouveaux outils)": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — Smashing Magazine": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — The Verge AI": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews — IA image & génération": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews — Meta / Instagram updates": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews — TikTok updates": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews — LinkedIn updates": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — Search Engine Land": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — Content Marketing Institute": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — Buffer (social marketing)": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — Marketing AI Institute": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — The Rundown AI": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron — 6h30 quotidien": {
+      "recurrenceRules": []
+    },
+    "node:Chaque Lundi": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": {},
+  "versionId": "453e55bf-4f80-430b-b87a-8365123fd323",
+  "activeVersionId": "453e55bf-4f80-430b-b87a-8365123fd323",
+  "versionCounter": 66,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-09T10:30:37.912Z",
+      "createdAt": "2026-04-09T10:30:37.912Z",
+      "role": "workflow:owner",
+      "workflowId": "LOvoUdV3nKCsPd46",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-20T10:30:31.581Z",
+    "createdAt": "2026-05-20T10:30:31.581Z",
+    "versionId": "453e55bf-4f80-430b-b87a-8365123fd323",
+    "workflowId": "LOvoUdV3nKCsPd46",
+    "nodes": [
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=marketing+digital+Sénégal+Afrique+Ouest+2026&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf07-search-local",
+        "name": "Alerte — Marketing digital Sénégal",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          128
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=digital+marketing+trends+best+practices+2026&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf07-search-intl",
+        "name": "Alerte — Digital marketing trends",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          320
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblA8gHrbE78CfukY",
+            "mode": "list",
+            "cachedResultName": "Banque Idees Articles"
+          },
+          "options": {}
+        },
+        "id": "wf07-read-existing",
+        "name": "Airtable — Articles existants",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          176,
+          -64
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=marketing+digital+afrique+entrepreneuriat+formation&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf07-google-news",
+        "name": "Google News RSS — Afrique",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          512
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://www.searchenginejournal.com/feed/",
+          "options": {}
+        },
+        "id": "wf07-rss-sej",
+        "name": "RSS — Search Engine Journal",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          704
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://moz.com/devblog/feed",
+          "options": {}
+        },
+        "id": "wf07-rss-moz",
+        "name": "RSS — Moz Blog",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          896
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "=https://firestore.googleapis.com/v1/projects/max-morrys/databases/(default)/documents/messages?pageSize=20&orderBy=createdAt desc",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googleApi",
+          "options": {
+            "timeout": 15000
+          }
+        },
+        "id": "wf07-firestore-messages",
+        "name": "Firestore — Messages récents",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          176,
+          1088
+        ],
+        "credentials": {
+          "googleApi": {
+            "id": "6iOMFTsDdqjDRDAh",
+            "name": "Firebase Service Account Max-Morrys v1"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "=https://firestore.googleapis.com/v1/projects/max-morrys/databases/(default)/documents/faq?pageSize=50",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googleApi",
+          "options": {
+            "timeout": 15000
+          }
+        },
+        "id": "wf07-firestore-faq",
+        "name": "Firestore — FAQ (questions fréquentes)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          176,
+          1280
+        ],
+        "credentials": {
+          "googleApi": {
+            "id": "6iOMFTsDdqjDRDAh",
+            "name": "Firebase Service Account Max-Morrys v1"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=comment+créer+stratégie+marketing+digital+Afrique+questions&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf07-people-also-ask",
+        "name": "Alerte — Questions marketing digital Afrique",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          1472
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const existing = $('Airtable \\u2014 Articles existants').all().map(i => i.json);\nconst existingTitles = existing.map(e => e.Titre_SEO || '').filter(Boolean);\n\nconst allSources = [];\n\nconst rssNodes = [\n  { name: 'Marketing digital SN', node: 'Alerte \\u2014 Marketing digital S\\u00e9n\\u00e9gal' },\n  { name: 'Digital marketing intl', node: 'Alerte \\u2014 Digital marketing trends' },\n  { name: 'Questions marketing', node: 'Alerte \\u2014 Questions marketing digital Afrique' },\n  { name: 'Google News Afrique', node: 'Google News RSS \\u2014 Afrique' },\n  { name: 'SEJ', node: 'RSS \\u2014 Search Engine Journal' },\n  { name: 'Moz', node: 'RSS \\u2014 Moz Blog' },\n  { name: 'SEO Afrique', node: 'Alerte \\u2014 SEO Afrique francophone' },\n  { name: 'Content marketing', node: 'Alerte \\u2014 Content marketing Afrique' },\n  { name: 'Email marketing', node: 'Alerte \\u2014 Email marketing & automation' },\n  { name: 'Monetisation blog', node: 'GNews \\u2014 Blog mon\\u00e9tisation Afrique' },\n  { name: 'Copywriting', node: 'GNews \\u2014 Copywriting r\\u00e9daction web' },\n  { name: 'Analytics', node: 'GNews \\u2014 Google Analytics donn\\u00e9es web' },\n  { name: 'YT SEO FR', node: 'YouTube XML \\u2014 SEO & Marketing FR' },\n  { name: 'Product Hunt', node: 'RSS — Product Hunt (nouveaux outils)' },\n  { name: 'Smashing Magazine', node: 'RSS — Smashing Magazine' },\n  { name: 'The Verge AI', node: 'RSS — The Verge AI' },\n  { name: 'IA image & gen', node: 'GNews — IA image & génération' },\n  { name: 'Meta/IG updates', node: 'GNews — Meta / Instagram updates' },\n  { name: 'TikTok updates', node: 'GNews — TikTok updates' },\n  { name: 'LinkedIn updates', node: 'GNews — LinkedIn updates' },\n  { name: 'Search Engine Land', node: 'RSS — Search Engine Land' },\n  { name: 'CMI', node: 'RSS — Content Marketing Institute' },\n  { name: 'Buffer', node: 'RSS — Buffer (social marketing)' },\n  { name: 'Marketing AI Institute', node: 'RSS — Marketing AI Institute' },\n  { name: 'The Rundown AI', node: 'RSS — The Rundown AI' },\n];\n\nfor (const src of rssNodes) {\n  try {\n    const items = $(src.node).all();\n    for (const item of items.slice(0, 5)) {\n      const j = item.json;\n      allSources.push({\n        title: j.title || '', snippet: (j.contentSnippet || j.content || '').substring(0, 300),\n        url: j.link || '', source: src.name\n      });\n    }\n  } catch (e) {}\n}\n\nlet messageQuestions = [];\ntry {\n  const msgs = $('Firestore \\u2014 Messages r\\u00e9cents').first().json;\n  messageQuestions = (msgs?.documents || []).slice(0, 10).map(doc => {\n    const f = doc.fields || {};\n    return { title: f.subject?.stringValue || '', snippet: (f.message?.stringValue || '').substring(0, 200), url: '', source: 'Messages visiteurs' };\n  }).filter(m => m.title || m.snippet);\n} catch(e) {}\n\nlet faqItems = [];\ntry {\n  const faqs = $('Firestore \\u2014 FAQ (questions fr\\u00e9quentes)').first().json;\n  faqItems = (faqs?.documents || []).map(doc => {\n    const f = doc.fields || {};\n    return { title: f.question?.stringValue || '', snippet: (f.answer?.stringValue || '').substring(0, 150), url: '', source: 'FAQ maxmorrys.me' };\n  }).filter(f => f.title);\n} catch(e) {}\n\nreturn [{ json: {\n  rss_results: allSources,\n  user_questions: messageQuestions,\n  faq_questions: faqItems,\n  existing_articles: existingTitles,\n  total_sources: allSources.length + messageQuestions.length + faqItems.length\n} }];"
+        },
+        "id": "wf07-merge",
+        "name": "Merge — Compiler les données",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          400,
+          2528
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-pro",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-pro"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=═══════════════════════════════════════════════\nRÈGLE DE PRIORISATION (lire en premier)\n═══════════════════════════════════════════════\nSi les sources RSS contiennent une actualité RÉCENTE (≤7 jours) parmi ces signaux :\n  • Rebrand / acquisition d'un outil marketing (ex : Freepik → Magnific)\n  • Lancement d'un nouveau modèle IA (image, vidéo, texte) ou d'une feature majeure\n  • Update d'algorithme sur Meta / Instagram / TikTok / LinkedIn / YouTube / X\n  • Nouveau format de publication (Reels, Threads, Shorts, Live, etc.)\n  • Prix / tarification / accessibilité d'un outil grand public marketing\n\n→ **PRIORISE ces sujets** dans tes 10 idées. Au moins 3-4 des 10 idées doivent être directement liées à ces actus brûlantes.\n→ Le titre SEO doit mentionner le nom de l'outil/plateforme et l'angle \"ce que ça change pour TON marketing en 2026\".\n→ Cible : entrepreneurs AFW qui veulent capitaliser sur le buzz pour rester pertinents.\n\n## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : RECHERCHE D'IDEES D'ARTICLES SEO\n\nPropose **5 sujets d'articles de blog** pour Max-Morrys, en analysant les sources ci-dessous et la base d'articles deja publies pour eviter les doublons.\n\nSOURCES ANALYSEES :\nLocal : {{ JSON.stringify($json.local_search_results) }}\nInternational : {{ JSON.stringify($json.international_results) }}\nGoogle News Afrique : {{ JSON.stringify($json.google_news) }}\nBlogs SEO/marketing : {{ JSON.stringify($json.rss_blogs) }}\nQuestions des visiteurs : {{ JSON.stringify($json.user_questions) }}\nFAQ existante : {{ JSON.stringify($json.faq_questions) }}\nPeople Also Ask : {{ JSON.stringify($json.people_also_ask) }}\n\nDEJA PUBLIE (ne pas reproposer) : {{ JSON.stringify($json.existing_articles) }}\n\nCRITERES :\n- Sujets concrets, actionnables — pas des reflexions philosophiques\n- Angles ancres dans la realite de l'Afrique francophone (Ouest ET Centrale)\n- Reponds a un besoin reel d'un entrepreneur africain debutant/intermediaire\n- Varies les categories : SEO, reseaux sociaux, email marketing, e-commerce, personal branding, IA pour marketing, Mobile Money, WhatsApp Business, growth hacking\n- Titres accrocheurs au tutoiement ou sous forme de question\n\nREPONSE JSON STRICT :\n{\n  \"articles\": [{\n    \"title_seo\": \"titre 60 chars max, mot-cle en debut\",\n    \"meta_description\": \"155 chars, incitative, tutoiement\",\n    \"main_keyword\": \"mot-cle principal\",\n    \"secondary_keywords\": [\"kw1\",\"kw2\",\"kw3\",\"kw4\",\"kw5\"],\n    \"search_intent\": \"informationnel|transactionnel|navigationnel\",\n    \"local_angle\": \"pourquoi c'est pertinent pour l'Afrique francophone\",\n    \"suggested_structure\": [\"H2: verbe d'action ou chiffre...\",\"H2: ...\"],\n    \"recommended_length\": 1200,\n    \"seo_potential_score\": 8,\n    \"competition_level\": \"faible|moyen|eleve\",\n    \"content_gap\": \"ce que les articles existants ne couvrent pas\"\n  }]\n}"
+              }
+            ]
+          },
+          "jsonOutput": true,
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 4096,
+            "temperature": 0.6
+          }
+        },
+        "id": "wf07-gemini-native",
+        "name": "Gemini Pro — Proposer des sujets",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          624,
+          2528
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\nlet parsed;\ntry {\n  if (input.articles) { parsed = input; }\n  else if (input.content?.parts) {\n    parsed = JSON.parse(input.content.parts.map(p => p.text || '').join(''));\n  } else { parsed = input; }\n} catch (e) {\n  throw new Error('Erreur parsing: ' + e.message);\n}\n\nconst articles = (parsed.articles || []).map(a => ({\n  Date: today, Titre_SEO: a.title_seo, Mot_Cle: a.main_keyword,\n  Angle_Local: a.local_angle, Volume_Estime: a.competition_level,\n  Score: a.seo_potential_score, Status: 'nouveau',\n  Meta_Description: a.meta_description,\n  Keywords_Secondaires: (a.secondary_keywords || []).join(', '),\n  Structure: (a.suggested_structure || []).join(' | '),\n  Longueur_Recommandee: a.recommended_length,\n  Intent: a.search_intent, Content_Gap: a.content_gap,\n  Inspiration: a.inspiration_source || ''\n}));\n\nreturn articles.map(a => ({ json: a }));"
+        },
+        "id": "wf07-parse",
+        "name": "Parse — Structurer les sujets",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          976,
+          2528
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "upsert",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblA8gHrbE78CfukY",
+            "mode": "list",
+            "cachedResultName": "Banque Idees Articles"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Date": "={{ $json.Date }}",
+              "Titre_SEO": "={{ $json.Titre_SEO }}",
+              "Mot_Cle": "={{ $json.Mot_Cle }}",
+              "Angle_Local": "={{ $json.Angle_Local }}",
+              "Volume_Estime": "={{ $json.Volume_Estime }}",
+              "Score": "={{ $json.Score }}",
+              "Status": "={{ $json.Status }}",
+              "Longueur_Recommandee": 0
+            },
+            "matchingColumns": [
+              "Titre_SEO"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Date",
+                "displayName": "Date",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Titre_SEO",
+                "displayName": "Titre_SEO",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Mot_Cle",
+                "displayName": "Mot_Cle",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Angle_Local",
+                "displayName": "Angle_Local",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Volume_Estime",
+                "displayName": "Volume_Estime",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Score",
+                "displayName": "Score",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Meta_Description",
+                "displayName": "Meta_Description",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Keywords_Secondaires",
+                "displayName": "Keywords_Secondaires",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Structure",
+                "displayName": "Structure",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Longueur_Recommandee",
+                "displayName": "Longueur_Recommandee",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Intent",
+                "displayName": "Intent",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Content_Gap",
+                "displayName": "Content_Gap",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "id": "wf07-sheets",
+        "name": "Airtable — Sauvegarder les idées",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1200,
+          2528
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=SEO+r%C3%A9f%C3%A9rencement+site+web+Afrique+francophone&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf07-alerte-seo",
+        "name": "Alerte — SEO Afrique francophone",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          1664
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=content+marketing+strat%C3%A9gie+contenu+Afrique&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf07-alerte-content",
+        "name": "Alerte — Content marketing Afrique",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          1856
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=email+marketing+newsletter+automation+francophone&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf07-alerte-email",
+        "name": "Alerte — Email marketing & automation",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          2048
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=blog+mon%C3%A9tisation+gagner+argent+internet+Afrique+francophone&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf07-gnews-blog-monetisation",
+        "name": "GNews — Blog monétisation Afrique",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          2240
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=copywriting+r%C3%A9daction+web+contenu+francophone+2026&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf07-gnews-copywriting",
+        "name": "GNews — Copywriting rédaction web",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          2432
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=Google+Analytics+donn%C3%A9es+web+performance+marketing&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf07-gnews-analytics",
+        "name": "GNews — Google Analytics données web",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          2624
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC2Aatk6UdrOBjhFXpFN5kew",
+          "options": {}
+        },
+        "id": "wf07-yt-seo-fr",
+        "name": "YouTube XML — SEO & Marketing FR",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          176,
+          2816
+        ],
+        "onError": "continueRegularOutput",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "weeks",
+                "triggerAtDay": [
+                  1
+                ]
+              }
+            ]
+          }
+        },
+        "id": "wf07-cron",
+        "name": "Chaque Lundi",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -48,
+          2528
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://www.producthunt.com/feed",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          3008
+        ],
+        "id": "rss-new-0",
+        "name": "RSS — Product Hunt (nouveaux outils)",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://www.smashingmagazine.com/feed/",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          3200
+        ],
+        "id": "rss-new-1",
+        "name": "RSS — Smashing Magazine",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          3392
+        ],
+        "id": "rss-new-2",
+        "name": "RSS — The Verge AI",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=%22AI+image%22+OR+%22image+generation%22+OR+Magnific+OR+Freepik+OR+Midjourney+OR+%22Nano+Banana%22&hl=fr&gl=FR",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          3584
+        ],
+        "id": "rss-new-3",
+        "name": "GNews — IA image & génération",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=%22Meta+update%22+OR+%22Instagram+algorithm%22+OR+%22Facebook+update%22&hl=fr&gl=FR",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          3776
+        ],
+        "id": "rss-new-4",
+        "name": "GNews — Meta / Instagram updates",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=%22TikTok+algorithm%22+OR+%22TikTok+feature%22+OR+%22TikTok+update%22&hl=fr&gl=FR",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          3968
+        ],
+        "id": "rss-new-5",
+        "name": "GNews — TikTok updates",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=%22LinkedIn+update%22+OR+%22LinkedIn+feature%22+OR+%22LinkedIn+algorithm%22&hl=fr&gl=FR",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          4160
+        ],
+        "id": "rss-new-6",
+        "name": "GNews — LinkedIn updates",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://searchengineland.com/feed",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          4352
+        ],
+        "id": "rss-new-7",
+        "name": "RSS — Search Engine Land",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://contentmarketinginstitute.com/feed/",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          4544
+        ],
+        "id": "rss-new-8",
+        "name": "RSS — Content Marketing Institute",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://buffer.com/library/rss/",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          4736
+        ],
+        "id": "rss-new-9",
+        "name": "RSS — Buffer (social marketing)",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://www.marketingaiinstitute.com/blog/rss.xml",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          4928
+        ],
+        "id": "rss-new-10",
+        "name": "RSS — Marketing AI Institute",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "https://www.therundown.ai/feed",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1.1,
+        "position": [
+          176,
+          5120
+        ],
+        "id": "rss-new-11",
+        "name": "RSS — The Rundown AI",
+        "continueOnFail": true
+      }
+    ],
+    "connections": {
+      "Alerte — Marketing digital Sénégal": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — Digital marketing trends": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Articles existants": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Google News RSS — Afrique": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — Search Engine Journal": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — Moz Blog": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Firestore — Messages récents": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Firestore — FAQ (questions fréquentes)": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — Questions marketing digital Afrique": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge — Compiler les données": {
+        "main": [
+          [
+            {
+              "node": "Gemini Pro — Proposer des sujets",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Pro — Proposer des sujets": {
+        "main": [
+          [
+            {
+              "node": "Parse — Structurer les sujets",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Structurer les sujets": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Sauvegarder les idées",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — SEO Afrique francophone": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — Content marketing Afrique": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — Email marketing & automation": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GNews — Blog monétisation Afrique": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GNews — Copywriting rédaction web": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GNews — Google Analytics données web": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "YouTube XML — SEO & Marketing FR": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Chaque Lundi": {
+        "main": [
+          [
+            {
+              "node": "Alerte — Marketing digital Sénégal",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alerte — Digital marketing trends",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Airtable — Articles existants",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Google News RSS — Afrique",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — Search Engine Journal",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — Moz Blog",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Firestore — Messages récents",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Firestore — FAQ (questions fréquentes)",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alerte — Questions marketing digital Afrique",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alerte — SEO Afrique francophone",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alerte — Content marketing Afrique",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alerte — Email marketing & automation",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "GNews — Blog monétisation Afrique",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "GNews — Copywriting rédaction web",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "GNews — Google Analytics données web",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "YouTube XML — SEO & Marketing FR",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — Product Hunt (nouveaux outils)",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — Smashing Magazine",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — The Verge AI",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "GNews — IA image & génération",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "GNews — Meta / Instagram updates",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "GNews — TikTok updates",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "GNews — LinkedIn updates",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — Search Engine Land",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — Content Marketing Institute",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — Buffer (social marketing)",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — Marketing AI Institute",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — The Rundown AI",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — Product Hunt (nouveaux outils)": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — Smashing Magazine": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — The Verge AI": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GNews — IA image & génération": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GNews — Meta / Instagram updates": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GNews — TikTok updates": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GNews — LinkedIn updates": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — Search Engine Land": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — Content Marketing Institute": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — Buffer (social marketing)": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — Marketing AI Institute": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — The Rundown AI": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-20T10:30:31.770Z",
+        "id": 510,
+        "workflowId": "LOvoUdV3nKCsPd46",
+        "versionId": "453e55bf-4f80-430b-b87a-8365123fd323",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-05-20T10:30:31.686Z",
+        "id": 509,
+        "workflowId": "LOvoUdV3nKCsPd46",
+        "versionId": "453e55bf-4f80-430b-b87a-8365123fd323",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

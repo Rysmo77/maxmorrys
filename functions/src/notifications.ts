@@ -1,4 +1,4 @@
-import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { onDocumentCreated, onDocumentUpdated } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 
@@ -40,6 +40,49 @@ export const onCertificateCreated = onDocumentCreated('certificates/{certId}', a
     read: false,
     createdAt: new Date().toISOString(),
     link: `/certificat/${data.certificateCode}`,
+  });
+});
+
+// ── Coach proactif Rysmo : félicitations à la complétion + cours suivant ─────
+export const rysmoCoachNudge = onDocumentUpdated('enrollments/{enrollmentId}', async (event) => {
+  const before = event.data?.before.data();
+  const after = event.data?.after.data();
+  if (!before || !after) return;
+
+  // Ne se déclenche qu'au franchissement de 100% (transition unique → pas de doublon)
+  if (before.progress >= 100 || after.progress < 100) return;
+
+  const userId = after.userId;
+  const formationSnap = await db.collection('formations').doc(after.formationId).get();
+  const justFinished = formationSnap.data()?.title || 'ta formation';
+
+  // Suggérer un cours suivant : une formation publiée pas encore suivie (même catégorie en priorité)
+  let suggestion: { title: string; slug: string } | null = null;
+  try {
+    const category = formationSnap.data()?.category;
+    const enrolledSnap = await db.collection('enrollments').where('userId', '==', userId).get();
+    const enrolledIds = new Set(enrolledSnap.docs.map((d) => d.data().formationId));
+    const publishedSnap = await db.collection('formations').where('status', '==', 'published').limit(50).get();
+    const candidates = publishedSnap.docs.filter((d) => !enrolledIds.has(d.id));
+    const sameCat = candidates.find((d) => d.data().category === category);
+    const pick = sameCat || candidates[0];
+    if (pick) suggestion = { title: pick.data().title, slug: pick.data().slug };
+  } catch {
+    // suggestion optionnelle
+  }
+
+  const message = suggestion
+    ? `Bravo, tu as terminé "${justFinished}" ! Prêt pour la suite ? "${suggestion.title}" est un bon prochain pas. Demande à Rysmo un plan pour t'y mettre.`
+    : `Bravo, tu as terminé "${justFinished}" ! Demande à Rysmo comment mettre en pratique ce que tu viens d'apprendre.`;
+
+  await db.collection(`notifications/${userId}/items`).add({
+    userId,
+    type: 'system',
+    title: 'Félicitations !',
+    message,
+    read: false,
+    createdAt: new Date().toISOString(),
+    link: suggestion ? `/formations/${suggestion.slug}` : '/mon-espace/tableau-de-bord',
   });
 });
 

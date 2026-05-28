@@ -8,10 +8,12 @@ export async function getUserEnrollments(userId: string): Promise<Enrollment[]> 
 
 export async function createEnrollment(userId: string, formationId: string): Promise<void> {
   const id = `${userId}_${formationId}`;
+  const now = new Date().toISOString();
   await setDocById('enrollments', id, {
     userId,
     formationId,
-    enrolledAt: new Date().toISOString(),
+    enrolledAt: now,
+    lastActivityAt: now,
     progress: 0,
     completedLessons: [],
     certificateIssued: false,
@@ -31,5 +33,9 @@ export async function updateEnrollmentProgress(
   completedLessons: string[],
   progress: number,
 ): Promise<void> {
-  return updateDocById('enrollments', enrollmentId, { completedLessons, progress });
+  return updateDocById('enrollments', enrollmentId, {
+    completedLessons,
+    progress,
+    lastActivityAt: new Date().toISOString(),
+  });
 }

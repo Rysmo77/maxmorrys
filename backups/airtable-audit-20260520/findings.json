@@ -1,0 +1,813 @@
+{
+  "mismatches": [
+    {
+      "table": "Contenus",
+      "field": "Status",
+      "type": "singleSelect",
+      "expected": [
+        "idée",
+        "planifié",
+        "rédigé",
+        "image_needed",
+        "prêt_à_valider",
+        "validé",
+        "en_publication",
+        "publié",
+        "échec"
+      ],
+      "actual": [
+        "idée",
+        "planifié",
+        "rédigé",
+        "image_needed",
+        "prêt_à_valider",
+        "validé",
+        "en_publication",
+        "publié",
+        "échec",
+        "rejeté"
+      ],
+      "missing": [],
+      "extra": [
+        "rejeté"
+      ]
+    }
+  ],
+  "deprecated": [
+    {
+      "table": "Contenus",
+      "field": "Blotato_PostSubmissionIDs",
+      "field_id": "fldY0QNeNGLQ0R6ff",
+      "type": "multilineText"
+    },
+    {
+      "table": "Contenus",
+      "field": "Blotato_PublicUrls",
+      "field_id": "fld8UCKvVYxYo5J2e",
+      "type": "multilineText"
+    }
+  ],
+  "tables": {
+    "Banque Idees Social": {
+      "id": "tblOA6igI4bSz3fwS",
+      "fields": [
+        {
+          "id": "fldc1D832MJsMf7Mf",
+          "name": "Date",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldgxiRUVNNBb0VRr",
+          "name": "Sujet",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldsdw8YvXb1QSq3X",
+          "name": "Angle",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldRWJBR2QvhPehn1",
+          "name": "Pertinence_Locale",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldaO8Z2Oj3cDT9MQ",
+          "name": "Reseaux",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldkEz7qfMLDL53wx",
+          "name": "Format",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldSeW3SyVSoSFGEv",
+          "name": "Score",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "id": "fldZULTpQ4n18EdDo",
+          "name": "Source",
+          "type": "url",
+          "choices": []
+        },
+        {
+          "id": "fldftXU2tT2vPicJq",
+          "name": "Hashtags_Locaux",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldD5BcbOfkY0vKTS",
+          "name": "Status",
+          "type": "singleLineText",
+          "choices": []
+        }
+      ]
+    },
+    "Banque Idees Articles": {
+      "id": "tblA8gHrbE78CfukY",
+      "fields": [
+        {
+          "id": "fldRkedz8VnIkgKt3",
+          "name": "Date",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldzPfyY2qUQGaawa",
+          "name": "Titre_SEO",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldqFHIp0s0Ybs0TZ",
+          "name": "Mot_Cle",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldOKhr30V3VYrl1k",
+          "name": "Status",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fld9jeIzBHqLBFkWo",
+          "name": "Angle_Local",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldOMhQXnOsVb50tn",
+          "name": "Volume_Estime",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldgPkQAYrvQTXfcT",
+          "name": "Score",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "id": "fldMpTs1K2Jx85TzI",
+          "name": "Meta_Description",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fld9VF0VdJ03B5tFE",
+          "name": "Keywords_Secondaires",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldCWtuneELPMA8Wl",
+          "name": "Structure",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldTRRxMdpcYZqLI7",
+          "name": "Longueur_Recommandee",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "id": "fldKsNp0ocMNjfs2u",
+          "name": "Intent",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldSZ1snx3lKFFXn5",
+          "name": "Content_Gap",
+          "type": "multilineText",
+          "choices": []
+        }
+      ]
+    },
+    "Banque Idees Cours": {
+      "id": "tblcn2MyeFR9IekHX",
+      "fields": [
+        {
+          "id": "flds31yXHaFeZZhXU",
+          "name": "Date",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldOXnPaB8h1fOM4k",
+          "name": "Titre",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldtjSfKQ03vUrTVL",
+          "name": "Niveau",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldzCaqcj2upRBDMg",
+          "name": "Audience",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldDZZL5ZAjGIYDBm",
+          "name": "Besoin_Local",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldANJFKpy0nESgA8",
+          "name": "Duree",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldrqCdDzFJAPMVPv",
+          "name": "Score",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "id": "fldiV69QITIIjaCr5",
+          "name": "Status",
+          "type": "singleLineText",
+          "choices": []
+        }
+      ]
+    },
+    "Calendrier Editorial": {
+      "id": "tblTlBSOSI1UOmQ1I",
+      "fields": [
+        {
+          "id": "fldbZt7YC6GIjQ5Th",
+          "name": "Semaine",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldrKu5L9m7k81HJC",
+          "name": "Jour",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldz6sbILpjDOMpl8",
+          "name": "Date",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fld6C4uVevSmxHFHJ",
+          "name": "Heure_GMT",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldvEupfPhZ3iqm5K",
+          "name": "Reseau",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldkWhhKjPMMj5Czd",
+          "name": "Format",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldTSqu9ap8vTWIaU",
+          "name": "Rubrique",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fld6W23SF8OdQGb09",
+          "name": "Sujet",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldw6GCT4AJ0Va9t7",
+          "name": "Contenu",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fld9F3GnF4dfhWWpa",
+          "name": "Media_URL",
+          "type": "url",
+          "choices": []
+        },
+        {
+          "id": "fldW89fKrlX7RnXvC",
+          "name": "Hashtags",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldeTFR85unWY73sT",
+          "name": "Status_Contenu",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldIH5zOf6mxaVLcs",
+          "name": "Status_Media",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldyTx7OuXxyzTVjS",
+          "name": "Status_Publication",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldLKWPOO25PnkySg",
+          "name": "URL_Post",
+          "type": "url",
+          "choices": []
+        }
+      ]
+    },
+    "Cours en Production": {
+      "id": "tbl5PCxVYMJCPIYUF",
+      "fields": [
+        {
+          "id": "fldwCpHXTHlnVmIRh",
+          "name": "Cours",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldgd9tPTQJ0dNtS2",
+          "name": "Module",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fld3Dhcv9XQMSq7Bz",
+          "name": "Lecon",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldQelHR3iO0J9vU4",
+          "name": "Type",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fld7eteQbmmKKNZWc",
+          "name": "Duree",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldalJXPRw4WqBtaF",
+          "name": "Status_Contenu",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fld5BV9PUEegLfqIT",
+          "name": "Status_Quiz",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldUAFpaRLWjVYuD0",
+          "name": "Status_Media",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldfDKr6t1KcZ08KV",
+          "name": "Status_Publication",
+          "type": "singleLineText",
+          "choices": []
+        }
+      ]
+    },
+    "Interactions": {
+      "id": "tblaSee9z4T26Szin",
+      "fields": [
+        {
+          "id": "fldrbrxZAGvebcF6M",
+          "name": "Date",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldVrhZx7FcAgLME5",
+          "name": "Reseau",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldo64rSWZmJLlVAB",
+          "name": "Post",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldU8ZbMQ3wcAHZUQ",
+          "name": "Commentaire",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldY3EOse71iNgAIU",
+          "name": "Auteur",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fld7nWDOSsfnC1RzZ",
+          "name": "Sentiment",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldspSqCsFXqgtviL",
+          "name": "Reponse",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fld5Cg2APvrpe2Ycp",
+          "name": "Auto_Manuel",
+          "type": "singleLineText",
+          "choices": []
+        }
+      ]
+    },
+    "Rapports Hebdo": {
+      "id": "tbl1xrxYxVMtTq5MX",
+      "fields": [
+        {
+          "id": "fldBi5ZIGNy5bn7Ea",
+          "name": "Semaine",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "flddo7b0v1w39lHgC",
+          "name": "Score",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "id": "fldnL5oEGFHtLmwbr",
+          "name": "Reach",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "id": "fldnBl66dPVNzn0YX",
+          "name": "Engagement",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "id": "fldhUMUMuEgWAPUgX",
+          "name": "Top_Posts",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldK8kJBHYM4wE9A7",
+          "name": "Recommandations",
+          "type": "multilineText",
+          "choices": []
+        }
+      ]
+    },
+    "Medias Generes": {
+      "id": "tbleUm1UoP9qqOdOn",
+      "fields": [
+        {
+          "id": "fldVgiVsZXD8rADOW",
+          "name": "Date",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldwmZlAHTrH5rkxm",
+          "name": "Type",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldvqD2C4qWuLbtAa",
+          "name": "Pour",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldB4XONYdCAEDwqB",
+          "name": "Prompt",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldjJhujritQ5Pe7q",
+          "name": "URL_R2",
+          "type": "url",
+          "choices": []
+        },
+        {
+          "id": "fldpOqRmaTAxusUUg",
+          "name": "Dimensions",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldTMMw1NhtaSzFtW",
+          "name": "Status",
+          "type": "singleLineText",
+          "choices": []
+        }
+      ]
+    },
+    "Config": {
+      "id": "tblQqVRtboYFSGNt8",
+      "fields": [
+        {
+          "id": "flducooxvHKJeOg5U",
+          "name": "Cle",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fld7EUSPkqFNfpiHa",
+          "name": "Valeur",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldnfvDKLNuI2uuDz",
+          "name": "Type",
+          "type": "singleSelect",
+          "choices": [
+            "text",
+            "json",
+            "number"
+          ]
+        },
+        {
+          "id": "fldHla0HZJoQlvWqP",
+          "name": "Notes",
+          "type": "multilineText",
+          "choices": []
+        }
+      ]
+    },
+    "Logs": {
+      "id": "tblHtN3jKqvwFXkXN",
+      "fields": [
+        {
+          "id": "fldmLXotptf53psoW",
+          "name": "Event",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldVYFnnaIWTAdRHi",
+          "name": "Workflow",
+          "type": "singleSelect",
+          "choices": [
+            "WF-SOCIAL-01",
+            "WF-SOCIAL-02",
+            "WF-SOCIAL-03",
+            "WF-SOCIAL-04",
+            "WF-SOCIAL-05",
+            "WF-SOCIAL-06",
+            "autre"
+          ]
+        },
+        {
+          "id": "fldsIgfvpE2eiH2VH",
+          "name": "Timestamp",
+          "type": "dateTime",
+          "choices": []
+        },
+        {
+          "id": "fldhQp1U3ShatBNOc",
+          "name": "Status",
+          "type": "singleSelect",
+          "choices": [
+            "success",
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        {
+          "id": "fldV5KjBvUS0MpW3U",
+          "name": "Content_ID",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldUEMVpWwz6O4VMu",
+          "name": "Details",
+          "type": "multilineText",
+          "choices": []
+        }
+      ]
+    },
+    "Contenus": {
+      "id": "tblPYoyzcZLdtBTO3",
+      "fields": [
+        {
+          "id": "fld0zlQzzscRqpnth",
+          "name": "Titre",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldsg8ZryKmJLKuNZ",
+          "name": "Thematique",
+          "type": "singleSelect",
+          "choices": [
+            "Marketing digital",
+            "SEO",
+            "Social media",
+            "Entrepreneuriat",
+            "E-commerce",
+            "IA & automatisation",
+            "Branding",
+            "Growth",
+            "Autre"
+          ]
+        },
+        {
+          "id": "fld3PcTu0ivt8fCmk",
+          "name": "Pilier",
+          "type": "singleSelect",
+          "choices": [
+            "Éducation",
+            "Inspiration",
+            "Produit",
+            "Communauté",
+            "Autorité",
+            "Autre"
+          ]
+        },
+        {
+          "id": "fldXKDYYPiwCvFvFC",
+          "name": "Format_Post",
+          "type": "singleSelect",
+          "choices": [
+            "story",
+            "post",
+            "thread",
+            "reel",
+            "carrousel",
+            "short",
+            "community_post",
+            "live"
+          ]
+        },
+        {
+          "id": "fldbRVLI0iKrwnLzu",
+          "name": "Reseau",
+          "type": "singleSelect",
+          "choices": [
+            "fb",
+            "ig",
+            "tiktok",
+            "youtube",
+            "linkedin",
+            "x"
+          ]
+        },
+        {
+          "id": "fldNTUNi9GclHuZmc",
+          "name": "Status",
+          "type": "singleSelect",
+          "choices": [
+            "idée",
+            "planifié",
+            "rédigé",
+            "image_needed",
+            "prêt_à_valider",
+            "validé",
+            "en_publication",
+            "publié",
+            "échec",
+            "rejeté"
+          ]
+        },
+        {
+          "id": "fld6JV49sDQ1SDLMG",
+          "name": "Date_Publication_Prevue",
+          "type": "dateTime",
+          "choices": []
+        },
+        {
+          "id": "fldkDUfz7KIxHNjNC",
+          "name": "Brief",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldp4MJeWOc1gCOqC",
+          "name": "Texte",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldpo52VUAFefmuDw",
+          "name": "Hashtags",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldUdJVUX9aJ81K9z",
+          "name": "Contenu_Texte",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldcGJnPRY9nqszet",
+          "name": "Verset_Reference",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldqm5QnsBzkMc7cY",
+          "name": "Mots_Cles",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fld9SwIoCo7189gwH",
+          "name": "Visuels_URLs",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldrIKUXKt9uT0pd5",
+          "name": "Visual_Strategy",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldY0QNeNGLQ0R6ff",
+          "name": "Blotato_PostSubmissionIDs",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fld8UCKvVYxYo5J2e",
+          "name": "Blotato_PublicUrls",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldrI8nTS1DHW2EiS",
+          "name": "Erreurs",
+          "type": "multilineText",
+          "choices": []
+        },
+        {
+          "id": "fldtEsLRvIaKyqihL",
+          "name": "Blotato_PostSubmissionID",
+          "type": "singleLineText",
+          "choices": []
+        },
+        {
+          "id": "fldDQYMikqD5WonOf",
+          "name": "Blotato_PublicUrl",
+          "type": "url",
+          "choices": []
+        }
+      ]
+    }
+  },
+  "orphans": [
+    {
+      "table": "Contenus",
+      "field": "Status",
+      "orphans": [
+        "rejeté"
+      ]
+    }
+  ]
+}

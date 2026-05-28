@@ -1,0 +1,1676 @@
+{
+  "updatedAt": "2026-05-20T10:45:28.438Z",
+  "createdAt": "2026-04-09T10:30:38.967Z",
+  "id": "OQMIBhbc7Y9OFQzL",
+  "name": "WF-08 — Rédaction Article SEO Complet",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron — Articles 9h quotidien",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblA8gHrbE78CfukY",
+          "mode": "list",
+          "cachedResultName": "Banque Idees Articles"
+        },
+        "options": {}
+      },
+      "id": "wf08-read-valides",
+      "name": "Airtable — Lire articles valides",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        208
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "status-valide",
+              "leftValue": "={{ ($json.Status || '').toString().trim().toLowerCase() }}",
+              "rightValue": "valide",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "wf08-filter-valide",
+      "name": "Filter — Status = valide",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : PHASE RECHERCHE POUR UN ARTICLE DE BLOG\n\nTu vas rassembler les elements factuels et concrets qui serviront de matiere premiere pour rediger l'article. Tu ne rediges pas l'article — tu collectes.\n\nSUJET : {{ $json.Titre_SEO || $json.Sujet || '' }}\nMOT-CLE PRINCIPAL : {{ $json.Mot_Cle || '' }}\nANGLE LOCAL : {{ $json.Angle_Local || '' }}\n\nCompile les elements suivants — tous ancres dans la realite de l'**Afrique francophone** (Ouest ET Centrale) :\n\n1. **5 statistiques/chiffres concrets** pertinents pour le sujet, avec source et date (de preference <2 ans). Privilegie les sources africaines (We Are Social Africa, GSMA, Jeune Afrique, Disrupt Africa, Afrik.com, TechCabal, Ecofin). Les chiffres generaux mondiaux acceptables uniquement si rien de local n'existe.\n\n2. **3 exemples concrets** de marques, entrepreneurs ou situations en Afrique francophone (Ouest ou Centrale) qui illustrent le sujet. Varie les pays : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Gabon, RDC, etc.\n\n3. **5 points cles** que l'article doit absolument traiter pour etre utile a un entrepreneur africain debutant ou intermediaire (pas d'expert).\n\n4. **5 questions frequemment posees** par l'audience cible sur ce sujet (a ne pas confondre avec les stats — ce sont des interrogations reelles).\n\n5. **3 pieges ou idees fausses** courants sur ce sujet qu'il faudra demystifier.\n\n6. **2-3 outils ou ressources** accessibles en Afrique francophone (gratuits ou peu chers, utilisables depuis un smartphone, compatibles avec Wave/Orange Money/MTN si paiement).\n\nREPONSE JSON STRICT :\n{\n  \"statistics\": [{ \"stat\": \"\", \"source\": \"\", \"date\": \"\" }],\n  \"local_examples\": [{ \"name\": \"\", \"country\": \"\", \"story\": \"\" }],\n  \"key_points\": [\"\"],\n  \"faq\": [\"\"],\n  \"myths_to_bust\": [\"\"],\n  \"tools_and_resources\": [{ \"name\": \"\", \"description\": \"\", \"cost\": \"\" }]\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 16384,
+          "temperature": 0.5,
+          "thinkingBudget": 0
+        }
+      },
+      "id": "wf08-research",
+      "name": "Gemini Pro — Phase Recherche",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        208
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem: $json is the current article row (from Filter pass-through)\nconst response = $input.item.json;\n\n// But wait: in Code mode runOnceForEachItem, $input.item is the CURRENT item being processed\n// from the INCOMING node (Gemini Research). The row data is from Filter (grandparent).\n// Gemini research doesn't pass through the row fields.\n// Solution: use $('Airtable — Lire articles valides').all() and match by index\n\n// Simpler approach: reference the Filter output by pairedItem\nconst row = $('Filter — Status = valide').item.json;\n\nlet research;\ntry {\n  let text = '';\n  if (response.content?.parts) {\n    text = response.content.parts.map(p => p.text || '').join('');\n  } else if (response.candidates?.[0]?.content?.parts) {\n    text = response.candidates[0].content.parts.map(p => p.text || '').join('');\n  } else if (typeof response === 'string') {\n    text = response;\n  } else if (response.statistics || response.key_points) {\n    research = response;\n  }\n  if (!research && text) {\n    text = text.replace(/^```json\\s*/i, '').replace(/```\\s*$/, '').trim();\n    research = JSON.parse(text);\n  }\n} catch (e) {\n  research = { statistics: [], expert_quotes: [], key_points: [], faq: [], cultural_notes: [] };\n}\n\n// Catalogue des articles publiés (pour liens internes réels)\nlet articles_catalogue = [];\ntry {\n  const _resp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://firestore.googleapis.com/v1/projects/max-morrys/databases/(default)/documents:runQuery',\n    body: { structuredQuery: {\n      from: [{ collectionId: 'blog' }],\n      where: { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'published' } } },\n      select: { fields: [{ fieldPath: 'slug' }, { fieldPath: 'title' }] }\n    } },\n    json: true\n  });\n  articles_catalogue = (_resp || [])\n    .filter(r => r.document)\n    .map(r => ({ slug: r.document.fields?.slug?.stringValue || '', title: r.document.fields?.title?.stringValue || '' }))\n    .filter(a => a.slug);\n} catch (e) { articles_catalogue = []; }\n\nreturn {\n  json: {\n    id: row.id,\n    subject: row.Titre_SEO || row.Sujet || '',\n    main_keyword: row.Mot_Cle || '',\n    secondary_keywords: row.Keywords_Secondaires || '',\n    structure: row.Structure || '',\n    length: parseInt(row.Longueur_Recommandee || '1500'),\n    local_angle: row.Angle_Local || '',\n    meta_description: row.Meta_Description || '',\n    research_data: research,\n    articles_catalogue\n  }\n};"
+      },
+      "id": "wf08-parse-research",
+      "name": "Parse — Données recherche",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : REDIGER L'ARTICLE COMPLET\n\nTu rediges MAINTENANT l'article complet en respectant scrupuleusement l'identite editoriale Max-Morrys.\n\nSUJET : {{ $('Parse — Données recherche').item.json.subject }}\nMOT-CLE PRINCIPAL : {{ $('Parse — Données recherche').item.json.main_keyword }}\nMOTS-CLES SECONDAIRES : {{ $('Parse — Données recherche').item.json.secondary_keywords }}\nANGLE LOCAL : {{ $('Parse — Données recherche').item.json.local_angle }}\nLONGUEUR VISEE : {{ $('Parse — Données recherche').item.json.length }} mots\n\nDONNEES DE RECHERCHE (a integrer naturellement, pas a recopier) :\n{{ JSON.stringify($('Parse — Données recherche').item.json.research_data) }}\n\n## STRUCTURE OBLIGATOIRE\n\n1. **Titre H1** (60 chars max, mot-cle au debut ou au milieu, accrocheur, utilise le tutoiement ou une question)\n\n2. **Meta description** (150-155 chars, mot-cle + promesse + sous-entendu d'action)\n\n3. **Introduction** (80-120 mots)\n   - Hook en 1 phrase qui parle directement au lecteur\n   - Enonce le probleme qu'il rencontre (sois specifique, local, concret)\n   - Promesse de ce que l'article va lui apporter\n   - 1 emoji max (optionnel, si pertinent)\n\n4. **Corps de l'article** (structure en 3 a 5 sections H2)\n   - Chaque H2 commence par un verbe d'action ou un chiffre\n   - Chaque section : 150-250 mots\n   - Dans chaque section :\n     * Phrase d'accroche qui resume le point\n     * Explication pedagogique simple\n     * **Un exemple concret** tire des `local_examples` (cite le nom, le pays, le resultat)\n     * **Une astuce actionnable** que le lecteur peut appliquer AUJOURD'HUI\n     * Eventuellement une sous-section H3 si besoin\n   - Utilise des **listes a puces** ou **numerotees** au moins 2 fois\n   - **Gras** sur les concepts cles (3-5 mots max a chaque fois)\n\n5. **Section \"A retenir\"** (H2 \"3 points a retenir\" ou similaire)\n   - 3 bullets tres courts (1 ligne chacun)\n   - Resume l'essentiel\n\n6. **FAQ** (H2 \"Questions frequentes\")\n   - 3-4 questions des `research_data.faq`\n   - Reponses courtes (2-3 phrases) et actionnables\n\n7. **Conclusion avec CTA** (H2 \"Pour aller plus loin\" ou similaire)\n   - Recap en 2 phrases max\n   - CTA implicite : invitation a une formation Max-Morrys, a la newsletter, au Club des Digitos, ou a un article lie\n   - Ton chaleureux, \"a la prochaine !\"\n\n## RESPECT DES REGLES SEO\n- Mot-cle principal dans : H1, premier paragraphe (100 premiers mots), au moins 1 H2, conclusion\n- Densite mot-cle : 1% a 1.5% (ni trop, ni trop peu)\n- Mots-cles secondaires disseminentes naturellement\n- **Liens internes** : insere 3 a 5 liens au format [LIEN_INTERNE: texte d'ancre → /blog/SLUG]. Le SLUG doit etre un slug EXACT pris dans la liste d'articles publies ci-dessous — n'invente JAMAIS d'URL. Si aucun article n'est pertinent, n'insere pas de lien.\\nARTICLES PUBLIES DISPONIBLES : {{ JSON.stringify($('Parse — Données recherche').item.json.articles_catalogue || []) }}\n- Structure HTML propre : <h1>, <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote> si citation\n\n## REPONSE JSON STRICT\n\n{\n  \"title\": \"titre H1 60 chars max\",\n  \"meta_description\": \"155 chars max\",\n  \"suggested_slug\": \"slug-url-friendly\",\n  \"content_html\": \"<h1>...</h1><p>...</p><h2>...</h2>... HTML complet\",\n  \"excerpt\": \"extrait 2-3 phrases, 200 chars max\",\n  \"word_count\": 0,\n  \"reading_time_minutes\": 0,\n  \"featured_image_prompt\": \"description precise en francais pour generer une image de couverture — contexte africain, pas de texte sur l'image, style photo realiste ou illustration editoriale\",\n  \"internal_links\": [{ \"anchor\": \"\", \"url\": \"\" }],\n  \"faq\": [{ \"question\": \"\", \"answer\": \"\" }],\n  \"tags\": [],\n  \"category\": \"OBLIGATOIRE - recopie EXACTEMENT une seule de ces 6 valeurs, a l’identique (accents compris), sans rien ajouter : SEO & Visibilité | Publicité en ligne | Réseaux sociaux & Influence | E-commerce & Vente en ligne | IA & Automatisation | Business & Gestion\"\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 16384,
+          "temperature": 0.5,
+          "thinkingBudget": 0
+        }
+      },
+      "id": "wf08-write-article",
+      "name": "Gemini Pro — Rédiger l'article",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        208
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem\n// --- Normalisation categorie -> 6 poles canoniques (sync src/lib/blogCategories.ts) ---\nfunction categoryToPole(raw) {\n  var POLES = ['SEO & Visibilité','Publicité en ligne','Réseaux sociaux & Influence','E-commerce & Vente en ligne','IA & Automatisation','Business & Gestion'];\n  if (!raw) return 'Business & Gestion';\n  if (POLES.indexOf(raw) !== -1) return raw;\n  var v = ' ' + String(raw).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim() + ' ';\n  var map = [\n    ['Publicité en ligne', ['publicite','ads','sponsoris','campagne pay','pub ']],\n    ['SEO & Visibilité', ['seo','referencement','google my business','google business','google maps','visibilit','trafic organique']],\n    ['IA & Automatisation', ['intelligence artificielle','automatis','chatgpt',' ia ']],\n    ['Réseaux sociaux & Influence', ['reseaux sociaux','influence','community','personal brand','marque personnelle','social media','social','linkedin','instagram']],\n    ['E-commerce & Vente en ligne', ['e-commerce','ecommerce','vente','vendre','paiement','logistique','catalogue','boutique','mobile money']],\n    ['Business & Gestion', ['business','gestion','entrepreneur','finance','tresorerie','juridique','fiscalit','freelanc','carriere','salaire','outils','equipement','productivit']]\n  ];\n  for (var i=0;i<map.length;i++){\n    for (var j=0;j<map[i][1].length;j++){ if (v.indexOf(map[i][1][j]) !== -1) return map[i][0]; }\n  }\n  return 'Business & Gestion';\n}\n\n// --- Conversion des liens internes [LIEN_INTERNE] -> <a href> (slugs réels uniquement) ---\nfunction resolveInternalLinks(html, catalogue) {\n  var slugs = {};\n  (catalogue || []).forEach(function (a) { slugs[a.slug] = true; });\n  return String(html || '').replace(/\\[LIEN[_ ]INTERNE\\s*:?\\s*([^\\]]*?)\\]/gi, function (_m, body) {\n    var parts = body.split(/→|->/);\n    var text = (parts[0] || '').trim();\n    var url = (parts[1] || '').trim();\n    var ok = url === '/formations' || url === '/mon-espace';\n    var m = url.match(/^\\/blog\\/(.+)$/);\n    if (m && slugs[m[1]]) ok = true;\n    return ok ? '<a href=\"' + url + '\">' + text + '</a>' : text;\n  });\n}\n\nconst response = $input.item.json;\nconst inputData = $('Parse — Données recherche').item.json;\n\n// Extract raw text from Gemini response (multiple possible formats)\nlet rawText = '';\nif (response.content?.parts) {\n  rawText = response.content.parts.map(p => p.text || '').join('');\n} else if (response.candidates?.[0]?.content?.parts) {\n  rawText = response.candidates[0].content.parts.map(p => p.text || '').join('');\n} else if (typeof response === 'string') {\n  rawText = response;\n} else if (response.title || response.content_html) {\n  // Already parsed\n  rawText = JSON.stringify(response);\n}\n\n// Robust JSON extraction : handles markdown fences + trailing text\nfunction extractJson(text) {\n  if (!text) return null;\n\n  // 1. Remove markdown code fences\n  let cleaned = text.trim();\n  cleaned = cleaned.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/i, '').trim();\n\n  // 2. Try direct parse\n  try { return JSON.parse(cleaned); } catch(e) {}\n\n  // 3. Find first { and try to parse balanced JSON\n  const start = cleaned.indexOf('{');\n  if (start === -1) return null;\n\n  // Walk the string to find the matching closing brace (ignoring strings)\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n  for (let i = start; i < cleaned.length; i++) {\n    const c = cleaned[i];\n    if (escape) { escape = false; continue; }\n    if (c === '\\\\') { escape = true; continue; }\n    if (c === '\"') { inString = !inString; continue; }\n    if (inString) continue;\n    if (c === '{') depth++;\n    else if (c === '}') {\n      depth--;\n      if (depth === 0) {\n        const candidate = cleaned.substring(start, i + 1);\n        try { return JSON.parse(candidate); } catch(e) {\n          // Keep trying — maybe truncated\n        }\n      }\n    }\n  }\n\n  // 4. Last resort : regex for first balanced-looking block\n  const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (match) {\n    try { return JSON.parse(match[0]); } catch(e) {}\n  }\n\n  return null;\n}\n\nlet article = extractJson(rawText);\n\nif (!article) {\n  // Truncated/invalid Gemini output → skip this row rather than crash workflow\n  return [];\n}\n\nconst now = new Date().toISOString();\nconst slug = (article.suggested_slug || article.title || '')\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-|-$/g, '')\n  .substring(0, 80);\n\nconst blogPost = {\n  title: article.title || inputData.subject,\n  slug: slug,\n  excerpt: article.excerpt || article.meta_description || '',\n  content: resolveInternalLinks(article.content_html || '', inputData.articles_catalogue || []),\n  coverImage: '',\n  category: categoryToPole(article.category),\n  tags: article.tags || [],\n  author: 'Max-Morrys',\n  publishedAt: now,\n  readTime: article.reading_time_minutes || Math.ceil((article.word_count || 1500) / 200),\n  featured: false,\n  status: 'draft',\n  metaTitle: article.title || '',\n  metaDescription: article.meta_description || '',\n  focusKeyword: inputData.main_keyword || '',\n  ogTitle: article.title || '',\n  ogDescription: article.meta_description || '',\n  ogImage: '',\n  twitterTitle: article.title || '',\n  twitterDescription: article.meta_description || '',\n  twitterImage: '',\n  noIndex: false,\n  createdAt: now,\n  id: inputData.id\n};\n\nreturn {\n  json: {\n    blogPost,\n    type: 'article',\n    slug: slug,\n    prompt: article.featured_image_prompt || ('Image de couverture pour article: ' + blogPost.title),\n    dimensions: '1920x1080',\n    context: 'Article blog marketing digital Afrique de l\\'Ouest',\n    for_workflow: 'wf08',\n    featured_image_prompt: article.featured_image_prompt || '',\n    internal_links: article.internal_links || [],\n    faq: article.faq || [],\n    word_count: article.word_count || 0,\n    id: inputData.id\n  }\n};"
+      },
+      "id": "wf08-parse-article",
+      "name": "Parse — Construire BlogPost",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://firestore.googleapis.com/v1/projects/max-morrys/databases/(default)/documents/blog",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (() => { const bp = $json.blogPost; return JSON.stringify({ fields: { title: { stringValue: bp.title }, slug: { stringValue: bp.slug }, excerpt: { stringValue: bp.excerpt }, content: { stringValue: bp.content }, coverImage: { stringValue: bp.coverImage }, category: { stringValue: bp.category }, tags: { arrayValue: { values: (bp.tags||[]).map(t => ({ stringValue: t })) } }, author: { stringValue: bp.author }, publishedAt: { stringValue: bp.publishedAt }, readTime: { integerValue: String(bp.readTime) }, featured: { booleanValue: bp.featured }, status: { stringValue: bp.status }, metaTitle: { stringValue: bp.metaTitle }, metaDescription: { stringValue: bp.metaDescription }, focusKeyword: { stringValue: bp.focusKeyword }, ogTitle: { stringValue: bp.ogTitle }, ogDescription: { stringValue: bp.ogDescription }, ogImage: { stringValue: bp.ogImage }, twitterTitle: { stringValue: bp.twitterTitle }, twitterDescription: { stringValue: bp.twitterDescription }, twitterImage: { stringValue: bp.twitterImage }, noIndex: { booleanValue: bp.noIndex }, createdAt: { stringValue: bp.createdAt } } }); })() }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "wf08-firestore-write",
+      "name": "Firestore — Créer article (draft)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3744,
+        208
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleApi": {
+          "id": "6iOMFTsDdqjDRDAh",
+          "name": "Firebase Service Account Max-Morrys v1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblA8gHrbE78CfukY",
+          "mode": "list",
+          "cachedResultName": "Banque Idees Articles"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "=produit_draft",
+            "Score": 0,
+            "Longueur_Recommandee": 0
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Titre_SEO",
+              "displayName": "Titre_SEO",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mot_Cle",
+              "displayName": "Mot_Cle",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Angle_Local",
+              "displayName": "Angle_Local",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Volume_Estime",
+              "displayName": "Volume_Estime",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Meta_Description",
+              "displayName": "Meta_Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Keywords_Secondaires",
+              "displayName": "Keywords_Secondaires",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Structure",
+              "displayName": "Structure",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Longueur_Recommandee",
+              "displayName": "Longueur_Recommandee",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Intent",
+              "displayName": "Intent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Content_Gap",
+              "displayName": "Content_Gap",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "wf08-sheets-update",
+      "name": "Airtable — Mettre à jour statut",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4192,
+        208
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem\nconst input = $input.item.json;\nreturn {\n  json: {\n    prompt: input.featured_image_prompt || ('Image de couverture pour article: ' + (input.blogPost?.title || 'article')),\n    dimensions: '1920x1080',\n    type: 'article',\n    context: 'Article blog marketing digital Afrique de l\\'Ouest',\n    for_workflow: 'wf08',\n    slug: input.blogPost?.slug || '',\n    blogPost_passthrough: input.blogPost,\n    id: input.id\n  }\n};"
+      },
+      "id": "wf08-wf15-normalize",
+      "name": "IMG1 — Normaliser — Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-pro",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-pro"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Tu es un expert en création de prompts pour la génération d'images IA. Enrichis ce prompt pour générer une image professionnelle et culturellement pertinente pour l'Afrique de l'Ouest francophone. Diversité ethnique africaine, contextes locaux (Dakar, Abidjan, Douala), pas de clichés occidentaux. Style: professionnel, chaleureux, inspirant.\n\nPROMPT: {{ $json.prompt }}\nTYPE: {{ $json.type }}\n\nRéponds UNIQUEMENT avec un JSON valide:\n{\"enhanced_prompt\": \"prompt enrichi EN ANGLAIS pour generation image\", \"style_notes\": \"notes\"}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.7,
+          "thinkingBudget": 0
+        }
+      },
+      "id": "wf08-wf15-gemini-enhance",
+      "name": "IMG2 — Gemini — Enrichir le prompt",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        2048,
+        208
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem\nconst input = $input.item.json;\nconst originalData = $('IMG1 — Normaliser — Input').item.json;\n\nlet enhancedPrompt = originalData.prompt;\n\ntry {\n  let text = '';\n  if (input.content?.parts) {\n    text = input.content.parts.map(p => p.text || '').join('');\n  } else if (typeof input === 'string') {\n    text = input;\n  } else if (input.text) {\n    text = input.text;\n  }\n  if (text) {\n    const jsonMatch = text.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      const parsed = JSON.parse(jsonMatch[0]);\n      if (parsed.enhanced_prompt) enhancedPrompt = parsed.enhanced_prompt;\n    }\n  }\n} catch(e) {}\n\nif (!enhancedPrompt || !enhancedPrompt.trim()) {\n  enhancedPrompt = originalData.prompt;\n}\n\nreturn {\n  json: {\n    prompt: enhancedPrompt,\n    original_prompt: originalData.prompt,\n    type: originalData.type,\n    dimensions: originalData.dimensions,\n    context: originalData.context,\n    for_workflow: originalData.for_workflow,\n    slug: originalData.slug,\n    id: originalData.id,\n    blogPost_passthrough: originalData.blogPost_passthrough\n  }\n};"
+      },
+      "id": "wf08-wf15-parse-prompt",
+      "name": "IMG3 — Parse — Prompt enrichi",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-image-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-image-preview"
+        },
+        "prompt": "={{ $json.prompt }}",
+        "options": {}
+      },
+      "id": "wf08-wf15-gemini-image",
+      "name": "IMG4 — Gemini — Générer l'image",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        2624,
+        208
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 8000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem\nconst input = $input.item;\nconst promptData = $('IMG3 — Parse — Prompt enrichi').item.json;\nconst now = new Date().toISOString();\nconst timestamp = now.replace(/[:.]/g, '-').substring(0, 19);\n\nconst typeMap = {\n  article: 'articles', formation: 'formations',\n  social_post: 'social/posts', carousel: 'social/carousels',\n  reel: 'social/reels', lesson: 'lessons',\n  newsletter: 'newsletter', course_cover: 'formations'\n};\nconst prefix = typeMap[promptData.type] || 'misc';\nconst slug = (promptData.slug || promptData.type || 'media')\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-|-$/g, '')\n  .substring(0, 60);\n\nconst filename = slug + '-' + timestamp + '.png';\nconst r2_key = prefix + '/' + filename;\n\nconst result = {\n  json: {\n    filename,\n    r2_key,\n    r2_bucket: 'maxmorrys-lms',\n    type: promptData.type,\n    dimensions: promptData.dimensions,\n    original_prompt: promptData.original_prompt,\n    enhanced_prompt: promptData.prompt,\n    for_workflow: promptData.for_workflow,\n    context: promptData.context,\n    slug: promptData.slug || slug,\n    generated_at: now,\n    id: promptData.id,\n    blogPost_passthrough: promptData.blogPost_passthrough\n  }\n};\nif (input.binary) result.binary = input.binary;\nreturn result;"
+      },
+      "id": "wf08-wf15-prepare-upload",
+      "name": "IMG5 — Préparer — Métadonnées upload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2848,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "maxmorrys-lms",
+        "fileName": "={{ $json.r2_key }}",
+        "additionalFields": {
+          "acl": "publicRead"
+        }
+      },
+      "id": "wf08-wf15-r2-upload",
+      "name": "IMG6 — R2 — Upload image",
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        3072,
+        208
+      ],
+      "credentials": {
+        "s3": {
+          "id": "1jkvWRlxegNgpKto",
+          "name": "Cloudflare R2 Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem\nconst uploadResult = $input.item.json;\nconst metadata = $('IMG5 — Préparer — Métadonnées upload').item.json;\n\nconst publicUrl = 'https://pub-98fc057dc71948c7bd129a674b4bcec8.r2.dev/' + metadata.r2_key;\n\nreturn {\n  json: {\n    success: true,\n    file_key: metadata.r2_key,\n    public_url: publicUrl,\n    file_url: publicUrl,\n    filename: metadata.filename,\n    type: metadata.type,\n    dimensions: metadata.dimensions,\n    original_prompt: metadata.original_prompt,\n    enhanced_prompt: metadata.enhanced_prompt,\n    for_workflow: metadata.for_workflow,\n    generated_at: metadata.generated_at,\n    r2_bucket: 'maxmorrys-lms',\n    id: metadata.id,\n    blogPost_passthrough: metadata.blogPost_passthrough\n  }\n};"
+      },
+      "id": "wf08-wf15-build-result",
+      "name": "IMG7 — Build — Résultat final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3296,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem\nconst imgResult = $input.item.json;\nconst parseData = $('Parse — Construire BlogPost').item.json;\n\nconst blogPost = { ...parseData.blogPost };\nconst imageUrl = imgResult.public_url || imgResult.file_url || '';\n\nif (imageUrl) {\n  blogPost.coverImage = imageUrl;\n  blogPost.ogImage = imageUrl;\n  blogPost.twitterImage = imageUrl;\n}\n\nreturn {\n  json: {\n    blogPost,\n    featured_image_prompt: parseData.featured_image_prompt,\n    internal_links: parseData.internal_links,\n    faq: parseData.faq,\n    word_count: parseData.word_count,\n    image_public_url: imageUrl,\n    id: parseData.id\n  }\n};"
+      },
+      "id": "wf08-merge-image",
+      "name": "Code — Merger image dans BlogPost",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3520,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem\nreturn {\n  json: {\n    id: $('Code — Merger image dans BlogPost').item.json.id,\n    Status: 'produit_draft'\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3968,
+        208
+      ],
+      "id": "wf08-prep-update-payload",
+      "name": "Prep — Update payload"
+    }
+  ],
+  "connections": {
+    "Cron — Articles 9h quotidien": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire articles valides",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire articles valides": {
+      "main": [
+        [
+          {
+            "node": "Filter — Status = valide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter — Status = valide": {
+      "main": [
+        [
+          {
+            "node": "Gemini Pro — Phase Recherche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Pro — Phase Recherche": {
+      "main": [
+        [
+          {
+            "node": "Parse — Données recherche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Données recherche": {
+      "main": [
+        [
+          {
+            "node": "Gemini Pro — Rédiger l'article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Pro — Rédiger l'article": {
+      "main": [
+        [
+          {
+            "node": "Parse — Construire BlogPost",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Construire BlogPost": {
+      "main": [
+        [
+          {
+            "node": "IMG1 — Normaliser — Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG1 — Normaliser — Input": {
+      "main": [
+        [
+          {
+            "node": "IMG2 — Gemini — Enrichir le prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG2 — Gemini — Enrichir le prompt": {
+      "main": [
+        [
+          {
+            "node": "IMG3 — Parse — Prompt enrichi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG3 — Parse — Prompt enrichi": {
+      "main": [
+        [
+          {
+            "node": "IMG4 — Gemini — Générer l'image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG4 — Gemini — Générer l'image": {
+      "main": [
+        [
+          {
+            "node": "IMG5 — Préparer — Métadonnées upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG5 — Préparer — Métadonnées upload": {
+      "main": [
+        [
+          {
+            "node": "IMG6 — R2 — Upload image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG6 — R2 — Upload image": {
+      "main": [
+        [
+          {
+            "node": "IMG7 — Build — Résultat final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMG7 — Build — Résultat final": {
+      "main": [
+        [
+          {
+            "node": "Code — Merger image dans BlogPost",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code — Merger image dans BlogPost": {
+      "main": [
+        [
+          {
+            "node": "Firestore — Créer article (draft)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firestore — Créer article (draft)": {
+      "main": [
+        [
+          {
+            "node": "Prep — Update payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep — Update payload": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Mettre à jour statut",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron — Articles 9h quotidien": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "075a7e1a-b9b4-4c95-a093-7a9dfbfde2f6",
+  "activeVersionId": "a0612e7f-c38e-4e5d-a423-e17a1423fbca",
+  "versionCounter": 139,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-09T10:30:38.968Z",
+      "createdAt": "2026-04-09T10:30:38.968Z",
+      "role": "workflow:owner",
+      "workflowId": "OQMIBhbc7Y9OFQzL",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-20T10:30:31.970Z",
+    "createdAt": "2026-05-20T10:30:31.970Z",
+    "versionId": "a0612e7f-c38e-4e5d-a423-e17a1423fbca",
+    "workflowId": "OQMIBhbc7Y9OFQzL",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 9 * * *"
+              }
+            ]
+          }
+        },
+        "id": "cron-trigger",
+        "name": "Cron — Articles 9h quotidien",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblA8gHrbE78CfukY",
+            "mode": "list",
+            "cachedResultName": "Banque Idees Articles"
+          },
+          "options": {}
+        },
+        "id": "wf08-read-valides",
+        "name": "Airtable — Lire articles valides",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          224,
+          208
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "status-valide",
+                "leftValue": "={{ ($json.Status || '').toString().trim().toLowerCase() }}",
+                "rightValue": "valide",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "wf08-filter-valide",
+        "name": "Filter — Status = valide",
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2.2,
+        "position": [
+          448,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : PHASE RECHERCHE POUR UN ARTICLE DE BLOG\n\nTu vas rassembler les elements factuels et concrets qui serviront de matiere premiere pour rediger l'article. Tu ne rediges pas l'article — tu collectes.\n\nSUJET : {{ $json.Titre_SEO || $json.Sujet || '' }}\nMOT-CLE PRINCIPAL : {{ $json.Mot_Cle || '' }}\nANGLE LOCAL : {{ $json.Angle_Local || '' }}\n\nCompile les elements suivants — tous ancres dans la realite de l'**Afrique francophone** (Ouest ET Centrale) :\n\n1. **5 statistiques/chiffres concrets** pertinents pour le sujet, avec source et date (de preference <2 ans). Privilegie les sources africaines (We Are Social Africa, GSMA, Jeune Afrique, Disrupt Africa, Afrik.com, TechCabal, Ecofin). Les chiffres generaux mondiaux acceptables uniquement si rien de local n'existe.\n\n2. **3 exemples concrets** de marques, entrepreneurs ou situations en Afrique francophone (Ouest ou Centrale) qui illustrent le sujet. Varie les pays : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Gabon, RDC, etc.\n\n3. **5 points cles** que l'article doit absolument traiter pour etre utile a un entrepreneur africain debutant ou intermediaire (pas d'expert).\n\n4. **5 questions frequemment posees** par l'audience cible sur ce sujet (a ne pas confondre avec les stats — ce sont des interrogations reelles).\n\n5. **3 pieges ou idees fausses** courants sur ce sujet qu'il faudra demystifier.\n\n6. **2-3 outils ou ressources** accessibles en Afrique francophone (gratuits ou peu chers, utilisables depuis un smartphone, compatibles avec Wave/Orange Money/MTN si paiement).\n\nREPONSE JSON STRICT :\n{\n  \"statistics\": [{ \"stat\": \"\", \"source\": \"\", \"date\": \"\" }],\n  \"local_examples\": [{ \"name\": \"\", \"country\": \"\", \"story\": \"\" }],\n  \"key_points\": [\"\"],\n  \"faq\": [\"\"],\n  \"myths_to_bust\": [\"\"],\n  \"tools_and_resources\": [{ \"name\": \"\", \"description\": \"\", \"cost\": \"\" }]\n}"
+              }
+            ]
+          },
+          "jsonOutput": true,
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 8192,
+            "temperature": 0.5
+          }
+        },
+        "id": "wf08-research",
+        "name": "Gemini Pro — Phase Recherche",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          896,
+          208
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem: $json is the current article row (from Filter pass-through)\nconst response = $input.item.json;\n\n// But wait: in Code mode runOnceForEachItem, $input.item is the CURRENT item being processed\n// from the INCOMING node (Gemini Research). The row data is from Filter (grandparent).\n// Gemini research doesn't pass through the row fields.\n// Solution: use $('Airtable — Lire articles valides').all() and match by index\n\n// Simpler approach: reference the Filter output by pairedItem\nconst row = $('Filter — Status = valide').item.json;\n\nlet research;\ntry {\n  let text = '';\n  if (response.content?.parts) {\n    text = response.content.parts.map(p => p.text || '').join('');\n  } else if (response.candidates?.[0]?.content?.parts) {\n    text = response.candidates[0].content.parts.map(p => p.text || '').join('');\n  } else if (typeof response === 'string') {\n    text = response;\n  } else if (response.statistics || response.key_points) {\n    research = response;\n  }\n  if (!research && text) {\n    text = text.replace(/^```json\\s*/i, '').replace(/```\\s*$/, '').trim();\n    research = JSON.parse(text);\n  }\n} catch (e) {\n  research = { statistics: [], expert_quotes: [], key_points: [], faq: [], cultural_notes: [] };\n}\n\n// Catalogue des articles publiés (pour liens internes réels)\nlet articles_catalogue = [];\ntry {\n  const _resp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://firestore.googleapis.com/v1/projects/max-morrys/databases/(default)/documents:runQuery',\n    body: { structuredQuery: {\n      from: [{ collectionId: 'blog' }],\n      where: { fieldFilter: { field: { fieldPath: 'status' }, op: 'EQUAL', value: { stringValue: 'published' } } },\n      select: { fields: [{ fieldPath: 'slug' }, { fieldPath: 'title' }] }\n    } },\n    json: true\n  });\n  articles_catalogue = (_resp || [])\n    .filter(r => r.document)\n    .map(r => ({ slug: r.document.fields?.slug?.stringValue || '', title: r.document.fields?.title?.stringValue || '' }))\n    .filter(a => a.slug);\n} catch (e) { articles_catalogue = []; }\n\nreturn {\n  json: {\n    id: row.id,\n    subject: row.Titre_SEO || row.Sujet || '',\n    main_keyword: row.Mot_Cle || '',\n    secondary_keywords: row.Keywords_Secondaires || '',\n    structure: row.Structure || '',\n    length: parseInt(row.Longueur_Recommandee || '1500'),\n    local_angle: row.Angle_Local || '',\n    meta_description: row.Meta_Description || '',\n    research_data: research,\n    articles_catalogue\n  }\n};"
+        },
+        "id": "wf08-parse-research",
+        "name": "Parse — Données recherche",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1248,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : REDIGER L'ARTICLE COMPLET\n\nTu rediges MAINTENANT l'article complet en respectant scrupuleusement l'identite editoriale Max-Morrys.\n\nSUJET : {{ $('Parse — Données recherche').item.json.subject }}\nMOT-CLE PRINCIPAL : {{ $('Parse — Données recherche').item.json.main_keyword }}\nMOTS-CLES SECONDAIRES : {{ $('Parse — Données recherche').item.json.secondary_keywords }}\nANGLE LOCAL : {{ $('Parse — Données recherche').item.json.local_angle }}\nLONGUEUR VISEE : {{ $('Parse — Données recherche').item.json.length }} mots\n\nDONNEES DE RECHERCHE (a integrer naturellement, pas a recopier) :\n{{ JSON.stringify($('Parse — Données recherche').item.json.research_data) }}\n\n## STRUCTURE OBLIGATOIRE\n\n1. **Titre H1** (60 chars max, mot-cle au debut ou au milieu, accrocheur, utilise le tutoiement ou une question)\n\n2. **Meta description** (150-155 chars, mot-cle + promesse + sous-entendu d'action)\n\n3. **Introduction** (80-120 mots)\n   - Hook en 1 phrase qui parle directement au lecteur\n   - Enonce le probleme qu'il rencontre (sois specifique, local, concret)\n   - Promesse de ce que l'article va lui apporter\n   - 1 emoji max (optionnel, si pertinent)\n\n4. **Corps de l'article** (structure en 3 a 5 sections H2)\n   - Chaque H2 commence par un verbe d'action ou un chiffre\n   - Chaque section : 150-250 mots\n   - Dans chaque section :\n     * Phrase d'accroche qui resume le point\n     * Explication pedagogique simple\n     * **Un exemple concret** tire des `local_examples` (cite le nom, le pays, le resultat)\n     * **Une astuce actionnable** que le lecteur peut appliquer AUJOURD'HUI\n     * Eventuellement une sous-section H3 si besoin\n   - Utilise des **listes a puces** ou **numerotees** au moins 2 fois\n   - **Gras** sur les concepts cles (3-5 mots max a chaque fois)\n\n5. **Section \"A retenir\"** (H2 \"3 points a retenir\" ou similaire)\n   - 3 bullets tres courts (1 ligne chacun)\n   - Resume l'essentiel\n\n6. **FAQ** (H2 \"Questions frequentes\")\n   - 3-4 questions des `research_data.faq`\n   - Reponses courtes (2-3 phrases) et actionnables\n\n7. **Conclusion avec CTA** (H2 \"Pour aller plus loin\" ou similaire)\n   - Recap en 2 phrases max\n   - CTA implicite : invitation a une formation Max-Morrys, a la newsletter, au Club des Digitos, ou a un article lie\n   - Ton chaleureux, \"a la prochaine !\"\n\n## RESPECT DES REGLES SEO\n- Mot-cle principal dans : H1, premier paragraphe (100 premiers mots), au moins 1 H2, conclusion\n- Densite mot-cle : 1% a 1.5% (ni trop, ni trop peu)\n- Mots-cles secondaires disseminentes naturellement\n- **Liens internes** : insere 3 a 5 liens au format [LIEN_INTERNE: texte d'ancre → /blog/SLUG]. Le SLUG doit etre un slug EXACT pris dans la liste d'articles publies ci-dessous — n'invente JAMAIS d'URL. Si aucun article n'est pertinent, n'insere pas de lien.\\nARTICLES PUBLIES DISPONIBLES : {{ JSON.stringify($('Parse — Données recherche').item.json.articles_catalogue || []) }}\n- Structure HTML propre : <h1>, <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote> si citation\n\n## REPONSE JSON STRICT\n\n{\n  \"title\": \"titre H1 60 chars max\",\n  \"meta_description\": \"155 chars max\",\n  \"suggested_slug\": \"slug-url-friendly\",\n  \"content_html\": \"<h1>...</h1><p>...</p><h2>...</h2>... HTML complet\",\n  \"excerpt\": \"extrait 2-3 phrases, 200 chars max\",\n  \"word_count\": 0,\n  \"reading_time_minutes\": 0,\n  \"featured_image_prompt\": \"description precise en francais pour generer une image de couverture — contexte africain, pas de texte sur l'image, style photo realiste ou illustration editoriale\",\n  \"internal_links\": [{ \"anchor\": \"\", \"url\": \"\" }],\n  \"faq\": [{ \"question\": \"\", \"answer\": \"\" }],\n  \"tags\": [],\n  \"category\": \"OBLIGATOIRE - recopie EXACTEMENT une seule de ces 6 valeurs, a l’identique (accents compris), sans rien ajouter : SEO & Visibilité | Publicité en ligne | Réseaux sociaux & Influence | E-commerce & Vente en ligne | IA & Automatisation | Business & Gestion\"\n}"
+              }
+            ]
+          },
+          "jsonOutput": true,
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 8192,
+            "temperature": 0.5
+          }
+        },
+        "id": "wf08-write-article",
+        "name": "Gemini Pro — Rédiger l'article",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          1472,
+          208
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem\n// --- Normalisation categorie -> 6 poles canoniques (sync src/lib/blogCategories.ts) ---\nfunction categoryToPole(raw) {\n  var POLES = ['SEO & Visibilité','Publicité en ligne','Réseaux sociaux & Influence','E-commerce & Vente en ligne','IA & Automatisation','Business & Gestion'];\n  if (!raw) return 'Business & Gestion';\n  if (POLES.indexOf(raw) !== -1) return raw;\n  var v = ' ' + String(raw).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim() + ' ';\n  var map = [\n    ['Publicité en ligne', ['publicite','ads','sponsoris','campagne pay','pub ']],\n    ['SEO & Visibilité', ['seo','referencement','google my business','google business','google maps','visibilit','trafic organique']],\n    ['IA & Automatisation', ['intelligence artificielle','automatis','chatgpt',' ia ']],\n    ['Réseaux sociaux & Influence', ['reseaux sociaux','influence','community','personal brand','marque personnelle','social media','social','linkedin','instagram']],\n    ['E-commerce & Vente en ligne', ['e-commerce','ecommerce','vente','vendre','paiement','logistique','catalogue','boutique','mobile money']],\n    ['Business & Gestion', ['business','gestion','entrepreneur','finance','tresorerie','juridique','fiscalit','freelanc','carriere','salaire','outils','equipement','productivit']]\n  ];\n  for (var i=0;i<map.length;i++){\n    for (var j=0;j<map[i][1].length;j++){ if (v.indexOf(map[i][1][j]) !== -1) return map[i][0]; }\n  }\n  return 'Business & Gestion';\n}\n\n// --- Conversion des liens internes [LIEN_INTERNE] -> <a href> (slugs réels uniquement) ---\nfunction resolveInternalLinks(html, catalogue) {\n  var slugs = {};\n  (catalogue || []).forEach(function (a) { slugs[a.slug] = true; });\n  return String(html || '').replace(/\\[LIEN[_ ]INTERNE\\s*:?\\s*([^\\]]*?)\\]/gi, function (_m, body) {\n    var parts = body.split(/→|->/);\n    var text = (parts[0] || '').trim();\n    var url = (parts[1] || '').trim();\n    var ok = url === '/formations' || url === '/mon-espace';\n    var m = url.match(/^\\/blog\\/(.+)$/);\n    if (m && slugs[m[1]]) ok = true;\n    return ok ? '<a href=\"' + url + '\">' + text + '</a>' : text;\n  });\n}\n\nconst response = $input.item.json;\nconst inputData = $('Parse — Données recherche').item.json;\n\n// Extract raw text from Gemini response (multiple possible formats)\nlet rawText = '';\nif (response.content?.parts) {\n  rawText = response.content.parts.map(p => p.text || '').join('');\n} else if (response.candidates?.[0]?.content?.parts) {\n  rawText = response.candidates[0].content.parts.map(p => p.text || '').join('');\n} else if (typeof response === 'string') {\n  rawText = response;\n} else if (response.title || response.content_html) {\n  // Already parsed\n  rawText = JSON.stringify(response);\n}\n\n// Robust JSON extraction : handles markdown fences + trailing text\nfunction extractJson(text) {\n  if (!text) return null;\n\n  // 1. Remove markdown code fences\n  let cleaned = text.trim();\n  cleaned = cleaned.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/i, '').trim();\n\n  // 2. Try direct parse\n  try { return JSON.parse(cleaned); } catch(e) {}\n\n  // 3. Find first { and try to parse balanced JSON\n  const start = cleaned.indexOf('{');\n  if (start === -1) return null;\n\n  // Walk the string to find the matching closing brace (ignoring strings)\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n  for (let i = start; i < cleaned.length; i++) {\n    const c = cleaned[i];\n    if (escape) { escape = false; continue; }\n    if (c === '\\\\') { escape = true; continue; }\n    if (c === '\"') { inString = !inString; continue; }\n    if (inString) continue;\n    if (c === '{') depth++;\n    else if (c === '}') {\n      depth--;\n      if (depth === 0) {\n        const candidate = cleaned.substring(start, i + 1);\n        try { return JSON.parse(candidate); } catch(e) {\n          // Keep trying — maybe truncated\n        }\n      }\n    }\n  }\n\n  // 4. Last resort : regex for first balanced-looking block\n  const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (match) {\n    try { return JSON.parse(match[0]); } catch(e) {}\n  }\n\n  return null;\n}\n\nlet article = extractJson(rawText);\n\nif (!article) {\n  throw new Error('Impossible d\\'extraire un JSON valide de la reponse Gemini. Debut du texte: ' + rawText.substring(0, 300));\n}\n\nconst now = new Date().toISOString();\nconst slug = (article.suggested_slug || article.title || '')\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-|-$/g, '')\n  .substring(0, 80);\n\nconst blogPost = {\n  title: article.title || inputData.subject,\n  slug: slug,\n  excerpt: article.excerpt || article.meta_description || '',\n  content: resolveInternalLinks(article.content_html || '', inputData.articles_catalogue || []),\n  coverImage: '',\n  category: categoryToPole(article.category),\n  tags: article.tags || [],\n  author: 'Max-Morrys',\n  publishedAt: now,\n  readTime: article.reading_time_minutes || Math.ceil((article.word_count || 1500) / 200),\n  featured: false,\n  status: 'draft',\n  metaTitle: article.title || '',\n  metaDescription: article.meta_description || '',\n  focusKeyword: inputData.main_keyword || '',\n  ogTitle: article.title || '',\n  ogDescription: article.meta_description || '',\n  ogImage: '',\n  twitterTitle: article.title || '',\n  twitterDescription: article.meta_description || '',\n  twitterImage: '',\n  noIndex: false,\n  createdAt: now,\n  id: inputData.id\n};\n\nreturn {\n  json: {\n    blogPost,\n    type: 'article',\n    slug: slug,\n    prompt: article.featured_image_prompt || ('Image de couverture pour article: ' + blogPost.title),\n    dimensions: '1920x1080',\n    context: 'Article blog marketing digital Afrique de l\\'Ouest',\n    for_workflow: 'wf08',\n    featured_image_prompt: article.featured_image_prompt || '',\n    internal_links: article.internal_links || [],\n    faq: article.faq || [],\n    word_count: article.word_count || 0,\n    id: inputData.id\n  }\n};"
+        },
+        "id": "wf08-parse-article",
+        "name": "Parse — Construire BlogPost",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1824,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://firestore.googleapis.com/v1/projects/max-morrys/databases/(default)/documents/blog",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googleApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ (() => { const bp = $json.blogPost; return JSON.stringify({ fields: { title: { stringValue: bp.title }, slug: { stringValue: bp.slug }, excerpt: { stringValue: bp.excerpt }, content: { stringValue: bp.content }, coverImage: { stringValue: bp.coverImage }, category: { stringValue: bp.category }, tags: { arrayValue: { values: (bp.tags||[]).map(t => ({ stringValue: t })) } }, author: { stringValue: bp.author }, publishedAt: { stringValue: bp.publishedAt }, readTime: { integerValue: String(bp.readTime) }, featured: { booleanValue: bp.featured }, status: { stringValue: bp.status }, metaTitle: { stringValue: bp.metaTitle }, metaDescription: { stringValue: bp.metaDescription }, focusKeyword: { stringValue: bp.focusKeyword }, ogTitle: { stringValue: bp.ogTitle }, ogDescription: { stringValue: bp.ogDescription }, ogImage: { stringValue: bp.ogImage }, twitterTitle: { stringValue: bp.twitterTitle }, twitterDescription: { stringValue: bp.twitterDescription }, twitterImage: { stringValue: bp.twitterImage }, noIndex: { booleanValue: bp.noIndex }, createdAt: { stringValue: bp.createdAt } } }); })() }}",
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "wf08-firestore-write",
+        "name": "Firestore — Créer article (draft)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          3968,
+          208
+        ],
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 5000,
+        "credentials": {
+          "googleApi": {
+            "id": "6iOMFTsDdqjDRDAh",
+            "name": "Firebase Service Account Max-Morrys v1"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblA8gHrbE78CfukY",
+            "mode": "list",
+            "cachedResultName": "Banque Idees Articles"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Status": "=produit_draft",
+              "Score": 0,
+              "Longueur_Recommandee": 0
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Date",
+                "displayName": "Date",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Titre_SEO",
+                "displayName": "Titre_SEO",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Mot_Cle",
+                "displayName": "Mot_Cle",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Angle_Local",
+                "displayName": "Angle_Local",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Volume_Estime",
+                "displayName": "Volume_Estime",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Score",
+                "displayName": "Score",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Meta_Description",
+                "displayName": "Meta_Description",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Keywords_Secondaires",
+                "displayName": "Keywords_Secondaires",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Structure",
+                "displayName": "Structure",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Longueur_Recommandee",
+                "displayName": "Longueur_Recommandee",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Intent",
+                "displayName": "Intent",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Content_Gap",
+                "displayName": "Content_Gap",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "id": "wf08-sheets-update",
+        "name": "Airtable — Mettre à jour statut",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          4432,
+          208
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem\nconst input = $input.item.json;\nreturn {\n  json: {\n    prompt: input.featured_image_prompt || ('Image de couverture pour article: ' + (input.blogPost?.title || 'article')),\n    dimensions: '1920x1080',\n    type: 'article',\n    context: 'Article blog marketing digital Afrique de l\\'Ouest',\n    for_workflow: 'wf08',\n    slug: input.blogPost?.slug || '',\n    blogPost_passthrough: input.blogPost,\n    id: input.id\n  }\n};"
+        },
+        "id": "wf08-wf15-normalize",
+        "name": "IMG1 — Normaliser — Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2048,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-pro",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-pro"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Tu es un expert en création de prompts pour la génération d'images IA. Enrichis ce prompt pour générer une image professionnelle et culturellement pertinente pour l'Afrique de l'Ouest francophone. Diversité ethnique africaine, contextes locaux (Dakar, Abidjan, Douala), pas de clichés occidentaux. Style: professionnel, chaleureux, inspirant.\n\nPROMPT: {{ $json.prompt }}\nTYPE: {{ $json.type }}\n\nRéponds UNIQUEMENT avec un JSON valide:\n{\"enhanced_prompt\": \"prompt enrichi EN ANGLAIS pour generation image\", \"style_notes\": \"notes\"}"
+              }
+            ]
+          },
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 1024,
+            "temperature": 0.7
+          }
+        },
+        "id": "wf08-wf15-gemini-enhance",
+        "name": "IMG2 — Gemini — Enrichir le prompt",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          2272,
+          208
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem\nconst input = $input.item.json;\nconst originalData = $('IMG1 — Normaliser — Input').item.json;\n\nlet enhancedPrompt = originalData.prompt;\n\ntry {\n  let text = '';\n  if (input.content?.parts) {\n    text = input.content.parts.map(p => p.text || '').join('');\n  } else if (typeof input === 'string') {\n    text = input;\n  } else if (input.text) {\n    text = input.text;\n  }\n  if (text) {\n    const jsonMatch = text.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      const parsed = JSON.parse(jsonMatch[0]);\n      if (parsed.enhanced_prompt) enhancedPrompt = parsed.enhanced_prompt;\n    }\n  }\n} catch(e) {}\n\nif (!enhancedPrompt || !enhancedPrompt.trim()) {\n  enhancedPrompt = originalData.prompt;\n}\n\nreturn {\n  json: {\n    prompt: enhancedPrompt,\n    original_prompt: originalData.prompt,\n    type: originalData.type,\n    dimensions: originalData.dimensions,\n    context: originalData.context,\n    for_workflow: originalData.for_workflow,\n    slug: originalData.slug,\n    id: originalData.id,\n    blogPost_passthrough: originalData.blogPost_passthrough\n  }\n};"
+        },
+        "id": "wf08-wf15-parse-prompt",
+        "name": "IMG3 — Parse — Prompt enrichi",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2624,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "image",
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash-image-preview",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash-image-preview"
+          },
+          "prompt": "={{ $json.prompt }}",
+          "options": {}
+        },
+        "id": "wf08-wf15-gemini-image",
+        "name": "IMG4 — Gemini — Générer l'image",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          2848,
+          208
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 8000
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem\nconst input = $input.item;\nconst promptData = $('IMG3 — Parse — Prompt enrichi').item.json;\nconst now = new Date().toISOString();\nconst timestamp = now.replace(/[:.]/g, '-').substring(0, 19);\n\nconst typeMap = {\n  article: 'articles', formation: 'formations',\n  social_post: 'social/posts', carousel: 'social/carousels',\n  reel: 'social/reels', lesson: 'lessons',\n  newsletter: 'newsletter', course_cover: 'formations'\n};\nconst prefix = typeMap[promptData.type] || 'misc';\nconst slug = (promptData.slug || promptData.type || 'media')\n  .toLowerCase()\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-|-$/g, '')\n  .substring(0, 60);\n\nconst filename = slug + '-' + timestamp + '.png';\nconst r2_key = prefix + '/' + filename;\n\nconst result = {\n  json: {\n    filename,\n    r2_key,\n    r2_bucket: 'maxmorrys-lms',\n    type: promptData.type,\n    dimensions: promptData.dimensions,\n    original_prompt: promptData.original_prompt,\n    enhanced_prompt: promptData.prompt,\n    for_workflow: promptData.for_workflow,\n    context: promptData.context,\n    slug: promptData.slug || slug,\n    generated_at: now,\n    id: promptData.id,\n    blogPost_passthrough: promptData.blogPost_passthrough\n  }\n};\nif (input.binary) result.binary = input.binary;\nreturn result;"
+        },
+        "id": "wf08-wf15-prepare-upload",
+        "name": "IMG5 — Préparer — Métadonnées upload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3072,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "upload",
+          "bucketName": "maxmorrys-lms",
+          "fileName": "={{ $json.r2_key }}",
+          "additionalFields": {
+            "acl": "publicRead"
+          }
+        },
+        "id": "wf08-wf15-r2-upload",
+        "name": "IMG6 — R2 — Upload image",
+        "type": "n8n-nodes-base.s3",
+        "typeVersion": 1,
+        "position": [
+          3296,
+          208
+        ],
+        "credentials": {
+          "s3": {
+            "id": "1jkvWRlxegNgpKto",
+            "name": "Cloudflare R2 Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem\nconst uploadResult = $input.item.json;\nconst metadata = $('IMG5 — Préparer — Métadonnées upload').item.json;\n\nconst publicUrl = 'https://pub-98fc057dc71948c7bd129a674b4bcec8.r2.dev/' + metadata.r2_key;\n\nreturn {\n  json: {\n    success: true,\n    file_key: metadata.r2_key,\n    public_url: publicUrl,\n    file_url: publicUrl,\n    filename: metadata.filename,\n    type: metadata.type,\n    dimensions: metadata.dimensions,\n    original_prompt: metadata.original_prompt,\n    enhanced_prompt: metadata.enhanced_prompt,\n    for_workflow: metadata.for_workflow,\n    generated_at: metadata.generated_at,\n    r2_bucket: 'maxmorrys-lms',\n    id: metadata.id,\n    blogPost_passthrough: metadata.blogPost_passthrough\n  }\n};"
+        },
+        "id": "wf08-wf15-build-result",
+        "name": "IMG7 — Build — Résultat final",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3520,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem\nconst imgResult = $input.item.json;\nconst parseData = $('Parse — Construire BlogPost').item.json;\n\nconst blogPost = { ...parseData.blogPost };\nconst imageUrl = imgResult.public_url || imgResult.file_url || '';\n\nif (imageUrl) {\n  blogPost.coverImage = imageUrl;\n  blogPost.ogImage = imageUrl;\n  blogPost.twitterImage = imageUrl;\n}\n\nreturn {\n  json: {\n    blogPost,\n    featured_image_prompt: parseData.featured_image_prompt,\n    internal_links: parseData.internal_links,\n    faq: parseData.faq,\n    word_count: parseData.word_count,\n    image_public_url: imageUrl,\n    id: parseData.id\n  }\n};"
+        },
+        "id": "wf08-merge-image",
+        "name": "Code — Merger image dans BlogPost",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3744,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem\nreturn {\n  json: {\n    id: $('Code — Merger image dans BlogPost').item.json.id,\n    Status: 'produit_draft'\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4176,
+          208
+        ],
+        "id": "wf08-prep-update-payload",
+        "name": "Prep — Update payload"
+      }
+    ],
+    "connections": {
+      "Cron — Articles 9h quotidien": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire articles valides",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire articles valides": {
+        "main": [
+          [
+            {
+              "node": "Filter — Status = valide",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter — Status = valide": {
+        "main": [
+          [
+            {
+              "node": "Gemini Pro — Phase Recherche",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Pro — Phase Recherche": {
+        "main": [
+          [
+            {
+              "node": "Parse — Données recherche",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Données recherche": {
+        "main": [
+          [
+            {
+              "node": "Gemini Pro — Rédiger l'article",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Pro — Rédiger l'article": {
+        "main": [
+          [
+            {
+              "node": "Parse — Construire BlogPost",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Construire BlogPost": {
+        "main": [
+          [
+            {
+              "node": "IMG1 — Normaliser — Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IMG1 — Normaliser — Input": {
+        "main": [
+          [
+            {
+              "node": "IMG2 — Gemini — Enrichir le prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IMG2 — Gemini — Enrichir le prompt": {
+        "main": [
+          [
+            {
+              "node": "IMG3 — Parse — Prompt enrichi",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IMG3 — Parse — Prompt enrichi": {
+        "main": [
+          [
+            {
+              "node": "IMG4 — Gemini — Générer l'image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IMG4 — Gemini — Générer l'image": {
+        "main": [
+          [
+            {
+              "node": "IMG5 — Préparer — Métadonnées upload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IMG5 — Préparer — Métadonnées upload": {
+        "main": [
+          [
+            {
+              "node": "IMG6 — R2 — Upload image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IMG6 — R2 — Upload image": {
+        "main": [
+          [
+            {
+              "node": "IMG7 — Build — Résultat final",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IMG7 — Build — Résultat final": {
+        "main": [
+          [
+            {
+              "node": "Code — Merger image dans BlogPost",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code — Merger image dans BlogPost": {
+        "main": [
+          [
+            {
+              "node": "Firestore — Créer article (draft)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Firestore — Créer article (draft)": {
+        "main": [
+          [
+            {
+              "node": "Prep — Update payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prep — Update payload": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Mettre à jour statut",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-20T10:30:32.202Z",
+        "id": 512,
+        "workflowId": "OQMIBhbc7Y9OFQzL",
+        "versionId": "a0612e7f-c38e-4e5d-a423-e17a1423fbca",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-05-20T10:30:32.105Z",
+        "id": 511,
+        "workflowId": "OQMIBhbc7Y9OFQzL",
+        "versionId": "a0612e7f-c38e-4e5d-a423-e17a1423fbca",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

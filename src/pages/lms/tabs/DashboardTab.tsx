@@ -41,7 +41,7 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
       {(() => {
         const inProgress = enrolledFormations.find((ef) => ef.enrollment.progress > 0 && ef.enrollment.progress < 100);
         return (
-          <div className="bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl p-6 text-white">
+          <div className="bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl p-5 sm:p-6 text-white">
             <h2 className="text-xl font-bold mb-1">Bonjour, {displayName.split(' ')[0]} 👋</h2>
             {inProgress && inProgress.formation ? (
               <div className="mt-3">
@@ -92,7 +92,7 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
 
       {/* Stats */}
       <motion.div
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        className="grid grid-cols-2 sm:grid-cols-4 gap-4"
         variants={staggerContainer}
         initial="hidden"
         animate="visible"

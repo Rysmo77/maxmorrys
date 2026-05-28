@@ -86,12 +86,12 @@ export default function NotesTab({
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 max-w-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="relative w-full sm:flex-1 sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input value={noteSearch} onChange={(e) => setNoteSearch(e.target.value)} placeholder="Rechercher une note..." className="w-full pl-10 pr-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
             </div>
-            <Button size="sm" onClick={openNewNote} icon={<Plus className="w-4 h-4" />}>Nouvelle note</Button>
+            <Button size="sm" className="w-full sm:w-auto" onClick={openNewNote} icon={<Plus className="w-4 h-4" />}>Nouvelle note</Button>
           </div>
           {loadingNotes ? (
             <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>

@@ -14,7 +14,13 @@ const adminManageEnrollment = httpsCallable<
 
 const adminCreateUser = httpsCallable(functions, 'adminCreateUser');
 
-export type EditTab = 'info' | 'formations' | 'club';
+interface RysmoQuota { dayKey: string | null; dayCount: number; packBalance: number }
+const adminManageRysmoQuota = httpsCallable<
+  { userId: string; action: 'get' | 'add' | 'reset'; amount?: number },
+  RysmoQuota
+>(functions, 'adminManageRysmoQuota');
+
+export type EditTab = 'info' | 'formations' | 'club' | 'rysmo';
 
 export const emptyEditForm = {
   displayName: '',
@@ -81,6 +87,12 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
   const [loadingClubSub, setLoadingClubSub] = useState(false);
   const [togglingClub, setTogglingClub] = useState(false);
 
+  // Rysmo (tokens IA) tab
+  const [rysmoQuota, setRysmoQuota] = useState<RysmoQuota | null>(null);
+  const [loadingRysmo, setLoadingRysmo] = useState(false);
+  const [togglingRysmo, setTogglingRysmo] = useState(false);
+  const [addTokenAmount, setAddTokenAmount] = useState('30');
+
   // Add user modal
   const [showAddUser, setShowAddUser] = useState(false);
   const [addForm, setAddForm] = useState<AddForm>(emptyAddForm);
@@ -108,6 +120,8 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     setEditUser(u);
     setEditTab('info');
     setClubSub(null);
+    setRysmoQuota(null);
+    setAddTokenAmount('30');
     setEditForm({
       displayName: u.displayName || '',
       firstName: u.firstName || '',
@@ -145,7 +159,48 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
         .then((sub) => { setClubSub(sub); setLoadingClubSub(false); })
         .catch(() => setLoadingClubSub(false));
     }
-  }, [editUser, loadUserEnrollments]);
+    if (tab === 'rysmo' && editUser) {
+      setLoadingRysmo(true);
+      adminManageRysmoQuota({ userId: editUser.uid, action: 'get' })
+        .then((res) => { setRysmoQuota(res.data); setLoadingRysmo(false); })
+        .catch(() => { setLoadingRysmo(false); addToast('error', 'Erreur lors du chargement des tokens IA.'); });
+    }
+  }, [editUser, loadUserEnrollments, addToast]);
+
+  const handleResetRysmo = useCallback(async () => {
+    if (!editUser) return;
+    setTogglingRysmo(true);
+    try {
+      const res = await adminManageRysmoQuota({ userId: editUser.uid, action: 'reset' });
+      setRysmoQuota(res.data);
+      addToast('success', 'Compteur du jour réinitialisé.');
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message || 'Erreur lors de la réinitialisation.';
+      addToast('error', msg);
+    } finally {
+      setTogglingRysmo(false);
+    }
+  }, [editUser, addToast]);
+
+  const handleAddRysmoTokens = useCallback(async () => {
+    if (!editUser) return;
+    const amount = parseInt(addTokenAmount, 10);
+    if (!Number.isInteger(amount) || amount < 1 || amount > 10000) {
+      addToast('error', 'Entre un nombre de tokens entre 1 et 10000.');
+      return;
+    }
+    setTogglingRysmo(true);
+    try {
+      const res = await adminManageRysmoQuota({ userId: editUser.uid, action: 'add', amount });
+      setRysmoQuota(res.data);
+      addToast('success', `${amount} tokens IA ajoutés.`);
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message || 'Erreur lors de l\'ajout de tokens.';
+      addToast('error', msg);
+    } finally {
+      setTogglingRysmo(false);
+    }
+  }, [editUser, addTokenAmount, addToast]);
 
   const handleGrantClub = useCallback(async () => {
     if (!editUser) return;
@@ -289,6 +344,10 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     // Club tab
     clubSub, loadingClubSub, togglingClub,
     handleGrantClub, handleRevokeClub,
+    // Rysmo (tokens IA) tab
+    rysmoQuota, loadingRysmo, togglingRysmo,
+    addTokenAmount, setAddTokenAmount,
+    handleResetRysmo, handleAddRysmoTokens,
     // Add user modal
     showAddUser, setShowAddUser, addForm, setAddForm, creatingUser,
     handleCreateUser,

@@ -1,0 +1,818 @@
+{
+  "updatedAt": "2026-04-15T03:33:08.717Z",
+  "createdAt": "2026-04-09T10:30:42.909Z",
+  "id": "bWBnavxblOSxA8ey",
+  "name": "WF-18 — Création de Supports de Cours Visuels",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 14 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron — Supports cours 14h30 quotidien",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst mediaPrompts = input.media_prompts || [];\nconst courseTitle = input.course_title || '';\nconst lessonTitle = input.lesson_title || '';\n\nreturn mediaPrompts.map(mp => ({\n  json: {\n    type: mp.type || 'illustration',\n    prompt: mp.prompt || mp.description || '',\n    alt_text: mp.alt_text || '',\n    position: mp.position || '',\n    course_title: courseTitle,\n    lesson_title: lessonTitle\n  }\n}));"
+      },
+      "id": "wf18-flatten",
+      "name": "Flatten — Media prompts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "wf18-batch",
+      "name": "Batch — Par média",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "diagram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "diagram"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "infographic",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "infographic"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "illustration",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "illustration"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "ignoreCase": false
+        }
+      },
+      "id": "wf18-switch",
+      "name": "Switch — Type de média",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Tu es un expert en design d'information pédagogique. Crée un diagramme clair pour une leçon de cours en ligne.\n\nSujet : {{ $json.prompt }}\nCours : {{ $json.course_title }}\nLeçon : {{ $json.lesson_title }}\n\nCrée le diagramme en code Mermaid.js.\nLe diagramme doit être compréhensible par un apprenant de niveau débutant/intermédiaire.\nUtilise des couleurs claires et un style professionnel.\n\nRéponse JSON :\n{ \"diagram_type\": \"flowchart|sequence|mindmap|timeline\", \"mermaid_code\": \"code mermaid complet\", \"title\": \"\", \"alt_text\": \"\" }"
+            }
+          ]
+        },
+        "options": {
+          "maxOutputTokens": 8192,
+          "temperature": 0.7,
+          "thinkingBudget": 0
+        },
+        "jsonOutput": true
+      },
+      "id": "wf18-gemini-diagram",
+      "name": "Gemini — Diagramme Mermaid",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        100
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Tu es un designer d'infographies pédagogiques pour des cours en ligne.\nCrée la structure HTML/CSS d'une infographie pour la leçon.\nContenu : {{ $json.prompt }}\nStyle : professionnel, lisible sur mobile, max 800x600px.\nRéponse JSON : { \"html\": \"code HTML complet avec CSS inline\", \"title\": \"\", \"alt_text\": \"\" }"
+            }
+          ]
+        },
+        "options": {
+          "maxOutputTokens": 16384,
+          "temperature": 0.7,
+          "thinkingBudget": 0
+        },
+        "jsonOutput": true
+      },
+      "id": "wf18-gemini-infographic",
+      "name": "Gemini — Infographie HTML",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        300
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nlet result = { type: '', url: '', mermaid_code: '', html: '', alt_text: '' };\n\ntry {\n  if (input.candidates) {\n    // Gemini response (diagram or infographic)\n    const text = input.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n    const parsed = JSON.parse(text);\n    result.mermaid_code = parsed.mermaid_code || '';\n    result.html = parsed.html || '';\n    result.alt_text = parsed.alt_text || '';\n    result.type = result.mermaid_code ? 'diagram' : 'infographic';\n  } else if (input.file_url) {\n    // WF-15 response (illustration)\n    result.url = input.file_url;\n    result.type = 'illustration';\n    result.alt_text = input.original_prompt || '';\n  }\n} catch (e) {\n  // continue with empty result\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "wf18-normalize-result",
+      "name": "Normalize — Résultat média",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1500,
+        300
+      ]
+    },
+    {
+      "id": "wf18-sheets",
+      "name": "Airtable — Log média cours",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1800,
+        300
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "record",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbleUm1UoP9qqOdOn",
+          "mode": "list",
+          "cachedResultName": "Medias Generes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ new Date().toISOString() }}",
+            "Type": "=support_cours_{{ $json.type }}",
+            "Pour": "=cours",
+            "Prompt": "={{ $json.alt_text }}",
+            "Dimensions": "=800x600",
+            "Status": "=produit",
+            "URL_R2": "={{ $json.url }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Flatten — Media prompts": {
+      "main": [
+        [
+          {
+            "node": "Batch — Par média",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batch — Par média": {
+      "main": [
+        [
+          {
+            "node": "Switch — Type de média",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch — Type de média": {
+      "main": [
+        [
+          {
+            "node": "Gemini — Diagramme Mermaid",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gemini — Infographie HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Gemini — Diagramme Mermaid": {
+      "main": [
+        [
+          {
+            "node": "Normalize — Résultat média",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini — Infographie HTML": {
+      "main": [
+        [
+          {
+            "node": "Normalize — Résultat média",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize — Résultat média": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Log média cours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Log média cours": {
+      "main": [
+        [
+          {
+            "node": "Batch — Par média",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron — Supports cours 14h30 quotidien": {
+      "main": [
+        [
+          {
+            "node": "Flatten — Media prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Cron — Supports cours 14h30 quotidien": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "f8f3d3d9-1deb-4422-97f3-c4980a39cf95",
+  "activeVersionId": "f8f3d3d9-1deb-4422-97f3-c4980a39cf95",
+  "versionCounter": 32,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-09T10:30:42.910Z",
+      "createdAt": "2026-04-09T10:30:42.910Z",
+      "role": "workflow:owner",
+      "workflowId": "bWBnavxblOSxA8ey",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-15T03:33:08.718Z",
+    "createdAt": "2026-04-15T03:33:08.718Z",
+    "versionId": "f8f3d3d9-1deb-4422-97f3-c4980a39cf95",
+    "workflowId": "bWBnavxblOSxA8ey",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "30 14 * * *"
+              }
+            ]
+          }
+        },
+        "id": "cron-trigger",
+        "name": "Cron — Supports cours 14h30 quotidien",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nconst mediaPrompts = input.media_prompts || [];\nconst courseTitle = input.course_title || '';\nconst lessonTitle = input.lesson_title || '';\n\nreturn mediaPrompts.map(mp => ({\n  json: {\n    type: mp.type || 'illustration',\n    prompt: mp.prompt || mp.description || '',\n    alt_text: mp.alt_text || '',\n    position: mp.position || '',\n    course_title: courseTitle,\n    lesson_title: lessonTitle\n  }\n}));"
+        },
+        "id": "wf18-flatten",
+        "name": "Flatten — Media prompts",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          300,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "batchSize": 1,
+          "options": {}
+        },
+        "id": "wf18-batch",
+        "name": "Batch — Par média",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          600,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "rules",
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.type }}",
+                      "rightValue": "diagram",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "diagram"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.type }}",
+                      "rightValue": "infographic",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "infographic"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.type }}",
+                      "rightValue": "illustration",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "illustration"
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra",
+            "ignoreCase": false
+          }
+        },
+        "id": "wf18-switch",
+        "name": "Switch — Type de média",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          900,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.0-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.0-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Tu es un expert en design d'information pédagogique. Crée un diagramme clair pour une leçon de cours en ligne.\n\nSujet : {{ $json.prompt }}\nCours : {{ $json.course_title }}\nLeçon : {{ $json.lesson_title }}\n\nCrée le diagramme en code Mermaid.js.\nLe diagramme doit être compréhensible par un apprenant de niveau débutant/intermédiaire.\nUtilise des couleurs claires et un style professionnel.\n\nRéponse JSON :\n{ \"diagram_type\": \"flowchart|sequence|mindmap|timeline\", \"mermaid_code\": \"code mermaid complet\", \"title\": \"\", \"alt_text\": \"\" }"
+              }
+            ]
+          },
+          "options": {
+            "maxOutputTokens": 4096,
+            "temperature": 0.7
+          },
+          "jsonOutput": true
+        },
+        "id": "wf18-gemini-diagram",
+        "name": "Gemini — Diagramme Mermaid",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          1200,
+          100
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.0-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.0-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Tu es un designer d'infographies pédagogiques pour des cours en ligne.\nCrée la structure HTML/CSS d'une infographie pour la leçon.\nContenu : {{ $json.prompt }}\nStyle : professionnel, lisible sur mobile, max 800x600px.\nRéponse JSON : { \"html\": \"code HTML complet avec CSS inline\", \"title\": \"\", \"alt_text\": \"\" }"
+              }
+            ]
+          },
+          "options": {
+            "maxOutputTokens": 4096,
+            "temperature": 0.7
+          },
+          "jsonOutput": true
+        },
+        "id": "wf18-gemini-infographic",
+        "name": "Gemini — Infographie HTML",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          1200,
+          300
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nlet result = { type: '', url: '', mermaid_code: '', html: '', alt_text: '' };\n\ntry {\n  if (input.candidates) {\n    // Gemini response (diagram or infographic)\n    const text = input.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n    const parsed = JSON.parse(text);\n    result.mermaid_code = parsed.mermaid_code || '';\n    result.html = parsed.html || '';\n    result.alt_text = parsed.alt_text || '';\n    result.type = result.mermaid_code ? 'diagram' : 'infographic';\n  } else if (input.file_url) {\n    // WF-15 response (illustration)\n    result.url = input.file_url;\n    result.type = 'illustration';\n    result.alt_text = input.original_prompt || '';\n  }\n} catch (e) {\n  // continue with empty result\n}\n\nreturn [{ json: result }];"
+        },
+        "id": "wf18-normalize-result",
+        "name": "Normalize — Résultat média",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1500,
+          300
+        ]
+      },
+      {
+        "id": "wf18-sheets",
+        "name": "Airtable — Log média cours",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1800,
+          300
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbleUm1UoP9qqOdOn",
+            "mode": "list",
+            "cachedResultName": "Medias Generes"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Date": "={{ new Date().toISOString() }}",
+              "Type": "=support_cours_{{ $json.type }}",
+              "Pour": "=cours",
+              "Prompt": "={{ $json.alt_text }}",
+              "Dimensions": "=800x600",
+              "Status": "=produit",
+              "URL_R2": "={{ $json.url }}"
+            },
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Flatten — Media prompts": {
+        "main": [
+          [
+            {
+              "node": "Batch — Par média",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Batch — Par média": {
+        "main": [
+          [
+            {
+              "node": "Switch — Type de média",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch — Type de média": {
+        "main": [
+          [
+            {
+              "node": "Gemini — Diagramme Mermaid",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Gemini — Infographie HTML",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          []
+        ]
+      },
+      "Gemini — Diagramme Mermaid": {
+        "main": [
+          [
+            {
+              "node": "Normalize — Résultat média",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini — Infographie HTML": {
+        "main": [
+          [
+            {
+              "node": "Normalize — Résultat média",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize — Résultat média": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Log média cours",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Log média cours": {
+        "main": [
+          [
+            {
+              "node": "Batch — Par média",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cron — Supports cours 14h30 quotidien": {
+        "main": [
+          [
+            {
+              "node": "Flatten — Media prompts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-15T03:33:08.917Z",
+        "id": 339,
+        "workflowId": "bWBnavxblOSxA8ey",
+        "versionId": "f8f3d3d9-1deb-4422-97f3-c4980a39cf95",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-04-15T03:33:08.837Z",
+        "id": 338,
+        "workflowId": "bWBnavxblOSxA8ey",
+        "versionId": "f8f3d3d9-1deb-4422-97f3-c4980a39cf95",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

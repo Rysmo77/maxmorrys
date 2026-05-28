@@ -1,139 +1,75 @@
-import { useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, GraduationCap, Users, BarChart3, Settings,
-  MessageSquare, Tag, Megaphone, HelpCircle, Menu, X, ChevronLeft,
-  Mic, Video, CreditCard, Moon, Sun, LogOut, Calendar, Star, Crown
+  MessageSquare, Tag, Megaphone, HelpCircle,
+  Mic, Video, CreditCard, Calendar, Star, Crown, Home,
 } from 'lucide-react';
-import { cn } from '../../lib/utils';
-import { useTheme } from '../../contexts/ThemeContext';
+import AppShell from './AppShell';
 import { useAuth } from '../../contexts/AuthContext';
+import type { AppSidebarItem } from './AppSidebar';
 
-const ALL_NAV_ITEMS = [
-  { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin', adminOnly: true },
-  { icon: FileText, label: 'Articles', path: '/admin/articles', adminOnly: true },
-  { icon: GraduationCap, label: 'Formations', path: '/admin/formations', adminOnly: true },
-  { icon: Mic, label: 'Podcasts', path: '/admin/podcasts', adminOnly: true },
-  { icon: Video, label: 'Videos', path: '/admin/videos', adminOnly: true },
-  { icon: Users, label: 'Utilisateurs', path: '/admin/utilisateurs', adminOnly: true },
-  { icon: CreditCard, label: 'Transactions', path: '/admin/transactions', adminOnly: true },
-  { icon: MessageSquare, label: 'Messages', path: '/admin/messages', adminOnly: false },
-  { icon: Tag, label: 'Coupons', path: '/admin/coupons', adminOnly: true },
-  { icon: Megaphone, label: 'Annonces', path: '/admin/annonces', adminOnly: true },
-  { icon: HelpCircle, label: 'FAQ', path: '/admin/faq', adminOnly: true },
-  { icon: Star, label: 'Témoignages', path: '/admin/temoignages', adminOnly: false },
-  { icon: Calendar, label: 'Rendez-vous', path: '/admin/rendez-vous', adminOnly: false },
-  { icon: Crown, label: 'Club des Digitos', path: '/admin/club-digitos', adminOnly: true },
-  { icon: BarChart3, label: 'Analytics', path: '/admin/analytics', adminOnly: true },
-  { icon: Settings, label: 'Parametres', path: '/admin/parametres', adminOnly: true },
+interface AdminNavItem extends AppSidebarItem {
+  adminOnly?: boolean;
+}
+
+const ALL_NAV_ITEMS: AdminNavItem[] = [
+  { to: '/admin',                label: 'Tableau de bord', icon: LayoutDashboard, end: true, adminOnly: true },
+  { to: '/admin/articles',       label: 'Articles',        icon: FileText,        adminOnly: true },
+  { to: '/admin/formations',     label: 'Formations',      icon: GraduationCap,   adminOnly: true },
+  { to: '/admin/podcasts',       label: 'Podcasts',        icon: Mic,             adminOnly: true },
+  { to: '/admin/videos',         label: 'Vidéos',          icon: Video,           adminOnly: true },
+  { to: '/admin/utilisateurs',   label: 'Utilisateurs',    icon: Users,           adminOnly: true },
+  { to: '/admin/transactions',   label: 'Transactions',    icon: CreditCard,      adminOnly: true },
+  { to: '/admin/messages',       label: 'Messages',        icon: MessageSquare,   adminOnly: false },
+  { to: '/admin/coupons',        label: 'Coupons',         icon: Tag,             adminOnly: true },
+  { to: '/admin/annonces',       label: 'Annonces',        icon: Megaphone,       adminOnly: true },
+  { to: '/admin/faq',            label: 'FAQ',             icon: HelpCircle,      adminOnly: true },
+  { to: '/admin/temoignages',    label: 'Témoignages',     icon: Star,            adminOnly: false },
+  { to: '/admin/rendez-vous',    label: 'Rendez-vous',     icon: Calendar,        adminOnly: false },
+  { to: '/admin/club-digitos',   label: 'Club des Digitos', icon: Crown,          adminOnly: true, tone: 'club' },
+  { to: '/admin/analytics',      label: 'Analytics',       icon: BarChart3,       adminOnly: true },
+  { to: '/admin/parametres',     label: 'Paramètres',      icon: Settings,        adminOnly: true },
 ];
 
+const ADMIN_TITLES: Record<string, string> = {
+  '/admin':              'Tableau de bord admin',
+  '/admin/articles':     'Articles',
+  '/admin/formations':   'Formations',
+  '/admin/podcasts':     'Podcasts',
+  '/admin/videos':       'Vidéos',
+  '/admin/utilisateurs': 'Utilisateurs',
+  '/admin/transactions': 'Transactions',
+  '/admin/messages':     'Messages',
+  '/admin/coupons':      'Coupons',
+  '/admin/annonces':     'Annonces',
+  '/admin/faq':          'FAQ',
+  '/admin/temoignages':  'Témoignages',
+  '/admin/rendez-vous':  'Rendez-vous',
+  '/admin/club-digitos': 'Club des Digitos',
+  '/admin/analytics':    'Analytics',
+  '/admin/parametres':   'Paramètres',
+};
+
 export default function AdminLayout() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
-  const { signOut, userData } = useAuth();
+  const { userData } = useAuth();
   const isAdmin = userData?.role === 'admin';
   const isSupport = userData?.role === 'support';
-  const navItems = ALL_NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
-  // Support users see a limited label
   const panelLabel = isSupport ? 'Support' : 'Admin';
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
-
-  const sidebar = (
-    <div className="flex flex-col h-full">
-      <div className="p-4 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700">
-        <Link to="/admin" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold text-xs">MM</div>
-          {!collapsed && <span className="font-bold text-neutral-900 dark:text-white text-sm">{panelLabel}</span>}
-        </Link>
-        <button onClick={() => setCollapsed(!collapsed)} className="hidden lg:block p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-400">
-          <ChevronLeft className={cn('w-4 h-4 transition-transform', collapsed && 'rotate-180')} />
-        </button>
-        <button onClick={() => setMobileOpen(false)} className="lg:hidden p-1 text-neutral-400">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setMobileOpen(false)}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
-                  : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'
-              )}
-              title={collapsed ? item.label : undefined}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="p-3 border-t border-neutral-200 dark:border-neutral-700 space-y-1">
-        <button onClick={toggleTheme} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
-          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          {!collapsed && <span>Theme</span>}
-        </button>
-        <Link to="/" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
-          <ChevronLeft className="w-5 h-5" />
-          {!collapsed && <span>Retour au site</span>}
-        </Link>
-        <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors">
-          <LogOut className="w-5 h-5" />
-          {!collapsed && <span>Déconnexion</span>}
-        </button>
-      </div>
-    </div>
-  );
+  const items: AppSidebarItem[] = ALL_NAV_ITEMS
+    .filter((item) => !item.adminOnly || isAdmin)
+    .map(({ to, label, icon, end, tone, badge, locked }) => ({ to, label, icon, end, tone, badge, locked }));
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      <aside className={cn('fixed left-0 top-0 bottom-0 z-30 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 transition-all hidden lg:block', collapsed ? 'w-16' : 'w-60')}>
-        {sidebar}
-      </aside>
-
-      {mobileOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="fixed inset-0 bg-black/30" onClick={() => setMobileOpen(false)} />
-          <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 animate-slide-down z-50">
-            {sidebar}
-          </aside>
-        </div>
-      )}
-
-      <div className={cn('transition-all', collapsed ? 'lg:ml-16' : 'lg:ml-60')}>
-        <header className="sticky top-0 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
-          <div className="flex items-center justify-between px-4 sm:px-6 h-14">
-            <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-              <Menu className="w-5 h-5" />
-            </button>
-            <div className="flex-1" />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center">
-                <span className="text-xs font-bold text-brand-600 dark:text-brand-400">MM</span>
-              </div>
-            </div>
-          </div>
-        </header>
-        <main className="p-4 sm:p-6 lg:p-8">
-          <Outlet />
-        </main>
-      </div>
-    </div>
+    <AppShell
+      brand={{ label: panelLabel, href: '/admin', mark: 'MM' }}
+      titleMap={ADMIN_TITLES}
+      sidebarSections={[
+        { title: 'Pilotage',    items: items.filter((i) => ['/admin', '/admin/analytics', '/admin/parametres'].includes(i.to)) },
+        { title: 'Contenu',     items: items.filter((i) => ['/admin/articles', '/admin/formations', '/admin/podcasts', '/admin/videos', '/admin/faq', '/admin/temoignages', '/admin/annonces'].includes(i.to)) },
+        { title: 'Communauté',  items: items.filter((i) => ['/admin/utilisateurs', '/admin/messages', '/admin/rendez-vous', '/admin/club-digitos'].includes(i.to)) },
+        { title: 'Commerce',    items: items.filter((i) => ['/admin/transactions', '/admin/coupons'].includes(i.to)) },
+        { title: 'Site',        items: [{ to: '/', label: 'Retour au site', icon: Home, end: true }] },
+      ].filter((section) => section.items.length > 0)}
+    />
   );
 }

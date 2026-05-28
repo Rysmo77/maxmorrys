@@ -32,7 +32,11 @@ export default function Confidentialite() {
               <li>Données relatives aux achats : historique de commandes, moyens de paiement</li>
               <li>Données de progression : avancement dans les formations</li>
               <li>Données de communication : messages envoyés via le formulaire de contact</li>
+              <li>Données liées à l'assistant IA Rysmo : historique de tes échanges avec Rysmo et profil d'apprentissage dérivé (sujets d'intérêt, niveau estimé, points à renforcer), stockés côté serveur pour personnaliser son accompagnement</li>
             </ul>
+            <p className="mt-2 text-sm">
+              La mémoire de Rysmo est <strong>activée par défaut</strong>. Tu peux la désactiver et l'effacer à tout moment depuis ton espace (<em>Espace → Rysmo → Mémoire</em>).
+            </p>
           </section>
 
           <section>
@@ -44,6 +48,7 @@ export default function Confidentialite() {
               <li>Envoi de newsletters (avec votre consentement)</li>
               <li>Amélioration de nos services et de l'expérience utilisateur</li>
               <li>Réponse à vos demandes de contact</li>
+              <li>Personnalisation pédagogique de l'assistant IA Rysmo (base légale : intérêt légitime, avec contrôle de votre part — désactivation et effacement à tout moment)</li>
             </ul>
           </section>
 
@@ -54,6 +59,7 @@ export default function Confidentialite() {
               <li>Données de compte : pendant la durée de votre inscription + 3 ans</li>
               <li>Données de transaction : 10 ans (obligation légale)</li>
               <li>Données de newsletter : jusqu'à votre désinscription</li>
+              <li>Mémoire de l'assistant Rysmo : conservée tant que la mémoire est active ; effaçable à tout moment depuis votre espace</li>
               <li>Cookies : 13 mois maximum</li>
             </ul>
           </section>
@@ -78,7 +84,7 @@ export default function Confidentialite() {
             <ul className="list-disc pl-6 mt-2 space-y-1">
               <li>Firebase / Google Cloud (Google LLC) — Hébergement, base de données et authentification</li>
               <li>Bictorys — Traitement des paiements (Wave, Orange Money, Free Money, carte bancaire)</li>
-              <li>Google Generative AI (Gemini) — Assistant pédagogique Rysmo</li>
+              <li>Google Generative AI (Gemini) — Assistant pédagogique Rysmo (traitement des échanges pour générer les réponses ; l'historique est stocké côté serveur Max-Morrys pour la mémoire personnalisée)</li>
             </ul>
           </section>
 

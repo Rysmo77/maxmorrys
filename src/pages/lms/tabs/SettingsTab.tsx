@@ -8,6 +8,7 @@ import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import { functions } from '../../../config/firebase';
 import { useToast } from '../../../components/ui/Toast';
 import { useAuth } from '../../../contexts/AuthContext';
+import { updateUserProfile } from '../../../lib/firestore';
 import { staggerContainer, staggerItem } from '../../../lib/animations';
 
 const exportUserData = httpsCallable<Record<string, never>, { downloadUrl: string; expiresInHours: number }>(
@@ -27,13 +28,30 @@ interface SettingsTabProps {
 
 export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabProps) {
   const { addToast } = useToast();
-  const { signOut } = useAuth();
+  const { signOut, user, userData, refreshUserData } = useAuth();
   const navigate = useNavigate();
 
+  const [savingConsent, setSavingConsent] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+
+  const handleToggleAiMemory = async (checked: boolean) => {
+    if (!user || !userData) return;
+    setSavingConsent(true);
+    try {
+      await updateUserProfile(user.uid, {
+        preferences: { ...userData.preferences, aiMemoryConsent: checked },
+      });
+      await refreshUserData();
+      addToast('success', checked ? 'Mémoire de Rysmo activée.' : 'Mémoire de Rysmo désactivée.');
+    } catch {
+      addToast('error', 'Erreur lors de la mise à jour.');
+    } finally {
+      setSavingConsent(false);
+    }
+  };
 
   const handleExport = async () => {
     setExporting(true);
@@ -80,6 +98,16 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
           onChange={(checked) => setTheme(checked ? 'dark' : 'light')}
           label="Mode sombre"
           description="Réduit la fatigue oculaire dans les environnements sombres"
+        />
+      </motion.div>
+
+      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
+        <h3 className="font-bold text-neutral-900 dark:text-white mb-5">Assistant IA</h3>
+        <Toggle
+          checked={userData?.preferences?.aiMemoryConsent !== false}
+          onChange={handleToggleAiMemory}
+          label="Mémoire de Rysmo"
+          description={savingConsent ? 'Mise à jour…' : 'Activée par défaut — Rysmo se souvient de tes échanges pour personnaliser ses réponses'}
         />
       </motion.div>
 

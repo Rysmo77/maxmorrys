@@ -1,0 +1,1031 @@
+{
+  "tables": [
+    {
+      "id": "tblOA6igI4bSz3fwS",
+      "name": "Banque Idees Social",
+      "primaryFieldId": "fldc1D832MJsMf7Mf",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldc1D832MJsMf7Mf",
+          "name": "Date"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldgxiRUVNNBb0VRr",
+          "name": "Sujet"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldsdw8YvXb1QSq3X",
+          "name": "Angle"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldRWJBR2QvhPehn1",
+          "name": "Pertinence_Locale"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldaO8Z2Oj3cDT9MQ",
+          "name": "Reseaux"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldkEz7qfMLDL53wx",
+          "name": "Format"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldSeW3SyVSoSFGEv",
+          "name": "Score"
+        },
+        {
+          "type": "url",
+          "id": "fldZULTpQ4n18EdDo",
+          "name": "Source"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldftXU2tT2vPicJq",
+          "name": "Hashtags_Locaux"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldD5BcbOfkY0vKTS",
+          "name": "Status"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwc5ufDkQueN1ydb",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblA8gHrbE78CfukY",
+      "name": "Banque Idees Articles",
+      "primaryFieldId": "fldRkedz8VnIkgKt3",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldRkedz8VnIkgKt3",
+          "name": "Date"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldzPfyY2qUQGaawa",
+          "name": "Titre_SEO"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldqFHIp0s0Ybs0TZ",
+          "name": "Mot_Cle"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldOKhr30V3VYrl1k",
+          "name": "Status"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld9jeIzBHqLBFkWo",
+          "name": "Angle_Local"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldOMhQXnOsVb50tn",
+          "name": "Volume_Estime"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldgPkQAYrvQTXfcT",
+          "name": "Score"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldMpTs1K2Jx85TzI",
+          "name": "Meta_Description"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld9VF0VdJ03B5tFE",
+          "name": "Keywords_Secondaires"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldCWtuneELPMA8Wl",
+          "name": "Structure"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldTRRxMdpcYZqLI7",
+          "name": "Longueur_Recommandee"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldKsNp0ocMNjfs2u",
+          "name": "Intent"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldSZ1snx3lKFFXn5",
+          "name": "Content_Gap"
+        }
+      ],
+      "views": [
+        {
+          "id": "viw1ScdLcELHgVEIA",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblcn2MyeFR9IekHX",
+      "name": "Banque Idees Cours",
+      "primaryFieldId": "flds31yXHaFeZZhXU",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "flds31yXHaFeZZhXU",
+          "name": "Date"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldOXnPaB8h1fOM4k",
+          "name": "Titre"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldtjSfKQ03vUrTVL",
+          "name": "Niveau"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldzCaqcj2upRBDMg",
+          "name": "Audience"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldDZZL5ZAjGIYDBm",
+          "name": "Besoin_Local"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldANJFKpy0nESgA8",
+          "name": "Duree"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldrqCdDzFJAPMVPv",
+          "name": "Score"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldiV69QITIIjaCr5",
+          "name": "Status"
+        }
+      ],
+      "views": [
+        {
+          "id": "viw8n3YaJ85zP2Yui",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblTlBSOSI1UOmQ1I",
+      "name": "Calendrier Editorial",
+      "primaryFieldId": "fldbZt7YC6GIjQ5Th",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldbZt7YC6GIjQ5Th",
+          "name": "Semaine"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldrKu5L9m7k81HJC",
+          "name": "Jour"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldz6sbILpjDOMpl8",
+          "name": "Date"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fld6C4uVevSmxHFHJ",
+          "name": "Heure_GMT"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldvEupfPhZ3iqm5K",
+          "name": "Reseau"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldkWhhKjPMMj5Czd",
+          "name": "Format"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldTSqu9ap8vTWIaU",
+          "name": "Rubrique"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld6W23SF8OdQGb09",
+          "name": "Sujet"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldw6GCT4AJ0Va9t7",
+          "name": "Contenu"
+        },
+        {
+          "type": "url",
+          "id": "fld9F3GnF4dfhWWpa",
+          "name": "Media_URL"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldW89fKrlX7RnXvC",
+          "name": "Hashtags"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldeTFR85unWY73sT",
+          "name": "Status_Contenu"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldIH5zOf6mxaVLcs",
+          "name": "Status_Media"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldyTx7OuXxyzTVjS",
+          "name": "Status_Publication"
+        },
+        {
+          "type": "url",
+          "id": "fldLKWPOO25PnkySg",
+          "name": "URL_Post"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwUdsxarfHpDEGnY",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tbl5PCxVYMJCPIYUF",
+      "name": "Cours en Production",
+      "primaryFieldId": "fldwCpHXTHlnVmIRh",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldwCpHXTHlnVmIRh",
+          "name": "Cours"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldgd9tPTQJ0dNtS2",
+          "name": "Module"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fld3Dhcv9XQMSq7Bz",
+          "name": "Lecon"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldQelHR3iO0J9vU4",
+          "name": "Type"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fld7eteQbmmKKNZWc",
+          "name": "Duree"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldalJXPRw4WqBtaF",
+          "name": "Status_Contenu"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fld5BV9PUEegLfqIT",
+          "name": "Status_Quiz"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldUAFpaRLWjVYuD0",
+          "name": "Status_Media"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldfDKr6t1KcZ08KV",
+          "name": "Status_Publication"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwUZtLPfxCgGZxHc",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblaSee9z4T26Szin",
+      "name": "Interactions",
+      "primaryFieldId": "fldrbrxZAGvebcF6M",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldrbrxZAGvebcF6M",
+          "name": "Date"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldVrhZx7FcAgLME5",
+          "name": "Reseau"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldo64rSWZmJLlVAB",
+          "name": "Post"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldU8ZbMQ3wcAHZUQ",
+          "name": "Commentaire"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldY3EOse71iNgAIU",
+          "name": "Auteur"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fld7nWDOSsfnC1RzZ",
+          "name": "Sentiment"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldspSqCsFXqgtviL",
+          "name": "Reponse"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fld5Cg2APvrpe2Ycp",
+          "name": "Auto_Manuel"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwAax0JtAHDXm9wD",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tbl1xrxYxVMtTq5MX",
+      "name": "Rapports Hebdo",
+      "primaryFieldId": "fldBi5ZIGNy5bn7Ea",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldBi5ZIGNy5bn7Ea",
+          "name": "Semaine"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "flddo7b0v1w39lHgC",
+          "name": "Score"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldnL5oEGFHtLmwbr",
+          "name": "Reach"
+        },
+        {
+          "type": "number",
+          "options": {
+            "precision": 0
+          },
+          "id": "fldnBl66dPVNzn0YX",
+          "name": "Engagement"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldhUMUMuEgWAPUgX",
+          "name": "Top_Posts"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldK8kJBHYM4wE9A7",
+          "name": "Recommandations"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwWh76sfvc0VT5CH",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tbleUm1UoP9qqOdOn",
+      "name": "Medias Generes",
+      "primaryFieldId": "fldVgiVsZXD8rADOW",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldVgiVsZXD8rADOW",
+          "name": "Date"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldwmZlAHTrH5rkxm",
+          "name": "Type"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldvqD2C4qWuLbtAa",
+          "name": "Pour"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldB4XONYdCAEDwqB",
+          "name": "Prompt"
+        },
+        {
+          "type": "url",
+          "id": "fldjJhujritQ5Pe7q",
+          "name": "URL_R2"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldpOqRmaTAxusUUg",
+          "name": "Dimensions"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldTMMw1NhtaSzFtW",
+          "name": "Status"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwcJbVPmQcJSlxNq",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblQqVRtboYFSGNt8",
+      "name": "Config",
+      "description": "Paramètres de configuration (Blotato, branding, Gemini models)",
+      "primaryFieldId": "flducooxvHKJeOg5U",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "flducooxvHKJeOg5U",
+          "name": "Cle"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld7EUSPkqFNfpiHa",
+          "name": "Valeur"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selzn7rgatpvR8kgh",
+                "name": "text",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selhyVdOVvhhuWNjd",
+                "name": "json",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selcITBlM0QT4miNg",
+                "name": "number",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldnfvDKLNuI2uuDz",
+          "name": "Type"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldHla0HZJoQlvWqP",
+          "name": "Notes"
+        }
+      ],
+      "views": [
+        {
+          "id": "viwpQ5ICJfrQUd3Ry",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblHtN3jKqvwFXkXN",
+      "name": "Logs",
+      "description": "Logs d'exécution des workflows sociaux",
+      "primaryFieldId": "fldmLXotptf53psoW",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fldmLXotptf53psoW",
+          "name": "Event"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selagiw9rwrcaHKCv",
+                "name": "WF-SOCIAL-01",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selQKUZmEHnPtIqmT",
+                "name": "WF-SOCIAL-02",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel5tDb0nNE54Zwtb",
+                "name": "WF-SOCIAL-03",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selA546aZoEseGgj6",
+                "name": "WF-SOCIAL-04",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selfKkznB2x9y9RA9",
+                "name": "WF-SOCIAL-05",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selyq8OS82QxxYS7z",
+                "name": "WF-SOCIAL-06",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selncbcQfkypy41tl",
+                "name": "autre",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldVYFnnaIWTAdRHi",
+          "name": "Workflow"
+        },
+        {
+          "type": "dateTime",
+          "options": {
+            "dateFormat": {
+              "name": "iso",
+              "format": "YYYY-MM-DD"
+            },
+            "timeFormat": {
+              "name": "24hour",
+              "format": "HH:mm"
+            },
+            "timeZone": "Africa/Dakar"
+          },
+          "id": "fldsIgfvpE2eiH2VH",
+          "name": "Timestamp"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selTW32iCCSZeTcEM",
+                "name": "success",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selVVpOTi44ZwHDul",
+                "name": "error",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selcG8hnFdbneRN9l",
+                "name": "warning",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selr2TNjZyKckYLiV",
+                "name": "info",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldhQp1U3ShatBNOc",
+          "name": "Status"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldV5KjBvUS0MpW3U",
+          "name": "Content_ID"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldUEMVpWwz6O4VMu",
+          "name": "Details"
+        }
+      ],
+      "views": [
+        {
+          "id": "viw4eqCuSRavakdtq",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    },
+    {
+      "id": "tblPYoyzcZLdtBTO3",
+      "name": "Contenus",
+      "description": "Table principale des contenus sociaux (pipeline idée → publié)",
+      "primaryFieldId": "fld0zlQzzscRqpnth",
+      "fields": [
+        {
+          "type": "singleLineText",
+          "id": "fld0zlQzzscRqpnth",
+          "name": "Titre"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "seluAagjo3sfnq0NY",
+                "name": "Marketing digital",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selQdZFCMMQzK2dB9",
+                "name": "SEO",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selkKpdpi8hl75TiV",
+                "name": "Social media",
+                "color": "grayLight2"
+              },
+              {
+                "id": "seli4dDOsyCdj6kPQ",
+                "name": "Entrepreneuriat",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selosohGIa1xyaqTN",
+                "name": "E-commerce",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sell54cjhTM6wKYg9",
+                "name": "IA & automatisation",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel7kb5fuNxwQY8MP",
+                "name": "Branding",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selfkM1vKfAtpK1IW",
+                "name": "Growth",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selLKDJ13fnDEq0EW",
+                "name": "Autre",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fldsg8ZryKmJLKuNZ",
+          "name": "Thematique"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selYji6L7CKB8IYq9",
+                "name": "Éducation",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel28xfaxWcf85Kgu",
+                "name": "Inspiration",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selBpD6iVxYg1PGJm",
+                "name": "Produit",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selcjj7wqaBb85oa1",
+                "name": "Communauté",
+                "color": "grayLight2"
+              },
+              {
+                "id": "selwy9elyggZ6W4uX",
+                "name": "Autorité",
+                "color": "grayLight2"
+              },
+              {
+                "id": "sel4QKdUruUMEIII7",
+                "name": "Autre",
+                "color": "grayLight2"
+              }
+            ]
+          },
+          "id": "fld3PcTu0ivt8fCmk",
+          "name": "Pilier"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "seljPMGkToKvuzOWM",
+                "name": "story",
+                "color": "cyanBright"
+              },
+              {
+                "id": "seleJP0vEPSkJg5FZ",
+                "name": "post",
+                "color": "blueBright"
+              },
+              {
+                "id": "sel6BSnZUqyLICK8h",
+                "name": "thread",
+                "color": "tealBright"
+              },
+              {
+                "id": "seljapC7xNhlyNNZb",
+                "name": "reel",
+                "color": "greenBright"
+              },
+              {
+                "id": "selufnkMhnQMiZmym",
+                "name": "carrousel",
+                "color": "yellowBright"
+              },
+              {
+                "id": "seluG14RpTY6qd7gt",
+                "name": "short",
+                "color": "pinkBright"
+              },
+              {
+                "id": "selRpIacocO0zqiJc",
+                "name": "community_post",
+                "color": "purpleBright"
+              },
+              {
+                "id": "selXdMol3NFqdTUoE",
+                "name": "live",
+                "color": "redBright"
+              }
+            ]
+          },
+          "id": "fldXKDYYPiwCvFvFC",
+          "name": "Format_Post"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "selxi668nLALwTpkq",
+                "name": "fb",
+                "color": "blueBright"
+              },
+              {
+                "id": "selnk2yABLR5QTi1n",
+                "name": "ig",
+                "color": "pinkBright"
+              },
+              {
+                "id": "selyVLIkQyx17kp3K",
+                "name": "tiktok",
+                "color": "grayBright"
+              },
+              {
+                "id": "sel5thFiX0YSiSOTx",
+                "name": "youtube",
+                "color": "redBright"
+              },
+              {
+                "id": "selGWp6SbQqhW0bMS",
+                "name": "linkedin",
+                "color": "tealBright"
+              },
+              {
+                "id": "selR86Ou5657UOK3T",
+                "name": "x",
+                "color": "grayDark1"
+              }
+            ]
+          },
+          "id": "fldbRVLI0iKrwnLzu",
+          "name": "Reseau"
+        },
+        {
+          "type": "singleSelect",
+          "options": {
+            "choices": [
+              {
+                "id": "sel9A2YQ5OSgcUL6T",
+                "name": "idée",
+                "color": "cyanLight1"
+              },
+              {
+                "id": "selnm3a68KgJh1BjI",
+                "name": "planifié",
+                "color": "tealBright"
+              },
+              {
+                "id": "seles1NIu7nun5AZn",
+                "name": "rédigé",
+                "color": "blueBright"
+              },
+              {
+                "id": "sel3z4r3Bfr7MrKiy",
+                "name": "image_needed",
+                "color": "pinkBright"
+              },
+              {
+                "id": "selZApX34dJQdaBeJ",
+                "name": "prêt_à_valider",
+                "color": "yellowLight2"
+              },
+              {
+                "id": "sel0FH4Cqnh8jQopE",
+                "name": "validé",
+                "color": "yellowBright"
+              },
+              {
+                "id": "selTyH4biMDuanz4i",
+                "name": "en_publication",
+                "color": "greenLight2"
+              },
+              {
+                "id": "selEByKN3SKTbGWLn",
+                "name": "publié",
+                "color": "greenBright"
+              },
+              {
+                "id": "sels27GZi6qE6GZm0",
+                "name": "échec",
+                "color": "redBright"
+              },
+              {
+                "id": "selQM7JAdQMG435lG",
+                "name": "rejeté",
+                "color": "purpleBright"
+              }
+            ]
+          },
+          "id": "fldNTUNi9GclHuZmc",
+          "name": "Status"
+        },
+        {
+          "type": "dateTime",
+          "options": {
+            "dateFormat": {
+              "name": "iso",
+              "format": "YYYY-MM-DD"
+            },
+            "timeFormat": {
+              "name": "24hour",
+              "format": "HH:mm"
+            },
+            "timeZone": "Africa/Dakar"
+          },
+          "id": "fld6JV49sDQ1SDLMG",
+          "name": "Date_Publication_Prevue"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldkDUfz7KIxHNjNC",
+          "name": "Brief"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldp4MJeWOc1gCOqC",
+          "name": "Texte"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldpo52VUAFefmuDw",
+          "name": "Hashtags"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldUdJVUX9aJ81K9z",
+          "name": "Contenu_Texte"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldcGJnPRY9nqszet",
+          "name": "Verset_Reference"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldqm5QnsBzkMc7cY",
+          "name": "Mots_Cles"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld9SwIoCo7189gwH",
+          "name": "Visuels_URLs"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldrIKUXKt9uT0pd5",
+          "name": "Visual_Strategy"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldY0QNeNGLQ0R6ff",
+          "name": "Blotato_PostSubmissionIDs"
+        },
+        {
+          "type": "multilineText",
+          "id": "fld8UCKvVYxYo5J2e",
+          "name": "Blotato_PublicUrls"
+        },
+        {
+          "type": "multilineText",
+          "id": "fldrI8nTS1DHW2EiS",
+          "name": "Erreurs"
+        },
+        {
+          "type": "singleLineText",
+          "id": "fldtEsLRvIaKyqihL",
+          "name": "Blotato_PostSubmissionID"
+        },
+        {
+          "type": "url",
+          "id": "fldDQYMikqD5WonOf",
+          "name": "Blotato_PublicUrl"
+        }
+      ],
+      "views": [
+        {
+          "id": "viw2xu5n7Caq5ybyE",
+          "name": "Grid view",
+          "type": "grid"
+        }
+      ]
+    }
+  ]
+}

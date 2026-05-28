@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bictorysWebhook = exports.createClubCharge = exports.createBictorysCharge = void 0;
+exports.bictorysWebhook = exports.createRysmoSubscriptionCharge = exports.createRysmoPackCharge = exports.createClubCharge = exports.createBictorysCharge = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const params_1 = require("firebase-functions/params");
@@ -252,6 +252,187 @@ exports.createClubCharge = (0, https_1.onCall)({ region: 'us-central1', secrets:
         transactionId: txnRef.id,
     };
 });
+// ── Rysmo monetization (packs + subscriptions) ────────────────────────────
+const RYSMO_PACKS = {
+    discovery: { requests: 30, price: 500, label: 'Pack Découverte Rysmo — 30 requêtes' },
+    regular: { requests: 100, price: 1500, label: 'Pack Régulier Rysmo — 100 requêtes' },
+    intensive: { requests: 300, price: 3500, label: 'Pack Intensif Rysmo — 300 requêtes' },
+};
+const RYSMO_SUBSCRIPTIONS = {
+    lite: { price: 3000, label: 'Rysmo+ Lite — 20 requêtes/jour' },
+    pro: { price: 7500, label: 'Rysmo+ Pro — 100 requêtes/jour' },
+};
+exports.createRysmoPackCharge = (0, https_1.onCall)({ region: 'us-central1', secrets: [bictorysApiKey] }, async (request) => {
+    var _a, _b, _c, _d, _e, _f, _g, _h;
+    if (!request.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'Authentification requise.');
+    }
+    const { pack } = request.data;
+    const packDef = RYSMO_PACKS[pack];
+    if (!packDef) {
+        throw new https_1.HttpsError('invalid-argument', 'Pack Rysmo inconnu.');
+    }
+    const uid = request.auth.uid;
+    const userDoc = await admin.firestore().doc(`users/${uid}`).get();
+    const userData = userDoc.data();
+    const apiKey = bictorysApiKey.value();
+    if (!apiKey) {
+        throw new https_1.HttpsError('internal', 'Service de paiement non configuré.');
+    }
+    let bictorysResponse;
+    try {
+        const res = await fetch(bictorysApiUrl.value(), {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+                'content-type': 'application/json',
+                'X-API-Key': apiKey,
+            },
+            body: JSON.stringify({ amount: packDef.price, currency: 'XOF' }),
+        });
+        if (!res.ok) {
+            const errBody = await res.text();
+            console.error('Bictorys API error (rysmo pack):', res.status, errBody);
+            throw new Error(`Bictorys returned ${res.status}`);
+        }
+        bictorysResponse = await res.json();
+    }
+    catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        console.error('Rysmo pack charge creation failed:', errMsg);
+        throw new https_1.HttpsError('internal', 'Erreur lors de la création du paiement. Réessaie.');
+    }
+    const now = new Date().toISOString();
+    const purchaseRef = admin.firestore().collection('rysmoPackPurchases').doc();
+    await purchaseRef.set({
+        id: purchaseRef.id,
+        userId: uid,
+        userEmail: (_b = (_a = request.auth.token.email) !== null && _a !== void 0 ? _a : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _b !== void 0 ? _b : '',
+        userName: (_d = (_c = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _c !== void 0 ? _c : request.auth.token.name) !== null && _d !== void 0 ? _d : '',
+        pack,
+        requestsTotal: packDef.requests,
+        purchasedAt: now,
+        status: 'pending',
+        amount: packDef.price,
+        chargeId: bictorysResponse.chargeId,
+    });
+    const txnRef = admin.firestore().collection('transactions').doc();
+    await txnRef.set({
+        id: txnRef.id,
+        userId: uid,
+        userEmail: (_f = (_e = request.auth.token.email) !== null && _e !== void 0 ? _e : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _f !== void 0 ? _f : '',
+        userName: (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _g !== void 0 ? _g : request.auth.token.name) !== null && _h !== void 0 ? _h : '',
+        formationId: `rysmo_pack_${pack}`,
+        formationSlug: `rysmo-pack-${pack}`,
+        formationTitle: packDef.label,
+        amount: packDef.price,
+        currency: 'XOF',
+        status: 'pending',
+        paymentMethod: 'bictorys',
+        chargeId: bictorysResponse.chargeId,
+        opToken: bictorysResponse.opToken,
+        createdAt: now,
+        rysmoPurchaseId: purchaseRef.id,
+        rysmoKind: 'pack',
+    });
+    return {
+        checkoutUrl: bictorysResponse.link,
+        transactionId: txnRef.id,
+    };
+});
+exports.createRysmoSubscriptionCharge = (0, https_1.onCall)({ region: 'us-central1', secrets: [bictorysApiKey] }, async (request) => {
+    var _a, _b, _c, _d, _e, _f, _g, _h;
+    if (!request.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'Authentification requise.');
+    }
+    const { plan } = request.data;
+    const subDef = RYSMO_SUBSCRIPTIONS[plan];
+    if (!subDef) {
+        throw new https_1.HttpsError('invalid-argument', 'Plan Rysmo+ inconnu.');
+    }
+    const uid = request.auth.uid;
+    // Block if there's already an active subscription
+    const activeQuery = await admin.firestore()
+        .collection('rysmoSubscriptions')
+        .where('userId', '==', uid)
+        .where('status', '==', 'active')
+        .limit(1)
+        .get();
+    if (!activeQuery.empty) {
+        const data = activeQuery.docs[0].data();
+        if (!data.expiresAt || new Date(data.expiresAt) > new Date()) {
+            throw new https_1.HttpsError('already-exists', 'Tu as déjà un abonnement Rysmo+ actif.');
+        }
+    }
+    const userDoc = await admin.firestore().doc(`users/${uid}`).get();
+    const userData = userDoc.data();
+    const apiKey = bictorysApiKey.value();
+    if (!apiKey) {
+        throw new https_1.HttpsError('internal', 'Service de paiement non configuré.');
+    }
+    let bictorysResponse;
+    try {
+        const res = await fetch(bictorysApiUrl.value(), {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+                'content-type': 'application/json',
+                'X-API-Key': apiKey,
+            },
+            body: JSON.stringify({ amount: subDef.price, currency: 'XOF' }),
+        });
+        if (!res.ok) {
+            const errBody = await res.text();
+            console.error('Bictorys API error (rysmo sub):', res.status, errBody);
+            throw new Error(`Bictorys returned ${res.status}`);
+        }
+        bictorysResponse = await res.json();
+    }
+    catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        console.error('Rysmo subscription charge creation failed:', errMsg);
+        throw new https_1.HttpsError('internal', 'Erreur lors de la création du paiement. Réessaie.');
+    }
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+    const subRef = admin.firestore().collection('rysmoSubscriptions').doc();
+    await subRef.set({
+        id: subRef.id,
+        userId: uid,
+        userEmail: (_b = (_a = request.auth.token.email) !== null && _a !== void 0 ? _a : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _b !== void 0 ? _b : '',
+        userName: (_d = (_c = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _c !== void 0 ? _c : request.auth.token.name) !== null && _d !== void 0 ? _d : '',
+        plan,
+        status: 'pending',
+        startedAt: now.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        amount: subDef.price,
+        chargeId: bictorysResponse.chargeId,
+    });
+    const txnRef = admin.firestore().collection('transactions').doc();
+    await txnRef.set({
+        id: txnRef.id,
+        userId: uid,
+        userEmail: (_f = (_e = request.auth.token.email) !== null && _e !== void 0 ? _e : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _f !== void 0 ? _f : '',
+        userName: (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _g !== void 0 ? _g : request.auth.token.name) !== null && _h !== void 0 ? _h : '',
+        formationId: `rysmo_sub_${plan}`,
+        formationSlug: `rysmo-sub-${plan}`,
+        formationTitle: subDef.label,
+        amount: subDef.price,
+        currency: 'XOF',
+        status: 'pending',
+        paymentMethod: 'bictorys',
+        chargeId: bictorysResponse.chargeId,
+        opToken: bictorysResponse.opToken,
+        createdAt: now.toISOString(),
+        rysmoSubscriptionId: subRef.id,
+        rysmoKind: 'subscription',
+    });
+    return {
+        checkoutUrl: bictorysResponse.link,
+        transactionId: txnRef.id,
+    };
+});
 /**
  * Verify Bictorys webhook signature (HMAC-SHA256).
  * Bictorys sends the signature in the `X-Bictorys-Signature` header.
@@ -330,11 +511,38 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
             completedAt: new Date().toISOString(),
         });
         const isClubPayment = txnData.formationId === 'club_digitos';
+        const isRysmoPack = txnData.rysmoKind === 'pack' && txnData.rysmoPurchaseId;
+        const isRysmoSub = txnData.rysmoKind === 'subscription' && txnData.rysmoSubscriptionId;
         if (isClubPayment) {
             // Activate club subscription
             const subRef = admin.firestore().doc(`club_subscriptions/${txnData.userId}`);
             await subRef.update({ status: 'active' });
             console.log('Bictorys webhook: club subscription activated for user', txnData.userId);
+        }
+        else if (isRysmoPack) {
+            // Mark pack as completed AND credit packBalance on rate-limit doc atomically
+            const purchaseRef = admin.firestore().doc(`rysmoPackPurchases/${txnData.rysmoPurchaseId}`);
+            const rateLimitRef = admin.firestore().doc(`_ratelimits/rysmo_${txnData.userId}`);
+            await admin.firestore().runTransaction(async (t) => {
+                var _a, _b, _c;
+                const pSnap = await t.get(purchaseRef);
+                if (!pSnap.exists)
+                    return;
+                const p = pSnap.data();
+                if (p.status === 'completed')
+                    return; // idempotent
+                const rlSnap = await t.get(rateLimitRef);
+                const rl = (_a = rlSnap.data()) !== null && _a !== void 0 ? _a : {};
+                const newBalance = ((_b = rl.packBalance) !== null && _b !== void 0 ? _b : 0) + ((_c = p.requestsTotal) !== null && _c !== void 0 ? _c : 0);
+                t.update(purchaseRef, { status: 'completed', completedAt: new Date().toISOString() });
+                t.set(rateLimitRef, { packBalance: newBalance, lastReset: Date.now() }, { merge: true });
+            });
+            console.log('Bictorys webhook: Rysmo pack credited for user', txnData.userId);
+        }
+        else if (isRysmoSub) {
+            const subRef = admin.firestore().doc(`rysmoSubscriptions/${txnData.rysmoSubscriptionId}`);
+            await subRef.update({ status: 'active' });
+            console.log('Bictorys webhook: Rysmo subscription activated for user', txnData.userId);
         }
         else {
             // Auto-create enrollment for course
@@ -371,6 +579,12 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
         await txnDoc.ref.update({
             status: 'failed',
         });
+        if (txnData.rysmoKind === 'pack' && txnData.rysmoPurchaseId) {
+            await admin.firestore().doc(`rysmoPackPurchases/${txnData.rysmoPurchaseId}`).update({ status: 'failed' });
+        }
+        else if (txnData.rysmoKind === 'subscription' && txnData.rysmoSubscriptionId) {
+            await admin.firestore().doc(`rysmoSubscriptions/${txnData.rysmoSubscriptionId}`).update({ status: 'cancelled' });
+        }
         console.log('Bictorys webhook: payment failed for chargeId', chargeId);
     }
     else {

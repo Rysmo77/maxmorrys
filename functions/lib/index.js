@@ -33,24 +33,33 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.catalog = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createClubCharge = exports.createBictorysCharge = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageEnrollment = exports.adminCreateUser = exports.rysmo = void 0;
+exports.catalog = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.rysmoCoachNudge = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createRysmoSubscriptionCharge = exports.createRysmoPackCharge = exports.createClubCharge = exports.createBictorysCharge = exports.syncMediaStatsManual = exports.syncMediaStats = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageRysmoQuota = exports.adminManageEnrollment = exports.adminCreateUser = exports.clearRysmoMemory = exports.getRysmoQuota = exports.rysmo = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ── AI Chatbot ────────────────────────────────────────────────────────────
 var rysmo_1 = require("./rysmo");
 Object.defineProperty(exports, "rysmo", { enumerable: true, get: function () { return rysmo_1.rysmo; } });
+Object.defineProperty(exports, "getRysmoQuota", { enumerable: true, get: function () { return rysmo_1.getRysmoQuota; } });
+Object.defineProperty(exports, "clearRysmoMemory", { enumerable: true, get: function () { return rysmo_1.clearRysmoMemory; } });
 // ── Admin functions ───────────────────────────────────────────────────────
 var admin_1 = require("./admin");
 Object.defineProperty(exports, "adminCreateUser", { enumerable: true, get: function () { return admin_1.adminCreateUser; } });
 Object.defineProperty(exports, "adminManageEnrollment", { enumerable: true, get: function () { return admin_1.adminManageEnrollment; } });
+Object.defineProperty(exports, "adminManageRysmoQuota", { enumerable: true, get: function () { return admin_1.adminManageRysmoQuota; } });
 // ── API Proxies ───────────────────────────────────────────────────────────
 var proxy_1 = require("./proxy");
 Object.defineProperty(exports, "spotifyProxy", { enumerable: true, get: function () { return proxy_1.spotifyProxy; } });
 Object.defineProperty(exports, "youtubeProxy", { enumerable: true, get: function () { return proxy_1.youtubeProxy; } });
+// ── Media stats sync (YouTube views + Spotify popularity) ────────────────
+var media_stats_1 = require("./media-stats");
+Object.defineProperty(exports, "syncMediaStats", { enumerable: true, get: function () { return media_stats_1.syncMediaStats; } });
+Object.defineProperty(exports, "syncMediaStatsManual", { enumerable: true, get: function () { return media_stats_1.syncMediaStatsManual; } });
 // ── Payments ──────────────────────────────────────────────────────────────
 var payment_1 = require("./payment");
 Object.defineProperty(exports, "createBictorysCharge", { enumerable: true, get: function () { return payment_1.createBictorysCharge; } });
 Object.defineProperty(exports, "createClubCharge", { enumerable: true, get: function () { return payment_1.createClubCharge; } });
+Object.defineProperty(exports, "createRysmoPackCharge", { enumerable: true, get: function () { return payment_1.createRysmoPackCharge; } });
+Object.defineProperty(exports, "createRysmoSubscriptionCharge", { enumerable: true, get: function () { return payment_1.createRysmoSubscriptionCharge; } });
 Object.defineProperty(exports, "bictorysWebhook", { enumerable: true, get: function () { return payment_1.bictorysWebhook; } });
 // ── Notification triggers ─────────────────────────────────────────────────
 var notifications_1 = require("./notifications");
@@ -58,6 +67,7 @@ Object.defineProperty(exports, "onEnrollmentCreated", { enumerable: true, get: f
 Object.defineProperty(exports, "onCertificateCreated", { enumerable: true, get: function () { return notifications_1.onCertificateCreated; } });
 Object.defineProperty(exports, "streakReminder", { enumerable: true, get: function () { return notifications_1.streakReminder; } });
 Object.defineProperty(exports, "courseReminder", { enumerable: true, get: function () { return notifications_1.courseReminder; } });
+Object.defineProperty(exports, "rysmoCoachNudge", { enumerable: true, get: function () { return notifications_1.rysmoCoachNudge; } });
 // ── Maintenance tasks ─────────────────────────────────────────────────────
 var maintenance_1 = require("./maintenance");
 Object.defineProperty(exports, "cleanupTempStorage", { enumerable: true, get: function () { return maintenance_1.cleanupTempStorage; } });

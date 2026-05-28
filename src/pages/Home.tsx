@@ -351,9 +351,10 @@ export default function Home() {
         viewport={viewportOnce}
       >
         <div className="relative min-h-[440px] lg:min-h-[540px]">
-          <ParallaxImage
-            src="https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=1600"
-            alt="Équipe au travail"
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-cover bg-center md:bg-fixed"
+            style={{ backgroundImage: 'url(/chiffres-parlent.webp)' }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/90 via-neutral-950/65 to-neutral-950/25" />
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
@@ -470,12 +471,12 @@ export default function Home() {
           </div>
           <div className="relative min-h-[340px] order-1 lg:order-2">
             <img
-              src="https://images.pexels.com/photos/3760067/pexels-photo-3760067.jpeg?auto=compress&cs=tinysrgb&w=1200"
+              src="/niveau-superieur.webp"
               alt="Passer au niveau supérieur"
               className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
-              width={1200}
-              height={800}
+              width={1600}
+              height={1067}
             />
           </div>
         </div>
@@ -490,8 +491,13 @@ export default function Home() {
         viewport={viewportOnce}
       >
         <div className="absolute inset-0">
-          <ParallaxImage src="https://images.pexels.com/photos/3756766/pexels-photo-3756766.jpeg?auto=compress&cs=tinysrgb&w=1600" />
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-cover bg-center md:bg-fixed"
+            style={{ backgroundImage: 'url(/contenu-gratuit.webp)' }}
+          />
           <div className="absolute inset-0 bg-neutral-950/82" />
+          <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/70 via-neutral-950/40 to-neutral-950/80" />
         </div>
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 text-white">
@@ -665,12 +671,12 @@ export default function Home() {
         <div className="grid lg:grid-cols-2">
           <div className="relative min-h-[340px]">
             <img
-              src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=1200"
+              src="/methode-complete.webp"
               alt="La méthode Max-Morrys"
               className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
-              width={1200}
-              height={800}
+              width={1600}
+              height={1067}
             />
             <div className="absolute inset-0 bg-brand-900/30" />
           </div>

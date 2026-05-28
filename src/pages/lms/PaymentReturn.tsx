@@ -77,7 +77,7 @@ export default function PaymentReturn() {
   }, [transactionId, user]);
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center px-4 overflow-x-clip">
       <motion.div
         className="max-w-md w-full bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 p-8 text-center"
         initial={{ opacity: 0, y: 16 }}

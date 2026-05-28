@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Search, Trash2, Edit2, Headphones, Loader2, ChevronDown } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, Headphones, Loader2, ChevronDown, RefreshCw } from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../config/firebase';
 import Button from '../../components/ui/Button';
@@ -19,6 +19,11 @@ const spotifyProxyCallable = httpsCallable<
   { name: string; description: string; coverImage: string; durationMs: number; releaseDate: string }
 >(functions, 'spotifyProxy');
 
+const syncMediaStatsCallable = httpsCallable<
+  void,
+  { videosProcessed: number; videosUpdated: number; podcastsProcessed: number; podcastsUpdated: number; errors: string[] }
+>(functions, 'syncMediaStatsManual');
+
 const EMPTY: Omit<Podcast, 'id'> = {
   title: '', slug: '', description: '', audioUrl: '', coverImage: '',
   duration: '', publishedAt: new Date().toISOString().split('T')[0],
@@ -37,7 +42,26 @@ export default function AdminPodcasts() {
   const [form, setForm] = useState<Omit<Podcast, 'id'>>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [fetchingMeta, setFetchingMeta] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const lastFetchedId = useRef<string | null>(null);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await syncMediaStatsCallable();
+      const { podcastsUpdated, errors } = result.data;
+      if (errors.length > 0) {
+        addToast('error', `Sync partielle : ${errors[0]}`);
+      } else {
+        addToast('success', `${podcastsUpdated} podcast(s) mis à jour depuis Spotify.`);
+      }
+      load();
+    } catch (error: unknown) {
+      addToast('error', error instanceof Error ? error.message : 'Erreur de synchronisation.');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const load = () => {
     setLoading(true);
@@ -146,7 +170,17 @@ export default function AdminPodcasts() {
           <h1 className="text-2xl font-black text-neutral-900 dark:text-white">Podcasts</h1>
           <p className="text-sm text-neutral-500 mt-1">{podcasts.length} épisode{podcasts.length !== 1 ? 's' : ''}</p>
         </div>
-        <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>Nouveau podcast</Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSync}
+            disabled={syncing}
+            icon={syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          >
+            {syncing ? 'Synchronisation...' : 'Synchroniser la popularité'}
+          </Button>
+          <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>Nouveau podcast</Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">

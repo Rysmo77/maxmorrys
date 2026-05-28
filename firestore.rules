@@ -65,6 +65,11 @@ service cloud.firestore {
 
       // Only admins can create, update, or delete posts
       allow create, update, delete: if isAdmin();
+
+      // Allow incrementing read counter by exactly +1 (public, from BlogPost page)
+      allow update: if resource.data.status == 'published' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) &&
+        request.resource.data.views == (resource.data.views == null ? 0 : resource.data.views) + 1;
     }
 
     // Formations collection
@@ -438,6 +443,31 @@ service cloud.firestore {
 
     // Rate limiting collection (backend only — écrit uniquement par les Cloud Functions)
     match /_ratelimits/{docId} {
+      allow read, write: if false;
+    }
+
+    // Rysmo+ abonnements (lite, pro) — création/maj par Cloud Function uniquement
+    match /rysmoSubscriptions/{subscriptionId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Rysmo packs de requêtes — création/maj par Cloud Function uniquement
+    match /rysmoPackPurchases/{purchaseId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Rysmo — profil d'apprenant résumé (lecture par l'owner pour la page transparence)
+    match /rysmoProfiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false; // écriture serveur uniquement (Cloud Functions)
+    }
+
+    // Rysmo — logs bruts de conversation (100% privé/serveur)
+    match /rysmoConversations/{userId} {
       allow read, write: if false;
     }
 

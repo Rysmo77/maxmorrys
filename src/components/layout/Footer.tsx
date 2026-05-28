@@ -18,6 +18,7 @@ const footerLinks = {
   legal: [
     { label: 'Mentions légales', path: '/legal/mentions-legales' },
     { label: 'Confidentialité', path: '/legal/confidentialite' },
+    { label: 'CGU', path: '/legal/cgu' },
     { label: 'CGV', path: '/legal/cgv' },
     { label: 'Cookies', path: '/legal/cookies' },
   ],

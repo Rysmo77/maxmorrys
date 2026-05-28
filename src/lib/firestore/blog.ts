@@ -1,5 +1,5 @@
-import { where, orderBy, limit, startAfter, type DocumentData } from 'firebase/firestore';
-import { getCollection, createDoc, setDocById, deleteDocById } from './helpers';
+import { where, orderBy, limit, startAfter, doc, updateDoc, increment, type DocumentData } from 'firebase/firestore';
+import { getCollection, createDoc, setDocById, deleteDocById, db } from './helpers';
 import type { BlogPost } from '../../types';
 
 export async function getPublishedPosts(limitN = 50): Promise<BlogPost[]> {
@@ -45,4 +45,8 @@ export async function savePost(data: Omit<BlogPost, 'id'>, id?: string): Promise
 
 export async function deletePost(id: string): Promise<void> {
   return deleteDocById('blog', id);
+}
+
+export async function incrementBlogViews(id: string): Promise<void> {
+  await updateDoc(doc(db, 'blog', id), { views: increment(1) });
 }

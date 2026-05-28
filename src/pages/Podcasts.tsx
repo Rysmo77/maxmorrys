@@ -439,6 +439,12 @@ export default function Podcasts() {
                             <span>{podcast.category}</span>
                           </>
                         )}
+                        {podcast.popularity !== undefined && (
+                          <>
+                            <span className="text-neutral-300 dark:text-neutral-700">·</span>
+                            <span title="Score de popularité Spotify (0–100)">{podcast.popularity}/100</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </Link>

@@ -56,6 +56,64 @@ export const adminCreateUser = onCall(
   }
 );
 
+export const adminManageRysmoQuota = onCall(
+  { region: 'us-central1' },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentification requise.');
+    }
+
+    const callerDoc = await admin.firestore().doc(`users/${request.auth.uid}`).get();
+    if (!callerDoc.exists || callerDoc.data()?.role !== 'admin') {
+      throw new HttpsError('permission-denied', 'Accès réservé aux administrateurs.');
+    }
+
+    const { userId, action, amount } = request.data as {
+      userId: string;
+      action: 'get' | 'add' | 'reset';
+      amount?: number;
+    };
+
+    if (!userId) {
+      throw new HttpsError('invalid-argument', 'userId est obligatoire.');
+    }
+
+    const ref = admin.firestore().doc(`_ratelimits/rysmo_${userId}`);
+
+    if (action === 'get') {
+      const snap = await ref.get();
+      const d = snap.data() ?? {};
+      return { dayKey: d.dayKey ?? null, dayCount: d.dayCount ?? 0, packBalance: d.packBalance ?? 0 };
+    }
+
+    if (action === 'add') {
+      if (!Number.isInteger(amount) || (amount as number) < 1 || (amount as number) > 10000) {
+        throw new HttpsError('invalid-argument', 'Le nombre de tokens doit être un entier entre 1 et 10000.');
+      }
+      const newBalance = await admin.firestore().runTransaction(async (t) => {
+        const s = await t.get(ref);
+        const cur = s.data()?.packBalance ?? 0;
+        const next = cur + (amount as number);
+        t.set(ref, { packBalance: next, lastReset: Date.now() }, { merge: true });
+        return next;
+      });
+      const snap = await ref.get();
+      const d = snap.data() ?? {};
+      return { dayKey: d.dayKey ?? null, dayCount: d.dayCount ?? 0, packBalance: newBalance };
+    }
+
+    if (action === 'reset') {
+      const todayKey = new Date().toISOString().slice(0, 10);
+      await ref.set({ dayKey: todayKey, dayCount: 0, lastReset: Date.now() }, { merge: true });
+      const snap = await ref.get();
+      const d = snap.data() ?? {};
+      return { dayKey: d.dayKey ?? null, dayCount: 0, packBalance: d.packBalance ?? 0 };
+    }
+
+    throw new HttpsError('invalid-argument', 'Action invalide. Utilisez "get", "add" ou "reset".');
+  }
+);
+
 export const adminManageEnrollment = onCall(
   { region: 'us-central1' },
   async (request) => {

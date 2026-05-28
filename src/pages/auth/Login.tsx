@@ -227,6 +227,13 @@ export default function Login() {
               ) : null}
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
+
+            <p className="text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500 text-center">
+              En te connectant, tu acceptes nos{' '}
+              <Link to="/legal/cgu" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Conditions d'utilisation</Link>
+              {' '}et notre{' '}
+              <Link to="/legal/confidentialite" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Politique de confidentialité</Link>.
+            </p>
           </form>
 
           <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mt-8">

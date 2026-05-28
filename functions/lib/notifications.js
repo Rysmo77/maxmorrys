@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = void 0;
+exports.courseReminder = exports.streakReminder = exports.rysmoCoachNudge = exports.onCertificateCreated = exports.onEnrollmentCreated = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const admin = __importStar(require("firebase-admin"));
@@ -73,6 +73,48 @@ exports.onCertificateCreated = (0, firestore_1.onDocumentCreated)('certificates/
         read: false,
         createdAt: new Date().toISOString(),
         link: `/certificat/${data.certificateCode}`,
+    });
+});
+// ── Coach proactif Rysmo : félicitations à la complétion + cours suivant ─────
+exports.rysmoCoachNudge = (0, firestore_1.onDocumentUpdated)('enrollments/{enrollmentId}', async (event) => {
+    var _a, _b, _c, _d;
+    const before = (_a = event.data) === null || _a === void 0 ? void 0 : _a.before.data();
+    const after = (_b = event.data) === null || _b === void 0 ? void 0 : _b.after.data();
+    if (!before || !after)
+        return;
+    // Ne se déclenche qu'au franchissement de 100% (transition unique → pas de doublon)
+    if (before.progress >= 100 || after.progress < 100)
+        return;
+    const userId = after.userId;
+    const formationSnap = await db.collection('formations').doc(after.formationId).get();
+    const justFinished = ((_c = formationSnap.data()) === null || _c === void 0 ? void 0 : _c.title) || 'ta formation';
+    // Suggérer un cours suivant : une formation publiée pas encore suivie (même catégorie en priorité)
+    let suggestion = null;
+    try {
+        const category = (_d = formationSnap.data()) === null || _d === void 0 ? void 0 : _d.category;
+        const enrolledSnap = await db.collection('enrollments').where('userId', '==', userId).get();
+        const enrolledIds = new Set(enrolledSnap.docs.map((d) => d.data().formationId));
+        const publishedSnap = await db.collection('formations').where('status', '==', 'published').limit(50).get();
+        const candidates = publishedSnap.docs.filter((d) => !enrolledIds.has(d.id));
+        const sameCat = candidates.find((d) => d.data().category === category);
+        const pick = sameCat || candidates[0];
+        if (pick)
+            suggestion = { title: pick.data().title, slug: pick.data().slug };
+    }
+    catch (_e) {
+        // suggestion optionnelle
+    }
+    const message = suggestion
+        ? `Bravo, tu as terminé "${justFinished}" ! Prêt pour la suite ? "${suggestion.title}" est un bon prochain pas. Demande à Rysmo un plan pour t'y mettre.`
+        : `Bravo, tu as terminé "${justFinished}" ! Demande à Rysmo comment mettre en pratique ce que tu viens d'apprendre.`;
+    await db.collection(`notifications/${userId}/items`).add({
+        userId,
+        type: 'system',
+        title: 'Félicitations !',
+        message,
+        read: false,
+        createdAt: new Date().toISOString(),
+        link: suggestion ? `/formations/${suggestion.slug}` : '/mon-espace/tableau-de-bord',
     });
 });
 // ── Streak reminder — runs daily at 8pm UTC ──────────────────────────────────

@@ -1,0 +1,618 @@
+{
+  "updatedAt": "2026-04-15T03:33:10.050Z",
+  "createdAt": "2026-04-09T10:30:41.795Z",
+  "id": "knz9CrfAak37RLAV",
+  "name": "WF-12 — Génération de Contenu de Leçons",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron — Leçons 10h quotidien",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "id": "wf12-read-sheets",
+      "name": "Airtable — Lire Cours en Production",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        272,
+        304
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl5PCxVYMJCPIYUF",
+          "mode": "list",
+          "cachedResultName": "Cours en Production"
+        },
+        "returnAll": true,
+        "options": {}
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem : $json = current row from \"Cours en Production\"\nconst row = $json;\n\n// Parse module/lesson info from Sheets columns\n// Module format: \"M1: Titre du module\"\n// Lecon format: \"L1: Titre de la lecon\"\nconst moduleMatch = (row.Module || '').match(/^M(\\d+):\\s*(.+)$/);\nconst lessonMatch = (row.Lecon || '').match(/^L(\\d+):\\s*(.+)$/);\n\nconst moduleNumber = moduleMatch ? parseInt(moduleMatch[1]) : 1;\nconst moduleTitle = moduleMatch ? moduleMatch[2].trim() : (row.Module || 'Module');\nconst lessonNumber = lessonMatch ? parseInt(lessonMatch[1]) : 1;\nconst lessonTitle = lessonMatch ? lessonMatch[2].trim() : (row.Lecon || 'Lecon');\n\n// Parse duration (e.g., \"10 min\" -> 10)\nconst durationMatch = (row.Duree || '10 min').match(/(\\d+)/);\nconst durationMinutes = durationMatch ? parseInt(durationMatch[1]) : 10;\n\nreturn {\n  json: {\n    id: row.id,\n    course_title: row.Cours || '',\n    module_title: moduleTitle,\n    module_number: moduleNumber,\n    lesson_title: lessonTitle,\n    lesson_number: lessonNumber,\n    lesson_type: row.Type || 'text',\n    duration_minutes: durationMinutes,\n    // Pass through for Sheets update\n    original_module: row.Module || '',\n    original_lecon: row.Lecon || ''\n  }\n};"
+      },
+      "id": "wf12-build-payload",
+      "name": "Build — Payload lecon (par ligne)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "==## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : REDIGER LE CONTENU D'UNE LEÇON DE COURS\n\nRedige le contenu pedagogique complet de cette lecon en respectant le style Max-Morrys.\n\nCOURS : {{ $json.course_title }}\nMODULE : {{ $json.module_title }} (Module {{ $json.module_number }})\nLEÇON : {{ $json.lesson_title }} (Leçon {{ $json.lesson_number }})\nTYPE DE LEÇON : {{ $json.lesson_type }}\nDUREE VISEE : {{ $json.duration_minutes }} minutes (~{{ Math.round($json.duration_minutes * 150) }} mots)\n\nSTRUCTURE OBLIGATOIRE :\n\n1. **Introduction** (2-3 phrases) — Pourquoi cette lecon est importante, ce que l'apprenant va savoir faire\n\n2. **Contenu principal** (structure en sections H2/H3) — Explication pedagogique simple et progressive, au moins 2 exemples concrets ancres en Afrique francophone, listes a puces pour rendre scannable\n\n3. **Points cles** (3-5 bullets courts)\n\n4. **Astuce pratique** (un conseil actionnable immediatement)\n\n5. **A retenir** (1-2 phrases cles)\n\n6. **Transition vers la lecon suivante**\n\nREGLES :\n- Tutoiement, phrases courtes, paragraphes 3-4 lignes max\n- Vocabulaire simple, jargon toujours explique\n- Exemples avec noms, lieux, situations reelles africaines (varier les pays)\n- FCFA pour les chiffres\n\nREPONSE JSON STRICT :\n{\n  \"lesson\": {\n    \"title\": \"\",\n    \"content_html\": \"<h2>Introduction</h2><p>...</p>... HTML complet\",\n    \"word_count\": 0,\n    \"reading_time_minutes\": 0,\n    \"key_points\": [],\n    \"practical_tip\": \"\",\n    \"takeaway\": \"\",\n    \"transition_to_next\": \"\"\n  }\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 16384,
+          "temperature": 0.5,
+          "thinkingBudget": 0
+        }
+      },
+      "id": "wf12-gemini",
+      "name": "Gemini Pro — Contenu de la leçon",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        976,
+        304
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem\nconst response = $input.item.json;\nconst allBuildData = $('Build — Payload lecon (par ligne)').all();\nconst buildData = allBuildData[$itemIndex]?.json || {};\n\nlet lesson;\ntry {\n  let text = '';\n  if (response.content?.parts) {\n    text = response.content.parts.map(p => p.text || '').join('');\n  } else if (response.lesson) {\n    lesson = response;\n  } else if (typeof response === 'string') {\n    text = response;\n  } else {\n    text = JSON.stringify(response);\n  }\n\n  if (!lesson && text) {\n    let cleaned = text.trim();\n    cleaned = cleaned.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/i, '').trim();\n    cleaned = cleaned.replace(/,\\s*([\\}\\]])/g, '$1');\n\n    try { lesson = JSON.parse(cleaned); } catch(e1) {}\n\n    if (!lesson) {\n      const match = cleaned.match(/\\{[\\s\\S]+\\}/);\n      if (match) {\n        let block = match[0].replace(/,\\s*([\\}\\]])/g, '$1');\n        try { lesson = JSON.parse(block); } catch(e2) {}\n      }\n    }\n  }\n} catch (e) {\n  // Fallback graceful\n}\n\nif (!lesson) {\n  return {\n    json: {\n      id: buildData.id,\n      course_title: buildData.course_title || '',\n      module_title: buildData.module_title || '',\n      lesson_title: buildData.lesson_title || '',\n      content_html: '',\n      word_count: 0,\n      reading_time_minutes: 0,\n      key_points: [],\n      practical_tip: '',\n      takeaway: '',\n      _parse_failed: true\n    }\n  };\n}\n\nconst lessonData = lesson.lesson || lesson;\n\nreturn {\n  json: {\n    id: buildData.id,\n    course_title: buildData.course_title,\n    module_title: buildData.module_title,\n    lesson_title: lessonData.title || buildData.lesson_title,\n    content_html: lessonData.content_html || '',\n    word_count: lessonData.word_count || 0,\n    reading_time_minutes: lessonData.reading_time_minutes || 0,\n    key_points: lessonData.key_points || [],\n    practical_tip: lessonData.practical_tip || '',\n    takeaway: lessonData.takeaway || ''\n  }\n};"
+      },
+      "id": "wf12-parse",
+      "name": "Parse — Construire Lesson",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        304
+      ]
+    },
+    {
+      "id": "wf12-update-status",
+      "name": "Airtable — Status_Contenu = produit",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1568,
+        304
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "resource": "record",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list",
+          "cachedResultName": "Max-Morrys PB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl5PCxVYMJCPIYUF",
+          "mode": "list",
+          "cachedResultName": "Cours en Production"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status_Contenu": "=produit"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "status-a-produire",
+              "leftValue": "={{ ($json.Status_Contenu || '').toString().trim().toLowerCase() }}",
+              "rightValue": "a_produire",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "wf12-filter",
+      "name": "Filter — Status_Publication = en_conception",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        304
+      ]
+    }
+  ],
+  "connections": {
+    "Cron — Leçons 10h quotidien": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Cours en Production",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Cours en Production": {
+      "main": [
+        [
+          {
+            "node": "Filter — Status_Publication = en_conception",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build — Payload lecon (par ligne)": {
+      "main": [
+        [
+          {
+            "node": "Gemini Pro — Contenu de la leçon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Pro — Contenu de la leçon": {
+      "main": [
+        [
+          {
+            "node": "Parse — Construire Lesson",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Construire Lesson": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status_Contenu = produit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter — Status_Publication = en_conception": {
+      "main": [
+        [
+          {
+            "node": "Build — Payload lecon (par ligne)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron — Leçons 10h quotidien": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": {},
+  "versionId": "cefa38e5-cda9-4d8b-9f12-661ffd843512",
+  "activeVersionId": "cefa38e5-cda9-4d8b-9f12-661ffd843512",
+  "versionCounter": 67,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-09T10:30:41.797Z",
+      "createdAt": "2026-04-09T10:30:41.797Z",
+      "role": "workflow:owner",
+      "workflowId": "knz9CrfAak37RLAV",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-15T03:33:10.051Z",
+    "createdAt": "2026-04-15T03:33:10.051Z",
+    "versionId": "cefa38e5-cda9-4d8b-9f12-661ffd843512",
+    "workflowId": "knz9CrfAak37RLAV",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 10 * * *"
+              }
+            ]
+          }
+        },
+        "id": "cron-trigger",
+        "name": "Cron — Leçons 10h quotidien",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          304
+        ]
+      },
+      {
+        "id": "wf12-read-sheets",
+        "name": "Airtable — Lire Cours en Production",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          272,
+          304
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "parameters": {
+          "resource": "record",
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbl5PCxVYMJCPIYUF",
+            "mode": "list",
+            "cachedResultName": "Cours en Production"
+          },
+          "returnAll": true,
+          "options": {}
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem : $json = current row from \"Cours en Production\"\nconst row = $json;\n\n// Parse module/lesson info from Sheets columns\n// Module format: \"M1: Titre du module\"\n// Lecon format: \"L1: Titre de la lecon\"\nconst moduleMatch = (row.Module || '').match(/^M(\\d+):\\s*(.+)$/);\nconst lessonMatch = (row.Lecon || '').match(/^L(\\d+):\\s*(.+)$/);\n\nconst moduleNumber = moduleMatch ? parseInt(moduleMatch[1]) : 1;\nconst moduleTitle = moduleMatch ? moduleMatch[2].trim() : (row.Module || 'Module');\nconst lessonNumber = lessonMatch ? parseInt(lessonMatch[1]) : 1;\nconst lessonTitle = lessonMatch ? lessonMatch[2].trim() : (row.Lecon || 'Lecon');\n\n// Parse duration (e.g., \"10 min\" -> 10)\nconst durationMatch = (row.Duree || '10 min').match(/(\\d+)/);\nconst durationMinutes = durationMatch ? parseInt(durationMatch[1]) : 10;\n\nreturn {\n  json: {\n    id: row.id,\n    course_title: row.Cours || '',\n    module_title: moduleTitle,\n    module_number: moduleNumber,\n    lesson_title: lessonTitle,\n    lesson_number: lessonNumber,\n    lesson_type: row.Type || 'text',\n    duration_minutes: durationMinutes,\n    // Pass through for Sheets update\n    original_module: row.Module || '',\n    original_lecon: row.Lecon || ''\n  }\n};"
+        },
+        "id": "wf12-build-payload",
+        "name": "Build — Payload lecon (par ligne)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          784,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-3-flash-preview",
+            "mode": "list",
+            "cachedResultName": "models/gemini-3-flash-preview"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "==## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : REDIGER LE CONTENU D'UNE LEÇON DE COURS\n\nRedige le contenu pedagogique complet de cette lecon en respectant le style Max-Morrys.\n\nCOURS : {{ $json.course_title }}\nMODULE : {{ $json.module_title }} (Module {{ $json.module_number }})\nLEÇON : {{ $json.lesson_title }} (Leçon {{ $json.lesson_number }})\nTYPE DE LEÇON : {{ $json.lesson_type }}\nDUREE VISEE : {{ $json.duration_minutes }} minutes (~{{ Math.round($json.duration_minutes * 150) }} mots)\n\nSTRUCTURE OBLIGATOIRE :\n\n1. **Introduction** (2-3 phrases) — Pourquoi cette lecon est importante, ce que l'apprenant va savoir faire\n\n2. **Contenu principal** (structure en sections H2/H3) — Explication pedagogique simple et progressive, au moins 2 exemples concrets ancres en Afrique francophone, listes a puces pour rendre scannable\n\n3. **Points cles** (3-5 bullets courts)\n\n4. **Astuce pratique** (un conseil actionnable immediatement)\n\n5. **A retenir** (1-2 phrases cles)\n\n6. **Transition vers la lecon suivante**\n\nREGLES :\n- Tutoiement, phrases courtes, paragraphes 3-4 lignes max\n- Vocabulaire simple, jargon toujours explique\n- Exemples avec noms, lieux, situations reelles africaines (varier les pays)\n- FCFA pour les chiffres\n\nREPONSE JSON STRICT :\n{\n  \"lesson\": {\n    \"title\": \"\",\n    \"content_html\": \"<h2>Introduction</h2><p>...</p>... HTML complet\",\n    \"word_count\": 0,\n    \"reading_time_minutes\": 0,\n    \"key_points\": [],\n    \"practical_tip\": \"\",\n    \"takeaway\": \"\",\n    \"transition_to_next\": \"\"\n  }\n}"
+              }
+            ]
+          },
+          "jsonOutput": true,
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 8192,
+            "temperature": 0.5
+          }
+        },
+        "id": "wf12-gemini",
+        "name": "Gemini Pro — Contenu de la leçon",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          976,
+          304
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem\nconst response = $input.item.json;\nconst allBuildData = $('Build — Payload lecon (par ligne)').all();\nconst buildData = allBuildData[$itemIndex]?.json || {};\n\nlet lesson;\ntry {\n  let text = '';\n  if (response.content?.parts) {\n    text = response.content.parts.map(p => p.text || '').join('');\n  } else if (response.lesson) {\n    lesson = response;\n  } else if (typeof response === 'string') {\n    text = response;\n  } else {\n    text = JSON.stringify(response);\n  }\n\n  if (!lesson && text) {\n    let cleaned = text.trim();\n    cleaned = cleaned.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/i, '').trim();\n    cleaned = cleaned.replace(/,\\s*([\\}\\]])/g, '$1');\n\n    try { lesson = JSON.parse(cleaned); } catch(e1) {}\n\n    if (!lesson) {\n      const match = cleaned.match(/\\{[\\s\\S]+\\}/);\n      if (match) {\n        let block = match[0].replace(/,\\s*([\\}\\]])/g, '$1');\n        try { lesson = JSON.parse(block); } catch(e2) {}\n      }\n    }\n  }\n} catch (e) {\n  // Fallback graceful\n}\n\nif (!lesson) {\n  return {\n    json: {\n      id: buildData.id,\n      course_title: buildData.course_title || '',\n      module_title: buildData.module_title || '',\n      lesson_title: buildData.lesson_title || '',\n      content_html: '',\n      word_count: 0,\n      reading_time_minutes: 0,\n      key_points: [],\n      practical_tip: '',\n      takeaway: '',\n      _parse_failed: true\n    }\n  };\n}\n\nconst lessonData = lesson.lesson || lesson;\n\nreturn {\n  json: {\n    id: buildData.id,\n    course_title: buildData.course_title,\n    module_title: buildData.module_title,\n    lesson_title: lessonData.title || buildData.lesson_title,\n    content_html: lessonData.content_html || '',\n    word_count: lessonData.word_count || 0,\n    reading_time_minutes: lessonData.reading_time_minutes || 0,\n    key_points: lessonData.key_points || [],\n    practical_tip: lessonData.practical_tip || '',\n    takeaway: lessonData.takeaway || ''\n  }\n};"
+        },
+        "id": "wf12-parse",
+        "name": "Parse — Construire Lesson",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1312,
+          304
+        ]
+      },
+      {
+        "id": "wf12-update-status",
+        "name": "Airtable — Status_Contenu = produit",
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1568,
+          304
+        ],
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "resource": "record",
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list",
+            "cachedResultName": "Max-Morrys PB"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbl5PCxVYMJCPIYUF",
+            "mode": "list",
+            "cachedResultName": "Cours en Production"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Status_Contenu": "=produit"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "status-a-produire",
+                "leftValue": "={{ ($json.Status_Contenu || '').toString().trim().toLowerCase() }}",
+                "rightValue": "a_produire",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "wf12-filter",
+        "name": "Filter — Status_Publication = en_conception",
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2.2,
+        "position": [
+          528,
+          304
+        ]
+      }
+    ],
+    "connections": {
+      "Cron — Leçons 10h quotidien": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire Cours en Production",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire Cours en Production": {
+        "main": [
+          [
+            {
+              "node": "Filter — Status_Publication = en_conception",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build — Payload lecon (par ligne)": {
+        "main": [
+          [
+            {
+              "node": "Gemini Pro — Contenu de la leçon",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Pro — Contenu de la leçon": {
+        "main": [
+          [
+            {
+              "node": "Parse — Construire Lesson",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Construire Lesson": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Status_Contenu = produit",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter — Status_Publication = en_conception": {
+        "main": [
+          [
+            {
+              "node": "Build — Payload lecon (par ligne)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-15T03:33:10.267Z",
+        "id": 345,
+        "workflowId": "knz9CrfAak37RLAV",
+        "versionId": "cefa38e5-cda9-4d8b-9f12-661ffd843512",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-04-15T03:33:10.156Z",
+        "id": 344,
+        "workflowId": "knz9CrfAak37RLAV",
+        "versionId": "cefa38e5-cda9-4d8b-9f12-661ffd843512",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

@@ -709,22 +709,34 @@ export default function About() {
 
       {/* ── MENU D'ANCRAGE STICKY ── */}
       <nav className="sticky top-16 lg:top-[68px] z-30 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border-y border-neutral-200/80 dark:border-neutral-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ul className="flex gap-1 sm:gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {sectionNav.map((s) => (
-              <li key={s.id}>
-                <a
-                  href={`#${s.id}`}
-                  className={`block whitespace-nowrap px-3 sm:px-4 py-3.5 text-xs sm:text-sm font-bold tracking-wide border-b-2 transition-colors ${
-                    activeSection === s.id
-                      ? `${theme.accentText} border-morrys-500`
-                      : 'text-neutral-500 dark:text-neutral-400 border-transparent hover:text-neutral-900 dark:hover:text-white'
-                  }`}
-                >
-                  {s.label}
-                </a>
-              </li>
-            ))}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
+          <ul className="flex justify-start lg:justify-center gap-1.5 sm:gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {sectionNav.map((s, i) => {
+              const active = activeSection === s.id;
+              return (
+                <li key={s.id}>
+                  <a
+                    href={`#${s.id}`}
+                    className={`group flex items-center gap-2 whitespace-nowrap rounded-full pl-2.5 pr-3.5 sm:pl-3 sm:pr-4 py-2 text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 ${
+                      active
+                        ? `${theme.buttonSolid} shadow-sm shadow-morrys-600/20`
+                        : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/70 hover:text-neutral-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black tabular-nums transition-colors ${
+                        active
+                          ? 'bg-white/25 text-white'
+                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 group-hover:bg-morrys-100 group-hover:text-morrys-600 dark:group-hover:bg-morrys-900/40 dark:group-hover:text-morrys-300'
+                      }`}
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    {s.label}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </nav>
@@ -818,9 +830,9 @@ export default function About() {
                 </div>
                 <h3 className="font-black text-xl text-neutral-900 dark:text-white mb-3">{item.title}</h3>
                 <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-5">{item.desc}</p>
-                <div className="flex flex-wrap gap-2 mb-6 flex-1">
+                <div className="flex flex-wrap items-start content-start gap-2 mb-6 flex-1">
                   {item.tags.map((tag) => (
-                    <span key={tag} className={`px-3 py-1 ${theme.softBadge} text-xs font-semibold rounded-full`}>
+                    <span key={tag} className={`px-3 py-1 ${theme.softBadge} text-xs font-semibold rounded-full whitespace-nowrap`}>
                       {tag}
                     </span>
                   ))}
@@ -882,6 +894,20 @@ export default function About() {
               <ChevronRight className="w-5 h-5" />
             </button>
 
+            {/* Dégradés de bord — suggèrent le défilement */}
+            <div
+              aria-hidden="true"
+              className={`pointer-events-none absolute left-0 top-0 bottom-4 z-[5] w-12 sm:w-20 bg-gradient-to-r from-white dark:from-neutral-950 to-transparent transition-opacity duration-300 ${
+                atStart ? 'opacity-0' : 'opacity-100'
+              }`}
+            />
+            <div
+              aria-hidden="true"
+              className={`pointer-events-none absolute right-0 top-0 bottom-4 z-[5] w-12 sm:w-20 bg-gradient-to-l from-white dark:from-neutral-950 to-transparent transition-opacity duration-300 ${
+                atEnd ? 'opacity-0' : 'opacity-100'
+              }`}
+            />
+
             {/* Piste défilante */}
             <div
               ref={trackRef}
@@ -904,9 +930,15 @@ export default function About() {
             </div>
           </div>
 
-          {/* Indication swipe — mobile */}
-          <p className="sm:hidden text-center text-xs text-neutral-400 dark:text-neutral-500 mt-2">
-            Faites glisser pour parcourir →
+          {/* Indication de défilement */}
+          <p
+            className={`flex items-center justify-center gap-1.5 text-center text-xs font-medium text-neutral-400 dark:text-neutral-500 mt-3 transition-opacity duration-300 ${
+              atEnd ? 'opacity-0' : 'opacity-100'
+            }`}
+          >
+            <span className="sm:hidden">Faites glisser pour voir les autres plateformes</span>
+            <span className="hidden sm:inline">Faites défiler ou utilisez les flèches pour voir les autres plateformes</span>
+            <ChevronRight className="w-3.5 h-3.5 animate-pulse" />
           </p>
         </div>
       </motion.section>

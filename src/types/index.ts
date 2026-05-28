@@ -21,6 +21,15 @@ export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   language: 'fr' | 'en';
   newsletter: boolean;
+  aiMemoryConsent?: boolean;
+}
+
+export interface RysmoProfile {
+  summary: string;
+  topics: string[];
+  level: string;
+  weakSpots: string[];
+  updatedAt: string;
 }
 
 export interface BlogPost {
@@ -38,6 +47,7 @@ export interface BlogPost {
   readTime: number;
   featured: boolean;
   status: 'draft' | 'published' | 'scheduled';
+  views?: number;
   // SEO
   metaTitle?: string;
   metaDescription?: string;
@@ -124,6 +134,7 @@ export interface Podcast {
   category: string;
   status: 'published' | 'draft';
   transcript?: string;
+  popularity?: number;
   // SEO
   metaTitle?: string;
   metaDescription?: string;
@@ -383,6 +394,47 @@ export interface ClubSessionRegistration {
   userName: string;
   userEmail?: string;
   registeredAt: string;
+}
+
+// ── Rysmo (AI tutor) — monétisation ──────────────────────────────────────
+
+export type RysmoPlan = 'lite' | 'pro';
+export type RysmoPack = 'discovery' | 'regular' | 'intensive';
+
+export interface RysmoSubscription {
+  id: string;
+  userId: string;
+  userEmail?: string;
+  userName?: string;
+  plan: RysmoPlan;
+  status: 'active' | 'expired' | 'cancelled' | 'pending';
+  startedAt: string;
+  expiresAt: string;
+  amount: number;
+  chargeId?: string;
+}
+
+export interface RysmoPackPurchase {
+  id: string;
+  userId: string;
+  userEmail?: string;
+  userName?: string;
+  pack: RysmoPack;
+  requestsTotal: number;
+  purchasedAt: string;
+  status: 'pending' | 'completed' | 'failed';
+  amount: number;
+  chargeId?: string;
+}
+
+export interface RysmoQuotaSnapshot {
+  dailyLimit: number;
+  dayCount: number;
+  dayRemaining: number;
+  packBalance: number;
+  plan: RysmoPlan | null;
+  hasActiveSubscription: boolean;
+  hasClubBonus: boolean;
 }
 
 // ── Notifications ──────────────────────────────────────────────────────────

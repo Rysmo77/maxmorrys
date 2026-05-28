@@ -68,7 +68,7 @@ async function sha256(value: string): Promise<string> {
 export async function setUserData(email: string): Promise<void> {
   if (typeof window.fbq !== 'function') return;
   const em = await sha256(email);
-  window.fbq('init', PIXEL_ID, { em });
+  window.fbq('set', 'userData', PIXEL_ID, { em });
 }
 
 // ── Standard events ─────────────────────────────────────────────────────────

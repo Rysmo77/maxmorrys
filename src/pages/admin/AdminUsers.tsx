@@ -158,6 +158,13 @@ export default function AdminUsers() {
         togglingClub={state.togglingClub}
         handleGrantClub={state.handleGrantClub}
         handleRevokeClub={state.handleRevokeClub}
+        rysmoQuota={state.rysmoQuota}
+        loadingRysmo={state.loadingRysmo}
+        togglingRysmo={state.togglingRysmo}
+        addTokenAmount={state.addTokenAmount}
+        setAddTokenAmount={state.setAddTokenAmount}
+        handleResetRysmo={state.handleResetRysmo}
+        handleAddRysmoTokens={state.handleAddRysmoTokens}
       />
 
       {/* ── Add User Modal ── */}

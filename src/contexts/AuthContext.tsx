@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         displayName,
         role: 'student',
         createdAt: new Date().toISOString(),
-        preferences: { theme: 'system', language: 'fr', newsletter: false },
+        preferences: { theme: 'system', language: 'fr', newsletter: false, aiMemoryConsent: true },
       };
       await setDoc(doc(db, 'users', cred.user.uid), newUser);
       setUserData(newUser);
@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           displayName: cred.user.displayName ?? '',
           role: 'student',
           createdAt: new Date().toISOString(),
-          preferences: { theme: 'system', language: 'fr', newsletter: false },
+          preferences: { theme: 'system', language: 'fr', newsletter: false, aiMemoryConsent: true },
         };
         await setDoc(docRef, newUser);
         setUserData(newUser);

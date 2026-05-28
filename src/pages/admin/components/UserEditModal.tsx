@@ -1,5 +1,5 @@
 import {
-  Loader2, X, Save, Trash2, BookOpen, CheckCircle, Crown, Plus,
+  Loader2, X, Save, Trash2, BookOpen, CheckCircle, Crown, Plus, Bot, RotateCcw,
 } from 'lucide-react';
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';
@@ -35,6 +35,14 @@ interface UserEditModalProps {
   togglingClub: boolean;
   handleGrantClub: () => void;
   handleRevokeClub: (status: ClubDigitosSubscription['status']) => void;
+  // Rysmo (tokens IA) tab
+  rysmoQuota: { dayKey: string | null; dayCount: number; packBalance: number } | null;
+  loadingRysmo: boolean;
+  togglingRysmo: boolean;
+  addTokenAmount: string;
+  setAddTokenAmount: (v: string) => void;
+  handleResetRysmo: () => void;
+  handleAddRysmoTokens: () => void;
 }
 
 export function UserEditModal({
@@ -44,6 +52,8 @@ export function UserEditModal({
   addFormationId, setAddFormationId, addingFormation, removingId,
   unenrolledFormations, handleAddEnrollment, handleRemoveEnrollment,
   clubSub, loadingClubSub, togglingClub, handleGrantClub, handleRevokeClub,
+  rysmoQuota, loadingRysmo, togglingRysmo, addTokenAmount, setAddTokenAmount,
+  handleResetRysmo, handleAddRysmoTokens,
 }: UserEditModalProps) {
   return (
     <Modal open={!!editUser} onClose={onClose} title="Gestion de l'utilisateur">
@@ -72,6 +82,7 @@ export function UserEditModal({
               { id: 'info', label: 'Informations' },
               { id: 'formations', label: 'Formations' },
               { id: 'club', label: 'Club des Digitos', icon: Crown },
+              { id: 'rysmo', label: 'Tokens IA', icon: Bot },
             ] as const).map((tab) => (
               <button
                 key={tab.id}
@@ -313,6 +324,88 @@ export function UserEditModal({
 
                   <p className="text-xs text-neutral-400 text-center">
                     L'activation manuelle bypasse le paiement. Utiliser uniquement après confirmation de paiement hors-plateforme.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Tokens IA (Rysmo) tab */}
+          {editTab === 'rysmo' && (
+            <div className="space-y-4">
+              {loadingRysmo ? (
+                <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
+              ) : (
+                <>
+                  {/* Status card */}
+                  <div className="rounded-2xl p-5 border bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-teal-200 dark:bg-teal-800/50 flex items-center justify-center flex-shrink-0">
+                        <Bot className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-neutral-900 dark:text-white text-sm">Tokens IA — Rysmo</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Quota du répétiteur IA</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-xl bg-white/60 dark:bg-neutral-800/40 p-3">
+                        <p className="text-xs text-neutral-500">Utilisées aujourd'hui</p>
+                        <p className="text-xl font-black text-neutral-900 dark:text-white">{rysmoQuota?.dayCount ?? 0}</p>
+                      </div>
+                      <div className="rounded-xl bg-white/60 dark:bg-neutral-800/40 p-3">
+                        <p className="text-xs text-neutral-500">Tokens prépayés</p>
+                        <p className="text-xl font-black text-teal-600 dark:text-teal-400">{rysmoQuota?.packBalance ?? 0}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reset daily counter */}
+                  <button
+                    onClick={handleResetRysmo}
+                    disabled={togglingRysmo}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700/30 text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    {togglingRysmo ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                    Réinitialiser le compteur du jour
+                  </button>
+
+                  {/* Add tokens */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-neutral-500">Offrir des tokens (ajout au solde prépayé)</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        max={10000}
+                        value={addTokenAmount}
+                        onChange={(e) => setAddTokenAmount(e.target.value)}
+                        className={`${inputCls} flex-1`}
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleAddRysmoTokens}
+                        disabled={togglingRysmo}
+                        icon={togglingRysmo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                      >
+                        Ajouter
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      {['30', '100', '300'].map((preset) => (
+                        <button
+                          key={preset}
+                          onClick={() => setAddTokenAmount(preset)}
+                          className="flex-1 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:border-teal-400 hover:text-teal-600 transition-colors"
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-neutral-400 text-center">
+                    Les tokens ajoutés sont consommés en priorité et n'expirent pas.
                   </p>
                 </>
               )}

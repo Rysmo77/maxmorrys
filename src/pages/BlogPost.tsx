@@ -1,11 +1,11 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Clock, Linkedin, Copy, Check, Loader2, Twitter } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, Linkedin, Copy, Check, Loader2, Twitter, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import NewsletterForm from '../components/shared/NewsletterForm';
 import FormationCTA from '../components/shared/FormationCTA';
 import ArticleCard from '../components/shared/ArticleCard';
-import { getPostBySlug, getPublishedPosts } from '../lib/firestore';
+import { getPostBySlug, getPublishedPosts, incrementBlogViews } from '../lib/firestore';
 import { formatDate, markdownToHtml } from '../lib/utils';
 import { categoryToPole } from '../lib/blogCategories';
 import type { BlogPost as BlogPostType } from '../types';
@@ -39,6 +39,12 @@ export default function BlogPost() {
           category: data.category,
           content_type: 'article',
         });
+        const viewKey = `blog-viewed-${data.id}`;
+        if (typeof window !== 'undefined' && !sessionStorage.getItem(viewKey)) {
+          incrementBlogViews(data.id)
+            .then(() => sessionStorage.setItem(viewKey, '1'))
+            .catch(() => null);
+        }
         getPublishedPosts().then((all) => {
           setRelatedPosts(all.filter((p) => p.id !== data.id && p.category === data.category).slice(0, 3));
         }).catch(() => null);
@@ -179,12 +185,20 @@ export default function BlogPost() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">Publié le</p>
-              <p className="font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
+              <p className="font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2 flex-wrap">
                 {formatDate(post.publishedAt)}
                 <span className="text-neutral-300 dark:text-neutral-600">·</span>
                 <span className="flex items-center gap-1 font-normal text-neutral-500 dark:text-neutral-400">
                   <Clock className="w-3.5 h-3.5" />{post.readTime} min
                 </span>
+                {post.views !== undefined && post.views > 0 && (
+                  <>
+                    <span className="text-neutral-300 dark:text-neutral-600">·</span>
+                    <span className="flex items-center gap-1 font-normal text-neutral-500 dark:text-neutral-400">
+                      <Eye className="w-3.5 h-3.5" />{post.views.toLocaleString()} lectures
+                    </span>
+                  </>
+                )}
               </p>
             </div>
           </div>

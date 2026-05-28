@@ -3,19 +3,28 @@ import * as admin from 'firebase-admin';
 admin.initializeApp();
 
 // ── AI Chatbot ────────────────────────────────────────────────────────────
-export { rysmo } from './rysmo';
+export { rysmo, getRysmoQuota, clearRysmoMemory } from './rysmo';
 
 // ── Admin functions ───────────────────────────────────────────────────────
-export { adminCreateUser, adminManageEnrollment } from './admin';
+export { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './admin';
 
 // ── API Proxies ───────────────────────────────────────────────────────────
 export { spotifyProxy, youtubeProxy } from './proxy';
 
+// ── Media stats sync (YouTube views + Spotify popularity) ────────────────
+export { syncMediaStats, syncMediaStatsManual } from './media-stats';
+
 // ── Payments ──────────────────────────────────────────────────────────────
-export { createBictorysCharge, createClubCharge, bictorysWebhook } from './payment';
+export {
+  createBictorysCharge,
+  createClubCharge,
+  createRysmoPackCharge,
+  createRysmoSubscriptionCharge,
+  bictorysWebhook,
+} from './payment';
 
 // ── Notification triggers ─────────────────────────────────────────────────
-export { onEnrollmentCreated, onCertificateCreated, streakReminder, courseReminder } from './notifications';
+export { onEnrollmentCreated, onCertificateCreated, streakReminder, courseReminder, rysmoCoachNudge } from './notifications';
 
 // ── Maintenance tasks ─────────────────────────────────────────────────────
 export { cleanupTempStorage, backupFirestore } from './maintenance';

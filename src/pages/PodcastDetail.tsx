@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Headphones, Clock, Calendar, ArrowLeft, Loader2 } from 'lucide-react';
+import { Headphones, Clock, Calendar, ArrowLeft, Loader2, TrendingUp } from 'lucide-react';
 import { getPodcastBySlug, getPublishedPodcasts } from '../lib/firestore';
 import FormationCTA from '../components/shared/FormationCTA';
 import { formatDate, markdownToHtml } from '../lib/utils';
@@ -149,7 +149,7 @@ export default function PodcastDetail() {
             dangerouslySetInnerHTML={{ __html: markdownToHtml(podcast.description) }}
           />
 
-          <motion.div variants={staggerItem} className="flex items-center gap-5 text-sm text-neutral-400">
+          <motion.div variants={staggerItem} className="flex items-center gap-5 text-sm text-neutral-400 flex-wrap">
             <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" />
               {podcast.duration}
@@ -159,6 +159,15 @@ export default function PodcastDetail() {
               <Calendar className="w-4 h-4" />
               {formatDate(podcast.publishedAt)}
             </span>
+            {podcast.popularity !== undefined && (
+              <>
+                <span>·</span>
+                <span className="flex items-center gap-1.5" title="Score de popularité Spotify (0–100)">
+                  <TrendingUp className="w-4 h-4" />
+                  Popularité {podcast.popularity}/100
+                </span>
+              </>
+            )}
           </motion.div>
         </motion.div>
       </section>

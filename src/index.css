@@ -18,6 +18,11 @@
     line-height: 1.6;
   }
 
+  /* App shell: tame the bounce + nav bar overlap on iOS */
+  body:has(nav[aria-label="Navigation principale"]) {
+    overscroll-behavior-y: contain;
+  }
+
   ::selection {
     @apply bg-brand-200 dark:bg-brand-800 text-brand-900 dark:text-brand-100;
   }

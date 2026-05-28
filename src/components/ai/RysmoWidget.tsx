@@ -1,19 +1,40 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
 import DOMPurify from 'dompurify';
 import { functions } from '../../config/firebase';
 import { captureError } from '../../lib/sentry';
 import { trackChatbotInteraction } from '../../lib/tracking';
 import { useAuth } from '../../contexts/AuthContext';
-import { X, Send, Mic, MicOff, Bot, Loader2, Volume2, VolumeX, Trash2 } from 'lucide-react';
+import { X, Send, Mic, MicOff, Bot, Loader2, Volume2, VolumeX, Trash2, Sparkles } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
+interface QuotaInfo {
+  dailyLimit: number;
+  dayCount: number;
+  packBalance: number;
+  source: 'pack' | 'subscription' | 'club' | 'free';
+  hasActiveSubscription: boolean;
+  hasClubBonus: boolean;
+}
+
 interface RysmoResponse {
   reply: string;
+  quota?: QuotaInfo;
+}
+
+interface QuotaSnapshot {
+  dailyLimit: number;
+  dayCount: number;
+  dayRemaining: number;
+  packBalance: number;
+  plan: 'lite' | 'pro' | null;
+  hasActiveSubscription: boolean;
+  hasClubBonus: boolean;
 }
 
 const QUICK_ACTIONS = [
@@ -38,12 +59,17 @@ interface SpeechRecognition extends EventTarget {
   start(): void;
   stop(): void;
   onresult: ((event: SpeechRecognitionEvent) => void) | null;
-  onerror: ((event: Event) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
   onend: (() => void) | null;
 }
 
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message?: string;
 }
 
 interface SpeechRecognitionResultList {
@@ -68,6 +94,8 @@ const rysmoCallable = httpsCallable<
   { message: string; conversationHistory: Message[]; userContext?: { displayName?: string; enrolledCourses?: string[] } },
   RysmoResponse
 >(functions, 'rysmo');
+
+const getRysmoQuotaCallable = httpsCallable<Record<string, never>, QuotaSnapshot>(functions, 'getRysmoQuota');
 
 const STORAGE_KEY = 'rysmo_conversation';
 
@@ -99,8 +127,11 @@ export default function RysmoWidget() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
+  const [quota, setQuota] = useState<QuotaSnapshot | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -130,6 +161,23 @@ export default function RysmoWidget() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const refreshQuota = useCallback(async () => {
+    if (!user) return;
+    try {
+      const res = await getRysmoQuotaCallable({});
+      setQuota(res.data);
+    } catch {
+      // Non-blocking — quota display is cosmetic
+    }
+  }, [user]);
+
+  // Charger le quota à l'ouverture
+  useEffect(() => {
+    if (open && user) {
+      refreshQuota();
+    }
+  }, [open, user, refreshQuota]);
 
   // Message de bienvenue à la première ouverture
   useEffect(() => {
@@ -173,6 +221,21 @@ export default function RysmoWidget() {
         content: result.data.reply,
       };
       setMessages([...newMessages, assistantMessage]);
+      setLimitReached(false);
+
+      // Mettre à jour le quota depuis la réponse serveur
+      if (result.data.quota) {
+        const q = result.data.quota;
+        setQuota({
+          dailyLimit: q.dailyLimit,
+          dayCount: q.dayCount,
+          dayRemaining: Math.max(0, q.dailyLimit - q.dayCount),
+          packBalance: q.packBalance,
+          plan: q.hasActiveSubscription ? (q.source === 'subscription' ? null : null) : null,
+          hasActiveSubscription: q.hasActiveSubscription,
+          hasClubBonus: q.hasClubBonus,
+        });
+      }
 
       // Lecture vocale si activée
       if (voiceEnabled && 'speechSynthesis' in window) {
@@ -186,12 +249,15 @@ export default function RysmoWidget() {
       captureError(err, { context: 'Rysmo error' });
 
       let errorMessage = "Désolé, une erreur s'est produite. Réessaie dans quelques instants.";
+      let isLimit = false;
       if (err && typeof err === 'object' && 'code' in err) {
         const code = (err as { code: string }).code;
         if (code === 'functions/unauthenticated') {
           errorMessage = "Tu dois être connecté pour utiliser Rysmo.";
         } else if (code === 'functions/resource-exhausted') {
-          errorMessage = "Trop de requêtes. Attends un moment avant de réessayer.";
+          const message = (err as { message?: string }).message;
+          errorMessage = message || "Tu as exploré Rysmo à fond aujourd'hui ! Continue avec un pack à partir de 500 XOF.";
+          isLimit = true;
         } else if (code === 'functions/not-found') {
           errorMessage = "Le service Rysmo n'est pas disponible pour le moment.";
         }
@@ -201,6 +267,10 @@ export default function RysmoWidget() {
         ...newMessages,
         { role: 'assistant', content: errorMessage },
       ]);
+      if (isLimit) {
+        setLimitReached(true);
+        refreshQuota();
+      }
     } finally {
       setLoading(false);
       inputRef.current?.focus();
@@ -208,14 +278,17 @@ export default function RysmoWidget() {
   };
 
   const toggleVoiceInput = () => {
+    setVoiceError(null);
+
     const SpeechRecognitionClass =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognitionClass) {
-      alert("La reconnaissance vocale n'est pas supportée par votre navigateur.");
+      setVoiceError("La dictée vocale n'est pas supportée par ce navigateur. Utilise Chrome ou Edge.");
       return;
     }
 
+    // Toggle off si déjà en écoute
     if (listening) {
       recognitionRef.current?.stop();
       setListening(false);
@@ -229,14 +302,31 @@ export default function RysmoWidget() {
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript;
-      setInput(transcript);
+      setInput((prev) => (prev ? prev + ' ' : '') + transcript);
+      setVoiceError(null);
     };
-    recognition.onerror = () => setListening(false);
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      setListening(false);
+      if (event.error === 'aborted') return; // arrêt volontaire → silencieux
+      const map: Record<string, string> = {
+        'not-allowed': 'Accès au micro refusé. Autorise le micro dans les réglages du navigateur.',
+        'service-not-allowed': 'Accès au micro refusé. Autorise le micro dans les réglages du navigateur.',
+        'no-speech': "Je n'ai rien entendu. Réessaie en parlant plus près du micro.",
+        'audio-capture': 'Aucun micro détecté sur cet appareil.',
+        'network': 'Problème réseau pendant la reconnaissance vocale. Réessaie.',
+      };
+      setVoiceError(map[event.error] ?? 'La dictée vocale a échoué. Réessaie.');
+    };
     recognition.onend = () => setListening(false);
 
     recognitionRef.current = recognition;
-    recognition.start();
-    setListening(true);
+    try {
+      recognition.start();
+      setListening(true);
+    } catch {
+      setListening(false);
+      setVoiceError('Impossible de démarrer la dictée. Réessaie dans un instant.');
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -246,25 +336,55 @@ export default function RysmoWidget() {
     }
   };
 
-  // Formater le texte markdown basique (gras) + sanitisation XSS
+  // Formater le texte markdown (gras + liens internes plateforme) + sanitisation XSS
   const formatText = (text: string) => {
+    // Contenus (avec slug ou page de listing) + pages publiques statiques.
+    const INTERNAL_LINK_RE = /^\/(blog|podcasts|videos|formations)(\/[a-z0-9-]+)?$|^\/(a-propos|contact|faq)$/i;
+    const linkAttrs = 'target="_blank" rel="noopener noreferrer" class="text-teal-600 dark:text-teal-400 underline hover:text-teal-700 dark:hover:text-teal-300 font-medium"';
+    const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
     const raw = text
+      // Markdown [label](path) → <a> uniquement si path interne whitelisté
+      .replace(/\[([^\]]+)\]\((\/[^\s)]+)\)/g, (_, label: string, url: string) =>
+        INTERNAL_LINK_RE.test(url)
+          ? `<a href="${url}" ${linkAttrs}>${escapeHtml(label)}</a>`
+          : escapeHtml(label),
+      )
+      // Fallback : URL brute (contenu ou page publique) → <a>
+      .replace(/(^|[\s(])(\/(?:blog|podcasts|videos|formations)(?:\/[a-z0-9-]+)?|\/(?:a-propos|contact|faq))(?=[\s.,!?)]|$)/gi,
+        (_m, prefix: string, url: string) => `${prefix}<a href="${url}" ${linkAttrs}>${url}</a>`)
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br />');
+
     return DOMPurify.sanitize(raw, {
-      ALLOWED_TAGS: ['strong', 'br'],
-      ALLOWED_ATTR: [],
+      ALLOWED_TAGS: ['strong', 'br', 'a'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+      ALLOWED_URI_REGEXP: /^\/(blog|podcasts|videos|formations|a-propos|contact|faq)(\/|$)/i,
     });
   };
 
   return (
     <>
+      {/* ── Backdrop mobile (tap pour fermer) ── */}
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          className="sm:hidden fixed inset-0 bg-black/30 z-40 animate-fade-in"
+          aria-hidden="true"
+        />
+      )}
+
       {/* ── Panneau de chat ── */}
       {open && (
-        <div className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-96 max-h-[600px] z-50 flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 animate-slide-up">
+        <div
+          className="fixed z-50 flex flex-col overflow-hidden bg-white dark:bg-neutral-900 animate-slide-up inset-0 rounded-none border-0 shadow-none sm:inset-auto sm:bottom-24 sm:right-6 sm:w-96 sm:h-[600px] sm:max-h-[calc(100dvh-8rem)] sm:rounded-2xl sm:border sm:border-neutral-200 sm:dark:border-neutral-700 sm:shadow-2xl"
+        >
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white flex-shrink-0">
+          <div
+            className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white flex-shrink-0"
+            style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
+          >
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                 <Bot className="w-4 h-4" />
@@ -280,7 +400,7 @@ export default function RysmoWidget() {
                   setVoiceEnabled((v) => !v);
                   if (voiceEnabled) window.speechSynthesis?.cancel();
                 }}
-                className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
+                className="p-2 rounded-full hover:bg-white/20 transition-colors"
                 title={voiceEnabled ? 'Couper la voix' : 'Activer la voix'}
               >
                 {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -294,7 +414,7 @@ export default function RysmoWidget() {
                     setMessages([]);
                     setHasGreeted(false);
                   }}
-                  className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
+                  className="p-2 rounded-full hover:bg-white/20 transition-colors"
                   title="Effacer la conversation"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -302,7 +422,7 @@ export default function RysmoWidget() {
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
+                className="p-2 rounded-full hover:bg-white/20 transition-colors"
                 aria-label="Fermer Rysmo"
               >
                 <X className="w-4 h-4" />
@@ -361,7 +481,22 @@ export default function RysmoWidget() {
           </div>
 
           {/* Input */}
-          <div className="flex-shrink-0 border-t border-neutral-100 dark:border-neutral-800 p-3">
+          <div
+            className="flex-shrink-0 border-t border-neutral-100 dark:border-neutral-800 p-3"
+            style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+          >
+            {/* Bannière upsell quand limite atteinte */}
+            {limitReached && (
+              <Link
+                to="/mon-espace/rysmo?tab=tokens"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold shadow-sm hover:from-amber-600 hover:to-orange-600 transition-all"
+              >
+                <Sparkles className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1">Continuer maintenant — pack dès 500 XOF</span>
+              </Link>
+            )}
             <div className="flex items-end gap-2">
               <textarea
                 ref={inputRef}
@@ -399,9 +534,31 @@ export default function RysmoWidget() {
                 <Send className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-[10px] text-neutral-400 dark:text-neutral-600 text-center mt-2">
-              Voix générée par IA · Rysmo peut faire des erreurs
-            </p>
+            <div className="flex items-center justify-between mt-2 gap-2">
+              <p className="text-[10px] text-neutral-400 dark:text-neutral-600">
+                Voix IA · Rysmo peut faire des erreurs
+              </p>
+              {quota && (
+                <Link
+                  to="/mon-espace/rysmo?tab=tokens"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-neutral-500 dark:text-neutral-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors flex items-center gap-1"
+                  title="Voir mes quotas et packs Rysmo"
+                >
+                  {quota.packBalance > 0 && (
+                    <span className="font-semibold text-teal-600 dark:text-teal-400">{quota.packBalance} pack</span>
+                  )}
+                  <span>
+                    {quota.dayRemaining}/{quota.dailyLimit} aujourd'hui
+                  </span>
+                  {quota.hasClubBonus && <span className="text-amber-500" title="Bonus Club Digitos">★</span>}
+                </Link>
+              )}
+            </div>
+            {voiceError && (
+              <p className="text-[11px] text-red-500 dark:text-red-400 mt-1.5 text-center">{voiceError}</p>
+            )}
           </div>
         </div>
       )}
@@ -409,11 +566,10 @@ export default function RysmoWidget() {
       {/* ── FAB bouton ── */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ${
-          open
-            ? 'bg-neutral-700 dark:bg-neutral-600 rotate-12 scale-90'
-            : 'bg-teal-600 hover:bg-teal-700 hover:scale-105'
+        className={`fixed bottom-24 md:bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg items-center justify-center transition-all duration-300 ${
+          open ? 'hidden sm:flex bg-neutral-700 dark:bg-neutral-600 rotate-12 scale-90' : 'flex bg-teal-600 hover:bg-teal-700 hover:scale-105'
         }`}
+        style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
         aria-label={open ? 'Fermer Rysmo' : 'Ouvrir Rysmo, répétiteur IA'}
       >
         {open ? (

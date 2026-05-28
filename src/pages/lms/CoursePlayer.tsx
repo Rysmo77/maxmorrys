@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Play, FileText, CheckCircle, ChevronDown, ChevronUp, Download, Check, Loader2, Lock, ArrowRight, List, HelpCircle, Target, RotateCcw } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -13,6 +14,7 @@ import { markdownToHtml } from '../../lib/utils';
 import type { Formation, Lesson, Enrollment } from '../../types';
 import { captureError } from '../../lib/sentry';
 import { trackViewItem, trackLessonCompleted, trackCourseProgress } from '../../lib/tracking';
+import { slideUp } from '../../lib/animations';
 
 function CourseOutline({
   formation, totalLessons, expandedModules, toggleModule,
@@ -395,7 +397,7 @@ export default function CoursePlayer() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 pt-0 pb-20">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 pt-0 pb-20 overflow-x-clip">
       {/* Top bar */}
       <div className="sticky top-0 z-30 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-4 sm:px-6 h-14 flex items-center gap-4">
         <Breadcrumbs items={[
@@ -406,7 +408,12 @@ export default function CoursePlayer() {
         {saving && <Loader2 className="w-4 h-4 animate-spin text-brand-500 flex-shrink-0" />}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <motion.div
+        className="max-w-7xl mx-auto px-4 sm:px-6 py-6"
+        variants={slideUp}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Progress bar */}
         <div className="flex items-center gap-4 mb-6">
           <div className="flex-1">
@@ -426,6 +433,14 @@ export default function CoursePlayer() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Lesson content */}
           <div className="lg:col-span-2">
+            <AnimatePresence mode="wait">
+            <motion.div
+              key={activeLesson?.id ?? 'empty'}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
             {activeLesson ? (
               <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
                 {activeLesson.type === 'video' ? (
@@ -465,7 +480,7 @@ export default function CoursePlayer() {
                     <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-4">{activeLesson.title}</h2>
                     {activeLesson.content ? (
                       <div
-                        className="prose-article prose prose-sm sm:prose-base dark:prose-invert max-w-none prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium"
+                        className="prose-article prose prose-sm sm:prose-base dark:prose-invert max-w-none prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium prose-pre:overflow-x-auto"
                         dangerouslySetInnerHTML={{ __html: markdownToHtml(activeLesson.content) }}
                       />
                     ) : (
@@ -500,6 +515,8 @@ export default function CoursePlayer() {
                 <p className="text-neutral-500">Choisissez une leçon dans le menu pour commencer.</p>
               </div>
             )}
+            </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Sidebar — course outline (desktop only) */}
@@ -516,7 +533,7 @@ export default function CoursePlayer() {
             />
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mobile floating button for course outline */}
       <button

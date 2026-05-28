@@ -172,7 +172,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 overflow-x-clip">
       <motion.div
         className="max-w-4xl mx-auto px-4 sm:px-6 pt-28 lg:pt-36 pb-20"
         initial={{ opacity: 0, y: 16 }}
