@@ -137,7 +137,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                     <CaretDown className="w-3 h-3 opacity-60" />
                   </button>
                   {showCategoryPicker && (
-                    <div className="absolute bottom-full left-0 mb-1 z-20 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-1.5 shadow-lg w-48">
+                    <div className="absolute bottom-full left-0 mb-1 z-20 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-1.5 shadow-lg w-48 max-w-[calc(100vw-1.5rem)]">
                       {CLUB_CATEGORIES.map((c) => (
                         <button key={c.id} type="button" onClick={() => { setComposerCategory(c.id); setShowCategoryPicker(false); }} className={cn('w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700', composerCategory === c.id ? c.tint : 'text-neutral-600 dark:text-neutral-300')}>
                           <c.icon className="w-4 h-4" weight="duotone" /> {c.label}
@@ -154,7 +154,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                     <span className="hidden sm:inline">Humeur</span>
                   </button>
                   {showMoodPicker && (
-                    <div className="absolute bottom-full left-0 mb-1 z-20 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-2 shadow-lg flex gap-1 flex-wrap w-44">
+                    <div className="absolute bottom-full left-0 mb-1 z-20 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-2 shadow-lg flex gap-1 flex-wrap w-44 max-w-[calc(100vw-1.5rem)]">
                       {MOOD_OPTIONS.map((m) => (
                         <button key={m} type="button" onClick={() => { setComposerMood(composerMood === m ? '' : m); setShowMoodPicker(false); }} className={cn('text-xl p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors', composerMood === m && 'bg-plum-50 dark:bg-plum-900/20')}>
                           {m}
@@ -327,7 +327,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                           </span>
                         </button>
                         {shareMenuOpen === post.id && (
-                          <div className="absolute right-0 bottom-full mb-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-44">
+                          <div className="absolute right-0 bottom-full mb-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-44 max-w-[calc(100vw-1.5rem)]">
                             {SHARE_PLATFORMS.map((p) => (
                               <button key={p.id} onClick={() => handleShare(p.id, post)} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
                                 <span>{p.emoji}</span> {p.label}
@@ -346,7 +346,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                         <DotsThree className="w-5 h-5" weight="bold" />
                       </button>
                       {postMenuOpen === post.id && (
-                        <div className="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-40">
+                        <div className="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-40 max-w-[calc(100vw-1.5rem)]">
                           <button onClick={() => { handleDeleteClubPost(post.id); setPostMenuOpen(null); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors">
                             <Trash className="w-4 h-4" weight="duotone" /> Supprimer
                           </button>

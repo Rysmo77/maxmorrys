@@ -54,7 +54,7 @@ export default function ClubInfos({ data }: ClubInfosProps) {
                   {copiedInfoId === info.id ? <Check className="w-4 h-4 text-success-500" weight="bold" /> : <ShareFat className="w-4 h-4" />} Partager
                 </button>
                 {infoShareMenuOpen === info.id && (
-                  <div className="absolute right-0 bottom-full mb-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-44">
+                  <div className="absolute right-0 bottom-full mb-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-44 max-w-[calc(100vw-1.5rem)]">
                     {SHARE_PLATFORMS.map((p) => (
                       <button key={p.id} onClick={() => handleInfoShare(p.id, info)} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
                         <span>{p.emoji}</span> {p.label}

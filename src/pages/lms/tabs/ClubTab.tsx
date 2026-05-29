@@ -123,8 +123,8 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
       </div>
 
       {/* Navigation réduite + Plus */}
-      <div className="flex items-center gap-1.5">
-        <div className="flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 pb-0.5">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto min-w-0">
           {PRIMARY.map((it) => navBtn(it, clubTab === it.id))}
         </div>
         <div className="relative flex-shrink-0" ref={moreRef}>
@@ -139,7 +139,7 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
             {moreActive ? moreActive.label : 'Plus'}
           </button>
           {moreOpen && (
-            <div className="absolute left-0 top-full mt-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-52">
+            <div className="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-52 max-w-[calc(100vw-1.5rem)]">
               {MORE.map((it) => (
                 <button
                   key={it.id}
