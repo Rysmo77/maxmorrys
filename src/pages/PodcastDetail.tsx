@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Headphones, Clock, Calendar, ArrowLeft, Loader2, TrendingUp } from 'lucide-react';
@@ -7,6 +7,7 @@ import FormationCTA from '../components/shared/FormationCTA';
 import { formatDate, markdownToHtml } from '../lib/utils';
 import type { Podcast } from '../types';
 import { trackViewItem, trackPodcastPlay } from '../lib/tracking';
+import { useContentEngagement } from '../hooks/useContentEngagement';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
@@ -21,6 +22,11 @@ const viewportOnce = { once: true, amount: 0.2 } as const;
 function resolveAudioEmbed(url: string): { type: 'iframe' | 'native'; src: string } {
   const spotifyMatch = url.match(/open\.spotify\.com\/(episode|show|track)\/([a-zA-Z0-9]+)/);
   if (spotifyMatch) return { type: 'iframe', src: `https://open.spotify.com/embed/${spotifyMatch[1]}/${spotifyMatch[2]}` };
+  // Apple Podcasts → forme embed
+  if (url.includes('embed.podcasts.apple.com')) return { type: 'iframe', src: url };
+  if (url.includes('podcasts.apple.com')) {
+    return { type: 'iframe', src: url.replace('://podcasts.apple.com', '://embed.podcasts.apple.com') };
+  }
   if (url.includes('/embed/') || url.includes('anchor.fm') || url.includes('podcasters.spotify.com')) {
     return { type: 'iframe', src: url };
   }
@@ -31,6 +37,7 @@ export default function PodcastDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [podcast, setPodcast] = useState<Podcast | null | undefined>(undefined);
   const [others, setOthers] = useState<Podcast[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -43,6 +50,15 @@ export default function PodcastDetail() {
       }
     }).catch(() => setPodcast(null));
   }, [slug]);
+
+  useContentEngagement({
+    contentId: podcast?.id,
+    type: 'podcast',
+    slug: podcast?.slug ?? '',
+    title: podcast?.title ?? '',
+    category: podcast?.category ?? 'général',
+    mediaRef: audioRef,
+  });
 
   if (podcast === undefined) {
     return <div className="pt-32 pb-20 flex justify-center"><Loader2 className={`w-8 h-8 animate-spin ${theme.spinner}`} /></div>;
@@ -192,7 +208,7 @@ export default function PodcastDetail() {
                     <iframe
                       src={src}
                       className="w-full"
-                      height="152"
+                      height={src.includes('embed.podcasts.apple.com') ? '175' : '152'}
                       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                       loading="lazy"
                       title={podcast.title}
@@ -209,7 +225,7 @@ export default function PodcastDetail() {
                         <p className="text-sm text-neutral-500">{podcast.duration}</p>
                       </div>
                     </div>
-                    <audio controls className="w-full" src={src}>
+                    <audio ref={audioRef} controls className="w-full" src={src}>
                       Votre navigateur ne supporte pas la lecture audio.
                     </audio>
                   </div>

@@ -11,7 +11,7 @@ import SearchOverlay from '../shared/SearchOverlay';
 const COLLAPSED_KEY = 'app:sidebar:collapsed';
 
 export interface AppShellProps {
-  brand: { label: string; href: string; mark?: string };
+  brand: { label: string; href: string };
   sidebarSections: AppSidebarSection[];
   bottomNavItems?: BottomNavItem[];
   /** Map pathname → human title (used in mobile topbar). Optional. */

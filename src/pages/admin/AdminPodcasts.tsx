@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Search, Trash2, Edit2, Headphones, Loader2, ChevronDown, RefreshCw } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, Headphones, Loader2, ChevronDown, RefreshCw, Download } from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../config/firebase';
 import Button from '../../components/ui/Button';
@@ -24,6 +24,11 @@ const syncMediaStatsCallable = httpsCallable<
   { videosProcessed: number; videosUpdated: number; podcastsProcessed: number; podcastsUpdated: number; errors: string[] }
 >(functions, 'syncMediaStatsManual');
 
+const importEpisodesCallable = httpsCallable<
+  void,
+  { fetched: number; created: number; skipped: number; errors: string[] }
+>(functions, 'importSpotifyEpisodesManual');
+
 const EMPTY: Omit<Podcast, 'id'> = {
   title: '', slug: '', description: '', audioUrl: '', coverImage: '',
   duration: '', publishedAt: new Date().toISOString().split('T')[0],
@@ -43,7 +48,25 @@ export default function AdminPodcasts() {
   const [saving, setSaving] = useState(false);
   const [fetchingMeta, setFetchingMeta] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [importing, setImporting] = useState(false);
   const lastFetchedId = useRef<string | null>(null);
+
+  const handleImport = async () => {
+    setImporting(true);
+    try {
+      const { created, skipped, errors } = (await importEpisodesCallable()).data;
+      if (errors.length > 0) {
+        addToast('error', `Import partiel : ${errors[0]}`);
+      } else {
+        addToast('success', `${created} épisode(s) importé(s) en brouillon, ${skipped} déjà présent(s).`);
+      }
+      load();
+    } catch (error: unknown) {
+      addToast('error', error instanceof Error ? error.message : "Erreur d'import.");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const handleSync = async () => {
     setSyncing(true);
@@ -171,6 +194,14 @@ export default function AdminPodcasts() {
           <p className="text-sm text-neutral-500 mt-1">{podcasts.length} épisode{podcasts.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleImport}
+            disabled={importing}
+            icon={importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+          >
+            {importing ? 'Import...' : 'Importer depuis Spotify'}
+          </Button>
           <Button
             variant="outline"
             onClick={handleSync}

@@ -32,6 +32,19 @@ export interface RysmoProfile {
   updatedAt: string;
 }
 
+export interface ContentEngagement {
+  id?: string;
+  type: 'article' | 'podcast' | 'video';
+  slug: string;
+  title: string;
+  category: string;
+  scrollPctMax: number;
+  dwellSec: number;
+  mediaSec: number;
+  visits: number;
+  lastAt: string;
+}
+
 export interface BlogPost {
   id: string;
   title: string;
@@ -135,6 +148,7 @@ export interface Podcast {
   status: 'published' | 'draft';
   transcript?: string;
   popularity?: number;
+  spotifyEpisodeId?: string;
   // SEO
   metaTitle?: string;
   metaDescription?: string;
@@ -185,11 +199,18 @@ export interface Testimonial {
   content: string;
   avatar: string;
   rating: number;
+  /** @deprecated remplacé par mediaUrl + mediaType */
   videoUrl?: string;
+  mediaType?: 'text' | 'audio' | 'video';
+  mediaUrl?: string;
+  targetType?: 'platform' | 'mentor' | 'formation' | 'podcast' | 'video';
+  targetId?: string;
+  targetLabel?: string;
   featured: boolean;
   userId?: string;
   status?: 'pending' | 'approved' | 'rejected';
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface FAQ {

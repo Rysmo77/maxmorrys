@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.catalog = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.rysmoCoachNudge = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createRysmoSubscriptionCharge = exports.createRysmoPackCharge = exports.createClubCharge = exports.createBictorysCharge = exports.syncMediaStatsManual = exports.syncMediaStats = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageRysmoQuota = exports.adminManageEnrollment = exports.adminCreateUser = exports.clearRysmoMemory = exports.getRysmoQuota = exports.rysmo = void 0;
+exports.catalog = exports.rss = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.rysmoCoachNudge = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createRysmoSubscriptionCharge = exports.createRysmoPackCharge = exports.createClubCharge = exports.createBictorysCharge = exports.importSpotifyEpisodesManual = exports.importSpotifyEpisodes = exports.syncMediaStatsManual = exports.syncMediaStats = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageRysmoQuota = exports.adminManageEnrollment = exports.adminCreateUser = exports.clearRysmoMemory = exports.getRysmoQuota = exports.rysmo = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ── AI Chatbot ────────────────────────────────────────────────────────────
@@ -54,6 +54,10 @@ Object.defineProperty(exports, "youtubeProxy", { enumerable: true, get: function
 var media_stats_1 = require("./media-stats");
 Object.defineProperty(exports, "syncMediaStats", { enumerable: true, get: function () { return media_stats_1.syncMediaStats; } });
 Object.defineProperty(exports, "syncMediaStatsManual", { enumerable: true, get: function () { return media_stats_1.syncMediaStatsManual; } });
+// ── Auto-import des épisodes podcast depuis l'API Spotify ─────────────────
+var import_episodes_1 = require("./import-episodes");
+Object.defineProperty(exports, "importSpotifyEpisodes", { enumerable: true, get: function () { return import_episodes_1.importSpotifyEpisodes; } });
+Object.defineProperty(exports, "importSpotifyEpisodesManual", { enumerable: true, get: function () { return import_episodes_1.importSpotifyEpisodesManual; } });
 // ── Payments ──────────────────────────────────────────────────────────────
 var payment_1 = require("./payment");
 Object.defineProperty(exports, "createBictorysCharge", { enumerable: true, get: function () { return payment_1.createBictorysCharge; } });
@@ -87,6 +91,8 @@ var sitemap_1 = require("./sitemap");
 Object.defineProperty(exports, "sitemap", { enumerable: true, get: function () { return sitemap_1.sitemap; } });
 var prerender_1 = require("./prerender");
 Object.defineProperty(exports, "prerender", { enumerable: true, get: function () { return prerender_1.prerender; } });
+var rss_1 = require("./rss");
+Object.defineProperty(exports, "rss", { enumerable: true, get: function () { return rss_1.rss; } });
 // ── Marketing feeds ──────────────────────────────────────────────────────
 var catalog_1 = require("./catalog");
 Object.defineProperty(exports, "catalog", { enumerable: true, get: function () { return catalog_1.catalog; } });

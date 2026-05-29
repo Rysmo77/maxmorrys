@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { Brain, RotateCcw, Loader2, ShieldCheck } from 'lucide-react';
 import { db, functions } from '../../../config/firebase';
@@ -8,7 +8,7 @@ import { useToast } from '../../../components/ui/Toast';
 import { updateUserProfile } from '../../../lib/firestore';
 import Toggle from '../../../components/ui/Toggle';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
-import type { RysmoProfile } from '../../../types';
+import type { RysmoProfile, ContentEngagement } from '../../../types';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 
 const clearRysmoMemory = httpsCallable<Record<string, never>, { success: boolean }>(functions, 'clearRysmoMemory');
@@ -24,6 +24,8 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
   const consent = userData?.preferences?.aiMemoryConsent !== false;
   const [profile, setProfile] = useState<RysmoProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [topCategories, setTopCategories] = useState<string[]>([]);
+  const [recentContent, setRecentContent] = useState<ContentEngagement[]>([]);
   const [savingConsent, setSavingConsent] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -38,6 +40,25 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
       setProfile(null);
     } finally {
       setLoadingProfile(false);
+    }
+    // Centres d'intérêt déduits de l'engagement contenus
+    try {
+      const engSnap = await getDocs(query(
+        collection(db, `users/${user.uid}/engagement`),
+        orderBy('lastAt', 'desc'),
+        limit(12),
+      ));
+      const items = engSnap.docs.map((d) => d.data() as ContentEngagement);
+      const byCat = new Map<string, number>();
+      items.forEach((e) => {
+        const score = Math.min(e.scrollPctMax ?? 0, 100) / 100 + Math.min(e.dwellSec ?? 0, 600) / 600 + Math.min(e.mediaSec ?? 0, 1800) / 1800;
+        byCat.set(e.category || 'général', (byCat.get(e.category || 'général') ?? 0) + score);
+      });
+      setTopCategories([...byCat.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([c]) => c));
+      setRecentContent(items.slice(0, 5));
+    } catch {
+      setTopCategories([]);
+      setRecentContent([]);
     }
   }, [user]);
 
@@ -63,6 +84,8 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
     try {
       await clearRysmoMemory({});
       setProfile(null);
+      setTopCategories([]);
+      setRecentContent([]);
       addToast('success', 'Mémoire réinitialisée. Rysmo repart de zéro.');
     } catch {
       addToast('error', "Erreur lors de la réinitialisation.");
@@ -158,6 +181,34 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
           </div>
         )}
       </div>
+
+      {/* Centres d'intérêt déduits de l'activité */}
+      {consent && (topCategories.length > 0 || recentContent.length > 0) && (
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-5">
+          <h2 className="text-lg font-black text-neutral-900 dark:text-white mb-1">Tes centres d'intérêt déduits</h2>
+          <p className="text-xs text-neutral-500 mb-4">D'après les contenus que tu consultes (articles lus, audios/vidéos, temps passé).</p>
+          {topCategories.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1.5">Catégories préférées</p>
+              <div className="flex flex-wrap gap-1.5">
+                {topCategories.map((c) => (
+                  <span key={c} className="px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 text-xs font-medium">{c}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {recentContent.length > 0 && (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1.5">Récemment consultés</p>
+              {recentContent.map((e, i) => (
+                <div key={`${e.slug}-${i}`} className="text-sm text-neutral-700 dark:text-neutral-200 py-0.5 truncate">
+                  {e.title} <span className="text-xs text-neutral-400">· {e.type}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Contexte d'apprentissage */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-5">

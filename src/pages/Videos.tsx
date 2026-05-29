@@ -27,7 +27,7 @@ import { universeThemes } from '../lib/sectionThemes';
 const theme = universeThemes.videos;
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
-const YT_URL = 'https://youtube.com/@maxmorrys';
+const YT_URL = 'https://www.youtube.com/@maxmorrys-me';
 const PAGE_STEP = 9;
 
 export default function Videos() {

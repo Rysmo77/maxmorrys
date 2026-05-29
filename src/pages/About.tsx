@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
-import { SITE_URL } from '../components/seo/seo-config';
+import { SITE_URL, SOCIAL_URLS } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
 import { universeThemes } from '../lib/sectionThemes';
 
@@ -588,10 +588,7 @@ export default function About() {
         jobTitle: 'Marketing & Growth Manager',
         worksFor: { '@type': 'Organization', name: 'Eyone Medical' },
         address: { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
-        sameAs: [
-          'https://www.linkedin.com/in/max-morrys-eyoum/',
-          'https://www.youtube.com/@maxmorrys',
-        ],
+        sameAs: [...SOCIAL_URLS],
       }} />
 
       {/* ── 1. HERO CORPORATE ── */}

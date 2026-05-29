@@ -71,6 +71,7 @@ const ProfilePage = lazyWithReload(() => import('./pages/lms/routes/ProfilePage'
 const SettingsPage = lazyWithReload(() => import('./pages/lms/routes/SettingsPage'));
 const ClubPage = lazyWithReload(() => import('./pages/lms/routes/ClubPage'));
 const RysmoPage = lazyWithReload(() => import('./pages/lms/routes/RysmoPage'));
+const TestimonialsPage = lazyWithReload(() => import('./pages/lms/routes/TestimonialsPage'));
 const CoursePlayer = lazyWithReload(() => import('./pages/lms/CoursePlayer'));
 const Checkout = lazyWithReload(() => import('./pages/lms/Checkout'));
 const PaymentReturn = lazyWithReload(() => import('./pages/lms/PaymentReturn'));
@@ -210,6 +211,7 @@ const router = createBrowserRouter([
           { path: 'parametres',      element: <Suspense fallback={<PageLoader />}><SettingsPage /></Suspense> },
           { path: 'club',            element: <Suspense fallback={<PageLoader />}><ClubPage /></Suspense> },
           { path: 'rysmo',           element: <Suspense fallback={<PageLoader />}><RysmoPage /></Suspense> },
+          { path: 'temoignages',     element: <Suspense fallback={<PageLoader />}><TestimonialsPage /></Suspense> },
         ],
       },
       {

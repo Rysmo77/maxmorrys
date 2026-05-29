@@ -10,3 +10,4 @@ export * from './notes';
 export * from './certificates';
 export * from './club';
 export * from './notifications';
+export * from './engagement';

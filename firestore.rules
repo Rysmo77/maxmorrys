@@ -136,13 +136,21 @@ service cloud.firestore {
         (isSignedIn() && resource.data.userId == request.auth.uid) ||
         isAdmin();
 
-      // Students can submit a testimonial (status must be pending, userId must match)
-      allow create: if isSignedIn() &&
-        request.resource.data.userId == request.auth.uid &&
-        request.resource.data.status == 'pending';
+      // Admins create freely (seed / manual). Students submit their own as pending, not featured.
+      allow create: if isAdmin() ||
+        (isSignedIn() &&
+         request.resource.data.userId == request.auth.uid &&
+         request.resource.data.status == 'pending' &&
+         request.resource.data.featured == false);
 
-      // Only admins can update or delete testimonials
-      allow update, delete: if isAdmin();
+      // Only admins can update testimonials
+      allow update: if isAdmin();
+
+      // Admins delete any; users can remove their own as long as it's still pending
+      allow delete: if isAdmin() ||
+        (isSignedIn() &&
+         resource.data.userId == request.auth.uid &&
+         resource.data.status == 'pending');
     }
 
     // FAQ collection
@@ -333,6 +341,13 @@ service cloud.firestore {
     match /users/{userId}/notes/{noteId} {
       allow read, create, update, delete: if isOwner(userId);
       allow read: if isAdmin();
+    }
+
+    // Engagement contenus (consultations, temps, scroll, minutes média) — pour la mémoire Rysmo
+    match /users/{userId}/engagement/{contentId} {
+      allow read, create, update: if isOwner(userId);
+      allow read: if isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
     }
 
     // Notifications preferences (per user)

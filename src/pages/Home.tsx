@@ -8,7 +8,7 @@ import { categoryToPole } from '../lib/blogCategories';
 import type { Formation, BlogPost, Testimonial, Podcast } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
-import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
+import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SOCIAL_URLS } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
 import { universeThemes, universeFromPath } from '../lib/sectionThemes';
 import EditorialHeading, { CircularBadge } from '../components/shared/EditorialHeading';
@@ -90,9 +90,17 @@ function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) 
             <Star key={i} className="w-4 h-4 text-accent-500 fill-accent-500" />
           ))}
         </div>
-        <p className="text-xl lg:text-2xl font-bold italic text-neutral-800 dark:text-neutral-100 leading-snug mb-8 transition-opacity duration-500">
-          «&nbsp;{t.content}&nbsp;»
-        </p>
+        {t.mediaType === 'video' && t.mediaUrl && (
+          <video src={t.mediaUrl} controls playsInline className="w-full max-w-md max-h-72 rounded-xl bg-black mb-6" />
+        )}
+        {t.mediaType === 'audio' && t.mediaUrl && (
+          <audio src={t.mediaUrl} controls className="w-full max-w-md mb-6" />
+        )}
+        {t.content && (
+          <p className="text-xl lg:text-2xl font-bold italic text-neutral-800 dark:text-neutral-100 leading-snug mb-8 transition-opacity duration-500">
+            «&nbsp;{t.content}&nbsp;»
+          </p>
+        )}
         <div className="flex items-center justify-center gap-3">
           {t.avatar && <img src={t.avatar} alt={t.name} className="w-11 h-11 rounded-full object-cover" loading="lazy" width={44} height={44} />}
           <div className="text-left">
@@ -168,10 +176,7 @@ export default function Home() {
             areaServed: ['SN', 'CI', 'CM', 'FR'],
             availableLanguage: 'French',
           },
-          sameAs: [
-            'https://www.linkedin.com/in/maxmorrys',
-            'https://www.youtube.com/@maxmorrys',
-          ],
+          sameAs: [...SOCIAL_URLS],
         },
         {
           '@context': 'https://schema.org',
@@ -193,10 +198,7 @@ export default function Home() {
           image: DEFAULT_OG_IMAGE,
           jobTitle: 'Expert en marketing digital, SEO et IA',
           worksFor: { '@type': 'Organization', name: SITE_NAME },
-          sameAs: [
-            'https://www.linkedin.com/in/maxmorrys',
-            'https://www.youtube.com/@maxmorrys',
-          ],
+          sameAs: [...SOCIAL_URLS],
         },
       ]} />
 

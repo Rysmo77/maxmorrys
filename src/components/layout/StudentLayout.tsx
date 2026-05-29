@@ -1,7 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, BookOpen, BookMarked, Award, Inbox, User, Settings, Crown, Home, Bot,
+  LayoutDashboard, BookOpen, BookMarked, Award, Inbox, User, Settings, Crown, Home, Bot, MessageSquareQuote,
 } from 'lucide-react';
 import AppShell from './AppShell';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,9 +9,9 @@ import { useToast } from '../ui/Toast';
 import { useStudentData, type EnrolledFormation } from '../../pages/lms/hooks/useStudentData';
 import { useNotes } from '../../pages/lms/hooks/useNotes';
 import {
-  getUserMessages, getUserCertificates, getClubSubscription,
+  getUserMessages, getUserCertificates, getClubSubscription, getMyTestimonials,
 } from '../../lib/firestore';
-import type { ContactMessage, Certificate, ClubDigitosSubscription } from '../../types';
+import type { ContactMessage, Certificate, ClubDigitosSubscription, Testimonial } from '../../types';
 
 const Onboarding = lazy(() => import('../../pages/lms/Onboarding'));
 
@@ -30,6 +30,9 @@ export interface StudentLayoutContext {
   setSentMessages: React.Dispatch<React.SetStateAction<ContactMessage[]>>;
   loadingMessages: boolean;
   notesHook: ReturnType<typeof useNotes>;
+  myTestimonials: Testimonial[];
+  setMyTestimonials: React.Dispatch<React.SetStateAction<Testimonial[]>>;
+  loadingTestimonials: boolean;
   clubSubscription: ClubDigitosSubscription | null | undefined;
   isClubActive: boolean;
   isClubPending: boolean;
@@ -53,6 +56,8 @@ export default function StudentLayout() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loadingCerts, setLoadingCerts] = useState(false);
   const [clubSubscription, setClubSubscription] = useState<ClubDigitosSubscription | null | undefined>(undefined);
+  const [myTestimonials, setMyTestimonials] = useState<Testimonial[]>([]);
+  const [loadingTestimonials, setLoadingTestimonials] = useState(false);
 
   // Onboarding first-time users
   useEffect(() => {
@@ -89,6 +94,16 @@ export default function StudentLayout() {
     getClubSubscription(user.uid).then(setClubSubscription).catch(() => null);
   }, [user]);
 
+  // Load my testimonials when on /temoignages
+  useEffect(() => {
+    if (!user || !location.pathname.startsWith('/mon-espace/temoignages')) return;
+    setLoadingTestimonials(true);
+    getMyTestimonials(user.uid).then((data) => {
+      setMyTestimonials(data);
+      setLoadingTestimonials(false);
+    }).catch(() => setLoadingTestimonials(false));
+  }, [user, location.pathname]);
+
   const displayName = userData?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Étudiant';
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
   const photoURL = user?.photoURL || userData?.photoURL;
@@ -102,6 +117,7 @@ export default function StudentLayout() {
     certificates, setCertificates, loadingCerts,
     sentMessages, setSentMessages, loadingMessages,
     notesHook,
+    myTestimonials, setMyTestimonials, loadingTestimonials,
     clubSubscription, isClubActive, isClubPending,
     addToast,
     userId: user?.uid, userEmail: user?.email ?? '',
@@ -109,7 +125,7 @@ export default function StudentLayout() {
 
   return (
     <AppShell
-      brand={{ label: 'Mon espace', href: '/mon-espace/tableau-de-bord', mark: 'MM' }}
+      brand={{ label: 'Mon espace', href: '/mon-espace/tableau-de-bord' }}
       titleMap={STUDENT_TITLES}
       sidebarSections={[
         {
@@ -121,6 +137,7 @@ export default function StudentLayout() {
             { to: '/mon-espace/notes',           label: 'Mes notes',        icon: BookMarked },
             { to: '/mon-espace/succes',          label: 'Succès & Certificats', icon: Award },
             { to: '/mon-espace/messages',        label: 'Messages',         icon: Inbox },
+            { to: '/mon-espace/temoignages',     label: 'Mon avis',         icon: MessageSquareQuote },
           ],
         },
         {
@@ -169,6 +186,7 @@ const STUDENT_TITLES: Record<string, string> = {
   '/mon-espace/notes':           'Mes notes',
   '/mon-espace/succes':          'Succès & Certificats',
   '/mon-espace/messages':        'Messages',
+  '/mon-espace/temoignages':     'Mon avis',
   '/mon-espace/club':            'Club des Digitos',
   '/mon-espace/profil':          'Mon profil',
   '/mon-espace/parametres':      'Paramètres',

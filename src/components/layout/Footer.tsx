@@ -1,6 +1,18 @@
 import { Link } from 'react-router-dom';
-import { Mail, MapPin, Phone, Linkedin, Youtube, ArrowUpRight } from 'lucide-react';
+import { Mail, MapPin, Phone, Linkedin, Facebook, Instagram, Youtube, ArrowUpRight } from 'lucide-react';
+import type { ComponentType } from 'react';
 import NewsletterForm from '../shared/NewsletterForm';
+import { XIcon, TikTokIcon } from '../shared/SocialIcons';
+import { SOCIAL_LINKS } from '../seo/seo-config';
+
+const socialIcons: Record<string, ComponentType<{ className?: string }>> = {
+  LinkedIn: Linkedin,
+  Facebook,
+  Instagram,
+  YouTube: Youtube,
+  TikTok: TikTokIcon,
+  X: XIcon,
+};
 
 const footerLinks = {
   plateforme: [
@@ -60,15 +72,16 @@ export default function Footer() {
             <p className="text-sm leading-relaxed mb-6">
               Formateur, consultant et créateur de contenu digital. J'aide les entrepreneurs à maîtriser le marketing digital et accélérer leur croissance.
             </p>
-            <div className="flex gap-3">
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-neutral-800 hover:bg-neutral-700 flex items-center justify-center text-neutral-400 hover:text-white transition-colors">
-                <Linkedin className="w-4 h-4" />
-              </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-neutral-800 hover:bg-neutral-700 flex items-center justify-center text-neutral-400 hover:text-white transition-colors">
-                <Youtube className="w-4 h-4" />
-              </a>
+            <div className="flex flex-wrap gap-3">
+              {SOCIAL_LINKS.map(({ name, url }) => {
+                const Icon = socialIcons[name];
+                return (
+                  <a key={name} href={url} target="_blank" rel="noopener noreferrer" aria-label={name}
+                    className="w-9 h-9 rounded-full bg-neutral-800 hover:bg-neutral-700 flex items-center justify-center text-neutral-400 hover:text-white transition-colors">
+                    <Icon className="w-4 h-4" />
+                  </a>
+                );
+              })}
             </div>
           </div>
 

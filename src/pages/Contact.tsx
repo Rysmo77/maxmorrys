@@ -14,7 +14,7 @@ import { captureError } from '../lib/sentry';
 import { trackGenerateLead, trackContact } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
-import { SITE_URL, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
+import { SITE_URL, DEFAULT_OG_IMAGE, SOCIAL_URLS } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
@@ -186,7 +186,7 @@ export default function Contact() {
           addressCountry: 'SN',
         },
         priceRange: '€€',
-        sameAs: ['https://wa.me/221776041985'],
+        sameAs: ['https://wa.me/221776041985', ...SOCIAL_URLS],
       }} />
 
       {/* ── HERO ── */}

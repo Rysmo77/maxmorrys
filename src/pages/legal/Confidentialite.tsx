@@ -32,7 +32,7 @@ export default function Confidentialite() {
               <li>Données relatives aux achats : historique de commandes, moyens de paiement</li>
               <li>Données de progression : avancement dans les formations</li>
               <li>Données de communication : messages envoyés via le formulaire de contact</li>
-              <li>Données liées à l'assistant IA Rysmo : historique de tes échanges avec Rysmo et profil d'apprentissage dérivé (sujets d'intérêt, niveau estimé, points à renforcer), stockés côté serveur pour personnaliser son accompagnement</li>
+              <li>Données liées à l'assistant IA Rysmo : historique de tes échanges avec Rysmo, profil d'apprentissage dérivé (sujets d'intérêt, niveau estimé, points à renforcer), et données d'engagement sur les contenus (consultations, temps de lecture, défilement, progression audio/vidéo), stockés côté serveur pour personnaliser son accompagnement</li>
             </ul>
             <p className="mt-2 text-sm">
               La mémoire de Rysmo est <strong>activée par défaut</strong>. Tu peux la désactiver et l'effacer à tout moment depuis ton espace (<em>Espace → Rysmo → Mémoire</em>).

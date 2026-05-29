@@ -1,8 +1,8 @@
 /**
- * Témoignages d'étudiants — contenu statique curé.
- * Modifiable ici ; pas de stockage en base pour l'instant.
+ * Témoignages de démonstration — source du bouton « Importer » de l'admin.
+ * Une fois importés dans Firestore, l'affichage public lit la base, plus ce fichier.
  */
-export interface Testimonial {
+export interface SeedTestimonial {
   id: string;
   quote: string;
   name: string;
@@ -11,7 +11,7 @@ export interface Testimonial {
   gradient: string;
 }
 
-export const testimonials: Testimonial[] = [
+export const testimonials: SeedTestimonial[] = [
   {
     id: 't1',
     quote:

@@ -7,16 +7,19 @@ import {
 import { useState, useEffect } from 'react';
 import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { getFormationBySlug } from '../lib/firestore';
+import { getFormationBySlug, getApprovedTestimonials } from '../lib/firestore';
 import { formatPrice, markdownToHtml } from '../lib/utils';
-import type { Formation } from '../types';
+import type { Formation, Testimonial } from '../types';
 import { trackViewItem, trackAddToCart } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
-import { testimonials } from '../data/testimonials';
 import { universeThemes } from '../lib/sectionThemes';
+
+function initialsFromName(name: string): string {
+  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+}
 
 const theme = universeThemes.formations;
 
@@ -31,6 +34,7 @@ export default function FormationDetail() {
   const navigate = useNavigate();
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [formation, setFormation] = useState<Formation | null | undefined>(undefined);
+  const [reviews, setReviews] = useState<Testimonial[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -48,6 +52,15 @@ export default function FormationDetail() {
       }
     }).catch(() => setFormation(null));
   }, [slug]);
+
+  useEffect(() => {
+    if (!formation) return;
+    getApprovedTestimonials().then((all) => {
+      const targeted = all.filter((t) => t.targetType === 'formation' && t.targetId === formation.id);
+      const fallback = all.filter((t) => !t.targetType || t.targetType === 'platform' || t.targetType === 'mentor');
+      setReviews((targeted.length > 0 ? targeted : fallback).slice(0, 4));
+    }).catch(() => setReviews([]));
+  }, [formation]);
 
   if (formation === undefined) {
     return (
@@ -393,23 +406,35 @@ export default function FormationDetail() {
                   Note moyenne attribuée par <span className="font-bold text-neutral-900 dark:text-white">{formation.students} étudiants</span> inscrits à cette formation.
                 </p>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {testimonials.slice(0, 2).map((t) => (
-                  <div key={t.id} className="flex flex-col bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
-                    <Quote className="w-6 h-6 text-brand-500 mb-3" />
-                    <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed flex-1 mb-4">{t.quote}</p>
-                    <div className="flex items-center gap-3">
-                      <span className={`w-9 h-9 rounded-full bg-gradient-to-br ${t.gradient} flex items-center justify-center text-white text-xs font-black shrink-0`}>
-                        {t.initials}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-neutral-900 dark:text-white truncate">{t.name}</p>
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{t.role}</p>
+              {reviews.length > 0 && (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {reviews.slice(0, 2).map((t) => (
+                    <div key={t.id} className="flex flex-col bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-5">
+                      <Quote className="w-6 h-6 text-brand-500 mb-3" />
+                      {t.mediaType === 'video' && t.mediaUrl && (
+                        <video src={t.mediaUrl} controls playsInline className="w-full max-h-48 rounded-lg bg-black mb-4" />
+                      )}
+                      {t.mediaType === 'audio' && t.mediaUrl && (
+                        <audio src={t.mediaUrl} controls className="w-full mb-4" />
+                      )}
+                      {t.content && <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed flex-1 mb-4">{t.content}</p>}
+                      <div className="flex items-center gap-3">
+                        {t.avatar ? (
+                          <img src={t.avatar} alt={t.name} className="w-9 h-9 rounded-full object-cover shrink-0" loading="lazy" />
+                        ) : (
+                          <span className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-600 to-brand-900 flex items-center justify-center text-white text-xs font-black shrink-0">
+                            {initialsFromName(t.name)}
+                          </span>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-neutral-900 dark:text-white truncate">{t.name}</p>
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{t.role}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
 
           </div>

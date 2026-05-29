@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { defineSecret } from 'firebase-functions/params';
 
 const googleAiKey = defineSecret('GOOGLE_AI_API_KEY');
@@ -279,6 +279,59 @@ async function getProfileText(uid: string): Promise<string> {
   }
 }
 
+async function getEngagementText(uid: string): Promise<string> {
+  try {
+    const snap = await admin.firestore()
+      .collection(`users/${uid}/engagement`)
+      .orderBy('lastAt', 'desc')
+      .limit(12)
+      .get();
+    if (snap.empty) return '';
+
+    const scored = snap.docs.map((d) => {
+      const e = d.data() as {
+        category?: string; title?: string; type?: string;
+        scrollPctMax?: number; dwellSec?: number; mediaSec?: number;
+      };
+      const scroll = Math.min(e.scrollPctMax ?? 0, 100) / 100;
+      const dwell = Math.min(e.dwellSec ?? 0, 600) / 600;
+      const media = Math.min(e.mediaSec ?? 0, 1800) / 1800;
+      return {
+        category: e.category || 'général',
+        title: e.title ?? 'contenu',
+        type: e.type ?? 'contenu',
+        score: scroll + dwell + media,
+      };
+    });
+
+    // Agrégation par catégorie
+    const byCat = new Map<string, number>();
+    scored.forEach((e) => {
+      byCat.set(e.category, (byCat.get(e.category) ?? 0) + e.score);
+    });
+    const topCats = [...byCat.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([c]) => c);
+
+    // Contenus récents (les plus engageants d'abord)
+    const recent = [...scored].sort((a, b) => b.score - a.score).slice(0, 5)
+      .map((e) => `"${e.title}" (${e.type})`);
+
+    const lines: string[] = [];
+    if (topCats.length) lines.push(`- Catégories préférées : ${topCats.join(', ')}`);
+    if (recent.length) lines.push(`- Récemment consultés : ${recent.join(', ')}`);
+    if (lines.length === 0) return '';
+
+    return [
+      '',
+      "PRÉFÉRENCES DE CONTENU (déduites de l'activité de cette personne — adapte tes réponses) :",
+      ...lines,
+      "→ Oriente tes exemples et recommandations vers ces centres d'intérêt.",
+    ].join('\n');
+  } catch (err) {
+    console.warn('getEngagementText failed (non-blocking):', err);
+    return '';
+  }
+}
+
 async function persistAndSummarize(
   uid: string,
   userMsg: string,
@@ -311,11 +364,6 @@ async function persistAndSummarize(
       .join('\n')
       .slice(0, 6000);
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      generationConfig: { temperature: 0.3, responseMimeType: 'application/json' },
-    });
     const prompt = [
       "Analyse cette conversation entre un étudiant et le tuteur IA Rysmo (plateforme de marketing digital/SEO/IA).",
       existing?.summary ? `Profil précédent: ${existing.summary}` : '',
@@ -326,8 +374,17 @@ async function persistAndSummarize(
       transcript,
     ].filter(Boolean).join('\n');
 
-    const res = await model.generateContent(prompt);
-    const raw = res.response.text();
+    const ai = new GoogleGenAI({ apiKey });
+    const res = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        temperature: 0.3,
+        responseMimeType: 'application/json',
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    });
+    const raw = res.text ?? '';
     let parsed: { summary?: string; topics?: string[]; level?: string; weakSpots?: string[] };
     try {
       parsed = JSON.parse(raw);
@@ -471,11 +528,12 @@ export const rysmo = onCall(
     // Mémoire opt-in : on n'injecte/persiste le profil que si l'utilisateur a consenti.
     const memoryConsent = await getMemoryConsent(uid);
 
-    // Catalogue mutualisé (cache 5 min) + enrollments + profil mémoire (si consentement).
-    const [catalog, enrolled, profileText] = await Promise.all([
+    // Catalogue mutualisé (cache 5 min) + enrollments + profil mémoire + préférences (si consentement).
+    const [catalog, enrolled, profileText, engagementText] = await Promise.all([
       getCatalog(),
       getEnrolledText(uid),
       memoryConsent ? getProfileText(uid) : Promise.resolve(''),
+      memoryConsent ? getEngagementText(uid) : Promise.resolve(''),
     ]);
     const catalogText = catalog.text;
     const enrolledText = enrolled.text;
@@ -539,6 +597,7 @@ export const rysmo = onCall(
       "",
       userContext?.displayName ? `L'étudiant s'appelle ${userContext.displayName}.` : '',
       profileText,
+      engagementText,
       enrolledText,
       PLATFORM_KNOWLEDGE,
       catalogText,
@@ -553,25 +612,24 @@ export const rysmo = onCall(
     }
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({
+      const ai = new GoogleGenAI({ apiKey });
+      const chat = ai.chats.create({
         model: 'gemini-2.5-flash',
-        systemInstruction: systemPrompt,
-        generationConfig: {
-          temperature: 0.7,
-        },
-      });
-
-      const chat = model.startChat({
         history: safeHistory.map((msg) => ({
           role: msg.role === 'assistant' ? 'model' : 'user',
           parts: [{ text: msg.content }],
         })),
+        config: {
+          systemInstruction: systemPrompt,
+          temperature: 0.7,
+          maxOutputTokens: 1024,              // garde-fou (thinking off → ne tronque plus)
+          thinkingConfig: { thinkingBudget: 0 }, // désactive le thinking (coût output ÷~2)
+        },
       });
 
-      const result = await chat.sendMessage(safeMessage);
+      const result = await chat.sendMessage({ message: safeMessage });
       // Anti-hallucination : retire tout lien interne non vérifié (inexistant/non publié).
-      const reply = sanitizeInternalLinks(result.response.text(), validPaths);
+      const reply = sanitizeInternalLinks(result.text ?? '', validPaths);
 
       // Mémoire (opt-in) : persiste l'échange + régénère le profil au seuil.
       if (memoryConsent) {
@@ -664,6 +722,15 @@ export const clearRysmoMemory = onCall(
     }
     const uid = request.auth.uid;
     const db = admin.firestore();
+
+    // Supprime la sous-collection d'engagement (par lots)
+    const engSnap = await db.collection(`users/${uid}/engagement`).get();
+    if (!engSnap.empty) {
+      const batch = db.batch();
+      engSnap.docs.forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    }
+
     await Promise.all([
       db.doc(`rysmoProfiles/${uid}`).delete(),
       db.doc(`rysmoConversations/${uid}`).delete(),

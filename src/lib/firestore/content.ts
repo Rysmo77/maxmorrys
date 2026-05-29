@@ -143,6 +143,10 @@ export async function getFeaturedTestimonials(): Promise<Testimonial[]> {
   return getCollection<Testimonial>('testimonials', where('featured', '==', true));
 }
 
+export async function getApprovedTestimonials(): Promise<Testimonial[]> {
+  return getCollection<Testimonial>('testimonials', where('status', '==', 'approved'));
+}
+
 export async function saveTestimonial(data: Omit<Testimonial, 'id'> & { id?: string }): Promise<string> {
   const { id, ...rest } = data;
   if (id) {
@@ -156,9 +160,9 @@ export async function deleteTestimonial(id: string): Promise<void> {
   return deleteDocById('testimonials', id);
 }
 
-export async function getMyTestimonial(userId: string): Promise<Testimonial | null> {
-  const results = await getCollection<Testimonial>('testimonials', where('userId', '==', userId), limit(1));
-  return results[0] ?? null;
+export async function getMyTestimonials(userId: string): Promise<Testimonial[]> {
+  const results = await getCollection<Testimonial>('testimonials', where('userId', '==', userId));
+  return results.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
 }
 
 export async function submitTestimonial(data: {
@@ -168,12 +172,26 @@ export async function submitTestimonial(data: {
   role: string;
   content: string;
   rating: number;
+  mediaType?: 'text' | 'audio' | 'video';
+  mediaUrl?: string;
+  targetType?: 'platform' | 'mentor' | 'formation' | 'podcast' | 'video';
+  targetId?: string;
+  targetLabel?: string;
 }): Promise<string> {
+  const { mediaUrl, targetId, ...rest } = data;
   return createDoc('testimonials', {
-    ...data,
+    ...rest,
+    mediaType: data.mediaType ?? 'text',
+    ...(mediaUrl ? { mediaUrl } : {}),
+    targetType: data.targetType ?? 'platform',
+    ...(targetId ? { targetId } : {}),
     company: '',
     featured: false,
     status: 'pending',
     createdAt: new Date().toISOString(),
   } as Parameters<typeof createDoc>[1]);
+}
+
+export async function deleteMyTestimonial(id: string): Promise<void> {
+  return deleteDocById('testimonials', id);
 }

@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.clearRysmoMemory = exports.getRysmoQuota = exports.rysmo = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
-const generative_ai_1 = require("@google/generative-ai");
+const genai_1 = require("@google/genai");
 const params_1 = require("firebase-functions/params");
 const googleAiKey = (0, params_1.defineSecret)('GOOGLE_AI_API_KEY');
 const BASE_DAILY_QUOTA = 2;
@@ -282,8 +282,59 @@ async function getProfileText(uid) {
         return '';
     }
 }
+async function getEngagementText(uid) {
+    try {
+        const snap = await admin.firestore()
+            .collection(`users/${uid}/engagement`)
+            .orderBy('lastAt', 'desc')
+            .limit(12)
+            .get();
+        if (snap.empty)
+            return '';
+        const scored = snap.docs.map((d) => {
+            var _a, _b, _c, _d, _e;
+            const e = d.data();
+            const scroll = Math.min((_a = e.scrollPctMax) !== null && _a !== void 0 ? _a : 0, 100) / 100;
+            const dwell = Math.min((_b = e.dwellSec) !== null && _b !== void 0 ? _b : 0, 600) / 600;
+            const media = Math.min((_c = e.mediaSec) !== null && _c !== void 0 ? _c : 0, 1800) / 1800;
+            return {
+                category: e.category || 'général',
+                title: (_d = e.title) !== null && _d !== void 0 ? _d : 'contenu',
+                type: (_e = e.type) !== null && _e !== void 0 ? _e : 'contenu',
+                score: scroll + dwell + media,
+            };
+        });
+        // Agrégation par catégorie
+        const byCat = new Map();
+        scored.forEach((e) => {
+            var _a;
+            byCat.set(e.category, ((_a = byCat.get(e.category)) !== null && _a !== void 0 ? _a : 0) + e.score);
+        });
+        const topCats = [...byCat.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([c]) => c);
+        // Contenus récents (les plus engageants d'abord)
+        const recent = [...scored].sort((a, b) => b.score - a.score).slice(0, 5)
+            .map((e) => `"${e.title}" (${e.type})`);
+        const lines = [];
+        if (topCats.length)
+            lines.push(`- Catégories préférées : ${topCats.join(', ')}`);
+        if (recent.length)
+            lines.push(`- Récemment consultés : ${recent.join(', ')}`);
+        if (lines.length === 0)
+            return '';
+        return [
+            '',
+            "PRÉFÉRENCES DE CONTENU (déduites de l'activité de cette personne — adapte tes réponses) :",
+            ...lines,
+            "→ Oriente tes exemples et recommandations vers ces centres d'intérêt.",
+        ].join('\n');
+    }
+    catch (err) {
+        console.warn('getEngagementText failed (non-blocking):', err);
+        return '';
+    }
+}
 async function persistAndSummarize(uid, userMsg, reply, apiKey) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
     try {
         const db = admin.firestore();
         const convRef = db.doc(`rysmoConversations/${uid}`);
@@ -307,11 +358,6 @@ async function persistAndSummarize(uid, userMsg, reply, apiKey) {
             .map((m) => `${m.role === 'assistant' ? 'Rysmo' : 'Étudiant'}: ${m.content}`)
             .join('\n')
             .slice(0, 6000);
-        const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash',
-            generationConfig: { temperature: 0.3, responseMimeType: 'application/json' },
-        });
         const prompt = [
             "Analyse cette conversation entre un étudiant et le tuteur IA Rysmo (plateforme de marketing digital/SEO/IA).",
             (existing === null || existing === void 0 ? void 0 : existing.summary) ? `Profil précédent: ${existing.summary}` : '',
@@ -321,22 +367,31 @@ async function persistAndSummarize(uid, userMsg, reply, apiKey) {
             "Conversation :",
             transcript,
         ].filter(Boolean).join('\n');
-        const res = await model.generateContent(prompt);
-        const raw = res.response.text();
+        const ai = new genai_1.GoogleGenAI({ apiKey });
+        const res = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                temperature: 0.3,
+                responseMimeType: 'application/json',
+                thinkingConfig: { thinkingBudget: 0 },
+            },
+        });
+        const raw = (_e = res.text) !== null && _e !== void 0 ? _e : '';
         let parsed;
         try {
             parsed = JSON.parse(raw);
         }
-        catch (_l) {
+        catch (_o) {
             console.warn('Profile summary JSON parse failed; skipping update.');
             await convRef.set({ msgCountSinceSummary: 0 }, { merge: true });
             return;
         }
         await profileRef.set({
-            summary: (_f = (_e = parsed.summary) !== null && _e !== void 0 ? _e : existing === null || existing === void 0 ? void 0 : existing.summary) !== null && _f !== void 0 ? _f : '',
-            topics: Array.isArray(parsed.topics) ? parsed.topics.slice(0, 10) : ((_g = existing === null || existing === void 0 ? void 0 : existing.topics) !== null && _g !== void 0 ? _g : []),
-            level: (_j = (_h = parsed.level) !== null && _h !== void 0 ? _h : existing === null || existing === void 0 ? void 0 : existing.level) !== null && _j !== void 0 ? _j : '',
-            weakSpots: Array.isArray(parsed.weakSpots) ? parsed.weakSpots.slice(0, 10) : ((_k = existing === null || existing === void 0 ? void 0 : existing.weakSpots) !== null && _k !== void 0 ? _k : []),
+            summary: (_g = (_f = parsed.summary) !== null && _f !== void 0 ? _f : existing === null || existing === void 0 ? void 0 : existing.summary) !== null && _g !== void 0 ? _g : '',
+            topics: Array.isArray(parsed.topics) ? parsed.topics.slice(0, 10) : ((_h = existing === null || existing === void 0 ? void 0 : existing.topics) !== null && _h !== void 0 ? _h : []),
+            level: (_k = (_j = parsed.level) !== null && _j !== void 0 ? _j : existing === null || existing === void 0 ? void 0 : existing.level) !== null && _k !== void 0 ? _k : '',
+            weakSpots: Array.isArray(parsed.weakSpots) ? parsed.weakSpots.slice(0, 10) : ((_l = existing === null || existing === void 0 ? void 0 : existing.weakSpots) !== null && _l !== void 0 ? _l : []),
             updatedAt: now,
         }, { merge: true });
         await convRef.set({ msgCountSinceSummary: 0 }, { merge: true });
@@ -432,6 +487,7 @@ async function reserveRequest(uid) {
     });
 }
 exports.rysmo = (0, https_1.onCall)({ region: 'us-central1', secrets: [googleAiKey] }, async (request) => {
+    var _a;
     if (!request.auth) {
         throw new https_1.HttpsError('unauthenticated', 'Authentification requise pour utiliser Rysmo.');
     }
@@ -451,11 +507,12 @@ exports.rysmo = (0, https_1.onCall)({ region: 'us-central1', secrets: [googleAiK
     const safeHistory = firstUserIdx === -1 ? [] : recentHistory.slice(firstUserIdx);
     // Mémoire opt-in : on n'injecte/persiste le profil que si l'utilisateur a consenti.
     const memoryConsent = await getMemoryConsent(uid);
-    // Catalogue mutualisé (cache 5 min) + enrollments + profil mémoire (si consentement).
-    const [catalog, enrolled, profileText] = await Promise.all([
+    // Catalogue mutualisé (cache 5 min) + enrollments + profil mémoire + préférences (si consentement).
+    const [catalog, enrolled, profileText, engagementText] = await Promise.all([
         getCatalog(),
         getEnrolledText(uid),
         memoryConsent ? getProfileText(uid) : Promise.resolve(''),
+        memoryConsent ? getEngagementText(uid) : Promise.resolve(''),
     ]);
     const catalogText = catalog.text;
     const enrolledText = enrolled.text;
@@ -518,6 +575,7 @@ exports.rysmo = (0, https_1.onCall)({ region: 'us-central1', secrets: [googleAiK
         "",
         (userContext === null || userContext === void 0 ? void 0 : userContext.displayName) ? `L'étudiant s'appelle ${userContext.displayName}.` : '',
         profileText,
+        engagementText,
         enrolledText,
         PLATFORM_KNOWLEDGE,
         catalogText,
@@ -530,23 +588,23 @@ exports.rysmo = (0, https_1.onCall)({ region: 'us-central1', secrets: [googleAiK
         throw new https_1.HttpsError('internal', 'Le service IA est temporairement indisponible.');
     }
     try {
-        const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
+        const ai = new genai_1.GoogleGenAI({ apiKey });
+        const chat = ai.chats.create({
             model: 'gemini-2.5-flash',
-            systemInstruction: systemPrompt,
-            generationConfig: {
-                temperature: 0.7,
-            },
-        });
-        const chat = model.startChat({
             history: safeHistory.map((msg) => ({
                 role: msg.role === 'assistant' ? 'model' : 'user',
                 parts: [{ text: msg.content }],
             })),
+            config: {
+                systemInstruction: systemPrompt,
+                temperature: 0.7,
+                maxOutputTokens: 1024, // garde-fou (thinking off → ne tronque plus)
+                thinkingConfig: { thinkingBudget: 0 }, // désactive le thinking (coût output ÷~2)
+            },
         });
-        const result = await chat.sendMessage(safeMessage);
+        const result = await chat.sendMessage({ message: safeMessage });
         // Anti-hallucination : retire tout lien interne non vérifié (inexistant/non publié).
-        const reply = sanitizeInternalLinks(result.response.text(), validPaths);
+        const reply = sanitizeInternalLinks((_a = result.text) !== null && _a !== void 0 ? _a : '', validPaths);
         // Mémoire (opt-in) : persiste l'échange + régénère le profil au seuil.
         if (memoryConsent) {
             await persistAndSummarize(uid, safeMessage, reply, apiKey);
@@ -626,6 +684,13 @@ exports.clearRysmoMemory = (0, https_1.onCall)({ region: 'us-central1' }, async 
     }
     const uid = request.auth.uid;
     const db = admin.firestore();
+    // Supprime la sous-collection d'engagement (par lots)
+    const engSnap = await db.collection(`users/${uid}/engagement`).get();
+    if (!engSnap.empty) {
+        const batch = db.batch();
+        engSnap.docs.forEach((d) => batch.delete(d.ref));
+        await batch.commit();
+    }
     await Promise.all([
         db.doc(`rysmoProfiles/${uid}`).delete(),
         db.doc(`rysmoConversations/${uid}`).delete(),

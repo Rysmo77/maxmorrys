@@ -20,7 +20,7 @@ export interface AppSidebarSection {
 
 interface AppSidebarProps {
   sections: AppSidebarSection[];
-  brand: { label: string; href: string; mark?: string };
+  brand: { label: string; href: string };
   collapsed: boolean;
   onToggleCollapsed?: () => void;
   onItemClick?: () => void;
@@ -36,8 +36,8 @@ export default function AppSidebar({
     <div className="flex flex-col h-full">
       <div className="h-14 px-3 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800">
         <Link to={brand.href} className="flex items-center gap-2 group min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-            {brand.mark ?? 'MM'}
+          <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0">
+            <img src="/icone-mm.png" alt="Max-Morrys" className="w-full h-full object-cover" />
           </div>
           {!collapsed && (
             <span className="font-bold text-neutral-900 dark:text-white text-sm truncate">{brand.label}</span>

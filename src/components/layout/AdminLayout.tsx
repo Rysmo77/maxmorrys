@@ -61,7 +61,7 @@ export default function AdminLayout() {
 
   return (
     <AppShell
-      brand={{ label: panelLabel, href: '/admin', mark: 'MM' }}
+      brand={{ label: panelLabel, href: '/admin' }}
       titleMap={ADMIN_TITLES}
       sidebarSections={[
         { title: 'Pilotage',    items: items.filter((i) => ['/admin', '/admin/analytics', '/admin/parametres'].includes(i.to)) },

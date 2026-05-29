@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Star, Loader2, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
+import { Plus, Trash2, Edit2, Star, Loader2, CheckCircle, XCircle, Clock, Eye, Download, Mic, Video } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Pagination from '../../components/ui/Pagination';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
@@ -11,6 +11,15 @@ import { usePagination } from '../../hooks/usePagination';
 import { getAllTestimonials, saveTestimonial, deleteTestimonial } from '../../lib/firestore';
 import type { Testimonial } from '../../types';
 import { captureError } from '../../lib/sentry';
+import { testimonials as seedTestimonials } from '../../data/testimonials';
+
+const TARGET_LABELS: Record<NonNullable<Testimonial['targetType']>, string> = {
+  platform: 'Plateforme',
+  mentor: 'Max-Morrys',
+  formation: 'Formation',
+  podcast: 'Podcast',
+  video: 'Vidéo',
+};
 
 const EMPTY: Omit<Testimonial, 'id'> = {
   name: '', role: '', company: '', content: '', avatar: '', rating: 5, featured: false, status: 'approved',
@@ -27,6 +36,7 @@ export default function AdminTestimonials() {
   const [editing, setEditing] = useState<Testimonial | null>(null);
   const [form, setForm] = useState<Omit<Testimonial, 'id'>>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [filter, setFilter] = useState<Filter>('all');
 
   const load = () => {
@@ -103,6 +113,39 @@ export default function AdminTestimonials() {
     });
   };
 
+  const handleSeed = async () => {
+    setSeeding(true);
+    try {
+      const existing = new Set(testimonials.map((t) => `${t.name}|${t.content}`.toLowerCase()));
+      const toImport = seedTestimonials.filter((s) => !existing.has(`${s.name}|${s.quote}`.toLowerCase()));
+      if (toImport.length === 0) {
+        addToast('success', 'Témoignages de démonstration déjà importés.');
+        return;
+      }
+      await Promise.all(toImport.map((s) => saveTestimonial({
+        name: s.name,
+        role: s.role,
+        company: '',
+        content: s.quote,
+        avatar: '',
+        rating: 5,
+        mediaType: 'text',
+        targetType: 'platform',
+        targetLabel: 'La plateforme',
+        featured: true,
+        status: 'approved',
+        createdAt: new Date().toISOString(),
+      })));
+      addToast('success', `${toImport.length} témoignage(s) importé(s).`);
+      load();
+    } catch (error: unknown) {
+      captureError(error, { context: 'Seed testimonials failed' });
+      addToast('error', error instanceof Error ? error.message : "Erreur lors de l'import.");
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   const set = (field: keyof Omit<Testimonial, 'id'>, value: string | number | boolean) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -140,9 +183,15 @@ export default function AdminTestimonials() {
             )}
           </p>
         </div>
-        <Button onClick={openNew} size="sm">
-          <Plus className="w-4 h-4 mr-2" /> Nouveau
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleSeed} size="sm" variant="outline" disabled={seeding}>
+            {seeding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+            Importer la démo
+          </Button>
+          <Button onClick={openNew} size="sm">
+            <Plus className="w-4 h-4 mr-2" /> Nouveau
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -213,10 +262,27 @@ export default function AdminTestimonials() {
                   <Star key={i} className={`w-3.5 h-3.5 ${i < t.rating ? 'text-accent-500' : 'text-neutral-300 dark:text-neutral-700'}`} fill="currentColor" />
                 ))}
               </div>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed line-clamp-3">"{t.content}"</p>
+              {t.mediaType === 'video' && t.mediaUrl && (
+                <video src={t.mediaUrl} controls playsInline className="w-full max-h-48 rounded-lg bg-black" />
+              )}
+              {t.mediaType === 'audio' && t.mediaUrl && (
+                <audio src={t.mediaUrl} controls className="w-full" />
+              )}
+              {t.content && <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed line-clamp-3">"{t.content}"</p>}
 
               <div className="flex items-center gap-2 flex-wrap mt-auto pt-1">
                 {statusBadge(t.status)}
+                {t.mediaType && t.mediaType !== 'text' && (
+                  <span className="px-2 py-0.5 bg-accent-100 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400 text-xs font-bold rounded-full flex items-center gap-1">
+                    {t.mediaType === 'video' ? <Video className="w-3 h-3" /> : <Mic className="w-3 h-3" />}
+                    {t.mediaType === 'video' ? 'Vidéo' : 'Audio'}
+                  </span>
+                )}
+                {t.targetType && (
+                  <span className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-xs font-bold rounded-full">
+                    {t.targetLabel || TARGET_LABELS[t.targetType]}
+                  </span>
+                )}
                 {t.featured && (
                   <span className="px-2 py-0.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-xs font-bold rounded-full flex items-center gap-1">
                     <Eye className="w-3 h-3" /> À la une

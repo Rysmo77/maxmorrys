@@ -10,6 +10,7 @@ import { formatDate, markdownToHtml } from '../lib/utils';
 import { categoryToPole } from '../lib/blogCategories';
 import type { BlogPost as BlogPostType } from '../types';
 import { trackViewItem, trackShare } from '../lib/tracking';
+import { useContentEngagement } from '../hooks/useContentEngagement';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
@@ -51,6 +52,14 @@ export default function BlogPost() {
       }
     }).catch(() => setPost(null));
   }, [slug]);
+
+  useContentEngagement({
+    contentId: post?.id,
+    type: 'article',
+    slug: post?.slug ?? '',
+    title: post?.title ?? '',
+    category: post?.category ?? 'général',
+  });
 
   if (post === undefined) {
     return (

@@ -14,6 +14,9 @@ export { spotifyProxy, youtubeProxy } from './proxy';
 // ── Media stats sync (YouTube views + Spotify popularity) ────────────────
 export { syncMediaStats, syncMediaStatsManual } from './media-stats';
 
+// ── Auto-import des épisodes podcast depuis l'API Spotify ─────────────────
+export { importSpotifyEpisodes, importSpotifyEpisodesManual } from './import-episodes';
+
 // ── Payments ──────────────────────────────────────────────────────────────
 export {
   createBictorysCharge,
@@ -43,6 +46,7 @@ export { exportUserData, deleteUserAccount } from './gdpr';
 // ── SEO ──────────────────────────────────────────────────────────────────
 export { sitemap } from './sitemap';
 export { prerender } from './prerender';
+export { rss } from './rss';
 
 // ── Marketing feeds ──────────────────────────────────────────────────────
 export { catalog } from './catalog';

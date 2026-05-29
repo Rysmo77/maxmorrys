@@ -58,7 +58,7 @@ export default function CGU() {
                 Les réponses de Rysmo sont <strong>fournies à titre indicatif</strong> et peuvent comporter des erreurs ou des imprécisions. Elles ne constituent pas un conseil professionnel garanti ; vérifie les informations importantes.
               </li>
               <li>
-                Pour personnaliser son accompagnement, Rysmo <strong>mémorise tes échanges</strong> afin de tenir compte de tes objectifs, de tes centres d'intérêt et de ta progression. Cette mémoire est <strong>activée par défaut</strong>.
+                Pour personnaliser son accompagnement, Rysmo <strong>mémorise tes échanges</strong> et tient compte de ton <strong>activité de consultation des contenus</strong> (articles lus, temps passé, progression sur les audios/vidéos) afin de cerner tes objectifs, tes centres d'intérêt et ta progression. Cette mémoire est <strong>activée par défaut</strong>.
               </li>
               <li>
                 Tu peux à tout moment <strong>désactiver</strong> cette mémoire et <strong>effacer</strong> les données associées depuis ton espace : <em>Espace → Rysmo → Mémoire</em>.

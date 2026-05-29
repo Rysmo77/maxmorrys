@@ -177,6 +177,20 @@ service firebase.storage {
       allow delete: if isAdmin();
     }
 
+    // Testimonial media (student-submitted audio/video/image)
+    match /testimonial_media/{userId}/{fileName} {
+      // Approved testimonials are shown publicly
+      allow read: if true;
+
+      // Users upload their own testimonial media (audio/video/image)
+      allow create: if isOwner(userId) &&
+        (isValidImageType() || isValidAudioType() || isValidVideoType()) &&
+        isUnder100MB();
+
+      // Users delete their own; admins can delete any
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
     // Certificates (generated PDFs)
     match /certificates/{userId}/{certificateId} {
       // Users can read their own certificates

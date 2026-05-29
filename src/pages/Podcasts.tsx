@@ -21,16 +21,24 @@ const theme = universeThemes.podcasts;
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
-const PLATFORMS = [
-  { name: 'Spotify', color: '#1DB954' },
-  { name: 'Apple Podcasts', color: '#FC3C44' },
-  { name: 'Deezer', color: '#A238FF' },
-  { name: 'Google Podcasts', color: '#4285F4' },
+// Liens d'abonnement aux plateformes d'écoute (URLs publiques, sans clé API).
+// ⚠️ Remplacer par les vraies URLs de l'émission.
+const SUBSCRIBE_LINKS = [
+  { name: 'Apple Podcasts', color: '#FC3C44', url: 'https://podcasts.apple.com/us/podcast/le-podcast-du-marketing/id1896841789' },
+  { name: 'Spotify', color: '#1DB954', url: 'https://open.spotify.com/show/5WV1QSOWsOBZoddNyPxwjc' },
 ];
 
 // Portrait Max-Morrys — réutilisé depuis la page À propos.
 const HOST_PORTRAIT =
   'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/A-propos%2FChatGPT%20Image%2014%20mai%202026%2C%2000_44_30%20(1).png?alt=media&token=e72ee3b7-1ff1-45ff-a994-b43607d16387';
+
+// Visuel du héro de la page Podcasts.
+const HERO_IMAGE =
+  'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Podcasts%2FChatGPT%20Image%2029%20mai%202026%2C%2011_16_32.png?alt=media&token=32159d2a-9d90-49af-9c1a-752a585c0635';
+
+// Visuel de l'encart CTA vidéos (bas de page).
+const VIDEOS_CTA_IMAGE =
+  'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Podcasts%2FChatGPT%20Image%2029%20mai%202026%2C%2014_41_49.png?alt=media&token=2620a1ec-eaa8-42c4-9d9b-a3f8fc73353c';
 
 /** Intertitre de section — style typographique d'origine du site. */
 function Eyebrow({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -63,7 +71,6 @@ export default function Podcasts() {
   const featured = filtered[0];
   const rest = filtered.slice(1);
   const themeCount = Array.from(new Set(podcasts.map((p) => p.category).filter(Boolean))).length;
-  const heroImage = podcasts[0]?.coverImage;
 
   // Témoignages : carrousel 2-par-2.
   const tPages = Math.max(1, Math.ceil(testimonials.length / 2));
@@ -73,7 +80,7 @@ export default function Podcasts() {
     <div className="bg-white dark:bg-neutral-950">
       <SEOHead
         title="Podcasts Marketing Digital"
-        description="Écoute le podcast de Max-Morrys : stratégies marketing digital, SEO, IA et croissance en Afrique. Disponible sur Spotify, Apple Podcasts et Deezer."
+        description="Écoute le podcast de Max-Morrys : stratégies marketing digital, SEO, IA et croissance en Afrique. Disponible sur Spotify et Apple Podcasts."
       />
       <JsonLd data={{
         '@context': 'https://schema.org',
@@ -125,20 +132,14 @@ export default function Podcasts() {
               <div className="absolute -top-6 -right-6 w-40 h-40 rounded-full bg-plum-200 dark:bg-plum-500/20 -z-0" />
               <div className="absolute -bottom-8 -left-8 w-28 h-28 rounded-full bg-plum-200 dark:bg-plum-500/20 -z-0" />
               <div className={`relative rounded-3xl overflow-hidden aspect-[4/5] ${theme.sectionBg}`}>
-                {heroImage ? (
-                  <img
-                    src={heroImage}
-                    alt="Le Podcast du Marketing"
-                    className="w-full h-full object-cover"
-                    loading="eager"
-                    width={640}
-                    height={800}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Headphones className="w-20 h-20 text-plum-300 dark:text-neutral-700" />
-                  </div>
-                )}
+                <img
+                  src={HERO_IMAGE}
+                  alt="Le Podcast du Marketing"
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  width={640}
+                  height={800}
+                />
               </div>
             </motion.div>
           </div>
@@ -150,14 +151,17 @@ export default function Podcasts() {
           >
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-500 mr-2">Disponible sur</span>
-              {PLATFORMS.map((p) => (
-                <span
+              {SUBSCRIBE_LINKS.map((p) => (
+                <a
                   key={p.name}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-300 text-xs font-semibold"
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-300 text-xs font-semibold hover:border-plum-300 dark:hover:border-plum-700 transition-colors"
                 >
                   <Headphones className="w-3.5 h-3.5" style={{ color: p.color }} />
                   {p.name}
-                </span>
+                </a>
               ))}
             </div>
             {podcasts.length > 0 && (
@@ -254,13 +258,16 @@ export default function Podcasts() {
             Choisis ta plateforme préférée et ne rate plus rien.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            {PLATFORMS.slice(0, 3).map((p) => (
-              <span
+            {SUBSCRIBE_LINKS.map((p) => (
+              <a
                 key={p.name}
-                className="px-7 py-4 bg-white dark:bg-neutral-800 text-plum-700 dark:text-plum-300 font-semibold text-sm uppercase tracking-wide cursor-default"
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-7 py-4 bg-white dark:bg-neutral-800 text-plum-700 dark:text-plum-300 font-semibold text-sm uppercase tracking-wide hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
               >
                 {p.name}
-              </span>
+              </a>
             ))}
           </div>
         </div>
@@ -578,13 +585,7 @@ export default function Podcasts() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 items-stretch rounded-3xl overflow-hidden">
             <div className={`relative min-h-[280px] ${theme.sectionBg}`}>
-              {heroImage ? (
-                <img src={heroImage} alt="Le marketing en pratique" className="absolute inset-0 w-full h-full object-cover" loading="lazy" width={800} height={560} />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Play className="w-16 h-16 text-plum-300 dark:text-neutral-700" />
-                </div>
-              )}
+              <img src={VIDEOS_CTA_IMAGE} alt="Le marketing en pratique" className="absolute inset-0 w-full h-full object-cover" loading="lazy" width={800} height={560} />
             </div>
             <div className="bg-plum-100 dark:bg-neutral-800 p-10 lg:p-16 flex flex-col justify-center">
               <Eyebrow className={`${theme.eyebrow} mb-3`}>découvre aussi</Eyebrow>

@@ -12,7 +12,7 @@
   "dir": "ltr",
   "categories": ["education", "business"],
   "icons": [
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    { "src": "/icone-mm.png", "sizes": "1254x1254", "type": "image/png", "purpose": "any" },
+    { "src": "/icone-mm.png", "sizes": "1254x1254", "type": "image/png", "purpose": "maskable" }
   ]
 }

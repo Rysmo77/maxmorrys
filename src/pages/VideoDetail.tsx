@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Play, Eye, Calendar, ArrowLeft, Clock, Loader2, TrendingUp } from 'lucide-react';
@@ -8,6 +8,7 @@ import VideoCard from '../components/shared/VideoCard';
 import { formatDate, markdownToHtml } from '../lib/utils';
 import type { Video } from '../types';
 import { trackViewItem, trackVideoPlay } from '../lib/tracking';
+import { useContentEngagement } from '../hooks/useContentEngagement';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
@@ -32,6 +33,7 @@ export default function VideoDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [video, setVideo] = useState<Video | null | undefined>(undefined);
   const [others, setOthers] = useState<Video[]>([]);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -44,6 +46,15 @@ export default function VideoDetail() {
       }
     }).catch(() => setVideo(null));
   }, [slug]);
+
+  useContentEngagement({
+    contentId: video?.id,
+    type: 'video',
+    slug: video?.slug ?? '',
+    title: video?.title ?? '',
+    category: video?.category ?? 'général',
+    mediaRef: videoRef,
+  });
 
   if (video === undefined) {
     return <div className="pt-32 pb-20 flex justify-center"><Loader2 className={`w-8 h-8 animate-spin ${theme.spinner}`} /></div>;
@@ -175,6 +186,7 @@ export default function VideoDetail() {
                     />
                   ) : (
                     <video
+                      ref={videoRef}
                       src={src}
                       controls
                       className="w-full h-full object-contain bg-black"
