@@ -62,7 +62,7 @@ export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
       </div>
 
       {/* Podium top 3 */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3 items-end">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-3 items-end">
         {[podium[1], podium[0], podium[2]].filter(Boolean).map((entry) => {
           const isFirst = entry.rank === 1;
           return (
@@ -70,7 +70,7 @@ export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
               key={entry.userId}
               variants={staggerItem}
               className={cn(
-                'flex flex-col items-center text-center rounded-2xl border p-2.5 sm:p-4 min-w-0',
+                'flex flex-col items-center text-center rounded-2xl border p-2 sm:p-4 min-w-0',
                 isFirst
                   ? 'bg-gradient-to-b from-plum-50 to-white dark:from-plum-900/30 dark:to-neutral-800 border-plum-300 dark:border-plum-700 sm:-mt-2'
                   : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700',

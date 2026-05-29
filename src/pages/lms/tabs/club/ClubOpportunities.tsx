@@ -123,7 +123,7 @@ export default function ClubOpportunities({ data }: { data: ClubData }) {
                   </span>
                   <span className="text-xs text-neutral-500 truncate">{item.userName} · {formatDate(item.createdAt)}</span>
                 </div>
-                <span className="text-xs font-semibold text-plum-600 dark:text-plum-400 break-words sm:truncate sm:max-w-[45%]">{item.contact}</span>
+                <span className="text-xs font-semibold text-plum-600 dark:text-plum-400 truncate sm:max-w-[45%]">{item.contact}</span>
               </div>
             </motion.div>
           ))}

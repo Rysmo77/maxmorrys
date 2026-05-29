@@ -86,7 +86,7 @@ export default function ClubDiscussions({ data }: { data: ClubData }) {
     const otherName = activeConv.participantNames[otherId] ?? 'Membre';
     const otherPhoto = activeConv.participantPhotos[otherId] ?? '';
     return (
-      <motion.div className="flex flex-col h-[calc(100dvh-220px)] min-h-[420px] max-h-[680px] bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden" variants={slideUp} initial="hidden" animate="visible">
+      <motion.div className="flex flex-col h-[calc(100svh-300px)] sm:h-[calc(100dvh-220px)] min-h-[360px] max-h-[680px] bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden" variants={slideUp} initial="hidden" animate="visible">
         <div className="flex items-center gap-3 p-3 border-b border-neutral-200 dark:border-neutral-700">
           <button onClick={() => setSelected(null)} className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700"><CaretLeft className="w-5 h-5" weight="bold" /></button>
           <div className="w-9 h-9 rounded-full bg-plum-100 dark:bg-plum-900/40 flex items-center justify-center overflow-hidden flex-shrink-0">

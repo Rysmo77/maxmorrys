@@ -123,9 +123,11 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
       </div>
 
       {/* Navigation réduite + Plus */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        {PRIMARY.map((it) => navBtn(it, clubTab === it.id))}
-        <div className="relative" ref={moreRef}>
+      <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 pb-0.5">
+          {PRIMARY.map((it) => navBtn(it, clubTab === it.id))}
+        </div>
+        <div className="relative flex-shrink-0" ref={moreRef}>
           <button
             onClick={() => setMoreOpen((v) => !v)}
             className={cn(

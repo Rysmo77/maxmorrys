@@ -319,7 +319,7 @@ export default function ClubMembers({ data }: { data: ClubData }) {
       {/* Member profile modal */}
       {selectedMember && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && setSelectedMember(null)}>
-          <div className="bg-white dark:bg-neutral-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[88vh] overflow-y-auto">
+          <div className="bg-white dark:bg-neutral-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto">
             {/* Poignée mobile */}
             <div className="sm:hidden flex justify-center pt-2.5">
               <span className="w-10 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-700" />

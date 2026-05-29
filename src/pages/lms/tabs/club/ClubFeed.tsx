@@ -127,8 +127,8 @@ export default function ClubFeed({ data }: ClubFeedProps) {
               </div>
             )}
 
-            <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-100 dark:border-neutral-700">
-              <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-neutral-100 dark:border-neutral-700">
+              <div className="flex flex-wrap items-center gap-1">
                 {/* Category picker */}
                 <div className="relative">
                   <button type="button" onClick={() => { setShowCategoryPicker((v) => !v); setShowMoodPicker(false); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', activeCat.tint, 'hover:bg-neutral-100 dark:hover:bg-neutral-700')}>
