@@ -108,3 +108,29 @@ export async function getLeaderboard(limitCount = 20): Promise<{ userId: string;
     level: d.data().level ?? 1,
   }));
 }
+
+export interface LeaderboardEntry {
+  userId: string;
+  displayName: string;
+  photoURL: string;
+  xp: number;
+  level: number;
+  rank: number;
+}
+
+/**
+ * Reads the public leaderboard aggregate maintained server-side
+ * (Cloud Function `rebuildLeaderboard*`). Safe for any signed-in member —
+ * individual gamification docs stay private.
+ */
+export async function getClubLeaderboard(): Promise<LeaderboardEntry[]> {
+  const snap = await getDoc(doc(db, 'leaderboard', 'global'));
+  if (!snap.exists()) return [];
+  return (snap.data().entries ?? []) as LeaderboardEntry[];
+}
+
+/** Public Club stats (active member count) from the same aggregate doc. */
+export async function getClubActiveMemberCount(): Promise<number> {
+  const snap = await getDoc(doc(db, 'leaderboard', 'global'));
+  return snap.exists() ? (snap.data().activeMembers ?? 0) : 0;
+}

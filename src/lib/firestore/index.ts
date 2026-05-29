@@ -9,5 +9,6 @@ export * from './admin';
 export * from './notes';
 export * from './certificates';
 export * from './club';
+export * from './dm';
 export * from './notifications';
 export * from './engagement';

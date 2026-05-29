@@ -35,7 +35,9 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app, 'us-central1');
 
-if (import.meta.env.DEV) {
+// En dev, on cible les fonctions de PROD par défaut. Mettre VITE_USE_FUNCTIONS_EMULATOR=true
+// (avec `firebase emulators:start`) pour basculer sur l'émulateur local.
+if (import.meta.env.DEV && import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === 'true') {
   connectFunctionsEmulator(functions, 'localhost', 5001);
 }
 

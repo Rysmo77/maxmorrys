@@ -21,6 +21,10 @@ import { universeThemes } from '../lib/sectionThemes';
 const theme = universeThemes.formations;
 const clubTheme = universeThemes.club;
 
+// Visuel de fond du héro de la page Formations.
+const HERO_IMAGE =
+  'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Formations%2FChatGPT%20Image%2029%20mai%202026%2C%2015_43_26.png?alt=media&token=d7cb950d-9ea2-4d4f-90c6-7541bb8c5dac';
+
 const viewportOnce = { once: true, amount: 0.15 } as const;
 
 const clubMembers = [
@@ -155,12 +159,18 @@ export default function Formations() {
       )}
 
       {/* ─────────── 1. HERO BANNIÈRE ─────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 pt-28 pb-20 lg:pt-36 lg:pb-28">
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-32 -left-20 w-96 h-96 rounded-full bg-brand-400/20 blur-3xl" />
+      <section className="relative overflow-hidden bg-brand-900 pt-28 pb-20 lg:pt-36 lg:pb-28">
+        <img
+          src={HERO_IMAGE}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="eager"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-900/70 via-brand-900/40 to-transparent" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            className="max-w-xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl p-8 lg:p-10"
+            className="max-w-xl bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 lg:p-10"
             variants={staggerContainer}
             initial="hidden"
             animate="visible"

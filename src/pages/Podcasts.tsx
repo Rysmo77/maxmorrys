@@ -36,9 +36,9 @@ const HOST_PORTRAIT =
 const HERO_IMAGE =
   'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Podcasts%2FChatGPT%20Image%2029%20mai%202026%2C%2011_16_32.png?alt=media&token=32159d2a-9d90-49af-9c1a-752a585c0635';
 
-// Visuel de l'encart CTA vidéos (bas de page).
-const VIDEOS_CTA_IMAGE =
-  'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Podcasts%2FChatGPT%20Image%2029%20mai%202026%2C%2014_41_49.png?alt=media&token=2620a1ec-eaa8-42c4-9d9b-a3f8fc73353c';
+// Vidéo de l'encart CTA vidéos (bas de page) — lecture en boucle, mutée.
+const VIDEOS_CTA_VIDEO =
+  'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Podcasts%2FGenerated%20Video%20May%2029%2C%202026%20-%202_07AM.mp4?alt=media&token=579f6919-c706-4388-aa26-7f1b142a531d';
 
 /** Intertitre de section — style typographique d'origine du site. */
 function Eyebrow({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -585,7 +585,15 @@ export default function Podcasts() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 items-stretch rounded-3xl overflow-hidden">
             <div className={`relative min-h-[280px] ${theme.sectionBg}`}>
-              <img src={VIDEOS_CTA_IMAGE} alt="Le marketing en pratique" className="absolute inset-0 w-full h-full object-cover" loading="lazy" width={800} height={560} />
+              <video
+                src={VIDEOS_CTA_VIDEO}
+                className="absolute inset-0 w-full h-full object-cover"
+                autoPlay
+                loop
+                muted
+                playsInline
+                aria-label="Le marketing en pratique"
+              />
             </div>
             <div className="bg-plum-100 dark:bg-neutral-800 p-10 lg:p-16 flex flex-col justify-center">
               <Eyebrow className={`${theme.eyebrow} mb-3`}>découvre aussi</Eyebrow>

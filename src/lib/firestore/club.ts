@@ -7,8 +7,8 @@ import {
 import { getCollection, getDocById, createDoc, setDocById, deleteDocById, updateDocById, db } from './helpers';
 import type {
   ClubDigitosSubscription, ClubDigitosPost, ClubDigitosEvent,
-  ClubDigitosSession, ClubDigitosInfo, ClubDigitosComment,
-  ClubEventRegistration, ClubSessionRegistration,
+  ClubDigitosSession, ClubDigitosInfo, ClubDigitosComment, ClubDigitosChallenge,
+  ClubEventRegistration, ClubSessionRegistration, ClubMemberProfile, ClubOpportunity,
 } from '../../types';
 
 export async function getClubSubscription(userId: string): Promise<ClubDigitosSubscription | null> {
@@ -51,8 +51,10 @@ export async function getClubPosts(limitN = 50): Promise<ClubDigitosPost[]> {
 export async function createClubPost(
   data: Omit<ClubDigitosPost, 'id' | 'likes' | 'reposts' | 'commentsCount' | 'createdAt'>,
 ): Promise<string> {
+  // Firestore rejects `undefined`; strip undefined keys before writing.
+  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
   return createDoc('club_posts', {
-    ...data,
+    ...clean,
     likes: [],
     reposts: [],
     commentsCount: 0,
@@ -60,8 +62,17 @@ export async function createClubPost(
   } as DocumentData);
 }
 
+export async function voteClubPoll(postId: string, userId: string, optionIndex: number): Promise<void> {
+  await updateDoc(doc(db, 'club_posts', postId), { [`pollVotes.${userId}`]: optionIndex });
+}
+
 export async function deleteClubPost(id: string): Promise<void> {
   return deleteDocById('club_posts', id);
+}
+
+export async function updateClubPost(id: string, data: Partial<ClubDigitosPost>): Promise<void> {
+  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+  await updateDoc(doc(db, 'club_posts', id), clean as DocumentData);
 }
 
 export async function likeClubPost(postId: string, userId: string, liked: boolean): Promise<void> {
@@ -164,6 +175,86 @@ export async function saveClubInfo(
 
 export async function deleteClubInfo(id: string): Promise<void> {
   return deleteDocById('club_infos', id);
+}
+
+// ── Challenges (défis hebdomadaires) ───────────────────────────────────────────
+export async function getClubChallenges(): Promise<ClubDigitosChallenge[]> {
+  return getCollection<ClubDigitosChallenge>('club_challenges', orderBy('startsAt', 'desc'));
+}
+
+export async function getActiveClubChallenge(): Promise<ClubDigitosChallenge | null> {
+  const all = await getClubChallenges();
+  const now = Date.now();
+  const live = all.find((c) => c.active && new Date(c.startsAt).getTime() <= now && new Date(c.endsAt).getTime() >= now);
+  return live ?? all.find((c) => c.active) ?? null;
+}
+
+export async function saveClubChallenge(
+  data: Omit<ClubDigitosChallenge, 'id'> & { id?: string },
+): Promise<string> {
+  const { id, ...rest } = data;
+  if (id) {
+    await setDocById('club_challenges', id, rest as DocumentData);
+    return id;
+  }
+  return createDoc('club_challenges', rest as DocumentData);
+}
+
+export async function deleteClubChallenge(id: string): Promise<void> {
+  return deleteDocById('club_challenges', id);
+}
+
+// ── Annuaire des membres ───────────────────────────────────────────────────────
+export async function getMyClubProfile(userId: string): Promise<ClubMemberProfile | null> {
+  return getDocById<ClubMemberProfile>('club_profiles', userId);
+}
+
+export async function saveClubProfile(userId: string, data: Omit<ClubMemberProfile, 'id' | 'userId' | 'updatedAt'>): Promise<void> {
+  await setDocById('club_profiles', userId, { ...data, userId, updatedAt: new Date().toISOString() } as DocumentData);
+}
+
+export async function getClubMemberProfiles(): Promise<ClubMemberProfile[]> {
+  const all = await getCollection<ClubMemberProfile>('club_profiles');
+  return all.filter((p) => p.visible).sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
+}
+
+/** Admin : tous les profils, visibles ou non. */
+export async function getAllClubProfiles(): Promise<ClubMemberProfile[]> {
+  const all = await getCollection<ClubMemberProfile>('club_profiles');
+  return all.sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
+}
+
+/** Admin : mise à jour partielle d'un profil membre (modération). */
+export async function adminUpdateClubProfile(userId: string, data: Partial<ClubMemberProfile>): Promise<void> {
+  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+  await setDocById('club_profiles', userId, { ...clean, updatedAt: new Date().toISOString() } as DocumentData);
+}
+
+export async function deleteClubProfile(userId: string): Promise<void> {
+  return deleteDocById('club_profiles', userId);
+}
+
+/** Keeps the directory snapshot in sync when the user edits socials elsewhere (e.g. ProfileTab).
+ *  No-op if the member has no club profile yet (avoids creating phantom hidden profiles). */
+export async function syncSocialsToClubProfile(userId: string, socials: Partial<ClubMemberProfile>): Promise<void> {
+  const existing = await getDocById<ClubMemberProfile>('club_profiles', userId);
+  if (!existing) return;
+  const clean = Object.fromEntries(Object.entries(socials).filter(([, v]) => v !== undefined));
+  await setDocById('club_profiles', userId, { ...clean, updatedAt: new Date().toISOString() } as DocumentData);
+}
+
+// ── Opportunités (job board) ───────────────────────────────────────────────────
+export async function getClubOpportunities(): Promise<ClubOpportunity[]> {
+  return getCollection<ClubOpportunity>('club_opportunities', orderBy('createdAt', 'desc'));
+}
+
+export async function createClubOpportunity(data: Omit<ClubOpportunity, 'id' | 'createdAt'>): Promise<string> {
+  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+  return createDoc('club_opportunities', { ...clean, createdAt: new Date().toISOString() } as DocumentData);
+}
+
+export async function deleteClubOpportunity(id: string): Promise<void> {
+  return deleteDocById('club_opportunities', id);
 }
 
 export async function likeClubInfo(infoId: string, userId: string, liked: boolean): Promise<void> {

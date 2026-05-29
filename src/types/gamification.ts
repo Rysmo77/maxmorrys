@@ -26,6 +26,7 @@ export const BADGES: Badge[] = [
   { id: 'diplome', name: 'Diplômé', description: 'Obtiens ton premier certificat', icon: '🏆', category: 'achievement', requirement: 1, requirementType: 'certificates' },
   { id: 'multi-diplome', name: 'Multi-Diplômé', description: 'Obtiens 3 certificats', icon: '🎓', category: 'achievement', requirement: 3, requirementType: 'certificates' },
   { id: 'contributeur', name: 'Contributeur', description: 'Publie 10 posts dans le Club', icon: '💬', category: 'community', requirement: 10, requirementType: 'posts' },
+  { id: 'ambassadeur', name: 'Ambassadeur', description: 'Parraine un nouveau membre du Club', icon: '🤝', category: 'community', requirement: 1, requirementType: 'posts' },
   { id: 'polyvalent', name: 'Polyvalent', description: 'Inscris-toi à 3 formations', icon: '🌟', category: 'achievement', requirement: 3, requirementType: 'formations' },
 ];
 
@@ -36,6 +37,8 @@ export const XP_REWARDS = {
   createNote: 5,
   dailyStreak: 5,
   firstClubPost: 15,
+  clubPost: 5,
+  clubComment: 2,
   submitTestimonial: 25,
 } as const;
 

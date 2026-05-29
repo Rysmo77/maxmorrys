@@ -1,4 +1,4 @@
-import { Crown, Users, Rss, Calendar, Video, Bell, Loader2, RefreshCw } from 'lucide-react';
+import { Crown, Users, Rss, Calendar, Video, Bell, Trophy, Briefcase, Flag, Loader2, RefreshCw } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import { cn } from '../../lib/utils';
 import { useAdminClub } from './hooks/useAdminClub';
@@ -8,6 +8,10 @@ import ClubPostsTab from './components/ClubPostsTab';
 import ClubEventsTab from './components/ClubEventsTab';
 import ClubSessionsTab from './components/ClubSessionsTab';
 import ClubInfosTab from './components/ClubInfosTab';
+import ClubChallengesTab from './components/ClubChallengesTab';
+import ClubMembersAdminTab from './components/ClubMembersAdminTab';
+import ClubOpportunitiesAdminTab from './components/ClubOpportunitiesAdminTab';
+import ClubReportsAdminTab from './components/ClubReportsAdminTab';
 
 export default function AdminClubDigitos() {
   const club = useAdminClub();
@@ -18,6 +22,10 @@ export default function AdminClubDigitos() {
     { id: 'events' as AdminClubTab, icon: Calendar, label: 'Événements', count: club.events.length },
     { id: 'sessions' as AdminClubTab, icon: Video, label: 'Sessions Live', count: club.sessions.length },
     { id: 'infos' as AdminClubTab, icon: Bell, label: 'Infos exclusives', count: club.infos.length },
+    { id: 'challenges' as AdminClubTab, icon: Trophy, label: 'Défis', count: 0 },
+    { id: 'members' as AdminClubTab, icon: Users, label: 'Profils membres', count: 0 },
+    { id: 'opportunities' as AdminClubTab, icon: Briefcase, label: 'Opportunités', count: 0 },
+    { id: 'reports' as AdminClubTab, icon: Flag, label: 'Signalements', count: 0 },
   ];
 
   return (
@@ -86,6 +94,10 @@ export default function AdminClubDigitos() {
           adminPostContent={club.adminPostContent} setAdminPostContent={club.setAdminPostContent}
           publishingPost={club.publishingPost}
           handleAdminPost={club.handleAdminPost} handleDeletePost={club.handleDeletePost}
+          editingPostId={club.editingPostId} editPostContent={club.editPostContent} setEditPostContent={club.setEditPostContent}
+          savingPostEdit={club.savingPostEdit} openEditPost={club.openEditPost} handleSavePostEdit={club.handleSavePostEdit}
+          openComments={club.openComments} postComments={club.postComments} loadingComments={club.loadingComments}
+          handleToggleComments={club.handleToggleComments} handleDeleteComment={club.handleDeleteComment}
         />
       )}
 
@@ -128,6 +140,11 @@ export default function AdminClubDigitos() {
           openInfoForm={club.openInfoForm} handleSaveInfo={club.handleSaveInfo} handleDeleteInfo={club.handleDeleteInfo}
         />
       )}
+
+      {!club.loading && club.tab === 'challenges' && <ClubChallengesTab />}
+      {!club.loading && club.tab === 'members' && <ClubMembersAdminTab />}
+      {!club.loading && club.tab === 'opportunities' && <ClubOpportunitiesAdminTab />}
+      {!club.loading && club.tab === 'reports' && <ClubReportsAdminTab />}
     </div>
   );
 }

@@ -94,10 +94,18 @@ service cloud.firestore {
       // Admins can create enrollments manually; payment webhook creates paid ones
       allow create: if isAdmin();
 
-      // Users can update their own progress
+      // Users can update their own progress, but only a fixed set of fields
+      // (no arbitrary writes / mass-assignment) and progress stays in [0,100].
+      // Progress is NOT a security gate for certificates anymore (the
+      // issueCertificate Cloud Function re-derives completion server-side), so
+      // progress may decrease (users can un-mark a lesson as complete).
       allow update: if isOwner(resource.data.userId) &&
         request.resource.data.userId == resource.data.userId &&
-        request.resource.data.formationId == resource.data.formationId;
+        request.resource.data.formationId == resource.data.formationId &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['completedLessons', 'progress', 'lastActivityAt', 'certificateIssued']) &&
+        request.resource.data.progress >= 0 &&
+        request.resource.data.progress <= 100;
 
       // Admins can update any enrollment (for manual enrollments, refunds, etc.)
       allow update: if isAdmin();
@@ -283,10 +291,26 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Referrals (parrainage) — créés par Cloud Function ; le parrain lit les siens
+    match /referrals/{referralId} {
+      allow read: if isSignedIn() && resource.data.referrerId == request.auth.uid || isAdmin();
+      allow write: if false; // backend only (Admin SDK)
+    }
+
+    // Public leaderboard aggregate (denormalized top members, maintained by Cloud Functions)
+    match /leaderboard/{docId} {
+      // Any signed-in user can read the aggregate
+      allow read: if isSignedIn();
+      // Only the backend (Admin SDK) may write — never from the client
+      allow write: if false;
+    }
+
     // Gamification profiles (XP, streaks, badges)
     match /gamification/{userId} {
-      // Users can read their own profile; admins can read all (leaderboard needs signed-in read)
-      allow read: if isSignedIn();
+      // Users can read only their own profile; admins can read all. (A signed-in
+      // read of every profile leaked all members' XP/streaks/badges.) For a
+      // leaderboard, expose a dedicated server-maintained aggregate doc instead.
+      allow read: if isOwner(userId) || isAdmin();
 
       // Users can create and update their own gamification profile
       allow create, update: if isOwner(userId);
@@ -300,11 +324,10 @@ service cloud.firestore {
       // Users can read their own certificates
       allow read: if isOwner(resource.data.userId) || isAdmin();
 
-      // Users can issue their own certificate if they completed the course (100% progress)
-      allow create: if isSignedIn() &&
-        request.resource.data.userId == request.auth.uid &&
-        exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + request.resource.data.formationId)) &&
-        get(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + request.resource.data.formationId)).data.progress == 100;
+      // Certificates are issued only by the issueCertificate Cloud Function,
+      // which re-derives real completion server-side. Clients cannot self-issue
+      // (the old rule trusted the client-writable `progress` field).
+      allow create: if false;
 
       // Nobody can update certificates (immutable)
       allow update: if false;
@@ -380,6 +403,60 @@ service cloud.firestore {
     }
 
     // Club des Digitos — posts du feed
+    // Club challenges (défis hebdomadaires) — lecture membres actifs, écriture admin
+    match /club_challenges/{challengeId} {
+      allow read: if hasActiveClubSub() || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Annuaire des membres — profil opt-in ; lecture membres actifs, écriture sur son propre profil ; admin modère
+    match /club_profiles/{userId} {
+      allow read: if hasActiveClubSub() || isAdmin();
+      allow create, update: if (isOwner(userId) && hasActiveClubSub()
+        && request.resource.data.userId == request.auth.uid) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // Opportunités (job board) — lecture membres actifs ; l'auteur crée/supprime les siennes
+    match /club_opportunities/{oppId} {
+      allow read: if hasActiveClubSub() || isAdmin();
+      allow create: if hasActiveClubSub() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+    }
+
+    // Messagerie privée 1-à-1 — accessible aux seuls participants
+    match /conversations/{convId} {
+      // resource == null autorise le get d'une conversation inexistante (étape getOrCreate)
+      allow read: if isSignedIn() && (resource == null || request.auth.uid in resource.data.participants);
+      allow create: if hasActiveClubSub()
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.participants.size() == 2;
+      // Participants peuvent mettre à jour l'aperçu (dernier message) ; pas de changement de participants
+      allow update: if isSignedIn() && request.auth.uid in resource.data.participants
+        && request.resource.data.participants == resource.data.participants;
+      allow delete: if isAdmin();
+
+      match /messages/{msgId} {
+        function convParticipants() {
+          return get(/databases/$(database)/documents/conversations/$(convId)).data.participants;
+        }
+        allow read: if isSignedIn() && request.auth.uid in convParticipants();
+        allow create: if hasActiveClubSub()
+          && request.resource.data.senderId == request.auth.uid
+          && request.auth.uid in convParticipants();
+        // Messages immuables ; l'admin peut supprimer un message signalé (modération)
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
+    }
+
+    // Signalements de messages privés — créés par un membre actif, lus/traités par admin
+    match /dm_reports/{reportId} {
+      allow create: if hasActiveClubSub() && request.resource.data.reporterId == request.auth.uid;
+      allow read, update, delete: if isAdmin();
+    }
+
     match /club_posts/{postId} {
       // Membres actifs et admins peuvent lire
       allow read: if hasActiveClubSub() || isAdmin();
@@ -396,7 +473,11 @@ service cloud.firestore {
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'reposts', 'commentsCount']) &&
             (request.resource.data.commentsCount == resource.data.commentsCount
              || request.resource.data.commentsCount == resource.data.commentsCount + 1
-             || request.resource.data.commentsCount == resource.data.commentsCount - 1));
+             || request.resource.data.commentsCount == resource.data.commentsCount - 1))
+        // Poll vote: a member may only add/change their OWN key in pollVotes
+        || (hasActiveClubSub() &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pollVotes']) &&
+            request.resource.data.pollVotes.diff(resource.data.pollVotes).affectedKeys().hasOnly([request.auth.uid]));
 
       // L'auteur ou l'admin peut supprimer
       allow delete: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();

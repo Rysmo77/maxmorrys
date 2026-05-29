@@ -45,6 +45,42 @@ const bictorysApiUrl = (0, params_1.defineString)('BICTORYS_API_URL', {
     default: 'https://api.bictorys.com/pay/v1/charges',
     description: 'Bictorys API URL (use https://api.test.bictorys.com/pay/v1/charges for testing)',
 });
+const appBaseUrl = (0, params_1.defineString)('APP_BASE_URL', {
+    default: 'https://maxmorrys.me',
+    description: 'Public base URL used to build Bictorys success/error redirect URLs',
+});
+/**
+ * Create a Bictorys hosted-checkout charge. Includes a paymentReference (our
+ * transaction id) and success/error redirect URLs pointing to the in-app
+ * /paiement/retour page so the user is returned to the app after paying, plus
+ * customer info for the receipt. payment_type is intentionally omitted so the
+ * hosted page lets the user pick Wave / Orange Money / card.
+ */
+async function createBictorysHostedCharge(opts) {
+    const returnUrl = `${appBaseUrl.value()}/paiement/retour?transactionId=${opts.paymentReference}`;
+    const res = await fetch(bictorysApiUrl.value(), {
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'X-API-Key': opts.apiKey,
+        },
+        body: JSON.stringify({
+            amount: opts.amount,
+            currency: 'XOF',
+            paymentReference: opts.paymentReference,
+            successRedirectUrl: returnUrl,
+            errorRedirectUrl: returnUrl,
+            customer: Object.assign(Object.assign(Object.assign(Object.assign({}, (opts.customer.name && { name: opts.customer.name })), (opts.customer.email && { email: opts.customer.email })), (opts.customer.phone && { phone: opts.customer.phone })), { country: 'SN', locale: 'fr' }),
+        }),
+    });
+    if (!res.ok) {
+        const errBody = await res.text();
+        console.error(`Bictorys API error (${opts.logLabel}):`, res.status, errBody);
+        throw new Error(`Bictorys returned ${res.status}`);
+    }
+    return res.json();
+}
 /**
  * Validate a coupon code against the coupons collection.
  * Returns the validated coupon data and discount amount, or null if invalid.
@@ -78,7 +114,7 @@ async function validateCoupon(couponCode, originalPrice) {
     return { couponId: couponDoc.id, discount };
 }
 exports.createBictorysCharge = (0, https_1.onCall)({ region: 'us-central1', secrets: [bictorysApiKey] }, async (request) => {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     if (!request.auth) {
         throw new https_1.HttpsError('unauthenticated', 'Authentification requise.');
     }
@@ -126,46 +162,40 @@ exports.createBictorysCharge = (0, https_1.onCall)({ region: 'us-central1', secr
     if (!apiKey) {
         throw new https_1.HttpsError('internal', 'Service de paiement non configuré.');
     }
+    // Pre-allocate the transaction id so it can serve as the Bictorys
+    // paymentReference and be embedded in the return URL.
+    const txnRef = admin.firestore().collection('transactions').doc();
     let bictorysResponse;
     try {
-        const res = await fetch(bictorysApiUrl.value(), {
-            method: 'POST',
-            headers: {
-                'accept': 'application/json',
-                'content-type': 'application/json',
-                'X-API-Key': apiKey,
+        bictorysResponse = await createBictorysHostedCharge({
+            apiKey,
+            amount: finalPrice,
+            paymentReference: txnRef.id,
+            customer: {
+                name: (_b = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _b !== void 0 ? _b : request.auth.token.name,
+                email: (_c = request.auth.token.email) !== null && _c !== void 0 ? _c : userData === null || userData === void 0 ? void 0 : userData.email,
+                phone: userData === null || userData === void 0 ? void 0 : userData.phone,
             },
-            body: JSON.stringify({ amount: finalPrice, currency: 'XOF' }),
+            logLabel: 'course',
         });
-        if (!res.ok) {
-            const errBody = await res.text();
-            console.error('Bictorys API error:', res.status, errBody);
-            throw new Error(`Bictorys returned ${res.status}`);
-        }
-        bictorysResponse = await res.json();
     }
     catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
         console.error('Bictorys charge creation failed:', errMsg);
         throw new https_1.HttpsError('internal', 'Erreur lors de la création du paiement. Réessaie.');
     }
-    // Increment coupon usage count atomically
-    if (couponId) {
-        await admin.firestore().doc(`coupons/${couponId}`).update({
-            usedCount: admin.firestore.FieldValue.increment(1),
-        });
-    }
-    // Create transaction record server-side
-    const txnRef = admin.firestore().collection('transactions').doc();
-    await txnRef.set(Object.assign(Object.assign(Object.assign({ id: txnRef.id, userId: uid, userEmail: (_c = (_b = request.auth.token.email) !== null && _b !== void 0 ? _b : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _c !== void 0 ? _c : '', userName: (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _d !== void 0 ? _d : request.auth.token.name) !== null && _e !== void 0 ? _e : '', formationId,
-        formationSlug, formationTitle: (_f = formation.title) !== null && _f !== void 0 ? _f : '', amount: finalPrice, currency: 'XOF', status: 'pending', paymentMethod: 'bictorys', chargeId: bictorysResponse.chargeId, opToken: bictorysResponse.opToken }, (couponId && { couponId, couponCode: couponCode.trim().toUpperCase(), couponDiscount })), (metaEventId && { metaEventId })), { createdAt: new Date().toISOString() }));
+    // Create transaction record server-side. Coupon usedCount is incremented in
+    // the webhook on payment success (not here) so abandoned checkouts don't
+    // consume a coupon use.
+    await txnRef.set(Object.assign(Object.assign(Object.assign({ id: txnRef.id, userId: uid, userEmail: (_e = (_d = request.auth.token.email) !== null && _d !== void 0 ? _d : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _e !== void 0 ? _e : '', userName: (_g = (_f = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _f !== void 0 ? _f : request.auth.token.name) !== null && _g !== void 0 ? _g : '', formationId,
+        formationSlug, formationTitle: (_h = formation.title) !== null && _h !== void 0 ? _h : '', amount: finalPrice, currency: 'XOF', status: 'pending', paymentMethod: 'bictorys', chargeId: bictorysResponse.chargeId, opToken: bictorysResponse.opToken }, (couponId && { couponId, couponCode: couponCode.trim().toUpperCase(), couponDiscount })), (metaEventId && { metaEventId })), { createdAt: new Date().toISOString() }));
     return {
         checkoutUrl: bictorysResponse.link,
         transactionId: txnRef.id,
     };
 });
 exports.createClubCharge = (0, https_1.onCall)({ region: 'us-central1', secrets: [bictorysApiKey] }, async (request) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     if (!request.auth) {
         throw new https_1.HttpsError('unauthenticated', 'Authentification requise.');
     }
@@ -186,28 +216,37 @@ exports.createClubCharge = (0, https_1.onCall)({ region: 'us-central1', secrets:
     // Get user info
     const userDoc = await admin.firestore().doc(`users/${uid}`).get();
     const userData = userDoc.data();
+    // Referral discount for referee (15% off) — only if a valid referrer code and not yet rewarded
+    const REFERRAL_DISCOUNT = 0.15;
+    let amount = CLUB_PRICE;
+    let referredByCode;
+    if ((userData === null || userData === void 0 ? void 0 : userData.referredByCode) && !(userData === null || userData === void 0 ? void 0 : userData.referralRewarded)) {
+        const refSnap = await admin.firestore().collection('users')
+            .where('referralCode', '==', userData.referredByCode).limit(1).get();
+        if (!refSnap.empty && refSnap.docs[0].id !== uid) {
+            amount = Math.round(CLUB_PRICE * (1 - REFERRAL_DISCOUNT));
+            referredByCode = userData.referredByCode;
+        }
+    }
     // Call Bictorys API
     const apiKey = bictorysApiKey.value();
     if (!apiKey) {
         throw new https_1.HttpsError('internal', 'Service de paiement non configuré.');
     }
+    const txnRef = admin.firestore().collection('transactions').doc();
     let bictorysResponse;
     try {
-        const res = await fetch(bictorysApiUrl.value(), {
-            method: 'POST',
-            headers: {
-                'accept': 'application/json',
-                'content-type': 'application/json',
-                'X-API-Key': apiKey,
+        bictorysResponse = await createBictorysHostedCharge({
+            apiKey,
+            amount,
+            paymentReference: txnRef.id,
+            customer: {
+                name: (_a = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _a !== void 0 ? _a : request.auth.token.name,
+                email: (_b = request.auth.token.email) !== null && _b !== void 0 ? _b : userData === null || userData === void 0 ? void 0 : userData.email,
+                phone: userData === null || userData === void 0 ? void 0 : userData.phone,
             },
-            body: JSON.stringify({ amount: CLUB_PRICE, currency: 'XOF' }),
+            logLabel: 'club',
         });
-        if (!res.ok) {
-            const errBody = await res.text();
-            console.error('Bictorys API error:', res.status, errBody);
-            throw new Error(`Bictorys returned ${res.status}`);
-        }
-        bictorysResponse = await res.json();
     }
     catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
@@ -218,28 +257,17 @@ exports.createClubCharge = (0, https_1.onCall)({ region: 'us-central1', secrets:
     const expiresAt = new Date(now);
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     // Create club subscription with pending status
-    await admin.firestore().doc(`club_subscriptions/${uid}`).set({
-        userId: uid,
-        userEmail: (_b = (_a = request.auth.token.email) !== null && _a !== void 0 ? _a : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _b !== void 0 ? _b : '',
-        userName: (_d = (_c = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _c !== void 0 ? _c : request.auth.token.name) !== null && _d !== void 0 ? _d : '',
-        startedAt: now.toISOString(),
-        expiresAt: expiresAt.toISOString(),
-        autoRenew: autoRenew !== null && autoRenew !== void 0 ? autoRenew : true,
-        status: 'pending',
-        amount: CLUB_PRICE,
-        chargeId: bictorysResponse.chargeId,
-    });
+    await admin.firestore().doc(`club_subscriptions/${uid}`).set(Object.assign({ userId: uid, userEmail: (_d = (_c = request.auth.token.email) !== null && _c !== void 0 ? _c : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _d !== void 0 ? _d : '', userName: (_f = (_e = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _e !== void 0 ? _e : request.auth.token.name) !== null && _f !== void 0 ? _f : '', startedAt: now.toISOString(), expiresAt: expiresAt.toISOString(), autoRenew: autoRenew !== null && autoRenew !== void 0 ? autoRenew : true, status: 'pending', amount, chargeId: bictorysResponse.chargeId }, (referredByCode ? { referredByCode } : {})));
     // Create transaction record
-    const txnRef = admin.firestore().collection('transactions').doc();
     await txnRef.set({
         id: txnRef.id,
         userId: uid,
-        userEmail: (_f = (_e = request.auth.token.email) !== null && _e !== void 0 ? _e : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _f !== void 0 ? _f : '',
-        userName: (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _g !== void 0 ? _g : request.auth.token.name) !== null && _h !== void 0 ? _h : '',
+        userEmail: (_h = (_g = request.auth.token.email) !== null && _g !== void 0 ? _g : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _h !== void 0 ? _h : '',
+        userName: (_k = (_j = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _j !== void 0 ? _j : request.auth.token.name) !== null && _k !== void 0 ? _k : '',
         formationId: 'club_digitos',
         formationSlug: 'club-des-digitos',
         formationTitle: 'Club des Digitos — Abonnement annuel',
-        amount: CLUB_PRICE,
+        amount,
         currency: 'XOF',
         status: 'pending',
         paymentMethod: 'bictorys',
@@ -263,7 +291,7 @@ const RYSMO_SUBSCRIPTIONS = {
     pro: { price: 7500, label: 'Rysmo+ Pro — 100 requêtes/jour' },
 };
 exports.createRysmoPackCharge = (0, https_1.onCall)({ region: 'us-central1', secrets: [bictorysApiKey] }, async (request) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     if (!request.auth) {
         throw new https_1.HttpsError('unauthenticated', 'Authentification requise.');
     }
@@ -279,23 +307,20 @@ exports.createRysmoPackCharge = (0, https_1.onCall)({ region: 'us-central1', sec
     if (!apiKey) {
         throw new https_1.HttpsError('internal', 'Service de paiement non configuré.');
     }
+    const txnRef = admin.firestore().collection('transactions').doc();
     let bictorysResponse;
     try {
-        const res = await fetch(bictorysApiUrl.value(), {
-            method: 'POST',
-            headers: {
-                'accept': 'application/json',
-                'content-type': 'application/json',
-                'X-API-Key': apiKey,
+        bictorysResponse = await createBictorysHostedCharge({
+            apiKey,
+            amount: packDef.price,
+            paymentReference: txnRef.id,
+            customer: {
+                name: (_a = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _a !== void 0 ? _a : request.auth.token.name,
+                email: (_b = request.auth.token.email) !== null && _b !== void 0 ? _b : userData === null || userData === void 0 ? void 0 : userData.email,
+                phone: userData === null || userData === void 0 ? void 0 : userData.phone,
             },
-            body: JSON.stringify({ amount: packDef.price, currency: 'XOF' }),
+            logLabel: 'rysmo pack',
         });
-        if (!res.ok) {
-            const errBody = await res.text();
-            console.error('Bictorys API error (rysmo pack):', res.status, errBody);
-            throw new Error(`Bictorys returned ${res.status}`);
-        }
-        bictorysResponse = await res.json();
     }
     catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
@@ -307,8 +332,8 @@ exports.createRysmoPackCharge = (0, https_1.onCall)({ region: 'us-central1', sec
     await purchaseRef.set({
         id: purchaseRef.id,
         userId: uid,
-        userEmail: (_b = (_a = request.auth.token.email) !== null && _a !== void 0 ? _a : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _b !== void 0 ? _b : '',
-        userName: (_d = (_c = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _c !== void 0 ? _c : request.auth.token.name) !== null && _d !== void 0 ? _d : '',
+        userEmail: (_d = (_c = request.auth.token.email) !== null && _c !== void 0 ? _c : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _d !== void 0 ? _d : '',
+        userName: (_f = (_e = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _e !== void 0 ? _e : request.auth.token.name) !== null && _f !== void 0 ? _f : '',
         pack,
         requestsTotal: packDef.requests,
         purchasedAt: now,
@@ -316,12 +341,11 @@ exports.createRysmoPackCharge = (0, https_1.onCall)({ region: 'us-central1', sec
         amount: packDef.price,
         chargeId: bictorysResponse.chargeId,
     });
-    const txnRef = admin.firestore().collection('transactions').doc();
     await txnRef.set({
         id: txnRef.id,
         userId: uid,
-        userEmail: (_f = (_e = request.auth.token.email) !== null && _e !== void 0 ? _e : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _f !== void 0 ? _f : '',
-        userName: (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _g !== void 0 ? _g : request.auth.token.name) !== null && _h !== void 0 ? _h : '',
+        userEmail: (_h = (_g = request.auth.token.email) !== null && _g !== void 0 ? _g : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _h !== void 0 ? _h : '',
+        userName: (_k = (_j = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _j !== void 0 ? _j : request.auth.token.name) !== null && _k !== void 0 ? _k : '',
         formationId: `rysmo_pack_${pack}`,
         formationSlug: `rysmo-pack-${pack}`,
         formationTitle: packDef.label,
@@ -341,7 +365,7 @@ exports.createRysmoPackCharge = (0, https_1.onCall)({ region: 'us-central1', sec
     };
 });
 exports.createRysmoSubscriptionCharge = (0, https_1.onCall)({ region: 'us-central1', secrets: [bictorysApiKey] }, async (request) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     if (!request.auth) {
         throw new https_1.HttpsError('unauthenticated', 'Authentification requise.');
     }
@@ -370,23 +394,20 @@ exports.createRysmoSubscriptionCharge = (0, https_1.onCall)({ region: 'us-centra
     if (!apiKey) {
         throw new https_1.HttpsError('internal', 'Service de paiement non configuré.');
     }
+    const txnRef = admin.firestore().collection('transactions').doc();
     let bictorysResponse;
     try {
-        const res = await fetch(bictorysApiUrl.value(), {
-            method: 'POST',
-            headers: {
-                'accept': 'application/json',
-                'content-type': 'application/json',
-                'X-API-Key': apiKey,
+        bictorysResponse = await createBictorysHostedCharge({
+            apiKey,
+            amount: subDef.price,
+            paymentReference: txnRef.id,
+            customer: {
+                name: (_a = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _a !== void 0 ? _a : request.auth.token.name,
+                email: (_b = request.auth.token.email) !== null && _b !== void 0 ? _b : userData === null || userData === void 0 ? void 0 : userData.email,
+                phone: userData === null || userData === void 0 ? void 0 : userData.phone,
             },
-            body: JSON.stringify({ amount: subDef.price, currency: 'XOF' }),
+            logLabel: 'rysmo sub',
         });
-        if (!res.ok) {
-            const errBody = await res.text();
-            console.error('Bictorys API error (rysmo sub):', res.status, errBody);
-            throw new Error(`Bictorys returned ${res.status}`);
-        }
-        bictorysResponse = await res.json();
     }
     catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
@@ -400,8 +421,8 @@ exports.createRysmoSubscriptionCharge = (0, https_1.onCall)({ region: 'us-centra
     await subRef.set({
         id: subRef.id,
         userId: uid,
-        userEmail: (_b = (_a = request.auth.token.email) !== null && _a !== void 0 ? _a : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _b !== void 0 ? _b : '',
-        userName: (_d = (_c = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _c !== void 0 ? _c : request.auth.token.name) !== null && _d !== void 0 ? _d : '',
+        userEmail: (_d = (_c = request.auth.token.email) !== null && _c !== void 0 ? _c : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _d !== void 0 ? _d : '',
+        userName: (_f = (_e = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _e !== void 0 ? _e : request.auth.token.name) !== null && _f !== void 0 ? _f : '',
         plan,
         status: 'pending',
         startedAt: now.toISOString(),
@@ -409,12 +430,11 @@ exports.createRysmoSubscriptionCharge = (0, https_1.onCall)({ region: 'us-centra
         amount: subDef.price,
         chargeId: bictorysResponse.chargeId,
     });
-    const txnRef = admin.firestore().collection('transactions').doc();
     await txnRef.set({
         id: txnRef.id,
         userId: uid,
-        userEmail: (_f = (_e = request.auth.token.email) !== null && _e !== void 0 ? _e : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _f !== void 0 ? _f : '',
-        userName: (_h = (_g = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _g !== void 0 ? _g : request.auth.token.name) !== null && _h !== void 0 ? _h : '',
+        userEmail: (_h = (_g = request.auth.token.email) !== null && _g !== void 0 ? _g : userData === null || userData === void 0 ? void 0 : userData.email) !== null && _h !== void 0 ? _h : '',
+        userName: (_k = (_j = userData === null || userData === void 0 ? void 0 : userData.displayName) !== null && _j !== void 0 ? _j : request.auth.token.name) !== null && _k !== void 0 ? _k : '',
         formationId: `rysmo_sub_${plan}`,
         formationSlug: `rysmo-sub-${plan}`,
         formationTitle: subDef.label,
@@ -436,8 +456,7 @@ exports.createRysmoSubscriptionCharge = (0, https_1.onCall)({ region: 'us-centra
 /**
  * Verify Bictorys webhook signature (HMAC-SHA256).
  * Bictorys sends the signature in the `X-Bictorys-Signature` header.
- * If no webhook secret is configured, fall back to chargeId cross-check
- * against existing pending transactions (defense in depth).
+ * Fail-closed: returns false if the signature or secret is missing.
  */
 function verifyWebhookSignature(rawBody, signature, secret) {
     if (!signature || !secret)
@@ -451,7 +470,7 @@ function verifyWebhookSignature(rawBody, signature, secret) {
     }
 }
 exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secrets: [bictorysWebhookSecret, meta_capi_1.metaAccessToken] }, async (req, res) => {
-    var _a, _b;
+    var _a, _b, _c, _d, _e;
     if (req.method !== 'POST') {
         res.status(405).send('Method Not Allowed');
         return;
@@ -464,7 +483,12 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
         return;
     }
     const signature = req.headers['x-bictorys-signature'];
-    const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+    // HMAC must be computed over the exact bytes Bictorys signed. firebase-functions
+    // onRequest exposes the unparsed payload as req.rawBody; re-serializing req.body
+    // would not reproduce those bytes (key order, spacing, escaping).
+    const rawBody = req.rawBody
+        ? req.rawBody.toString('utf8')
+        : (typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
     if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
         console.warn('Bictorys webhook: invalid or missing signature');
         res.status(403).send('Forbidden');
@@ -479,6 +503,8 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
         return;
     }
     // ── Idempotency: track processed chargeIds ──────────────────────────
+    // The event record is written AFTER processing (see end of handler) so a
+    // crash mid-processing leaves the txn 'pending' and a retry can recover.
     const eventRef = admin.firestore().doc(`webhook_events/${chargeId}`);
     const eventSnap = await eventRef.get();
     if (eventSnap.exists && ((_b = eventSnap.data()) === null || _b === void 0 ? void 0 : _b.status) === status) {
@@ -486,7 +512,6 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
         res.status(200).send('OK');
         return;
     }
-    await eventRef.set({ chargeId, status, receivedAt: new Date().toISOString() }, { merge: true });
     // Find the pending transaction matching this chargeId
     const txnQuery = await admin.firestore()
         .collection('transactions')
@@ -504,15 +529,20 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
     const txnData = txnDoc.data();
     const isSuccess = status === 'succeeded' || status === 'completed' || status === 'successful';
     const isFailed = status === 'failed' || status === 'expired' || status === 'cancelled';
+    // Defense-in-depth: if the webhook carries an amount, warn on mismatch. The
+    // HMAC signature is the authoritative integrity check; we don't reject here
+    // because the amount field name can vary across Bictorys payloads.
+    const webhookAmount = (_c = body === null || body === void 0 ? void 0 : body.amount) !== null && _c !== void 0 ? _c : body === null || body === void 0 ? void 0 : body.value;
+    if (typeof webhookAmount === 'number' && webhookAmount !== txnData.amount) {
+        console.warn('Bictorys webhook: amount mismatch', { chargeId, webhookAmount, expected: txnData.amount });
+    }
     if (isSuccess) {
-        // Mark transaction as completed
-        await txnDoc.ref.update({
-            status: 'completed',
-            completedAt: new Date().toISOString(),
-        });
         const isClubPayment = txnData.formationId === 'club_digitos';
         const isRysmoPack = txnData.rysmoKind === 'pack' && txnData.rysmoPurchaseId;
         const isRysmoSub = txnData.rysmoKind === 'subscription' && txnData.rysmoSubscriptionId;
+        // Apply the side effect BEFORE marking the transaction completed, so a
+        // crash mid-processing leaves the txn 'pending' and a retry can recover.
+        // Each side effect below is idempotent.
         if (isClubPayment) {
             // Activate club subscription
             const subRef = admin.firestore().doc(`club_subscriptions/${txnData.userId}`);
@@ -562,24 +592,51 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
             }
             console.log('Bictorys webhook: payment succeeded, enrollment created for', enrollmentId);
         }
-        // Send server-side Purchase event via Meta Conversions API
-        await (0, meta_capi_1.sendConversionEvent)('Purchase', {
-            content_ids: [txnData.formationId],
-            content_name: txnData.formationTitle,
-            content_type: 'product',
-            value: txnData.amount,
-            currency: txnData.currency || 'XOF',
-        }, {
-            em: txnData.userEmail,
-            client_ip_address: req.ip || undefined,
-            client_user_agent: req.headers['user-agent'] || undefined,
-        }, txnData.metaEventId);
+        // Increment coupon usage now that the payment succeeded (not at checkout
+        // creation) so abandoned/failed checkouts don't consume a coupon use.
+        if (txnData.couponId) {
+            await admin.firestore().doc(`coupons/${txnData.couponId}`).update({
+                usedCount: admin.firestore.FieldValue.increment(1),
+            });
+        }
+        // Mark the transaction completed LAST (after the side effect succeeded).
+        await txnDoc.ref.update({
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+        });
+        // Meta CAPI is non-critical: never let it fail the webhook (which would
+        // trigger Bictorys retries after the payment is already processed).
+        try {
+            await (0, meta_capi_1.sendConversionEvent)('Purchase', {
+                content_ids: [txnData.formationId],
+                content_name: txnData.formationTitle,
+                content_type: 'product',
+                value: txnData.amount,
+                currency: txnData.currency || 'XOF',
+            }, {
+                em: txnData.userEmail,
+                client_ip_address: req.ip || undefined,
+                client_user_agent: req.headers['user-agent'] || undefined,
+            }, txnData.metaEventId);
+        }
+        catch (err) {
+            console.error('Bictorys webhook: Meta CAPI Purchase event failed', err);
+        }
     }
     else if (isFailed) {
         await txnDoc.ref.update({
             status: 'failed',
         });
-        if (txnData.rysmoKind === 'pack' && txnData.rysmoPurchaseId) {
+        if (txnData.formationId === 'club_digitos') {
+            // Clear the pending club subscription so the user isn't locked out of
+            // retrying (createClubCharge blocks while status === 'pending').
+            const subRef = admin.firestore().doc(`club_subscriptions/${txnData.userId}`);
+            const subSnap = await subRef.get();
+            if (subSnap.exists && ((_d = subSnap.data()) === null || _d === void 0 ? void 0 : _d.status) === 'pending' && ((_e = subSnap.data()) === null || _e === void 0 ? void 0 : _e.chargeId) === chargeId) {
+                await subRef.delete();
+            }
+        }
+        else if (txnData.rysmoKind === 'pack' && txnData.rysmoPurchaseId) {
             await admin.firestore().doc(`rysmoPackPurchases/${txnData.rysmoPurchaseId}`).update({ status: 'failed' });
         }
         else if (txnData.rysmoKind === 'subscription' && txnData.rysmoSubscriptionId) {
@@ -590,6 +647,8 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
     else {
         console.log('Bictorys webhook: unhandled status', status, 'for chargeId', chargeId);
     }
+    // Record the processed event (idempotency guard for duplicate deliveries).
+    await eventRef.set({ chargeId, status, receivedAt: new Date().toISOString() }, { merge: true });
     res.status(200).send('OK');
 });
 //# sourceMappingURL=payment.js.map

@@ -15,6 +15,88 @@ export interface User {
   linkedin?: string;
   bio?: string;
   onboardingCompleted?: boolean;
+  // Réseaux sociaux (source de vérité, synchronisés vers le profil Club)
+  city?: string;
+  website?: string;
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  tiktok?: string;
+  youtube?: string;
+  // Parrainage
+  referralCode?: string;
+  referredByCode?: string;
+  referralRewarded?: boolean;
+}
+
+export interface Referral {
+  id: string;
+  referrerId: string;
+  refereeId: string;
+  refereeName?: string;
+  status: 'converted';
+  createdAt: string;
+}
+
+export interface ClubMemberProfile {
+  id: string; // = userId
+  userId: string;
+  displayName: string;
+  photoURL?: string;
+  headline?: string;
+  skills: string[];
+  city?: string;
+  available: boolean;
+  linkedin?: string;
+  website?: string;
+  whatsapp?: string;
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  tiktok?: string;
+  youtube?: string;
+  visible: boolean;
+  updatedAt: string;
+}
+
+export interface ClubOpportunity {
+  id: string;
+  userId: string;
+  userName: string;
+  userPhoto?: string;
+  title: string;
+  description: string;
+  type: 'mission' | 'emploi' | 'partenariat' | 'autre';
+  budget?: string;
+  contact: string;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  participants: string[];
+  participantNames: Record<string, string>;
+  participantPhotos: Record<string, string>;
+  lastMessage: string;
+  lastMessageAt: string;
+}
+
+export interface DmMessage {
+  id: string;
+  senderId: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface DmReport {
+  id: string;
+  convId: string;
+  messageId: string;
+  text: string;
+  reporterId: string;
+  reportedUserId: string;
+  status: 'open' | 'resolved';
+  createdAt: string;
 }
 
 export interface UserPreferences {
@@ -348,6 +430,9 @@ export interface ClubDigitosPost {
   title?: string;
   mood?: string;
   mediaUrl?: string;
+  mediaType?: 'image' | 'audio' | 'video';
+  poll?: { options: string[] };
+  pollVotes?: Record<string, number>;
   isAdmin?: boolean;
   sharedFrom?: string;
 }
@@ -361,6 +446,17 @@ export interface ClubDigitosComment {
   content: string;
   createdAt: string;
   isAdmin?: boolean;
+}
+
+export interface ClubDigitosChallenge {
+  id: string;
+  title: string;
+  description: string;
+  reward?: string;
+  startsAt: string;
+  endsAt: string;
+  active: boolean;
+  createdAt?: string;
 }
 
 export interface ClubDigitosEvent {

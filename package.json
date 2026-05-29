@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@sentry/react": "^10.47.0",
     "@tiptap/extension-image": "^3.22.3",
     "@tiptap/extension-link": "^3.22.3",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@firebase/rules-unit-testing": "^5.0.1",
     "@tailwindcss/typography": "^0.5.19",
     "@types/canvas-confetti": "^1.9.0",
     "@types/react": "^18.3.5",

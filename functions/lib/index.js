@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.catalog = exports.rss = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.rysmoCoachNudge = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createRysmoSubscriptionCharge = exports.createRysmoPackCharge = exports.createClubCharge = exports.createBictorysCharge = exports.importSpotifyEpisodesManual = exports.importSpotifyEpisodes = exports.syncMediaStatsManual = exports.syncMediaStats = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageRysmoQuota = exports.adminManageEnrollment = exports.adminCreateUser = exports.clearRysmoMemory = exports.getRysmoQuota = exports.rysmo = void 0;
+exports.weeklyClubDigestManual = exports.weeklyClubDigest = exports.parseCv = exports.onReferralConversion = exports.rebuildLeaderboardManual = exports.rebuildLeaderboardScheduled = exports.catalog = exports.rss = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.issueCertificate = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.rysmoCoachNudge = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createRysmoSubscriptionCharge = exports.createRysmoPackCharge = exports.createClubCharge = exports.createBictorysCharge = exports.importSpotifyEpisodesManual = exports.importSpotifyEpisodes = exports.syncMediaStatsManual = exports.syncMediaStats = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageRysmoQuota = exports.adminManageEnrollment = exports.adminCreateUser = exports.clearRysmoMemory = exports.getRysmoQuota = exports.rysmo = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ── AI Chatbot ────────────────────────────────────────────────────────────
@@ -82,6 +82,9 @@ Object.defineProperty(exports, "onBlogDeleted", { enumerable: true, get: functio
 Object.defineProperty(exports, "onFormationDeleted", { enumerable: true, get: function () { return storage_cleanup_1.onFormationDeleted; } });
 Object.defineProperty(exports, "onVideoDeleted", { enumerable: true, get: function () { return storage_cleanup_1.onVideoDeleted; } });
 Object.defineProperty(exports, "onPodcastDeleted", { enumerable: true, get: function () { return storage_cleanup_1.onPodcastDeleted; } });
+// ── Certificates (server-side issuance) ───────────────────────────────────
+var certificates_1 = require("./certificates");
+Object.defineProperty(exports, "issueCertificate", { enumerable: true, get: function () { return certificates_1.issueCertificate; } });
 // ── GDPR (user data export + account deletion) ────────────────────────────
 var gdpr_1 = require("./gdpr");
 Object.defineProperty(exports, "exportUserData", { enumerable: true, get: function () { return gdpr_1.exportUserData; } });
@@ -96,4 +99,18 @@ Object.defineProperty(exports, "rss", { enumerable: true, get: function () { ret
 // ── Marketing feeds ──────────────────────────────────────────────────────
 var catalog_1 = require("./catalog");
 Object.defineProperty(exports, "catalog", { enumerable: true, get: function () { return catalog_1.catalog; } });
+// ── Club leaderboard (public aggregate) ───────────────────────────────────
+var leaderboard_1 = require("./leaderboard");
+Object.defineProperty(exports, "rebuildLeaderboardScheduled", { enumerable: true, get: function () { return leaderboard_1.rebuildLeaderboardScheduled; } });
+Object.defineProperty(exports, "rebuildLeaderboardManual", { enumerable: true, get: function () { return leaderboard_1.rebuildLeaderboardManual; } });
+// ── Parrainage (récompense parrain à la conversion) ───────────────────────
+var referrals_1 = require("./referrals");
+Object.defineProperty(exports, "onReferralConversion", { enumerable: true, get: function () { return referrals_1.onReferralConversion; } });
+// ── Analyse de CV par IA (membres du Club) ────────────────────────────────
+var cv_1 = require("./cv");
+Object.defineProperty(exports, "parseCv", { enumerable: true, get: function () { return cv_1.parseCv; } });
+// ── Digest IA hebdomadaire du Club ────────────────────────────────────────
+var digest_1 = require("./digest");
+Object.defineProperty(exports, "weeklyClubDigest", { enumerable: true, get: function () { return digest_1.weeklyClubDigest; } });
+Object.defineProperty(exports, "weeklyClubDigestManual", { enumerable: true, get: function () { return digest_1.weeklyClubDigestManual; } });
 //# sourceMappingURL=index.js.map

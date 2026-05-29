@@ -3,16 +3,19 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/ui/Toast';
 import {
   getClubSubscription,
-  getClubPosts, createClubPost, likeClubPost, deleteClubPost, repostClubPost,
+  getClubPosts, createClubPost, likeClubPost, deleteClubPost, repostClubPost, voteClubPoll,
   getClubEvents, getClubSessions, getClubExclusiveInfos, likeClubInfo,
   getClubComments, addClubComment, deleteClubComment,
   registerForClubEvent, unregisterFromClubEvent,
   registerForClubSession, unregisterFromClubSession,
+  getMyClubProfile, saveClubProfile,
 } from '../../../lib/firestore';
 import { doc, getDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { captureError } from '../../../lib/sentry';
+import { addXP, awardBadge } from '../../../lib/gamification';
+import { XP_REWARDS } from '../../../types/gamification';
 import { db, storage, functions } from '../../../config/firebase';
 
 const createClubCharge = httpsCallable<
@@ -20,16 +23,19 @@ const createClubCharge = httpsCallable<
   { checkoutUrl: string; transactionId: string }
 >(functions, 'createClubCharge');
 import type { ClubDigitosSubscription, ClubDigitosPost, ClubDigitosEvent, ClubDigitosSession, ClubDigitosInfo, ClubDigitosComment, ClubPostCategory } from '../../../types';
+import {
+  ChatCircleDots, Question, BookOpen, Star, Rocket, Megaphone, type Icon,
+} from '@phosphor-icons/react';
 
-export type ClubSubTab = 'feed' | 'events' | 'sessions' | 'infos';
+export type ClubSubTab = 'feed' | 'leaderboard' | 'members' | 'discussions' | 'opportunities' | 'agenda' | 'events' | 'sessions' | 'infos' | 'referral';
 
-export const CLUB_CATEGORIES: { id: ClubPostCategory; label: string; emoji: string }[] = [
-  { id: 'general', label: 'Général', emoji: '💬' },
-  { id: 'question', label: 'Question', emoji: '❓' },
-  { id: 'ressource', label: 'Ressource', emoji: '📚' },
-  { id: 'temoignage', label: 'Témoignage', emoji: '⭐' },
-  { id: 'opportunite', label: 'Opportunité', emoji: '🚀' },
-  { id: 'discussion', label: 'Discussion', emoji: '🗣️' },
+export const CLUB_CATEGORIES: { id: ClubPostCategory; label: string; emoji: string; icon: Icon; tint: string; dot: string }[] = [
+  { id: 'general', label: 'Général', emoji: '💬', icon: ChatCircleDots, tint: 'text-plum-600 dark:text-plum-400', dot: 'bg-plum-500' },
+  { id: 'question', label: 'Question', emoji: '❓', icon: Question, tint: 'text-brand-600 dark:text-brand-400', dot: 'bg-brand-500' },
+  { id: 'ressource', label: 'Ressource', emoji: '📚', icon: BookOpen, tint: 'text-teal-600 dark:text-teal-400', dot: 'bg-teal-500' },
+  { id: 'temoignage', label: 'Témoignage', emoji: '⭐', icon: Star, tint: 'text-accent-600 dark:text-accent-400', dot: 'bg-accent-500' },
+  { id: 'opportunite', label: 'Opportunité', emoji: '🚀', icon: Rocket, tint: 'text-coral-600 dark:text-coral-400', dot: 'bg-coral-500' },
+  { id: 'discussion', label: 'Discussion', emoji: '🗣️', icon: Megaphone, tint: 'text-success-600 dark:text-success-400', dot: 'bg-success-500' },
 ];
 
 export const MOOD_OPTIONS = ['😊', '🔥', '💡', '🎉', '💪', '🤔', '😎', '❤️', '👏', '🙏'];
@@ -59,6 +65,7 @@ export function useClubData() {
   const [clubSessions, setClubSessions] = useState<ClubDigitosSession[]>([]);
   const [clubInfos, setClubInfos] = useState<ClubDigitosInfo[]>([]);
   const [clubTab, setClubTab] = useState<ClubSubTab>('feed');
+  const [dmTarget, setDmTarget] = useState<{ id: string; name: string; photo?: string } | null>(null);
   const [clubPostContent, setClubPostContent] = useState('');
   const [postingToClub, setPostingToClub] = useState(false);
   const [activatingClub, setActivatingClub] = useState(false);
@@ -70,6 +77,10 @@ export function useClubData() {
   const [composerMediaFile, setComposerMediaFile] = useState<File | null>(null);
   const [composerMediaPreview, setComposerMediaPreview] = useState('');
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [composerMediaType, setComposerMediaType] = useState<'image' | 'audio' | 'video'>('image');
+  const [composerAvUrl, setComposerAvUrl] = useState('');
+  const [composerPoll, setComposerPoll] = useState(false);
+  const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
   const [clubCategoryFilter, setClubCategoryFilter] = useState<ClubPostCategory | 'all'>('all');
   const [openComments, setOpenComments] = useState<Set<string>>(new Set());
   const [postComments, setPostComments] = useState<Record<string, ClubDigitosComment[]>>({});
@@ -105,6 +116,30 @@ export function useClubData() {
         ]);
         setRegisteredEvents(new Set(events.filter((_, i) => evtSnaps[i].exists()).map((e) => e.id)));
         setRegisteredSessions(new Set(sessions.filter((_, i) => sessSnaps[i].exists()).map((s) => s.id)));
+
+        // Auto-inscription à l'annuaire : tout membre actif apparaît, même sans CV.
+        // On crée un profil visible par défaut (nom/photo + réseaux du profil étudiant) s'il n'existe pas.
+        getMyClubProfile(user.uid).then((mine) => {
+          if (mine) return;
+          const name = userData?.displayName || user.displayName || user.email?.split('@')[0] || 'Membre';
+          return saveClubProfile(user.uid, {
+            displayName: name,
+            photoURL: user.photoURL || userData?.photoURL || '',
+            headline: '',
+            skills: [],
+            available: false,
+            visible: true,
+            city: userData?.city || '',
+            linkedin: userData?.linkedin || '',
+            website: userData?.website || '',
+            whatsapp: userData?.whatsapp || '',
+            facebook: userData?.facebook || '',
+            instagram: userData?.instagram || '',
+            twitter: userData?.twitter || '',
+            tiktok: userData?.tiktok || '',
+            youtube: userData?.youtube || '',
+          });
+        }).catch(() => null);
       }
       setLoadingClub(false);
     }).catch(() => { addToast('error', 'Erreur lors du chargement du Club des Digitos.'); setLoadingClub(false); });
@@ -131,25 +166,39 @@ export function useClubData() {
     setPostingToClub(true);
     try {
       let mediaUrl: string | undefined;
-      if (composerMediaFile) {
+      let mediaType: 'image' | 'audio' | 'video' | undefined;
+      if (composerMediaType === 'image' && composerMediaFile) {
         setUploadingMedia(true);
         const ext = composerMediaFile.name.split('.').pop() || 'jpg';
         const fileRef = storageRef(storage, `club_media/${user.uid}/${Date.now()}.${ext}`);
         await uploadBytes(fileRef, composerMediaFile);
         mediaUrl = await getDownloadURL(fileRef);
+        mediaType = 'image';
         setUploadingMedia(false);
+      } else if (composerMediaType !== 'image' && composerAvUrl) {
+        mediaUrl = composerAvUrl;
+        mediaType = composerMediaType;
       }
+      const cleanPollOptions = pollOptions.map((o) => o.trim()).filter(Boolean);
+      const poll = composerPoll && cleanPollOptions.length >= 2 ? { options: cleanPollOptions } : undefined;
       await createClubPost({
         userId: user.uid, userName: displayName, userPhoto: user.photoURL || userData?.photoURL,
         content: clubPostContent.trim(), type: composerCategory === 'discussion' ? 'discussion' : 'post',
-        category: composerCategory, mood: composerMood || undefined, mediaUrl,
+        category: composerCategory, mood: composerMood || undefined, mediaUrl, mediaType,
+        poll, pollVotes: poll ? {} : undefined,
       });
       setClubPostContent(''); setComposerMood(''); setComposerCategory('general');
-      setComposerMediaFile(null);
+      setComposerMediaFile(null); setComposerMediaType('image'); setComposerAvUrl('');
+      setComposerPoll(false); setPollOptions(['', '']);
       if (composerMediaPreview) URL.revokeObjectURL(composerMediaPreview);
       setComposerMediaPreview(''); setShowMoodPicker(false);
       const posts = await getClubPosts(60);
       setClubPosts(posts);
+      // Gamification: reward club engagement + unlock community badge
+      addXP(user.uid, XP_REWARDS.clubPost).catch(() => null);
+      if (posts.filter((p) => p.userId === user.uid).length >= 10) {
+        awardBadge(user.uid, 'contributeur').catch(() => null);
+      }
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to create club post' });
       setComposerMediaFile(null);
@@ -165,6 +214,12 @@ export function useClubData() {
     if (!user) return;
     setClubPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes: liked ? [...p.likes, user.uid] : p.likes.filter((id) => id !== user.uid) } : p));
     await likeClubPost(postId, user.uid, liked).catch(() => null);
+  };
+
+  const handleVotePoll = async (postId: string, optionIndex: number) => {
+    if (!user) return;
+    setClubPosts((prev) => prev.map((p) => p.id === postId ? { ...p, pollVotes: { ...(p.pollVotes ?? {}), [user.uid]: optionIndex } } : p));
+    await voteClubPoll(postId, user.uid, optionIndex).catch(() => null);
   };
 
   const handleDeleteClubPost = async (postId: string) => {
@@ -198,6 +253,7 @@ export function useClubData() {
       const updated = await getClubComments(postId);
       setPostComments((prev) => ({ ...prev, [postId]: updated }));
       setCommentDraft((prev) => ({ ...prev, [postId]: '' }));
+      addXP(user.uid, XP_REWARDS.clubComment).catch(() => null);
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to add club comment' });
       addToast('error', error instanceof Error ? error.message : "Erreur lors de l'envoi du commentaire.");
@@ -316,7 +372,7 @@ export function useClubData() {
 
   return {
     // User info
-    user, displayName, initials, photoURL,
+    user, displayName, initials, photoURL, addToast,
     // Subscription
     clubSubscription, isClubActive, isClubPending,
     clubAutoRenew, setClubAutoRenew,
@@ -325,6 +381,7 @@ export function useClubData() {
     loadingClub,
     // Tab
     clubTab, setClubTab,
+    dmTarget, setDmTarget,
     // Feed state
     clubPosts, clubPostContent, setClubPostContent,
     postingToClub, uploadingMedia,
@@ -332,6 +389,8 @@ export function useClubData() {
     composerMood, setComposerMood,
     showMoodPicker, setShowMoodPicker,
     composerMediaFile, composerMediaPreview, setComposerMediaFile, setComposerMediaPreview,
+    composerMediaType, setComposerMediaType, composerAvUrl, setComposerAvUrl,
+    composerPoll, setComposerPoll, pollOptions, setPollOptions,
     mediaInputRef,
     clubCategoryFilter, setClubCategoryFilter,
     openComments, postComments, loadingComments,
@@ -342,7 +401,7 @@ export function useClubData() {
     // Feed handlers
     handleClubPost, handleLikePost, handleDeleteClubPost,
     handleRepost, handleToggleComments, handleAddComment, handleDeleteComment,
-    handleShare, handleMediaSelect,
+    handleShare, handleMediaSelect, handleVotePoll,
     // Events
     clubEvents, registeredEvents, togglingReg, handleToggleEventReg,
     // Sessions

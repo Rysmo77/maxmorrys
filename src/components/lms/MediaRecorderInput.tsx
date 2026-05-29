@@ -8,6 +8,8 @@ interface MediaRecorderInputProps {
   userId: string;
   value: string;
   onChange: (url: string) => void;
+  /** Storage folder root, e.g. 'testimonial_media' (default) or 'club_media'. */
+  folder?: string;
 }
 
 const MAX_SECONDS = 120;
@@ -28,7 +30,7 @@ function formatTime(s: number): string {
   return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
-export default function MediaRecorderInput({ mode, userId, value, onChange }: MediaRecorderInputProps) {
+export default function MediaRecorderInput({ mode, userId, value, onChange, folder = 'testimonial_media' }: MediaRecorderInputProps) {
   const canRecord = supportsRecording();
 
   const [recording, setRecording] = useState(false);
@@ -69,7 +71,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange }: Me
     setUploading(true);
     setProgress(0);
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const storageRef = ref(storage, `testimonial_media/${userId}/${filename}`);
+    const storageRef = ref(storage, `${folder}/${userId}/${filename}`);
     const task = uploadBytesResumable(storageRef, blob);
     task.on(
       'state_changed',

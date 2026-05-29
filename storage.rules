@@ -17,6 +17,12 @@ service firebase.storage {
         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    function hasActiveClubSub() {
+      return isSignedIn() &&
+        firestore.exists(/databases/(default)/documents/club_subscriptions/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/club_subscriptions/$(request.auth.uid)).data.status == 'active';
+    }
+
     function isValidImageType() {
       return request.resource.contentType.matches('image/.*');
     }
@@ -255,10 +261,12 @@ service firebase.storage {
       allow delete: if isAdmin();
     }
 
-    // Club des Digitos — médias de posts (membres connectés)
+    // Club des Digitos — médias de posts (membres actifs : image, audio ou vidéo)
     match /club_media/{userId}/{fileName} {
-      allow read: if isSignedIn();
-      allow create, update: if isOwner(userId) && isValidImageType() && isUnder10MB();
+      allow read: if hasActiveClubSub() || isAdmin();
+      allow create, update: if isOwner(userId) && hasActiveClubSub() &&
+        (isValidImageType() || isValidAudioType() || isValidVideoType()) &&
+        isUnder100MB();
       allow delete: if isOwner(userId) || isAdmin();
     }
 

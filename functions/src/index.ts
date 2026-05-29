@@ -40,6 +40,9 @@ export {
   onPodcastDeleted,
 } from './storage-cleanup';
 
+// ── Certificates (server-side issuance) ───────────────────────────────────
+export { issueCertificate } from './certificates';
+
 // ── GDPR (user data export + account deletion) ────────────────────────────
 export { exportUserData, deleteUserAccount } from './gdpr';
 
@@ -50,3 +53,15 @@ export { rss } from './rss';
 
 // ── Marketing feeds ──────────────────────────────────────────────────────
 export { catalog } from './catalog';
+
+// ── Club leaderboard (public aggregate) ───────────────────────────────────
+export { rebuildLeaderboardScheduled, rebuildLeaderboardManual } from './leaderboard';
+
+// ── Parrainage (récompense parrain à la conversion) ───────────────────────
+export { onReferralConversion } from './referrals';
+
+// ── Analyse de CV par IA (membres du Club) ────────────────────────────────
+export { parseCv } from './cv';
+
+// ── Digest IA hebdomadaire du Club ────────────────────────────────────────
+export { weeklyClubDigest, weeklyClubDigestManual } from './digest';

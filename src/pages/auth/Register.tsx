@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import { localizeAuthError } from '../../lib/auth-errors';
+import { updateUserProfile, getUserById } from '../../lib/firestore';
+import { auth } from '../../config/firebase';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -38,6 +40,19 @@ export default function Register() {
   const { signUp, signInWithGoogle } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get('ref')?.trim().toUpperCase() || '';
+
+  const captureReferral = async () => {
+    if (!refCode) return;
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    try {
+      const u = await getUserById(uid);
+      if (u?.referredByCode) return; // ne pas écraser un parrainage existant
+      await updateUserProfile(uid, { referredByCode: refCode });
+    } catch { /* non bloquant */ }
+  };
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -56,6 +71,7 @@ export default function Register() {
     setLoading(true);
     try {
       await signUp(email, password, name);
+      await captureReferral();
       addToast('success', 'Compte créé avec succès ! Bienvenue.');
       navigate('/mon-espace');
     } catch (error: unknown) {
@@ -68,6 +84,7 @@ export default function Register() {
     setGoogleLoading(true);
     try {
       await signInWithGoogle();
+      await captureReferral();
       addToast('success', 'Compte créé avec succès ! Bienvenue.');
       navigate('/mon-espace');
     } catch (error: unknown) {

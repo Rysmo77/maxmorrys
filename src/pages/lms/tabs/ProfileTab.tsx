@@ -6,7 +6,7 @@ import Button from '../../../components/ui/Button';
 import { formatDate } from '../../../lib/utils';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/ui/Toast';
-import { updateUserProfile } from '../../../lib/firestore';
+import { updateUserProfile, syncSocialsToClubProfile } from '../../../lib/firestore';
 import { updateProfile } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../../config/firebase';
@@ -42,6 +42,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
 
   const [profileForm, setProfileForm] = useState({
     displayName: '', firstName: '', lastName: '', birthDate: '', phone: '', whatsapp: '', linkedin: '', bio: '',
+    city: '', website: '', facebook: '', instagram: '', twitter: '', tiktok: '', youtube: '',
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -57,6 +58,13 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
         whatsapp: userData.whatsapp || '',
         linkedin: userData.linkedin || '',
         bio: userData.bio || '',
+        city: userData.city || '',
+        website: userData.website || '',
+        facebook: userData.facebook || '',
+        instagram: userData.instagram || '',
+        twitter: userData.twitter || '',
+        tiktok: userData.tiktok || '',
+        youtube: userData.youtube || '',
       });
     }
   }, [userData]);
@@ -95,16 +103,28 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
       if (newDisplayName !== user.displayName) {
         await updateProfile(user, { displayName: newDisplayName });
       }
+      const socials = {
+        city: profileForm.city.trim(),
+        website: profileForm.website.trim(),
+        linkedin: profileForm.linkedin.trim(),
+        whatsapp: profileForm.whatsapp.trim(),
+        facebook: profileForm.facebook.trim(),
+        instagram: profileForm.instagram.trim(),
+        twitter: profileForm.twitter.trim(),
+        tiktok: profileForm.tiktok.trim(),
+        youtube: profileForm.youtube.trim(),
+      };
       await updateUserProfile(user.uid, {
         displayName: newDisplayName,
         firstName: profileForm.firstName.trim(),
         lastName: profileForm.lastName.trim(),
         birthDate: profileForm.birthDate || undefined,
         phone: profileForm.phone.trim() || undefined,
-        whatsapp: profileForm.whatsapp.trim() || undefined,
-        linkedin: profileForm.linkedin.trim() || undefined,
         bio: profileForm.bio.trim() || undefined,
+        ...socials,
       });
+      // Synchronise les réseaux vers le profil Club (annuaire) s'il existe
+      await syncSocialsToClubProfile(user.uid, socials).catch(() => null);
       await refreshUserData();
       addToast('success', 'Profil mis à jour avec succès.');
     } catch (error: unknown) {
@@ -186,6 +206,34 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
           <div className="space-y-1">
             <label className="block text-xs font-semibold text-neutral-500 flex items-center gap-1.5"><Linkedin className="w-3 h-3" /> LinkedIn</label>
             <input type="url" value={profileForm.linkedin} onChange={(e) => setProfileForm((p) => ({ ...p, linkedin: e.target.value }))} placeholder="https://linkedin.com/in/ton-profil" className={inputCls} />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-neutral-500">Ville</label>
+            <input value={profileForm.city} onChange={(e) => setProfileForm((p) => ({ ...p, city: e.target.value }))} placeholder="Dakar, Abidjan..." className={inputCls} />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-neutral-500">Site web</label>
+            <input type="url" value={profileForm.website} onChange={(e) => setProfileForm((p) => ({ ...p, website: e.target.value }))} placeholder="https://..." className={inputCls} />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-neutral-500">Facebook</label>
+            <input value={profileForm.facebook} onChange={(e) => setProfileForm((p) => ({ ...p, facebook: e.target.value }))} placeholder="URL ou @pseudo" className={inputCls} />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-neutral-500">Instagram</label>
+            <input value={profileForm.instagram} onChange={(e) => setProfileForm((p) => ({ ...p, instagram: e.target.value }))} placeholder="URL ou @pseudo" className={inputCls} />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-neutral-500">X (Twitter)</label>
+            <input value={profileForm.twitter} onChange={(e) => setProfileForm((p) => ({ ...p, twitter: e.target.value }))} placeholder="URL ou @pseudo" className={inputCls} />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-neutral-500">TikTok</label>
+            <input value={profileForm.tiktok} onChange={(e) => setProfileForm((p) => ({ ...p, tiktok: e.target.value }))} placeholder="URL ou @pseudo" className={inputCls} />
+          </div>
+          <div className="space-y-1 sm:col-span-2">
+            <label className="block text-xs font-semibold text-neutral-500">YouTube</label>
+            <input value={profileForm.youtube} onChange={(e) => setProfileForm((p) => ({ ...p, youtube: e.target.value }))} placeholder="URL de la chaîne" className={inputCls} />
           </div>
           <div className="space-y-1 sm:col-span-2">
             <label className="block text-xs font-semibold text-neutral-500">Biographie</label>

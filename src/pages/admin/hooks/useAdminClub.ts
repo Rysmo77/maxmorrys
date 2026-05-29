@@ -3,7 +3,8 @@ import { useToast } from '../../../components/ui/Toast';
 import { useAuth } from '../../../contexts/AuthContext';
 import {
   getAllClubSubscriptions, updateClubSubscriptionStatus,
-  getClubPosts, deleteClubPost, createClubPost,
+  getClubPosts, deleteClubPost, createClubPost, updateClubPost,
+  getClubComments, deleteClubComment,
   getClubEvents, saveClubEvent, deleteClubEvent,
   getClubSessions, saveClubSession, deleteClubSession,
   getClubExclusiveInfos, saveClubInfo, deleteClubInfo,
@@ -15,9 +16,10 @@ import { storage } from '../../../config/firebase';
 import type {
   ClubDigitosSubscription, ClubDigitosPost, ClubDigitosEvent,
   ClubDigitosSession, ClubDigitosInfo, ClubEventRegistration, ClubSessionRegistration,
+  ClubDigitosComment,
 } from '../../../types';
 
-export type AdminClubTab = 'subscriptions' | 'posts' | 'events' | 'sessions' | 'infos';
+export type AdminClubTab = 'subscriptions' | 'posts' | 'events' | 'sessions' | 'infos' | 'challenges' | 'members' | 'opportunities' | 'reports';
 
 export const inputCls = 'w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
 
@@ -47,6 +49,14 @@ export function useAdminClub() {
   const [showPostForm, setShowPostForm] = useState(false);
   const [adminPostContent, setAdminPostContent] = useState('');
   const [publishingPost, setPublishingPost] = useState(false);
+
+  // Post edition + modération commentaires
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editPostContent, setEditPostContent] = useState('');
+  const [savingPostEdit, setSavingPostEdit] = useState(false);
+  const [openComments, setOpenComments] = useState<string | null>(null);
+  const [postComments, setPostComments] = useState<Record<string, ClubDigitosComment[]>>({});
+  const [loadingComments, setLoadingComments] = useState(false);
 
   // Event form
   const [showEventForm, setShowEventForm] = useState(false);
@@ -123,6 +133,50 @@ export function useAdminClub() {
       addToast('success', 'Publication supprimée.');
     } catch (error: unknown) {
       captureError(error, { context: 'Delete club post failed' });
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+    }
+  };
+
+  const openEditPost = (post?: ClubDigitosPost) => {
+    if (post) { setEditingPostId(post.id); setEditPostContent(post.content); }
+    else { setEditingPostId(null); setEditPostContent(''); }
+  };
+
+  const handleSavePostEdit = async (id: string) => {
+    if (!editPostContent.trim()) return;
+    setSavingPostEdit(true);
+    try {
+      await updateClubPost(id, { content: editPostContent.trim() });
+      setPosts((prev) => prev.map((p) => p.id === id ? { ...p, content: editPostContent.trim() } : p));
+      setEditingPostId(null);
+      addToast('success', 'Publication mise à jour.');
+    } catch (error: unknown) {
+      captureError(error, { context: 'Edit club post failed' });
+      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la modification.');
+    } finally {
+      setSavingPostEdit(false);
+    }
+  };
+
+  const handleToggleComments = async (postId: string) => {
+    if (openComments === postId) { setOpenComments(null); return; }
+    setOpenComments(postId);
+    if (!postComments[postId]) {
+      setLoadingComments(true);
+      const comments = await getClubComments(postId).catch(() => []);
+      setPostComments((prev) => ({ ...prev, [postId]: comments }));
+      setLoadingComments(false);
+    }
+  };
+
+  const handleDeleteComment = async (postId: string, commentId: string) => {
+    try {
+      await deleteClubComment(postId, commentId);
+      setPostComments((prev) => ({ ...prev, [postId]: (prev[postId] ?? []).filter((c) => c.id !== commentId) }));
+      setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, commentsCount: Math.max(0, (p.commentsCount ?? 1) - 1) } : p));
+      addToast('success', 'Commentaire supprimé.');
+    } catch (error: unknown) {
+      captureError(error, { context: 'Delete club comment failed' });
       addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
     }
   };
@@ -358,6 +412,8 @@ export function useAdminClub() {
     showPostForm, setShowPostForm,
     adminPostContent, setAdminPostContent,
     publishingPost, handleAdminPost, handleDeletePost,
+    editingPostId, editPostContent, setEditPostContent, savingPostEdit, openEditPost, handleSavePostEdit,
+    openComments, postComments, loadingComments, handleToggleComments, handleDeleteComment,
 
     // Events
     showEventForm, setShowEventForm,

@@ -10,6 +10,63 @@ const bictorysApiUrl = defineString('BICTORYS_API_URL', {
   default: 'https://api.bictorys.com/pay/v1/charges',
   description: 'Bictorys API URL (use https://api.test.bictorys.com/pay/v1/charges for testing)',
 });
+const appBaseUrl = defineString('APP_BASE_URL', {
+  default: 'https://maxmorrys.me',
+  description: 'Public base URL used to build Bictorys success/error redirect URLs',
+});
+
+interface BictorysChargeResult {
+  link: string;
+  chargeId: string;
+  opToken: string;
+}
+
+/**
+ * Create a Bictorys hosted-checkout charge. Includes a paymentReference (our
+ * transaction id) and success/error redirect URLs pointing to the in-app
+ * /paiement/retour page so the user is returned to the app after paying, plus
+ * customer info for the receipt. payment_type is intentionally omitted so the
+ * hosted page lets the user pick Wave / Orange Money / card.
+ */
+async function createBictorysHostedCharge(opts: {
+  apiKey: string;
+  amount: number;
+  paymentReference: string;
+  customer: { name?: string; email?: string; phone?: string };
+  logLabel: string;
+}): Promise<BictorysChargeResult> {
+  const returnUrl = `${appBaseUrl.value()}/paiement/retour?transactionId=${opts.paymentReference}`;
+  const res = await fetch(bictorysApiUrl.value(), {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'content-type': 'application/json',
+      'X-API-Key': opts.apiKey,
+    },
+    body: JSON.stringify({
+      amount: opts.amount,
+      currency: 'XOF',
+      paymentReference: opts.paymentReference,
+      successRedirectUrl: returnUrl,
+      errorRedirectUrl: returnUrl,
+      customer: {
+        ...(opts.customer.name && { name: opts.customer.name }),
+        ...(opts.customer.email && { email: opts.customer.email }),
+        ...(opts.customer.phone && { phone: opts.customer.phone }),
+        country: 'SN',
+        locale: 'fr',
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const errBody = await res.text();
+    console.error(`Bictorys API error (${opts.logLabel}):`, res.status, errBody);
+    throw new Error(`Bictorys returned ${res.status}`);
+  }
+
+  return res.json() as Promise<BictorysChargeResult>;
+}
 
 /**
  * Validate a coupon code against the coupons collection.
@@ -114,40 +171,32 @@ export const createBictorysCharge = onCall(
       throw new HttpsError('internal', 'Service de paiement non configuré.');
     }
 
-    let bictorysResponse: { link: string; chargeId: string; opToken: string };
+    // Pre-allocate the transaction id so it can serve as the Bictorys
+    // paymentReference and be embedded in the return URL.
+    const txnRef = admin.firestore().collection('transactions').doc();
+
+    let bictorysResponse: BictorysChargeResult;
     try {
-      const res = await fetch(bictorysApiUrl.value(), {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'content-type': 'application/json',
-          'X-API-Key': apiKey,
+      bictorysResponse = await createBictorysHostedCharge({
+        apiKey,
+        amount: finalPrice,
+        paymentReference: txnRef.id,
+        customer: {
+          name: userData?.displayName ?? request.auth.token.name,
+          email: request.auth.token.email ?? userData?.email,
+          phone: userData?.phone,
         },
-        body: JSON.stringify({ amount: finalPrice, currency: 'XOF' }),
+        logLabel: 'course',
       });
-
-      if (!res.ok) {
-        const errBody = await res.text();
-        console.error('Bictorys API error:', res.status, errBody);
-        throw new Error(`Bictorys returned ${res.status}`);
-      }
-
-      bictorysResponse = await res.json();
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : String(error);
       console.error('Bictorys charge creation failed:', errMsg);
       throw new HttpsError('internal', 'Erreur lors de la création du paiement. Réessaie.');
     }
 
-    // Increment coupon usage count atomically
-    if (couponId) {
-      await admin.firestore().doc(`coupons/${couponId}`).update({
-        usedCount: admin.firestore.FieldValue.increment(1),
-      });
-    }
-
-    // Create transaction record server-side
-    const txnRef = admin.firestore().collection('transactions').doc();
+    // Create transaction record server-side. Coupon usedCount is incremented in
+    // the webhook on payment success (not here) so abandoned checkouts don't
+    // consume a coupon use.
     await txnRef.set({
       id: txnRef.id,
       userId: uid,
@@ -203,31 +252,40 @@ export const createClubCharge = onCall(
     const userDoc = await admin.firestore().doc(`users/${uid}`).get();
     const userData = userDoc.data();
 
+    // Referral discount for referee (15% off) — only if a valid referrer code and not yet rewarded
+    const REFERRAL_DISCOUNT = 0.15;
+    let amount = CLUB_PRICE;
+    let referredByCode: string | undefined;
+    if (userData?.referredByCode && !userData?.referralRewarded) {
+      const refSnap = await admin.firestore().collection('users')
+        .where('referralCode', '==', userData.referredByCode).limit(1).get();
+      if (!refSnap.empty && refSnap.docs[0].id !== uid) {
+        amount = Math.round(CLUB_PRICE * (1 - REFERRAL_DISCOUNT));
+        referredByCode = userData.referredByCode;
+      }
+    }
+
     // Call Bictorys API
     const apiKey = bictorysApiKey.value();
     if (!apiKey) {
       throw new HttpsError('internal', 'Service de paiement non configuré.');
     }
 
-    let bictorysResponse: { link: string; chargeId: string; opToken: string };
+    const txnRef = admin.firestore().collection('transactions').doc();
+
+    let bictorysResponse: BictorysChargeResult;
     try {
-      const res = await fetch(bictorysApiUrl.value(), {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'content-type': 'application/json',
-          'X-API-Key': apiKey,
+      bictorysResponse = await createBictorysHostedCharge({
+        apiKey,
+        amount,
+        paymentReference: txnRef.id,
+        customer: {
+          name: userData?.displayName ?? request.auth.token.name,
+          email: request.auth.token.email ?? userData?.email,
+          phone: userData?.phone,
         },
-        body: JSON.stringify({ amount: CLUB_PRICE, currency: 'XOF' }),
+        logLabel: 'club',
       });
-
-      if (!res.ok) {
-        const errBody = await res.text();
-        console.error('Bictorys API error:', res.status, errBody);
-        throw new Error(`Bictorys returned ${res.status}`);
-      }
-
-      bictorysResponse = await res.json();
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : String(error);
       console.error('Bictorys club charge creation failed:', errMsg);
@@ -247,12 +305,12 @@ export const createClubCharge = onCall(
       expiresAt: expiresAt.toISOString(),
       autoRenew: autoRenew ?? true,
       status: 'pending',
-      amount: CLUB_PRICE,
+      amount,
       chargeId: bictorysResponse.chargeId,
+      ...(referredByCode ? { referredByCode } : {}),
     });
 
     // Create transaction record
-    const txnRef = admin.firestore().collection('transactions').doc();
     await txnRef.set({
       id: txnRef.id,
       userId: uid,
@@ -261,7 +319,7 @@ export const createClubCharge = onCall(
       formationId: 'club_digitos',
       formationSlug: 'club-des-digitos',
       formationTitle: 'Club des Digitos — Abonnement annuel',
-      amount: CLUB_PRICE,
+      amount,
       currency: 'XOF',
       status: 'pending',
       paymentMethod: 'bictorys',
@@ -312,23 +370,21 @@ export const createRysmoPackCharge = onCall(
       throw new HttpsError('internal', 'Service de paiement non configuré.');
     }
 
-    let bictorysResponse: { link: string; chargeId: string; opToken: string };
+    const txnRef = admin.firestore().collection('transactions').doc();
+
+    let bictorysResponse: BictorysChargeResult;
     try {
-      const res = await fetch(bictorysApiUrl.value(), {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'content-type': 'application/json',
-          'X-API-Key': apiKey,
+      bictorysResponse = await createBictorysHostedCharge({
+        apiKey,
+        amount: packDef.price,
+        paymentReference: txnRef.id,
+        customer: {
+          name: userData?.displayName ?? request.auth.token.name,
+          email: request.auth.token.email ?? userData?.email,
+          phone: userData?.phone,
         },
-        body: JSON.stringify({ amount: packDef.price, currency: 'XOF' }),
+        logLabel: 'rysmo pack',
       });
-      if (!res.ok) {
-        const errBody = await res.text();
-        console.error('Bictorys API error (rysmo pack):', res.status, errBody);
-        throw new Error(`Bictorys returned ${res.status}`);
-      }
-      bictorysResponse = await res.json();
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : String(error);
       console.error('Rysmo pack charge creation failed:', errMsg);
@@ -350,7 +406,6 @@ export const createRysmoPackCharge = onCall(
       chargeId: bictorysResponse.chargeId,
     });
 
-    const txnRef = admin.firestore().collection('transactions').doc();
     await txnRef.set({
       id: txnRef.id,
       userId: uid,
@@ -414,23 +469,21 @@ export const createRysmoSubscriptionCharge = onCall(
       throw new HttpsError('internal', 'Service de paiement non configuré.');
     }
 
-    let bictorysResponse: { link: string; chargeId: string; opToken: string };
+    const txnRef = admin.firestore().collection('transactions').doc();
+
+    let bictorysResponse: BictorysChargeResult;
     try {
-      const res = await fetch(bictorysApiUrl.value(), {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'content-type': 'application/json',
-          'X-API-Key': apiKey,
+      bictorysResponse = await createBictorysHostedCharge({
+        apiKey,
+        amount: subDef.price,
+        paymentReference: txnRef.id,
+        customer: {
+          name: userData?.displayName ?? request.auth.token.name,
+          email: request.auth.token.email ?? userData?.email,
+          phone: userData?.phone,
         },
-        body: JSON.stringify({ amount: subDef.price, currency: 'XOF' }),
+        logLabel: 'rysmo sub',
       });
-      if (!res.ok) {
-        const errBody = await res.text();
-        console.error('Bictorys API error (rysmo sub):', res.status, errBody);
-        throw new Error(`Bictorys returned ${res.status}`);
-      }
-      bictorysResponse = await res.json();
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : String(error);
       console.error('Rysmo subscription charge creation failed:', errMsg);
@@ -455,7 +508,6 @@ export const createRysmoSubscriptionCharge = onCall(
       chargeId: bictorysResponse.chargeId,
     });
 
-    const txnRef = admin.firestore().collection('transactions').doc();
     await txnRef.set({
       id: txnRef.id,
       userId: uid,
@@ -485,8 +537,7 @@ export const createRysmoSubscriptionCharge = onCall(
 /**
  * Verify Bictorys webhook signature (HMAC-SHA256).
  * Bictorys sends the signature in the `X-Bictorys-Signature` header.
- * If no webhook secret is configured, fall back to chargeId cross-check
- * against existing pending transactions (defense in depth).
+ * Fail-closed: returns false if the signature or secret is missing.
  */
 function verifyWebhookSignature(rawBody: string, signature: string | undefined, secret: string): boolean {
   if (!signature || !secret) return false;
@@ -514,7 +565,12 @@ export const bictorysWebhook = onRequest(
       return;
     }
     const signature = req.headers['x-bictorys-signature'] as string | undefined;
-    const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+    // HMAC must be computed over the exact bytes Bictorys signed. firebase-functions
+    // onRequest exposes the unparsed payload as req.rawBody; re-serializing req.body
+    // would not reproduce those bytes (key order, spacing, escaping).
+    const rawBody = req.rawBody
+      ? req.rawBody.toString('utf8')
+      : (typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
     if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
       console.warn('Bictorys webhook: invalid or missing signature');
       res.status(403).send('Forbidden');
@@ -532,6 +588,8 @@ export const bictorysWebhook = onRequest(
     }
 
     // ── Idempotency: track processed chargeIds ──────────────────────────
+    // The event record is written AFTER processing (see end of handler) so a
+    // crash mid-processing leaves the txn 'pending' and a retry can recover.
     const eventRef = admin.firestore().doc(`webhook_events/${chargeId}`);
     const eventSnap = await eventRef.get();
     if (eventSnap.exists && eventSnap.data()?.status === status) {
@@ -539,10 +597,6 @@ export const bictorysWebhook = onRequest(
       res.status(200).send('OK');
       return;
     }
-    await eventRef.set(
-      { chargeId, status, receivedAt: new Date().toISOString() },
-      { merge: true },
-    );
 
     // Find the pending transaction matching this chargeId
     const txnQuery = await admin.firestore()
@@ -565,17 +619,22 @@ export const bictorysWebhook = onRequest(
     const isSuccess = status === 'succeeded' || status === 'completed' || status === 'successful';
     const isFailed = status === 'failed' || status === 'expired' || status === 'cancelled';
 
-    if (isSuccess) {
-      // Mark transaction as completed
-      await txnDoc.ref.update({
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-      });
+    // Defense-in-depth: if the webhook carries an amount, warn on mismatch. The
+    // HMAC signature is the authoritative integrity check; we don't reject here
+    // because the amount field name can vary across Bictorys payloads.
+    const webhookAmount: unknown = body?.amount ?? body?.value;
+    if (typeof webhookAmount === 'number' && webhookAmount !== txnData.amount) {
+      console.warn('Bictorys webhook: amount mismatch', { chargeId, webhookAmount, expected: txnData.amount });
+    }
 
+    if (isSuccess) {
       const isClubPayment = txnData.formationId === 'club_digitos';
       const isRysmoPack = txnData.rysmoKind === 'pack' && txnData.rysmoPurchaseId;
       const isRysmoSub = txnData.rysmoKind === 'subscription' && txnData.rysmoSubscriptionId;
 
+      // Apply the side effect BEFORE marking the transaction completed, so a
+      // crash mid-processing leaves the txn 'pending' and a retry can recover.
+      // Each side effect below is idempotent.
       if (isClubPayment) {
         // Activate club subscription
         const subRef = admin.firestore().doc(`club_subscriptions/${txnData.userId}`);
@@ -620,28 +679,55 @@ export const bictorysWebhook = onRequest(
         console.log('Bictorys webhook: payment succeeded, enrollment created for', enrollmentId);
       }
 
-      // Send server-side Purchase event via Meta Conversions API
-      await sendConversionEvent(
-        'Purchase',
-        {
-          content_ids: [txnData.formationId],
-          content_name: txnData.formationTitle,
-          content_type: 'product',
-          value: txnData.amount,
-          currency: txnData.currency || 'XOF',
-        },
-        {
-          em: txnData.userEmail,
-          client_ip_address: req.ip || undefined,
-          client_user_agent: req.headers['user-agent'] || undefined,
-        },
-        txnData.metaEventId,
-      );
+      // Increment coupon usage now that the payment succeeded (not at checkout
+      // creation) so abandoned/failed checkouts don't consume a coupon use.
+      if (txnData.couponId) {
+        await admin.firestore().doc(`coupons/${txnData.couponId}`).update({
+          usedCount: admin.firestore.FieldValue.increment(1),
+        });
+      }
+
+      // Mark the transaction completed LAST (after the side effect succeeded).
+      await txnDoc.ref.update({
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+      });
+
+      // Meta CAPI is non-critical: never let it fail the webhook (which would
+      // trigger Bictorys retries after the payment is already processed).
+      try {
+        await sendConversionEvent(
+          'Purchase',
+          {
+            content_ids: [txnData.formationId],
+            content_name: txnData.formationTitle,
+            content_type: 'product',
+            value: txnData.amount,
+            currency: txnData.currency || 'XOF',
+          },
+          {
+            em: txnData.userEmail,
+            client_ip_address: req.ip || undefined,
+            client_user_agent: req.headers['user-agent'] || undefined,
+          },
+          txnData.metaEventId,
+        );
+      } catch (err: unknown) {
+        console.error('Bictorys webhook: Meta CAPI Purchase event failed', err);
+      }
     } else if (isFailed) {
       await txnDoc.ref.update({
         status: 'failed',
       });
-      if (txnData.rysmoKind === 'pack' && txnData.rysmoPurchaseId) {
+      if (txnData.formationId === 'club_digitos') {
+        // Clear the pending club subscription so the user isn't locked out of
+        // retrying (createClubCharge blocks while status === 'pending').
+        const subRef = admin.firestore().doc(`club_subscriptions/${txnData.userId}`);
+        const subSnap = await subRef.get();
+        if (subSnap.exists && subSnap.data()?.status === 'pending' && subSnap.data()?.chargeId === chargeId) {
+          await subRef.delete();
+        }
+      } else if (txnData.rysmoKind === 'pack' && txnData.rysmoPurchaseId) {
         await admin.firestore().doc(`rysmoPackPurchases/${txnData.rysmoPurchaseId}`).update({ status: 'failed' });
       } else if (txnData.rysmoKind === 'subscription' && txnData.rysmoSubscriptionId) {
         await admin.firestore().doc(`rysmoSubscriptions/${txnData.rysmoSubscriptionId}`).update({ status: 'cancelled' });
@@ -650,6 +736,12 @@ export const bictorysWebhook = onRequest(
     } else {
       console.log('Bictorys webhook: unhandled status', status, 'for chargeId', chargeId);
     }
+
+    // Record the processed event (idempotency guard for duplicate deliveries).
+    await eventRef.set(
+      { chargeId, status, receivedAt: new Date().toISOString() },
+      { merge: true },
+    );
 
     res.status(200).send('OK');
   }
