@@ -120,13 +120,6 @@ const platforms = [
     desc: "Plateforme de digitalisation des parcours de soins en Afrique.",
   },
   {
-    name: 'Centre Hospitalier',
-    domain: 'chrtbn.sn',
-    url: 'https://chrtbn.sn/',
-    tag: 'Institutionnel',
-    desc: "Site institutionnel d'une structure hospitalière partenaire.",
-  },
-  {
     name: 'Khanouss',
     domain: 'khanouss.shop',
     url: 'https://khanouss.shop/',
@@ -146,13 +139,6 @@ const platforms = [
     url: 'https://yessienglish.com/',
     tag: 'Éducation',
     desc: "Plateforme d'accompagnement en anglais pour professionnels et étudiants africains francophones.",
-  },
-  {
-    name: 'La Ruche Excellence',
-    domain: 'laruchexcellence.ga',
-    url: 'https://laruchexcellence.ga/',
-    tag: 'Éducation',
-    desc: "Plateforme web d'un établissement éducatif au Gabon.",
   },
   {
     name: 'STEPS Magazine',
