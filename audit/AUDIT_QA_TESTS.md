@@ -1,8 +1,18 @@
 # AUDIT QA & TESTS — maxmorrys.me
 
-## 1. État actuel — critique
+## 0. Mise à jour (post-Sprint 0)
 
-**Aucun test automatisé dans le dépôt.** Recherche `*.test.*` / `*.spec.* `/ `__tests__` : **0 résultat**.
+Une **première suite de tests de règles Firestore** a été ajoutée et **passe (17/17)** :
+- `tests/firestore-rules/rules.test.ts` (Vitest + `@firebase/rules-unit-testing` + émulateur Firestore).
+- Scripts : `npm run test:rules` (lance l'émulateur via `firebase emulators:exec`) et `npm test` (unitaires, vide pour l'instant).
+- **Prérequis : Java 21** (l'émulateur firebase-tools 15 l'exige) — un job CI `rules-tests` (setup-java 21, non bloquant pour le deploy) est ajouté.
+- Couvre : **règle `gamification` bornée (validation du correctif Sprint 0 S2)**, immutabilité du rôle `users`, bornes de `progress` des `enrollments`, création client de `transactions` limitée au gratuit.
+
+Le reste de cette section décrit l'état initial et le plan cible (toujours valable au-delà de cette première suite).
+
+## 1. État initial — critique
+
+**Aucun test automatisé dans le dépôt** (avant Sprint 0). Recherche `*.test.*` / `*.spec.* `/ `__tests__` : **0 résultat**.
 
 | Type de test | Présent ? |
 |---|---|
