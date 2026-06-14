@@ -529,12 +529,16 @@ exports.bictorysWebhook = (0, https_1.onRequest)({ region: 'us-central1', secret
     const txnData = txnDoc.data();
     const isSuccess = status === 'succeeded' || status === 'completed' || status === 'successful';
     const isFailed = status === 'failed' || status === 'expired' || status === 'cancelled';
-    // Defense-in-depth: if the webhook carries an amount, warn on mismatch. The
-    // HMAC signature is the authoritative integrity check; we don't reject here
-    // because the amount field name can vary across Bictorys payloads.
+    // Defense-in-depth: the HMAC signature is the authoritative integrity check,
+    // but if the webhook carries a numeric amount we also verify it matches the
+    // server-computed transaction amount. The `typeof === 'number'` guard means a
+    // renamed/absent amount field is simply skipped (no false rejection), so we
+    // can safely reject a genuine mismatch and keep the txn 'pending' for review.
     const webhookAmount = (_c = body === null || body === void 0 ? void 0 : body.amount) !== null && _c !== void 0 ? _c : body === null || body === void 0 ? void 0 : body.value;
     if (typeof webhookAmount === 'number' && webhookAmount !== txnData.amount) {
-        console.warn('Bictorys webhook: amount mismatch', { chargeId, webhookAmount, expected: txnData.amount });
+        console.error('Bictorys webhook: amount mismatch — rejecting', { chargeId, webhookAmount, expected: txnData.amount });
+        res.status(400).send('Amount verification failed');
+        return;
     }
     if (isSuccess) {
         const isClubPayment = txnData.formationId === 'club_digitos';

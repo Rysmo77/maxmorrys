@@ -3,6 +3,7 @@ import {
 } from 'lucide-react';
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';
+import { useAuth } from '../../../contexts/AuthContext';
 import type { User, Enrollment, Formation, ClubDigitosSubscription } from '../../../types';
 import type { EditTab, EditForm, AddForm } from '../hooks/useAdminUsers';
 import { inputCls } from '../hooks/useAdminUsers';
@@ -55,6 +56,10 @@ export function UserEditModal({
   rysmoQuota, loadingRysmo, togglingRysmo, addTokenAmount, setAddTokenAmount,
   handleResetRysmo, handleAddRysmoTokens,
 }: UserEditModalProps) {
+  // Only an admin may grant the 'admin' role. Firestore rules enforce this
+  // server-side too; gating the option avoids a misleading affordance for support.
+  const { userData } = useAuth();
+  const canAssignAdmin = userData?.role === 'admin';
   return (
     <Modal open={!!editUser} onClose={onClose} title="Gestion de l'utilisateur">
       {editUser && (
@@ -151,7 +156,7 @@ export function UserEditModal({
                 >
                   <option value="student">Étudiant</option>
                   <option value="support">Support</option>
-                  <option value="admin">Admin</option>
+                  {(canAssignAdmin || editForm.role === 'admin') && <option value="admin">Admin</option>}
                 </select>
               </div>
               <div className="flex justify-end gap-3 pt-1">
@@ -462,10 +467,11 @@ export function CreateUserModal({
         </div>
         <div className="space-y-1">
           <label className="text-xs font-semibold text-neutral-500">Rôle</label>
+          {/* No 'admin' option: the adminCreateUser Cloud Function never creates
+              admins (it forces student/support). Promote to admin via the edit modal. */}
           <select value={addForm.role} onChange={(e) => setAddForm((p) => ({ ...p, role: e.target.value as AddForm['role'] }))} className={inputCls}>
             <option value="student">Étudiant</option>
             <option value="support">Support</option>
-            <option value="admin">Admin</option>
           </select>
         </div>
         <p className="text-xs text-neutral-400">L'utilisateur pourra changer son mot de passe après connexion.</p>

@@ -26,7 +26,6 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
-        continue-on-error: true  # pre-existing TS errors — remove once fixed
 
       - name: Build
         run: npm run build
@@ -50,6 +49,28 @@ jobs:
       - name: Build functions
         run: npm run build
         working-directory: functions
+
+  # Firestore security-rules tests against the emulator (needs Java 21).
+  # Kept as a separate job so it doesn't gate deploys while the suite grows.
+  rules-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - run: npm ci
+
+      - name: Firestore rules tests
+        run: npm run test:rules
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

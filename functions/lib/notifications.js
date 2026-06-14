@@ -120,20 +120,38 @@ exports.rysmoCoachNudge = (0, firestore_1.onDocumentUpdated)('enrollments/{enrol
 // ── Streak reminder — runs daily at 8pm UTC ──────────────────────────────────
 exports.streakReminder = (0, scheduler_1.onSchedule)('0 20 * * *', async () => {
     const today = new Date().toISOString().slice(0, 10);
-    const gamificationSnap = await db.collection('gamification').get();
-    for (const doc of gamificationSnap.docs) {
-        const data = doc.data();
-        if (data.currentStreak > 0 && data.lastActiveDate !== today) {
-            // User has a streak but hasn't been active today
-            await db.collection(`notifications/${doc.id}/items`).add({
-                userId: doc.id,
-                type: 'system',
-                title: `Ta série de ${data.currentStreak} jours est en danger !`,
-                message: 'Complète une leçon avant minuit pour maintenir ta série.',
-                read: false,
-                createdAt: new Date().toISOString(),
-            });
+    // Only scan users who actually have an active streak (server-side filter)
+    // and page through results to avoid loading the whole collection at scale.
+    const PAGE = 500;
+    let last = null;
+    while (true) {
+        let q = db
+            .collection('gamification')
+            .where('currentStreak', '>', 0)
+            .orderBy('currentStreak')
+            .limit(PAGE);
+        if (last)
+            q = q.startAfter(last);
+        const snap = await q.get();
+        if (snap.empty)
+            break;
+        for (const doc of snap.docs) {
+            const data = doc.data();
+            if (data.lastActiveDate !== today) {
+                // User has a streak but hasn't been active today
+                await db.collection(`notifications/${doc.id}/items`).add({
+                    userId: doc.id,
+                    type: 'system',
+                    title: `Ta série de ${data.currentStreak} jours est en danger !`,
+                    message: 'Complète une leçon avant minuit pour maintenir ta série.',
+                    read: false,
+                    createdAt: new Date().toISOString(),
+                });
+            }
         }
+        if (snap.size < PAGE)
+            break;
+        last = snap.docs[snap.docs.length - 1];
     }
 });
 // ── Course inactivity reminder — runs daily at 10am UTC ──────────────────────

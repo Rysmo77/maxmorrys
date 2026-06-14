@@ -297,6 +297,7 @@ export default function FormationDetail() {
             )}
 
             {/* Programme */}
+            {(formation.modules ?? []).length > 0 && (
             <motion.div
               className="mb-12"
               variants={slideUp}
@@ -313,11 +314,6 @@ export default function FormationDetail() {
               <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
                 {(formation.modules ?? []).length} module{(formation.modules ?? []).length !== 1 ? 's' : ''} · {totalLessons} leçons · {formation.duration}
               </p>
-              {(formation.modules ?? []).length === 0 && (
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 py-4">
-                  Le programme détaillé sera disponible prochainement.
-                </p>
-              )}
               <div className="space-y-3">
                 {(formation.modules ?? []).map((module) => {
                   const isExpanded = expandedModules.includes(module.id);
@@ -368,6 +364,7 @@ export default function FormationDetail() {
                 })}
               </div>
             </motion.div>
+            )}
 
             {/* Description */}
             <motion.div
