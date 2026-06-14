@@ -26,7 +26,6 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
-        continue-on-error: true  # pre-existing TS errors — remove once fixed
 
       - name: Build
         run: npm run build

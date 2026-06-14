@@ -27,6 +27,25 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
+/** Read an entire collection in bounded pages to avoid one unbounded `.get()`. */
+async function readAllDocs(
+  col: FirebaseFirestore.CollectionReference,
+  pageSize = 300,
+): Promise<FirebaseFirestore.QueryDocumentSnapshot[]> {
+  const docs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
+  let last: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+  while (true) {
+    let q = col.orderBy('__name__').limit(pageSize);
+    if (last) q = q.startAfter(last);
+    const snap = await q.get();
+    if (snap.empty) break;
+    docs.push(...snap.docs);
+    if (snap.size < pageSize) break;
+    last = snap.docs[snap.docs.length - 1];
+  }
+  return docs;
+}
+
 interface SyncResult {
   videosProcessed: number;
   videosUpdated: number;
@@ -36,9 +55,9 @@ interface SyncResult {
 }
 
 async function syncYoutubeViews(db: FirebaseFirestore.Firestore, apiKey: string, errors: string[]) {
-  const snap = await db.collection('videos').get();
+  const docs = await readAllDocs(db.collection('videos'));
   const pairs: { docId: string; ytId: string }[] = [];
-  for (const d of snap.docs) {
+  for (const d of docs) {
     const ytId = extractYoutubeId(d.data().videoUrl || '');
     if (ytId) pairs.push({ docId: d.id, ytId });
   }
@@ -95,9 +114,9 @@ async function syncSpotifyPopularity(
   token: string,
   errors: string[],
 ) {
-  const snap = await db.collection('podcasts').get();
+  const docs = await readAllDocs(db.collection('podcasts'));
   const pairs: { docId: string; spId: string }[] = [];
-  for (const d of snap.docs) {
+  for (const d of docs) {
     const spId = extractSpotifyEpisodeId(d.data().audioUrl || '');
     if (spId) pairs.push({ docId: d.id, spId });
   }

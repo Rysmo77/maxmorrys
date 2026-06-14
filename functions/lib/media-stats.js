@@ -60,11 +60,29 @@ function chunk(arr, size) {
         out.push(arr.slice(i, i + size));
     return out;
 }
+/** Read an entire collection in bounded pages to avoid one unbounded `.get()`. */
+async function readAllDocs(col, pageSize = 300) {
+    const docs = [];
+    let last = null;
+    while (true) {
+        let q = col.orderBy('__name__').limit(pageSize);
+        if (last)
+            q = q.startAfter(last);
+        const snap = await q.get();
+        if (snap.empty)
+            break;
+        docs.push(...snap.docs);
+        if (snap.size < pageSize)
+            break;
+        last = snap.docs[snap.docs.length - 1];
+    }
+    return docs;
+}
 async function syncYoutubeViews(db, apiKey, errors) {
     var _a;
-    const snap = await db.collection('videos').get();
+    const docs = await readAllDocs(db.collection('videos'));
     const pairs = [];
-    for (const d of snap.docs) {
+    for (const d of docs) {
         const ytId = extractYoutubeId(d.data().videoUrl || '');
         if (ytId)
             pairs.push({ docId: d.id, ytId });
@@ -112,9 +130,9 @@ async function getSpotifyToken(clientId, clientSecret) {
     return data.access_token || null;
 }
 async function syncSpotifyPopularity(db, token, errors) {
-    const snap = await db.collection('podcasts').get();
+    const docs = await readAllDocs(db.collection('podcasts'));
     const pairs = [];
-    for (const d of snap.docs) {
+    for (const d of docs) {
         const spId = extractSpotifyEpisodeId(d.data().audioUrl || '');
         if (spId)
             pairs.push({ docId: d.id, spId });

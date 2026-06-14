@@ -312,8 +312,24 @@ service cloud.firestore {
       // leaderboard, expose a dedicated server-maintained aggregate doc instead.
       allow read: if isOwner(userId) || isAdmin();
 
-      // Users can create and update their own gamification profile
-      allow create, update: if isOwner(userId);
+      // Users can create/update their own profile, but values are BOUNDED so a
+      // client cannot self-award arbitrary XP/badges (which feed the public
+      // leaderboard and referral/badge rewards). Legit client writes only ever
+      // add small XP increments (max single reward = 200), grow the streak by +1,
+      // or append a single badge. NOTE: validate with the Firestore emulator
+      // (rules-unit-testing) before deploying. The long-term fix is to move all
+      // gamification writes server-side (Cloud Functions) — see audit S2.
+      allow create: if isOwner(userId)
+        && request.resource.data.xp <= 500
+        && request.resource.data.level >= 1 && request.resource.data.level <= 10
+        && request.resource.data.currentStreak <= 1
+        && request.resource.data.badges.size() <= 1;
+      allow update: if isOwner(userId)
+        && request.resource.data.xp >= resource.data.xp
+        && request.resource.data.xp <= resource.data.xp + 500
+        && request.resource.data.level >= 1 && request.resource.data.level <= 10
+        && request.resource.data.currentStreak <= resource.data.currentStreak + 1
+        && request.resource.data.badges.size() <= resource.data.badges.size() + 1;
 
       // Only admins can delete
       allow delete: if isAdmin();
