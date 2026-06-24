@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Info, Tag, Zap } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import LocalizedLink from './LocalizedLink';
 import { getActiveAnnouncements } from '../../lib/firestore';
 import type { Announcement } from '../../types';
 
@@ -11,6 +12,7 @@ const TYPE_CONFIG = {
 };
 
 export default function AnnouncementBanner() {
+  const { t } = useTranslation('shared');
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
@@ -35,18 +37,18 @@ export default function AnnouncementBanner() {
             <span className="opacity-90">{a.content}</span>
           </p>
           {a.link && (
-            <Link
+            <LocalizedLink
               to={a.link}
               className="shrink-0 text-xs font-bold underline underline-offset-2 opacity-90 hover:opacity-100 transition-opacity"
             >
-              En savoir plus →
-            </Link>
+              {t('announcement.learnMore')}
+            </LocalizedLink>
           )}
         </div>
         <button
           onClick={() => setDismissed((prev) => new Set([...prev, a.id]))}
           className="shrink-0 p-1 rounded-full hover:bg-white/20 transition-colors"
-          aria-label="Fermer l'annonce"
+          aria-label={t('announcement.dismiss')}
         >
           <X className="w-4 h-4" />
         </button>

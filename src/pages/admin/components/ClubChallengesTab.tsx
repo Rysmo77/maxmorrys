@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, X, Save, Pencil, Trash2, Loader2, Trophy } from 'lucide-react';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import { useToast } from '../../../components/ui/Toast';
-import { formatDate } from '../../../lib/utils';
+import { useFormat } from '../../../hooks/useFormat';
 import { inputCls } from '../hooks/useAdminClub';
 import { getClubChallenges, saveClubChallenge, deleteClubChallenge } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';
@@ -15,6 +16,8 @@ const EMPTY: Omit<ClubDigitosChallenge, 'id'> = {
 };
 
 export default function ClubChallengesTab() {
+  const { t } = useTranslation('adminClub');
+  const { formatDate } = useFormat();
   const { addToast } = useToast();
   const [challenges, setChallenges] = useState<ClubDigitosChallenge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,12 +48,12 @@ export default function ClubChallengesTab() {
     setSaving(true);
     try {
       await saveClubChallenge({ ...form, id: editing?.id, createdAt: editing?.createdAt ?? new Date().toISOString() });
-      addToast('success', editing ? 'Défi mis à jour.' : 'Défi créé.');
+      addToast('success', editing ? t('challenges.updated') : t('challenges.created'));
       setShowForm(false);
       load();
     } catch (error: unknown) {
       captureError(error, { context: 'Save club challenge failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
+      addToast('error', error instanceof Error ? error.message : t('challenges.saveError'));
     } finally {
       setSaving(false);
     }
@@ -60,9 +63,9 @@ export default function ClubChallengesTab() {
     try {
       await deleteClubChallenge(id);
       setChallenges((prev) => prev.filter((c) => c.id !== id));
-      addToast('success', 'Défi supprimé.');
+      addToast('success', t('challenges.deleted'));
     } catch {
-      addToast('error', 'Erreur de suppression.');
+      addToast('error', t('common.deleteError'));
     }
   };
 
@@ -71,52 +74,52 @@ export default function ClubChallengesTab() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button size="sm" onClick={() => openForm()} icon={<Plus className="w-4 h-4" />}>Nouveau défi</Button>
+        <Button size="sm" onClick={() => openForm()} icon={<Plus className="w-4 h-4" />}>{t('challenges.new')}</Button>
       </div>
 
       {showForm && (
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-neutral-900 dark:text-white">{editing ? 'Modifier le défi' : 'Nouveau défi'}</h3>
+            <h3 className="font-bold text-neutral-900 dark:text-white">{editing ? t('challenges.editTitle') : t('challenges.newTitle')}</h3>
             <button onClick={() => setShowForm(false)} className="p-1 rounded-lg text-neutral-400 hover:text-neutral-600 transition-colors"><X className="w-4 h-4" /></button>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2 space-y-1">
-              <label className="text-xs font-semibold text-neutral-500">Titre *</label>
-              <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Ex : Partage ton win de la semaine" className={inputCls} />
+              <label className="text-xs font-semibold text-neutral-500">{t('challenges.titleLabel')}</label>
+              <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder={t('challenges.titlePlaceholder')} className={inputCls} />
             </div>
             <div className="sm:col-span-2 space-y-1">
-              <label className="text-xs font-semibold text-neutral-500">Description *</label>
-              <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={3} placeholder="Consigne du défi..." className={`${inputCls} resize-y`} />
+              <label className="text-xs font-semibold text-neutral-500">{t('challenges.descriptionLabel')}</label>
+              <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={3} placeholder={t('challenges.descriptionPlaceholder')} className={`${inputCls} resize-y`} />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-neutral-500">Récompense (optionnel)</label>
-              <input value={form.reward ?? ''} onChange={(e) => setForm((p) => ({ ...p, reward: e.target.value }))} placeholder="Ex : badge Ambassadeur" className={inputCls} />
+              <label className="text-xs font-semibold text-neutral-500">{t('challenges.rewardLabel')}</label>
+              <input value={form.reward ?? ''} onChange={(e) => setForm((p) => ({ ...p, reward: e.target.value }))} placeholder={t('challenges.rewardPlaceholder')} className={inputCls} />
             </div>
             <div className="flex items-center gap-2 pt-6">
               <input type="checkbox" id="ch-active" checked={form.active} onChange={(e) => setForm((p) => ({ ...p, active: e.target.checked }))} className="rounded" />
-              <label htmlFor="ch-active" className="text-sm text-neutral-700 dark:text-neutral-300">Défi actif</label>
+              <label htmlFor="ch-active" className="text-sm text-neutral-700 dark:text-neutral-300">{t('challenges.activeLabel')}</label>
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-neutral-500">Début</label>
+              <label className="text-xs font-semibold text-neutral-500">{t('challenges.startLabel')}</label>
               <input type="date" value={form.startsAt} onChange={(e) => setForm((p) => ({ ...p, startsAt: e.target.value }))} className={inputCls} />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-neutral-500">Fin</label>
+              <label className="text-xs font-semibold text-neutral-500">{t('challenges.endLabel')}</label>
               <input type="date" value={form.endsAt} onChange={(e) => setForm((p) => ({ ...p, endsAt: e.target.value }))} className={inputCls} />
             </div>
           </div>
           <div className="flex justify-end gap-3 mt-5">
-            <Button variant="outline" onClick={() => setShowForm(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleSave} disabled={saving || !form.title.trim() || !form.description.trim()} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
-              {saving ? 'Enregistrement...' : 'Enregistrer'}
+              {saving ? t('common.saving') : t('common.save')}
             </Button>
           </div>
         </Card>
       )}
 
       {challenges.length === 0 && !showForm ? (
-        <Card><p className="text-center text-neutral-400 py-8">Aucun défi créé.</p></Card>
+        <Card><p className="text-center text-neutral-400 py-8">{t('challenges.empty')}</p></Card>
       ) : (
         <div className="space-y-3">
           {challenges.map((c) => (
@@ -125,7 +128,7 @@ export default function ClubChallengesTab() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <Trophy className="w-4 h-4 text-plum-500" />
-                    <Badge variant={c.active ? 'success' : 'default'} size="sm">{c.active ? 'Actif' : 'Inactif'}</Badge>
+                    <Badge variant={c.active ? 'success' : 'default'} size="sm">{c.active ? t('challenges.badgeActive') : t('challenges.badgeInactive')}</Badge>
                     {c.startsAt && c.endsAt && <span className="text-xs text-neutral-400">{formatDate(c.startsAt)} → {formatDate(c.endsAt)}</span>}
                   </div>
                   <p className="font-bold text-neutral-900 dark:text-white mb-1">{c.title}</p>

@@ -65,3 +65,9 @@ export { parseCv } from './cv';
 
 // ── Digest IA hebdomadaire du Club ────────────────────────────────────────
 export { weeklyClubDigest, weeklyClubDigestManual } from './digest';
+
+// ── Traduction de contenu à la volée (FR -> EN, cache Firestore) ───────────
+export { translateContent } from './translate';
+
+// ── Backfill des slugs anglais (slug_en) pour le SEO ───────────────────────
+export { backfillSlugEn } from './backfillSlugEn';

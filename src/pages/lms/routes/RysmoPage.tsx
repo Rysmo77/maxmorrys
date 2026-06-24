@@ -1,4 +1,5 @@
 import { useOutletContext, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Bot, Zap, Brain } from 'lucide-react';
 import RysmoStoreTab from '../tabs/RysmoStoreTab';
 import RysmoMemoryTab from '../tabs/RysmoMemoryTab';
@@ -6,12 +7,13 @@ import type { StudentLayoutContext } from '../../../components/layout/StudentLay
 
 type RysmoSubTab = 'tokens' | 'memoire';
 
-const TABS: { id: RysmoSubTab; label: string; icon: typeof Zap }[] = [
-  { id: 'tokens', label: 'Tokens & abonnements', icon: Zap },
-  { id: 'memoire', label: 'Mémoire', icon: Brain },
+const TABS: { id: RysmoSubTab; labelKey: string; icon: typeof Zap }[] = [
+  { id: 'tokens', labelKey: 'rysmoPage.tabTokens', icon: Zap },
+  { id: 'memoire', labelKey: 'rysmoPage.tabMemory', icon: Brain },
 ];
 
 export default function RysmoPage() {
+  const { t } = useTranslation('lms');
   const ctx = useOutletContext<StudentLayoutContext>();
   const [searchParams, setSearchParams] = useSearchParams();
   const active: RysmoSubTab = searchParams.get('tab') === 'memoire' ? 'memoire' : 'tokens';
@@ -28,7 +30,7 @@ export default function RysmoPage() {
         </div>
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white">Rysmo</h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Ton répétiteur IA : tokens, abonnements et mémoire.</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">{t('rysmoPage.subtitle')}</p>
         </div>
       </div>
 
@@ -45,7 +47,7 @@ export default function RysmoPage() {
             }`}
           >
             <tab.icon className="w-3.5 h-3.5" />
-            {tab.label}
+            {t(tab.labelKey)}
           </button>
         ))}
       </div>

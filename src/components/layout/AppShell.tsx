@@ -1,7 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Menu, Search } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { toCanonicalPath } from '../../i18n/routing';
 import AppSidebar, { type AppSidebarSection } from './AppSidebar';
 import AppBottomNav, { type BottomNavItem } from './AppBottomNav';
 import UserMenu from './UserMenu';
@@ -27,6 +29,7 @@ export interface AppShellProps {
 export default function AppShell({
   brand, sidebarSections, bottomNavItems, titleMap, beforeOutlet, outletContext, contentClassName,
 }: AppShellProps) {
+  const { t } = useTranslation('lms');
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem(COLLAPSED_KEY) === '1'; } catch { return false; }
   });
@@ -53,7 +56,8 @@ export default function AppShell({
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const pageTitle = titleMap?.[location.pathname] ?? deriveTitleFromPath(location.pathname);
+  const canonicalPath = toCanonicalPath(location.pathname);
+  const pageTitle = titleMap?.[canonicalPath] ?? deriveTitleFromPath(canonicalPath);
 
   const hasBottomNav = bottomNavItems && bottomNavItems.length > 0;
 
@@ -101,7 +105,7 @@ export default function AppShell({
               type="button"
               onClick={() => setMobileOpen(true)}
               className="md:hidden p-2 -ml-1 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              aria-label="Ouvrir le menu"
+              aria-label={t('shell.openMenu')}
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -118,10 +122,10 @@ export default function AppShell({
               type="button"
               onClick={() => setSearchOpen(true)}
               className="hidden md:flex items-center gap-2 px-3 h-9 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-              aria-label="Rechercher (Cmd+K)"
+              aria-label={t('shell.searchShortcut')}
             >
               <Search className="w-4 h-4" />
-              <span className="hidden lg:inline">Rechercher…</span>
+              <span className="hidden lg:inline">{t('shell.searchPlaceholder')}</span>
               <kbd className="hidden lg:inline text-[10px] font-bold tracking-wider text-neutral-400 border border-neutral-200 dark:border-neutral-700 rounded px-1 py-0.5">⌘K</kbd>
             </button>
 
@@ -130,7 +134,7 @@ export default function AppShell({
               type="button"
               onClick={() => setSearchOpen(true)}
               className="md:hidden p-2 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              aria-label="Rechercher"
+              aria-label={t('shell.search')}
             >
               <Search className="w-5 h-5" />
             </button>

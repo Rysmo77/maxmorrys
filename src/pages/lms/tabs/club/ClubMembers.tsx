@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { httpsCallable } from 'firebase/functions';
 import {
@@ -51,16 +52,17 @@ interface CompletionForm {
   linkedin: string; website: string; whatsapp: string;
   facebook: string; instagram: string; twitter: string; tiktok: string; youtube: string;
 }
-const COMPLETION_ITEMS: { key: string; label: string; benefit: string; done: (f: CompletionForm, photo: boolean) => boolean }[] = [
-  { key: 'photo', label: 'Photo de profil', benefit: 'Une photo inspire confiance — les profils avec photo sont bien plus contactés.', done: (_, photo) => photo },
-  { key: 'headline', label: 'Titre professionnel', benefit: "Décris ton expertise en une ligne pour être identifié au premier coup d'œil.", done: (f) => !!f.headline.trim() },
-  { key: 'skills', label: 'Compétences', benefit: 'Tes compétences te rendent détectable pour les missions et opportunités du Club.', done: (f) => !!f.skills.trim() },
-  { key: 'city', label: 'Ville', benefit: 'Indiquer ta ville te référence localement et te rend repérable pour des opportunités près de chez toi.', done: (f) => !!f.city.trim() },
-  { key: 'available', label: 'Disponibilité', benefit: "Active « Dispo pour missions » pour apparaître en priorité auprès des recruteurs du Club.", done: (f) => f.available },
-  { key: 'contact', label: 'Un moyen de contact', benefit: 'Ajoute au moins un réseau (LinkedIn, WhatsApp, site…) pour que les membres puissent te joindre.', done: (f) => !!(f.linkedin || f.whatsapp || f.website || f.facebook || f.instagram || f.twitter || f.tiktok || f.youtube).trim() },
+const COMPLETION_ITEMS: { key: string; labelKey: string; benefitKey: string; done: (f: CompletionForm, photo: boolean) => boolean }[] = [
+  { key: 'photo', labelKey: 'completion.photoLabel', benefitKey: 'completion.photoBenefit', done: (_, photo) => photo },
+  { key: 'headline', labelKey: 'completion.headlineLabel', benefitKey: 'completion.headlineBenefit', done: (f) => !!f.headline.trim() },
+  { key: 'skills', labelKey: 'completion.skillsLabel', benefitKey: 'completion.skillsBenefit', done: (f) => !!f.skills.trim() },
+  { key: 'city', labelKey: 'completion.cityLabel', benefitKey: 'completion.cityBenefit', done: (f) => !!f.city.trim() },
+  { key: 'available', labelKey: 'completion.availableLabel', benefitKey: 'completion.availableBenefit', done: (f) => f.available },
+  { key: 'contact', labelKey: 'completion.contactLabel', benefitKey: 'completion.contactBenefit', done: (f) => !!(f.linkedin || f.whatsapp || f.website || f.facebook || f.instagram || f.twitter || f.tiktok || f.youtube).trim() },
 ];
 
 export default function ClubMembers({ data }: { data: ClubData }) {
+  const { t } = useTranslation('club');
   const { user, displayName, photoURL, addToast, setDmTarget, setClubTab } = data;
   const { refreshUserData } = useAuth();
   const [profiles, setProfiles] = useState<ClubMemberProfile[]>([]);
@@ -106,8 +108,8 @@ export default function ClubMembers({ data }: { data: ClubData }) {
     const file = e.target.files?.[0];
     if (cvInputRef.current) cvInputRef.current.value = '';
     if (!file) return;
-    if (file.type !== 'application/pdf') { addToast('error', 'Seuls les PDF sont acceptés.'); return; }
-    if (file.size > 8 * 1024 * 1024) { addToast('error', 'CV trop lourd (max 8 Mo).'); return; }
+    if (file.type !== 'application/pdf') { addToast('error', t('members.toastCvTypeError')); return; }
+    if (file.size > 8 * 1024 * 1024) { addToast('error', t('members.toastCvSizeError')); return; }
     setAnalyzing(true);
     try {
       const fileBase64 = await fileToBase64(file);
@@ -126,9 +128,9 @@ export default function ClubMembers({ data }: { data: ClubData }) {
         youtube: r.youtube || p.youtube,
       }));
       setEditing(true);
-      addToast('success', 'CV analysé — vérifie et complète, puis enregistre.');
+      addToast('success', t('members.toastCvSuccess'));
     } catch (error: unknown) {
-      const msg = (error as { message?: string })?.message || "Échec de l'analyse du CV.";
+      const msg = (error as { message?: string })?.message || t('members.toastCvError');
       addToast('error', msg);
     } finally {
       setAnalyzing(false);
@@ -152,11 +154,11 @@ export default function ClubMembers({ data }: { data: ClubData }) {
       // Synchronise les réseaux vers le profil étudiant (source de vérité) + rafraîchit /mon-espace/profil
       await updateUserProfile(user.uid, socials).catch(() => null);
       await refreshUserData().catch(() => null);
-      addToast('success', 'Profil enregistré.');
+      addToast('success', t('members.toastSaved'));
       setEditing(false);
       reload();
     } catch (error: unknown) {
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
+      addToast('error', error instanceof Error ? error.message : t('members.toastSaveError'));
     } finally {
       setSaving(false);
     }
@@ -185,11 +187,11 @@ export default function ClubMembers({ data }: { data: ClubData }) {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <UsersThree className="w-5 h-5 text-plum-500" weight="duotone" />
-            <h3 className="font-bold text-neutral-900 dark:text-white">Mon profil membre</h3>
+            <h3 className="font-bold text-neutral-900 dark:text-white">{t('members.myProfile')}</h3>
           </div>
           {!editing && (
             <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-plum-600 dark:text-plum-400 hover:underline">
-              <PencilSimple className="w-3.5 h-3.5" weight="bold" /> Modifier
+              <PencilSimple className="w-3.5 h-3.5" weight="bold" /> {t('members.edit')}
             </button>
           )}
         </div>
@@ -197,8 +199,8 @@ export default function ClubMembers({ data }: { data: ClubData }) {
         {/* Taux de remplissage + avantages */}
         <div className="mt-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-neutral-500">Profil complété à {completion}%</span>
-            {completion === 100 && <span className="text-xs font-bold text-success-600 dark:text-success-400 inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" weight="bold" /> Profil au top !</span>}
+            <span className="text-xs font-semibold text-neutral-500">{t('members.profileCompleted', { percent: completion })}</span>
+            {completion === 100 && <span className="text-xs font-bold text-success-600 dark:text-success-400 inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" weight="bold" /> {t('members.profileTop')}</span>}
           </div>
           <div className="h-2 w-full bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
             <div className={cn('h-full rounded-full transition-all duration-500', completion === 100 ? 'bg-success-500' : 'bg-plum-500')} style={{ width: `${completion}%` }} />
@@ -209,8 +211,8 @@ export default function ClubMembers({ data }: { data: ClubData }) {
                 <li key={it.key} className="flex items-start gap-2 text-xs">
                   <Sparkle className="w-3.5 h-3.5 text-plum-500 flex-shrink-0 mt-0.5" weight="fill" />
                   <span className="text-neutral-600 dark:text-neutral-400">
-                    <button onClick={() => setEditing(true)} className="font-semibold text-neutral-800 dark:text-neutral-200 hover:text-plum-600 dark:hover:text-plum-400 transition-colors">{it.label}</button>
-                    {' — '}{it.benefit}
+                    <button onClick={() => setEditing(true)} className="font-semibold text-neutral-800 dark:text-neutral-200 hover:text-plum-600 dark:hover:text-plum-400 transition-colors">{t(`members.${it.labelKey}`)}</button>
+                    {' — '}{t(`members.${it.benefitKey}`)}
                   </span>
                 </li>
               ))}
@@ -226,48 +228,48 @@ export default function ClubMembers({ data }: { data: ClubData }) {
           className="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-plum-300 dark:border-plum-700 text-plum-600 dark:text-plum-400 text-sm font-semibold hover:bg-plum-50 dark:hover:bg-plum-900/20 transition-colors disabled:opacity-60"
         >
           {analyzing ? <CircleNotch className="w-4 h-4 animate-spin" /> : <Sparkle className="w-4 h-4" weight="fill" />}
-          {analyzing ? 'Analyse du CV en cours…' : 'Remplir depuis mon CV (PDF) avec l\'IA'}
+          {analyzing ? t('members.analyzingCv') : t('members.fillFromCv')}
         </button>
 
         {editing ? (
           <div className="mt-3 space-y-3">
-            <input value={form.headline} onChange={(e) => setForm((p) => ({ ...p, headline: e.target.value }))} placeholder="Titre (ex : Community manager freelance)" className={inputCls} />
-            <input value={form.skills} onChange={(e) => setForm((p) => ({ ...p, skills: e.target.value }))} placeholder="Compétences séparées par des virgules (SEO, Ads, IA…)" className={inputCls} />
+            <input value={form.headline} onChange={(e) => setForm((p) => ({ ...p, headline: e.target.value }))} placeholder={t('members.headlinePlaceholder')} className={inputCls} />
+            <input value={form.skills} onChange={(e) => setForm((p) => ({ ...p, skills: e.target.value }))} placeholder={t('members.skillsPlaceholder')} className={inputCls} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} placeholder="Ville" className={inputCls} />
-              <input value={form.whatsapp} onChange={(e) => setForm((p) => ({ ...p, whatsapp: e.target.value }))} placeholder="WhatsApp (optionnel)" className={inputCls} />
+              <input value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} placeholder={t('members.cityPlaceholder')} className={inputCls} />
+              <input value={form.whatsapp} onChange={(e) => setForm((p) => ({ ...p, whatsapp: e.target.value }))} placeholder={t('members.whatsappPlaceholder')} className={inputCls} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input value={form.linkedin} onChange={(e) => setForm((p) => ({ ...p, linkedin: e.target.value }))} placeholder="LinkedIn URL" className={inputCls} />
-              <input value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} placeholder="Site web" className={inputCls} />
+              <input value={form.linkedin} onChange={(e) => setForm((p) => ({ ...p, linkedin: e.target.value }))} placeholder={t('members.linkedinPlaceholder')} className={inputCls} />
+              <input value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} placeholder={t('members.websitePlaceholder')} className={inputCls} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input value={form.facebook} onChange={(e) => setForm((p) => ({ ...p, facebook: e.target.value }))} placeholder="Facebook" className={inputCls} />
-              <input value={form.instagram} onChange={(e) => setForm((p) => ({ ...p, instagram: e.target.value }))} placeholder="Instagram" className={inputCls} />
+              <input value={form.facebook} onChange={(e) => setForm((p) => ({ ...p, facebook: e.target.value }))} placeholder={t('members.facebookPlaceholder')} className={inputCls} />
+              <input value={form.instagram} onChange={(e) => setForm((p) => ({ ...p, instagram: e.target.value }))} placeholder={t('members.instagramPlaceholder')} className={inputCls} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <input value={form.twitter} onChange={(e) => setForm((p) => ({ ...p, twitter: e.target.value }))} placeholder="X (Twitter)" className={inputCls} />
-              <input value={form.tiktok} onChange={(e) => setForm((p) => ({ ...p, tiktok: e.target.value }))} placeholder="TikTok" className={inputCls} />
-              <input value={form.youtube} onChange={(e) => setForm((p) => ({ ...p, youtube: e.target.value }))} placeholder="YouTube" className={inputCls} />
+              <input value={form.twitter} onChange={(e) => setForm((p) => ({ ...p, twitter: e.target.value }))} placeholder={t('members.twitterPlaceholder')} className={inputCls} />
+              <input value={form.tiktok} onChange={(e) => setForm((p) => ({ ...p, tiktok: e.target.value }))} placeholder={t('members.tiktokPlaceholder')} className={inputCls} />
+              <input value={form.youtube} onChange={(e) => setForm((p) => ({ ...p, youtube: e.target.value }))} placeholder={t('members.youtubePlaceholder')} className={inputCls} />
             </div>
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer">
-                <input type="checkbox" checked={form.available} onChange={(e) => setForm((p) => ({ ...p, available: e.target.checked }))} className="rounded" /> Dispo pour missions
+                <input type="checkbox" checked={form.available} onChange={(e) => setForm((p) => ({ ...p, available: e.target.checked }))} className="rounded" /> {t('members.availableForMissions')}
               </label>
               <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer">
-                <input type="checkbox" checked={form.visible} onChange={(e) => setForm((p) => ({ ...p, visible: e.target.checked }))} className="rounded" /> Visible dans l'annuaire
+                <input type="checkbox" checked={form.visible} onChange={(e) => setForm((p) => ({ ...p, visible: e.target.checked }))} className="rounded" /> {t('members.visibleInDirectory')}
               </label>
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setEditing(false)} className="px-3 py-2 rounded-xl text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700">Annuler</button>
+              <button onClick={() => setEditing(false)} className="px-3 py-2 rounded-xl text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700">{t('members.cancel')}</button>
               <button onClick={handleSave} disabled={saving} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-plum-600 hover:bg-plum-700 text-white text-sm font-semibold disabled:opacity-50">
-                {saving ? <CircleNotch className="w-4 h-4 animate-spin" /> : <FloppyDisk className="w-4 h-4" weight="fill" />} Enregistrer
+                {saving ? <CircleNotch className="w-4 h-4 animate-spin" /> : <FloppyDisk className="w-4 h-4" weight="fill" />} {t('members.save')}
               </button>
             </div>
           </div>
         ) : (
           <p className="text-sm text-neutral-500 mt-2">
-            {form.visible ? 'Ton profil est visible dans l\'annuaire.' : 'Ton profil est masqué — active la visibilité pour apparaître.'}
+            {form.visible ? t('members.profileVisible') : t('members.profileHidden')}
           </p>
         )}
       </div>
@@ -275,12 +277,12 @@ export default function ClubMembers({ data }: { data: ClubData }) {
       {/* Search */}
       <div className="relative">
         <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher par nom, compétence, ville…" className={cn(inputCls, 'pl-10')} />
+        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('members.searchPlaceholder')} className={cn(inputCls, 'pl-10')} />
       </div>
 
       {/* Directory */}
       {filtered.length === 0 ? (
-        <ClubEmptyState icon={UsersThree} title="Aucun membre dans l'annuaire" subtitle="Complète et rends ton profil visible pour être le premier à apparaître." />
+        <ClubEmptyState icon={UsersThree} title={t('members.emptyTitle')} subtitle={t('members.emptySubtitle')} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((p) => (
@@ -297,8 +299,8 @@ export default function ClubMembers({ data }: { data: ClubData }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="font-bold text-neutral-900 dark:text-white truncate">{p.displayName}</p>
-                    {p.userId === user?.uid && <span className="text-[10px] text-neutral-400">· toi</span>}
-                    {p.available && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400">Dispo</span>}
+                    {p.userId === user?.uid && <span className="text-[10px] text-neutral-400">{t('members.you')}</span>}
+                    {p.available && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400">{t('members.available')}</span>}
                   </div>
                   {p.headline && <p className="text-xs text-neutral-500 truncate">{p.headline}</p>}
                   {p.city && <p className="text-xs text-neutral-400 flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3" weight="fill" /> {p.city}</p>}
@@ -335,7 +337,7 @@ export default function ClubMembers({ data }: { data: ClubData }) {
                   {selectedMember.headline && <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2">{selectedMember.headline}</p>}
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     {selectedMember.city && <span className="text-xs text-neutral-400 flex items-center gap-1"><MapPin className="w-3.5 h-3.5" weight="fill" /> {selectedMember.city}</span>}
-                    {selectedMember.available && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400">Dispo pour missions</span>}
+                    {selectedMember.available && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400">{t('members.availableForMissionsBadge')}</span>}
                   </div>
                 </div>
                 <button onClick={() => setSelectedMember(null)} className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors flex-shrink-0"><X className="w-4 h-4" weight="bold" /></button>
@@ -365,11 +367,11 @@ export default function ClubMembers({ data }: { data: ClubData }) {
               <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800">
                 {selectedMember.userId === user?.uid ? (
                   <button onClick={() => { setSelectedMember(null); setEditing(true); }} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-plum-600 hover:bg-plum-700 text-white text-sm font-semibold transition-colors">
-                    <PencilSimple className="w-4 h-4" weight="bold" /> Modifier mon profil
+                    <PencilSimple className="w-4 h-4" weight="bold" /> {t('members.editMyProfile')}
                   </button>
                 ) : (
                   <button onClick={() => { setDmTarget({ id: selectedMember.userId, name: selectedMember.displayName, photo: selectedMember.photoURL }); setSelectedMember(null); setClubTab('discussions'); }} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-plum-600 hover:bg-plum-700 text-white text-sm font-semibold transition-colors">
-                    <ChatCircle className="w-4 h-4" weight="fill" /> Envoyer un message
+                    <ChatCircle className="w-4 h-4" weight="fill" /> {t('members.sendMessage')}
                   </button>
                 )}
               </div>

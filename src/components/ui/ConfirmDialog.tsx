@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import Modal from './Modal';
 import Button from './Button';
@@ -20,14 +21,18 @@ export default function ConfirmDialog({
   open,
   onClose,
   onConfirm,
-  title = 'Confirmation',
+  title,
   message,
   children,
-  confirmLabel = 'Confirmer',
-  cancelLabel = 'Annuler',
+  confirmLabel,
+  cancelLabel,
   loading = false,
   variant = 'danger',
 }: ConfirmDialogProps) {
+  const { t } = useTranslation('ui');
+  const resolvedTitle = title ?? t('confirmDialog.title');
+  const resolvedConfirmLabel = confirmLabel ?? t('confirmDialog.confirm');
+  const resolvedCancelLabel = cancelLabel ?? t('confirmDialog.cancel');
   return (
     <Modal open={open} onClose={onClose} size="sm">
       <div className="text-center">
@@ -42,12 +47,12 @@ export default function ConfirmDialog({
               : 'text-accent-600 dark:text-accent-400'
           }`} />
         </div>
-        <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">{title}</h3>
+        <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">{resolvedTitle}</h3>
         {message && <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">{message}</p>}
         {children && <div className="text-left mb-6">{children}</div>}
         <div className="flex gap-3 justify-center">
           <Button variant="outline" onClick={onClose} disabled={loading}>
-            {cancelLabel}
+            {resolvedCancelLabel}
           </Button>
           <Button
             onClick={onConfirm}
@@ -55,7 +60,7 @@ export default function ConfirmDialog({
             className={variant === 'danger' ? 'bg-error-600 hover:bg-error-700 text-white border-error-600' : ''}
             icon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
           >
-            {confirmLabel}
+            {resolvedConfirmLabel}
           </Button>
         </div>
       </div>

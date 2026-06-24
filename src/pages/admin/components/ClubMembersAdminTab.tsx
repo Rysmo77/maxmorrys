@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2, Trash2, Eye, EyeOff, Pencil, Check, MapPin } from 'lucide-react';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
@@ -14,6 +15,7 @@ import type { ClubMemberProfile } from '../../../types';
 const initialsOf = (n: string) => n.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
 
 export default function ClubMembersAdminTab() {
+  const { t } = useTranslation('adminClub');
   const { addToast } = useToast();
   const confirm = useConfirmDialog();
   const [profiles, setProfiles] = useState<ClubMemberProfile[]>([]);
@@ -28,7 +30,7 @@ export default function ClubMembersAdminTab() {
   const toggleVisible = async (p: ClubMemberProfile) => {
     setProfiles((prev) => prev.map((x) => x.id === p.id ? { ...x, visible: !x.visible } : x));
     try { await adminUpdateClubProfile(p.userId, { visible: !p.visible }); }
-    catch { addToast('error', 'Erreur.'); load(); }
+    catch { addToast('error', t('common.genericError')); load(); }
   };
 
   const openEdit = (p: ClubMemberProfile) => { setEditId(p.id); setForm({ headline: p.headline ?? '', skills: (p.skills ?? []).join(', '), city: p.city ?? '' }); };
@@ -40,26 +42,26 @@ export default function ClubMembersAdminTab() {
       await adminUpdateClubProfile(p.userId, { headline: form.headline.trim(), skills, city: form.city.trim() });
       setProfiles((prev) => prev.map((x) => x.id === p.id ? { ...x, headline: form.headline.trim(), skills, city: form.city.trim() } : x));
       setEditId(null);
-      addToast('success', 'Profil mis à jour.');
+      addToast('success', t('members.updated'));
     } catch (error: unknown) {
       captureError(error, { context: 'Admin update club profile failed' });
-      addToast('error', 'Erreur lors de la mise à jour.');
+      addToast('error', t('members.updateError'));
     } finally { setSaving(false); }
   };
 
   const handleDelete = (p: ClubMemberProfile) => {
-    confirm.requestConfirm(`Supprimer le profil de ${p.displayName} ?`, async () => {
+    confirm.requestConfirm(t('members.deleteConfirm', { name: p.displayName }), async () => {
       try {
         await deleteClubProfile(p.userId);
         setProfiles((prev) => prev.filter((x) => x.id !== p.id));
-        addToast('success', 'Profil supprimé.');
-      } catch { addToast('error', 'Erreur de suppression.'); }
+        addToast('success', t('members.deleted'));
+      } catch { addToast('error', t('common.deleteError')); }
       confirm.closeConfirm();
     });
   };
 
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>;
-  if (profiles.length === 0) return <Card><p className="text-center text-neutral-400 py-8">Aucun profil membre.</p></Card>;
+  if (profiles.length === 0) return <Card><p className="text-center text-neutral-400 py-8">{t('members.empty')}</p></Card>;
 
   return (
     <div className="space-y-3">
@@ -73,17 +75,17 @@ export default function ClubMembersAdminTab() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                   <p className="text-sm font-semibold text-neutral-900 dark:text-white">{p.displayName}</p>
-                  <Badge variant={p.visible ? 'default' : 'warning'} size="sm">{p.visible ? 'Visible' : 'Masqué'}</Badge>
-                  {p.available && <Badge variant="success" size="sm">Dispo</Badge>}
+                  <Badge variant={p.visible ? 'default' : 'warning'} size="sm">{p.visible ? t('members.badgeVisible') : t('members.badgeHidden')}</Badge>
+                  {p.available && <Badge variant="success" size="sm">{t('members.badgeAvailable')}</Badge>}
                 </div>
                 {editId === p.id ? (
                   <div className="space-y-2 mt-2">
-                    <input value={form.headline} onChange={(e) => setForm((f) => ({ ...f, headline: e.target.value }))} placeholder="Titre" className={inputCls} />
-                    <input value={form.skills} onChange={(e) => setForm((f) => ({ ...f, skills: e.target.value }))} placeholder="Compétences (séparées par des virgules)" className={inputCls} />
-                    <input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} placeholder="Ville" className={inputCls} />
+                    <input value={form.headline} onChange={(e) => setForm((f) => ({ ...f, headline: e.target.value }))} placeholder={t('members.headlinePlaceholder')} className={inputCls} />
+                    <input value={form.skills} onChange={(e) => setForm((f) => ({ ...f, skills: e.target.value }))} placeholder={t('members.skillsPlaceholder')} className={inputCls} />
+                    <input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} placeholder={t('members.cityPlaceholder')} className={inputCls} />
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => saveEdit(p)} disabled={saving} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}>Enregistrer</Button>
-                      <Button size="sm" variant="outline" onClick={() => setEditId(null)}>Annuler</Button>
+                      <Button size="sm" onClick={() => saveEdit(p)} disabled={saving} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}>{t('members.save')}</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditId(null)}>{t('members.cancel')}</Button>
                     </div>
                   </div>
                 ) : (
@@ -98,14 +100,14 @@ export default function ClubMembersAdminTab() {
               </div>
             </div>
             <div className="flex gap-1 flex-shrink-0">
-              <button onClick={() => toggleVisible(p)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors" aria-label="Visibilité">{p.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
-              <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors" aria-label="Modifier"><Pencil className="w-4 h-4" /></button>
-              <button onClick={() => handleDelete(p)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" aria-label="Supprimer"><Trash2 className="w-4 h-4" /></button>
+              <button onClick={() => toggleVisible(p)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors" aria-label={t('members.visibilityAria')}>{p.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
+              <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors" aria-label={t('members.editAria')}><Pencil className="w-4 h-4" /></button>
+              <button onClick={() => handleDelete(p)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" aria-label={t('members.deleteAria')}><Trash2 className="w-4 h-4" /></button>
             </div>
           </div>
         </Card>
       ))}
-      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title="Supprimer" message={confirm.message} confirmLabel="Supprimer" />
+      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title={t('members.deleteTitle')} message={confirm.message} confirmLabel={t('members.confirmLabel')} />
     </div>
   );
 }

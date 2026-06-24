@@ -1,11 +1,13 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import LocalizedLink from '../shared/LocalizedLink';
 import { httpsCallable } from 'firebase/functions';
 import DOMPurify from 'dompurify';
 import { functions } from '../../config/firebase';
 import { captureError } from '../../lib/sentry';
 import { trackChatbotInteraction } from '../../lib/tracking';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { X, Send, Mic, MicOff, Bot, Loader2, Volume2, VolumeX, Trash2, Sparkles } from 'lucide-react';
 
 interface Message {
@@ -36,13 +38,6 @@ interface QuotaSnapshot {
   hasActiveSubscription: boolean;
   hasClubBonus: boolean;
 }
-
-const QUICK_ACTIONS = [
-  'Explique-moi un concept marketing',
-  'Fais-moi réviser 10 minutes',
-  'Génère un quiz sur ce que j\'ai appris',
-  'Recommande-moi une ressource',
-];
 
 // Déclaration pour l'API Web Speech
 declare global {
@@ -91,7 +86,7 @@ interface SpeechRecognitionAlternative {
 }
 
 const rysmoCallable = httpsCallable<
-  { message: string; conversationHistory: Message[]; userContext?: { displayName?: string; enrolledCourses?: string[] } },
+  { message: string; conversationHistory: Message[]; language?: 'fr' | 'en'; userContext?: { displayName?: string; enrolledCourses?: string[] } },
   RysmoResponse
 >(functions, 'rysmo');
 
@@ -121,6 +116,8 @@ function persistMessages(uid: string, messages: Message[]) {
 }
 
 export default function RysmoWidget() {
+  const { t } = useTranslation('rysmo');
+  const { language } = useLanguage();
   const { user, userData } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -137,8 +134,18 @@ export default function RysmoWidget() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const displayName = user
-    ? (userData?.displayName || user.displayName || user.email?.split('@')[0] || 'Étudiant')
+    ? (userData?.displayName || user.displayName || user.email?.split('@')[0] || t('defaultName'))
     : '';
+
+  const quickActions = useMemo(
+    () => [
+      t('quickActions.explainConcept'),
+      t('quickActions.reviewSession'),
+      t('quickActions.generateQuiz'),
+      t('quickActions.recommendResource'),
+    ],
+    [t],
+  );
 
   // Restore persisted messages on mount
   useEffect(() => {
@@ -186,7 +193,7 @@ export default function RysmoWidget() {
       setMessages([
         {
           role: 'assistant',
-          content: `Salut ${displayName} ! Je suis **Rysmo**, ton répétiteur IA. Je suis là pour t'aider à comprendre tes cours, créer des quiz, et recommander des ressources. Comment puis-je t'aider aujourd'hui ?`,
+          content: t('greeting', { name: displayName }),
         },
       ]);
     }
@@ -210,6 +217,7 @@ export default function RysmoWidget() {
       const result = await rysmoCallable({
         message: trimmed,
         conversationHistory: messages,
+        language,
         userContext: {
           displayName,
           enrolledCourses: [],
@@ -248,18 +256,18 @@ export default function RysmoWidget() {
     } catch (err: unknown) {
       captureError(err, { context: 'Rysmo error' });
 
-      let errorMessage = "Désolé, une erreur s'est produite. Réessaie dans quelques instants.";
+      let errorMessage = t('errors.generic');
       let isLimit = false;
       if (err && typeof err === 'object' && 'code' in err) {
         const code = (err as { code: string }).code;
         if (code === 'functions/unauthenticated') {
-          errorMessage = "Tu dois être connecté pour utiliser Rysmo.";
+          errorMessage = t('errors.unauthenticated');
         } else if (code === 'functions/resource-exhausted') {
           const message = (err as { message?: string }).message;
-          errorMessage = message || "Tu as exploré Rysmo à fond aujourd'hui ! Continue avec un pack à partir de 500 XOF.";
+          errorMessage = message || t('errors.limitReached');
           isLimit = true;
         } else if (code === 'functions/not-found') {
-          errorMessage = "Le service Rysmo n'est pas disponible pour le moment.";
+          errorMessage = t('errors.notFound');
         }
       }
 
@@ -284,7 +292,7 @@ export default function RysmoWidget() {
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognitionClass) {
-      setVoiceError("La dictée vocale n'est pas supportée par ce navigateur. Utilise Chrome ou Edge.");
+      setVoiceError(t('voice.notSupported'));
       return;
     }
 
@@ -309,13 +317,13 @@ export default function RysmoWidget() {
       setListening(false);
       if (event.error === 'aborted') return; // arrêt volontaire → silencieux
       const map: Record<string, string> = {
-        'not-allowed': 'Accès au micro refusé. Autorise le micro dans les réglages du navigateur.',
-        'service-not-allowed': 'Accès au micro refusé. Autorise le micro dans les réglages du navigateur.',
-        'no-speech': "Je n'ai rien entendu. Réessaie en parlant plus près du micro.",
-        'audio-capture': 'Aucun micro détecté sur cet appareil.',
-        'network': 'Problème réseau pendant la reconnaissance vocale. Réessaie.',
+        'not-allowed': t('voice.notAllowed'),
+        'service-not-allowed': t('voice.notAllowed'),
+        'no-speech': t('voice.noSpeech'),
+        'audio-capture': t('voice.audioCapture'),
+        'network': t('voice.network'),
       };
-      setVoiceError(map[event.error] ?? 'La dictée vocale a échoué. Réessaie.');
+      setVoiceError(map[event.error] ?? t('voice.failed'));
     };
     recognition.onend = () => setListening(false);
 
@@ -325,7 +333,7 @@ export default function RysmoWidget() {
       setListening(true);
     } catch {
       setListening(false);
-      setVoiceError('Impossible de démarrer la dictée. Réessaie dans un instant.');
+      setVoiceError(t('voice.startFailed'));
     }
   };
 
@@ -391,7 +399,7 @@ export default function RysmoWidget() {
               </div>
               <div>
                 <p className="text-sm font-black tracking-wide">Rysmo</p>
-                <p className="text-[10px] text-teal-200 font-medium">Répétiteur IA · Max-Morrys</p>
+                <p className="text-[10px] text-teal-200 font-medium">{t('subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -401,7 +409,7 @@ export default function RysmoWidget() {
                   if (voiceEnabled) window.speechSynthesis?.cancel();
                 }}
                 className="p-2 rounded-full hover:bg-white/20 transition-colors"
-                title={voiceEnabled ? 'Couper la voix' : 'Activer la voix'}
+                title={voiceEnabled ? t('muteVoice') : t('enableVoice')}
               >
                 {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
               </button>
@@ -415,7 +423,7 @@ export default function RysmoWidget() {
                     setHasGreeted(false);
                   }}
                   className="p-2 rounded-full hover:bg-white/20 transition-colors"
-                  title="Effacer la conversation"
+                  title={t('clearConversation')}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -423,7 +431,7 @@ export default function RysmoWidget() {
               <button
                 onClick={() => setOpen(false)}
                 className="p-2 rounded-full hover:bg-white/20 transition-colors"
-                aria-label="Fermer Rysmo"
+                aria-label={t('closeRysmo')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -465,7 +473,7 @@ export default function RysmoWidget() {
             {/* Actions rapides (première ouverture, avant interaction) */}
             {messages.length <= 1 && !loading && (
               <div className="pt-1 space-y-1.5">
-                {QUICK_ACTIONS.map((action) => (
+                {quickActions.map((action) => (
                   <button
                     key={action}
                     onClick={() => sendMessage(action)}
@@ -487,15 +495,15 @@ export default function RysmoWidget() {
           >
             {/* Bannière upsell quand limite atteinte */}
             {limitReached && (
-              <Link
+              <LocalizedLink
                 to="/mon-espace/rysmo?tab=tokens"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold shadow-sm hover:from-amber-600 hover:to-orange-600 transition-all"
               >
                 <Sparkles className="w-4 h-4 flex-shrink-0" />
-                <span className="flex-1">Continuer maintenant — pack dès 500 XOF</span>
-              </Link>
+                <span className="flex-1">{t('upsellBanner')}</span>
+              </LocalizedLink>
             )}
             <div className="flex items-end gap-2">
               <textarea
@@ -503,7 +511,7 @@ export default function RysmoWidget() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Pose ta question à Rysmo..."
+                placeholder={t('inputPlaceholder')}
                 rows={1}
                 className="flex-1 resize-none bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 dark:focus:border-teal-500 transition-colors max-h-24 overflow-y-auto"
                 style={{ height: 'auto' }}
@@ -521,7 +529,7 @@ export default function RysmoWidget() {
                     ? 'bg-red-500 text-white animate-pulse'
                     : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                 }`}
-                title={listening ? 'Arrêter la dictée' : 'Dicter un message'}
+                title={listening ? t('stopDictation') : t('startDictation')}
               >
                 {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </button>
@@ -529,31 +537,31 @@ export default function RysmoWidget() {
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || loading}
                 className="p-2 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-                aria-label="Envoyer"
+                aria-label={t('send')}
               >
                 <Send className="w-4 h-4" />
               </button>
             </div>
             <div className="flex items-center justify-between mt-2 gap-2">
               <p className="text-[10px] text-neutral-400 dark:text-neutral-600">
-                Voix IA · Rysmo peut faire des erreurs
+                {t('disclaimer')}
               </p>
               {quota && (
-                <Link
+                <LocalizedLink
                   to="/mon-espace/rysmo?tab=tokens"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[10px] text-neutral-500 dark:text-neutral-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors flex items-center gap-1"
-                  title="Voir mes quotas et packs Rysmo"
+                  title={t('quotaTooltip')}
                 >
                   {quota.packBalance > 0 && (
-                    <span className="font-semibold text-teal-600 dark:text-teal-400">{quota.packBalance} pack</span>
+                    <span className="font-semibold text-teal-600 dark:text-teal-400">{t('quotaPack', { balance: quota.packBalance })}</span>
                   )}
                   <span>
-                    {quota.dayRemaining}/{quota.dailyLimit} aujourd'hui
+                    {t('quotaToday', { remaining: quota.dayRemaining, limit: quota.dailyLimit })}
                   </span>
-                  {quota.hasClubBonus && <span className="text-amber-500" title="Bonus Club Digitos">★</span>}
-                </Link>
+                  {quota.hasClubBonus && <span className="text-amber-500" title={t('clubBonusTooltip')}>★</span>}
+                </LocalizedLink>
               )}
             </div>
             {voiceError && (
@@ -570,7 +578,7 @@ export default function RysmoWidget() {
           open ? 'hidden sm:flex bg-neutral-700 dark:bg-neutral-600 rotate-12 scale-90' : 'flex bg-teal-600 hover:bg-teal-700 hover:scale-105'
         }`}
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
-        aria-label={open ? 'Fermer Rysmo' : 'Ouvrir Rysmo, répétiteur IA'}
+        aria-label={open ? t('closeRysmo') : t('openRysmo')}
       >
         {open ? (
           <X className="w-5 h-5 text-white" />

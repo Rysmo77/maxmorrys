@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import { Mail, Lock, Eye, EyeOff, TrendingUp, Users, Award, BookOpen } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import { localizeAuthError } from '../../lib/auth-errors';
+import LocalizedLink from '../../components/shared/LocalizedLink';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -19,13 +21,14 @@ function GoogleIcon() {
 }
 
 const brandStats = [
-  { icon: TrendingUp, value: '+340%', label: 'Croissance trafic' },
-  { icon: BookOpen, value: '10+', label: 'Formations' },
-  { icon: Users, value: '50+', label: 'Étudiants' },
-  { icon: Award, value: '94%', label: 'Taux de réussite' },
+  { icon: TrendingUp, value: '+340%', labelKey: 'stats.trafficGrowth' },
+  { icon: BookOpen, value: '10+', labelKey: 'stats.formations' },
+  { icon: Users, value: '50+', labelKey: 'stats.students' },
+  { icon: Award, value: '94%', labelKey: 'stats.successRate' },
 ];
 
 export default function Login() {
+  const { t } = useTranslation('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -40,9 +43,9 @@ export default function Login() {
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!email.trim()) errs.email = "L'email est requis";
-    else if (!EMAIL_RE.test(email.trim())) errs.email = 'Email invalide';
-    if (!password) errs.password = 'Le mot de passe est requis';
+    if (!email.trim()) errs.email = t('validation.emailRequired');
+    else if (!EMAIL_RE.test(email.trim())) errs.email = t('validation.emailInvalid');
+    if (!password) errs.password = t('validation.passwordRequired');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -53,10 +56,10 @@ export default function Login() {
     setLoading(true);
     try {
       await signIn(email, password);
-      addToast('success', 'Connexion réussie !');
+      addToast('success', t('login.successToast'));
       navigate(from, { replace: true });
     } catch (error: unknown) {
-      addToast('error', localizeAuthError(error));
+      addToast('error', localizeAuthError(error, t));
     }
     setLoading(false);
   };
@@ -65,10 +68,10 @@ export default function Login() {
     setGoogleLoading(true);
     try {
       await signInWithGoogle();
-      addToast('success', 'Connexion réussie !');
+      addToast('success', t('login.successToast'));
       navigate(from, { replace: true });
     } catch (error: unknown) {
-      addToast('error', localizeAuthError(error));
+      addToast('error', localizeAuthError(error, t));
     }
     setGoogleLoading(false);
   };
@@ -85,32 +88,31 @@ export default function Login() {
 
         {/* Logo */}
         <div className="relative z-10 p-10">
-          <Link to="/" className="inline-block">
+          <LocalizedLink to="/" className="inline-block">
             <span className="font-black text-2xl tracking-tight text-white hover:text-brand-400 transition-colors">
               Hellooo<span className="text-brand-500">!</span>
             </span>
-          </Link>
+          </LocalizedLink>
         </div>
 
         {/* Contenu central */}
         <div className="relative z-10 flex-1 flex flex-col justify-center px-10 xl:px-16">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-400 mb-6">
-            BIENVENUE
+            {t('brand.eyebrowWelcome')}
           </p>
           <h2 className="text-4xl xl:text-5xl font-black text-white leading-[1.05] tracking-tight mb-6">
-            Maîtrise<br />le digital,<br />
-            <span className="text-brand-400">transforme</span><br />ton avenir.
+            <Trans t={t} i18nKey="brand.loginTitle" components={{ br: <br />, span: <span className="text-brand-400" /> }} />
           </h2>
           <p className="text-neutral-400 text-sm leading-relaxed max-w-xs">
-            Formations pratiques, podcasts et vidéos pour exceller en marketing digital, SEO et IA.
+            {t('brand.loginSubtitle')}
           </p>
 
           {/* Citation */}
           <div className="mt-10 border-l-2 border-brand-500/40 pl-5">
             <p className="text-neutral-300 text-sm italic leading-relaxed">
-              "Franchement... Max-Morrys est fort, rien à dire. Essayez de vous même."
+              {t('brand.quote')}
             </p>
-            <p className="text-neutral-500 text-xs mt-2 font-medium">— Étudiant de la communauté</p>
+            <p className="text-neutral-500 text-xs mt-2 font-medium">{t('brand.quoteAuthor')}</p>
           </div>
         </div>
 
@@ -118,9 +120,9 @@ export default function Login() {
         <div className="relative z-10 p-10 border-t border-white/5">
           <div className="grid grid-cols-4 gap-4">
             {brandStats.map((stat) => (
-              <div key={stat.label} className="text-center">
+              <div key={stat.labelKey} className="text-center">
                 <p className="text-xl font-black text-brand-400 tracking-tight">{stat.value}</p>
-                <p className="text-[10px] text-neutral-600 mt-0.5 font-medium leading-tight">{stat.label}</p>
+                <p className="text-[10px] text-neutral-600 mt-0.5 font-medium leading-tight">{t(stat.labelKey)}</p>
               </div>
             ))}
           </div>
@@ -133,18 +135,18 @@ export default function Login() {
 
           {/* Logo mobile */}
           <div className="lg:hidden text-center mb-10">
-            <Link to="/">
+            <LocalizedLink to="/">
               <span className="font-black text-2xl tracking-tight text-neutral-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
                 Hellooo<span className="text-brand-500">!</span>
               </span>
-            </Link>
+            </LocalizedLink>
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-1">
-            Bon retour !
+            {t('login.title')}
           </h1>
           <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-8">
-            Connecte-toi pour accéder à ton espace.
+            {t('login.subtitle')}
           </p>
 
           {/* Bouton Google */}
@@ -159,13 +161,13 @@ export default function Login() {
             ) : (
               <GoogleIcon />
             )}
-            Continuer avec Google
+            {t('login.googleButton')}
           </button>
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-800" />
-            <span className="text-xs font-medium text-neutral-400">ou continuer avec email</span>
+            <span className="text-xs font-medium text-neutral-400">{t('login.divider')}</span>
             <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-800" />
           </div>
 
@@ -173,7 +175,7 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
               <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                Email
+                {t('login.emailLabel')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
@@ -181,7 +183,7 @@ export default function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: '' })); }}
-                  placeholder="ton@email.com"
+                  placeholder={t('login.emailPlaceholder')}
                   className={`w-full pl-10 pr-4 py-3 rounded-xl border text-sm bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors ${errors.email ? 'border-red-400 dark:border-red-500' : 'border-neutral-200 dark:border-neutral-700'}`}
                 />
               </div>
@@ -191,11 +193,11 @@ export default function Login() {
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                  Mot de passe
+                  {t('login.passwordLabel')}
                 </label>
-                <Link to="/mot-de-passe-oublie" className="text-xs text-brand-600 dark:text-brand-400 hover:underline">
-                  Oublié ?
-                </Link>
+                <LocalizedLink to="/mot-de-passe-oublie" className="text-xs text-brand-600 dark:text-brand-400 hover:underline">
+                  {t('login.forgotPassword')}
+                </LocalizedLink>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
@@ -203,7 +205,7 @@ export default function Login() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })); }}
-                  placeholder="Ton mot de passe"
+                  placeholder={t('login.passwordPlaceholder')}
                   className={`w-full pl-10 pr-10 py-3 rounded-xl border text-sm bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors ${errors.password ? 'border-red-400 dark:border-red-500' : 'border-neutral-200 dark:border-neutral-700'}`}
                 />
                 <button
@@ -225,22 +227,22 @@ export default function Login() {
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
               ) : null}
-              {loading ? 'Connexion...' : 'Se connecter'}
+              {loading ? t('login.submitting') : t('login.submit')}
             </button>
 
             <p className="text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500 text-center">
-              En te connectant, tu acceptes nos{' '}
-              <Link to="/legal/cgu" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Conditions d'utilisation</Link>
-              {' '}et notre{' '}
-              <Link to="/legal/confidentialite" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Politique de confidentialité</Link>.
+              {t('terms.loginIntro')}{' '}
+              <LocalizedLink to="/legal/cgu" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">{t('terms.termsLink')}</LocalizedLink>
+              {' '}{t('terms.and')}{' '}
+              <LocalizedLink to="/legal/confidentialite" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">{t('terms.privacyLink')}</LocalizedLink>.
             </p>
           </form>
 
           <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mt-8">
-            Pas encore de compte ?{' '}
-            <Link to="/inscription" className="text-brand-600 dark:text-brand-400 font-semibold hover:underline">
-              Créer un compte
-            </Link>
+            {t('login.noAccount')}{' '}
+            <LocalizedLink to="/inscription" className="text-brand-600 dark:text-brand-400 font-semibold hover:underline">
+              {t('login.createAccount')}
+            </LocalizedLink>
           </p>
         </div>
       </div>

@@ -31,7 +31,11 @@ export async function getPublishedPodcastsPaginated(
   return { podcasts: data.slice(0, pageSize), hasMore };
 }
 
-export async function getPodcastBySlug(slug: string): Promise<Podcast | null> {
+export async function getPodcastBySlug(slug: string, lang: 'fr' | 'en' = 'fr'): Promise<Podcast | null> {
+  if (lang === 'en') {
+    const byEn = await getCollection<Podcast>('podcasts', where('slug_en', '==', slug), limit(1));
+    if (byEn[0]?.status === 'published') return byEn[0];
+  }
   const results = await getCollection<Podcast>('podcasts', where('slug', '==', slug), where('status', '==', 'published'));
   return results[0] ?? null;
 }
@@ -78,7 +82,11 @@ export async function getPublishedVideosPaginated(
   return { videos: data.slice(0, pageSize), hasMore };
 }
 
-export async function getVideoBySlug(slug: string): Promise<Video | null> {
+export async function getVideoBySlug(slug: string, lang: 'fr' | 'en' = 'fr'): Promise<Video | null> {
+  if (lang === 'en') {
+    const byEn = await getCollection<Video>('videos', where('slug_en', '==', slug), limit(1));
+    if (byEn[0]?.status === 'published') return byEn[0];
+  }
   const results = await getCollection<Video>('videos', where('slug', '==', slug), where('status', '==', 'published'));
   return results[0] ?? null;
 }

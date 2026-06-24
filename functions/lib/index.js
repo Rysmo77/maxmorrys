@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.weeklyClubDigestManual = exports.weeklyClubDigest = exports.parseCv = exports.onReferralConversion = exports.rebuildLeaderboardManual = exports.rebuildLeaderboardScheduled = exports.catalog = exports.rss = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.issueCertificate = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.rysmoCoachNudge = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createRysmoSubscriptionCharge = exports.createRysmoPackCharge = exports.createClubCharge = exports.createBictorysCharge = exports.importSpotifyEpisodesManual = exports.importSpotifyEpisodes = exports.syncMediaStatsManual = exports.syncMediaStats = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageRysmoQuota = exports.adminManageEnrollment = exports.adminCreateUser = exports.clearRysmoMemory = exports.getRysmoQuota = exports.rysmo = void 0;
+exports.backfillSlugEn = exports.translateContent = exports.weeklyClubDigestManual = exports.weeklyClubDigest = exports.parseCv = exports.onReferralConversion = exports.rebuildLeaderboardManual = exports.rebuildLeaderboardScheduled = exports.catalog = exports.rss = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.issueCertificate = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.rysmoCoachNudge = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createRysmoSubscriptionCharge = exports.createRysmoPackCharge = exports.createClubCharge = exports.createBictorysCharge = exports.importSpotifyEpisodesManual = exports.importSpotifyEpisodes = exports.syncMediaStatsManual = exports.syncMediaStats = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageRysmoQuota = exports.adminManageEnrollment = exports.adminCreateUser = exports.clearRysmoMemory = exports.getRysmoQuota = exports.rysmo = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ── AI Chatbot ────────────────────────────────────────────────────────────
@@ -113,4 +113,10 @@ Object.defineProperty(exports, "parseCv", { enumerable: true, get: function () {
 var digest_1 = require("./digest");
 Object.defineProperty(exports, "weeklyClubDigest", { enumerable: true, get: function () { return digest_1.weeklyClubDigest; } });
 Object.defineProperty(exports, "weeklyClubDigestManual", { enumerable: true, get: function () { return digest_1.weeklyClubDigestManual; } });
+// ── Traduction de contenu à la volée (FR -> EN, cache Firestore) ───────────
+var translate_1 = require("./translate");
+Object.defineProperty(exports, "translateContent", { enumerable: true, get: function () { return translate_1.translateContent; } });
+// ── Backfill des slugs anglais (slug_en) pour le SEO ───────────────────────
+var backfillSlugEn_1 = require("./backfillSlugEn");
+Object.defineProperty(exports, "backfillSlugEn", { enumerable: true, get: function () { return backfillSlugEn_1.backfillSlugEn; } });
 //# sourceMappingURL=index.js.map

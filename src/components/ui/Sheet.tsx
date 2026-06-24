@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 
 interface SheetProps {
@@ -9,6 +10,7 @@ interface SheetProps {
 }
 
 export default function Sheet({ open, onClose, title, children }: SheetProps) {
+  const { t } = useTranslation('ui');
   const sheetRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const currentY = useRef(0);
@@ -82,7 +84,7 @@ export default function Sheet({ open, onClose, title, children }: SheetProps) {
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
-              aria-label="Fermer"
+              aria-label={t('sheet.close')}
             >
               <X className="w-4 h-4" />
             </button>

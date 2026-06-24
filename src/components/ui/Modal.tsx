@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -18,6 +19,7 @@ const sizeMap = {
 };
 
 export default function Modal({ open, onClose, children, title, size = 'md' }: ModalProps) {
+  const { t } = useTranslation('ui');
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -80,7 +82,7 @@ export default function Modal({ open, onClose, children, title, size = 'md' }: M
         {title && (
           <div className="flex items-center justify-between p-6 border-b border-neutral-200 dark:border-neutral-700">
             <h2 id="modal-title" className="text-lg font-semibold text-neutral-900 dark:text-white">{title}</h2>
-            <button onClick={onClose} className="p-1 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" aria-label="Fermer">
+            <button onClick={onClose} className="p-1 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" aria-label={t('modal.close')}>
               <X className="w-5 h-5" />
             </button>
           </div>

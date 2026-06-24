@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   Target, CheckCircle2, AlertCircle, XCircle,
   Monitor, Smartphone, ChevronDown, ChevronUp,
@@ -51,7 +53,7 @@ function stripMarkdown(text: string): string {
 }
 
 type CheckResult = {
-  label: string;
+  labelKey: string;
   pass: boolean;
   severity: 'red' | 'orange';
 };
@@ -73,52 +75,52 @@ function useChecks(props: SEOPanelProps): { checks: CheckResult[]; score: number
 
     const checks: CheckResult[] = [
       {
-        label: 'Keyphrase cible renseignée',
+        labelKey: 'seo.checks.keyphraseSet',
         pass: kw.length > 0,
         severity: 'red',
       },
       {
-        label: 'Keyphrase dans le titre SEO',
+        labelKey: 'seo.checks.keyphraseInTitle',
         pass: kw.length > 0 && effectiveTitle.includes(kw),
         severity: 'orange',
       },
       {
-        label: 'Keyphrase dans la meta description',
+        labelKey: 'seo.checks.keyphraseInDesc',
         pass: kw.length > 0 && effectiveDesc.includes(kw),
         severity: 'orange',
       },
       {
-        label: 'Keyphrase dans le slug (URL)',
+        labelKey: 'seo.checks.keyphraseInSlug',
         pass: kw.length > 0 && slug.toLowerCase().includes(kw.replace(/\s+/g, '-')),
         severity: 'orange',
       },
       {
-        label: 'Keyphrase dans les 100 premiers mots',
+        labelKey: 'seo.checks.keyphraseInFirst100',
         pass: kw.length > 0 && first100Words.includes(kw),
         severity: 'orange',
       },
       {
-        label: 'Titre SEO : 50 à 60 caractères',
+        labelKey: 'seo.checks.titleLength',
         pass: metaTitleLen >= 50 && metaTitleLen <= 60,
         severity: 'orange',
       },
       {
-        label: 'Meta description : 120 à 160 caractères',
+        labelKey: 'seo.checks.descLength',
         pass: metaDescLen >= 120 && metaDescLen <= 160,
         severity: 'orange',
       },
       {
-        label: 'Contenu suffisant (≥ 300 mots)',
+        labelKey: 'seo.checks.contentLength',
         pass: wordCount >= 300,
         severity: 'orange',
       },
       {
-        label: 'Extrait / description renseigné',
+        labelKey: 'seo.checks.excerptSet',
         pass: (excerpt ?? '').trim().length > 0,
         severity: 'red',
       },
       {
-        label: 'Meta description distincte du titre',
+        labelKey: 'seo.checks.descDistinct',
         pass: effectiveDesc.length > 0 && effectiveDesc !== effectiveTitle,
         severity: 'orange',
       },
@@ -131,25 +133,25 @@ function useChecks(props: SEOPanelProps): { checks: CheckResult[]; score: number
   }, [props]);
 }
 
-function ScoreRing({ score }: { score: number }) {
+function ScoreRing({ score, t }: { score: number; t: TFunction }) {
   const color = score >= 71 ? 'text-green-500' : score >= 40 ? 'text-amber-500' : 'text-red-500';
   const bg = score >= 71 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : score >= 40 ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
-  const label = score >= 71 ? 'Bon' : score >= 40 ? 'Correct' : 'À améliorer';
+  const label = score >= 71 ? t('seo.scoreGood') : score >= 40 ? t('seo.scoreFair') : t('seo.scorePoor');
   return (
     <div className={cn('inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-bold', bg, color)}>
       <span className="text-base font-black">{score}</span>
-      <span>/100</span>
+      <span>{t('seo.scoreSuffix')}</span>
       <span className="text-xs font-semibold opacity-80">— {label}</span>
     </div>
   );
 }
 
-function CheckItem({ check }: { check: CheckResult }) {
+function CheckItem({ check, t }: { check: CheckResult; t: TFunction }) {
   if (check.pass) {
     return (
       <li className="flex items-start gap-2 text-sm text-neutral-700 dark:text-neutral-300">
         <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-        {check.label}
+        {t(check.labelKey)}
       </li>
     );
   }
@@ -157,14 +159,14 @@ function CheckItem({ check }: { check: CheckResult }) {
     return (
       <li className="flex items-start gap-2 text-sm text-neutral-700 dark:text-neutral-300">
         <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-        {check.label}
+        {t(check.labelKey)}
       </li>
     );
   }
   return (
     <li className="flex items-start gap-2 text-sm text-neutral-700 dark:text-neutral-300">
       <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-      {check.label}
+      {t(check.labelKey)}
     </li>
   );
 }
@@ -207,6 +209,7 @@ export default function SEOPanel(props: SEOPanelProps) {
     onChange,
   } = props;
 
+  const { t } = useTranslation('shared');
   const [serpTab, setSerpTab] = useState<SerpTab>('desktop');
   const [socialTab, setSocialTab] = useState<SocialTab>('facebook');
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -233,10 +236,10 @@ export default function SEOPanel(props: SEOPanelProps) {
 
       {/* ── A — Keyphrase cible ── */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5">
-        <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400 mb-3">Keyphrase cible</p>
+        <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400 mb-3">{t('seo.keyphraseSection')}</p>
         <div className="space-y-1.5">
           <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            Mot-clé principal
+            {t('seo.focusKeywordLabel')}
           </label>
           <div className="relative">
             <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
@@ -244,34 +247,34 @@ export default function SEOPanel(props: SEOPanelProps) {
               type="text"
               value={focusKeyword}
               onChange={(e) => onChange('focusKeyword', e.target.value)}
-              placeholder="ex: marketing digital, SEO local…"
+              placeholder={t('seo.focusKeywordPlaceholder')}
               className="w-full rounded-xl border border-neutral-300 bg-white pl-10 pr-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500 dark:focus:border-brand-400"
             />
           </div>
-          <p className="text-xs text-neutral-400">Le mot-clé principal sur lequel vous ciblez ce contenu</p>
+          <p className="text-xs text-neutral-400">{t('seo.focusKeywordHelp')}</p>
         </div>
       </div>
 
       {/* ── B — Score SEO ── */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">Analyse SEO</p>
-          <ScoreRing score={score} />
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">{t('seo.analysisSection')}</p>
+          <ScoreRing score={score} t={t} />
         </div>
         <ul className="space-y-2">
-          {checks.map((check, i) => <CheckItem key={i} check={check} />)}
+          {checks.map((check, i) => <CheckItem key={i} check={check} t={t} />)}
         </ul>
       </div>
 
       {/* ── C — Champs Meta ── */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5 space-y-4">
-        <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">Balises meta</p>
+        <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">{t('seo.metaSection')}</p>
 
         {/* SEO Title */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              Titre SEO
+              {t('seo.seoTitleLabel')}
             </label>
             <CounterBadge value={(metaTitle.trim() || title).length} min={50} max={60} />
           </div>
@@ -279,11 +282,11 @@ export default function SEOPanel(props: SEOPanelProps) {
             type="text"
             value={metaTitle}
             onChange={(e) => onChange('metaTitle', e.target.value)}
-            placeholder={title || 'Titre affiché dans Google…'}
+            placeholder={title || t('seo.seoTitlePlaceholder')}
             className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500 dark:focus:border-brand-400"
           />
           {!metaTitle.trim() && (
-            <p className="text-xs text-neutral-400 italic">Laissez vide pour utiliser le titre du contenu</p>
+            <p className="text-xs text-neutral-400 italic">{t('seo.useTitleFallback')}</p>
           )}
         </div>
 
@@ -291,14 +294,14 @@ export default function SEOPanel(props: SEOPanelProps) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              Meta description
+              {t('seo.metaDescLabel')}
             </label>
             <CounterBadge value={(metaDescription.trim() || excerpt || '').length} min={120} max={160} />
           </div>
           <textarea
             value={metaDescription}
             onChange={(e) => onChange('metaDescription', e.target.value)}
-            placeholder={excerpt || 'Description affichée dans les résultats Google (120-160 car.)…'}
+            placeholder={excerpt || t('seo.metaDescPlaceholder')}
             rows={3}
             className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors resize-y focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500 dark:focus:border-brand-400"
           />
@@ -309,7 +312,7 @@ export default function SEOPanel(props: SEOPanelProps) {
       {/* ── D — Aperçu SERP ── */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">Aperçu Google</p>
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">{t('seo.googlePreview')}</p>
           <div className="flex gap-1">
             {([['desktop', Monitor], ['mobile', Smartphone]] as const).map(([tab, Icon]) => (
               <button
@@ -324,7 +327,7 @@ export default function SEOPanel(props: SEOPanelProps) {
                 )}
               >
                 <Icon className="w-3.5 h-3.5" />
-                {tab === 'desktop' ? 'Bureau' : 'Mobile'}
+                {tab === 'desktop' ? t('seo.desktop') : t('seo.mobile')}
               </button>
             ))}
           </div>
@@ -341,11 +344,11 @@ export default function SEOPanel(props: SEOPanelProps) {
             className="font-medium mb-1 leading-snug cursor-pointer hover:underline"
             style={{ color: '#1a0dab', fontSize: serpTab === 'desktop' ? '20px' : '16px' }}
           >
-            {displayTitle || 'Titre de votre contenu'}
+            {displayTitle || t('seo.previewTitleFallback')}
           </p>
           {/* Description */}
           <p className="text-sm leading-relaxed" style={{ color: '#545454', fontSize: '14px' }}>
-            {displayDesc || 'La meta description apparaîtra ici. Rédigez-en une pour améliorer votre taux de clic.'}
+            {displayDesc || t('seo.previewDescFallback')}
           </p>
         </div>
       </div>
@@ -353,7 +356,7 @@ export default function SEOPanel(props: SEOPanelProps) {
       {/* ── E — Réseaux sociaux ── */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">Réseaux sociaux</p>
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">{t('seo.socialSection')}</p>
           <div className="flex gap-1">
             <button
               type="button"
@@ -392,7 +395,7 @@ export default function SEOPanel(props: SEOPanelProps) {
                 <img src={ogDisplayImage} alt="OG preview" className="w-full aspect-[1.91/1] object-cover" />
               ) : (
                 <div className="w-full aspect-[1.91/1] bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
-                  <p className="text-xs text-neutral-400">Aucune image — utilisez l'image de couverture</p>
+                  <p className="text-xs text-neutral-400">{t('seo.noImageUseCover')}</p>
                 </div>
               )}
               <div className="p-3 border-t border-neutral-200 dark:border-neutral-700">
@@ -400,35 +403,35 @@ export default function SEOPanel(props: SEOPanelProps) {
                   {siteUrl.replace('https://', '')}
                 </p>
                 <p className="text-sm font-bold text-neutral-900 dark:text-white leading-snug line-clamp-2">
-                  {ogDisplayTitle || 'Titre Open Graph'}
+                  {ogDisplayTitle || t('seo.ogTitleFallback')}
                 </p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2">
-                  {ogDisplayDesc || 'Description Open Graph…'}
+                  {ogDisplayDesc || t('seo.ogDescFallback')}
                 </p>
               </div>
             </div>
             {/* Inputs OG */}
             <Input
-              label="Titre Open Graph"
+              label={t('seo.ogTitleLabel')}
               value={ogTitle}
               onChange={(e) => onChange('ogTitle', e.target.value)}
-              placeholder={metaTitle.trim() || title || 'Titre pour Facebook…'}
+              placeholder={metaTitle.trim() || title || t('seo.ogTitlePlaceholder')}
             />
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">Description Open Graph</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('seo.ogDescriptionLabel')}</label>
               <textarea
                 value={ogDescription}
                 onChange={(e) => onChange('ogDescription', e.target.value)}
-                placeholder={excerpt || 'Description pour Facebook, LinkedIn…'}
+                placeholder={excerpt || t('seo.ogDescPlaceholder')}
                 rows={2}
                 className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors resize-y focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500 dark:focus:border-brand-400"
               />
             </div>
             <Input
-              label="Image Open Graph (URL)"
+              label={t('seo.ogImageLabel')}
               value={ogImage}
               onChange={(e) => onChange('ogImage', e.target.value)}
-              placeholder={coverImage || 'https://… (laissez vide pour l\'image de couverture)'}
+              placeholder={coverImage || t('seo.ogImagePlaceholder')}
             />
           </div>
         )}
@@ -441,41 +444,41 @@ export default function SEOPanel(props: SEOPanelProps) {
                 <img src={twDisplayImage} alt="Twitter preview" className="w-full aspect-video object-cover" />
               ) : (
                 <div className="w-full aspect-video bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
-                  <p className="text-xs text-neutral-400">Aucune image</p>
+                  <p className="text-xs text-neutral-400">{t('seo.noImage')}</p>
                 </div>
               )}
               <div className="p-3 border-t border-neutral-200 dark:border-neutral-700">
                 <p className="text-sm font-bold text-neutral-900 dark:text-white leading-snug line-clamp-1">
-                  {twDisplayTitle || 'Titre Twitter'}
+                  {twDisplayTitle || t('seo.twTitleFallback')}
                 </p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
-                  {twDisplayDesc || 'Description Twitter…'}
+                  {twDisplayDesc || t('seo.twDescFallback')}
                 </p>
                 <p className="text-[10px] text-neutral-400 mt-1">{siteUrl.replace('https://', '')}</p>
               </div>
             </div>
             {/* Inputs Twitter */}
             <Input
-              label="Titre Twitter / X"
+              label={t('seo.twitterTitleLabel')}
               value={twitterTitle ?? ''}
               onChange={(e) => onChange('twitterTitle', e.target.value)}
-              placeholder={ogDisplayTitle || 'Titre pour Twitter…'}
+              placeholder={ogDisplayTitle || t('seo.twitterTitlePlaceholder')}
             />
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">Description Twitter / X</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('seo.twitterDescriptionLabel')}</label>
               <textarea
                 value={twitterDescription ?? ''}
                 onChange={(e) => onChange('twitterDescription', e.target.value)}
-                placeholder={ogDisplayDesc || 'Description pour Twitter…'}
+                placeholder={ogDisplayDesc || t('seo.twitterDescPlaceholder')}
                 rows={2}
                 className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors resize-y focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500 dark:focus:border-brand-400"
               />
             </div>
             <Input
-              label="Image Twitter / X (URL)"
+              label={t('seo.twitterImageLabel')}
               value={twitterImage ?? ''}
               onChange={(e) => onChange('twitterImage', e.target.value)}
-              placeholder={ogDisplayImage || 'https://… (laissez vide pour l\'image OG)'}
+              placeholder={ogDisplayImage || t('seo.twitterImagePlaceholder')}
             />
           </div>
         )}
@@ -488,7 +491,7 @@ export default function SEOPanel(props: SEOPanelProps) {
           onClick={() => setAdvancedOpen((o) => !o)}
           className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-neutral-50 dark:hover:bg-neutral-700/40 transition-colors"
         >
-          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">Paramètres avancés</p>
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">{t('seo.advancedSection')}</p>
           {advancedOpen
             ? <ChevronUp className="w-4 h-4 text-neutral-400" />
             : <ChevronDown className="w-4 h-4 text-neutral-400" />}
@@ -498,13 +501,13 @@ export default function SEOPanel(props: SEOPanelProps) {
           <div className="px-5 pb-5 space-y-5 border-t border-neutral-100 dark:border-neutral-700 pt-4">
             {/* Canonical URL */}
             <Input
-              label="URL canonique"
+              label={t('seo.canonicalLabel')}
               value={canonicalUrl}
               onChange={(e) => onChange('canonicalUrl', e.target.value)}
               placeholder={`${siteUrl}/${basePath}/${slug || 'mon-article'}`}
             />
             <p className="text-xs text-neutral-400 -mt-3">
-              Laissez vide pour utiliser l'URL de la page automatiquement.
+              {t('seo.canonicalHelp')}
             </p>
 
             {/* noIndex toggle */}
@@ -512,10 +515,10 @@ export default function SEOPanel(props: SEOPanelProps) {
               <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-700/30">
                 <div>
                   <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                    Masquer aux moteurs de recherche (noindex)
+                    {t('seo.noindexTitle')}
                   </p>
                   <p className="text-xs text-neutral-500 mt-0.5">
-                    Les robots ne pourront pas indexer cette page.
+                    {t('seo.noindexDesc')}
                   </p>
                 </div>
                 <button
@@ -538,7 +541,7 @@ export default function SEOPanel(props: SEOPanelProps) {
                 <div className="mt-2 flex items-start gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                   <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-red-700 dark:text-red-400">
-                    Cette page ne sera pas indexée par Google. Activez cette option uniquement si vous ne souhaitez pas de trafic organique sur ce contenu.
+                    {t('seo.noindexWarning')}
                   </p>
                 </div>
               )}
@@ -546,7 +549,7 @@ export default function SEOPanel(props: SEOPanelProps) {
 
             {/* Robots preview */}
             <div>
-              <p className="text-xs font-medium text-neutral-500 mb-1.5">Balise robots générée</p>
+              <p className="text-xs font-medium text-neutral-500 mb-1.5">{t('seo.robotsTagLabel')}</p>
               <code className="block text-xs bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 px-3 py-2 rounded-lg font-mono">
                 {`<meta name="robots" content="${noIndex ? 'noindex,nofollow' : 'index,follow'}">`}
               </code>

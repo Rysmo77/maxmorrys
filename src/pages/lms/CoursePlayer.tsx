@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
+import LocalizedLink from '../../components/shared/LocalizedLink';
 import { Play, FileText, CheckCircle, ChevronDown, ChevronUp, Download, Check, Loader2, Lock, ArrowRight, List, HelpCircle, Target, RotateCcw } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -29,11 +31,12 @@ function CourseOutline({
   setActiveLesson: (lesson: Lesson) => void;
   lessonIcons: Record<string, typeof Play>;
 }) {
+  const { t } = useTranslation('lms');
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden lg:sticky lg:top-20">
       <div className="p-4 border-b border-neutral-200 dark:border-neutral-700 hidden lg:block">
-        <h3 className="font-bold text-neutral-900 dark:text-white">Contenu du cours</h3>
-        <p className="text-xs text-neutral-500 mt-0.5">{formation.modules?.length ?? 0} modules · {totalLessons} leçons</p>
+        <h3 className="font-bold text-neutral-900 dark:text-white">{t('player.courseContent')}</h3>
+        <p className="text-xs text-neutral-500 mt-0.5">{t('player.modulesLessons', { modules: formation.modules?.length ?? 0, lessons: totalLessons })}</p>
       </div>
       <div className="max-h-[65vh] overflow-y-auto">
         {(formation.modules ?? []).map((module) => {
@@ -117,6 +120,7 @@ function parseQuizContent(content: string): QuizQuestion[] {
 }
 
 function QuizRenderer({ content, onComplete }: { content: string; onComplete: () => void }) {
+  const { t } = useTranslation('lms');
   const questions = parseQuizContent(content);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -134,7 +138,7 @@ function QuizRenderer({ content, onComplete }: { content: string; onComplete: ()
     return (
       <div className="p-8 text-center text-neutral-500">
         <HelpCircle className="w-12 h-12 mx-auto mb-3 text-neutral-300" />
-        <p>Quiz en cours de preparation...</p>
+        <p>{t('player.quizPreparing')}</p>
       </div>
     );
   }
@@ -146,10 +150,10 @@ function QuizRenderer({ content, onComplete }: { content: string; onComplete: ()
           <HelpCircle className="w-5 h-5 text-accent-600 dark:text-accent-400" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Quiz — {questions.length} question{questions.length > 1 ? 's' : ''}</h2>
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">{t('player.quizTitle', { count: questions.length })}</h2>
           {submitted && (
             <p className={`text-sm font-semibold ${score === questions.length ? 'text-success-600' : score >= questions.length / 2 ? 'text-accent-600' : 'text-error-600'}`}>
-              Score : {score}/{questions.length}
+              {t('player.score', { score, total: questions.length })}
             </p>
           )}
         </div>
@@ -194,7 +198,7 @@ function QuizRenderer({ content, onComplete }: { content: string; onComplete: ()
             disabled={Object.keys(answers).length < questions.length}
             className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-neutral-300 disabled:dark:bg-neutral-700 text-white font-bold rounded-full text-sm transition-colors"
           >
-            Valider mes reponses
+            {t('player.validateAnswers')}
           </button>
         ) : (
           <>
@@ -202,14 +206,14 @@ function QuizRenderer({ content, onComplete }: { content: string; onComplete: ()
               onClick={handleReset}
               className="inline-flex items-center gap-2 px-5 py-2.5 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 font-semibold rounded-full text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
             >
-              <RotateCcw className="w-4 h-4" /> Recommencer
+              <RotateCcw className="w-4 h-4" /> {t('player.restart')}
             </button>
             {score === questions.length && (
               <button
                 onClick={onComplete}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-success-600 hover:bg-success-700 text-white font-bold rounded-full text-sm transition-colors"
               >
-                <Check className="w-4 h-4" /> Marquer comme terminee
+                <Check className="w-4 h-4" /> {t('player.markCompleted')}
               </button>
             )}
           </>
@@ -220,6 +224,7 @@ function QuizRenderer({ content, onComplete }: { content: string; onComplete: ()
 }
 
 function MissionRenderer({ content, title, onComplete, isComplete }: { content: string; title: string; onComplete: () => void; isComplete: boolean }) {
+  const { t } = useTranslation('lms');
   return (
     <div className="p-6 sm:p-8">
       <div className="flex items-center gap-3 mb-6">
@@ -227,7 +232,7 @@ function MissionRenderer({ content, title, onComplete, isComplete }: { content: 
           <Target className="w-5 h-5 text-accent-600 dark:text-accent-400" />
         </div>
         <div>
-          <p className="text-xs font-bold tracking-[0.25em] uppercase text-accent-600 dark:text-accent-400">Mission</p>
+          <p className="text-xs font-bold tracking-[0.25em] uppercase text-accent-600 dark:text-accent-400">{t('player.mission')}</p>
           <h2 className="text-lg font-bold text-neutral-900 dark:text-white">{title}</h2>
         </div>
       </div>
@@ -238,7 +243,7 @@ function MissionRenderer({ content, title, onComplete, isComplete }: { content: 
           dangerouslySetInnerHTML={{ __html: markdownToHtml(content) }}
         />
       ) : (
-        <p className="text-neutral-500 italic mb-8">Contenu de la mission a venir...</p>
+        <p className="text-neutral-500 italic mb-8">{t('player.missionContentSoon')}</p>
       )}
 
       {!isComplete && (
@@ -246,12 +251,12 @@ function MissionRenderer({ content, title, onComplete, isComplete }: { content: 
           onClick={onComplete}
           className="inline-flex items-center gap-2 px-6 py-3 bg-accent-600 hover:bg-accent-700 text-white font-bold rounded-full text-sm transition-colors"
         >
-          <Check className="w-4 h-4" /> J'ai complete cette mission
+          <Check className="w-4 h-4" /> {t('player.missionDone')}
         </button>
       )}
       {isComplete && (
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-400 text-sm font-semibold rounded-full">
-          <CheckCircle className="w-4 h-4" /> Mission accomplie
+          <CheckCircle className="w-4 h-4" /> {t('player.missionAccomplished')}
         </div>
       )}
     </div>
@@ -259,6 +264,7 @@ function MissionRenderer({ content, title, onComplete, isComplete }: { content: 
 }
 
 export default function CoursePlayer() {
+  const { t } = useTranslation('lms');
   const { slug } = useParams();
   const { addToast } = useToast();
   const { user } = useAuth();
@@ -315,7 +321,7 @@ export default function CoursePlayer() {
     const isMarking = !completedLessons.includes(lessonId);
     const newProgress = totalLessons > 0 ? Math.round((updated.length / totalLessons) * 100) : 0;
     if (newProgress === 100 && isMarking) {
-      addToast('success', 'Félicitations ! Tu as terminé cette formation !');
+      addToast('success', t('player.toastFormationCompleted'));
     }
 
     if (isMarking && formation) {
@@ -331,14 +337,14 @@ export default function CoursePlayer() {
           await issueCertificate(user.uid, formation.id, formation.title);
           await updateDocById('enrollments', enrollment.id, { certificateIssued: true });
           setEnrollment((prev) => (prev ? { ...prev, certificateIssued: true } : prev));
-          addToast('success', 'Ton certificat a ete emis !');
+          addToast('success', t('player.toastCertificateIssued'));
         } catch (certError: unknown) {
           captureError(certError, { context: 'Failed to auto-issue certificate' });
         }
       }
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to save enrollment progress' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde de la progression.');
+      addToast('error', error instanceof Error ? error.message : t('player.errorSaveProgress'));
     } finally {
       setSaving(false);
     }
@@ -351,7 +357,7 @@ export default function CoursePlayer() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-brand-500" aria-label={t('certificate.loadingAria')} />
       </div>
     );
   }
@@ -359,8 +365,8 @@ export default function CoursePlayer() {
   if (!formation) {
     return (
       <div className="pt-32 pb-20 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">Cours introuvable</h1>
-        <Link to="/mon-espace" className="text-brand-600 dark:text-brand-400 hover:underline">Retour à mon espace</Link>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{t('player.courseNotFoundTitle')}</h1>
+        <LocalizedLink to="/mon-espace" className="text-brand-600 dark:text-brand-400 hover:underline">{t('player.backToSpace')}</LocalizedLink>
       </div>
     );
   }
@@ -371,26 +377,31 @@ export default function CoursePlayer() {
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/20 flex items-center justify-center mx-auto mb-5">
           <Lock className="w-8 h-8 text-brand-500" />
         </div>
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Cette formation requiert une inscription</h1>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">{t('player.enrollmentRequiredTitle')}</h1>
         <p className="text-neutral-500 mb-2 text-sm">
-          Tu n'es pas encore inscrit à <strong className="text-neutral-700 dark:text-neutral-300">{formation.title}</strong>.
+          <Trans
+            ns="lms"
+            i18nKey="player.notEnrolledText"
+            values={{ title: formation.title }}
+            components={{ strong: <strong className="text-neutral-700 dark:text-neutral-300" /> }}
+          />
         </p>
         <p className="text-neutral-400 text-sm mb-6">
-          Inscris-toi pour accéder à tous les modules, leçons et obtenir ton certificat à la fin.
+          {t('player.enrollPrompt')}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
+          <LocalizedLink
             to={`/formations/${formation.slug}`}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-full transition-colors text-sm"
           >
-            Voir la formation <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link
+            {t('player.seeFormation')} <ArrowRight className="w-4 h-4" />
+          </LocalizedLink>
+          <LocalizedLink
             to="/formations"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 font-semibold rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm"
           >
-            Toutes les formations
-          </Link>
+            {t('player.allFormations')}
+          </LocalizedLink>
         </div>
       </div>
     );
@@ -401,7 +412,7 @@ export default function CoursePlayer() {
       {/* Top bar */}
       <div className="sticky top-0 z-30 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-4 sm:px-6 h-14 flex items-center gap-4">
         <Breadcrumbs items={[
-          { label: 'Mon espace', href: '/mon-espace' },
+          { label: t('player.mySpace'), href: '/mon-espace' },
           { label: formation.title },
         ]} />
         <div className="flex-1" />
@@ -418,15 +429,15 @@ export default function CoursePlayer() {
         <div className="flex items-center gap-4 mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{progress}% terminé</span>
-              <span className="text-xs text-neutral-400">({completedLessons.length}/{totalLessons} leçons)</span>
+              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('player.progressDone', { progress })}</span>
+              <span className="text-xs text-neutral-400">{t('player.lessonsProgress', { done: completedLessons.length, total: totalLessons })}</span>
             </div>
             <div className="h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
               <div className="h-full bg-brand-500 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
             </div>
           </div>
           {progress === 100 && (
-            <Badge variant="success" size="md">Terminé !</Badge>
+            <Badge variant="success" size="md">{t('player.finished')}</Badge>
           )}
         </div>
 
@@ -457,7 +468,7 @@ export default function CoursePlayer() {
                         <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
                           <Play className="w-8 h-8 text-white ml-1" />
                         </div>
-                        <p className="text-white/60 text-sm">Vidéo à venir</p>
+                        <p className="text-white/60 text-sm">{t('player.videoSoon')}</p>
                       </div>
                     )}
                   </div>
@@ -484,7 +495,7 @@ export default function CoursePlayer() {
                         dangerouslySetInnerHTML={{ __html: markdownToHtml(activeLesson.content) }}
                       />
                     ) : (
-                      <p className="text-neutral-500 italic">Contenu de la leçon à venir...</p>
+                      <p className="text-neutral-500 italic">{t('player.lessonContentSoon')}</p>
                     )}
                   </div>
                 )}
@@ -502,7 +513,7 @@ export default function CoursePlayer() {
                         disabled={saving}
                         icon={completedLessons.includes(activeLesson.id) ? <Check className="w-4 h-4" /> : undefined}
                       >
-                        {completedLessons.includes(activeLesson.id) ? 'Terminée' : 'Marquer comme terminée'}
+                        {completedLessons.includes(activeLesson.id) ? t('player.lessonDone') : t('player.markLessonCompleted')}
                       </Button>
                     </div>
                   </div>
@@ -511,8 +522,8 @@ export default function CoursePlayer() {
             ) : (
               <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-12 text-center">
                 <Play className="w-16 h-16 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />
-                <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">Sélectionnez une leçon</h2>
-                <p className="text-neutral-500">Choisissez une leçon dans le menu pour commencer.</p>
+                <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">{t('player.selectLessonTitle')}</h2>
+                <p className="text-neutral-500">{t('player.selectLessonText')}</p>
               </div>
             )}
             </motion.div>
@@ -541,14 +552,14 @@ export default function CoursePlayer() {
         className="lg:hidden fixed bottom-6 right-6 z-40 flex items-center gap-2 px-5 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm rounded-full shadow-lg transition-colors"
       >
         <List className="w-4 h-4" />
-        Plan du cours
+        {t('player.courseOutline')}
       </button>
 
       {/* Mobile bottom sheet for course outline */}
       <Sheet
         open={mobileOutlineOpen}
         onClose={() => setMobileOutlineOpen(false)}
-        title="Plan du cours"
+        title={t('player.courseOutline')}
       >
         <CourseOutline
           formation={formation}

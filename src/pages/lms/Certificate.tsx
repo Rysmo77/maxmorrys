@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import LocalizedLink from '../../components/shared/LocalizedLink';
 import { Award, CheckCircle, Loader2, Share2, ArrowLeft } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { getCollection } from '../../lib/firestore';
-import { formatDate } from '../../lib/utils';
+import { useFormat } from '../../hooks/useFormat';
 import type { Certificate as CertificateType } from '../../types';
 import { trackCertificateEarned, trackShare } from '../../lib/tracking';
 import SEOHead from '../../components/seo/SEOHead';
 import { where } from 'firebase/firestore';
 
 export default function Certificate() {
+  const { t } = useTranslation('lms');
+  const { formatDate } = useFormat();
   const { code } = useParams();
   const [certificate, setCertificate] = useState<CertificateType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +36,7 @@ export default function Certificate() {
   }, [code]);
 
   const handleShare = (platform: string) => {
-    const text = encodeURIComponent(`J'ai obtenu mon certificat "${certificate?.formationTitle}" sur Max-Morrys ! 🎓`);
+    const text = encodeURIComponent(t('certificate.shareText', { title: certificate?.formationTitle }));
     const url = encodeURIComponent(window.location.href);
     let shareUrl = '';
     if (platform === 'linkedin') shareUrl = `https://linkedin.com/sharing/share-offsite/?url=${url}`;
@@ -45,7 +49,7 @@ export default function Certificate() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-brand-500" aria-label={t('certificate.loadingAria')} />
       </div>
     );
   }
@@ -55,11 +59,11 @@ export default function Certificate() {
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <Award className="w-16 h-16 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Certificat introuvable</h1>
-          <p className="text-neutral-500 mb-6">Le code de certificat fourni n'existe pas ou a expiré.</p>
-          <Link to="/">
-            <Button icon={<ArrowLeft className="w-4 h-4" />}>Retour à l'accueil</Button>
-          </Link>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">{t('certificate.notFoundTitle')}</h1>
+          <p className="text-neutral-500 mb-6">{t('certificate.notFoundText')}</p>
+          <LocalizedLink to="/">
+            <Button icon={<ArrowLeft className="w-4 h-4" />}>{t('certificate.backHome')}</Button>
+          </LocalizedLink>
         </div>
       </div>
     );
@@ -68,8 +72,8 @@ export default function Certificate() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-brand-50/30 dark:from-neutral-950 dark:to-brand-950/20 flex items-center justify-center px-4 py-16">
       <SEOHead
-        title={`Certificat — ${certificate.formationTitle}`}
-        description={`Certificat de réussite de la formation « ${certificate.formationTitle} » délivré par Max-Morrys Academy.`}
+        title={t('certificate.seoTitle', { title: certificate.formationTitle })}
+        description={t('certificate.seoDescription', { title: certificate.formationTitle })}
         noIndex
       />
       <motion.div
@@ -90,36 +94,36 @@ export default function Certificate() {
               <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
                 <Award className="w-8 h-8 text-white" />
               </div>
-              <p className="text-brand-200 text-xs font-bold tracking-[0.3em] uppercase mb-2">Certificat de réussite</p>
-              <h1 className="text-2xl sm:text-3xl font-black">Max-Morrys Academy</h1>
+              <p className="text-brand-200 text-xs font-bold tracking-[0.3em] uppercase mb-2">{t('certificate.badge')}</p>
+              <h1 className="text-2xl sm:text-3xl font-black">{t('certificate.academy')}</h1>
             </div>
           </div>
 
           {/* Certificate body */}
           <div className="p-8 sm:p-12 text-center">
-            <p className="text-sm text-neutral-500 mb-2">Ce certificat atteste que</p>
+            <p className="text-sm text-neutral-500 mb-2">{t('certificate.attests')}</p>
             <div className="py-4 border-b border-neutral-200 dark:border-neutral-700 mb-4">
-              <p className="text-xs text-neutral-400 mb-1">Étudiant certifié</p>
+              <p className="text-xs text-neutral-400 mb-1">{t('certificate.certifiedStudent')}</p>
             </div>
 
-            <p className="text-sm text-neutral-500 mb-2">a complété avec succès la formation</p>
+            <p className="text-sm text-neutral-500 mb-2">{t('certificate.completedFormation')}</p>
             <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white mb-6">
               {certificate.formationTitle}
             </h2>
 
             <div className="flex items-center justify-center gap-2 text-success-600 dark:text-success-400 mb-8">
               <CheckCircle className="w-5 h-5" />
-              <span className="font-semibold text-sm">Formation complétée à 100%</span>
+              <span className="font-semibold text-sm">{t('certificate.completed100')}</span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-neutral-500">
               <div className="text-center">
-                <p className="text-xs text-neutral-400 mb-0.5">Date d'obtention</p>
+                <p className="text-xs text-neutral-400 mb-0.5">{t('certificate.issuedDate')}</p>
                 <p className="font-medium text-neutral-700 dark:text-neutral-300">{formatDate(certificate.issuedAt)}</p>
               </div>
               <div className="hidden sm:block w-px h-8 bg-neutral-200 dark:bg-neutral-700" />
               <div className="text-center">
-                <p className="text-xs text-neutral-400 mb-0.5">Code de vérification</p>
+                <p className="text-xs text-neutral-400 mb-0.5">{t('certificate.verificationCode')}</p>
                 <p className="font-mono font-medium text-neutral-700 dark:text-neutral-300">{certificate.certificateCode}</p>
               </div>
             </div>
@@ -158,9 +162,9 @@ export default function Certificate() {
 
         {/* Back link */}
         <div className="text-center mt-6">
-          <Link to="/" className="text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-            ← Retour sur maxmorrys.me
-          </Link>
+          <LocalizedLink to="/" className="text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+            {t('certificate.backToSite')}
+          </LocalizedLink>
         </div>
       </motion.div>
     </div>

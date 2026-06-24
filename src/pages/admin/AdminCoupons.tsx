@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Search, Trash2, Edit2, Tag, Loader2, ChevronDown, ToggleLeft, ToggleRight } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Pagination from '../../components/ui/Pagination';
@@ -7,7 +8,7 @@ import { useToast } from '../../components/ui/Toast';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
 import { getAllCoupons, saveCoupon, deleteCoupon } from '../../lib/firestore';
-import { formatDate } from '../../lib/utils';
+import { useFormat } from '../../hooks/useFormat';
 import type { Coupon } from '../../types';
 import { captureError } from '../../lib/sentry';
 
@@ -17,6 +18,8 @@ const EMPTY: Omit<Coupon, 'id'> = {
 };
 
 export default function AdminCoupons() {
+  const { t } = useTranslation('admin');
+  const { formatDate, locale } = useFormat();
   const { addToast } = useToast();
   const confirm = useConfirmDialog();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -51,32 +54,32 @@ export default function AdminCoupons() {
     setSaving(true);
     try {
       await saveCoupon({ ...form, code: form.code.toUpperCase().trim(), id: editing?.id });
-      addToast('success', editing ? 'Coupon mis à jour.' : 'Coupon créé.');
+      addToast('success', editing ? t('coupons.toasts.updated') : t('coupons.toasts.created'));
       setModalOpen(false);
       load();
     } catch (error: unknown) {
       captureError(error, { context: 'Save coupon failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
+      addToast('error', error instanceof Error ? error.message : t('coupons.toasts.saveError'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = (id: string) => {
-    confirm.requestConfirm('Supprimer ce coupon ? Cette action est irréversible.', async () => {
+    confirm.requestConfirm(t('coupons.confirmDelete'), async () => {
       try {
         await deleteCoupon(id);
         setCoupons((prev) => prev.filter((c) => c.id !== id));
-        addToast('success', 'Coupon supprimé.');
+        addToast('success', t('coupons.toasts.deleted'));
       } catch {
-        addToast('error', 'Erreur de suppression.');
+        addToast('error', t('coupons.toasts.deleteError'));
       }
       confirm.closeConfirm();
     });
   };
 
   const handleToggleActive = async (c: Coupon) => {
-    await saveCoupon({ ...c, active: !c.active }).catch(() => addToast('error', 'Erreur.'));
+    await saveCoupon({ ...c, active: !c.active }).catch(() => addToast('error', t('coupons.toasts.error')));
     setCoupons((prev) => prev.map((ec) => ec.id === c.id ? { ...ec, active: !c.active } : ec));
   };
 
@@ -92,15 +95,15 @@ export default function AdminCoupons() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">Codes promo</h1>
-          <p className="text-sm text-neutral-500 mt-1">{coupons.length} coupon{coupons.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">{t('coupons.title')}</h1>
+          <p className="text-sm text-neutral-500 mt-1">{t('coupons.count', { count: coupons.length })}</p>
         </div>
-        <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>Nouveau coupon</Button>
+        <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>{t('coupons.new')}</Button>
       </div>
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un code..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('coupons.searchPlaceholder')} className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
       </div>
 
       {loading ? (
@@ -108,7 +111,7 @@ export default function AdminCoupons() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
           <Tag className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p className="text-neutral-500">Aucun coupon trouvé.</p>
+          <p className="text-neutral-500">{t('coupons.empty')}</p>
         </div>
       ) : (
         <>
@@ -116,11 +119,11 @@ export default function AdminCoupons() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-neutral-100 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50">
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">Code</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">Réduction</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400 hidden sm:table-cell">Utilisations</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400 hidden md:table-cell">Expiration</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">Actif</th>
+                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">{t('coupons.table.code')}</th>
+                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">{t('coupons.table.discount')}</th>
+                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400 hidden sm:table-cell">{t('coupons.table.uses')}</th>
+                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400 hidden md:table-cell">{t('coupons.table.expiration')}</th>
+                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">{t('coupons.table.active')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -131,7 +134,7 @@ export default function AdminCoupons() {
                     <span className="font-mono font-bold text-neutral-900 dark:text-white bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded">{c.code}</span>
                   </td>
                   <td className="px-4 py-3 font-semibold text-brand-600 dark:text-brand-400">
-                    {c.type === 'percentage' ? `${c.value}%` : `${c.value.toLocaleString('fr-FR')} FCFA`}
+                    {c.type === 'percentage' ? `${c.value}%` : `${c.value.toLocaleString(locale)} FCFA`}
                   </td>
                   <td className="px-4 py-3 text-neutral-500 hidden sm:table-cell">{c.usedCount} / {c.maxUses}</td>
                   <td className="px-4 py-3 text-neutral-500 hidden md:table-cell">{c.expiresAt ? formatDate(c.expiresAt) : '∞'}</td>
@@ -163,49 +166,49 @@ export default function AdminCoupons() {
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
           <div className="relative w-full max-w-lg bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex items-center justify-between z-10">
-              <h2 className="font-bold text-neutral-900 dark:text-white">{editing ? 'Modifier le coupon' : 'Nouveau coupon'}</h2>
+              <h2 className="font-bold text-neutral-900 dark:text-white">{editing ? t('coupons.modal.editTitle') : t('coupons.modal.newTitle')}</h2>
               <button onClick={() => setModalOpen(false)} className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">✕</button>
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-500">Code *</label>
+                <label className="text-xs font-medium text-neutral-500">{t('coupons.form.code')}</label>
                 <input
                   value={form.code}
                   onChange={(e) => setForm((p) => ({ ...p, code: e.target.value.toUpperCase() }))}
-                  placeholder="PROMO20"
+                  placeholder={t('coupons.form.codePlaceholder')}
                   className={inputCls}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">Type</label>
+                  <label className="text-xs font-medium text-neutral-500">{t('coupons.form.type')}</label>
                   <div className="relative">
                     <select value={form.type} onChange={(e) => setForm((p) => ({ ...p, type: e.target.value as Coupon['type'] }))} className={`${inputCls} appearance-none pr-8`}>
-                      <option value="percentage">Pourcentage</option>
-                      <option value="fixed">Montant fixe</option>
+                      <option value="percentage">{t('coupons.form.typePercentage')}</option>
+                      <option value="fixed">{t('coupons.form.typeFixed')}</option>
                     </select>
                     <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">Valeur {form.type === 'percentage' ? '(%)' : '(FCFA)'}</label>
+                  <label className="text-xs font-medium text-neutral-500">{t('coupons.form.value', { unit: form.type === 'percentage' ? '%' : 'FCFA' })}</label>
                   <input type="number" min={0} value={form.value} onChange={(e) => setForm((p) => ({ ...p, value: Number(e.target.value) }))} className={inputCls} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">Utilisations max.</label>
+                  <label className="text-xs font-medium text-neutral-500">{t('coupons.form.maxUses')}</label>
                   <input type="number" min={1} value={form.maxUses} onChange={(e) => setForm((p) => ({ ...p, maxUses: Number(e.target.value) }))} className={inputCls} />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">Expiration (optionnel)</label>
+                  <label className="text-xs font-medium text-neutral-500">{t('coupons.form.expiration')}</label>
                   <input type="date" value={form.expiresAt} onChange={(e) => setForm((p) => ({ ...p, expiresAt: e.target.value }))} className={inputCls} />
                 </div>
               </div>
               <div className="flex items-center justify-between py-2">
                 <div>
-                  <p className="text-sm font-medium text-neutral-900 dark:text-white">Coupon actif</p>
-                  <p className="text-xs text-neutral-400">Désactiver sans supprimer</p>
+                  <p className="text-sm font-medium text-neutral-900 dark:text-white">{t('coupons.form.activeLabel')}</p>
+                  <p className="text-xs text-neutral-400">{t('coupons.form.activeHint')}</p>
                 </div>
                 <button onClick={() => setForm((p) => ({ ...p, active: !p.active }))} className="transition-colors">
                   {form.active
@@ -215,15 +218,15 @@ export default function AdminCoupons() {
               </div>
             </div>
             <div className="sticky bottom-0 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 px-6 py-4 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setModalOpen(false)}>Annuler</Button>
+              <Button variant="outline" onClick={() => setModalOpen(false)}>{t('coupons.actions.cancel')}</Button>
               <Button onClick={handleSave} disabled={saving || !form.code.trim()} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}>
-                {saving ? 'Enregistrement...' : 'Enregistrer'}
+                {saving ? t('coupons.actions.saving') : t('coupons.actions.save')}
               </Button>
             </div>
           </div>
         </div>
       )}
-      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title="Supprimer" message={confirm.message} confirmLabel="Supprimer" />
+      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title={t('coupons.confirmTitle')} message={confirm.message} confirmLabel={t('coupons.actions.delete')} />
     </div>
   );
 }

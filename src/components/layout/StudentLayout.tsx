@@ -1,5 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { toCanonicalPath } from '../../i18n/routing';
 import {
   LayoutDashboard, BookOpen, BookMarked, Award, Inbox, User, Settings, Crown, Home, Bot, MessageSquareQuote,
 } from 'lucide-react';
@@ -42,12 +44,14 @@ export interface StudentLayoutContext {
 }
 
 export default function StudentLayout() {
+  const { t } = useTranslation('lms');
   const { user, userData } = useAuth();
   const { addToast } = useToast();
   const location = useLocation();
+  const path = toCanonicalPath(location.pathname);
 
   const { enrolledFormations, loadingEnrollments, avgProgress, completedCount } = useStudentData(user?.uid);
-  const notesActive = location.pathname.startsWith('/mon-espace/notes');
+  const notesActive = path.startsWith('/mon-espace/notes');
   const notesHook = useNotes(user?.uid, notesActive);
 
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -68,25 +72,25 @@ export default function StudentLayout() {
 
   // Load messages when on /messages
   useEffect(() => {
-    if (!user || !location.pathname.startsWith('/mon-espace/messages')) return;
+    if (!user || !path.startsWith('/mon-espace/messages')) return;
     setLoadingMessages(true);
     getUserMessages(user.uid).then((data) => {
       setSentMessages(data);
       setLoadingMessages(false);
-    }).catch(() => { setLoadingMessages(false); addToast('error', 'Impossible de charger tes messages.'); });
-  }, [user, location.pathname, addToast]);
+    }).catch(() => { setLoadingMessages(false); addToast('error', t('errors.loadMessages')); });
+  }, [user, path, addToast, t]);
 
   // Load certificates on /succes or /cours
   useEffect(() => {
     if (!user) return;
-    const needsCerts = location.pathname.startsWith('/mon-espace/succes') || location.pathname.startsWith('/mon-espace/cours');
+    const needsCerts = path.startsWith('/mon-espace/succes') || path.startsWith('/mon-espace/cours');
     if (!needsCerts) return;
     setLoadingCerts(true);
     getUserCertificates(user.uid).then((data) => {
       setCertificates(data);
       setLoadingCerts(false);
-    }).catch(() => { setLoadingCerts(false); addToast('error', 'Impossible de charger tes certificats.'); });
-  }, [user, location.pathname, addToast]);
+    }).catch(() => { setLoadingCerts(false); addToast('error', t('errors.loadCertificates')); });
+  }, [user, path, addToast, t]);
 
   // Club subscription for sidebar lock + bottom nav
   useEffect(() => {
@@ -96,15 +100,15 @@ export default function StudentLayout() {
 
   // Load my testimonials when on /temoignages
   useEffect(() => {
-    if (!user || !location.pathname.startsWith('/mon-espace/temoignages')) return;
+    if (!user || !path.startsWith('/mon-espace/temoignages')) return;
     setLoadingTestimonials(true);
     getMyTestimonials(user.uid).then((data) => {
       setMyTestimonials(data);
       setLoadingTestimonials(false);
     }).catch(() => setLoadingTestimonials(false));
-  }, [user, location.pathname]);
+  }, [user, path]);
 
-  const displayName = userData?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Étudiant';
+  const displayName = userData?.displayName || user?.displayName || user?.email?.split('@')[0] || t('fallbackName');
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
   const photoURL = user?.photoURL || userData?.photoURL;
 
@@ -125,46 +129,57 @@ export default function StudentLayout() {
 
   return (
     <AppShell
-      brand={{ label: 'Mon espace', href: '/mon-espace/tableau-de-bord' }}
-      titleMap={STUDENT_TITLES}
+      brand={{ label: t('nav.brand'), href: '/mon-espace/tableau-de-bord' }}
+      titleMap={{
+        '/mon-espace/tableau-de-bord': t('titles.dashboard'),
+        '/mon-espace/cours':           t('titles.courses'),
+        '/mon-espace/rysmo':           t('titles.rysmo'),
+        '/mon-espace/notes':           t('titles.notes'),
+        '/mon-espace/succes':          t('titles.achievements'),
+        '/mon-espace/messages':        t('titles.messages'),
+        '/mon-espace/temoignages':     t('titles.testimonials'),
+        '/mon-espace/club':            t('titles.club'),
+        '/mon-espace/profil':          t('titles.profile'),
+        '/mon-espace/parametres':      t('titles.settings'),
+      }}
       sidebarSections={[
         {
-          title: 'Espace',
+          title: t('nav.sectionSpace'),
           items: [
-            { to: '/mon-espace/tableau-de-bord', label: 'Tableau de bord', icon: LayoutDashboard },
-            { to: '/mon-espace/cours',           label: 'Mes formations',   icon: BookOpen },
-            { to: '/mon-espace/rysmo',           label: 'Rysmo',            icon: Bot },
-            { to: '/mon-espace/notes',           label: 'Mes notes',        icon: BookMarked },
-            { to: '/mon-espace/succes',          label: 'Succès & Certificats', icon: Award },
-            { to: '/mon-espace/messages',        label: 'Messages',         icon: Inbox },
-            { to: '/mon-espace/temoignages',     label: 'Mon avis',         icon: MessageSquareQuote },
+            { to: '/mon-espace/tableau-de-bord', label: t('nav.dashboard'), icon: LayoutDashboard },
+            { to: '/mon-espace/cours',           label: t('nav.courses'),   icon: BookOpen },
+            { to: '/mon-espace/rysmo',           label: t('nav.rysmo'),     icon: Bot },
+            { to: '/mon-espace/notes',           label: t('nav.notes'),     icon: BookMarked },
+            { to: '/mon-espace/succes',          label: t('nav.achievements'), icon: Award },
+            { to: '/mon-espace/messages',        label: t('nav.messages'),  icon: Inbox },
+            { to: '/mon-espace/temoignages',     label: t('nav.testimonials'), icon: MessageSquareQuote },
           ],
         },
         {
-          title: 'Communauté',
+          title: t('nav.sectionCommunity'),
           items: [
             {
-              to: '/mon-espace/club', label: 'Club des Digitos', icon: Crown, tone: 'club',
+              to: '/mon-espace/club', label: t('nav.club'), icon: Crown, tone: 'club',
               locked: !isClubActive,
-              badge: isClubPending ? 'En attente' : null,
+              badge: isClubPending ? t('nav.clubPending') : null,
             },
           ],
         },
         {
-          title: 'Compte',
+          title: t('nav.sectionAccount'),
           items: [
-            { to: '/mon-espace/profil',     label: 'Profil',     icon: User },
-            { to: '/mon-espace/parametres', label: 'Paramètres', icon: Settings },
-            { to: '/',                       label: 'Retour au site', icon: Home, end: true },
+            { to: '/mon-espace/profil',     label: t('nav.profile'),    icon: User },
+            { to: '/mon-espace/parametres', label: t('nav.settings'),   icon: Settings },
+            { to: '/',                       label: t('nav.backToSite'), icon: Home, end: true },
           ],
         },
       ]}
       bottomNavItems={[
-        { to: '/mon-espace/tableau-de-bord', label: 'Accueil', icon: Home },
-        { to: '/mon-espace/cours',           label: 'Cours',   icon: BookOpen },
-        { to: '/mon-espace/club',            label: 'Club',    icon: Crown },
-        { to: '/mon-espace/messages',        label: 'Inbox',   icon: Inbox },
-        { to: '/mon-espace/profil',          label: 'Profil',  icon: User },
+        { to: '/mon-espace/tableau-de-bord', label: t('nav.bottomHome'),     icon: Home },
+        { to: '/mon-espace/cours',           label: t('nav.bottomCourses'),  icon: BookOpen },
+        { to: '/mon-espace/club',            label: t('nav.bottomClub'),     icon: Crown },
+        { to: '/mon-espace/messages',        label: t('nav.bottomMessages'), icon: Inbox },
+        { to: '/mon-espace/profil',          label: t('nav.bottomProfile'),  icon: User },
       ]}
       contentClassName="p-4 sm:p-6 max-w-6xl mx-auto w-full"
       outletContext={context}
@@ -178,16 +193,3 @@ export default function StudentLayout() {
     />
   );
 }
-
-const STUDENT_TITLES: Record<string, string> = {
-  '/mon-espace/tableau-de-bord': 'Tableau de bord',
-  '/mon-espace/cours':           'Mes formations',
-  '/mon-espace/rysmo':           'Rysmo',
-  '/mon-espace/notes':           'Mes notes',
-  '/mon-espace/succes':          'Succès & Certificats',
-  '/mon-espace/messages':        'Messages',
-  '/mon-espace/temoignages':     'Mon avis',
-  '/mon-espace/club':            'Club des Digitos',
-  '/mon-espace/profil':          'Mon profil',
-  '/mon-espace/parametres':      'Paramètres',
-};

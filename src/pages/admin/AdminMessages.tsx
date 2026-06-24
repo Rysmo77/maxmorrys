@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Mail, MailOpen, Clock, Search, Trash2, CheckCheck, Loader2 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -8,12 +9,19 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { subscribeMessages, updateMessageStatus, deleteMessage } from '../../lib/firestore';
+import { useFormat } from '../../hooks/useFormat';
 import type { ContactMessage } from '../../types';
 
-const statusLabels = { new: 'Nouveau', read: 'Lu', replied: 'Répondu' };
 const statusVariants = { new: 'error' as const, read: 'warning' as const, replied: 'success' as const };
 
 export default function AdminMessages() {
+  const { t } = useTranslation('admin');
+  const { locale } = useFormat();
+  const statusLabels: Record<ContactMessage['status'], string> = {
+    new: t('messages.status.new'),
+    read: t('messages.status.read'),
+    replied: t('messages.status.replied'),
+  };
   const { addToast } = useToast();
   const confirm = useConfirmDialog();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
@@ -38,18 +46,18 @@ export default function AdminMessages() {
   };
 
   const markReplied = async (id: string) => {
-    await updateMessageStatus(id, 'replied').catch(() => addToast('error', 'Erreur de mise à jour.'));
+    await updateMessageStatus(id, 'replied').catch(() => addToast('error', t('messages.toast.updateError')));
     if (selected?.id === id) setSelected((prev) => prev ? { ...prev, status: 'replied' } : prev);
   };
 
   const handleDelete = (id: string) => {
-    confirm.requestConfirm('Supprimer ce message ? Cette action est irréversible.', async () => {
+    confirm.requestConfirm(t('messages.confirm.deleteMessage'), async () => {
       try {
         await deleteMessage(id);
-        addToast('success', 'Message supprimé.');
+        addToast('success', t('messages.toast.deleted'));
         setSelected(null);
       } catch {
-        addToast('error', 'Erreur de suppression.');
+        addToast('error', t('messages.toast.deleteError'));
       }
       confirm.closeConfirm();
     });
@@ -69,9 +77,9 @@ export default function AdminMessages() {
     <div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Messages</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{t('messages.title')}</h1>
           <p className="text-sm text-neutral-500">
-            {loading ? 'Chargement...' : `${newCount} nouveau${newCount !== 1 ? 'x' : ''} message${newCount !== 1 ? 's' : ''}`}
+            {loading ? t('messages.loading') : t('messages.newCount', { count: newCount })}
           </p>
         </div>
       </div>
@@ -82,7 +90,7 @@ export default function AdminMessages() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher..."
+            placeholder={t('messages.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white"
           />
         </div>
@@ -97,7 +105,7 @@ export default function AdminMessages() {
                   : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-600'
               }`}
             >
-              {s === 'all' ? 'Tous' : statusLabels[s]}
+              {s === 'all' ? t('messages.filter.all') : statusLabels[s]}
             </button>
           ))}
         </div>
@@ -109,7 +117,7 @@ export default function AdminMessages() {
         </div>
       ) : filtered.length === 0 ? (
         <Card>
-          <p className="text-center text-neutral-500 py-8">Aucun message trouvé.</p>
+          <p className="text-center text-neutral-500 py-8">{t('messages.empty')}</p>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -135,7 +143,7 @@ export default function AdminMessages() {
                 </div>
                 <div className="flex items-center gap-1 text-xs text-neutral-400 flex-shrink-0">
                   <Clock className="w-3 h-3" />
-                  {new Date(msg.sentAt).toLocaleDateString('fr-FR')}
+                  {new Date(msg.sentAt).toLocaleDateString(locale)}
                 </div>
               </div>
             </Card>
@@ -156,7 +164,7 @@ export default function AdminMessages() {
                 <p className="font-medium text-neutral-900 dark:text-white">{selected.name}</p>
                 <a href={`mailto:${selected.email}`} className="text-sm text-brand-600 dark:text-brand-400 hover:underline">{selected.email}</a>
               </div>
-              <span className="text-xs text-neutral-400 flex-shrink-0">{new Date(selected.sentAt).toLocaleString('fr-FR')}</span>
+              <span className="text-xs text-neutral-400 flex-shrink-0">{new Date(selected.sentAt).toLocaleString(locale)}</span>
             </div>
 
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed whitespace-pre-wrap mb-6">{selected.message}</p>
@@ -169,7 +177,7 @@ export default function AdminMessages() {
                 icon={<Trash2 className="w-4 h-4" />}
                 className="text-error-600 border-error-300 hover:bg-error-50 dark:text-error-400 dark:border-error-700 dark:hover:bg-error-900/20"
               >
-                Supprimer
+                {t('messages.actions.delete')}
               </Button>
               <div className="flex gap-2">
                 {selected.status !== 'replied' && (
@@ -178,14 +186,14 @@ export default function AdminMessages() {
                     onClick={() => markReplied(selected.id)}
                     icon={<CheckCheck className="w-4 h-4" />}
                   >
-                    Marquer comme répondu
+                    {t('messages.actions.markReplied')}
                   </Button>
                 )}
                 <a
                   href={`mailto:${selected.email}?subject=Re: ${encodeURIComponent(selected.subject)}`}
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium transition-colors"
                 >
-                  <Mail className="w-4 h-4" /> Répondre par email
+                  <Mail className="w-4 h-4" /> {t('messages.actions.replyByEmail')}
                 </a>
               </div>
             </div>
@@ -197,9 +205,9 @@ export default function AdminMessages() {
         open={confirm.open}
         onClose={confirm.closeConfirm}
         onConfirm={confirm.onConfirm}
-        title="Supprimer"
+        title={t('messages.confirm.deleteTitle')}
         message={confirm.message}
-        confirmLabel="Supprimer"
+        confirmLabel={t('messages.actions.delete')}
       />
     </div>
   );

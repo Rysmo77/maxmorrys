@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Gift, Copy, Check, Handshake, Trophy, CircleNotch } from '@phosphor-icons/react';
 import { getOrCreateReferralCode, getMyReferrals } from '../../../../lib/firestore';
@@ -10,6 +11,7 @@ import { slideUp } from '../../../../lib/animations';
 type ClubData = ReturnType<typeof useClubData>;
 
 export default function ClubReferral({ data }: { data: ClubData }) {
+  const { t } = useTranslation('club');
   const { user } = data;
   const [code, setCode] = useState('');
   const [referrals, setReferrals] = useState<Referral[]>([]);
@@ -40,7 +42,7 @@ export default function ClubReferral({ data }: { data: ClubData }) {
     }).catch(() => null);
   };
 
-  const shareText = encodeURIComponent(`Rejoins le Club des Digitos avec mon lien et profite d'une réduction : ${link}`);
+  const shareText = encodeURIComponent(t('referral.shareMessage', { link }));
 
   if (loading) {
     return <div className="flex justify-center py-16"><CircleNotch className="w-8 h-8 animate-spin text-plum-500" /></div>;
@@ -52,20 +54,28 @@ export default function ClubReferral({ data }: { data: ClubData }) {
       <div className="rounded-2xl bg-gradient-to-br from-plum-600 to-plum-800 p-6 text-white">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center"><Gift className="w-6 h-6" weight="fill" /></div>
-          <h3 className="text-xl font-black">Parraine la communauté</h3>
+          <h3 className="text-xl font-black">{t('referral.heroTitle')}</h3>
         </div>
         <p className="text-plum-100 text-sm leading-relaxed">
-          Ton filleul profite de <span className="font-bold text-white">-15%</span> sur son adhésion. Quand il devient membre, tu gagnes <span className="font-bold text-white">100 XP</span> et le badge <span className="font-bold text-white">Ambassadeur</span>.
+          <Trans
+            i18nKey="referral.heroText"
+            t={t}
+            components={[
+              <span className="font-bold text-white" />,
+              <span className="font-bold text-white" />,
+              <span className="font-bold text-white" />,
+            ]}
+          />
         </p>
       </div>
 
       {/* Link */}
       <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 space-y-3">
-        <label className="text-xs font-semibold text-neutral-500">Ton lien de parrainage</label>
+        <label className="text-xs font-semibold text-neutral-500">{t('referral.yourLink')}</label>
         <div className="flex items-center gap-2">
           <input readOnly value={link} className="flex-1 px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-sm text-neutral-700 dark:text-neutral-300 truncate" />
           <button onClick={copy} className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-plum-600 hover:bg-plum-700 text-white text-sm font-semibold transition-colors">
-            {copied ? <Check className="w-4 h-4" weight="bold" /> : <Copy className="w-4 h-4" />} {copied ? 'Copié' : 'Copier'}
+            {copied ? <Check className="w-4 h-4" weight="bold" /> : <Copy className="w-4 h-4" />} {copied ? t('referral.copied') : t('referral.copy')}
           </button>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -81,14 +91,14 @@ export default function ClubReferral({ data }: { data: ClubData }) {
           <Handshake className="w-7 h-7 text-plum-500" weight="duotone" />
           <div>
             <p className="text-2xl font-black text-neutral-900 dark:text-white tabular-nums">{referrals.length}</p>
-            <p className="text-xs text-neutral-500">Filleul{referrals.length > 1 ? 's' : ''} converti{referrals.length > 1 ? 's' : ''}</p>
+            <p className="text-xs text-neutral-500">{t('referral.convertedReferrals', { count: referrals.length })}</p>
           </div>
         </div>
         <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 flex items-center gap-3">
           <Trophy className={isAmbassador ? 'w-7 h-7 text-accent-500' : 'w-7 h-7 text-neutral-300 dark:text-neutral-600'} weight="fill" />
           <div>
-            <p className="text-sm font-bold text-neutral-900 dark:text-white">Ambassadeur</p>
-            <p className="text-xs text-neutral-500">{isAmbassador ? 'Badge débloqué 🎉' : 'Parraine 1 membre'}</p>
+            <p className="text-sm font-bold text-neutral-900 dark:text-white">{t('referral.ambassador')}</p>
+            <p className="text-xs text-neutral-500">{isAmbassador ? t('referral.badgeUnlocked') : t('referral.refer1Member')}</p>
           </div>
         </div>
       </div>

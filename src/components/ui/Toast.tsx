@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -29,6 +30,7 @@ const styles = {
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation('ui');
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = useCallback((type: Toast['type'], message: string) => {
@@ -51,7 +53,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div key={toast.id} role="alert" className={cn('flex items-start gap-3 p-4 rounded-xl border-l-4 shadow-lg animate-slide-up', styles[toast.type])}>
               <Icon className="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <p className="text-sm font-medium flex-1">{toast.message}</p>
-              <button onClick={() => removeToast(toast.id)} className="flex-shrink-0 opacity-60 hover:opacity-100" aria-label="Fermer la notification">
+              <button onClick={() => removeToast(toast.id)} className="flex-shrink-0 opacity-60 hover:opacity-100" aria-label={t('toast.close')}>
                 <X className="w-4 h-4" />
               </button>
             </div>

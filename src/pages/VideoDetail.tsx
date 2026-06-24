@@ -1,11 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LocalizedLink from '../components/shared/LocalizedLink';
+import { useLanguage } from '../contexts/LanguageContext';
+import { contentPath } from '../lib/contentPath';
 import { motion } from 'framer-motion';
 import { Play, Eye, Calendar, ArrowLeft, Clock, Loader2, TrendingUp } from 'lucide-react';
 import { getVideoBySlug, getPublishedVideos } from '../lib/firestore';
 import FormationCTA from '../components/shared/FormationCTA';
 import VideoCard from '../components/shared/VideoCard';
-import { formatDate, markdownToHtml } from '../lib/utils';
+import TranslatedText from '../components/shared/TranslatedText';
+import { useTranslatedText } from '../hooks/useTranslatedContent';
+import { markdownToHtml } from '../lib/utils';
+import { useFormat } from '../hooks/useFormat';
 import type { Video } from '../types';
 import { trackViewItem, trackVideoPlay } from '../lib/tracking';
 import { useContentEngagement } from '../hooks/useContentEngagement';
@@ -30,6 +37,9 @@ function resolveVideoEmbed(url: string): { type: 'iframe' | 'native'; src: strin
 }
 
 export default function VideoDetail() {
+  const { t } = useTranslation('media');
+  const { formatDate } = useFormat();
+  const { language } = useLanguage();
   const { slug } = useParams<{ slug: string }>();
   const [video, setVideo] = useState<Video | null | undefined>(undefined);
   const [others, setOthers] = useState<Video[]>([]);
@@ -37,7 +47,7 @@ export default function VideoDetail() {
 
   useEffect(() => {
     if (!slug) return;
-    getVideoBySlug(slug).then((data) => {
+    getVideoBySlug(slug, language).then((data) => {
       setVideo(data);
       if (data) {
         trackViewItem({ id: data.id, name: data.title, category: data.category, content_type: 'video' });
@@ -45,7 +55,7 @@ export default function VideoDetail() {
         getPublishedVideos().then((all) => setOthers(all.filter((v) => v.id !== data.id).slice(0, 10))).catch(() => null);
       }
     }).catch(() => setVideo(null));
-  }, [slug]);
+  }, [slug, language]);
 
   useContentEngagement({
     contentId: video?.id,
@@ -56,6 +66,11 @@ export default function VideoDetail() {
     mediaRef: videoRef,
   });
 
+  // Contenu dynamique traduit (langue active). Hooks appelés inconditionnellement.
+  const tTitle = useTranslatedText(video?.title);
+  const tCategory = useTranslatedText(video?.category);
+  const tDescription = useTranslatedText(video?.description);
+
   if (video === undefined) {
     return <div className="pt-32 pb-20 flex justify-center"><Loader2 className={`w-8 h-8 animate-spin ${theme.spinner}`} /></div>;
   }
@@ -63,8 +78,8 @@ export default function VideoDetail() {
   if (!video) {
     return (
       <div className="pt-32 pb-20 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">Vidéo introuvable</h1>
-        <Link to="/videos" className={`${theme.accentText} hover:underline`}>Retour aux vidéos</Link>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{t('videoDetail.notFoundTitle')}</h1>
+        <LocalizedLink to="/videos" className={`${theme.accentText} hover:underline`}>{t('videoDetail.notFoundLink')}</LocalizedLink>
       </div>
     );
   }
@@ -72,17 +87,19 @@ export default function VideoDetail() {
   return (
     <div>
       <SEOHead
-        title={video.title}
-        description={video.description}
+        title={tTitle}
+        description={tDescription}
         ogImage={video.thumbnailUrl}
+        frPath={contentPath('videos', video, 'fr')}
+        enPath={contentPath('videos', video, 'en')}
       >
         {video.thumbnailUrl && <link rel="preload" as="image" href={video.thumbnailUrl} />}
       </SEOHead>
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'VideoObject',
-        name: video.title,
-        description: video.description,
+        name: tTitle,
+        description: tDescription,
         thumbnailUrl: video.thumbnailUrl,
         uploadDate: video.publishedAt,
         duration: video.duration,
@@ -100,9 +117,9 @@ export default function VideoDetail() {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
-          { '@type': 'ListItem', position: 2, name: 'Vidéos', item: `${SITE_URL}/videos` },
-          { '@type': 'ListItem', position: 3, name: video.title, item: `${SITE_URL}/videos/${video.slug}` },
+          { '@type': 'ListItem', position: 1, name: t('videoDetail.breadcrumbHome'), item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: t('videoDetail.breadcrumbVideos'), item: `${SITE_URL}/videos` },
+          { '@type': 'ListItem', position: 3, name: tTitle, item: `${SITE_URL}/videos/${video.slug}` },
         ],
       }} />
 
@@ -117,34 +134,34 @@ export default function VideoDetail() {
           <motion.div variants={staggerItem} className="mb-6">
             <Breadcrumbs
               items={[
-                { label: 'Accueil', href: '/' },
-                { label: 'Vidéos', href: '/videos' },
-                { label: video.title },
+                { label: t('videoDetail.breadcrumbHome'), href: '/' },
+                { label: t('videoDetail.breadcrumbVideos'), href: '/videos' },
+                { label: tTitle },
               ]}
             />
           </motion.div>
           <motion.div variants={staggerItem}>
-            <Link
+            <LocalizedLink
               to="/videos"
               className="inline-flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 transition-colors mb-8"
             >
               <ArrowLeft className="w-4 h-4" />
-              Toutes les vidéos
-            </Link>
+              {t('videoDetail.allVideos')}
+            </LocalizedLink>
           </motion.div>
 
           <motion.p variants={staggerItem} className={`text-xs font-bold tracking-[0.25em] uppercase ${theme.eyebrow} mb-4`}>
-            {video.category}
+            {tCategory}
           </motion.p>
 
           <motion.h1 variants={staggerItem} className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.05] mb-6">
-            {video.title}
+            {tTitle}
           </motion.h1>
 
           <motion.div variants={staggerItem} className="flex flex-wrap items-center gap-4 text-sm text-neutral-400 pb-10">
             <span className="flex items-center gap-1.5">
               <Eye className="w-4 h-4" />
-              {video.views.toLocaleString()} vues
+              {video.views.toLocaleString()} {t('videoDetail.views')}
             </span>
             <span>·</span>
             <span className="flex items-center gap-1.5">
@@ -182,7 +199,7 @@ export default function VideoDetail() {
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                       allowFullScreen
-                      title={video.title}
+                      title={tTitle}
                     />
                   ) : (
                     <video
@@ -198,7 +215,7 @@ export default function VideoDetail() {
                     {video.thumbnailUrl && (
                       <img
                         src={video.thumbnailUrl}
-                        alt={video.title}
+                        alt={tTitle}
                         className="w-full h-full object-cover"
                       />
                     )}
@@ -207,7 +224,7 @@ export default function VideoDetail() {
                         <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center mx-auto">
                           <Play className="w-8 h-8 text-neutral-900 ml-1" fill="currentColor" />
                         </div>
-                        <p className="text-sm font-medium">Lecteur vidéo disponible prochainement</p>
+                        <p className="text-sm font-medium">{t('videoDetail.playerSoon')}</p>
                       </div>
                     </div>
                   </>
@@ -222,11 +239,11 @@ export default function VideoDetail() {
               {video.description && (
                 <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800 p-6">
                   <h2 className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 mb-3">
-                    Description
+                    {t('videoDetail.descriptionTitle')}
                   </h2>
                   <div
                     className="prose dark:prose-invert max-w-none prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium"
-                    dangerouslySetInnerHTML={{ __html: markdownToHtml(video.description) }}
+                    dangerouslySetInnerHTML={{ __html: markdownToHtml(tDescription) }}
                   />
                 </div>
               )}
@@ -243,7 +260,7 @@ export default function VideoDetail() {
                 <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-red-600/25 blur-[50px]" />
                 <div className="relative z-10 flex items-center gap-2.5">
                   <TrendingUp className="w-4 h-4 text-red-400" />
-                  <h3 className="text-lg font-black tracking-tight text-white">Autres vidéos</h3>
+                  <h3 className="text-lg font-black tracking-tight text-white">{t('videoDetail.otherVideos')}</h3>
                 </div>
               </div>
               <motion.div
@@ -256,7 +273,7 @@ export default function VideoDetail() {
                 {others.slice(0, 4).map((v) => (
                   <motion.div key={v.id} variants={staggerItem}>
                   <Link
-                    to={`/videos/${v.slug}`}
+                    to={contentPath('videos', v, language)}
                     className="flex items-start gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors group"
                   >
                     <div className="relative shrink-0">
@@ -273,11 +290,13 @@ export default function VideoDetail() {
                       </span>
                     </div>
                     <div className="min-w-0">
-                      <p className={`text-sm font-semibold text-neutral-800 dark:text-neutral-200 ${theme.titleHover} transition-colors leading-snug line-clamp-2`}>
-                        {v.title}
-                      </p>
+                      <TranslatedText
+                        text={v.title}
+                        as="p"
+                        className={`text-sm font-semibold text-neutral-800 dark:text-neutral-200 ${theme.titleHover} transition-colors leading-snug line-clamp-2`}
+                      />
                       <p className="text-xs text-neutral-400 mt-1">
-                        {v.views.toLocaleString()} vues
+                        {v.views.toLocaleString()} {t('videoDetail.views')}
                       </p>
                     </div>
                   </Link>
@@ -300,7 +319,7 @@ export default function VideoDetail() {
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-8">
-              Vidéos à voir ensuite
+              {t('videoDetail.watchNext')}
             </h2>
             <motion.div
               className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10"

@@ -493,6 +493,7 @@ exports.rysmo = (0, https_1.onCall)({ region: 'us-central1', secrets: [googleAiK
     }
     const data = request.data;
     const { message, conversationHistory = [], userContext } = data;
+    const isEn = data.language === 'en';
     if (!(message === null || message === void 0 ? void 0 : message.trim())) {
         throw new https_1.HttpsError('invalid-argument', 'Le message ne peut pas être vide.');
     }
@@ -528,8 +529,12 @@ exports.rysmo = (0, https_1.onCall)({ region: 'us-central1', secrets: [googleAiK
         "- Guide : orienter vers les articles, podcasts, vidéos et formations Max-Morrys",
         "",
         "Style — tu ES la voix de Max-Morrys :",
-        "- Réponds TOUJOURS en français.",
-        "- Tutoie toujours (« tu », « ta »). Parle comme à un ami entrepreneur en Afrique francophone.",
+        isEn
+            ? "- ALWAYS reply in English (US), regardless of the language of these instructions."
+            : "- Réponds TOUJOURS en français.",
+        isEn
+            ? "- Address the user directly with a warm, friendly 'you', like talking to an entrepreneur friend in French-speaking Africa."
+            : "- Tutoie toujours (« tu », « ta »). Parle comme à un ami entrepreneur en Afrique francophone.",
         "- Direct et SANS BLABLA : du concret, des exemples réels, pas de jargon ni de théorie inutile.",
         "- Langage terre-à-terre, phrases courtes et punchy. Évite les emojis.",
         "- Pédagogue et bienveillant : explique simplement, valorise l'effort, donne la prochaine étape concrète.",

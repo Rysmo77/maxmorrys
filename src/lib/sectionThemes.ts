@@ -19,6 +19,8 @@
  * | club        | Violet        | plum     |
  */
 
+import { toCanonicalPath } from '../i18n/routing';
+
 export type Universe = 'formations' | 'blog' | 'podcasts' | 'videos' | 'about' | 'club';
 
 export interface UniverseTheme {
@@ -120,11 +122,13 @@ export const universeThemes: Record<Universe, UniverseTheme> = {
 };
 
 /** Déduit l'univers d'une route. Défaut : `formations` (couleur primaire). */
-export function universeFromPath(path: string): Universe {
+export function universeFromPath(rawPath: string): Universe {
+  // Canonicalise (retire /en + remappe les segments EN) pour matcher les chemins FR.
+  const path = toCanonicalPath(rawPath);
   if (path.startsWith('/blog')) return 'blog';
   if (path.startsWith('/podcasts')) return 'podcasts';
   if (path.startsWith('/videos')) return 'videos';
   if (path.startsWith('/club')) return 'club';
-  if (path.startsWith('/a-propos') || path.startsWith('/about')) return 'about';
+  if (path.startsWith('/a-propos')) return 'about';
   return 'formations';
 }

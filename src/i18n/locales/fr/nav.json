@@ -1,0 +1,22 @@
+{
+  "about": "Je suis Max-Morrys",
+  "formations": "Je te forme",
+  "blog": "Je t'informe",
+  "transform": "Je te transforme",
+  "transformAria": "Je te transforme — contenu gratuit",
+  "freeContent": "Contenu gratuit",
+  "podcast": "Le Podcast du Marketing",
+  "videos": "Le Marketing en Pratique avec Max-Morrys",
+  "contact": "Contacte-moi",
+  "search": "Rechercher",
+  "toggleTheme": "Changer le thème",
+  "studentSpace": "Mon espace étudiant",
+  "admin": "Administration",
+  "signOut": "Déconnexion",
+  "myAccount": "Mon compte",
+  "learner": "Apprenant",
+  "signIn": "Connexion",
+  "menu": "Menu",
+  "accountMenu": "Menu du compte de {{name}}",
+  "skipToContent": "Aller au contenu principal"
+}

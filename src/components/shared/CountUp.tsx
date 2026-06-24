@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { animate, useInView, useReducedMotion } from 'framer-motion';
+import { useFormat } from '../../hooks/useFormat';
 
 interface CountUpProps {
   /** Valeur finale (entier). */
@@ -19,6 +20,7 @@ interface CountUpProps {
  */
 export default function CountUp({ value, prefix = '', suffix = '', duration = 1.6, format = false, className }: CountUpProps) {
   const ref = useRef<HTMLSpanElement>(null);
+  const { locale } = useFormat();
   const inView = useInView(ref, { once: true, amount: 0.5 });
   const reduced = useReducedMotion();
   const [display, setDisplay] = useState(0);
@@ -39,7 +41,7 @@ export default function CountUp({ value, prefix = '', suffix = '', duration = 1.
 
   return (
     <span ref={ref} className={className}>
-      {prefix}{format ? display.toLocaleString('fr-FR') : display}{suffix}
+      {prefix}{format ? display.toLocaleString(locale) : display}{suffix}
     </span>
   );
 }

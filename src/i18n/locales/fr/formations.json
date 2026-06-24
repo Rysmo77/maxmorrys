@@ -1,0 +1,152 @@
+{
+  "seo": {
+    "title": "Formations Marketing Digital",
+    "description": "Formations pratiques en marketing digital, SEO et IA pour accélérer ta croissance. Cours en ligne accessibles depuis l'Afrique et le monde entier."
+  },
+  "level": {
+    "all": "Tous niveaux",
+    "debutant": "Débutant",
+    "intermediaire": "Intermédiaire",
+    "avance": "Avancé"
+  },
+  "eyebrow": "Formations",
+  "hero": {
+    "title": "Forme-toi autrement",
+    "subtitle": "Marre des cours trop théoriques ? Ici, c'est du concret, de la pratique, et surtout… ça marche vraiment. Apprends à ton rythme et accélère ta croissance.",
+    "searchPlaceholder": "Rechercher une formation…",
+    "exploreCatalog": "Explorer le catalogue"
+  },
+  "states": {
+    "loadError": "Impossible de charger les formations. Vérifie ta connexion et réessaie.",
+    "retry": "Réessayer",
+    "empty": "Aucune formation ne correspond à ta recherche."
+  },
+  "categories": {
+    "title": "Apprends des compétences <accent>essentielles</accent>",
+    "subtitle": "Des thématiques très recherchées pour faire progresser ta carrière et ton business.",
+    "carouselAria": "Catégories de formations",
+    "countOne": "{{count}} formation",
+    "countOther": "{{count}} formations"
+  },
+  "trending": {
+    "title": "Formations tendance",
+    "seeAll": "Tout voir",
+    "carouselAria": "Formations tendance"
+  },
+  "catalog": {
+    "title": "Des compétences pour accélérer ta croissance",
+    "subtitle": "Du marketing digital aux sujets techniques — explore tout le catalogue.",
+    "all": "Toutes",
+    "keywordPlaceholder": "Filtrer par mot-clé…"
+  },
+  "club": {
+    "eyebrow": "Communauté",
+    "title": "Rejoins le Club des Digitos",
+    "description": "L'espace communautaire réservé aux étudiants de la plateforme. Forum, sessions Live, événements et infos exclusives — un vrai réseau de professionnels du digital.",
+    "priceUnit": "FCFA / an",
+    "renewal": "Renouvellement auto ou manuel",
+    "join": "Rejoindre le Club",
+    "studentsOnly": "Réservé aux étudiants inscrits",
+    "feed": "Fil d'actualité",
+    "forum": "Forum & discussions",
+    "live": "Sessions Live",
+    "exclusiveInfo": "Infos exclusives",
+    "events": "Événements",
+    "network": "Réseau digital",
+    "members": {
+      "marketing": "Marketing Digital",
+      "seo": "SEO & Contenu",
+      "ecommerce": "E-commerce",
+      "social": "Réseaux Sociaux"
+    }
+  },
+  "testimonials": {
+    "title": "Rejoins celles et ceux qui transforment leur carrière grâce à la formation"
+  },
+  "business": {
+    "eyebrow": "Offre entreprises",
+    "title": "Formez vos équipes avec Max-Morrys Business",
+    "description": "Montez en compétences à l'échelle de votre organisation : licences d'équipe, ateliers sur mesure et accompagnement de vos talents.",
+    "cta": "Discutons de votre projet",
+    "offers": {
+      "licensesTitle": "Licences équipe",
+      "licensesDesc": "Formez l'ensemble de votre organisation",
+      "licensesNote": "Prix par siège",
+      "workshopsTitle": "Ateliers corporate",
+      "workshopsDesc": "Sessions intensives sur mesure",
+      "workshopsNote": "Programme sur-mesure",
+      "coachingTitle": "Accompagnement",
+      "coachingDesc": "Suivi & coaching de vos talents",
+      "coachingNote": "Sur devis"
+    }
+  },
+  "popularSkills": {
+    "title": "Compétences populaires",
+    "studentsOne": "{{formattedCount}} étudiant",
+    "studentsOther": "{{formattedCount}} étudiants"
+  },
+  "crossBlog": {
+    "eyebrow": "Découvrez aussi",
+    "title": "Je t'informe",
+    "description": "Articles, analyses et conseils pratiques pour maîtriser le marketing digital, le SEO et l'IA.",
+    "cta": "Lire le blog"
+  },
+  "detail": {
+    "notFoundTitle": "Formation introuvable",
+    "notFoundLink": "Voir toutes les formations",
+    "breadcrumbHome": "Accueil",
+    "breadcrumbFormations": "Formations",
+    "previewBadge": "Aperçu de la formation",
+    "free": "Gratuit",
+    "save": "Économise {{amount}}",
+    "enroll": "S'inscrire maintenant",
+    "guaranteeShort": "Accès à vie · Garantie satisfait 14 jours",
+    "includesTitle": "Ce que ce cours inclut",
+    "durationContent": "{{duration}} de contenu",
+    "lessonsCount": "{{count}} leçons",
+    "lifetimeAccess": "Accès illimité, à vie",
+    "certificate": "Certificat de complétion",
+    "studentsCount": "{{count}} étudiants",
+    "certificateIncluded": "Certificat inclus",
+    "createdBy": "Créé par",
+    "learnTitle": "Ce que tu apprendras",
+    "programEyebrow": "Programme",
+    "programTitle": "Contenu du cours",
+    "moduleCountOne": "{{count}} module",
+    "moduleCountOther": "{{count}} modules",
+    "programSummary": "{{modules}} · {{lessons}} · {{duration}}",
+    "moduleLessons": "{{count}} leçons",
+    "lessonFree": "Gratuit",
+    "descriptionTitle": "Description",
+    "reviewsTitle": "Avis des étudiants",
+    "ratingSummary": "Note moyenne attribuée par <strong>{{count}} étudiants</strong> inscrits à cette formation.",
+    "guaranteeBanner": "Garantie satisfait ou remboursé pendant 14 jours — sans condition.",
+    "crossEyebrow": "Découvrez aussi",
+    "crossTitle": "Je t'informe",
+    "crossDescription": "Articles, analyses et conseils gratuits pour approfondir vos connaissances en marketing digital.",
+    "crossCta": "Lire le blog"
+  },
+  "card": {
+    "featured": "À la une",
+    "new": "Nouveau",
+    "free": "Gratuit",
+    "progress": "Progression",
+    "lessonsDoneOne": "{{count}} leçon complétée",
+    "lessonsDoneOther": "{{count}} leçons complétées",
+    "review": "Revoir",
+    "continue": "Continuer",
+    "certificate": "Certificat",
+    "lessonsCount": "{{count}} leçons",
+    "popoverCertificate": "Certificat",
+    "viewFormation": "Voir la formation"
+  },
+  "carousel": {
+    "aria": "Carrousel",
+    "previous": "Précédent",
+    "next": "Suivant"
+  },
+  "library": {
+    "tab": "Le catalogue de formations",
+    "moreInfo": "Plus d'infos"
+  }
+}

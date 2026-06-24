@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   Crown, Rss, UsersThree, ChatsCircle, CalendarBlank, VideoCamera, Trophy, Briefcase,
   Info, Gift, ArrowsClockwise, CircleNotch, DotsThree, type Icon,
 } from '@phosphor-icons/react';
+import { useFormat } from '../../../hooks/useFormat';
 import { cn } from '../../../lib/utils';
 import { slideUp } from '../../../lib/animations';
 import { useClubData } from '../hooks/useClubData';
@@ -26,22 +28,24 @@ interface ClubTabProps {
   enrolledFormations: EnrolledFormation[];
 }
 
-interface NavItem { id: ClubSubTab; icon: Icon; label: string }
+interface NavItem { id: ClubSubTab; icon: Icon; labelKey: string }
 
 const PRIMARY: NavItem[] = [
-  { id: 'feed', icon: Rss, label: 'Fil' },
-  { id: 'members', icon: UsersThree, label: 'Membres' },
-  { id: 'discussions', icon: ChatsCircle, label: 'Messages' },
-  { id: 'agenda', icon: CalendarBlank, label: 'Agenda' },
+  { id: 'feed', icon: Rss, labelKey: 'tab.nav.feed' },
+  { id: 'members', icon: UsersThree, labelKey: 'tab.nav.members' },
+  { id: 'discussions', icon: ChatsCircle, labelKey: 'tab.nav.discussions' },
+  { id: 'agenda', icon: CalendarBlank, labelKey: 'tab.nav.agenda' },
 ];
 const MORE: NavItem[] = [
-  { id: 'leaderboard', icon: Trophy, label: 'Classement' },
-  { id: 'opportunities', icon: Briefcase, label: 'Opportunités' },
-  { id: 'infos', icon: Info, label: 'Infos exclusives' },
-  { id: 'referral', icon: Gift, label: 'Parrainer' },
+  { id: 'leaderboard', icon: Trophy, labelKey: 'tab.nav.leaderboard' },
+  { id: 'opportunities', icon: Briefcase, labelKey: 'tab.nav.opportunities' },
+  { id: 'infos', icon: Info, labelKey: 'tab.nav.infos' },
+  { id: 'referral', icon: Gift, labelKey: 'tab.nav.referral' },
 ];
 
 export default function ClubTab({ enrolledFormations }: ClubTabProps) {
+  const { t } = useTranslation('club');
+  const { locale } = useFormat();
   const data = useClubData();
   const { loadingClub, isClubActive, clubSubscription, clubTab, setClubTab, handleRefresh, user } = data;
 
@@ -83,7 +87,7 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
       )}
     >
       <item.icon className="w-4 h-4 flex-shrink-0" weight={active ? 'fill' : 'regular'} />
-      {item.label}
+      {t(item.labelKey)}
     </button>
   );
 
@@ -97,10 +101,10 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
               <Crown className="w-5 h-5 text-white" weight="fill" />
             </div>
             <div className="min-w-0">
-              <p className="font-bold text-neutral-900 dark:text-white truncate">Club des Digitos · Membre actif</p>
+              <p className="font-bold text-neutral-900 dark:text-white truncate">{t('tab.memberActive')}</p>
               <p className="text-xs text-neutral-400 truncate">
-                Expire le {new Date(clubSubscription!.expiresAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                {clubSubscription!.autoRenew ? ' · Renouvellement auto' : ' · Manuel'}
+                {t('tab.expiresOn', { date: new Date(clubSubscription!.expiresAt).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }) })}
+                {clubSubscription!.autoRenew ? t('tab.autoRenew') : t('tab.manual')}
               </p>
             </div>
           </div>
@@ -115,7 +119,7 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
                 <Trophy className="w-3.5 h-3.5" weight="fill" /> #{myRank}
               </span>
             )}
-            <button onClick={handleRefresh} aria-label="Actualiser" className="p-2 rounded-xl text-neutral-400 hover:text-plum-600 dark:hover:text-plum-400 hover:bg-plum-50 dark:hover:bg-plum-900/20 transition-colors">
+            <button onClick={handleRefresh} aria-label={t('tab.refresh')} className="p-2 rounded-xl text-neutral-400 hover:text-plum-600 dark:hover:text-plum-400 hover:bg-plum-50 dark:hover:bg-plum-900/20 transition-colors">
               <ArrowsClockwise className="w-4 h-4" weight="bold" />
             </button>
           </div>
@@ -136,7 +140,7 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
             )}
           >
             {moreActive ? <moreActive.icon className="w-4 h-4" weight="fill" /> : <DotsThree className="w-4 h-4" weight="bold" />}
-            {moreActive ? moreActive.label : 'Plus'}
+            {moreActive ? t(moreActive.labelKey) : t('tab.more')}
           </button>
           {moreOpen && (
             <div className="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-52 max-w-[calc(100vw-1.5rem)]">
@@ -149,7 +153,7 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
                     clubTab === it.id ? 'bg-plum-50 dark:bg-plum-900/25 text-plum-700 dark:text-plum-300' : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700',
                   )}
                 >
-                  <it.icon className="w-4 h-4" weight={clubTab === it.id ? 'fill' : 'duotone'} /> {it.label}
+                  <it.icon className="w-4 h-4" weight={clubTab === it.id ? 'fill' : 'duotone'} /> {t(it.labelKey)}
                 </button>
               ))}
             </div>
@@ -164,11 +168,11 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
       {clubTab === 'agenda' && (
         <div className="space-y-8">
           <div>
-            <ClubSectionHeader icon={CalendarBlank} title="Événements à venir" />
+            <ClubSectionHeader icon={CalendarBlank} title={t('tab.upcomingEvents')} />
             <ClubEvents data={data} />
           </div>
           <div>
-            <ClubSectionHeader icon={VideoCamera} title="Sessions live" />
+            <ClubSectionHeader icon={VideoCamera} title={t('tab.liveSessions')} />
             <ClubSessions data={data} />
           </div>
         </div>

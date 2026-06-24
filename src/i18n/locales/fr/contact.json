@@ -1,0 +1,76 @@
+{
+  "seoTitle": "Contact",
+  "seoDescription": "Contacte Max-Morrys pour du coaching personnalisé, des formations en marketing digital, ou un partenariat. Basé à Dakar, Sénégal.",
+  "eyebrow": "CONTACT",
+  "heroTitle1": "Parlons de",
+  "heroTitle2": "ta stratégie",
+  "heroSubtitle": "Tu as un projet, une question, ou besoin d'une consultation ? Je suis là pour t'aider à atteindre tes objectifs de marketing digital !",
+  "info": {
+    "email": "Email",
+    "phone": "Téléphone",
+    "location": "Localisation",
+    "locationValue": "Dakar, Sénégal",
+    "whatsapp": "WhatsApp",
+    "whatsappValue": "Discutons sur WhatsApp"
+  },
+  "subjects": {
+    "coaching": "Coaching personnalisé",
+    "formationInfo": "Informations sur une formation",
+    "partnership": "Partenariat / Collaboration",
+    "strategy": "Conseil en stratégie marketing",
+    "other": "Autre"
+  },
+  "form": {
+    "title": "Envoie-moi un message",
+    "nameLabel": "Nom complet",
+    "namePlaceholder": "Ton nom",
+    "emailLabel": "Email",
+    "emailPlaceholder": "ton@email.com",
+    "subjectLabel": "Sujet",
+    "subjectPlaceholder": "L'objet de ton message",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Décris ta demande...",
+    "submit": "Envoyer le message"
+  },
+  "validation": {
+    "nameRequired": "Le nom est requis",
+    "emailRequired": "L'email est requis",
+    "emailInvalid": "Adresse email invalide",
+    "subjectRequired": "Le sujet est requis",
+    "messageRequired": "Le message est requis",
+    "messageTooShort": "Le message doit faire au moins 10 caractères",
+    "dateRequired": "La date est requise",
+    "timeRequired": "L'heure est requise"
+  },
+  "toast": {
+    "messageSuccess": "Message envoyé avec succès ! Je te répondrai rapidement.",
+    "messageError": "Erreur lors de l'envoi. Essaie à nouveau s'il te plaît.",
+    "appointmentError": "Erreur lors de la prise de rendez-vous. Veuillez réessayer."
+  },
+  "booking": {
+    "cardTitle": "Prendre rendez-vous",
+    "cardText": "Réserve un créneau pour un échange personnalisé.",
+    "cardButton": "Planifier un appel",
+    "modalTitle": "Planifier un appel",
+    "successTitle": "Demande envoyée !",
+    "successTextLine1": "Ta demande de rendez-vous a bien été reçue.",
+    "successTextLine2": "Je te confirmerai le créneau par email très prochainement.",
+    "close": "Fermer",
+    "dateLabel": "Date *",
+    "timeLabel": "Heure *",
+    "subjectLabel": "Objet de l'appel *",
+    "nameLabel": "Nom complet *",
+    "namePlaceholder": "Ton nom",
+    "phoneLabel": "Téléphone (optionnel)",
+    "phonePlaceholder": "+221 77...",
+    "emailLabel": "Email *",
+    "emailPlaceholder": "ton@email.com",
+    "notesLabel": "Notes (optionnel)",
+    "notesPlaceholder": "Précise ton besoin pour préparer l'appel...",
+    "cancel": "Annuler",
+    "submitting": "Envoi...",
+    "submit": "Confirmer la demande"
+  },
+  "faqEyebrow": "FAQ",
+  "faqTitle": "Questions fréquentes"
+}

@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LocalizedLink from '../components/shared/LocalizedLink';
+import { useLanguage } from '../contexts/LanguageContext';
+import { contentPath } from '../lib/contentPath';
 import { motion } from 'framer-motion';
 import {
   Headphones, Clock, Calendar, Play, ArrowRight, Loader2, AlertCircle,
@@ -8,13 +12,15 @@ import {
 import CountUp from '../components/shared/CountUp';
 import AnimatedIcon from '../components/shared/AnimatedIcon';
 import { getPublishedPodcasts } from '../lib/firestore';
-import { formatDate } from '../lib/utils';
+import { useFormat } from '../hooks/useFormat';
 import type { Podcast } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
 import { testimonials } from '../data/testimonials';
+import TranslatedText from '../components/shared/TranslatedText';
+import { useTranslatedContent } from '../hooks/useTranslatedContent';
 import { universeThemes } from '../lib/sectionThemes';
 
 const theme = universeThemes.podcasts;
@@ -50,6 +56,9 @@ function Eyebrow({ children, className = '' }: { children: React.ReactNode; clas
 }
 
 export default function Podcasts() {
+  const { t } = useTranslation('media');
+  const { formatDate } = useFormat();
+  const { language } = useLanguage();
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -69,6 +78,11 @@ export default function Podcasts() {
   const categories = ['Tous', ...Array.from(new Set(podcasts.map((p) => p.category).filter(Boolean)))];
   const filtered = activeCategory === 'Tous' ? podcasts : podcasts.filter((p) => p.category === activeCategory);
   const featured = filtered[0];
+  // Copie traduite de l'épisode à la une (objet unique → hook au niveau composant).
+  const featuredT = useTranslatedContent(
+    featured as (Podcast & Record<string, unknown>) | undefined,
+    ['title', 'description', 'category'],
+  ) as Podcast | undefined;
   const rest = filtered.slice(1);
   const themeCount = Array.from(new Set(podcasts.map((p) => p.category).filter(Boolean))).length;
 
@@ -79,14 +93,14 @@ export default function Podcasts() {
   return (
     <div className="bg-white dark:bg-neutral-950">
       <SEOHead
-        title="Podcasts Marketing Digital"
-        description="Écoute le podcast de Max-Morrys : stratégies marketing digital, SEO, IA et croissance en Afrique. Disponible sur Spotify et Apple Podcasts."
+        title={t('podcasts.seoTitle')}
+        description={t('podcasts.seoDescription')}
       />
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'PodcastSeries',
         name: 'Le Podcast du Marketing — Max-Morrys',
-        description: 'Stratégies marketing digital, SEO, IA et croissance en Afrique.',
+        description: t('podcasts.jsonLdDescription'),
         url: `${SITE_URL}/podcasts`,
         webFeed: `${SITE_URL}/podcasts`,
       }} />
@@ -110,19 +124,18 @@ export default function Podcasts() {
                   className="w-11 h-11 rounded-2xl bg-plum-100 dark:bg-plum-900/30 mb-4"
                   iconClassName="w-5 h-5 text-plum-600 dark:text-plum-400"
                 />
-                <Eyebrow className={`${theme.eyebrow} mb-3`}>bienvenue sur le</Eyebrow>
+                <Eyebrow className={`${theme.eyebrow} mb-3`}>{t('podcasts.heroEyebrow')}</Eyebrow>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.05] mb-6">
-                  Le Podcast<br /><span className={theme.accentText}>du Marketing</span>
+                  {t('podcasts.heroTitle1')}<br /><span className={theme.accentText}>{t('podcasts.heroTitle2')}</span>
                 </h1>
                 <p className="text-neutral-600 dark:text-neutral-300 text-base lg:text-lg leading-relaxed mb-8 max-w-md">
-                  Chaque semaine, de nouvelles stratégies, des interviews d'experts et des
-                  conseils concrets pour cultiver et développer ton business en ligne.
+                  {t('podcasts.heroText')}
                 </p>
                 <a
                   href="#episodes"
                   className={`inline-flex items-center gap-2 px-7 py-3.5 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 active:scale-[0.97] hover:shadow-lg transition-all duration-300 text-sm tracking-wide uppercase`}
                 >
-                  <Play className="w-4 h-4" fill="currentColor" /> Écouter maintenant
+                  <Play className="w-4 h-4" fill="currentColor" /> {t('podcasts.listenNow')}
                 </a>
               </div>
             </motion.div>
@@ -150,7 +163,7 @@ export default function Podcasts() {
             className="mt-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 pt-8 border-t border-neutral-200 dark:border-white/10"
           >
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-500 mr-2">Disponible sur</span>
+              <span className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-500 mr-2">{t('podcasts.availableOn')}</span>
               {SUBSCRIBE_LINKS.map((p) => (
                 <a
                   key={p.name}
@@ -170,21 +183,21 @@ export default function Podcasts() {
                   <p className="text-3xl font-black text-neutral-900 dark:text-white">
                     <CountUp value={podcasts.length} />
                   </p>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">Épisodes</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">{t('podcasts.statEpisodes')}</p>
                 </div>
                 <div className="w-px bg-neutral-200 dark:bg-white/10" />
                 <div>
                   <p className="text-3xl font-black text-neutral-900 dark:text-white">
                     <CountUp value={100} suffix="%" />
                   </p>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">Gratuit</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">{t('podcasts.statFree')}</p>
                 </div>
                 <div className="w-px bg-neutral-200 dark:bg-white/10" />
                 <div>
                   <p className="text-3xl font-black text-neutral-900 dark:text-white">
                     {themeCount ? <CountUp value={themeCount} /> : '∞'}
                   </p>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">Thèmes</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">{t('podcasts.statThemes')}</p>
                 </div>
               </div>
             )}
@@ -204,22 +217,19 @@ export default function Podcasts() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
             <div>
-              <Eyebrow className={`${theme.eyebrow} mb-3`}>derrière le micro</Eyebrow>
+              <Eyebrow className={`${theme.eyebrow} mb-3`}>{t('podcasts.behindMicEyebrow')}</Eyebrow>
               <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white mb-6">
                 Max-Morrys
               </h2>
               <p className="text-neutral-600 dark:text-neutral-300 text-base lg:text-lg leading-relaxed mb-8 max-w-lg">
-                J'accompagne la croissance d'organisations en Afrique francophone — santé,
-                services, éducation, impact social — en combinant stratégie marketing, data,
-                contenu, partenariats, développement web et automatisation des processus.
-                Le podcast, c'est ce que j'apprends sur le terrain, partagé sans filtre.
+                {t('podcasts.behindMicText')}
               </p>
-              <Link
+              <LocalizedLink
                 to="/a-propos"
                 className="inline-flex items-center gap-2 px-7 py-3.5 border-2 border-neutral-300 dark:border-neutral-600 text-neutral-900 dark:text-white font-bold rounded-full hover:bg-neutral-900 hover:text-white hover:border-neutral-900 dark:hover:bg-white dark:hover:text-neutral-900 transition-all duration-300 text-sm tracking-wide uppercase"
               >
-                En savoir plus <ArrowRight className="w-4 h-4" />
-              </Link>
+                {t('podcasts.learnMore')} <ArrowRight className="w-4 h-4" />
+              </LocalizedLink>
             </div>
 
             <div className="relative">
@@ -249,13 +259,12 @@ export default function Podcasts() {
         viewport={viewportOnce}
       >
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Eyebrow className={`${theme.eyebrow} mb-3`}>le podcast du marketing</Eyebrow>
+          <Eyebrow className={`${theme.eyebrow} mb-3`}>{t('podcasts.subscribeEyebrow')}</Eyebrow>
           <h2 className="text-4xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white mb-6">
-            Abonne-toi
+            {t('podcasts.subscribeTitle')}
           </h2>
           <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed mb-10 max-w-xl mx-auto">
-            Un nouvel épisode chaque semaine, avec des invités et des analyses du moment.
-            Choisis ta plateforme préférée et ne rate plus rien.
+            {t('podcasts.subscribeText')}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             {SUBSCRIBE_LINKS.map((p) => (
@@ -284,13 +293,12 @@ export default function Podcasts() {
             whileInView="visible"
             viewport={viewportOnce}
           >
-            <Eyebrow className={`${theme.eyebrow} mb-3`}>nouveaux épisodes chaque semaine</Eyebrow>
+            <Eyebrow className={`${theme.eyebrow} mb-3`}>{t('podcasts.episodesEyebrow')}</Eyebrow>
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white mb-5">
-              Épisodes récents
+              {t('podcasts.episodesTitle')}
             </h2>
             <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed">
-              Des conversations sans détour pour construire un mindset solide, gagner en
-              clarté et faire grandir ton business — épisode après épisode.
+              {t('podcasts.episodesText')}
             </p>
           </motion.div>
 
@@ -313,7 +321,7 @@ export default function Podcasts() {
                       : 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500'
                   }`}
                 >
-                  {cat}
+                  {cat === 'Tous' ? t('podcasts.allCategories') : <TranslatedText text={cat} />}
                 </button>
               ))}
             </motion.div>
@@ -330,9 +338,9 @@ export default function Podcasts() {
           {!loading && error && (
             <div className="flex flex-col items-center gap-4 py-24 text-center">
               <AlertCircle className="w-8 h-8 text-error-500" />
-              <p className="text-neutral-600 dark:text-neutral-400">Impossible de charger les épisodes.</p>
+              <p className="text-neutral-600 dark:text-neutral-400">{t('podcasts.loadError')}</p>
               <button onClick={load} className={`px-5 py-2 ${theme.buttonSolid} text-sm font-bold rounded-full transition-colors`}>
-                Réessayer
+                {t('podcasts.retry')}
               </button>
             </div>
           )}
@@ -341,7 +349,7 @@ export default function Podcasts() {
           {!loading && !error && filtered.length === 0 && (
             <div className="text-center py-24">
               <Headphones className="w-12 h-12 text-neutral-300 dark:text-neutral-700 mx-auto mb-4" />
-              <p className="text-neutral-500 dark:text-neutral-400">Aucun épisode disponible pour le moment.</p>
+              <p className="text-neutral-500 dark:text-neutral-400">{t('podcasts.empty')}</p>
             </div>
           )}
 
@@ -349,14 +357,14 @@ export default function Podcasts() {
           {!loading && !error && featured && (
             <motion.div variants={slideUp} initial="hidden" whileInView="visible" viewport={viewportOnce}>
               <Link
-                to={`/podcasts/${featured.slug}`}
+                to={contentPath('podcasts', featured, language)}
                 className="group block mb-12 rounded-3xl overflow-hidden bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 hover:shadow-xl transition-all duration-300"
               >
                 <div className="grid md:grid-cols-[320px_1fr]">
                   <div className="relative overflow-hidden aspect-square md:aspect-auto">
                     <img
                       src={featured.coverImage}
-                      alt={featured.title}
+                      alt={featuredT?.title}
                       className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
                       loading="eager"
                       width={640}
@@ -364,20 +372,20 @@ export default function Podcasts() {
                     />
                     <div className="absolute top-4 left-4">
                       <span className={`px-3 py-1.5 ${theme.buttonSolid} text-xs font-bold rounded-full uppercase tracking-wider`}>
-                        À la une
+                        {t('podcasts.featuredBadge')}
                       </span>
                     </div>
                   </div>
                   <div className="p-8 lg:p-12 flex flex-col justify-between">
                     <div>
                       <Eyebrow className={`${theme.eyebrow} mb-3`}>
-                        {featured.category || 'épisode'}
+                        {featuredT?.category || t('podcasts.episodeFallback')}
                       </Eyebrow>
                       <h3 className={`text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-4 leading-snug ${theme.titleHover} transition-colors`}>
-                        {featured.title}
+                        {featuredT?.title}
                       </h3>
                       <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed text-sm line-clamp-3">
-                        {featured.description}
+                        {featuredT?.description}
                       </p>
                     </div>
                     <div className="flex items-center justify-between mt-8 pt-6 border-t border-neutral-200 dark:border-neutral-700">
@@ -386,7 +394,7 @@ export default function Podcasts() {
                         <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{formatDate(featured.publishedAt)}</span>
                       </div>
                       <span className="flex items-center gap-2 px-5 py-2.5 bg-plum-600 text-white font-bold rounded-full text-sm group-hover:bg-plum-700 transition-colors">
-                        <Play className="w-4 h-4" fill="currentColor" /> Écouter
+                        <Play className="w-4 h-4" fill="currentColor" /> {t('podcasts.listen')}
                       </span>
                     </div>
                   </div>
@@ -407,7 +415,7 @@ export default function Podcasts() {
               {rest.map((podcast) => (
                 <motion.div key={podcast.id} variants={staggerItem}>
                   <Link
-                    to={`/podcasts/${podcast.slug}`}
+                    to={contentPath('podcasts', podcast, language)}
                     className="group flex flex-col bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 h-full"
                   >
                     <div className="relative aspect-[4/3] overflow-hidden">
@@ -429,12 +437,16 @@ export default function Podcasts() {
                       <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
                         {formatDate(podcast.publishedAt)}
                       </p>
-                      <h3 className={`text-lg font-black tracking-tight text-neutral-900 dark:text-white ${theme.titleHover} transition-colors leading-snug mb-3`}>
-                        {podcast.title}
-                      </h3>
-                      <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed line-clamp-2 mb-4">
-                        {podcast.description}
-                      </p>
+                      <TranslatedText
+                        text={podcast.title}
+                        as="h3"
+                        className={`text-lg font-black tracking-tight text-neutral-900 dark:text-white ${theme.titleHover} transition-colors leading-snug mb-3`}
+                      />
+                      <TranslatedText
+                        text={podcast.description}
+                        as="p"
+                        className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed line-clamp-2 mb-4"
+                      />
                       <div className="flex items-center gap-2 mt-auto pt-3 border-t border-neutral-100 dark:border-neutral-800 text-xs text-neutral-400">
                         <span className="w-7 h-7 rounded-full bg-plum-50 dark:bg-plum-500/10 flex items-center justify-center">
                           <Play className={`w-3 h-3 ${theme.accentText} ml-0.5`} fill="currentColor" />
@@ -443,13 +455,13 @@ export default function Podcasts() {
                         {podcast.category && (
                           <>
                             <span className="text-neutral-300 dark:text-neutral-700">·</span>
-                            <span>{podcast.category}</span>
+                            <TranslatedText text={podcast.category} as="span" />
                           </>
                         )}
                         {podcast.popularity !== undefined && (
                           <>
                             <span className="text-neutral-300 dark:text-neutral-700">·</span>
-                            <span title="Score de popularité Spotify (0–100)">{podcast.popularity}/100</span>
+                            <span title={t('podcasts.popularityTitle')}>{podcast.popularity}/100</span>
                           </>
                         )}
                       </div>
@@ -477,7 +489,7 @@ export default function Podcasts() {
             ))}
           </div>
           <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white mb-12">
-            Ils adorent le podcast
+            {t('podcasts.testimonialsTitle')}
           </h2>
 
           <div className="relative">
@@ -498,14 +510,14 @@ export default function Podcasts() {
               <div className="flex justify-center gap-3 mt-10">
                 <button
                   onClick={() => setTIndex((i) => (i - 1 + tPages) % tPages)}
-                  aria-label="Témoignages précédents"
+                  aria-label={t('podcasts.testimonialsPrev')}
                   className="w-11 h-11 rounded-full border border-neutral-300 dark:border-neutral-600 flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-white dark:hover:bg-neutral-800 transition-colors"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => setTIndex((i) => (i + 1) % tPages)}
-                  aria-label="Témoignages suivants"
+                  aria-label={t('podcasts.testimonialsNext')}
                   className="w-11 h-11 rounded-full border border-neutral-300 dark:border-neutral-600 flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-white dark:hover:bg-neutral-800 transition-colors"
                 >
                   <ChevronRight className="w-5 h-5" />
@@ -529,21 +541,20 @@ export default function Podcasts() {
 
             <div>
               <div className="inline-flex items-center gap-2 bg-plum-50 dark:bg-plum-400/10 border border-plum-200 dark:border-plum-400/20 text-plum-700 dark:text-plum-400 rounded-full px-4 py-1.5 text-xs font-bold tracking-[0.2em] uppercase mb-6">
-                <Users className="w-3.5 h-3.5" /> CLUB DES DIGITOS
+                <Users className="w-3.5 h-3.5" /> {t('podcasts.clubEyebrow')}
               </div>
               <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-tight mb-5">
-                Sois là<br />quand ça se passe
+                {t('podcasts.clubTitle1')}<br />{t('podcasts.clubTitle2')}
               </h2>
               <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed text-base mb-8">
-                En plus du podcast, je participe à des événements et j'en organise régulièrement.
-                Les membres du Club sont les premiers informés — et souvent invités.
+                {t('podcasts.clubText')}
               </p>
-              <Link
+              <LocalizedLink
                 to="/mon-espace"
                 className={`inline-flex items-center gap-2 px-7 py-3.5 ${theme.buttonSolid} font-bold rounded-full transition-colors text-sm tracking-wide shadow-md shadow-plum-600/30`}
               >
-                Rejoindre le Club <ArrowRight className="w-4 h-4" />
-              </Link>
+                {t('podcasts.clubJoin')} <ArrowRight className="w-4 h-4" />
+              </LocalizedLink>
             </div>
 
             <div className="space-y-4">
@@ -552,8 +563,8 @@ export default function Podcasts() {
                   <Calendar className={`w-5 h-5 ${theme.accentText}`} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-neutral-900 dark:text-white mb-1">Événements exclusifs</h3>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">Conférences, masterclasses et rencontres — accès prioritaire et invitations réservés aux membres du Club.</p>
+                  <h3 className="font-bold text-neutral-900 dark:text-white mb-1">{t('podcasts.clubFeature1Title')}</h3>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">{t('podcasts.clubFeature1Text')}</p>
                 </div>
               </div>
               <div className="rounded-2xl bg-neutral-900 dark:bg-plum-400/10 border border-neutral-800 dark:border-plum-400/20 p-6 flex items-start gap-4">
@@ -561,13 +572,13 @@ export default function Podcasts() {
                   <Bell className="w-5 h-5 text-plum-400" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white dark:text-plum-300 mb-1">Annonces en avant-première</h3>
-                  <p className="text-sm text-neutral-400 dark:text-plum-400/70 leading-relaxed">Tu seras toujours le premier au courant de mes prochaines participations et des événements à ne pas rater.</p>
+                  <h3 className="font-bold text-white dark:text-plum-300 mb-1">{t('podcasts.clubFeature2Title')}</h3>
+                  <p className="text-sm text-neutral-400 dark:text-plum-400/70 leading-relaxed">{t('podcasts.clubFeature2Text')}</p>
                 </div>
               </div>
               <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-6 py-4 flex items-center justify-between">
-                <span className="text-neutral-500 dark:text-neutral-400 text-sm">Abonnement annuel</span>
-                <span className="text-xl font-bold text-neutral-900 dark:text-white">19 900 <span className={`${theme.accentText} text-sm font-bold`}>FCFA</span></span>
+                <span className="text-neutral-500 dark:text-neutral-400 text-sm">{t('podcasts.clubSubscriptionAnnual')}</span>
+                <span className="text-xl font-bold text-neutral-900 dark:text-white">19 900 <span className={`${theme.accentText} text-sm font-bold`}>{t('podcasts.clubPriceUnit')}</span></span>
               </div>
             </div>
           </div>
@@ -592,24 +603,23 @@ export default function Podcasts() {
                 loop
                 muted
                 playsInline
-                aria-label="Le marketing en pratique"
+                aria-label={t('podcasts.videosCtaAria')}
               />
             </div>
             <div className="bg-plum-100 dark:bg-neutral-800 p-10 lg:p-16 flex flex-col justify-center">
-              <Eyebrow className={`${theme.eyebrow} mb-3`}>découvre aussi</Eyebrow>
+              <Eyebrow className={`${theme.eyebrow} mb-3`}>{t('podcasts.videosCtaEyebrow')}</Eyebrow>
               <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white mb-4">
-                Le marketing en pratique
+                {t('podcasts.videosCtaTitle')}
               </h2>
               <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed mb-8 max-w-sm">
-                Des vidéos pratiques sur ma chaîne pour aller encore plus loin, montrer
-                les outils et passer à l'action.
+                {t('podcasts.videosCtaText')}
               </p>
-              <Link
+              <LocalizedLink
                 to="/videos"
                 className={`inline-flex items-center gap-2 self-start px-7 py-3.5 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide uppercase`}
               >
-                Voir les vidéos <ArrowRight className="w-4 h-4" />
-              </Link>
+                {t('podcasts.videosCtaLink')} <ArrowRight className="w-4 h-4" />
+              </LocalizedLink>
             </div>
           </div>
         </div>

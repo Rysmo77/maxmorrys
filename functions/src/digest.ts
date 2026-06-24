@@ -59,17 +59,28 @@ async function buildWeeklyDigest(apiKey: string): Promise<number> {
     title, content, type: 'article', publishedAt: now, likes: [],
   });
 
-  // Notify active members
+  // Notify active members (titre de notification localisé par destinataire).
+  const digestTitle: Record<'fr' | 'en', string> = {
+    fr: '📰 Digest de la semaine',
+    en: "📰 This week's digest",
+  };
   const subs = await db.collection('club_subscriptions').where('status', '==', 'active').get();
-  await Promise.all(subs.docs.map((s) => db.collection(`notifications/${s.id}/items`).add({
-    userId: s.id,
-    type: 'club',
-    title: '📰 Digest de la semaine',
-    message: title,
-    read: false,
-    createdAt: now,
-    link: '/mon-espace/club',
-  })));
+  await Promise.all(subs.docs.map(async (s) => {
+    let lang: 'fr' | 'en' = 'fr';
+    try {
+      const u = await db.collection('users').doc(s.id).get();
+      if (u.data()?.preferences?.language === 'en') lang = 'en';
+    } catch { /* défaut fr */ }
+    return db.collection(`notifications/${s.id}/items`).add({
+      userId: s.id,
+      type: 'club',
+      title: digestTitle[lang],
+      message: title,
+      read: false,
+      createdAt: now,
+      link: '/mon-espace/club',
+    });
+  }));
 
   return subs.size;
 }

@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import LocalizedLink from '../components/shared/LocalizedLink';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Star, Target, Zap, BarChart3, Play, Headphones, BadgeCheck, Infinity as InfinityIcon, Shield, Mail } from 'lucide-react';
 import { getPublishedFormations, getPublishedPosts, getFeaturedTestimonials, getPublishedPodcasts } from '../lib/firestore';
@@ -13,6 +14,7 @@ import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
 import { universeThemes, universeFromPath } from '../lib/sectionThemes';
 import EditorialHeading, { CircularBadge } from '../components/shared/EditorialHeading';
 import CourseLibraryCard from '../components/formations/CourseLibraryCard';
+import TranslatedText from '../components/shared/TranslatedText';
 import NewsletterForm from '../components/shared/NewsletterForm';
 import CountUp from '../components/shared/CountUp';
 import ParallaxImage from '../components/shared/ParallaxImage';
@@ -22,22 +24,22 @@ const viewportOnce = { once: true, amount: 0.2 } as const;
 const PROFILE_IMG = 'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/A-propos%2FChatGPT%20Image%2014%20mai%202026%2C%2000_49_18%20(3).png?alt=media&token=cc4027ff-c053-40a3-8b22-28d5603ee729';
 
 const stats = [
-  { value: 340, prefix: '+', suffix: '%', label: 'Croissance de trafic en 1 an' },
-  { value: 50, prefix: '', suffix: '+', label: 'Étudiants formés' },
-  { value: 94, prefix: '', suffix: '%', label: 'Taux de réussite' },
-  { value: 10, prefix: '', suffix: '+', label: 'Cours créés' },
+  { value: 340, prefix: '+', suffix: '%', labelKey: 'stats.trafficGrowth' },
+  { value: 50, prefix: '', suffix: '+', labelKey: 'stats.studentsTrained' },
+  { value: 94, prefix: '', suffix: '%', labelKey: 'stats.successRate' },
+  { value: 10, prefix: '', suffix: '+', labelKey: 'stats.coursesCreated' },
 ];
 
 const services = [
-  { icon: Target, title: 'Je te forme', desc: 'Des formations pratiques et actionnables pour maîtriser le digital.', link: '/formations' },
-  { icon: Zap, title: "Je t'informe", desc: 'Articles, podcasts et vidéos pour rester à la pointe.', link: '/blog' },
-  { icon: BarChart3, title: 'Je te transforme', desc: 'Coaching et consulting pour accélérer ta croissance.', link: '/contact' },
+  { icon: Target, titleKey: 'services.train.title', descKey: 'services.train.desc', link: '/formations' },
+  { icon: Zap, titleKey: 'services.inform.title', descKey: 'services.inform.desc', link: '/blog' },
+  { icon: BarChart3, titleKey: 'services.transform.title', descKey: 'services.transform.desc', link: '/contact' },
 ];
 
 const trustBadges = [
-  { icon: BadgeCheck, title: 'Certificat inclus', desc: 'Chaque formation délivre un certificat vérifiable.' },
-  { icon: InfinityIcon, title: 'Accès à vie', desc: 'Tes formations restent accessibles sans limite.' },
-  { icon: Shield, title: 'Garantie satisfait', desc: 'Remboursement sous 7 jours si insatisfaction.' },
+  { icon: BadgeCheck, titleKey: 'trustBadges.certificate.title', descKey: 'trustBadges.certificate.desc' },
+  { icon: InfinityIcon, titleKey: 'trustBadges.lifetime.title', descKey: 'trustBadges.lifetime.desc' },
+  { icon: Shield, titleKey: 'trustBadges.guarantee.title', descKey: 'trustBadges.guarantee.desc' },
 ];
 
 /** Indicateur de défilement animé — souris stylisée avec point qui descend. */
@@ -69,6 +71,7 @@ function FloatingMail() {
 }
 
 function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) {
+  const { t: translate } = useTranslation('home');
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -118,7 +121,7 @@ function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) 
               className={`h-2 rounded-full transition-all ${
                 i === active ? 'bg-brand-500 w-6' : 'bg-neutral-300 dark:bg-neutral-600 w-2'
               }`}
-              aria-label={`Témoignage ${i + 1}`}
+              aria-label={translate('testimonialAria', { number: i + 1 })}
             />
           ))}
         </div>
@@ -128,6 +131,7 @@ function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) 
 }
 
 export default function Home() {
+  const { t } = useTranslation('home');
   const [formations, setFormations] = useState<Formation[]>([]);
   const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
   const [recentPodcasts, setRecentPodcasts] = useState<Podcast[]>([]);
@@ -229,23 +233,23 @@ export default function Home() {
             variants={staggerItem}
             className="text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] max-w-5xl text-balance"
           >
-            Maîtrise le <span className="text-brand-400">digital</span>, accélère ta{' '}
-            <span className="italic text-accent-400">croissance</span>.
+            {t('hero.titlePart1')}<span className="text-brand-400">{t('hero.titleDigital')}</span>{t('hero.titlePart2')}{' '}
+            <span className="italic text-accent-400">{t('hero.titleGrowth')}</span>{t('hero.titleEnd')}
           </motion.h1>
           <motion.p
             variants={staggerItem}
             className="mt-7 max-w-xl text-base sm:text-lg text-white/75 leading-relaxed"
           >
-            Formations, articles, podcast et vidéos pour transformer ton activité — SEO, IA et marketing digital, sans blabla.
+            {t('hero.subtitle')}
           </motion.p>
           <motion.div variants={staggerItem}>
-            <Link
+            <LocalizedLink
               to="/formations"
               className="mt-9 inline-flex items-center gap-2.5 bg-white text-neutral-900 font-bold text-sm px-8 py-4 rounded-full hover:bg-brand-50 hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-300"
             >
-              Explorer les formations
+              {t('hero.cta')}
               <ArrowRight className="w-4 h-4" />
-            </Link>
+            </LocalizedLink>
           </motion.div>
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
             <ScrollCue />
@@ -264,17 +268,17 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <EditorialHeading
             as="h2"
-            eyebrow="Bonjour, moi c'est Max-Morrys"
+            eyebrow={t('manifesto.eyebrow')}
             eyebrowColor="morrys"
             className="max-w-4xl mb-14 lg:mb-20"
             segments={[
-              { text: "J'aide les " },
-              { text: 'entrepreneurs', color: 'brand' },
-              { text: ' à ' },
-              { text: 'transformer', color: 'accent' },
-              { text: ' leurs idées en ' },
-              { text: 'business rentables', color: 'coral' },
-              { text: '.' },
+              { text: t('manifesto.headingHelp') },
+              { text: t('manifesto.headingEntrepreneurs'), color: 'brand' },
+              { text: t('manifesto.headingTo') },
+              { text: t('manifesto.headingTransform'), color: 'accent' },
+              { text: t('manifesto.headingIdeas') },
+              { text: t('manifesto.headingBusiness'), color: 'coral' },
+              { text: t('manifesto.headingEnd') },
             ]}
           />
 
@@ -282,9 +286,7 @@ export default function Home() {
             {/* Texte + verbes */}
             <div>
               <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-10 max-w-lg">
-                Formateur et consultant en marketing digital, SEO et intelligence artificielle.
-                Pas besoin d'une audience énorme ni d'y passer tes nuits : il te faut un plan clair
-                et la prochaine étape. Voici ce que je fais pour toi.
+                {t('manifesto.intro')}
               </p>
 
               <motion.div
@@ -297,47 +299,47 @@ export default function Home() {
                 {services.map((service) => {
                   const theme = universeThemes[universeFromPath(service.link)];
                   return (
-                    <motion.div key={service.title} variants={staggerItem}>
-                      <Link
+                    <motion.div key={service.titleKey} variants={staggerItem}>
+                      <LocalizedLink
                         to={service.link}
                         className="group flex items-start gap-5 py-6 border-b border-neutral-200 dark:border-neutral-700 hover:pl-2 transition-all duration-300"
                       >
                         <service.icon className={`w-5 h-5 mt-0.5 shrink-0 ${theme.accentText}`} />
                         <div className="flex-1">
                           <p className={`text-lg font-bold text-neutral-900 dark:text-white ${theme.titleHover} transition-colors`}>
-                            {service.title}
+                            {t(service.titleKey)}
                           </p>
-                          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{service.desc}</p>
+                          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{t(service.descKey)}</p>
                         </div>
                         <ArrowRight className={`w-4 h-4 mt-1 shrink-0 text-neutral-300 dark:text-neutral-600 ${theme.titleHover} group-hover:translate-x-1 transition-all`} />
-                      </Link>
+                      </LocalizedLink>
                     </motion.div>
                   );
                 })}
               </motion.div>
 
-              <Link
+              <LocalizedLink
                 to="/formations"
                 className="mt-10 inline-flex items-center gap-2.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold text-sm px-7 py-3.5 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
               >
-                Voir les nouveautés
+                {t('manifesto.ctaNew')}
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </LocalizedLink>
             </div>
 
             {/* Image + badge circulaire */}
             <div className="relative">
               <div className="aspect-[4/5] overflow-hidden rounded-[2rem]">
-                <img src={PROFILE_IMG} alt="Max-Morrys" className="w-full h-full object-cover" loading="lazy" width={640} height={800} />
+                <img src={PROFILE_IMG} alt={t('manifesto.imageAlt')} className="w-full h-full object-cover" loading="lazy" width={640} height={800} />
               </div>
               <CircularBadge
-                text="Ravi de te rencontrer"
+                text={t('manifesto.badgeText')}
                 center="MM"
                 className="absolute -top-6 -left-6 w-28 h-28 hidden lg:block"
               />
               <div className="absolute -bottom-6 -right-6 bg-white dark:bg-neutral-800 rounded-2xl shadow-xl p-5 hidden sm:block">
-                <p className="text-3xl font-black text-neutral-900 dark:text-white leading-none">50+</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5 font-medium">étudiants formés</p>
+                <p className="text-3xl font-black text-neutral-900 dark:text-white leading-none">{t('manifesto.statValue')}</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5 font-medium">{t('manifesto.statLabel')}</p>
               </div>
             </div>
           </div>
@@ -361,7 +363,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-neutral-950/90 via-neutral-950/65 to-neutral-950/25" />
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
             <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/55 mb-10">
-              Les chiffres parlent
+              {t('stats2.eyebrow')}
             </p>
             <motion.div
               className="space-y-5 lg:space-y-6 max-w-xl"
@@ -372,7 +374,7 @@ export default function Home() {
             >
               {stats.map((stat) => (
                 <motion.div
-                  key={stat.label}
+                  key={stat.labelKey}
                   variants={staggerItem}
                   className="flex items-baseline gap-5 border-b border-white/15 pb-5"
                 >
@@ -383,7 +385,7 @@ export default function Home() {
                     className="text-4xl lg:text-6xl font-black text-white shrink-0"
                   />
                   <span className="text-xs lg:text-sm font-bold tracking-[0.2em] uppercase text-white/70">
-                    {stat.label}
+                    {t(stat.labelKey)}
                   </span>
                 </motion.div>
               ))}
@@ -409,10 +411,10 @@ export default function Home() {
           <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12 lg:mb-16">
               <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/60 mb-5">
-                Le catalogue
+                {t('catalog.eyebrow')}
               </p>
               <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-white text-balance">
-                Range tes compétences dans le bon dossier.
+                {t('catalog.heading')}
               </h2>
             </div>
 
@@ -431,13 +433,13 @@ export default function Home() {
             </motion.div>
 
             <div className="text-center mt-12">
-              <Link
+              <LocalizedLink
                 to="/formations"
                 className="group inline-flex items-center gap-2.5 bg-white text-neutral-900 font-bold text-sm px-8 py-4 rounded-full hover:bg-brand-50 hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-300"
               >
-                Découvrir toutes les formations
+                {t('catalog.cta')}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              </LocalizedLink>
             </div>
           </div>
         </motion.section>
@@ -454,27 +456,26 @@ export default function Home() {
         <div className="grid lg:grid-cols-2">
           <div className="px-6 sm:px-10 lg:px-16 py-20 lg:py-32 flex flex-col justify-center order-2 lg:order-1">
             <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/80 mb-6">
-              Passe au niveau supérieur
+              {t('quiz.eyebrow')}
             </p>
             <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-white text-balance mb-6">
-              Prêt à <span className="italic text-neutral-900">accélérer</span> ?
+              {t('quiz.headingReady')}<span className="italic text-neutral-900">{t('quiz.headingAccelerate')}</span>{t('quiz.headingEnd')}
             </h2>
             <p className="text-white/90 leading-relaxed mb-9 max-w-md">
-              Pas un jeu vidéo, mais ton activité IRL. Choisis le bon point de départ et passe
-              à l'action avec une formation taillée pour ton objectif.
+              {t('quiz.desc')}
             </p>
-            <Link
+            <LocalizedLink
               to="/formations"
               className="group inline-flex w-fit items-center gap-2.5 bg-white text-accent-700 font-bold text-sm px-8 py-4 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
             >
-              Trouve ta formation
+              {t('quiz.cta')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            </LocalizedLink>
           </div>
           <div className="relative min-h-[340px] order-1 lg:order-2">
             <img
               src="/niveau-superieur.webp"
-              alt="Passer au niveau supérieur"
+              alt={t('quiz.imageAlt')}
               className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
               width={1600}
@@ -504,20 +505,20 @@ export default function Home() {
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 text-white">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/55 mb-5">
-            Contenu 100% gratuit
+            {t('podcast.eyebrow')}
           </p>
           <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-balance max-w-3xl mb-6">
-            Le <span className="text-plum-400">Podcast</span> &amp; la chaîne{' '}
-            <span className="text-red-400">YouTube</span>.
+            {t('podcast.headingThe')}<span className="text-plum-400">{t('podcast.headingPodcast')}</span>{t('podcast.headingChannel')}{' '}
+            <span className="text-red-400">{t('podcast.headingYoutube')}</span>{t('podcast.headingEnd')}
           </h2>
           <p className="text-white/75 leading-relaxed max-w-xl">
-            Des conseils actionnables en marketing digital, SEO et IA — dans tes oreilles ou sur ton écran.
+            {t('podcast.desc')}
           </p>
 
           {recentPodcasts.length > 0 && (
             <div className="mt-14">
               <p className="text-xs font-bold tracking-[0.3em] uppercase text-white/45 mb-2">
-                Épisodes populaires
+                {t('podcast.popularEpisodes')}
               </p>
               <motion.div
                 variants={staggerContainer}
@@ -527,18 +528,20 @@ export default function Home() {
               >
                 {recentPodcasts.slice(0, 5).map((podcast, i) => (
                   <motion.div key={podcast.id} variants={staggerItem}>
-                    <Link
+                    <LocalizedLink
                       to={`/podcasts/${podcast.slug}`}
                       className="group flex items-center gap-5 py-4 border-b border-white/12"
                     >
                       <span className="text-xl font-bold text-white/40 w-8 shrink-0">
                         {String(i + 1).padStart(2, '0')}
                       </span>
-                      <span className="flex-1 font-semibold text-white/90 group-hover:text-plum-300 transition-colors leading-snug">
-                        {podcast.title}
-                      </span>
+                      <TranslatedText
+                        text={podcast.title}
+                        as="span"
+                        className="flex-1 font-semibold text-white/90 group-hover:text-plum-300 transition-colors leading-snug"
+                      />
                       <ArrowRight className="w-4 h-4 text-white/30 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0" />
-                    </Link>
+                    </LocalizedLink>
                   </motion.div>
                 ))}
               </motion.div>
@@ -546,20 +549,20 @@ export default function Home() {
           )}
 
           <div className="flex flex-col sm:flex-row gap-3 mt-12">
-            <Link
+            <LocalizedLink
               to="/podcasts"
               className={`inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full font-semibold text-sm transition-colors ${universeThemes.podcasts.buttonSolid}`}
             >
               <Headphones className="w-4 h-4" />
-              Écouter le podcast
-            </Link>
-            <Link
+              {t('podcast.listen')}
+            </LocalizedLink>
+            <LocalizedLink
               to="/videos"
               className={`inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full font-semibold text-sm transition-colors ${universeThemes.videos.buttonSolid}`}
             >
               <Play className="w-4 h-4" />
-              Voir les vidéos
-            </Link>
+              {t('podcast.watch')}
+            </LocalizedLink>
           </div>
         </div>
       </motion.section>
@@ -577,20 +580,20 @@ export default function Home() {
             <EditorialHeading
               as="h2"
               align="center"
-              eyebrow="Le journal"
+              eyebrow={t('blog.eyebrow')}
               eyebrowColor="coral"
               className="mb-14 lg:mb-20"
               segments={[
-                { text: 'Pas ton ' },
-                { text: 'blog business', color: 'coral' },
-                { text: ' habituel.' },
+                { text: t('blog.headingNot') },
+                { text: t('blog.headingBlogBusiness'), color: 'coral' },
+                { text: t('blog.headingUsual') },
               ]}
             />
 
             <div className="grid lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-start">
               {/* Article vedette */}
               {featuredPost && (
-                <Link to={`/blog/${featuredPost.slug}`} className="group block">
+                <LocalizedLink to={`/blog/${featuredPost.slug}`} className="group block">
                   <div className="aspect-[4/3] sm:aspect-[3/2] lg:aspect-[4/3] overflow-hidden rounded-[2rem] mb-6">
                     <img
                       src={featuredPost.coverImage}
@@ -602,15 +605,19 @@ export default function Home() {
                     />
                   </div>
                   <p className={`text-xs font-bold tracking-[0.25em] uppercase ${universeThemes.blog.eyebrow} mb-3`}>
-                    {categoryToPole(featuredPost.category)} · {featuredPost.readTime} min
+                    {categoryToPole(featuredPost.category)} · {t('blog.readTime', { count: featuredPost.readTime })}
                   </p>
-                  <h3 className={`text-2xl lg:text-3xl font-black tracking-tight leading-[1.15] text-neutral-900 dark:text-white ${universeThemes.blog.titleHover} transition-colors`}>
-                    {featuredPost.title}
-                  </h3>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-3 max-w-md">
-                    {truncate(featuredPost.excerpt, 120)}
-                  </p>
-                </Link>
+                  <TranslatedText
+                    text={featuredPost.title}
+                    as="h3"
+                    className={`text-2xl lg:text-3xl font-black tracking-tight leading-[1.15] text-neutral-900 dark:text-white ${universeThemes.blog.titleHover} transition-colors`}
+                  />
+                  <TranslatedText
+                    text={truncate(featuredPost.excerpt, 120)}
+                    as="p"
+                    className="text-sm text-neutral-500 dark:text-neutral-400 mt-3 max-w-md"
+                  />
+                </LocalizedLink>
               )}
 
               {/* Liste catégorisée */}
@@ -622,7 +629,7 @@ export default function Home() {
               >
                 {listPosts.map((post) => (
                   <motion.div key={post.id} variants={staggerItem}>
-                    <Link
+                    <LocalizedLink
                       to={`/blog/${post.slug}`}
                       className="group flex items-center gap-5 py-6 border-b border-neutral-200 dark:border-neutral-700 first:border-t"
                     >
@@ -638,23 +645,25 @@ export default function Home() {
                         <p className={`text-[0.7rem] font-bold tracking-[0.2em] uppercase ${universeThemes.blog.eyebrow} mb-1.5`}>
                           {categoryToPole(post.category)}
                         </p>
-                        <h4 className={`text-lg font-bold leading-snug text-neutral-900 dark:text-white ${universeThemes.blog.titleHover} transition-colors`}>
-                          {post.title}
-                        </h4>
+                        <TranslatedText
+                          text={post.title}
+                          as="h4"
+                          className={`text-lg font-bold leading-snug text-neutral-900 dark:text-white ${universeThemes.blog.titleHover} transition-colors`}
+                        />
                       </div>
                       <ArrowRight className="w-4 h-4 shrink-0 text-neutral-300 dark:text-neutral-600 group-hover:text-coral-500 dark:group-hover:text-coral-400 group-hover:translate-x-1 transition-all" />
-                    </Link>
+                    </LocalizedLink>
                   </motion.div>
                 ))}
 
                 <motion.div variants={staggerItem} className="mt-10">
-                  <Link
+                  <LocalizedLink
                     to="/blog"
                     className="inline-flex items-center gap-2.5 border border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100 font-semibold text-sm px-8 py-4 rounded-full hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-colors"
                   >
-                    Lire tous les articles
+                    {t('blog.readAll')}
                     <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  </LocalizedLink>
                 </motion.div>
               </motion.div>
             </div>
@@ -674,7 +683,7 @@ export default function Home() {
           <div className="relative min-h-[340px]">
             <img
               src="/methode-complete.webp"
-              alt="La méthode Max-Morrys"
+              alt={t('offer.imageAlt')}
               className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
               width={1600}
@@ -684,33 +693,32 @@ export default function Home() {
           </div>
           <div className="px-6 sm:px-10 lg:px-16 py-20 lg:py-32 flex flex-col justify-center">
             <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-200 mb-6">
-              La méthode complète
+              {t('offer.eyebrow')}
             </p>
             <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-balance mb-6">
-              Tout ce qu'il te faut pour réussir en ligne.
+              {t('offer.heading')}
             </h2>
             <p className="text-brand-100 leading-relaxed mb-10 max-w-md">
-              Des formations structurées, du concret et un accompagnement clair —
-              de la première vidéo à ton activité qui tourne.
+              {t('offer.desc')}
             </p>
 
             <div className="grid sm:grid-cols-3 gap-6 mb-10">
               {trustBadges.map((badge) => (
-                <div key={badge.title} className="flex flex-col gap-2">
+                <div key={badge.titleKey} className="flex flex-col gap-2">
                   <badge.icon className="w-6 h-6 text-accent-300" />
-                  <p className="font-bold text-sm text-white">{badge.title}</p>
-                  <p className="text-xs text-brand-200 leading-relaxed">{badge.desc}</p>
+                  <p className="font-bold text-sm text-white">{t(badge.titleKey)}</p>
+                  <p className="text-xs text-brand-200 leading-relaxed">{t(badge.descKey)}</p>
                 </div>
               ))}
             </div>
 
-            <Link
+            <LocalizedLink
               to="/formations"
               className="group inline-flex w-fit items-center gap-2.5 bg-white text-brand-700 font-bold text-sm px-8 py-4 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
             >
-              Commencer maintenant
+              {t('offer.cta')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            </LocalizedLink>
           </div>
         </div>
       </motion.section>
@@ -728,13 +736,13 @@ export default function Home() {
             <EditorialHeading
               as="h2"
               align="center"
-              eyebrow="La communauté"
+              eyebrow={t('testimonials.eyebrow')}
               eyebrowColor="brand"
               className="mb-16"
               segments={[
-                { text: 'Ils en parlent mieux ' },
-                { text: 'que moi', color: 'brand' },
-                { text: '.' },
+                { text: t('testimonials.headingPart1') },
+                { text: t('testimonials.headingPart2'), color: 'brand' },
+                { text: t('testimonials.headingEnd') },
               ]}
             />
             <TestimonialCarousel testimonials={featuredTestimonials} />
@@ -757,14 +765,13 @@ export default function Home() {
         <div className="relative max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 text-center text-white">
           <FloatingMail />
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/55 mb-5">
-            La newsletter
+            {t('newsletter.eyebrow')}
           </p>
           <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-balance mb-5">
-            Du <span className="italic text-brand-400">concret</span> dans ta boîte mail.
+            {t('newsletter.headingThe')}<span className="italic text-brand-400">{t('newsletter.headingConcrete')}</span>{t('newsletter.headingMailbox')}
           </h2>
           <p className="text-white/75 leading-relaxed mb-9">
-            Chaque semaine : mes meilleures découvertes, mes stratégies qui marchent et des
-            défis pour faire avancer ton activité. Gratuit, sans spam.
+            {t('newsletter.desc')}
           </p>
           <div className="max-w-md mx-auto text-left">
             <NewsletterForm variant="inline" source="home" />
@@ -782,24 +789,24 @@ export default function Home() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-balance mb-5">
-            Prêt à transformer ton business ?
+            {t('finalCta.heading')}
           </h2>
           <p className="text-brand-100 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
-            Que tu sois entrepreneur, marketeur ou en reconversion, il y a une formation faite pour toi.
+            {t('finalCta.desc')}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link
+            <LocalizedLink
               to="/formations"
               className="inline-flex items-center gap-2 bg-white text-brand-700 font-bold px-8 py-4 rounded-full hover:bg-brand-50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm"
             >
-              Voir les formations <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
+              {t('finalCta.ctaFormations')} <ArrowRight className="w-4 h-4" />
+            </LocalizedLink>
+            <LocalizedLink
               to="/contact"
               className="inline-flex items-center border border-white/40 text-white font-bold px-8 py-4 rounded-full hover:bg-white/10 hover:-translate-y-0.5 transition-all duration-300 text-sm"
             >
-              Prendre contact
-            </Link>
+              {t('finalCta.ctaContact')}
+            </LocalizedLink>
           </div>
         </div>
       </motion.section>

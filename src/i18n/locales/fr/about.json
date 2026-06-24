@@ -1,0 +1,392 @@
+{
+  "seo": {
+    "title": "Max-Morrys Eyoum — Marketing & Growth Manager | IA, Automatisation, Plateformes Web",
+    "description": "Profil hybride marketing-tech basé à Dakar : stratégie 360°, growth, SEO, IA, automatisation, plateformes web full stack et pilotage de partenariats en Afrique francophone."
+  },
+  "values": {
+    "passion": {
+      "title": "Passion Authentique",
+      "desc": "Une passion pour le marketing digital née d'une découverte qui a changé ma vie en 2021."
+    },
+    "vision": {
+      "title": "Vision Africaine",
+      "desc": "Connaissance profonde des réalités et opportunités du marché africain francophone."
+    },
+    "hybrid": {
+      "title": "Approche Hybride",
+      "desc": "Marketing, IA, automatisation et développement web — un profil à l'intersection de la stratégie, du produit et de la tech."
+    },
+    "results": {
+      "title": "Résultats Concrets",
+      "desc": "Focus sur les stratégies qui donnent des résultats mesurables et durables."
+    }
+  },
+  "expertise": {
+    "marketing": {
+      "title": "Marketing, Growth & Stratégie 360°",
+      "desc": "Stratégies multicanales pour des audiences africaines francophones, pilotées par la data, du brand à la conversion.",
+      "tags": [
+        "Stratégie marketing 360°",
+        "Growth marketing",
+        "SEO, SEA, SMO, SMA",
+        "Campagnes multicanales",
+        "Content marketing",
+        "Social media",
+        "Branding corporate & personal",
+        "Marketing d'impact & RSE",
+        "Analyse de marché & veille",
+        "KPI, reporting & ROI",
+        "CRM & fidélisation"
+      ],
+      "stat": "+1 790 % de trafic web chez Eyone Medical"
+    },
+    "ai": {
+      "title": "IA, Automatisation & Productivité",
+      "desc": "Conception de systèmes IA et de workflows n8n pour industrialiser la production de contenus et la communication.",
+      "tags": [
+        "Prompt engineering",
+        "IA générative appliquée",
+        "Workflows n8n",
+        "Rédaction automatisée",
+        "Automatisation social media",
+        "Systèmes IA de contenus",
+        "Optimisation de processus",
+        "Chatbots WhatsApp"
+      ],
+      "stat": "Workflows IA bout en bout en production"
+    },
+    "web": {
+      "title": "Web, Produit Digital & Plateformes",
+      "desc": "Plateformes full stack avec base de données et hébergement Firebase, accélérées par Claude Code.",
+      "tags": [
+        "Plateformes web full stack",
+        "Claude Code",
+        "Base de données & logique applicative",
+        "Hébergement Firebase",
+        "WordPress",
+        "Maintenance, sécurité, performance",
+        "Monitoring & déploiement",
+        "Support utilisateurs"
+      ],
+      "stat": "Plateformes web en production"
+    },
+    "management": {
+      "title": "Management & Partenariats",
+      "desc": "Coordination d'équipes pluridisciplinaires et pilotage de partenaires institutionnels, ONG et acteurs de terrain.",
+      "tags": [
+        "Coordination d'équipes",
+        "Gestion de prestataires",
+        "Pilotage de projets transverses",
+        "Partenaires institutionnels & ONG",
+        "Événements communautaires",
+        "Formation & accompagnement",
+        "Communication institutionnelle"
+      ],
+      "stat": "Projet Wergu Yaram + Messages de Vie Sénégal"
+    }
+  },
+  "platforms": {
+    "eyone": {
+      "tag": "Santé digitale",
+      "desc": "Plateforme de digitalisation des parcours de soins en Afrique."
+    },
+    "khanouss": {
+      "tag": "E-commerce",
+      "desc": "Plateforme e-commerce full stack — catalogue, panier et paiement."
+    },
+    "holycash": {
+      "tag": "Fintech",
+      "desc": "Plateforme web orientée services financiers et paiement."
+    },
+    "englishLab": {
+      "tag": "Éducation",
+      "desc": "Plateforme d'accompagnement en anglais pour professionnels et étudiants africains francophones."
+    },
+    "steps": {
+      "tag": "Média",
+      "desc": "Magazine chrétien premium en Afrique de l'Ouest — spiritualité et leadership."
+    },
+    "resho": {
+      "tag": "Communauté",
+      "desc": "Plateforme de réseau professionnel et communautaire."
+    }
+  },
+  "preview": {
+    "desktopAlt": "Aperçu desktop de la plateforme {{name}}",
+    "mobileAlt": "Aperçu mobile de la plateforme {{name}}",
+    "desktopLabel": "Desktop",
+    "mobileLabel": "Mobile",
+    "deviceAria": "Aperçu {{label}}",
+    "groupAria": "Choisir l'aperçu de {{name}}"
+  },
+  "experiences": {
+    "eyone": {
+      "role": "Responsable Marketing Digital, Growth & Automatisation IA",
+      "period": "Depuis janvier 2024",
+      "location": "Dakar, Sénégal",
+      "intro": "Chez Eyone, je pilote la stratégie de croissance digitale, la visibilité de marque, la communication multicanale et plusieurs projets digitaux à fort impact. Mon rôle dépasse le marketing opérationnel classique et couvre également la gestion de projet, la coordination de partenariats, le développement web et l'automatisation de processus.",
+      "blocks": {
+        "strategy": {
+          "title": "Stratégie marketing, growth & acquisition",
+          "bullets": [
+            "Élaboration et déploiement de stratégies marketing multicanales : SEO, SEA, SMO, social media, campagnes de visibilité, contenus, newsletters, articles, WhatsApp, vidéos et supports digitaux.",
+            "Définition des objectifs, KPI et indicateurs de performance : trafic, clics, conversions, ventes, transactions, croissance organique et ROI.",
+            "Analyse des parcours clients et optimisation du tunnel de conversion, de la découverte jusqu'à la décision d'achat.",
+            "Veille concurrentielle, analyse marché, identification d'opportunités business et proposition de leviers de croissance.",
+            "Gestion de campagnes orientées performance, notoriété et acquisition."
+          ]
+        },
+        "branding": {
+          "title": "Branding, contenus & communication",
+          "bullets": [
+            "Structuration de la présence digitale d'Eyone à partir de zéro.",
+            "Création et pilotage d'un calendrier éditorial orienté SEO, marque, éducation et conversion.",
+            "Développement de contenus pour renforcer la crédibilité d'Eyone dans l'écosystème santé digitale.",
+            "Coordination de la communication institutionnelle, des supports commerciaux et des messages de marque.",
+            "Pilotage de la visibilité du groupe sur plusieurs marchés africains."
+          ]
+        },
+        "ai": {
+          "title": "IA, automatisation & productivité marketing",
+          "bullets": [
+            "Mise en place de systèmes automatisés avec l'IA pour accélérer la production de contenus et la diffusion marketing.",
+            "Automatisation de workflows avec n8n : rédaction automatisée d'articles, planification de contenus, marketing réseaux sociaux et processus de communication.",
+            "Utilisation de l'IA générative pour la création, l'optimisation, la reformulation et l'adaptation de contenus multicanaux.",
+            "Développement de solutions internes permettant de réduire les tâches répétitives et d'améliorer la productivité marketing."
+          ]
+        },
+        "web": {
+          "title": "Développement web & plateformes digitales",
+          "bullets": [
+            "Développement et maintenance de plateformes web liées à Eyone Medical, Wergu Yaram, Topatoko et des structures hospitalières.",
+            "Création de plateformes full stack avec base de données, logique applicative et hébergement Firebase.",
+            "Utilisation de Claude Code pour accélérer la conception et le développement de plateformes web fonctionnelles.",
+            "Gestion des évolutions techniques, corrections, sécurité, performance, hébergement, monitoring et mises à jour.",
+            "Formation et accompagnement d'utilisateurs sur certaines plateformes développées."
+          ]
+        },
+        "partnerships": {
+          "title": "Projet Wergu Yaram & partenariats",
+          "bullets": [
+            "Pilotage global du projet Wergu Yaram : planification, coordination, storytelling d'impact et suivi opérationnel.",
+            "Élaboration de la stratégie de communication RSE et impact social.",
+            "Gestion de relations avec partenaires institutionnels, ONG et acteurs de terrain.",
+            "Organisation d'initiatives sociétales, campagnes terrain et événements communautaires.",
+            "Suivi des indicateurs d'impact et contribution aux rapports d'activité."
+          ]
+        },
+        "management": {
+          "title": "Management & coordination",
+          "bullets": [
+            "Encadrement et coordination de collaborateurs, créateurs de contenus, community managers, partenaires et prestataires.",
+            "Accompagnement des équipes dans le développement de compétences digitales.",
+            "Support technique et marketing auprès des équipes internes pour les opérations, campagnes et lancements."
+          ]
+        }
+      }
+    },
+    "messagesDeVie": {
+      "role": "Responsable Marketing Digital bénévole",
+      "period": "Depuis avril 2025",
+      "location": "Dakar, Sénégal",
+      "intro": "Pilotage bénévole du marketing digital d'une organisation à but non lucratif, engagée dans des actions de compassion et des campagnes médicales sur le territoire sénégalais.",
+      "blocks": {
+        "strategy": {
+          "title": "Stratégie & visibilité",
+          "bullets": [
+            "Définition de la stratégie de contenu, coordination de la gestion des réseaux sociaux, marketing d'influence et communication événementielle.",
+            "Développement de la visibilité des actions terrain et valorisation des campagnes sociales.",
+            "Encadrement d'une équipe bénévole composée de créateurs de contenus, community managers et contributeurs.",
+            "Mise en place de campagnes digitales ciblées pour renforcer l'engagement, attirer de nouveaux partenaires et soutenir les actions humanitaires."
+          ]
+        }
+      }
+    },
+    "academieLight": {
+      "role": "Formateur en Marketing Digital & Community Management",
+      "period": "Mai 2024 — Décembre 2024",
+      "location": "Dakar, Sénégal",
+      "intro": "Animation d'un module complet de community management et marketing digital auprès d'étudiants en formation professionnelle.",
+      "blocks": {
+        "training": {
+          "title": "Formation & accompagnement",
+          "bullets": [
+            "Formation aux fondamentaux du marketing digital, au rôle du community manager, à la création de contenus, à la gestion des réseaux sociaux et à l'utilisation d'outils comme Canva et CapCut.",
+            "Accompagnement de plus de 20 étudiants dans la mise en pratique de projets digitaux.",
+            "Transmission d'une approche orientée métier, performance, autonomie et employabilité."
+          ]
+        }
+      }
+    },
+    "myOnoma": {
+      "role": "Digital Marketer Freelance",
+      "period": "Janvier 2023 — Octobre 2023",
+      "location": "Dakar, Sénégal",
+      "intro": "Élaboration de stratégies digitales pour développer la présence de l'entreprise et de ses clients sur leurs marchés.",
+      "blocks": {
+        "strategy": {
+          "title": "Stratégie & exécution",
+          "bullets": [
+            "Analyse concurrentielle, ciblage d'audience, définition de plans d'action et mise en œuvre de campagnes multicanales.",
+            "Création d'initiatives visant à accroître la visibilité, renforcer la réputation de marque et générer une croissance mesurable.",
+            "Gestion de contenus, réseaux sociaux et actions de communication digitale."
+          ]
+        }
+      }
+    }
+  },
+  "milestones": {
+    "m2014": {
+      "year": "2014",
+      "lieu": "Abidjan, Côte d'Ivoire",
+      "title": "Le Début de l'Aventure",
+      "desc": "Après mon Baccalauréat à Douala (Cameroun), je pars étudier à Abidjan. Des années marquantes qui m'ont ouvert l'esprit sur les opportunités en Afrique."
+    },
+    "m2017": {
+      "year": "2017",
+      "lieu": "Abidjan, Côte d'Ivoire",
+      "title": "Licence en Économie — CERAP",
+      "desc": "J'obtiens ma Licence en Économie au CERAP Abidjan après 3 années riches en rencontres et expériences."
+    },
+    "m2018": {
+      "year": "2018",
+      "lieu": "Dakar, Sénégal",
+      "title": "Bienvenue au Pays de la Téranga",
+      "desc": "« Salam Aleykoum, nanga def »… J'arrive au Sénégal, ce merveilleux pays de la Téranga où je vis encore aujourd'hui."
+    },
+    "m2020": {
+      "year": "2020",
+      "lieu": "Dakar, Sénégal",
+      "title": "Master en Gestion & Développement d'Entreprises — BEM Dakar",
+      "desc": "Pivot vers l'entrepreneuriat. Les maths et moi, ça ne faisait pas bon ménage !"
+    },
+    "m2021": {
+      "year": "2021",
+      "lieu": "Dakar, Sénégal",
+      "title": "L'Année où Tout a Basculé",
+      "desc": "Découverte du marketing digital grâce à une personne qui compte pour moi. Je « tombe fan » et dévore tous les tutos YouTube et formations Udemy."
+    },
+    "m2023Onoma": {
+      "year": "2023",
+      "lieu": "Dakar, Sénégal",
+      "title": "My Onoma — Digital Marketer Freelance",
+      "desc": "Premiers contrats freelance en conception web, community management et SEO. Co-création de My Onoma."
+    },
+    "m2023Master": {
+      "year": "2023",
+      "lieu": "Dakar, Sénégal",
+      "title": "Master en Digital Business — BEM Dakar",
+      "desc": "Deuxième Master, cette fois en Digital Business pour consolider l'expertise growth + produit."
+    },
+    "m2024Jan": {
+      "year": "2024 — Janv.",
+      "lieu": "Dakar, Sénégal",
+      "title": "Eyone Medical — Marketing & Growth Manager",
+      "desc": "Je rejoins Eyone Medical, pionnier de la digitalisation des soins en Afrique. Résultats à 18 mois : +1 790 % de trafic web et +8 000 abonnés organiques."
+    },
+    "m2024May": {
+      "year": "2024 — Mai",
+      "lieu": "Dakar, Sénégal",
+      "title": "Académie Light — Formateur",
+      "desc": "Co-création de l'Académie Light avec une amie visionnaire. Je deviens formateur en marketing digital & community management."
+    },
+    "m2025Apr": {
+      "year": "2025 — Avril",
+      "lieu": "Dakar, Sénégal",
+      "title": "Messages de Vie Sénégal",
+      "desc": "Je m'engage bénévolement pour piloter le marketing digital d'une organisation qui mène campagnes médicales et consultations gratuites au profit des populations démunies."
+    },
+    "m2025": {
+      "year": "2025",
+      "lieu": "Dakar, Sénégal",
+      "title": "Plateformes web & IA en production",
+      "desc": "Lancement et industrialisation des plateformes Eyone Medical, Wergu Yaram, Topatoko et de workflows IA bout en bout pour le marketing et le contenu."
+    }
+  },
+  "sectionNav": {
+    "impact": "Impact",
+    "expertise": "Expertise",
+    "plateformes": "Plateformes",
+    "experiences": "Expériences",
+    "parcours": "Parcours"
+  },
+  "hero": {
+    "eyebrow": "MAX-MORRYS EYOUM",
+    "title": "Marketing & Growth Manager.",
+    "subtitle": "IA · Automatisation · Plateformes Web · Partenariats",
+    "blockquote": "J'accompagne la croissance d'organisations en Afrique francophone — santé, services, éducation, impact social — en combinant stratégie marketing, data, contenu, partenariats, développement web et automatisation des processus.",
+    "statTraffic": "Trafic",
+    "statFollowers": "Abonnés",
+    "statPlatforms": "Plateformes",
+    "ctaWork": "Travaillons ensemble",
+    "ctaExperiences": "Mes expériences",
+    "imageAlt": "Max-Morrys Eyoum",
+    "locationCity": "Dakar · Sénégal",
+    "locationRegion": "Afrique francophone"
+  },
+  "impact": {
+    "eyebrow": "RÉSUMÉ D'IMPACT",
+    "heading": "Les chiffres clés",
+    "desc": "Croissance mesurable, plateformes en production et périmètre élargi marketing — tech — partenariats.",
+    "trafficLabel": "Trafic web Eyone",
+    "trafficSub": "De 34 à 643 visites mensuelles en un an",
+    "followersLabel": "Abonnés organiques",
+    "followersSub": "Dont +4 000 sur LinkedIn",
+    "platformsLabel": "Plateformes web",
+    "platformsSub": "Santé, e-commerce, éducation, fintech, institutionnel"
+  },
+  "expertiseSection": {
+    "heading": "Expertise & compétences",
+    "desc": "Quatre piliers complémentaires — marketing, IA, web et management — au service de la croissance et de l'impact."
+  },
+  "platformsSection": {
+    "heading": "Plateformes que je maintiens",
+    "desc": "Conçues, déployées et maintenues en production — full stack avec base de données, sécurité et monitoring.",
+    "prevAria": "Plateformes précédentes",
+    "nextAria": "Plateformes suivantes",
+    "scrollHintMobile": "Faites glisser pour voir les autres plateformes",
+    "scrollHintDesktop": "Faites défiler ou utilisez les flèches pour voir les autres plateformes"
+  },
+  "experiencesSection": {
+    "eyebrow": "EXPÉRIENCES",
+    "heading": "Expériences professionnelles",
+    "desc": "De My Onoma à Eyone Medical : un parcours pluridisciplinaire à l'intersection du marketing, de la tech et de l'impact."
+  },
+  "stack": {
+    "heading": "Stack & outils du quotidien",
+    "desc": "Les outils sur lesquels je m'appuie pour exécuter, automatiser et livrer.",
+    "items": [
+      "Claude Code",
+      "n8n",
+      "Firebase",
+      "WordPress",
+      "Chatbots IA",
+      "WhatsApp Marketing",
+      "Canva",
+      "CapCut",
+      "Google Ads",
+      "SEO",
+      "Social Media Automation"
+    ]
+  },
+  "valuesSection": {
+    "heading": "Mes valeurs",
+    "desc": "Les principes qui guident mon approche du marketing, de la tech et des partenariats en Afrique."
+  },
+  "parcours": {
+    "eyebrow": "MON HISTOIRE",
+    "heading": "Mon parcours",
+    "p1": "Je ne suis pas le genre qui te dira qu'il a tel MBA ou tel Master en Marketing Digital (même si j'en ai un), car je me suis presqu'auto-formé… C'est un peu contradictoire mais c'est ça qui fait ma force : la passion authentique et l'apprentissage constant.",
+    "p2": "Pour la petite histoire, je n'aurais jamais imaginé que j'allais faire du marketing… Comme tout enfant je voulais devenir pilote, puis ingénieur, ensuite banquier et au finish entrepreneur. Le marketing digital est arrivé par hasard en 2021, et c'est devenu ma passion !",
+    "p3": "Aujourd'hui, je vis cette aventure depuis Dakar, à la croisée du marketing, de l'IA, du produit web et des partenariats à impact — fier de contribuer au développement digital de l'Afrique francophone.",
+    "collapse": "Réduire le parcours",
+    "expand": "Voir le début du parcours (2014 – 2021)"
+  },
+  "finalCta": {
+    "eyebrow": "ON DISCUTE ?",
+    "heading": "Travaillons ensemble",
+    "desc": "Marketing, automatisation IA, plateformes web ou partenariats — parlons-en.",
+    "ctaContact": "Prendre contact",
+    "ctaFormations": "Ou découvre mes formations"
+  }
+}

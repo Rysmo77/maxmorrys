@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Play, Eye } from 'lucide-react';
+import TranslatedText from './TranslatedText';
 import type { Video } from '../../types';
-import { formatDate } from '../../lib/utils';
 import { universeThemes } from '../../lib/sectionThemes';
+import { useFormat } from '../../hooks/useFormat';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { contentPath } from '../../lib/contentPath';
 
 const theme = universeThemes.videos;
 
@@ -18,9 +22,12 @@ interface VideoCardProps {
  * au survol, eyebrow catégorie + vues, titre, date.
  */
 export default function VideoCard({ video, compact = false }: VideoCardProps) {
+  const { t } = useTranslation('shared');
+  const { formatDate } = useFormat();
+  const { language } = useLanguage();
   return (
     <Link
-      to={`/videos/${video.slug}`}
+      to={contentPath('videos', video, language)}
       className="group flex flex-col bg-neutral-50 dark:bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:border-red-200 dark:hover:border-red-900 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
     >
       <div className="relative aspect-video overflow-hidden">
@@ -44,19 +51,19 @@ export default function VideoCard({ video, compact = false }: VideoCardProps) {
 
       <div className="p-5 flex flex-col flex-1">
         <p className={`text-xs font-bold tracking-widest uppercase ${theme.eyebrow} mb-2`}>
-          {video.category}
+          <TranslatedText text={video.category} />
           {' · '}
           <span className="inline-flex items-center gap-1 font-normal normal-case tracking-normal text-neutral-400">
-            <Eye className="w-3 h-3" />{video.views.toLocaleString()} vues
+            <Eye className="w-3 h-3" />{t('videoCard.views', { count: video.views })}
           </span>
         </p>
-        <h3
+        <TranslatedText
+          text={video.title}
+          as="h3"
           className={`font-black text-neutral-900 dark:text-white ${theme.titleHover} transition-colors leading-snug mb-3 flex-1 ${
             compact ? 'text-sm' : 'text-base lg:text-lg'
           }`}
-        >
-          {video.title}
-        </h3>
+        />
         <p className="text-xs text-neutral-400 mt-auto pt-3 border-t border-neutral-100 dark:border-neutral-800">
           {formatDate(video.publishedAt)}
         </p>

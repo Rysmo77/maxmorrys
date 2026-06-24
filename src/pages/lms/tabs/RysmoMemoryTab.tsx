@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { doc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { Brain, RotateCcw, Loader2, ShieldCheck } from 'lucide-react';
@@ -18,6 +19,7 @@ interface RysmoMemoryTabProps {
 }
 
 export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabProps) {
+  const { t } = useTranslation('lmsTabs');
   const { user, userData, refreshUserData } = useAuth();
   const { addToast } = useToast();
 
@@ -70,9 +72,9 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
     try {
       await updateUserProfile(user.uid, { preferences: { ...userData.preferences, aiMemoryConsent: checked } });
       await refreshUserData();
-      addToast('success', checked ? 'Mémoire de Rysmo activée.' : 'Mémoire de Rysmo désactivée.');
+      addToast('success', checked ? t('rysmoMemory.toastMemoryOn') : t('rysmoMemory.toastMemoryOff'));
     } catch {
-      addToast('error', 'Erreur lors de la mise à jour.');
+      addToast('error', t('rysmoMemory.toastUpdateError'));
     } finally {
       setSavingConsent(false);
     }
@@ -86,9 +88,9 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
       setProfile(null);
       setTopCategories([]);
       setRecentContent([]);
-      addToast('success', 'Mémoire réinitialisée. Rysmo repart de zéro.');
+      addToast('success', t('rysmoMemory.toastResetSuccess'));
     } catch {
-      addToast('error', "Erreur lors de la réinitialisation.");
+      addToast('error', t('rysmoMemory.toastResetError'));
     } finally {
       setClearing(false);
       setShowConfirm(false);
@@ -105,15 +107,14 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
         <div className="flex items-start gap-3 mb-4">
           <ShieldCheck className="w-5 h-5 text-teal-600 dark:text-teal-400 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-neutral-600 dark:text-neutral-300">
-            La mémoire est activée par défaut : Rysmo se souvient de tes échanges pour te répondre de façon plus personnelle
-            (tes objectifs, tes sujets, tes points à renforcer). Aucune donnée n'est partagée — tu peux la désactiver ou tout effacer quand tu veux.
+            {t('rysmoMemory.consentIntro')}
           </p>
         </div>
         <Toggle
           checked={consent}
           onChange={handleToggleConsent}
-          label="Mémoire de Rysmo"
-          description={savingConsent ? 'Mise à jour…' : (consent ? 'Activée — Rysmo personnalise ses réponses selon ton parcours' : 'Désactivée — Rysmo ne retient rien')}
+          label={t('rysmoMemory.memoryLabel')}
+          description={savingConsent ? t('rysmoMemory.updating') : (consent ? t('rysmoMemory.memoryOn') : t('rysmoMemory.memoryOff'))}
         />
       </div>
 
@@ -121,31 +122,31 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-5">
         <div className="flex items-center gap-2 mb-4">
           <Brain className="w-5 h-5 text-teal-600" />
-          <h2 className="text-lg font-black text-neutral-900 dark:text-white">Ce que Rysmo retient</h2>
+          <h2 className="text-lg font-black text-neutral-900 dark:text-white">{t('rysmoMemory.remembersTitle')}</h2>
         </div>
         {loadingProfile ? (
-          <div className="flex items-center gap-2 text-neutral-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Chargement…</div>
+          <div className="flex items-center gap-2 text-neutral-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> {t('rysmoMemory.loading')}</div>
         ) : !consent ? (
-          <p className="text-sm text-neutral-500">La mémoire est désactivée. Active-la ci-dessus pour que Rysmo apprenne à te connaître.</p>
+          <p className="text-sm text-neutral-500">{t('rysmoMemory.disabledText')}</p>
         ) : !profile ? (
-          <p className="text-sm text-neutral-500">Rysmo n'a pas encore de souvenirs. Discute un peu avec lui et reviens ici.</p>
+          <p className="text-sm text-neutral-500">{t('rysmoMemory.noMemoriesText')}</p>
         ) : (
           <div className="space-y-3 text-sm">
             {profile.summary && (
               <div>
-                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1">Résumé</p>
+                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1">{t('rysmoMemory.summary')}</p>
                 <p className="text-neutral-700 dark:text-neutral-200">{profile.summary}</p>
               </div>
             )}
             {profile.level && (
               <div>
-                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1">Niveau estimé</p>
+                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1">{t('rysmoMemory.estimatedLevel')}</p>
                 <p className="text-neutral-700 dark:text-neutral-200 capitalize">{profile.level}</p>
               </div>
             )}
             {profile.topics?.length > 0 && (
               <div>
-                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1">Sujets d'intérêt</p>
+                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1">{t('rysmoMemory.topics')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {profile.topics.map((t) => (
                     <span key={t} className="px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 text-xs font-medium">{t}</span>
@@ -155,7 +156,7 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
             )}
             {profile.weakSpots?.length > 0 && (
               <div>
-                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1">Points à renforcer</p>
+                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1">{t('rysmoMemory.weakSpots')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {profile.weakSpots.map((t) => (
                     <span key={t} className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium">{t}</span>
@@ -175,9 +176,9 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
               className="inline-flex items-center gap-2 py-2 px-3 rounded-xl border border-error-300 dark:border-error-700 text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 text-sm font-medium transition-colors disabled:opacity-50"
             >
               {clearing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-              Réinitialiser la mémoire
+              {t('rysmoMemory.reset')}
             </button>
-            <p className="text-xs text-neutral-400 mt-2">Rysmo oublie tout ce qu'il a appris et repart de zéro. La mémoire reste active.</p>
+            <p className="text-xs text-neutral-400 mt-2">{t('rysmoMemory.resetHint')}</p>
           </div>
         )}
       </div>
@@ -185,11 +186,11 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
       {/* Centres d'intérêt déduits de l'activité */}
       {consent && (topCategories.length > 0 || recentContent.length > 0) && (
         <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-5">
-          <h2 className="text-lg font-black text-neutral-900 dark:text-white mb-1">Tes centres d'intérêt déduits</h2>
-          <p className="text-xs text-neutral-500 mb-4">D'après les contenus que tu consultes (articles lus, audios/vidéos, temps passé).</p>
+          <h2 className="text-lg font-black text-neutral-900 dark:text-white mb-1">{t('rysmoMemory.interestsTitle')}</h2>
+          <p className="text-xs text-neutral-500 mb-4">{t('rysmoMemory.interestsSubtitle')}</p>
           {topCategories.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1.5">Catégories préférées</p>
+              <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1.5">{t('rysmoMemory.favoriteCategories')}</p>
               <div className="flex flex-wrap gap-1.5">
                 {topCategories.map((c) => (
                   <span key={c} className="px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 text-xs font-medium">{c}</span>
@@ -199,7 +200,7 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
           )}
           {recentContent.length > 0 && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1.5">Récemment consultés</p>
+              <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1.5">{t('rysmoMemory.recentlyViewed')}</p>
               {recentContent.map((e, i) => (
                 <div key={`${e.slug}-${i}`} className="text-sm text-neutral-700 dark:text-neutral-200 py-0.5 truncate">
                   {e.title} <span className="text-xs text-neutral-400">· {e.type}</span>
@@ -212,15 +213,15 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
 
       {/* Contexte d'apprentissage */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-5">
-        <h2 className="text-lg font-black text-neutral-900 dark:text-white mb-1">Ton parcours</h2>
-        <p className="text-xs text-neutral-500 mb-4">Rysmo s'appuie toujours sur ta progression pour t'orienter (même sans la mémoire).</p>
+        <h2 className="text-lg font-black text-neutral-900 dark:text-white mb-1">{t('rysmoMemory.journeyTitle')}</h2>
+        <p className="text-xs text-neutral-500 mb-4">{t('rysmoMemory.journeySubtitle')}</p>
         {enrolledFormations.length === 0 ? (
-          <p className="text-sm text-neutral-500">Aucune formation pour l'instant.</p>
+          <p className="text-sm text-neutral-500">{t('rysmoMemory.noFormation')}</p>
         ) : (
           <div className="space-y-3">
             {inProgress.length > 0 && (
               <div>
-                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1.5">En cours</p>
+                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1.5">{t('rysmoMemory.inProgress')}</p>
                 {inProgress.map((ef) => (
                   <div key={ef.enrollment.id} className="flex items-center justify-between py-1">
                     <span className="text-sm text-neutral-700 dark:text-neutral-200 truncate">{ef.formation?.title ?? ef.enrollment.formationId}</span>
@@ -231,7 +232,7 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
             )}
             {completed.length > 0 && (
               <div>
-                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1.5">Terminées</p>
+                <p className="text-xs uppercase tracking-wide text-neutral-400 font-semibold mb-1.5">{t('rysmoMemory.completed')}</p>
                 {completed.map((ef) => (
                   <div key={ef.enrollment.id} className="text-sm text-neutral-700 dark:text-neutral-200 py-1 truncate">{ef.formation?.title ?? ef.enrollment.formationId}</div>
                 ))}
@@ -245,13 +246,13 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
         open={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={handleClear}
-        title="Réinitialiser la mémoire de Rysmo"
-        confirmLabel={clearing ? 'Réinitialisation…' : 'Réinitialiser'}
+        title={t('rysmoMemory.confirmTitle')}
+        confirmLabel={clearing ? t('rysmoMemory.confirmResetting') : t('rysmoMemory.confirmReset')}
         variant="danger"
         loading={clearing}
       >
         <p className="text-sm text-neutral-600 dark:text-neutral-300">
-          Rysmo oubliera tout ce qu'il a appris de tes échanges (résumé, sujets, points à renforcer). Tes formations et ta progression ne sont pas affectées. Action irréversible.
+          {t('rysmoMemory.confirmText')}
         </p>
       </ConfirmDialog>
     </div>

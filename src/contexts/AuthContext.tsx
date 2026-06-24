@@ -75,15 +75,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: unknown) {
       const errorCode = (error as { code?: string })?.code ?? '';
       if (errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password' || errorCode === 'auth/invalid-credential') {
-        throw new Error('Email ou mot de passe incorrect');
+        throw new Error('errors.invalidCredential');
       } else if (errorCode === 'auth/too-many-requests') {
-        throw new Error('Trop de tentatives. Réessayez plus tard');
+        throw new Error('errors.tooManyRequests');
       } else if (errorCode === 'auth/user-disabled') {
-        throw new Error('Ce compte a été désactivé');
+        throw new Error('errors.userDisabled');
       } else if (errorCode === 'auth/invalid-email') {
-        throw new Error('Email invalide');
+        throw new Error('errors.invalidEmail');
       } else {
-        throw new Error('Erreur de connexion. Vérifiez vos identifiants');
+        throw new Error('errors.signInFailed');
       }
     }
   };
@@ -107,13 +107,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: unknown) {
       const errorCode = (error as { code?: string })?.code ?? '';
       if (errorCode === 'auth/email-already-in-use') {
-        throw new Error('Cet email est déjà utilisé');
+        throw new Error('errors.emailAlreadyInUse');
       } else if (errorCode === 'auth/invalid-email') {
-        throw new Error('Email invalide');
+        throw new Error('errors.invalidEmail');
       } else if (errorCode === 'auth/weak-password') {
-        throw new Error('Mot de passe trop faible (minimum 6 caractères)');
+        throw new Error('errors.weakPassword');
       } else {
-        throw new Error('Erreur lors de la création du compte');
+        throw new Error('errors.signUpFailed');
       }
     }
   };
@@ -144,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: unknown) {
       const errorCode = (error as { code?: string })?.code ?? '';
       if (errorCode === 'auth/popup-closed-by-user' || errorCode === 'auth/cancelled-popup-request') return;
-      throw new Error('Erreur lors de la connexion avec Google');
+      throw new Error('errors.googleSignInFailed');
     }
   };
 
@@ -171,9 +171,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Ne pas révéler si l'email existe — retourner silencieusement
         return;
       } else if (errorCode === 'auth/invalid-email') {
-        throw new Error('Email invalide');
+        throw new Error('errors.invalidEmail');
       } else {
-        throw new Error("Erreur lors de l'envoi de l'email");
+        throw new Error('errors.resetEmailFailed');
       }
     }
   };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Globe, Palette, Bell, Shield, Link2, Megaphone, Save, Loader2 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -49,6 +50,7 @@ const DEFAULT: Settings = {
 };
 
 export default function AdminSettings() {
+  const { t } = useTranslation('admin');
   const { addToast } = useToast();
   const [settings, setSettings] = useState<Settings>(DEFAULT);
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export default function AdminSettings() {
         setSettings({ ...DEFAULT, ...(data as Partial<Settings>) });
       }
       setLoading(false);
-    }).catch(() => { addToast('error', 'Erreur lors du chargement des paramètres.'); setLoading(false); });
+    }).catch(() => { addToast('error', t('settings.toastLoadError')); setLoading(false); });
   }, []);
 
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) =>
@@ -70,10 +72,10 @@ export default function AdminSettings() {
     setSaving(true);
     try {
       await saveSiteSettings(settings as unknown as Record<string, unknown>);
-      addToast('success', 'Paramètres enregistrés avec succès.');
+      addToast('success', t('settings.toastSaveSuccess'));
     } catch (error: unknown) {
       captureError(error, { context: 'Save settings failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement. Veuillez réessayer.');
+      addToast('error', error instanceof Error ? error.message : t('settings.toastSaveError'));
     } finally {
       setSaving(false);
     }
@@ -88,23 +90,23 @@ export default function AdminSettings() {
   }
 
   const themeOptions: { value: Settings['defaultTheme']; label: string }[] = [
-    { value: 'system', label: 'Système' },
-    { value: 'light', label: 'Clair' },
-    { value: 'dark', label: 'Sombre' },
+    { value: 'system', label: t('settings.themeSystem') },
+    { value: 'light', label: t('settings.themeLight') },
+    { value: 'dark', label: t('settings.themeDark') },
   ];
 
   const notifications: { key: keyof Settings; label: string; desc: string }[] = [
-    { key: 'notifNewSale', label: 'Nouvel achat', desc: 'Recevoir une notification à chaque vente' },
-    { key: 'notifNewMessage', label: 'Nouveau message', desc: 'Alerte pour les messages de contact' },
-    { key: 'notifNewUser', label: 'Nouvelle inscription', desc: 'Notification pour chaque nouvel utilisateur' },
-    { key: 'notifCourseCompletion', label: 'Complétion de cours', desc: 'Quand un étudiant termine une formation' },
+    { key: 'notifNewSale', label: t('settings.notifNewSaleLabel'), desc: t('settings.notifNewSaleDesc') },
+    { key: 'notifNewMessage', label: t('settings.notifNewMessageLabel'), desc: t('settings.notifNewMessageDesc') },
+    { key: 'notifNewUser', label: t('settings.notifNewUserLabel'), desc: t('settings.notifNewUserDesc') },
+    { key: 'notifCourseCompletion', label: t('settings.notifCourseCompletionLabel'), desc: t('settings.notifCourseCompletionDesc') },
   ];
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-1">Paramètres</h1>
-        <p className="text-sm text-neutral-500">Configuration générale de la plateforme</p>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-1">{t('settings.pageTitle')}</h1>
+        <p className="text-sm text-neutral-500">{t('settings.pageSubtitle')}</p>
       </div>
 
       <div className="space-y-6 max-w-3xl">
@@ -115,18 +117,18 @@ export default function AdminSettings() {
               <Globe className="w-5 h-5 text-brand-600 dark:text-brand-400" />
             </div>
             <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">Informations générales</h2>
-              <p className="text-xs text-neutral-500">Nom du site, description et coordonnées</p>
+              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.generalTitle')}</h2>
+              <p className="text-xs text-neutral-500">{t('settings.generalSubtitle')}</p>
             </div>
           </div>
           <div className="space-y-4">
-            <Input label="Nom du site" value={settings.siteName} onChange={(e) => set('siteName', e.target.value)} />
-            <Input label="Description" value={settings.siteDescription} onChange={(e) => set('siteDescription', e.target.value)} />
+            <Input label={t('settings.siteNameLabel')} value={settings.siteName} onChange={(e) => set('siteName', e.target.value)} />
+            <Input label={t('settings.siteDescriptionLabel')} value={settings.siteDescription} onChange={(e) => set('siteDescription', e.target.value)} />
             <div className="grid sm:grid-cols-2 gap-4">
-              <Input label="Email de contact" type="email" value={settings.contactEmail} onChange={(e) => set('contactEmail', e.target.value)} />
-              <Input label="Téléphone" value={settings.contactPhone} onChange={(e) => set('contactPhone', e.target.value)} />
+              <Input label={t('settings.contactEmailLabel')} type="email" value={settings.contactEmail} onChange={(e) => set('contactEmail', e.target.value)} />
+              <Input label={t('settings.contactPhoneLabel')} value={settings.contactPhone} onChange={(e) => set('contactPhone', e.target.value)} />
             </div>
-            <Input label="Adresse" value={settings.address} onChange={(e) => set('address', e.target.value)} />
+            <Input label={t('settings.addressLabel')} value={settings.address} onChange={(e) => set('address', e.target.value)} />
           </div>
         </Card>
 
@@ -137,8 +139,8 @@ export default function AdminSettings() {
               <Link2 className="w-5 h-5 text-accent-600 dark:text-accent-400" />
             </div>
             <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">Réseaux sociaux</h2>
-              <p className="text-xs text-neutral-500">Liens vers vos profils</p>
+              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.socialTitle')}</h2>
+              <p className="text-xs text-neutral-500">{t('settings.socialSubtitle')}</p>
             </div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -157,8 +159,8 @@ export default function AdminSettings() {
               <Megaphone className="w-5 h-5 text-warning-600 dark:text-warning-400" />
             </div>
             <div className="flex-1">
-              <h2 className="font-bold text-neutral-900 dark:text-white">Bannière d'annonce</h2>
-              <p className="text-xs text-neutral-500">Afficher un message en haut du site</p>
+              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.announcementTitle')}</h2>
+              <p className="text-xs text-neutral-500">{t('settings.announcementSubtitle')}</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -172,10 +174,10 @@ export default function AdminSettings() {
           </div>
           {settings.announcementActive && (
             <Input
-              label="Texte de l'annonce"
+              label={t('settings.announcementTextLabel')}
               value={settings.announcementText}
               onChange={(e) => set('announcementText', e.target.value)}
-              placeholder="Promotion de lancement — 30% de réduction sur toutes les formations !"
+              placeholder={t('settings.announcementTextPlaceholder')}
             />
           )}
         </Card>
@@ -187,12 +189,12 @@ export default function AdminSettings() {
               <Palette className="w-5 h-5 text-accent-600 dark:text-accent-400" />
             </div>
             <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">Apparence</h2>
-              <p className="text-xs text-neutral-500">Thème par défaut</p>
+              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.appearanceTitle')}</h2>
+              <p className="text-xs text-neutral-500">{t('settings.appearanceSubtitle')}</p>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Thème par défaut</label>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">{t('settings.defaultThemeLabel')}</label>
             <div className="flex gap-3">
               {themeOptions.map((opt) => (
                 <button
@@ -220,8 +222,8 @@ export default function AdminSettings() {
               <Bell className="w-5 h-5 text-success-600 dark:text-success-400" />
             </div>
             <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">Notifications</h2>
-              <p className="text-xs text-neutral-500">Configuration des alertes admin</p>
+              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.notificationsTitle')}</h2>
+              <p className="text-xs text-neutral-500">{t('settings.notificationsSubtitle')}</p>
             </div>
           </div>
           <div className="space-y-1">
@@ -249,29 +251,29 @@ export default function AdminSettings() {
               <Shield className="w-5 h-5 text-error-600 dark:text-error-400" />
             </div>
             <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">Sécurité</h2>
-              <p className="text-xs text-neutral-500">Paramètres de sécurité et accès</p>
+              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.securityTitle')}</h2>
+              <p className="text-xs text-neutral-500">{t('settings.securitySubtitle')}</p>
             </div>
           </div>
           <div className="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
             <div className="flex items-center justify-between p-3 bg-success-50 dark:bg-success-900/10 rounded-xl">
               <span>Firebase Authentication</span>
-              <span className="text-success-600 dark:text-success-400 font-medium">Actif</span>
+              <span className="text-success-600 dark:text-success-400 font-medium">{t('settings.securityActive')}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-success-50 dark:bg-success-900/10 rounded-xl">
               <span>HTTPS</span>
-              <span className="text-success-600 dark:text-success-400 font-medium">Actif</span>
+              <span className="text-success-600 dark:text-success-400 font-medium">{t('settings.securityActive')}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-700/30 rounded-xl">
-              <span>Règles Firestore</span>
-              <span className="font-medium">RBAC activé</span>
+              <span>{t('settings.securityFirestoreRules')}</span>
+              <span className="font-medium">{t('settings.securityRbacEnabled')}</span>
             </div>
           </div>
         </Card>
 
         <div className="flex justify-end">
           <Button onClick={handleSave} size="lg" disabled={saving} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
-            {saving ? 'Enregistrement...' : 'Enregistrer les paramètres'}
+            {saving ? t('settings.saving') : t('settings.save')}
           </Button>
         </div>
       </div>

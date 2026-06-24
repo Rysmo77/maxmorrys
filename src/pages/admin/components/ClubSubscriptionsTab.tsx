@@ -1,7 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle } from 'lucide-react';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
-import { formatDate } from '../../../lib/utils';
+import { useFormat } from '../../../hooks/useFormat';
 import type { ClubDigitosSubscription } from '../../../types';
 
 interface ClubSubscriptionsTabProps {
@@ -10,21 +11,23 @@ interface ClubSubscriptionsTabProps {
 }
 
 export default function ClubSubscriptionsTab({ subscriptions, handleSubStatus }: ClubSubscriptionsTabProps) {
+  const { t } = useTranslation('adminClub');
+  const { formatDate } = useFormat();
   return (
     <Card>
       {subscriptions.length === 0 ? (
-        <p className="text-center text-neutral-400 py-8">Aucun abonnement pour l'instant.</p>
+        <p className="text-center text-neutral-400 py-8">{t('subscriptions.empty')}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-neutral-500 border-b border-neutral-200 dark:border-neutral-700">
-                <th className="pb-3 font-semibold">Membre</th>
-                <th className="pb-3 font-semibold">Statut</th>
-                <th className="pb-3 font-semibold">Début</th>
-                <th className="pb-3 font-semibold">Expiration</th>
-                <th className="pb-3 font-semibold">Renouvellement</th>
-                <th className="pb-3 font-semibold">Actions</th>
+                <th className="pb-3 font-semibold">{t('subscriptions.table.member')}</th>
+                <th className="pb-3 font-semibold">{t('subscriptions.table.status')}</th>
+                <th className="pb-3 font-semibold">{t('subscriptions.table.start')}</th>
+                <th className="pb-3 font-semibold">{t('subscriptions.table.expiration')}</th>
+                <th className="pb-3 font-semibold">{t('subscriptions.table.renewal')}</th>
+                <th className="pb-3 font-semibold">{t('subscriptions.table.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -39,19 +42,19 @@ export default function ClubSubscriptionsTab({ subscriptions, handleSubStatus }:
                       variant={sub.status === 'active' ? 'success' : sub.status === 'pending' ? 'warning' : 'error'}
                       size="sm"
                     >
-                      {sub.status === 'active' ? 'Actif' : sub.status === 'pending' ? 'En attente' : sub.status === 'expired' ? 'Expiré' : 'Annulé'}
+                      {sub.status === 'active' ? t('subscriptions.status.active') : sub.status === 'pending' ? t('subscriptions.status.pending') : sub.status === 'expired' ? t('subscriptions.status.expired') : t('subscriptions.status.cancelled')}
                     </Badge>
                   </td>
                   <td className="py-3 pr-4 text-neutral-500">{formatDate(sub.startedAt)}</td>
                   <td className="py-3 pr-4 text-neutral-500">{formatDate(sub.expiresAt)}</td>
-                  <td className="py-3 pr-4 text-neutral-500">{sub.autoRenew ? 'Auto' : 'Manuel'}</td>
+                  <td className="py-3 pr-4 text-neutral-500">{sub.autoRenew ? t('subscriptions.renew.auto') : t('subscriptions.renew.manual')}</td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
                       {sub.status !== 'active' && (
                         <button
                           onClick={() => handleSubStatus(sub.userId, 'active')}
                           className="p-1.5 rounded-lg text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20 transition-colors"
-                          title="Activer"
+                          title={t('subscriptions.activate')}
                         >
                           <CheckCircle className="w-4 h-4" />
                         </button>
@@ -60,7 +63,7 @@ export default function ClubSubscriptionsTab({ subscriptions, handleSubStatus }:
                         <button
                           onClick={() => handleSubStatus(sub.userId, 'cancelled')}
                           className="p-1.5 rounded-lg text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors"
-                          title="Annuler"
+                          title={t('subscriptions.cancel')}
                         >
                           <XCircle className="w-4 h-4" />
                         </button>

@@ -1,0 +1,21 @@
+{
+  "seoTitle": "FAQ — Questions Fréquentes",
+  "seoDescription": "Retrouve les réponses aux questions les plus fréquentes sur les formations, le coaching et les services de Max-Morrys.",
+  "eyebrow": "FAQ",
+  "heroTitle1": "Questions",
+  "heroTitle2": "fréquentes",
+  "heroSubtitle": "Trouvez rapidement des réponses à vos questions les plus courantes.",
+  "allCategories": "Tous",
+  "loadError": "Impossible de charger la FAQ.",
+  "retry": "Réessayer",
+  "helpfulQuestion": "Cette réponse t'a-t-elle aidé ?",
+  "thanksPositive": "Merci pour ton retour !",
+  "thanksNegative": "Merci, je vais améliorer cette réponse.",
+  "ctaTitle": "Tu ne trouves pas ta réponse ?",
+  "ctaText": "N'hésite pas à me contacter directement.",
+  "ctaButton": "Nous contacter",
+  "crossEyebrow": "ENCORE DES QUESTIONS ?",
+  "crossTitle": "Écrivez-moi directement",
+  "crossText": "Je réponds personnellement à chaque message. N'hésitez pas à me contacter.",
+  "crossButton": "Me contacter"
+}

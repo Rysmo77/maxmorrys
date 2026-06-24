@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { Users, BookOpen, FileText, MessageSquare, Mail, Loader2, RefreshCw } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import { useToast } from '../../components/ui/Toast';
 import { getPlatformStats, getAllPosts, getAllFormations, subscribeMessages } from '../../lib/firestore';
-import { formatDate } from '../../lib/utils';
+import { useFormat } from '../../hooks/useFormat';
 import type { BlogPost, Formation, ContactMessage } from '../../types';
 
 interface Stats {
@@ -20,6 +21,8 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
+  const { t } = useTranslation('admin');
+  const { formatDate, locale } = useFormat();
   const { addToast } = useToast();
   const [stats, setStats] = useState<Stats | null>(null);
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -39,7 +42,7 @@ export default function AdminDashboard() {
       setPosts(p.slice(0, 5));
       setFormations(f.slice(0, 4));
     } catch {
-      addToast('error', 'Erreur lors du chargement du tableau de bord.');
+      addToast('error', t('dashboard.toastLoadError'));
     } finally {
       setLoading(false);
     }
@@ -52,24 +55,24 @@ export default function AdminDashboard() {
   }, []);
 
   const metrics = stats ? [
-    { icon: Users, label: 'Utilisateurs', value: stats.users.toLocaleString(), sub: `${stats.enrollments} inscriptions`, color: 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400' },
-    { icon: BookOpen, label: 'Formations', value: stats.formations.toLocaleString(), sub: `${stats.publishedFormations} publiées`, color: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400' },
-    { icon: FileText, label: 'Articles', value: stats.articles.toLocaleString(), sub: `${stats.publishedPosts} publiés`, color: 'bg-accent-50 dark:bg-accent-900/20 text-accent-600 dark:text-accent-400' },
-    { icon: MessageSquare, label: 'Messages', value: stats.messages.toLocaleString(), sub: `${stats.newMessages} nouveau${stats.newMessages !== 1 ? 'x' : ''}`, color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400' },
+    { icon: Users, label: t('dashboard.metricUsers'), value: stats.users.toLocaleString(locale), sub: t('dashboard.subEnrollments', { count: stats.enrollments }), color: 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400' },
+    { icon: BookOpen, label: t('dashboard.metricFormations'), value: stats.formations.toLocaleString(locale), sub: t('dashboard.subPublishedFormations', { count: stats.publishedFormations }), color: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400' },
+    { icon: FileText, label: t('dashboard.metricArticles'), value: stats.articles.toLocaleString(locale), sub: t('dashboard.subPublishedPosts', { count: stats.publishedPosts }), color: 'bg-accent-50 dark:bg-accent-900/20 text-accent-600 dark:text-accent-400' },
+    { icon: MessageSquare, label: t('dashboard.metricMessages'), value: stats.messages.toLocaleString(locale), sub: t('dashboard.subNewMessages', { count: stats.newMessages }), color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400' },
   ] : [];
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-1">Tableau de bord</h1>
-          <p className="text-neutral-500">Vue d'ensemble de votre plateforme</p>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-1">{t('dashboard.title')}</h1>
+          <p className="text-neutral-500">{t('dashboard.subtitle')}</p>
         </div>
         <button
           onClick={load}
           disabled={loading}
           className="p-2 rounded-xl text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
-          title="Actualiser"
+          title={t('dashboard.refresh')}
         >
           <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
         </button>
@@ -100,16 +103,22 @@ export default function AdminDashboard() {
             <div className="mb-8 p-4 bg-brand-50 dark:bg-brand-900/10 border border-brand-200 dark:border-brand-800 rounded-2xl flex items-center gap-3">
               <Mail className="w-5 h-5 text-brand-600 dark:text-brand-400 flex-shrink-0" />
               <p className="text-sm text-brand-700 dark:text-brand-300">
-                <strong>{stats.subscribers}</strong> abonné{stats.subscribers !== 1 ? 's' : ''} à la newsletter
+                <Trans
+                  t={t}
+                  i18nKey="dashboard.subscribersBanner"
+                  count={stats.subscribers}
+                  values={{ count: stats.subscribers }}
+                  components={{ strong: <strong /> }}
+                />
               </p>
             </div>
           )}
 
           <div className="grid lg:grid-cols-2 gap-8 mb-8">
             <Card>
-              <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">Messages récents</h2>
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">{t('dashboard.recentMessages')}</h2>
               {recentMessages.length === 0 ? (
-                <p className="text-sm text-neutral-400 py-4 text-center">Aucun message reçu.</p>
+                <p className="text-sm text-neutral-400 py-4 text-center">{t('dashboard.noMessages')}</p>
               ) : (
                 <div className="space-y-3">
                   {recentMessages.map((msg) => (
@@ -124,7 +133,7 @@ export default function AdminDashboard() {
                         <p className="text-xs text-neutral-500 truncate">{msg.subject}</p>
                       </div>
                       <Badge variant={msg.status === 'new' ? 'error' : msg.status === 'read' ? 'warning' : 'success'} size="sm">
-                        {msg.status === 'new' ? 'Nouveau' : msg.status === 'read' ? 'Lu' : 'Répondu'}
+                        {msg.status === 'new' ? t('dashboard.statusNew') : msg.status === 'read' ? t('dashboard.statusRead') : t('dashboard.statusReplied')}
                       </Badge>
                     </div>
                   ))}
@@ -133,9 +142,9 @@ export default function AdminDashboard() {
             </Card>
 
             <Card>
-              <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">Formations</h2>
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">{t('dashboard.formationsTitle')}</h2>
               {formations.length === 0 ? (
-                <p className="text-sm text-neutral-400 py-4 text-center">Aucune formation créée.</p>
+                <p className="text-sm text-neutral-400 py-4 text-center">{t('dashboard.noFormations')}</p>
               ) : (
                 <div className="space-y-4">
                   {formations.map((f) => (
@@ -145,10 +154,10 @@ export default function AdminDashboard() {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">{f.title}</p>
-                        <p className="text-xs text-neutral-500">{f.students ?? 0} étudiant{(f.students ?? 0) !== 1 ? 's' : ''}</p>
+                        <p className="text-xs text-neutral-500">{t('dashboard.studentsCount', { count: f.students ?? 0 })}</p>
                       </div>
                       <Badge variant={f.status === 'published' ? 'success' : 'warning'} size="sm">
-                        {f.status === 'published' ? 'Publiée' : 'Brouillon'}
+                        {f.status === 'published' ? t('dashboard.statusPublishedF') : t('dashboard.statusDraft')}
                       </Badge>
                     </div>
                   ))}
@@ -158,9 +167,9 @@ export default function AdminDashboard() {
           </div>
 
           <Card>
-            <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">Derniers articles</h2>
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">{t('dashboard.latestArticles')}</h2>
             {posts.length === 0 ? (
-              <p className="text-sm text-neutral-400 py-4 text-center">Aucun article créé.</p>
+              <p className="text-sm text-neutral-400 py-4 text-center">{t('dashboard.noArticles')}</p>
             ) : (
               <div className="space-y-3">
                 {posts.map((post) => (
@@ -178,7 +187,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-2">
                       <Badge variant="brand" size="sm">{post.category}</Badge>
                       <Badge variant={post.status === 'published' ? 'success' : 'warning'} size="sm">
-                        {post.status === 'published' ? 'Publié' : 'Brouillon'}
+                        {post.status === 'published' ? t('dashboard.statusPublishedM') : t('dashboard.statusDraft')}
                       </Badge>
                     </div>
                   </div>
@@ -190,10 +199,10 @@ export default function AdminDashboard() {
           {stats && (
             <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { label: 'Articles publiés', value: stats.publishedPosts },
-                { label: 'Formations publiées', value: stats.publishedFormations },
-                { label: 'Newsletter', value: stats.subscribers },
-                { label: 'Inscriptions', value: stats.enrollments },
+                { label: t('dashboard.statPublishedArticles'), value: stats.publishedPosts },
+                { label: t('dashboard.statPublishedFormations'), value: stats.publishedFormations },
+                { label: t('dashboard.statNewsletter'), value: stats.subscribers },
+                { label: t('dashboard.statEnrollments'), value: stats.enrollments },
               ].map((s, i) => (
                 <div key={i} className="p-4 bg-neutral-50 dark:bg-neutral-700/30 rounded-2xl text-center">
                   <p className="text-2xl font-bold text-neutral-900 dark:text-white">{s.value}</p>

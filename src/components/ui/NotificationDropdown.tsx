@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Bell, BookOpen, Award, Rss, Crown, Info, Check } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { subscribeNotifications, markNotificationRead, markAllNotificationsRead } from '../../lib/firestore';
-import { cn, formatDate } from '../../lib/utils';
+import { cn } from '../../lib/utils';
+import { useFormat } from '../../hooks/useFormat';
 import type { AppNotification, NotificationType } from '../../types';
 
 const typeConfig: Record<NotificationType, { icon: typeof Bell; color: string; bg: string }> = {
@@ -14,6 +16,8 @@ const typeConfig: Record<NotificationType, { icon: typeof Bell; color: string; b
 };
 
 export default function NotificationDropdown() {
+  const { t } = useTranslation('ui');
+  const { formatDate } = useFormat();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [open, setOpen] = useState(false);
@@ -64,7 +68,7 @@ export default function NotificationDropdown() {
       <button
         onClick={() => setOpen(!open)}
         className="p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors relative min-w-[44px] min-h-[44px] flex items-center justify-center"
-        aria-label="Notifications"
+        aria-label={t('notifications.ariaLabel')}
         aria-expanded={open}
       >
         <Bell className="w-5 h-5" />
@@ -79,13 +83,13 @@ export default function NotificationDropdown() {
         <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 sm:max-w-none bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-xl z-50 overflow-hidden animate-slide-down">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-700">
-            <h3 className="font-bold text-neutral-900 dark:text-white text-sm">Notifications</h3>
+            <h3 className="font-bold text-neutral-900 dark:text-white text-sm">{t('notifications.title')}</h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
                 className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
               >
-                <Check className="w-3 h-3" /> Tout marquer comme lu
+                <Check className="w-3 h-3" /> {t('notifications.markAllRead')}
               </button>
             )}
           </div>
@@ -95,8 +99,8 @@ export default function NotificationDropdown() {
             {notifications.length === 0 ? (
               <div className="py-10 text-center">
                 <Bell className="w-8 h-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-2" />
-                <p className="text-sm text-neutral-500">Aucune notification</p>
-                <p className="text-xs text-neutral-400 mt-1">Tes notifications apparaîtront ici.</p>
+                <p className="text-sm text-neutral-500">{t('notifications.empty')}</p>
+                <p className="text-xs text-neutral-400 mt-1">{t('notifications.emptyHint')}</p>
               </div>
             ) : (
               notifications.map((notif) => {

@@ -1,19 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, Sun, Moon, LogOut, LayoutDashboard, GraduationCap, ChevronDown, Headphones, Youtube, LogIn } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Menu, X, Search, Sun, Moon, LogOut, LayoutDashboard, GraduationCap, ChevronDown, Headphones, Youtube, LogIn, Languages } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { toCanonicalPath } from '../../i18n/routing';
+import LocalizedLink from '../shared/LocalizedLink';
 
 const navLinks = [
-  { label: 'Je suis Max-Morrys', path: '/a-propos' },
-  { label: 'Je te forme', path: '/formations' },
-  { label: "Je t'informe", path: '/blog' },
+  { key: 'about', path: '/a-propos' },
+  { key: 'formations', path: '/formations' },
+  { key: 'blog', path: '/blog' },
 ];
 
 const transformerLinks = [
-  { label: 'Le Podcast du Marketing', path: '/podcasts', icon: Headphones },
-  { label: 'Le Marketing en Pratique avec Max-Morrys', path: '/videos', icon: Youtube },
+  { key: 'podcast', path: '/podcasts', icon: Headphones },
+  { key: 'videos', path: '/videos', icon: Youtube },
 ];
 
 interface HeaderProps {
@@ -28,7 +32,11 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { user, userData, signOut } = useAuth();
+  const { language, toggleLanguage } = useLanguage();
+  const { t } = useTranslation('nav');
+  const { t: tc } = useTranslation('common');
   const location = useLocation();
+  const path = toCanonicalPath(location.pathname);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -70,14 +78,16 @@ export default function Header({ onSearchOpen }: HeaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const isTransformerActive = location.pathname.startsWith('/podcasts') || location.pathname.startsWith('/videos');
+  const isTransformerActive = path.startsWith('/podcasts') || path.startsWith('/videos');
 
   // Header transparent par-dessus le hero (accueil, haut de page, menu fermé).
-  const transparent = location.pathname === '/' && !scrolled && !mobileOpen;
+  const transparent = path === '/' && !scrolled && !mobileOpen;
 
   const userInitials = user?.displayName
     ? user.displayName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : user?.email?.[0]?.toUpperCase() ?? 'U';
+
+  const languageToggleLabel = language === 'fr' ? tc('switchToEnglish') : tc('switchToFrench');
 
   return (
     <>
@@ -101,7 +111,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
           <div className="flex items-center h-16 lg:h-[68px]">
 
             {/* Logo */}
-            <Link to="/" className="group shrink-0 flex items-center gap-2">
+            <LocalizedLink to="/" className="group shrink-0 flex items-center gap-2">
               <div className="relative">
                 <span className={cn(
                   'font-black text-[1.35rem] tracking-tight transition-colors duration-200 drop-shadow-sm',
@@ -112,14 +122,14 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   Hellooo<span className="text-brand-500">!</span>
                 </span>
               </div>
-            </Link>
+            </LocalizedLink>
 
             {/* Nav desktop */}
             <nav className="hidden lg:flex items-center gap-0.5 ml-auto">
               {navLinks.map((link) => {
-                const isActive = location.pathname === link.path || location.pathname.startsWith(link.path + '/');
+                const isActive = path === link.path || path.startsWith(link.path + '/');
                 return (
-                  <Link
+                  <LocalizedLink
                     key={link.path}
                     to={link.path}
                     className={cn(
@@ -131,7 +141,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                           : 'text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
                     )}
                   >
-                    {link.label}
+                    {t(link.key)}
                     <span className={cn(
                       'absolute bottom-1 left-3.5 right-3.5 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
                       link.path === '/a-propos' ? 'bg-morrys-600 dark:bg-morrys-400'
@@ -139,7 +149,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                         : 'bg-brand-500',
                       isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                     )} />
-                  </Link>
+                  </LocalizedLink>
                 );
               })}
 
@@ -154,7 +164,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   aria-expanded={dropdownOpen}
                   aria-haspopup="true"
-                  aria-label="Je te transforme — contenu gratuit"
+                  aria-label={t('transformAria')}
                   className={cn(
                     'relative flex items-center gap-1 px-3.5 py-2 text-[0.8125rem] font-semibold transition-colors duration-150 rounded-lg group',
                     isTransformerActive
@@ -164,7 +174,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                         : 'text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
                   )}
                 >
-                  Je te transforme
+                  {t('transform')}
                   <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200', dropdownOpen && 'rotate-180')} aria-hidden="true" />
                   <span className={cn(
                     'absolute bottom-1 left-3.5 right-8 h-[1.5px] bg-white rounded-full transition-transform duration-200 origin-left',
@@ -177,7 +187,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-neutral-100 dark:border-neutral-800 py-2 animate-slide-down">
                       <div className="px-4 pb-2 pt-1 mb-1 border-b border-neutral-100 dark:border-neutral-800">
                         <p className="text-[0.625rem] font-bold tracking-[0.2em] uppercase text-brand-600 dark:text-brand-400">
-                          Contenu gratuit
+                          {t('freeContent')}
                         </p>
                       </div>
                       {transformerLinks.map((item) => {
@@ -204,7 +214,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                             ? 'text-plum-600 dark:text-plum-400'
                             : 'text-brand-600 dark:text-brand-400';
                         return (
-                        <Link
+                        <LocalizedLink
                           key={item.path}
                           to={item.path}
                           className="flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition-colors group/item"
@@ -215,13 +225,13 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                           <p className={cn(
                             'text-sm font-semibold leading-snug transition-colors',
                             hoverCls,
-                            location.pathname.startsWith(item.path)
+                            path.startsWith(item.path)
                               ? activeCls
                               : 'text-neutral-800 dark:text-neutral-200'
                           )}>
-                            {item.label}
+                            {t(item.key)}
                           </p>
-                        </Link>
+                        </LocalizedLink>
                         );
                       })}
                     </div>
@@ -230,23 +240,23 @@ export default function Header({ onSearchOpen }: HeaderProps) {
               </div>
 
               {/* Contacte-moi */}
-              <Link
+              <LocalizedLink
                 to="/contact"
                 className={cn(
                   'relative px-3.5 py-2 text-[0.8125rem] font-semibold transition-all duration-150 rounded-lg group',
                   transparent
                     ? 'text-white hover:bg-white/10'
-                    : location.pathname === '/contact'
+                    : path === '/contact'
                       ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
                       : 'text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20'
                 )}
               >
-                Contacte-moi
+                {t('contact')}
                 <span className={cn(
                   'absolute bottom-1 left-3.5 right-3.5 h-[1.5px] bg-brand-500 rounded-full transition-transform duration-200 origin-left',
-                  location.pathname === '/contact' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                  path === '/contact' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                 )} />
-              </Link>
+              </LocalizedLink>
 
             </nav>
 
@@ -260,9 +270,24 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     ? 'text-white/80 hover:text-white hover:bg-white/10'
                     : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
                 )}
-                aria-label="Rechercher"
+                aria-label={t('search')}
               >
                 <Search className="w-[18px] h-[18px]" />
+              </button>
+
+              <button
+                onClick={toggleLanguage}
+                className={cn(
+                  'flex items-center gap-1 px-2 py-2 transition-colors rounded-lg text-[0.7rem] font-bold tracking-wide',
+                  transparent
+                    ? 'text-white/80 hover:text-white hover:bg-white/10'
+                    : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
+                )}
+                aria-label={languageToggleLabel}
+                title={languageToggleLabel}
+              >
+                <Languages className="w-[18px] h-[18px]" aria-hidden="true" />
+                <span>{language === 'fr' ? 'EN' : 'FR'}</span>
               </button>
 
               <button
@@ -273,7 +298,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     ? 'text-white/80 hover:text-white hover:bg-white/10'
                     : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
                 )}
-                aria-label="Changer le thème"
+                aria-label={t('toggleTheme')}
               >
                 {theme === 'dark' ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
               </button>
@@ -284,7 +309,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     onClick={() => setProfileOpen(!profileOpen)}
                     aria-expanded={profileOpen}
                     aria-haspopup="true"
-                    aria-label={`Menu du compte de ${user.displayName || user.email}`}
+                    aria-label={t('accountMenu', { name: user.displayName || user.email })}
                     className={cn(
                       'flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-full border transition-all duration-200',
                       transparent
@@ -299,7 +324,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                       'hidden sm:block text-xs font-semibold max-w-[80px] truncate',
                       transparent ? 'text-white/90' : 'text-neutral-700 dark:text-neutral-300'
                     )}>
-                      {user.displayName?.split(' ')[0] || 'Mon compte'}
+                      {user.displayName?.split(' ')[0] || t('myAccount')}
                     </span>
                     <ChevronDown className={cn('w-3 h-3 transition-transform duration-200', transparent ? 'text-white/70' : 'text-neutral-400', profileOpen && 'rotate-180')} />
                   </button>
@@ -307,25 +332,25 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   {profileOpen && (
                     <div className="absolute right-0 top-full mt-2.5 w-60 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-neutral-100 dark:border-neutral-800 py-1.5 animate-slide-down">
                       <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800">
-                        <p className="text-sm font-bold text-neutral-900 dark:text-white">{user.displayName || 'Apprenant'}</p>
+                        <p className="text-sm font-bold text-neutral-900 dark:text-white">{user.displayName || t('learner')}</p>
                         <p className="text-xs text-neutral-400 mt-0.5 truncate">{user.email}</p>
                       </div>
                       <div className="py-1">
-                        <Link
+                        <LocalizedLink
                           to="/mon-espace"
                           className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
                         >
                           <GraduationCap className="w-4 h-4" />
-                          Mon espace étudiant
-                        </Link>
+                          {t('studentSpace')}
+                        </LocalizedLink>
                         {userData?.role === 'admin' && (
-                          <Link
+                          <LocalizedLink
                             to="/admin"
                             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition-colors"
                           >
                             <LayoutDashboard className="w-4 h-4" />
-                            Administration
-                          </Link>
+                            {t('admin')}
+                          </LocalizedLink>
                         )}
                       </div>
                       <div className="pt-1 border-t border-neutral-100 dark:border-neutral-800">
@@ -334,14 +359,14 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                           className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 w-full transition-colors"
                         >
                           <LogOut className="w-4 h-4" />
-                          Déconnexion
+                          {t('signOut')}
                         </button>
                       </div>
                     </div>
                   )}
                 </div>
               ) : (
-                <Link
+                <LocalizedLink
                   to="/connexion"
                   className={cn(
                     'hidden sm:inline-flex items-center gap-2 px-4 py-2 ml-1.5 text-[0.8125rem] font-semibold border rounded-full transition-all duration-200',
@@ -351,8 +376,8 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   )}
                 >
                   <LogIn className="w-3.5 h-3.5" />
-                  Connexion
-                </Link>
+                  {t('signIn')}
+                </LocalizedLink>
               )}
 
               <button
@@ -363,7 +388,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     ? 'text-white hover:bg-white/10'
                     : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/60 dark:hover:bg-neutral-800/50'
                 )}
-                aria-label="Menu"
+                aria-label={t('menu')}
               >
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -382,9 +407,9 @@ export default function Header({ onSearchOpen }: HeaderProps) {
           <div className="fixed top-16 left-0 right-0 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 shadow-xl animate-slide-down max-h-[calc(100vh-4rem)] overflow-y-auto">
             <nav className="py-3 px-3 space-y-0.5">
               {navLinks.map((link) => {
-                const isActive = location.pathname === link.path || location.pathname.startsWith(link.path + '/');
+                const isActive = path === link.path || path.startsWith(link.path + '/');
                 return (
-                  <Link
+                  <LocalizedLink
                     key={link.path}
                     to={link.path}
                     className={cn(
@@ -394,8 +419,8 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                         : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60'
                     )}
                   >
-                    {link.label}
-                  </Link>
+                    {t(link.key)}
+                  </LocalizedLink>
                 );
               })}
 
@@ -412,7 +437,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                       : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60'
                   )}
                 >
-                  Je te transforme
+                  {t('transform')}
                   <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', mobileTransformerOpen && 'rotate-180')} aria-hidden="true" />
                 </button>
                 <div
@@ -424,9 +449,9 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                 >
                     {transformerLinks.map((item) => {
                       const isPodcasts = item.path === '/podcasts';
-                      const isActive = location.pathname.startsWith(item.path);
+                      const isActive = path.startsWith(item.path);
                       return (
-                      <Link
+                      <LocalizedLink
                         key={item.path}
                         to={item.path}
                         className={cn(
@@ -443,53 +468,63 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                         )}
                       >
                         <item.icon className="w-4 h-4" />
-                        {item.label}
-                      </Link>
+                        {t(item.key)}
+                      </LocalizedLink>
                       );
                     })}
                 </div>
               </div>
 
               {/* Mobile: Contacte-moi */}
-              <Link
+              <LocalizedLink
                 to="/contact"
                 className={cn(
                   'block px-4 py-3 text-sm font-semibold transition-colors rounded-xl',
-                  location.pathname === '/contact'
+                  path === '/contact'
                     ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
                     : 'text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20'
                 )}
               >
-                Contacte-moi
-              </Link>
+                {t('contact')}
+              </LocalizedLink>
+
+              {/* Mobile: langue */}
+              <button
+                onClick={toggleLanguage}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 rounded-xl"
+                aria-label={languageToggleLabel}
+              >
+                <Languages className="w-4 h-4" aria-hidden="true" />
+                {languageToggleLabel}
+              </button>
 
               <div className="h-px bg-neutral-100 dark:bg-neutral-800 my-1" />
 
               {user ? (
                 <div className="space-y-0.5">
-                  <Link
+                  <LocalizedLink
                     to="/mon-espace"
                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 rounded-xl"
                   >
                     <GraduationCap className="w-4 h-4" />
-                    Mon espace étudiant
-                  </Link>
+                    {t('studentSpace')}
+                  </LocalizedLink>
                   <button
                     onClick={() => { signOut(); }}
                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl w-full"
                   >
                     <LogOut className="w-4 h-4" />
-                    Déconnexion
+                    {t('signOut')}
                   </button>
                 </div>
               ) : (
-                <Link
+                <LocalizedLink
                   to="/connexion"
                   className="flex items-center justify-center gap-2 px-4 py-3 mt-1 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors"
                 >
                   <LogIn className="w-4 h-4" />
-                  Connexion
-                </Link>
+                  {t('signIn')}
+                </LocalizedLink>
               )}
             </nav>
           </div>

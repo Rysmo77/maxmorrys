@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Search, Edit2, Trash2, ExternalLink, Loader2, Star, StarOff } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -9,7 +10,9 @@ import ImageInput from '../../components/ui/ImageInput';
 import RichEditor from '../../components/ui/RichEditor';
 import { useToast } from '../../components/ui/Toast';
 import { getAllPosts, savePost, deletePost } from '../../lib/firestore';
-import { formatDate, slugify, calculateReadTime } from '../../lib/utils';
+import { slugify, calculateReadTime } from '../../lib/utils';
+import { generateSlugEn } from '../../lib/slugEn';
+import { useFormat } from '../../hooks/useFormat';
 import { BLOG_POLES, categoryToPole } from '../../lib/blogCategories';
 import type { BlogPost } from '../../types';
 import SEOPanel from '../../components/shared/SEOPanel';
@@ -22,6 +25,7 @@ import { usePagination } from '../../hooks/usePagination';
 type FormState = {
   title: string;
   slug: string;
+  slug_en: string;
   excerpt: string;
   content: string;
   category: string;
@@ -47,7 +51,7 @@ type FormState = {
 const todayIso = () => new Date().toISOString().split('T')[0];
 
 const makeEmptyForm = (): FormState => ({
-  title: '', slug: '', excerpt: '', content: '', category: BLOG_POLES[0],
+  title: '', slug: '', slug_en: '', excerpt: '', content: '', category: BLOG_POLES[0],
   coverImage: '', tags: '', publishedAt: todayIso(), status: 'draft', featured: false,
   focusKeyword: '', metaTitle: '', metaDescription: '', ogTitle: '',
   ogDescription: '', ogImage: '', twitterTitle: '', twitterDescription: '',
@@ -55,6 +59,8 @@ const makeEmptyForm = (): FormState => ({
 });
 
 export default function AdminArticles() {
+  const { t } = useTranslation('admin');
+  const { formatDate } = useFormat();
   const { addToast } = useToast();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +79,7 @@ export default function AdminArticles() {
       setPosts(data);
       setLoading(false);
     }).catch(() => {
-      addToast('error', 'Erreur lors du chargement des articles.');
+      addToast('error', t('articles.toastLoadError'));
       setLoading(false);
     });
   };
@@ -95,6 +101,7 @@ export default function AdminArticles() {
     setForm({
       title: post.title,
       slug: post.slug,
+      slug_en: post.slug_en ?? '',
       excerpt: post.excerpt,
       content: post.content,
       category: categoryToPole(post.category),
@@ -121,15 +128,17 @@ export default function AdminArticles() {
 
   const handleSave = async (status: 'draft' | 'published') => {
     if (!form.title.trim() || !form.excerpt.trim()) {
-      addToast('error', 'Le titre et l\'extrait sont requis.');
+      addToast('error', t('articles.toastTitleExcerptRequired'));
       return;
     }
     setSaving(true);
     try {
       const slug = form.slug || slugify(form.title);
+      const slug_en = form.slug_en || await generateSlugEn(form.title);
       const postData = {
         title: form.title.trim(),
         slug,
+        slug_en,
         excerpt: form.excerpt.trim(),
         content: form.content,
         category: form.category.trim(),
@@ -153,12 +162,12 @@ export default function AdminArticles() {
         canonicalUrl: form.canonicalUrl.trim(),
       } as Omit<BlogPost, 'id'>;
       await savePost(postData, editingId ?? undefined);
-      addToast('success', editingId ? 'Article mis à jour.' : 'Article créé.');
+      addToast('success', editingId ? t('articles.toastUpdated') : t('articles.toastCreated'));
       setShowModal(false);
       load();
     } catch (error: unknown) {
       captureError(error, { context: 'Save article failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
+      addToast('error', error instanceof Error ? error.message : t('articles.toastSaveError'));
     } finally {
       setSaving(false);
     }
@@ -168,15 +177,15 @@ export default function AdminArticles() {
     try {
       await deletePost(id);
       setPosts((prev) => prev.filter((p) => p.id !== id));
-      addToast('success', 'Article supprime.');
+      addToast('success', t('articles.toastDeleted'));
     } catch {
-      addToast('error', 'Erreur de suppression.');
+      addToast('error', t('articles.toastDeleteError'));
     }
     confirm.closeConfirm();
-  }, [addToast, confirm]);
+  }, [addToast, confirm, t]);
 
   const handleDelete = (id: string) => {
-    confirm.requestConfirm('Supprimer cet article ? Cette action est irreversible.', () => doDelete(id));
+    confirm.requestConfirm(t('articles.confirmDeleteMessage'), () => doDelete(id));
   };
 
   const toggleStatus = async (post: BlogPost) => {
@@ -185,7 +194,7 @@ export default function AdminArticles() {
       await savePost({ ...post, status: newStatus } as Omit<BlogPost, 'id'>, post.id);
       setPosts((prev) => prev.map((p) => p.id === post.id ? { ...p, status: newStatus } : p));
     } catch {
-      addToast('error', 'Erreur de mise à jour.');
+      addToast('error', t('articles.toastUpdateError'));
     }
   };
 
@@ -202,12 +211,12 @@ export default function AdminArticles() {
     <div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Articles</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{t('articles.title')}</h1>
           <p className="text-sm text-neutral-500">
-            {loading ? 'Chargement...' : `${posts.length} article${posts.length !== 1 ? 's' : ''} au total`}
+            {loading ? t('articles.loading') : t('articles.totalCount', { count: posts.length })}
           </p>
         </div>
-        <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>Nouvel article</Button>
+        <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>{t('articles.newArticle')}</Button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -216,7 +225,7 @@ export default function AdminArticles() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher..."
+            placeholder={t('articles.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white"
           />
         </div>
@@ -231,7 +240,7 @@ export default function AdminArticles() {
                   : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-600'
               }`}
             >
-              {s === 'all' ? 'Tous' : s === 'published' ? 'Publiés' : 'Brouillons'}
+              {s === 'all' ? t('articles.filterAll') : s === 'published' ? t('articles.filterPublished') : t('articles.filterDrafts')}
             </button>
           ))}
         </div>
@@ -248,16 +257,16 @@ export default function AdminArticles() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">Article</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden md:table-cell">Catégorie</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden sm:table-cell">Date</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">Statut</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">Actions</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">{t('articles.colArticle')}</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden md:table-cell">{t('articles.colCategory')}</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden sm:table-cell">{t('articles.colDate')}</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">{t('articles.colStatus')}</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">{t('articles.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <tr><td colSpan={5} className="px-4 py-8 text-center text-neutral-500">Aucun article trouvé.</td></tr>
+                    <tr><td colSpan={5} className="px-4 py-8 text-center text-neutral-500">{t('articles.emptyState')}</td></tr>
                   ) : (
                     paged.map((post) => (
                       <tr key={post.id} className="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
@@ -268,7 +277,7 @@ export default function AdminArticles() {
                             )}
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-neutral-900 dark:text-white truncate max-w-xs">{post.title}</p>
-                              <p className="text-xs text-neutral-400">{post.readTime} min{post.featured ? ' · ⭐ À la une' : ''}</p>
+                              <p className="text-xs text-neutral-400">{t('articles.readTime', { count: post.readTime })}{post.featured ? t('articles.featuredSuffix') : ''}</p>
                             </div>
                           </div>
                         </td>
@@ -281,21 +290,21 @@ export default function AdminArticles() {
                         <td className="px-4 py-3">
                           <button onClick={() => toggleStatus(post)}>
                             <Badge variant={post.status === 'published' ? 'success' : 'warning'} size="sm">
-                              {post.status === 'published' ? 'Publié' : 'Brouillon'}
+                              {post.status === 'published' ? t('articles.statusPublished') : t('articles.statusDraft')}
                             </Badge>
                           </button>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-1">
-                            <button onClick={() => openEdit(post)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors" title="Modifier">
+                            <button onClick={() => openEdit(post)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors" title={t('articles.actionEdit')}>
                               <Edit2 className="w-4 h-4" />
                             </button>
                             {post.status === 'published' && post.slug && (
-                              <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" title="Voir">
+                              <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" title={t('articles.actionView')}>
                                 <ExternalLink className="w-4 h-4" />
                               </a>
                             )}
-                            <button onClick={() => handleDelete(post.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" title="Supprimer">
+                            <button onClick={() => handleDelete(post.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" title={t('articles.actionDelete')}>
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -314,10 +323,10 @@ export default function AdminArticles() {
       )}
 
       {/* Article editor modal */}
-      <Modal open={showModal} onClose={() => setShowModal(false)} title={editingId ? 'Modifier l\'article' : 'Nouvel article'} size="xl">
+      <Modal open={showModal} onClose={() => setShowModal(false)} title={editingId ? t('articles.modalEditTitle') : t('articles.modalNewTitle')} size="xl">
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-neutral-200 dark:border-neutral-700">
-          {[{ key: 'content', label: 'Contenu' }, { key: 'seo', label: 'SEO & Paramètres' }].map((tab) => (
+          {[{ key: 'content', label: t('articles.tabContent') }, { key: 'seo', label: t('articles.tabSeo') }].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key as typeof activeTab)}
@@ -335,31 +344,31 @@ export default function AdminArticles() {
         {activeTab === 'content' && (
           <div className="space-y-4">
             <Input
-              label="Titre de l'article *"
+              label={t('articles.fieldTitleLabel')}
               value={form.title}
               onChange={(e) => {
                 set('title', e.target.value);
                 if (!editingId) set('slug', slugify(e.target.value));
               }}
-              placeholder="Titre accrocheur..."
+              placeholder={t('articles.fieldTitlePlaceholder')}
             />
             <Input
-              label="Extrait *"
+              label={t('articles.fieldExcerptLabel')}
               value={form.excerpt}
               onChange={(e) => set('excerpt', e.target.value)}
-              placeholder="Résumé court affiché dans les listings (160 car. max)"
+              placeholder={t('articles.fieldExcerptPlaceholder')}
             />
             <RichEditor
-              label="Contenu"
+              label={t('articles.fieldContentLabel')}
               value={form.content}
               onChange={(v) => set('content', v)}
               minHeight="400px"
-              placeholder="Rédigez votre article en markdown..."
+              placeholder={t('articles.fieldContentPlaceholder')}
             />
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label htmlFor="category" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  Catégorie
+                  {t('articles.fieldCategoryLabel')}
                 </label>
                 <select
                   id="category"
@@ -372,15 +381,15 @@ export default function AdminArticles() {
                   ))}
                 </select>
               </div>
-              <Input label="Tags (séparés par virgule)" value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="SEO, Growth, Digital" />
+              <Input label={t('articles.fieldTagsLabel')} value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="SEO, Growth, Digital" />
             </div>
             <Input
-              label="Date de publication"
+              label={t('articles.fieldPublishDateLabel')}
               type="date"
               value={form.publishedAt}
               onChange={(e) => set('publishedAt', e.target.value)}
             />
-            <ImageInput label="Image de couverture" value={form.coverImage} onChange={(url) => set('coverImage', url)} folder="articles" />
+            <ImageInput label={t('articles.fieldCoverImageLabel')} value={form.coverImage} onChange={(url) => set('coverImage', url)} folder="articles" />
           </div>
         )}
 
@@ -389,8 +398,8 @@ export default function AdminArticles() {
             {/* Toggle featured — option éditoriale, hors SEOPanel */}
             <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-700/30 rounded-xl">
               <div>
-                <p className="text-sm font-medium text-neutral-900 dark:text-white">Article à la une</p>
-                <p className="text-xs text-neutral-500">Mettre en avant sur la page d'accueil</p>
+                <p className="text-sm font-medium text-neutral-900 dark:text-white">{t('articles.featuredTitle')}</p>
+                <p className="text-xs text-neutral-500">{t('articles.featuredDescription')}</p>
               </div>
               <button
                 type="button"
@@ -402,10 +411,17 @@ export default function AdminArticles() {
             </div>
             {/* Slug */}
             <Input
-              label="Slug (URL)"
+              label={t('articles.fieldSlugLabel')}
               value={form.slug}
               onChange={(e) => set('slug', slugify(e.target.value))}
               placeholder="mon-super-article"
+            />
+            {/* Slug EN */}
+            <Input
+              label={t('articles.fieldSlugEnLabel')}
+              value={form.slug_en}
+              onChange={(e) => set('slug_en', slugify(e.target.value))}
+              placeholder="english-slug"
             />
             {/* SEOPanel complet */}
             <SEOPanel
@@ -433,14 +449,14 @@ export default function AdminArticles() {
         )}
 
         <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-neutral-200 dark:border-neutral-700 mt-6">
-          <Button variant="outline" onClick={() => setShowModal(false)}>Annuler</Button>
+          <Button variant="outline" onClick={() => setShowModal(false)}>{t('articles.cancel')}</Button>
           <Button variant="outline" onClick={() => handleSave('draft')} disabled={saving}>
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-            Brouillon
+            {t('articles.saveDraft')}
           </Button>
           <Button onClick={() => handleSave('published')} disabled={saving}>
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-            {editingId ? 'Mettre à jour' : 'Publier'}
+            {editingId ? t('articles.update') : t('articles.publish')}
           </Button>
         </div>
       </Modal>
@@ -449,9 +465,9 @@ export default function AdminArticles() {
         open={confirm.open}
         onClose={confirm.closeConfirm}
         onConfirm={confirm.onConfirm}
-        title="Supprimer"
+        title={t('articles.confirmDeleteTitle')}
         message={confirm.message}
-        confirmLabel="Supprimer"
+        confirmLabel={t('articles.confirmDeleteLabel')}
       />
     </div>
   );

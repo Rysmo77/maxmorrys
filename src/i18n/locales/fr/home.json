@@ -1,0 +1,107 @@
+{
+  "stats": {
+    "trafficGrowth": "Croissance de trafic en 1 an",
+    "studentsTrained": "Étudiants formés",
+    "successRate": "Taux de réussite",
+    "coursesCreated": "Cours créés"
+  },
+  "services": {
+    "train": { "title": "Je te forme", "desc": "Des formations pratiques et actionnables pour maîtriser le digital." },
+    "inform": { "title": "Je t'informe", "desc": "Articles, podcasts et vidéos pour rester à la pointe." },
+    "transform": { "title": "Je te transforme", "desc": "Coaching et consulting pour accélérer ta croissance." }
+  },
+  "trustBadges": {
+    "certificate": { "title": "Certificat inclus", "desc": "Chaque formation délivre un certificat vérifiable." },
+    "lifetime": { "title": "Accès à vie", "desc": "Tes formations restent accessibles sans limite." },
+    "guarantee": { "title": "Garantie satisfait", "desc": "Remboursement sous 7 jours si insatisfaction." }
+  },
+  "testimonialAria": "Témoignage {{number}}",
+  "hero": {
+    "titlePart1": "Maîtrise le ",
+    "titleDigital": "digital",
+    "titlePart2": ", accélère ta ",
+    "titleGrowth": "croissance",
+    "titleEnd": ".",
+    "subtitle": "Formations, articles, podcast et vidéos pour transformer ton activité — SEO, IA et marketing digital, sans blabla.",
+    "cta": "Explorer les formations"
+  },
+  "manifesto": {
+    "eyebrow": "Bonjour, moi c'est Max-Morrys",
+    "headingHelp": "J'aide les ",
+    "headingEntrepreneurs": "entrepreneurs",
+    "headingTo": " à ",
+    "headingTransform": "transformer",
+    "headingIdeas": " leurs idées en ",
+    "headingBusiness": "business rentables",
+    "headingEnd": ".",
+    "intro": "Formateur et consultant en marketing digital, SEO et intelligence artificielle. Pas besoin d'une audience énorme ni d'y passer tes nuits : il te faut un plan clair et la prochaine étape. Voici ce que je fais pour toi.",
+    "ctaNew": "Voir les nouveautés",
+    "badgeText": "Ravi de te rencontrer",
+    "statValue": "50+",
+    "statLabel": "étudiants formés",
+    "imageAlt": "Max-Morrys"
+  },
+  "stats2": {
+    "eyebrow": "Les chiffres parlent"
+  },
+  "catalog": {
+    "eyebrow": "Le catalogue",
+    "heading": "Range tes compétences dans le bon dossier.",
+    "cta": "Découvrir toutes les formations"
+  },
+  "quiz": {
+    "eyebrow": "Passe au niveau supérieur",
+    "headingReady": "Prêt à ",
+    "headingAccelerate": "accélérer",
+    "headingEnd": " ?",
+    "desc": "Pas un jeu vidéo, mais ton activité IRL. Choisis le bon point de départ et passe à l'action avec une formation taillée pour ton objectif.",
+    "cta": "Trouve ta formation",
+    "imageAlt": "Passer au niveau supérieur"
+  },
+  "podcast": {
+    "eyebrow": "Contenu 100% gratuit",
+    "headingThe": "Le ",
+    "headingPodcast": "Podcast",
+    "headingChannel": " & la chaîne ",
+    "headingYoutube": "YouTube",
+    "headingEnd": ".",
+    "desc": "Des conseils actionnables en marketing digital, SEO et IA — dans tes oreilles ou sur ton écran.",
+    "popularEpisodes": "Épisodes populaires",
+    "listen": "Écouter le podcast",
+    "watch": "Voir les vidéos"
+  },
+  "blog": {
+    "eyebrow": "Le journal",
+    "headingNot": "Pas ton ",
+    "headingBlogBusiness": "blog business",
+    "headingUsual": " habituel.",
+    "readTime": "{{count}} min",
+    "readAll": "Lire tous les articles"
+  },
+  "offer": {
+    "eyebrow": "La méthode complète",
+    "heading": "Tout ce qu'il te faut pour réussir en ligne.",
+    "desc": "Des formations structurées, du concret et un accompagnement clair — de la première vidéo à ton activité qui tourne.",
+    "cta": "Commencer maintenant",
+    "imageAlt": "La méthode Max-Morrys"
+  },
+  "testimonials": {
+    "eyebrow": "La communauté",
+    "headingPart1": "Ils en parlent mieux ",
+    "headingPart2": "que moi",
+    "headingEnd": "."
+  },
+  "newsletter": {
+    "eyebrow": "La newsletter",
+    "headingThe": "Du ",
+    "headingConcrete": "concret",
+    "headingMailbox": " dans ta boîte mail.",
+    "desc": "Chaque semaine : mes meilleures découvertes, mes stratégies qui marchent et des défis pour faire avancer ton activité. Gratuit, sans spam."
+  },
+  "finalCta": {
+    "heading": "Prêt à transformer ton business ?",
+    "desc": "Que tu sois entrepreneur, marketeur ou en reconversion, il y a une formation faite pour toi.",
+    "ctaFormations": "Voir les formations",
+    "ctaContact": "Prendre contact"
+  }
+}
