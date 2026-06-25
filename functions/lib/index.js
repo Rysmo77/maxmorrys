@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.backfillSlugEn = exports.translateContent = exports.weeklyClubDigestManual = exports.weeklyClubDigest = exports.parseCv = exports.onReferralConversion = exports.rebuildLeaderboardManual = exports.rebuildLeaderboardScheduled = exports.catalog = exports.rss = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.issueCertificate = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.rysmoCoachNudge = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createRysmoSubscriptionCharge = exports.createRysmoPackCharge = exports.createClubCharge = exports.createBictorysCharge = exports.importSpotifyEpisodesManual = exports.importSpotifyEpisodes = exports.syncMediaStatsManual = exports.syncMediaStats = exports.youtubeProxy = exports.spotifyProxy = exports.adminManageRysmoQuota = exports.adminManageEnrollment = exports.adminCreateUser = exports.clearRysmoMemory = exports.getRysmoQuota = exports.rysmo = void 0;
+exports.backfillSlugEn = exports.translateContent = exports.weeklyClubDigestManual = exports.weeklyClubDigest = exports.parseCv = exports.onReferralConversion = exports.rebuildLeaderboardManual = exports.rebuildLeaderboardScheduled = exports.catalog = exports.rss = exports.prerender = exports.sitemap = exports.deleteUserAccount = exports.exportUserData = exports.issueCertificate = exports.onPodcastDeleted = exports.onVideoDeleted = exports.onFormationDeleted = exports.onBlogDeleted = exports.backupFirestore = exports.cleanupTempStorage = exports.rysmoCoachNudge = exports.courseReminder = exports.streakReminder = exports.onCertificateCreated = exports.onEnrollmentCreated = exports.bictorysWebhook = exports.createRysmoSubscriptionCharge = exports.createRysmoPackCharge = exports.createClubCharge = exports.createBictorysCharge = exports.importSpotifyEpisodesManual = exports.importSpotifyEpisodes = exports.syncMediaStatsManual = exports.syncMediaStats = exports.youtubeProxy = exports.spotifyProxy = exports.reindexSearch = exports.adminManageRysmoQuota = exports.adminManageEnrollment = exports.adminCreateUser = exports.clearRysmoMemory = exports.getRysmoQuota = exports.rysmo = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ── AI Chatbot ────────────────────────────────────────────────────────────
@@ -46,6 +46,9 @@ var admin_1 = require("./admin");
 Object.defineProperty(exports, "adminCreateUser", { enumerable: true, get: function () { return admin_1.adminCreateUser; } });
 Object.defineProperty(exports, "adminManageEnrollment", { enumerable: true, get: function () { return admin_1.adminManageEnrollment; } });
 Object.defineProperty(exports, "adminManageRysmoQuota", { enumerable: true, get: function () { return admin_1.adminManageRysmoQuota; } });
+// ── Recherche (Meilisearch, gated par secrets) ────────────────────────────
+var search_1 = require("./search");
+Object.defineProperty(exports, "reindexSearch", { enumerable: true, get: function () { return search_1.reindexSearch; } });
 // ── API Proxies ───────────────────────────────────────────────────────────
 var proxy_1 = require("./proxy");
 Object.defineProperty(exports, "spotifyProxy", { enumerable: true, get: function () { return proxy_1.spotifyProxy; } });
