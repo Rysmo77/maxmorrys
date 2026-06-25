@@ -10,5 +10,10 @@
   "close": "Close",
   "back": "Back",
   "loadingSession": "Loading your session…",
-  "noAccess": "You don't have permission to access this page."
+  "noAccess": "You don't have permission to access this page.",
+  "langSuggest": {
+    "message": "This site is also available in English.",
+    "switch": "Switch to English",
+    "dismiss": "Dismiss"
+  }
 }

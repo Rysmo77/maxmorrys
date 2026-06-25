@@ -10,5 +10,10 @@
   "close": "Fermer",
   "back": "Retour",
   "loadingSession": "Chargement de ta session…",
-  "noAccess": "Tu n'as pas les droits pour accéder à cette page."
+  "noAccess": "Tu n'as pas les droits pour accéder à cette page.",
+  "langSuggest": {
+    "message": "Ce site est aussi disponible en français.",
+    "switch": "Voir en français",
+    "dismiss": "Non merci"
+  }
 }

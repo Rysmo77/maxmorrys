@@ -14,6 +14,26 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'mm-lang';
+// Choix EXPLICITE de langue (toggle, settings, bannière) — distinct de `mm-lang`
+// qui est réécrit à chaque page. Pilote la bannière de suggestion + la redirection de retour.
+const EXPLICIT_KEY = 'mm-lang-explicit';
+
+/** Mémorise un choix de langue explicite (lecture via `getExplicitLanguage`). */
+export function rememberLanguageChoice(lang: Lang): void {
+  try {
+    localStorage.setItem(EXPLICIT_KEY, lang);
+  } catch { /* stockage indisponible */ }
+}
+
+/** Renvoie la langue explicitement choisie par l'utilisateur, ou null. */
+export function getExplicitLanguage(): Lang | null {
+  try {
+    const v = localStorage.getItem(EXPLICIT_KEY);
+    return v === 'fr' || v === 'en' ? v : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Fournisseur de langue. La source de vérité est le préfixe d'URL (/en).
@@ -28,18 +48,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const syncedPrefRef = useRef<Lang | null>(null);
   const redirectedRef = useRef(false);
 
-  // Au tout premier rendu : si l'utilisateur a déjà choisi l'anglais (localStorage)
-  // et arrive sur une URL non préfixée, le rediriger vers /en. Une seule fois par session.
+  // Au tout premier rendu : honorer un CHOIX EXPLICITE de langue précédent.
+  // Si l'utilisateur a déjà choisi une langue et arrive sur une URL d'une autre
+  // langue, le rediriger vers sa version. Une seule fois par session.
   useEffect(() => {
     if (redirectedRef.current) return;
     redirectedRef.current = true;
-    if (language !== 'fr') return;
-    let stored: string | null = null;
-    try {
-      stored = localStorage.getItem(STORAGE_KEY);
-    } catch { /* ignore */ }
-    if (stored === 'en') {
-      const target = localizedPath(location.pathname, 'en') + location.search + location.hash;
+    const explicit = getExplicitLanguage();
+    if (explicit && explicit !== language) {
+      const target = localizedPath(location.pathname, explicit) + location.search + location.hash;
       navigate(target, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -74,6 +91,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [language, user, userData, refreshUserData]);
 
   const setLanguage = (lang: Lang) => {
+    rememberLanguageChoice(lang); // tout choix via toggle/settings/bannière est explicite
     if (lang === language) return;
     const target = localizedPath(location.pathname, lang) + location.search + location.hash;
     navigate(target);
