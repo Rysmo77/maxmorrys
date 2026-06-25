@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LocalizedLink from '../components/shared/LocalizedLink';
@@ -12,6 +13,7 @@ import {
 import CountUp from '../components/shared/CountUp';
 import AnimatedIcon from '../components/shared/AnimatedIcon';
 import { getPublishedPodcasts } from '../lib/firestore';
+import { queryKeys } from '../lib/queryClient';
 import { useFormat } from '../hooks/useFormat';
 import type { Podcast } from '../types';
 import SEOHead from '../components/seo/SEOHead';
@@ -59,21 +61,14 @@ export default function Podcasts() {
   const { t } = useTranslation('media');
   const { formatDate } = useFormat();
   const { language } = useLanguage();
-  const [podcasts, setPodcasts] = useState<Podcast[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [tIndex, setTIndex] = useState(0);
 
-  const load = () => {
-    setError(false);
-    setLoading(true);
-    getPublishedPodcasts()
-      .then((data) => { setPodcasts(data); setLoading(false); })
-      .catch(() => { setLoading(false); setError(true); });
-  };
-
-  useEffect(() => { load(); }, []);
+  // Lecture Firestore mise en cache (cf. src/lib/queryClient.ts).
+  const { data: podcasts = [], isLoading: loading, isError: error, refetch } = useQuery({
+    queryKey: queryKeys.publishedPodcasts,
+    queryFn: () => getPublishedPodcasts(),
+  });
 
   const categories = ['Tous', ...Array.from(new Set(podcasts.map((p) => p.category).filter(Boolean)))];
   const filtered = activeCategory === 'Tous' ? podcasts : podcasts.filter((p) => p.category === activeCategory);
@@ -339,7 +334,7 @@ export default function Podcasts() {
             <div className="flex flex-col items-center gap-4 py-24 text-center">
               <AlertCircle className="w-8 h-8 text-error-500" />
               <p className="text-neutral-600 dark:text-neutral-400">{t('podcasts.loadError')}</p>
-              <button onClick={load} className={`px-5 py-2 ${theme.buttonSolid} text-sm font-bold rounded-full transition-colors`}>
+              <button onClick={() => refetch()} className={`px-5 py-2 ${theme.buttonSolid} text-sm font-bold rounded-full transition-colors`}>
                 {t('podcasts.retry')}
               </button>
             </div>

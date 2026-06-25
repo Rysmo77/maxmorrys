@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -9,7 +10,6 @@ import { getPublishedPosts } from '../lib/firestore';
 import { truncate } from '../lib/utils';
 import { useFormat } from '../hooks/useFormat';
 import { trackSearch } from '../lib/tracking';
-import type { BlogPost } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
@@ -19,6 +19,7 @@ import ArticleCard from '../components/shared/ArticleCard';
 import TranslatedText from '../components/shared/TranslatedText';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
 import { useLanguage } from '../contexts/LanguageContext';
+import { queryKeys } from '../lib/queryClient';
 import { contentPath } from '../lib/contentPath';
 import { universeThemes } from '../lib/sectionThemes';
 
@@ -30,23 +31,16 @@ export default function Blog() {
   const { t } = useTranslation('blog');
   const { formatDate } = useFormat();
   const { language } = useLanguage();
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [topicsOpen, setTopicsOpen] = useState(true);
 
-  const load = () => {
-    setError(false);
-    setLoading(true);
-    getPublishedPosts().then((data) => {
-      setPosts(data);
-      setLoading(false);
-    }).catch(() => { setLoading(false); setError(true); });
-  };
-
-  useEffect(() => { load(); }, []);
+  // Lecture Firestore mise en cache par TanStack Query : un aller-retour de
+  // navigation ne relit plus la collection tant que les données sont « fresh ».
+  const { data: posts = [], isLoading: loading, isError: error, refetch } = useQuery({
+    queryKey: queryKeys.blogPosts,
+    queryFn: () => getPublishedPosts(),
+  });
 
   useEffect(() => {
     if (!search.trim()) return;
@@ -214,7 +208,7 @@ export default function Blog() {
             <div className="flex flex-col items-center gap-4 py-20 text-center">
               <AlertCircle className="w-8 h-8 text-error-500" />
               <p className="text-neutral-600 dark:text-neutral-400">{t('states.loadError')}</p>
-              <button onClick={load} className={`px-5 py-2 ${theme.buttonSolid} text-sm font-bold rounded-full transition-colors`}>
+              <button onClick={() => refetch()} className={`px-5 py-2 ${theme.buttonSolid} text-sm font-bold rounded-full transition-colors`}>
                 {t('states.retry')}
               </button>
             </div>

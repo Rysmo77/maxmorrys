@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   getAllUsers, adminUpdateUser, getUserEnrollments, getAllFormations,
   getClubSubscription, updateClubSubscriptionStatus, activateClubSubscription,
 } from '../../../lib/firestore';
+import { queryKeys } from '../../../lib/queryClient';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
-import type { User, Enrollment, Formation, ClubDigitosSubscription } from '../../../types';
+import type { User, Enrollment, ClubDigitosSubscription } from '../../../types';
 
 const adminManageEnrollment = httpsCallable<
   { action: 'create' | 'delete'; userId: string; formationId: string },
@@ -65,9 +67,8 @@ const emptyAddForm: AddForm = {
 
 export function useAdminUsers(addToast: (type: 'success' | 'error', message: string) => void) {
   const { t } = useTranslation('admin');
+  const queryClient = useQueryClient();
   // Users list
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
   // Edit user modal
@@ -78,7 +79,6 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
 
   // Formations tab in edit
   const [userEnrollments, setUserEnrollments] = useState<Enrollment[]>([]);
-  const [allFormations, setAllFormations] = useState<Formation[]>([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
   const [addFormationId, setAddFormationId] = useState('');
   const [addingFormation, setAddingFormation] = useState(false);
@@ -100,23 +100,22 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
   const [addForm, setAddForm] = useState<AddForm>(emptyAddForm);
   const [creatingUser, setCreatingUser] = useState(false);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    getAllUsers().then((data) => {
-      setUsers(data);
-      setLoading(false);
-    }).catch(() => {
-      addToast('error', t('usersHook.loadError'));
-      setLoading(false);
-    });
-  }, [addToast, t]);
-
-  useEffect(() => { load(); }, [load]);
-
-  // Load all formations for the enrollment selector (once)
+  // Liste des utilisateurs — mise en cache par TanStack Query (cf. src/lib/queryClient.ts).
+  const { data: users = [], isLoading: loading, isError: usersError, refetch } = useQuery({
+    queryKey: queryKeys.allUsers,
+    queryFn: () => getAllUsers(),
+  });
   useEffect(() => {
-    getAllFormations().then(setAllFormations).catch(() => null);
-  }, []);
+    if (usersError) addToast('error', t('usersHook.loadError'));
+  }, [usersError, addToast, t]);
+
+  const load = useCallback(() => { refetch(); }, [refetch]);
+
+  // Formations pour le sélecteur d'inscription — chargées une fois, mises en cache.
+  const { data: allFormations = [] } = useQuery({
+    queryKey: queryKeys.allFormations,
+    queryFn: () => getAllFormations(),
+  });
 
   const openEditUser = useCallback((u: User) => {
     setEditUser(u);
@@ -257,7 +256,8 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
         birthDate: editForm.birthDate || undefined,
         role: editForm.role,
       });
-      setUsers((prev) => prev.map((u) => u.uid === editUser.uid ? { ...u, ...editForm } : u));
+      queryClient.setQueryData<User[]>(queryKeys.allUsers, (prev) =>
+        (prev ?? []).map((u) => u.uid === editUser.uid ? { ...u, ...editForm } : u));
       addToast('success', t('usersHook.userUpdated'));
       setEditUser(null);
     } catch {
@@ -265,7 +265,7 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     } finally {
       setSaving(false);
     }
-  }, [editUser, editForm, addToast, t]);
+  }, [editUser, editForm, addToast, t, queryClient]);
 
   const handleAddEnrollment = useCallback(async () => {
     if (!editUser || !addFormationId) return;

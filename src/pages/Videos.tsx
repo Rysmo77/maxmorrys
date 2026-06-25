@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LocalizedLink from '../components/shared/LocalizedLink';
@@ -19,6 +20,7 @@ function YtIcon({ className }: { className?: string }) {
   );
 }
 import { getPublishedVideos } from '../lib/firestore';
+import { queryKeys } from '../lib/queryClient';
 import { truncate } from '../lib/utils';
 import { useFormat } from '../hooks/useFormat';
 import type { Video } from '../types';
@@ -41,21 +43,14 @@ export default function Videos() {
   const { t } = useTranslation('media');
   const { formatDate } = useFormat();
   const { language } = useLanguage();
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [visibleCount, setVisibleCount] = useState(PAGE_STEP);
 
-  const load = () => {
-    setError(false);
-    setLoading(true);
-    getPublishedVideos()
-      .then((data) => { setVideos(data); setLoading(false); })
-      .catch(() => { setLoading(false); setError(true); });
-  };
-
-  useEffect(() => { load(); }, []);
+  // Lecture Firestore mise en cache (cf. src/lib/queryClient.ts).
+  const { data: videos = [], isLoading: loading, isError: error, refetch } = useQuery({
+    queryKey: queryKeys.publishedVideos,
+    queryFn: () => getPublishedVideos(),
+  });
 
   const categories = useMemo(
     () => ['Tous', ...Array.from(new Set(videos.map((v) => v.category).filter(Boolean)))],
@@ -165,7 +160,7 @@ export default function Videos() {
             <div className="flex flex-col items-center gap-4 py-24 text-center">
               <AlertCircle className="w-8 h-8 text-error-500" />
               <p className="text-neutral-600 dark:text-neutral-400">{t('videos.loadError')}</p>
-              <button onClick={load} className={`px-5 py-2 ${theme.buttonSolid} text-sm font-bold rounded-full transition-colors`}>
+              <button onClick={() => refetch()} className={`px-5 py-2 ${theme.buttonSolid} text-sm font-bold rounded-full transition-colors`}>
                 {t('videos.retry')}
               </button>
             </div>

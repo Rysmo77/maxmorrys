@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
@@ -6,8 +7,8 @@ import {
   Lock, Rss, Users, Quote, Briefcase, GraduationCap, Sparkles, ChevronRight,
 } from 'lucide-react';
 import { getPublishedFormations } from '../lib/firestore';
+import { queryKeys } from '../lib/queryClient';
 import { trackSearch, trackClubJoinIntent } from '../lib/tracking';
-import type { Formation } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
@@ -63,24 +64,17 @@ const businessOffers = [
 export default function Formations() {
   const { t } = useTranslation('formations');
   const { locale } = useFormat();
-  const [formations, setFormations] = useState<Formation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [search, setSearch] = useState('');
   const [activeLevel, setActiveLevel] = useState('Tous');
   const [activeTab, setActiveTab] = useState('Toutes');
   const catalogRef = useRef<HTMLDivElement>(null);
 
-  const load = () => {
-    setLoading(true);
-    setError(false);
-    getPublishedFormations().then((data) => {
-      setFormations(data);
-      setLoading(false);
-    }).catch(() => { setError(true); setLoading(false); });
-  };
-
-  useEffect(() => { load(); }, []);
+  // Lecture Firestore mise en cache (cf. src/lib/queryClient.ts) : plus de relecture
+  // de la collection à chaque retour sur la page tant que les données sont « fresh ».
+  const { data: formations = [], isLoading: loading, isError: error, refetch } = useQuery({
+    queryKey: queryKeys.publishedFormations,
+    queryFn: () => getPublishedFormations(),
+  });
 
   useEffect(() => {
     if (!search.trim()) return;
@@ -233,7 +227,7 @@ export default function Formations() {
       {error && !loading && (
         <div className="text-center py-24">
           <p className="text-neutral-500 mb-4">{t('states.loadError')}</p>
-          <button onClick={load} className={`px-5 py-2.5 ${theme.buttonSolid} rounded-full text-sm font-semibold transition-colors`}>
+          <button onClick={() => refetch()} className={`px-5 py-2.5 ${theme.buttonSolid} rounded-full text-sm font-semibold transition-colors`}>
             {t('states.retry')}
           </button>
         </div>
