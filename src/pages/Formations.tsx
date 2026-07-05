@@ -27,7 +27,7 @@ const clubTheme = universeThemes.club;
 
 // Visuel de fond du héro de la page Formations.
 const HERO_IMAGE =
-  'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Formations%2FChatGPT%20Image%2029%20mai%202026%2C%2015_43_26.png?alt=media&token=d7cb950d-9ea2-4d4f-90c6-7541bb8c5dac';
+  'https://media.maxmorrys.me/Formations/ChatGPT%20Image%2029%20mai%202026%2C%2015_43_26.png';
 
 const viewportOnce = { once: true, amount: 0.15 } as const;
 

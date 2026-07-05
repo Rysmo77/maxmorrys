@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../config/firebase';
+import { uploadMedia, randomFilename } from '../../lib/storage';
 import { Upload, X } from 'lucide-react';
 
 interface ImageInputProps {
@@ -45,26 +44,17 @@ export default function ImageInput({
     setUploading(true);
     setProgress(0);
 
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const storageRef = ref(storage, `uploads/${folder}/${filename}`);
-    const task = uploadBytesResumable(storageRef, file);
-
-    task.on(
-      'state_changed',
-      (snap) => setProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
-      () => {
-        setUploadError(t('imageInput.uploadFailed'));
-        setUploading(false);
-      },
-      async () => {
-        const url = await getDownloadURL(task.snapshot.ref);
-        onChange(url);
-        setUploading(false);
-        setProgress(0);
-        if (fileRef.current) fileRef.current.value = '';
-      }
-    );
+    try {
+      const key = `uploads/${folder}/${randomFilename(file.name)}`;
+      const url = await uploadMedia(file, key, setProgress);
+      onChange(url);
+      setProgress(0);
+      if (fileRef.current) fileRef.current.value = '';
+    } catch {
+      setUploadError(t('imageInput.uploadFailed'));
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (

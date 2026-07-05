@@ -24,3 +24,8 @@ dist-ssr
 
 # n8n credentials (ne jamais committer les vraies clés)
 n8n/credentials.json
+
+# Clés service account Google Cloud (NE JAMAIS committer)
+max-morrys-*.json
+*service-account*.json
+*-serviceaccount.json

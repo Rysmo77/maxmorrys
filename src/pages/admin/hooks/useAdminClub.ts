@@ -11,9 +11,8 @@ import {
   getClubExclusiveInfos, saveClubInfo, deleteClubInfo,
   getEventRegistrations, getSessionRegistrations,
 } from '../../../lib/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadMedia } from '../../../lib/storage';
 import { captureError } from '../../../lib/sentry';
-import { storage } from '../../../config/firebase';
 import type {
   ClubDigitosSubscription, ClubDigitosPost, ClubDigitosEvent,
   ClubDigitosSession, ClubDigitosInfo, ClubEventRegistration, ClubSessionRegistration,
@@ -258,9 +257,7 @@ export function useAdminClub() {
       if (eventImageFile) {
         setUploadingEventImage(true);
         const ext = eventImageFile.name.split('.').pop() || 'jpg';
-        const fileRef = storageRef(storage, `club_events/${Date.now()}.${ext}`);
-        await uploadBytes(fileRef, eventImageFile);
-        imageUrl = await getDownloadURL(fileRef);
+        imageUrl = await uploadMedia(eventImageFile, `club_events/${Date.now()}.${ext}`);
         setUploadingEventImage(false);
         setEventImageFile(null);
         setEventImagePreview('');
@@ -322,9 +319,7 @@ export function useAdminClub() {
       if (sessionImageFile) {
         setUploadingSessionImage(true);
         const ext = sessionImageFile.name.split('.').pop() || 'jpg';
-        const fileRef = storageRef(storage, `club_sessions/${Date.now()}.${ext}`);
-        await uploadBytes(fileRef, sessionImageFile);
-        imageUrl = await getDownloadURL(fileRef);
+        imageUrl = await uploadMedia(sessionImageFile, `club_sessions/${Date.now()}.${ext}`);
         setUploadingSessionImage(false);
         setSessionImageFile(null);
         setSessionImagePreview('');

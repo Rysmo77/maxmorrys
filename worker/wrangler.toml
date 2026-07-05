@@ -1,0 +1,34 @@
+# Cloudflare Worker — endpoint d'upload des médias vers R2.
+# Déploiement : `cd worker && npm install && npx wrangler deploy`
+# Dév local   : `cd worker && npx wrangler dev`
+
+name = "maxmorrys-media"
+main = "src/index.ts"
+compatibility_date = "2024-11-27"
+
+# Expose le Worker sur media-api.maxmorrys.me (domaine géré par Cloudflare).
+# Le domaine doit exister dans la zone Cloudflare ; `custom_domain = true` crée
+# automatiquement l'enregistrement.
+routes = [
+  { pattern = "media-api.maxmorrys.me", custom_domain = true }
+]
+
+# Bucket R2 (lecture publique servie séparément via media.maxmorrys.me).
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "maxmorrys-lms"
+
+[vars]
+# ⚠️ À confirmer : l'ID du projet Firebase (= `aud` des ID tokens). Le bucket est
+# `max-morrys.firebasestorage.app`, le project_id est donc très probablement "max-morrys".
+FIREBASE_PROJECT_ID = "max-morrys"
+
+# Domaine public de lecture R2 (sans slash final).
+PUBLIC_MEDIA_BASE = "https://media.maxmorrys.me"
+
+# Origines autorisées à appeler l'API (CORS), séparées par des virgules.
+ALLOWED_ORIGINS = "https://maxmorrys.me,https://www.maxmorrys.me,http://localhost:5173"
+
+# UIDs autorisés à écrire dans les dossiers admin (uploads/, club_events/, club_sessions/),
+# séparés par des virgules. Un token portant le custom claim `admin: true` est aussi accepté.
+ADMIN_UIDS = ""

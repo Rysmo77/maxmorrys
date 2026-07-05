@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Mic, Video, Square, Upload, X, Loader2, RotateCcw } from 'lucide-react';
-import { storage } from '../../config/firebase';
+import { uploadMedia } from '../../lib/storage';
 
 interface MediaRecorderInputProps {
   mode: 'audio' | 'video';
@@ -72,20 +71,16 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
     setError(null);
     setUploading(true);
     setProgress(0);
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const storageRef = ref(storage, `${folder}/${userId}/${filename}`);
-    const task = uploadBytesResumable(storageRef, blob);
-    task.on(
-      'state_changed',
-      (snap) => setProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
-      () => { setError(t('mediaRecorder.uploadFailed')); setUploading(false); },
-      async () => {
-        const url = await getDownloadURL(task.snapshot.ref);
-        onChange(url);
-        setUploading(false);
-        setProgress(0);
-      },
-    );
+    try {
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const url = await uploadMedia(blob, `${folder}/${userId}/${filename}`, setProgress);
+      onChange(url);
+      setProgress(0);
+    } catch {
+      setError(t('mediaRecorder.uploadFailed'));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const startRecording = async () => {

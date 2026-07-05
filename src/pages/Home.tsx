@@ -21,7 +21,7 @@ import ParallaxImage from '../components/shared/ParallaxImage';
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
-const PROFILE_IMG = 'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/A-propos%2FChatGPT%20Image%2014%20mai%202026%2C%2000_49_18%20(3).png?alt=media&token=cc4027ff-c053-40a3-8b22-28d5603ee729';
+const PROFILE_IMG = 'https://media.maxmorrys.me/A-propos/ChatGPT%20Image%2014%20mai%202026%2C%2000_49_18%20(3).png';
 
 const stats = [
   { value: 340, prefix: '+', suffix: '%', labelKey: 'stats.trafficGrowth' },
@@ -211,7 +211,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-neutral-950">
           <video
             ref={videoRef}
-            src="https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Le%20Marketing%20en%20Pratique.mp4?alt=media&token=7aebaa77-b33a-4494-92e4-9c3cfdc433c1"
+            src="https://media.maxmorrys.me/Le%20Marketing%20en%20Pratique.mp4"
             poster={DEFAULT_OG_IMAGE}
             autoPlay
             muted

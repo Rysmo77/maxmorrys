@@ -9,8 +9,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/ui/Toast';
 import { updateUserProfile, syncSocialsToClubProfile } from '../../../lib/firestore';
 import { updateProfile } from 'firebase/auth';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../../config/firebase';
+import { uploadMedia } from '../../../lib/storage';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import { captureError } from '../../../lib/sentry';
 import { staggerContainer, staggerItem } from '../../../lib/animations';
@@ -80,9 +79,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
     setUploadingPhoto(true);
     try {
       const ext = file.name.split('.').pop() || 'jpg';
-      const fileRef = storageRef(storage, `avatars/${user.uid}/profile.${ext}`);
-      await uploadBytes(fileRef, file);
-      const url = await getDownloadURL(fileRef);
+      const url = await uploadMedia(file, `avatars/${user.uid}/profile.${ext}`);
       await updateProfile(user, { photoURL: url });
       await updateUserProfile(user.uid, { photoURL: url });
       await refreshUserData();

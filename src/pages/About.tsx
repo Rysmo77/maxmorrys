@@ -438,7 +438,7 @@ export default function About() {
             >
               <div className="aspect-[4/5] rounded-2xl overflow-hidden relative">
                 <img
-                  src="https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/A-propos%2FChatGPT%20Image%2014%20mai%202026%2C%2000_44_30%20(1).png?alt=media&token=e72ee3b7-1ff1-45ff-a994-b43607d16387"
+                  src="https://media.maxmorrys.me/A-propos/ChatGPT%20Image%2014%20mai%202026%2C%2000_44_30%20(1).png"
                   alt={t('hero.imageAlt')}
                   className="w-full h-full object-cover scale-x-[-1]"
                   loading="lazy"

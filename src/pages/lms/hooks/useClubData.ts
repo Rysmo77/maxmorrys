@@ -13,11 +13,11 @@ import {
 } from '../../../lib/firestore';
 import { doc, getDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadMedia } from '../../../lib/storage';
 import { captureError } from '../../../lib/sentry';
 import { addXP, awardBadge } from '../../../lib/gamification';
 import { XP_REWARDS } from '../../../types/gamification';
-import { db, storage, functions } from '../../../config/firebase';
+import { db, functions } from '../../../config/firebase';
 
 const createClubCharge = httpsCallable<
   { autoRenew?: boolean },
@@ -174,9 +174,7 @@ export function useClubData() {
       if (composerMediaType === 'image' && composerMediaFile) {
         setUploadingMedia(true);
         const ext = composerMediaFile.name.split('.').pop() || 'jpg';
-        const fileRef = storageRef(storage, `club_media/${user.uid}/${Date.now()}.${ext}`);
-        await uploadBytes(fileRef, composerMediaFile);
-        mediaUrl = await getDownloadURL(fileRef);
+        mediaUrl = await uploadMedia(composerMediaFile, `club_media/${user.uid}/${Date.now()}.${ext}`);
         mediaType = 'image';
         setUploadingMedia(false);
       } else if (composerMediaType !== 'image' && composerAvUrl) {

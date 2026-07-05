@@ -57,6 +57,9 @@ export { rss } from './rss';
 // ── Marketing feeds ──────────────────────────────────────────────────────
 export { catalog } from './catalog';
 
+// ── Créas réseaux sociaux (Satori HTML→PNG, texte parfait) ────────────────
+export { renderSocialCard } from './socialCard';
+
 // ── Club leaderboard (public aggregate) ───────────────────────────────────
 export { rebuildLeaderboardScheduled, rebuildLeaderboardManual } from './leaderboard';
 

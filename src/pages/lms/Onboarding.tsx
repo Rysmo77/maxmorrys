@@ -8,8 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import { updateUserProfile } from '../../lib/firestore';
 import { updateProfile } from 'firebase/auth';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../config/firebase';
+import { uploadMedia } from '../../lib/storage';
 import { captureError } from '../../lib/sentry';
 import { trackEvent } from '../../lib/tracking';
 
@@ -45,9 +44,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     setUploading(true);
     try {
       const ext = file.name.split('.').pop() || 'jpg';
-      const fileRef = storageRef(storage, `avatars/${user.uid}/profile.${ext}`);
-      await uploadBytes(fileRef, file);
-      const url = await getDownloadURL(fileRef);
+      const url = await uploadMedia(file, `avatars/${user.uid}/profile.${ext}`);
       await updateProfile(user, { photoURL: url });
       await updateUserProfile(user.uid, { photoURL: url });
       setPreviewUrl(url);

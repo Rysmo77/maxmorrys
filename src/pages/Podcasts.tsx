@@ -38,15 +38,15 @@ const SUBSCRIBE_LINKS = [
 
 // Portrait Max-Morrys — réutilisé depuis la page À propos.
 const HOST_PORTRAIT =
-  'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/A-propos%2FChatGPT%20Image%2014%20mai%202026%2C%2000_44_30%20(1).png?alt=media&token=e72ee3b7-1ff1-45ff-a994-b43607d16387';
+  'https://media.maxmorrys.me/A-propos/ChatGPT%20Image%2014%20mai%202026%2C%2000_44_30%20(1).png';
 
 // Visuel du héro de la page Podcasts.
 const HERO_IMAGE =
-  'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Podcasts%2FChatGPT%20Image%2029%20mai%202026%2C%2011_16_32.png?alt=media&token=32159d2a-9d90-49af-9c1a-752a585c0635';
+  'https://media.maxmorrys.me/Podcasts/ChatGPT%20Image%2029%20mai%202026%2C%2011_16_32.png';
 
 // Vidéo de l'encart CTA vidéos (bas de page) — lecture en boucle, mutée.
 const VIDEOS_CTA_VIDEO =
-  'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Podcasts%2FGenerated%20Video%20May%2029%2C%202026%20-%202_07AM.mp4?alt=media&token=579f6919-c706-4388-aa26-7f1b142a531d';
+  'https://media.maxmorrys.me/Podcasts/Generated%20Video%20May%2029%2C%202026%20-%202_07AM.mp4';
 
 /** Intertitre de section — style typographique d'origine du site. */
 function Eyebrow({ children, className = '' }: { children: React.ReactNode; className?: string }) {
