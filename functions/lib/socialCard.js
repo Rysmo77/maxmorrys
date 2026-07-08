@@ -65,7 +65,9 @@ function logoDataUri() {
     if (LOGO_CACHE === undefined) {
         try {
             const buf = fs.readFileSync(path.join(__dirname, '..', 'assets', 'monogramme.png'));
-            LOGO_CACHE = `data:image/png;base64,${buf.toString('base64')}`;
+            // Garde-fou : un data URI trop volumineux fait s'étrangler satori-html (parsing O(n²)).
+            // Le monogramme s'affiche en 64px → il doit rester léger (< ~40 Ko).
+            LOGO_CACHE = buf.length > 40000 ? '' : `data:image/png;base64,${buf.toString('base64')}`;
         }
         catch (_a) {
             LOGO_CACHE = '';
@@ -91,12 +93,20 @@ async function fetchBackground(url) {
 }
 /** Cœur du rendu : payload -> PNG (testable sans Firebase). */
 async function renderCardPng(payload) {
+    const t0 = Date.now();
+    const step = (s) => console.log(`[render] ${s} +${Date.now() - t0}ms`);
     const { w, h } = FORMATS[payload.format] || FORMATS['4:5'];
     const bg = await fetchBackground(payload.backgroundUrl);
+    step('bg');
     const satoriMod = (await dynamicImport('satori'));
     const htmlMod = (await dynamicImport('satori-html'));
-    const markup = (0, templates_1.buildTemplate)(payload, w, h, bg, logoDataUri() || undefined);
+    step('satori imported');
+    const logo = logoDataUri() || undefined;
+    step(`logo ${logo ? logo.length + 'b' : 'none'}`);
+    const markup = (0, templates_1.buildTemplate)(payload, w, h, bg, logo);
+    step(`buildTemplate ${markup.length}b`);
     const vdom = htmlMod.html(markup);
+    step('satori-html');
     const svg = await satoriMod.default(vdom, {
         width: w,
         height: h,
@@ -108,7 +118,10 @@ async function renderCardPng(payload) {
             { name: 'Merriweather', weight: 900, style: 'normal', data: merriweather(900) },
         ],
     });
-    return Buffer.from(new resvg_js_1.Resvg(svg, { fitTo: { mode: 'width', value: w } }).render().asPng());
+    step('satori svg');
+    const png = Buffer.from(new resvg_js_1.Resvg(svg, { fitTo: { mode: 'width', value: w } }).render().asPng());
+    step('resvg png');
+    return png;
 }
 /**
  * POST /renderSocialCard
@@ -116,7 +129,7 @@ async function renderCardPng(payload) {
  * Auth: header X-Render-Key === env RENDER_KEY (si défini).
  * Retour: { url } (PNG public dans Storage).
  */
-exports.renderSocialCard = (0, https_1.onRequest)({ region: 'europe-west1', memory: '512MiB', cors: false }, async (req, res) => {
+exports.renderSocialCard = (0, https_1.onRequest)({ region: 'europe-west1', memory: '2GiB', cpu: 2, timeoutSeconds: 120, cors: false }, async (req, res) => {
     try {
         const key = process.env.RENDER_KEY;
         if (key && req.get('X-Render-Key') !== key) {

@@ -32,7 +32,9 @@ function logoDataUri(): string {
   if (LOGO_CACHE === undefined) {
     try {
       const buf = fs.readFileSync(path.join(__dirname, '..', 'assets', 'monogramme.png'));
-      LOGO_CACHE = `data:image/png;base64,${buf.toString('base64')}`;
+      // Garde-fou : un data URI trop volumineux fait s'étrangler satori-html (parsing O(n²)).
+      // Le monogramme s'affiche en 64px → il doit rester léger (< ~40 Ko).
+      LOGO_CACHE = buf.length > 40_000 ? '' : `data:image/png;base64,${buf.toString('base64')}`;
     } catch {
       LOGO_CACHE = '';
     }
@@ -56,14 +58,22 @@ async function fetchBackground(url?: string): Promise<string | undefined> {
 
 /** Cœur du rendu : payload -> PNG (testable sans Firebase). */
 export async function renderCardPng(payload: CardPayload): Promise<Buffer> {
+  const t0 = Date.now();
+  const step = (s: string) => console.log(`[render] ${s} +${Date.now() - t0}ms`);
   const { w, h } = FORMATS[payload.format] || FORMATS['4:5'];
   const bg = await fetchBackground(payload.backgroundUrl);
+  step('bg');
 
   const satoriMod = (await dynamicImport('satori')) as { default: (...a: unknown[]) => Promise<string> };
   const htmlMod = (await dynamicImport('satori-html')) as { html: (s: string) => unknown };
+  step('satori imported');
 
-  const markup = buildTemplate(payload, w, h, bg, logoDataUri() || undefined);
+  const logo = logoDataUri() || undefined;
+  step(`logo ${logo ? logo.length + 'b' : 'none'}`);
+  const markup = buildTemplate(payload, w, h, bg, logo);
+  step(`buildTemplate ${markup.length}b`);
   const vdom = htmlMod.html(markup);
+  step('satori-html');
 
   const svg = await satoriMod.default(vdom, {
     width: w,
@@ -76,8 +86,11 @@ export async function renderCardPng(payload: CardPayload): Promise<Buffer> {
       { name: 'Merriweather', weight: 900, style: 'normal', data: merriweather(900) },
     ],
   });
+  step('satori svg');
 
-  return Buffer.from(new Resvg(svg, { fitTo: { mode: 'width', value: w } }).render().asPng());
+  const png = Buffer.from(new Resvg(svg, { fitTo: { mode: 'width', value: w } }).render().asPng());
+  step('resvg png');
+  return png;
 }
 
 /**
@@ -87,7 +100,7 @@ export async function renderCardPng(payload: CardPayload): Promise<Buffer> {
  * Retour: { url } (PNG public dans Storage).
  */
 export const renderSocialCard = onRequest(
-  { region: 'europe-west1', memory: '512MiB', cors: false },
+  { region: 'europe-west1', memory: '2GiB', cpu: 2, timeoutSeconds: 120, cors: false },
   async (req, res) => {
     try {
       const key = process.env.RENDER_KEY;
