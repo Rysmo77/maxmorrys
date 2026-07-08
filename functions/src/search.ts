@@ -3,23 +3,23 @@ import { defineSecret } from 'firebase-functions/params';
 import * as admin from 'firebase-admin';
 
 /**
- * Indexation Meilisearch — entièrement « gated » par secrets.
+ * Indexation Typesense — entièrement « gated » par secrets.
  *
  * Callable ADMIN, déclenché manuellement (jamais automatiquement) : il (ré)indexe
- * le contenu publié (blog, formations, vidéos, podcasts) dans Meilisearch. Tant que
- * les secrets `MEILISEARCH_HOST` / `MEILISEARCH_ADMIN_KEY` ne sont pas configurés,
- * la fonction renvoie une erreur claire et ne touche à rien.
+ * le contenu publié (blog, formations, vidéos, podcasts) dans Typesense. Tant que
+ * les secrets `TYPESENSE_URL` / `TYPESENSE_ADMIN_KEY` ne sont pas configurés, la
+ * fonction renvoie une erreur claire et ne touche à rien.
  *
- * On dialogue avec l'API REST Meilisearch via `fetch` (global sur Node 18+) pour
+ * On dialogue avec l'API REST Typesense via `fetch` (global sur Node 18+) pour
  * éviter d'embarquer une dépendance SDK supplémentaire dans les functions.
  *
- * Configuration (une fois l'instance Meilisearch provisionnée) :
- *   firebase functions:secrets:set MEILISEARCH_HOST
- *   firebase functions:secrets:set MEILISEARCH_ADMIN_KEY
+ * Configuration (une fois l'instance Typesense provisionnée) :
+ *   firebase functions:secrets:set TYPESENSE_URL        # ex: https://xxx.a1.typesense.net:443
+ *   firebase functions:secrets:set TYPESENSE_ADMIN_KEY
  *   firebase deploy --only functions:reindexSearch
  */
-const meiliHost = defineSecret('MEILISEARCH_HOST');
-const meiliAdminKey = defineSecret('MEILISEARCH_ADMIN_KEY');
+const typesenseUrl = defineSecret('TYPESENSE_URL');
+const typesenseAdminKey = defineSecret('TYPESENSE_ADMIN_KEY');
 
 interface SearchDoc {
   id: string;
@@ -34,14 +34,14 @@ interface SearchDoc {
 
 /** Définition d'un index : collection source + projection d'un doc Firestore vers un doc de recherche. */
 interface IndexSpec {
-  index: string;
+  name: string;
   collection: string;
   map: (id: string, d: FirebaseFirestore.DocumentData) => SearchDoc;
 }
 
 const SPECS: IndexSpec[] = [
   {
-    index: 'blog',
+    name: 'blog',
     collection: 'blog',
     map: (id, d) => ({
       id, title: d.title ?? '', excerpt: d.excerpt ?? '', slug: d.slug ?? '',
@@ -49,7 +49,7 @@ const SPECS: IndexSpec[] = [
     }),
   },
   {
-    index: 'formations',
+    name: 'formations',
     collection: 'formations',
     map: (id, d) => ({
       id, title: d.title ?? '', excerpt: d.description ?? '', slug: d.slug ?? '',
@@ -57,7 +57,7 @@ const SPECS: IndexSpec[] = [
     }),
   },
   {
-    index: 'videos',
+    name: 'videos',
     collection: 'videos',
     map: (id, d) => ({
       id, title: d.title ?? '', excerpt: d.description ?? '', slug: d.slug ?? '',
@@ -65,7 +65,7 @@ const SPECS: IndexSpec[] = [
     }),
   },
   {
-    index: 'podcasts',
+    name: 'podcasts',
     collection: 'podcasts',
     map: (id, d) => ({
       id, title: d.title ?? '', excerpt: d.description ?? '', slug: d.slug ?? '',
@@ -74,8 +74,20 @@ const SPECS: IndexSpec[] = [
   },
 ];
 
+// Schéma Typesense (typé explicitement, contrairement à Meilisearch). Les champs
+// optionnels sont marqués `optional` pour tolérer les docs sans catégorie/tags.
+const SCHEMA_FIELDS = [
+  { name: 'title', type: 'string' },
+  { name: 'excerpt', type: 'string', optional: true },
+  { name: 'slug', type: 'string' },
+  { name: 'slug_en', type: 'string', optional: true },
+  { name: 'category', type: 'string', facet: true, optional: true },
+  { name: 'tags', type: 'string[]', facet: true, optional: true },
+  { name: 'publishedAt', type: 'string', optional: true, sort: true },
+];
+
 export const reindexSearch = onCall(
-  { region: 'us-central1', secrets: [meiliHost, meiliAdminKey] },
+  { region: 'us-central1', secrets: [typesenseUrl, typesenseAdminKey] },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Authentification requise.');
@@ -85,30 +97,37 @@ export const reindexSearch = onCall(
       throw new HttpsError('permission-denied', 'Accès réservé aux administrateurs.');
     }
 
-    const host = meiliHost.value()?.replace(/\/$/, '');
-    const apiKey = meiliAdminKey.value();
-    if (!host || !apiKey) {
+    const baseUrl = typesenseUrl.value()?.replace(/\/$/, '');
+    const apiKey = typesenseAdminKey.value();
+    if (!baseUrl || !apiKey) {
       throw new HttpsError(
         'failed-precondition',
-        'Meilisearch non configuré : définissez les secrets MEILISEARCH_HOST et MEILISEARCH_ADMIN_KEY.',
+        'Typesense non configuré : définissez les secrets TYPESENSE_URL et TYPESENSE_ADMIN_KEY.',
       );
     }
 
-    const meili = async (method: string, path: string, body?: unknown): Promise<Response> => {
-      const res = await fetch(`${host}${path}`, {
+    const ts = async (
+      method: string,
+      path: string,
+      body?: unknown,
+      contentType = 'application/json',
+    ): Promise<{ status: number; text: string }> => {
+      const res = await fetch(`${baseUrl}${path}`, {
         method,
         headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
+          'X-TYPESENSE-API-KEY': apiKey,
+          'Content-Type': contentType,
         },
-        body: body === undefined ? undefined : JSON.stringify(body),
+        body: body === undefined
+          ? undefined
+          : typeof body === 'string' ? body : JSON.stringify(body),
       });
-      // 404 toléré sur les suppressions (index/documents pas encore créés).
+      const text = await res.text();
+      // 404 toléré (collection pas encore créée lors du DELETE initial).
       if (!res.ok && res.status !== 404) {
-        const text = await res.text();
-        throw new HttpsError('internal', `Meilisearch ${method} ${path} → ${res.status}: ${text}`);
+        throw new HttpsError('internal', `Typesense ${method} ${path} → ${res.status}: ${text}`);
       }
-      return res;
+      return { status: res.status, text };
     };
 
     const db = admin.firestore();
@@ -121,20 +140,22 @@ export const reindexSearch = onCall(
         .get();
       const docs = snap.docs.map((doc) => spec.map(doc.id, doc.data()));
 
-      // Crée l'index si absent (ignore le conflit s'il existe déjà), puis règle les attributs.
-      await meili('POST', '/indexes', { uid: spec.index, primaryKey: 'id' });
-      await meili('PATCH', `/indexes/${spec.index}/settings`, {
-        searchableAttributes: ['title', 'excerpt', 'category', 'tags'],
-        filterableAttributes: ['category'],
-        sortableAttributes: ['publishedAt'],
-      });
-      // Réindexation complète : on purge avant d'ajouter pour retirer les docs dépubliés.
-      await meili('DELETE', `/indexes/${spec.index}/documents`);
+      // Réindexation complète : on drop puis recrée la collection (purge des dépubliés + schéma à jour).
+      await ts('DELETE', `/collections/${spec.name}`);
+      await ts('POST', '/collections', { name: spec.name, fields: SCHEMA_FIELDS });
+
       if (docs.length > 0) {
-        await meili('POST', `/indexes/${spec.index}/documents?primaryKey=id`, docs);
+        // Import Typesense = JSONL (une ligne JSON par doc), pas un tableau.
+        const jsonl = docs.map((d) => JSON.stringify(d)).join('\n');
+        await ts(
+          'POST',
+          `/collections/${spec.name}/documents/import?action=create`,
+          jsonl,
+          'text/plain',
+        );
       }
 
-      counts[spec.index] = docs.length;
+      counts[spec.name] = docs.length;
     }
 
     return { success: true, counts };

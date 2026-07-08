@@ -46,7 +46,7 @@ var admin_1 = require("./admin");
 Object.defineProperty(exports, "adminCreateUser", { enumerable: true, get: function () { return admin_1.adminCreateUser; } });
 Object.defineProperty(exports, "adminManageEnrollment", { enumerable: true, get: function () { return admin_1.adminManageEnrollment; } });
 Object.defineProperty(exports, "adminManageRysmoQuota", { enumerable: true, get: function () { return admin_1.adminManageRysmoQuota; } });
-// ── Recherche (Meilisearch, gated par secrets) ────────────────────────────
+// ── Recherche (Typesense, gated par secrets) ──────────────────────────────
 var search_1 = require("./search");
 Object.defineProperty(exports, "reindexSearch", { enumerable: true, get: function () { return search_1.reindexSearch; } });
 // ── API Proxies ───────────────────────────────────────────────────────────

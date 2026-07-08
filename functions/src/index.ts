@@ -8,7 +8,7 @@ export { rysmo, getRysmoQuota, clearRysmoMemory } from './rysmo';
 // ── Admin functions ───────────────────────────────────────────────────────
 export { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './admin';
 
-// ── Recherche (Meilisearch, gated par secrets) ────────────────────────────
+// ── Recherche (Typesense, gated par secrets) ──────────────────────────────
 export { reindexSearch } from './search';
 
 // ── API Proxies ───────────────────────────────────────────────────────────

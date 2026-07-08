@@ -33,12 +33,12 @@
     "i18next": "^26.3.2",
     "i18next-browser-languagedetector": "^8.2.1",
     "lucide-react": "^0.344.0",
-    "meilisearch": "^0.58.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-helmet-async": "^3.0.0",
     "react-i18next": "^17.0.8",
     "react-router-dom": "^7.13.1",
+    "typesense": "^3.0.6",
     "web-vitals": "^5.2.0"
   },
   "devDependencies": {
