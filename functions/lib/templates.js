@@ -37,7 +37,9 @@ const GRAD = {
 const FONT_TITLE = 'Merriweather';
 const FONT_BODY = 'Inter';
 function esc(s) {
-    return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    // Satori/satori-html rend le texte LITTÉRALEMENT (ne décode pas les entités HTML) → ne pas convertir
+    // en &amp; (sinon "Q&A" s'affiche "Q&amp;A"). On neutralise seulement < > (qui casseraient le markup).
+    return (s || '').replace(/</g, '‹').replace(/>/g, '›');
 }
 function hexToRgba(hex, a) {
     const h = hex.replace('#', '');
