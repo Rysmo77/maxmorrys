@@ -1,0 +1,146 @@
+{
+  "$schema": "./org.schema.md",
+  "company": {
+    "id": "29055790-7f09-4fe0-aa32-0cb8f2d206f4",
+    "name": "Maxmorrys Growth",
+    "issuePrefix": "MAX",
+    "budgetMonthlyCents": 6000,
+    "ceoAgentId": "__FILL_FROM_LIVE__",
+    "environmentId": "__FILL_FROM_LIVE__"
+  },
+  "defaults": {
+    "timezone": "Africa/Dakar",
+    "repoRoot": "/Users/macbookair/maxmorrys.me-main",
+    "workspaceDir": "/Users/macbookair/maxmorrys.me-main/paperclip/workspace",
+    "siteUrl": "https://maxmorrys.me",
+    "claudeModel": null,
+    "geminiModel": null,
+    "effort": "medium"
+  },
+  "_notes": "Repo = source de vérité déclarative de la flotte marketing maxmorrys. La company live 29055790… existe déjà (héritée de « Maxmorrys Growth », 33 agents historiques, TOUS EN PAUSE). Ce manifeste décrit le COEUR ALLÉGÉ ~8 agents (discipline anti-coût, cf. refonte khanouss 15→8). Avant un `--apply` réel : (1) remplir ceoAgentId/environmentId via GET /api/companies/29055790…/org ; (2) archiver dans l'UI le surplus des 33 agents live (le setup ne supprime jamais) ; (3) l'application/activation reste board-gated, agents en pause. Voir RUNBOOK.md §Réconciliation.",
+  "secrets": [
+    { "name": "TELEGRAM_BOT_TOKEN", "description": "Bot de validation @MaxMorrys_notif_bot (boutons Telegram)" },
+    { "name": "TELEGRAM_CHAT_ID", "description": "Chat board qui reçoit les validations (934156307)" },
+    { "name": "AIRTABLE_PAT", "description": "Personal Access Token Airtable (base Max-Morrys PB)" },
+    { "name": "AIRTABLE_MARKETING_BASE_ID", "description": "Base ID Airtable marketing/social (apppkEbepilHCYiso)" },
+    { "name": "N8N_API_KEY", "description": "Clé API publique n8n (JWT) — gestion des workflows WF-*" },
+    { "name": "N8N_BASE_URL", "description": "URL de l'instance n8n LIVE = VPS (https://n8n.maxmorrys.me) — cutover Cloud→VPS le 2026-07-09" },
+    { "name": "N8N_WEBHOOK_BASE_URL", "description": "URL de base des webhooks n8n (<N8N_BASE_URL>/webhook)" },
+    { "name": "N8N_TRIGGER_TOKEN", "description": "Jeton d'en-tête X-MM-Trigger — appel direct des workflows mm-run-redaction/visuel/notif (jamais la publication). Livré aux agents via Airtable Config." },
+    { "name": "RENDER_CARD_URL", "description": "Cloud Function renderSocialCard (https://europe-west1-max-morrys.cloudfunctions.net/renderSocialCard)" },
+    { "name": "RENDER_KEY", "description": "Jeton X-Render-Key du service renderSocialCard" },
+    { "name": "FIREBASE_PROJECT_ID", "description": "Projet Firebase (max-morrys)" },
+    { "name": "FIREBASE_STORAGE_BUCKET", "description": "Bucket Firebase Storage (social-cards/, brouillons)" },
+    { "name": "GEMINI_API_KEY", "description": "Google AI (texte + image Gemini) — fonds IA WF-SOCIAL-04" },
+    { "name": "BREVO_API_KEY", "description": "Clé API Brevo (emailing) — credential n8n chiffré côté prod" },
+    { "name": "BREVO_SENDER_EMAIL", "description": "Expéditeur vérifié (hello@maxmorrys.me)" },
+    { "name": "META_TOKEN", "description": "Token de Page Meta PERMANENT (publication FB + IG)" },
+    { "name": "IG_USER_ID", "description": "ID compte Instagram Business @maxmorrys.me (17841453827450786)" },
+    { "name": "FB_PAGE_ID", "description": "ID Page Facebook Max-Morrys (585922641265463)" },
+    { "name": "META_APP_ID", "description": "ID app Meta for Developers (1949642005700806)" },
+    { "name": "WHATSAPP_TOKEN", "description": "Token WhatsApp Cloud API (⚠ 60j — renouveler / System User)" },
+    { "name": "PHONE_NUMBER_ID", "description": "phone_number_id WhatsApp Cloud API (595631163627228)" },
+    { "name": "WABA_ID", "description": "WhatsApp Business Account ID (555647320972170)" },
+    { "name": "TIKTOK_TOKEN", "description": "Token TikTok Content Posting API (à générer via OAuth)" },
+    { "name": "LINKEDIN_TOKEN", "description": "Token LinkedIn Posts API" },
+    { "name": "LINKEDIN_AUTHOR_URN", "description": "URN auteur LinkedIn (organisation/personne)" },
+    { "name": "X_TOKEN", "description": "Token X/Twitter v2 (tier payant pour l'écriture)" },
+    { "name": "PUBLISH_ENABLED", "description": "Garde-fou publication : WF-SOCIAL-05 ne publie que si =true" },
+    { "name": "CF_ACCESS_CLIENT_ID", "description": "Cloudflare Access service token (tunnel paperclip.maxmorrys.me)" },
+    { "name": "CF_ACCESS_CLIENT_SECRET", "description": "Cloudflare Access service token secret" },
+    { "name": "PAPERCLIP_BASE", "description": "Base API Paperclip (https://paperclip.maxmorrys.me ou http://127.0.0.1:3100)" },
+    { "name": "PAPERCLIP_COMPANY_ID", "description": "ID de cette company (29055790-7f09-4fe0-aa32-0cb8f2d206f4)" }
+  ],
+  "skills": [
+    { "slug": "maxmorrys-brand", "name": "Max-Morrys — Charte de marque", "color": "#0074C5", "tagline": "Bleu profond, orange, Merriweather+Inter — ed-tech premium d'Afrique francophone", "categories": ["brand", "marketing"] },
+    { "slug": "creative-render-card", "name": "Créas renderSocialCard (IA fond + HTML texte)", "color": "#ED9516", "tagline": "Fond IA Gemini + overlay HTML net — jamais de photo brute", "categories": ["design", "marketing"] },
+    { "slug": "n8n-tools", "name": "Outils n8n (les mains)", "color": "#1E40AF", "tagline": "Workflows WF-SOCIAL-* / WF-EMAIL-* / WF-WHATSAPP-* = actions sur le monde", "categories": ["ops", "integration"] },
+    { "slug": "airtable-marketing-schema", "name": "Schéma Airtable Marketing (base apppkEbepilHCYiso)", "color": "#2D7A4F", "tagline": "La mémoire de la flotte — pipeline Contenus + Config", "categories": ["data"] },
+    { "slug": "approval-protocol", "name": "Protocole d'approbation Telegram", "color": "#C1372D", "tagline": "Rien ne sort sans validation humaine (@MaxMorrys_notif_bot)", "categories": ["governance"] },
+    { "slug": "formations-club-catalog", "name": "Offre Max-Morrys (Formations / Club Digitos / Rysmo)", "color": "#072B49", "tagline": "Lire l'offre réelle depuis Firestore — ne jamais inventer", "categories": ["data", "edtech"] },
+    { "slug": "seo-veille-kit", "name": "SEO & Veille Max-Morrys (carte infra + GSC)", "color": "#0074C5", "tagline": "Infra SEO existante + Search Console sc-domain:maxmorrys.me", "categories": ["seo", "research"] }
+  ],
+  "agents": [
+    {
+      "slug": "cmo-aicha", "name": "Aïcha", "role": "cmo", "icon": "crown",
+      "title": "Directrice Marketing (CMO)",
+      "runtime": "claude_local", "reportsTo": "__ceo__", "budgetMonthlyCents": 700,
+      "phase": 0,
+      "capabilities": "Pilote la stratégie marketing full-funnel de maxmorrys.me (reach → abonnés → sessions → signups Club Digitos → MRR), tient le calendrier éditorial, décompose les objectifs en tickets par spécialiste, arbitre le mix des 5 piliers (Formations/Contenus/Communauté/IA/Accompagnement) et suit les KPIs hebdomadaires.",
+      "desiredSkills": ["maxmorrys-brand", "approval-protocol", "airtable-marketing-schema", "n8n-tools", "formations-club-catalog"],
+      "routine": { "title": "Plan marketing hebdomadaire", "cron": "0 8 * * 1", "description": "Chaque lundi 8h : bilan des KPIs de la semaine passée, plan de la semaine (thème + temps forts), cadrage du Calendrier_Editorial (canaux, formats, quota ~30 % non-produit), création des tickets par agent." }
+    },
+    {
+      "slug": "copywriter-zara", "name": "Zara", "role": "general", "icon": "lightbulb",
+      "title": "Contenu & Réseaux sociaux",
+      "runtime": "claude_local", "reportsTo": "cmo-aicha", "budgetMonthlyCents": 1000,
+      "phase": 1,
+      "capabilities": "Pôle contenu unifié : rédige captions/hooks/carrousels/scripts vidéo YouTube + articles de blog conformes à la charte ; alimente le Calendrier_Editorial et le pipeline Contenus (Airtable) ; assemble et fait publier les posts FB/IG/TikTok/YouTube/LinkedIn/X sous garde-fou Telegram. Vise ~1/3 d'idées non-produit (contenus éducatifs / IA / communauté).",
+      "desiredSkills": ["maxmorrys-brand", "creative-render-card", "airtable-marketing-schema", "formations-club-catalog", "n8n-tools", "approval-protocol"],
+      "routine": { "title": "Contenu & publication sociale", "cron": "0 8,18 * * *", "description": "2 créneaux/jour (Africa/Dakar). MATIN (8h) : à partir des angles d'Ivan + l'offre + le calendrier d'Aïcha, conçoit le pool de contenus du jour, rédige le texte final et brieffe Malik pour les créas ; le JEUDI, rédige aussi l'article de blog. SOIR (18h) : reprend les contenus dont la date approche, vérifie créa+texte, passe leur Statut à `prêt_à_valider` → approbation Telegram → publication (WF-SOCIAL)." }
+    },
+    {
+      "slug": "designer-malik", "name": "Malik", "role": "designer", "icon": "wand",
+      "title": "Directeur Artistique",
+      "runtime": "claude_local", "reportsTo": "cmo-aicha", "budgetMonthlyCents": 500,
+      "phase": 1,
+      "capabilities": "Produit les visuels de marque par compositing : fond IA (Gemini 2.5 Flash Image via WF-SOCIAL-04) + overlay texte/prix/logo net via renderSocialCard, 100 % charte (bleu profond #072B49, #0074C5, orange #ED9516, Merriweather+Inter, monogramme). JAMAIS de photo brute publiée. Travaille à la demande sur ticket (pas de routine planifiée, économie de tokens).",
+      "desiredSkills": ["maxmorrys-brand", "creative-render-card", "n8n-tools", "approval-protocol"],
+      "routine": null
+    },
+    {
+      "slug": "seo-ivan", "name": "Ivan", "role": "researcher", "icon": "search",
+      "title": "SEO & Veille",
+      "runtime": "claude_local", "reportsTo": "cmo-aicha", "budgetMonthlyCents": 600,
+      "phase": 3,
+      "capabilities": "Pôle recherche unifié : audite le SEO on-page (formations, blog, pages), meta/JSON-LD, mots-clés d'intention et maillage interne, lit Google Search Console (sc-domain:maxmorrys.me) et crée des tickets correctifs ; surveille tendances ed-tech/formations en Afrique francophone, concurrents, SERP et hashtags, et injecte des angles de contenu dans le Calendrier_Editorial pour Zara. Correctifs techniques = PR git board-gated, jamais de merge/deploy direct.",
+      "desiredSkills": ["seo-veille-kit", "airtable-marketing-schema", "formations-club-catalog", "n8n-tools", "maxmorrys-brand", "approval-protocol"],
+      "routine": { "title": "SEO & veille bi-hebdo", "cron": "0 8 * * 2,5", "description": "Mardi & vendredi 8h : brief de veille (tendances + concurrents + opportunités) au CMO + injection d'angles dans le Calendrier_Editorial, puis audit d'un lot de pages (GSC + on-page) et priorisation des correctifs SEO." }
+    },
+    {
+      "slug": "crm-flora", "name": "Flora", "role": "general", "icon": "database",
+      "title": "CRM, Lifecycle & Email/WhatsApp",
+      "runtime": "claude_local", "reportsTo": "cmo-aicha", "budgetMonthlyCents": 900,
+      "phase": 2,
+      "capabilities": "Pôle cycle de vie unifié : orchestre en une passe quotidienne les relances (signups Club Digitos non finalisés, dormants, post-formation, avis), les newsletters/séquences Brevo (WF-EMAIL-*) et les broadcasts WhatsApp opt-in (WF-WHATSAPP-*). Exploite la segmentation lue en base. Tout envoi client passe par l'approbation Telegram.",
+      "desiredSkills": ["airtable-marketing-schema", "n8n-tools", "formations-club-catalog", "maxmorrys-brand", "creative-render-card", "approval-protocol"],
+      "routine": { "title": "Passe cycle de vie quotidienne", "cron": "0 9 * * *", "description": "Chaque matin 9h (1 seule passe) : lit les segments/triggers du jour, prépare relances + tout email/WhatsApp dû (statut prêt_à_valider), et soumet chaque envoi client à la validation Telegram. Le lundi, prépare aussi la newsletter hebdo." }
+    },
+    {
+      "slug": "service-sandra", "name": "Sandra", "role": "general", "icon": "eye",
+      "title": "Service Client conversationnel",
+      "runtime": "gemini_local", "reportsTo": "cmo-aicha", "budgetMonthlyCents": 400,
+      "phase": 2,
+      "capabilities": "Répond aux DM/WhatsApp/commentaires sociaux (FAQ formations, accès Club Digitos, orientation Rysmo, prise d'info), qualifie, et escalade vers un humain quand nécessaire. Réactif (déclenché sur inbound), pas de routine planifiée. Rysmo (chatbot on-site) reste la 1re ligne sur le site ; Sandra couvre l'inbound social.",
+      "desiredSkills": ["formations-club-catalog", "maxmorrys-brand", "airtable-marketing-schema", "n8n-tools", "approval-protocol"],
+      "routine": null
+    },
+    {
+      "slug": "insights-nadia", "name": "Nadia", "role": "general", "icon": "activity",
+      "title": "Insights & Analytics",
+      "runtime": "gemini_local", "reportsTo": "cmo-aicha", "budgetMonthlyCents": 300,
+      "phase": 3,
+      "capabilities": "Lit les insights natifs des plateformes (IG/TikTok/YouTube/LinkedIn/X/FB), Google Search Console et GA4/Firestore, consigne les KPIs full-funnel (K1 reach → NSM MRR Club) en base et prépare le digest hebdo Telegram (WF-DIGEST). Ne produit ni ne publie de contenu — elle mesure.",
+      "desiredSkills": ["seo-veille-kit", "airtable-marketing-schema", "n8n-tools", "approval-protocol"],
+      "routine": { "title": "Rapport KPIs hebdomadaire", "cron": "0 8 * * 1", "description": "Chaque lundi 8h : collecte les métriques de la semaine (insights plateformes + GSC + GA4), met à jour les KPIs en base, et fournit à Aïcha une synthèse full-funnel pour le plan hebdo + alimente le digest." }
+    },
+    {
+      "slug": "n8n-ops", "name": "Oscar", "role": "general", "icon": "wrench",
+      "title": "Reliability / Ops Engineer (transverse)",
+      "runtime": "claude_local", "reportsTo": "__ceo__", "budgetMonthlyCents": 400,
+      "phase": 0,
+      "capabilities": "Agent transverse (rattaché au board/CEO) : veille sur la fiabilité des workflows n8n WF-* et du pont Telegram/Paperclip, détecte les exécutions en échec, les tokens expirés (Meta/WhatsApp 60j) et les garde-fous (PUBLISH_ENABLED, allowed-hostname), et alerte le board. Ne publie rien ; propose des correctifs d'infra sous approbation.",
+      "desiredSkills": ["n8n-tools", "airtable-marketing-schema", "approval-protocol"],
+      "routine": null
+    },
+    {
+      "slug": "ads-rachid", "name": "Rachid", "role": "general", "icon": "target",
+      "title": "Ads / Media Buyer (dormant)",
+      "runtime": "claude_local", "reportsTo": "cmo-aicha", "budgetMonthlyCents": 300,
+      "phase": 4,
+      "capabilities": "Conçoit et pilote les campagnes payantes (Meta/plateformes) pour amplifier reach & signups Club, sous validation budget/audience. DORMANT tant qu'aucun budget paid n'est actif (routine désactivée) — réactiver quand la pub démarre.",
+      "desiredSkills": ["formations-club-catalog", "maxmorrys-brand", "creative-render-card", "airtable-marketing-schema", "n8n-tools", "approval-protocol"],
+      "routine": null
+    }
+  ]
+}
