@@ -44,6 +44,10 @@ if (!credentialsPath || !apiKey) {
  */
 const CASES = [
   { name: 'getRysmoQuota', data: {} },
+  // rysmo consomme une requête de quota : comparé une seule fois, sur un compte
+  // éphémère dont le quota est neuf des deux côtés.
+  { name: 'rysmo', data: {}, label: 'rysmo (message vide)' },
+  { name: 'rysmo', data: { message: '   ' }, label: 'rysmo (message blanc)' },
   { name: 'clearRysmoMemory', data: {} },
   // translateContent est public par conception ; la clé de cache doit être
   // identique des deux côtés, sinon la collection translations/ se dédouble.

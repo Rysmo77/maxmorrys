@@ -6,6 +6,7 @@ import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { issueCertificate } from './handlers/issueCertificate';
 import { parseCv } from './handlers/parseCv';
 import { reindexSearch } from './handlers/reindexSearch';
+import { rysmo } from './handlers/rysmo';
 import { spotifyProxy } from './handlers/spotifyProxy';
 import { weeklyClubDigestManual } from './handlers/weeklyClubDigestManual';
 import { translateContent } from './handlers/translateContent';
@@ -22,8 +23,10 @@ export type CallHandler = (data: unknown, context: CallContext) => Promise<unkno
  * service sans redéployer de code.
  */
 export const HANDLERS: Record<string, CallHandler> = {
-  // Lectures et proxies
+  // Rysmo
+  rysmo,
   getRysmoQuota,
+  // Lectures et proxies
   spotifyProxy,
   youtubeProxy,
   // Écritures simples
