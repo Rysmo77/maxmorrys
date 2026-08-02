@@ -76,6 +76,18 @@ const CASES = [
   // Chemins d'argument invalide.
   { name: 'youtubeProxy', data: {}, label: 'youtubeProxy (sans videoId)' },
   { name: 'issueCertificate', data: {}, label: 'issueCertificate (sans formationId)' },
+
+  // Paiement — uniquement les chemins qui échouent AVANT tout appel à Bictorys.
+  { name: 'createBictorysCharge', data: {}, label: 'achat formation (sans ids)' },
+  {
+    name: 'createBictorysCharge',
+    data: { formationId: 'zz-inexistante', formationSlug: 'zz' },
+    label: 'achat formation (introuvable)',
+  },
+  { name: 'createRysmoPackCharge', data: { pack: 'nawak' }, label: 'pack Rysmo (inconnu)' },
+  { name: 'createRysmoPackCharge', data: {}, label: 'pack Rysmo (sans pack)' },
+  { name: 'createRysmoSubscriptionCharge', data: { plan: 'nawak' }, label: 'abo Rysmo+ (inconnu)' },
+  { name: 'createRysmoSubscriptionCharge', data: {}, label: 'abo Rysmo+ (sans plan)' },
   {
     name: 'issueCertificate',
     data: { formationId: 'zz-formation-inexistante' },
@@ -92,6 +104,7 @@ const CASES = [
  * censé tester un refus. Les vérifier suppose un appel délibéré, un par un.
  */
 export const SIDE_EFFECTING = new Set([
+  'createClubCharge', // créerait une vraie charge Bictorys et un abonnement en attente
   'backfillSlugEn', // écrit des slug_en réels
   'reindexSearch', // vide et reconstruit les index Typesense
   'weeklyClubDigestManual', // publie une info et notifie tous les membres

@@ -5,6 +5,12 @@ import { clearRysmoMemory } from './handlers/clearRysmoMemory';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { issueCertificate } from './handlers/issueCertificate';
 import { parseCv } from './handlers/parseCv';
+import {
+  createBictorysCharge,
+  createClubCharge,
+  createRysmoPackCharge,
+  createRysmoSubscriptionCharge,
+} from './handlers/payments';
 import { reindexSearch } from './handlers/reindexSearch';
 import { rysmo } from './handlers/rysmo';
 import { spotifyProxy } from './handlers/spotifyProxy';
@@ -41,4 +47,10 @@ export const HANDLERS: Record<string, CallHandler> = {
   reindexSearch,
   backfillSlugEn,
   weeklyClubDigestManual,
+  // Paiement — implémenté, mais volontairement hors de MIGRATED tant que la
+  // fenêtre de dual-run avec Bictorys n'est pas calée.
+  createBictorysCharge,
+  createClubCharge,
+  createRysmoPackCharge,
+  createRysmoSubscriptionCharge,
 };

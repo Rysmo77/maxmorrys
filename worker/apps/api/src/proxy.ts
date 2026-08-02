@@ -42,3 +42,39 @@ export async function proxyToFunctions(
   for (const [key, value] of Object.entries(cors)) response.headers.set(key, value);
   return response;
 }
+
+/**
+ * Relais d'un webhook vers Cloud Functions.
+ *
+ * Distinct de `proxyToFunctions` : le corps est transmis **intact** et la
+ * signature est reportée, car elle porte sur ces octets exacts. Aucun en-tête
+ * CORS n'est ajouté — un webhook n'est pas appelé depuis un navigateur.
+ */
+export async function proxyWebhook(name: string, request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
+  const headers = new Headers();
+  for (const header of [
+    'Content-Type',
+    'X-Bictorys-Signature',
+    'User-Agent',
+    'CF-Connecting-IP',
+  ]) {
+    const value = request.headers.get(header);
+    if (value) headers.set(header, value);
+  }
+
+  const upstream = await fetch(`${env.FUNCTIONS_ORIGIN.replace(/\/+$/, '')}/${name}`, {
+    method: request.method,
+    headers,
+    body: await request.text(),
+    signal: AbortSignal.timeout(60_000),
+  });
+
+  return new Response(upstream.body, {
+    status: upstream.status,
+    headers: { 'Content-Type': upstream.headers.get('Content-Type') ?? 'text/plain' },
+  });
+}

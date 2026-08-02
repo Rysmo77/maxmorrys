@@ -19,6 +19,11 @@ export interface Env {
   /** Base des Cloud Functions encore en place, cible du relais. */
   FUNCTIONS_ORIGIN: string;
 
+  /** Endpoint de création de charges Bictorys (test ou production). */
+  BICTORYS_API_URL: string;
+  /** Base publique servant à construire les URL de retour après paiement. */
+  APP_BASE_URL: string;
+
   /**
    * Base de l'API Gemini. Pointer sur AI Gateway apporte cache, budgets et
    * observabilité des coûts sans changer une ligne d'appel.
@@ -32,4 +37,7 @@ export interface Env {
   GOOGLE_AI_API_KEY?: string;
   TYPESENSE_URL?: string;
   TYPESENSE_ADMIN_KEY?: string;
+  BICTORYS_API_KEY?: string;
+  BICTORYS_WEBHOOK_SECRET?: string;
+  META_ACCESS_TOKEN?: string;
 }
