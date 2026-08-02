@@ -4,6 +4,10 @@
     "module": "ES2022",
     "moduleResolution": "Bundler",
     "lib": ["ES2022"],
+
+    // Volontairement limité aux types Workers : c'est ce qui garantit qu'aucune
+    // API Node (fs, process, Buffer, node:crypto) ne peut se glisser dans le
+    // code déployé. Les tests, eux, ont droit à Node — voir tsconfig.test.json.
     "types": ["@cloudflare/workers-types"],
 
     /* Aligné sur tsconfig.app.json : un import mort casse la CI. */
@@ -19,13 +23,5 @@
     "isolatedModules": true,
     "moduleDetection": "force"
   },
-  "include": [
-    "packages/*/src/**/*.ts",
-    "packages/*/test/**/*.ts",
-    "apps/*/src/**/*.ts",
-    "apps/*/test/**/*.ts",
-    "types/**/*.d.ts",
-    "vitest.config.ts",
-    "apps/*/vitest.config.ts"
-  ]
+  "include": ["packages/*/src/**/*.ts", "apps/*/src/**/*.ts", "types/**/*.d.ts"]
 }
