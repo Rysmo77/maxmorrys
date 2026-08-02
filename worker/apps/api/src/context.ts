@@ -1,5 +1,15 @@
-import { createSelfSignedTokenProvider, parseServiceAccount } from '@mm/gcp-auth';
-import { createIdTokenVerifier, type DecodedIdToken, type IdTokenVerifier } from '@mm/firebase-auth-rest';
+import {
+  CLOUD_PLATFORM_SCOPE,
+  createAccessTokenProvider,
+  createSelfSignedTokenProvider,
+  parseServiceAccount,
+} from '@mm/gcp-auth';
+import {
+  AuthAdmin,
+  createIdTokenVerifier,
+  type DecodedIdToken,
+  type IdTokenVerifier,
+} from '@mm/firebase-auth-rest';
 import { Firestore } from '@mm/firestore-rest';
 import { HttpsError } from '@mm/shared';
 
@@ -26,6 +36,25 @@ export function getFirestore(env: Env): Firestore {
 export function getVerifier(env: Env): IdTokenVerifier {
   if (!verifier) verifier = createIdTokenVerifier(env.FIREBASE_PROJECT_ID);
   return verifier;
+}
+
+/**
+ * Administration Firebase Auth.
+ *
+ * Contrairement à Firestore, Identity Toolkit n'accepte pas le JWT auto-signé :
+ * il faut un vrai access token OAuth avec le scope `cloud-platform`.
+ */
+let authAdmin: AuthAdmin | null = null;
+
+export function getAuthAdmin(env: Env): AuthAdmin {
+  if (!authAdmin) {
+    const serviceAccount = parseServiceAccount(env.GCP_SA_JSON);
+    authAdmin = new AuthAdmin(
+      serviceAccount.project_id,
+      createAccessTokenProvider(serviceAccount, [CLOUD_PLATFORM_SCOPE]),
+    );
+  }
+  return authAdmin;
 }
 
 /** Contexte transmis à chaque handler. */

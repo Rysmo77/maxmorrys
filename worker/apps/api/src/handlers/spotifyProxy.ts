@@ -64,6 +64,10 @@ export async function spotifyProxy(data: unknown, context: CallContext): Promise
     };
   } catch (error: unknown) {
     if (error instanceof HttpsError) throw error;
+    // Sans cette trace, une réponse Spotify en texte brut (403 « Active premium
+    // subscription required… ») fait échouer `.json()` et se présente comme une
+    // panne générique, indiscernable d'une erreur réseau.
+    console.error('spotifyProxy — échec non typé :', error);
     throw new HttpsError('internal', 'Impossible de récupérer les infos Spotify.');
   }
 }

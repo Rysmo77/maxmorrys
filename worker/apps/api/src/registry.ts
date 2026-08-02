@@ -1,5 +1,8 @@
 import type { CallContext } from './context';
+import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
+import { clearRysmoMemory } from './handlers/clearRysmoMemory';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
+import { issueCertificate } from './handlers/issueCertificate';
 import { spotifyProxy } from './handlers/spotifyProxy';
 import { youtubeProxy } from './handlers/youtubeProxy';
 
@@ -14,7 +17,15 @@ export type CallHandler = (data: unknown, context: CallContext) => Promise<unkno
  * service sans redéployer de code.
  */
 export const HANDLERS: Record<string, CallHandler> = {
+  // Lectures et proxies
   getRysmoQuota,
   spotifyProxy,
   youtubeProxy,
+  // Écritures simples
+  clearRysmoMemory,
+  issueCertificate,
+  // Administration
+  adminCreateUser,
+  adminManageRysmoQuota,
+  adminManageEnrollment,
 };

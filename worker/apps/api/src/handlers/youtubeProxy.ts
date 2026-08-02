@@ -59,6 +59,7 @@ export async function youtubeProxy(data: unknown, context: CallContext): Promise
     };
   } catch (error: unknown) {
     if (error instanceof HttpsError) throw error;
+    console.error('youtubeProxy — échec non typé :', error);
     throw new HttpsError('internal', 'Impossible de récupérer les infos YouTube.');
   }
 }
