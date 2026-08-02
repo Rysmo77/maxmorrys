@@ -25,13 +25,46 @@ const MINIMAL_FALLBACK = `<!doctype html>
 </body>
 </html>`;
 
-function shellResponse(html: string): Response {
-  return new Response(html, {
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': `max-age=${SHELL_TTL_SECONDS}`,
-    },
+/**
+ * En-têtes de sécurité posés par Firebase Hosting (`firebase.json`).
+ *
+ * Ils doivent être reportés sur **toute** réponse fabriquée par le Worker :
+ * celui-ci construit un nouvel objet Response, donc rien n'est hérité
+ * automatiquement. Les oublier revient à servir les pages les plus visitées du
+ * site sans CSP ni HSTS.
+ *
+ * On les recopie depuis l'origine plutôt que de les redéfinir ici : `firebase.json`
+ * reste la source unique, et une évolution de la CSP se propage sans double
+ * maintenance.
+ */
+const SECURITY_HEADERS = [
+  'content-security-policy',
+  'strict-transport-security',
+  'x-frame-options',
+  'x-content-type-options',
+  'referrer-policy',
+  'permissions-policy',
+  'cross-origin-opener-policy',
+];
+
+function shellResponse(html: string, origin?: Headers): Response {
+  const headers = new Headers({
+    'Content-Type': 'text/html; charset=utf-8',
+    'Cache-Control': `max-age=${SHELL_TTL_SECONDS}`,
   });
+  for (const name of SECURITY_HEADERS) {
+    const value = origin?.get(name);
+    if (value) headers.set(name, value);
+  }
+  return new Response(html, { headers });
+}
+
+/** Reporte les en-têtes de sécurité du shell sur une réponse fabriquée par le Worker. */
+export function applySecurityHeaders(target: Headers, shell: Headers): void {
+  for (const name of SECURITY_HEADERS) {
+    const value = shell.get(name);
+    if (value) target.set(name, value);
+  }
 }
 
 export async function getSpaShell(env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -47,7 +80,7 @@ export async function getSpaShell(env: Env, ctx: ExecutionContext): Promise<Resp
     });
 
     if (response.ok) {
-      const fresh = shellResponse(await response.text());
+      const fresh = shellResponse(await response.text(), response.headers);
       ctx.waitUntil(cache.put(SHELL_CACHE_KEY, fresh.clone()).catch(() => undefined));
       return fresh;
     }

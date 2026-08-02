@@ -12,9 +12,9 @@ import { normalizePath } from '../routes';
 import { getContentMeta } from './content';
 import { injectMeta } from './rewriter';
 import { canonicalizeSegments, enPath } from './segments';
-import { getSpaShell } from './shell';
+import { applySecurityHeaders, getSpaShell } from './shell';
 import { staticPages } from './static-pages';
-import { translateMetaToEn } from './translate';
+import { translateMetaToEn } from '@mm/shared';
 import type { PageMeta } from './types';
 
 /** Port de la fonction `prerender`. */
@@ -106,19 +106,25 @@ export async function handlePrerender(
 
   // Traduction des champs visibles pour les pages anglaises indexables.
   if (lang === 'en' && !meta.noIndex) {
-    meta = await translateMetaToEn(getFirestore(env), env, meta);
+    meta = await translateMetaToEn(getFirestore(env), {
+      baseUrl: env.GEMINI_BASE_URL,
+      apiKey: env.GOOGLE_AI_API_KEY,
+    }, meta);
   }
 
   const shell = await getSpaShell(env, ctx);
+  const shellHeaders = new Headers(shell.headers);
   const transformed = injectMeta(shell, meta);
 
-  return new Response(transformed.body, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      // HTML prérendu = équivalent SEO d'index.html : jamais mis en cache, sinon
-      // il référencerait des assets hachés supprimés au déploiement suivant.
-      'Cache-Control': 'max-age=0, no-cache, no-store, must-revalidate',
-    },
+  const headers = new Headers({
+    'Content-Type': 'text/html; charset=utf-8',
+    // HTML prérendu = équivalent SEO d'index.html : jamais mis en cache, sinon
+    // il référencerait des assets hachés supprimés au déploiement suivant.
+    'Cache-Control': 'max-age=0, no-cache, no-store, must-revalidate',
   });
+  // Sans ceci, les pages les plus visitées du site partiraient sans CSP ni HSTS :
+  // une Response fabriquée n'hérite de rien de l'origine.
+  applySecurityHeaders(headers, shellHeaders);
+
+  return new Response(transformed.body, { status: 200, headers });
 }

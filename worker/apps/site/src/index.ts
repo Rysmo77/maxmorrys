@@ -18,6 +18,7 @@ import type { Env } from './env';
 import { getFirestore } from './firestore';
 import { fetchOrigin } from './origin';
 import { handlePrerender } from './prerender';
+import { applySecurityHeaders, getSpaShell } from './prerender/shell';
 import { resolveRoute, type Route } from './routes';
 import { buildCatalog } from './seo/catalog';
 import { buildRss } from './seo/rss';
@@ -29,25 +30,33 @@ const FEED_TTL_SECONDS = 3600;
 async function handleFeed(route: Route, env: Env, ctx: ExecutionContext): Promise<Response> {
   const db = getFirestore(env);
 
+  // Le shell est déjà en cache : on s'en sert uniquement pour récupérer les
+  // en-têtes de sécurité de l'origine et les reporter sur les flux.
+  const shellHeaders = new Headers((await getSpaShell(env, ctx)).headers);
+  const withSecurity = (response: Response): Response => {
+    applySecurityHeaders(response.headers, shellHeaders);
+    return response;
+  };
+
   switch (route) {
     case 'sitemap':
-      return text(
+      return withSecurity(text(
         await cached(env, ctx, 'feed:v1:sitemap', FEED_TTL_SECONDS, () => buildSitemap(db)),
         'application/xml',
         200,
         { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
-      );
+      ));
 
     case 'rss':
-      return text(
+      return withSecurity(text(
         await cached(env, ctx, 'feed:v1:rss', FEED_TTL_SECONDS, () => buildRss(db)),
         'application/rss+xml; charset=utf-8',
         200,
         { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
-      );
+      ));
 
     default:
-      return text(
+      return withSecurity(text(
         await cached(env, ctx, 'feed:v1:catalog', FEED_TTL_SECONDS, () => buildCatalog(db)),
         'text/csv; charset=utf-8',
         200,
@@ -55,7 +64,7 @@ async function handleFeed(route: Route, env: Env, ctx: ExecutionContext): Promis
           'Cache-Control': 'public, max-age=300, s-maxage=3600',
           'Content-Disposition': 'inline; filename="catalog.csv"',
         },
-      );
+      ));
   }
 }
 

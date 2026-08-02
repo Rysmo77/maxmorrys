@@ -92,13 +92,33 @@ function extract(html) {
   return out;
 }
 
+/**
+ * En-têtes de sécurité posés par Firebase Hosting.
+ *
+ * Ils sont comparés au même titre que les balises SEO : un Worker qui fabrique
+ * une Response n'hérite de rien de l'origine, et leur perte ne se voit pas dans
+ * le rendu. C'est exactement la régression que ce script a laissé passer une
+ * première fois.
+ */
+const SECURITY_HEADERS = [
+  'content-security-policy',
+  'strict-transport-security',
+  'x-frame-options',
+  'x-content-type-options',
+  'referrer-policy',
+  'permissions-policy',
+  'cross-origin-opener-policy',
+];
+
 async function grab(base, path) {
   const response = await fetch(base + path, {
     headers: { 'User-Agent': CRAWLER_UA },
     redirect: 'manual',
   });
   const body = await response.text();
-  return { status: response.status, body, base };
+  const headers = {};
+  for (const name of SECURITY_HEADERS) headers[name] = response.headers.get(name);
+  return { status: response.status, body, headers, base };
 }
 
 let failures = 0;
@@ -118,6 +138,18 @@ for (const path of PATHS) {
 
   if (reference.status !== candidate.status) {
     problems.push(`statut ${reference.status} → ${candidate.status}`);
+  }
+
+  for (const name of SECURITY_HEADERS) {
+    const before = normalize(reference.headers[name]);
+    const after = normalize(candidate.headers[name]);
+    if (before !== after) {
+      problems.push(
+        after === null
+          ? `en-tête ${name} PERDU`
+          : `en-tête ${name} :\n      référence = ${String(before).slice(0, 90)}\n      candidat  = ${String(after).slice(0, 90)}`,
+      );
+    }
   }
 
   if (path.endsWith('.xml') || path.endsWith('.csv')) {
