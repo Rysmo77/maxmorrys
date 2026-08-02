@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import LocalizedLink from '../components/shared/LocalizedLink';
 import { motion, AnimatePresence } from 'framer-motion';
 import CountUp from '../components/shared/CountUp';
 import AnimatedIcon from '../components/shared/AnimatedIcon';
@@ -36,124 +38,26 @@ const theme = universeThemes.about;
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
 const values = [
-  { icon: Heart, title: 'Passion Authentique', desc: "Une passion pour le marketing digital née d'une découverte qui a changé ma vie en 2021." },
-  { icon: Globe, title: 'Vision Africaine', desc: 'Connaissance profonde des réalités et opportunités du marché africain francophone.' },
-  { icon: Sparkles, title: 'Approche Hybride', desc: "Marketing, IA, automatisation et développement web — un profil à l'intersection de la stratégie, du produit et de la tech." },
-  { icon: Target, title: 'Résultats Concrets', desc: 'Focus sur les stratégies qui donnent des résultats mesurables et durables.' },
+  { icon: Heart, key: 'passion' },
+  { icon: Globe, key: 'vision' },
+  { icon: Sparkles, key: 'hybrid' },
+  { icon: Target, key: 'results' },
 ];
 
 const expertise = [
-  {
-    title: 'Marketing, Growth & Stratégie 360°',
-    desc: "Stratégies multicanales pour des audiences africaines francophones, pilotées par la data, du brand à la conversion.",
-    tags: [
-      'Stratégie marketing 360°',
-      'Growth marketing',
-      'SEO, SEA, SMO, SMA',
-      'Campagnes multicanales',
-      'Content marketing',
-      'Social media',
-      'Branding corporate & personal',
-      "Marketing d'impact & RSE",
-      'Analyse de marché & veille',
-      'KPI, reporting & ROI',
-      'CRM & fidélisation',
-    ],
-    stat: '+1 790 % de trafic web chez Eyone Medical',
-    icon: BarChart3,
-  },
-  {
-    title: 'IA, Automatisation & Productivité',
-    desc: "Conception de systèmes IA et de workflows n8n pour industrialiser la production de contenus et la communication.",
-    tags: [
-      'Prompt engineering',
-      'IA générative appliquée',
-      'Workflows n8n',
-      'Rédaction automatisée',
-      'Automatisation social media',
-      'Systèmes IA de contenus',
-      'Optimisation de processus',
-      'Chatbots WhatsApp',
-    ],
-    stat: 'Workflows IA bout en bout en production',
-    icon: Sparkles,
-  },
-  {
-    title: 'Web, Produit Digital & Plateformes',
-    desc: "Plateformes full stack avec base de données et hébergement Firebase, accélérées par Claude Code.",
-    tags: [
-      'Plateformes web full stack',
-      'Claude Code',
-      'Base de données & logique applicative',
-      'Hébergement Firebase',
-      'WordPress',
-      'Maintenance, sécurité, performance',
-      'Monitoring & déploiement',
-      'Support utilisateurs',
-    ],
-    stat: 'Plateformes web en production',
-    icon: Code2,
-  },
-  {
-    title: 'Management & Partenariats',
-    desc: "Coordination d'équipes pluridisciplinaires et pilotage de partenaires institutionnels, ONG et acteurs de terrain.",
-    tags: [
-      "Coordination d'équipes",
-      'Gestion de prestataires',
-      'Pilotage de projets transverses',
-      'Partenaires institutionnels & ONG',
-      'Événements communautaires',
-      'Formation & accompagnement',
-      'Communication institutionnelle',
-    ],
-    stat: 'Projet Wergu Yaram + Messages de Vie Sénégal',
-    icon: HeartHandshake,
-  },
+  { key: 'marketing', icon: BarChart3 },
+  { key: 'ai', icon: Sparkles },
+  { key: 'web', icon: Code2 },
+  { key: 'management', icon: HeartHandshake },
 ];
 
 const platforms = [
-  {
-    name: 'Eyone Medical',
-    domain: 'eyone.net',
-    url: 'https://eyone.net/',
-    tag: 'Santé digitale',
-    desc: "Plateforme de digitalisation des parcours de soins en Afrique.",
-  },
-  {
-    name: 'Khanouss',
-    domain: 'khanouss.shop',
-    url: 'https://khanouss.shop/',
-    tag: 'E-commerce',
-    desc: "Plateforme e-commerce full stack — catalogue, panier et paiement.",
-  },
-  {
-    name: 'HolyCash',
-    domain: 'holycash.net',
-    url: 'https://holycash.net/',
-    tag: 'Fintech',
-    desc: "Plateforme web orientée services financiers et paiement.",
-  },
-  {
-    name: 'English Lab',
-    domain: 'yessienglish.com',
-    url: 'https://yessienglish.com/',
-    tag: 'Éducation',
-    desc: "Plateforme d'accompagnement en anglais pour professionnels et étudiants africains francophones.",
-  },
-  {
-    name: 'STEPS Magazine',
-    domain: 'stepsmag.com',
-    url: 'https://stepsmag.com/',
-    tag: 'Média',
-    desc: "Magazine chrétien premium en Afrique de l'Ouest — spiritualité et leadership.",
-  },
-  {
-    name: 'ResHo Konnexion',
-    domain: 'resho.vasesdhonneursenegal.com',
-    url: 'https://resho.vasesdhonneursenegal.com/',
-    tag: 'Communauté',
-    desc: "Plateforme de réseau professionnel et communautaire.",
-  },
+  { name: 'Eyone Medical', domain: 'eyone.net', url: 'https://eyone.net/', key: 'eyone' },
+  { name: 'Khanouss', domain: 'khanouss.shop', url: 'https://khanouss.shop/', key: 'khanouss' },
+  { name: 'HolyCash', domain: 'holycash.net', url: 'https://holycash.net/', key: 'holycash' },
+  { name: 'English Lab', domain: 'yessienglish.com', url: 'https://yessienglish.com/', key: 'englishLab' },
+  { name: 'STEPS Magazine', domain: 'stepsmag.com', url: 'https://stepsmag.com/', key: 'steps' },
+  { name: 'ResHo Konnexion', domain: 'resho.vasesdhonneursenegal.com', url: 'https://resho.vasesdhonneursenegal.com/', key: 'resho' },
 ];
 
 /** Capture desktop — WordPress mShots (gratuit, illimité, cache CDN). */
@@ -168,7 +72,7 @@ const mobileShotUrl = (url: string) =>
   `&viewport.isMobile=true&viewport.width=400&viewport.height=860`;
 
 /** Aperçu d'une plateforme avec interrupteur desktop / mobile. */
-function PlatformPreview({ url, domain, name }: { url: string; domain: string; name: string }) {
+function PlatformPreview({ url, domain, name, t }: { url: string; domain: string; name: string; t: TFunction }) {
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -196,7 +100,7 @@ function PlatformPreview({ url, domain, name }: { url: string; domain: string; n
       ) : (
         <img
           src={src}
-          alt={`Aperçu ${device === 'mobile' ? 'mobile' : 'desktop'} de la plateforme ${name}`}
+          alt={device === 'mobile' ? t('preview.mobileAlt', { name }) : t('preview.desktopAlt', { name })}
           loading="lazy"
           width={device === 'mobile' ? 400 : 1280}
           height={device === 'mobile' ? 860 : 800}
@@ -213,7 +117,7 @@ function PlatformPreview({ url, domain, name }: { url: string; domain: string; n
       type="button"
       onClick={() => switchTo(d)}
       aria-pressed={device === d}
-      aria-label={`Aperçu ${label.toLowerCase()}`}
+      aria-label={t('preview.deviceAria', { label })}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
         device === d
           ? theme.buttonSolid
@@ -230,11 +134,11 @@ function PlatformPreview({ url, domain, name }: { url: string; domain: string; n
       <div className="flex justify-end mb-3">
         <div
           role="group"
-          aria-label={`Choisir l'aperçu de ${name}`}
+          aria-label={t('preview.groupAria', { name })}
           className="inline-flex items-center gap-0.5 p-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700"
         >
-          {toggleBtn('desktop', Monitor, 'Desktop')}
-          {toggleBtn('mobile', Smartphone, 'Mobile')}
+          {toggleBtn('desktop', Monitor, t('preview.desktopLabel'))}
+          {toggleBtn('mobile', Smartphone, t('preview.mobileLabel'))}
         </div>
       </div>
 
@@ -290,183 +194,64 @@ function PlatformPreview({ url, domain, name }: { url: string; domain: string; n
   );
 }
 
-const tools = [
-  'Claude Code',
-  'n8n',
-  'Firebase',
-  'WordPress',
-  'Chatbots IA',
-  'WhatsApp Marketing',
-  'Canva',
-  'CapCut',
-  'Google Ads',
-  'SEO',
-  'Social Media Automation',
-];
-
 type Experience = {
   company: string;
-  role: string;
-  period: string;
-  location: string;
+  key: string;
   icon: typeof Building2;
-  intro: string;
-  blocks: { title: string; bullets: string[] }[];
+  blockKeys: string[];
 };
 
 const experiences: Experience[] = [
   {
     company: 'Eyone Medical',
-    role: 'Responsable Marketing Digital, Growth & Automatisation IA',
-    period: 'Depuis janvier 2024',
-    location: 'Dakar, Sénégal',
+    key: 'eyone',
     icon: Building2,
-    intro:
-      "Chez Eyone, je pilote la stratégie de croissance digitale, la visibilité de marque, la communication multicanale et plusieurs projets digitaux à fort impact. Mon rôle dépasse le marketing opérationnel classique et couvre également la gestion de projet, la coordination de partenariats, le développement web et l'automatisation de processus.",
-    blocks: [
-      {
-        title: 'Stratégie marketing, growth & acquisition',
-        bullets: [
-          "Élaboration et déploiement de stratégies marketing multicanales : SEO, SEA, SMO, social media, campagnes de visibilité, contenus, newsletters, articles, WhatsApp, vidéos et supports digitaux.",
-          "Définition des objectifs, KPI et indicateurs de performance : trafic, clics, conversions, ventes, transactions, croissance organique et ROI.",
-          "Analyse des parcours clients et optimisation du tunnel de conversion, de la découverte jusqu'à la décision d'achat.",
-          "Veille concurrentielle, analyse marché, identification d'opportunités business et proposition de leviers de croissance.",
-          "Gestion de campagnes orientées performance, notoriété et acquisition.",
-        ],
-      },
-      {
-        title: 'Branding, contenus & communication',
-        bullets: [
-          "Structuration de la présence digitale d'Eyone à partir de zéro.",
-          "Création et pilotage d'un calendrier éditorial orienté SEO, marque, éducation et conversion.",
-          "Développement de contenus pour renforcer la crédibilité d'Eyone dans l'écosystème santé digitale.",
-          "Coordination de la communication institutionnelle, des supports commerciaux et des messages de marque.",
-          "Pilotage de la visibilité du groupe sur plusieurs marchés africains.",
-        ],
-      },
-      {
-        title: 'IA, automatisation & productivité marketing',
-        bullets: [
-          "Mise en place de systèmes automatisés avec l'IA pour accélérer la production de contenus et la diffusion marketing.",
-          "Automatisation de workflows avec n8n : rédaction automatisée d'articles, planification de contenus, marketing réseaux sociaux et processus de communication.",
-          "Utilisation de l'IA générative pour la création, l'optimisation, la reformulation et l'adaptation de contenus multicanaux.",
-          "Développement de solutions internes permettant de réduire les tâches répétitives et d'améliorer la productivité marketing.",
-        ],
-      },
-      {
-        title: 'Développement web & plateformes digitales',
-        bullets: [
-          "Développement et maintenance de plateformes web liées à Eyone Medical, Wergu Yaram, Topatoko et des structures hospitalières.",
-          "Création de plateformes full stack avec base de données, logique applicative et hébergement Firebase.",
-          "Utilisation de Claude Code pour accélérer la conception et le développement de plateformes web fonctionnelles.",
-          "Gestion des évolutions techniques, corrections, sécurité, performance, hébergement, monitoring et mises à jour.",
-          "Formation et accompagnement d'utilisateurs sur certaines plateformes développées.",
-        ],
-      },
-      {
-        title: 'Projet Wergu Yaram & partenariats',
-        bullets: [
-          "Pilotage global du projet Wergu Yaram : planification, coordination, storytelling d'impact et suivi opérationnel.",
-          "Élaboration de la stratégie de communication RSE et impact social.",
-          "Gestion de relations avec partenaires institutionnels, ONG et acteurs de terrain.",
-          "Organisation d'initiatives sociétales, campagnes terrain et événements communautaires.",
-          "Suivi des indicateurs d'impact et contribution aux rapports d'activité.",
-        ],
-      },
-      {
-        title: 'Management & coordination',
-        bullets: [
-          "Encadrement et coordination de collaborateurs, créateurs de contenus, community managers, partenaires et prestataires.",
-          "Accompagnement des équipes dans le développement de compétences digitales.",
-          "Support technique et marketing auprès des équipes internes pour les opérations, campagnes et lancements.",
-        ],
-      },
-    ],
+    blockKeys: ['strategy', 'branding', 'ai', 'web', 'partnerships', 'management'],
   },
   {
     company: 'Messages de Vie Sénégal',
-    role: 'Responsable Marketing Digital bénévole',
-    period: 'Depuis avril 2025',
-    location: 'Dakar, Sénégal',
+    key: 'messagesDeVie',
     icon: HandHeart,
-    intro:
-      "Pilotage bénévole du marketing digital d'une organisation à but non lucratif, engagée dans des actions de compassion et des campagnes médicales sur le territoire sénégalais.",
-    blocks: [
-      {
-        title: 'Stratégie & visibilité',
-        bullets: [
-          "Définition de la stratégie de contenu, coordination de la gestion des réseaux sociaux, marketing d'influence et communication événementielle.",
-          "Développement de la visibilité des actions terrain et valorisation des campagnes sociales.",
-          "Encadrement d'une équipe bénévole composée de créateurs de contenus, community managers et contributeurs.",
-          "Mise en place de campagnes digitales ciblées pour renforcer l'engagement, attirer de nouveaux partenaires et soutenir les actions humanitaires.",
-        ],
-      },
-    ],
+    blockKeys: ['strategy'],
   },
   {
     company: 'Académie Light',
-    role: 'Formateur en Marketing Digital & Community Management',
-    period: 'Mai 2024 — Décembre 2024',
-    location: 'Dakar, Sénégal',
+    key: 'academieLight',
     icon: GraduationCap,
-    intro:
-      "Animation d'un module complet de community management et marketing digital auprès d'étudiants en formation professionnelle.",
-    blocks: [
-      {
-        title: 'Formation & accompagnement',
-        bullets: [
-          "Formation aux fondamentaux du marketing digital, au rôle du community manager, à la création de contenus, à la gestion des réseaux sociaux et à l'utilisation d'outils comme Canva et CapCut.",
-          "Accompagnement de plus de 20 étudiants dans la mise en pratique de projets digitaux.",
-          "Transmission d'une approche orientée métier, performance, autonomie et employabilité.",
-        ],
-      },
-    ],
+    blockKeys: ['training'],
   },
   {
     company: 'My Onoma',
-    role: 'Digital Marketer Freelance',
-    period: 'Janvier 2023 — Octobre 2023',
-    location: 'Dakar, Sénégal',
+    key: 'myOnoma',
     icon: Briefcase,
-    intro:
-      "Élaboration de stratégies digitales pour développer la présence de l'entreprise et de ses clients sur leurs marchés.",
-    blocks: [
-      {
-        title: 'Stratégie & exécution',
-        bullets: [
-          "Analyse concurrentielle, ciblage d'audience, définition de plans d'action et mise en œuvre de campagnes multicanales.",
-          "Création d'initiatives visant à accroître la visibilité, renforcer la réputation de marque et générer une croissance mesurable.",
-          "Gestion de contenus, réseaux sociaux et actions de communication digitale.",
-        ],
-      },
-    ],
+    blockKeys: ['strategy'],
   },
 ];
 
 const milestones = [
-  { year: '2014', lieu: "Abidjan, Côte d'Ivoire", title: "Le Début de l'Aventure", desc: "Après mon Baccalauréat à Douala (Cameroun), je pars étudier à Abidjan. Des années marquantes qui m'ont ouvert l'esprit sur les opportunités en Afrique." },
-  { year: '2017', lieu: "Abidjan, Côte d'Ivoire", title: 'Licence en Économie — CERAP', desc: "J'obtiens ma Licence en Économie au CERAP Abidjan après 3 années riches en rencontres et expériences." },
-  { year: '2018', lieu: 'Dakar, Sénégal', title: 'Bienvenue au Pays de la Téranga', desc: "« Salam Aleykoum, nanga def »… J'arrive au Sénégal, ce merveilleux pays de la Téranga où je vis encore aujourd'hui." },
-  { year: '2020', lieu: 'Dakar, Sénégal', title: "Master en Gestion & Développement d'Entreprises — BEM Dakar", desc: "Pivot vers l'entrepreneuriat. Les maths et moi, ça ne faisait pas bon ménage !" },
-  { year: '2021', lieu: 'Dakar, Sénégal', title: "L'Année où Tout a Basculé", desc: "Découverte du marketing digital grâce à une personne qui compte pour moi. Je « tombe fan » et dévore tous les tutos YouTube et formations Udemy." },
-  { year: '2023', lieu: 'Dakar, Sénégal', title: 'My Onoma — Digital Marketer Freelance', desc: "Premiers contrats freelance en conception web, community management et SEO. Co-création de My Onoma." },
-  { year: '2023', lieu: 'Dakar, Sénégal', title: 'Master en Digital Business — BEM Dakar', desc: "Deuxième Master, cette fois en Digital Business pour consolider l'expertise growth + produit." },
-  { year: '2024 — Janv.', lieu: 'Dakar, Sénégal', title: 'Eyone Medical — Marketing & Growth Manager', desc: "Je rejoins Eyone Medical, pionnier de la digitalisation des soins en Afrique. Résultats à 18 mois : +1 790 % de trafic web et +8 000 abonnés organiques." },
-  { year: '2024 — Mai', lieu: 'Dakar, Sénégal', title: 'Académie Light — Formateur', desc: "Co-création de l'Académie Light avec une amie visionnaire. Je deviens formateur en marketing digital & community management." },
-  { year: '2025 — Avril', lieu: 'Dakar, Sénégal', title: 'Messages de Vie Sénégal', desc: "Je m'engage bénévolement pour piloter le marketing digital d'une organisation qui mène campagnes médicales et consultations gratuites au profit des populations démunies." },
-  { year: '2025', lieu: 'Dakar, Sénégal', title: "Plateformes web & IA en production", desc: "Lancement et industrialisation des plateformes Eyone Medical, Wergu Yaram, Topatoko et de workflows IA bout en bout pour le marketing et le contenu." },
+  { year: '2014', key: 'm2014' },
+  { year: '2017', key: 'm2017' },
+  { year: '2018', key: 'm2018' },
+  { year: '2020', key: 'm2020' },
+  { year: '2021', key: 'm2021' },
+  { year: '2023', key: 'm2023Onoma' },
+  { year: '2023', key: 'm2023Master' },
+  { year: '2024 — Janv.', key: 'm2024Jan' },
+  { year: '2024 — Mai', key: 'm2024May' },
+  { year: '2025 — Avril', key: 'm2025Apr' },
+  { year: '2025', key: 'm2025' },
 ];
 
 const sectionNav = [
-  { id: 'impact', label: 'Impact' },
-  { id: 'expertise', label: 'Expertise' },
-  { id: 'plateformes', label: 'Plateformes' },
-  { id: 'experiences', label: 'Expériences' },
-  { id: 'parcours', label: 'Parcours' },
+  { id: 'impact', key: 'impact' },
+  { id: 'expertise', key: 'expertise' },
+  { id: 'plateformes', key: 'plateformes' },
+  { id: 'experiences', key: 'experiences' },
+  { id: 'parcours', key: 'parcours' },
 ];
 
 /** Une étape de la frise « Mon parcours ». */
-function MilestoneRow({ m }: { m: (typeof milestones)[number] }) {
+function MilestoneRow({ m, t }: { m: (typeof milestones)[number]; t: TFunction }) {
   return (
     <div className="relative pl-10">
       <span
@@ -474,16 +259,17 @@ function MilestoneRow({ m }: { m: (typeof milestones)[number] }) {
         aria-hidden="true"
       />
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1.5">
-        <span className={`text-sm font-black tracking-tight ${theme.accentText}`}>{m.year}</span>
-        <span className="text-[11px] font-bold tracking-wider uppercase text-morrys-500 dark:text-morrys-400">{m.lieu}</span>
+        <span className={`text-sm font-black tracking-tight ${theme.accentText}`}>{t(`milestones.${m.key}.year`)}</span>
+        <span className="text-[11px] font-bold tracking-wider uppercase text-morrys-500 dark:text-morrys-400">{t(`milestones.${m.key}.lieu`)}</span>
       </div>
-      <h3 className="text-lg font-black text-neutral-900 dark:text-white mb-1">{m.title}</h3>
-      <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">{m.desc}</p>
+      <h3 className="text-lg font-black text-neutral-900 dark:text-white mb-1">{t(`milestones.${m.key}.title`)}</h3>
+      <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">{t(`milestones.${m.key}.desc`)}</p>
     </div>
   );
 }
 
 export default function About() {
+  const { t } = useTranslation('about');
   const [openExperience, setOpenExperience] = useState<number | null>(0);
   const [showAllMilestones, setShowAllMilestones] = useState(false);
   const [activeSection, setActiveSection] = useState('impact');
@@ -563,8 +349,8 @@ export default function About() {
   return (
     <div>
       <SEOHead
-        title="Max-Morrys Eyoum — Marketing & Growth Manager | IA, Automatisation, Plateformes Web"
-        description="Profil hybride marketing-tech basé à Dakar : stratégie 360°, growth, SEO, IA, automatisation, plateformes web full stack et pilotage de partenariats en Afrique francophone."
+        title={t('seo.title')}
+        description={t('seo.description')}
       />
       <JsonLd data={{
         '@context': 'https://schema.org',
@@ -595,20 +381,20 @@ export default function About() {
                   iconClassName="w-5 h-5 text-morrys-600 dark:text-morrys-400"
                 />
                 <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow}`}>
-                  MAX-MORRYS EYOUM
+                  {t('hero.eyebrow')}
                 </p>
               </motion.div>
               <motion.h1 variants={staggerItem} className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[0.95] tracking-tight text-neutral-900 dark:text-white mb-6 text-balance max-w-[15ch]">
-                Marketing & Growth Manager.
+                {t('hero.title')}
               </motion.h1>
               <motion.p variants={staggerItem} className="text-base lg:text-lg text-neutral-500 dark:text-neutral-400 font-medium mb-8">
-                IA · Automatisation · Plateformes Web · Partenariats
+                {t('hero.subtitle')}
               </motion.p>
 
               {/* Blockquote — profil hybride absorbé */}
               <motion.blockquote variants={staggerItem} className="border-l-2 border-morrys-500 dark:border-morrys-400 pl-5 mb-10 max-w-2xl">
                 <p className="text-base lg:text-lg text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium">
-                  J'accompagne la croissance d'organisations en Afrique francophone — santé, services, éducation, impact social — en combinant stratégie marketing, data, contenu, partenariats, développement web et automatisation des processus.
+                  {t('hero.blockquote')}
                 </p>
               </motion.blockquote>
 
@@ -618,28 +404,28 @@ export default function About() {
                   <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
                     <CountUp value={1790} prefix="+" suffix=" %" format />
                   </p>
-                  <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">Trafic</p>
+                  <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">{t('hero.statTraffic')}</p>
                 </div>
                 <div>
                   <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
                     <CountUp value={8000} prefix="+" format />
                   </p>
-                  <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">Abonnés</p>
+                  <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">{t('hero.statFollowers')}</p>
                 </div>
                 <div>
                   <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
                     <CountUp value={5} prefix="+" />
                   </p>
-                  <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">Plateformes</p>
+                  <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">{t('hero.statPlatforms')}</p>
                 </div>
               </motion.div>
 
               <motion.div variants={staggerItem} className="flex flex-wrap gap-4">
-                <Link to="/contact" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} text-sm font-bold rounded-full hover:-translate-y-0.5 active:scale-[0.97] hover:shadow-lg hover:shadow-morrys-600/25 transition-all duration-300 tracking-wide`}>
-                  Travaillons ensemble <ArrowRight className="w-4 h-4" />
-                </Link>
+                <LocalizedLink to="/contact" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} text-sm font-bold rounded-full hover:-translate-y-0.5 active:scale-[0.97] hover:shadow-lg hover:shadow-morrys-600/25 transition-all duration-300 tracking-wide`}>
+                  {t('hero.ctaWork')} <ArrowRight className="w-4 h-4" />
+                </LocalizedLink>
                 <a href="#experiences" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-neutral-300 text-neutral-700 dark:border-neutral-600 dark:text-neutral-200 text-sm font-bold rounded-full hover:bg-white dark:hover:bg-neutral-800 hover:-translate-y-0.5 transition-all duration-300 tracking-wide">
-                  Mes expériences
+                  {t('hero.ctaExperiences')}
                 </a>
               </motion.div>
             </motion.div>
@@ -652,8 +438,8 @@ export default function About() {
             >
               <div className="aspect-[4/5] rounded-2xl overflow-hidden relative">
                 <img
-                  src="https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/A-propos%2FChatGPT%20Image%2014%20mai%202026%2C%2000_44_30%20(1).png?alt=media&token=e72ee3b7-1ff1-45ff-a994-b43607d16387"
-                  alt="Max-Morrys Eyoum"
+                  src="https://media.maxmorrys.me/A-propos/ChatGPT%20Image%2014%20mai%202026%2C%2000_44_30%20(1).png"
+                  alt={t('hero.imageAlt')}
                   className="w-full h-full object-cover scale-x-[-1]"
                   loading="lazy"
                   width={640}
@@ -665,8 +451,8 @@ export default function About() {
                     <MapPin className={`w-4 h-4 ${theme.accentText}`} />
                   </div>
                   <div>
-                    <p className="text-sm font-black text-neutral-900 dark:text-white leading-none">Dakar · Sénégal</p>
-                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1 font-semibold tracking-wide uppercase">Afrique francophone</p>
+                    <p className="text-sm font-black text-neutral-900 dark:text-white leading-none">{t('hero.locationCity')}</p>
+                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1 font-semibold tracking-wide uppercase">{t('hero.locationRegion')}</p>
                   </div>
                 </div>
               </div>
@@ -681,8 +467,8 @@ export default function About() {
                   <MapPin className={`w-5 h-5 ${theme.accentText}`} />
                 </div>
                 <div>
-                  <p className="text-sm font-black text-neutral-900 dark:text-white leading-none">Dakar · Sénégal</p>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 font-medium tracking-wide uppercase">Afrique francophone</p>
+                  <p className="text-sm font-black text-neutral-900 dark:text-white leading-none">{t('hero.locationCity')}</p>
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 font-medium tracking-wide uppercase">{t('hero.locationRegion')}</p>
                 </div>
               </motion.div>
             </motion.div>
@@ -715,7 +501,7 @@ export default function About() {
                     >
                       {String(i + 1).padStart(2, '0')}
                     </span>
-                    {s.label}
+                    {t(`sectionNav.${s.key}`)}
                   </a>
                 </li>
               );
@@ -736,13 +522,13 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-14 text-center">
             <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-5`}>
-              RÉSUMÉ D'IMPACT
+              {t('impact.eyebrow')}
             </p>
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-4">
-              Les chiffres clés
+              {t('impact.heading')}
             </h2>
             <p className="text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto">
-              Croissance mesurable, plateformes en production et périmètre élargi marketing — tech — partenariats.
+              {t('impact.desc')}
             </p>
           </div>
           <motion.div
@@ -756,22 +542,22 @@ export default function About() {
               <p className={`text-5xl lg:text-6xl font-black ${theme.accentText} tracking-tight`}>
                 <CountUp value={1790} prefix="+" suffix=" %" format />
               </p>
-              <p className="font-bold text-neutral-900 dark:text-white mt-2">Trafic web Eyone</p>
-              <p className="text-xs text-neutral-400 mt-1">De 34 à 643 visites mensuelles en un an</p>
+              <p className="font-bold text-neutral-900 dark:text-white mt-2">{t('impact.trafficLabel')}</p>
+              <p className="text-xs text-neutral-400 mt-1">{t('impact.trafficSub')}</p>
             </motion.div>
             <motion.div variants={staggerItem} className="text-center py-10 px-8 bg-neutral-50 dark:bg-neutral-900">
               <p className={`text-5xl lg:text-6xl font-black ${theme.accentText} tracking-tight`}>
                 <CountUp value={8000} prefix="+" format />
               </p>
-              <p className="font-bold text-neutral-900 dark:text-white mt-2">Abonnés organiques</p>
-              <p className="text-xs text-neutral-400 mt-1">Dont +4 000 sur LinkedIn</p>
+              <p className="font-bold text-neutral-900 dark:text-white mt-2">{t('impact.followersLabel')}</p>
+              <p className="text-xs text-neutral-400 mt-1">{t('impact.followersSub')}</p>
             </motion.div>
             <motion.div variants={staggerItem} className="text-center py-10 px-8 bg-neutral-50 dark:bg-neutral-900">
               <p className={`text-5xl lg:text-6xl font-black ${theme.accentText} tracking-tight`}>
                 <CountUp value={5} prefix="+" />
               </p>
-              <p className="font-bold text-neutral-900 dark:text-white mt-2">Plateformes web</p>
-              <p className="text-xs text-neutral-400 mt-1">Santé, e-commerce, éducation, fintech, institutionnel</p>
+              <p className="font-bold text-neutral-900 dark:text-white mt-2">{t('impact.platformsLabel')}</p>
+              <p className="text-xs text-neutral-400 mt-1">{t('impact.platformsSub')}</p>
             </motion.div>
           </motion.div>
         </div>
@@ -789,10 +575,10 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-4">
-              Expertise & compétences
+              {t('expertiseSection.heading')}
             </h2>
             <p className="text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto">
-              Quatre piliers complémentaires — marketing, IA, web et management — au service de la croissance et de l'impact.
+              {t('expertiseSection.desc')}
             </p>
           </div>
           <motion.div
@@ -802,29 +588,32 @@ export default function About() {
             whileInView="visible"
             viewport={viewportOnce}
           >
-            {expertise.map((item, i) => (
-              <motion.div
-                key={i}
-                variants={staggerItem}
-                className="bg-white dark:bg-neutral-950 rounded-2xl p-8 border border-neutral-100 dark:border-neutral-800 flex flex-col hover:border-morrys-300 dark:hover:border-morrys-700 hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
-              >
-                <div className="w-10 h-10 rounded-full bg-morrys-50 dark:bg-morrys-900/20 flex items-center justify-center mb-5">
-                  <item.icon className={`w-5 h-5 ${theme.accentText}`} />
-                </div>
-                <h3 className="font-black text-xl text-neutral-900 dark:text-white mb-3">{item.title}</h3>
-                <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-5">{item.desc}</p>
-                <div className="flex flex-wrap items-start content-start gap-2 mb-6 flex-1">
-                  {item.tags.map((tag) => (
-                    <span key={tag} className={`px-3 py-1 ${theme.softBadge} text-xs font-semibold rounded-full whitespace-nowrap`}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <p className={`text-sm font-bold ${theme.accentText} border-t border-neutral-200 dark:border-neutral-700 pt-4`}>
-                  {item.stat}
-                </p>
-              </motion.div>
-            ))}
+            {expertise.map((item) => {
+              const tags = t(`expertise.${item.key}.tags`, { returnObjects: true }) as string[];
+              return (
+                <motion.div
+                  key={item.key}
+                  variants={staggerItem}
+                  className="bg-white dark:bg-neutral-950 rounded-2xl p-8 border border-neutral-100 dark:border-neutral-800 flex flex-col hover:border-morrys-300 dark:hover:border-morrys-700 hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
+                >
+                  <div className="w-10 h-10 rounded-full bg-morrys-50 dark:bg-morrys-900/20 flex items-center justify-center mb-5">
+                    <item.icon className={`w-5 h-5 ${theme.accentText}`} />
+                  </div>
+                  <h3 className="font-black text-xl text-neutral-900 dark:text-white mb-3">{t(`expertise.${item.key}.title`)}</h3>
+                  <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-5">{t(`expertise.${item.key}.desc`)}</p>
+                  <div className="flex flex-wrap items-start content-start gap-2 mb-6 flex-1">
+                    {tags.map((tag) => (
+                      <span key={tag} className={`px-3 py-1 ${theme.softBadge} text-xs font-semibold rounded-full whitespace-nowrap`}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <p className={`text-sm font-bold ${theme.accentText} border-t border-neutral-200 dark:border-neutral-700 pt-4`}>
+                    {t(`expertise.${item.key}.stat`)}
+                  </p>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </motion.section>
@@ -841,10 +630,10 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-4">
-              Plateformes que je maintiens
+              {t('platformsSection.heading')}
             </h2>
             <p className="text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto">
-              Conçues, déployées et maintenues en production — full stack avec base de données, sécurité et monitoring.
+              {t('platformsSection.desc')}
             </p>
           </div>
           <div
@@ -861,7 +650,7 @@ export default function About() {
               type="button"
               onClick={() => scrollCarousel(-1)}
               disabled={atStart}
-              aria-label="Plateformes précédentes"
+              aria-label={t('platformsSection.prevAria')}
               className="hidden sm:flex absolute -left-3 lg:-left-5 top-1/2 -translate-y-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-lg text-neutral-700 dark:text-neutral-200 transition-all hover:bg-morrys-600 hover:text-white hover:border-morrys-600 disabled:opacity-0 disabled:pointer-events-none"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -871,7 +660,7 @@ export default function About() {
               type="button"
               onClick={() => scrollCarousel(1)}
               disabled={atEnd}
-              aria-label="Plateformes suivantes"
+              aria-label={t('platformsSection.nextAria')}
               className="hidden sm:flex absolute -right-3 lg:-right-5 top-1/2 -translate-y-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-lg text-neutral-700 dark:text-neutral-200 transition-all hover:bg-morrys-600 hover:text-white hover:border-morrys-600 disabled:opacity-0 disabled:pointer-events-none"
             >
               <ChevronRight className="w-5 h-5" />
@@ -902,11 +691,11 @@ export default function About() {
                   key={p.name}
                   className="group snap-start shrink-0 w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(50%-1rem)]"
                 >
-                  <PlatformPreview url={p.url} domain={p.domain} name={p.name} />
+                  <PlatformPreview url={p.url} domain={p.domain} name={p.name} t={t} />
                   <div className="mt-5 px-1">
-                    <span className={`text-[11px] font-bold tracking-wider uppercase ${theme.eyebrow}`}>{p.tag}</span>
+                    <span className={`text-[11px] font-bold tracking-wider uppercase ${theme.eyebrow}`}>{t(`platforms.${p.key}.tag`)}</span>
                     <h3 className="font-black text-lg text-neutral-900 dark:text-white mt-1.5 mb-1">{p.name}</h3>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">{p.desc}</p>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">{t(`platforms.${p.key}.desc`)}</p>
                   </div>
                 </div>
               ))}
@@ -919,8 +708,8 @@ export default function About() {
               atEnd ? 'opacity-0' : 'opacity-100'
             }`}
           >
-            <span className="sm:hidden">Faites glisser pour voir les autres plateformes</span>
-            <span className="hidden sm:inline">Faites défiler ou utilisez les flèches pour voir les autres plateformes</span>
+            <span className="sm:hidden">{t('platformsSection.scrollHintMobile')}</span>
+            <span className="hidden sm:inline">{t('platformsSection.scrollHintDesktop')}</span>
             <ChevronRight className="w-3.5 h-3.5 animate-pulse" />
           </p>
         </div>
@@ -938,13 +727,13 @@ export default function About() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-14">
             <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-5`}>
-              EXPÉRIENCES
+              {t('experiencesSection.eyebrow')}
             </p>
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-4">
-              Expériences professionnelles
+              {t('experiencesSection.heading')}
             </h2>
             <p className="text-neutral-500 dark:text-neutral-400 max-w-2xl">
-              De My Onoma à Eyone Medical : un parcours pluridisciplinaire à l'intersection du marketing, de la tech et de l'impact.
+              {t('experiencesSection.desc')}
             </p>
           </div>
 
@@ -976,11 +765,11 @@ export default function About() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
                         <h3 className="font-black text-lg sm:text-xl text-neutral-900 dark:text-white">{exp.company}</h3>
-                        <span className={`text-[11px] font-bold tracking-wider uppercase ${theme.eyebrow}`}>{exp.location}</span>
+                        <span className={`text-[11px] font-bold tracking-wider uppercase ${theme.eyebrow}`}>{t(`experiences.${exp.key}.location`)}</span>
                       </div>
-                      <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 font-medium">{exp.role}</p>
+                      <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 font-medium">{t(`experiences.${exp.key}.role`)}</p>
                     </div>
-                    <p className="hidden sm:block text-xs font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{exp.period}</p>
+                    <p className="hidden sm:block text-xs font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{t(`experiences.${exp.key}.period`)}</p>
                     <ChevronDown
                       className={`w-5 h-5 text-neutral-400 dark:text-neutral-500 shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
                     />
@@ -995,14 +784,16 @@ export default function About() {
                         <div className="grid sm:grid-cols-[3.5rem_1fr] sm:gap-6">
                           <div className="hidden sm:block" />
                           <div>
-                            <p className="sm:hidden text-xs font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mb-4">{exp.period}</p>
-                            <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-6">{exp.intro}</p>
+                            <p className="sm:hidden text-xs font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mb-4">{t(`experiences.${exp.key}.period`)}</p>
+                            <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-6">{t(`experiences.${exp.key}.intro`)}</p>
                             <div className="space-y-6">
-                              {exp.blocks.map((block) => (
-                                <div key={block.title}>
-                                  <h4 className={`font-black text-sm uppercase tracking-wider ${theme.eyebrow} mb-3`}>{block.title}</h4>
+                              {exp.blockKeys.map((blockKey) => {
+                                const bullets = t(`experiences.${exp.key}.blocks.${blockKey}.bullets`, { returnObjects: true }) as string[];
+                                return (
+                                <div key={blockKey}>
+                                  <h4 className={`font-black text-sm uppercase tracking-wider ${theme.eyebrow} mb-3`}>{t(`experiences.${exp.key}.blocks.${blockKey}.title`)}</h4>
                                   <ul className="space-y-2">
-                                    {block.bullets.map((b, j) => (
+                                    {bullets.map((b, j) => (
                                       <li key={j} className="flex items-start gap-3 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
                                         <CheckCircle className="w-4 h-4 text-morrys-500 dark:text-morrys-400 shrink-0 mt-0.5" />
                                         <span>{b}</span>
@@ -1010,7 +801,8 @@ export default function About() {
                                     ))}
                                   </ul>
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </div>
                         </div>
@@ -1034,10 +826,10 @@ export default function About() {
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-white leading-[0.95] mb-3">
-            Stack &amp; outils du quotidien
+            {t('stack.heading')}
           </h2>
           <p className="text-neutral-400 max-w-xl mx-auto mb-10">
-            Les outils sur lesquels je m'appuie pour exécuter, automatiser et livrer.
+            {t('stack.desc')}
           </p>
           <motion.div
             className="flex flex-wrap justify-center gap-3"
@@ -1049,7 +841,7 @@ export default function About() {
             whileInView="visible"
             viewport={viewportOnce}
           >
-            {tools.map((tool) => (
+            {(t('stack.items', { returnObjects: true }) as string[]).map((tool) => (
               <motion.span
                 key={tool}
                 variants={staggerItem}
@@ -1074,10 +866,10 @@ export default function About() {
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             <div>
               <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-6">
-                Mes valeurs
+                {t('valuesSection.heading')}
               </h2>
               <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                Les principes qui guident mon approche du marketing, de la tech et des partenariats en Afrique.
+                {t('valuesSection.desc')}
               </p>
             </div>
             <motion.div
@@ -1087,9 +879,9 @@ export default function About() {
               whileInView="visible"
               viewport={viewportOnce}
             >
-              {values.map((v, i) => (
+              {values.map((v) => (
                 <motion.div
-                  key={i}
+                  key={v.key}
                   variants={staggerItem}
                   className="flex items-start gap-5 py-7 border-b border-neutral-200 dark:border-neutral-800"
                 >
@@ -1097,8 +889,8 @@ export default function About() {
                     <v.icon className={`w-5 h-5 ${theme.accentText}`} />
                   </div>
                   <div>
-                    <h3 className="font-black text-lg text-neutral-900 dark:text-white mb-1">{v.title}</h3>
-                    <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">{v.desc}</p>
+                    <h3 className="font-black text-lg text-neutral-900 dark:text-white mb-1">{t(`values.${v.key}.title`)}</h3>
+                    <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">{t(`values.${v.key}.desc`)}</p>
                   </div>
                 </motion.div>
               ))}
@@ -1119,21 +911,15 @@ export default function About() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-14">
             <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-4`}>
-              MON HISTOIRE
+              {t('parcours.eyebrow')}
             </p>
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-6">
-              Mon parcours
+              {t('parcours.heading')}
             </h2>
             <div className="space-y-5 text-base lg:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-3xl">
-              <p>
-                Je ne suis pas le genre qui te dira qu'il a tel MBA ou tel Master en Marketing Digital (même si j'en ai un), car je me suis presqu'auto-formé… C'est un peu contradictoire mais c'est ça qui fait ma force : la passion authentique et l'apprentissage constant.
-              </p>
-              <p>
-                Pour la petite histoire, je n'aurais jamais imaginé que j'allais faire du marketing… Comme tout enfant je voulais devenir pilote, puis ingénieur, ensuite banquier et au finish entrepreneur. Le marketing digital est arrivé par hasard en 2021, et c'est devenu ma passion !
-              </p>
-              <p>
-                Aujourd'hui, je vis cette aventure depuis Dakar, à la croisée du marketing, de l'IA, du produit web et des partenariats à impact — fier de contribuer au développement digital de l'Afrique francophone.
-              </p>
+              <p>{t('parcours.p1')}</p>
+              <p>{t('parcours.p2')}</p>
+              <p>{t('parcours.p3')}</p>
             </div>
           </div>
 
@@ -1158,7 +944,7 @@ export default function About() {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 text-sm font-bold text-neutral-700 dark:text-neutral-200 hover:bg-white dark:hover:bg-neutral-800 hover:border-morrys-400 dark:hover:border-morrys-600 transition-all"
               >
                 <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showAllMilestones ? 'rotate-180' : ''}`} />
-                {showAllMilestones ? 'Réduire le parcours' : 'Voir le début du parcours (2014 – 2021)'}
+                {showAllMilestones ? t('parcours.collapse') : t('parcours.expand')}
               </button>
             </div>
 
@@ -1171,7 +957,7 @@ export default function About() {
               <div className="overflow-hidden">
                 <div className="space-y-8 mb-8">
                   {milestones.slice(0, 5).map((m) => (
-                    <MilestoneRow key={m.title} m={m} />
+                    <MilestoneRow key={m.key} m={m} t={t} />
                   ))}
                 </div>
               </div>
@@ -1180,7 +966,7 @@ export default function About() {
             {/* Étapes récentes (depuis 2023) — toujours visibles */}
             <div className="space-y-8">
               {milestones.slice(5).map((m) => (
-                <MilestoneRow key={m.title} m={m} />
+                <MilestoneRow key={m.key} m={m} t={t} />
               ))}
             </div>
           </div>
@@ -1197,19 +983,19 @@ export default function About() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-morrys-200 mb-5">
-            ON DISCUTE ?
+            {t('finalCta.eyebrow')}
           </p>
-          <h2 className="text-4xl lg:text-5xl font-black mb-5 tracking-tight">Travaillons ensemble</h2>
+          <h2 className="text-4xl lg:text-5xl font-black mb-5 tracking-tight">{t('finalCta.heading')}</h2>
           <p className="text-morrys-100 text-lg mb-10 leading-relaxed max-w-xl mx-auto">
-            Marketing, automatisation IA, plateformes web ou partenariats — parlons-en.
+            {t('finalCta.desc')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-            <Link to="/contact" className="inline-flex items-center gap-2 bg-white text-morrys-700 font-bold px-8 py-4 rounded-full hover:bg-morrys-50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
-              Prendre contact <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link to="/formations" className="inline-flex items-center gap-2 text-white font-bold text-sm tracking-wide hover:text-morrys-100 hover:translate-x-0.5 transition-all duration-300">
-              <BookOpen className="w-4 h-4" /> Ou découvre mes formations <ArrowRight className="w-4 h-4" />
-            </Link>
+            <LocalizedLink to="/contact" className="inline-flex items-center gap-2 bg-white text-morrys-700 font-bold px-8 py-4 rounded-full hover:bg-morrys-50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
+              {t('finalCta.ctaContact')} <ArrowRight className="w-4 h-4" />
+            </LocalizedLink>
+            <LocalizedLink to="/formations" className="inline-flex items-center gap-2 text-white font-bold text-sm tracking-wide hover:text-morrys-100 hover:translate-x-0.5 transition-all duration-300">
+              <BookOpen className="w-4 h-4" /> {t('finalCta.ctaFormations')} <ArrowRight className="w-4 h-4" />
+            </LocalizedLink>
           </div>
         </div>
       </motion.section>

@@ -1,5 +1,8 @@
 import * as Sentry from '@sentry/react';
 
+// Compatible Sentry SaaS OU GlitchTip auto-hébergé : GlitchTip accepte le même SDK
+// et le même format de DSN. Pour basculer, il suffit de pointer VITE_SENTRY_DSN vers
+// l'instance GlitchTip — aucun changement de code ici.
 const DSN = import.meta.env.VITE_SENTRY_DSN as string | undefined;
 
 export function initSentry() {

@@ -1,0 +1,41 @@
+{
+  "subtitle": "AI Tutor · Max-Morrys",
+  "greeting": "Hey {{name}}! I'm **Rysmo**, your AI tutor. I'm here to help you understand your courses, create quizzes, and recommend resources. How can I help you today?",
+  "defaultName": "Student",
+  "quickActions": {
+    "explainConcept": "Explain a marketing concept to me",
+    "reviewSession": "Quiz me for 10 minutes",
+    "generateQuiz": "Generate a quiz on what I've learned",
+    "recommendResource": "Recommend me a resource"
+  },
+  "errors": {
+    "generic": "Sorry, something went wrong. Try again in a few moments.",
+    "unauthenticated": "You need to be signed in to use Rysmo.",
+    "limitReached": "You've explored Rysmo to the fullest today! Keep going with a pack starting at 500 XOF.",
+    "notFound": "The Rysmo service is unavailable right now."
+  },
+  "voice": {
+    "notSupported": "Voice dictation isn't supported by this browser. Use Chrome or Edge.",
+    "notAllowed": "Microphone access denied. Allow the mic in your browser settings.",
+    "noSpeech": "I didn't hear anything. Try again, speaking closer to the mic.",
+    "audioCapture": "No microphone detected on this device.",
+    "network": "Network issue during voice recognition. Try again.",
+    "failed": "Voice dictation failed. Try again.",
+    "startFailed": "Couldn't start dictation. Try again in a moment."
+  },
+  "muteVoice": "Mute voice",
+  "enableVoice": "Enable voice",
+  "clearConversation": "Clear conversation",
+  "closeRysmo": "Close Rysmo",
+  "openRysmo": "Open Rysmo, AI tutor",
+  "upsellBanner": "Keep going now — pack from 500 XOF",
+  "inputPlaceholder": "Ask Rysmo your question...",
+  "stopDictation": "Stop dictation",
+  "startDictation": "Dictate a message",
+  "send": "Send",
+  "disclaimer": "AI voice · Rysmo can make mistakes",
+  "quotaTooltip": "View my Rysmo quotas and packs",
+  "quotaPack": "{{balance}} pack",
+  "quotaToday": "{{remaining}}/{{limit}} today",
+  "clubBonusTooltip": "Club Digitos bonus"
+}

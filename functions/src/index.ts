@@ -8,6 +8,9 @@ export { rysmo, getRysmoQuota, clearRysmoMemory } from './rysmo';
 // ── Admin functions ───────────────────────────────────────────────────────
 export { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './admin';
 
+// ── Recherche (Typesense, gated par secrets) ──────────────────────────────
+export { reindexSearch } from './search';
+
 // ── API Proxies ───────────────────────────────────────────────────────────
 export { spotifyProxy, youtubeProxy } from './proxy';
 
@@ -54,6 +57,9 @@ export { rss } from './rss';
 // ── Marketing feeds ──────────────────────────────────────────────────────
 export { catalog } from './catalog';
 
+// ── Créas réseaux sociaux (Satori HTML→PNG, texte parfait) ────────────────
+export { renderSocialCard } from './socialCard';
+
 // ── Club leaderboard (public aggregate) ───────────────────────────────────
 export { rebuildLeaderboardScheduled, rebuildLeaderboardManual } from './leaderboard';
 
@@ -65,3 +71,9 @@ export { parseCv } from './cv';
 
 // ── Digest IA hebdomadaire du Club ────────────────────────────────────────
 export { weeklyClubDigest, weeklyClubDigestManual } from './digest';
+
+// ── Traduction de contenu à la volée (FR -> EN, cache Firestore) ───────────
+export { translateContent } from './translate';
+
+// ── Backfill des slugs anglais (slug_en) pour le SEO ───────────────────────
+export { backfillSlugEn } from './backfillSlugEn';

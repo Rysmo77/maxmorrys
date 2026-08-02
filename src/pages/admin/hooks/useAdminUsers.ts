@@ -1,11 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   getAllUsers, adminUpdateUser, getUserEnrollments, getAllFormations,
   getClubSubscription, updateClubSubscriptionStatus, activateClubSubscription,
 } from '../../../lib/firestore';
+import { queryKeys } from '../../../lib/queryClient';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
-import type { User, Enrollment, Formation, ClubDigitosSubscription } from '../../../types';
+import type { User, Enrollment, ClubDigitosSubscription } from '../../../types';
 
 const adminManageEnrollment = httpsCallable<
   { action: 'create' | 'delete'; userId: string; formationId: string },
@@ -63,9 +66,9 @@ const emptyAddForm: AddForm = {
 };
 
 export function useAdminUsers(addToast: (type: 'success' | 'error', message: string) => void) {
+  const { t } = useTranslation('admin');
+  const queryClient = useQueryClient();
   // Users list
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
   // Edit user modal
@@ -76,7 +79,6 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
 
   // Formations tab in edit
   const [userEnrollments, setUserEnrollments] = useState<Enrollment[]>([]);
-  const [allFormations, setAllFormations] = useState<Formation[]>([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
   const [addFormationId, setAddFormationId] = useState('');
   const [addingFormation, setAddingFormation] = useState(false);
@@ -98,23 +100,22 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
   const [addForm, setAddForm] = useState<AddForm>(emptyAddForm);
   const [creatingUser, setCreatingUser] = useState(false);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    getAllUsers().then((data) => {
-      setUsers(data);
-      setLoading(false);
-    }).catch(() => {
-      addToast('error', 'Erreur lors du chargement des utilisateurs.');
-      setLoading(false);
-    });
-  }, [addToast]);
-
-  useEffect(() => { load(); }, [load]);
-
-  // Load all formations for the enrollment selector (once)
+  // Liste des utilisateurs — mise en cache par TanStack Query (cf. src/lib/queryClient.ts).
+  const { data: users = [], isLoading: loading, isError: usersError, refetch } = useQuery({
+    queryKey: queryKeys.allUsers,
+    queryFn: () => getAllUsers(),
+  });
   useEffect(() => {
-    getAllFormations().then(setAllFormations).catch(() => null);
-  }, []);
+    if (usersError) addToast('error', t('usersHook.loadError'));
+  }, [usersError, addToast, t]);
+
+  const load = useCallback(() => { refetch(); }, [refetch]);
+
+  // Formations pour le sélecteur d'inscription — chargées une fois, mises en cache.
+  const { data: allFormations = [] } = useQuery({
+    queryKey: queryKeys.allFormations,
+    queryFn: () => getAllFormations(),
+  });
 
   const openEditUser = useCallback((u: User) => {
     setEditUser(u);
@@ -142,11 +143,11 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
       const enrollments = await getUserEnrollments(uid);
       setUserEnrollments(enrollments);
     } catch {
-      addToast('error', 'Erreur lors du chargement des inscriptions.');
+      addToast('error', t('usersHook.enrollmentsLoadError'));
     } finally {
       setLoadingEnrollments(false);
     }
-  }, [addToast]);
+  }, [addToast, t]);
 
   const handleEditTabChange = useCallback((tab: EditTab) => {
     setEditTab(tab);
@@ -163,9 +164,9 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
       setLoadingRysmo(true);
       adminManageRysmoQuota({ userId: editUser.uid, action: 'get' })
         .then((res) => { setRysmoQuota(res.data); setLoadingRysmo(false); })
-        .catch(() => { setLoadingRysmo(false); addToast('error', 'Erreur lors du chargement des tokens IA.'); });
+        .catch(() => { setLoadingRysmo(false); addToast('error', t('usersHook.rysmoLoadError')); });
     }
-  }, [editUser, loadUserEnrollments, addToast]);
+  }, [editUser, loadUserEnrollments, addToast, t]);
 
   const handleResetRysmo = useCallback(async () => {
     if (!editUser) return;
@@ -173,34 +174,34 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
     try {
       const res = await adminManageRysmoQuota({ userId: editUser.uid, action: 'reset' });
       setRysmoQuota(res.data);
-      addToast('success', 'Compteur du jour réinitialisé.');
+      addToast('success', t('usersHook.rysmoReset'));
     } catch (err: unknown) {
-      const msg = (err as { message?: string })?.message || 'Erreur lors de la réinitialisation.';
+      const msg = (err as { message?: string })?.message || t('usersHook.rysmoResetError');
       addToast('error', msg);
     } finally {
       setTogglingRysmo(false);
     }
-  }, [editUser, addToast]);
+  }, [editUser, addToast, t]);
 
   const handleAddRysmoTokens = useCallback(async () => {
     if (!editUser) return;
     const amount = parseInt(addTokenAmount, 10);
     if (!Number.isInteger(amount) || amount < 1 || amount > 10000) {
-      addToast('error', 'Entre un nombre de tokens entre 1 et 10000.');
+      addToast('error', t('usersHook.tokensRange'));
       return;
     }
     setTogglingRysmo(true);
     try {
       const res = await adminManageRysmoQuota({ userId: editUser.uid, action: 'add', amount });
       setRysmoQuota(res.data);
-      addToast('success', `${amount} tokens IA ajoutés.`);
+      addToast('success', t('usersHook.tokensAdded', { amount }));
     } catch (err: unknown) {
-      const msg = (err as { message?: string })?.message || 'Erreur lors de l\'ajout de tokens.';
+      const msg = (err as { message?: string })?.message || t('usersHook.tokensAddError');
       addToast('error', msg);
     } finally {
       setTogglingRysmo(false);
     }
-  }, [editUser, addTokenAmount, addToast]);
+  }, [editUser, addTokenAmount, addToast, t]);
 
   const handleGrantClub = useCallback(async () => {
     if (!editUser) return;
@@ -216,14 +217,14 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
       await updateClubSubscriptionStatus(editUser.uid, 'active');
       const sub = await getClubSubscription(editUser.uid);
       setClubSub(sub);
-      addToast('success', 'Accès Club des Digitos activé.');
+      addToast('success', t('usersHook.clubGranted'));
     } catch (err: unknown) {
-      const msg = (err as { message?: string })?.message || 'Erreur lors de l\'activation du Club des Digitos.';
+      const msg = (err as { message?: string })?.message || t('usersHook.clubGrantError');
       addToast('error', msg);
     } finally {
       setTogglingClub(false);
     }
-  }, [editUser, addToast]);
+  }, [editUser, addToast, t]);
 
   const handleRevokeClub = useCallback(async (status: ClubDigitosSubscription['status']) => {
     if (!editUser) return;
@@ -232,13 +233,13 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
       await updateClubSubscriptionStatus(editUser.uid, status);
       const sub = await getClubSubscription(editUser.uid);
       setClubSub(sub);
-      addToast('success', status === 'cancelled' ? 'Accès révoqué.' : 'Statut mis à jour.');
+      addToast('success', status === 'cancelled' ? t('usersHook.accessRevoked') : t('usersHook.statusUpdated'));
     } catch {
-      addToast('error', 'Erreur lors de la mise à jour.');
+      addToast('error', t('usersHook.updateError'));
     } finally {
       setTogglingClub(false);
     }
-  }, [editUser, addToast]);
+  }, [editUser, addToast, t]);
 
   const handleSaveUser = useCallback(async () => {
     if (!editUser) return;
@@ -255,15 +256,16 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
         birthDate: editForm.birthDate || undefined,
         role: editForm.role,
       });
-      setUsers((prev) => prev.map((u) => u.uid === editUser.uid ? { ...u, ...editForm } : u));
-      addToast('success', 'Utilisateur mis à jour.');
+      queryClient.setQueryData<User[]>(queryKeys.allUsers, (prev) =>
+        (prev ?? []).map((u) => u.uid === editUser.uid ? { ...u, ...editForm } : u));
+      addToast('success', t('usersHook.userUpdated'));
       setEditUser(null);
     } catch {
-      addToast('error', 'Erreur lors de la mise à jour.');
+      addToast('error', t('usersHook.updateError'));
     } finally {
       setSaving(false);
     }
-  }, [editUser, editForm, addToast]);
+  }, [editUser, editForm, addToast, t, queryClient]);
 
   const handleAddEnrollment = useCallback(async () => {
     if (!editUser || !addFormationId) return;
@@ -272,32 +274,32 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
       await adminManageEnrollment({ action: 'create', userId: editUser.uid, formationId: addFormationId });
       await loadUserEnrollments(editUser.uid);
       setAddFormationId('');
-      addToast('success', 'Cours activé pour cet utilisateur.');
+      addToast('success', t('usersHook.courseActivated'));
     } catch (err: unknown) {
-      const msg = (err as { message?: string })?.message || 'Erreur lors de l\'activation du cours.';
+      const msg = (err as { message?: string })?.message || t('usersHook.courseActivateError');
       addToast('error', msg);
     } finally {
       setAddingFormation(false);
     }
-  }, [editUser, addFormationId, loadUserEnrollments, addToast]);
+  }, [editUser, addFormationId, loadUserEnrollments, addToast, t]);
 
   const handleRemoveEnrollment = useCallback(async (enrollment: { id: string; formationId: string }) => {
     setRemovingId(enrollment.id);
     try {
       await adminManageEnrollment({ action: 'delete', userId: editUser!.uid, formationId: enrollment.formationId });
       setUserEnrollments((prev) => prev.filter((e) => e.id !== enrollment.id));
-      addToast('success', 'Inscription supprimée.');
+      addToast('success', t('usersHook.enrollmentDeleted'));
     } catch (err: unknown) {
-      const msg = (err as { message?: string })?.message || 'Erreur lors de la suppression.';
+      const msg = (err as { message?: string })?.message || t('usersHook.enrollmentDeleteError');
       addToast('error', msg);
     } finally {
       setRemovingId(null);
     }
-  }, [editUser, addToast]);
+  }, [editUser, addToast, t]);
 
   const handleCreateUser = useCallback(async () => {
     if (!addForm.email || !addForm.password || !addForm.displayName) {
-      addToast('error', 'Nom, email et mot de passe sont obligatoires.');
+      addToast('error', t('usersHook.createRequiredFields'));
       return;
     }
     setCreatingUser(true);
@@ -311,17 +313,17 @@ export function useAdminUsers(addToast: (type: 'success' | 'error', message: str
         phone: addForm.phone.trim(),
         role: addForm.role,
       });
-      addToast('success', 'Utilisateur créé avec succès.');
+      addToast('success', t('usersHook.userCreated'));
       setShowAddUser(false);
       setAddForm(emptyAddForm);
       load();
     } catch (err: unknown) {
-      const msg = (err as { message?: string })?.message || 'Erreur lors de la création.';
+      const msg = (err as { message?: string })?.message || t('usersHook.createError');
       addToast('error', msg);
     } finally {
       setCreatingUser(false);
     }
-  }, [addForm, addToast, load]);
+  }, [addForm, addToast, load, t]);
 
   const filtered = useMemo(() => users.filter((u) =>
     u.displayName?.toLowerCase().includes(search.toLowerCase()) ||

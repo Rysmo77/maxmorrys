@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getPublishedFormations } from '../../lib/firestore';
 import type { Formation } from '../../types';
 import FormationCard from '../formations/FormationCard';
@@ -18,6 +19,7 @@ interface FormationCTAProps {
  * based on the content's category/tags. Falls back to a featured formation.
  */
 export default function FormationCTA({ category, tags = [] }: FormationCTAProps) {
+  const { t } = useTranslation('shared');
   const [formation, setFormation] = useState<Formation | null>(null);
 
   useEffect(() => {
@@ -55,13 +57,13 @@ export default function FormationCTA({ category, tags = [] }: FormationCTAProps)
       <div className="grid sm:grid-cols-2 gap-6 items-center">
         <div>
           <p className={`text-xs font-bold tracking-[0.3em] uppercase ${theme.eyebrow} mb-3`}>
-            Formation recommandée
+            {t('formationCta.eyebrow')}
           </p>
           <h3 className="text-xl sm:text-2xl font-black tracking-tight text-neutral-900 dark:text-white mb-3 leading-tight">
-            Va plus loin avec une formation pratique
+            {t('formationCta.title')}
           </h3>
           <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-            Tu as aimé cet article ? Passe à la pratique avec une formation conçue pour des résultats concrets.
+            {t('formationCta.text')}
           </p>
         </div>
         <FormationCard formation={formation} />

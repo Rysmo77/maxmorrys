@@ -1,4 +1,6 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Bold, Italic, Heading2, Heading3, List, ListOrdered, Link as LinkIcon, Image, Code, Eye, Edit3 } from 'lucide-react';
 import { cn, markdownToHtml } from '../../lib/utils';
 
@@ -16,57 +18,60 @@ interface ToolbarBtn {
   action: (selected: string, before: string, after: string) => { prefix: string; suffix: string; placeholder: string };
 }
 
-const tools: ToolbarBtn[] = [
+const buildTools = (t: TFunction): ToolbarBtn[] => [
   {
     icon: Bold,
-    title: 'Gras (Ctrl+B)',
-    action: (sel) => ({ prefix: '**', suffix: '**', placeholder: sel || 'texte en gras' }),
+    title: t('richEditor.boldTitle'),
+    action: (sel) => ({ prefix: '**', suffix: '**', placeholder: sel || t('richEditor.boldPlaceholder') }),
   },
   {
     icon: Italic,
-    title: 'Italique (Ctrl+I)',
-    action: (sel) => ({ prefix: '*', suffix: '*', placeholder: sel || 'texte en italique' }),
+    title: t('richEditor.italicTitle'),
+    action: (sel) => ({ prefix: '*', suffix: '*', placeholder: sel || t('richEditor.italicPlaceholder') }),
   },
   {
     icon: Heading2,
-    title: 'Titre H2',
-    action: () => ({ prefix: '\n## ', suffix: '', placeholder: 'Titre de section' }),
+    title: t('richEditor.h2Title'),
+    action: () => ({ prefix: '\n## ', suffix: '', placeholder: t('richEditor.h2Placeholder') }),
   },
   {
     icon: Heading3,
-    title: 'Titre H3',
-    action: () => ({ prefix: '\n### ', suffix: '', placeholder: 'Sous-titre' }),
+    title: t('richEditor.h3Title'),
+    action: () => ({ prefix: '\n### ', suffix: '', placeholder: t('richEditor.h3Placeholder') }),
   },
   {
     icon: List,
-    title: 'Liste à puces',
-    action: () => ({ prefix: '\n- ', suffix: '', placeholder: 'Élément de liste' }),
+    title: t('richEditor.bulletListTitle'),
+    action: () => ({ prefix: '\n- ', suffix: '', placeholder: t('richEditor.bulletListPlaceholder') }),
   },
   {
     icon: ListOrdered,
-    title: 'Liste numérotée',
-    action: () => ({ prefix: '\n1. ', suffix: '', placeholder: 'Élément numéroté' }),
+    title: t('richEditor.numberedListTitle'),
+    action: () => ({ prefix: '\n1. ', suffix: '', placeholder: t('richEditor.numberedListPlaceholder') }),
   },
   {
     icon: Code,
-    title: 'Code inline',
-    action: (sel) => ({ prefix: '`', suffix: '`', placeholder: sel || 'code' }),
+    title: t('richEditor.codeTitle'),
+    action: (sel) => ({ prefix: '`', suffix: '`', placeholder: sel || t('richEditor.codePlaceholder') }),
   },
   {
     icon: LinkIcon,
-    title: 'Lien',
-    action: (sel) => ({ prefix: '[', suffix: '](https://)', placeholder: sel || 'texte du lien' }),
+    title: t('richEditor.linkTitle'),
+    action: (sel) => ({ prefix: '[', suffix: '](https://)', placeholder: sel || t('richEditor.linkPlaceholder') }),
   },
   {
     icon: Image,
-    title: 'Image',
-    action: () => ({ prefix: '![', suffix: '](https://)', placeholder: 'description' }),
+    title: t('richEditor.imageTitle'),
+    action: () => ({ prefix: '![', suffix: '](https://)', placeholder: t('richEditor.imagePlaceholder') }),
   },
 ];
 
-export default function RichEditor({ value, onChange, label, placeholder = 'Rédigez votre contenu en markdown...', minHeight = '320px' }: RichEditorProps) {
+export default function RichEditor({ value, onChange, label, placeholder, minHeight = '320px' }: RichEditorProps) {
+  const { t } = useTranslation('ui');
   const [preview, setPreview] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const tools = useMemo(() => buildTools(t), [t]);
+  const resolvedPlaceholder = placeholder ?? t('richEditor.defaultPlaceholder');
 
   const insertMarkdown = (tool: ToolbarBtn) => {
     const ta = textareaRef.current;
@@ -120,14 +125,14 @@ export default function RichEditor({ value, onChange, label, placeholder = 'Réd
               onClick={() => setPreview(false)}
               className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors', !preview ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700')}
             >
-              <Edit3 className="w-3 h-3" /> Éditer
+              <Edit3 className="w-3 h-3" /> {t('richEditor.edit')}
             </button>
             <button
               type="button"
               onClick={() => setPreview(true)}
               className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors', preview ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700')}
             >
-              <Eye className="w-3 h-3" /> Aperçu
+              <Eye className="w-3 h-3" /> {t('richEditor.preview')}
             </button>
           </div>
         </div>
@@ -136,20 +141,20 @@ export default function RichEditor({ value, onChange, label, placeholder = 'Réd
           <div
             className="p-6 bg-white dark:bg-neutral-800 overflow-auto prose prose-sm dark:prose-invert max-w-none prose-headings:font-display prose-img:rounded-xl"
             style={{ minHeight }}
-            dangerouslySetInnerHTML={{ __html: markdownToHtml(value) || `<p class="text-neutral-400 italic">${placeholder}</p>` }}
+            dangerouslySetInnerHTML={{ __html: markdownToHtml(value) || `<p class="text-neutral-400 italic">${resolvedPlaceholder}</p>` }}
           />
         ) : (
           <textarea
             ref={textareaRef}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
+            placeholder={resolvedPlaceholder}
             className="w-full p-4 text-sm text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 placeholder-neutral-400 focus:outline-none font-mono resize-y"
             style={{ minHeight }}
           />
         )}
       </div>
-      <p className="text-xs text-neutral-400">Supporte le **Markdown** : `**gras**`, `*italique*`, `## Titre`, `- liste`</p>
+      <p className="text-xs text-neutral-400">{t('richEditor.markdownHint')}</p>
     </div>
   );
 }

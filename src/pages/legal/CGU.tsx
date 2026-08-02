@@ -1,105 +1,98 @@
-import { Link } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
+import LocalizedLink from '../../components/shared/LocalizedLink';
 import SEOHead from '../../components/seo/SEOHead';
 
 export default function CGU() {
+  const { t } = useTranslation('legal');
   return (
     <div className="pt-24 pb-20">
       <SEOHead
-        title="Conditions d'utilisation"
-        description="Conditions générales d'utilisation de la plateforme Max-Morrys et de l'assistant IA Rysmo."
+        title={t('cgu.seoTitle')}
+        description={t('cgu.seoDescription')}
       />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Retour à l'accueil
-        </Link>
+        <LocalizedLink to="/" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-8 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> {t('common.backToHome')}
+        </LocalizedLink>
 
-        <h1 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white mb-8">Conditions d'utilisation</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white mb-8">{t('cgu.title')}</h1>
 
         <div className="space-y-8 text-neutral-600 dark:text-neutral-400 leading-relaxed">
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">1. Objet</h2>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">{t('cgu.art1.heading')}</h2>
             <p>
-              Les présentes conditions générales d'utilisation (CGU) régissent l'accès et l'usage de la plateforme Max-Morrys, opérée par <strong>My Onoma SARL</strong>. En créant un compte ou en utilisant le service, tu acceptes ces conditions.
+              <Trans i18nKey="cgu.art1.body" t={t} components={[<span />, <strong />]} />
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">2. Compte & accès</h2>
-            <p>
-              L'accès à certaines fonctionnalités nécessite la création d'un compte. Tu es responsable de la confidentialité de tes identifiants et des activités réalisées depuis ton compte. Les informations fournies doivent être exactes et tenues à jour.
-            </p>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">{t('cgu.art2.heading')}</h2>
+            <p>{t('cgu.art2.body')}</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">3. Usage acceptable</h2>
-            <p>Tu t'engages à utiliser la plateforme de manière loyale. Sont notamment interdits :</p>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">{t('cgu.art3.heading')}</h2>
+            <p>{t('cgu.art3.intro')}</p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li>le partage de tes accès ou la revente de contenus de formation ;</li>
-              <li>toute tentative de contournement des protections ou de la sécurité ;</li>
-              <li>l'utilisation du service à des fins illégales, trompeuses ou nuisibles.</li>
+              <li>{t('cgu.art3.item1')}</li>
+              <li>{t('cgu.art3.item2')}</li>
+              <li>{t('cgu.art3.item3')}</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">4. Propriété intellectuelle</h2>
-            <p>
-              Les contenus (formations, articles, podcasts, vidéos, marques, logos) sont la propriété de Max-Morrys ou de ses partenaires et sont protégés. Ton accès te confère un droit d'usage personnel et non exclusif, sans droit de reproduction ou de diffusion.
-            </p>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">{t('cgu.art4.heading')}</h2>
+            <p>{t('cgu.art4.body')}</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">5. Assistant IA Rysmo</h2>
-            <p>
-              Rysmo est un assistant pédagogique propulsé par une intelligence artificielle (Google Gemini). Tu en prends connaissance et acceptes les points suivants :
-            </p>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">{t('cgu.art5.heading')}</h2>
+            <p>{t('cgu.art5.intro')}</p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
               <li>
-                Les réponses de Rysmo sont <strong>fournies à titre indicatif</strong> et peuvent comporter des erreurs ou des imprécisions. Elles ne constituent pas un conseil professionnel garanti ; vérifie les informations importantes.
+                <Trans i18nKey="cgu.art5.item1" t={t} components={[<span />, <strong />]} />
               </li>
               <li>
-                Pour personnaliser son accompagnement, Rysmo <strong>mémorise tes échanges</strong> et tient compte de ton <strong>activité de consultation des contenus</strong> (articles lus, temps passé, progression sur les audios/vidéos) afin de cerner tes objectifs, tes centres d'intérêt et ta progression. Cette mémoire est <strong>activée par défaut</strong>.
+                <Trans i18nKey="cgu.art5.item2" t={t} components={[<span />, <strong />, <span />, <strong />, <span />, <strong />]} />
               </li>
               <li>
-                Tu peux à tout moment <strong>désactiver</strong> cette mémoire et <strong>effacer</strong> les données associées depuis ton espace : <em>Espace → Rysmo → Mémoire</em>.
+                <Trans i18nKey="cgu.art5.item3" t={t} components={[<span />, <strong />, <span />, <strong />, <span />, <em />]} />
               </li>
               <li>
-                Le détail des données traitées, de leur finalité, de leur durée de conservation et de tes droits figure dans notre{' '}
-                <Link to="/legal/confidentialite" className="text-brand-600 dark:text-brand-400 underline underline-offset-2">Politique de confidentialité</Link>.
+                <Trans
+                  i18nKey="cgu.art5.item4"
+                  t={t}
+                  components={[<span />, <LocalizedLink to="/legal/confidentialite" className="text-brand-600 dark:text-brand-400 underline underline-offset-2" />]}
+                />
               </li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">6. Responsabilité</h2>
-            <p>
-              Max-Morrys met tout en œuvre pour assurer la disponibilité et la qualité du service, sans garantie d'absence totale d'interruption ou d'erreur. La responsabilité de Max-Morrys ne saurait être engagée pour les décisions prises sur la seule base des réponses de l'assistant IA.
-            </p>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">{t('cgu.art6.heading')}</h2>
+            <p>{t('cgu.art6.body')}</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">7. Modification des CGU</h2>
-            <p>
-              Ces conditions peuvent évoluer. En cas de modification substantielle, tu en seras informé. La poursuite de l'utilisation du service vaut acceptation des conditions mises à jour.
-            </p>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">{t('cgu.art7.heading')}</h2>
+            <p>{t('cgu.art7.body')}</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">8. Droit applicable</h2>
-            <p>
-              Les présentes CGU sont régies par le droit sénégalais, dans le respect du RGPD pour les utilisateurs de l'Union Européenne. Tout litige relève des juridictions compétentes.
-            </p>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">{t('cgu.art8.heading')}</h2>
+            <p>{t('cgu.art8.body')}</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">Contact</h2>
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">{t('cgu.contact.heading')}</h2>
             <p>
-              Pour toute question relative à ces conditions : <strong>contact@maxmorrys.me</strong>
+              <Trans i18nKey="cgu.contact.body" t={t} components={[<span />, <strong />]} />
             </p>
           </section>
 
           <p className="text-sm text-neutral-400 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-            Dernière mise à jour : Mai 2026
+            {t('common.lastUpdatedMay')}
           </p>
         </div>
       </div>

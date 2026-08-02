@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../components/ui/Toast';
 import { useAuth } from '../../../contexts/AuthContext';
 import {
@@ -10,9 +11,8 @@ import {
   getClubExclusiveInfos, saveClubInfo, deleteClubInfo,
   getEventRegistrations, getSessionRegistrations,
 } from '../../../lib/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadMedia } from '../../../lib/storage';
 import { captureError } from '../../../lib/sentry';
-import { storage } from '../../../config/firebase';
 import type {
   ClubDigitosSubscription, ClubDigitosPost, ClubDigitosEvent,
   ClubDigitosSession, ClubDigitosInfo, ClubEventRegistration, ClubSessionRegistration,
@@ -34,6 +34,7 @@ const EMPTY_INFO: Omit<ClubDigitosInfo, 'id'> = {
 };
 
 export function useAdminClub() {
+  const { t } = useTranslation('admin');
   const { addToast } = useToast();
   const { user } = useAuth();
   const [tab, setTab] = useState<AdminClubTab>('subscriptions');
@@ -107,7 +108,7 @@ export function useAdminClub() {
       setSessions(sess);
       setInfos(inf);
     } catch {
-      addToast('error', 'Erreur lors du chargement.');
+      addToast('error', t('clubHook.loadError'));
     } finally {
       setLoading(false);
     }
@@ -119,10 +120,10 @@ export function useAdminClub() {
     try {
       await updateClubSubscriptionStatus(userId, status);
       setSubscriptions((prev) => prev.map((s) => s.userId === userId ? { ...s, status } : s));
-      addToast('success', status === 'active' ? 'Abonnement activé.' : 'Abonnement mis à jour.');
+      addToast('success', status === 'active' ? t('clubHook.subActivated') : t('clubHook.subUpdated'));
     } catch (error: unknown) {
       captureError(error, { context: 'Update subscription status failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la mise à jour.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.subStatusError'));
     }
   };
 
@@ -130,10 +131,10 @@ export function useAdminClub() {
     try {
       await deleteClubPost(id);
       setPosts((prev) => prev.filter((p) => p.id !== id));
-      addToast('success', 'Publication supprimée.');
+      addToast('success', t('clubHook.postDeleted'));
     } catch (error: unknown) {
       captureError(error, { context: 'Delete club post failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.postDeleteError'));
     }
   };
 
@@ -149,10 +150,10 @@ export function useAdminClub() {
       await updateClubPost(id, { content: editPostContent.trim() });
       setPosts((prev) => prev.map((p) => p.id === id ? { ...p, content: editPostContent.trim() } : p));
       setEditingPostId(null);
-      addToast('success', 'Publication mise à jour.');
+      addToast('success', t('clubHook.postUpdated'));
     } catch (error: unknown) {
       captureError(error, { context: 'Edit club post failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la modification.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.postEditError'));
     } finally {
       setSavingPostEdit(false);
     }
@@ -174,10 +175,10 @@ export function useAdminClub() {
       await deleteClubComment(postId, commentId);
       setPostComments((prev) => ({ ...prev, [postId]: (prev[postId] ?? []).filter((c) => c.id !== commentId) }));
       setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, commentsCount: Math.max(0, (p.commentsCount ?? 1) - 1) } : p));
-      addToast('success', 'Commentaire supprimé.');
+      addToast('success', t('clubHook.commentDeleted'));
     } catch (error: unknown) {
       captureError(error, { context: 'Delete club comment failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.commentDeleteError'));
     }
   };
 
@@ -215,10 +216,10 @@ export function useAdminClub() {
       setShowPostForm(false);
       const updated = await getClubPosts(100);
       setPosts(updated);
-      addToast('success', 'Publication admin créée.');
+      addToast('success', t('clubHook.adminPostCreated'));
     } catch (error: unknown) {
       captureError(error, { context: 'Create admin post failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la publication.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.postPublishError'));
     } finally {
       setPublishingPost(false);
     }
@@ -242,7 +243,7 @@ export function useAdminClub() {
   const handleEventImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { addToast('error', 'L\'image ne doit pas dépasser 5 Mo.'); return; }
+    if (file.size > 5 * 1024 * 1024) { addToast('error', t('clubHook.imageMaxSize')); return; }
     setEventImageFile(file);
     setEventImagePreview(URL.createObjectURL(file));
     if (eventImageInputRef.current) eventImageInputRef.current.value = '';
@@ -256,9 +257,7 @@ export function useAdminClub() {
       if (eventImageFile) {
         setUploadingEventImage(true);
         const ext = eventImageFile.name.split('.').pop() || 'jpg';
-        const fileRef = storageRef(storage, `club_events/${Date.now()}.${ext}`);
-        await uploadBytes(fileRef, eventImageFile);
-        imageUrl = await getDownloadURL(fileRef);
+        imageUrl = await uploadMedia(eventImageFile, `club_events/${Date.now()}.${ext}`);
         setUploadingEventImage(false);
         setEventImageFile(null);
         setEventImagePreview('');
@@ -267,10 +266,10 @@ export function useAdminClub() {
       setShowEventForm(false);
       const updated = await getClubEvents();
       setEvents(updated);
-      addToast('success', editEvent ? 'Événement mis à jour.' : 'Événement créé.');
+      addToast('success', editEvent ? t('clubHook.eventUpdated') : t('clubHook.eventCreated'));
     } catch (error: unknown) {
       captureError(error, { context: 'Save event failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.saveError'));
     } finally {
       setSavingEvent(false);
       setUploadingEventImage(false);
@@ -281,10 +280,10 @@ export function useAdminClub() {
     try {
       await deleteClubEvent(id);
       setEvents((prev) => prev.filter((e) => e.id !== id));
-      addToast('success', 'Événement supprimé.');
+      addToast('success', t('clubHook.eventDeleted'));
     } catch (error: unknown) {
       captureError(error, { context: 'Delete event failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.eventDeleteError'));
     }
   };
 
@@ -306,7 +305,7 @@ export function useAdminClub() {
   const handleSessionImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { addToast('error', 'L\'image ne doit pas dépasser 5 Mo.'); return; }
+    if (file.size > 5 * 1024 * 1024) { addToast('error', t('clubHook.imageMaxSize')); return; }
     setSessionImageFile(file);
     setSessionImagePreview(URL.createObjectURL(file));
     if (sessionImageInputRef.current) sessionImageInputRef.current.value = '';
@@ -320,9 +319,7 @@ export function useAdminClub() {
       if (sessionImageFile) {
         setUploadingSessionImage(true);
         const ext = sessionImageFile.name.split('.').pop() || 'jpg';
-        const fileRef = storageRef(storage, `club_sessions/${Date.now()}.${ext}`);
-        await uploadBytes(fileRef, sessionImageFile);
-        imageUrl = await getDownloadURL(fileRef);
+        imageUrl = await uploadMedia(sessionImageFile, `club_sessions/${Date.now()}.${ext}`);
         setUploadingSessionImage(false);
         setSessionImageFile(null);
         setSessionImagePreview('');
@@ -331,10 +328,10 @@ export function useAdminClub() {
       setShowSessionForm(false);
       const updated = await getClubSessions();
       setSessions(updated);
-      addToast('success', editSession ? 'Session mise à jour.' : 'Session créée.');
+      addToast('success', editSession ? t('clubHook.sessionUpdated') : t('clubHook.sessionCreated'));
     } catch (error: unknown) {
       captureError(error, { context: 'Save session failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.saveError'));
     } finally {
       setSavingSession(false);
       setUploadingSessionImage(false);
@@ -345,10 +342,10 @@ export function useAdminClub() {
     try {
       await deleteClubSession(id);
       setSessions((prev) => prev.filter((s) => s.id !== id));
-      addToast('success', 'Session supprimée.');
+      addToast('success', t('clubHook.sessionDeleted'));
     } catch (error: unknown) {
       captureError(error, { context: 'Delete session failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.sessionDeleteError'));
     }
   };
 
@@ -372,10 +369,10 @@ export function useAdminClub() {
       setShowInfoForm(false);
       const updated = await getClubExclusiveInfos();
       setInfos(updated);
-      addToast('success', editInfo ? 'Info mise à jour.' : 'Info créée.');
+      addToast('success', editInfo ? t('clubHook.infoUpdated') : t('clubHook.infoCreated'));
     } catch (error: unknown) {
       captureError(error, { context: 'Save info failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.saveError'));
     } finally {
       setSavingInfo(false);
     }
@@ -385,10 +382,10 @@ export function useAdminClub() {
     try {
       await deleteClubInfo(id);
       setInfos((prev) => prev.filter((i) => i.id !== id));
-      addToast('success', 'Info supprimée.');
+      addToast('success', t('clubHook.infoDeleted'));
     } catch (error: unknown) {
       captureError(error, { context: 'Delete info failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+      addToast('error', error instanceof Error ? error.message : t('clubHook.infoDeleteError'));
     }
   };
 

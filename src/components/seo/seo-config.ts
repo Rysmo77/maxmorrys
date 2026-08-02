@@ -3,8 +3,8 @@ export const SITE_NAME = 'Max-Morrys';
 export const DEFAULT_TITLE = 'Max-Morrys | Maîtrisez le digital, accélérez votre croissance';
 export const DEFAULT_DESCRIPTION =
   'Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l\'IA. Par Max-Morrys depuis Dakar.';
-// Placeholder Firebase Storage en attendant l'upload du fichier OG dédié (1200×630).
-export const DEFAULT_OG_IMAGE = 'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Je-te-forme%2F2252.jpg?alt=media&token=c7942987-73f4-45e3-9a9e-2735a1eb1927';
+// Image OG par défaut, servie depuis Cloudflare R2 (média migré depuis Firebase Storage).
+export const DEFAULT_OG_IMAGE = 'https://media.maxmorrys.me/Je-te-forme/2252.jpg';
 export const TWITTER_HANDLE = '@max_morrys';
 
 export const SOCIAL_LINKS = [

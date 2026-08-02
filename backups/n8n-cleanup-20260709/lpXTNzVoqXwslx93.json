@@ -1,0 +1,1257 @@
+{
+ "updatedAt": "2026-04-23T18:32:37.000Z",
+ "createdAt": "2026-04-09T10:30:37.595Z",
+ "id": "lpXTNzVoqXwslx93",
+ "name": "[ARCHIVED] WF-01 — Veille Géolocalisée & Recherche de Contenu",
+ "description": null,
+ "active": false,
+ "isArchived": true,
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "0 5 * * *"
+      }
+     ]
+    }
+   },
+   "id": "wf01-cron",
+   "name": "Cron — 5h00 quotidien",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    512
+   ]
+  },
+  {
+   "parameters": {
+    "url": "https://trends.google.com/trending/rss?geo=SN",
+    "options": {}
+   },
+   "id": "wf01-google-search-sn",
+   "name": "Trends — Sénégal",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    112
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://trends.google.com/trending/rss?geo=CI",
+    "options": {}
+   },
+   "id": "wf01-google-search-ci",
+   "name": "Trends — Côte d'Ivoire",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    304
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=formation+en+ligne+marketing+digital+Afrique&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-elearning-trends",
+   "name": "Alerte — Formation en ligne Afrique",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    704
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=marketing+digital+afrique+senegal+entrepreneuriat&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-google-news",
+   "name": "Google News RSS — Afrique",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    912
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://techcabal.com/feed/",
+    "options": {}
+   },
+   "id": "wf01-rss-techcabal",
+   "name": "RSS — TechCabal",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    1104
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://www.jeuneafrique.com/feed/",
+    "options": {}
+   },
+   "id": "wf01-rss-jeuneafrique",
+   "name": "RSS — JeuneAfrique",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    1312
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://blog.hubspot.com/marketing/rss.xml",
+    "options": {}
+   },
+   "id": "wf01-rss-hubspot",
+   "name": "RSS — HubSpot Marketing",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    1504
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://www.socialmediaexaminer.com/feed/",
+    "options": {}
+   },
+   "id": "wf01-rss-smexaminer",
+   "name": "RSS — Social Media Examiner",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    1712
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC2Aatk6UdrOBjhFXpFN5kew",
+    "options": {}
+   },
+   "id": "wf01-youtube-trending",
+   "name": "YouTube XML — Marketing Mania",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    1904
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "const allResults = [];\n\n// Google Trends RSS\nconst trendsNodes = [\n  { name: 'Trends SN', node: 'Trends \\u2014 S\\u00e9n\\u00e9gal' },\n  { name: 'Trends CI', node: 'Trends \\u2014 C\\u00f4te d\\'Ivoire' },\n  { name: 'Trends CM', node: 'Trends \\u2014 Cameroun' }\n];\n\n// Google News Alerts\nconst alertNodes = [\n  { name: 'Google News Afrique', node: 'Google News RSS \\u2014 Afrique' },\n  { name: 'Formation en ligne', node: 'Alerte \\u2014 Formation en ligne Afrique' },\n  { name: 'Entrepreneuriat', node: 'Alerte \\u2014 Entrepreneuriat digital Afrique Ouest' },\n  { name: 'R\\u00e9seaux sociaux', node: 'Alerte \\u2014 R\\u00e9seaux sociaux Afrique' },\n  { name: 'E-commerce Mobile Money', node: 'Alerte \\u2014 E-commerce & Mobile Money Afrique' },\n  { name: 'IA Afrique', node: 'Alerte \\u2014 IA & Tech Afrique' },\n  { name: 'Personal Branding', node: 'Alerte \\u2014 Personal Branding & Freelance' },\n  { name: 'Startup Afrique', node: 'GNews \\u2014 Startup Afrique francophone' },\n  { name: 'Instagram TikTok', node: 'GNews \\u2014 Marketing Instagram TikTok' },\n  { name: 'Formation SN', node: 'GNews \\u2014 Formation professionnelle S\\u00e9n\\u00e9gal' },\n  { name: 'E-commerce Afrique', node: 'GNews \\u2014 E-commerce croissance Afrique' },\n  { name: 'IA Marketing', node: 'GNews \\u2014 IA et marketing digital' }\n];\n\n// Blogs RSS\nconst blogNodes = [\n  { name: 'TechCabal', node: 'RSS \\u2014 TechCabal' },\n  { name: 'JeuneAfrique', node: 'RSS \\u2014 JeuneAfrique' },\n  { name: 'HubSpot', node: 'RSS \\u2014 HubSpot Marketing' },\n  { name: 'Social Media Examiner', node: 'RSS \\u2014 Social Media Examiner' }\n];\n\n// YouTube XML channels\nconst ytNodes = [\n  { name: 'YT Marketing Mania', node: 'YouTube XML \\u2014 Marketing Mania' },\n  { name: 'YT Scaler', node: 'YouTube XML \\u2014 Scaler (Business)' },\n  { name: 'YT Max-Morrys', node: 'YouTube XML \\u2014 Max-Morrys' }\n];\n\nconst allRssNodes = [...trendsNodes, ...alertNodes, ...blogNodes, ...ytNodes];\n\nfor (const src of allRssNodes) {\n  try {\n    const items = $(src.node).all();\n    for (const item of items.slice(0, 5)) {\n      const j = item.json;\n      // YouTube XML format: { title, link, author, published }\n      // Standard RSS: { title, link, contentSnippet, pubDate }\n      allResults.push({\n        title: j.title || '',\n        snippet: (j.contentSnippet || j.content || j['media:group']?.['media:description']?.[0] || '').substring(0, 300),\n        url: j.link || '',\n        source: src.name,\n        date: j.pubDate || j.isoDate || j.published || ''\n      });\n    }\n  } catch (e) {}\n}\n\nconst seen = new Set();\nconst unique = allResults.filter(r => {\n  const key = (r.title || r.snippet).toLowerCase().substring(0, 50);\n  if (!key || seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\nreturn [{ json: { merged_sources: unique, count: unique.length, sources_count: allRssNodes.length, date: new Date().toISOString() } }];"
+   },
+   "id": "wf01-merge",
+   "name": "Merge — Fusionner & Dédupliquer",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    704,
+    512
+   ]
+  },
+  {
+   "parameters": {
+    "modelId": {
+     "__rl": true,
+     "value": "models/gemini-3-flash-preview",
+     "mode": "list",
+     "cachedResultName": "models/gemini-3-flash-preview"
+    },
+    "messages": {
+     "values": [
+      {
+       "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : VEILLE STRATEGIQUE ET PROPOSITIONS DE CONTENU\n\nA partir des {{ $json.count }} sources ({{ $json.sources_count }} canaux) ci-dessous, propose **15 idees de contenu** classees par pertinence pour Max-Morrys :\n- 5 pour les reseaux sociaux (posts court)\n- 5 pour des articles de blog (long format)\n- 5 pour des sujets de cours/formation\n\nSOURCES :\n{{ JSON.stringify($json.merged_sources) }}\n\nCRITERES :\n- Pertinent pour entrepreneurs et professionnels digitaux en Afrique francophone (Ouest ET Centrale)\n- Ancres dans le contexte local (pas du generique occidental)\n- Reponds a un besoin reel ou une question courante\n- Actionnable — on peut appliquer apres avoir lu/vu\n- Tutoiement systematique\n\nREPONSE JSON STRICT :\n{\n  \"geo_context\": {\n    \"region\": \"Afrique francophone (Ouest et Centrale)\",\n    \"trending_topics_local\": [],\n    \"cultural_events_upcoming\": [],\n    \"local_news_relevant\": []\n  },\n  \"social_media_ideas\": [{\n    \"subject\": \"\",\n    \"angle\": \"\",\n    \"why_relevant_locally\": \"\",\n    \"networks\": [],\n    \"format\": \"\",\n    \"relevance_score\": 0,\n    \"source_url\": \"\",\n    \"hashtags_local\": [],\n    \"suggested_hook\": \"1 ligne accrocheuse tutoiement\",\n    \"best_time_local\": \"\"\n  }],\n  \"article_ideas\": [{\n    \"subject\": \"\",\n    \"angle\": \"\",\n    \"why_relevant_locally\": \"\",\n    \"main_keyword\": \"\",\n    \"search_volume_estimate\": \"\",\n    \"relevance_score\": 0,\n    \"source_url\": \"\"\n  }],\n  \"course_ideas\": [{\n    \"subject\": \"\",\n    \"why_needed_locally\": \"\",\n    \"target_level\": \"debutant|intermediaire|avance\",\n    \"target_audience\": \"\",\n    \"estimated_duration\": \"\",\n    \"relevance_score\": 0,\n    \"market_gap\": \"\"\n  }]\n}"
+      }
+     ]
+    },
+    "jsonOutput": true,
+    "builtInTools": {},
+    "options": {
+     "maxOutputTokens": 4096,
+     "temperature": 0.7
+    }
+   },
+   "id": "wf01-gemini-native",
+   "name": "Gemini — Analyser & Proposer",
+   "type": "@n8n/n8n-nodes-langchain.googleGemini",
+   "typeVersion": 1.1,
+   "position": [
+    1008,
+    512
+   ],
+   "credentials": {
+    "googlePalmApi": {
+     "id": "wQPLkug1dt6DGOt4",
+     "name": "Google AI Max-Morrys LMS"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "create",
+    "base": {
+     "__rl": true,
+     "value": "apppkEbepilHCYiso",
+     "mode": "list",
+     "cachedResultName": "Max-Morrys PB"
+    },
+    "table": {
+     "__rl": true,
+     "value": "tblOA6igI4bSz3fwS",
+     "mode": "list",
+     "cachedResultName": "Banque Idees Social"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "Date": "={{ $json.Date }}",
+      "Sujet": "={{ $json.Sujet }}",
+      "Status": "={{ $json.Status }}",
+      "Angle": "={{ $json.Angle }}",
+      "Pertinence_Locale": "={{ $json.Pertinence_Locale }}",
+      "Reseaux": "={{ $json.Reseaux }}",
+      "Format": "={{ $json.Format }}",
+      "Score": "={{ $json.Score }}",
+      "Hashtags_Locaux": "={{ $json.Hashtags_Locaux }}",
+      "Source": "={{ $json.Source }}"
+     },
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "Date",
+       "displayName": "Date",
+       "required": false,
+       "defaultMatch": false,
+       "canBeUsedToMatch": true,
+       "display": true,
+       "type": "string",
+       "readOnly": false,
+       "removed": false
+      },
+      {
+       "id": "Sujet",
+       "displayName": "Sujet",
+       "required": false,
+       "defaultMatch": false,
+       "canBeUsedToMatch": true,
+       "display": true,
+       "type": "string",
+       "readOnly": false,
+       "removed": false
+      },
+      {
+       "id": "Angle",
+       "displayName": "Angle",
+       "required": false,
+       "defaultMatch": false,
+       "canBeUsedToMatch": true,
+       "display": true,
+       "type": "string",
+       "readOnly": false,
+       "removed": false
+      },
+      {
+       "id": "Pertinence_Locale",
+       "displayName": "Pertinence_Locale",
+       "required": false,
+       "defaultMatch": false,
+       "canBeUsedToMatch": true,
+       "display": true,
+       "type": "string",
+       "readOnly": false,
+       "removed": false
+      },
+      {
+       "id": "Reseaux",
+       "displayName": "Reseaux",
+       "required": false,
+       "defaultMatch": false,
+       "canBeUsedToMatch": true,
+       "display": true,
+       "type": "string",
+       "readOnly": false,
+       "removed": false
+      },
+      {
+       "id": "Format",
+       "displayName": "Format",
+       "required": false,
+       "defaultMatch": false,
+       "canBeUsedToMatch": true,
+       "display": true,
+       "type": "string",
+       "readOnly": false,
+       "removed": false
+      },
+      {
+       "id": "Score",
+       "displayName": "Score",
+       "required": false,
+       "defaultMatch": false,
+       "canBeUsedToMatch": true,
+       "display": true,
+       "type": "number",
+       "readOnly": false,
+       "removed": false
+      },
+      {
+       "id": "Source",
+       "displayName": "Source",
+       "required": false,
+       "defaultMatch": false,
+       "canBeUsedToMatch": true,
+       "display": true,
+       "type": "string",
+       "readOnly": false,
+       "removed": false
+      },
+      {
+       "id": "Hashtags_Locaux",
+       "displayName": "Hashtags_Locaux",
+       "required": false,
+       "defaultMatch": false,
+       "canBeUsedToMatch": true,
+       "display": true,
+       "type": "string",
+       "readOnly": false,
+       "removed": false
+      },
+      {
+       "id": "Status",
+       "displayName": "Status",
+       "required": false,
+       "defaultMatch": false,
+       "canBeUsedToMatch": true,
+       "display": true,
+       "type": "string",
+       "readOnly": false,
+       "removed": false
+      }
+     ],
+     "attemptToConvertTypes": true,
+     "convertFieldsToString": true
+    },
+    "options": {
+     "typecast": true
+    }
+   },
+   "id": "wf01-sheets-social",
+   "name": "Airtable — Idées Social",
+   "type": "n8n-nodes-base.airtable",
+   "typeVersion": 2.1,
+   "position": [
+    1600,
+    208
+   ],
+   "credentials": {
+    "airtableTokenApi": {
+     "id": "ik5KqgcooeDvHpFb",
+     "name": "Airtable Max-Morrys"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "operation": "create",
+    "base": {
+     "__rl": true,
+     "value": "apppkEbepilHCYiso",
+     "mode": "list",
+     "cachedResultName": "Max-Morrys PB"
+    },
+    "table": {
+     "__rl": true,
+     "value": "tblA8gHrbE78CfukY",
+     "mode": "list",
+     "cachedResultName": "Banque Idees Articles"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "Date": "={{ $json.Date }}",
+      "Titre_SEO": "={{ $json.Titre_SEO }}",
+      "Status": "={{ $json.Status }}",
+      "Mot_Cle": "={{ $json.Mot_Cle }}",
+      "Angle_Local": "={{ $json.Angle_Local }}",
+      "Volume_Estime": "={{ $json.Volume_Estime }}",
+      "Score": "={{ $json.Score }}"
+     },
+     "matchingColumns": [],
+     "schema": [],
+     "attemptToConvertTypes": true,
+     "convertFieldsToString": true
+    },
+    "options": {
+     "typecast": true
+    }
+   },
+   "id": "wf01-sheets-articles",
+   "name": "Airtable — Idées Articles",
+   "type": "n8n-nodes-base.airtable",
+   "typeVersion": 2.1,
+   "position": [
+    1600,
+    400
+   ],
+   "credentials": {
+    "airtableTokenApi": {
+     "id": "ik5KqgcooeDvHpFb",
+     "name": "Airtable Max-Morrys"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "operation": "create",
+    "base": {
+     "__rl": true,
+     "value": "apppkEbepilHCYiso",
+     "mode": "list",
+     "cachedResultName": "Max-Morrys PB"
+    },
+    "table": {
+     "__rl": true,
+     "value": "tblcn2MyeFR9IekHX",
+     "mode": "list",
+     "cachedResultName": "Banque Idees Cours"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "Date": "={{ $json.Date }}",
+      "Titre": "={{ $json.Titre }}",
+      "Status": "={{ $json.Status }}",
+      "Niveau": "={{ $json.Niveau }}",
+      "Audience": "={{ $json.Audience }}",
+      "Besoin_Local": "={{ $json.Besoin_Local }}",
+      "Duree": "={{ $json.Duree }}",
+      "Score": "={{ $json.Score }}"
+     },
+     "matchingColumns": [],
+     "schema": [],
+     "attemptToConvertTypes": true,
+     "convertFieldsToString": true
+    },
+    "options": {
+     "typecast": true
+    }
+   },
+   "id": "wf01-sheets-cours",
+   "name": "Airtable — Idées Cours",
+   "type": "n8n-nodes-base.airtable",
+   "typeVersion": 2.1,
+   "position": [
+    1600,
+    608
+   ],
+   "credentials": {
+    "airtableTokenApi": {
+     "id": "ik5KqgcooeDvHpFb",
+     "name": "Airtable Max-Morrys"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "boolean": [
+      {
+       "value1": "={{ $json.has_urgent }}",
+       "value2": true
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "wf01-check-urgent",
+   "name": "IF — Score ≥ 8 ?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    1600,
+    800
+   ]
+  },
+  {
+   "parameters": {
+    "url": "https://trends.google.com/trending/rss?geo=CM",
+    "options": {}
+   },
+   "id": "wf01-trends-cm",
+   "name": "Trends — Cameroun",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    2112
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=entrepreneuriat+digital+Dakar+Abidjan+Douala&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-alerte-entrepreneuriat",
+   "name": "Alerte — Entrepreneuriat digital Afrique Ouest",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    2304
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=r%C3%A9seaux+sociaux+Instagram+TikTok+Afrique+francophone&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-alerte-social-media",
+   "name": "Alerte — Réseaux sociaux Afrique",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    2512
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=e-commerce+paiement+mobile+Wave+Orange+Money+Afrique&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-alerte-ecommerce",
+   "name": "Alerte — E-commerce & Mobile Money Afrique",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    2704
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=intelligence+artificielle+IA+Afrique+francophone&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-alerte-ia-afrique",
+   "name": "Alerte — IA & Tech Afrique",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    2912
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=personal+branding+freelance+Afrique+francophone&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-alerte-branding",
+   "name": "Alerte — Personal Branding & Freelance",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    3104
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCWjEiMNZv4g3P9BWbmnYHkA",
+    "options": {}
+   },
+   "id": "wf01-yt-scaler",
+   "name": "YouTube XML — Scaler (Business)",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    3104
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://www.youtube.com/feeds/videos.xml?channel_id=%%YOUTUBE_CHANNEL_ID%%",
+    "options": {}
+   },
+   "id": "wf01-yt-maxmorrys",
+   "name": "YouTube XML — Max-Morrys",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    3312
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=startup+tech+Afrique+francophone+Dakar+Abidjan&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-gnews-startup",
+   "name": "GNews — Startup Afrique francophone",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    3504
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=marketing+Instagram+TikTok+tendances+2026+Afrique&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-gnews-insta-tiktok",
+   "name": "GNews — Marketing Instagram TikTok",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    3712
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=formation+professionnelle+emploi+jeunes+S%C3%A9n%C3%A9gal+2026&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-gnews-formation-sn",
+   "name": "GNews — Formation professionnelle Sénégal",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    3904
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=e-commerce+croissance+Afrique+Jumia+marketplace+2026&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-gnews-ecommerce-afrique",
+   "name": "GNews — E-commerce croissance Afrique",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    4112
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://news.google.com/rss/search?q=intelligence+artificielle+marketing+digital+outils+IA&hl=fr&gl=SN&ceid=SN:fr",
+    "options": {}
+   },
+   "id": "wf01-gnews-ia-marketing",
+   "name": "GNews — IA et marketing digital",
+   "type": "n8n-nodes-base.rssFeedRead",
+   "typeVersion": 1,
+   "position": [
+    304,
+    4304
+   ],
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "const input = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\nlet parsed;\ntry {\n  if (input.social_media_ideas) {\n    parsed = input;\n  } else if (input.content?.parts) {\n    const text = input.content.parts.map(p => p.text || '').join('');\n    parsed = JSON.parse(text);\n  } else if (typeof input === 'string') {\n    parsed = JSON.parse(input);\n  } else {\n    parsed = JSON.parse(JSON.stringify(input));\n  }\n} catch (e) {\n  throw new Error('Erreur parsing Gemini: ' + e.message);\n}\n\nconst items = (parsed.social_media_ideas || []).map(idea => ({\n  json: {\n    Date: today,\n    Sujet: idea.subject || '',\n    Angle: idea.angle || '',\n    Pertinence_Locale: idea.why_relevant_locally || '',\n    Reseaux: (idea.networks || []).join(', '),\n    Format: idea.format || '',\n    Score: idea.relevance_score || 0,\n    Source: idea.source_url || '',\n    Hashtags_Locaux: (idea.hashtags_local || []).join(', '),\n    Status: 'nouveau'\n  }\n}));\n\nreturn items.length ? items : [{ json: { Date: today, Sujet: 'Aucune idée générée', Status: 'erreur' } }];\n"
+   },
+   "id": "wf01-parse-social",
+   "name": "Parse — Idées Social (5 items)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1312,
+    224
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const input = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\nlet parsed;\ntry {\n  if (input.social_media_ideas) {\n    parsed = input;\n  } else if (input.content?.parts) {\n    const text = input.content.parts.map(p => p.text || '').join('');\n    parsed = JSON.parse(text);\n  } else if (typeof input === 'string') {\n    parsed = JSON.parse(input);\n  } else {\n    parsed = JSON.parse(JSON.stringify(input));\n  }\n} catch (e) {\n  throw new Error('Erreur parsing Gemini: ' + e.message);\n}\n\nconst items = (parsed.article_ideas || []).map(idea => ({\n  json: {\n    Date: today,\n    Titre_SEO: idea.subject || '',\n    Mot_Cle: idea.main_keyword || '',\n    Angle_Local: idea.why_relevant_locally || '',\n    Volume_Estime: idea.search_volume_estimate || '',\n    Score: idea.relevance_score || 0,\n    Status: 'nouveau'\n  }\n}));\n\nreturn items.length ? items : [{ json: { Date: today, Titre_SEO: 'Aucune idée générée', Status: 'erreur' } }];\n"
+   },
+   "id": "wf01-parse-articles",
+   "name": "Parse — Idées Articles (5 items)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1312,
+    512
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const input = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\nlet parsed;\ntry {\n  if (input.social_media_ideas) {\n    parsed = input;\n  } else if (input.content?.parts) {\n    const text = input.content.parts.map(p => p.text || '').join('');\n    parsed = JSON.parse(text);\n  } else if (typeof input === 'string') {\n    parsed = JSON.parse(input);\n  } else {\n    parsed = JSON.parse(JSON.stringify(input));\n  }\n} catch (e) {\n  throw new Error('Erreur parsing Gemini: ' + e.message);\n}\n\nconst items = (parsed.course_ideas || []).map(idea => ({\n  json: {\n    Date: today,\n    Titre: idea.subject || '',\n    Niveau: idea.target_level || '',\n    Audience: idea.target_audience || '',\n    Besoin_Local: idea.why_needed_locally || '',\n    Duree: idea.estimated_duration || '',\n    Score: idea.relevance_score || 0,\n    Status: 'nouveau'\n  }\n}));\n\nreturn items.length ? items : [{ json: { Date: today, Titre: 'Aucune idée générée', Status: 'erreur' } }];\n"
+   },
+   "id": "wf01-parse-cours",
+   "name": "Parse — Idées Cours (5 items)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1312,
+    816
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const input = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\nlet parsed;\ntry {\n  if (input.social_media_ideas) {\n    parsed = input;\n  } else if (input.content?.parts) {\n    const text = input.content.parts.map(p => p.text || '').join('');\n    parsed = JSON.parse(text);\n  } else if (typeof input === 'string') {\n    parsed = JSON.parse(input);\n  } else {\n    parsed = JSON.parse(JSON.stringify(input));\n  }\n} catch (e) {\n  throw new Error('Erreur parsing Gemini: ' + e.message);\n}\n\nconst all = [\n  ...(parsed.social_media_ideas || []),\n  ...(parsed.article_ideas || []),\n  ...(parsed.course_ideas || [])\n];\n\nconst highScore = all.filter(i => (i.relevance_score || 0) >= 8);\n\nreturn [{ json: {\n  has_urgent: highScore.length > 0,\n  high_score_items: highScore.map(i => ({\n    subject: i.subject || '',\n    score: i.relevance_score || 0,\n    why: i.why_relevant_locally || i.why_needed_locally || ''\n  })),\n  count: highScore.length\n} }];\n"
+   },
+   "id": "wf01-parse-urgent",
+   "name": "Parse — Vérifier urgents (score ≥ 8)",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1312,
+    1120
+   ]
+  }
+ ],
+ "connections": {
+  "Cron — 5h00 quotidien": {
+   "main": [
+    [
+     {
+      "node": "Trends — Sénégal",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Trends — Côte d'Ivoire",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Alerte — Formation en ligne Afrique",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Google News RSS — Afrique",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "RSS — TechCabal",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "RSS — JeuneAfrique",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "RSS — HubSpot Marketing",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "RSS — Social Media Examiner",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "YouTube XML — Marketing Mania",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Trends — Cameroun",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Alerte — Entrepreneuriat digital Afrique Ouest",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Alerte — Réseaux sociaux Afrique",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Alerte — E-commerce & Mobile Money Afrique",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Alerte — IA & Tech Afrique",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Alerte — Personal Branding & Freelance",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "YouTube XML — Scaler (Business)",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "YouTube XML — Max-Morrys",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "GNews — Startup Afrique francophone",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "GNews — Marketing Instagram TikTok",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "GNews — Formation professionnelle Sénégal",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "GNews — E-commerce croissance Afrique",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "GNews — IA et marketing digital",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Trends — Sénégal": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Trends — Côte d'Ivoire": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Alerte — Formation en ligne Afrique": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Google News RSS — Afrique": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "RSS — TechCabal": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "RSS — JeuneAfrique": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "RSS — HubSpot Marketing": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "RSS — Social Media Examiner": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Merge — Fusionner & Dédupliquer": {
+   "main": [
+    [
+     {
+      "node": "Gemini — Analyser & Proposer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Gemini — Analyser & Proposer": {
+   "main": [
+    [
+     {
+      "node": "Parse — Idées Social (5 items)",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Parse — Idées Articles (5 items)",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Parse — Idées Cours (5 items)",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Parse — Vérifier urgents (score ≥ 8)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "IF — Score ≥ 8 ?": {
+   "main": [
+    []
+   ]
+  },
+  "Trends — Cameroun": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Alerte — Entrepreneuriat digital Afrique Ouest": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Alerte — Réseaux sociaux Afrique": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Alerte — E-commerce & Mobile Money Afrique": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Alerte — IA & Tech Afrique": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Alerte — Personal Branding & Freelance": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "YouTube XML — Marketing Mania": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "YouTube XML — Scaler (Business)": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "YouTube XML — Max-Morrys": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "GNews — Startup Afrique francophone": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "GNews — Marketing Instagram TikTok": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "GNews — Formation professionnelle Sénégal": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "GNews — E-commerce croissance Afrique": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "GNews — IA et marketing digital": {
+   "main": [
+    [
+     {
+      "node": "Merge — Fusionner & Dédupliquer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Parse — Idées Social (5 items)": {
+   "main": [
+    [
+     {
+      "node": "Airtable — Idées Social",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Airtable — Idées Social",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Parse — Idées Articles (5 items)": {
+   "main": [
+    [
+     {
+      "node": "Airtable — Idées Articles",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Airtable — Idées Articles",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Parse — Idées Cours (5 items)": {
+   "main": [
+    [
+     {
+      "node": "Airtable — Idées Cours",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Airtable — Idées Cours",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Parse — Vérifier urgents (score ≥ 8)": {
+   "main": [
+    [
+     {
+      "node": "IF — Score ≥ 8 ?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "saveManualExecutions": true,
+  "callerPolicy": "workflowsFromSameOwner",
+  "availableInMCP": false,
+  "binaryMode": "separate"
+ },
+ "staticData": {
+  "node:Cron — 5h00 quotidien": {
+   "recurrenceRules": []
+  }
+ },
+ "meta": {
+  "templateCredsSetupCompleted": true
+ },
+ "nodeGroups": [],
+ "pinData": {},
+ "versionId": "22aa6a82-2356-4d9d-ae75-953c174a111c",
+ "activeVersionId": null,
+ "versionCounter": 81,
+ "triggerCount": 1,
+ "sourceWorkflowId": null,
+ "shared": [
+  {
+   "updatedAt": "2026-04-09T10:30:37.597Z",
+   "createdAt": "2026-04-09T10:30:37.597Z",
+   "role": "workflow:owner",
+   "workflowId": "lpXTNzVoqXwslx93",
+   "projectId": "MovWUY92SBioz1Tw",
+   "project": {
+    "updatedAt": "2026-04-09T09:50:14.678Z",
+    "createdAt": "2026-04-09T09:45:54.695Z",
+    "id": "MovWUY92SBioz1Tw",
+    "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+    "type": "personal",
+    "icon": null,
+    "description": null,
+    "customTelemetryTags": [],
+    "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+   }
+  }
+ ],
+ "tags": [],
+ "activeVersion": null
+}

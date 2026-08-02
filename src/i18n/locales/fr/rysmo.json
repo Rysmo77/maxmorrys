@@ -1,0 +1,41 @@
+{
+  "subtitle": "Répétiteur IA · Max-Morrys",
+  "greeting": "Salut {{name}} ! Je suis **Rysmo**, ton répétiteur IA. Je suis là pour t'aider à comprendre tes cours, créer des quiz, et recommander des ressources. Comment puis-je t'aider aujourd'hui ?",
+  "defaultName": "Étudiant",
+  "quickActions": {
+    "explainConcept": "Explique-moi un concept marketing",
+    "reviewSession": "Fais-moi réviser 10 minutes",
+    "generateQuiz": "Génère un quiz sur ce que j'ai appris",
+    "recommendResource": "Recommande-moi une ressource"
+  },
+  "errors": {
+    "generic": "Désolé, une erreur s'est produite. Réessaie dans quelques instants.",
+    "unauthenticated": "Tu dois être connecté pour utiliser Rysmo.",
+    "limitReached": "Tu as exploré Rysmo à fond aujourd'hui ! Continue avec un pack à partir de 500 XOF.",
+    "notFound": "Le service Rysmo n'est pas disponible pour le moment."
+  },
+  "voice": {
+    "notSupported": "La dictée vocale n'est pas supportée par ce navigateur. Utilise Chrome ou Edge.",
+    "notAllowed": "Accès au micro refusé. Autorise le micro dans les réglages du navigateur.",
+    "noSpeech": "Je n'ai rien entendu. Réessaie en parlant plus près du micro.",
+    "audioCapture": "Aucun micro détecté sur cet appareil.",
+    "network": "Problème réseau pendant la reconnaissance vocale. Réessaie.",
+    "failed": "La dictée vocale a échoué. Réessaie.",
+    "startFailed": "Impossible de démarrer la dictée. Réessaie dans un instant."
+  },
+  "muteVoice": "Couper la voix",
+  "enableVoice": "Activer la voix",
+  "clearConversation": "Effacer la conversation",
+  "closeRysmo": "Fermer Rysmo",
+  "openRysmo": "Ouvrir Rysmo, répétiteur IA",
+  "upsellBanner": "Continuer maintenant — pack dès 500 XOF",
+  "inputPlaceholder": "Pose ta question à Rysmo...",
+  "stopDictation": "Arrêter la dictée",
+  "startDictation": "Dicter un message",
+  "send": "Envoyer",
+  "disclaimer": "Voix IA · Rysmo peut faire des erreurs",
+  "quotaTooltip": "Voir mes quotas et packs Rysmo",
+  "quotaPack": "{{balance}} pack",
+  "quotaToday": "{{remaining}}/{{limit}} aujourd'hui",
+  "clubBonusTooltip": "Bonus Club Digitos"
+}

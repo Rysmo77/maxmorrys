@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import { Mail, ArrowLeft } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import { localizeAuthError } from '../../lib/auth-errors';
+import LocalizedLink from '../../components/shared/LocalizedLink';
 
 export default function ResetPassword() {
+  const { t } = useTranslation('auth');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -21,9 +23,9 @@ export default function ResetPassword() {
     try {
       await resetPassword(email);
       setSent(true);
-      addToast('success', 'Email de réinitialisation envoyé.');
+      addToast('success', t('reset.successToast'));
     } catch (error: unknown) {
-      addToast('error', localizeAuthError(error));
+      addToast('error', localizeAuthError(error, t));
     }
     setLoading(false);
   };
@@ -32,14 +34,14 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center px-4 pt-20 pb-12 bg-neutral-50 dark:bg-neutral-950">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-block mb-8">
+          <LocalizedLink to="/" className="inline-block mb-8">
             <span className="font-black text-2xl tracking-tight text-neutral-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
               MAX-MORRYS
             </span>
-          </Link>
-          <h1 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-2">Mot de passe oublié</h1>
+          </LocalizedLink>
+          <h1 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-2">{t('reset.title')}</h1>
           <p className="text-neutral-600 dark:text-neutral-400">
-            {sent ? 'Consulte ta boîte email' : 'Entre ton email pour réinitialiser ton mot de passe'}
+            {sent ? t('reset.subtitleSent') : t('reset.subtitleDefault')}
           </p>
         </div>
 
@@ -50,32 +52,36 @@ export default function ResetPassword() {
                 <Mail className="w-8 h-8 text-success-600 dark:text-success-400" />
               </div>
               <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
-                Un email avec un lien de réinitialisation a été envoyé à{' '}
-                <strong className="text-neutral-900 dark:text-white">{email}</strong>.
+                <Trans
+                  t={t}
+                  i18nKey="reset.sentMessage"
+                  values={{ email }}
+                  components={{ strong: <strong className="text-neutral-900 dark:text-white" /> }}
+                />
               </p>
-              <Link to="/connexion">
-                <Button variant="outline" className="w-full">Retour à la connexion</Button>
-              </Link>
+              <LocalizedLink to="/connexion">
+                <Button variant="outline" className="w-full">{t('reset.backToLogin')}</Button>
+              </LocalizedLink>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <Input
-                label="Email"
+                label={t('reset.emailLabel')}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="votre@email.com"
+                placeholder={t('reset.emailPlaceholder')}
                 icon={<Mail className="w-4 h-4" />}
               />
-              <Button type="submit" className="w-full" loading={loading}>Envoyer le lien</Button>
+              <Button type="submit" className="w-full" loading={loading}>{t('reset.submit')}</Button>
             </form>
           )}
         </div>
 
         <div className="text-center mt-6">
-          <Link to="/connexion" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Retour à la connexion
-          </Link>
+          <LocalizedLink to="/connexion" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> {t('reset.backToLogin')}
+          </LocalizedLink>
         </div>
       </div>
     </div>

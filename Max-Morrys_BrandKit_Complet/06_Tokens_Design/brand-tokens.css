@@ -1,0 +1,34 @@
+:root {
+  --mm-bleu-profond: #072B49;
+  --mm-bleu-principal: #0074C5;
+  --mm-bleu-vif: #0C93E7;
+  --mm-bleu-tres-clair: #F0F7FF;
+  --mm-orange: #ED9516;
+  --mm-violet: #8A3DE8;
+  --mm-turquoise: #08BDAA;
+  --mm-corail: #FA5A2E;
+  --mm-vert-croissance: #22C55E;
+  --mm-texte-principal: #071B3A;
+  --mm-texte-secondaire: #52627A;
+  --mm-fond: #FFFFFF;
+  --mm-font-display: Merriweather Display, Georgia, serif;
+  --mm-font-body: Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+  --mm-radius-card: 24px;
+  --mm-radius-button: 999px;
+  --mm-shadow-card: 0 8px 28px rgba(7, 43, 73, 0.08);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--mm-bleu-principal), var(--mm-bleu-vif));
+  color: white;
+  border-radius: var(--mm-radius-button);
+  padding: 12px 22px;
+  font-weight: 700;
+}
+
+.card {
+  background: white;
+  border: 1px solid rgba(7,43,73,.10);
+  border-radius: var(--mm-radius-card);
+  box-shadow: var(--mm-shadow-card);
+}

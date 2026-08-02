@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { Crown, Users, Rss, Calendar, Video, Bell, Trophy, Briefcase, Flag, Loader2, RefreshCw } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import { cn } from '../../lib/utils';
+import { useFormat } from '../../hooks/useFormat';
 import { useAdminClub } from './hooks/useAdminClub';
 import type { AdminClubTab } from './hooks/useAdminClub';
 import ClubSubscriptionsTab from './components/ClubSubscriptionsTab';
@@ -14,18 +16,20 @@ import ClubOpportunitiesAdminTab from './components/ClubOpportunitiesAdminTab';
 import ClubReportsAdminTab from './components/ClubReportsAdminTab';
 
 export default function AdminClubDigitos() {
+  const { t } = useTranslation('adminClub');
+  const { locale } = useFormat();
   const club = useAdminClub();
 
   const tabs = [
-    { id: 'subscriptions' as AdminClubTab, icon: Users, label: 'Abonnements', count: club.subscriptions.length },
-    { id: 'posts' as AdminClubTab, icon: Rss, label: 'Publications', count: club.posts.length },
-    { id: 'events' as AdminClubTab, icon: Calendar, label: 'Événements', count: club.events.length },
-    { id: 'sessions' as AdminClubTab, icon: Video, label: 'Sessions Live', count: club.sessions.length },
-    { id: 'infos' as AdminClubTab, icon: Bell, label: 'Infos exclusives', count: club.infos.length },
-    { id: 'challenges' as AdminClubTab, icon: Trophy, label: 'Défis', count: 0 },
-    { id: 'members' as AdminClubTab, icon: Users, label: 'Profils membres', count: 0 },
-    { id: 'opportunities' as AdminClubTab, icon: Briefcase, label: 'Opportunités', count: 0 },
-    { id: 'reports' as AdminClubTab, icon: Flag, label: 'Signalements', count: 0 },
+    { id: 'subscriptions' as AdminClubTab, icon: Users, label: t('page.tabs.subscriptions'), count: club.subscriptions.length },
+    { id: 'posts' as AdminClubTab, icon: Rss, label: t('page.tabs.posts'), count: club.posts.length },
+    { id: 'events' as AdminClubTab, icon: Calendar, label: t('page.tabs.events'), count: club.events.length },
+    { id: 'sessions' as AdminClubTab, icon: Video, label: t('page.tabs.sessions'), count: club.sessions.length },
+    { id: 'infos' as AdminClubTab, icon: Bell, label: t('page.tabs.infos'), count: club.infos.length },
+    { id: 'challenges' as AdminClubTab, icon: Trophy, label: t('page.tabs.challenges'), count: 0 },
+    { id: 'members' as AdminClubTab, icon: Users, label: t('page.tabs.members'), count: 0 },
+    { id: 'opportunities' as AdminClubTab, icon: Briefcase, label: t('page.tabs.opportunities'), count: 0 },
+    { id: 'reports' as AdminClubTab, icon: Flag, label: t('page.tabs.reports'), count: 0 },
   ];
 
   return (
@@ -36,11 +40,11 @@ export default function AdminClubDigitos() {
             <Crown className="w-5 h-5 text-plum-600 dark:text-plum-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Club des Digitos</h1>
-            <p className="text-sm text-neutral-500">Gestion de la communauté exclusive</p>
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{t('page.title')}</h1>
+            <p className="text-sm text-neutral-500">{t('page.subtitle')}</p>
           </div>
         </div>
-        <button onClick={club.load} disabled={club.loading} className="p-2 rounded-xl text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" title="Actualiser">
+        <button onClick={club.load} disabled={club.loading} className="p-2 rounded-xl text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" title={t('page.refresh')}>
           <RefreshCw className={`w-5 h-5 ${club.loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
@@ -48,9 +52,9 @@ export default function AdminClubDigitos() {
       {/* Stats */}
       <div className="grid sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'Membres actifs', value: club.activeCount, color: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400' },
-          { label: 'En attente de paiement', value: club.pendingCount, color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400' },
-          { label: 'Revenus Club (FCFA)', value: club.revenue.toLocaleString(), color: 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400' },
+          { label: t('page.stats.activeMembers'), value: club.activeCount, color: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400' },
+          { label: t('page.stats.pendingPayment'), value: club.pendingCount, color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400' },
+          { label: t('page.stats.revenue'), value: club.revenue.toLocaleString(locale), color: 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400' },
         ].map((s) => (
           <Card key={s.label} hover>
             <p className="text-2xl font-bold text-neutral-900 dark:text-white">{s.value}</p>

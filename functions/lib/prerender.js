@@ -36,12 +36,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.prerender = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
+const params_1 = require("firebase-functions/params");
+const segments_1 = require("./segments");
+const translate_1 = require("./translate");
+const googleAiKey = (0, params_1.defineSecret)('GOOGLE_AI_API_KEY');
 const SITE_URL = 'https://maxmorrys.me';
 const SITE_NAME = 'Max-Morrys';
 const DEFAULT_TITLE = 'Max-Morrys | Maîtrisez le digital, accélérez votre croissance';
 const DEFAULT_DESCRIPTION = 'Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l\'IA. Par Max-Morrys depuis Dakar.';
 // Placeholder Firebase Storage en attendant l'upload du fichier OG dédié (1200×630).
-const DEFAULT_OG_IMAGE = 'https://firebasestorage.googleapis.com/v0/b/max-morrys.firebasestorage.app/o/Je-te-forme%2F2252.jpg?alt=media&token=c7942987-73f4-45e3-9a9e-2735a1eb1927';
+const DEFAULT_OG_IMAGE = 'https://media.maxmorrys.me/Je-te-forme/2252.jpg';
 function escapeHtml(str) {
     return str
         .replace(/&/g, '&amp;')
@@ -225,73 +229,58 @@ const staticPages = {
     },
 };
 // ── Dynamic content meta lookup ──────────────────────────────────────────
-async function getContentMeta(path) {
-    var _a;
+/** Résout un doc publié par slug (ou slug_en en anglais). */
+async function resolveBySlug(col, slug, lang) {
     const db = admin.firestore();
+    if (lang === 'en') {
+        const byEn = await db.collection(col).where('slug_en', '==', slug).limit(1).get();
+        if (!byEn.empty && byEn.docs[0].data().status === 'published')
+            return byEn.docs[0].data();
+    }
+    const snap = await db.collection(col).where('slug', '==', slug).where('status', '==', 'published').limit(1).get();
+    return snap.empty ? null : snap.docs[0].data();
+}
+/** Canonical + alternates hreflang d'un contenu (à spreader en fin d'objet meta). */
+function altMeta(seg, data, lang) {
+    const frUrl = `${SITE_URL}/${seg}/${data.slug}`;
+    const enUrl = `${SITE_URL}${(0, segments_1.enPath)(`/${seg}/${data.slug_en || data.slug}`)}`;
+    return {
+        canonical: data.canonicalUrl || (lang === 'en' ? enUrl : frUrl),
+        altFr: frUrl,
+        altEn: enUrl,
+        lang,
+    };
+}
+async function getContentMeta(path, lang) {
+    var _a;
     // Blog post: /blog/:slug
     const blogMatch = path.match(/^\/blog\/([^/?#]+)$/);
     if (blogMatch) {
         const slug = blogMatch[1];
-        const snap = await db
-            .collection('blog')
-            .where('slug', '==', slug)
-            .where('status', '==', 'published')
-            .limit(1)
-            .get();
-        if (snap.empty)
+        const post = await resolveBySlug('blog', slug, lang);
+        if (!post)
             return null;
-        const post = snap.docs[0].data();
-        return {
-            title: `${post.metaTitle || post.title} | ${SITE_NAME}`,
-            description: post.metaDescription || post.excerpt || '',
-            ogType: 'article',
-            ogImage: post.ogImage || post.coverImage || DEFAULT_OG_IMAGE,
-            canonical: post.canonicalUrl || `${SITE_URL}/blog/${slug}`,
-            noIndex: post.noIndex,
-            publishedAt: post.publishedAt,
-            modifiedAt: post.updatedAt,
-            h1: post.title,
-            bodyText: post.excerpt + (post.content ? '\n\n' + stripMarkdown(post.content).slice(0, 2000) : ''),
-            jsonLd: Object.assign({ '@context': 'https://schema.org', '@type': 'Article', headline: post.title, description: post.excerpt, image: post.coverImage, datePublished: post.publishedAt, dateModified: post.updatedAt || post.publishedAt, author: { '@type': 'Person', name: post.author || 'Max-Morrys' }, publisher: {
+        return Object.assign({ title: `${post.metaTitle || post.title} | ${SITE_NAME}`, description: post.metaDescription || post.excerpt || '', ogType: 'article', ogImage: post.ogImage || post.coverImage || DEFAULT_OG_IMAGE, noIndex: post.noIndex, publishedAt: post.publishedAt, modifiedAt: post.updatedAt, h1: post.title, bodyText: post.excerpt + (post.content ? '\n\n' + stripMarkdown(post.content).slice(0, 2000) : ''), jsonLd: Object.assign({ '@context': 'https://schema.org', '@type': 'Article', headline: post.title, description: post.excerpt, image: post.coverImage, datePublished: post.publishedAt, dateModified: post.updatedAt || post.publishedAt, author: { '@type': 'Person', name: post.author || 'Max-Morrys' }, publisher: {
                     '@type': 'Organization',
                     name: SITE_NAME,
                     logo: { '@type': 'ImageObject', url: DEFAULT_OG_IMAGE },
                 }, mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${slug}` }, articleSection: post.category, keywords: Array.isArray(post.tags) ? post.tags.join(', ') : undefined, articleBody: post.content ? stripMarkdown(post.content) : post.excerpt }, (typeof post.readTime === 'number' && post.readTime > 0 && {
                 timeRequired: `PT${post.readTime}M`,
-            })),
-            breadcrumbs: [
+            })), breadcrumbs: [
                 { name: 'Accueil', url: `${SITE_URL}/` },
                 { name: 'Blog', url: `${SITE_URL}/blog` },
-                { name: post.title, url: `${SITE_URL}/blog/${slug}` },
-            ],
-        };
+                { name: post.title, url: `${SITE_URL}/blog/${post.slug}` },
+            ] }, altMeta('blog', post, lang));
     }
     // Formation: /formations/:slug
     const formMatch = path.match(/^\/formations\/([^/?#]+)$/);
     if (formMatch) {
         const slug = formMatch[1];
-        const snap = await db
-            .collection('formations')
-            .where('slug', '==', slug)
-            .where('status', '==', 'published')
-            .limit(1)
-            .get();
-        if (snap.empty)
+        const f = await resolveBySlug('formations', slug, lang);
+        if (!f)
             return null;
-        const f = snap.docs[0].data();
         const longDesc = f.longDescription ? stripMarkdown(f.longDescription).slice(0, 2000) : '';
-        return {
-            title: `${f.metaTitle || f.title} | ${SITE_NAME}`,
-            description: f.metaDescription || f.description || '',
-            ogType: 'website',
-            ogImage: f.ogImage || f.coverImage || DEFAULT_OG_IMAGE,
-            canonical: f.canonicalUrl || `${SITE_URL}/formations/${slug}`,
-            noIndex: f.noIndex,
-            publishedAt: f.publishedAt,
-            modifiedAt: f.updatedAt,
-            h1: f.title,
-            bodyText: f.description + (longDesc ? '\n\n' + longDesc : ''),
-            jsonLd: Object.assign({ '@context': 'https://schema.org', '@type': 'Course', name: f.title, description: f.description, provider: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL }, educationalLevel: f.level, inLanguage: 'fr', image: f.coverImage, offers: {
+        return Object.assign({ title: `${f.metaTitle || f.title} | ${SITE_NAME}`, description: f.metaDescription || f.description || '', ogType: 'website', ogImage: f.ogImage || f.coverImage || DEFAULT_OG_IMAGE, noIndex: f.noIndex, publishedAt: f.publishedAt, modifiedAt: f.updatedAt, h1: f.title, bodyText: f.description + (longDesc ? '\n\n' + longDesc : ''), jsonLd: Object.assign({ '@context': 'https://schema.org', '@type': 'Course', name: f.title, description: f.description, provider: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL }, educationalLevel: f.level, inLanguage: 'fr', image: f.coverImage, offers: {
                     '@type': 'Offer',
                     price: (_a = f.promoPrice) !== null && _a !== void 0 ? _a : f.price,
                     priceCurrency: 'XOF',
@@ -304,39 +293,20 @@ async function getContentMeta(path) {
                     bestRating: 5,
                     ratingCount: f.students || 1,
                 },
-            })),
-            breadcrumbs: [
+            })), breadcrumbs: [
                 { name: 'Accueil', url: `${SITE_URL}/` },
                 { name: 'Formations', url: `${SITE_URL}/formations` },
-                { name: f.title, url: `${SITE_URL}/formations/${slug}` },
-            ],
-        };
+                { name: f.title, url: `${SITE_URL}/formations/${f.slug}` },
+            ] }, altMeta('formations', f, lang));
     }
     // Podcast: /podcasts/:slug
     const podMatch = path.match(/^\/podcasts\/([^/?#]+)$/);
     if (podMatch) {
         const slug = podMatch[1];
-        const snap = await db
-            .collection('podcasts')
-            .where('slug', '==', slug)
-            .where('status', '==', 'published')
-            .limit(1)
-            .get();
-        if (snap.empty)
+        const p = await resolveBySlug('podcasts', slug, lang);
+        if (!p)
             return null;
-        const p = snap.docs[0].data();
-        return {
-            title: `${p.metaTitle || p.title} | ${SITE_NAME}`,
-            description: p.metaDescription || p.description || '',
-            ogType: 'music.song',
-            ogImage: p.ogImage || p.coverImage || DEFAULT_OG_IMAGE,
-            canonical: p.canonicalUrl || `${SITE_URL}/podcasts/${slug}`,
-            noIndex: p.noIndex,
-            publishedAt: p.publishedAt,
-            modifiedAt: p.updatedAt,
-            h1: p.title,
-            bodyText: (p.description || '') + (p.transcript ? '\n\n' + stripMarkdown(p.transcript).slice(0, 2000) : ''),
-            jsonLd: {
+        return Object.assign({ title: `${p.metaTitle || p.title} | ${SITE_NAME}`, description: p.metaDescription || p.description || '', ogType: 'music.song', ogImage: p.ogImage || p.coverImage || DEFAULT_OG_IMAGE, noIndex: p.noIndex, publishedAt: p.publishedAt, modifiedAt: p.updatedAt, h1: p.title, bodyText: (p.description || '') + (p.transcript ? '\n\n' + stripMarkdown(p.transcript).slice(0, 2000) : ''), jsonLd: {
                 '@context': 'https://schema.org',
                 '@type': 'PodcastEpisode',
                 name: p.title,
@@ -350,39 +320,20 @@ async function getContentMeta(path) {
                     name: 'Le Podcast du Marketing — Max-Morrys',
                     url: `${SITE_URL}/podcasts`,
                 },
-            },
-            breadcrumbs: [
+            }, breadcrumbs: [
                 { name: 'Accueil', url: `${SITE_URL}/` },
                 { name: 'Podcasts', url: `${SITE_URL}/podcasts` },
-                { name: p.title, url: `${SITE_URL}/podcasts/${slug}` },
-            ],
-        };
+                { name: p.title, url: `${SITE_URL}/podcasts/${p.slug}` },
+            ] }, altMeta('podcasts', p, lang));
     }
     // Video: /videos/:slug
     const vidMatch = path.match(/^\/videos\/([^/?#]+)$/);
     if (vidMatch) {
         const slug = vidMatch[1];
-        const snap = await db
-            .collection('videos')
-            .where('slug', '==', slug)
-            .where('status', '==', 'published')
-            .limit(1)
-            .get();
-        if (snap.empty)
+        const v = await resolveBySlug('videos', slug, lang);
+        if (!v)
             return null;
-        const v = snap.docs[0].data();
-        return {
-            title: `${v.metaTitle || v.title} | ${SITE_NAME}`,
-            description: v.metaDescription || v.description || '',
-            ogType: 'video.other',
-            ogImage: v.ogImage || v.thumbnailUrl || DEFAULT_OG_IMAGE,
-            canonical: v.canonicalUrl || `${SITE_URL}/videos/${slug}`,
-            noIndex: v.noIndex,
-            publishedAt: v.publishedAt,
-            modifiedAt: v.updatedAt,
-            h1: v.title,
-            bodyText: v.description || '',
-            jsonLd: {
+        return Object.assign({ title: `${v.metaTitle || v.title} | ${SITE_NAME}`, description: v.metaDescription || v.description || '', ogType: 'video.other', ogImage: v.ogImage || v.thumbnailUrl || DEFAULT_OG_IMAGE, noIndex: v.noIndex, publishedAt: v.publishedAt, modifiedAt: v.updatedAt, h1: v.title, bodyText: v.description || '', jsonLd: {
                 '@context': 'https://schema.org',
                 '@type': 'VideoObject',
                 name: v.title,
@@ -392,13 +343,11 @@ async function getContentMeta(path) {
                 duration: v.duration,
                 embedUrl: v.videoUrl,
                 url: `${SITE_URL}/videos/${slug}`,
-            },
-            breadcrumbs: [
+            }, breadcrumbs: [
                 { name: 'Accueil', url: `${SITE_URL}/` },
                 { name: 'Vidéos', url: `${SITE_URL}/videos` },
-                { name: v.title, url: `${SITE_URL}/videos/${slug}` },
-            ],
-        };
+                { name: v.title, url: `${SITE_URL}/videos/${v.slug}` },
+            ] }, altMeta('videos', v, lang));
     }
     return null;
 }
@@ -476,6 +425,12 @@ function buildMetaInjection(meta) {
     lines.push(`<title>${t}</title>`);
     lines.push(`<meta name="description" content="${d}" />`);
     lines.push(`<link rel="canonical" href="${u}" />`);
+    // Alternates hreflang (SEO multilingue).
+    if (meta.altFr && meta.altEn) {
+        lines.push(`<link rel="alternate" hreflang="fr" href="${escapeHtml(meta.altFr)}" />`);
+        lines.push(`<link rel="alternate" hreflang="en" href="${escapeHtml(meta.altEn)}" />`);
+        lines.push(`<link rel="alternate" hreflang="x-default" href="${escapeHtml(meta.altFr)}" />`);
+    }
     if (meta.noIndex) {
         lines.push('<meta name="robots" content="noindex, nofollow" />');
     }
@@ -486,7 +441,7 @@ function buildMetaInjection(meta) {
     lines.push(`<meta property="og:image" content="${img}" />`);
     lines.push('<meta property="og:image:width" content="1200" />');
     lines.push('<meta property="og:image:height" content="630" />');
-    lines.push('<meta property="og:locale" content="fr_FR" />');
+    lines.push(`<meta property="og:locale" content="${meta.lang === 'en' ? 'en_US' : 'fr_FR'}" />`);
     lines.push(`<meta property="og:site_name" content="${SITE_NAME}" />`);
     lines.push('<meta name="twitter:card" content="summary_large_image" />');
     lines.push('<meta name="twitter:site" content="@maxmorrys" />');
@@ -541,6 +496,8 @@ function buildSeoBody(meta) {
 }
 function injectIntoShell(shell, meta) {
     let result = stripDefaultMeta(shell);
+    // Attribut lang du <html> selon la langue de la page.
+    result = result.replace(/<html\s+lang="[^"]*"/i, `<html lang="${meta.lang === 'en' ? 'en' : 'fr'}"`);
     const injection = buildMetaInjection(meta);
     // Insert after <head> opening so it appears near the top
     result = result.replace(/<head>/i, `<head>\n    ${injection}`);
@@ -552,23 +509,59 @@ function injectIntoShell(shell, meta) {
     return result;
 }
 // ── Cloud Function entry point ───────────────────────────────────────────
-exports.prerender = (0, https_1.onRequest)({ region: 'europe-west1', memory: '256MiB', cpu: 1 }, async (req, res) => {
+/** Traduit les champs visibles de la meta FR→EN (cache `translations/`). */
+async function translateMetaToEn(meta) {
+    const apiKey = googleAiKey.value();
+    const sources = [meta.title, meta.description, meta.h1 || '', meta.bodyText || ''];
+    if (!apiKey)
+        return meta;
     try {
-        const path = req.path.replace(/\/+$/, '') || '/';
-        let meta = staticPages[path] || null;
-        if (!meta) {
-            meta = await getContentMeta(path);
+        const map = await (0, translate_1.translateCached)(sources, apiKey);
+        const tr = (s) => (s ? map[s] || s : s);
+        return Object.assign(Object.assign({}, meta), { title: tr(meta.title), description: tr(meta.description), h1: tr(meta.h1), bodyText: tr(meta.bodyText) });
+    }
+    catch (e) {
+        console.warn('translateMetaToEn failed (non-blocking):', e);
+        return meta;
+    }
+}
+exports.prerender = (0, https_1.onRequest)({ region: 'europe-west1', memory: '256MiB', cpu: 1, secrets: [googleAiKey] }, async (req, res) => {
+    try {
+        const rawPath = req.path.replace(/\/+$/, '') || '/';
+        const lang = rawPath === '/en' || rawPath.startsWith('/en/') ? 'en' : 'fr';
+        // Chemin FR canonique (retire /en + remappe les segments EN).
+        const canonicalPath = lang === 'en' ? (0, segments_1.canonicalizeSegments)(rawPath === '/en' ? '/' : rawPath.slice(3)) || '/' : rawPath;
+        let meta = staticPages[canonicalPath] ? Object.assign({}, staticPages[canonicalPath]) : null;
+        if (meta) {
+            // Page statique : alternates + canonical selon la langue.
+            const frUrl = `${SITE_URL}${canonicalPath}`;
+            const enUrl = `${SITE_URL}${(0, segments_1.enPath)(canonicalPath)}`;
+            meta.altFr = frUrl;
+            meta.altEn = enUrl;
+            meta.lang = lang;
+            meta.canonical = lang === 'en' ? enUrl : meta.canonical || frUrl;
         }
         if (!meta) {
+            meta = await getContentMeta(canonicalPath, lang);
+        }
+        if (!meta) {
+            const frUrl = `${SITE_URL}${canonicalPath}`;
             meta = {
                 title: DEFAULT_TITLE,
                 description: DEFAULT_DESCRIPTION,
                 ogType: 'website',
                 ogImage: DEFAULT_OG_IMAGE,
-                canonical: `${SITE_URL}${path}`,
+                canonical: `${SITE_URL}${rawPath}`,
                 h1: SITE_NAME,
                 noIndex: true, // unknown route → don't index
+                lang,
+                altFr: frUrl,
+                altEn: `${SITE_URL}${(0, segments_1.enPath)(canonicalPath)}`,
             };
+        }
+        // Traduction des champs visibles pour les pages anglaises indexables.
+        if (lang === 'en' && !meta.noIndex) {
+            meta = await translateMetaToEn(meta);
         }
         const shell = await getSpaShell();
         const html = injectIntoShell(shell, meta);

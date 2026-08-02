@@ -1,14 +1,14 @@
 import { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import LocalizedLink from '../../components/shared/LocalizedLink';
 import { User, BookOpen, Compass, ArrowRight, ArrowLeft, Camera, Loader2, Check } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import { updateUserProfile } from '../../lib/firestore';
 import { updateProfile } from 'firebase/auth';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../config/firebase';
+import { uploadMedia } from '../../lib/storage';
 import { captureError } from '../../lib/sentry';
 import { trackEvent } from '../../lib/tracking';
 
@@ -17,12 +17,13 @@ interface OnboardingProps {
 }
 
 const STEPS = [
-  { id: 'welcome', icon: User, title: 'Bienvenue !', subtitle: 'Personnalise ton profil' },
-  { id: 'explore', icon: BookOpen, title: 'Explore', subtitle: 'Découvre les formations' },
-  { id: 'ready', icon: Compass, title: 'C\'est parti !', subtitle: 'Ton espace est prêt' },
+  { id: 'welcome', icon: User, subtitleKey: 'onboarding.stepWelcomeSubtitle' },
+  { id: 'explore', icon: BookOpen, subtitleKey: 'onboarding.stepExploreSubtitle' },
+  { id: 'ready', icon: Compass, subtitleKey: 'onboarding.stepReadySubtitle' },
 ];
 
 export default function Onboarding({ onComplete }: OnboardingProps) {
+  const { t } = useTranslation('lms');
   const { user, refreshUserData } = useAuth();
   const { addToast } = useToast();
   const [step, setStep] = useState(0);
@@ -38,20 +39,18 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    if (!file.type.startsWith('image/')) { addToast('error', 'Seules les images sont acceptées.'); return; }
-    if (file.size > 2 * 1024 * 1024) { addToast('error', 'Max 2 Mo.'); return; }
+    if (!file.type.startsWith('image/')) { addToast('error', t('onboarding.errorImageOnly')); return; }
+    if (file.size > 2 * 1024 * 1024) { addToast('error', t('onboarding.errorMaxSize')); return; }
     setUploading(true);
     try {
       const ext = file.name.split('.').pop() || 'jpg';
-      const fileRef = storageRef(storage, `avatars/${user.uid}/profile.${ext}`);
-      await uploadBytes(fileRef, file);
-      const url = await getDownloadURL(fileRef);
+      const url = await uploadMedia(file, `avatars/${user.uid}/profile.${ext}`);
       await updateProfile(user, { photoURL: url });
       await updateUserProfile(user.uid, { photoURL: url });
       setPreviewUrl(url);
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to upload onboarding photo' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors du téléchargement.');
+      addToast('error', error instanceof Error ? error.message : t('onboarding.errorUpload'));
     } finally {
       setUploading(false);
       if (photoInputRef.current) photoInputRef.current.value = '';
@@ -62,7 +61,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (!user) return;
     setSaving(true);
     try {
-      const name = displayName.trim() || user.displayName || 'Étudiant';
+      const name = displayName.trim() || user.displayName || t('fallbackName');
       await updateProfile(user, { displayName: name });
       await updateUserProfile(user.uid, {
         displayName: name,
@@ -72,7 +71,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       setStep(1);
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to save onboarding profile' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
+      addToast('error', error instanceof Error ? error.message : t('onboarding.errorSave'));
     } finally {
       setSaving(false);
     }
@@ -87,7 +86,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       onComplete();
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to mark onboarding as completed' });
-      addToast('error', error instanceof Error ? error.message : "Impossible d'enregistrer. Reessaie.");
+      addToast('error', error instanceof Error ? error.message : t('onboarding.errorComplete'));
     }
   };
 
@@ -125,7 +124,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               <span className={`text-[10px] font-semibold ${
                 i === step ? 'text-brand-600 dark:text-brand-400' : 'text-neutral-400'
               }`}>
-                {s.subtitle}
+                {t(s.subtitleKey)}
               </span>
             </div>
           ))}
@@ -139,10 +138,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <div className="space-y-5">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-black text-neutral-900 dark:text-white mb-1">
-                  Bienvenue sur Max-Morrys !
+                  {t('onboarding.welcomeTitle')}
                 </h2>
                 <p className="text-sm text-neutral-500">
-                  Personnalise ton profil pour que la communauté te connaisse.
+                  {t('onboarding.welcomeText')}
                 </p>
               </div>
 
@@ -169,11 +168,11 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
               {/* Name */}
               <div className="space-y-1">
-                <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">Ton nom d'affichage</label>
+                <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">{t('onboarding.nameLabel')}</label>
                 <input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Comment veux-tu qu'on t'appelle ?"
+                  placeholder={t('onboarding.namePlaceholder')}
                   className={inputCls}
                 />
               </div>
@@ -181,23 +180,23 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               {/* Bio */}
               <div className="space-y-1">
                 <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                  Bio courte <span className="font-normal text-neutral-400">(optionnel)</span>
+                  {t('onboarding.bioLabel')} <span className="font-normal text-neutral-400">{t('onboarding.bioOptional')}</span>
                 </label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="Marketeur digital, passionné de SEO..."
+                  placeholder={t('onboarding.bioPlaceholder')}
                   rows={2}
                   className={`${inputCls} resize-none`}
                 />
               </div>
 
               <Button className="w-full" onClick={handleSaveProfile} disabled={saving} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}>
-                {saving ? 'Enregistrement...' : 'Continuer'}
+                {saving ? t('onboarding.saving') : t('onboarding.continue')}
               </Button>
 
               <button onClick={() => setStep(1)} className="w-full text-center text-xs text-neutral-400 hover:text-neutral-600 transition-colors">
-                Passer cette étape
+                {t('onboarding.skipStep')}
               </button>
             </div>
           )}
@@ -207,19 +206,19 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <div className="space-y-5">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-black text-neutral-900 dark:text-white mb-1">
-                  Explore les formations
+                  {t('onboarding.exploreTitle')}
                 </h2>
                 <p className="text-sm text-neutral-500">
-                  Voici ce qui t'attend sur la plateforme.
+                  {t('onboarding.exploreText')}
                 </p>
               </div>
 
               <div className="space-y-3">
                 {[
-                  { emoji: '🎯', title: 'Formations pratiques', desc: 'Des cours concrets en marketing digital, SEO et IA' },
-                  { emoji: '🤖', title: 'Rysmo, ton répétiteur IA', desc: 'Pose tes questions à tout moment pendant tes cours' },
-                  { emoji: '🏆', title: 'Certificats', desc: 'Obtiens un certificat à chaque formation terminée' },
-                  { emoji: '👥', title: 'Club des Digitos', desc: 'Rejoins la communauté d\'étudiants et d\'experts' },
+                  { emoji: '🎯', title: t('onboarding.feature1Title'), desc: t('onboarding.feature1Desc') },
+                  { emoji: '🤖', title: t('onboarding.feature2Title'), desc: t('onboarding.feature2Desc') },
+                  { emoji: '🏆', title: t('onboarding.feature3Title'), desc: t('onboarding.feature3Desc') },
+                  { emoji: '👥', title: t('onboarding.feature4Title'), desc: t('onboarding.feature4Desc') },
                 ].map((item) => (
                   <div key={item.title} className="flex items-start gap-3 p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/50">
                     <span className="text-xl flex-shrink-0">{item.emoji}</span>
@@ -233,10 +232,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => setStep(0)} icon={<ArrowLeft className="w-4 h-4" />}>
-                  Retour
+                  {t('onboarding.back')}
                 </Button>
                 <Button className="flex-1" onClick={() => setStep(2)} icon={<ArrowRight className="w-4 h-4" />}>
-                  Continuer
+                  {t('onboarding.continue')}
                 </Button>
               </div>
             </div>
@@ -248,33 +247,33 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               <div className="text-center mb-6">
                 <div className="text-5xl mb-4">🚀</div>
                 <h2 className="text-2xl font-black text-neutral-900 dark:text-white mb-1">
-                  Tu es prêt !
+                  {t('onboarding.readyTitle')}
                 </h2>
                 <p className="text-sm text-neutral-500 max-w-xs mx-auto">
-                  Ton espace étudiant est configuré. Commence par explorer les formations ou lance-toi directement.
+                  {t('onboarding.readyText')}
                 </p>
               </div>
 
               <div className="bg-brand-50 dark:bg-brand-900/10 border border-brand-200 dark:border-brand-800/40 rounded-xl p-4 text-center">
                 <p className="text-sm font-semibold text-brand-700 dark:text-brand-300 mb-1">
-                  Conseil de pro
+                  {t('onboarding.proTipTitle')}
                 </p>
                 <p className="text-xs text-brand-600/80 dark:text-brand-400/80">
-                  Les étudiants qui commencent une formation dans les 24h ont 3x plus de chances de la terminer.
+                  {t('onboarding.proTipText')}
                 </p>
               </div>
 
               <div className="flex flex-col gap-3">
-                <Link to="/formations" onClick={handleComplete}>
+                <LocalizedLink to="/formations" onClick={handleComplete}>
                   <Button className="w-full" icon={<BookOpen className="w-4 h-4" />}>
-                    Explorer les formations
+                    {t('onboarding.exploreFormations')}
                   </Button>
-                </Link>
+                </LocalizedLink>
                 <button
                   onClick={handleComplete}
                   className="w-full text-center text-sm font-semibold text-brand-600 dark:text-brand-400 hover:underline"
                 >
-                  Aller à mon tableau de bord
+                  {t('onboarding.goToDashboard')}
                 </button>
               </div>
             </div>

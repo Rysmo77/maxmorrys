@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   ChatCircle, Repeat, Heart, ShareFat, ImageSquare, Microphone, VideoCamera, Smiley, PaperPlaneTilt,
@@ -8,7 +9,8 @@ import Button from '../../../../components/ui/Button';
 import MediaRecorderInput from '../../../../components/lms/MediaRecorderInput';
 import { getActiveClubChallenge } from '../../../../lib/firestore';
 import type { ClubDigitosChallenge } from '../../../../types';
-import { cn, formatDate } from '../../../../lib/utils';
+import { cn } from '../../../../lib/utils';
+import { useFormat } from '../../../../hooks/useFormat';
 import { ClubEmptyState } from './_shared';
 import { CLUB_CATEGORIES, MOOD_OPTIONS, SHARE_PLATFORMS, inputCls } from '../../hooks/useClubData';
 import type { useClubData } from '../../hooks/useClubData';
@@ -21,6 +23,8 @@ interface ClubFeedProps {
 }
 
 export default function ClubFeed({ data }: ClubFeedProps) {
+  const { t } = useTranslation('club');
+  const { formatDate } = useFormat();
   const {
     user, initials, photoURL,
     clubPosts, clubPostContent, setClubPostContent,
@@ -64,7 +68,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
               <Trophy className="w-5 h-5 text-white" weight="fill" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-bold text-plum-600 dark:text-plum-400 uppercase tracking-wide">Défi de la semaine</p>
+              <p className="text-xs font-bold text-plum-600 dark:text-plum-400 uppercase tracking-wide">{t('feed.challengeEyebrow')}</p>
               <p className="font-bold text-neutral-900 dark:text-white">{challenge.title}</p>
               <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-0.5">{challenge.description}</p>
               {challenge.reward && <p className="text-xs text-plum-600 dark:text-plum-400 font-semibold mt-1.5">🏆 {challenge.reward}</p>}
@@ -83,7 +87,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
             <textarea
               value={clubPostContent}
               onChange={(e) => setClubPostContent(e.target.value)}
-              placeholder="Quoi de neuf dans la communauté ?"
+              placeholder={t('feed.composerPlaceholder')}
               rows={2}
               maxLength={2000}
               className={cn(inputCls, 'resize-none border-0 bg-transparent px-0 text-base focus:ring-0 placeholder-neutral-400')}
@@ -91,7 +95,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
 
             {composerMediaType === 'image' && composerMediaPreview && (
               <div className="relative w-full max-w-sm">
-                <img src={composerMediaPreview} alt="aperçu" className="rounded-xl w-full object-cover max-h-56 border border-neutral-200 dark:border-neutral-700" />
+                <img src={composerMediaPreview} alt={t('feed.previewAlt')} className="rounded-xl w-full object-cover max-h-56 border border-neutral-200 dark:border-neutral-700" />
                 <button type="button" onClick={() => { setComposerMediaFile(null); if (composerMediaPreview) URL.revokeObjectURL(composerMediaPreview); setComposerMediaPreview(''); }} className="absolute top-1.5 right-1.5 p-1 bg-black/60 rounded-full text-white hover:bg-black/80 transition-colors">
                   <X className="w-3.5 h-3.5" weight="bold" />
                 </button>
@@ -108,7 +112,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                     <input
                       value={opt}
                       onChange={(e) => setPollOptions(pollOptions.map((o, j) => (j === i ? e.target.value : o)))}
-                      placeholder={`Option ${i + 1}`}
+                      placeholder={t('feed.optionPlaceholder', { number: i + 1 })}
                       maxLength={80}
                       className="flex-1 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-plum-500/20 focus:border-plum-500"
                     />
@@ -121,7 +125,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                 ))}
                 {pollOptions.length < 4 && (
                   <button type="button" onClick={() => setPollOptions([...pollOptions, ''])} className="flex items-center gap-1.5 text-xs font-semibold text-plum-600 dark:text-plum-400 hover:underline">
-                    <Plus className="w-3.5 h-3.5" weight="bold" /> Ajouter une option
+                    <Plus className="w-3.5 h-3.5" weight="bold" /> {t('feed.addOption')}
                   </button>
                 )}
               </div>
@@ -133,14 +137,14 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                 <div className="relative">
                   <button type="button" onClick={() => { setShowCategoryPicker((v) => !v); setShowMoodPicker(false); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', activeCat.tint, 'hover:bg-neutral-100 dark:hover:bg-neutral-700')}>
                     <activeCat.icon className="w-4 h-4" weight="duotone" />
-                    {activeCat.label}
+                    {t(activeCat.labelKey)}
                     <CaretDown className="w-3 h-3 opacity-60" />
                   </button>
                   {showCategoryPicker && (
                     <div className="absolute bottom-full left-0 mb-1 z-20 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-1.5 shadow-lg w-48 max-w-[calc(100vw-1.5rem)]">
                       {CLUB_CATEGORIES.map((c) => (
                         <button key={c.id} type="button" onClick={() => { setComposerCategory(c.id); setShowCategoryPicker(false); }} className={cn('w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700', composerCategory === c.id ? c.tint : 'text-neutral-600 dark:text-neutral-300')}>
-                          <c.icon className="w-4 h-4" weight="duotone" /> {c.label}
+                          <c.icon className="w-4 h-4" weight="duotone" /> {t(c.labelKey)}
                         </button>
                       ))}
                     </div>
@@ -151,7 +155,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                 <div className="relative">
                   <button type="button" onClick={() => { setShowMoodPicker((v) => !v); setShowCategoryPicker(false); }} className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
                     {composerMood ? <span className="text-base leading-none">{composerMood}</span> : <Smiley className="w-4 h-4" weight="duotone" />}
-                    <span className="hidden sm:inline">Humeur</span>
+                    <span className="hidden sm:inline">{t('feed.mood')}</span>
                   </button>
                   {showMoodPicker && (
                     <div className="absolute bottom-full left-0 mb-1 z-20 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-2 shadow-lg flex gap-1 flex-wrap w-44 max-w-[calc(100vw-1.5rem)]">
@@ -168,19 +172,19 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                 <input type="file" accept="image/*" ref={mediaInputRef} onChange={handleMediaSelect} className="hidden" />
                 <button type="button" onClick={() => { setComposerMediaType('image'); setComposerAvUrl(''); mediaInputRef.current?.click(); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', composerMediaType === 'image' && composerMediaPreview ? 'text-plum-600 bg-plum-50 dark:bg-plum-900/20' : 'text-neutral-500 hover:text-plum-600 hover:bg-plum-50 dark:hover:bg-plum-900/20')}>
                   <ImageSquare className="w-4 h-4" weight="duotone" />
-                  <span className="hidden sm:inline">Photo</span>
+                  <span className="hidden sm:inline">{t('feed.photo')}</span>
                 </button>
                 <button type="button" onClick={() => { setComposerMediaType(composerMediaType === 'audio' ? 'image' : 'audio'); setComposerMediaFile(null); setComposerMediaPreview(''); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', composerMediaType === 'audio' ? 'text-plum-600 bg-plum-50 dark:bg-plum-900/20' : 'text-neutral-500 hover:text-plum-600 hover:bg-plum-50 dark:hover:bg-plum-900/20')}>
                   <Microphone className="w-4 h-4" weight="duotone" />
-                  <span className="hidden sm:inline">Audio</span>
+                  <span className="hidden sm:inline">{t('feed.audio')}</span>
                 </button>
                 <button type="button" onClick={() => { setComposerMediaType(composerMediaType === 'video' ? 'image' : 'video'); setComposerMediaFile(null); setComposerMediaPreview(''); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', composerMediaType === 'video' ? 'text-plum-600 bg-plum-50 dark:bg-plum-900/20' : 'text-neutral-500 hover:text-plum-600 hover:bg-plum-50 dark:hover:bg-plum-900/20')}>
                   <VideoCamera className="w-4 h-4" weight="duotone" />
-                  <span className="hidden sm:inline">Vidéo</span>
+                  <span className="hidden sm:inline">{t('feed.video')}</span>
                 </button>
                 <button type="button" onClick={() => { setComposerPoll(!composerPoll); setComposerMediaType('image'); setComposerMediaFile(null); setComposerMediaPreview(''); setComposerAvUrl(''); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', composerPoll ? 'text-plum-600 bg-plum-50 dark:bg-plum-900/20' : 'text-neutral-500 hover:text-plum-600 hover:bg-plum-50 dark:hover:bg-plum-900/20')}>
                   <ChartBar className="w-4 h-4" weight="duotone" />
-                  <span className="hidden sm:inline">Sondage</span>
+                  <span className="hidden sm:inline">{t('feed.poll')}</span>
                 </button>
               </div>
 
@@ -191,7 +195,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                 className="!bg-plum-600 hover:!bg-plum-700 !rounded-full"
                 icon={(postingToClub || uploadingMedia) ? <CircleNotch className="w-4 h-4 animate-spin" /> : <PaperPlaneTilt className="w-4 h-4" weight="fill" />}
               >
-                {uploadingMedia ? 'Envoi…' : postingToClub ? 'Publication…' : 'Publier'}
+                {uploadingMedia ? t('feed.sending') : postingToClub ? t('feed.publishing') : t('feed.publish')}
               </Button>
             </div>
           </div>
@@ -201,18 +205,18 @@ export default function ClubFeed({ data }: ClubFeedProps) {
       {/* ───────── Category filter ───────── */}
       <div className="flex gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1">
         <button onClick={() => setClubCategoryFilter('all')} className={cn('flex-shrink-0 text-xs px-3.5 py-1.5 rounded-full font-semibold transition-colors', clubCategoryFilter === 'all' ? 'bg-plum-600 text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700')}>
-          Tout
+          {t('feed.filterAll')}
         </button>
         {CLUB_CATEGORIES.map((c) => (
           <button key={c.id} onClick={() => setClubCategoryFilter(c.id)} className={cn('flex-shrink-0 flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full font-semibold transition-colors whitespace-nowrap', clubCategoryFilter === c.id ? 'bg-plum-600 text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700')}>
-            <c.icon className="w-3.5 h-3.5" weight={clubCategoryFilter === c.id ? 'fill' : 'duotone'} /> {c.label}
+            <c.icon className="w-3.5 h-3.5" weight={clubCategoryFilter === c.id ? 'fill' : 'duotone'} /> {t(c.labelKey)}
           </button>
         ))}
       </div>
 
       {/* ───────── Posts ───────── */}
       {filtered.length === 0 ? (
-        <ClubEmptyState icon={Rss} title="Aucune publication ici" subtitle="Sois le premier à partager quelque chose avec la communauté dans cette catégorie." />
+        <ClubEmptyState icon={Rss} title={t('feed.emptyTitle')} subtitle={t('feed.emptySubtitle')} />
       ) : (
         <div className="space-y-3">
           {filtered.map((post) => {
@@ -241,7 +245,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                       {catInfo && (
                         <span className="inline-flex items-center gap-1 text-xs text-neutral-400">
                           <span className={cn('w-1.5 h-1.5 rounded-full', catInfo.dot)} />
-                          {catInfo.label}
+                          {t(catInfo.labelKey)}
                         </span>
                       )}
                     </div>
@@ -292,7 +296,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                               </button>
                             );
                           })}
-                          <p className="text-xs text-neutral-400">{total} vote{total > 1 ? 's' : ''}{!voted && ' · tape pour voter'}</p>
+                          <p className="text-xs text-neutral-400">{t('feed.votes', { count: total })}{!voted && t('feed.tapToVote')}</p>
                         </div>
                       );
                     })()}
@@ -348,7 +352,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                       {postMenuOpen === post.id && (
                         <div className="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-40 max-w-[calc(100vw-1.5rem)]">
                           <button onClick={() => { handleDeleteClubPost(post.id); setPostMenuOpen(null); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors">
-                            <Trash className="w-4 h-4" weight="duotone" /> Supprimer
+                            <Trash className="w-4 h-4" weight="duotone" /> {t('feed.delete')}
                           </button>
                         </div>
                       )}
@@ -362,7 +366,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                     {loadingComments[post.id] ? (
                       <div className="flex justify-center py-4"><CircleNotch className="w-5 h-5 animate-spin text-plum-500" /></div>
                     ) : (postComments[post.id] ?? []).length === 0 ? (
-                      <p className="text-xs text-neutral-400 text-center py-2">Aucun commentaire. Sois le premier !</p>
+                      <p className="text-xs text-neutral-400 text-center py-2">{t('feed.noComments')}</p>
                     ) : (
                       <div className="space-y-2.5">
                         {(postComments[post.id] ?? []).map((c) => (
@@ -397,7 +401,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                         value={commentDraft[post.id] ?? ''}
                         onChange={(e) => setCommentDraft((prev) => ({ ...prev, [post.id]: e.target.value }))}
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(post.id); } }}
-                        placeholder="Écrire un commentaire…"
+                        placeholder={t('feed.commentPlaceholder')}
                         className="flex-1 px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-plum-500/20 focus:border-plum-500 placeholder-neutral-400"
                       />
                       <button onClick={() => handleAddComment(post.id)} disabled={submittingComment === post.id || !commentDraft[post.id]?.trim()} className="p-2 rounded-full bg-plum-600 text-white hover:bg-plum-700 disabled:opacity-50 transition-colors flex-shrink-0">

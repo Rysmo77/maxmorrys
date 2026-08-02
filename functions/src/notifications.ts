@@ -4,6 +4,58 @@ import * as admin from 'firebase-admin';
 
 const db = admin.firestore();
 
+type Lang = 'fr' | 'en';
+
+/** Langue de l'utilisateur d'après ses préférences (défaut: fr). */
+async function getUserLang(userId: string): Promise<Lang> {
+  try {
+    const snap = await db.collection('users').doc(userId).get();
+    return snap.data()?.preferences?.language === 'en' ? 'en' : 'fr';
+  } catch {
+    return 'fr';
+  }
+}
+
+// Dictionnaire localisé des notifications (titres + messages avec interpolation).
+const N = {
+  enrollTitle: { fr: 'Inscription confirmée', en: 'Enrollment confirmed' },
+  enrollMsg: {
+    fr: (t: string) => `Tu es inscrit à "${t}". Commence dès maintenant !`,
+    en: (t: string) => `You're enrolled in "${t}". Start right now!`,
+  },
+  certTitle: { fr: 'Certificat disponible !', en: 'Certificate available!' },
+  certMsg: {
+    fr: (t: string) => `Ton certificat pour "${t}" est prêt. Partage-le sur LinkedIn !`,
+    en: (t: string) => `Your certificate for "${t}" is ready. Share it on LinkedIn!`,
+  },
+  doneTitle: { fr: 'Félicitations !', en: 'Congratulations!' },
+  doneMsgSuggest: {
+    fr: (done: string, next: string) => `Bravo, tu as terminé "${done}" ! Prêt pour la suite ? "${next}" est un bon prochain pas. Demande à Rysmo un plan pour t'y mettre.`,
+    en: (done: string, next: string) => `Well done, you finished "${done}"! Ready for what's next? "${next}" is a great next step. Ask Rysmo for a plan to get started.`,
+  },
+  doneMsgPlain: {
+    fr: (done: string) => `Bravo, tu as terminé "${done}" ! Demande à Rysmo comment mettre en pratique ce que tu viens d'apprendre.`,
+    en: (done: string) => `Well done, you finished "${done}"! Ask Rysmo how to put what you just learned into practice.`,
+  },
+  streakTitle: {
+    fr: (n: number) => `Ta série de ${n} jours est en danger !`,
+    en: (n: number) => `Your ${n}-day streak is at risk!`,
+  },
+  streakMsg: {
+    fr: 'Complète une leçon avant minuit pour maintenir ta série.',
+    en: 'Complete a lesson before midnight to keep your streak alive.',
+  },
+  resumeTitle: {
+    fr: (t: string) => `Continue ${t}`,
+    en: (t: string) => `Keep going with ${t}`,
+  },
+  resumeMsg: {
+    fr: (t: string) => `Tu n'as pas ouvert "${t}" depuis 3 jours. Reprends là où tu t'es arrêté !`,
+    en: (t: string) => `You haven't opened "${t}" in 3 days. Pick up where you left off!`,
+  },
+  fallbackCourse: { fr: 'ta formation', en: 'your course' },
+};
+
 // ── Auto-create notification on enrollment ──────────────────────────────────
 export const onEnrollmentCreated = onDocumentCreated('enrollments/{enrollmentId}', async (event) => {
   const data = event.data?.data();
@@ -14,13 +66,14 @@ export const onEnrollmentCreated = onDocumentCreated('enrollments/{enrollmentId}
 
   // Get formation title
   const formationSnap = await db.collection('formations').doc(formationId).get();
-  const formationTitle = formationSnap.data()?.title || 'Formation';
+  const lang = await getUserLang(userId);
+  const formationTitle = formationSnap.data()?.title || (lang === 'en' ? 'Course' : 'Formation');
 
   await db.collection(`notifications/${userId}/items`).add({
     userId,
     type: 'enrollment',
-    title: 'Inscription confirmée',
-    message: `Tu es inscrit à "${formationTitle}". Commence dès maintenant !`,
+    title: N.enrollTitle[lang],
+    message: N.enrollMsg[lang](formationTitle),
     read: false,
     createdAt: new Date().toISOString(),
     link: `/cours/${formationSnap.data()?.slug || ''}`,
@@ -32,11 +85,12 @@ export const onCertificateCreated = onDocumentCreated('certificates/{certId}', a
   const data = event.data?.data();
   if (!data) return;
 
+  const lang = await getUserLang(data.userId);
   await db.collection(`notifications/${data.userId}/items`).add({
     userId: data.userId,
     type: 'certificate',
-    title: 'Certificat disponible !',
-    message: `Ton certificat pour "${data.formationTitle}" est prêt. Partage-le sur LinkedIn !`,
+    title: N.certTitle[lang],
+    message: N.certMsg[lang](data.formationTitle),
     read: false,
     createdAt: new Date().toISOString(),
     link: `/certificat/${data.certificateCode}`,
@@ -53,8 +107,9 @@ export const rysmoCoachNudge = onDocumentUpdated('enrollments/{enrollmentId}', a
   if (before.progress >= 100 || after.progress < 100) return;
 
   const userId = after.userId;
+  const lang = await getUserLang(userId);
   const formationSnap = await db.collection('formations').doc(after.formationId).get();
-  const justFinished = formationSnap.data()?.title || 'ta formation';
+  const justFinished = formationSnap.data()?.title || N.fallbackCourse[lang];
 
   // Suggérer un cours suivant : une formation publiée pas encore suivie (même catégorie en priorité)
   let suggestion: { title: string; slug: string } | null = null;
@@ -72,13 +127,13 @@ export const rysmoCoachNudge = onDocumentUpdated('enrollments/{enrollmentId}', a
   }
 
   const message = suggestion
-    ? `Bravo, tu as terminé "${justFinished}" ! Prêt pour la suite ? "${suggestion.title}" est un bon prochain pas. Demande à Rysmo un plan pour t'y mettre.`
-    : `Bravo, tu as terminé "${justFinished}" ! Demande à Rysmo comment mettre en pratique ce que tu viens d'apprendre.`;
+    ? N.doneMsgSuggest[lang](justFinished, suggestion.title)
+    : N.doneMsgPlain[lang](justFinished);
 
   await db.collection(`notifications/${userId}/items`).add({
     userId,
     type: 'system',
-    title: 'Félicitations !',
+    title: N.doneTitle[lang],
     message,
     read: false,
     createdAt: new Date().toISOString(),
@@ -108,11 +163,12 @@ export const streakReminder = onSchedule('0 20 * * *', async () => {
       const data = doc.data();
       if (data.lastActiveDate !== today) {
         // User has a streak but hasn't been active today
+        const lang = await getUserLang(doc.id);
         await db.collection(`notifications/${doc.id}/items`).add({
           userId: doc.id,
           type: 'system',
-          title: `Ta série de ${data.currentStreak} jours est en danger !`,
-          message: 'Complète une leçon avant minuit pour maintenir ta série.',
+          title: N.streakTitle[lang](data.currentStreak),
+          message: N.streakMsg[lang],
           read: false,
           createdAt: new Date().toISOString(),
         });
@@ -153,14 +209,15 @@ export const courseReminder = onSchedule('0 10 * * *', async () => {
 
     if (!recentNotif.empty) continue;
 
+    const lang = await getUserLang(data.userId);
     const formationSnap = await db.collection('formations').doc(data.formationId).get();
-    const title = formationSnap.data()?.title || 'ta formation';
+    const title = formationSnap.data()?.title || N.fallbackCourse[lang];
 
     await db.collection(`notifications/${data.userId}/items`).add({
       userId: data.userId,
       type: 'system',
-      title: `Continue ${title}`,
-      message: `Tu n'as pas ouvert "${title}" depuis 3 jours. Reprends là où tu t'es arrêté !`,
+      title: N.resumeTitle[lang](title),
+      message: N.resumeMsg[lang](title),
       read: false,
       createdAt: new Date().toISOString(),
       link: `/cours/${formationSnap.data()?.slug || ''}`,

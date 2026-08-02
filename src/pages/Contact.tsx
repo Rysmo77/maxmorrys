@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Phone, MapPin, MessageSquare, Send, Calendar, X, Clock, Loader2, ChevronDown } from 'lucide-react';
 import AnimatedIcon from '../components/shared/AnimatedIcon';
@@ -19,28 +20,26 @@ import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
+// Coordonnées : labelKey/valueKey traduits au rendu ; les valeurs « brutes »
+// (email, numéro) restent en dur car ce sont des données, pas du texte.
 const contactInfo = [
-  { icon: Mail, label: 'Email', value: 'hello@maxmorrys.me', link: 'mailto:hello@maxmorrys.me' },
-  { icon: Phone, label: 'Téléphone', value: '+221 77 604 19 85', link: 'tel:+221776041985' },
-  { icon: MapPin, label: 'Localisation', value: 'Dakar, Sénégal', link: '' },
-  { icon: MessageSquare, label: 'WhatsApp', value: 'Discutons sur WhatsApp', link: 'https://wa.me/221776041985' },
+  { icon: Mail, labelKey: 'info.email', value: 'hello@maxmorrys.me', valueKey: '', link: 'mailto:hello@maxmorrys.me' },
+  { icon: Phone, labelKey: 'info.phone', value: '+221 77 604 19 85', valueKey: '', link: 'tel:+221776041985' },
+  { icon: MapPin, labelKey: 'info.location', value: '', valueKey: 'info.locationValue', link: '' },
+  { icon: MessageSquare, labelKey: 'info.whatsapp', value: '', valueKey: 'info.whatsappValue', link: 'https://wa.me/221776041985' },
 ];
 
 const TIME_SLOTS = [
   '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
 ];
 
-const SUBJECTS = [
-  'Coaching personnalisé',
-  'Informations sur une formation',
-  'Partenariat / Collaboration',
-  'Conseil en stratégie marketing',
-  'Autre',
-];
+// Clés de sujet stables ; le libellé affiché est traduit au rendu.
+const SUBJECT_KEYS = ['coaching', 'formationInfo', 'partnership', 'strategy', 'other'];
 
 const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export default function Contact() {
+  const { t } = useTranslation('contact');
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '', _hp: '' });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,7 +57,7 @@ export default function Contact() {
   const [bookingForm, setBookingForm] = useState({
     name: '', email: '', phone: '',
     date: '', time: TIME_SLOTS[0],
-    subject: SUBJECTS[0], message: '',
+    subject: t(`subjects.${SUBJECT_KEYS[0]}`), message: '',
   });
   const [bookingErrors, setBookingErrors] = useState<Record<string, string>>({});
   const [bookingLoading, setBookingLoading] = useState(false);
@@ -66,12 +65,12 @@ export default function Contact() {
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!form.name.trim()) errs.name = 'Le nom est requis';
-    if (!form.email.trim()) errs.email = "L'email est requis";
-    else if (!EMAIL_RE.test(form.email.trim())) errs.email = 'Adresse email invalide';
-    if (!form.subject.trim()) errs.subject = 'Le sujet est requis';
-    if (!form.message.trim()) errs.message = 'Le message est requis';
-    else if (form.message.trim().length < 10) errs.message = 'Le message doit faire au moins 10 caractères';
+    if (!form.name.trim()) errs.name = t('validation.nameRequired');
+    if (!form.email.trim()) errs.email = t('validation.emailRequired');
+    else if (!EMAIL_RE.test(form.email.trim())) errs.email = t('validation.emailInvalid');
+    if (!form.subject.trim()) errs.subject = t('validation.subjectRequired');
+    if (!form.message.trim()) errs.message = t('validation.messageRequired');
+    else if (form.message.trim().length < 10) errs.message = t('validation.messageTooShort');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -90,11 +89,11 @@ export default function Contact() {
         status: 'new',
       });
       trackGenerateLead('contact_form');
-      addToast('success', 'Message envoyé avec succès ! Je te répondrai rapidement.');
+      addToast('success', t('toast.messageSuccess'));
       setForm({ name: '', email: '', subject: '', message: '', _hp: '' });
     } catch (error: unknown) {
       captureError(error, { context: 'Send contact message failed' });
-      addToast('error', error instanceof Error ? error.message : "Erreur lors de l'envoi. Essaie à nouveau s'il te plaît.");
+      addToast('error', error instanceof Error ? error.message : t('toast.messageError'));
     }
     setLoading(false);
   };
@@ -109,11 +108,11 @@ export default function Contact() {
 
   const validateBooking = () => {
     const errs: Record<string, string> = {};
-    if (!bookingForm.name.trim()) errs.name = 'Le nom est requis';
-    if (!bookingForm.email.trim()) errs.email = "L'email est requis";
-    else if (!EMAIL_RE.test(bookingForm.email.trim())) errs.email = 'Adresse email invalide';
-    if (!bookingForm.date) errs.date = 'La date est requise';
-    if (!bookingForm.time) errs.time = "L'heure est requise";
+    if (!bookingForm.name.trim()) errs.name = t('validation.nameRequired');
+    if (!bookingForm.email.trim()) errs.email = t('validation.emailRequired');
+    else if (!EMAIL_RE.test(bookingForm.email.trim())) errs.email = t('validation.emailInvalid');
+    if (!bookingForm.date) errs.date = t('validation.dateRequired');
+    if (!bookingForm.time) errs.time = t('validation.timeRequired');
     setBookingErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -136,7 +135,7 @@ export default function Contact() {
       setBookingSuccess(true);
     } catch (error: unknown) {
       captureError(error, { context: 'Save appointment failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la prise de rendez-vous. Veuillez réessayer.');
+      addToast('error', error instanceof Error ? error.message : t('toast.appointmentError'));
     } finally {
       setBookingLoading(false);
     }
@@ -145,7 +144,7 @@ export default function Contact() {
   const closeBooking = () => {
     setBookingOpen(false);
     setBookingSuccess(false);
-    setBookingForm({ name: '', email: '', phone: '', date: '', time: TIME_SLOTS[0], subject: SUBJECTS[0], message: '' });
+    setBookingForm({ name: '', email: '', phone: '', date: '', time: TIME_SLOTS[0], subject: t(`subjects.${SUBJECT_KEYS[0]}`), message: '' });
     setBookingErrors({});
   };
 
@@ -156,8 +155,8 @@ export default function Contact() {
   return (
     <div>
       <SEOHead
-        title="Contact"
-        description="Contacte Max-Morrys pour du coaching personnalisé, des formations en marketing digital, ou un partenariat. Basé à Dakar, Sénégal."
+        title={t('seoTitle')}
+        description={t('seoDescription')}
       />
       <JsonLd data={{
         '@context': 'https://schema.org',
@@ -205,15 +204,15 @@ export default function Contact() {
               iconClassName="w-5 h-5 text-brand-600 dark:text-brand-400"
             />
             <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400">
-              CONTACT
+              {t('eyebrow')}
             </p>
           </motion.div>
           <div className="grid lg:grid-cols-2 gap-8 items-end">
             <motion.h1 variants={staggerItem} className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95]">
-              Parlons de<br />ta stratégie
+              {t('heroTitle1')}<br />{t('heroTitle2')}
             </motion.h1>
             <motion.p variants={staggerItem} className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed lg:pb-2">
-              Tu as un projet, une question, ou besoin d'une consultation ? Je suis là pour t'aider à atteindre tes objectifs de marketing digital !
+              {t('heroSubtitle')}
             </motion.p>
           </div>
         </motion.div>
@@ -233,7 +232,7 @@ export default function Contact() {
             >
               <div className="bg-neutral-50 dark:bg-neutral-900 rounded-3xl p-8 lg:p-10 border border-neutral-100 dark:border-neutral-800">
                 <h2 className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white mb-8">
-                  Envoie-moi un message
+                  {t('form.title')}
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Honeypot — hidden from users, filled only by bots */}
@@ -249,38 +248,38 @@ export default function Contact() {
                   </div>
                   <div className="grid sm:grid-cols-2 gap-5">
                     <Input
-                      label="Nom complet"
+                      label={t('form.nameLabel')}
                       value={form.name}
                       onChange={(e) => update('name', e.target.value)}
                       error={errors.name}
-                      placeholder="Ton nom"
+                      placeholder={t('form.namePlaceholder')}
                     />
                     <Input
-                      label="Email"
+                      label={t('form.emailLabel')}
                       type="email"
                       value={form.email}
                       onChange={(e) => update('email', e.target.value)}
                       error={errors.email}
-                      placeholder="ton@email.com"
+                      placeholder={t('form.emailPlaceholder')}
                     />
                   </div>
                   <Input
-                    label="Sujet"
+                    label={t('form.subjectLabel')}
                     value={form.subject}
                     onChange={(e) => update('subject', e.target.value)}
                     error={errors.subject}
-                    placeholder="L'objet de ton message"
+                    placeholder={t('form.subjectPlaceholder')}
                   />
                   <Textarea
-                    label="Message"
+                    label={t('form.messageLabel')}
                     value={form.message}
                     onChange={(e) => update('message', e.target.value)}
                     error={errors.message}
-                    placeholder="Décris ta demande..."
+                    placeholder={t('form.messagePlaceholder')}
                     rows={5}
                   />
                   <Button type="submit" loading={loading} icon={<Send className="w-4 h-4" />}>
-                    Envoyer le message
+                    {t('form.submit')}
                   </Button>
                 </form>
               </div>
@@ -294,8 +293,11 @@ export default function Contact() {
               whileInView="visible"
               viewport={viewportOnce}
             >
-              {contactInfo.map((info) => (
-                <motion.div key={info.label} variants={staggerItem}>
+              {contactInfo.map((info) => {
+                const label = t(info.labelKey);
+                const value = info.valueKey ? t(info.valueKey) : info.value;
+                return (
+                <motion.div key={info.labelKey} variants={staggerItem}>
                   {info.link ? (
                     <a
                       href={info.link}
@@ -308,8 +310,8 @@ export default function Contact() {
                         <info.icon className="w-4 h-4 text-brand-600 dark:text-brand-400" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold tracking-widest uppercase text-neutral-400 mb-0.5">{info.label}</p>
-                        <p className="font-semibold text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors text-sm">{info.value}</p>
+                        <p className="text-xs font-bold tracking-widest uppercase text-neutral-400 mb-0.5">{label}</p>
+                        <p className="font-semibold text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors text-sm">{value}</p>
                       </div>
                     </a>
                   ) : (
@@ -318,27 +320,28 @@ export default function Contact() {
                         <info.icon className="w-4 h-4 text-brand-600 dark:text-brand-400" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold tracking-widest uppercase text-neutral-400 mb-0.5">{info.label}</p>
-                        <p className="font-semibold text-neutral-900 dark:text-white text-sm">{info.value}</p>
+                        <p className="text-xs font-bold tracking-widest uppercase text-neutral-400 mb-0.5">{label}</p>
+                        <p className="font-semibold text-neutral-900 dark:text-white text-sm">{value}</p>
                       </div>
                     </div>
                   )}
                 </motion.div>
-              ))}
+                );
+              })}
 
               {/* Rendez-vous */}
               <motion.div variants={staggerItem} className="p-6 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-white">
                 <Calendar className="w-8 h-8 text-brand-200 mb-4" />
-                <h3 className="font-black text-lg mb-2">Prendre rendez-vous</h3>
+                <h3 className="font-black text-lg mb-2">{t('booking.cardTitle')}</h3>
                 <p className="text-brand-100 text-sm mb-5 leading-relaxed">
-                  Réserve un créneau pour un échange personnalisé.
+                  {t('booking.cardText')}
                 </p>
                 <button
                   onClick={() => setBookingOpen(true)}
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-brand-700 font-bold rounded-full hover:bg-brand-50 transition-colors text-sm"
                 >
                   <Clock className="w-4 h-4" />
-                  Planifier un appel
+                  {t('booking.cardButton')}
                 </button>
               </motion.div>
             </motion.div>
@@ -357,10 +360,10 @@ export default function Contact() {
         >
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-600 dark:text-brand-400 mb-4 text-center">
-              FAQ
+              {t('faqEyebrow')}
             </p>
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white text-center mb-14">
-              Questions fréquentes
+              {t('faqTitle')}
             </h2>
             <motion.div
               className="divide-y divide-neutral-200 dark:divide-neutral-700"
@@ -417,7 +420,7 @@ export default function Contact() {
             <div className="sticky top-0 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-brand-500" />
-                <h2 className="font-bold text-neutral-900 dark:text-white">Planifier un appel</h2>
+                <h2 className="font-bold text-neutral-900 dark:text-white">{t('booking.modalTitle')}</h2>
               </div>
               <button onClick={closeBooking} className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
                 <X className="w-5 h-5" />
@@ -429,18 +432,18 @@ export default function Contact() {
                 <div className="w-16 h-16 rounded-full bg-success-100 dark:bg-success-900/30 flex items-center justify-center mx-auto mb-4">
                   <Calendar className="w-8 h-8 text-success-500" />
                 </div>
-                <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">Demande envoyée !</h3>
+                <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">{t('booking.successTitle')}</h3>
                 <p className="text-neutral-500 text-sm mb-6">
-                  Ta demande de rendez-vous a bien été reçue.<br />
-                  Je te confirmerai le créneau par email très prochainement.
+                  {t('booking.successTextLine1')}<br />
+                  {t('booking.successTextLine2')}
                 </p>
-                <Button onClick={closeBooking}>Fermer</Button>
+                <Button onClick={closeBooking}>{t('booking.close')}</Button>
               </div>
             ) : (
               <form onSubmit={handleBooking} className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-neutral-500">Date *</label>
+                    <label className="text-xs font-medium text-neutral-500">{t('booking.dateLabel')}</label>
                     <input
                       type="date"
                       min={today}
@@ -451,7 +454,7 @@ export default function Contact() {
                     {bookingErrors.date && <p className="text-xs text-error-500">{bookingErrors.date}</p>}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-neutral-500">Heure *</label>
+                    <label className="text-xs font-medium text-neutral-500">{t('booking.timeLabel')}</label>
                     <select
                       value={bookingForm.time}
                       onChange={(e) => setBookingForm((p) => ({ ...p, time: e.target.value }))}
@@ -465,71 +468,72 @@ export default function Contact() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">Objet de l'appel *</label>
+                  <label className="text-xs font-medium text-neutral-500">{t('booking.subjectLabel')}</label>
                   <select
                     value={bookingForm.subject}
                     onChange={(e) => setBookingForm((p) => ({ ...p, subject: e.target.value }))}
                     className={inputCls}
                   >
-                    {SUBJECTS.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
+                    {SUBJECT_KEYS.map((key) => {
+                      const label = t(`subjects.${key}`);
+                      return <option key={key} value={label}>{label}</option>;
+                    })}
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-neutral-500">Nom complet *</label>
+                    <label className="text-xs font-medium text-neutral-500">{t('booking.nameLabel')}</label>
                     <input
                       value={bookingForm.name}
                       onChange={(e) => { setBookingForm((p) => ({ ...p, name: e.target.value })); if (bookingErrors.name) setBookingErrors((p) => ({ ...p, name: '' })); }}
-                      placeholder="Ton nom"
+                      placeholder={t('booking.namePlaceholder')}
                       className={`${inputCls} ${bookingErrors.name ? 'border-error-500' : ''}`}
                     />
                     {bookingErrors.name && <p className="text-xs text-error-500">{bookingErrors.name}</p>}
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-neutral-500">Téléphone (optionnel)</label>
+                    <label className="text-xs font-medium text-neutral-500">{t('booking.phoneLabel')}</label>
                     <input
                       value={bookingForm.phone}
                       onChange={(e) => setBookingForm((p) => ({ ...p, phone: e.target.value }))}
-                      placeholder="+221 77..."
+                      placeholder={t('booking.phonePlaceholder')}
                       className={inputCls}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">Email *</label>
+                  <label className="text-xs font-medium text-neutral-500">{t('booking.emailLabel')}</label>
                   <input
                     type="email"
                     value={bookingForm.email}
                     onChange={(e) => { setBookingForm((p) => ({ ...p, email: e.target.value })); if (bookingErrors.email) setBookingErrors((p) => ({ ...p, email: '' })); }}
-                    placeholder="ton@email.com"
+                    placeholder={t('booking.emailPlaceholder')}
                     className={`${inputCls} ${bookingErrors.email ? 'border-error-500' : ''}`}
                   />
                   {bookingErrors.email && <p className="text-xs text-error-500">{bookingErrors.email}</p>}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">Notes (optionnel)</label>
+                  <label className="text-xs font-medium text-neutral-500">{t('booking.notesLabel')}</label>
                   <textarea
                     value={bookingForm.message}
                     onChange={(e) => setBookingForm((p) => ({ ...p, message: e.target.value }))}
                     rows={3}
-                    placeholder="Précise ton besoin pour préparer l'appel..."
+                    placeholder={t('booking.notesPlaceholder')}
                     className={inputCls}
                   />
                 </div>
 
                 <div className="flex justify-end gap-3 pt-2">
-                  <Button type="button" variant="outline" onClick={closeBooking}>Annuler</Button>
+                  <Button type="button" variant="outline" onClick={closeBooking}>{t('booking.cancel')}</Button>
                   <Button
                     type="submit"
                     disabled={bookingLoading}
                     icon={bookingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
                   >
-                    {bookingLoading ? 'Envoi...' : 'Confirmer la demande'}
+                    {bookingLoading ? t('booking.submitting') : t('booking.submit')}
                   </Button>
                 </div>
               </form>

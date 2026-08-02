@@ -1,4 +1,5 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   ArrowRight, Star, Users, Clock, BookOpen, Award, Play, FileText, CheckCircle,
@@ -6,12 +7,17 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Button from '../components/ui/Button';
+import LocalizedLink from '../components/shared/LocalizedLink';
+import TranslatedText from '../components/shared/TranslatedText';
+import { useTranslatedContent, useTranslatedText } from '../hooks/useTranslatedContent';
 import { useAuth } from '../contexts/AuthContext';
 import { getFormationBySlug, getApprovedTestimonials } from '../lib/firestore';
 import { formatPrice, markdownToHtml } from '../lib/utils';
 import type { Formation, Testimonial } from '../types';
 import { trackViewItem, trackAddToCart } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
+import { useLanguage } from '../contexts/LanguageContext';
+import { contentPath } from '../lib/contentPath';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
@@ -25,20 +31,26 @@ const theme = universeThemes.formations;
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
-const levelLabels: Record<string, string> = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
 const lessonIcons: Record<string, typeof Play> = { video: Play, text: FileText, quiz: CheckCircle, resource: FileText, mission: Award };
 
 export default function FormationDetail() {
+  const { t } = useTranslation('formations');
   const { slug } = useParams();
+  const { language } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const levelLabels: Record<string, string> = {
+    debutant: t('level.debutant'),
+    intermediaire: t('level.intermediaire'),
+    avance: t('level.avance'),
+  };
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [formation, setFormation] = useState<Formation | null | undefined>(undefined);
   const [reviews, setReviews] = useState<Testimonial[]>([]);
 
   useEffect(() => {
     if (!slug) return;
-    getFormationBySlug(slug).then((data) => {
+    getFormationBySlug(slug, language).then((data) => {
       setFormation(data);
       if (data) {
         trackViewItem({
@@ -51,7 +63,7 @@ export default function FormationDetail() {
         });
       }
     }).catch(() => setFormation(null));
-  }, [slug]);
+  }, [slug, language]);
 
   useEffect(() => {
     if (!formation) return;
@@ -61,6 +73,17 @@ export default function FormationDetail() {
       setReviews((targeted.length > 0 ? targeted : fallback).slice(0, 4));
     }).catch(() => setReviews([]));
   }, [formation]);
+
+  /* Traduction du contenu dynamique Firestore (FR -> EN selon langue active). */
+  const tFormation = useTranslatedContent(
+    formation as (Formation & Record<string, unknown>) | null | undefined,
+    ['title', 'description', 'longDescription', 'category'],
+  ) as Formation | null | undefined;
+  const seoTitleSource = formation ? formation.metaTitle || formation.title : '';
+  const seoDescSource = formation ? formation.metaDescription || formation.description : '';
+  const seoTitle = useTranslatedText(seoTitleSource);
+  const seoDescription = useTranslatedText(seoDescSource);
+  const longDescriptionBody = useTranslatedText(formation?.longDescription);
 
   if (formation === undefined) {
     return (
@@ -73,11 +96,14 @@ export default function FormationDetail() {
   if (!formation) {
     return (
       <div className="pt-32 pb-20 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">Formation introuvable</h1>
-        <Link to="/formations" className={`${theme.accentText} hover:underline`}>Voir toutes les formations</Link>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{t('detail.notFoundTitle')}</h1>
+        <LocalizedLink to="/formations" className={`${theme.accentText} hover:underline`}>{t('detail.notFoundLink')}</LocalizedLink>
       </div>
     );
   }
+
+  /* Vue traduite garantie non-nulle pour l'affichage du contenu. */
+  const display = tFormation ?? formation;
 
   const toggleModule = (id: string) => {
     setExpandedModules((prev) => prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]);
@@ -118,7 +144,7 @@ export default function FormationDetail() {
           </span>
         </div>
         <span className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/70 text-white text-xs font-medium rounded-full">
-          Aperçu de la formation
+          {t('detail.previewBadge')}
         </span>
       </div>
       <div className="p-6 lg:p-7">
@@ -130,35 +156,35 @@ export default function FormationDetail() {
             </>
           ) : (
             <span className="text-3xl font-black text-neutral-900 dark:text-white">
-              {formation.price === 0 ? 'Gratuit' : formatPrice(formation.price)}
+              {formation.price === 0 ? t('detail.free') : formatPrice(formation.price)}
             </span>
           )}
         </div>
         {hasPromo && (
           <span className="inline-block mb-4 px-3 py-1 bg-error-100 dark:bg-error-900/30 text-error-600 dark:text-error-400 text-xs font-bold rounded-full uppercase tracking-wider">
-            Économise {formatPrice(formation.price - (formation.promoPrice ?? 0))}
+            {t('detail.save', { amount: formatPrice(formation.price - (formation.promoPrice ?? 0)) })}
           </span>
         )}
 
         <Button className="w-full mb-3" size="lg" onClick={handleEnroll}>
-          S'inscrire maintenant
+          {t('detail.enroll')}
         </Button>
-        <p className="text-xs text-center text-neutral-400 mb-6">Accès à vie · Garantie satisfait 14 jours</p>
+        <p className="text-xs text-center text-neutral-400 mb-6">{t('detail.guaranteeShort')}</p>
 
-        <p className="text-xs font-bold tracking-[0.18em] uppercase text-neutral-400 mb-3">Ce que ce cours inclut</p>
+        <p className="text-xs font-bold tracking-[0.18em] uppercase text-neutral-400 mb-3">{t('detail.includesTitle')}</p>
         <div className="space-y-2.5 text-sm">
           <div className="flex items-center gap-3 text-neutral-600 dark:text-neutral-300">
-            <Clock className="w-4 h-4 text-brand-500 shrink-0" /> <span>{formation.duration} de contenu</span>
+            <Clock className="w-4 h-4 text-brand-500 shrink-0" /> <span>{t('detail.durationContent', { duration: formation.duration })}</span>
           </div>
           <div className="flex items-center gap-3 text-neutral-600 dark:text-neutral-300">
-            <BookOpen className="w-4 h-4 text-brand-500 shrink-0" /> <span>{totalLessons} leçons</span>
+            <BookOpen className="w-4 h-4 text-brand-500 shrink-0" /> <span>{t('detail.lessonsCount', { count: totalLessons })}</span>
           </div>
           <div className="flex items-center gap-3 text-neutral-600 dark:text-neutral-300">
-            <InfinityIcon className="w-4 h-4 text-brand-500 shrink-0" /> <span>Accès illimité, à vie</span>
+            <InfinityIcon className="w-4 h-4 text-brand-500 shrink-0" /> <span>{t('detail.lifetimeAccess')}</span>
           </div>
           {formation.certificateEnabled && (
             <div className="flex items-center gap-3 text-neutral-600 dark:text-neutral-300">
-              <Award className="w-4 h-4 text-success-500 shrink-0" /> <span>Certificat de complétion</span>
+              <Award className="w-4 h-4 text-success-500 shrink-0" /> <span>{t('detail.certificate')}</span>
             </div>
           )}
         </div>
@@ -169,12 +195,14 @@ export default function FormationDetail() {
   return (
     <div className="bg-white dark:bg-neutral-950">
       <SEOHead
-        title={formation.metaTitle || formation.title}
-        description={formation.metaDescription || formation.description}
+        title={seoTitle}
+        description={seoDescription}
         ogTitle={formation.ogTitle}
         ogDescription={formation.ogDescription}
         ogImage={formation.ogImage || formation.coverImage}
         canonical={formation.canonicalUrl}
+        frPath={contentPath('formations', formation, 'fr')}
+        enPath={contentPath('formations', formation, 'en')}
         noIndex={formation.noIndex}
       >
         {formation.coverImage && <link rel="preload" as="image" href={formation.coverImage} />}
@@ -223,37 +251,37 @@ export default function FormationDetail() {
           animate="visible"
         >
           <motion.nav variants={staggerItem} className="flex items-center gap-2 text-xs text-neutral-400 mb-6">
-            <Link to="/" className="hover:text-white transition-colors">Accueil</Link>
+            <LocalizedLink to="/" className="hover:text-white transition-colors">{t('detail.breadcrumbHome')}</LocalizedLink>
             <span className="text-neutral-600">/</span>
-            <Link to="/formations" className="hover:text-white transition-colors">Formations</Link>
+            <LocalizedLink to="/formations" className="hover:text-white transition-colors">{t('detail.breadcrumbFormations')}</LocalizedLink>
             <span className="text-neutral-600">/</span>
-            <span className="text-neutral-500 truncate">{formation.category}</span>
+            <TranslatedText text={display.category} className="text-neutral-500 truncate" />
           </motion.nav>
 
           <div className="lg:max-w-[58%]">
             <motion.p variants={staggerItem} className="text-xs font-bold tracking-[0.3em] uppercase text-brand-400 mb-4">
-              {formation.category} · {levelLabels[formation.level] ?? formation.level}
+              <TranslatedText text={display.category} /> · {levelLabels[formation.level] ?? formation.level}
             </motion.p>
             <motion.h1 variants={staggerItem} className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white mb-4 leading-[1.1]">
-              {formation.title}
+              {display.title}
             </motion.h1>
             <motion.p variants={staggerItem} className="text-base lg:text-lg text-neutral-300 leading-relaxed mb-5">
-              {formation.description}
+              {display.description}
             </motion.p>
             <motion.div variants={staggerItem} className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-neutral-400">
               <span className="flex items-center gap-1.5">
                 <Star className="w-4 h-4 text-accent-400" fill="currentColor" />
                 <span className="font-bold text-white">{formation.rating}</span>
               </span>
-              <span className="flex items-center gap-1.5"><Users className="w-4 h-4" />{formation.students} étudiants</span>
+              <span className="flex items-center gap-1.5"><Users className="w-4 h-4" />{t('detail.studentsCount', { count: formation.students })}</span>
               <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" />{formation.duration}</span>
-              <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4" />{totalLessons} leçons</span>
+              <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4" />{t('detail.lessonsCount', { count: totalLessons })}</span>
               {formation.certificateEnabled && (
-                <span className="flex items-center gap-1.5"><Award className="w-4 h-4 text-success-400" />Certificat inclus</span>
+                <span className="flex items-center gap-1.5"><Award className="w-4 h-4 text-success-400" />{t('detail.certificateIncluded')}</span>
               )}
             </motion.div>
             <motion.p variants={staggerItem} className="mt-5 text-sm text-neutral-400">
-              Créé par <span className="font-semibold text-white">Max-Morrys</span>
+              {t('detail.createdBy')} <span className="font-semibold text-white">Max-Morrys</span>
             </motion.p>
           </div>
         </motion.div>
@@ -283,13 +311,13 @@ export default function FormationDetail() {
                 viewport={viewportOnce}
               >
                 <h2 className="text-xl lg:text-2xl font-black tracking-tight text-neutral-900 dark:text-white mb-5">
-                  Ce que tu apprendras
+                  {t('detail.learnTitle')}
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-x-6 gap-y-3">
                   {learnItems.map((item) => (
                     <div key={item} className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-success-500 shrink-0 mt-0.5" />
-                      <span className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">{item}</span>
+                      <TranslatedText text={item} className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed" />
                     </div>
                   ))}
                 </div>
@@ -306,13 +334,17 @@ export default function FormationDetail() {
               viewport={viewportOnce}
             >
               <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-3`}>
-                Programme
+                {t('detail.programEyebrow')}
               </p>
               <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-2">
-                Contenu du cours
+                {t('detail.programTitle')}
               </h2>
               <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
-                {(formation.modules ?? []).length} module{(formation.modules ?? []).length !== 1 ? 's' : ''} · {totalLessons} leçons · {formation.duration}
+                {t('detail.programSummary', {
+                  modules: t((formation.modules ?? []).length !== 1 ? 'detail.moduleCountOther' : 'detail.moduleCountOne', { count: (formation.modules ?? []).length }),
+                  lessons: t('detail.lessonsCount', { count: totalLessons }),
+                  duration: formation.duration,
+                })}
               </p>
               <div className="space-y-3">
                 {(formation.modules ?? []).map((module) => {
@@ -328,8 +360,8 @@ export default function FormationDetail() {
                             {module.order}
                           </span>
                           <div className="text-left">
-                            <p className="font-bold text-neutral-900 dark:text-white">{module.title}</p>
-                            <p className="text-xs text-neutral-500">{module.lessons.length} leçons</p>
+                            <TranslatedText text={module.title} as="p" className="font-bold text-neutral-900 dark:text-white" />
+                            <p className="text-xs text-neutral-500">{t('detail.moduleLessons', { count: module.lessons.length })}</p>
                           </div>
                         </div>
                         {isExpanded ? <ChevronUp className="w-5 h-5 text-neutral-400 shrink-0" /> : <ChevronDown className="w-5 h-5 text-neutral-400 shrink-0" />}
@@ -347,10 +379,10 @@ export default function FormationDetail() {
                             return (
                               <div key={lesson.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors border-b border-neutral-100 dark:border-neutral-800 last:border-0">
                                 <Icon className="w-4 h-4 text-neutral-400 shrink-0" />
-                                <span className="flex-1 text-sm text-neutral-700 dark:text-neutral-300">{lesson.title}</span>
+                                <TranslatedText text={lesson.title} className="flex-1 text-sm text-neutral-700 dark:text-neutral-300" />
                                 <span className="text-xs text-neutral-400 mr-2">{lesson.duration}</span>
                                 {lesson.isFree ? (
-                                  <span className="text-xs font-bold text-success-600 dark:text-success-400 uppercase tracking-wider">Gratuit</span>
+                                  <span className="text-xs font-bold text-success-600 dark:text-success-400 uppercase tracking-wider">{t('detail.lessonFree')}</span>
                                 ) : (
                                   <Lock className="w-3.5 h-3.5 text-neutral-300 dark:text-neutral-600" />
                                 )}
@@ -375,11 +407,11 @@ export default function FormationDetail() {
               viewport={viewportOnce}
             >
               <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-6">
-                Description
+                {t('detail.descriptionTitle')}
               </h2>
               <div
                 className="prose-article prose prose-sm sm:prose-base dark:prose-invert max-w-none prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium"
-                dangerouslySetInnerHTML={{ __html: markdownToHtml(formation.longDescription) }}
+                dangerouslySetInnerHTML={{ __html: markdownToHtml(longDescriptionBody) }}
               />
             </motion.div>
 
@@ -392,7 +424,7 @@ export default function FormationDetail() {
               viewport={viewportOnce}
             >
               <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-6">
-                Avis des étudiants
+                {t('detail.reviewsTitle')}
               </h2>
               <div className="flex items-center gap-5 mb-7 p-5 rounded-2xl bg-accent-50 dark:bg-accent-900/10 border border-accent-200/60 dark:border-accent-900/30">
                 <div className="text-center shrink-0">
@@ -400,7 +432,12 @@ export default function FormationDetail() {
                   <p className="text-accent-500 text-sm mt-1 tracking-widest">★★★★★</p>
                 </div>
                 <p className="text-sm text-neutral-600 dark:text-neutral-300">
-                  Note moyenne attribuée par <span className="font-bold text-neutral-900 dark:text-white">{formation.students} étudiants</span> inscrits à cette formation.
+                  <Trans
+                    t={t}
+                    i18nKey="detail.ratingSummary"
+                    values={{ count: formation.students }}
+                    components={{ strong: <span className="font-bold text-neutral-900 dark:text-white" /> }}
+                  />
                 </p>
               </div>
               {reviews.length > 0 && (
@@ -442,7 +479,7 @@ export default function FormationDetail() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400 border-t border-neutral-100 dark:border-neutral-800 pt-6">
           <ShieldCheck className="w-5 h-5 text-success-500 shrink-0" />
-          Garantie satisfait ou remboursé pendant 14 jours — sans condition.
+          {t('detail.guaranteeBanner')}
         </div>
       </div>
 
@@ -456,17 +493,17 @@ export default function FormationDetail() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-4`}>
-            Découvrez aussi
+            {t('detail.crossEyebrow')}
           </p>
           <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white mb-4">
-            Je t'informe
+            {t('detail.crossTitle')}
           </h2>
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
-            Articles, analyses et conseils gratuits pour approfondir vos connaissances en marketing digital.
+            {t('detail.crossDescription')}
           </p>
-          <Link to="/blog" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide`}>
-            Lire le blog <ArrowRight className="w-4 h-4" />
-          </Link>
+          <LocalizedLink to="/blog" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide`}>
+            {t('detail.crossCta')} <ArrowRight className="w-4 h-4" />
+          </LocalizedLink>
         </div>
       </motion.section>
     </div>

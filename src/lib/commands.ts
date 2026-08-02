@@ -1,4 +1,5 @@
-import type { NavigateFunction } from 'react-router-dom';
+/** Navigation prenant un chemin canonique FR ; l'appelant peut le localiser (/en + segments). */
+type CommandNavigate = (to: string) => void;
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard, BookOpen, BookMarked, Award, Inbox, User, Settings, Crown,
@@ -23,7 +24,7 @@ export interface AppCommand {
 interface CommandContext {
   user: FirebaseUser | null;
   userData: AppUser | null;
-  navigate: NavigateFunction;
+  navigate: CommandNavigate;
   theme: 'light' | 'dark';
   setTheme: (t: 'light' | 'dark') => void;
   signOut: () => Promise<void>;

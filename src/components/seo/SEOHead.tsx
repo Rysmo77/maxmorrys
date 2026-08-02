@@ -8,6 +8,8 @@ import {
   TWITTER_HANDLE,
   buildCanonical,
 } from './seo-config';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { localizedPath, ogLocale, toCanonicalPath } from '../../i18n/routing';
 
 interface SEOHeadProps {
   title: string;
@@ -26,6 +28,9 @@ interface SEOHeadProps {
   modifiedAt?: string;
   author?: string;
   isHomePage?: boolean;
+  /** Chemins alternés explicites par langue (pour les contenus à slug localisé). */
+  frPath?: string;
+  enPath?: string;
   children?: ReactNode;
 }
 
@@ -46,11 +51,18 @@ export default function SEOHead({
   modifiedAt,
   author,
   isHomePage = false,
+  frPath,
+  enPath,
   children,
 }: SEOHeadProps) {
   const { pathname } = useLocation();
+  const { language } = useLanguage();
+  const basePath = toCanonicalPath(pathname);
   const fullTitle = isHomePage ? title : `${title} | ${SITE_NAME}`;
   const canonicalUrl = canonical || buildCanonical(pathname);
+  // Alternates hreflang : utiliser les chemins explicites (slug localisé) si fournis.
+  const frUrl = buildCanonical(frPath ?? localizedPath(basePath, 'fr'));
+  const enUrl = buildCanonical(enPath ?? localizedPath(basePath, 'en'));
   const resolvedOgTitle = ogTitle || title;
   const resolvedOgDescription = ogDescription || description;
   const resolvedOgImage = ogImage || DEFAULT_OG_IMAGE;
@@ -61,9 +73,15 @@ export default function SEOHead({
 
   return (
     <Helmet>
+      <html lang={language} />
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={canonicalUrl} />
+
+      {/* Alternances de langue (SEO multilingue) */}
+      <link rel="alternate" hrefLang="fr" href={frUrl} />
+      <link rel="alternate" hrefLang="en" href={enUrl} />
+      <link rel="alternate" hrefLang="x-default" href={frUrl} />
 
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
@@ -77,7 +95,7 @@ export default function SEOHead({
       <meta property="og:image:height" content="630" />
       <meta property="og:image:alt" content={resolvedOgImageAlt} />
       <meta property="og:image:type" content="image/jpeg" />
-      <meta property="og:locale" content="fr_FR" />
+      <meta property="og:locale" content={ogLocale(language)} />
       <meta property="og:site_name" content={SITE_NAME} />
 
       {/* Article-specific OG */}

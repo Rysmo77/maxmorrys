@@ -1,0 +1,272 @@
+{
+ "updatedAt": "2026-04-23T18:32:41.000Z",
+ "createdAt": "2026-04-09T10:30:38.646Z",
+ "id": "ZgOC6a9FwodApt0v",
+ "name": "[ARCHIVED] WF-03 — Génération de Posts Multi-Réseaux",
+ "description": null,
+ "active": false,
+ "isArchived": true,
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "0 14 * * *"
+      }
+     ]
+    }
+   },
+   "id": "cron-trigger",
+   "name": "Cron — Posts 14h quotidien",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const input = $input.first().json;\n\nreturn [{\n  json: {\n    subject: input.subject || input.Sujet || 'Marketing digital en Afrique',\n    network: input.network || input.Reseau || 'all',\n    format: input.format || input.Format || 'texte',\n    rubrique: input.rubrique || input.Rubrique || 'Tips',\n    hook: input.hook || input.Contenu || '',\n    hashtags: input.hashtags || input.Hashtags || '',\n    media_prompt: input.media_prompt || input.Media_Prompt || '',\n    context: input.context || ''\n  }\n}];"
+   },
+   "id": "wf03-normalize",
+   "name": "Normaliser — Input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    224,
+    304
+   ]
+  },
+  {
+   "parameters": {
+    "modelId": {
+     "__rl": true,
+     "value": "models/gemini-3-flash-preview",
+     "mode": "list",
+     "cachedResultName": "models/gemini-3-flash-preview"
+    },
+    "messages": {
+     "values": [
+      {
+       "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : GENERER DES POSTS POUR 5 RESEAUX SOCIAUX\n\nA partir du sujet et du brief, genere 5 versions optimisees du meme contenu pour Facebook, Instagram, LinkedIn, Twitter/X et TikTok.\n\nSUJET : {{ $json.subject || $json.Sujet || '' }}\nFORMAT : {{ $json.format || $json.Format || 'texte' }}\nACCROCHE DE BASE : {{ $json.hook || $json.Contenu || '' }}\nRUBRIQUE : {{ $json.rubrique || $json.Rubrique || '' }}\n\nREGLES GENERALES :\n- Tutoiement partout\n- Ton Max-Morrys : passionne, pedagogique, concret, amical\n- **Pas de traduction litterale** d'un reseau a l'autre — adapte le ton et le format\n- Exemples ancres en Afrique francophone (varie les pays)\n- 1-2 emojis max par post (dans l'accroche ou le CTA)\n\nCONTRAINTES PAR RESEAU :\n\n**Facebook** (1000-2000 chars) : storytelling, accroche en 1 ligne qui donne envie de cliquer \"Voir plus\", corps du post educatif, CTA clair a la fin.\n\n**Instagram** (1500 chars max) : hook percutant dans les 2 premieres lignes (avant le \"plus\"), puis listes a puces (utilise le retour a la ligne), 15-20 hashtags en fin de post ou en commentaire (dont #MaxMorrys #MarketingDigitalAfrique #EntrepreneurAfricain + hashtags locaux du pays cible + hashtags niche).\n\n**LinkedIn** (1500-3000 chars) : ton plus professionnel mais pas rigide, insight/donnee chiffree en hook, structure en 3-5 points numerotes, question en fin pour engager, 3-5 hashtags pro.\n\n**Twitter/X** (280 chars max pour le tweet principal) + thread de 3-7 tweets si le sujet le merite. Tweet 1 = hook, tweets suivants = valeur ajoutee une idee par tweet, dernier tweet = CTA.\n\n**TikTok** (150 chars pour caption) : hook visuel dans les 3 premieres secondes a decrire, script court, transitions, CTA \"suis-moi pour plus\".\n\nREPONSE JSON STRICT :\n{\n  \"posts\": {\n    \"facebook\": { \"content\": \"\", \"cta\": \"\", \"hashtags\": [], \"best_time\": \"\" },\n    \"instagram\": { \"content\": \"\", \"hashtags\": [], \"best_time\": \"\" },\n    \"linkedin\": { \"content\": \"\", \"hashtags\": [], \"best_time\": \"\" },\n    \"twitter\": { \"main_tweet\": \"\", \"thread\": [\"\"], \"hashtags\": [] },\n    \"tiktok\": { \"caption\": \"\", \"script_outline\": \"\", \"hashtags\": [], \"hook_first_3s\": \"\" }\n  },\n  \"visual_prompt\": \"description du visuel a generer, adapte au sujet, style photo africaine authentique\",\n  \"note\": \"toute remarque importante pour l'humain qui validera\"\n}"
+      }
+     ]
+    },
+    "jsonOutput": true,
+    "builtInTools": {},
+    "options": {
+     "maxOutputTokens": 4096,
+     "temperature": 0.7
+    }
+   },
+   "id": "wf03-gemini",
+   "name": "Gemini Flash — Générer les posts",
+   "type": "@n8n/n8n-nodes-langchain.googleGemini",
+   "typeVersion": 1.1,
+   "position": [
+    448,
+    304
+   ],
+   "credentials": {
+    "googlePalmApi": {
+     "id": "wQPLkug1dt6DGOt4",
+     "name": "Google AI Max-Morrys LMS"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const response = $input.first().json;\nconst inputData = $('Normaliser — Input').first().json;\n\nlet parsed;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  parsed = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing posts: ' + e.message);\n}\n\nconst posts = parsed.posts || {};\nconst mediaSuggestion = parsed.media_suggestion || {};\n\nreturn [{\n  json: {\n    subject: inputData.subject,\n    posts,\n    media_suggestion: mediaSuggestion,\n    generated_at: new Date().toISOString(),\n    status: 'à_valider'\n  }\n}];"
+   },
+   "id": "wf03-parse",
+   "name": "Parse — Structurer les posts",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    800,
+    304
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "string": [
+      {
+       "value1": "={{ $json.media_suggestion?.prompt }}",
+       "operation": "isNotEmpty"
+      }
+     ]
+    },
+    "options": {}
+   },
+   "id": "wf03-needs-media",
+   "name": "IF — Besoin de média ?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    1024,
+    304
+   ]
+  },
+  {
+   "id": "wf03-sheets",
+   "name": "Airtable — Mettre à jour",
+   "type": "n8n-nodes-base.airtable",
+   "typeVersion": 2.1,
+   "position": [
+    1472,
+    320
+   ],
+   "credentials": {
+    "airtableTokenApi": {
+     "id": "ik5KqgcooeDvHpFb",
+     "name": "Airtable Max-Morrys"
+    }
+   },
+   "onError": "continueRegularOutput",
+   "parameters": {
+    "resource": "record",
+    "operation": "upsert",
+    "base": {
+     "__rl": true,
+     "value": "apppkEbepilHCYiso",
+     "mode": "list",
+     "cachedResultName": "Max-Morrys PB"
+    },
+    "table": {
+     "__rl": true,
+     "value": "tblTlBSOSI1UOmQ1I",
+     "mode": "list",
+     "cachedResultName": "Calendrier Editorial"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "Sujet": "={{ $('Parse — Structurer les posts').first().json.subject }}",
+      "Status_Contenu": "=produit",
+      "Contenu": "={{ JSON.stringify($('Parse — Structurer les posts').first().json.posts).substring(0, 500) }}"
+     },
+     "matchingColumns": [
+      "URL_Post"
+     ],
+     "schema": [],
+     "attemptToConvertTypes": true,
+     "convertFieldsToString": true
+    },
+    "options": {
+     "typecast": true
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Normaliser — Input": {
+   "main": [
+    [
+     {
+      "node": "Gemini Flash — Générer les posts",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Gemini Flash — Générer les posts": {
+   "main": [
+    [
+     {
+      "node": "Parse — Structurer les posts",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Parse — Structurer les posts": {
+   "main": [
+    [
+     {
+      "node": "IF — Besoin de média ?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "IF — Besoin de média ?": {
+   "main": [
+    [],
+    [
+     {
+      "node": "Airtable — Mettre à jour",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Airtable — Mettre à jour": {
+   "main": [
+    []
+   ]
+  },
+  "Cron — Posts 14h quotidien": {
+   "main": [
+    [
+     {
+      "node": "Normaliser — Input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "saveManualExecutions": true,
+  "callerPolicy": "workflowsFromSameOwner",
+  "availableInMCP": false,
+  "binaryMode": "separate"
+ },
+ "staticData": {
+  "node:Cron — Posts 14h quotidien": {
+   "recurrenceRules": []
+  }
+ },
+ "meta": {
+  "templateCredsSetupCompleted": true
+ },
+ "nodeGroups": [],
+ "pinData": {},
+ "versionId": "44fd5ac4-c90d-4192-a940-160dc8e1d3f5",
+ "activeVersionId": null,
+ "versionCounter": 46,
+ "triggerCount": 1,
+ "sourceWorkflowId": null,
+ "shared": [
+  {
+   "updatedAt": "2026-04-09T10:30:38.648Z",
+   "createdAt": "2026-04-09T10:30:38.648Z",
+   "role": "workflow:owner",
+   "workflowId": "ZgOC6a9FwodApt0v",
+   "projectId": "MovWUY92SBioz1Tw",
+   "project": {
+    "updatedAt": "2026-04-09T09:50:14.678Z",
+    "createdAt": "2026-04-09T09:45:54.695Z",
+    "id": "MovWUY92SBioz1Tw",
+    "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+    "type": "personal",
+    "icon": null,
+    "description": null,
+    "customTelemetryTags": [],
+    "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+   }
+  }
+ ],
+ "tags": [],
+ "activeVersion": null
+}

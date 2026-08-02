@@ -1,7 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 const requiredEnvVars = [
@@ -32,8 +31,15 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
-export const functions = getFunctions(app, 'us-central1');
+
+// Le second argument accepte soit une région, soit un domaine personnalisé : le
+// SDK appelle alors `${domaine}/${nomDeLaFonction}`. C'est le point de bascule
+// des callables vers Cloudflare — les sites `httpsCallable` restent inchangés.
+// Non défini = comportement historique (Cloud Functions us-central1).
+export const functions = getFunctions(
+  app,
+  import.meta.env.VITE_FUNCTIONS_ORIGIN || 'us-central1',
+);
 
 // En dev, on cible les fonctions de PROD par défaut. Mettre VITE_USE_FUNCTIONS_EMULATOR=true
 // (avec `firebase emulators:start`) pour basculer sur l'émulateur local.

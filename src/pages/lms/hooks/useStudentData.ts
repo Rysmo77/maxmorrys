@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { getUserEnrollments, getFormationsByIds } from '../../../lib/firestore';
+import { queryKeys } from '../../../lib/queryClient';
 import type { Enrollment, Formation } from '../../../types';
 
 export interface EnrolledFormation {
@@ -8,29 +9,23 @@ export interface EnrolledFormation {
 }
 
 export function useStudentData(userId: string | undefined) {
-  const [enrolledFormations, setEnrolledFormations] = useState<EnrolledFormation[]>([]);
-  const [loadingEnrollments, setLoadingEnrollments] = useState(true);
+  const { data: enrolledFormations = [], isLoading } = useQuery({
+    queryKey: queryKeys.studentData(userId ?? ''),
+    enabled: !!userId,
+    queryFn: async (): Promise<EnrolledFormation[]> => {
+      const enrollments = await getUserEnrollments(userId!);
+      const ids = enrollments.map((e) => e.formationId);
+      const formations = await getFormationsByIds(ids).catch(() => [] as Formation[]);
+      const formationMap = new Map(formations.map((f) => [f.id, f]));
+      return enrollments.map((enrollment) => ({
+        enrollment,
+        formation: formationMap.get(enrollment.formationId) ?? null,
+      }));
+    },
+  });
 
-  useEffect(() => {
-    if (!userId) return;
-    setLoadingEnrollments(true);
-    getUserEnrollments(userId)
-      .then(async (enrollments) => {
-        const ids = enrollments.map((e) => e.formationId);
-        const formations = await getFormationsByIds(ids).catch(() => [] as Formation[]);
-        const formationMap = new Map(formations.map((f) => [f.id, f]));
-        setEnrolledFormations(
-          enrollments.map((enrollment) => ({
-            enrollment,
-            formation: formationMap.get(enrollment.formationId) ?? null,
-          }))
-        );
-        setLoadingEnrollments(false);
-      })
-      .catch(() => {
-        setLoadingEnrollments(false);
-      });
-  }, [userId]);
+  // Spinner uniquement pendant la première lecture réelle (utilisateur connu).
+  const loadingEnrollments = !!userId && isLoading;
 
   const avgProgress =
     enrolledFormations.length > 0

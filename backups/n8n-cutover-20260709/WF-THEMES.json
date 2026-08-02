@@ -1,0 +1,741 @@
+{
+  "updatedAt": "2026-07-09T13:26:23.970Z",
+  "createdAt": "2026-07-09T13:26:23.970Z",
+  "id": "KO5mTEtSvhiIMAwq",
+  "name": "WF-THEMES — Suggestions hebdo (CMO Aïcha)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 17 * * 5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ],
+      "id": "th-cron",
+      "name": "Cron — Vendredi 17h"
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblQqVRtboYFSGNt8",
+          "mode": "list"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        220,
+        300
+      ],
+      "id": "th-cfg",
+      "name": "THEMES — Lire Config",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPYoyzcZLdtBTO3",
+          "mode": "list"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        440,
+        300
+      ],
+      "id": "th-rec",
+      "name": "THEMES — Récents",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst rows=$('THEMES — Récents').all().map(r=>r.json).filter(x=>x.Titre);\nconst base=$now.setZone('Africa/Lagos');\nconst du=((8-base.weekday)%7)||7;\nconst monday=base.plus({days:du}).startOf('day');\nconst sunday=monday.plus({days:7});\nconst semaine=monday.toFormat('dd LLL');\nlet targetCount=0;\nfor(const x of rows){const d=x.Date_Publication_Prevue;if(!d)continue;const dt=DateTime.fromISO(d);if(dt.isValid&&dt>=monday&&dt<sunday)targetCount++;}\nconst skip=targetCount>=5;\nconst recents=rows.map(x=>({t:x.Titre,d:x.Date_Publication_Prevue||''})).sort((a,b)=>(b.d>a.d?1:-1)).slice(0,25).map(x=>x.t);\nconst prompt=`Tu es **CMO Aïcha**, directrice marketing de Max-Morrys (agence personal branding + LMS, tagline « Maîtrise le digital, accélère ta croissance »). Cible : entrepreneurs 25-45 ans d'Afrique francophone + diaspora.\nPropose **4 thématiques éditoriales** distinctes, actuelles et déclinables, pour la semaine du ${semaine}. Elles mêlent personal branding, marketing digital et IA. Chaque thème doit pouvoir se décliner en ~10 posts (LinkedIn/IG/FB en primaire, un peu de TikTok/X).\nInclus au moins 1 thème qui surfe une **tendance chaude** du moment (ex : GEO/AEO et être cité par ChatGPT/Gemini, agents IA pour solopreneurs, saturation du contenu IA & prime à l'authenticité, faceless/UGC IA, founder-led content, IA souveraine en Afrique...).\nÉvite de répéter ces sujets déjà traités récemment : ${recents.join(' | ')}.\nRéponds STRICTEMENT en JSON, sans texte autour : {\"themes\":[{\"titre\":\"court et accrocheur\",\"angle\":\"1 phrase sur l'angle éditorial\",\"pourquoi\":\"pourquoi ce thème maintenant, 1 phrase\"}]} — exactement 4 objets.`;\nreturn [{json:{prompt,skip,targetCount,semaine}}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ],
+      "id": "th-build",
+      "name": "THEMES — Build prompt"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        770,
+        300
+      ],
+      "id": "th-guard",
+      "name": "Semaine libre ?"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 32768,
+          "temperature": 0.8,
+          "thinkingBudget": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        300
+      ],
+      "id": "th-gem",
+      "name": "Gemini — CMO Aïcha (thèmes)",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst cfg={};for(const r of $('THEMES — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nlet g=$input.first().json;\nif(g&&g.content!==undefined)g=g.content;\nif(g&&g.text!==undefined)g=g.text;\nif(typeof g==='string'){try{g=JSON.parse(g);}catch(e){g={};}}\nlet themes=(g&&(g.themes||g.Themes))||[];\nif(!Array.isArray(themes))themes=[];\nthemes=themes.slice(0,4);\nif(!themes.length)themes=[{titre:'Marque & IA',angle:'',pourquoi:''}];\nconst lines=themes.map((t,i)=>`<b>${i+1}. ${t.titre}</b>\\n${t.angle||''}\\n<i>${t.pourquoi||''}</i>`).join('\\n\\n');\nconst text=`🗓️ <b>CMO Aïcha — thèmes proposés (semaine prochaine)</b>\\n\\n${lines}\\n\\n👉 Choisis-en un ci-dessous : je le décline en 10 posts prêts à valider.`;\nconst kb={inline_keyboard:themes.map((t,i)=>[{text:`${i+1}. ${String(t.titre).slice(0,32)}`,callback_data:`pick:theme:${i}`}])};\nconst tgBody={chat_id:cfg.TELEGRAM_CHAT_ID,text,parse_mode:'HTML',reply_markup:kb};\nreturn [{json:{token:cfg.TELEGRAM_BOT_TOKEN,themesJson:JSON.stringify(themes),tgBody}}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ],
+      "id": "th-parse",
+      "name": "THEMES — Parse"
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblQqVRtboYFSGNt8",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cle": "THEMES_CURRENT",
+            "Valeur": "={{ $json.themesJson }}",
+            "Type": "json"
+          },
+          "matchingColumns": [
+            "Cle"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1320,
+        300
+      ],
+      "id": "th-store",
+      "name": "THEMES — Stocker",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('THEMES — Parse').first().json.token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('THEMES — Parse').first().json.tgBody) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        300
+      ],
+      "id": "th-send",
+      "name": "THEMES — Envoyer Telegram"
+    }
+  ],
+  "connections": {
+    "Cron — Vendredi 17h": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Récents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Récents": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Build prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Build prompt": {
+      "main": [
+        [
+          {
+            "node": "Semaine libre ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Semaine libre ?": {
+      "main": [
+        [
+          {
+            "node": "Gemini — CMO Aïcha (thèmes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini — CMO Aïcha (thèmes)": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Parse": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Stocker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Stocker": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Envoyer Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Lagos"
+  },
+  "staticData": {
+    "node:Cron — Vendredi 17h": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "43e29f32-9f99-45af-b019-50374591d0e1",
+  "activeVersionId": "43e29f32-9f99-45af-b019-50374591d0e1",
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "shared": [
+    {
+      "updatedAt": "2026-07-09T13:26:23.971Z",
+      "createdAt": "2026-07-09T13:26:23.971Z",
+      "role": "workflow:owner",
+      "workflowId": "KO5mTEtSvhiIMAwq",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-07-09T13:26:23.973Z",
+    "createdAt": "2026-07-09T13:26:23.973Z",
+    "versionId": "43e29f32-9f99-45af-b019-50374591d0e1",
+    "workflowId": "KO5mTEtSvhiIMAwq",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 17 * * 5"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          300
+        ],
+        "id": "th-cron",
+        "name": "Cron — Vendredi 17h"
+      },
+      {
+        "parameters": {
+          "resource": "record",
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblQqVRtboYFSGNt8",
+            "mode": "list"
+          },
+          "returnAll": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          220,
+          300
+        ],
+        "id": "th-cfg",
+        "name": "THEMES — Lire Config",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "record",
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblPYoyzcZLdtBTO3",
+            "mode": "list"
+          },
+          "returnAll": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          440,
+          300
+        ],
+        "id": "th-rec",
+        "name": "THEMES — Récents",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "\nconst rows=$('THEMES — Récents').all().map(r=>r.json).filter(x=>x.Titre);\nconst base=$now.setZone('Africa/Lagos');\nconst du=((8-base.weekday)%7)||7;\nconst monday=base.plus({days:du}).startOf('day');\nconst sunday=monday.plus({days:7});\nconst semaine=monday.toFormat('dd LLL');\nlet targetCount=0;\nfor(const x of rows){const d=x.Date_Publication_Prevue;if(!d)continue;const dt=DateTime.fromISO(d);if(dt.isValid&&dt>=monday&&dt<sunday)targetCount++;}\nconst skip=targetCount>=5;\nconst recents=rows.map(x=>({t:x.Titre,d:x.Date_Publication_Prevue||''})).sort((a,b)=>(b.d>a.d?1:-1)).slice(0,25).map(x=>x.t);\nconst prompt=`Tu es **CMO Aïcha**, directrice marketing de Max-Morrys (agence personal branding + LMS, tagline « Maîtrise le digital, accélère ta croissance »). Cible : entrepreneurs 25-45 ans d'Afrique francophone + diaspora.\nPropose **4 thématiques éditoriales** distinctes, actuelles et déclinables, pour la semaine du ${semaine}. Elles mêlent personal branding, marketing digital et IA. Chaque thème doit pouvoir se décliner en ~10 posts (LinkedIn/IG/FB en primaire, un peu de TikTok/X).\nInclus au moins 1 thème qui surfe une **tendance chaude** du moment (ex : GEO/AEO et être cité par ChatGPT/Gemini, agents IA pour solopreneurs, saturation du contenu IA & prime à l'authenticité, faceless/UGC IA, founder-led content, IA souveraine en Afrique...).\nÉvite de répéter ces sujets déjà traités récemment : ${recents.join(' | ')}.\nRéponds STRICTEMENT en JSON, sans texte autour : {\"themes\":[{\"titre\":\"court et accrocheur\",\"angle\":\"1 phrase sur l'angle éditorial\",\"pourquoi\":\"pourquoi ce thème maintenant, 1 phrase\"}]} — exactement 4 objets.`;\nreturn [{json:{prompt,skip,targetCount,semaine}}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          660,
+          300
+        ],
+        "id": "th-build",
+        "name": "THEMES — Build prompt"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "typeValidation": "loose"
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "leftValue": "={{ $json.skip }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "false",
+                  "singleValue": true
+                }
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2,
+        "position": [
+          770,
+          300
+        ],
+        "id": "th-guard",
+        "name": "Semaine libre ?"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "={{ $json.prompt }}"
+              }
+            ]
+          },
+          "simplify": false,
+          "jsonOutput": true,
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 32768,
+            "temperature": 0.8,
+            "thinkingBudget": 0
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          880,
+          300
+        ],
+        "id": "th-gem",
+        "name": "Gemini — CMO Aïcha (thèmes)",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "jsCode": "\nconst cfg={};for(const r of $('THEMES — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nlet g=$input.first().json;\nif(g&&g.content!==undefined)g=g.content;\nif(g&&g.text!==undefined)g=g.text;\nif(typeof g==='string'){try{g=JSON.parse(g);}catch(e){g={};}}\nlet themes=(g&&(g.themes||g.Themes))||[];\nif(!Array.isArray(themes))themes=[];\nthemes=themes.slice(0,4);\nif(!themes.length)themes=[{titre:'Marque & IA',angle:'',pourquoi:''}];\nconst lines=themes.map((t,i)=>`<b>${i+1}. ${t.titre}</b>\\n${t.angle||''}\\n<i>${t.pourquoi||''}</i>`).join('\\n\\n');\nconst text=`🗓️ <b>CMO Aïcha — thèmes proposés (semaine prochaine)</b>\\n\\n${lines}\\n\\n👉 Choisis-en un ci-dessous : je le décline en 10 posts prêts à valider.`;\nconst kb={inline_keyboard:themes.map((t,i)=>[{text:`${i+1}. ${String(t.titre).slice(0,32)}`,callback_data:`pick:theme:${i}`}])};\nconst tgBody={chat_id:cfg.TELEGRAM_CHAT_ID,text,parse_mode:'HTML',reply_markup:kb};\nreturn [{json:{token:cfg.TELEGRAM_BOT_TOKEN,themesJson:JSON.stringify(themes),tgBody}}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1100,
+          300
+        ],
+        "id": "th-parse",
+        "name": "THEMES — Parse"
+      },
+      {
+        "parameters": {
+          "resource": "record",
+          "operation": "upsert",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblQqVRtboYFSGNt8",
+            "mode": "list"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Cle": "THEMES_CURRENT",
+              "Valeur": "={{ $json.themesJson }}",
+              "Type": "json"
+            },
+            "matchingColumns": [
+              "Cle"
+            ],
+            "schema": []
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1320,
+          300
+        ],
+        "id": "th-store",
+        "name": "THEMES — Stocker",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://api.telegram.org/bot{{ $('THEMES — Parse').first().json.token }}/sendMessage",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($('THEMES — Parse').first().json.tgBody) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1540,
+          300
+        ],
+        "id": "th-send",
+        "name": "THEMES — Envoyer Telegram"
+      }
+    ],
+    "connections": {
+      "Cron — Vendredi 17h": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Lire Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Lire Config": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Récents",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Récents": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Build prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Build prompt": {
+        "main": [
+          [
+            {
+              "node": "Semaine libre ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Semaine libre ?": {
+        "main": [
+          [
+            {
+              "node": "Gemini — CMO Aïcha (thèmes)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini — CMO Aïcha (thèmes)": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Parse",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Parse": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Stocker",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Stocker": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Envoyer Telegram",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-07-09T13:26:24.595Z",
+        "id": 2557,
+        "workflowId": "KO5mTEtSvhiIMAwq",
+        "versionId": "43e29f32-9f99-45af-b019-50374591d0e1",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

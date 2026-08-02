@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Search, RefreshCw, Loader2, ChevronDown, Check, X } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import { getAllAppointments, updateAppointmentStatus } from '../../lib/firestore';
-import { formatDate } from '../../lib/utils';
+import { useFormat } from '../../hooks/useFormat';
 import type { Appointment } from '../../types';
-
-const STATUS_LABELS: Record<Appointment['status'], string> = {
-  pending: 'En attente',
-  confirmed: 'Confirmé',
-  cancelled: 'Annulé',
-};
 
 const STATUS_COLORS: Record<Appointment['status'], string> = {
   pending: 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400',
@@ -19,7 +14,14 @@ const STATUS_COLORS: Record<Appointment['status'], string> = {
 };
 
 export default function AdminAppointments() {
+  const { t } = useTranslation('admin');
+  const { formatDate } = useFormat();
   const { addToast } = useToast();
+  const STATUS_LABELS: Record<Appointment['status'], string> = {
+    pending: t('appointments.statusPending'),
+    confirmed: t('appointments.statusConfirmed'),
+    cancelled: t('appointments.statusCancelled'),
+  };
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -29,7 +31,7 @@ export default function AdminAppointments() {
   const load = () => {
     setLoading(true);
     getAllAppointments().then((data) => { setAppointments(data); setLoading(false); })
-      .catch(() => { addToast('error', 'Erreur lors du chargement des rendez-vous.'); setLoading(false); });
+      .catch(() => { addToast('error', t('appointments.toastLoadError')); setLoading(false); });
   };
 
   useEffect(() => { load(); }, []);
@@ -39,9 +41,9 @@ export default function AdminAppointments() {
     try {
       await updateAppointmentStatus(id, status);
       setAppointments((prev) => prev.map((a) => a.id === id ? { ...a, status } : a));
-      addToast('success', `Rendez-vous ${status === 'confirmed' ? 'confirmé' : 'annulé'}.`);
+      addToast('success', status === 'confirmed' ? t('appointments.toastConfirmed') : t('appointments.toastCancelled'));
     } catch {
-      addToast('error', 'Erreur lors de la mise à jour.');
+      addToast('error', t('appointments.toastUpdateError'));
     } finally {
       setUpdating(null);
     }
@@ -59,26 +61,26 @@ export default function AdminAppointments() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">Rendez-vous</h1>
+          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">{t('appointments.title')}</h1>
           <p className="text-sm text-neutral-500 mt-1">
-            {pendingCount > 0 && <span className="text-warning-600 font-medium">{pendingCount} en attente · </span>}
-            {appointments.length} total
+            {pendingCount > 0 && <span className="text-warning-600 font-medium">{t('appointments.pendingCount', { count: pendingCount })} · </span>}
+            {t('appointments.totalCount', { count: appointments.length })}
           </p>
         </div>
-        <Button variant="outline" onClick={load} icon={<RefreshCw className="w-4 h-4" />}>Actualiser</Button>
+        <Button variant="outline" onClick={load} icon={<RefreshCw className="w-4 h-4" />}>{t('appointments.refresh')}</Button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nom, email, sujet..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('appointments.searchPlaceholder')} className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
         </div>
         <div className="relative">
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)} className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
-            <option value="all">Tous les statuts</option>
-            <option value="pending">En attente</option>
-            <option value="confirmed">Confirmés</option>
-            <option value="cancelled">Annulés</option>
+            <option value="all">{t('appointments.filterAll')}</option>
+            <option value="pending">{t('appointments.filterPending')}</option>
+            <option value="confirmed">{t('appointments.filterConfirmed')}</option>
+            <option value="cancelled">{t('appointments.filterCancelled')}</option>
           </select>
           <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
         </div>
@@ -89,7 +91,7 @@ export default function AdminAppointments() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
           <Calendar className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p className="text-neutral-500">Aucun rendez-vous trouvé.</p>
+          <p className="text-neutral-500">{t('appointments.empty')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -101,9 +103,9 @@ export default function AdminAppointments() {
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLORS[a.status]}`}>{STATUS_LABELS[a.status]}</span>
                     <span className="flex items-center gap-1 text-xs text-neutral-500">
                       <Calendar className="w-3.5 h-3.5" />
-                      {a.date} à {a.time}
+                      {t('appointments.dateAtTime', { date: a.date, time: a.time })}
                     </span>
-                    <span className="text-xs text-neutral-400">Reçu le {formatDate(a.createdAt)}</span>
+                    <span className="text-xs text-neutral-400">{t('appointments.receivedOn', { date: formatDate(a.createdAt) })}</span>
                   </div>
                   <p className="font-semibold text-neutral-900 dark:text-white">{a.name}</p>
                   <p className="text-sm text-neutral-500">{a.email}{a.phone && ` · ${a.phone}`}</p>
@@ -118,7 +120,7 @@ export default function AdminAppointments() {
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 hover:bg-success-200 dark:hover:bg-success-900/50 transition-colors disabled:opacity-50"
                     >
                       {updating === a.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                      Confirmer
+                      {t('appointments.confirm')}
                     </button>
                     <button
                       onClick={() => handleStatus(a.id, 'cancelled')}
@@ -126,7 +128,7 @@ export default function AdminAppointments() {
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-error-100 dark:bg-error-900/30 text-error-700 dark:text-error-400 hover:bg-error-200 dark:hover:bg-error-900/50 transition-colors disabled:opacity-50"
                     >
                       <X className="w-3.5 h-3.5" />
-                      Refuser
+                      {t('appointments.refuse')}
                     </button>
                   </div>
                 )}
@@ -136,7 +138,7 @@ export default function AdminAppointments() {
                     disabled={updating === a.id}
                     className="flex items-center gap-1 text-xs text-neutral-400 hover:text-error-500 transition-colors disabled:opacity-50 flex-shrink-0"
                   >
-                    <X className="w-3.5 h-3.5" /> Annuler
+                    <X className="w-3.5 h-3.5" /> {t('appointments.cancel')}
                   </button>
                 )}
               </div>

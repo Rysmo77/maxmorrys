@@ -1,7 +1,10 @@
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { LucideIcon } from 'lucide-react';
 import { ChevronLeft, ChevronRight, Command } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useLocalizedPath } from '../../contexts/LanguageContext';
+import LocalizedLink from '../shared/LocalizedLink';
 
 export interface AppSidebarItem {
   to: string;
@@ -32,23 +35,25 @@ interface AppSidebarProps {
 export default function AppSidebar({
   sections, brand, collapsed, onToggleCollapsed, onItemClick, onOpenCommandPalette, footer, showCollapseButton = true,
 }: AppSidebarProps) {
+  const { t } = useTranslation('lms');
+  const localize = useLocalizedPath();
   return (
     <div className="flex flex-col h-full">
       <div className="h-14 px-3 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800">
-        <Link to={brand.href} className="flex items-center gap-2 group min-w-0">
+        <LocalizedLink to={brand.href} className="flex items-center gap-2 group min-w-0">
           <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0">
             <img src="/icone-mm.png" alt="Max-Morrys" className="w-full h-full object-cover" />
           </div>
           {!collapsed && (
             <span className="font-bold text-neutral-900 dark:text-white text-sm truncate">{brand.label}</span>
           )}
-        </Link>
+        </LocalizedLink>
         {showCollapseButton && onToggleCollapsed && (
           <button
             type="button"
             onClick={onToggleCollapsed}
             className="hidden lg:flex p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-            aria-label={collapsed ? 'Étendre la barre latérale' : 'Réduire la barre latérale'}
+            aria-label={collapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
           >
             {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
@@ -64,12 +69,12 @@ export default function AppSidebar({
               'w-full flex items-center gap-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 px-2.5 py-2 text-sm text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors',
               collapsed && 'justify-center',
             )}
-            title="Ouvrir la palette de commandes"
+            title={t('shell.openCommandPalette')}
           >
             <Command className="w-4 h-4 flex-shrink-0" />
             {!collapsed && (
               <>
-                <span className="flex-1 text-left">Recherche & actions</span>
+                <span className="flex-1 text-left">{t('shell.searchAndActions')}</span>
                 <kbd className="text-[10px] font-bold tracking-wider text-neutral-400 border border-neutral-200 dark:border-neutral-700 rounded px-1 py-0.5">⌘K</kbd>
               </>
             )}
@@ -89,7 +94,7 @@ export default function AppSidebar({
               {section.items.map((item) => (
                 <NavLink
                   key={item.to}
-                  to={item.to}
+                  to={localize(item.to)}
                   end={item.end}
                   onClick={onItemClick}
                   title={collapsed ? item.label : undefined}

@@ -131,6 +131,8 @@ export interface BlogPost {
   id: string;
   title: string;
   slug: string;
+  /** Slug anglais (URLs /en…). Optionnel : fallback sur `slug` si absent. */
+  slug_en?: string;
   excerpt: string;
   content: string;
   coverImage: string;
@@ -161,6 +163,8 @@ export interface Formation {
   id: string;
   title: string;
   slug: string;
+  /** Slug anglais (URLs /en…). Optionnel : fallback sur `slug` si absent. */
+  slug_en?: string;
   description: string;
   longDescription: string;
   coverImage: string;
@@ -220,6 +224,8 @@ export interface Podcast {
   id: string;
   title: string;
   slug: string;
+  /** Slug anglais (URLs /en…). Optionnel : fallback sur `slug` si absent. */
+  slug_en?: string;
   description: string;
   audioUrl: string;
   coverImage: string;
@@ -243,6 +249,8 @@ export interface Video {
   id: string;
   title: string;
   slug: string;
+  /** Slug anglais (URLs /en…). Optionnel : fallback sur `slug` si absent. */
+  slug_en?: string;
   description: string;
   videoUrl: string;
   thumbnailUrl: string;

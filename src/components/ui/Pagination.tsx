@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 
 interface PaginationProps {
@@ -8,6 +9,7 @@ interface PaginationProps {
 }
 
 export default function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
+  const { t } = useTranslation('ui');
   if (totalPages <= 1) return null;
 
   const pages: (number | '...')[] = [];
@@ -20,12 +22,12 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
   }
 
   return (
-    <nav aria-label="Pagination" className="flex items-center gap-1.5">
+    <nav aria-label={t('pagination.label')} className="flex items-center gap-1.5">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         className="p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        aria-label="Page précédente"
+        aria-label={t('pagination.previous')}
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
@@ -53,7 +55,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         className="p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        aria-label="Page suivante"
+        aria-label={t('pagination.next')}
       >
         <ChevronRight className="w-4 h-4" />
       </button>

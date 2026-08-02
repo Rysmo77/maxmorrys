@@ -93,17 +93,31 @@ async function buildWeeklyDigest(apiKey) {
     await db.collection('club_infos').add({
         title, content, type: 'article', publishedAt: now, likes: [],
     });
-    // Notify active members
+    // Notify active members (titre de notification localisé par destinataire).
+    const digestTitle = {
+        fr: '📰 Digest de la semaine',
+        en: "📰 This week's digest",
+    };
     const subs = await db.collection('club_subscriptions').where('status', '==', 'active').get();
-    await Promise.all(subs.docs.map((s) => db.collection(`notifications/${s.id}/items`).add({
-        userId: s.id,
-        type: 'club',
-        title: '📰 Digest de la semaine',
-        message: title,
-        read: false,
-        createdAt: now,
-        link: '/mon-espace/club',
-    })));
+    await Promise.all(subs.docs.map(async (s) => {
+        var _a, _b;
+        let lang = 'fr';
+        try {
+            const u = await db.collection('users').doc(s.id).get();
+            if (((_b = (_a = u.data()) === null || _a === void 0 ? void 0 : _a.preferences) === null || _b === void 0 ? void 0 : _b.language) === 'en')
+                lang = 'en';
+        }
+        catch ( /* défaut fr */_c) { /* défaut fr */ }
+        return db.collection(`notifications/${s.id}/items`).add({
+            userId: s.id,
+            type: 'club',
+            title: digestTitle[lang],
+            message: title,
+            read: false,
+            createdAt: now,
+            link: '/mon-espace/club',
+        });
+    }));
     return subs.size;
 }
 // Weekly, Monday 09:00.

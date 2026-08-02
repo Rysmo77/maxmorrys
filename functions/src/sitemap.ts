@@ -1,10 +1,12 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
+import { enPath } from './segments';
 
 const SITE_URL = 'https://maxmorrys.me';
 
 interface ContentDoc {
   slug: string;
+  slug_en?: string;
   title?: string;
   publishedAt?: string;
   updatedAt?: string;
@@ -13,14 +15,12 @@ interface ContentDoc {
   thumbnailUrl?: string;
 }
 
-async function getPublishedSlugs(
-  collectionName: string,
-): Promise<ContentDoc[]> {
+async function getPublishedSlugs(collectionName: string): Promise<ContentDoc[]> {
   const db = admin.firestore();
   const snap = await db
     .collection(collectionName)
     .where('status', '==', 'published')
-    .select('slug', 'title', 'publishedAt', 'updatedAt', 'coverImage', 'thumbnailUrl')
+    .select('slug', 'slug_en', 'title', 'publishedAt', 'updatedAt', 'coverImage', 'thumbnailUrl')
     .get();
   return snap.docs.map((d) => d.data() as ContentDoc);
 }
@@ -35,7 +35,10 @@ function escapeXml(str: string): string {
 }
 
 interface UrlEntryOptions {
-  loc: string;
+  /** Chemin FR canonique (ex: /blog ou /formations/mon-slug). */
+  frPath: string;
+  /** Chemin EN complet (ex: /en/courses/my-slug). */
+  enFullPath: string;
   lastmod?: string;
   changefreq?: string;
   priority?: string;
@@ -43,18 +46,41 @@ interface UrlEntryOptions {
   imageTitle?: string;
 }
 
-function urlEntry(opts: UrlEntryOptions): string {
-  const { loc, lastmod, changefreq = 'weekly', priority = '0.5', imageLoc, imageTitle } = opts;
-  const lastmodTag = lastmod
-    ? `<lastmod>${new Date(lastmod).toISOString()}</lastmod>`
-    : '';
+/** Émet DEUX entrées <url> (fr + en) partageant les mêmes alternates hreflang. */
+function urlEntryPair(opts: UrlEntryOptions): string {
+  const { frPath, enFullPath, lastmod, changefreq = 'weekly', priority = '0.5', imageLoc, imageTitle } = opts;
+  const frLoc = `${SITE_URL}${frPath}`;
+  const enLoc = `${SITE_URL}${enFullPath}`;
+  const lastmodTag = lastmod ? `<lastmod>${new Date(lastmod).toISOString()}</lastmod>` : '';
   const imageTag = imageLoc
     ? `<image:image><image:loc>${escapeXml(imageLoc)}</image:loc>${
         imageTitle ? `<image:title>${escapeXml(imageTitle)}</image:title>` : ''
       }</image:image>`
     : '';
-  return `<url><loc>${escapeXml(loc)}</loc>${lastmodTag}<changefreq>${changefreq}</changefreq><priority>${priority}</priority>${imageTag}</url>`;
+  const alternates =
+    `<xhtml:link rel="alternate" hreflang="fr" href="${escapeXml(frLoc)}"/>` +
+    `<xhtml:link rel="alternate" hreflang="en" href="${escapeXml(enLoc)}"/>` +
+    `<xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(frLoc)}"/>`;
+  const make = (loc: string) =>
+    `<url><loc>${escapeXml(loc)}</loc>${lastmodTag}<changefreq>${changefreq}</changefreq><priority>${priority}</priority>${alternates}${imageTag}</url>`;
+  return make(frLoc) + '\n' + make(enLoc);
 }
+
+// Pages statiques (chemin FR canonique → fréquence/priorité).
+const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }> = [
+  { path: '/', changefreq: 'daily', priority: '1.0' },
+  { path: '/a-propos', changefreq: 'monthly', priority: '0.7' },
+  { path: '/blog', changefreq: 'daily', priority: '0.9' },
+  { path: '/formations', changefreq: 'weekly', priority: '0.9' },
+  { path: '/podcasts', changefreq: 'weekly', priority: '0.8' },
+  { path: '/videos', changefreq: 'weekly', priority: '0.8' },
+  { path: '/faq', changefreq: 'monthly', priority: '0.5' },
+  { path: '/contact', changefreq: 'monthly', priority: '0.5' },
+  { path: '/legal/mentions-legales', changefreq: 'yearly', priority: '0.3' },
+  { path: '/legal/confidentialite', changefreq: 'yearly', priority: '0.3' },
+  { path: '/legal/cgv', changefreq: 'yearly', priority: '0.3' },
+  { path: '/legal/cookies', changefreq: 'yearly', priority: '0.3' },
+];
 
 export const sitemap = onRequest(
   { region: 'europe-west1', memory: '256MiB' },
@@ -69,73 +95,42 @@ export const sitemap = onRequest(
 
       const urls: string[] = [];
 
-      // Static pages
-      urls.push(urlEntry({ loc: `${SITE_URL}/`, changefreq: 'daily', priority: '1.0' }));
-      urls.push(urlEntry({ loc: `${SITE_URL}/a-propos`, changefreq: 'monthly', priority: '0.7' }));
-      urls.push(urlEntry({ loc: `${SITE_URL}/blog`, changefreq: 'daily', priority: '0.9' }));
-      urls.push(urlEntry({ loc: `${SITE_URL}/formations`, changefreq: 'weekly', priority: '0.9' }));
-      urls.push(urlEntry({ loc: `${SITE_URL}/podcasts`, changefreq: 'weekly', priority: '0.8' }));
-      urls.push(urlEntry({ loc: `${SITE_URL}/videos`, changefreq: 'weekly', priority: '0.8' }));
-      urls.push(urlEntry({ loc: `${SITE_URL}/faq`, changefreq: 'monthly', priority: '0.5' }));
-      urls.push(urlEntry({ loc: `${SITE_URL}/contact`, changefreq: 'monthly', priority: '0.5' }));
+      // Pages statiques (fr + en).
+      for (const p of STATIC_PAGES) {
+        urls.push(urlEntryPair({ frPath: p.path, enFullPath: enPath(p.path), changefreq: p.changefreq, priority: p.priority }));
+      }
 
-      // Legal pages
-      urls.push(urlEntry({ loc: `${SITE_URL}/legal/mentions-legales`, changefreq: 'yearly', priority: '0.3' }));
-      urls.push(urlEntry({ loc: `${SITE_URL}/legal/confidentialite`, changefreq: 'yearly', priority: '0.3' }));
-      urls.push(urlEntry({ loc: `${SITE_URL}/legal/cgv`, changefreq: 'yearly', priority: '0.3' }));
-      urls.push(urlEntry({ loc: `${SITE_URL}/legal/cookies`, changefreq: 'yearly', priority: '0.3' }));
+      // Pages dynamiques.
+      const pushDynamic = (
+        items: ContentDoc[],
+        seg: string,
+        changefreq: string,
+        priority: string,
+        imageKey: 'coverImage' | 'thumbnailUrl',
+      ) => {
+        for (const it of items) {
+          if (!it.slug) continue;
+          const frPath = `/${seg}/${it.slug}`;
+          const enFullPath = enPath(`/${seg}/${it.slug_en || it.slug}`);
+          urls.push(urlEntryPair({
+            frPath,
+            enFullPath,
+            lastmod: it.updatedAt || it.publishedAt,
+            changefreq,
+            priority,
+            imageLoc: it[imageKey],
+            imageTitle: it.title,
+          }));
+        }
+      };
 
-      // Dynamic pages — blog
-      for (const p of posts) {
-        if (!p.slug) continue;
-        urls.push(urlEntry({
-          loc: `${SITE_URL}/blog/${p.slug}`,
-          lastmod: p.updatedAt || p.publishedAt,
-          changefreq: 'monthly',
-          priority: '0.7',
-          imageLoc: p.coverImage,
-          imageTitle: p.title,
-        }));
-      }
-      // Dynamic pages — formations
-      for (const f of formations) {
-        if (!f.slug) continue;
-        urls.push(urlEntry({
-          loc: `${SITE_URL}/formations/${f.slug}`,
-          lastmod: f.updatedAt || f.publishedAt,
-          changefreq: 'weekly',
-          priority: '0.8',
-          imageLoc: f.coverImage,
-          imageTitle: f.title,
-        }));
-      }
-      // Dynamic pages — podcasts
-      for (const p of podcasts) {
-        if (!p.slug) continue;
-        urls.push(urlEntry({
-          loc: `${SITE_URL}/podcasts/${p.slug}`,
-          lastmod: p.updatedAt || p.publishedAt,
-          changefreq: 'monthly',
-          priority: '0.6',
-          imageLoc: p.coverImage,
-          imageTitle: p.title,
-        }));
-      }
-      // Dynamic pages — videos
-      for (const v of videos) {
-        if (!v.slug) continue;
-        urls.push(urlEntry({
-          loc: `${SITE_URL}/videos/${v.slug}`,
-          lastmod: v.updatedAt || v.publishedAt,
-          changefreq: 'monthly',
-          priority: '0.6',
-          imageLoc: v.thumbnailUrl,
-          imageTitle: v.title,
-        }));
-      }
+      pushDynamic(posts, 'blog', 'monthly', '0.7', 'coverImage');
+      pushDynamic(formations, 'formations', 'weekly', '0.8', 'coverImage');
+      pushDynamic(podcasts, 'podcasts', 'monthly', '0.6', 'coverImage');
+      pushDynamic(videos, 'videos', 'monthly', '0.6', 'thumbnailUrl');
 
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${urls.join('\n')}
 </urlset>`;
 

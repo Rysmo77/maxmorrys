@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Cookie, X } from 'lucide-react';
 import Button from '../ui/Button';
 import { grantPixelConsent, revokePixelConsent } from '../../lib/meta-pixel';
@@ -80,6 +81,7 @@ function saveAndApplyConsent(analytics: boolean, marketing: boolean): void {
 }
 
 export default function CookieBanner() {
+  const { t } = useTranslation('shared');
   const [visible, setVisible] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [analytics, setAnalytics] = useState(true);
@@ -120,12 +122,12 @@ export default function CookieBanner() {
           <div className="flex-1">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-semibold text-neutral-900 dark:text-white mb-1">Gestion des cookies</h3>
+                <h3 className="font-semibold text-neutral-900 dark:text-white mb-1">{t('cookies.title')}</h3>
                 <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                  Nous utilisons des cookies pour améliorer ton expérience. Les cookies essentiels sont nécessaires au fonctionnement du site. Les cookies analytiques nous aident à comprendre comment tu utilises la plateforme.
+                  {t('cookies.text')}
                 </p>
               </div>
-              <button onClick={() => setVisible(false)} className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300" aria-label="Fermer">
+              <button onClick={() => setVisible(false)} className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300" aria-label={t('cookies.close')}>
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -134,7 +136,7 @@ export default function CookieBanner() {
               <div className="mt-4 space-y-3 text-sm">
                 <label className="flex items-center gap-3 cursor-not-allowed opacity-70">
                   <input type="checkbox" checked disabled className="rounded accent-brand-600" />
-                  <span className="text-neutral-700 dark:text-neutral-300"><strong>Essentiels</strong> — Nécessaires au fonctionnement</span>
+                  <span className="text-neutral-700 dark:text-neutral-300"><strong>{t('cookies.essentialLabel')}</strong> — {t('cookies.essentialDesc')}</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -143,7 +145,7 @@ export default function CookieBanner() {
                     onChange={(e) => setAnalytics(e.target.checked)}
                     className="rounded accent-brand-600"
                   />
-                  <span className="text-neutral-700 dark:text-neutral-300"><strong>Analytiques</strong> — Comprendre l'utilisation du site (GA4)</span>
+                  <span className="text-neutral-700 dark:text-neutral-300"><strong>{t('cookies.analyticsLabel')}</strong> — {t('cookies.analyticsDesc')}</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -152,22 +154,22 @@ export default function CookieBanner() {
                     onChange={(e) => setMarketing(e.target.checked)}
                     className="rounded accent-brand-600"
                   />
-                  <span className="text-neutral-700 dark:text-neutral-300"><strong>Marketing</strong> — Contenus personnalisés (Meta Pixel, remarketing)</span>
+                  <span className="text-neutral-700 dark:text-neutral-300"><strong>{t('cookies.marketingLabel')}</strong> — {t('cookies.marketingDesc')}</span>
                 </label>
               </div>
             )}
 
             <div className="flex flex-wrap items-center gap-3 mt-4">
-              <Button size="sm" onClick={acceptAll}>Tout accepter</Button>
-              <Button variant="outline" size="sm" onClick={acceptEssential}>Essentiels uniquement</Button>
+              <Button size="sm" onClick={acceptAll}>{t('cookies.acceptAll')}</Button>
+              <Button variant="outline" size="sm" onClick={acceptEssential}>{t('cookies.essentialOnly')}</Button>
               {showDetails && (
-                <Button variant="outline" size="sm" onClick={saveCustom}>Enregistrer mes choix</Button>
+                <Button variant="outline" size="sm" onClick={saveCustom}>{t('cookies.saveChoices')}</Button>
               )}
               <button
                 onClick={() => setShowDetails(!showDetails)}
                 className="text-sm text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 underline underline-offset-2"
               >
-                {showDetails ? 'Masquer les détails' : 'Personnaliser'}
+                {showDetails ? t('cookies.hideDetails') : t('cookies.customize')}
               </button>
             </div>
           </div>

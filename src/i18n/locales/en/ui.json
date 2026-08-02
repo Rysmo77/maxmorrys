@@ -1,0 +1,60 @@
+{
+  "richEditor": {
+    "boldTitle": "Bold (Ctrl+B)",
+    "boldPlaceholder": "bold text",
+    "italicTitle": "Italic (Ctrl+I)",
+    "italicPlaceholder": "italic text",
+    "h2Title": "H2 heading",
+    "h2Placeholder": "Section title",
+    "h3Title": "H3 heading",
+    "h3Placeholder": "Subtitle",
+    "bulletListTitle": "Bulleted list",
+    "bulletListPlaceholder": "List item",
+    "numberedListTitle": "Numbered list",
+    "numberedListPlaceholder": "Numbered item",
+    "codeTitle": "Inline code",
+    "codePlaceholder": "code",
+    "linkTitle": "Link",
+    "linkPlaceholder": "link text",
+    "imageTitle": "Image",
+    "imagePlaceholder": "description",
+    "defaultPlaceholder": "Write your content in markdown...",
+    "edit": "Edit",
+    "preview": "Preview",
+    "markdownHint": "Supports **Markdown**: `**bold**`, `*italic*`, `## Heading`, `- list`"
+  },
+  "imageInput": {
+    "onlyImages": "Only images are accepted.",
+    "tooLarge": "File too large (max 10 MB).",
+    "uploadFailed": "Upload failed. Please try again.",
+    "importTitle": "Import an image from your device",
+    "import": "Import",
+    "remove": "Remove"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "previous": "Previous page",
+    "next": "Next page"
+  },
+  "confirmDialog": {
+    "title": "Confirmation",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "modal": {
+    "close": "Close"
+  },
+  "sheet": {
+    "close": "Close"
+  },
+  "toast": {
+    "close": "Close notification"
+  },
+  "notifications": {
+    "ariaLabel": "Notifications",
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications",
+    "emptyHint": "Your notifications will appear here."
+  }
+}

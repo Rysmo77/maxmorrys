@@ -1,0 +1,60 @@
+{
+  "richEditor": {
+    "boldTitle": "Gras (Ctrl+B)",
+    "boldPlaceholder": "texte en gras",
+    "italicTitle": "Italique (Ctrl+I)",
+    "italicPlaceholder": "texte en italique",
+    "h2Title": "Titre H2",
+    "h2Placeholder": "Titre de section",
+    "h3Title": "Titre H3",
+    "h3Placeholder": "Sous-titre",
+    "bulletListTitle": "Liste à puces",
+    "bulletListPlaceholder": "Élément de liste",
+    "numberedListTitle": "Liste numérotée",
+    "numberedListPlaceholder": "Élément numéroté",
+    "codeTitle": "Code inline",
+    "codePlaceholder": "code",
+    "linkTitle": "Lien",
+    "linkPlaceholder": "texte du lien",
+    "imageTitle": "Image",
+    "imagePlaceholder": "description",
+    "defaultPlaceholder": "Rédigez votre contenu en markdown...",
+    "edit": "Éditer",
+    "preview": "Aperçu",
+    "markdownHint": "Supporte le **Markdown** : `**gras**`, `*italique*`, `## Titre`, `- liste`"
+  },
+  "imageInput": {
+    "onlyImages": "Seules les images sont acceptées.",
+    "tooLarge": "Fichier trop lourd (max 10 Mo).",
+    "uploadFailed": "Échec du téléversement. Réessayez.",
+    "importTitle": "Importer une image depuis votre appareil",
+    "import": "Importer",
+    "remove": "Supprimer"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "previous": "Page précédente",
+    "next": "Page suivante"
+  },
+  "confirmDialog": {
+    "title": "Confirmation",
+    "confirm": "Confirmer",
+    "cancel": "Annuler"
+  },
+  "modal": {
+    "close": "Fermer"
+  },
+  "sheet": {
+    "close": "Fermer"
+  },
+  "toast": {
+    "close": "Fermer la notification"
+  },
+  "notifications": {
+    "ariaLabel": "Notifications",
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "empty": "Aucune notification",
+    "emptyHint": "Tes notifications apparaîtront ici."
+  }
+}

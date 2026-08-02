@@ -1,0 +1,18 @@
+{
+  "notFound": {
+    "seoTitle": "Page not found",
+    "label": "Error 404",
+    "title": "Page not found",
+    "text": "The page you're looking for doesn't exist or has been moved.",
+    "home": "Back to home",
+    "blog": "See the blog"
+  },
+  "forbidden": {
+    "seoTitle": "Access denied",
+    "label": "Error 403",
+    "title": "Access denied",
+    "text": "You don't have the permissions required to access this page. If you think this is a mistake, contact the administrator.",
+    "home": "Back to home",
+    "space": "Go to my space"
+  }
+}

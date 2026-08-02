@@ -1,0 +1,76 @@
+{
+  "seoTitle": "Contact",
+  "seoDescription": "Get in touch with Max-Morrys for personalized coaching, digital marketing courses, or a partnership. Based in Dakar, Senegal.",
+  "eyebrow": "CONTACT",
+  "heroTitle1": "Let's talk about",
+  "heroTitle2": "your strategy",
+  "heroSubtitle": "Got a project, a question, or need a consultation? I'm here to help you reach your digital marketing goals!",
+  "info": {
+    "email": "Email",
+    "phone": "Phone",
+    "location": "Location",
+    "locationValue": "Dakar, Senegal",
+    "whatsapp": "WhatsApp",
+    "whatsappValue": "Let's chat on WhatsApp"
+  },
+  "subjects": {
+    "coaching": "Personalized coaching",
+    "formationInfo": "Information about a course",
+    "partnership": "Partnership / Collaboration",
+    "strategy": "Marketing strategy advice",
+    "other": "Other"
+  },
+  "form": {
+    "title": "Send me a message",
+    "nameLabel": "Full name",
+    "namePlaceholder": "Your name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "your@email.com",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "What's your message about",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Describe your request...",
+    "submit": "Send the message"
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email address",
+    "subjectRequired": "Subject is required",
+    "messageRequired": "Message is required",
+    "messageTooShort": "Message must be at least 10 characters",
+    "dateRequired": "Date is required",
+    "timeRequired": "Time is required"
+  },
+  "toast": {
+    "messageSuccess": "Message sent successfully! I'll get back to you soon.",
+    "messageError": "Something went wrong while sending. Please try again.",
+    "appointmentError": "Something went wrong while booking. Please try again."
+  },
+  "booking": {
+    "cardTitle": "Book an appointment",
+    "cardText": "Reserve a slot for a personalized conversation.",
+    "cardButton": "Schedule a call",
+    "modalTitle": "Schedule a call",
+    "successTitle": "Request sent!",
+    "successTextLine1": "Your appointment request has been received.",
+    "successTextLine2": "I'll confirm the slot by email very soon.",
+    "close": "Close",
+    "dateLabel": "Date *",
+    "timeLabel": "Time *",
+    "subjectLabel": "Call topic *",
+    "nameLabel": "Full name *",
+    "namePlaceholder": "Your name",
+    "phoneLabel": "Phone (optional)",
+    "phonePlaceholder": "+221 77...",
+    "emailLabel": "Email *",
+    "emailPlaceholder": "your@email.com",
+    "notesLabel": "Notes (optional)",
+    "notesPlaceholder": "Tell me what you need so I can prepare the call...",
+    "cancel": "Cancel",
+    "submitting": "Sending...",
+    "submit": "Confirm the request"
+  },
+  "faqEyebrow": "FAQ",
+  "faqTitle": "Frequently asked questions"
+}

@@ -1,17 +1,24 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Clock, Linkedin, Copy, Check, Loader2, Twitter, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import LocalizedLink from '../components/shared/LocalizedLink';
 import NewsletterForm from '../components/shared/NewsletterForm';
 import FormationCTA from '../components/shared/FormationCTA';
 import ArticleCard from '../components/shared/ArticleCard';
+import TranslatedText from '../components/shared/TranslatedText';
+import { useTranslatedText } from '../hooks/useTranslatedContent';
 import { getPostBySlug, getPublishedPosts, incrementBlogViews } from '../lib/firestore';
-import { formatDate, markdownToHtml } from '../lib/utils';
+import { markdownToHtml } from '../lib/utils';
+import { useFormat } from '../hooks/useFormat';
 import { categoryToPole } from '../lib/blogCategories';
 import type { BlogPost as BlogPostType } from '../types';
 import { trackViewItem, trackShare } from '../lib/tracking';
 import { useContentEngagement } from '../hooks/useContentEngagement';
 import SEOHead from '../components/seo/SEOHead';
+import { useLanguage } from '../contexts/LanguageContext';
+import { contentPath } from '../lib/contentPath';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
 import Breadcrumbs from '../components/ui/Breadcrumbs';
@@ -23,7 +30,10 @@ const theme = universeThemes.blog;
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
 export default function BlogPost() {
+  const { t } = useTranslation('blog');
+  const { formatDate } = useFormat();
   const { slug } = useParams();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [post, setPost] = useState<BlogPostType | null | undefined>(undefined);
@@ -31,7 +41,7 @@ export default function BlogPost() {
 
   useEffect(() => {
     if (!slug) return;
-    getPostBySlug(slug).then((data) => {
+    getPostBySlug(slug, language).then((data) => {
       setPost(data);
       if (data) {
         trackViewItem({
@@ -51,7 +61,7 @@ export default function BlogPost() {
         }).catch(() => null);
       }
     }).catch(() => setPost(null));
-  }, [slug]);
+  }, [slug, language]);
 
   useContentEngagement({
     contentId: post?.id,
@@ -60,6 +70,15 @@ export default function BlogPost() {
     title: post?.title ?? '',
     category: post?.category ?? 'général',
   });
+
+  // Traduction du contenu dynamique (FR -> EN selon langue active). Hooks au top-level,
+  // avant les retours anticipés, pour respecter les règles des hooks.
+  const translatedTitle = useTranslatedText(post?.title);
+  const translatedExcerpt = useTranslatedText(post?.excerpt);
+  const translatedPole = useTranslatedText(post ? categoryToPole(post.category) : '');
+  const translatedBody = useTranslatedText(post?.content);
+  const seoTitle = useTranslatedText(post?.metaTitle || post?.title);
+  const seoDescription = useTranslatedText(post?.metaDescription || post?.excerpt);
 
   if (post === undefined) {
     return (
@@ -72,8 +91,8 @@ export default function BlogPost() {
   if (!post) {
     return (
       <div className="pt-32 pb-20 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">Article introuvable</h1>
-        <Link to="/blog" className={`${theme.accentText} hover:underline`}>Retour au blog</Link>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{t('post.notFoundTitle')}</h1>
+        <LocalizedLink to="/blog" className={`${theme.accentText} hover:underline`}>{t('post.notFoundLink')}</LocalizedLink>
       </div>
     );
   }
@@ -101,8 +120,8 @@ export default function BlogPost() {
   return (
     <div className="bg-white dark:bg-neutral-950">
       <SEOHead
-        title={post.metaTitle || post.title}
-        description={post.metaDescription || post.excerpt}
+        title={seoTitle}
+        description={seoDescription}
         ogType="article"
         ogTitle={post.ogTitle}
         ogDescription={post.ogDescription}
@@ -111,6 +130,8 @@ export default function BlogPost() {
         twitterDescription={post.twitterDescription}
         twitterImage={post.twitterImage}
         canonical={post.canonicalUrl}
+        frPath={contentPath('blog', post, 'fr')}
+        enPath={contentPath('blog', post, 'en')}
         noIndex={post.noIndex}
         publishedAt={post.publishedAt}
         modifiedAt={post.updatedAt}
@@ -150,14 +171,14 @@ export default function BlogPost() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-32">
         <Breadcrumbs
           items={[
-            { label: 'Accueil', href: '/' },
-            { label: 'Blog', href: '/blog' },
-            { label: post.title },
+            { label: t('post.breadcrumbHome'), href: '/' },
+            { label: t('post.breadcrumbBlog'), href: '/blog' },
+            { label: translatedTitle },
           ]}
         />
-        <Link to="/blog" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-coral-600 dark:hover:text-coral-400 mt-4 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Retour au blog
-        </Link>
+        <LocalizedLink to="/blog" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-coral-600 dark:hover:text-coral-400 mt-4 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> {t('post.backToBlog')}
+        </LocalizedLink>
       </div>
 
       {/* ── Image hero pleine largeur ── */}
@@ -168,7 +189,7 @@ export default function BlogPost() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <div className="aspect-[16/8] rounded-2xl overflow-hidden">
-          <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" width={1200} height={600} />
+          <img src={post.coverImage} alt={translatedTitle} className="w-full h-full object-cover" width={1200} height={600} />
         </div>
       </motion.div>
 
@@ -182,7 +203,7 @@ export default function BlogPost() {
         <motion.div variants={staggerItem} className="flex flex-wrap items-start justify-between gap-6 pb-8 border-b border-neutral-100 dark:border-neutral-800">
           <div className="flex gap-10">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">Écrit par</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">{t('post.writtenBy')}</p>
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-full bg-coral-100 dark:bg-coral-900/40 flex items-center justify-center">
                   <span className="text-xs font-black text-coral-600 dark:text-coral-400">
@@ -193,18 +214,18 @@ export default function BlogPost() {
               </div>
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">Publié le</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">{t('post.publishedOn')}</p>
               <p className="font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2 flex-wrap">
                 {formatDate(post.publishedAt)}
                 <span className="text-neutral-300 dark:text-neutral-600">·</span>
                 <span className="flex items-center gap-1 font-normal text-neutral-500 dark:text-neutral-400">
-                  <Clock className="w-3.5 h-3.5" />{post.readTime} min
+                  <Clock className="w-3.5 h-3.5" />{t('post.readTime', { count: post.readTime })}
                 </span>
                 {post.views !== undefined && post.views > 0 && (
                   <>
                     <span className="text-neutral-300 dark:text-neutral-600">·</span>
                     <span className="flex items-center gap-1 font-normal text-neutral-500 dark:text-neutral-400">
-                      <Eye className="w-3.5 h-3.5" />{post.views.toLocaleString()} lectures
+                      <Eye className="w-3.5 h-3.5" />{t('post.viewsCount', { count: post.views, formattedCount: post.views.toLocaleString() })}
                     </span>
                   </>
                 )}
@@ -216,7 +237,7 @@ export default function BlogPost() {
               href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${encodeURIComponent(post.title)}`}
               target="_blank" rel="noopener noreferrer"
               onClick={() => trackShare('twitter', 'article', post.id)}
-              aria-label="Partager sur X"
+              aria-label={t('post.shareTwitter')}
               className={shareBtn}
             >
               <Twitter className="w-4 h-4" />
@@ -225,22 +246,22 @@ export default function BlogPost() {
               href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
               target="_blank" rel="noopener noreferrer"
               onClick={() => trackShare('linkedin', 'article', post.id)}
-              aria-label="Partager sur LinkedIn"
+              aria-label={t('post.shareLinkedin')}
               className={shareBtn}
             >
               <Linkedin className="w-4 h-4" />
             </a>
-            <button onClick={handleCopy} aria-label="Copier le lien" className={shareBtn}>
+            <button onClick={handleCopy} aria-label={t('post.copyLink')} className={shareBtn}>
               {copied ? <Check className="w-4 h-4 text-success-500" /> : <Copy className="w-4 h-4" />}
             </button>
           </div>
         </motion.div>
 
         <motion.p variants={staggerItem} className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mt-8 mb-5`}>
-          {categoryToPole(post.category)}
+          {translatedPole}
         </motion.p>
         <motion.h1 variants={staggerItem} className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.05]">
-          {post.title}
+          {translatedTitle}
         </motion.h1>
       </motion.div>
 
@@ -248,21 +269,24 @@ export default function BlogPost() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {post.excerpt && (
           <p className="text-xl text-neutral-600 dark:text-neutral-300 leading-relaxed border-l-4 border-coral-500 pl-5 mb-10 italic">
-            {post.excerpt}
+            {translatedExcerpt}
           </p>
         )}
         <article
           onClick={handleContentClick}
           className="prose-article prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mb-12 prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-a:text-coral-600 dark:prose-a:text-coral-400 hover:prose-a:text-coral-700 prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium prose-blockquote:text-neutral-700 dark:prose-blockquote:text-neutral-200"
-          dangerouslySetInnerHTML={{ __html: markdownToHtml(post.content) }}
+          dangerouslySetInnerHTML={{ __html: markdownToHtml(translatedBody) }}
         />
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-12">
           {post.tags.map((tag) => (
-            <span key={tag} className={`px-4 py-1.5 ${theme.softBadge} text-xs font-semibold rounded-full uppercase tracking-wider`}>
-              {tag}
-            </span>
+            <TranslatedText
+              key={tag}
+              as="span"
+              text={tag}
+              className={`px-4 py-1.5 ${theme.softBadge} text-xs font-semibold rounded-full uppercase tracking-wider`}
+            />
           ))}
         </div>
 
@@ -287,10 +311,10 @@ export default function BlogPost() {
           viewport={viewportOnce}
         >
           <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-3`}>
-            À LIRE AUSSI
+            {t('post.relatedEyebrow')}
           </p>
           <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-8">
-            Articles similaires
+            {t('post.relatedTitle')}
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
             {relatedPosts.map((rp) => (
@@ -310,17 +334,17 @@ export default function BlogPost() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-4`}>
-            DÉCOUVREZ AUSSI
+            {t('post.crossEyebrow')}
           </p>
           <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white mb-4">
-            Je te forme
+            {t('post.crossTitle')}
           </h2>
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
-            Des formations pratiques pour aller plus loin et transformer vos connaissances en compétences réelles.
+            {t('post.crossDescription')}
           </p>
-          <Link to="/formations" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide`}>
-            Voir les formations <ArrowRight className="w-4 h-4" />
-          </Link>
+          <LocalizedLink to="/formations" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide`}>
+            {t('post.crossCta')} <ArrowRight className="w-4 h-4" />
+          </LocalizedLink>
         </div>
       </motion.section>
     </div>

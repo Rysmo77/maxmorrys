@@ -1,0 +1,74 @@
+[
+  {
+    "id": "k9vnobzVadNeU3tk",
+    "name": "WF-SOCIAL-03",
+    "active": true,
+    "nodes": 5
+  },
+  {
+    "id": "774G38cqIvZsJUHm",
+    "name": "WF-SOCIAL-04",
+    "active": true,
+    "nodes": 14
+  },
+  {
+    "id": "wrRa0I7tYAsPJSOA",
+    "name": "WF-SOCIAL-05",
+    "active": true,
+    "nodes": 6
+  },
+  {
+    "id": "rKNtJULQL40QpgTn",
+    "name": "WF-SOCIAL-07",
+    "active": true,
+    "nodes": 7
+  },
+  {
+    "id": "n0hquvVeQ7my7orT",
+    "name": "WF-TG-ROUTER",
+    "active": true,
+    "nodes": 26
+  },
+  {
+    "id": "KO5mTEtSvhiIMAwq",
+    "name": "WF-THEMES",
+    "active": true,
+    "nodes": 9
+  },
+  {
+    "id": "0vqFvNvzCy4h2JBh",
+    "name": "WF-EMAIL-NOTIFY",
+    "active": false,
+    "nodes": 6
+  },
+  {
+    "id": "3RuiCLE8imVvpk53",
+    "name": "WF-EMAIL-SEND",
+    "active": false,
+    "nodes": 7
+  },
+  {
+    "id": "OgD9jnI0WcYc816e",
+    "name": "WF-GOV-07",
+    "active": false,
+    "nodes": 4
+  },
+  {
+    "id": "Q9KEirYd5dp7kA6M",
+    "name": "WF-DIGEST",
+    "active": false,
+    "nodes": 5
+  },
+  {
+    "id": "hTPNvI5h6VZ9N2np",
+    "name": "WF-WHATSAPP-NOTIFY",
+    "active": false,
+    "nodes": 6
+  },
+  {
+    "id": "qgs1PHwTgsRBu1Vh",
+    "name": "WF-WHATSAPP-SEND",
+    "active": false,
+    "nodes": 6
+  }
+]

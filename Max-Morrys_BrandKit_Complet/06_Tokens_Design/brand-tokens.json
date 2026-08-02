@@ -1,0 +1,100 @@
+{
+  "brand": {
+    "name": "Max-Morrys",
+    "tagline": "Maîtrise le digital, accélère ta croissance.",
+    "mission": "Aider les entrepreneurs et professionnels à transformer leurs compétences digitales en résultats concrets."
+  },
+  "colors": {
+    "bleu_profond": "#072B49",
+    "bleu_principal": "#0074C5",
+    "bleu_vif": "#0C93E7",
+    "bleu_tres_clair": "#F0F7FF",
+    "orange": "#ED9516",
+    "violet": "#8A3DE8",
+    "turquoise": "#08BDAA",
+    "corail": "#FA5A2E",
+    "vert_croissance": "#22C55E",
+    "texte_principal": "#071B3A",
+    "texte_secondaire": "#52627A",
+    "fond": "#FFFFFF"
+  },
+  "gradients": {
+    "institutionnel": [
+      "#072B49",
+      "#0074C5"
+    ],
+    "innovation": [
+      "#8A3DE8",
+      "#0C93E7",
+      "#08BDAA"
+    ],
+    "energie": [
+      "#ED9516",
+      "#FA5A2E"
+    ],
+    "croissance": [
+      "#08BDAA",
+      "#22C55E"
+    ]
+  },
+  "typography": {
+    "display": "Merriweather Display, Georgia, serif",
+    "body": "Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif",
+    "scale": {
+      "h1": {
+        "size": "56px",
+        "lineHeight": "64px",
+        "weight": 700
+      },
+      "h2": {
+        "size": "36px",
+        "lineHeight": "44px",
+        "weight": 700
+      },
+      "h3": {
+        "size": "24px",
+        "lineHeight": "32px",
+        "weight": 700
+      },
+      "body": {
+        "size": "16px",
+        "lineHeight": "24px",
+        "weight": 400
+      },
+      "caption": {
+        "size": "12px",
+        "lineHeight": "16px",
+        "weight": 400
+      },
+      "button": {
+        "size": "14px",
+        "lineHeight": "20px",
+        "weight": 700
+      }
+    }
+  },
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "40px",
+    "xxl": "64px"
+  },
+  "radius": {
+    "card": "24px",
+    "button": "999px",
+    "appIcon": "22%"
+  },
+  "shadow": {
+    "soft": "0 16px 50px rgba(7, 43, 73, 0.10)",
+    "card": "0 8px 28px rgba(7, 43, 73, 0.08)"
+  },
+  "iconStyle": {
+    "strokeWidth": "2.25px",
+    "lineCap": "round",
+    "lineJoin": "round",
+    "cornerRadius": "soft",
+    "style": "outline"
+  }
+}

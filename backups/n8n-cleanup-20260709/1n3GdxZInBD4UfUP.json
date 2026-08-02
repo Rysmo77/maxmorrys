@@ -1,0 +1,302 @@
+{
+ "updatedAt": "2026-04-23T18:32:50.000Z",
+ "createdAt": "2026-04-09T10:30:39.305Z",
+ "id": "1n3GdxZInBD4UfUP",
+ "name": "[ARCHIVED] WF-16 — Création de Carrousels",
+ "description": null,
+ "active": false,
+ "isArchived": true,
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "30 13 * * *"
+      }
+     ]
+    }
+   },
+   "id": "cron-trigger",
+   "name": "Cron — Carrousels 13h30 quotidien",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "modelId": {
+     "__rl": true,
+     "value": "models/gemini-3-flash-preview",
+     "mode": "list",
+     "cachedResultName": "models/gemini-3-flash-preview"
+    },
+    "messages": {
+     "values": [
+      {
+       "content": "=Tu es un designer de carrousels pour les réseaux sociaux, spécialisé dans le contenu pour l'Afrique de l'Ouest francophone.\n\nCrée un carrousel de 5-8 slides sur le sujet suivant :\nSUJET : {{ $json.Sujet }}\nRÉSEAU : {{ ($json.Reseau || 'instagram') }}\nCONTEXTE : Plateforme Max-Morrys, marketing digital, audience Sénégal/CI/Cameroun\n\nRÈGLES :\n- Slide 1 : hook accrocheur (question ou affirmation choc)\n- Slides 2-N : un point clé par slide, texte court, exemples locaux\n- Dernière slide : CTA clair (suivre le compte, visiter maxmorrys.me, s'inscrire)\n- Palette : couleurs de la marque Max-Morrys\n- Texte lisible sur mobile (gros caractères)\n- Emojis utilisés avec parcimonie\n\nPour chaque slide, donne aussi un prompt de génération d'image de fond.\n\nRÉPONSE JSON :\n{\n  \"carousel_title\": \"\",\n  \"total_slides\": 0,\n  \"slides\": [{\n    \"slide_number\": 1,\n    \"headline\": \"texte principal gros\",\n    \"body_text\": \"texte secondaire\",\n    \"background_prompt\": \"prompt pour générer le fond de la slide\",\n    \"layout\": \"centered|left|right|split\",\n    \"accent_color\": \"#hex\"\n  }],\n  \"caption\": \"caption pour accompagner le carrousel\",\n  \"hashtags\": []\n}"
+      }
+     ]
+    },
+    "jsonOutput": true,
+    "builtInTools": {},
+    "options": {
+     "maxOutputTokens": 4096,
+     "temperature": 0.7
+    }
+   },
+   "id": "wf16-gemini",
+   "name": "Gemini Flash — Concevoir le carrousel",
+   "type": "@n8n/n8n-nodes-langchain.googleGemini",
+   "typeVersion": 1.1,
+   "position": [
+    304,
+    304
+   ],
+   "credentials": {
+    "googlePalmApi": {
+     "id": "wQPLkug1dt6DGOt4",
+     "name": "Google AI Max-Morrys LMS"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const response = $input.first().json;\nconst input = $('Airtable — Lire Calendrier carrousel').item.json;\n\nlet carousel;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  carousel = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing carrousel: ' + e.message);\n}\n\n// Output each slide as separate item for batch processing\nconst slides = (carousel.slides || []).map(slide => ({\n  ...slide,\n  carousel_title: carousel.carousel_title,\n  caption: carousel.caption,\n  hashtags: carousel.hashtags,\n  subject: (input.Sujet || input.subject || ''),\n  network: input.Reseau || input.network || 'instagram'\n}));\n\nreturn slides.map(s => ({ json: s }));"
+   },
+   "id": "wf16-parse",
+   "name": "Parse — Extraire les slides",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    608,
+    304
+   ]
+  },
+  {
+   "parameters": {
+    "options": {}
+   },
+   "id": "wf16-batch",
+   "name": "Batch — Par slide",
+   "type": "n8n-nodes-base.splitInBatches",
+   "typeVersion": 3,
+   "position": [
+    912,
+    304
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const allSlides = $('Batch — Par slide').all();\nconst imageResults = $input.all();\n\nconst result = allSlides.map((slide, i) => ({\n  slide_number: slide.json.slide_number,\n  headline: slide.json.headline,\n  body_text: slide.json.body_text,\n  image_url: imageResults[i]?.json?.file_url || '',\n  layout: slide.json.layout\n}));\n\nconst firstSlide = allSlides[0]?.json || {};\n\nreturn [{\n  json: {\n    carousel_title: firstSlide.carousel_title,\n    slides: result,\n    caption: firstSlide.caption,\n    hashtags: firstSlide.hashtags,\n    subject: firstSlide.subject,\n    network: firstSlide.network,\n    generated_at: new Date().toISOString()\n  }\n}];"
+   },
+   "id": "wf16-assemble",
+   "name": "Assembler — Carrousel final",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1504,
+    304
+   ]
+  },
+  {
+   "id": "wf16-sheets",
+   "name": "Airtable — Log carrousel",
+   "type": "n8n-nodes-base.airtable",
+   "typeVersion": 2.1,
+   "position": [
+    1808,
+    304
+   ],
+   "credentials": {
+    "airtableTokenApi": {
+     "id": "ik5KqgcooeDvHpFb",
+     "name": "Airtable Max-Morrys"
+    }
+   },
+   "onError": "continueRegularOutput",
+   "parameters": {
+    "resource": "record",
+    "operation": "upsert",
+    "base": {
+     "__rl": true,
+     "value": "apppkEbepilHCYiso",
+     "mode": "list",
+     "cachedResultName": "Max-Morrys PB"
+    },
+    "table": {
+     "__rl": true,
+     "value": "tbleUm1UoP9qqOdOn",
+     "mode": "list",
+     "cachedResultName": "Medias Generes"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "Date": "={{ $json.generated_at }}",
+      "Type": "=carrousel",
+      "Pour": "={{ $json.network }}",
+      "Prompt": "={{ $json.subject }}",
+      "Dimensions": "=1080x1080",
+      "Status": "=produit",
+      "URL_R2": "={{ $json.slides.map(s => s.image_url).join(', ') }}"
+     },
+     "matchingColumns": [
+      "URL_R2"
+     ],
+     "schema": [],
+     "attemptToConvertTypes": true,
+     "convertFieldsToString": true
+    },
+    "options": {
+     "typecast": true
+    }
+   }
+  },
+  {
+   "parameters": {
+    "resource": "record",
+    "operation": "search",
+    "base": {
+     "__rl": true,
+     "value": "apppkEbepilHCYiso",
+     "mode": "list",
+     "cachedResultName": "Max-Morrys PB"
+    },
+    "table": {
+     "__rl": true,
+     "value": "tblTlBSOSI1UOmQ1I",
+     "mode": "list",
+     "cachedResultName": "Calendrier Editorial"
+    },
+    "returnAll": true,
+    "filterByFormula": "AND({Format} = 'carrousel', {Status_Media} = 'a_produire')",
+    "options": {}
+   },
+   "type": "n8n-nodes-base.airtable",
+   "typeVersion": 2.1,
+   "position": [
+    200,
+    300
+   ],
+   "id": "airtable-read-calendrier-carrousel",
+   "name": "Airtable — Lire Calendrier carrousel",
+   "credentials": {
+    "airtableTokenApi": {
+     "id": "ik5KqgcooeDvHpFb",
+     "name": "Airtable Max-Morrys"
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Gemini Flash — Concevoir le carrousel": {
+   "main": [
+    [
+     {
+      "node": "Parse — Extraire les slides",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Parse — Extraire les slides": {
+   "main": [
+    [
+     {
+      "node": "Batch — Par slide",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Batch — Par slide": {
+   "main": [
+    []
+   ]
+  },
+  "Assembler — Carrousel final": {
+   "main": [
+    [
+     {
+      "node": "Airtable — Log carrousel",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Cron — Carrousels 13h30 quotidien": {
+   "main": [
+    [
+     {
+      "node": "Airtable — Lire Calendrier carrousel",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Airtable — Lire Calendrier carrousel": {
+   "main": [
+    [
+     {
+      "node": "Gemini Flash — Concevoir le carrousel",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "saveManualExecutions": true,
+  "callerPolicy": "workflowsFromSameOwner",
+  "availableInMCP": false,
+  "binaryMode": "separate"
+ },
+ "staticData": {
+  "node:Cron — Carrousels 13h30 quotidien": {
+   "recurrenceRules": []
+  }
+ },
+ "meta": {
+  "templateCredsSetupCompleted": true
+ },
+ "nodeGroups": [],
+ "pinData": {},
+ "versionId": "f3663995-dba6-497d-958c-d0f59d33feac",
+ "activeVersionId": null,
+ "versionCounter": 42,
+ "triggerCount": 1,
+ "sourceWorkflowId": null,
+ "shared": [
+  {
+   "updatedAt": "2026-04-09T10:30:39.307Z",
+   "createdAt": "2026-04-09T10:30:39.307Z",
+   "role": "workflow:owner",
+   "workflowId": "1n3GdxZInBD4UfUP",
+   "projectId": "MovWUY92SBioz1Tw",
+   "project": {
+    "updatedAt": "2026-04-09T09:50:14.678Z",
+    "createdAt": "2026-04-09T09:45:54.695Z",
+    "id": "MovWUY92SBioz1Tw",
+    "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+    "type": "personal",
+    "icon": null,
+    "description": null,
+    "customTelemetryTags": [],
+    "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+   }
+  }
+ ],
+ "tags": [],
+ "activeVersion": null
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   MessageSquareQuote, Type, Mic, Video, Star, Send, Loader2, Trash2,
@@ -6,7 +7,8 @@ import {
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import MediaRecorderInput from '../../../components/lms/MediaRecorderInput';
-import { cn, formatDate } from '../../../lib/utils';
+import { cn } from '../../../lib/utils';
+import { useFormat } from '../../../hooks/useFormat';
 import { submitTestimonial, deleteMyTestimonial } from '../../../lib/firestore';
 import { staggerContainer, staggerItem } from '../../../lib/animations';
 import type { Testimonial } from '../../../types';
@@ -28,16 +30,16 @@ interface TestimonialsTabProps {
   addToast: (type: 'success' | 'error', message: string) => void;
 }
 
-const FORMATS: { id: Format; label: string; icon: React.FC<{ className?: string }> }[] = [
-  { id: 'text', label: 'Texte', icon: Type },
-  { id: 'audio', label: 'Audio', icon: Mic },
-  { id: 'video', label: 'Vidéo', icon: Video },
+const FORMATS: { id: Format; labelKey: string; icon: React.FC<{ className?: string }> }[] = [
+  { id: 'text', labelKey: 'testimonials.formatText', icon: Type },
+  { id: 'audio', labelKey: 'testimonials.formatAudio', icon: Mic },
+  { id: 'video', labelKey: 'testimonials.formatVideo', icon: Video },
 ];
 
-const TARGETS: { id: TargetKind; label: string; icon: React.FC<{ className?: string }> }[] = [
-  { id: 'platform', label: 'La plateforme', icon: Sparkles },
-  { id: 'mentor', label: 'Max-Morrys', icon: UserIcon },
-  { id: 'formation', label: 'Une formation', icon: GraduationCap },
+const TARGETS: { id: TargetKind; labelKey: string; icon: React.FC<{ className?: string }> }[] = [
+  { id: 'platform', labelKey: 'testimonials.targetPlatform', icon: Sparkles },
+  { id: 'mentor', labelKey: 'testimonials.targetMentor', icon: UserIcon },
+  { id: 'formation', labelKey: 'testimonials.targetFormation', icon: GraduationCap },
 ];
 
 const statusStyle = (status?: string) =>
@@ -47,13 +49,15 @@ const statusStyle = (status?: string) =>
       ? 'bg-error-100 dark:bg-error-900/30 text-error-600 dark:text-error-400'
       : 'bg-warning-100 dark:bg-warning-900/30 text-warning-600 dark:text-warning-400';
 
-const statusLabel = (status?: string) =>
-  status === 'approved' ? 'Approuvé et publié' : status === 'rejected' ? 'Non retenu' : 'En attente de validation';
+const statusLabelKey = (status?: string) =>
+  status === 'approved' ? 'testimonials.statusApproved' : status === 'rejected' ? 'testimonials.statusRejected' : 'testimonials.statusPending';
 
 export default function TestimonialsTab({
   userId, displayName, photoURL, enrolledFormations,
   myTestimonials, setMyTestimonials, loadingTestimonials, addToast,
 }: TestimonialsTabProps) {
+  const { t } = useTranslation('lmsTabs');
+  const { formatDate } = useFormat();
   const [format, setFormat] = useState<Format>('text');
   const [targetKind, setTargetKind] = useState<TargetKind>('platform');
   const [formationId, setFormationId] = useState('');
@@ -89,14 +93,14 @@ export default function TestimonialsTab({
         targetId = formationId;
         targetLabel = ef?.formation?.title;
       } else {
-        targetLabel = 'La plateforme';
+        targetLabel = t('testimonials.targetPlatform');
       }
 
       const id = await submitTestimonial({
         userId,
         name: displayName,
         avatar: photoURL || '',
-        role: 'Étudiant',
+        role: t('testimonials.roleStudent'),
         content: content.trim(),
         rating,
         mediaType: format,
@@ -109,7 +113,7 @@ export default function TestimonialsTab({
       const optimistic: Testimonial = {
         id,
         name: displayName,
-        role: 'Étudiant',
+        role: t('testimonials.roleStudent'),
         company: '',
         content: content.trim(),
         avatar: photoURL || '',
@@ -126,22 +130,22 @@ export default function TestimonialsTab({
       };
       setMyTestimonials((prev) => [optimistic, ...prev]);
       resetForm();
-      addToast('success', 'Merci ! Ton témoignage sera visible après validation.');
+      addToast('success', t('testimonials.toastSubmitSuccess'));
     } catch (error: unknown) {
-      addToast('error', error instanceof Error ? error.message : "Erreur lors de l'envoi.");
+      addToast('error', error instanceof Error ? error.message : t('testimonials.toastSubmitError'));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (t: Testimonial) => {
-    setMyTestimonials((prev) => prev.filter((x) => x.id !== t.id));
+  const handleDelete = async (testimonial: Testimonial) => {
+    setMyTestimonials((prev) => prev.filter((x) => x.id !== testimonial.id));
     try {
-      await deleteMyTestimonial(t.id);
-      addToast('success', 'Témoignage supprimé.');
+      await deleteMyTestimonial(testimonial.id);
+      addToast('success', t('testimonials.toastDeleted'));
     } catch {
-      setMyTestimonials((prev) => [t, ...prev]);
-      addToast('error', 'Erreur lors de la suppression.');
+      setMyTestimonials((prev) => [testimonial, ...prev]);
+      addToast('error', t('testimonials.toastDeleteError'));
     }
   };
 
@@ -151,12 +155,12 @@ export default function TestimonialsTab({
       <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 space-y-5">
         <div className="flex items-center gap-2">
           <MessageSquareQuote className="w-5 h-5 text-brand-500" />
-          <h3 className="font-bold text-neutral-900 dark:text-white">Partager un avis</h3>
+          <h3 className="font-bold text-neutral-900 dark:text-white">{t('testimonials.shareTitle')}</h3>
         </div>
 
         {/* Format */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold text-neutral-500">Format</label>
+          <label className="block text-xs font-semibold text-neutral-500">{t('testimonials.format')}</label>
           <div className="flex gap-2">
             {FORMATS.map((f) => (
               <button
@@ -170,7 +174,7 @@ export default function TestimonialsTab({
                     : 'border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-700/50',
                 )}
               >
-                <f.icon className="w-4 h-4" /> {f.label}
+                <f.icon className="w-4 h-4" /> {t(f.labelKey)}
               </button>
             ))}
           </div>
@@ -178,25 +182,25 @@ export default function TestimonialsTab({
 
         {/* Target */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold text-neutral-500">Ton avis porte sur</label>
+          <label className="block text-xs font-semibold text-neutral-500">{t('testimonials.aboutLabel')}</label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {TARGETS.map((t) => {
-              const disabled = t.id === 'formation' && enrolledWithFormation.length === 0;
+            {TARGETS.map((target) => {
+              const disabled = target.id === 'formation' && enrolledWithFormation.length === 0;
               return (
                 <button
-                  key={t.id}
+                  key={target.id}
                   type="button"
                   disabled={disabled}
-                  onClick={() => setTargetKind(t.id)}
+                  onClick={() => setTargetKind(target.id)}
                   className={cn(
                     'inline-flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium border transition-colors',
-                    targetKind === t.id
+                    targetKind === target.id
                       ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
                       : 'border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-700/50',
                     disabled && 'opacity-40 cursor-not-allowed',
                   )}
                 >
-                  <t.icon className="w-4 h-4 flex-shrink-0" /> {t.label}
+                  <target.icon className="w-4 h-4 flex-shrink-0" /> {t(target.labelKey)}
                 </button>
               );
             })}
@@ -207,7 +211,7 @@ export default function TestimonialsTab({
               onChange={(e) => setFormationId(e.target.value)}
               className={cn(inputCls, 'mt-2')}
             >
-              <option value="">Choisis une formation…</option>
+              <option value="">{t('testimonials.chooseFormation')}</option>
               {enrolledWithFormation.map((ef) => (
                 <option key={ef.formation!.id} value={ef.formation!.id}>{ef.formation!.title}</option>
               ))}
@@ -217,7 +221,7 @@ export default function TestimonialsTab({
 
         {/* Rating */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold text-neutral-500">Ta note</label>
+          <label className="block text-xs font-semibold text-neutral-500">{t('testimonials.yourRating')}</label>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((n) => (
               <button key={n} type="button" onClick={() => setRating(n)} className="focus:outline-none transition-transform hover:scale-110">
@@ -231,7 +235,7 @@ export default function TestimonialsTab({
         {format !== 'text' && userId && (
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-neutral-500">
-              {format === 'video' ? 'Ta vidéo' : 'Ton audio'}
+              {format === 'video' ? t('testimonials.yourVideo') : t('testimonials.yourAudio')}
             </label>
             <MediaRecorderInput mode={format} userId={userId} value={mediaUrl} onChange={setMediaUrl} />
           </div>
@@ -240,12 +244,12 @@ export default function TestimonialsTab({
         {/* Content / caption */}
         <div className="space-y-1.5">
           <label className="block text-xs font-semibold text-neutral-500">
-            {format === 'text' ? 'Ton message' : 'Légende / transcription'}
+            {format === 'text' ? t('testimonials.yourMessage') : t('testimonials.captionTranscript')}
           </label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder={format === 'text' ? 'Décris ton expérience…' : 'Résume ton message en quelques mots…'}
+            placeholder={format === 'text' ? t('testimonials.messagePlaceholder') : t('testimonials.captionPlaceholder')}
             rows={4}
             maxLength={1000}
             className={cn(inputCls, 'resize-y')}
@@ -258,56 +262,56 @@ export default function TestimonialsTab({
             disabled={!canSubmit}
             icon={submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           >
-            {submitting ? 'Envoi…' : 'Envoyer mon avis'}
+            {submitting ? t('testimonials.sending') : t('testimonials.submit')}
           </Button>
         </div>
       </div>
 
       {/* My testimonials */}
       <div>
-        <h3 className="font-bold text-neutral-900 dark:text-white mb-3">Mes avis</h3>
+        <h3 className="font-bold text-neutral-900 dark:text-white mb-3">{t('testimonials.myReviews')}</h3>
         {loadingTestimonials ? (
           <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
         ) : myTestimonials.length === 0 ? (
           <div className="text-center py-10 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
             <MessageSquareQuote className="w-10 h-10 text-neutral-300 dark:text-neutral-700 mx-auto mb-3" />
-            <p className="text-sm text-neutral-500">Tu n'as pas encore partagé d'avis.</p>
+            <p className="text-sm text-neutral-500">{t('testimonials.emptyText')}</p>
           </div>
         ) : (
           <motion.div className="space-y-3" variants={staggerContainer} initial="hidden" animate="visible">
-            {myTestimonials.map((t) => (
-              <motion.div key={t.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 space-y-2">
+            {myTestimonials.map((item) => (
+              <motion.div key={item.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 space-y-2">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map((n) => (
-                      <Star key={n} className={cn('w-3.5 h-3.5', n <= t.rating ? 'text-accent-500' : 'text-neutral-300 dark:text-neutral-700')} fill="currentColor" />
+                      <Star key={n} className={cn('w-3.5 h-3.5', n <= item.rating ? 'text-accent-500' : 'text-neutral-300 dark:text-neutral-700')} fill="currentColor" />
                     ))}
                   </div>
-                  {t.status === 'pending' && (
-                    <button onClick={() => handleDelete(t)} className="p-1 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" aria-label="Supprimer">
+                  {item.status === 'pending' && (
+                    <button onClick={() => handleDelete(item)} className="p-1 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" aria-label={t('testimonials.deleteAria')}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
 
-                {t.mediaType === 'video' && t.mediaUrl && (
-                  <video src={t.mediaUrl} controls playsInline className="w-full max-h-56 rounded-lg bg-black" />
+                {item.mediaType === 'video' && item.mediaUrl && (
+                  <video src={item.mediaUrl} controls playsInline className="w-full max-h-56 rounded-lg bg-black" />
                 )}
-                {t.mediaType === 'audio' && t.mediaUrl && (
-                  <audio src={t.mediaUrl} controls className="w-full" />
+                {item.mediaType === 'audio' && item.mediaUrl && (
+                  <audio src={item.mediaUrl} controls className="w-full" />
                 )}
-                {t.content && <p className="text-sm text-neutral-700 dark:text-neutral-300 italic">"{t.content}"</p>}
+                {item.content && <p className="text-sm text-neutral-700 dark:text-neutral-300 italic">"{item.content}"</p>}
 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={cn('text-xs px-2.5 py-1 rounded-full font-semibold', statusStyle(t.status))}>
-                    {statusLabel(t.status)}
+                  <span className={cn('text-xs px-2.5 py-1 rounded-full font-semibold', statusStyle(item.status))}>
+                    {t(statusLabelKey(item.status))}
                   </span>
-                  {t.targetLabel && (
+                  {item.targetLabel && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-700 text-neutral-500">
-                      {t.targetLabel}
+                      {item.targetLabel}
                     </span>
                   )}
-                  {t.createdAt && <span className="text-xs text-neutral-400">{formatDate(t.createdAt)}</span>}
+                  {item.createdAt && <span className="text-xs text-neutral-400">{formatDate(item.createdAt)}</span>}
                 </div>
               </motion.div>
             ))}

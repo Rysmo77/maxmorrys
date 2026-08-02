@@ -1,0 +1,107 @@
+{
+  "stats": {
+    "trafficGrowth": "Traffic growth in 1 year",
+    "studentsTrained": "Students trained",
+    "successRate": "Success rate",
+    "coursesCreated": "Courses created"
+  },
+  "services": {
+    "train": { "title": "I train you", "desc": "Hands-on, actionable courses to master the digital world." },
+    "inform": { "title": "I keep you informed", "desc": "Articles, podcasts and videos to stay ahead of the curve." },
+    "transform": { "title": "I transform you", "desc": "Coaching and consulting to accelerate your growth." }
+  },
+  "trustBadges": {
+    "certificate": { "title": "Certificate included", "desc": "Every course delivers a verifiable certificate." },
+    "lifetime": { "title": "Lifetime access", "desc": "Your courses stay available with no time limit." },
+    "guarantee": { "title": "Satisfaction guaranteed", "desc": "Refund within 7 days if you're not satisfied." }
+  },
+  "testimonialAria": "Testimonial {{number}}",
+  "hero": {
+    "titlePart1": "Master the ",
+    "titleDigital": "digital world",
+    "titlePart2": ", accelerate your ",
+    "titleGrowth": "growth",
+    "titleEnd": ".",
+    "subtitle": "Courses, articles, a podcast and videos to transform your business — SEO, AI and digital marketing, no fluff.",
+    "cta": "Explore the courses"
+  },
+  "manifesto": {
+    "eyebrow": "Hi, I'm Max-Morrys",
+    "headingHelp": "I help ",
+    "headingEntrepreneurs": "entrepreneurs",
+    "headingTo": " ",
+    "headingTransform": "turn",
+    "headingIdeas": " their ideas into ",
+    "headingBusiness": "profitable businesses",
+    "headingEnd": ".",
+    "intro": "Trainer and consultant in digital marketing, SEO and artificial intelligence. You don't need a huge audience or to spend your nights on it: you need a clear plan and the next step. Here's what I do for you.",
+    "ctaNew": "See what's new",
+    "badgeText": "Nice to meet you",
+    "statValue": "50+",
+    "statLabel": "students trained",
+    "imageAlt": "Max-Morrys"
+  },
+  "stats2": {
+    "eyebrow": "The numbers speak"
+  },
+  "catalog": {
+    "eyebrow": "The catalog",
+    "heading": "File your skills in the right folder.",
+    "cta": "Discover all the courses"
+  },
+  "quiz": {
+    "eyebrow": "Level up",
+    "headingReady": "Ready to ",
+    "headingAccelerate": "accelerate",
+    "headingEnd": "?",
+    "desc": "Not a video game, but your business IRL. Pick the right starting point and take action with a course tailored to your goal.",
+    "cta": "Find your course",
+    "imageAlt": "Leveling up"
+  },
+  "podcast": {
+    "eyebrow": "100% free content",
+    "headingThe": "The ",
+    "headingPodcast": "Podcast",
+    "headingChannel": " & the ",
+    "headingYoutube": "YouTube",
+    "headingEnd": " channel.",
+    "desc": "Actionable advice on digital marketing, SEO and AI — in your ears or on your screen.",
+    "popularEpisodes": "Popular episodes",
+    "listen": "Listen to the podcast",
+    "watch": "Watch the videos"
+  },
+  "blog": {
+    "eyebrow": "The journal",
+    "headingNot": "Not your ",
+    "headingBlogBusiness": "usual business blog",
+    "headingUsual": ".",
+    "readTime": "{{count}} min",
+    "readAll": "Read all articles"
+  },
+  "offer": {
+    "eyebrow": "The complete method",
+    "heading": "Everything you need to succeed online.",
+    "desc": "Structured courses, real substance and clear guidance — from your first video to a business that runs.",
+    "cta": "Start now",
+    "imageAlt": "The Max-Morrys method"
+  },
+  "testimonials": {
+    "eyebrow": "The community",
+    "headingPart1": "They say it better ",
+    "headingPart2": "than I do",
+    "headingEnd": "."
+  },
+  "newsletter": {
+    "eyebrow": "The newsletter",
+    "headingThe": "Real ",
+    "headingConcrete": "substance",
+    "headingMailbox": " in your inbox.",
+    "desc": "Every week: my best discoveries, the strategies that work and challenges to move your business forward. Free, no spam."
+  },
+  "finalCta": {
+    "heading": "Ready to transform your business?",
+    "desc": "Whether you're an entrepreneur, a marketer or changing careers, there's a course made for you.",
+    "ctaFormations": "See the courses",
+    "ctaContact": "Get in touch"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "newsletterEyebrow": "NEWSLETTER",
+  "newsletterTitle": "Deviens un Insider maintenant",
+  "newsletterText": "Écoute, chaque semaine je partage mes meilleures découvertes, mes stratégies qui marchent et mes petits secrets. Et le meilleur ? C'est totalement gratuit !",
+  "brandTagline": "Formateur, consultant et créateur de contenu digital. J'aide les entrepreneurs à maîtriser le marketing digital et accélérer leur croissance.",
+  "columns": {
+    "platform": "Plateforme",
+    "about": "À propos",
+    "legal": "Légal",
+    "contact": "Contact"
+  },
+  "links": {
+    "formations": "Je te forme",
+    "blog": "Je t'informe",
+    "podcasts": "Le Podcast du Marketing",
+    "videos": "Le Marketing en Pratique",
+    "faq": "FAQ",
+    "about": "Je suis Max-Morrys",
+    "contact": "Contact",
+    "booking": "Prendre rendez-vous",
+    "legalNotice": "Mentions légales",
+    "privacy": "Confidentialité",
+    "cgu": "CGU",
+    "cgv": "CGV",
+    "cookies": "Cookies"
+  },
+  "copyright": "© {{year}} Max-Morrys. Tous droits réservés.",
+  "operatedByPrefix": "Max-Morrys est une marque opérée par"
+}

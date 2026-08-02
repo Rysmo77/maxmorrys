@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Plus, X, Send, Inbox, Loader2 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
-import { cn, formatDate } from '../../../lib/utils';
+import { cn } from '../../../lib/utils';
+import { useFormat } from '../../../hooks/useFormat';
 import { createDoc, getUserMessages } from '../../../lib/firestore';
 import type { ContactMessage } from '../../../types';
 import { captureError } from '../../../lib/sentry';
@@ -29,6 +31,8 @@ export default function MessagesTab({
   loadingMessages,
   addToast,
 }: MessagesTabProps) {
+  const { t } = useTranslation('lmsTabs');
+  const { formatDate } = useFormat();
   const [showMsgForm, setShowMsgForm] = useState(false);
   const [msgForm, setMsgForm] = useState({ subject: '', message: '' });
   const [sendingMsg, setSendingMsg] = useState(false);
@@ -48,11 +52,11 @@ export default function MessagesTab({
       });
       setMsgForm({ subject: '', message: '' });
       setShowMsgForm(false);
-      addToast('success', 'Message envoyé avec succès !');
+      addToast('success', t('messages.toastSuccess'));
       getUserMessages(userId).then(setSentMessages).catch(() => null);
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to send message' });
-      addToast('error', error instanceof Error ? error.message : "Erreur lors de l'envoi. Veuillez réessayer.");
+      addToast('error', error instanceof Error ? error.message : t('messages.toastError'));
     } finally {
       setSendingMsg(false);
     }
@@ -63,53 +67,53 @@ export default function MessagesTab({
       {showMsgForm ? (
         <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-neutral-900 dark:text-white">Nouveau message</h3>
+            <h3 className="font-bold text-neutral-900 dark:text-white">{t('messages.newMessage')}</h3>
             <button onClick={() => setShowMsgForm(false)} className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-medium text-neutral-500">De</label>
+            <label className="text-xs font-medium text-neutral-500">{t('messages.from')}</label>
             <div className="px-3 py-2.5 rounded-xl bg-neutral-100 dark:bg-neutral-700 text-sm text-neutral-500">
               {displayName} &lt;{userEmail}&gt;
             </div>
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-medium text-neutral-500">Sujet</label>
+            <label className="text-xs font-medium text-neutral-500">{t('messages.subject')}</label>
             <input
               value={msgForm.subject}
               onChange={(e) => setMsgForm((p) => ({ ...p, subject: e.target.value }))}
-              placeholder="Ex: Question sur la formation..."
+              placeholder={t('messages.subjectPlaceholder')}
               maxLength={200}
               className={inputCls}
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-medium text-neutral-500">Message</label>
+            <label className="text-xs font-medium text-neutral-500">{t('messages.message')}</label>
             <textarea
               value={msgForm.message}
               onChange={(e) => setMsgForm((p) => ({ ...p, message: e.target.value }))}
-              placeholder="Décris ta demande..."
+              placeholder={t('messages.messagePlaceholder')}
               rows={6}
               maxLength={2000}
               className={`${inputCls} resize-y`}
             />
           </div>
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setShowMsgForm(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setShowMsgForm(false)}>{t('messages.cancel')}</Button>
             <Button
               onClick={handleSendMessage}
               disabled={sendingMsg || !msgForm.subject.trim() || !msgForm.message.trim()}
               icon={sendingMsg ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             >
-              {sendingMsg ? 'Envoi...' : 'Envoyer'}
+              {sendingMsg ? t('messages.sending') : t('messages.send')}
             </Button>
           </div>
         </div>
       ) : (
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-neutral-900 dark:text-white">Messages envoyés</h3>
-          <Button size="sm" onClick={() => setShowMsgForm(true)} icon={<Plus className="w-4 h-4" />}>Nouveau message</Button>
+          <h3 className="font-bold text-neutral-900 dark:text-white">{t('messages.sentTitle')}</h3>
+          <Button size="sm" onClick={() => setShowMsgForm(true)} icon={<Plus className="w-4 h-4" />}>{t('messages.newMessage')}</Button>
         </div>
       )}
 
@@ -121,11 +125,11 @@ export default function MessagesTab({
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/20 flex items-center justify-center mx-auto mb-4">
               <Inbox className="w-7 h-7 text-brand-500" />
             </div>
-            <h4 className="font-bold text-neutral-900 dark:text-white mb-1">Ta boîte est vide</h4>
+            <h4 className="font-bold text-neutral-900 dark:text-white mb-1">{t('messages.emptyTitle')}</h4>
             <p className="text-sm text-neutral-500 mb-4 max-w-xs mx-auto">
-              Une question sur une formation ou un besoin particulier ? L'équipe Max-Morrys te répond sous 24h.
+              {t('messages.emptyText')}
             </p>
-            <Button size="sm" onClick={() => setShowMsgForm(true)} icon={<Send className="w-4 h-4" />}>Envoyer un message</Button>
+            <Button size="sm" onClick={() => setShowMsgForm(true)} icon={<Send className="w-4 h-4" />}>{t('messages.sendMessage')}</Button>
           </div>
         ) : (
           <motion.div
@@ -144,7 +148,7 @@ export default function MessagesTab({
                     msg.status === 'read' ? 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500' :
                     'bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400'
                   )}>
-                    {msg.status === 'new' ? 'Envoyé' : msg.status === 'read' ? 'Lu' : 'Répondu'}
+                    {msg.status === 'new' ? t('messages.statusSent') : msg.status === 'read' ? t('messages.statusRead') : t('messages.statusReplied')}
                   </span>
                 </div>
                 <p className="text-xs text-neutral-500 line-clamp-2">{msg.message}</p>

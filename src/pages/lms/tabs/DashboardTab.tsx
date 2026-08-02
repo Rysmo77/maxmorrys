@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { BookOpen, CheckCircle, BarChart2, Award, Play, ArrowRight, Loader2 } from 'lucide-react';
+import LocalizedLink from '../../../components/shared/LocalizedLink';
 import Button from '../../../components/ui/Button';
 import { staggerContainer, staggerItem } from '../../../lib/animations';
 import XPBar from '../../../components/lms/XPBar';
@@ -21,6 +22,7 @@ interface DashboardTabProps {
 }
 
 export default function DashboardTab({ displayName, userId, enrolledFormations, loadingEnrollments, avgProgress, completedCount }: DashboardTabProps) {
+  const { t } = useTranslation('lmsTabs');
   const [gamification, setGamification] = useState<GamificationProfile | null>(null);
 
   // Update streak on dashboard view + load gamification
@@ -42,10 +44,10 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
         const inProgress = enrolledFormations.find((ef) => ef.enrollment.progress > 0 && ef.enrollment.progress < 100);
         return (
           <div className="bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl p-5 sm:p-6 text-white">
-            <h2 className="text-xl font-bold mb-1">Bonjour, {displayName.split(' ')[0]} 👋</h2>
+            <h2 className="text-xl font-bold mb-1">{t('dashboard.greeting', { name: displayName.split(' ')[0] })}</h2>
             {inProgress && inProgress.formation ? (
               <div className="mt-3">
-                <p className="text-brand-100 text-sm mb-2">Reprends où tu t'es arrêté :</p>
+                <p className="text-brand-100 text-sm mb-2">{t('dashboard.resumeWhere')}</p>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 bg-white/10 rounded-xl p-3">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     {inProgress.formation.coverImage && (
@@ -61,28 +63,28 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
                       </div>
                     </div>
                   </div>
-                  <Link
+                  <LocalizedLink
                     to={`/cours/${inProgress.formation.slug}`}
                     className="flex-shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-white text-brand-700 font-bold text-sm rounded-full hover:bg-brand-50 transition-colors w-full sm:w-auto"
                   >
-                    <Play className="w-3.5 h-3.5" /> Reprendre
-                  </Link>
+                    <Play className="w-3.5 h-3.5" /> {t('dashboard.resume')}
+                  </LocalizedLink>
                 </div>
               </div>
             ) : (
               <div className="mt-2">
                 <p className="text-brand-100 text-sm mb-3">
                   {enrolledFormations.length === 0
-                    ? 'Commence ton aventure en explorant nos formations.'
-                    : 'Continue ton apprentissage là où tu t\'es arrêté.'}
+                    ? t('dashboard.startAdventure')
+                    : t('dashboard.continueLearningHint')}
                 </p>
                 {enrolledFormations.length === 0 && (
-                  <Link
+                  <LocalizedLink
                     to="/formations"
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-brand-700 font-bold text-sm rounded-full hover:bg-brand-50 transition-colors"
                   >
-                    Explorer les formations <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                    {t('dashboard.explore')} <ArrowRight className="w-3.5 h-3.5" />
+                  </LocalizedLink>
                 )}
               </div>
             )}
@@ -98,10 +100,10 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
         animate="visible"
       >
         {[
-          { icon: BookOpen, label: 'Formations', value: enrolledFormations.length, color: 'text-brand-600 dark:text-brand-400', bg: 'bg-brand-50 dark:bg-brand-900/20' },
-          { icon: CheckCircle, label: 'Terminées', value: completedCount, color: 'text-success-600 dark:text-success-400', bg: 'bg-success-50 dark:bg-success-900/20' },
-          { icon: BarChart2, label: 'Progression moy.', value: `${avgProgress}%`, color: 'text-accent-600 dark:text-accent-400', bg: 'bg-accent-50 dark:bg-accent-900/20' },
-          { icon: Award, label: 'Certificats', value: completedCount, color: 'text-warning-600 dark:text-warning-400', bg: 'bg-warning-50 dark:bg-warning-900/20' },
+          { icon: BookOpen, label: t('dashboard.statFormations'), value: enrolledFormations.length, color: 'text-brand-600 dark:text-brand-400', bg: 'bg-brand-50 dark:bg-brand-900/20' },
+          { icon: CheckCircle, label: t('dashboard.statCompleted'), value: completedCount, color: 'text-success-600 dark:text-success-400', bg: 'bg-success-50 dark:bg-success-900/20' },
+          { icon: BarChart2, label: t('dashboard.statAvgProgress'), value: `${avgProgress}%`, color: 'text-accent-600 dark:text-accent-400', bg: 'bg-accent-50 dark:bg-accent-900/20' },
+          { icon: Award, label: t('dashboard.statCertificates'), value: completedCount, color: 'text-warning-600 dark:text-warning-400', bg: 'bg-warning-50 dark:bg-warning-900/20' },
         ].map((s, i) => (
           <motion.div key={i} variants={staggerItem} className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-4">
             <div className={`p-2 rounded-xl ${s.bg} w-fit mb-2`}>
@@ -123,7 +125,7 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
 
       {/* Continue learning */}
       <div>
-        <h3 className="font-bold text-neutral-900 dark:text-white mb-3">Continuer l'apprentissage</h3>
+        <h3 className="font-bold text-neutral-900 dark:text-white mb-3">{t('dashboard.continueLearning')}</h3>
         {loadingEnrollments ? (
           <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
         ) : enrolledFormations.length === 0 ? (
@@ -131,13 +133,13 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/20 flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-7 h-7 text-brand-500" />
             </div>
-            <h4 className="font-bold text-neutral-900 dark:text-white mb-1">Prêt à apprendre ?</h4>
+            <h4 className="font-bold text-neutral-900 dark:text-white mb-1">{t('dashboard.readyTitle')}</h4>
             <p className="text-sm text-neutral-500 mb-4 max-w-xs mx-auto">
-              Explore nos formations en marketing digital, SEO et IA. Chacune est conçue pour être pratique et actionnable.
+              {t('dashboard.readyText')}
             </p>
-            <Link to="/formations">
-              <Button size="sm" icon={<ArrowRight className="w-3.5 h-3.5" />}>Découvrir les formations</Button>
-            </Link>
+            <LocalizedLink to="/formations">
+              <Button size="sm" icon={<ArrowRight className="w-3.5 h-3.5" />}>{t('dashboard.discover')}</Button>
+            </LocalizedLink>
           </div>
         ) : (
           <div className="space-y-3">
@@ -148,7 +150,7 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
                     <img src={formation.coverImage} alt="" className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover flex-shrink-0" loading="lazy" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-neutral-900 dark:text-white truncate">{formation?.title ?? 'Formation'}</p>
+                    <p className="font-semibold text-neutral-900 dark:text-white truncate">{formation?.title ?? t('dashboard.formationFallback')}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="flex-1 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                         <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${enrollment.progress}%` }} />
@@ -158,9 +160,9 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
                   </div>
                 </div>
                 {formation && (
-                  <Link to={`/cours/${formation.slug}`} className="w-full sm:w-auto">
-                    <Button size="sm" className="w-full sm:w-auto" icon={<Play className="w-3.5 h-3.5" />}>Continuer</Button>
-                  </Link>
+                  <LocalizedLink to={`/cours/${formation.slug}`} className="w-full sm:w-auto">
+                    <Button size="sm" className="w-full sm:w-auto" icon={<Play className="w-3.5 h-3.5" />}>{t('dashboard.continue')}</Button>
+                  </LocalizedLink>
                 )}
               </div>
             ))}

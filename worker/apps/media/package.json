@@ -1,0 +1,14 @@
+{
+  "name": "@mm/media-worker",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Worker maxmorrys-media — upload des médias vers R2 (auth via Firebase ID token)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "jose": "^5.9.6"
+  }
+}

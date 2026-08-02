@@ -12,8 +12,8 @@ export function formatDate(dateString: string, locale = 'fr-FR'): string {
   });
 }
 
-export function formatPrice(price: number, currency = 'XOF'): string {
-  return new Intl.NumberFormat('fr-FR', {
+export function formatPrice(price: number, currency = 'XOF', locale = 'fr-FR'): string {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,

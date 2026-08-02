@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Edit2, HelpCircle, Loader2, GripVertical } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Pagination from '../../components/ui/Pagination';
@@ -13,6 +14,7 @@ import { captureError } from '../../lib/sentry';
 const EMPTY: Omit<FAQ, 'id'> = { question: '', answer: '', category: '', order: 0 };
 
 export default function AdminFAQ() {
+  const { t } = useTranslation('admin');
   const { addToast } = useToast();
   const confirm = useConfirmDialog();
   const [faq, setFaq] = useState<FAQ[]>([]);
@@ -26,7 +28,7 @@ export default function AdminFAQ() {
   const load = () => {
     setLoading(true);
     getAllFAQ().then((data) => { setFaq(data); setLoading(false); })
-      .catch(() => { addToast('error', 'Erreur lors du chargement des questions.'); setLoading(false); });
+      .catch(() => { addToast('error', t('faq.toasts.loadError')); setLoading(false); });
   };
 
   useEffect(() => { load(); }, []);
@@ -50,26 +52,26 @@ export default function AdminFAQ() {
     setSaving(true);
     try {
       await saveFAQItem({ ...form, id: editing?.id });
-      addToast('success', editing ? 'Question mise à jour.' : 'Question créée.');
+      addToast('success', editing ? t('faq.toasts.updated') : t('faq.toasts.created'));
       setModalOpen(false);
       load();
     } catch (error: unknown) {
       captureError(error, { context: 'Save FAQ item failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
+      addToast('error', error instanceof Error ? error.message : t('faq.toasts.saveError'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = (id: string) => {
-    confirm.requestConfirm('Supprimer cette question ?', async () => {
+    confirm.requestConfirm(t('faq.confirmDelete.message'), async () => {
       try {
         await deleteFAQItem(id);
         setFaq((prev) => prev.filter((f) => f.id !== id));
-        addToast('success', 'Question supprimée.');
+        addToast('success', t('faq.toasts.deleted'));
       } catch (error: unknown) {
         captureError(error, { context: 'Delete FAQ item failed' });
-        addToast('error', error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+        addToast('error', error instanceof Error ? error.message : t('faq.toasts.deleteError'));
       }
       confirm.closeConfirm();
     });
@@ -85,10 +87,10 @@ export default function AdminFAQ() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">FAQ</h1>
-          <p className="text-sm text-neutral-500 mt-1">{faq.length} question{faq.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">{t('faq.title')}</h1>
+          <p className="text-sm text-neutral-500 mt-1">{t('faq.count', { count: faq.length })}</p>
         </div>
-        <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>Nouvelle question</Button>
+        <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>{t('faq.newQuestion')}</Button>
       </div>
 
       {categories.length > 2 && (
@@ -99,7 +101,7 @@ export default function AdminFAQ() {
               onClick={() => setCategoryFilter(cat)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${categoryFilter === cat ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900' : 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:border-neutral-400'}`}
             >
-              {cat === 'all' ? 'Toutes' : cat}
+              {cat === 'all' ? t('faq.filterAll') : cat}
             </button>
           ))}
         </div>
@@ -110,7 +112,7 @@ export default function AdminFAQ() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
           <HelpCircle className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p className="text-neutral-500">Aucune question. Ajoutez-en une.</p>
+          <p className="text-neutral-500">{t('faq.empty')}</p>
         </div>
       ) : (
         <>
@@ -145,39 +147,39 @@ export default function AdminFAQ() {
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
           <div className="relative w-full max-w-lg bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex items-center justify-between z-10">
-              <h2 className="font-bold text-neutral-900 dark:text-white">{editing ? 'Modifier la question' : 'Nouvelle question'}</h2>
-              <button onClick={() => setModalOpen(false)} className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">✕</button>
+              <h2 className="font-bold text-neutral-900 dark:text-white">{editing ? t('faq.modal.editTitle') : t('faq.modal.newTitle')}</h2>
+              <button onClick={() => setModalOpen(false)} aria-label={t('faq.modal.close')} className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">✕</button>
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-500">Question *</label>
-                <input value={form.question} onChange={(e) => setForm((p) => ({ ...p, question: e.target.value }))} placeholder="Quelle est votre question ?" className={inputCls} />
+                <label className="text-xs font-medium text-neutral-500">{t('faq.form.questionLabel')}</label>
+                <input value={form.question} onChange={(e) => setForm((p) => ({ ...p, question: e.target.value }))} placeholder={t('faq.form.questionPlaceholder')} className={inputCls} />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-500">Réponse *</label>
-                <textarea value={form.answer} onChange={(e) => setForm((p) => ({ ...p, answer: e.target.value }))} rows={5} placeholder="Réponse complète..." className={inputCls} />
+                <label className="text-xs font-medium text-neutral-500">{t('faq.form.answerLabel')}</label>
+                <textarea value={form.answer} onChange={(e) => setForm((p) => ({ ...p, answer: e.target.value }))} rows={5} placeholder={t('faq.form.answerPlaceholder')} className={inputCls} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">Catégorie</label>
-                  <input value={form.category} onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))} placeholder="Général, Formation..." className={inputCls} />
+                  <label className="text-xs font-medium text-neutral-500">{t('faq.form.categoryLabel')}</label>
+                  <input value={form.category} onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))} placeholder={t('faq.form.categoryPlaceholder')} className={inputCls} />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">Ordre d'affichage</label>
+                  <label className="text-xs font-medium text-neutral-500">{t('faq.form.orderLabel')}</label>
                   <input type="number" min={0} value={form.order} onChange={(e) => setForm((p) => ({ ...p, order: Number(e.target.value) }))} className={inputCls} />
                 </div>
               </div>
             </div>
             <div className="sticky bottom-0 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 px-6 py-4 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setModalOpen(false)}>Annuler</Button>
+              <Button variant="outline" onClick={() => setModalOpen(false)}>{t('faq.actions.cancel')}</Button>
               <Button onClick={handleSave} disabled={saving || !form.question.trim() || !form.answer.trim()} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}>
-                {saving ? 'Enregistrement...' : 'Enregistrer'}
+                {saving ? t('faq.actions.saving') : t('faq.actions.save')}
               </Button>
             </div>
           </div>
         </div>
       )}
-      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title="Supprimer" message={confirm.message} confirmLabel="Supprimer" />
+      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title={t('faq.confirmDelete.title')} message={confirm.message} confirmLabel={t('faq.confirmDelete.confirmLabel')} />
     </div>
   );
 }

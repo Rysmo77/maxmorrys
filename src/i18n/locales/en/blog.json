@@ -1,0 +1,59 @@
+{
+  "seo": {
+    "title": "Digital Marketing Blog — Articles and Tips",
+    "description": "Articles, analysis and practical tips on digital marketing, SEO, AI and growth strategy. By Max-Morrys from Dakar."
+  },
+  "eyebrow": "BLOG",
+  "hero": {
+    "featuredEyebrow": "Featured",
+    "readTime": "{{count}} min read",
+    "readMore": "Read more",
+    "emptyTitle": "Never miss the news",
+    "emptySubtitle": "Marketing moves so fast that you can't afford to miss the latest trends and updates. But I'll tell you everything; no secrets between us!"
+  },
+  "topics": "Topics",
+  "all": "All",
+  "searchPlaceholder": "Search for an article...",
+  "states": {
+    "loadError": "Couldn't load the articles. Check your connection.",
+    "retry": "Try again",
+    "empty": "No article found for your search."
+  },
+  "club": {
+    "eyebrow": "CLUB DES DIGITOS",
+    "title": "Talk with me<br />& the community",
+    "description": "The blog is great. But in the Club we go further: ask your questions right in the forum, react to the latest news in the feed, and chat with me and the other members.",
+    "join": "Join the Club",
+    "feedTitle": "News feed",
+    "feedDesc": "The latest digital news, filtered and commented by me — straight into your feed.",
+    "forumTitle": "Forum & discussions with me",
+    "forumDesc": "Ask your questions, share your progress and chat directly with me and the whole community.",
+    "priceUnit": "FCFA / year"
+  },
+  "crossPodcast": {
+    "eyebrow": "DISCOVER ALSO",
+    "title": "The Marketing Podcast",
+    "description": "Analysis, interviews and reflections on digital marketing — listen anywhere, anytime.",
+    "cta": "Listen to the podcast"
+  },
+  "post": {
+    "notFoundTitle": "Article not found",
+    "notFoundLink": "Back to the blog",
+    "breadcrumbHome": "Home",
+    "breadcrumbBlog": "Blog",
+    "backToBlog": "Back to the blog",
+    "writtenBy": "Written by",
+    "publishedOn": "Published on",
+    "readTime": "{{count}} min",
+    "viewsCount": "{{formattedCount}} views",
+    "shareTwitter": "Share on X",
+    "shareLinkedin": "Share on LinkedIn",
+    "copyLink": "Copy link",
+    "relatedEyebrow": "ALSO READ",
+    "relatedTitle": "Related articles",
+    "crossEyebrow": "DISCOVER ALSO",
+    "crossTitle": "I train you",
+    "crossDescription": "Practical courses to go further and turn your knowledge into real skills.",
+    "crossCta": "See the courses"
+  }
+}

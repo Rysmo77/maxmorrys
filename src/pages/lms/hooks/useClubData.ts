@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/ui/Toast';
 import {
@@ -12,11 +13,11 @@ import {
 } from '../../../lib/firestore';
 import { doc, getDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadMedia } from '../../../lib/storage';
 import { captureError } from '../../../lib/sentry';
 import { addXP, awardBadge } from '../../../lib/gamification';
 import { XP_REWARDS } from '../../../types/gamification';
-import { db, storage, functions } from '../../../config/firebase';
+import { db, functions } from '../../../config/firebase';
 
 const createClubCharge = httpsCallable<
   { autoRenew?: boolean },
@@ -29,13 +30,15 @@ import {
 
 export type ClubSubTab = 'feed' | 'leaderboard' | 'members' | 'discussions' | 'opportunities' | 'agenda' | 'events' | 'sessions' | 'infos' | 'referral';
 
-export const CLUB_CATEGORIES: { id: ClubPostCategory; label: string; emoji: string; icon: Icon; tint: string; dot: string }[] = [
-  { id: 'general', label: 'Général', emoji: '💬', icon: ChatCircleDots, tint: 'text-plum-600 dark:text-plum-400', dot: 'bg-plum-500' },
-  { id: 'question', label: 'Question', emoji: '❓', icon: Question, tint: 'text-brand-600 dark:text-brand-400', dot: 'bg-brand-500' },
-  { id: 'ressource', label: 'Ressource', emoji: '📚', icon: BookOpen, tint: 'text-teal-600 dark:text-teal-400', dot: 'bg-teal-500' },
-  { id: 'temoignage', label: 'Témoignage', emoji: '⭐', icon: Star, tint: 'text-accent-600 dark:text-accent-400', dot: 'bg-accent-500' },
-  { id: 'opportunite', label: 'Opportunité', emoji: '🚀', icon: Rocket, tint: 'text-coral-600 dark:text-coral-400', dot: 'bg-coral-500' },
-  { id: 'discussion', label: 'Discussion', emoji: '🗣️', icon: Megaphone, tint: 'text-success-600 dark:text-success-400', dot: 'bg-success-500' },
+// `labelKey` resolves against the `club` namespace (e.g. t('categories.general')).
+// `label` kept as a fallback for renderers not yet migrated to t(c.labelKey).
+export const CLUB_CATEGORIES: { id: ClubPostCategory; label: string; labelKey: string; emoji: string; icon: Icon; tint: string; dot: string }[] = [
+  { id: 'general', label: 'Général', labelKey: 'categories.general', emoji: '💬', icon: ChatCircleDots, tint: 'text-plum-600 dark:text-plum-400', dot: 'bg-plum-500' },
+  { id: 'question', label: 'Question', labelKey: 'categories.question', emoji: '❓', icon: Question, tint: 'text-brand-600 dark:text-brand-400', dot: 'bg-brand-500' },
+  { id: 'ressource', label: 'Ressource', labelKey: 'categories.ressource', emoji: '📚', icon: BookOpen, tint: 'text-teal-600 dark:text-teal-400', dot: 'bg-teal-500' },
+  { id: 'temoignage', label: 'Témoignage', labelKey: 'categories.temoignage', emoji: '⭐', icon: Star, tint: 'text-accent-600 dark:text-accent-400', dot: 'bg-accent-500' },
+  { id: 'opportunite', label: 'Opportunité', labelKey: 'categories.opportunite', emoji: '🚀', icon: Rocket, tint: 'text-coral-600 dark:text-coral-400', dot: 'bg-coral-500' },
+  { id: 'discussion', label: 'Discussion', labelKey: 'categories.discussion', emoji: '🗣️', icon: Megaphone, tint: 'text-success-600 dark:text-success-400', dot: 'bg-success-500' },
 ];
 
 export const MOOD_OPTIONS = ['😊', '🔥', '💡', '🎉', '💪', '🤔', '😎', '❤️', '👏', '🙏'];
@@ -52,9 +55,10 @@ export const SHARE_PLATFORMS = [
 export const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
 
 export function useClubData() {
+  const { t } = useTranslation('club');
   const { user, userData } = useAuth();
   const { addToast } = useToast();
-  const displayName = userData?.displayName || user?.displayName || user?.email?.split('@')[0] || 'Étudiant';
+  const displayName = userData?.displayName || user?.displayName || user?.email?.split('@')[0] || t('clubData.fallbackStudent');
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
   const photoURL = user?.photoURL || userData?.photoURL;
 
@@ -121,7 +125,7 @@ export function useClubData() {
         // On crée un profil visible par défaut (nom/photo + réseaux du profil étudiant) s'il n'existe pas.
         getMyClubProfile(user.uid).then((mine) => {
           if (mine) return;
-          const name = userData?.displayName || user.displayName || user.email?.split('@')[0] || 'Membre';
+          const name = userData?.displayName || user.displayName || user.email?.split('@')[0] || t('clubData.fallbackMember');
           return saveClubProfile(user.uid, {
             displayName: name,
             photoURL: user.photoURL || userData?.photoURL || '',
@@ -142,7 +146,7 @@ export function useClubData() {
         }).catch(() => null);
       }
       setLoadingClub(false);
-    }).catch(() => { addToast('error', 'Erreur lors du chargement du Club des Digitos.'); setLoadingClub(false); });
+    }).catch(() => { addToast('error', t('clubData.loadError')); setLoadingClub(false); });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -155,7 +159,7 @@ export function useClubData() {
       window.location.href = result.data.checkoutUrl;
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to create club charge' });
-      const msg = error instanceof Error ? error.message : "Erreur lors de la création du paiement. Réessaie.";
+      const msg = error instanceof Error ? error.message : t('clubData.paymentError');
       addToast('error', msg);
       setActivatingClub(false);
     }
@@ -170,9 +174,7 @@ export function useClubData() {
       if (composerMediaType === 'image' && composerMediaFile) {
         setUploadingMedia(true);
         const ext = composerMediaFile.name.split('.').pop() || 'jpg';
-        const fileRef = storageRef(storage, `club_media/${user.uid}/${Date.now()}.${ext}`);
-        await uploadBytes(fileRef, composerMediaFile);
-        mediaUrl = await getDownloadURL(fileRef);
+        mediaUrl = await uploadMedia(composerMediaFile, `club_media/${user.uid}/${Date.now()}.${ext}`);
         mediaType = 'image';
         setUploadingMedia(false);
       } else if (composerMediaType !== 'image' && composerAvUrl) {
@@ -204,7 +206,7 @@ export function useClubData() {
       setComposerMediaFile(null);
       if (composerMediaPreview) URL.revokeObjectURL(composerMediaPreview);
       setComposerMediaPreview('');
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la publication.');
+      addToast('error', error instanceof Error ? error.message : t('clubData.postPublishError'));
     } finally {
       setPostingToClub(false); setUploadingMedia(false);
     }
@@ -256,7 +258,7 @@ export function useClubData() {
       addXP(user.uid, XP_REWARDS.clubComment).catch(() => null);
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to add club comment' });
-      addToast('error', error instanceof Error ? error.message : "Erreur lors de l'envoi du commentaire.");
+      addToast('error', error instanceof Error ? error.message : t('clubData.commentSendError'));
     } finally {
       setSubmittingComment(null);
     }
@@ -288,8 +290,8 @@ export function useClubData() {
   const handleMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) { addToast('error', 'Seules les images sont acceptées.'); return; }
-    if (file.size > 5 * 1024 * 1024) { addToast('error', "L'image ne doit pas dépasser 5 Mo."); return; }
+    if (!file.type.startsWith('image/')) { addToast('error', t('clubData.imagesOnly')); return; }
+    if (file.size > 5 * 1024 * 1024) { addToast('error', t('clubData.imageMaxSize')); return; }
     setComposerMediaFile(file);
     setComposerMediaPreview(URL.createObjectURL(file));
     if (mediaInputRef.current) mediaInputRef.current.value = '';
@@ -326,15 +328,15 @@ export function useClubData() {
       if (registered) {
         await unregisterFromClubEvent(eventId, user.uid);
         setRegisteredEvents((prev) => { const s = new Set(prev); s.delete(eventId); return s; });
-        addToast('success', 'Inscription annulée.');
+        addToast('success', t('clubData.regCancelled'));
       } else {
         await registerForClubEvent(eventId, user.uid, displayName, user.email ?? undefined);
         setRegisteredEvents((prev) => new Set([...prev, eventId]));
-        addToast('success', 'Inscription confirmée !');
+        addToast('success', t('clubData.regConfirmed'));
       }
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to toggle event registration' });
-      addToast('error', error instanceof Error ? error.message : "Erreur lors de l'inscription.");
+      addToast('error', error instanceof Error ? error.message : t('clubData.regError'));
     } finally {
       setTogglingReg(null);
     }
@@ -348,15 +350,15 @@ export function useClubData() {
       if (registered) {
         await unregisterFromClubSession(sessionId, user.uid);
         setRegisteredSessions((prev) => { const s = new Set(prev); s.delete(sessionId); return s; });
-        addToast('success', 'Inscription annulée.');
+        addToast('success', t('clubData.regCancelled'));
       } else {
         await registerForClubSession(sessionId, user.uid, displayName, user.email ?? undefined);
         setRegisteredSessions((prev) => new Set([...prev, sessionId]));
-        addToast('success', 'Inscription confirmée !');
+        addToast('success', t('clubData.regConfirmed'));
       }
     } catch (error: unknown) {
       captureError(error, { context: 'Failed to toggle session registration' });
-      addToast('error', error instanceof Error ? error.message : "Erreur lors de l'inscription.");
+      addToast('error', error instanceof Error ? error.message : t('clubData.regError'));
     } finally {
       setTogglingReg(null);
     }

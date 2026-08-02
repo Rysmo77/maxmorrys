@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import LocalizedLink from '../../components/shared/LocalizedLink';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { db } from '../../config/firebase';
@@ -12,6 +14,7 @@ import type { Transaction } from '../../types';
 type PaymentStatus = 'loading' | 'completed' | 'pending' | 'failed';
 
 export default function PaymentReturn() {
+  const { t } = useTranslation('lms');
   const [searchParams] = useSearchParams();
   const transactionId = searchParams.get('transactionId');
   const { user } = useAuth();
@@ -89,9 +92,9 @@ export default function PaymentReturn() {
           <>
             <Loader2 className="w-12 h-12 animate-spin text-brand-500 mx-auto mb-5" />
             <h1 className="text-xl font-black text-neutral-900 dark:text-white mb-2">
-              Vérification du paiement...
+              {t('paymentReturn.verifyingTitle')}
             </h1>
-            <p className="text-neutral-500 text-sm">Patiente quelques instants.</p>
+            <p className="text-neutral-500 text-sm">{t('paymentReturn.verifyingText')}</p>
           </>
         )}
 
@@ -101,24 +104,24 @@ export default function PaymentReturn() {
               <CheckCircle className="w-8 h-8 text-success-500" />
             </div>
             <h1 className="text-2xl font-black text-neutral-900 dark:text-white mb-2">
-              Paiement confirmé !
+              {t('paymentReturn.confirmedTitle')}
             </h1>
             <p className="text-neutral-500 text-sm mb-6 leading-relaxed">
-              Tu es maintenant inscrit à "{transaction?.formationTitle}". Tu peux commencer ton apprentissage dès maintenant.
+              {t('paymentReturn.confirmedText', { title: transaction?.formationTitle })}
             </p>
             <div className="flex flex-col gap-3">
               {transaction?.formationSlug && (
-                <Link to={`/cours/${transaction.formationSlug}`}>
+                <LocalizedLink to={`/cours/${transaction.formationSlug}`}>
                   <Button className="w-full" icon={<ArrowRight className="w-5 h-5" />}>
-                    Commencer le cours
+                    {t('paymentReturn.startCourse')}
                   </Button>
-                </Link>
+                </LocalizedLink>
               )}
-              <Link to="/mon-espace">
+              <LocalizedLink to="/mon-espace">
                 <Button variant="outline" className="w-full">
-                  Aller à mon espace
+                  {t('paymentReturn.goToSpace')}
                 </Button>
-              </Link>
+              </LocalizedLink>
             </div>
           </>
         )}
@@ -127,16 +130,16 @@ export default function PaymentReturn() {
           <>
             <Loader2 className="w-12 h-12 animate-spin text-brand-500 mx-auto mb-5" />
             <h1 className="text-xl font-black text-neutral-900 dark:text-white mb-2">
-              Paiement en cours de vérification
+              {t('paymentReturn.pendingTitle')}
             </h1>
             <p className="text-neutral-500 text-sm mb-6 leading-relaxed">
-              Ton paiement est en cours de traitement. Tu recevras une confirmation dès qu'il sera validé. Tu peux fermer cette page.
+              {t('paymentReturn.pendingText')}
             </p>
-            <Link to="/mon-espace">
+            <LocalizedLink to="/mon-espace">
               <Button variant="outline" className="w-full">
-                Aller à mon espace
+                {t('paymentReturn.goToSpace')}
               </Button>
-            </Link>
+            </LocalizedLink>
           </>
         )}
 
@@ -146,18 +149,18 @@ export default function PaymentReturn() {
               <XCircle className="w-8 h-8 text-error-500" />
             </div>
             <h1 className="text-xl font-black text-neutral-900 dark:text-white mb-2">
-              Paiement échoué
+              {t('paymentReturn.failedTitle')}
             </h1>
             <p className="text-neutral-500 text-sm mb-6 leading-relaxed">
-              Le paiement n'a pas abouti. Tu peux réessayer ou nous contacter si le problème persiste.
+              {t('paymentReturn.failedText')}
             </p>
             <div className="flex flex-col gap-3">
-              <Link to="/formations">
-                <Button className="w-full">Retour aux formations</Button>
-              </Link>
-              <Link to="/contact" className="text-sm text-brand-600 dark:text-brand-400 hover:underline">
-                Nous contacter
-              </Link>
+              <LocalizedLink to="/formations">
+                <Button className="w-full">{t('paymentReturn.backToFormations')}</Button>
+              </LocalizedLink>
+              <LocalizedLink to="/contact" className="text-sm text-brand-600 dark:text-brand-400 hover:underline">
+                {t('paymentReturn.contactUs')}
+              </LocalizedLink>
             </div>
           </>
         )}

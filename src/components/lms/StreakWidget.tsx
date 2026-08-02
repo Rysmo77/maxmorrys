@@ -1,4 +1,5 @@
 import { Flame } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface StreakWidgetProps {
   currentStreak: number;
@@ -7,6 +8,7 @@ interface StreakWidgetProps {
 }
 
 export default function StreakWidget({ currentStreak, longestStreak, compact }: StreakWidgetProps) {
+  const { t } = useTranslation('lms');
   if (compact) {
     return (
       <div className="flex items-center gap-2">
@@ -14,8 +16,8 @@ export default function StreakWidget({ currentStreak, longestStreak, compact }: 
           <Flame className="w-4 h-4 text-accent-500" />
         </div>
         <div>
-          <p className="text-sm font-bold text-neutral-900 dark:text-white">{currentStreak} jour{currentStreak > 1 ? 's' : ''}</p>
-          <p className="text-[10px] text-neutral-400">streak actuel</p>
+          <p className="text-sm font-bold text-neutral-900 dark:text-white">{t('streak.days', { count: currentStreak })}</p>
+          <p className="text-[10px] text-neutral-400">{t('streak.currentStreak')}</p>
         </div>
       </div>
     );
@@ -28,8 +30,8 @@ export default function StreakWidget({ currentStreak, longestStreak, compact }: 
           <Flame className="w-5 h-5 text-white" />
         </div>
         <div>
-          <p className="font-bold text-neutral-900 dark:text-white">Streak de {currentStreak} jour{currentStreak > 1 ? 's' : ''}</p>
-          <p className="text-xs text-neutral-500">Reviens chaque jour pour maintenir ta série</p>
+          <p className="font-bold text-neutral-900 dark:text-white">{t('streak.streakOfDays', { count: currentStreak })}</p>
+          <p className="text-xs text-neutral-500">{t('streak.subtitle')}</p>
         </div>
       </div>
 
@@ -52,8 +54,8 @@ export default function StreakWidget({ currentStreak, longestStreak, compact }: 
       </div>
 
       <div className="flex items-center justify-between mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-700 text-xs text-neutral-500">
-        <span>Record : {longestStreak} jour{longestStreak > 1 ? 's' : ''}</span>
-        {currentStreak > 0 && <span className="text-orange-500 font-semibold">+{5 * currentStreak} XP bonus</span>}
+        <span>{t('streak.record', { count: longestStreak })}</span>
+        {currentStreak > 0 && <span className="text-orange-500 font-semibold">{t('streak.xpBonus', { xp: 5 * currentStreak })}</span>}
       </div>
     </div>
   );

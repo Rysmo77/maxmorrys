@@ -1,0 +1,217 @@
+{
+  "updatedAt": "2026-06-28T19:54:15.657Z",
+  "createdAt": "2026-06-28T18:51:28.690Z",
+  "id": "Q9KEirYd5dp7kA6M",
+  "name": "WF-DIGEST — Résumé quotidien (Telegram)",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "name": "Cron — 8h Dakar",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "b8d326ae-bc8a-489d-bc78-ef0c0f1d053f"
+    },
+    {
+      "name": "Airtable — Lire Config",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        120
+      ],
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblQqVRtboYFSGNt8",
+          "mode": "list"
+        },
+        "returnAll": true,
+        "options": {},
+        "filterByFormula": "OR({Cle}='TELEGRAM_BOT_TOKEN',{Cle}='TELEGRAM_CHAT_ID',{Cle}='PAPERCLIP_BASE',{Cle}='PAPERCLIP_COMPANY_ID',{Cle}='CF_ACCESS_CLIENT_ID',{Cle}='CF_ACCESS_CLIENT_SECRET')"
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "id": "888dfbe1-29d0-4958-9601-9478c7b4d377"
+    },
+    {
+      "name": "Airtable — Posts à valider",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        -120
+      ],
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPYoyzcZLdtBTO3",
+          "mode": "list"
+        },
+        "returnAll": true,
+        "options": {},
+        "filterByFormula": "{Status}='prêt_à_valider'"
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "id": "026331e3-9a3b-40dd-b5c1-9770c96efc6e"
+    },
+    {
+      "name": "Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const cfg={};for(const r of $('Airtable — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nconst H={'CF-Access-Client-Id':cfg.CF_ACCESS_CLIENT_ID,'CF-Access-Client-Secret':cfg.CF_ACCESS_CLIENT_SECRET};\nconst postsAValider=$('Airtable — Posts à valider').all().length;\nlet kpi='(indispo)',bud='(indispo)',appro='?';\ntry{ const d=await this.helpers.httpRequest({method:'GET',url:`${cfg.PAPERCLIP_BASE}/api/companies/${cfg.PAPERCLIP_COMPANY_ID}/dashboard`,headers:H,json:true}); kpi=JSON.stringify(d).slice(0,400); }catch(e){}\ntry{ const c=await this.helpers.httpRequest({method:'GET',url:`${cfg.PAPERCLIP_BASE}/api/companies/${cfg.PAPERCLIP_COMPANY_ID}`,headers:H,json:true}); bud=((c.spentMonthlyCents||0)/100)+'$ / '+((c.budgetMonthlyCents||0)/100)+'$'; }catch(e){}\ntry{ const ap=await this.helpers.httpRequest({method:'GET',url:`${cfg.PAPERCLIP_BASE}/api/companies/${cfg.PAPERCLIP_COMPANY_ID}/approvals`,headers:H,json:true}); appro=(ap||[]).filter(x=>x.status==='pending').length; }catch(e){}\nconst text=`🌅 *Digest Maxmorrys Social*\\n\\n📝 Posts à valider : *${postsAValider}*\\n🛡️ Approbations Paperclip : *${appro}*\\n📊 KPIs : \\`${kpi}\\`\\n💰 Budget : \\`${bud}\\``;\nreturn [{json:{token:cfg.TELEGRAM_BOT_TOKEN,body:{chat_id:cfg.TELEGRAM_CHAT_ID,text,parse_mode:'Markdown'}}}];\n"
+      },
+      "id": "ec47a8b7-bca8-4329-a24f-43b977b8a655"
+    },
+    {
+      "name": "TG — sendMessage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "id": "5c002665-fdaa-4a93-98a5-4b00cbfc220d"
+    }
+  ],
+  "connections": {
+    "Cron — 8h Dakar": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — Posts à valider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Posts à valider": {
+      "main": [
+        [
+          {
+            "node": "Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Digest": {
+      "main": [
+        [
+          {
+            "node": "TG — sendMessage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Cron — 8h Dakar": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "eff745df-e926-48d8-886f-f4678f9557f8",
+  "activeVersionId": null,
+  "versionCounter": 2,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "shared": [
+    {
+      "updatedAt": "2026-06-28T18:51:28.692Z",
+      "createdAt": "2026-06-28T18:51:28.692Z",
+      "role": "workflow:owner",
+      "workflowId": "Q9KEirYd5dp7kA6M",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

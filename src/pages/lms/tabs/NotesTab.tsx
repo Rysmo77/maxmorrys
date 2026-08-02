@@ -1,7 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Search, Plus, X, Edit3, Trash2, FileText, Save, Loader2 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
-import { formatDate } from '../../../lib/utils';
+import { useFormat } from '../../../hooks/useFormat';
 import type { Note } from '../../../lib/firestore';
 import { staggerContainer, staggerItem } from '../../../lib/animations';
 
@@ -43,44 +44,46 @@ export default function NotesTab({
   onDeleteNote,
   addToast,
 }: NotesTabProps) {
+  const { t } = useTranslation('lmsTabs');
+  const { formatDate } = useFormat();
   const handleSave = async () => {
     const result = await onSaveNote();
     if (result?.success) {
-      addToast('success', result.edited ? 'Note mise à jour.' : 'Note créée.');
+      addToast('success', result.edited ? t('notes.toastUpdated') : t('notes.toastCreated'));
     } else if (result && !result.success) {
-      addToast('error', "Erreur lors de l'enregistrement.");
+      addToast('error', t('notes.toastSaveError'));
     }
   };
 
   const handleDelete = async (noteId: string) => {
     const success = await onDeleteNote(noteId);
-    if (success) addToast('success', 'Note supprimée.');
-    else if (success === false) addToast('error', 'Erreur lors de la suppression.');
+    if (success) addToast('success', t('notes.toastDeleted'));
+    else if (success === false) addToast('error', t('notes.toastDeleteError'));
   };
 
   return (
     <div className="space-y-4">
       {showNoteForm ? (
         <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 space-y-4">
-          <h3 className="font-bold text-neutral-900 dark:text-white">{editingNote ? 'Modifier la note' : 'Nouvelle note'}</h3>
+          <h3 className="font-bold text-neutral-900 dark:text-white">{editingNote ? t('notes.editTitle') : t('notes.newTitle')}</h3>
           <input
             value={noteForm.title}
             onChange={(e) => setNoteForm((p) => ({ ...p, title: e.target.value }))}
-            placeholder="Titre de la note..."
+            placeholder={t('notes.titlePlaceholder')}
             maxLength={200}
             className={inputCls}
           />
           <textarea
             value={noteForm.content}
             onChange={(e) => setNoteForm((p) => ({ ...p, content: e.target.value }))}
-            placeholder="Contenu de la note..."
+            placeholder={t('notes.contentPlaceholder')}
             rows={8}
             className={`${inputCls} resize-y font-mono`}
           />
           <div className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={() => setShowNoteForm(false)} icon={<X className="w-4 h-4" />}>Annuler</Button>
+            <Button variant="outline" onClick={() => setShowNoteForm(false)} icon={<X className="w-4 h-4" />}>{t('notes.cancel')}</Button>
             <Button onClick={handleSave} disabled={savingNote || !noteForm.title.trim()} icon={savingNote ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
-              {savingNote ? 'Enregistrement...' : 'Enregistrer'}
+              {savingNote ? t('notes.saving') : t('notes.save')}
             </Button>
           </div>
         </div>
@@ -89,9 +92,9 @@ export default function NotesTab({
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="relative w-full sm:flex-1 sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-              <input value={noteSearch} onChange={(e) => setNoteSearch(e.target.value)} placeholder="Rechercher une note..." className="w-full pl-10 pr-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
+              <input value={noteSearch} onChange={(e) => setNoteSearch(e.target.value)} placeholder={t('notes.searchPlaceholder')} className="w-full pl-10 pr-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
             </div>
-            <Button size="sm" className="w-full sm:w-auto" onClick={openNewNote} icon={<Plus className="w-4 h-4" />}>Nouvelle note</Button>
+            <Button size="sm" className="w-full sm:w-auto" onClick={openNewNote} icon={<Plus className="w-4 h-4" />}>{t('notes.newNote')}</Button>
           </div>
           {loadingNotes ? (
             <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
@@ -100,11 +103,11 @@ export default function NotesTab({
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-100 to-accent-50 dark:from-accent-900/40 dark:to-accent-900/20 flex items-center justify-center mx-auto mb-4">
                 <FileText className="w-7 h-7 text-accent-500" />
               </div>
-              <h4 className="font-bold text-neutral-900 dark:text-white mb-1">Tes notes apparaîtront ici</h4>
+              <h4 className="font-bold text-neutral-900 dark:text-white mb-1">{t('notes.emptyTitle')}</h4>
               <p className="text-sm text-neutral-500 mb-4 max-w-xs mx-auto">
-                La prise de notes augmente la rétention de 40%. Note les concepts clés pendant tes cours.
+                {t('notes.emptyText')}
               </p>
-              <Button size="sm" onClick={openNewNote} icon={<Plus className="w-4 h-4" />}>Créer ma première note</Button>
+              <Button size="sm" onClick={openNewNote} icon={<Plus className="w-4 h-4" />}>{t('notes.createFirst')}</Button>
             </div>
           ) : (
             <motion.div

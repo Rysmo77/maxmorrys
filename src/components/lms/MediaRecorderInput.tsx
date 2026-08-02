@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { useTranslation } from 'react-i18next';
 import { Mic, Video, Square, Upload, X, Loader2, RotateCcw } from 'lucide-react';
-import { storage } from '../../config/firebase';
+import { uploadMedia } from '../../lib/storage';
 
 interface MediaRecorderInputProps {
   mode: 'audio' | 'video';
@@ -31,6 +31,7 @@ function formatTime(s: number): string {
 }
 
 export default function MediaRecorderInput({ mode, userId, value, onChange, folder = 'testimonial_media' }: MediaRecorderInputProps) {
+  const { t } = useTranslation('lms');
   const canRecord = supportsRecording();
 
   const [recording, setRecording] = useState(false);
@@ -64,26 +65,22 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
 
   const uploadBlob = async (blob: Blob, ext: string) => {
     if (blob.size > MAX_BYTES) {
-      setError('Fichier trop lourd (max 100 Mo).');
+      setError(t('mediaRecorder.fileTooLarge'));
       return;
     }
     setError(null);
     setUploading(true);
     setProgress(0);
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const storageRef = ref(storage, `${folder}/${userId}/${filename}`);
-    const task = uploadBytesResumable(storageRef, blob);
-    task.on(
-      'state_changed',
-      (snap) => setProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
-      () => { setError('Échec du téléversement. Réessayez.'); setUploading(false); },
-      async () => {
-        const url = await getDownloadURL(task.snapshot.ref);
-        onChange(url);
-        setUploading(false);
-        setProgress(0);
-      },
-    );
+    try {
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const url = await uploadMedia(blob, `${folder}/${userId}/${filename}`, setProgress);
+      onChange(url);
+      setProgress(0);
+    } catch {
+      setError(t('mediaRecorder.uploadFailed'));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const startRecording = async () => {
@@ -121,7 +118,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
         });
       }, 1000);
     } catch {
-      setError("Impossible d'accéder au micro/caméra. Vérifie les autorisations ou importe un fichier.");
+      setError(t('mediaRecorder.accessError'));
     }
   };
 
@@ -136,7 +133,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
     const file = e.target.files?.[0];
     if (!file) return;
     const valid = mode === 'video' ? file.type.startsWith('video/') : file.type.startsWith('audio/');
-    if (!valid) { setError(mode === 'video' ? 'Fichier vidéo attendu.' : 'Fichier audio attendu.'); return; }
+    if (!valid) { setError(mode === 'video' ? t('mediaRecorder.videoFileExpected') : t('mediaRecorder.audioFileExpected')); return; }
     if (localUrl) URL.revokeObjectURL(localUrl);
     setLocalUrl(URL.createObjectURL(file));
     const ext = file.name.split('.').pop()?.toLowerCase() ?? (mode === 'video' ? 'mp4' : 'mp3');
@@ -171,7 +168,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
               onClick={startRecording}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold transition-colors"
             >
-              <Icon className="w-4 h-4" /> Démarrer l'enregistrement
+              <Icon className="w-4 h-4" /> {t('mediaRecorder.startRecording')}
             </button>
           ) : (
             <button
@@ -179,7 +176,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
               onClick={stopRecording}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-error-600 hover:bg-error-500 text-white text-sm font-semibold transition-colors"
             >
-              <Square className="w-4 h-4" fill="currentColor" /> Arrêter
+              <Square className="w-4 h-4" fill="currentColor" /> {t('mediaRecorder.stop')}
             </button>
           )}
           {recording && (
@@ -199,7 +196,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
             onClick={() => fileInputRef.current?.click()}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-sm font-semibold hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
           >
-            <Upload className="w-4 h-4" /> Importer un fichier
+            <Upload className="w-4 h-4" /> {t('mediaRecorder.importFile')}
           </button>
           <input
             ref={fileInputRef}
@@ -210,7 +207,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
           />
           {!canRecord && (
             <p className="text-xs text-neutral-400 mt-2">
-              L'enregistrement direct n'est pas disponible sur ce navigateur — importe un fichier {mode === 'video' ? 'vidéo' : 'audio'}.
+              {mode === 'video' ? t('mediaRecorder.directRecordingUnavailableVideo') : t('mediaRecorder.directRecordingUnavailableAudio')}
             </p>
           )}
         </div>
@@ -220,7 +217,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
       {uploading && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm text-neutral-500">
-            <Loader2 className="w-4 h-4 animate-spin text-brand-500" /> Téléversement… {progress}%
+            <Loader2 className="w-4 h-4 animate-spin text-brand-500" /> {t('mediaRecorder.uploading', { progress })}
           </div>
           <div className="h-1.5 w-full bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
             <div className="h-full bg-brand-500 rounded-full transition-all duration-150" style={{ width: `${progress}%` }} />
@@ -242,7 +239,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
             className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-error-500 transition-colors"
           >
             {value ? <X className="w-3.5 h-3.5" /> : <RotateCcw className="w-3.5 h-3.5" />}
-            {value ? 'Supprimer' : 'Recommencer'}
+            {value ? t('mediaRecorder.delete') : t('mediaRecorder.restart')}
           </button>
         </div>
       )}

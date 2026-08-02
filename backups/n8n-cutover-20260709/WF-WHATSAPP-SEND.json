@@ -1,0 +1,309 @@
+{
+  "updatedAt": "2026-06-28T23:38:18.843Z",
+  "createdAt": "2026-06-28T23:38:18.843Z",
+  "id": "qgs1PHwTgsRBu1Vh",
+  "name": "WF-WHATSAPP-SEND — Envoi Meta Cloud API (validé→envoyé)",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "name": "Cron — 10 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/10 7-22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "02cc952f-43e5-474a-842b-30ed652399bd"
+    },
+    {
+      "name": "Airtable — Lire Config",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        120
+      ],
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblQqVRtboYFSGNt8",
+          "mode": "list"
+        },
+        "returnAll": true,
+        "options": {},
+        "filterByFormula": "OR({Cle}='WHATSAPP_TOKEN',{Cle}='PHONE_NUMBER_ID')"
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "id": "668ecfdc-eae3-4015-b236-4bddeddeeea5"
+    },
+    {
+      "name": "Airtable — WA validés",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        -80
+      ],
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblUINpCqqw20bfBg",
+          "mode": "list"
+        },
+        "returnAll": true,
+        "options": {},
+        "filterByFormula": "{Status}='validé'"
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "id": "02efe6e5-f4d7-4f1a-b39c-7c43d63baae1"
+    },
+    {
+      "name": "Build — Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        20
+      ],
+      "parameters": {
+        "jsCode": "const cfg={};for(const r of $('Airtable — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nconst token=cfg.WHATSAPP_TOKEN,phone=cfg.PHONE_NUMBER_ID;const out=[];\nfor(const it of $('Airtable — WA validés').all()){const w=it.json;\n  const body={messaging_product:'whatsapp',to:String(w.To||'').replace(/[^0-9]/g,''),type:'template',\n    template:{name:w.TemplateName,language:{code:w.TemplateLang||'en_US'}}};\n  out.push({json:{recordId:w.id,token,phone,body}});}\nreturn out;\n"
+      },
+      "id": "51bc68b7-af8c-4d9d-80e8-c73f0fae4f9e"
+    },
+    {
+      "name": "WhatsApp — Envoyer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        20
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $json.phone }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "id": "e5536dc2-e03e-4590-a9a8-e4bf5a4c2a56"
+    },
+    {
+      "name": "Airtable — Marquer envoyé",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1080,
+        20
+      ],
+      "parameters": {
+        "resource": "record",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblUINpCqqw20bfBg",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Build — Message').item.json.recordId }}",
+            "Status": "envoyé",
+            "MessageId": "={{ ($json.messages && $json.messages[0] && $json.messages[0].id) || '' }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "MessageId",
+              "displayName": "MessageId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      },
+      "id": "93629739-de93-4657-b47a-d1d13dad87da"
+    }
+  ],
+  "connections": {
+    "Cron — 10 min": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — WA validés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Build — Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — WA validés": {
+      "main": [
+        [
+          {
+            "node": "Build — Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build — Message": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp — Envoyer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp — Envoyer": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Marquer envoyé",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "5dd107e2-c21f-4137-a250-c0f5c31bc3b3",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "shared": [
+    {
+      "updatedAt": "2026-06-28T23:38:18.845Z",
+      "createdAt": "2026-06-28T23:38:18.845Z",
+      "role": "workflow:owner",
+      "workflowId": "qgs1PHwTgsRBu1Vh",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

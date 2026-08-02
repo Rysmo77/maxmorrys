@@ -1,0 +1,308 @@
+{
+ "updatedAt": "2026-04-23T18:32:44.000Z",
+ "createdAt": "2026-04-09T10:30:43.874Z",
+ "id": "a30LJ2WOR984WDDQ",
+ "name": "[ARCHIVED] WF-05 — Gestion des Commentaires & Réponses",
+ "description": null,
+ "active": false,
+ "isArchived": true,
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "0 16 * * *"
+      }
+     ]
+    }
+   },
+   "id": "cron-trigger",
+   "name": "Cron — Commentaires 16h quotidien",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const input = $input.first().json;\nconst body = input.body || input;\n\nreturn [{\n  json: {\n    network: body.network || 'facebook',\n    post_id: body.post_id || '',\n    comment_id: body.comment_id || '',\n    comment_text: body.comment_text || body.message || '',\n    author_name: body.author_name || body.from?.name || '',\n    author_id: body.author_id || body.from?.id || '',\n    post_subject: body.post_subject || '',\n    received_at: new Date().toISOString()\n  }\n}];"
+   },
+   "id": "wf05-normalize",
+   "name": "Normaliser — Commentaire",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    300,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "modelId": {
+     "__rl": true,
+     "value": "models/gemini-2.0-flash",
+     "mode": "list",
+     "cachedResultName": "models/gemini-2.0-flash"
+    },
+    "messages": {
+     "values": [
+      {
+       "content": "=Tu es le Community Manager de Max-Morrys. Tu réponds aux commentaires sur les réseaux sociaux.\n\nRÈGLES :\n- Tu réponds dans le style conversationnel d'Afrique de l'Ouest\n- Tu comprends les expressions locales courantes (wolof, nouchi, camfranglais)\n- Ton bienveillant, pédagogue, tutoyant\n- Si le commentaire est négatif : rester professionnel, empathique, proposer de l'aide\n- Si le commentaire est positif : remercier chaleureusement, encourager\n- Si c'est une question : répondre avec expertise, rediriger vers maxmorrys.me si pertinent\n- Max 200 caractères pour Twitter, 500 pour les autres réseaux\n- JAMAIS de réponse générique type \"Merci pour votre commentaire\"\n\nRÉSEAU : {{ $json.network }}\nSUJET DU POST : {{ $json.post_subject }}\nCOMMENTAIRE DE {{ $json.author_name }} : \"{{ $json.comment_text }}\"\n\nRéponse JSON :\n{\n  \"sentiment\": \"positif|négatif|neutre|question\",\n  \"response\": \"réponse proposée\",\n  \"needs_human_review\": false,\n  \"reason_for_review\": \"\",\n  \"suggested_action\": \"reply|like_only|ignore|escalate\"\n}"
+      }
+     ]
+    },
+    "options": {
+     "maxOutputTokens": 4096,
+     "temperature": 0.7
+    },
+    "jsonOutput": true
+   },
+   "id": "wf05-gemini",
+   "name": "Gemini Flash — Analyser & Répondre",
+   "type": "@n8n/n8n-nodes-langchain.googleGemini",
+   "typeVersion": 1.1,
+   "position": [
+    600,
+    300
+   ],
+   "credentials": {
+    "googlePalmApi": {
+     "id": "wQPLkug1dt6DGOt4",
+     "name": "Google AI Max-Morrys LMS"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const response = $input.first().json;\nconst comment = $('Normaliser — Commentaire').first().json;\n\nlet parsed;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  parsed = JSON.parse(text);\n} catch (e) {\n  parsed = { sentiment: 'neutre', response: '', needs_human_review: true, suggested_action: 'escalate' };\n}\n\nreturn [{\n  json: {\n    ...comment,\n    sentiment: parsed.sentiment,\n    suggested_response: parsed.response,\n    needs_human_review: parsed.needs_human_review,\n    reason_for_review: parsed.reason_for_review || '',\n    suggested_action: parsed.suggested_action\n  }\n}];"
+   },
+   "id": "wf05-parse",
+   "name": "Parse — Réponse analysée",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    900,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "boolean": [
+      {
+       "value1": "={{ $json.needs_human_review }}",
+       "value2": true
+      }
+     ]
+    }
+   },
+   "id": "wf05-needs-review",
+   "name": "IF — Review humain ?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2,
+   "position": [
+    1200,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "chatId": "934156307",
+    "text": "=💬 *Commentaire à traiter* — {{ $('Parse — Réponse analysée').first().json.network }} ({{ $('Parse — Réponse analysée').first().json.sentiment }})\n\n*De :* {{ $('Parse — Réponse analysée').first().json.author_name }}\n> {{ $('Parse — Réponse analysée').first().json.comment_text }}\n\n*Réponse suggérée :*\n_{{ $('Parse — Réponse analysée').first().json.suggested_response }}_\n\n*Raison :* {{ $('Parse — Réponse analysée').first().json.reason_for_review }}",
+    "additionalFields": {
+     "parse_mode": "Markdown",
+     "disable_web_page_preview": true
+    }
+   },
+   "id": "wf05-email-review",
+   "name": "Telegram — Escalade",
+   "type": "n8n-nodes-base.telegram",
+   "typeVersion": 1.2,
+   "position": [
+    1500,
+    200
+   ],
+   "credentials": {
+    "telegramApi": {
+     "id": "k1sYsv0qUTCbCfRN",
+     "name": "Max-Morrys LMS Notifications Telegram"
+    }
+   },
+   "onError": "continueRegularOutput",
+   "webhookId": "2b22b737-a491-4db1-8615-dca3c6116dc8"
+  },
+  {
+   "id": "wf05-sheets",
+   "name": "Airtable — Log interaction",
+   "type": "n8n-nodes-base.airtable",
+   "typeVersion": 2.1,
+   "position": [
+    1500,
+    500
+   ],
+   "credentials": {
+    "airtableTokenApi": {
+     "id": "ik5KqgcooeDvHpFb",
+     "name": "Airtable Max-Morrys"
+    }
+   },
+   "onError": "continueRegularOutput",
+   "parameters": {
+    "resource": "record",
+    "operation": "create",
+    "base": {
+     "__rl": true,
+     "value": "apppkEbepilHCYiso",
+     "mode": "list",
+     "cachedResultName": "Max-Morrys PB"
+    },
+    "table": {
+     "__rl": true,
+     "value": "tblaSee9z4T26Szin",
+     "mode": "list",
+     "cachedResultName": "Interactions"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "Date": "={{ $('Parse — Réponse analysée').first().json.received_at }}",
+      "Reseau": "={{ $('Parse — Réponse analysée').first().json.network }}",
+      "Post": "={{ $('Parse — Réponse analysée').first().json.post_subject }}",
+      "Commentaire": "={{ $('Parse — Réponse analysée').first().json.comment_text }}",
+      "Auteur": "={{ $('Parse — Réponse analysée').first().json.author_name }}",
+      "Sentiment": "={{ $('Parse — Réponse analysée').first().json.sentiment }}",
+      "Reponse": "={{ $('Parse — Réponse analysée').first().json.suggested_response }}",
+      "Auto_Manuel": "={{ $('Parse — Réponse analysée').first().json.needs_human_review ? 'escaladé' : 'auto' }}"
+     },
+     "matchingColumns": [],
+     "schema": [],
+     "attemptToConvertTypes": true,
+     "convertFieldsToString": true
+    },
+    "options": {
+     "typecast": true
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Normaliser — Commentaire": {
+   "main": [
+    [
+     {
+      "node": "Gemini Flash — Analyser & Répondre",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Gemini Flash — Analyser & Répondre": {
+   "main": [
+    [
+     {
+      "node": "Parse — Réponse analysée",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Parse — Réponse analysée": {
+   "main": [
+    [
+     {
+      "node": "IF — Review humain ?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "IF — Review humain ?": {
+   "main": [
+    [
+     {
+      "node": "Telegram — Escalade",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Airtable — Log interaction",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Telegram — Escalade": {
+   "main": [
+    [
+     {
+      "node": "Airtable — Log interaction",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Cron — Commentaires 16h quotidien": {
+   "main": [
+    [
+     {
+      "node": "Normaliser — Commentaire",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "saveManualExecutions": true,
+  "callerPolicy": "workflowsFromSameOwner",
+  "availableInMCP": false
+ },
+ "staticData": {
+  "node:Cron — Commentaires 16h quotidien": {
+   "recurrenceRules": []
+  }
+ },
+ "meta": null,
+ "nodeGroups": [],
+ "pinData": null,
+ "versionId": "aab3cd75-f80e-4453-86c9-142d46416855",
+ "activeVersionId": null,
+ "versionCounter": 25,
+ "triggerCount": 1,
+ "sourceWorkflowId": null,
+ "shared": [
+  {
+   "updatedAt": "2026-04-09T10:30:43.875Z",
+   "createdAt": "2026-04-09T10:30:43.875Z",
+   "role": "workflow:owner",
+   "workflowId": "a30LJ2WOR984WDDQ",
+   "projectId": "MovWUY92SBioz1Tw",
+   "project": {
+    "updatedAt": "2026-04-09T09:50:14.678Z",
+    "createdAt": "2026-04-09T09:45:54.695Z",
+    "id": "MovWUY92SBioz1Tw",
+    "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+    "type": "personal",
+    "icon": null,
+    "description": null,
+    "customTelemetryTags": [],
+    "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+   }
+  }
+ ],
+ "tags": [],
+ "activeVersion": null
+}

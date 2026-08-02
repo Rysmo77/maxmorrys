@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Mail, MapPin, Phone, Linkedin, Facebook, Instagram, Youtube, ArrowUpRight } from 'lucide-react';
 import type { ComponentType } from 'react';
+import LocalizedLink from '../shared/LocalizedLink';
 import NewsletterForm from '../shared/NewsletterForm';
 import { XIcon, TikTokIcon } from '../shared/SocialIcons';
 import { SOCIAL_LINKS } from '../seo/seo-config';
@@ -16,27 +17,28 @@ const socialIcons: Record<string, ComponentType<{ className?: string }>> = {
 
 const footerLinks = {
   plateforme: [
-    { label: 'Je te forme', path: '/formations' },
-    { label: "Je t'informe", path: '/blog' },
-    { label: 'Le Podcast du Marketing', path: '/podcasts' },
-    { label: 'Le Marketing en Pratique', path: '/videos' },
-    { label: 'FAQ', path: '/faq' },
+    { labelKey: 'links.formations', path: '/formations' },
+    { labelKey: 'links.blog', path: '/blog' },
+    { labelKey: 'links.podcasts', path: '/podcasts' },
+    { labelKey: 'links.videos', path: '/videos' },
+    { labelKey: 'links.faq', path: '/faq' },
   ],
   apropos: [
-    { label: 'Je suis Max-Morrys', path: '/a-propos' },
-    { label: 'Contact', path: '/contact' },
-    { label: 'Prendre rendez-vous', path: '/contact' },
+    { labelKey: 'links.about', path: '/a-propos' },
+    { labelKey: 'links.contact', path: '/contact' },
+    { labelKey: 'links.booking', path: '/contact' },
   ],
   legal: [
-    { label: 'Mentions légales', path: '/legal/mentions-legales' },
-    { label: 'Confidentialité', path: '/legal/confidentialite' },
-    { label: 'CGU', path: '/legal/cgu' },
-    { label: 'CGV', path: '/legal/cgv' },
-    { label: 'Cookies', path: '/legal/cookies' },
+    { labelKey: 'links.legalNotice', path: '/legal/mentions-legales' },
+    { labelKey: 'links.privacy', path: '/legal/confidentialite' },
+    { labelKey: 'links.cgu', path: '/legal/cgu' },
+    { labelKey: 'links.cgv', path: '/legal/cgv' },
+    { labelKey: 'links.cookies', path: '/legal/cookies' },
   ],
 };
 
 export default function Footer() {
+  const { t } = useTranslation('footer');
   return (
     <footer className="bg-neutral-900 dark:bg-neutral-950 text-neutral-400">
 
@@ -45,13 +47,13 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="max-w-2xl mx-auto text-center">
             <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-400 mb-4">
-              NEWSLETTER
+              {t('newsletterEyebrow')}
             </p>
             <h2 className="text-3xl lg:text-4xl font-black text-white mb-4 tracking-tight">
-              Deviens un Insider maintenant
+              {t('newsletterTitle')}
             </h2>
             <p className="text-neutral-400 mb-8 leading-relaxed">
-              Écoute, chaque semaine je partage mes meilleures découvertes, mes stratégies qui marchent et mes petits secrets. Et le meilleur ? C'est totalement gratuit !
+              {t('newsletterText')}
             </p>
             <div className="max-w-md mx-auto">
               <NewsletterForm source="footer" />
@@ -66,11 +68,11 @@ export default function Footer() {
 
           {/* Brand */}
           <div>
-            <Link to="/" className="block mb-5">
+            <LocalizedLink to="/" className="block mb-5">
               <span className="font-black text-xl tracking-tight text-white">MAX-MORRYS</span>
-            </Link>
+            </LocalizedLink>
             <p className="text-sm leading-relaxed mb-6">
-              Formateur, consultant et créateur de contenu digital. J'aide les entrepreneurs à maîtriser le marketing digital et accélérer leur croissance.
+              {t('brandTagline')}
             </p>
             <div className="flex flex-wrap gap-3">
               {SOCIAL_LINKS.map(({ name, url }) => {
@@ -87,14 +89,14 @@ export default function Footer() {
 
           {/* Plateforme */}
           <div>
-            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5">Plateforme</h3>
+            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5">{t('columns.platform')}</h3>
             <ul className="space-y-3">
               {footerLinks.plateforme.map((link) => (
                 <li key={link.path}>
-                  <Link to={link.path} className="text-sm hover:text-white transition-colors inline-flex items-center gap-1 group">
-                    {link.label}
+                  <LocalizedLink to={link.path} className="text-sm hover:text-white transition-colors inline-flex items-center gap-1 group">
+                    {t(link.labelKey)}
                     <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </Link>
+                  </LocalizedLink>
                 </li>
               ))}
             </ul>
@@ -102,25 +104,25 @@ export default function Footer() {
 
           {/* À propos */}
           <div>
-            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5">À propos</h3>
+            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5">{t('columns.about')}</h3>
             <ul className="space-y-3">
               {footerLinks.apropos.map((link) => (
-                <li key={link.label}>
-                  <Link to={link.path} className="text-sm hover:text-white transition-colors inline-flex items-center gap-1 group">
-                    {link.label}
+                <li key={link.labelKey}>
+                  <LocalizedLink to={link.path} className="text-sm hover:text-white transition-colors inline-flex items-center gap-1 group">
+                    {t(link.labelKey)}
                     <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </Link>
+                  </LocalizedLink>
                 </li>
               ))}
             </ul>
-            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5 mt-8">Légal</h3>
+            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5 mt-8">{t('columns.legal')}</h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.path}>
-                  <Link to={link.path} className="text-sm hover:text-white transition-colors inline-flex items-center gap-1 group">
-                    {link.label}
+                  <LocalizedLink to={link.path} className="text-sm hover:text-white transition-colors inline-flex items-center gap-1 group">
+                    {t(link.labelKey)}
                     <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </Link>
+                  </LocalizedLink>
                 </li>
               ))}
             </ul>
@@ -128,7 +130,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5">Contact</h3>
+            <h3 className="text-white font-bold text-xs uppercase tracking-[0.25em] mb-5">{t('columns.contact')}</h3>
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm">
                 <Mail className="w-4 h-4 mt-0.5 shrink-0" />
@@ -148,9 +150,9 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="py-6 border-t border-neutral-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs">&copy; {new Date().getFullYear()} Max-Morrys. Tous droits réservés.</p>
+          <p className="text-xs">{t('copyright', { year: new Date().getFullYear() })}</p>
           <p className="text-xs">
-            Max-Morrys est une marque opérée par{' '}
+            {t('operatedByPrefix')}{' '}
             <a
               href="https://myonoma.com"
               target="_blank"

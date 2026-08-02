@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../config/firebase';
+import { useTranslation } from 'react-i18next';
+import { uploadMedia, randomFilename } from '../../lib/storage';
 import { Upload, X } from 'lucide-react';
 
 interface ImageInputProps {
@@ -22,6 +22,7 @@ export default function ImageInput({
   folder,
   placeholder = 'https://...',
 }: ImageInputProps) {
+  const { t } = useTranslation('ui');
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -31,11 +32,11 @@ export default function ImageInput({
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      setUploadError('Seules les images sont acceptées.');
+      setUploadError(t('imageInput.onlyImages'));
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      setUploadError('Fichier trop lourd (max 10 Mo).');
+      setUploadError(t('imageInput.tooLarge'));
       return;
     }
 
@@ -43,26 +44,17 @@ export default function ImageInput({
     setUploading(true);
     setProgress(0);
 
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const storageRef = ref(storage, `uploads/${folder}/${filename}`);
-    const task = uploadBytesResumable(storageRef, file);
-
-    task.on(
-      'state_changed',
-      (snap) => setProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
-      () => {
-        setUploadError('Échec du téléversement. Réessayez.');
-        setUploading(false);
-      },
-      async () => {
-        const url = await getDownloadURL(task.snapshot.ref);
-        onChange(url);
-        setUploading(false);
-        setProgress(0);
-        if (fileRef.current) fileRef.current.value = '';
-      }
-    );
+    try {
+      const key = `uploads/${folder}/${randomFilename(file.name)}`;
+      const url = await uploadMedia(file, key, setProgress);
+      onChange(url);
+      setProgress(0);
+      if (fileRef.current) fileRef.current.value = '';
+    } catch {
+      setUploadError(t('imageInput.uploadFailed'));
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -85,11 +77,11 @@ export default function ImageInput({
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          title="Importer une image depuis votre appareil"
+          title={t('imageInput.importTitle')}
           className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-xs font-semibold hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
         >
           <Upload className="w-3.5 h-3.5" />
-          {uploading ? `${progress}%` : 'Importer'}
+          {uploading ? `${progress}%` : t('imageInput.import')}
         </button>
         <input
           ref={fileRef}
@@ -132,7 +124,7 @@ export default function ImageInput({
             className="flex items-center gap-1 text-xs text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
           >
             <X className="w-3 h-3" />
-            Supprimer
+            {t('imageInput.remove')}
           </button>
         </div>
       )}

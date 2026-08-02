@@ -1,0 +1,269 @@
+{
+  "common": {
+    "backToHome": "Retour à l'accueil",
+    "lastUpdatedApril": "Dernière mise à jour : Avril 2026",
+    "lastUpdatedMay": "Dernière mise à jour : Mai 2026"
+  },
+  "mentions": {
+    "seoTitle": "Mentions légales",
+    "seoDescription": "Mentions légales de Max-Morrys : éditeur, hébergeur et informations légales du site.",
+    "title": "Mentions légales",
+    "editor": {
+      "heading": "Éditeur du site",
+      "body": "Le site maxmorrys.me est édité par la société <1>My Onoma SARL</1>, opératrice de la marque Max-Morrys.",
+      "companyName": "<1>Raison sociale :</1> My Onoma SARL",
+      "capital": "<1>Capital social :</1> 100 000 FCFA",
+      "rccm": "<1>RCCM :</1> SN DKR 2022 B 11134",
+      "ninea": "<1>NINEA :</1> 009319501",
+      "headquarters": "<1>Siège social :</1> Dakar, Sénégal",
+      "publicationDirector": "<1>Directeur de la publication :</1> Max-Morrys Eyoum"
+    },
+    "hosting": {
+      "heading": "Hébergement",
+      "body": "Le site est hébergé par <1>Firebase Hosting</1> (Google LLC), 1600 Amphitheatre Parkway, Mountain View, CA 94043, États-Unis."
+    },
+    "personalData": {
+      "heading": "Données personnelles",
+      "body": "Conformément à la loi sénégalaise n°2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel, et au Règlement Général sur la Protection des Données (RGPD) pour les visiteurs de l'Union Européenne, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles.",
+      "more": "Pour plus d'informations, consultez notre <1>politique de confidentialité</1>."
+    },
+    "cookies": {
+      "heading": "Cookies",
+      "body": "Ce site utilise des cookies. Pour en savoir plus, consultez notre <1>politique de cookies</1>."
+    },
+    "liability": {
+      "heading": "Limitation de responsabilité",
+      "body": "My Onoma SARL s'efforce d'assurer l'exactitude et la mise à jour des informations diffusées sur ce site. Toutefois, l'éditeur ne peut garantir l'exactitude, la précision ou l'exhaustivité des informations mises à disposition."
+    }
+  },
+  "privacy": {
+    "seoTitle": "Politique de confidentialité",
+    "seoDescription": "Politique de confidentialité et protection des données personnelles de Max-Morrys (RGPD).",
+    "title": "Politique de confidentialité",
+    "intro": {
+      "heading": "Introduction",
+      "p1": "La présente politique de confidentialité décrit comment <1>My Onoma SARL</1>, opératrice de la marque Max-Morrys, collecte, utilise et protège vos données personnelles lorsque vous utilisez notre site web et nos services.",
+      "p2": "Nous nous engageons à respecter la loi sénégalaise n°2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel, ainsi que le RGPD pour les utilisateurs européens."
+    },
+    "collected": {
+      "heading": "Données collectées",
+      "intro": "Nous collectons les données suivantes :",
+      "item1": "Données d'identification : nom, prénom, adresse email",
+      "item2": "Données de connexion : adresse IP, données de navigation",
+      "item3": "Données relatives aux achats : historique de commandes, moyens de paiement",
+      "item4": "Données de progression : avancement dans les formations",
+      "item5": "Données de communication : messages envoyés via le formulaire de contact",
+      "item6": "Données liées à l'assistant IA Rysmo : historique de tes échanges avec Rysmo, profil d'apprentissage dérivé (sujets d'intérêt, niveau estimé, points à renforcer), et données d'engagement sur les contenus (consultations, temps de lecture, défilement, progression audio/vidéo), stockés côté serveur pour personnaliser son accompagnement",
+      "note": "La mémoire de Rysmo est <1>activée par défaut</1>. Tu peux la désactiver et l'effacer à tout moment depuis ton espace (<3>Espace → Rysmo → Mémoire</3>)."
+    },
+    "purposes": {
+      "heading": "Finalités du traitement",
+      "item1": "Gestion de votre compte utilisateur",
+      "item2": "Accès et suivi de vos formations",
+      "item3": "Traitement des paiements",
+      "item4": "Envoi de newsletters (avec votre consentement)",
+      "item5": "Amélioration de nos services et de l'expérience utilisateur",
+      "item6": "Réponse à vos demandes de contact",
+      "item7": "Personnalisation pédagogique de l'assistant IA Rysmo (base légale : intérêt légitime, avec contrôle de votre part — désactivation et effacement à tout moment)"
+    },
+    "retention": {
+      "heading": "Durée de conservation",
+      "intro": "Vos données sont conservées pendant la durée nécessaire à la réalisation des finalités pour lesquelles elles ont été collectées :",
+      "item1": "Données de compte : pendant la durée de votre inscription + 3 ans",
+      "item2": "Données de transaction : 10 ans (obligation légale)",
+      "item3": "Données de newsletter : jusqu'à votre désinscription",
+      "item4": "Mémoire de l'assistant Rysmo : conservée tant que la mémoire est active ; effaçable à tout moment depuis votre espace",
+      "item5": "Cookies : 13 mois maximum"
+    },
+    "rights": {
+      "heading": "Vos droits",
+      "intro": "Conformément à la législation en vigueur, vous disposez des droits suivants :",
+      "item1": "Droit d'accès à vos données",
+      "item2": "Droit de rectification",
+      "item3": "Droit de suppression",
+      "item4": "Droit d'opposition",
+      "item5": "Droit à la portabilité",
+      "item6": "Droit à la limitation du traitement",
+      "contact": "Pour exercer ces droits, contactez-nous à : contact@maxmorrys.me"
+    },
+    "processors": {
+      "heading": "Sous-traitants",
+      "intro": "Nous faisons appel aux sous-traitants suivants pour le fonctionnement de nos services :",
+      "item1": "Firebase / Google Cloud (Google LLC) — Hébergement, base de données et authentification",
+      "item2": "Bictorys — Traitement des paiements (Wave, Orange Money, Free Money, carte bancaire)",
+      "item3": "Google Generative AI (Gemini) — Assistant pédagogique Rysmo (traitement des échanges pour générer les réponses ; l'historique est stocké côté serveur Max-Morrys pour la mémoire personnalisée)"
+    },
+    "contact": {
+      "heading": "Contact",
+      "intro": "Pour toute question relative à cette politique, contactez-nous :",
+      "email": "Email : contact@maxmorrys.me",
+      "cdp": "Commission de Protection des Données Personnelles (CDP) du Sénégal : <1>www.cdp.sn</1>"
+    }
+  },
+  "cgv": {
+    "seoTitle": "Conditions Générales de Vente",
+    "seoDescription": "Conditions Générales de Vente des formations et services Max-Morrys.",
+    "eyebrow": "Plateforme Max-Morrys",
+    "title": "Conditions Générales de Vente",
+    "art1": {
+      "heading": "Article 1 — Objet",
+      "body": "Les présentes Conditions Générales de Vente (CGV) régissent les relations contractuelles entre la société <1>My Onoma SARL</1> (ci-après « l'Éditeur ») et toute personne physique ou morale (ci-après « le Client ») souhaitant accéder aux formations en ligne et services proposés sur la plateforme Max-Morrys."
+    },
+    "art2": {
+      "heading": "Article 2 — Identification de l'Éditeur",
+      "intro": "La plateforme Max-Morrys est exploitée par :",
+      "item1": "<1>Société :</1> My Onoma SARL",
+      "item2": "<1>RCCM :</1> SN DKR 2022 B 11134",
+      "item3": "<1>NINEA :</1> 009319501",
+      "item4": "<1>E-mail :</1> contact@maxmorrys.me"
+    },
+    "art3": {
+      "heading": "Article 3 — Description des services",
+      "intro": "Max-Morrys propose, sous la marque exploitée par My Onoma SARL :",
+      "item1": "<1>Formations en ligne</1> sur le marketing digital, le SEO et l'intelligence artificielle, accessibles à vie après achat (vidéos, contenus textuels, quiz, missions pratiques, ressources téléchargeables).",
+      "item2": "<1>Certificats de réussite</1> délivrés à la complétion à 100 % d'une formation, vérifiables publiquement via un code unique.",
+      "item3": "<1>Rysmo</1>, assistant pédagogique fondé sur l'intelligence artificielle, disponible pour les apprenants inscrits.",
+      "item4": "<1>Club des Digitos</1>, communauté privée payante en abonnement annuel (10 000 FCFA / an), donnant accès à un fil d'actualité, à des discussions, à des sessions live, à des événements et à des contenus exclusifs.",
+      "item5": "<1>Sessions live et événements</1> réservés aux membres du Club des Digitos.",
+      "item6": "<1>Contenus gratuits</1> : articles de blog, podcasts et vidéos accessibles à tous."
+    },
+    "art4": {
+      "heading": "Article 4 — Commande et création de compte",
+      "p1": "Pour accéder aux formations, le Client doit créer un compte utilisateur. Il s'engage à fournir des informations exactes et à les maintenir à jour. L'accès aux contenus est strictement personnel et ne peut être partagé, cédé ou transféré à un tiers, sous peine de résiliation immédiate du compte.",
+      "p2": "La validation d'une commande implique l'acceptation pleine et entière des présentes CGV. Le Client reconnaît avoir pris connaissance des CGV et les avoir acceptées via une case à cocher dédiée avant la finalisation du paiement."
+    },
+    "art5": {
+      "heading": "Article 5 — Tarifs et modalités de paiement",
+      "sub51Heading": "5.1 — Prix",
+      "sub51Body": "Les prix sont indiqués en Francs CFA (XOF), toutes taxes comprises. Le prix applicable est celui affiché au moment de la commande. Des promotions et coupons de réduction peuvent être proposés ponctuellement.",
+      "sub52Heading": "5.2 — Paiement",
+      "sub52Body": "Le règlement s'effectue via <1>Bictorys</1>, agrégateur de paiement intégrant Wave, Orange Money, Free Money et carte bancaire (Visa / Mastercard). La transaction est sécurisée et chiffrée par le prestataire de paiement.",
+      "sub53Heading": "5.3 — Débit",
+      "sub53Body": "Le Client reconnaît que la transaction sera enregistrée sous le nom commercial de la société mère, <1>My Onoma</1>. Une facture est envoyée automatiquement par e-mail au nom de My Onoma SARL dès validation du paiement.",
+      "sub54Heading": "5.4 — Abonnement Club des Digitos",
+      "sub54Body": "L'abonnement au Club des Digitos est conclu pour une durée de douze (12) mois à compter de la date de paiement.",
+      "sub54Item1": "Le Client choisit, lors de l'activation, entre un <1>renouvellement automatique</1> à l'échéance ou un <3>renouvellement manuel</3>.",
+      "sub54Item2": "En cas de renouvellement automatique, le Client est informé par e-mail au moins quinze (15) jours avant l'échéance, et peut désactiver le renouvellement à tout moment depuis son espace étudiant.",
+      "sub54Item3": "Aucun remboursement au prorata n'est effectué en cas de résiliation en cours d'abonnement."
+    },
+    "art6": {
+      "heading": "Article 6 — Droit de rétractation et remboursement",
+      "intro": "Conformément aux usages du commerce numérique pour les contenus dématérialisés :",
+      "item1": "Le Client accepte que l'exécution de la prestation commence immédiatement après le paiement.",
+      "item2": "En conséquence, dès lors que le Client a accédé au contenu de la formation (visionnage d'une vidéo ou téléchargement d'un document), il <1>renonce expressément à son droit de rétractation</1>.",
+      "item3": "Aucun remboursement ne sera effectué une fois l'accès aux cours activé, sauf en cas de défaut technique majeur de la plateforme empêchant l'accès durable au contenu."
+    },
+    "art7": {
+      "heading": "Article 7 — Propriété intellectuelle",
+      "p1": "Tous les contenus (vidéos, textes, graphiques, supports PDF, modèles, etc.) présents sur la plateforme Max-Morrys sont la propriété exclusive de My Onoma SARL ou de Max-Morrys.",
+      "p2": "Toute reproduction, distribution, modification ou utilisation commerciale de tout ou partie du contenu sans autorisation écrite préalable est strictement interdite et peut donner lieu à des poursuites judiciaires."
+    },
+    "art8": {
+      "heading": "Article 8 — Responsabilité",
+      "p1": "L'Éditeur met tout en œuvre pour assurer une disponibilité de la plateforme 24h/24. Toutefois, il ne pourra être tenu responsable des interruptions liées à la maintenance, à des problèmes de connexion internet du Client, ou à des cas de force majeure.",
+      "p2": "Les formations sont des outils de conseil et de pédagogie ; l'Éditeur ne peut garantir de résultats financiers ou commerciaux spécifiques suite à leur suivi. Les résultats obtenus dépendent de l'engagement et de l'application personnelle du Client."
+    },
+    "art9": {
+      "heading": "Article 9 — Protection des données personnelles",
+      "p1": "Les données collectées sont nécessaires à la gestion de la commande, à l'accès aux services et au suivi pédagogique. Conformément à la loi sénégalaise n°2008-12 du 25 janvier 2008 sur la protection des données à caractère personnel, le Client dispose d'un droit d'accès, de rectification, d'opposition et de suppression des données le concernant.",
+      "p2": "Pour exercer ces droits, le Client peut contacter l'Éditeur à l'adresse <1>contact@maxmorrys.me</1>. Pour plus de détails, voir notre <3>politique de confidentialité</3>."
+    },
+    "art10": {
+      "heading": "Article 10 — Droit applicable et litiges",
+      "body": "Les présentes CGV sont soumises au droit sénégalais et aux normes de l'OHADA. En cas de litige, une solution amiable sera recherchée avant toute action judiciaire. À défaut, les tribunaux de Dakar seront seuls compétents."
+    }
+  },
+  "cgu": {
+    "seoTitle": "Conditions d'utilisation",
+    "seoDescription": "Conditions générales d'utilisation de la plateforme Max-Morrys et de l'assistant IA Rysmo.",
+    "title": "Conditions d'utilisation",
+    "art1": {
+      "heading": "1. Objet",
+      "body": "Les présentes conditions générales d'utilisation (CGU) régissent l'accès et l'usage de la plateforme Max-Morrys, opérée par <1>My Onoma SARL</1>. En créant un compte ou en utilisant le service, tu acceptes ces conditions."
+    },
+    "art2": {
+      "heading": "2. Compte & accès",
+      "body": "L'accès à certaines fonctionnalités nécessite la création d'un compte. Tu es responsable de la confidentialité de tes identifiants et des activités réalisées depuis ton compte. Les informations fournies doivent être exactes et tenues à jour."
+    },
+    "art3": {
+      "heading": "3. Usage acceptable",
+      "intro": "Tu t'engages à utiliser la plateforme de manière loyale. Sont notamment interdits :",
+      "item1": "le partage de tes accès ou la revente de contenus de formation ;",
+      "item2": "toute tentative de contournement des protections ou de la sécurité ;",
+      "item3": "l'utilisation du service à des fins illégales, trompeuses ou nuisibles."
+    },
+    "art4": {
+      "heading": "4. Propriété intellectuelle",
+      "body": "Les contenus (formations, articles, podcasts, vidéos, marques, logos) sont la propriété de Max-Morrys ou de ses partenaires et sont protégés. Ton accès te confère un droit d'usage personnel et non exclusif, sans droit de reproduction ou de diffusion."
+    },
+    "art5": {
+      "heading": "5. Assistant IA Rysmo",
+      "intro": "Rysmo est un assistant pédagogique propulsé par une intelligence artificielle (Google Gemini). Tu en prends connaissance et acceptes les points suivants :",
+      "item1": "Les réponses de Rysmo sont <1>fournies à titre indicatif</1> et peuvent comporter des erreurs ou des imprécisions. Elles ne constituent pas un conseil professionnel garanti ; vérifie les informations importantes.",
+      "item2": "Pour personnaliser son accompagnement, Rysmo <1>mémorise tes échanges</1> et tient compte de ton <3>activité de consultation des contenus</3> (articles lus, temps passé, progression sur les audios/vidéos) afin de cerner tes objectifs, tes centres d'intérêt et ta progression. Cette mémoire est <5>activée par défaut</5>.",
+      "item3": "Tu peux à tout moment <1>désactiver</1> cette mémoire et <3>effacer</3> les données associées depuis ton espace : <5>Espace → Rysmo → Mémoire</5>.",
+      "item4": "Le détail des données traitées, de leur finalité, de leur durée de conservation et de tes droits figure dans notre <1>Politique de confidentialité</1>."
+    },
+    "art6": {
+      "heading": "6. Responsabilité",
+      "body": "Max-Morrys met tout en œuvre pour assurer la disponibilité et la qualité du service, sans garantie d'absence totale d'interruption ou d'erreur. La responsabilité de Max-Morrys ne saurait être engagée pour les décisions prises sur la seule base des réponses de l'assistant IA."
+    },
+    "art7": {
+      "heading": "7. Modification des CGU",
+      "body": "Ces conditions peuvent évoluer. En cas de modification substantielle, tu en seras informé. La poursuite de l'utilisation du service vaut acceptation des conditions mises à jour."
+    },
+    "art8": {
+      "heading": "8. Droit applicable",
+      "body": "Les présentes CGU sont régies par le droit sénégalais, dans le respect du RGPD pour les utilisateurs de l'Union Européenne. Tout litige relève des juridictions compétentes."
+    },
+    "contact": {
+      "heading": "Contact",
+      "body": "Pour toute question relative à ces conditions : <1>contact@maxmorrys.me</1>"
+    }
+  },
+  "cookies": {
+    "seoTitle": "Politique de cookies",
+    "seoDescription": "Politique de gestion des cookies et traceurs sur le site Max-Morrys.",
+    "title": "Politique de cookies",
+    "what": {
+      "heading": "Qu'est-ce qu'un cookie ?",
+      "p1": "Un cookie est un petit fichier texte déposé sur votre terminal (ordinateur, tablette, smartphone) lors de la visite d'un site web. Il permet au site de reconnaître votre navigateur et de stocker certaines informations.",
+      "p2": "Le site Max-Morrys, opéré par <1>My Onoma SARL</1>, utilise des cookies et technologies similaires (stockage local du navigateur) pour assurer le fonctionnement du service et améliorer votre expérience."
+    },
+    "types": {
+      "heading": "Types de cookies utilisés",
+      "essentialHeading": "Cookies essentiels",
+      "essentialBody": "Nécessaires au fonctionnement du site. Ils permettent la navigation, l'authentification et la sécurité. Ils ne nécessitent pas votre consentement.",
+      "essentialItem1": "Session utilisateur (Firebase Authentication)",
+      "essentialItem2": "Préférences de thème (mode sombre / clair)",
+      "essentialItem3": "Préférences de langue",
+      "essentialItem4": "Consentement cookies",
+      "analyticsHeading": "Cookies analytiques",
+      "analyticsBody": "Utilisés pour comprendre comment les visiteurs interagissent avec le site. Ces cookies ne sont activés qu'après votre consentement.",
+      "analyticsItem1": "Google Analytics (GA4) — analyse du trafic",
+      "analyticsItem2": "Suivi de progression dans les formations",
+      "marketingHeading": "Cookies marketing",
+      "marketingBody": "Utilisés pour afficher du contenu pertinent. Activés uniquement avec votre consentement."
+    },
+    "preferences": {
+      "heading": "Gestion de vos préférences",
+      "p1": "Lors de votre première visite, un bandeau vous permet de choisir les catégories de cookies que vous acceptez. Vous pouvez modifier vos préférences à tout moment en cliquant sur le lien « Gérer les cookies » en bas de page.",
+      "p2": "Vous pouvez également configurer votre navigateur pour refuser les cookies. Notez que certaines fonctionnalités du site pourraient ne plus fonctionner correctement."
+    },
+    "retention": {
+      "heading": "Durée de conservation",
+      "body": "Les cookies sont conservés pour une durée maximale de 13 mois. Au-delà, votre consentement sera à nouveau demandé."
+    },
+    "legal": {
+      "heading": "Cadre juridique",
+      "intro": "Cette politique est conforme à :",
+      "item1": "La directive ePrivacy et le RGPD pour les visiteurs de l'Union Européenne",
+      "item2": "La loi sénégalaise n°2008-12 sur la protection des données personnelles",
+      "item3": "Les recommandations de la CNIL en matière de cookies et traceurs"
+    },
+    "contact": {
+      "heading": "Contact",
+      "body": "Pour toute question relative à cette politique : <1>contact@maxmorrys.me</1>"
+    }
+  }
+}

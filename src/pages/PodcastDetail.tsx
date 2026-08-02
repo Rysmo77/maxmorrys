@@ -1,10 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LocalizedLink from '../components/shared/LocalizedLink';
+import { useLanguage } from '../contexts/LanguageContext';
+import { contentPath } from '../lib/contentPath';
 import { motion } from 'framer-motion';
 import { Headphones, Clock, Calendar, ArrowLeft, Loader2, TrendingUp } from 'lucide-react';
 import { getPodcastBySlug, getPublishedPodcasts } from '../lib/firestore';
 import FormationCTA from '../components/shared/FormationCTA';
-import { formatDate, markdownToHtml } from '../lib/utils';
+import TranslatedText from '../components/shared/TranslatedText';
+import { useTranslatedText } from '../hooks/useTranslatedContent';
+import { markdownToHtml } from '../lib/utils';
+import { useFormat } from '../hooks/useFormat';
 import type { Podcast } from '../types';
 import { trackViewItem, trackPodcastPlay } from '../lib/tracking';
 import { useContentEngagement } from '../hooks/useContentEngagement';
@@ -34,6 +41,9 @@ function resolveAudioEmbed(url: string): { type: 'iframe' | 'native'; src: strin
 }
 
 export default function PodcastDetail() {
+  const { t } = useTranslation('media');
+  const { formatDate } = useFormat();
+  const { language } = useLanguage();
   const { slug } = useParams<{ slug: string }>();
   const [podcast, setPodcast] = useState<Podcast | null | undefined>(undefined);
   const [others, setOthers] = useState<Podcast[]>([]);
@@ -41,7 +51,7 @@ export default function PodcastDetail() {
 
   useEffect(() => {
     if (!slug) return;
-    getPodcastBySlug(slug).then((data) => {
+    getPodcastBySlug(slug, language).then((data) => {
       setPodcast(data);
       if (data) {
         trackViewItem({ id: data.id, name: data.title, category: data.category, content_type: 'podcast' });
@@ -49,7 +59,7 @@ export default function PodcastDetail() {
         getPublishedPodcasts().then((all) => setOthers(all.filter((p) => p.id !== data.id).slice(0, 4))).catch(() => null);
       }
     }).catch(() => setPodcast(null));
-  }, [slug]);
+  }, [slug, language]);
 
   useContentEngagement({
     contentId: podcast?.id,
@@ -60,6 +70,12 @@ export default function PodcastDetail() {
     mediaRef: audioRef,
   });
 
+  // Contenu dynamique traduit (langue active). Hooks appelés inconditionnellement.
+  const tTitle = useTranslatedText(podcast?.title);
+  const tCategory = useTranslatedText(podcast?.category);
+  const tDescription = useTranslatedText(podcast?.description);
+  const tTranscript = useTranslatedText(podcast?.transcript);
+
   if (podcast === undefined) {
     return <div className="pt-32 pb-20 flex justify-center"><Loader2 className={`w-8 h-8 animate-spin ${theme.spinner}`} /></div>;
   }
@@ -67,8 +83,8 @@ export default function PodcastDetail() {
   if (!podcast) {
     return (
       <div className="pt-32 pb-20 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">Épisode introuvable</h1>
-        <Link to="/podcasts" className={`${theme.accentText} hover:underline`}>Retour aux podcasts</Link>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{t('podcastDetail.notFoundTitle')}</h1>
+        <LocalizedLink to="/podcasts" className={`${theme.accentText} hover:underline`}>{t('podcastDetail.notFoundLink')}</LocalizedLink>
       </div>
     );
   }
@@ -76,17 +92,19 @@ export default function PodcastDetail() {
   return (
     <div>
       <SEOHead
-        title={podcast.title}
-        description={podcast.description}
+        title={tTitle}
+        description={tDescription}
         ogImage={podcast.coverImage}
+        frPath={contentPath('podcasts', podcast, 'fr')}
+        enPath={contentPath('podcasts', podcast, 'en')}
       >
         {podcast.coverImage && <link rel="preload" as="image" href={podcast.coverImage} />}
       </SEOHead>
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'PodcastEpisode',
-        name: podcast.title,
-        description: podcast.description,
+        name: tTitle,
+        description: tDescription,
         datePublished: podcast.publishedAt,
         timeRequired: podcast.duration,
         image: podcast.coverImage,
@@ -107,9 +125,9 @@ export default function PodcastDetail() {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
-          { '@type': 'ListItem', position: 2, name: 'Podcasts', item: `${SITE_URL}/podcasts` },
-          { '@type': 'ListItem', position: 3, name: podcast.title, item: `${SITE_URL}/podcasts/${podcast.slug}` },
+          { '@type': 'ListItem', position: 1, name: t('podcastDetail.breadcrumbHome'), item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: t('podcastDetail.breadcrumbPodcasts'), item: `${SITE_URL}/podcasts` },
+          { '@type': 'ListItem', position: 3, name: tTitle, item: `${SITE_URL}/podcasts/${podcast.slug}` },
         ],
       }} />
 
@@ -125,20 +143,20 @@ export default function PodcastDetail() {
           <motion.div variants={staggerItem} className="mb-6">
             <Breadcrumbs
               items={[
-                { label: 'Accueil', href: '/' },
-                { label: 'Podcasts', href: '/podcasts' },
-                { label: podcast.title },
+                { label: t('podcastDetail.breadcrumbHome'), href: '/' },
+                { label: t('podcastDetail.breadcrumbPodcasts'), href: '/podcasts' },
+                { label: tTitle },
               ]}
             />
           </motion.div>
           <motion.div variants={staggerItem}>
-            <Link
+            <LocalizedLink
               to="/podcasts"
               className="inline-flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-plum-600 dark:hover:text-plum-400 transition-colors mb-8"
             >
               <ArrowLeft className="w-4 h-4" />
-              Tous les épisodes
-            </Link>
+              {t('podcastDetail.allEpisodes')}
+            </LocalizedLink>
           </motion.div>
 
           <motion.div variants={staggerItem} className="flex items-center gap-2 mb-5">
@@ -149,20 +167,20 @@ export default function PodcastDetail() {
               <>
                 <span className="text-neutral-300 dark:text-neutral-700">·</span>
                 <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">
-                  {podcast.category}
+                  {tCategory}
                 </span>
               </>
             )}
           </motion.div>
 
           <motion.h1 variants={staggerItem} className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.1] mb-6">
-            {podcast.title}
+            {tTitle}
           </motion.h1>
 
           <motion.div
             variants={staggerItem}
             className="prose dark:prose-invert max-w-none mb-8 prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-blockquote:not-italic prose-blockquote:font-medium"
-            dangerouslySetInnerHTML={{ __html: markdownToHtml(podcast.description) }}
+            dangerouslySetInnerHTML={{ __html: markdownToHtml(tDescription) }}
           />
 
           <motion.div variants={staggerItem} className="flex items-center gap-5 text-sm text-neutral-400 flex-wrap">
@@ -178,9 +196,9 @@ export default function PodcastDetail() {
             {podcast.popularity !== undefined && (
               <>
                 <span>·</span>
-                <span className="flex items-center gap-1.5" title="Score de popularité Spotify (0–100)">
+                <span className="flex items-center gap-1.5" title={t('podcastDetail.popularityTitle')}>
                   <TrendingUp className="w-4 h-4" />
-                  Popularité {podcast.popularity}/100
+                  {t('podcastDetail.popularity', { score: podcast.popularity })}
                 </span>
               </>
             )}
@@ -211,22 +229,22 @@ export default function PodcastDetail() {
                       height={src.includes('embed.podcasts.apple.com') ? '175' : '152'}
                       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                       loading="lazy"
-                      title={podcast.title}
+                      title={tTitle}
                     />
                   </div>
                 ) : (
                   <div className="rounded-2xl overflow-hidden bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 p-6">
                     <div className="flex items-center gap-4 mb-5">
                       {podcast.coverImage && (
-                        <img src={podcast.coverImage} alt={podcast.title} className="w-20 h-20 rounded-xl object-cover flex-shrink-0" />
+                        <img src={podcast.coverImage} alt={tTitle} className="w-20 h-20 rounded-xl object-cover flex-shrink-0" />
                       )}
                       <div>
-                        <p className="font-bold text-neutral-900 dark:text-white">{podcast.title}</p>
+                        <p className="font-bold text-neutral-900 dark:text-white">{tTitle}</p>
                         <p className="text-sm text-neutral-500">{podcast.duration}</p>
                       </div>
                     </div>
                     <audio ref={audioRef} controls className="w-full" src={src}>
-                      Votre navigateur ne supporte pas la lecture audio.
+                      {t('podcastDetail.audioUnsupported')}
                     </audio>
                   </div>
                 );
@@ -234,7 +252,7 @@ export default function PodcastDetail() {
                 <div className="rounded-2xl overflow-hidden aspect-video relative">
                   <img
                     src={podcast.coverImage}
-                    alt={podcast.title}
+                    alt={tTitle}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -242,7 +260,7 @@ export default function PodcastDetail() {
                       <div className="w-16 h-16 rounded-full bg-plum-600 flex items-center justify-center mx-auto">
                         <Headphones className="w-7 h-7" />
                       </div>
-                      <p className="text-sm font-medium">Lecteur audio disponible prochainement</p>
+                      <p className="text-sm font-medium">{t('podcastDetail.playerSoon')}</p>
                     </div>
                   </div>
                 </div>
@@ -250,10 +268,10 @@ export default function PodcastDetail() {
 
               {podcast.transcript && (
                 <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-6">
-                  <h3 className="font-bold text-neutral-900 dark:text-white mb-3">Transcription</h3>
+                  <h3 className="font-bold text-neutral-900 dark:text-white mb-3">{t('podcastDetail.transcriptTitle')}</h3>
                   <div
                     className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-display prose-a:transition-colors"
-                    dangerouslySetInnerHTML={{ __html: markdownToHtml(podcast.transcript) }}
+                    dangerouslySetInnerHTML={{ __html: markdownToHtml(tTranscript) }}
                   />
                 </div>
               )}
@@ -273,12 +291,12 @@ export default function PodcastDetail() {
               viewport={viewportOnce}
             >
               <h3 className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 mb-4">
-                Autres épisodes
+                {t('podcastDetail.otherEpisodes')}
               </h3>
               {others.map((ep) => (
                 <motion.div key={ep.id} variants={staggerItem}>
                 <Link
-                  to={`/podcasts/${ep.slug}`}
+                  to={contentPath('podcasts', ep, language)}
                   className="flex items-start gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors group"
                 >
                   {ep.coverImage && (
@@ -290,9 +308,11 @@ export default function PodcastDetail() {
                     />
                   )}
                   <div className="min-w-0">
-                    <p className={`text-sm font-semibold text-neutral-800 dark:text-neutral-200 ${theme.titleHover} transition-colors leading-snug line-clamp-2`}>
-                      {ep.title}
-                    </p>
+                    <TranslatedText
+                      text={ep.title}
+                      as="p"
+                      className={`text-sm font-semibold text-neutral-800 dark:text-neutral-200 ${theme.titleHover} transition-colors leading-snug line-clamp-2`}
+                    />
                     <p className="text-xs text-neutral-400 mt-1">{ep.duration}</p>
                   </div>
                 </Link>

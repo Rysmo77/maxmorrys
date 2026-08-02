@@ -1,0 +1,152 @@
+{
+  "seo": {
+    "title": "Digital Marketing Courses",
+    "description": "Hands-on courses in digital marketing, SEO and AI to accelerate your growth. Online courses accessible from Africa and around the world."
+  },
+  "level": {
+    "all": "All levels",
+    "debutant": "Beginner",
+    "intermediaire": "Intermediate",
+    "avance": "Advanced"
+  },
+  "eyebrow": "Courses",
+  "hero": {
+    "title": "Learn a different way",
+    "subtitle": "Tired of courses that stay too theoretical? Here it's hands-on, practical, and above all… it actually works. Learn at your own pace and accelerate your growth.",
+    "searchPlaceholder": "Search for a course…",
+    "exploreCatalog": "Explore the catalog"
+  },
+  "states": {
+    "loadError": "Couldn't load the courses. Check your connection and try again.",
+    "retry": "Try again",
+    "empty": "No course matches your search."
+  },
+  "categories": {
+    "title": "Learn the <accent>essential</accent> skills",
+    "subtitle": "In-demand topics to move your career and your business forward.",
+    "carouselAria": "Course categories",
+    "countOne": "{{count}} course",
+    "countOther": "{{count}} courses"
+  },
+  "trending": {
+    "title": "Trending courses",
+    "seeAll": "See all",
+    "carouselAria": "Trending courses"
+  },
+  "catalog": {
+    "title": "Skills to accelerate your growth",
+    "subtitle": "From digital marketing to technical topics — explore the full catalog.",
+    "all": "All",
+    "keywordPlaceholder": "Filter by keyword…"
+  },
+  "club": {
+    "eyebrow": "Community",
+    "title": "Join the Club des Digitos",
+    "description": "The community space reserved for platform students. Forum, live sessions, events and exclusive insights — a real network of digital professionals.",
+    "priceUnit": "FCFA / year",
+    "renewal": "Auto or manual renewal",
+    "join": "Join the Club",
+    "studentsOnly": "Reserved for enrolled students",
+    "feed": "News feed",
+    "forum": "Forum & discussions",
+    "live": "Live sessions",
+    "exclusiveInfo": "Exclusive insights",
+    "events": "Events",
+    "network": "Digital network",
+    "members": {
+      "marketing": "Digital Marketing",
+      "seo": "SEO & Content",
+      "ecommerce": "E-commerce",
+      "social": "Social Media"
+    }
+  },
+  "testimonials": {
+    "title": "Join the people transforming their careers through training"
+  },
+  "business": {
+    "eyebrow": "For businesses",
+    "title": "Train your teams with Max-Morrys Business",
+    "description": "Build skills across your whole organization: team licenses, tailor-made workshops and coaching for your talent.",
+    "cta": "Let's talk about your project",
+    "offers": {
+      "licensesTitle": "Team licenses",
+      "licensesDesc": "Train your entire organization",
+      "licensesNote": "Per-seat pricing",
+      "workshopsTitle": "Corporate workshops",
+      "workshopsDesc": "Tailor-made intensive sessions",
+      "workshopsNote": "Custom program",
+      "coachingTitle": "Coaching",
+      "coachingDesc": "Follow-up & coaching for your talent",
+      "coachingNote": "On quote"
+    }
+  },
+  "popularSkills": {
+    "title": "Popular skills",
+    "studentsOne": "{{formattedCount}} student",
+    "studentsOther": "{{formattedCount}} students"
+  },
+  "crossBlog": {
+    "eyebrow": "Discover also",
+    "title": "I keep you informed",
+    "description": "Articles, analysis and practical tips to master digital marketing, SEO and AI.",
+    "cta": "Read the blog"
+  },
+  "detail": {
+    "notFoundTitle": "Course not found",
+    "notFoundLink": "See all courses",
+    "breadcrumbHome": "Home",
+    "breadcrumbFormations": "Courses",
+    "previewBadge": "Course preview",
+    "free": "Free",
+    "save": "Save {{amount}}",
+    "enroll": "Enroll now",
+    "guaranteeShort": "Lifetime access · 14-day satisfaction guarantee",
+    "includesTitle": "What this course includes",
+    "durationContent": "{{duration}} of content",
+    "lessonsCount": "{{count}} lessons",
+    "lifetimeAccess": "Unlimited, lifetime access",
+    "certificate": "Certificate of completion",
+    "studentsCount": "{{count}} students",
+    "certificateIncluded": "Certificate included",
+    "createdBy": "Created by",
+    "learnTitle": "What you'll learn",
+    "programEyebrow": "Program",
+    "programTitle": "Course content",
+    "moduleCountOne": "{{count}} module",
+    "moduleCountOther": "{{count}} modules",
+    "programSummary": "{{modules}} · {{lessons}} · {{duration}}",
+    "moduleLessons": "{{count}} lessons",
+    "lessonFree": "Free",
+    "descriptionTitle": "Description",
+    "reviewsTitle": "Student reviews",
+    "ratingSummary": "Average rating from <strong>{{count}} students</strong> enrolled in this course.",
+    "guaranteeBanner": "14-day satisfaction-or-refund guarantee — no questions asked.",
+    "crossEyebrow": "Discover also",
+    "crossTitle": "I keep you informed",
+    "crossDescription": "Free articles, analysis and tips to deepen your digital marketing knowledge.",
+    "crossCta": "Read the blog"
+  },
+  "card": {
+    "featured": "Featured",
+    "new": "New",
+    "free": "Free",
+    "progress": "Progress",
+    "lessonsDoneOne": "{{count}} lesson completed",
+    "lessonsDoneOther": "{{count}} lessons completed",
+    "review": "Review",
+    "continue": "Continue",
+    "certificate": "Certificate",
+    "lessonsCount": "{{count}} lessons",
+    "popoverCertificate": "Certificate",
+    "viewFormation": "View course"
+  },
+  "carousel": {
+    "aria": "Carousel",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "library": {
+    "tab": "The course catalog",
+    "moreInfo": "More info"
+  }
+}

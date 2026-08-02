@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider, Outlet, ScrollRestoration, useLocation, Navigate } from 'react-router-dom';
+import type { RouteObject } from 'react-router-dom';
 import { useState, lazy, Suspense } from 'react';
 import type { ComponentType, ReactNode } from 'react';
 
@@ -21,14 +22,21 @@ function lazyWithReload<T extends ComponentType<unknown>>(
 }
 import { motion, useReducedMotion } from 'framer-motion';
 import { HelmetProvider } from 'react-helmet-async';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './lib/queryClient';
+import { useTranslation } from 'react-i18next';
+import './i18n';
 import { pageVariants, pageTransition } from './lib/animations';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { localizeSegments } from './i18n/segments';
 import { ToastProvider } from './components/ui/Toast';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ScrollProgress from './components/shared/ScrollProgress';
 import CookieBanner from './components/shared/CookieBanner';
+import LanguageSuggestionBanner from './components/shared/LanguageSuggestionBanner';
 import AnnouncementBanner from './components/shared/AnnouncementBanner';
 import SearchOverlay from './components/shared/SearchOverlay';
 import ErrorBoundary from './components/shared/ErrorBoundary';
@@ -95,9 +103,10 @@ const AdminClubDigitos = lazyWithReload(() => import('./pages/admin/AdminClubDig
 const CertificatePage = lazyWithReload(() => import('./pages/lms/Certificate'));
 
 function PageLoader() {
+  const { t } = useTranslation('common');
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950">
-      <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" aria-label="Chargement..." />
+      <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" aria-label={t('loading')} />
     </div>
   );
 }
@@ -122,11 +131,12 @@ function PageTransition({ children }: { children: ReactNode }) {
 
 function PublicLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
+  const { t } = useTranslation('nav');
   return (
     <>
       <MetaPixelTracker />
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold">
-        Aller au contenu principal
+        {t('skipToContent')}
       </a>
       <AnnouncementBanner />
       <ScrollProgress />
@@ -165,124 +175,166 @@ function LmsLayout() {
   );
 }
 
+/** Enveloppe la langue : monte le LanguageProvider, lequel doit vivre dans le Router. */
+function RootProviders() {
+  return (
+    <LanguageProvider>
+      <Outlet />
+      <LanguageSuggestionBanner />
+    </LanguageProvider>
+  );
+}
+
+/** Redirection d'index de /mon-espace vers le tableau de bord, segment localisé. */
+function MonEspaceIndexRedirect() {
+  const { language } = useLanguage();
+  return <Navigate to={localizeSegments('tableau-de-bord', language)} replace />;
+}
+
+/** Clone récursif d'un arbre de routes en traduisant les segments `path` vers `lang`. */
+function localizeRouteTree(routes: RouteObject[], lang: 'fr' | 'en'): RouteObject[] {
+  return routes.map((r) => {
+    const out = { ...r } as RouteObject & { path?: string; children?: RouteObject[] };
+    if (typeof out.path === 'string') out.path = localizeSegments(out.path, lang);
+    if (out.children) out.children = localizeRouteTree(out.children, lang);
+    return out;
+  });
+}
+
+/**
+ * Arbre de routes (chemins relatifs). Monté deux fois : à la racine (fr)
+ * et sous /en (anglais). La langue est dérivée du préfixe d'URL.
+ */
+function appChildren() {
+  return [
+    {
+      element: <PublicLayout />,
+      children: [
+        { index: true, element: <Home /> },
+        { path: 'a-propos', element: <Suspense fallback={<PageLoader />}><About /></Suspense> },
+        { path: 'blog', element: <Suspense fallback={<PageLoader />}><Blog /></Suspense> },
+        { path: 'blog/:slug', element: <Suspense fallback={<PageLoader />}><BlogPost /></Suspense> },
+        { path: 'formations', element: <Suspense fallback={<PageLoader />}><Formations /></Suspense> },
+        { path: 'formations/:slug', element: <Suspense fallback={<PageLoader />}><FormationDetail /></Suspense> },
+        { path: 'podcasts', element: <Suspense fallback={<PageLoader />}><Podcasts /></Suspense> },
+        { path: 'podcasts/:slug', element: <Suspense fallback={<PageLoader />}><PodcastDetail /></Suspense> },
+        { path: 'videos', element: <Suspense fallback={<PageLoader />}><Videos /></Suspense> },
+        { path: 'videos/:slug', element: <Suspense fallback={<PageLoader />}><VideoDetail /></Suspense> },
+        { path: 'faq', element: <Suspense fallback={<PageLoader />}><FAQPage /></Suspense> },
+        { path: 'contact', element: <Suspense fallback={<PageLoader />}><Contact /></Suspense> },
+        { path: 'legal/mentions-legales', element: <Suspense fallback={<PageLoader />}><MentionsLegales /></Suspense> },
+        { path: 'legal/confidentialite', element: <Suspense fallback={<PageLoader />}><Confidentialite /></Suspense> },
+        { path: 'legal/cgv', element: <Suspense fallback={<PageLoader />}><CGV /></Suspense> },
+        { path: 'legal/cgu', element: <Suspense fallback={<PageLoader />}><CGU /></Suspense> },
+        { path: 'legal/cookies', element: <Suspense fallback={<PageLoader />}><CookiesPage /></Suspense> },
+      ],
+    },
+    {
+      element: <LmsLayout />,
+      children: [
+        {
+          path: 'mon-espace',
+          element: (
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <StudentLayout />
+              </Suspense>
+            </ProtectedRoute>
+          ),
+          children: [
+            { index: true, element: <MonEspaceIndexRedirect /> },
+            { path: 'tableau-de-bord', element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
+            { path: 'cours',           element: <Suspense fallback={<PageLoader />}><CoursesPage /></Suspense> },
+            { path: 'notes',           element: <Suspense fallback={<PageLoader />}><NotesPage /></Suspense> },
+            { path: 'messages',        element: <Suspense fallback={<PageLoader />}><MessagesPage /></Suspense> },
+            { path: 'succes',          element: <Suspense fallback={<PageLoader />}><AchievementsPage /></Suspense> },
+            { path: 'profil',          element: <Suspense fallback={<PageLoader />}><ProfilePage /></Suspense> },
+            { path: 'parametres',      element: <Suspense fallback={<PageLoader />}><SettingsPage /></Suspense> },
+            { path: 'club',            element: <Suspense fallback={<PageLoader />}><ClubPage /></Suspense> },
+            { path: 'rysmo',           element: <Suspense fallback={<PageLoader />}><RysmoPage /></Suspense> },
+            { path: 'temoignages',     element: <Suspense fallback={<PageLoader />}><TestimonialsPage /></Suspense> },
+          ],
+        },
+        {
+          path: 'cours/:slug',
+          element: (
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <CoursePlayer />
+              </Suspense>
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: 'checkout/:slug',
+          element: (
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <Checkout />
+              </Suspense>
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: 'paiement/retour',
+          element: (
+            <ProtectedRoute>
+              <Suspense fallback={<PageLoader />}>
+                <PaymentReturn />
+              </Suspense>
+            </ProtectedRoute>
+          ),
+        },
+      ],
+    },
+    {
+      element: <AuthLayout />,
+      children: [
+        { path: 'connexion', element: <Suspense fallback={<PageLoader />}><Login /></Suspense> },
+        { path: 'inscription', element: <Suspense fallback={<PageLoader />}><Register /></Suspense> },
+        { path: 'mot-de-passe-oublie', element: <Suspense fallback={<PageLoader />}><ResetPassword /></Suspense> },
+        { path: 'certificat/:code', element: <Suspense fallback={<PageLoader />}><CertificatePage /></Suspense> },
+        { path: '403', element: <Forbidden403 /> },
+        { path: '*', element: <NotFound /> },
+      ],
+    },
+    {
+      path: 'admin',
+      element: (
+        <AdminRoute>
+          <Suspense fallback={<PageLoader />}>
+            <AdminLayout />
+          </Suspense>
+        </AdminRoute>
+      ),
+      children: [
+        { index: true, element: <Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense> },
+        { path: 'articles', element: <Suspense fallback={<PageLoader />}><AdminArticles /></Suspense> },
+        { path: 'formations', element: <Suspense fallback={<PageLoader />}><AdminFormations /></Suspense> },
+        { path: 'utilisateurs', element: <Suspense fallback={<PageLoader />}><AdminUsers /></Suspense> },
+        { path: 'messages', element: <Suspense fallback={<PageLoader />}><AdminMessages /></Suspense> },
+        { path: 'analytics', element: <Suspense fallback={<PageLoader />}><AdminAnalytics /></Suspense> },
+        { path: 'parametres', element: <Suspense fallback={<PageLoader />}><AdminSettings /></Suspense> },
+        { path: 'podcasts', element: <Suspense fallback={<PageLoader />}><AdminPodcasts /></Suspense> },
+        { path: 'videos', element: <Suspense fallback={<PageLoader />}><AdminVideos /></Suspense> },
+        { path: 'transactions', element: <Suspense fallback={<PageLoader />}><AdminTransactions /></Suspense> },
+        { path: 'coupons', element: <Suspense fallback={<PageLoader />}><AdminCoupons /></Suspense> },
+        { path: 'annonces', element: <Suspense fallback={<PageLoader />}><AdminAnnouncements /></Suspense> },
+        { path: 'faq', element: <Suspense fallback={<PageLoader />}><AdminFAQ /></Suspense> },
+        { path: 'temoignages', element: <Suspense fallback={<PageLoader />}><AdminTestimonials /></Suspense> },
+        { path: 'rendez-vous', element: <Suspense fallback={<PageLoader />}><AdminAppointments /></Suspense> },
+        { path: 'club-digitos', element: <Suspense fallback={<PageLoader />}><AdminClubDigitos /></Suspense> },
+      ],
+    },
+  ];
+}
+
 const router = createBrowserRouter([
   {
-    element: <PublicLayout />,
+    element: <RootProviders />,
     children: [
-      { path: '/', element: <Home /> },
-      { path: '/a-propos', element: <Suspense fallback={<PageLoader />}><About /></Suspense> },
-      { path: '/blog', element: <Suspense fallback={<PageLoader />}><Blog /></Suspense> },
-      { path: '/blog/:slug', element: <Suspense fallback={<PageLoader />}><BlogPost /></Suspense> },
-      { path: '/formations', element: <Suspense fallback={<PageLoader />}><Formations /></Suspense> },
-      { path: '/formations/:slug', element: <Suspense fallback={<PageLoader />}><FormationDetail /></Suspense> },
-      { path: '/podcasts', element: <Suspense fallback={<PageLoader />}><Podcasts /></Suspense> },
-      { path: '/podcasts/:slug', element: <Suspense fallback={<PageLoader />}><PodcastDetail /></Suspense> },
-      { path: '/videos', element: <Suspense fallback={<PageLoader />}><Videos /></Suspense> },
-      { path: '/videos/:slug', element: <Suspense fallback={<PageLoader />}><VideoDetail /></Suspense> },
-      { path: '/faq', element: <Suspense fallback={<PageLoader />}><FAQPage /></Suspense> },
-      { path: '/contact', element: <Suspense fallback={<PageLoader />}><Contact /></Suspense> },
-      { path: '/legal/mentions-legales', element: <Suspense fallback={<PageLoader />}><MentionsLegales /></Suspense> },
-      { path: '/legal/confidentialite', element: <Suspense fallback={<PageLoader />}><Confidentialite /></Suspense> },
-      { path: '/legal/cgv', element: <Suspense fallback={<PageLoader />}><CGV /></Suspense> },
-      { path: '/legal/cgu', element: <Suspense fallback={<PageLoader />}><CGU /></Suspense> },
-      { path: '/legal/cookies', element: <Suspense fallback={<PageLoader />}><CookiesPage /></Suspense> },
-    ],
-  },
-  {
-    element: <LmsLayout />,
-    children: [
-      {
-        path: '/mon-espace',
-        element: (
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <StudentLayout />
-            </Suspense>
-          </ProtectedRoute>
-        ),
-        children: [
-          { index: true, element: <Navigate to="/mon-espace/tableau-de-bord" replace /> },
-          { path: 'tableau-de-bord', element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
-          { path: 'cours',           element: <Suspense fallback={<PageLoader />}><CoursesPage /></Suspense> },
-          { path: 'notes',           element: <Suspense fallback={<PageLoader />}><NotesPage /></Suspense> },
-          { path: 'messages',        element: <Suspense fallback={<PageLoader />}><MessagesPage /></Suspense> },
-          { path: 'succes',          element: <Suspense fallback={<PageLoader />}><AchievementsPage /></Suspense> },
-          { path: 'profil',          element: <Suspense fallback={<PageLoader />}><ProfilePage /></Suspense> },
-          { path: 'parametres',      element: <Suspense fallback={<PageLoader />}><SettingsPage /></Suspense> },
-          { path: 'club',            element: <Suspense fallback={<PageLoader />}><ClubPage /></Suspense> },
-          { path: 'rysmo',           element: <Suspense fallback={<PageLoader />}><RysmoPage /></Suspense> },
-          { path: 'temoignages',     element: <Suspense fallback={<PageLoader />}><TestimonialsPage /></Suspense> },
-        ],
-      },
-      {
-        path: '/cours/:slug',
-        element: (
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <CoursePlayer />
-            </Suspense>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/checkout/:slug',
-        element: (
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <Checkout />
-            </Suspense>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/paiement/retour',
-        element: (
-          <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
-              <PaymentReturn />
-            </Suspense>
-          </ProtectedRoute>
-        ),
-      },
-    ],
-  },
-  {
-    element: <AuthLayout />,
-    children: [
-      { path: '/connexion', element: <Suspense fallback={<PageLoader />}><Login /></Suspense> },
-      { path: '/inscription', element: <Suspense fallback={<PageLoader />}><Register /></Suspense> },
-      { path: '/mot-de-passe-oublie', element: <Suspense fallback={<PageLoader />}><ResetPassword /></Suspense> },
-      { path: '/certificat/:code', element: <Suspense fallback={<PageLoader />}><CertificatePage /></Suspense> },
-      { path: '/403', element: <Forbidden403 /> },
-      { path: '*', element: <NotFound /> },
-    ],
-  },
-  {
-    path: '/admin',
-    element: (
-      <AdminRoute>
-        <Suspense fallback={<PageLoader />}>
-          <AdminLayout />
-        </Suspense>
-      </AdminRoute>
-    ),
-    children: [
-      { index: true, element: <Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense> },
-      { path: 'articles', element: <Suspense fallback={<PageLoader />}><AdminArticles /></Suspense> },
-      { path: 'formations', element: <Suspense fallback={<PageLoader />}><AdminFormations /></Suspense> },
-      { path: 'utilisateurs', element: <Suspense fallback={<PageLoader />}><AdminUsers /></Suspense> },
-      { path: 'messages', element: <Suspense fallback={<PageLoader />}><AdminMessages /></Suspense> },
-      { path: 'analytics', element: <Suspense fallback={<PageLoader />}><AdminAnalytics /></Suspense> },
-      { path: 'parametres', element: <Suspense fallback={<PageLoader />}><AdminSettings /></Suspense> },
-      { path: 'podcasts', element: <Suspense fallback={<PageLoader />}><AdminPodcasts /></Suspense> },
-      { path: 'videos', element: <Suspense fallback={<PageLoader />}><AdminVideos /></Suspense> },
-      { path: 'transactions', element: <Suspense fallback={<PageLoader />}><AdminTransactions /></Suspense> },
-      { path: 'coupons', element: <Suspense fallback={<PageLoader />}><AdminCoupons /></Suspense> },
-      { path: 'annonces', element: <Suspense fallback={<PageLoader />}><AdminAnnouncements /></Suspense> },
-      { path: 'faq', element: <Suspense fallback={<PageLoader />}><AdminFAQ /></Suspense> },
-      { path: 'temoignages', element: <Suspense fallback={<PageLoader />}><AdminTestimonials /></Suspense> },
-      { path: 'rendez-vous', element: <Suspense fallback={<PageLoader />}><AdminAppointments /></Suspense> },
-      { path: 'club-digitos', element: <Suspense fallback={<PageLoader />}><AdminClubDigitos /></Suspense> },
+      { path: '/en', children: localizeRouteTree(appChildren() as RouteObject[], 'en') },
+      { path: '/', children: appChildren() as RouteObject[] },
     ],
   },
 ]);
@@ -293,9 +345,11 @@ export default function App() {
       <HelmetProvider>
         <ThemeProvider>
           <AuthProvider>
-            <ToastProvider>
-              <RouterProvider router={router} />
-            </ToastProvider>
+            <QueryClientProvider client={queryClient}>
+              <ToastProvider>
+                <RouterProvider router={router} />
+              </ToastProvider>
+            </QueryClientProvider>
           </AuthProvider>
         </ThemeProvider>
       </HelmetProvider>

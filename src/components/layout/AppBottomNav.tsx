@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useLocalizedPath } from '../../contexts/LanguageContext';
 
 export interface BottomNavItem {
   to: string;
@@ -15,17 +17,19 @@ interface AppBottomNavProps {
 }
 
 export default function AppBottomNav({ items }: AppBottomNavProps) {
+  const { t } = useTranslation('lms');
+  const localize = useLocalizedPath();
   return (
     <nav
       className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur border-t border-neutral-200 dark:border-neutral-800"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      aria-label="Navigation principale"
+      aria-label={t('shell.primaryNav')}
     >
       <div className="grid grid-cols-5 h-16">
         {items.map((item) => (
           <NavLink
             key={item.to}
-            to={item.to}
+            to={localize(item.to)}
             end={item.end}
             className={({ isActive }) =>
               cn(

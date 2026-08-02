@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import { Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import { localizeAuthError } from '../../lib/auth-errors';
 import { updateUserProfile, getUserById } from '../../lib/firestore';
 import { auth } from '../../config/firebase';
+import LocalizedLink from '../../components/shared/LocalizedLink';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -20,14 +22,10 @@ function GoogleIcon() {
   );
 }
 
-const perks = [
-  'Accès à toutes vos formations achetées',
-  'Suivi de progression en temps réel',
-  'Certificats de completion',
-  'Communauté d\'apprenants exclusive',
-];
+const perkKeys = ['perks.courses', 'perks.progress', 'perks.certificates', 'perks.community'];
 
 export default function Register() {
+  const { t } = useTranslation('auth');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,11 +54,11 @@ export default function Register() {
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = 'Le nom est requis';
-    if (!email.trim()) errs.email = "L'email est requis";
-    else if (!EMAIL_RE.test(email.trim())) errs.email = 'Email invalide';
-    if (password.length < 6) errs.password = 'Minimum 6 caractères';
-    if (password !== confirm) errs.confirm = 'Les mots de passe ne correspondent pas';
+    if (!name.trim()) errs.name = t('validation.nameRequired');
+    if (!email.trim()) errs.email = t('validation.emailRequired');
+    else if (!EMAIL_RE.test(email.trim())) errs.email = t('validation.emailInvalid');
+    if (password.length < 6) errs.password = t('validation.passwordMinLength');
+    if (password !== confirm) errs.confirm = t('validation.passwordMismatch');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -72,10 +70,10 @@ export default function Register() {
     try {
       await signUp(email, password, name);
       await captureReferral();
-      addToast('success', 'Compte créé avec succès ! Bienvenue.');
+      addToast('success', t('register.successToast'));
       navigate('/mon-espace');
     } catch (error: unknown) {
-      addToast('error', localizeAuthError(error));
+      addToast('error', localizeAuthError(error, t));
     }
     setLoading(false);
   };
@@ -85,10 +83,10 @@ export default function Register() {
     try {
       await signInWithGoogle();
       await captureReferral();
-      addToast('success', 'Compte créé avec succès ! Bienvenue.');
+      addToast('success', t('register.successToast'));
       navigate('/mon-espace');
     } catch (error: unknown) {
-      addToast('error', localizeAuthError(error));
+      addToast('error', localizeAuthError(error, t));
     }
     setGoogleLoading(false);
   };
@@ -104,18 +102,18 @@ export default function Register() {
 
           {/* Logo mobile */}
           <div className="lg:hidden text-center mb-10">
-            <Link to="/">
+            <LocalizedLink to="/">
               <span className="font-black text-2xl tracking-tight text-neutral-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
                 Hellooo<span className="text-brand-500">!</span>
               </span>
-            </Link>
+            </LocalizedLink>
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-1">
-            Créer un compte
+            {t('register.title')}
           </h1>
           <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-8">
-            Rejoignez la communauté Max-Morrys gratuitement.
+            {t('register.subtitle')}
           </p>
 
           {/* Bouton Google */}
@@ -130,13 +128,13 @@ export default function Register() {
             ) : (
               <GoogleIcon />
             )}
-            S'inscrire avec Google
+            {t('register.googleButton')}
           </button>
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-800" />
-            <span className="text-xs font-medium text-neutral-400">ou créer avec email</span>
+            <span className="text-xs font-medium text-neutral-400">{t('register.divider')}</span>
             <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-800" />
           </div>
 
@@ -144,7 +142,7 @@ export default function Register() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
               <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                Nom complet
+                {t('register.nameLabel')}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
@@ -152,7 +150,7 @@ export default function Register() {
                   type="text"
                   value={name}
                   onChange={(e) => { setName(e.target.value); clearError('name'); }}
-                  placeholder="Ton nom"
+                  placeholder={t('register.namePlaceholder')}
                   className={`w-full pl-10 pr-4 py-3 rounded-xl border text-sm bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors ${errors.name ? 'border-red-400 dark:border-red-500' : 'border-neutral-200 dark:border-neutral-700'}`}
                 />
               </div>
@@ -161,7 +159,7 @@ export default function Register() {
 
             <div className="space-y-1">
               <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                Email
+                {t('register.emailLabel')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
@@ -169,7 +167,7 @@ export default function Register() {
                   type="email"
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
-                  placeholder="ton@email.com"
+                  placeholder={t('register.emailPlaceholder')}
                   className={`w-full pl-10 pr-4 py-3 rounded-xl border text-sm bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors ${errors.email ? 'border-red-400 dark:border-red-500' : 'border-neutral-200 dark:border-neutral-700'}`}
                 />
               </div>
@@ -179,7 +177,7 @@ export default function Register() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                  Mot de passe
+                  {t('register.passwordLabel')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
@@ -187,7 +185,7 @@ export default function Register() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => { setPassword(e.target.value); clearError('password'); }}
-                    placeholder="Min. 6 caractères"
+                    placeholder={t('register.passwordPlaceholder')}
                     className={`w-full pl-10 pr-8 py-3 rounded-xl border text-sm bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors ${errors.password ? 'border-red-400 dark:border-red-500' : 'border-neutral-200 dark:border-neutral-700'}`}
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300">
@@ -199,7 +197,7 @@ export default function Register() {
 
               <div className="space-y-1">
                 <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                  Confirmer
+                  {t('register.confirmLabel')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
@@ -207,7 +205,7 @@ export default function Register() {
                     type={showConfirm ? 'text' : 'password'}
                     value={confirm}
                     onChange={(e) => { setConfirm(e.target.value); clearError('confirm'); }}
-                    placeholder="Retape"
+                    placeholder={t('register.confirmPlaceholder')}
                     className={`w-full pl-10 pr-8 py-3 rounded-xl border text-sm bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors ${errors.confirm ? 'border-red-400 dark:border-red-500' : 'border-neutral-200 dark:border-neutral-700'}`}
                   />
                   <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300">
@@ -226,23 +224,23 @@ export default function Register() {
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
               ) : null}
-              {loading ? 'Création...' : 'Créer mon compte'}
+              {loading ? t('register.submitting') : t('register.submit')}
             </button>
 
             <p className="text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500 text-center">
-              En créant ton compte, tu acceptes nos{' '}
-              <Link to="/legal/cgu" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Conditions d'utilisation</Link>
-              {' '}et notre{' '}
-              <Link to="/legal/confidentialite" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">Politique de confidentialité</Link>
-              {' '}(dont la mémoire de l'assistant Rysmo, désactivable à tout moment).
+              {t('terms.registerIntro')}{' '}
+              <LocalizedLink to="/legal/cgu" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">{t('terms.termsLink')}</LocalizedLink>
+              {' '}{t('terms.and')}{' '}
+              <LocalizedLink to="/legal/confidentialite" target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline">{t('terms.privacyLink')}</LocalizedLink>
+              {' '}{t('terms.registerSuffix')}
             </p>
           </form>
 
           <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mt-8">
-            Déjà un compte ?{' '}
-            <Link to="/connexion" className="text-brand-600 dark:text-brand-400 font-semibold hover:underline">
-              Se connecter
-            </Link>
+            {t('register.hasAccount')}{' '}
+            <LocalizedLink to="/connexion" className="text-brand-600 dark:text-brand-400 font-semibold hover:underline">
+              {t('register.signIn')}
+            </LocalizedLink>
           </p>
         </div>
       </div>
@@ -256,29 +254,28 @@ export default function Register() {
 
         {/* Logo */}
         <div className="relative z-10 p-10">
-          <Link to="/" className="inline-block">
+          <LocalizedLink to="/" className="inline-block">
             <span className="font-black text-2xl tracking-tight text-white hover:text-brand-400 transition-colors">
               Hellooo<span className="text-brand-500">!</span>
             </span>
-          </Link>
+          </LocalizedLink>
         </div>
 
         {/* Contenu central */}
         <div className="relative z-10 flex-1 flex flex-col justify-center px-10 xl:px-16">
           <p className="text-xs font-bold tracking-[0.35em] uppercase text-brand-400 mb-6">
-            REJOINS-NOUS
+            {t('brand.eyebrowJoin')}
           </p>
           <h2 className="text-4xl xl:text-5xl font-black text-white leading-[1.05] tracking-tight mb-8">
-            Tout ce que tu<br />obtiens en<br />
-            <span className="text-brand-400">rejoignant</span><br />la plateforme.
+            <Trans t={t} i18nKey="brand.registerTitle" components={{ br: <br />, span: <span className="text-brand-400" /> }} />
           </h2>
 
           {/* Avantages */}
           <div className="space-y-4">
-            {perks.map((perk) => (
-              <div key={perk} className="flex items-start gap-3">
+            {perkKeys.map((perkKey) => (
+              <div key={perkKey} className="flex items-start gap-3">
                 <CheckCircle className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-                <p className="text-neutral-300 text-sm leading-snug">{perk}</p>
+                <p className="text-neutral-300 text-sm leading-snug">{t(perkKey)}</p>
               </div>
             ))}
           </div>
@@ -293,7 +290,7 @@ export default function Register() {
               ))}
             </div>
             <p className="text-xs text-neutral-400">
-              <span className="text-white font-bold">50+</span> étudiants me font déjà confiance
+              <Trans t={t} i18nKey="brand.trustCount" components={{ strong: <span className="text-white font-bold" /> }} />
             </p>
           </div>
         </div>

@@ -1,0 +1,22 @@
+{
+  "about": "Who I Am",
+  "formations": "I Train You",
+  "blog": "I Inform You",
+  "transform": "I Transform You",
+  "transformAria": "I Transform You — free content",
+  "freeContent": "Free content",
+  "podcast": "The Marketing Podcast",
+  "videos": "Marketing in Practice with Max-Morrys",
+  "contact": "Contact Me",
+  "search": "Search",
+  "toggleTheme": "Toggle theme",
+  "studentSpace": "My student space",
+  "admin": "Administration",
+  "signOut": "Sign out",
+  "myAccount": "My account",
+  "learner": "Learner",
+  "signIn": "Sign in",
+  "menu": "Menu",
+  "accountMenu": "Account menu for {{name}}",
+  "skipToContent": "Skip to main content"
+}

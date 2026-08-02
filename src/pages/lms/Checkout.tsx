@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import LocalizedLink from '../../components/shared/LocalizedLink';
 import { ArrowLeft, CheckCircle, Shield, Clock, BookOpen, Award, Loader2, ShoppingBag } from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
 import { writeBatch, doc, collection } from 'firebase/firestore';
@@ -20,6 +22,7 @@ const createBictorysCharge = httpsCallable<
 >(functions, 'createBictorysCharge');
 
 export default function Checkout() {
+  const { t } = useTranslation('lms');
   const { slug } = useParams();
   const { user } = useAuth();
   const { addToast } = useToast();
@@ -55,7 +58,7 @@ export default function Checkout() {
   if (formation === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-brand-500" aria-label={t('certificate.loadingAria')} />
       </div>
     );
   }
@@ -63,8 +66,8 @@ export default function Checkout() {
   if (!formation) {
     return (
       <div className="pt-32 pb-20 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">Formation introuvable</h1>
-        <Link to="/formations" className="text-brand-600 dark:text-brand-400 hover:underline">Retour aux formations</Link>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{t('checkout.notFoundTitle')}</h1>
+        <LocalizedLink to="/formations" className="text-brand-600 dark:text-brand-400 hover:underline">{t('checkout.backToFormations')}</LocalizedLink>
       </div>
     );
   }
@@ -139,7 +142,7 @@ export default function Checkout() {
         window.location.href = result.data.checkoutUrl;
       }
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Erreur lors du paiement. Réessaie ou contacte-nous.";
+      const msg = error instanceof Error ? error.message : t('checkout.errorPayment');
       addToast('error', msg);
       setSubmitting(false);
     }
@@ -153,18 +156,18 @@ export default function Checkout() {
             <CheckCircle className="w-8 h-8 text-success-500" />
           </div>
           <h1 className="text-2xl font-black text-neutral-900 dark:text-white mb-2">
-            Inscription confirmée !
+            {t('checkout.successTitle')}
           </h1>
           <p className="text-neutral-500 text-sm mb-6 leading-relaxed">
-            Tu es maintenant inscrit à "{formation.title}". Tu peux commencer ton apprentissage dès maintenant.
+            {t('checkout.successText', { title: formation.title })}
           </p>
           <div className="flex flex-col gap-3">
-            <Link to={`/cours/${formation.slug}`}>
-              <Button className="w-full">Commencer le cours</Button>
-            </Link>
-            <Link to="/formations" className="text-sm text-brand-600 dark:text-brand-400 hover:underline">
-              Voir d'autres formations
-            </Link>
+            <LocalizedLink to={`/cours/${formation.slug}`}>
+              <Button className="w-full">{t('checkout.startCourse')}</Button>
+            </LocalizedLink>
+            <LocalizedLink to="/formations" className="text-sm text-brand-600 dark:text-brand-400 hover:underline">
+              {t('checkout.seeOtherFormations')}
+            </LocalizedLink>
           </div>
         </div>
       </div>
@@ -180,9 +183,9 @@ export default function Checkout() {
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
         {/* Back link */}
-        <Link to={`/formations/${formation.slug}`} className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Retour à la formation
-        </Link>
+        <LocalizedLink to={`/formations/${formation.slug}`} className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-8 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> {t('checkout.backToFormation')}
+        </LocalizedLink>
 
         <div className="grid lg:grid-cols-[1fr_360px] gap-8">
 
@@ -190,12 +193,12 @@ export default function Checkout() {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-2">
-                Finaliser l'inscription
+                {t('checkout.finalizeTitle')}
               </h1>
               <p className="text-neutral-500 text-sm">
                 {isFree
-                  ? 'Cette formation est gratuite. Confirme ton inscription.'
-                  : 'Clique sur le bouton ci-dessous pour procéder au paiement sécurisé.'}
+                  ? t('checkout.freeSubtitle')
+                  : t('checkout.paidSubtitle')}
               </p>
             </div>
 
@@ -203,12 +206,12 @@ export default function Checkout() {
               <>
                 {/* Payment info */}
                 <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-5 space-y-3">
-                  <h3 className="font-bold text-neutral-900 dark:text-white text-sm">Paiement sécurisé</h3>
+                  <h3 className="font-bold text-neutral-900 dark:text-white text-sm">{t('checkout.securePayment')}</h3>
                   <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                    Tu seras redirigé vers notre partenaire de paiement Bictorys pour finaliser ta transaction en toute sécurité. Wave, Orange Money et carte bancaire sont acceptés.
+                    {t('checkout.securePaymentText')}
                   </p>
                   <div className="bg-neutral-50 dark:bg-neutral-900 rounded-xl p-3">
-                    <p className="text-xs text-neutral-400 mb-0.5">Montant à payer :</p>
+                    <p className="text-xs text-neutral-400 mb-0.5">{t('checkout.amountToPay')}</p>
                     <p className="font-black text-xl text-brand-600 dark:text-brand-400">{formatPrice(finalPrice)}</p>
                   </div>
                 </div>
@@ -216,7 +219,7 @@ export default function Checkout() {
                 {/* Coupon */}
                 <div className="space-y-1">
                   <label htmlFor="coupon" className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                    Code promo (optionnel)
+                    {t('checkout.couponLabel')}
                   </label>
                   <input
                     id="coupon"
@@ -239,23 +242,23 @@ export default function Checkout() {
               icon={submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : isFree ? <CheckCircle className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
             >
               {submitting
-                ? 'Traitement...'
+                ? t('checkout.processing')
                 : isFree
-                  ? "Confirmer l'inscription gratuite"
-                  : `Payer ${formatPrice(finalPrice)}`
+                  ? t('checkout.confirmFree')
+                  : t('checkout.payAmount', { amount: formatPrice(finalPrice) })
               }
             </Button>
 
             <p className="text-xs text-neutral-400 text-center flex items-center justify-center gap-1.5">
               <Shield className="w-3.5 h-3.5" />
-              Paiement sécurisé · Garantie 14 jours
+              {t('checkout.secureGuarantee')}
             </p>
           </div>
 
           {/* Right: Order summary */}
           <div className="lg:sticky lg:top-28 h-fit">
             <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6">
-              <h2 className="font-bold text-neutral-900 dark:text-white mb-4 text-sm">Récapitulatif</h2>
+              <h2 className="font-bold text-neutral-900 dark:text-white mb-4 text-sm">{t('checkout.summary')}</h2>
 
               {formation.coverImage && (
                 <img src={formation.coverImage} alt={formation.title} className="w-full h-32 object-cover rounded-xl mb-4" />
@@ -270,11 +273,11 @@ export default function Checkout() {
                 </div>
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-brand-500 flex-shrink-0" />
-                  <span>{(formation.modules ?? []).reduce((a, m) => a + m.lessons.length, 0)} leçons</span>
+                  <span>{t('checkout.lessonsCount', { count: (formation.modules ?? []).reduce((a, m) => a + m.lessons.length, 0) })}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Award className="w-4 h-4 text-brand-500 flex-shrink-0" />
-                  <span>Certificat inclus</span>
+                  <span>{t('checkout.certificateIncluded')}</span>
                 </div>
               </div>
 
@@ -282,19 +285,19 @@ export default function Checkout() {
                 {formation.promoPrice ? (
                   <>
                     <div className="flex justify-between text-sm">
-                      <span className="text-neutral-500">Prix original</span>
+                      <span className="text-neutral-500">{t('checkout.originalPrice')}</span>
                       <span className="text-neutral-400 line-through">{formatPrice(formation.price)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-success-600 dark:text-success-400 font-medium">Réduction</span>
+                      <span className="text-success-600 dark:text-success-400 font-medium">{t('checkout.discount')}</span>
                       <span className="text-success-600 dark:text-success-400 font-medium">-{formatPrice(formation.price - (formation.promoPrice ?? 0))}</span>
                     </div>
                   </>
                 ) : null}
                 <div className="flex justify-between pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                  <span className="font-bold text-neutral-900 dark:text-white">Total</span>
+                  <span className="font-bold text-neutral-900 dark:text-white">{t('checkout.total')}</span>
                   <span className="font-black text-xl text-brand-600 dark:text-brand-400">
-                    {isFree ? 'Gratuit' : formatPrice(finalPrice)}
+                    {isFree ? t('checkout.free') : formatPrice(finalPrice)}
                   </span>
                 </div>
               </div>

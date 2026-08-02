@@ -1,8 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { Trash2, Plus, Loader2, Send, Pencil, MessageSquare, X, Check } from 'lucide-react';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
-import { formatDate } from '../../../lib/utils';
+import { useFormat } from '../../../hooks/useFormat';
 import { inputCls } from '../hooks/useAdminClub';
 import type { ClubDigitosPost, ClubDigitosComment } from '../../../types';
 
@@ -34,35 +35,37 @@ export default function ClubPostsTab({
   editingPostId, editPostContent, setEditPostContent, savingPostEdit, openEditPost, handleSavePostEdit,
   openComments, postComments, loadingComments, handleToggleComments, handleDeleteComment,
 }: ClubPostsTabProps) {
+  const { t } = useTranslation('adminClub');
+  const { formatDate } = useFormat();
   return (
     <div className="space-y-3">
       {/* Admin post creation */}
       <div className="flex justify-end mb-2">
         <Button size="sm" onClick={() => setShowPostForm((v) => !v)} icon={<Plus className="w-4 h-4" />}>
-          Publier en tant qu'Admin
+          {t('posts.publishAsAdmin')}
         </Button>
       </div>
       {showPostForm && (
         <Card>
-          <h3 className="font-bold text-neutral-900 dark:text-white mb-3">Nouvelle publication admin</h3>
+          <h3 className="font-bold text-neutral-900 dark:text-white mb-3">{t('posts.newPostTitle')}</h3>
           <textarea
             value={adminPostContent}
             onChange={(e) => setAdminPostContent(e.target.value)}
-            placeholder="Message à la communauté..."
+            placeholder={t('posts.messagePlaceholder')}
             rows={4}
             className={`${inputCls} resize-y mb-3`}
           />
           <div className="flex justify-end gap-3">
-            <Button variant="outline" size="sm" onClick={() => { setShowPostForm(false); setAdminPostContent(''); }}>Annuler</Button>
+            <Button variant="outline" size="sm" onClick={() => { setShowPostForm(false); setAdminPostContent(''); }}>{t('common.cancel')}</Button>
             <Button size="sm" onClick={handleAdminPost} disabled={publishingPost || !adminPostContent.trim()} icon={publishingPost ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}>
-              {publishingPost ? 'Publication...' : 'Publier'}
+              {publishingPost ? t('posts.publishing') : t('posts.publish')}
             </Button>
           </div>
         </Card>
       )}
 
       {posts.length === 0 ? (
-        <Card><p className="text-center text-neutral-400 py-8">Aucune publication.</p></Card>
+        <Card><p className="text-center text-neutral-400 py-8">{t('posts.empty')}</p></Card>
       ) : (
         posts.map((post) => {
           const commentsOpen = openComments === post.id;
@@ -83,7 +86,7 @@ export default function ClubPostsTab({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <p className="text-sm font-semibold text-neutral-900 dark:text-white">{post.userName}</p>
-                      {post.isAdmin && <Badge variant="brand" size="sm">Admin</Badge>}
+                      {post.isAdmin && <Badge variant="brand" size="sm">{t('posts.adminBadge')}</Badge>}
                       <span className="text-xs text-neutral-400">{formatDate(post.createdAt)}</span>
                     </div>
 
@@ -91,8 +94,8 @@ export default function ClubPostsTab({
                       <div className="space-y-2">
                         <textarea value={editPostContent} onChange={(e) => setEditPostContent(e.target.value)} rows={3} className={`${inputCls} resize-y`} />
                         <div className="flex gap-2">
-                          <Button size="sm" onClick={() => handleSavePostEdit(post.id)} disabled={savingPostEdit || !editPostContent.trim()} icon={savingPostEdit ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}>Enregistrer</Button>
-                          <Button size="sm" variant="outline" onClick={() => openEditPost()}>Annuler</Button>
+                          <Button size="sm" onClick={() => handleSavePostEdit(post.id)} disabled={savingPostEdit || !editPostContent.trim()} icon={savingPostEdit ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}>{t('common.save')}</Button>
+                          <Button size="sm" variant="outline" onClick={() => openEditPost()}>{t('common.cancel')}</Button>
                         </div>
                       </div>
                     ) : (
@@ -100,16 +103,16 @@ export default function ClubPostsTab({
                     )}
 
                     <div className="flex items-center gap-3 mt-2 text-xs text-neutral-400">
-                      <span>{post.likes.length} j'aime</span>
+                      <span>{t('posts.likes', { count: post.likes.length })}</span>
                       <button onClick={() => handleToggleComments(post.id)} className={`inline-flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 transition-colors ${commentsOpen ? 'text-brand-600 dark:text-brand-400' : ''}`}>
-                        <MessageSquare className="w-3.5 h-3.5" /> {post.commentsCount ?? 0} commentaire{(post.commentsCount ?? 0) > 1 ? 's' : ''}
+                        <MessageSquare className="w-3.5 h-3.5" /> {t('posts.comments', { count: post.commentsCount ?? 0 })}
                       </button>
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => openEditPost(post)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors" aria-label="Modifier"><Pencil className="w-4 h-4" /></button>
-                  <button onClick={() => handleDeletePost(post.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" aria-label="Supprimer"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => openEditPost(post)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors" aria-label={t('posts.editAria')}><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => handleDeletePost(post.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" aria-label={t('posts.deleteAria')}><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
 
@@ -119,7 +122,7 @@ export default function ClubPostsTab({
                   {loadingComments && !postComments[post.id] ? (
                     <div className="flex justify-center py-3"><Loader2 className="w-4 h-4 animate-spin text-brand-500" /></div>
                   ) : comments.length === 0 ? (
-                    <p className="text-xs text-neutral-400 text-center py-2">Aucun commentaire.</p>
+                    <p className="text-xs text-neutral-400 text-center py-2">{t('posts.noComments')}</p>
                   ) : (
                     comments.map((c) => (
                       <div key={c.id} className="flex items-start justify-between gap-2 bg-neutral-50 dark:bg-neutral-900/40 rounded-lg px-3 py-2">
@@ -127,7 +130,7 @@ export default function ClubPostsTab({
                           <p className="text-xs font-semibold text-neutral-900 dark:text-white">{c.userName} <span className="text-neutral-400 font-normal">· {formatDate(c.createdAt)}</span></p>
                           <p className="text-xs text-neutral-600 dark:text-neutral-400 break-words">{c.content}</p>
                         </div>
-                        <button onClick={() => handleDeleteComment(post.id, c.id)} className="p-1 rounded-lg text-neutral-300 hover:text-error-500 transition-colors flex-shrink-0" aria-label="Supprimer le commentaire"><X className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteComment(post.id, c.id)} className="p-1 rounded-lg text-neutral-300 hover:text-error-500 transition-colors flex-shrink-0" aria-label={t('posts.deleteCommentAria')}><X className="w-3.5 h-3.5" /></button>
                       </div>
                     ))
                   )}

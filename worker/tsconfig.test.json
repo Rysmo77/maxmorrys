@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Les tests ont accès à Node : le test d'intégration lit la clé de compte de
+    // service sur le disque et se pilote par variables d'environnement. Ce
+    // relâchement est cantonné ici — le code déployé reste sans API Node.
+    "types": ["@cloudflare/workers-types", "node"]
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "apps/*/src/**/*.ts",
+    "types/**/*.d.ts",
+    "packages/*/test/**/*.ts",
+    "apps/*/test/**/*.ts",
+    "vitest.config.ts",
+    "apps/*/vitest.config.ts"
+  ]
+}

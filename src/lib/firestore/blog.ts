@@ -26,7 +26,11 @@ export async function getPublishedPostsPaginated(
   return { posts: data.slice(0, pageSize), hasMore };
 }
 
-export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+export async function getPostBySlug(slug: string, lang: 'fr' | 'en' = 'fr'): Promise<BlogPost | null> {
+  if (lang === 'en') {
+    const byEn = await getCollection<BlogPost>('blog', where('slug_en', '==', slug), limit(1));
+    if (byEn[0]?.status === 'published') return byEn[0];
+  }
   const results = await getCollection<BlogPost>('blog', where('slug', '==', slug), where('status', '==', 'published'), limit(1));
   return results[0] ?? null;
 }

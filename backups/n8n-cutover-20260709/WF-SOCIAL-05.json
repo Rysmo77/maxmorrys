@@ -1,0 +1,660 @@
+{
+  "updatedAt": "2026-07-08T23:48:02.283Z",
+  "createdAt": "2026-04-23T18:03:51.313Z",
+  "id": "wrRa0I7tYAsPJSOA",
+  "name": "WF-SOCIAL-05 — Publication APIs natives",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/15 7-22 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cron-cron---toutes-15-min-7-22h",
+      "name": "Cron — Toutes 15 min 7-22h"
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPYoyzcZLdtBTO3",
+          "mode": "list"
+        },
+        "returnAll": true,
+        "options": {},
+        "filterByFormula": "AND({Status} = 'validé', IS_AFTER(NOW(), DATEADD({Date_Publication_Prevue}, -15, 'minutes')))"
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        250,
+        0
+      ],
+      "id": "at-s-airtable---lire-validés",
+      "name": "Airtable — Lire validés",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblQqVRtboYFSGNt8",
+          "mode": "list"
+        },
+        "returnAll": true,
+        "options": {},
+        "filterByFormula": "OR({Cle}='PUBLISH_ENABLED',{Cle}='META_TOKEN',{Cle}='IG_USER_ID',{Cle}='FB_PAGE_ID',{Cle}='TIKTOK_TOKEN',{Cle}='LINKEDIN_TOKEN',{Cle}='LINKEDIN_AUTHOR_URN',{Cle}='X_TOKEN')"
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        250,
+        200
+      ],
+      "id": "at-s-airtable---lire-config-blota",
+      "name": "Airtable — Lire Config",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblPYoyzcZLdtBTO3",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Blotato_PostSubmissionID": "={{ $json.Blotato_PostSubmissionID }}",
+            "Status": "={{ $json.Status }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Blotato_PostSubmissionID",
+              "displayName": "Blotato_PostSubmissionID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1500,
+        100
+      ],
+      "id": "at-u-airtable---status=en_publica",
+      "name": "Airtable — Status=en_publication",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "apppkEbepilHCYiso",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblHtN3jKqvwFXkXN",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Event": "=Publication native {{ $json.id }} ({{ $json.platform }})",
+            "Workflow": "WF-SOCIAL-05",
+            "Timestamp": "={{ $now.toISO() }}",
+            "Status": "success",
+            "Content_ID": "={{ $json.id }}",
+            "Details": "={{ $json.native_details }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1750,
+        100
+      ],
+      "id": "at-c-airtable---log-publication",
+      "name": "Airtable — Log publication",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ik5KqgcooeDvHpFb",
+          "name": "Airtable Max-Morrys"
+        }
+      }
+    },
+    {
+      "id": "publier-apis-natives",
+      "name": "Publier — APIs natives",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        550,
+        100
+      ],
+      "parameters": {
+        "jsCode": "// WF-SOCIAL-05 — Publication via APIs natives (remplace Blotato).\n// SECURITE: double garde. Rien n'est publie tant que Config.PUBLISH_ENABLED != 'true'\n// ET que le token de la plateforme est present. Workflow inactif par defaut (R1).\nconst posts = $('Airtable — Lire validés').all().map(i => i.json);\nconst cfgRows = $('Airtable — Lire Config').all().map(i => i.json);\nconst cfg = {};\nfor (const r of cfgRows) { if (r && r.Cle != null) cfg[r.Cle] = r.Valeur; }\nconst PUBLISH_ENABLED = String(cfg.PUBLISH_ENABLED || '').toLowerCase() === 'true';\nconst http = this.helpers.httpRequest.bind(this);\nconst isVideo = (u) => /\\.(mp4|mov|m4v|webm)(\\?|$)/i.test(u || '');\nconst out = [];\n\nasync function publishOne(post) {\n  const net = String(post.Reseau || '').toLowerCase();\n  const text = (post.Texte || '') + (post.Hashtags ? '\\n\\n' + post.Hashtags : '');\n  let media = [];\n  try { media = JSON.parse(post.Visuels_URLs || '[]'); } catch (e) {}\n  const media0 = media[0];\n  const skip = (reason) => ({ _skip: true, id: post.id, platform: net, reason });\n  const ok = (platform, pid, details) => ({ id: post.id, platform, Status: 'en_publication', Blotato_PostSubmissionID: pid, native_details: details });\n\n  if (!PUBLISH_ENABLED) return skip('PUBLISH_ENABLED != true (dry-run, garde R1)');\n\n  if (net === 'ig' || net === 'instagram') {\n    const IG = cfg.IG_USER_ID, TOK = cfg.META_TOKEN;\n    if (!IG || !TOK) return skip('IG_USER_ID/META_TOKEN manquant');\n    const base = 'https://graph.facebook.com/v21.0/' + IG;\n    const images = media.filter((u) => u && !isVideo(u));\n    if (images.length > 1) {\n      const children = [];\n      for (const img of images.slice(0, 10)) {\n        const cc = await http({ method: 'POST', url: base + '/media', body: { image_url: img, is_carousel_item: true, access_token: TOK }, json: true });\n        if (cc && cc.id) children.push(cc.id);\n      }\n      if (children.length < 2) return skip('IG carrousel: moins de 2 conteneurs créés');\n      const car = await http({ method: 'POST', url: base + '/media', body: { media_type: 'CAROUSEL', children, caption: text, access_token: TOK }, json: true });\n      const pub = await http({ method: 'POST', url: base + '/media_publish', body: { creation_id: car.id, access_token: TOK }, json: true });\n      return ok('instagram', pub.id || car.id, 'IG carrousel ' + children.length + ' · ' + (pub.id || car.id));\n    }\n    const createBody = isVideo(media0)\n      ? { media_type: 'REELS', video_url: media0, caption: text, access_token: TOK }\n      : { image_url: media0, caption: text, access_token: TOK };\n    const c = await http({ method: 'POST', url: base + '/media', body: createBody, json: true });\n    const creationId = c.id;\n    const pub = await http({ method: 'POST', url: base + '/media_publish', body: { creation_id: creationId, access_token: TOK }, json: true });\n    return ok('instagram', pub.id || creationId, 'IG ' + (pub.id || creationId));\n  }\n\n  if (net === 'fb' || net === 'facebook') {\n    const PAGE = cfg.FB_PAGE_ID, TOK = cfg.META_TOKEN;\n    if (!PAGE || !TOK) return skip('FB_PAGE_ID/META_TOKEN manquant');\n    const base = 'https://graph.facebook.com/v21.0/' + PAGE;\n    let res;\n    if (media0 && !isVideo(media0)) res = await http({ method: 'POST', url: base + '/photos', body: { url: media0, caption: text, access_token: TOK }, json: true });\n    else res = await http({ method: 'POST', url: base + '/feed', body: { message: text, access_token: TOK }, json: true });\n    return ok('facebook', res.id || res.post_id, 'FB ' + (res.id || res.post_id));\n  }\n\n  if (net === 'tiktok') {\n    const TOK = cfg.TIKTOK_TOKEN;\n    if (!TOK) return skip('TIKTOK_TOKEN manquant');\n    if (!media0 || !isVideo(media0)) return skip('TikTok requiert une video (Visuels_URLs)');\n    const res = await http({ method: 'POST', url: 'https://open.tiktokapis.com/v2/post/publish/video/init/',\n      headers: { Authorization: 'Bearer ' + TOK, 'Content-Type': 'application/json; charset=UTF-8' },\n      body: { post_info: { title: (post.Titre || text || 'Max-Morrys').substring(0,150), privacy_level: 'PUBLIC_TO_EVERYONE', disable_comment: false }, source_info: { source: 'PULL_FROM_URL', video_url: media0 } }, json: true });\n    const pid = res && res.data ? res.data.publish_id : undefined;\n    return ok('tiktok', pid, 'TikTok ' + pid);\n  }\n\n  if (net === 'linkedin') {\n    const TOK = cfg.LINKEDIN_TOKEN, URN = cfg.LINKEDIN_AUTHOR_URN;\n    if (!TOK || !URN) return skip('LINKEDIN_TOKEN/LINKEDIN_AUTHOR_URN manquant');\n    const res = await http({ method: 'POST', url: 'https://api.linkedin.com/rest/posts',\n      headers: { Authorization: 'Bearer ' + TOK, 'LinkedIn-Version': '202401', 'X-Restli-Protocol-Version': '2.0.0', 'Content-Type': 'application/json' },\n      body: { author: URN, commentary: text, visibility: 'PUBLIC', distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] }, lifecycleState: 'PUBLISHED', isReshareDisabledByAuthor: false },\n      json: true, returnFullResponse: true });\n    const pid = (res.headers && (res.headers['x-restli-id'] || res.headers['x-linkedin-id'])) || 'posted';\n    return ok('linkedin', pid, 'LinkedIn ' + pid);\n  }\n\n  if (net === 'x' || net === 'twitter') {\n  const ckey = cfg.X_API_KEY, csec = cfg.X_API_SECRET, atok = cfg.X_ACCESS_TOKEN, asec = cfg.X_ACCESS_SECRET;\n  if (!ckey || !csec || !atok || !asec) return skip('X OAuth1 tokens manquants (X_API_KEY/X_API_SECRET/X_ACCESS_TOKEN/X_ACCESS_SECRET)');\n  const crypto = require('crypto');\n  const enc = (s) => encodeURIComponent(s).replace(/[!*'()]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());\n  const postTweet = async (tweetText, replyTo) => {\n    const url = 'https://api.twitter.com/2/tweets';\n    const oauth = { oauth_consumer_key: ckey, oauth_nonce: crypto.randomBytes(16).toString('hex'), oauth_signature_method: 'HMAC-SHA1', oauth_timestamp: Math.floor(Date.now() / 1000).toString(), oauth_token: atok, oauth_version: '1.0' };\n    const paramStr = Object.keys(oauth).sort().map((k) => enc(k) + '=' + enc(oauth[k])).join('&');\n    const baseStr = ['POST', enc(url), enc(paramStr)].join('&');\n    oauth.oauth_signature = crypto.createHmac('sha1', enc(csec) + '&' + enc(asec)).update(baseStr).digest('base64');\n    const authHeader = 'OAuth ' + Object.keys(oauth).sort().map((k) => enc(k) + '=\"' + enc(oauth[k]) + '\"').join(', ');\n    const body = { text: tweetText };\n    if (replyTo) body.reply = { in_reply_to_tweet_id: replyTo };\n    const res = await http({ method: 'POST', url, headers: { Authorization: authHeader, 'Content-Type': 'application/json' }, body, json: true });\n    return res && res.data ? res.data.id : undefined;\n  };\n  const raw = String(text || '');\n  let parts = /(^|\\n)\\s*\\d+\\/\\s/.test(raw)\n    ? raw.split(/\\n(?=\\s*\\d+\\/\\s)/).map((s) => s.trim()).filter(Boolean)\n    : raw.split(/\\n\\n+/).map((s) => s.trim()).filter(Boolean);\n  parts = parts.map((s) => (s.length > 280 ? s.slice(0, 277) + '…' : s));\n  if (!parts.length) parts = [raw.slice(0, 280)];\n  let lastId, count = 0;\n  for (const tw of parts) {\n    const id = await postTweet(tw, lastId);\n    if (!id) { if (count === 0) return skip('X: publication échouée'); break; }\n    lastId = id; count++;\n  }\n  return ok('x', lastId, 'X thread ' + count + '/' + parts.length);\n}\n\n  if (net === 'youtube') {\n    // Upload resumable non gere en code -> utiliser le noeud YouTube natif n8n (OAuth2).\n    return skip('YouTube = noeud n8n natif requis (upload resumable videos.insert)');\n  }\n  return skip('reseau inconnu: ' + net);\n}\n\nfor (const post of posts) {\n  try {\n    const r = await publishOne(post);\n    if (r && !r._skip) out.push({ json: r });\n    else console.log('SKIP', JSON.stringify(r));\n  } catch (e) {\n    console.log('ERREUR publication', post && post.id, e.message);\n    // on ne flip pas le statut -> retry au prochain cron\n  }\n}\nreturn out;"
+      }
+    }
+  ],
+  "connections": {
+    "Cron — Toutes 15 min 7-22h": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire validés",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire validés": {
+      "main": [
+        [
+          {
+            "node": "Publier — APIs natives",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Publier — APIs natives",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publier — APIs natives": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status=en_publication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Status=en_publication": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Log publication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Cron — Toutes 15 min 7-22h": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "a4127f81-831e-40ca-93e9-3815b52276d4",
+  "activeVersionId": "a4127f81-831e-40ca-93e9-3815b52276d4",
+  "versionCounter": 12,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "shared": [
+    {
+      "updatedAt": "2026-04-23T18:03:51.315Z",
+      "createdAt": "2026-04-23T18:03:51.315Z",
+      "role": "workflow:owner",
+      "workflowId": "wrRa0I7tYAsPJSOA",
+      "projectId": "MovWUY92SBioz1Tw",
+      "project": {
+        "updatedAt": "2026-04-09T09:50:14.678Z",
+        "createdAt": "2026-04-09T09:45:54.695Z",
+        "id": "MovWUY92SBioz1Tw",
+        "name": "Max-Morrys LMS <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-07-08T23:48:02.284Z",
+    "createdAt": "2026-07-08T23:48:02.284Z",
+    "versionId": "a4127f81-831e-40ca-93e9-3815b52276d4",
+    "workflowId": "wrRa0I7tYAsPJSOA",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "*/15 7-22 * * *"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ],
+        "id": "cron-cron---toutes-15-min-7-22h",
+        "name": "Cron — Toutes 15 min 7-22h"
+      },
+      {
+        "parameters": {
+          "resource": "record",
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblPYoyzcZLdtBTO3",
+            "mode": "list"
+          },
+          "returnAll": true,
+          "options": {},
+          "filterByFormula": "AND({Status} = 'validé', IS_AFTER(NOW(), DATEADD({Date_Publication_Prevue}, -15, 'minutes')))"
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          250,
+          0
+        ],
+        "id": "at-s-airtable---lire-validés",
+        "name": "Airtable — Lire validés",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "record",
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblQqVRtboYFSGNt8",
+            "mode": "list"
+          },
+          "returnAll": true,
+          "options": {},
+          "filterByFormula": "OR({Cle}='PUBLISH_ENABLED',{Cle}='META_TOKEN',{Cle}='IG_USER_ID',{Cle}='FB_PAGE_ID',{Cle}='TIKTOK_TOKEN',{Cle}='LINKEDIN_TOKEN',{Cle}='LINKEDIN_AUTHOR_URN',{Cle}='X_TOKEN')"
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          250,
+          200
+        ],
+        "id": "at-s-airtable---lire-config-blota",
+        "name": "Airtable — Lire Config",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "record",
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblPYoyzcZLdtBTO3",
+            "mode": "list"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Blotato_PostSubmissionID": "={{ $json.Blotato_PostSubmissionID }}",
+              "Status": "={{ $json.Status }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": false
+              },
+              {
+                "id": "Blotato_PostSubmissionID",
+                "displayName": "Blotato_PostSubmissionID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1500,
+          100
+        ],
+        "id": "at-u-airtable---status=en_publica",
+        "name": "Airtable — Status=en_publication",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "record",
+          "operation": "create",
+          "base": {
+            "__rl": true,
+            "value": "apppkEbepilHCYiso",
+            "mode": "list"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tblHtN3jKqvwFXkXN",
+            "mode": "list"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Event": "=Publication native {{ $json.id }} ({{ $json.platform }})",
+              "Workflow": "WF-SOCIAL-05",
+              "Timestamp": "={{ $now.toISO() }}",
+              "Status": "success",
+              "Content_ID": "={{ $json.id }}",
+              "Details": "={{ $json.native_details }}"
+            },
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": true,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "typecast": true
+          }
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          1750,
+          100
+        ],
+        "id": "at-c-airtable---log-publication",
+        "name": "Airtable — Log publication",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "ik5KqgcooeDvHpFb",
+            "name": "Airtable Max-Morrys"
+          }
+        }
+      },
+      {
+        "id": "publier-apis-natives",
+        "name": "Publier — APIs natives",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          550,
+          100
+        ],
+        "parameters": {
+          "jsCode": "// WF-SOCIAL-05 — Publication via APIs natives (remplace Blotato).\n// SECURITE: double garde. Rien n'est publie tant que Config.PUBLISH_ENABLED != 'true'\n// ET que le token de la plateforme est present. Workflow inactif par defaut (R1).\nconst posts = $('Airtable — Lire validés').all().map(i => i.json);\nconst cfgRows = $('Airtable — Lire Config').all().map(i => i.json);\nconst cfg = {};\nfor (const r of cfgRows) { if (r && r.Cle != null) cfg[r.Cle] = r.Valeur; }\nconst PUBLISH_ENABLED = String(cfg.PUBLISH_ENABLED || '').toLowerCase() === 'true';\nconst http = this.helpers.httpRequest.bind(this);\nconst isVideo = (u) => /\\.(mp4|mov|m4v|webm)(\\?|$)/i.test(u || '');\nconst out = [];\n\nasync function publishOne(post) {\n  const net = String(post.Reseau || '').toLowerCase();\n  const text = (post.Texte || '') + (post.Hashtags ? '\\n\\n' + post.Hashtags : '');\n  let media = [];\n  try { media = JSON.parse(post.Visuels_URLs || '[]'); } catch (e) {}\n  const media0 = media[0];\n  const skip = (reason) => ({ _skip: true, id: post.id, platform: net, reason });\n  const ok = (platform, pid, details) => ({ id: post.id, platform, Status: 'en_publication', Blotato_PostSubmissionID: pid, native_details: details });\n\n  if (!PUBLISH_ENABLED) return skip('PUBLISH_ENABLED != true (dry-run, garde R1)');\n\n  if (net === 'ig' || net === 'instagram') {\n    const IG = cfg.IG_USER_ID, TOK = cfg.META_TOKEN;\n    if (!IG || !TOK) return skip('IG_USER_ID/META_TOKEN manquant');\n    const base = 'https://graph.facebook.com/v21.0/' + IG;\n    const images = media.filter((u) => u && !isVideo(u));\n    if (images.length > 1) {\n      const children = [];\n      for (const img of images.slice(0, 10)) {\n        const cc = await http({ method: 'POST', url: base + '/media', body: { image_url: img, is_carousel_item: true, access_token: TOK }, json: true });\n        if (cc && cc.id) children.push(cc.id);\n      }\n      if (children.length < 2) return skip('IG carrousel: moins de 2 conteneurs créés');\n      const car = await http({ method: 'POST', url: base + '/media', body: { media_type: 'CAROUSEL', children, caption: text, access_token: TOK }, json: true });\n      const pub = await http({ method: 'POST', url: base + '/media_publish', body: { creation_id: car.id, access_token: TOK }, json: true });\n      return ok('instagram', pub.id || car.id, 'IG carrousel ' + children.length + ' · ' + (pub.id || car.id));\n    }\n    const createBody = isVideo(media0)\n      ? { media_type: 'REELS', video_url: media0, caption: text, access_token: TOK }\n      : { image_url: media0, caption: text, access_token: TOK };\n    const c = await http({ method: 'POST', url: base + '/media', body: createBody, json: true });\n    const creationId = c.id;\n    const pub = await http({ method: 'POST', url: base + '/media_publish', body: { creation_id: creationId, access_token: TOK }, json: true });\n    return ok('instagram', pub.id || creationId, 'IG ' + (pub.id || creationId));\n  }\n\n  if (net === 'fb' || net === 'facebook') {\n    const PAGE = cfg.FB_PAGE_ID, TOK = cfg.META_TOKEN;\n    if (!PAGE || !TOK) return skip('FB_PAGE_ID/META_TOKEN manquant');\n    const base = 'https://graph.facebook.com/v21.0/' + PAGE;\n    let res;\n    if (media0 && !isVideo(media0)) res = await http({ method: 'POST', url: base + '/photos', body: { url: media0, caption: text, access_token: TOK }, json: true });\n    else res = await http({ method: 'POST', url: base + '/feed', body: { message: text, access_token: TOK }, json: true });\n    return ok('facebook', res.id || res.post_id, 'FB ' + (res.id || res.post_id));\n  }\n\n  if (net === 'tiktok') {\n    const TOK = cfg.TIKTOK_TOKEN;\n    if (!TOK) return skip('TIKTOK_TOKEN manquant');\n    if (!media0 || !isVideo(media0)) return skip('TikTok requiert une video (Visuels_URLs)');\n    const res = await http({ method: 'POST', url: 'https://open.tiktokapis.com/v2/post/publish/video/init/',\n      headers: { Authorization: 'Bearer ' + TOK, 'Content-Type': 'application/json; charset=UTF-8' },\n      body: { post_info: { title: (post.Titre || text || 'Max-Morrys').substring(0,150), privacy_level: 'PUBLIC_TO_EVERYONE', disable_comment: false }, source_info: { source: 'PULL_FROM_URL', video_url: media0 } }, json: true });\n    const pid = res && res.data ? res.data.publish_id : undefined;\n    return ok('tiktok', pid, 'TikTok ' + pid);\n  }\n\n  if (net === 'linkedin') {\n    const TOK = cfg.LINKEDIN_TOKEN, URN = cfg.LINKEDIN_AUTHOR_URN;\n    if (!TOK || !URN) return skip('LINKEDIN_TOKEN/LINKEDIN_AUTHOR_URN manquant');\n    const res = await http({ method: 'POST', url: 'https://api.linkedin.com/rest/posts',\n      headers: { Authorization: 'Bearer ' + TOK, 'LinkedIn-Version': '202401', 'X-Restli-Protocol-Version': '2.0.0', 'Content-Type': 'application/json' },\n      body: { author: URN, commentary: text, visibility: 'PUBLIC', distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] }, lifecycleState: 'PUBLISHED', isReshareDisabledByAuthor: false },\n      json: true, returnFullResponse: true });\n    const pid = (res.headers && (res.headers['x-restli-id'] || res.headers['x-linkedin-id'])) || 'posted';\n    return ok('linkedin', pid, 'LinkedIn ' + pid);\n  }\n\n  if (net === 'x' || net === 'twitter') {\n  const ckey = cfg.X_API_KEY, csec = cfg.X_API_SECRET, atok = cfg.X_ACCESS_TOKEN, asec = cfg.X_ACCESS_SECRET;\n  if (!ckey || !csec || !atok || !asec) return skip('X OAuth1 tokens manquants (X_API_KEY/X_API_SECRET/X_ACCESS_TOKEN/X_ACCESS_SECRET)');\n  const crypto = require('crypto');\n  const enc = (s) => encodeURIComponent(s).replace(/[!*'()]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());\n  const postTweet = async (tweetText, replyTo) => {\n    const url = 'https://api.twitter.com/2/tweets';\n    const oauth = { oauth_consumer_key: ckey, oauth_nonce: crypto.randomBytes(16).toString('hex'), oauth_signature_method: 'HMAC-SHA1', oauth_timestamp: Math.floor(Date.now() / 1000).toString(), oauth_token: atok, oauth_version: '1.0' };\n    const paramStr = Object.keys(oauth).sort().map((k) => enc(k) + '=' + enc(oauth[k])).join('&');\n    const baseStr = ['POST', enc(url), enc(paramStr)].join('&');\n    oauth.oauth_signature = crypto.createHmac('sha1', enc(csec) + '&' + enc(asec)).update(baseStr).digest('base64');\n    const authHeader = 'OAuth ' + Object.keys(oauth).sort().map((k) => enc(k) + '=\"' + enc(oauth[k]) + '\"').join(', ');\n    const body = { text: tweetText };\n    if (replyTo) body.reply = { in_reply_to_tweet_id: replyTo };\n    const res = await http({ method: 'POST', url, headers: { Authorization: authHeader, 'Content-Type': 'application/json' }, body, json: true });\n    return res && res.data ? res.data.id : undefined;\n  };\n  const raw = String(text || '');\n  let parts = /(^|\\n)\\s*\\d+\\/\\s/.test(raw)\n    ? raw.split(/\\n(?=\\s*\\d+\\/\\s)/).map((s) => s.trim()).filter(Boolean)\n    : raw.split(/\\n\\n+/).map((s) => s.trim()).filter(Boolean);\n  parts = parts.map((s) => (s.length > 280 ? s.slice(0, 277) + '…' : s));\n  if (!parts.length) parts = [raw.slice(0, 280)];\n  let lastId, count = 0;\n  for (const tw of parts) {\n    const id = await postTweet(tw, lastId);\n    if (!id) { if (count === 0) return skip('X: publication échouée'); break; }\n    lastId = id; count++;\n  }\n  return ok('x', lastId, 'X thread ' + count + '/' + parts.length);\n}\n\n  if (net === 'youtube') {\n    // Upload resumable non gere en code -> utiliser le noeud YouTube natif n8n (OAuth2).\n    return skip('YouTube = noeud n8n natif requis (upload resumable videos.insert)');\n  }\n  return skip('reseau inconnu: ' + net);\n}\n\nfor (const post of posts) {\n  try {\n    const r = await publishOne(post);\n    if (r && !r._skip) out.push({ json: r });\n    else console.log('SKIP', JSON.stringify(r));\n  } catch (e) {\n    console.log('ERREUR publication', post && post.id, e.message);\n    // on ne flip pas le statut -> retry au prochain cron\n  }\n}\nreturn out;"
+        }
+      }
+    ],
+    "connections": {
+      "Cron — Toutes 15 min 7-22h": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire validés",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Airtable — Lire Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire validés": {
+        "main": [
+          [
+            {
+              "node": "Publier — APIs natives",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire Config": {
+        "main": [
+          [
+            {
+              "node": "Publier — APIs natives",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Publier — APIs natives": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Status=en_publication",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Status=en_publication": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Log publication",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Max-Morrys LMS",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-07-08T23:48:02.471Z",
+        "id": 2495,
+        "workflowId": "wrRa0I7tYAsPJSOA",
+        "versionId": "a4127f81-831e-40ca-93e9-3815b52276d4",
+        "event": "activated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      },
+      {
+        "createdAt": "2026-07-08T23:48:02.398Z",
+        "id": 2494,
+        "workflowId": "wrRa0I7tYAsPJSOA",
+        "versionId": "a4127f81-831e-40ca-93e9-3815b52276d4",
+        "event": "deactivated",
+        "userId": "37bb5c51-393d-43b4-98df-085fa1c3c7a9"
+      }
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Search, Trash2, Edit2, Headphones, Loader2, ChevronDown, RefreshCw, Download } from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../config/firebase';
@@ -6,7 +7,9 @@ import Button from '../../components/ui/Button';
 import ImageInput from '../../components/ui/ImageInput';
 import { useToast } from '../../components/ui/Toast';
 import { getAllPodcasts, savePodcast, deletePodcast } from '../../lib/firestore';
-import { slugify, formatDate, extractSpotifyEpisodeId, parseMsDuration } from '../../lib/utils';
+import { slugify, extractSpotifyEpisodeId, parseMsDuration } from '../../lib/utils';
+import { generateSlugEn } from '../../lib/slugEn';
+import { useFormat } from '../../hooks/useFormat';
 import type { Podcast } from '../../types';
 import { captureError } from '../../lib/sentry';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
@@ -30,12 +33,14 @@ const importEpisodesCallable = httpsCallable<
 >(functions, 'importSpotifyEpisodesManual');
 
 const EMPTY: Omit<Podcast, 'id'> = {
-  title: '', slug: '', description: '', audioUrl: '', coverImage: '',
+  title: '', slug: '', slug_en: '', description: '', audioUrl: '', coverImage: '',
   duration: '', publishedAt: new Date().toISOString().split('T')[0],
   category: '', status: 'draft', transcript: '',
 };
 
 export default function AdminPodcasts() {
+  const { t } = useTranslation('admin');
+  const { formatDate } = useFormat();
   const { addToast } = useToast();
   const confirm = useConfirmDialog();
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
@@ -56,13 +61,13 @@ export default function AdminPodcasts() {
     try {
       const { created, skipped, errors } = (await importEpisodesCallable()).data;
       if (errors.length > 0) {
-        addToast('error', `Import partiel : ${errors[0]}`);
+        addToast('error', t('podcasts.toastImportPartial', { error: errors[0] }));
       } else {
-        addToast('success', `${created} épisode(s) importé(s) en brouillon, ${skipped} déjà présent(s).`);
+        addToast('success', t('podcasts.toastImportSuccess', { created, skipped }));
       }
       load();
     } catch (error: unknown) {
-      addToast('error', error instanceof Error ? error.message : "Erreur d'import.");
+      addToast('error', error instanceof Error ? error.message : t('podcasts.toastImportError'));
     } finally {
       setImporting(false);
     }
@@ -74,13 +79,13 @@ export default function AdminPodcasts() {
       const result = await syncMediaStatsCallable();
       const { podcastsUpdated, errors } = result.data;
       if (errors.length > 0) {
-        addToast('error', `Sync partielle : ${errors[0]}`);
+        addToast('error', t('podcasts.toastSyncPartial', { error: errors[0] }));
       } else {
-        addToast('success', `${podcastsUpdated} podcast(s) mis à jour depuis Spotify.`);
+        addToast('success', t('podcasts.toastSyncSuccess', { count: podcastsUpdated }));
       }
       load();
     } catch (error: unknown) {
-      addToast('error', error instanceof Error ? error.message : 'Erreur de synchronisation.');
+      addToast('error', error instanceof Error ? error.message : t('podcasts.toastSyncError'));
     } finally {
       setSyncing(false);
     }
@@ -112,7 +117,7 @@ export default function AdminPodcasts() {
           publishedAt: ep.releaseDate,
         }));
       } catch {
-        addToast('error', 'Impossible de récupérer les infos Spotify.');
+        addToast('error', t('podcasts.toastSpotifyFetchError'));
       } finally {
         setFetchingMeta(false);
       }
@@ -130,7 +135,7 @@ export default function AdminPodcasts() {
   const openEdit = (p: Podcast) => {
     lastFetchedId.current = extractSpotifyEpisodeId(p.audioUrl) ?? null;
     setEditing(p);
-    setForm({ title: p.title, slug: p.slug, description: p.description, audioUrl: p.audioUrl, coverImage: p.coverImage, duration: p.duration, publishedAt: p.publishedAt?.split('T')[0] ?? '', category: p.category, status: p.status, transcript: p.transcript ?? '' });
+    setForm({ title: p.title, slug: p.slug, slug_en: p.slug_en ?? '', description: p.description, audioUrl: p.audioUrl, coverImage: p.coverImage, duration: p.duration, publishedAt: p.publishedAt?.split('T')[0] ?? '', category: p.category, status: p.status, transcript: p.transcript ?? '' });
     setModalOpen(true);
   };
 
@@ -138,26 +143,27 @@ export default function AdminPodcasts() {
     if (!form.title.trim()) return;
     setSaving(true);
     try {
-      await savePodcast({ ...form, id: editing?.id, slug: form.slug || slugify(form.title) });
-      addToast('success', editing ? 'Podcast mis à jour.' : 'Podcast créé.');
+      const slug_en = form.slug_en || await generateSlugEn(form.title);
+      await savePodcast({ ...form, id: editing?.id, slug: form.slug || slugify(form.title), slug_en });
+      addToast('success', editing ? t('podcasts.toastUpdated') : t('podcasts.toastCreated'));
       setModalOpen(false);
       load();
     } catch (error: unknown) {
       captureError(error, { context: 'Save podcast failed' });
-      addToast('error', error instanceof Error ? error.message : 'Erreur lors de la sauvegarde.');
+      addToast('error', error instanceof Error ? error.message : t('podcasts.toastSaveError'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = (id: string) => {
-    confirm.requestConfirm('Supprimer ce podcast ? Cette action est irréversible.', async () => {
+    confirm.requestConfirm(t('podcasts.confirmDeleteMessage'), async () => {
       try {
         await deletePodcast(id);
         setPodcasts((prev) => prev.filter((p) => p.id !== id));
-        addToast('success', 'Podcast supprimé.');
+        addToast('success', t('podcasts.toastDeleted'));
       } catch {
-        addToast('error', 'Erreur de suppression.');
+        addToast('error', t('podcasts.toastDeleteError'));
       }
       confirm.closeConfirm();
     });
@@ -165,7 +171,7 @@ export default function AdminPodcasts() {
 
   const handleToggleStatus = async (p: Podcast) => {
     const newStatus = p.status === 'published' ? 'draft' : 'published';
-    await savePodcast({ ...p, status: newStatus }).catch(() => addToast('error', 'Erreur.'));
+    await savePodcast({ ...p, status: newStatus }).catch(() => addToast('error', t('podcasts.toastError')));
     setPodcasts((prev) => prev.map((ep) => ep.id === p.id ? { ...ep, status: newStatus } : ep));
   };
 
@@ -190,8 +196,8 @@ export default function AdminPodcasts() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">Podcasts</h1>
-          <p className="text-sm text-neutral-500 mt-1">{podcasts.length} épisode{podcasts.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">{t('podcasts.title')}</h1>
+          <p className="text-sm text-neutral-500 mt-1">{t('podcasts.episodeCount', { count: podcasts.length })}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -200,7 +206,7 @@ export default function AdminPodcasts() {
             disabled={importing}
             icon={importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
           >
-            {importing ? 'Import...' : 'Importer depuis Spotify'}
+            {importing ? t('podcasts.importing') : t('podcasts.importFromSpotify')}
           </Button>
           <Button
             variant="outline"
@@ -208,22 +214,22 @@ export default function AdminPodcasts() {
             disabled={syncing}
             icon={syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
           >
-            {syncing ? 'Synchronisation...' : 'Synchroniser la popularité'}
+            {syncing ? t('podcasts.syncing') : t('podcasts.syncPopularity')}
           </Button>
-          <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>Nouveau podcast</Button>
+          <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>{t('podcasts.newPodcast')}</Button>
         </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('podcasts.searchPlaceholder')} className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
         </div>
         <div className="relative">
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)} className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
-            <option value="all">Tous les statuts</option>
-            <option value="published">Publiés</option>
-            <option value="draft">Brouillons</option>
+            <option value="all">{t('podcasts.filterAll')}</option>
+            <option value="published">{t('podcasts.filterPublished')}</option>
+            <option value="draft">{t('podcasts.filterDraft')}</option>
           </select>
           <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
         </div>
@@ -234,7 +240,7 @@ export default function AdminPodcasts() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
           <Headphones className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p className="text-neutral-500">Aucun podcast trouvé.</p>
+          <p className="text-neutral-500">{t('podcasts.emptyState')}</p>
         </div>
       ) : (
         <>
@@ -242,10 +248,10 @@ export default function AdminPodcasts() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-neutral-100 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50">
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">Titre</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400 hidden md:table-cell">Catégorie</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400 hidden sm:table-cell">Date</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">Statut</th>
+                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">{t('podcasts.colTitle')}</th>
+                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400 hidden md:table-cell">{t('podcasts.colCategory')}</th>
+                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400 hidden sm:table-cell">{t('podcasts.colDate')}</th>
+                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">{t('podcasts.colStatus')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -271,7 +277,7 @@ export default function AdminPodcasts() {
                   <td className="px-4 py-3 text-neutral-500 hidden sm:table-cell">{p.publishedAt ? formatDate(p.publishedAt) : '—'}</td>
                   <td className="px-4 py-3">
                     <button onClick={() => handleToggleStatus(p)} className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${p.status === 'published' ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 hover:bg-success-200' : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-600'}`}>
-                      {p.status === 'published' ? 'Publié' : 'Brouillon'}
+                      {p.status === 'published' ? t('podcasts.statusPublished') : t('podcasts.statusDraft')}
                     </button>
                   </td>
                   <td className="px-4 py-3">
@@ -295,30 +301,31 @@ export default function AdminPodcasts() {
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
           <div className="relative w-full max-w-2xl bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex items-center justify-between z-10">
-              <h2 className="font-bold text-neutral-900 dark:text-white">{editing ? 'Modifier le podcast' : 'Nouveau podcast'}</h2>
+              <h2 className="font-bold text-neutral-900 dark:text-white">{editing ? t('podcasts.modalEditTitle') : t('podcasts.modalNewTitle')}</h2>
               <button onClick={() => setModalOpen(false)} className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">✕</button>
             </div>
             <div className="p-6 space-y-4">
-              {field('Titre *', <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value, slug: p.slug || slugify(e.target.value) }))} placeholder="Titre de l'épisode" className={inputCls} />)}
-              {field('Slug', <input value={form.slug} onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))} placeholder="slug-de-lepisode" className={inputCls} />)}
+              {field(t('podcasts.fieldTitle'), <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value, slug: p.slug || slugify(e.target.value) }))} placeholder={t('podcasts.fieldTitlePlaceholder')} className={inputCls} />)}
+              {field(t('podcasts.fieldSlug'), <input value={form.slug} onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))} placeholder={t('podcasts.fieldSlugPlaceholder')} className={inputCls} />)}
+              {field(t('podcasts.fieldSlugEn'), <input value={form.slug_en ?? ''} onChange={(e) => setForm((p) => ({ ...p, slug_en: slugify(e.target.value) }))} placeholder="english-slug" className={inputCls} />)}
               <div className="grid sm:grid-cols-2 gap-4">
-                {field('Catégorie', <input value={form.category} onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))} placeholder="Marketing, SEO..." className={inputCls} />)}
-                {field('Durée', <input value={form.duration} onChange={(e) => setForm((p) => ({ ...p, duration: e.target.value }))} placeholder="Ex: 42 min" className={inputCls} />)}
+                {field(t('podcasts.fieldCategory'), <input value={form.category} onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))} placeholder={t('podcasts.fieldCategoryPlaceholder')} className={inputCls} />)}
+                {field(t('podcasts.fieldDuration'), <input value={form.duration} onChange={(e) => setForm((p) => ({ ...p, duration: e.target.value }))} placeholder={t('podcasts.fieldDurationPlaceholder')} className={inputCls} />)}
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
-                {field('Date de publication', <input type="date" value={form.publishedAt} onChange={(e) => setForm((p) => ({ ...p, publishedAt: e.target.value }))} className={inputCls} />)}
-                {field('Statut', (
+                {field(t('podcasts.fieldPublishedAt'), <input type="date" value={form.publishedAt} onChange={(e) => setForm((p) => ({ ...p, publishedAt: e.target.value }))} className={inputCls} />)}
+                {field(t('podcasts.fieldStatus'), (
                   <div className="relative">
                     <select value={form.status} onChange={(e) => setForm((p) => ({ ...p, status: e.target.value as Podcast['status'] }))} className={`${inputCls} appearance-none pr-8`}>
-                      <option value="draft">Brouillon</option>
-                      <option value="published">Publié</option>
+                      <option value="draft">{t('podcasts.statusDraft')}</option>
+                      <option value="published">{t('podcasts.statusPublished')}</option>
                     </select>
                     <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
                   </div>
                 ))}
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-500">URL Audio (Spotify / MP3)</label>
+                <label className="text-xs font-medium text-neutral-500">{t('podcasts.fieldAudioUrl')}</label>
                 <div className="relative">
                   <input value={form.audioUrl} onChange={(e) => setForm((p) => ({ ...p, audioUrl: e.target.value }))} placeholder="https://open.spotify.com/episode/..." className={`${inputCls} pr-9`} />
                   {fetchingMeta && (
@@ -328,14 +335,14 @@ export default function AdminPodcasts() {
                   )}
                 </div>
               </div>
-              <ImageInput label="Image de couverture" value={form.coverImage} onChange={(url) => setForm((p) => ({ ...p, coverImage: url }))} folder="podcasts" />
-              {field('Description', <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={4} placeholder="Description de l'épisode..." className={inputCls} />)}
-              {field('Transcription (optionnel)', <textarea value={form.transcript} onChange={(e) => setForm((p) => ({ ...p, transcript: e.target.value }))} rows={5} placeholder="Texte de la transcription..." className={inputCls} />)}
+              <ImageInput label={t('podcasts.fieldCoverImage')} value={form.coverImage} onChange={(url) => setForm((p) => ({ ...p, coverImage: url }))} folder="podcasts" />
+              {field(t('podcasts.fieldDescription'), <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={4} placeholder={t('podcasts.fieldDescriptionPlaceholder')} className={inputCls} />)}
+              {field(t('podcasts.fieldTranscript'), <textarea value={form.transcript} onChange={(e) => setForm((p) => ({ ...p, transcript: e.target.value }))} rows={5} placeholder={t('podcasts.fieldTranscriptPlaceholder')} className={inputCls} />)}
             </div>
             <div className="sticky bottom-0 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 px-6 py-4 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setModalOpen(false)}>Annuler</Button>
+              <Button variant="outline" onClick={() => setModalOpen(false)}>{t('podcasts.cancel')}</Button>
               <Button onClick={handleSave} disabled={saving || !form.title.trim()} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}>
-                {saving ? 'Enregistrement...' : 'Enregistrer'}
+                {saving ? t('podcasts.saving') : t('podcasts.save')}
               </Button>
             </div>
           </div>
@@ -346,9 +353,9 @@ export default function AdminPodcasts() {
         open={confirm.open}
         onClose={confirm.closeConfirm}
         onConfirm={confirm.onConfirm}
-        title="Supprimer"
+        title={t('podcasts.confirmDeleteTitle')}
         message={confirm.message}
-        confirmLabel="Supprimer"
+        confirmLabel={t('podcasts.confirmDeleteLabel')}
       />
     </div>
   );

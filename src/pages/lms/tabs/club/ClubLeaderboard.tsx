@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Trophy, Crown, Medal, CircleNotch } from '@phosphor-icons/react';
+import { useFormat } from '../../../../hooks/useFormat';
 import { cn } from '../../../../lib/utils';
 import { getClubLeaderboard, type LeaderboardEntry } from '../../../../lib/gamification';
 import { getLevelTitle } from '../../../../types/gamification';
@@ -29,6 +31,8 @@ function Avatar({ entry, size }: { entry: LeaderboardEntry; size: string }) {
 }
 
 export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
+  const { t } = useTranslation('club');
+  const { locale } = useFormat();
   const { user } = data;
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
 
@@ -44,7 +48,7 @@ export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
     return (
       <div className="text-center py-12 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
         <Trophy className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" weight="duotone" />
-        <p className="text-neutral-500">Le classement se construit. Gagne de l'XP pour y figurer !</p>
+        <p className="text-neutral-500">{t('leaderboard.emptyText')}</p>
       </div>
     );
   }
@@ -58,7 +62,7 @@ export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
       {/* Heading */}
       <div className="flex items-center gap-2">
         <Trophy className="w-5 h-5 text-plum-500" weight="duotone" />
-        <h3 className="font-bold text-neutral-900 dark:text-white">Classement de la communauté</h3>
+        <h3 className="font-bold text-neutral-900 dark:text-white">{t('leaderboard.title')}</h3>
       </div>
 
       {/* Podium top 3 */}
@@ -82,7 +86,7 @@ export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
               </div>
               <Medal className={cn('w-4 h-4 mt-2', rankAccent(entry.rank))} weight="fill" />
               <p className="text-[11px] sm:text-xs font-bold text-neutral-900 dark:text-white truncate max-w-full mt-1">{entry.displayName}</p>
-              <p className="text-[10px] sm:text-[11px] text-plum-600 dark:text-plum-400 font-semibold tabular-nums">{entry.xp.toLocaleString('fr-FR')} XP</p>
+              <p className="text-[10px] sm:text-[11px] text-plum-600 dark:text-plum-400 font-semibold tabular-nums">{entry.xp.toLocaleString(locale)} XP</p>
             </motion.div>
           );
         })}
@@ -106,11 +110,11 @@ export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
                 <Avatar entry={entry} size="w-9 h-9 text-xs" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">
-                    {entry.displayName}{isMe && <span className="text-xs text-plum-500 font-normal"> · toi</span>}
+                    {entry.displayName}{isMe && <span className="text-xs text-plum-500 font-normal">{t('leaderboard.you')}</span>}
                   </p>
-                  <p className="text-xs text-neutral-400">Niv. {entry.level} · {getLevelTitle(entry.level)}</p>
+                  <p className="text-xs text-neutral-400">{t('leaderboard.level', { level: entry.level, title: getLevelTitle(entry.level) })}</p>
                 </div>
-                <span className="text-sm font-bold text-plum-600 dark:text-plum-400 tabular-nums flex-shrink-0">{entry.xp.toLocaleString('fr-FR')} XP</span>
+                <span className="text-sm font-bold text-plum-600 dark:text-plum-400 tabular-nums flex-shrink-0">{entry.xp.toLocaleString(locale)} XP</span>
               </motion.div>
             );
           })}
@@ -120,7 +124,7 @@ export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
       {/* Current user out of top 20 */}
       {user && !myRank && (
         <p className="text-xs text-neutral-400 text-center pt-1">
-          Tu n'es pas encore dans le top 20 — publie, commente et apprends pour gagner de l'XP !
+          {t('leaderboard.notInTop20')}
         </p>
       )}
     </motion.div>

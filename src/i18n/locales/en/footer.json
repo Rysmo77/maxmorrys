@@ -1,0 +1,29 @@
+{
+  "newsletterEyebrow": "NEWSLETTER",
+  "newsletterTitle": "Become an Insider now",
+  "newsletterText": "Listen, every week I share my best finds, the strategies that actually work and a few of my little secrets. And the best part? It's completely free!",
+  "brandTagline": "Trainer, consultant and digital content creator. I help entrepreneurs master digital marketing and accelerate their growth.",
+  "columns": {
+    "platform": "Platform",
+    "about": "About",
+    "legal": "Legal",
+    "contact": "Contact"
+  },
+  "links": {
+    "formations": "I train you",
+    "blog": "I inform you",
+    "podcasts": "The Marketing Podcast",
+    "videos": "Marketing in Practice",
+    "faq": "FAQ",
+    "about": "I'm Max-Morrys",
+    "contact": "Contact",
+    "booking": "Book a call",
+    "legalNotice": "Legal notice",
+    "privacy": "Privacy",
+    "cgu": "Terms of Use",
+    "cgv": "Terms of Sale",
+    "cookies": "Cookies"
+  },
+  "copyright": "© {{year}} Max-Morrys. All rights reserved.",
+  "operatedByPrefix": "Max-Morrys is a brand operated by"
+}

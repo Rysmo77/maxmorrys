@@ -1,9 +1,14 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import TranslatedText from './TranslatedText';
 import type { BlogPost } from '../../types';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { contentPath } from '../../lib/contentPath';
 import { categoryToPole } from '../../lib/blogCategories';
-import { formatDate, truncate } from '../../lib/utils';
+import { truncate } from '../../lib/utils';
 import { universeThemes } from '../../lib/sectionThemes';
+import { useFormat } from '../../hooks/useFormat';
 
 const theme = universeThemes.blog;
 
@@ -19,9 +24,12 @@ interface ArticleCardProps {
  * de lecture, titre, extrait, date.
  */
 export default function ArticleCard({ post, compact = false }: ArticleCardProps) {
+  const { t } = useTranslation('shared');
+  const { formatDate } = useFormat();
+  const { language } = useLanguage();
   return (
     <Link
-      to={`/blog/${post.slug}`}
+      to={contentPath('blog', post, language)}
       className="group flex flex-col hover:-translate-y-1 transition-transform duration-300"
     >
       <div className="relative overflow-hidden rounded-2xl aspect-[16/9] mb-5">
@@ -36,27 +44,31 @@ export default function ArticleCard({ post, compact = false }: ArticleCardProps)
         {/* Overlay survol « Lire Plus » */}
         <div className="absolute inset-0 flex items-center justify-center bg-neutral-950/55 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <span className="inline-flex items-center gap-2 text-white text-sm font-bold tracking-wide">
-            Lire Plus <ArrowRight className="w-4 h-4" />
+            {t('articleCard.readMore')} <ArrowRight className="w-4 h-4" />
           </span>
         </div>
       </div>
       <p className={`text-xs font-bold tracking-[0.25em] uppercase ${theme.eyebrow} mb-2`}>
-        {categoryToPole(post.category)}
+        <TranslatedText text={categoryToPole(post.category)} />
         {' · '}
         <span className="font-normal normal-case tracking-normal text-neutral-400">
-          {post.readTime} min de lecture
+          {t('articleCard.readTime', { count: post.readTime })}
           {post.views !== undefined && post.views > 0 && (
-            <> · {post.views.toLocaleString()} lectures</>
+            <> · {t('articleCard.views', { count: post.views })}</>
           )}
         </span>
       </p>
-      <h3 className={`text-lg font-black tracking-tight text-neutral-900 dark:text-white mb-2 leading-snug ${theme.titleHover} transition-colors flex-1`}>
-        {post.title}
-      </h3>
+      <TranslatedText
+        as="h3"
+        text={post.title}
+        className={`text-lg font-black tracking-tight text-neutral-900 dark:text-white mb-2 leading-snug ${theme.titleHover} transition-colors flex-1`}
+      />
       {!compact && (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-3">
-          {truncate(post.excerpt, 100)}
-        </p>
+        <TranslatedText
+          as="p"
+          text={truncate(post.excerpt, 100)}
+          className="text-sm text-neutral-500 dark:text-neutral-400 mb-3"
+        />
       )}
       <p className="text-xs text-neutral-400">{formatDate(post.publishedAt)}</p>
     </Link>

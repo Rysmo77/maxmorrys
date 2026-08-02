@@ -1,0 +1,59 @@
+{
+  "seo": {
+    "title": "Blog Marketing Digital — Articles et Conseils",
+    "description": "Articles, analyses et conseils pratiques en marketing digital, SEO, IA et stratégie de croissance. Par Max-Morrys depuis Dakar."
+  },
+  "eyebrow": "BLOG",
+  "hero": {
+    "featuredEyebrow": "À la une",
+    "readTime": "{{count}} min de lecture",
+    "readMore": "Lire plus",
+    "emptyTitle": "Ne manque aucune news",
+    "emptySubtitle": "Les choses vont tellement vite en marketing qu'il ne faut rien rater des tendances et nouveautés. Mais je te dis tout ; pas de secret entre nous !"
+  },
+  "topics": "Sujets",
+  "all": "Tous",
+  "searchPlaceholder": "Rechercher un article...",
+  "states": {
+    "loadError": "Impossible de charger les articles. Vérifie ta connexion.",
+    "retry": "Réessayer",
+    "empty": "Aucun article trouvé pour ta recherche."
+  },
+  "club": {
+    "eyebrow": "CLUB DES DIGITOS",
+    "title": "Échange avec moi<br />& la communauté",
+    "description": "Le blog, c'est bien. Mais dans le Club, on va plus loin : pose tes questions directement dans le forum, réagis aux actus du moment sur le fil, et discute avec moi et les autres membres.",
+    "join": "Rejoindre le Club",
+    "feedTitle": "Fil d'actualité",
+    "feedDesc": "Les dernières infos du digital filtrées et commentées par moi — directement dans ton feed.",
+    "forumTitle": "Forum & discussions avec moi",
+    "forumDesc": "Pose tes questions, partage tes avancées et discute directement avec moi et toute la communauté.",
+    "priceUnit": "FCFA / an"
+  },
+  "crossPodcast": {
+    "eyebrow": "DÉCOUVREZ AUSSI",
+    "title": "Le Podcast du Marketing",
+    "description": "Analyses, interviews et réflexions sur le marketing digital — à écouter partout, tout le temps.",
+    "cta": "Écouter le podcast"
+  },
+  "post": {
+    "notFoundTitle": "Article introuvable",
+    "notFoundLink": "Retour au blog",
+    "breadcrumbHome": "Accueil",
+    "breadcrumbBlog": "Blog",
+    "backToBlog": "Retour au blog",
+    "writtenBy": "Écrit par",
+    "publishedOn": "Publié le",
+    "readTime": "{{count}} min",
+    "viewsCount": "{{formattedCount}} lectures",
+    "shareTwitter": "Partager sur X",
+    "shareLinkedin": "Partager sur LinkedIn",
+    "copyLink": "Copier le lien",
+    "relatedEyebrow": "À LIRE AUSSI",
+    "relatedTitle": "Articles similaires",
+    "crossEyebrow": "DÉCOUVREZ AUSSI",
+    "crossTitle": "Je te forme",
+    "crossDescription": "Des formations pratiques pour aller plus loin et transformer vos connaissances en compétences réelles.",
+    "crossCta": "Voir les formations"
+  }
+}

@@ -1,18 +1,26 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Clock, ArrowRight, Loader2, AlertCircle, MessageSquare, Rss, ChevronDown } from 'lucide-react';
 import AnimatedIcon from '../components/shared/AnimatedIcon';
+import LocalizedLink from '../components/shared/LocalizedLink';
 import { getPublishedPosts } from '../lib/firestore';
-import { formatDate, truncate } from '../lib/utils';
+import { truncate } from '../lib/utils';
+import { useFormat } from '../hooks/useFormat';
 import { trackSearch } from '../lib/tracking';
-import type { BlogPost } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
 import { BLOG_POLES, categoryToPole } from '../lib/blogCategories';
 import ArticleCard from '../components/shared/ArticleCard';
+import TranslatedText from '../components/shared/TranslatedText';
+import { useTranslatedText } from '../hooks/useTranslatedContent';
+import { useLanguage } from '../contexts/LanguageContext';
+import { queryKeys } from '../lib/queryClient';
+import { contentPath } from '../lib/contentPath';
 import { universeThemes } from '../lib/sectionThemes';
 
 const theme = universeThemes.blog;
@@ -20,23 +28,19 @@ const theme = universeThemes.blog;
 const viewportOnce = { once: true, amount: 0.2 } as const;
 
 export default function Blog() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const { t } = useTranslation('blog');
+  const { formatDate } = useFormat();
+  const { language } = useLanguage();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [topicsOpen, setTopicsOpen] = useState(true);
 
-  const load = () => {
-    setError(false);
-    setLoading(true);
-    getPublishedPosts().then((data) => {
-      setPosts(data);
-      setLoading(false);
-    }).catch(() => { setLoading(false); setError(true); });
-  };
-
-  useEffect(() => { load(); }, []);
+  // Lecture Firestore mise en cache par TanStack Query : un aller-retour de
+  // navigation ne relit plus la collection tant que les données sont « fresh ».
+  const { data: posts = [], isLoading: loading, isError: error, refetch } = useQuery({
+    queryKey: queryKeys.blogPosts,
+    queryFn: () => getPublishedPosts(),
+  });
 
   useEffect(() => {
     if (!search.trim()) return;
@@ -63,11 +67,16 @@ export default function Blog() {
 
   const gridPosts = featuredPost ? filtered.filter((p) => p.id !== featuredPost.id) : filtered;
 
+  // Traduction du contenu dynamique de l'article à la une (FR -> EN selon langue active).
+  const featuredTitle = useTranslatedText(featuredPost?.title);
+  const featuredExcerpt = useTranslatedText(featuredPost ? truncate(featuredPost.excerpt, 200) : '');
+  const featuredPole = useTranslatedText(featuredPost ? categoryToPole(featuredPost.category) : '');
+
   return (
     <div>
       <SEOHead
-        title="Blog Marketing Digital — Articles et Conseils"
-        description="Articles, analyses et conseils pratiques en marketing digital, SEO, IA et stratégie de croissance. Par Max-Morrys depuis Dakar."
+        title={t('seo.title')}
+        description={t('seo.description')}
       />
       <JsonLd data={{
         '@context': 'https://schema.org',
@@ -94,17 +103,17 @@ export default function Blog() {
               iconClassName="w-5 h-5 text-coral-600 dark:text-coral-400"
             />
             <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow}`}>
-              BLOG
+              {t('eyebrow')}
             </p>
           </motion.div>
 
           {featuredPost ? (
             <motion.div variants={staggerItem}>
-              <Link to={`/blog/${featuredPost.slug}`} className="group grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+              <Link to={contentPath('blog', featuredPost, language)} className="group grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                 <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
                   <img
                     src={featuredPost.coverImage}
-                    alt={featuredPost.title}
+                    alt={featuredTitle}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="eager"
                     width={800}
@@ -113,21 +122,21 @@ export default function Blog() {
                 </div>
                 <div>
                   <p className={`text-xs font-bold tracking-[0.3em] uppercase ${theme.eyebrow} mb-4`}>
-                    À la une · {categoryToPole(featuredPost.category)}
+                    {t('hero.featuredEyebrow')} · {featuredPole}
                   </p>
                   <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.05] mb-5 ${theme.titleHover} transition-colors`}>
-                    {featuredPost.title}
+                    {featuredTitle}
                   </h1>
                   <p className="text-base lg:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6">
-                    {truncate(featuredPost.excerpt, 200)}
+                    {featuredExcerpt}
                   </p>
                   <div className="flex items-center gap-3 text-xs text-neutral-400 mb-7">
                     <span>{formatDate(featuredPost.publishedAt)}</span>
                     <span>·</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {featuredPost.readTime} min de lecture</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {t('hero.readTime', { count: featuredPost.readTime })}</span>
                   </div>
                   <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-neutral-300 dark:border-neutral-600 text-sm font-bold text-neutral-900 dark:text-white group-hover:bg-coral-600 group-hover:border-coral-600 group-hover:text-white transition-colors">
-                    Lire plus <ArrowRight className="w-4 h-4" />
+                    {t('hero.readMore')} <ArrowRight className="w-4 h-4" />
                   </span>
                 </div>
               </Link>
@@ -135,10 +144,10 @@ export default function Blog() {
           ) : (
             <motion.div variants={staggerItem} className="max-w-2xl">
               <h1 className="text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-5">
-                Ne manque aucune news
+                {t('hero.emptyTitle')}
               </h1>
               <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                Les choses vont tellement vite en marketing qu'il ne faut rien rater des tendances et nouveautés. Mais je te dis tout ; pas de secret entre nous !
+                {t('hero.emptySubtitle')}
               </p>
             </motion.div>
           )}
@@ -156,7 +165,7 @@ export default function Blog() {
             className="flex items-center gap-2 text-xl font-black tracking-tight text-neutral-900 dark:text-white mb-5"
             aria-expanded={topicsOpen}
           >
-            Sujets
+            {t('topics')}
             <ChevronDown className={`w-5 h-5 text-neutral-400 transition-transform ${topicsOpen ? 'rotate-180' : ''}`} />
           </button>
           {topicsOpen && (
@@ -171,7 +180,7 @@ export default function Blog() {
                       : 'bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500'
                   }`}
                 >
-                  {cat}
+                  {cat === 'Tous' ? t('all') : <TranslatedText text={cat} />}
                 </button>
               ))}
             </div>
@@ -184,7 +193,7 @@ export default function Blog() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher un article..."
+              placeholder={t('searchPlaceholder')}
               className={`w-full pl-11 pr-5 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 ${theme.focusRing}`}
             />
           </div>
@@ -198,9 +207,9 @@ export default function Blog() {
           {!loading && error && (
             <div className="flex flex-col items-center gap-4 py-20 text-center">
               <AlertCircle className="w-8 h-8 text-error-500" />
-              <p className="text-neutral-600 dark:text-neutral-400">Impossible de charger les articles. Vérifie ta connexion.</p>
-              <button onClick={load} className={`px-5 py-2 ${theme.buttonSolid} text-sm font-bold rounded-full transition-colors`}>
-                Réessayer
+              <p className="text-neutral-600 dark:text-neutral-400">{t('states.loadError')}</p>
+              <button onClick={() => refetch()} className={`px-5 py-2 ${theme.buttonSolid} text-sm font-bold rounded-full transition-colors`}>
+                {t('states.retry')}
               </button>
             </div>
           )}
@@ -222,7 +231,7 @@ export default function Blog() {
               </motion.div>
             ) : (
               <div className="text-center py-20">
-                <p className="text-neutral-500 dark:text-neutral-400">Aucun article trouvé pour ta recherche.</p>
+                <p className="text-neutral-500 dark:text-neutral-400">{t('states.empty')}</p>
               </div>
             )
           )}
@@ -244,20 +253,20 @@ export default function Blog() {
               {/* Left: plum panel (Club universe) */}
               <div className="bg-plum-600 p-10 lg:p-12 flex flex-col justify-between">
                 <div>
-                  <p className="text-xs font-bold tracking-[0.3em] uppercase text-white/70 mb-5">CLUB DES DIGITOS</p>
+                  <p className="text-xs font-bold tracking-[0.3em] uppercase text-white/70 mb-5">{t('club.eyebrow')}</p>
                   <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-white leading-[0.95] mb-4">
-                    Échange avec moi<br />& la communauté
+                    <Trans t={t} i18nKey="club.title" components={{ br: <br /> }} />
                   </h2>
                   <p className="text-white/85 leading-relaxed text-base mb-8">
-                    Le blog, c'est bien. Mais dans le Club, on va plus loin : pose tes questions directement dans le forum, réagis aux actus du moment sur le fil, et discute avec moi et les autres membres.
+                    {t('club.description')}
                   </p>
                 </div>
-                <Link
+                <LocalizedLink
                   to="/mon-espace"
                   className="inline-flex items-center gap-2 self-start px-7 py-3.5 bg-neutral-900 text-white font-bold rounded-full hover:bg-neutral-800 transition-colors text-sm tracking-wide"
                 >
-                  Rejoindre le Club <ArrowRight className="w-4 h-4" />
-                </Link>
+                  {t('club.join')} <ArrowRight className="w-4 h-4" />
+                </LocalizedLink>
               </div>
 
               {/* Right: features */}
@@ -267,8 +276,8 @@ export default function Blog() {
                     <Rss className="w-5 h-5 text-plum-400" />
                   </div>
                   <div>
-                    <h3 className="font-black text-white text-base mb-1">Fil d'actualité</h3>
-                    <p className="text-neutral-400 text-sm leading-relaxed">Les dernières infos du digital filtrées et commentées par moi — directement dans ton feed.</p>
+                    <h3 className="font-black text-white text-base mb-1">{t('club.feedTitle')}</h3>
+                    <p className="text-neutral-400 text-sm leading-relaxed">{t('club.feedDesc')}</p>
                   </div>
                 </div>
                 <div className="flex gap-5 items-start">
@@ -276,13 +285,13 @@ export default function Blog() {
                     <MessageSquare className="w-5 h-5 text-plum-400" />
                   </div>
                   <div>
-                    <h3 className="font-black text-white text-base mb-1">Forum & discussions avec moi</h3>
-                    <p className="text-neutral-400 text-sm leading-relaxed">Pose tes questions, partage tes avancées et discute directement avec moi et toute la communauté.</p>
+                    <h3 className="font-black text-white text-base mb-1">{t('club.forumTitle')}</h3>
+                    <p className="text-neutral-400 text-sm leading-relaxed">{t('club.forumDesc')}</p>
                   </div>
                 </div>
                 <div className="pt-4 border-t border-white/10 flex items-baseline gap-2">
                   <span className="text-3xl font-black text-white">19 900</span>
-                  <span className="text-plum-400 font-bold">FCFA / an</span>
+                  <span className="text-plum-400 font-bold">{t('club.priceUnit')}</span>
                 </div>
               </div>
 
@@ -301,17 +310,17 @@ export default function Blog() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-4`}>
-            DÉCOUVREZ AUSSI
+            {t('crossPodcast.eyebrow')}
           </p>
           <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white mb-4">
-            Le Podcast du Marketing
+            {t('crossPodcast.title')}
           </h2>
           <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
-            Analyses, interviews et réflexions sur le marketing digital — à écouter partout, tout le temps.
+            {t('crossPodcast.description')}
           </p>
-          <Link to="/podcasts" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide`}>
-            Écouter le podcast <ArrowRight className="w-4 h-4" />
-          </Link>
+          <LocalizedLink to="/podcasts" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide`}>
+            {t('crossPodcast.cta')} <ArrowRight className="w-4 h-4" />
+          </LocalizedLink>
         </div>
       </motion.section>
     </div>
