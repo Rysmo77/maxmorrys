@@ -25,3 +25,17 @@ export function toNumber(value: unknown, fallback = 0): number {
 export function toStringOrNull(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
+
+/**
+ * Lit un champ texte quel que soit son encodage réel.
+ *
+ * Les collections mélangent chaînes ISO et Timestamps selon l'ancienneté des
+ * documents ; l'indexation ne doit pas s'en apercevoir.
+ */
+export function asText(value: unknown): string | undefined {
+  if (typeof value === 'string') return value;
+  if (value instanceof Timestamp) return value.rfc3339;
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === 'number') return String(value);
+  return undefined;
+}

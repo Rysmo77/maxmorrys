@@ -14,7 +14,7 @@ import { injectMeta } from './rewriter';
 import { canonicalizeSegments, enPath } from './segments';
 import { applySecurityHeaders, getSpaShell } from './shell';
 import { staticPages } from './static-pages';
-import { translateMetaToEn } from './translate';
+import { translateMetaToEn } from '@mm/shared';
 import type { PageMeta } from './types';
 
 /** Port de la fonction `prerender`. */
@@ -106,7 +106,10 @@ export async function handlePrerender(
 
   // Traduction des champs visibles pour les pages anglaises indexables.
   if (lang === 'en' && !meta.noIndex) {
-    meta = await translateMetaToEn(getFirestore(env), env, meta);
+    meta = await translateMetaToEn(getFirestore(env), {
+      baseUrl: env.GEMINI_BASE_URL,
+      apiKey: env.GOOGLE_AI_API_KEY,
+    }, meta);
   }
 
   const shell = await getSpaShell(env, ctx);

@@ -3,7 +3,9 @@ import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from '.
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { issueCertificate } from './handlers/issueCertificate';
+import { reindexSearch } from './handlers/reindexSearch';
 import { spotifyProxy } from './handlers/spotifyProxy';
+import { translateContent } from './handlers/translateContent';
 import { youtubeProxy } from './handlers/youtubeProxy';
 
 export type CallHandler = (data: unknown, context: CallContext) => Promise<unknown>;
@@ -24,8 +26,10 @@ export const HANDLERS: Record<string, CallHandler> = {
   // Écritures simples
   clearRysmoMemory,
   issueCertificate,
+  translateContent,
   // Administration
   adminCreateUser,
   adminManageRysmoQuota,
   adminManageEnrollment,
+  reindexSearch,
 };

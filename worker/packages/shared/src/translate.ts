@@ -1,11 +1,34 @@
 import { FieldValue, type Firestore } from '@mm/firestore-rest';
-import { sha256Hex } from '@mm/shared';
 
-import type { Env } from '../env';
-import type { PageMeta } from './types';
+import { sha256Hex } from './crypto';
+
+/**
+ * Configuration d'appel à Gemini.
+ *
+ * Pointer `baseUrl` sur AI Gateway apporte cache, budgets et observabilité des
+ * coûts sans changer une ligne d'appel.
+ */
+export interface TranslateConfig {
+  baseUrl: string;
+  /** Absente = pas de traduction, repli sur la source. */
+  apiKey?: string;
+}
+
+/** Sous-ensemble traduisible d'une meta de page. */
+export interface TranslatableMeta {
+  title: string;
+  description: string;
+  h1?: string;
+  bodyText?: string;
+}
 
 /**
  * Port de `translateCached` (functions/src/translate.ts) vers WebCrypto + REST.
+ *
+ * Partagé entre le Worker `site` (traduction des meta pour les pages /en) et le
+ * Worker `api` (callable `translateContent`). La clé de cache doit rester
+ * strictement identique entre les deux — et avec les Cloud Functions — sinon la
+ * collection `translations/` se dédouble et Gemini est resollicité pour rien.
  *
  * La clé de cache est **identique** à celle des Cloud Functions
  * (`sha256("en " + texte)`), donc la collection `translations/` reste partagée
@@ -38,10 +61,10 @@ interface GeminiResponse {
   candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
 }
 
-async function translateBatch(texts: string[], env: Env): Promise<string[]> {
+async function translateBatch(texts: string[], config: TranslateConfig): Promise<string[]> {
   if (texts.length === 0) return [];
 
-  const url = `${env.GEMINI_BASE_URL}/v1beta/models/${MODEL}:generateContent?key=${env.GOOGLE_AI_API_KEY}`;
+  const url = `${config.baseUrl}/v1beta/models/${MODEL}:generateContent?key=${config.apiKey}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -71,7 +94,7 @@ async function translateBatch(texts: string[], env: Env): Promise<string[]> {
 /** Lit le cache `translations/`, traduit les manquants, réécrit le cache. */
 export async function translateCached(
   db: Firestore,
-  env: Env,
+  config: TranslateConfig,
   texts: string[],
 ): Promise<Record<string, string>> {
   const unique = new Map<string, string>();
@@ -97,12 +120,12 @@ export async function translateCached(
   }
 
   if (misses.length > 0) {
-    if (!env.GOOGLE_AI_API_KEY) {
+    if (!config.apiKey) {
       for (const source of misses) result[source] = source;
       return result;
     }
 
-    const translated = await translateBatch(misses, env);
+    const translated = await translateBatch(misses, config);
     const writes = await Promise.all(
       misses.map(async (source, index) => {
         const value = translated[index] ?? source;
@@ -127,16 +150,16 @@ export async function translateCached(
  * comme aujourd'hui. Le chemin critique d'une page anglaise ne doit jamais
  * dépendre de la disponibilité de Gemini.
  */
-export async function translateMetaToEn(
+export async function translateMetaToEn<T extends TranslatableMeta>(
   db: Firestore,
-  env: Env,
-  meta: PageMeta,
-): Promise<PageMeta> {
-  if (!env.GOOGLE_AI_API_KEY) return meta;
+  config: TranslateConfig,
+  meta: T,
+): Promise<T> {
+  if (!config.apiKey) return meta;
 
   const sources = [meta.title, meta.description, meta.h1 ?? '', meta.bodyText ?? ''];
   try {
-    const map = await translateCached(db, env, sources);
+    const map = await translateCached(db, config, sources);
     const tr = (value?: string) => (value ? (map[value] ?? value) : value);
     return {
       ...meta,

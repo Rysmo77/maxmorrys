@@ -19,8 +19,17 @@ export interface Env {
   /** Base des Cloud Functions encore en place, cible du relais. */
   FUNCTIONS_ORIGIN: string;
 
+  /**
+   * Base de l'API Gemini. Pointer sur AI Gateway apporte cache, budgets et
+   * observabilité des coûts sans changer une ligne d'appel.
+   */
+  GEMINI_BASE_URL: string;
+
   // ── Secrets par fonction migrée ──
   SPOTIFY_CLIENT_ID?: string;
   SPOTIFY_CLIENT_SECRET?: string;
   YOUTUBE_API_KEY?: string;
+  GOOGLE_AI_API_KEY?: string;
+  TYPESENSE_URL?: string;
+  TYPESENSE_ADMIN_KEY?: string;
 }

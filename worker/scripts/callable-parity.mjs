@@ -45,6 +45,11 @@ if (!credentialsPath || !apiKey) {
 const CASES = [
   { name: 'getRysmoQuota', data: {} },
   { name: 'clearRysmoMemory', data: {} },
+  // translateContent est public par conception ; la clé de cache doit être
+  // identique des deux côtés, sinon la collection translations/ se dédouble.
+  { name: 'translateContent', data: { texts: ['Bonjour le monde'], targetLang: 'en' } },
+  { name: 'translateContent', data: { texts: [], targetLang: 'en' }, label: 'translateContent (vide)' },
+  { name: 'translateContent', data: { texts: ['x'], targetLang: 'de' }, label: 'translateContent (langue non gérée)' },
 
   // Sans le rôle admin : on attend permission-denied des deux côtés.
   {
@@ -73,6 +78,8 @@ const CASES = [
 
 /** Cas nécessitant le rôle admin. Lecture seule ou sans cible existante. */
 const ADMIN_CASES = [
+  // reindexSearch est volontairement absent : il vide et reconstruit les index
+  // Typesense, donc il n'est pas comparable à blanc. Vérifié séparément.
   { name: 'adminManageRysmoQuota', data: { action: 'get', userId: 'zz-migration-smoke-test' } },
   { name: 'adminManageRysmoQuota', data: { action: 'get' }, label: 'adminManageRysmoQuota (sans userId)' },
   {
