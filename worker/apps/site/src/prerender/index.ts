@@ -12,7 +12,7 @@ import { normalizePath } from '../routes';
 import { getContentMeta } from './content';
 import { injectMeta } from './rewriter';
 import { canonicalizeSegments, enPath } from './segments';
-import { getSpaShell } from './shell';
+import { applySecurityHeaders, getSpaShell } from './shell';
 import { staticPages } from './static-pages';
 import { translateMetaToEn } from './translate';
 import type { PageMeta } from './types';
@@ -110,15 +110,18 @@ export async function handlePrerender(
   }
 
   const shell = await getSpaShell(env, ctx);
+  const shellHeaders = new Headers(shell.headers);
   const transformed = injectMeta(shell, meta);
 
-  return new Response(transformed.body, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      // HTML prérendu = équivalent SEO d'index.html : jamais mis en cache, sinon
-      // il référencerait des assets hachés supprimés au déploiement suivant.
-      'Cache-Control': 'max-age=0, no-cache, no-store, must-revalidate',
-    },
+  const headers = new Headers({
+    'Content-Type': 'text/html; charset=utf-8',
+    // HTML prérendu = équivalent SEO d'index.html : jamais mis en cache, sinon
+    // il référencerait des assets hachés supprimés au déploiement suivant.
+    'Cache-Control': 'max-age=0, no-cache, no-store, must-revalidate',
   });
+  // Sans ceci, les pages les plus visitées du site partiraient sans CSP ni HSTS :
+  // une Response fabriquée n'hérite de rien de l'origine.
+  applySecurityHeaders(headers, shellHeaders);
+
+  return new Response(transformed.body, { status: 200, headers });
 }
