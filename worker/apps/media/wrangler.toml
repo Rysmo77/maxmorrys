@@ -1,6 +1,6 @@
 # Cloudflare Worker — endpoint d'upload des médias vers R2.
-# Déploiement : `cd worker && npm install && npx wrangler deploy`
-# Dév local   : `cd worker && npx wrangler dev`
+# Déploiement : `cd worker && npm install && npm -w @mm/media-worker run deploy`
+# Dév local   : `cd worker && npm -w @mm/media-worker run dev`
 
 name = "maxmorrys-media"
 main = "src/index.ts"

@@ -5,11 +5,27 @@
     "moduleResolution": "Bundler",
     "lib": ["ES2022"],
     "types": ["@cloudflare/workers-types"],
+
+    /* Aligné sur tsconfig.app.json : un import mort casse la CI. */
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
     "skipLibCheck": true,
     "noEmit": true,
+    "resolveJsonModule": true,
     "esModuleInterop": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "moduleDetection": "force"
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "apps/*/src/**/*.ts",
+    "apps/*/test/**/*.ts",
+    "types/**/*.d.ts",
+    "vitest.config.ts",
+    "apps/*/vitest.config.ts"
+  ]
 }

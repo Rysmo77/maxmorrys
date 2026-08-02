@@ -1,0 +1,57 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "maxmorrys-site",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-07-01",
+
+  // ⚠️ Déployer cette configuration met le Worker sur le chemin critique de
+  // chaque page vue. La zone est déjà proxifiée (A 199.36.158.100, orange
+  // cloud) : aucun changement DNS n'est nécessaire, et le rollback consiste à
+  // supprimer la route — effet immédiat, sans propagation.
+  //
+  // Pour valider avant bascule : `npm -w @mm/site-worker run deploy:preview`,
+  // qui publie sur workers.dev sans toucher au domaine.
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "maxmorrys.me/*", "zone_name": "maxmorrys.me" },
+    { "pattern": "www.maxmorrys.me/*", "zone_name": "maxmorrys.me" }
+  ],
+
+  // Cache des métadonnées SEO et des flux. À créer avant le premier déploiement :
+  //   npx wrangler kv namespace create SEO
+  // puis reporter l'identifiant ci-dessous.
+  "kv_namespaces": [{ "binding": "SEO", "id": "0a094ec96ffd4aa8910df4914775bb06" }],
+
+  "vars": {
+    // Origine Firebase Hosting, **hors zone Cloudflare**.
+    // Ne jamais pointer sur maxmorrys.me : le Worker se rappellerait lui-même.
+    "ORIGIN": "https://max-morrys.web.app",
+
+    // Remplacer par l'URL AI Gateway pour obtenir cache, budgets et traces :
+    // https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/google-ai-studio
+    "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com"
+  },
+
+  // Secrets (jamais dans vars) :
+  //   npx wrangler secret put GCP_SA_JSON < ../../../max-morrys-<id>.json
+  //   npx wrangler secret put GOOGLE_AI_API_KEY
+
+  "observability": { "enabled": true },
+
+  "env": {
+    "preview": {
+      "name": "maxmorrys-site-preview",
+      "workers_dev": true,
+      // ⚠️ `routes: []` est **obligatoire** et non redondant : sans lui, wrangler
+      // fait hériter les routes du niveau racine et l'environnement de preview
+      // se retrouve posé sur le domaine de production.
+      "routes": [],
+      "kv_namespaces": [{ "binding": "SEO", "id": "0a094ec96ffd4aa8910df4914775bb06" }],
+      "vars": {
+        "ORIGIN": "https://max-morrys.web.app",
+        "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com"
+      },
+      "observability": { "enabled": true }
+    }
+  }
+}

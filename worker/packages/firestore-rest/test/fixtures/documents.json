@@ -1,0 +1,169 @@
+[
+  {
+    "_case": "blog — article publié, tableaux et timestamps mêlés",
+    "name": "projects/max-morrys/databases/(default)/documents/blog/strategie-contenu-2026",
+    "fields": {
+      "title": { "stringValue": "Stratégie de contenu 2026" },
+      "slug": { "stringValue": "strategie-contenu-2026" },
+      "slug_en": { "stringValue": "content-strategy-2026" },
+      "status": { "stringValue": "published" },
+      "coverImage": { "stringValue": "https://media.maxmorrys.me/uploads/blog/abc.jpg" },
+      "tags": {
+        "arrayValue": { "values": [{ "stringValue": "seo" }, { "stringValue": "contenu" }] }
+      },
+      "relatedIds": { "arrayValue": {} },
+      "readingMinutes": { "integerValue": "7" },
+      "views": { "integerValue": "0" },
+      "rating": { "doubleValue": 4.5 },
+      "featured": { "booleanValue": false },
+      "publishedAt": { "timestampValue": "2026-01-15T10:30:00.123456Z" },
+      "createdAt": { "stringValue": "2026-01-14T09:00:00.000Z" },
+      "author": {
+        "mapValue": {
+          "fields": {
+            "name": { "stringValue": "Max Morrys" },
+            "uid": { "stringValue": "Zx9QaB2cD3eF4gH5" }
+          }
+        }
+      },
+      "seo": { "mapValue": {} },
+      "archivedAt": { "nullValue": null }
+    }
+  },
+  {
+    "_case": "formations — modules/leçons imbriqués, prix entier stocké en double",
+    "name": "projects/max-morrys/databases/(default)/documents/formations/tunnel-de-vente",
+    "fields": {
+      "title": { "stringValue": "Tunnel de vente" },
+      "price": { "doubleValue": 45000 },
+      "priceLabel": { "stringValue": "45 000 XOF" },
+      "lessonCount": { "integerValue": "24" },
+      "status": { "stringValue": "published" },
+      "modules": {
+        "arrayValue": {
+          "values": [
+            {
+              "mapValue": {
+                "fields": {
+                  "id": { "stringValue": "m1" },
+                  "title": { "stringValue": "Fondations" },
+                  "lessons": {
+                    "arrayValue": {
+                      "values": [
+                        {
+                          "mapValue": {
+                            "fields": {
+                              "id": { "stringValue": "l1" },
+                              "videoUrl": {
+                                "stringValue": "https://media.maxmorrys.me/formations/tunnel/l1.mp4"
+                              },
+                              "durationSeconds": { "integerValue": "612" },
+                              "resources": { "arrayValue": {} }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "_case": "enrollments — identifiant composite, progression fractionnaire",
+    "name": "projects/max-morrys/databases/(default)/documents/enrollments/Zx9QaB2cD3eF4gH5_tunnel-de-vente",
+    "fields": {
+      "userId": { "stringValue": "Zx9QaB2cD3eF4gH5" },
+      "formationId": { "stringValue": "tunnel-de-vente" },
+      "progress": { "doubleValue": 66.66666666666667 },
+      "completedLessons": {
+        "arrayValue": { "values": [{ "stringValue": "l1" }, { "stringValue": "l2" }] }
+      },
+      "completed": { "booleanValue": false },
+      "notifiedAt": { "nullValue": null },
+      "enrolledAt": { "timestampValue": "2026-03-02T08:15:42Z" }
+    }
+  },
+  {
+    "_case": "transactions — montant entier, référence vers un autre document",
+    "name": "projects/max-morrys/databases/(default)/documents/transactions/trx_9f2c",
+    "fields": {
+      "amount": { "integerValue": "19900" },
+      "currency": { "stringValue": "XOF" },
+      "status": { "stringValue": "completed" },
+      "usedCount": { "integerValue": "3" },
+      "formation": {
+        "referenceValue": "projects/max-morrys/databases/(default)/documents/formations/tunnel-de-vente"
+      },
+      "meta": {
+        "mapValue": {
+          "fields": {
+            "provider": { "stringValue": "bictorys" },
+            "fee": { "doubleValue": 398.0 }
+          }
+        }
+      },
+      "completedAt": { "timestampValue": "2026-03-02T08:16:01.000487Z" }
+    }
+  },
+  {
+    "_case": "users — rôle, préférences imbriquées, createdAt en chaîne ISO",
+    "name": "projects/max-morrys/databases/(default)/documents/users/Zx9QaB2cD3eF4gH5",
+    "fields": {
+      "email": { "stringValue": "membre@example.com" },
+      "displayName": { "stringValue": "Membre Test" },
+      "role": { "stringValue": "student" },
+      "createdAt": { "stringValue": "2025-11-03T12:00:00.000Z" },
+      "onboardingCompleted": { "booleanValue": true },
+      "referralRewarded": { "booleanValue": false },
+      "preferences": {
+        "mapValue": {
+          "fields": {
+            "language": { "stringValue": "fr" },
+            "emailNotifications": { "booleanValue": true }
+          }
+        }
+      }
+    }
+  },
+  {
+    "_case": "club_subscriptions — abonnement actif",
+    "name": "projects/max-morrys/databases/(default)/documents/club_subscriptions/Zx9QaB2cD3eF4gH5",
+    "fields": {
+      "status": { "stringValue": "active" },
+      "startedAt": { "timestampValue": "2026-02-01T00:00:00Z" },
+      "expiresAt": { "timestampValue": "2027-02-01T00:00:00Z" },
+      "referralRewarded": { "booleanValue": true }
+    }
+  },
+  {
+    "_case": "notifications/{uid}/items — sous-collection",
+    "name": "projects/max-morrys/databases/(default)/documents/notifications/Zx9QaB2cD3eF4gH5/items/n_001",
+    "fields": {
+      "type": { "stringValue": "enrollment" },
+      "read": { "booleanValue": false },
+      "title": { "stringValue": "Inscription confirmée" },
+      "createdAt": { "timestampValue": "2026-03-02T08:16:05.900Z" }
+    }
+  },
+  {
+    "_case": "valeurs limites — NaN, Infinity, octets, géo, entier négatif",
+    "name": "projects/max-morrys/databases/(default)/documents/_fixtures/edge",
+    "fields": {
+      "nan": { "doubleValue": "NaN" },
+      "positiveInfinity": { "doubleValue": "Infinity" },
+      "negativeInfinity": { "doubleValue": "-Infinity" },
+      "negativeInteger": { "integerValue": "-42" },
+      "zero": { "integerValue": "0" },
+      "bytes": { "bytesValue": "SGVsbG8gUjI=" },
+      "position": { "geoPointValue": { "latitude": 14.6928, "longitude": -17.4467 } },
+      "originAxis": { "geoPointValue": {} },
+      "emptyString": { "stringValue": "" },
+      "champ avec espaces": { "stringValue": "clé non identifiante" }
+    }
+  }
+]

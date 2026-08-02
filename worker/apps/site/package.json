@@ -1,0 +1,17 @@
+{
+  "name": "@mm/site-worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Worker maxmorrys-site — SEO au bord (prerender, sitemap, rss, catalog) devant Firebase Hosting",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --env=\"\"",
+    "deploy:preview": "wrangler deploy --env preview"
+  },
+  "dependencies": {
+    "@mm/firestore-rest": "*",
+    "@mm/gcp-auth": "*",
+    "@mm/shared": "*"
+  }
+}

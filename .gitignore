@@ -11,6 +11,9 @@ dist
 dist-ssr
 *.local
 
+# État local de wrangler (caches de build, bindings simulés)
+.wrangler/
+
 .vscode/*
 !.vscode/extensions.json
 .idea

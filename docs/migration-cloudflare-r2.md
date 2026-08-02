@@ -26,13 +26,13 @@ Lecture publique ◄──────────────── media.maxmo
 ```bash
 cd worker
 npm install
-# Confirmer FIREBASE_PROJECT_ID dans wrangler.toml (= project_id Firebase, ex. "max-morrys")
+# Confirmer FIREBASE_PROJECT_ID dans apps/media/wrangler.toml (= project_id Firebase, ex. "max-morrys")
 # Renseigner ADMIN_UIDS = "<ton uid admin>" (UIDs autorisés à écrire dans uploads/, club_events/, club_sessions/)
-npx wrangler deploy
+npm -w @mm/media-worker run deploy
 ```
 
 Le binding R2 (`BUCKET` → `maxmorrys-lms`) et la route `media-api.maxmorrys.me`
-sont définis dans `worker/wrangler.toml`.
+sont définis dans `worker/apps/media/wrangler.toml`.
 
 > Trouver ton UID admin : Firebase Console → Authentication → ta ligne → *User UID*.
 

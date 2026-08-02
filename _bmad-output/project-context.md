@@ -409,8 +409,13 @@ firebase deploy --only firestore:rules
 firebase deploy --only firestore:indexes
 firebase deploy --only storage
 firebase deploy --only functions
-cd worker && npx wrangler deploy   # entièrement hors CI
+cd worker && npm -w @mm/media-worker run deploy   # entièrement hors CI
 ```
+
+⚠️ `worker/` est un monorepo npm workspaces depuis la migration Cloudflare :
+`packages/` (gcp-auth, firestore-rest, firebase-auth-rest, shared) et `apps/`
+(media, et à venir site, api, jobs, render). Le typecheck et les tests sont
+désormais couverts par le job `workers` de la CI. Voir `worker/README.md`.
 
 **Une modification de `firestore.rules` mergée dans `main` est dans git, pas en ligne.**
 
