@@ -29,6 +29,7 @@ import {
 
 import { getFirestore, getVerifier, type CallContext } from './context';
 import type { Env } from './env';
+import { handleExportDownload } from './exportDownload';
 import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
 import { handleBictorysWebhook } from './webhook/bictorys';
@@ -58,6 +59,9 @@ export default {
     // court-circuiter la validation onCall **dans les deux cas** : servi
     // localement, ou relayé. Le faire passer par `readCallableBody` le
     // rejetterait en 400 avant même d'atteindre Cloud Functions.
+    // Téléchargement d'un export RGPD : une requête GET signée, pas une callable.
+    if (name === 'exportDownload') return handleExportDownload(request, env);
+
     if (name === 'bictorysWebhook') {
       if (migratedNames(env).has(name)) return handleBictorysWebhook(request, env);
       return proxyWebhook(name, request, env);

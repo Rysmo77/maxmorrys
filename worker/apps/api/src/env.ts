@@ -23,6 +23,11 @@ export interface Env {
   BICTORYS_API_URL: string;
   /** Base publique servant à construire les URL de retour après paiement. */
   APP_BASE_URL: string;
+  /** Base de ce Worker, pour construire les liens de téléchargement d'export. */
+  API_BASE_URL: string;
+
+  /** Bucket R2 : exports RGPD et purge des médias à la suppression de compte. */
+  EXPORTS?: R2Bucket;
 
   /**
    * Base de l'API Gemini. Pointer sur AI Gateway apporte cache, budgets et
@@ -40,4 +45,6 @@ export interface Env {
   BICTORYS_API_KEY?: string;
   BICTORYS_WEBHOOK_SECRET?: string;
   META_ACCESS_TOKEN?: string;
+  /** Secret de signature des liens de téléchargement d'export. */
+  EXPORT_SIGNING_KEY?: string;
 }

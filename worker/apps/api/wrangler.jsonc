@@ -13,11 +13,12 @@
 
     // Callables servies localement. Tout nom absent est relayé vers Cloud
     // Functions : c'est l'interrupteur de bascule, et son rollback.
-    "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo",
+    "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,exportUserData,deleteUserAccount",
 
     "FUNCTIONS_ORIGIN": "https://us-central1-max-morrys.cloudfunctions.net",
     "BICTORYS_API_URL": "https://api.bictorys.com/pay/v1/charges",
     "APP_BASE_URL": "https://maxmorrys.me",
+    "API_BASE_URL": "https://api.maxmorrys.me",
 
     // Remplacer par l'URL AI Gateway pour obtenir cache, budgets et traces.
     "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com"
@@ -28,6 +29,8 @@
   //   npx wrangler secret put SPOTIFY_CLIENT_ID
   //   npx wrangler secret put SPOTIFY_CLIENT_SECRET
   //   npx wrangler secret put YOUTUBE_API_KEY
+
+  "r2_buckets": [{ "binding": "EXPORTS", "bucket_name": "maxmorrys-lms" }],
 
   "observability": { "enabled": true },
 
@@ -41,12 +44,15 @@
       "vars": {
         "FIREBASE_PROJECT_ID": "max-morrys",
         "ALLOWED_ORIGINS": "https://maxmorrys.me,https://www.maxmorrys.me,http://localhost:5173",
-        "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,bictorysWebhook",
+        "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,bictorysWebhook,exportUserData,deleteUserAccount",
         "FUNCTIONS_ORIGIN": "https://us-central1-max-morrys.cloudfunctions.net",
     "BICTORYS_API_URL": "https://api.bictorys.com/pay/v1/charges",
     "APP_BASE_URL": "https://maxmorrys.me",
+    // En preview, les liens d'export doivent pointer sur le worker de preview.
+        "API_BASE_URL": "https://maxmorrys-api-preview.rysmo.workers.dev",
         "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com"
       },
+      "r2_buckets": [{ "binding": "EXPORTS", "bucket_name": "maxmorrys-lms" }],
       "observability": { "enabled": true }
     }
   }

@@ -2,6 +2,7 @@ import type { CallContext } from './context';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
 import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
+import { deleteUserAccount, exportUserData } from './handlers/gdpr';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { issueCertificate } from './handlers/issueCertificate';
 import { parseCv } from './handlers/parseCv';
@@ -53,4 +54,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   createClubCharge,
   createRysmoPackCharge,
   createRysmoSubscriptionCharge,
+  // RGPD
+  exportUserData,
+  deleteUserAccount,
 };
