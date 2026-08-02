@@ -64,7 +64,10 @@ const CASES = [
   },
   { name: 'youtubeProxy', data: { videoId: 'test' } },
   { name: 'adminManageRysmoQuota', data: { action: 'get' }, label: 'adminManageRysmoQuota (refusé)' },
-  { name: 'adminCreateUser', data: {}, label: 'adminCreateUser (refusé)' },
+  // Ces trois cas échouent à la validation, avant toute création de compte.
+  { name: 'adminCreateUser', data: {}, label: 'adminCreateUser (refusé)', expectsRefusal: true },
+  // parseCv sans abonnement Club actif : refus attendu des deux côtés.
+  { name: 'parseCv', data: {}, label: 'parseCv (hors Club)' },
 
   // Chemins d'argument invalide.
   { name: 'youtubeProxy', data: {}, label: 'youtubeProxy (sans videoId)' },
@@ -76,10 +79,27 @@ const CASES = [
   },
 ];
 
+/**
+ * ⛔ Callables **jamais** appelées par ce harnais.
+ *
+ * Elles ont un effet de bord durable et le harnais frappe les deux côtés : un
+ * appel devient donc deux exécutions concurrentes sur la même base. Vécu :
+ * `backfillSlugEn` a écrit 40 slugs de production lors d'un passage où il était
+ * censé tester un refus. Les vérifier suppose un appel délibéré, un par un.
+ */
+export const SIDE_EFFECTING = new Set([
+  'backfillSlugEn', // écrit des slug_en réels
+  'reindexSearch', // vide et reconstruit les index Typesense
+  'weeklyClubDigestManual', // publie une info et notifie tous les membres
+  'adminCreateUser', // crée un compte (seuls ses refus sont testés)
+]);
+
 /** Cas nécessitant le rôle admin. Lecture seule ou sans cible existante. */
 const ADMIN_CASES = [
-  // reindexSearch est volontairement absent : il vide et reconstruit les index
-  // Typesense, donc il n'est pas comparable à blanc. Vérifié séparément.
+  // Volontairement absents : reindexSearch vide et reconstruit les index
+  // Typesense, weeklyClubDigestManual publierait une info et notifierait tous
+  // les membres, backfillSlugEn écrirait de vrais slugs. Aucun n'est comparable
+  // à blanc — ils se vérifient un par un, en connaissance de cause.
   { name: 'adminManageRysmoQuota', data: { action: 'get', userId: 'zz-migration-smoke-test' } },
   { name: 'adminManageRysmoQuota', data: { action: 'get' }, label: 'adminManageRysmoQuota (sans userId)' },
   {
@@ -88,8 +108,8 @@ const ADMIN_CASES = [
     label: 'adminManageRysmoQuota (montant invalide)',
   },
   { name: 'adminManageRysmoQuota', data: { action: 'nawak', userId: 'x' }, label: 'adminManageRysmoQuota (action invalide)' },
-  { name: 'adminCreateUser', data: { email: 'pas-un-email', password: 'x', displayName: 'x' }, label: 'adminCreateUser (email invalide)' },
-  { name: 'adminCreateUser', data: { email: 'ok@example.com', password: 'court', displayName: 'x' }, label: 'adminCreateUser (mot de passe court)' },
+  { name: 'adminCreateUser', data: { email: 'pas-un-email', password: 'x', displayName: 'x' }, label: 'adminCreateUser (email invalide)', expectsRefusal: true },
+  { name: 'adminCreateUser', data: { email: 'ok@example.com', password: 'court', displayName: 'x' }, label: 'adminCreateUser (mot de passe court)', expectsRefusal: true },
   { name: 'adminManageEnrollment', data: { action: 'create' }, label: 'adminManageEnrollment (sans ids)' },
   {
     name: 'adminManageEnrollment',
@@ -99,10 +119,23 @@ const ADMIN_CASES = [
 ];
 
 const withAdmin = process.env.PARITY_ADMIN === 'true';
-const allCases = withAdmin ? [...CASES, ...ADMIN_CASES] : CASES;
-
 const selected = ONLY ? new Set(ONLY.split(',')) : null;
-const cases = selected ? allCases.filter((c) => selected.has(c.name)) : allCases;
+
+/**
+ * Deux phases distinctes, et c'est essentiel : les cas de refus doivent tourner
+ * **avant** que le compte de test ne reçoive le rôle admin. Les mélanger revient
+ * à tester un chemin autorisé en croyant tester un refus — et à déclencher pour
+ * de vrai ce qu'on pensait voir rejeté.
+ */
+function keep(list) {
+  // `expectsRefusal` marque un cas qui n'atteint jamais l'effet de bord :
+  // il échoue à l'autorisation ou à la validation des arguments.
+  const usable = list.filter((c) => !SIDE_EFFECTING.has(c.name) || c.expectsRefusal);
+  return selected ? usable.filter((c) => selected.has(c.name)) : usable;
+}
+const anonCases = keep(CASES);
+const adminCases = withAdmin ? keep(ADMIN_CASES) : [];
+const cases = [...anonCases, ...adminCases];
 
 const sa = JSON.parse(await readFile(credentialsPath, 'utf8'));
 const TEST_UID = 'zz-migration-smoke-test';
@@ -258,16 +291,15 @@ let failures = 0;
 let accessToken = null;
 try {
   const idToken = await exchangeForIdToken(mintCustomToken(TEST_UID));
-  console.log(`Compte de test ${TEST_UID} authentifié.`);
-
-  if (withAdmin) {
-    accessToken = await oauthAccessToken();
-    await setTestUserAdmin(accessToken);
-    console.log('Rôle admin accordé temporairement.');
-  }
-  console.log('');
+  console.log(`Compte de test ${TEST_UID} authentifié.\n`);
 
   for (const testCase of cases) {
+    // Le rôle admin n'est accordé qu'au moment de passer aux cas qui l'exigent.
+    if (adminCases.length > 0 && testCase === adminCases[0]) {
+      accessToken = await oauthAccessToken();
+      await setTestUserAdmin(accessToken);
+      console.log('\n— rôle admin accordé, passage aux cas administrateur —\n');
+    }
     const label = testCase.label ?? testCase.name;
     const [worker, functions] = await callBoth(testCase.name, testCase.data, idToken);
 

@@ -13,7 +13,7 @@
 
     // Callables servies localement. Tout nom absent est relayé vers Cloud
     // Functions : c'est l'interrupteur de bascule, et son rollback.
-    "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch",
+    "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual",
 
     "FUNCTIONS_ORIGIN": "https://us-central1-max-morrys.cloudfunctions.net",
 
@@ -39,7 +39,7 @@
       "vars": {
         "FIREBASE_PROJECT_ID": "max-morrys",
         "ALLOWED_ORIGINS": "https://maxmorrys.me,https://www.maxmorrys.me,http://localhost:5173",
-        "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch",
+        "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual",
         "FUNCTIONS_ORIGIN": "https://us-central1-max-morrys.cloudfunctions.net",
         "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com"
       },

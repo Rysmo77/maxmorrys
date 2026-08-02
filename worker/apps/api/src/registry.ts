@@ -1,10 +1,13 @@
 import type { CallContext } from './context';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
+import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { issueCertificate } from './handlers/issueCertificate';
+import { parseCv } from './handlers/parseCv';
 import { reindexSearch } from './handlers/reindexSearch';
 import { spotifyProxy } from './handlers/spotifyProxy';
+import { weeklyClubDigestManual } from './handlers/weeklyClubDigestManual';
 import { translateContent } from './handlers/translateContent';
 import { youtubeProxy } from './handlers/youtubeProxy';
 
@@ -27,9 +30,12 @@ export const HANDLERS: Record<string, CallHandler> = {
   clearRysmoMemory,
   issueCertificate,
   translateContent,
+  parseCv,
   // Administration
   adminCreateUser,
   adminManageRysmoQuota,
   adminManageEnrollment,
   reindexSearch,
+  backfillSlugEn,
+  weeklyClubDigestManual,
 };
