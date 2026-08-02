@@ -79,6 +79,7 @@ const STATIC_PAGES = [
     { path: '/podcasts', changefreq: 'weekly', priority: '0.8' },
     { path: '/videos', changefreq: 'weekly', priority: '0.8' },
     { path: '/faq', changefreq: 'monthly', priority: '0.5' },
+    { path: '/agence', changefreq: 'monthly', priority: '0.8' },
     { path: '/contact', changefreq: 'monthly', priority: '0.5' },
     { path: '/legal/mentions-legales', changefreq: 'yearly', priority: '0.3' },
     { path: '/legal/confidentialite', changefreq: 'yearly', priority: '0.3' },

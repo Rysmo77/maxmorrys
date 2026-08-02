@@ -16,6 +16,7 @@ const SEGMENTS = {
     videos: 'videos',
     faq: 'faq',
     contact: 'contact',
+    agence: 'agency',
     legal: 'legal',
     'mentions-legales': 'legal-notice',
     confidentialite: 'privacy',

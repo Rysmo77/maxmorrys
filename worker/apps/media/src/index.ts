@@ -16,6 +16,14 @@ export interface Env {
   PUBLIC_MEDIA_BASE: string;
   ALLOWED_ORIGINS: string;
   ADMIN_UIDS: string;
+  /**
+   * Secret partagé avec les Cloud Functions pour la suppression d'objets.
+   *
+   * Les triggers Firestore de nettoyage tournent sur GCP et n'ont aucun accès à
+   * R2 ; ils passent donc par ce Worker. L'endpoint n'est jamais appelé depuis un
+   * navigateur — d'où un secret plutôt qu'une vérification d'ID token.
+   */
+  INTERNAL_DELETE_KEY?: string;
 }
 
 interface VerifiedUser {
@@ -111,6 +119,66 @@ function authorizeKey(key: string, user: VerifiedUser): { rule: FolderRule } | {
   return { rule };
 }
 
+/**
+ * Suppression d'objets R2, appelée par les triggers Firestore de nettoyage.
+ *
+ * Ces triggers tournent sur GCP et ne peuvent pas atteindre R2 : sans cet
+ * endpoint, chaque suppression de contenu laissait un objet orphelin, sans
+ * erreur ni log.
+ *
+ * Comparaison à temps constant du secret, et suppression par lots — R2 accepte
+ * jusqu'à 1000 clés par appel.
+ */
+async function handleDelete(
+  req: Request,
+  env: Env,
+  cors: Record<string, string>,
+): Promise<Response> {
+  if (!env.INTERNAL_DELETE_KEY) {
+    return json({ error: 'Endpoint non configuré' }, 503, cors);
+  }
+
+  const provided = req.headers.get('X-Internal-Key') ?? '';
+  if (!constantTimeEqual(provided, env.INTERNAL_DELETE_KEY)) {
+    return json({ error: 'Non autorisé' }, 401, cors);
+  }
+
+  let keys: unknown;
+  try {
+    ({ keys } = (await req.json()) as { keys?: unknown });
+  } catch {
+    return json({ error: 'Corps JSON invalide' }, 400, cors);
+  }
+
+  if (!Array.isArray(keys) || keys.some((k) => typeof k !== 'string')) {
+    return json({ error: 'keys doit être un tableau de chaînes' }, 400, cors);
+  }
+
+  // Mêmes gardes que sur l'upload : pas de traversée de chemin ni de clé absolue.
+  const safe = (keys as string[]).filter(
+    (key) => key && !key.startsWith('/') && !key.includes('..') && !key.includes('//'),
+  );
+  if (safe.length === 0) return json({ deleted: 0 }, 200, cors);
+
+  try {
+    await env.BUCKET.delete(safe.slice(0, 1000));
+  } catch (error: unknown) {
+    console.error('Suppression R2 impossible :', error);
+    return json({ error: 'Échec de la suppression' }, 502, cors);
+  }
+
+  console.log(`Supprimé ${safe.length} objet(s) R2`);
+  return json({ deleted: safe.length }, 200, cors);
+}
+
+/** Comparaison à temps constant — `timingSafeEqual` n'existe pas sur Workers. */
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const allowed = env.ALLOWED_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean);
@@ -119,6 +187,11 @@ export default {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
 
     const url = new URL(req.url);
+
+    if (req.method === 'POST' && url.pathname === '/delete') {
+      return handleDelete(req, env, cors);
+    }
+
     if (req.method !== 'POST' || url.pathname !== '/upload') {
       return json({ error: 'Not found' }, 404, cors);
     }

@@ -22,8 +22,32 @@ import { initializeApp, applicationDefault } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
 const APPLY = process.argv.includes('--apply');
+/**
+ * Vérifie que chaque URL cible existe réellement sur R2 avant d'écrire.
+ *
+ * C'est le garde-fou qui manquait : réécrire une URL vers un objet non copié
+ * transforme un média fonctionnel en 404, sans erreur au moment de l'écriture.
+ * Implicite avec `--apply`, sauf `--skip-verify`.
+ */
+const VERIFY = (process.argv.includes('--verify') || APPLY) && !process.argv.includes('--skip-verify');
 const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'max-morrys';
 const MEDIA_BASE = (process.env.MEDIA_BASE || 'https://media.maxmorrys.me').replace(/\/$/, '');
+
+/** Cache des vérifications : le même média est souvent référencé par plusieurs documents. */
+const reachable = new Map();
+
+async function isReachable(url) {
+  if (reachable.has(url)) return reachable.get(url);
+  let ok = false;
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    ok = response.ok;
+  } catch {
+    ok = false;
+  }
+  reachable.set(url, ok);
+  return ok;
+}
 
 // Champs (de premier niveau) contenant des URLs de médias, par collection.
 // NB : les vidéos de cours (formations.modules[].lessons[].videoUrl) et les
@@ -73,6 +97,7 @@ async function run() {
   let totalDocs = 0;
   let changedDocs = 0;
   let changedFields = 0;
+  let missing = 0;
 
   for (const [collection, fields] of Object.entries(COLLECTIONS)) {
     const snap = await db.collection(collection).get();
@@ -86,13 +111,20 @@ async function run() {
       const update = {};
       for (const field of fields) {
         const next = toR2Url(data[field]);
-        if (next && next !== data[field]) {
-          update[field] = next;
-          changedFields++;
-          console.log(`  ${collection}/${doc.id}.${field}`);
-          console.log(`    - ${data[field]}`);
-          console.log(`    + ${next}`);
+        if (!next || next === data[field]) continue;
+
+        if (VERIFY && !(await isReachable(next))) {
+          missing++;
+          console.log(`  ⚠ ${collection}/${doc.id}.${field} — cible absente de R2, non réécrit`);
+          console.log(`    ${next}`);
+          continue;
         }
+
+        update[field] = next;
+        changedFields++;
+        console.log(`  ${collection}/${doc.id}.${field}`);
+        console.log(`    - ${data[field]}`);
+        console.log(`    + ${next}`);
       }
       if (Object.keys(update).length) {
         changedDocs++;
@@ -109,6 +141,13 @@ async function run() {
 
   console.log('\n──────────────────────────────────────────');
   console.log(`Total : ${totalDocs} docs parcourus, ${changedDocs} docs / ${changedFields} champs à réécrire`);
+  if (missing > 0) {
+    console.log(`⚠ ${missing} champ(s) laissés intacts : l'objet correspondant est absent de R2.`);
+    console.log('  Relancer scripts/migrate-gcs-to-r2.mjs --apply avant de réessayer.');
+  }
+  console.log('\nNon traité ici, à dessein : les vidéos de cours et ressources PDF');
+  console.log('(formations.modules[].lessons[]). Les réécrire vers media.maxmorrys.me');
+  console.log('les rendrait publiques — elles attendent le Worker d\'URLs signées.');
   console.log(APPLY ? '✅ Changements APPLIQUÉS.' : '🔎 DRY-RUN — relancer avec --apply pour écrire.');
 }
 

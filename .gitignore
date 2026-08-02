@@ -32,3 +32,6 @@ n8n/credentials.json
 max-morrys-*.json
 *service-account*.json
 *-serviceaccount.json
+
+# Manifeste de reprise de la copie GCS → R2 (état local, pas de la configuration)
+.migration-gcs-r2.json
