@@ -25,6 +25,39 @@ export const cleanupTempStorage = onSchedule('0 3 * * *', async () => {
 });
 
 /**
+ * Purge les récapitulatifs de devis agence de plus de 90 jours.
+ * Tourne chaque jour à 4h UTC.
+ *
+ * Ces documents sont lisibles publiquement par leur référence (cf. `agency_quotes` dans
+ * firestore.rules) : les laisser s'accumuler indéfiniment agrandit inutilement la surface
+ * atteignable. Leur validité commerciale est de 30 jours ; 90 laisse une marge confortable
+ * pour un client qui rouvre son lien tardivement. Le lead correspondant, lui, est conservé.
+ */
+export const cleanupAgencyQuotes = onSchedule('0 4 * * *', async () => {
+  const db = admin.firestore();
+  const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+  const snap = await db
+    .collection('agency_quotes')
+    .where('createdAt', '<', cutoff)
+    .limit(500)
+    .get();
+
+  if (snap.empty) {
+    console.log('cleanupAgencyQuotes: nothing to purge');
+    return;
+  }
+
+  // Lot unique borné à 500 : c'est la limite d'un WriteBatch Firestore, et le volume
+  // quotidien attendu est très inférieur. Le reliquat éventuel part le lendemain.
+  const batch = db.batch();
+  snap.docs.forEach((doc) => batch.delete(doc.ref));
+  await batch.commit();
+
+  console.log(`cleanupAgencyQuotes: purged ${snap.size} quote(s) older than 90 days`);
+});
+
+/**
  * Export Firestore data to Cloud Storage for backup.
  * Runs daily at 2am UTC.
  * Requires: Cloud Firestore Admin API enabled + Storage bucket.

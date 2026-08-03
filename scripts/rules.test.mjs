@@ -6,7 +6,7 @@ import {
   assertSucceeds,
 } from '@firebase/rules-unit-testing';
 import { readFileSync } from 'node:fs';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 
 const UID = 'user_alice';
 const OTHER = 'user_bob';
@@ -85,6 +85,89 @@ await check('owner reads own gamification is ALLOWED', assertSucceeds(
 ));
 await check("reading another user's gamification is DENIED", assertFails(
   getDoc(doc(alice, 'gamification', OTHER)),
+));
+
+console.log('agency_leads — public quote form, admin-only pipeline');
+const anon = testEnv.unauthenticatedContext().firestore();
+const validLead = {
+  businessName: 'Restaurant Le Baobab',
+  contactName: 'Aminata Diop',
+  phone: '+221770000000',
+  city: 'Dakar, Point E',
+  sector: 'restaurant',
+  pack: 'visible',
+  plan: 'croissance',
+  status: 'new',
+  createdAt: 't0',
+};
+await check('anonymous visitor submits a valid lead is ALLOWED', assertSucceeds(
+  setDoc(doc(anon, 'agency_leads', 'lead_ok'), validLead),
+));
+await check('lead created with a status other than "new" is DENIED', assertFails(
+  setDoc(doc(anon, 'agency_leads', 'lead_signed'), { ...validLead, status: 'signed' }),
+));
+await check('lead carrying internal notes is DENIED', assertFails(
+  setDoc(doc(anon, 'agency_leads', 'lead_notes'), { ...validLead, notes: 'injected' }),
+));
+// Retire réellement la clé : `phone: undefined` ferait échouer le SDK, pas les règles.
+const { phone: _omittedPhone, ...leadWithoutPhone } = validLead;
+await check('lead missing the phone number is DENIED', assertFails(
+  setDoc(doc(anon, 'agency_leads', 'lead_nophone'), leadWithoutPhone),
+));
+await check('lead with an oversized message is DENIED', assertFails(
+  setDoc(doc(anon, 'agency_leads', 'lead_spam'), { ...validLead, message: 'x'.repeat(2001) }),
+));
+await check('student reading the agency pipeline is DENIED', assertFails(
+  getDoc(doc(alice, 'agency_leads', 'lead_ok')),
+));
+await check('student qualifying a lead is DENIED', assertFails(
+  updateDoc(doc(alice, 'agency_leads', 'lead_ok'), { status: 'signed' }),
+));
+
+console.log('agency_quotes — lien public, mais aucune donnée personnelle');
+const validQuote = {
+  businessName: 'Restaurant Le Baobab',
+  city: 'Dakar, Point E',
+  pack: 'visible',
+  plan: 'croissance',
+  packPrice: 495000,
+  planSetup: 375000,
+  planMonthly: 175000,
+  locale: 'fr',
+  createdAt: 't0',
+  expiresAt: 't30',
+};
+const REF = 'DV-0123456789AB';
+
+await check('anonymous creates a quote without PII is ALLOWED', assertSucceeds(
+  setDoc(doc(anon, 'agency_quotes', REF), validQuote),
+));
+await check('anonymous reads a quote by exact reference is ALLOWED', assertSucceeds(
+  getDoc(doc(anon, 'agency_quotes', REF)),
+));
+
+// Le coeur du dispositif : un devis est un document a lien public. Si l'une de ces
+// quatre assertions casse, un numero de telephone devient accessible a qui a l'URL.
+const PII_FIELDS = [
+  ['phone', '+221770000000'],
+  ['email', 'client@example.com'],
+  ['contactName', 'Aminata Diop'],
+  ['message', 'je vends des tissus'],
+];
+for (const [i, [field, value]] of PII_FIELDS.entries()) {
+  await check(`quote carrying "${field}" is DENIED`, assertFails(
+    setDoc(doc(anon, 'agency_quotes', `DV-LEAK0000000${i}`), { ...validQuote, [field]: value }),
+  ));
+}
+
+await check('anonymous listing all quotes is DENIED', assertFails(
+  getDocs(collection(anon, 'agency_quotes')),
+));
+await check('quote with an out-of-range amount is DENIED', assertFails(
+  setDoc(doc(anon, 'agency_quotes', 'DV-BADAMOUNT01'), { ...validQuote, packPrice: 99999999 }),
+));
+await check('rewriting an issued quote is DENIED', assertFails(
+  updateDoc(doc(anon, 'agency_quotes', REF), { packPrice: 1 }),
 ));
 
 await testEnv.cleanup();

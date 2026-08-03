@@ -172,6 +172,21 @@ const staticPages: Record<string, PageMeta> = {
       { name: 'FAQ', url: `${SITE_URL}/faq` },
     ],
   },
+  '/agence': {
+    title: `Je digitalise ton commerce — Site, Google Maps, WhatsApp | ${SITE_NAME}`,
+    description:
+      'Ton commerce visible 24h/24, trouvé sur Google Maps et présent sur WhatsApp. Mise en place et accompagnement mensuel pour les commerces de Dakar, Abidjan et Cotonou. Packs à partir de 295 000 FCFA.',
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/agence`,
+    h1: 'Tes clients te cherchent en ligne',
+    bodyText:
+      'J\'installe la présence digitale complète de ton commerce : site web, fiche Google Business Profile, catalogue produits sur WhatsApp, Facebook, Instagram et Google Merchant, mesure des visites et référencement local. Trois packs de mise en place : Présence Locale à 295 000 FCFA, Commerce Visible à 495 000 FCFA, Boutique Digitale à 895 000 FCFA. Ensuite, un accompagnement mensuel qui publie pour toi, tient ton catalogue à jour et t\'envoie un rapport chaque mois : Croissance Automatisée à 375 000 FCFA puis 175 000 FCFA par mois, ou Commerce 360 à 750 000 FCFA puis 225 000 FCFA par mois. Basé à Dakar, pour les commerces du Sénégal et d\'Afrique de l\'Ouest.',
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Agence', url: `${SITE_URL}/agence` },
+    ],
+  },
   '/contact': {
     title: `Contact | ${SITE_NAME}`,
     description:

@@ -6,7 +6,7 @@
  * Contrainte Satori : flexbox uniquement, pas de filter/blur/mask ; gradients + <svg> inline OK.
  */
 
-export type TemplateName = 'quote' | 'tip' | 'promo';
+export type TemplateName = 'quote' | 'tip' | 'promo' | 'poster' | 'panel';
 export type CardFormat = '1:1' | '4:5' | '9:16';
 export type AccentName = 'brand' | 'orange' | 'violet' | 'turquoise' | 'corail' | 'vert' | 'accent';
 
@@ -20,6 +20,7 @@ export interface CardPayload {
   highlight?: string; // fragment du titre à surligner en accent
   accent?: AccentName;
   backgroundUrl?: string;
+  curve?: boolean; // courbe signature (défaut true) ; false = look moins « template »
 }
 
 // Tokens couleurs officiels (brand-tokens.json)
@@ -103,8 +104,8 @@ function growthCurve(w: number, h: number, accent: string, opacity: number): str
   return `<div style="display:flex;position:absolute;left:0;bottom:0;width:${w}px;height:${ch}px;opacity:${opacity};">${svg}</div>`;
 }
 
-/** Titre Merriweather avec mot-clé surligné (mots de `highlight` passés en accent). */
-function titleBlock(p: CardPayload, size: number, color: string, accent: string): string {
+/** Titre avec mot-clé surligné (mots de `highlight` passés en accent). Police paramétrable. */
+function titleBlock(p: CardPayload, size: number, color: string, accent: string, font: string = FONT_TITLE): string {
   const words = (p.title || '').split(/\s+/).filter(Boolean);
   const hl = new Set((p.highlight || '').toLowerCase().split(/\s+/).filter(Boolean));
   const norm = (s: string) => s.replace(/[.,!?;:«»"'()]/g, '').toLowerCase();
@@ -114,7 +115,7 @@ function titleBlock(p: CardPayload, size: number, color: string, accent: string)
   const spans = words
     .map((wd) => `<div style="display:flex;color:${hl.has(norm(wd)) ? hlCol : color};">${esc(wd)}</div>`)
     .join('');
-  return `<div style="display:flex;flex-wrap:wrap;gap:${rg}px ${cg}px;font-size:${size}px;font-weight:900;line-height:1;font-family:${FONT_TITLE};">${spans}</div>`;
+  return `<div style="display:flex;flex-wrap:wrap;gap:${rg}px ${cg}px;font-size:${size}px;font-weight:900;line-height:1;font-family:${font};">${spans}</div>`;
 }
 
 function eyebrowBlock(text: string, accent: string): string {
@@ -152,18 +153,18 @@ function pill(text: string, bg: string, fg: string): string {
  *  - marque : fond dégradé + halo radial d'accent + courbe.
  *  - image  : photo plein cadre + scrim dégradé bleu + courbe subtile.
  */
-function shell(w: number, h: number, pad: number, grad: string, accent: string, contentInner: string, bgUri?: string): string {
+function shell(w: number, h: number, pad: number, grad: string, accent: string, contentInner: string, bgUri?: string, curve: boolean = true): string {
   let bgLayers: string;
   if (bgUri) {
     bgLayers =
       `<div style="display:flex;position:absolute;top:0;left:0;width:${w}px;height:${h}px;">` +
       `<img src="${bgUri}" width="${w}" height="${h}" style="width:${w}px;height:${h}px;object-fit:cover;" /></div>` +
       `<div style="display:flex;position:absolute;top:0;left:0;width:${w}px;height:${h}px;background:linear-gradient(to top, ${C.bleuProfond} 4%, ${hexToRgba(C.bleuProfond, 0.66)} 44%, ${hexToRgba(C.bleuProfond, 0.14)} 100%);"></div>` +
-      growthCurve(w, h, accent, 0.35);
+      (curve ? growthCurve(w, h, accent, 0.35) : '');
   } else {
     bgLayers =
       `<div style="display:flex;position:absolute;top:0;left:0;width:${w}px;height:${h}px;background:radial-gradient(circle at 82% 14%, ${hexToRgba(accent, 0.42)} 0%, ${hexToRgba(accent, 0)} 52%);"></div>` +
-      growthCurve(w, h, accent, 0.55);
+      (curve ? growthCurve(w, h, accent, 0.55) : '');
   }
   const base = bgUri ? C.bleuProfond : grad;
   return (
@@ -187,7 +188,7 @@ function quoteTpl(p: CardPayload, w: number, h: number, pad: number, bg?: string
     titleBlock(p, titleSize(p.title, h), C.blanc, acc) + body +
     `</div>` +
     footer(p, hexToRgba(C.blanc, 0.85), 'maxmorrys.me', logo);
-  return shell(w, h, pad, GRAD.institutionnel, acc, inner, bg);
+  return shell(w, h, pad, GRAD.institutionnel, acc, inner, bg, p.curve !== false);
 }
 
 function tipTpl(p: CardPayload, w: number, h: number, pad: number, bg?: string, logo?: string): string {
@@ -201,7 +202,7 @@ function tipTpl(p: CardPayload, w: number, h: number, pad: number, bg?: string, 
     titleBlock(p, titleSize(p.title, h), C.blanc, acc) + body +
     `</div>` +
     footer(p, hexToRgba(C.blanc, 0.85), 'maxmorrys.me', logo);
-  return shell(w, h, pad, GRAD.innovation, acc, inner, bg);
+  return shell(w, h, pad, GRAD.innovation, acc, inner, bg, p.curve !== false);
 }
 
 function promoTpl(p: CardPayload, w: number, h: number, pad: number, bg?: string, logo?: string): string {
@@ -219,7 +220,65 @@ function promoTpl(p: CardPayload, w: number, h: number, pad: number, bg?: string
     (cta ? `<div style="display:flex;margin-bottom:34px;">${cta}</div>` : '') +
     footer(p, hexToRgba(C.blanc, 0.85), 'maxmorrys.me', logo) +
     `</div>`;
-  return shell(w, h, pad, GRAD.energie, acc, inner, bg);
+  return shell(w, h, pad, GRAD.energie, acc, inner, bg, p.curve !== false);
+}
+
+/**
+ * Poster typographique : aplats de couleur, très grande typo Inter (sans-serif, « style plus fort »),
+ * bloc géométrique d'accent, PAS de photo, PAS de courbe, PAS de dégradé flou. Look éditorial affiché.
+ */
+function posterTpl(p: CardPayload, w: number, h: number, pad: number, _bg?: string, logo?: string): string {
+  const acc = accentColor(p);
+  // Fond plat bleu profond + grand bloc d'accent géométrique en bas-droite (force graphique).
+  const blob = Math.round(w * 0.9);
+  const size = Math.round(titleSize(p.title, h) * 1.08);
+  const body = p.body
+    ? `<div style="display:flex;color:${hexToRgba(C.blanc, 0.86)};font-size:40px;font-weight:600;line-height:1.4;margin-top:34px;font-family:${FONT_BODY};">${esc(p.body)}</div>`
+    : '';
+  const inner =
+    `<div style="display:flex;flex-direction:column;">` + pill((p.eyebrow || 'MAX-MORRYS').toUpperCase(), acc, C.bleuProfond) + `</div>` +
+    `<div style="display:flex;flex-direction:column;">` +
+    titleBlock(p, size, C.blanc, acc, FONT_BODY) + body +
+    `</div>` +
+    footer(p, hexToRgba(C.blanc, 0.9), 'maxmorrys.me', logo);
+  return (
+    `<div style="display:flex;position:relative;width:${w}px;height:${h}px;background:${C.bleuProfond};">` +
+    // gros disque d'accent, coin bas-droit (partiellement hors cadre) = signal graphique fort
+    `<div style="display:flex;position:absolute;left:${w - Math.round(blob * 0.42)}px;top:${h - Math.round(blob * 0.5)}px;width:${blob}px;height:${blob}px;border-radius:${Math.round(blob / 2)}px;background:${hexToRgba(acc, 0.9)};"></div>` +
+    // barre d'accent verticale à gauche = ancrage éditorial
+    `<div style="display:flex;position:absolute;left:0;top:0;width:${Math.round(w * 0.03)}px;height:${h}px;background:${acc};"></div>` +
+    `<div style="display:flex;flex-direction:column;justify-content:space-between;position:relative;width:${w}px;height:${h}px;padding:${pad}px;">` +
+    inner +
+    `</div></div>`
+  );
+}
+
+/**
+ * Panel « couverture magazine » : photo en haut, panneau de couleur pleine en bas portant le texte
+ * (sans-serif Inter). Franchement différent du photo-plein-cadre (A) et du poster flat (C).
+ */
+function panelTpl(p: CardPayload, w: number, h: number, pad: number, bg?: string, logo?: string): string {
+  const acc = accentColor(p);
+  const photoH = Math.round(h * 0.5);
+  const size = Math.round(titleSize(p.title, h) * 0.86);
+  const photo = bg
+    ? `<div style="display:flex;position:absolute;top:0;left:0;width:${w}px;height:${photoH}px;">` +
+      `<img src="${bg}" width="${w}" height="${photoH}" style="width:${w}px;height:${photoH}px;object-fit:cover;" /></div>`
+    : `<div style="display:flex;position:absolute;top:0;left:0;width:${w}px;height:${photoH}px;background:${GRAD.institutionnel};"></div>`;
+  const body = p.body
+    ? `<div style="display:flex;color:${hexToRgba(C.blanc, 0.82)};font-size:38px;font-weight:500;line-height:1.4;margin-top:26px;font-family:${FONT_BODY};">${esc(p.body)}</div>`
+    : '';
+  const panel =
+    `<div style="display:flex;flex-direction:column;justify-content:flex-end;position:absolute;top:${photoH}px;left:0;width:${w}px;height:${h - photoH}px;background:${C.bleuProfond};padding:${pad}px;">` +
+    // filet d'accent en haut du panneau (couture éditoriale)
+    `<div style="display:flex;position:absolute;top:0;left:0;width:${w}px;height:${Math.round(h * 0.008)}px;background:${acc};"></div>` +
+    `<div style="display:flex;flex-direction:column;">` + eyebrowBlock(p.eyebrow || '', acc) + `</div>` +
+    `<div style="display:flex;flex-direction:column;margin-top:22px;">` +
+    titleBlock(p, size, C.blanc, acc, FONT_BODY) + body +
+    `</div>` +
+    `<div style="display:flex;margin-top:30px;">` + footer(p, hexToRgba(C.blanc, 0.85), 'maxmorrys.me', logo) + `</div>` +
+    `</div>`;
+  return `<div style="display:flex;position:relative;width:${w}px;height:${h}px;background:${C.bleuProfond};">${photo}${panel}</div>`;
 }
 
 export function buildTemplate(p: CardPayload, w: number, h: number, bgDataUri?: string, logoDataUri?: string): string {
@@ -229,6 +288,10 @@ export function buildTemplate(p: CardPayload, w: number, h: number, bgDataUri?: 
       return tipTpl(p, w, h, pad, bgDataUri, logoDataUri);
     case 'promo':
       return promoTpl(p, w, h, pad, bgDataUri, logoDataUri);
+    case 'poster':
+      return posterTpl(p, w, h, pad, bgDataUri, logoDataUri);
+    case 'panel':
+      return panelTpl(p, w, h, pad, bgDataUri, logoDataUri);
     case 'quote':
     default:
       return quoteTpl(p, w, h, pad, bgDataUri, logoDataUri);

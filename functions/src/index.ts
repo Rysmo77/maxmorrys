@@ -33,7 +33,7 @@ export {
 export { onEnrollmentCreated, onCertificateCreated, streakReminder, courseReminder, rysmoCoachNudge } from './notifications';
 
 // ── Maintenance tasks ─────────────────────────────────────────────────────
-export { cleanupTempStorage, backupFirestore } from './maintenance';
+export { cleanupTempStorage, backupFirestore, cleanupAgencyQuotes } from './maintenance';
 
 // ── Storage cleanup on Firestore delete ───────────────────────────────────
 export {
