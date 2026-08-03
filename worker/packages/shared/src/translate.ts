@@ -61,7 +61,16 @@ interface GeminiResponse {
   candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
 }
 
-async function translateBatch(texts: string[], config: TranslateConfig): Promise<string[]> {
+/**
+ * Traduit un lot de textes en un seul appel, en préservant l'ordre.
+ *
+ * Exposé pour `backfillSlugEn`, qui traduit des titres sans vouloir peupler le
+ * cache `translations/` — le résultat y est slugifié, pas réutilisé tel quel.
+ */
+export async function translateBatch(
+  texts: string[],
+  config: TranslateConfig,
+): Promise<string[]> {
   if (texts.length === 0) return [];
 
   const url = `${config.baseUrl}/v1beta/models/${MODEL}:generateContent?key=${config.apiKey}`;

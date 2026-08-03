@@ -74,8 +74,11 @@ export interface CallContext {
  * ⚠️ L'accès REST par compte de service contourne `firestore.rules` : chaque
  * handler doit refaire ses contrôles explicitement, il n'y a pas de filet.
  */
-export function requireAuth(context: CallContext): DecodedIdToken {
-  if (!context.auth) throw new HttpsError('unauthenticated', 'Authentification requise.');
+export function requireAuth(
+  context: CallContext,
+  message = 'Authentification requise.',
+): DecodedIdToken {
+  if (!context.auth) throw new HttpsError('unauthenticated', message);
   return context.auth;
 }
 

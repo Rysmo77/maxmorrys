@@ -1,4 +1,5 @@
 import type { Firestore } from '@mm/firestore-rest';
+import { HttpsError } from '@mm/shared';
 
 import { toDate, toNumber, toStringOrNull } from './values';
 
@@ -82,6 +83,80 @@ export async function resolveQuotaLimits(db: Firestore, uid: string): Promise<Qu
 export interface QuotaUsage {
   dayCount: number;
   packBalance: number;
+}
+
+export interface QuotaSnapshot extends QuotaLimits {
+  dayKey: string;
+  dayCount: number;
+  packBalance: number;
+  source: 'pack' | 'subscription' | 'club' | 'free';
+}
+
+/**
+ * Réserve une requête Rysmo de façon atomique.
+ *
+ * Ordre de consommation : **le pack prépayé d'abord**, puis le quota quotidien.
+ * C'est délibéré — l'utilisateur qui a payé voit son crédit servir en premier.
+ *
+ * Lève `resource-exhausted` avec des détails structurés quand la limite est
+ * atteinte : le client s'en sert pour proposer l'achat d'un pack.
+ */
+export async function reserveRequest(db: Firestore, uid: string): Promise<QuotaSnapshot> {
+  const limits = await resolveQuotaLimits(db, uid);
+  const path = `_ratelimits/rysmo_${uid}`;
+  const dayKey = todayKey();
+
+  return db.runTransaction<QuotaSnapshot>(async (tx) => {
+    const snapshot = await tx.get(path);
+    const current = snapshot?.data ?? {};
+    const sameDay = current.dayKey === dayKey;
+    const dayCount = sameDay ? toNumber(current.dayCount) : 0;
+    const packBalance = toNumber(current.packBalance);
+
+    let newDayCount = dayCount;
+    let newPackBalance = packBalance;
+    let source: QuotaSnapshot['source'] = 'free';
+
+    if (packBalance > 0) {
+      newPackBalance = packBalance - 1;
+      source = 'pack';
+    } else if (dayCount < limits.dailyLimit) {
+      newDayCount = dayCount + 1;
+      source = limits.hasActiveSubscription
+        ? 'subscription'
+        : limits.hasClubBonus
+          ? 'club'
+          : 'free';
+    } else {
+      throw new HttpsError(
+        'resource-exhausted',
+        limits.hasActiveSubscription
+          ? `Tu as atteint ta limite quotidienne Rysmo+ (${limits.dailyLimit}/jour). Reviens demain ou upgrade vers Pro.`
+          : `Tu as utilisé tes ${limits.dailyLimit} requêtes Rysmo du jour ! Achète un pack à partir de 500 XOF pour continuer maintenant.`,
+        {
+          reason: 'daily_limit',
+          dailyLimit: limits.dailyLimit,
+          hasActiveSubscription: limits.hasActiveSubscription,
+          hasClubBonus: limits.hasClubBonus,
+          upgradeUrl: '/mon-espace/rysmo-store',
+        },
+      );
+    }
+
+    tx.set(
+      path,
+      { dayKey, dayCount: newDayCount, packBalance: newPackBalance, lastReset: Date.now() },
+      { merge: true },
+    );
+
+    return {
+      ...limits,
+      dayKey,
+      dayCount: newDayCount,
+      packBalance: newPackBalance,
+      source,
+    };
+  });
 }
 
 /** Lit la consommation du jour, sans la modifier. */

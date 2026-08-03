@@ -46,7 +46,16 @@ function logoDataUri(): string {
 async function fetchBackground(url?: string): Promise<string | undefined> {
   if (!url) return undefined;
   try {
-    const res = await fetch(url);
+    // User-Agent navigateur obligatoire : Pollinations/Flux (et d'autres CDN d'images)
+    // renvoient 403 aux clients non-navigateur → sinon le fond est silencieusement ignoré
+    // et la carte retombe en « mode marque » (dégradé nu).
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+        Accept: 'image/avif,image/webp,image/png,image/jpeg,*/*',
+      },
+    });
     if (!res.ok) return undefined;
     const buf = Buffer.from(await res.arrayBuffer());
     const type = res.headers.get('content-type') || 'image/png';

@@ -29,8 +29,10 @@ import {
 
 import { getFirestore, getVerifier, type CallContext } from './context';
 import type { Env } from './env';
-import { proxyToFunctions } from './proxy';
+import { handleExportDownload } from './exportDownload';
+import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
+import { handleBictorysWebhook } from './webhook/bictorys';
 
 function migratedNames(env: Env): Set<string> {
   return new Set(
@@ -50,6 +52,20 @@ export default {
 
     const url = new URL(request.url);
     const name = url.pathname.replace(/^\/+/, '');
+
+    // Le webhook est examiné avant le contrôle de méthode : c'est lui qui répond
+    // 405 sur une méthode inattendue, comme le fait la Cloud Function.
+    // Bictorys poste du JSON brut, sans enveloppe `{data}`. Ce chemin doit
+    // court-circuiter la validation onCall **dans les deux cas** : servi
+    // localement, ou relayé. Le faire passer par `readCallableBody` le
+    // rejetterait en 400 avant même d'atteindre Cloud Functions.
+    // Téléchargement d'un export RGPD : une requête GET signée, pas une callable.
+    if (name === 'exportDownload') return handleExportDownload(request, env);
+
+    if (name === 'bictorysWebhook') {
+      if (migratedNames(env).has(name)) return handleBictorysWebhook(request, env);
+      return proxyWebhook(name, request, env);
+    }
 
     if (request.method !== 'POST' || !name || name.includes('/')) {
       return callableError(new HttpsError('not-found', 'Fonction inconnue.'), cors);
