@@ -10,6 +10,8 @@
  */
 import { jwtVerify, createRemoteJWKSet } from 'jose';
 
+import { handleRead } from './read';
+
 export interface Env {
   BUCKET: R2Bucket;
   FIREBASE_PROJECT_ID: string;
@@ -24,6 +26,8 @@ export interface Env {
    * navigateur — d'où un secret plutôt qu'une vérification d'ID token.
    */
   INTERNAL_DELETE_KEY?: string;
+  /** Secret de signature des liens de lecture protégée. */
+  MEDIA_SIGNING_KEY?: string;
 }
 
 interface VerifiedUser {
@@ -187,6 +191,12 @@ export default {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
 
     const url = new URL(req.url);
+
+    // Lecture des médias : seul le domaine public `media.` la sert, l'API
+    // d'upload garde son 404 sur les chemins inconnus.
+    if ((req.method === 'GET' || req.method === 'HEAD') && url.hostname.startsWith('media.')) {
+      return handleRead(req, env);
+    }
 
     if (req.method === 'POST' && url.pathname === '/delete') {
       return handleDelete(req, env, cors);

@@ -10,7 +10,11 @@ compatibility_date = "2024-11-27"
 # Le domaine doit exister dans la zone Cloudflare ; `custom_domain = true` crée
 # automatiquement l'enregistrement.
 routes = [
-  { pattern = "media-api.maxmorrys.me", custom_domain = true }
+  { pattern = "media-api.maxmorrys.me", custom_domain = true },
+  # Lecture des médias. La route Worker s'exécute avant le domaine public R2,
+  # ce qui permet de protéger certains préfixes sans toucher au bucket.
+  # Rollback : supprimer cette route — R2 reprend la main immédiatement.
+  { pattern = "media.maxmorrys.me/*", zone_name = "maxmorrys.me" }
 ]
 
 # Bucket R2 (lecture publique servie séparément via media.maxmorrys.me).

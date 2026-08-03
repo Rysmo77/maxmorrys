@@ -25,6 +25,8 @@ export interface Env {
   APP_BASE_URL: string;
   /** Base de ce Worker, pour construire les liens de téléchargement d'export. */
   API_BASE_URL: string;
+  /** Domaine public de lecture des médias. */
+  PUBLIC_MEDIA_BASE: string;
 
   /** Bucket R2 : exports RGPD et purge des médias à la suppression de compte. */
   EXPORTS?: R2Bucket;
@@ -47,4 +49,6 @@ export interface Env {
   META_ACCESS_TOKEN?: string;
   /** Secret de signature des liens de téléchargement d'export. */
   EXPORT_SIGNING_KEY?: string;
+  /** Secret partagé avec le Worker media pour signer les liens de lecture. */
+  MEDIA_SIGNING_KEY?: string;
 }

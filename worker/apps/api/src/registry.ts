@@ -5,6 +5,7 @@ import { clearRysmoMemory } from './handlers/clearRysmoMemory';
 import { deleteUserAccount, exportUserData } from './handlers/gdpr';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { issueCertificate } from './handlers/issueCertificate';
+import { mediaToken } from './handlers/mediaToken';
 import { parseCv } from './handlers/parseCv';
 import {
   createBictorysCharge,
@@ -57,4 +58,6 @@ export const HANDLERS: Record<string, CallHandler> = {
   // RGPD
   exportUserData,
   deleteUserAccount,
+  // Accès aux médias protégés
+  mediaToken,
 };
