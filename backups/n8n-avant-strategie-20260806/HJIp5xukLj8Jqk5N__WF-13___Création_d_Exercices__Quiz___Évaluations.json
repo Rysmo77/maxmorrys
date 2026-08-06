@@ -1,0 +1,832 @@
+{
+  "updatedAt": "2026-07-20T16:12:45.216Z",
+  "createdAt": "2026-07-04T21:50:40.970Z",
+  "id": "HJIp5xukLj8Jqk5N",
+  "name": "WF-13 — Création d'Exercices, Quiz & Évaluations",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 10 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron — Quiz 10h30 quotidien",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "id": "wf13-read-sheetsn",
+      "name": "Airtable — Lire Cours en Production (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        224,
+        304
+      ],
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "md9smxss10apci7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "wf13-read-sheetsf",
+      "name": "Airtable — Lire Cours en Production",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        414,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "status-quiz-a-produire",
+              "leftValue": "={{ ($json.Status_Quiz || '').toString().trim().toLowerCase() }}",
+              "rightValue": "a_produire",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "wf13-filter",
+      "name": "Filter — Status_Quiz = a_produire",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Receives N items (1 per lesson with Status_Quiz=a_produire)\n// Groups them by Cours+Module to produce 1 item per module with lessons listed\nconst allItems = $input.all().map(i => i.json);\n\nconst modules = {};\nfor (const row of allItems) {\n  const key = (row.Cours || '') + '|||' + (row.Module || '');\n  if (!modules[key]) {\n    modules[key] = {\n      course_title: row.Cours || '',\n      module_raw: row.Module || '',\n      lessons: [],\n      ids: []\n    };\n  }\n  modules[key].lessons.push({\n    lecon: row.Lecon || '',\n    type: row.Type || '',\n    duree: row.Duree || ''\n  });\n  modules[key].ids.push(row.id);\n}\n\nconst results = [];\nfor (const [key, mod] of Object.entries(modules)) {\n  // Parse \"M1: Titre du module\"\n  const moduleMatch = mod.module_raw.match(/^M(\\d+):\\s*(.+)$/);\n  const moduleNumber = moduleMatch ? parseInt(moduleMatch[1]) : 1;\n  const moduleTitle = moduleMatch ? moduleMatch[2].trim() : mod.module_raw;\n\n  const lessonsSummary = mod.lessons.map(l => l.lecon + ' (' + l.type + ', ' + l.duree + ')').join(' | ');\n\n  results.push({\n    json: {\n      course_title: mod.course_title,\n      module_title: moduleTitle,\n      module_number: moduleNumber,\n      module_raw: mod.module_raw,\n      lessons_summary: lessonsSummary,\n      lessons_count: mod.lessons.length,\n      ids: mod.ids\n    }\n  });\n}\n\nreturn results.length ? results : [{ json: { _empty: true } }];"
+      },
+      "id": "wf13-group-modules",
+      "name": "Group — 1 item par module",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-data",
+              "leftValue": "={{ $json.course_title }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals",
+                "name": "filter.operator.notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "wf13-filter-empty",
+      "name": "Filter — Modules valides",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "==## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : CREER QUIZ + EXERCICE PRATIQUE POUR UN MODULE\n\nCrée un quiz de 5 questions pour le module ci-dessous, ainsi qu'un exercice pratique mis en situation africaine.\n\nCOURS : {{ $json.course_title }}\nMODULE : {{ $json.module_title }} (Module {{ $json.module_number }})\nLEÇONS DU MODULE : {{ $json.lessons_summary }}\nSCORE DE PASSAGE : 70%\n\nREGLES DES QUESTIONS :\n1. Varier les types : QCM (4 choix, 1 bonne), vrai/faux, texte a trou\n2. Varier Bloom : 30% connaissance, 30% comprehension, 30% application, 10% analyse\n3. Distracteurs plausibles\n4. Explication pour chaque question\n5. Contextualise en Afrique francophone\n6. Langage simple, tutoiement, pas de pieges\n\nEXERCICE PRATIQUE :\n- Mise en situation reelle dans une ville d'Afrique francophone\n- Le stagiaire doit produire quelque chose de concret\n- Criteres d'evaluation clairs\n\nREPONSE JSON STRICT :\n{\n  \"quiz\": {\n    \"title\": \"Quiz — Module {{ $json.module_number }}\",\n    \"pass_score_percent\": 70,\n    \"shuffle_questions\": true,\n    \"questions\": [{\n      \"question_number\": 1,\n      \"type\": \"multiple_choice|true_false|fill_blank\",\n      \"bloom_level\": \"knowledge|comprehension|application|analysis\",\n      \"question_text\": \"\",\n      \"options\": [{ \"id\": \"a\", \"text\": \"\", \"is_correct\": false }],\n      \"correct_answer\": \"b\",\n      \"explanation\": \"\",\n      \"points\": 1,\n      \"difficulty\": \"easy|medium|hard\"\n    }]\n  },\n  \"practical_exercise\": {\n    \"title\": \"\",\n    \"type\": \"project|case_study|reflection\",\n    \"instructions\": \"instructions etape par etape au tutoiement\",\n    \"context_local\": \"mise en situation ville Afrique francophone\",\n    \"deliverable\": \"\",\n    \"evaluation_rubric\": [{ \"criterion\": \"\", \"weight_percent\": 0, \"excellent\": \"\", \"good\": \"\", \"needs_improvement\": \"\" }],\n    \"estimated_duration_minutes\": 30\n  }\n}\n\nIMPORTANT - REGLES DE FORMATAGE JSON :\n1. Retourne UNIQUEMENT le JSON, sans texte avant ou apres\n2. N'utilise PAS de code fence markdown (pas de ```json)\n3. Echappe correctement les guillemets dans les textes francais (utilise \\\" pour les guillemets dans les strings)\n4. Pas de virgule finale avant } ou ]\n5. Verifie que le JSON est complet et bien forme\n6. Si un texte contient des guillemets, utilise des apostrophes a la place ou echappe-les\n7. Limite les explications a 2-3 phrases courtes pour eviter les problemes d'echappement"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 8192,
+          "temperature": 0.5,
+          "thinkingBudget": 0
+        }
+      },
+      "id": "wf13-gemini",
+      "name": "Gemini Pro — Générer quiz & exercices",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        304
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem — resilient parse (never crashes, skips bad items)\nconst response = $input.item.json;\nconst allModules = $('Filter — Modules valides').all();\nconst moduleData = allModules[$itemIndex]?.json || {};\n\n// Extract raw text\nlet rawText = '';\nif (response.content?.parts) {\n  rawText = response.content.parts.map(p => p.text || '').join('');\n} else if (response.quiz) {\n  return { json: { course_title: moduleData.course_title || '', module_title: moduleData.module_title || '', module_number: moduleData.module_number || 0, module_raw: moduleData.module_raw || '', questions_count: (response.quiz.questions || []).length, quiz_title: response.quiz.title || 'Quiz', exercise_title: (response.practical_exercise || {}).title || '', ids: moduleData.ids || [], _parse_failed: false } };\n} else if (typeof response === 'string') {\n  rawText = response;\n} else {\n  rawText = JSON.stringify(response);\n}\n\n// Clean\nlet cleaned = rawText.trim();\ncleaned = cleaned.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/i, '').trim();\ncleaned = cleaned.replace(/,\\s*([\\}\\]])/g, '$1');\n\n// Try parse strategies\nlet parsed = null;\n\n// Strategy 1: direct parse\ntry { parsed = JSON.parse(cleaned); } catch(e) {}\n\n// Strategy 2: regex extract first {...} block + cleanup\nif (!parsed) {\n  try {\n    const match = cleaned.match(/\\{[\\s\\S]+\\}/);\n    if (match) {\n      let block = match[0].replace(/,\\s*([\\}\\]])/g, '$1');\n      parsed = JSON.parse(block);\n    }\n  } catch(e) {}\n}\n\n// Strategy 3: try to find \"quiz\" key and extract from there\nif (!parsed) {\n  try {\n    const qStart = cleaned.indexOf('\"quiz\"');\n    if (qStart > 0) {\n      const blockStart = cleaned.lastIndexOf('{', qStart);\n      if (blockStart >= 0) {\n        let block = cleaned.substring(blockStart);\n        block = block.replace(/,\\s*([\\}\\]])/g, '$1');\n        // Find matching end\n        let depth = 0;\n        for (let i = 0; i < block.length; i++) {\n          if (block[i] === '{') depth++;\n          if (block[i] === '}') { depth--; if (depth === 0) { block = block.substring(0, i+1); break; } }\n        }\n        parsed = JSON.parse(block);\n      }\n    }\n  } catch(e) {}\n}\n\n// GRACEFUL FALLBACK — don't crash, return empty result\nif (!parsed) {\n  return {\n    json: {\n      course_title: moduleData.course_title || '',\n      module_title: moduleData.module_title || '',\n      module_number: moduleData.module_number || 0,\n      module_raw: moduleData.module_raw || '',\n      questions_count: 0,\n      quiz_title: 'Quiz — echec parsing',\n      exercise_title: '',\n      ids: [],\n      _parse_failed: true,\n      _error: 'JSON parse failed after all strategies. Length: ' + rawText.length\n    }\n  };\n}\n\nconst quiz = parsed.quiz || {};\nconst exercise = parsed.practical_exercise || {};\n\nreturn {\n  json: {\n    course_title: moduleData.course_title || '',\n    module_title: moduleData.module_title || '',\n    module_number: moduleData.module_number || 0,\n    module_raw: moduleData.module_raw || '',\n    questions_count: (quiz.questions || []).length,\n    quiz_title: quiz.title || 'Quiz — Module ' + (moduleData.module_number || '?'),\n    exercise_title: exercise.title || '',\n    ids: moduleData.ids || [],\n    _parse_failed: false\n  }\n};"
+      },
+      "id": "wf13-parse",
+      "name": "Parse — Construire Quiz & Mission",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// runOnceForAllItems — flatten all ids from all modules into individual update items\nconst allItems = $input.all();\nconst results = [];\n\nfor (const item of allItems) {\n  const ids = item.json.ids || [];\n  const failed = item.json._parse_failed === true;\n  \n  // Skip modules that failed parsing (no ids)\n  if (failed || ids.length === 0) continue;\n  \n  for (const rn of ids) {\n    results.push({\n      json: {\n        id: rn,\n        Status_Quiz: 'produit'\n      }\n    });\n  }\n}\n\n// If no rows to update, return a dummy item that won't match anything\nif (results.length === 0) {\n  return [{ json: { id: -1, Status_Quiz: 'skip', _no_updates: true } }];\n}\n\nreturn results;"
+      },
+      "id": "wf13-expand-rows",
+      "name": "Expand — Rows à mettre à jour",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        304
+      ]
+    },
+    {
+      "id": "wf13-update-status",
+      "name": "Airtable — Status_Quiz = produit",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        2144,
+        304
+      ],
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "md9smxss10apci7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.id }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status_Quiz": "={{ $json.Status_Quiz }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Log the raw Gemini response for debugging\nconst response = $input.item.json;\n\nlet rawText = '';\nif (response.content?.parts) {\n  rawText = response.content.parts.map(p => p.text || '').join('');\n} else if (typeof response === 'string') {\n  rawText = response;\n} else {\n  rawText = JSON.stringify(response, null, 2);\n}\n\nconsole.log('=== GEMINI RAW RESPONSE ===');\nconsole.log('Length:', rawText.length, 'characters');\nconsole.log('First 500 chars:', rawText.substring(0, 500));\nconsole.log('Last 500 chars:', rawText.substring(rawText.length - 500));\n\n// Check for common JSON issues\nconst hasCodeFence = rawText.includes('```');\nconst hasTrailingComma = /,\\s*[\\}\\]]/.test(rawText);\nconst startsWithBrace = rawText.trim().startsWith('{');\nconst endsWithBrace = rawText.trim().endsWith('}');\n\nconsole.log('Has code fence:', hasCodeFence);\nconsole.log('Has trailing commas:', hasTrailingComma);\nconsole.log('Starts with {:', startsWithBrace);\nconsole.log('Ends with }:', endsWithBrace);\n\n// Pass through the original response\nreturn { json: response };"
+      },
+      "id": "8e36f87e-fcb2-4930-8205-7a2e51a7b63c",
+      "name": "Debug — Log Gemini Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        304
+      ]
+    }
+  ],
+  "connections": {
+    "Cron — Quiz 10h30 quotidien": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Cours en Production (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Cours en Production": {
+      "main": [
+        [
+          {
+            "node": "Filter — Status_Quiz = a_produire",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter — Status_Quiz = a_produire": {
+      "main": [
+        [
+          {
+            "node": "Group — 1 item par module",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Group — 1 item par module": {
+      "main": [
+        [
+          {
+            "node": "Filter — Modules valides",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter — Modules valides": {
+      "main": [
+        [
+          {
+            "node": "Gemini Pro — Générer quiz & exercices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Pro — Générer quiz & exercices": {
+      "main": [
+        [
+          {
+            "node": "Debug — Log Gemini Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Construire Quiz & Mission": {
+      "main": [
+        [
+          {
+            "node": "Expand — Rows à mettre à jour",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expand — Rows à mettre à jour": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status_Quiz = produit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Debug — Log Gemini Response": {
+      "main": [
+        [
+          {
+            "node": "Parse — Construire Quiz & Mission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Cours en Production (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Cours en Production",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate",
+    "errorWorkflow": "MMERRALERT0001"
+  },
+  "staticData": {
+    "node:Cron — Quiz 10h30 quotidien": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "1cb21289-3a26-40b3-a789-2e2806d90351",
+  "activeVersionId": "1cb21289-3a26-40b3-a789-2e2806d90351",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-07-04T21:50:40.970Z",
+      "createdAt": "2026-07-04T21:50:40.970Z",
+      "role": "workflow:owner",
+      "workflowId": "HJIp5xukLj8Jqk5N",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-08-06T13:25:51.731Z",
+    "createdAt": "2026-08-06T13:25:51.731Z",
+    "versionId": "1cb21289-3a26-40b3-a789-2e2806d90351",
+    "workflowId": "HJIp5xukLj8Jqk5N",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "30 10 * * 1"
+              }
+            ]
+          }
+        },
+        "id": "cron-trigger",
+        "name": "Cron — Quiz 10h30 quotidien",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          304
+        ]
+      },
+      {
+        "id": "wf13-read-sheetsn",
+        "name": "Airtable — Lire Cours en Production (NocoDB)",
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          224,
+          304
+        ],
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        },
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "md9smxss10apci7",
+            "mode": "id"
+          },
+          "resource": "row",
+          "operation": "search",
+          "returnAll": true,
+          "options": {}
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+        },
+        "id": "wf13-read-sheetsf",
+        "name": "Airtable — Lire Cours en Production",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          414,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": false,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "status-quiz-a-produire",
+                "leftValue": "={{ ($json.Status_Quiz || '').toString().trim().toLowerCase() }}",
+                "rightValue": "a_produire",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals",
+                  "name": "filter.operator.equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "wf13-filter",
+        "name": "Filter — Status_Quiz = a_produire",
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2.2,
+        "position": [
+          448,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Receives N items (1 per lesson with Status_Quiz=a_produire)\n// Groups them by Cours+Module to produce 1 item per module with lessons listed\nconst allItems = $input.all().map(i => i.json);\n\nconst modules = {};\nfor (const row of allItems) {\n  const key = (row.Cours || '') + '|||' + (row.Module || '');\n  if (!modules[key]) {\n    modules[key] = {\n      course_title: row.Cours || '',\n      module_raw: row.Module || '',\n      lessons: [],\n      ids: []\n    };\n  }\n  modules[key].lessons.push({\n    lecon: row.Lecon || '',\n    type: row.Type || '',\n    duree: row.Duree || ''\n  });\n  modules[key].ids.push(row.id);\n}\n\nconst results = [];\nfor (const [key, mod] of Object.entries(modules)) {\n  // Parse \"M1: Titre du module\"\n  const moduleMatch = mod.module_raw.match(/^M(\\d+):\\s*(.+)$/);\n  const moduleNumber = moduleMatch ? parseInt(moduleMatch[1]) : 1;\n  const moduleTitle = moduleMatch ? moduleMatch[2].trim() : mod.module_raw;\n\n  const lessonsSummary = mod.lessons.map(l => l.lecon + ' (' + l.type + ', ' + l.duree + ')').join(' | ');\n\n  results.push({\n    json: {\n      course_title: mod.course_title,\n      module_title: moduleTitle,\n      module_number: moduleNumber,\n      module_raw: mod.module_raw,\n      lessons_summary: lessonsSummary,\n      lessons_count: mod.lessons.length,\n      ids: mod.ids\n    }\n  });\n}\n\nreturn results.length ? results : [{ json: { _empty: true } }];"
+        },
+        "id": "wf13-group-modules",
+        "name": "Group — 1 item par module",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          672,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "has-data",
+                "leftValue": "={{ $json.course_title }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEquals",
+                  "name": "filter.operator.notEquals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "wf13-filter-empty",
+        "name": "Filter — Modules valides",
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2.2,
+        "position": [
+          896,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "==## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : CREER QUIZ + EXERCICE PRATIQUE POUR UN MODULE\n\nCrée un quiz de 5 questions pour le module ci-dessous, ainsi qu'un exercice pratique mis en situation africaine.\n\nCOURS : {{ $json.course_title }}\nMODULE : {{ $json.module_title }} (Module {{ $json.module_number }})\nLEÇONS DU MODULE : {{ $json.lessons_summary }}\nSCORE DE PASSAGE : 70%\n\nREGLES DES QUESTIONS :\n1. Varier les types : QCM (4 choix, 1 bonne), vrai/faux, texte a trou\n2. Varier Bloom : 30% connaissance, 30% comprehension, 30% application, 10% analyse\n3. Distracteurs plausibles\n4. Explication pour chaque question\n5. Contextualise en Afrique francophone\n6. Langage simple, tutoiement, pas de pieges\n\nEXERCICE PRATIQUE :\n- Mise en situation reelle dans une ville d'Afrique francophone\n- Le stagiaire doit produire quelque chose de concret\n- Criteres d'evaluation clairs\n\nREPONSE JSON STRICT :\n{\n  \"quiz\": {\n    \"title\": \"Quiz — Module {{ $json.module_number }}\",\n    \"pass_score_percent\": 70,\n    \"shuffle_questions\": true,\n    \"questions\": [{\n      \"question_number\": 1,\n      \"type\": \"multiple_choice|true_false|fill_blank\",\n      \"bloom_level\": \"knowledge|comprehension|application|analysis\",\n      \"question_text\": \"\",\n      \"options\": [{ \"id\": \"a\", \"text\": \"\", \"is_correct\": false }],\n      \"correct_answer\": \"b\",\n      \"explanation\": \"\",\n      \"points\": 1,\n      \"difficulty\": \"easy|medium|hard\"\n    }]\n  },\n  \"practical_exercise\": {\n    \"title\": \"\",\n    \"type\": \"project|case_study|reflection\",\n    \"instructions\": \"instructions etape par etape au tutoiement\",\n    \"context_local\": \"mise en situation ville Afrique francophone\",\n    \"deliverable\": \"\",\n    \"evaluation_rubric\": [{ \"criterion\": \"\", \"weight_percent\": 0, \"excellent\": \"\", \"good\": \"\", \"needs_improvement\": \"\" }],\n    \"estimated_duration_minutes\": 30\n  }\n}\n\nIMPORTANT - REGLES DE FORMATAGE JSON :\n1. Retourne UNIQUEMENT le JSON, sans texte avant ou apres\n2. N'utilise PAS de code fence markdown (pas de ```json)\n3. Echappe correctement les guillemets dans les textes francais (utilise \\\" pour les guillemets dans les strings)\n4. Pas de virgule finale avant } ou ]\n5. Verifie que le JSON est complet et bien forme\n6. Si un texte contient des guillemets, utilise des apostrophes a la place ou echappe-les\n7. Limite les explications a 2-3 phrases courtes pour eviter les problemes d'echappement"
+              }
+            ]
+          },
+          "jsonOutput": true,
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 8192,
+            "temperature": 0.5,
+            "thinkingBudget": 0
+          }
+        },
+        "id": "wf13-gemini",
+        "name": "Gemini Pro — Générer quiz & exercices",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          1120,
+          304
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem — resilient parse (never crashes, skips bad items)\nconst response = $input.item.json;\nconst allModules = $('Filter — Modules valides').all();\nconst moduleData = allModules[$itemIndex]?.json || {};\n\n// Extract raw text\nlet rawText = '';\nif (response.content?.parts) {\n  rawText = response.content.parts.map(p => p.text || '').join('');\n} else if (response.quiz) {\n  return { json: { course_title: moduleData.course_title || '', module_title: moduleData.module_title || '', module_number: moduleData.module_number || 0, module_raw: moduleData.module_raw || '', questions_count: (response.quiz.questions || []).length, quiz_title: response.quiz.title || 'Quiz', exercise_title: (response.practical_exercise || {}).title || '', ids: moduleData.ids || [], _parse_failed: false } };\n} else if (typeof response === 'string') {\n  rawText = response;\n} else {\n  rawText = JSON.stringify(response);\n}\n\n// Clean\nlet cleaned = rawText.trim();\ncleaned = cleaned.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/i, '').trim();\ncleaned = cleaned.replace(/,\\s*([\\}\\]])/g, '$1');\n\n// Try parse strategies\nlet parsed = null;\n\n// Strategy 1: direct parse\ntry { parsed = JSON.parse(cleaned); } catch(e) {}\n\n// Strategy 2: regex extract first {...} block + cleanup\nif (!parsed) {\n  try {\n    const match = cleaned.match(/\\{[\\s\\S]+\\}/);\n    if (match) {\n      let block = match[0].replace(/,\\s*([\\}\\]])/g, '$1');\n      parsed = JSON.parse(block);\n    }\n  } catch(e) {}\n}\n\n// Strategy 3: try to find \"quiz\" key and extract from there\nif (!parsed) {\n  try {\n    const qStart = cleaned.indexOf('\"quiz\"');\n    if (qStart > 0) {\n      const blockStart = cleaned.lastIndexOf('{', qStart);\n      if (blockStart >= 0) {\n        let block = cleaned.substring(blockStart);\n        block = block.replace(/,\\s*([\\}\\]])/g, '$1');\n        // Find matching end\n        let depth = 0;\n        for (let i = 0; i < block.length; i++) {\n          if (block[i] === '{') depth++;\n          if (block[i] === '}') { depth--; if (depth === 0) { block = block.substring(0, i+1); break; } }\n        }\n        parsed = JSON.parse(block);\n      }\n    }\n  } catch(e) {}\n}\n\n// GRACEFUL FALLBACK — don't crash, return empty result\nif (!parsed) {\n  return {\n    json: {\n      course_title: moduleData.course_title || '',\n      module_title: moduleData.module_title || '',\n      module_number: moduleData.module_number || 0,\n      module_raw: moduleData.module_raw || '',\n      questions_count: 0,\n      quiz_title: 'Quiz — echec parsing',\n      exercise_title: '',\n      ids: [],\n      _parse_failed: true,\n      _error: 'JSON parse failed after all strategies. Length: ' + rawText.length\n    }\n  };\n}\n\nconst quiz = parsed.quiz || {};\nconst exercise = parsed.practical_exercise || {};\n\nreturn {\n  json: {\n    course_title: moduleData.course_title || '',\n    module_title: moduleData.module_title || '',\n    module_number: moduleData.module_number || 0,\n    module_raw: moduleData.module_raw || '',\n    questions_count: (quiz.questions || []).length,\n    quiz_title: quiz.title || 'Quiz — Module ' + (moduleData.module_number || '?'),\n    exercise_title: exercise.title || '',\n    ids: moduleData.ids || [],\n    _parse_failed: false\n  }\n};"
+        },
+        "id": "wf13-parse",
+        "name": "Parse — Construire Quiz & Mission",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1696,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// runOnceForAllItems — flatten all ids from all modules into individual update items\nconst allItems = $input.all();\nconst results = [];\n\nfor (const item of allItems) {\n  const ids = item.json.ids || [];\n  const failed = item.json._parse_failed === true;\n  \n  // Skip modules that failed parsing (no ids)\n  if (failed || ids.length === 0) continue;\n  \n  for (const rn of ids) {\n    results.push({\n      json: {\n        id: rn,\n        Status_Quiz: 'produit'\n      }\n    });\n  }\n}\n\n// If no rows to update, return a dummy item that won't match anything\nif (results.length === 0) {\n  return [{ json: { id: -1, Status_Quiz: 'skip', _no_updates: true } }];\n}\n\nreturn results;"
+        },
+        "id": "wf13-expand-rows",
+        "name": "Expand — Rows à mettre à jour",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1920,
+          304
+        ]
+      },
+      {
+        "id": "wf13-update-status",
+        "name": "Airtable — Status_Quiz = produit",
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          2144,
+          304
+        ],
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "md9smxss10apci7",
+            "mode": "id"
+          },
+          "resource": "row",
+          "operation": "update",
+          "dataToSend": "mapWithFields",
+          "id": "={{ $json.id }}",
+          "fieldsMapper": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Status_Quiz": "={{ $json.Status_Quiz }}"
+            },
+            "matchingColumns": [],
+            "schema": []
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// Log the raw Gemini response for debugging\nconst response = $input.item.json;\n\nlet rawText = '';\nif (response.content?.parts) {\n  rawText = response.content.parts.map(p => p.text || '').join('');\n} else if (typeof response === 'string') {\n  rawText = response;\n} else {\n  rawText = JSON.stringify(response, null, 2);\n}\n\nconsole.log('=== GEMINI RAW RESPONSE ===');\nconsole.log('Length:', rawText.length, 'characters');\nconsole.log('First 500 chars:', rawText.substring(0, 500));\nconsole.log('Last 500 chars:', rawText.substring(rawText.length - 500));\n\n// Check for common JSON issues\nconst hasCodeFence = rawText.includes('```');\nconst hasTrailingComma = /,\\s*[\\}\\]]/.test(rawText);\nconst startsWithBrace = rawText.trim().startsWith('{');\nconst endsWithBrace = rawText.trim().endsWith('}');\n\nconsole.log('Has code fence:', hasCodeFence);\nconsole.log('Has trailing commas:', hasTrailingComma);\nconsole.log('Starts with {:', startsWithBrace);\nconsole.log('Ends with }:', endsWithBrace);\n\n// Pass through the original response\nreturn { json: response };"
+        },
+        "id": "8e36f87e-fcb2-4930-8205-7a2e51a7b63c",
+        "name": "Debug — Log Gemini Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1472,
+          304
+        ]
+      }
+    ],
+    "connections": {
+      "Cron — Quiz 10h30 quotidien": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire Cours en Production (NocoDB)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire Cours en Production": {
+        "main": [
+          [
+            {
+              "node": "Filter — Status_Quiz = a_produire",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter — Status_Quiz = a_produire": {
+        "main": [
+          [
+            {
+              "node": "Group — 1 item par module",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Group — 1 item par module": {
+        "main": [
+          [
+            {
+              "node": "Filter — Modules valides",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter — Modules valides": {
+        "main": [
+          [
+            {
+              "node": "Gemini Pro — Générer quiz & exercices",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Pro — Générer quiz & exercices": {
+        "main": [
+          [
+            {
+              "node": "Debug — Log Gemini Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Construire Quiz & Mission": {
+        "main": [
+          [
+            {
+              "node": "Expand — Rows à mettre à jour",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Expand — Rows à mettre à jour": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Status_Quiz = produit",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Debug — Log Gemini Response": {
+        "main": [
+          [
+            {
+              "node": "Parse — Construire Quiz & Mission",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire Cours en Production (NocoDB)": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire Cours en Production",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "import",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "tags": []
+}

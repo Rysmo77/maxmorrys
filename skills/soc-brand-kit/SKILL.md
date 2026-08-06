@@ -16,7 +16,7 @@ description: >
 - **Mission** : aider entrepreneurs/freelances/créateurs/pros d'**Afrique francophone** à
   transformer leurs compétences digitales en résultats concrets.
 - **5 piliers** : Formations (bleu), Contenus (orange), Communauté (violet), IA (turquoise),
-  Accompagnement (orange). Le champ Airtable `Pilier` doit refléter l'un d'eux.
+  Accompagnement (orange). Le champ NocoDB `Pilier` doit refléter l'un d'eux.
 
 ## Voix & ton (CRITIQUE)
 - **Clair avant d'être spectaculaire · direct sans être agressif · pédagogique sans être

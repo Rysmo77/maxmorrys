@@ -18,6 +18,8 @@ const SEGMENTS: Record<string, { fr: string; en: string }> = {
   videos: { fr: 'videos', en: 'videos' },
   faq: { fr: 'faq', en: 'faq' },
   contact: { fr: 'contact', en: 'contact' },
+  agence: { fr: 'agence', en: 'agency' },
+  devis: { fr: 'devis', en: 'quote' },
   legal: { fr: 'legal', en: 'legal' },
   'mentions-legales': { fr: 'mentions-legales', en: 'legal-notice' },
   confidentialite: { fr: 'confidentialite', en: 'privacy' },
@@ -54,6 +56,7 @@ const SEGMENTS: Record<string, { fr: string; en: string }> = {
   coupons: { fr: 'coupons', en: 'coupons' },
   'rendez-vous': { fr: 'rendez-vous', en: 'appointments' },
   'club-digitos': { fr: 'club-digitos', en: 'club-digitos' },
+  'prospects-agence': { fr: 'prospects-agence', en: 'agency-leads' },
 };
 
 // Tables inverses pré-calculées.

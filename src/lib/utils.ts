@@ -159,3 +159,47 @@ export function markdownToHtml(md: string): string {
     ALLOW_ARIA_ATTR: true,
   });
 }
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+
+/**
+ * Échappe une cellule CSV.
+ *
+ * Deux protections distinctes :
+ *  1. **Échappement CSV standard** — guillemets doublés, encadrement dès qu'une
+ *     cellule contient un séparateur, un guillemet ou un retour à la ligne.
+ *  2. **Injection de formule** — une cellule commençant par `=`, `+`, `-` ou `@`
+ *     est interprétée comme formule à l'ouverture dans Excel, LibreOffice ou
+ *     Google Sheets. Un nom de commerce saisi par un inconnu ne doit jamais
+ *     pouvoir s'exécuter sur le poste de celui qui ouvre l'export : on préfixe
+ *     donc par une apostrophe, qui neutralise sans altérer la lecture.
+ */
+function escapeCsvCell(value: unknown): string {
+  const raw = value == null ? '' : String(value);
+  const guarded = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+  return /[",;\n\r]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded;
+}
+
+/**
+ * Déclenche le téléchargement d'un CSV depuis le navigateur.
+ *
+ * Le séparateur est le point-virgule et non la virgule : c'est ce qu'attend Excel
+ * en locale française, où la virgule est le séparateur décimal. Le BOM UTF-8 en
+ * tête est indispensable, sans quoi Excel affiche « Ã© » à la place de « é ».
+ */
+export function exportToCsv(filename: string, headers: string[], rows: unknown[][]): void {
+  const lines = [headers, ...rows].map((row) => row.map(escapeCsvCell).join(';'));
+  // U+FEFF (BOM UTF-8), écrit en séquence d'échappement : en caractère littéral il
+  // serait invisible à la relecture et signalé comme espace irrégulier par ESLint.
+  const BOM = '\uFEFF';
+  const blob = new Blob([`${BOM}${lines.join('\r\n')}`], { type: 'text/csv;charset=utf-8;' });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}

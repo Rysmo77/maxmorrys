@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, BookOpen, FileText, MessageSquare, Mail, Award, Loader2, RefreshCw, Smartphone, Monitor, Globe } from 'lucide-react';
+import { Users, BookOpen, FileText, MessageSquare, Mail, Award, Loader2, RefreshCw, Smartphone, Monitor, Globe, Briefcase } from 'lucide-react';
 import Card from '../../components/ui/Card';
-import { getPlatformStats } from '../../lib/firestore';
+import { getPlatformStats, getAgencyStats } from '../../lib/firestore';
+import type { AgencyStats } from '../../lib/firestore';
+import { PIPELINE_STAGES } from '../../lib/agency/offer';
+import { useFormat } from '../../hooks/useFormat';
 
 interface Stats {
   users: number;
@@ -14,6 +17,44 @@ interface Stats {
   newMessages: number;
   enrollments: number;
   subscribers: number;
+  agencyLeads: number;
+  newAgencyLeads: number;
+}
+
+/** Rendu d'une répartition en barres — le motif visuel des « Devices » ci-dessous. */
+function Distribution({ title, entries, total, labelFor }: {
+  title: string;
+  entries: Record<string, number>;
+  total: number;
+  labelFor: (key: string) => string;
+}) {
+  const rows = Object.entries(entries)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 6);
+  if (rows.length === 0) return null;
+  return (
+    <div>
+      <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-3">{title}</h3>
+      <div className="space-y-3">
+        {rows.map(([key, count]) => {
+          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+          return (
+            <div key={key}>
+              <div className="flex justify-between mb-1 gap-3">
+                <span className="text-sm text-neutral-700 dark:text-neutral-300 truncate">{labelFor(key)}</span>
+                <span className="text-sm font-bold text-neutral-900 dark:text-white tabular-nums shrink-0">
+                  {count} · {pct}%
+                </span>
+              </div>
+              <div className="h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                <div className="h-full bg-lagoon-500 rounded-full" style={{ width: `${pct}%` }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 const devices = [
@@ -25,14 +66,19 @@ const devices = [
 export default function AdminAnalytics() {
   const { t } = useTranslation('admin');
   const [stats, setStats] = useState<Stats | null>(null);
+  const [agency, setAgency] = useState<AgencyStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { formatPrice } = useFormat();
 
   const load = () => {
     setLoading(true);
-    getPlatformStats().then((s) => {
-      setStats(s);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    Promise.all([getPlatformStats(), getAgencyStats()])
+      .then(([s, a]) => {
+        setStats(s);
+        setAgency(a);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
@@ -174,6 +220,82 @@ export default function AdminAnalytics() {
             </Card>
           </div>
 
+          {/* ── Agence : entonnoir et répartitions ── */}
+          {agency && agency.total > 0 && (
+            <Card className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-lagoon-700 dark:text-lagoon-400" aria-hidden="true" />
+                  {t('analytics.agencyTitle')}
+                </h2>
+                <span className="text-xs text-neutral-400 tabular-nums">
+                  {t('analytics.agencyTotal', { count: agency.total })}
+                </span>
+              </div>
+
+              {/* Entonnoir : chaque étape en proportion du total */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
+                {PIPELINE_STAGES.map((stage) => {
+                  const count = agency.byStatus[stage] ?? 0;
+                  const pct = agency.total > 0 ? Math.round((count / agency.total) * 100) : 0;
+                  return (
+                    <div key={stage} className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700">
+                      <p className="text-2xl font-black text-neutral-900 dark:text-white tabular-nums">{count}</p>
+                      <p className="text-xs font-semibold text-neutral-500 mt-0.5">{t(`agencyLeads.status.${stage}`)}</p>
+                      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden mt-2">
+                        <div className="h-full bg-lagoon-500 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4 mb-8 pb-8 border-b border-neutral-200 dark:border-neutral-700">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-1">{t('analytics.agencyWeighted')}</p>
+                  <p className="text-xl font-black text-neutral-900 dark:text-white tabular-nums">{formatPrice(agency.pipelineWeighted)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-1">{t('analytics.agencySignedValue')}</p>
+                  <p className="text-xl font-black text-neutral-900 dark:text-white tabular-nums">{formatPrice(agency.signedValue)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-1">{t('analytics.agencyConversion')}</p>
+                  <p className="text-xl font-black text-neutral-900 dark:text-white tabular-nums">
+                    {(agency.conversionRate * 100).toFixed(0)}%
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-x-10 gap-y-8">
+                <Distribution
+                  title={t('analytics.agencyByPack')}
+                  entries={agency.byPack}
+                  total={agency.total}
+                  labelFor={(k) => t(`agencyLeads.packs.${k}`, { defaultValue: k })}
+                />
+                <Distribution
+                  title={t('analytics.agencyByPlan')}
+                  entries={agency.byPlan}
+                  total={agency.total}
+                  labelFor={(k) => t(`agencyLeads.plans.${k}`, { defaultValue: k })}
+                />
+                <Distribution
+                  title={t('analytics.agencyBySector')}
+                  entries={agency.bySector}
+                  total={agency.total}
+                  labelFor={(k) => t(`agencyLeads.sectors.${k}`, { defaultValue: k })}
+                />
+                <Distribution
+                  title={t('analytics.agencyByCity')}
+                  entries={agency.byCity}
+                  total={agency.total}
+                  labelFor={(k) => k}
+                />
+              </div>
+            </Card>
+          )}
+
           {/* Summary table */}
           {stats && (
             <Card>
@@ -195,6 +317,7 @@ export default function AdminAnalytics() {
                       { label: t('analytics.rowEnrollments'), total: stats.enrollments, active: stats.enrollments },
                       { label: t('analytics.rowMessages'), total: stats.messages, active: stats.messages - stats.newMessages },
                       { label: t('analytics.rowSubscribers'), total: stats.subscribers, active: stats.subscribers },
+                      { label: t('analytics.rowAgencyLeads'), total: stats.agencyLeads, active: stats.agencyLeads - stats.newAgencyLeads },
                     ].map((row, i) => (
                       <tr key={i} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
                         <td className="py-2.5 px-3 text-neutral-700 dark:text-neutral-300">{row.label}</td>

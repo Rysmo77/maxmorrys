@@ -18,6 +18,7 @@ const socialIcons: Record<string, ComponentType<{ className?: string }>> = {
 const footerLinks = {
   plateforme: [
     { labelKey: 'links.formations', path: '/formations' },
+    { labelKey: 'links.agency', path: '/agence' },
     { labelKey: 'links.blog', path: '/blog' },
     { labelKey: 'links.podcasts', path: '/podcasts' },
     { labelKey: 'links.videos', path: '/videos' },

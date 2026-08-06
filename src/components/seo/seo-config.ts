@@ -7,6 +7,21 @@ export const DEFAULT_DESCRIPTION =
 export const DEFAULT_OG_IMAGE = 'https://media.maxmorrys.me/Je-te-forme/2252.jpg';
 export const TWITTER_HANDLE = '@max_morrys';
 
+/**
+ * Coordonnées de contact — SOURCE UNIQUE.
+ *
+ * Ce numéro était recopié dans neuf fichiers sous trois formats différents. Un numéro
+ * de téléphone dupliqué finit toujours par diverger : passer par ces constantes.
+ *   - `CONTACT_PHONE_RAW` : format wa.me (indicatif sans « + » ni séparateur)
+ *   - `CONTACT_PHONE_E164` : format des données structurées et des liens `tel:`
+ *   - `CONTACT_PHONE_DISPLAY` : format lisible à l'écran
+ */
+export const CONTACT_PHONE_RAW = '221776041985';
+export const CONTACT_PHONE_E164 = `+${CONTACT_PHONE_RAW}`;
+export const CONTACT_PHONE_DISPLAY = '+221 77 604 19 85';
+export const CONTACT_EMAIL = 'hello@maxmorrys.me';
+export const WHATSAPP_BASE_URL = `https://wa.me/${CONTACT_PHONE_RAW}`;
+
 export const SOCIAL_LINKS = [
   { name: 'LinkedIn', url: 'https://www.linkedin.com/in/max-morrys-eyoum/' },
   { name: 'Facebook', url: 'https://www.facebook.com/maxmorrys.me/' },

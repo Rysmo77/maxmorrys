@@ -12,7 +12,7 @@ Carte de l'infra SEO **déjà en place** (excellente) + les leviers restants. Po
 
 ## Google Search Console (LIVE)
 - Propriété **domaine** : `sc-domain:maxmorrys.me`. Service account `firebase-adminsdk-fbsvc@max-morrys.iam.gserviceaccount.com` a accès `siteFullUser`.
-- **Pull quotidien** (07:15) : script local `scripts/gsc-pull.py` → écrit la table Airtable **`SEO`** (`tblhLk66jOUsEhi7G`) : query / page / clics / impressions / position (28 j).
+- **Pull quotidien** (07:15) : script local `scripts/gsc-pull.py` → écrit la table NocoDB **`SEO`** : query / page / clics / impressions / position (28 j).
 - Lis cette table pour prioriser : requêtes à fort volume + **CTR faible** (→ retravailler meta/titres), positions 5-15 (→ quasi-podium, gains rapides), pages sans impressions (→ indexation/contenu).
 
 ## Méthode d'audit (Ivan)

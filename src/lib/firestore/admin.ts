@@ -29,6 +29,7 @@ export async function getPlatformStats() {
   const [
     usersSnap, formationsSnap, blogSnap, messagesSnap, enrollmentsSnap, newsletterSnap,
     publishedFormationsSnap, publishedPostsSnap, newMessagesSnap,
+    agencyLeadsSnap, newAgencyLeadsSnap,
   ] = await Promise.all([
     getCountFromServer(collection(db, 'users')),
     getCountFromServer(collection(db, 'formations')),
@@ -39,6 +40,8 @@ export async function getPlatformStats() {
     getCountFromServer(query(collection(db, 'formations'), where('status', '==', 'published'))),
     getCountFromServer(query(collection(db, 'blog'), where('status', '==', 'published'))),
     getCountFromServer(query(collection(db, 'messages'), where('status', '==', 'new'))),
+    getCountFromServer(collection(db, 'agency_leads')),
+    getCountFromServer(query(collection(db, 'agency_leads'), where('status', '==', 'new'))),
   ]);
   return {
     users: usersSnap.data().count,
@@ -50,6 +53,8 @@ export async function getPlatformStats() {
     newMessages: newMessagesSnap.data().count,
     enrollments: enrollmentsSnap.data().count,
     subscribers: newsletterSnap.data().count,
+    agencyLeads: agencyLeadsSnap.data().count,
+    newAgencyLeads: newAgencyLeadsSnap.data().count,
   };
 }
 

@@ -1,0 +1,715 @@
+{
+  "updatedAt": "2026-07-04T22:36:05.841Z",
+  "createdAt": "2026-07-04T21:50:40.970Z",
+  "id": "kx2zNmzpelxHONWU",
+  "name": "WF-TG-ROUTER — Telegram (posts + gouvernance + commandes)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "k1sYsv0qUTCbCfRN",
+          "name": "Max-Morrys LMS Notifications Telegram"
+        }
+      },
+      "webhookId": "maxmorrys-tg-router",
+      "id": "9966402b-1d0a-4b26-8e8c-f93c490ef443"
+    },
+    {
+      "name": "Airtable — Lire Config (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,TELEGRAM_BOT_TOKEN)~or(Cle,eq,TELEGRAM_CHAT_ID)~or(Cle,eq,PAPERCLIP_BASE)~or(Cle,eq,PAPERCLIP_COMPANY_ID)~or(Cle,eq,CF_ACCESS_CLIENT_ID)~or(Cle,eq,CF_ACCESS_CLIENT_SECRET)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "7b6e068-f8a2-4361-b079-070e97667b26n"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "7b6e068-f8a2-4361-b079-070e97667b26f",
+      "name": "Airtable — Lire Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        430,
+        0
+      ]
+    },
+    {
+      "name": "Parse — Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const cfg={};for(const r of $('Airtable — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nconst upd=$('Telegram Trigger').first().json;\nconst b={token:cfg.TELEGRAM_BOT_TOKEN,chatId:cfg.TELEGRAM_CHAT_ID,pcBase:cfg.PAPERCLIP_BASE,cid:cfg.PAPERCLIP_COMPANY_ID,cfId:cfg.CF_ACCESS_CLIENT_ID,cfSecret:cfg.CF_ACCESS_CLIENT_SECRET};\nconst cq=upd.callback_query;\nif(cq&&cq.data){\n  const [action,kind,id]=cq.data.split(':');\n  const o={...b,action,id,callbackQueryId:cq.id,chatId:(cq.message&&cq.message.chat&&cq.message.chat.id)||b.chatId,messageId:cq.message&&cq.message.message_id};\n  o.label=action==='approve'?'✅ Approuvé':'❌ Rejeté';\n  if(kind==='post'){o.kind='post';o.newStatus=action==='approve'?'validé':'rejeté';}\n  else if(kind==='pc'){o.kind='pc';} else if(kind==='email'){o.kind='email';o.newStatus=action==='approve'?'validé':'rejeté';} else if(kind==='wa'){o.kind='wa';o.newStatus=action==='approve'?'validé':'rejeté';}\n  else o.kind='ignore';\n  return [{json:o}];\n}\nconst txt=((upd.message&&upd.message.text)||'').trim();\nif(txt.startsWith('/')) return [{json:{...b,kind:'cmd',cmd:txt}}];\nreturn [{json:{...b,kind:'ignore'}}];\n"
+      },
+      "id": "6540545a-64ec-48d9-b58c-4dde4633a24d"
+    },
+    {
+      "name": "IF post",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.kind }}",
+              "rightValue": "post",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "902aeb46-670b-464a-b32b-420c4e1821bb"
+    },
+    {
+      "name": "IF pc",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.kind }}",
+              "rightValue": "pc",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "0af20320-4375-4a32-a080-f556e73e2bbe"
+    },
+    {
+      "name": "IF cmd",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        720,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.kind }}",
+              "rightValue": "cmd",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "22cf4409-0d07-4b46-8af7-1e821df87a3e"
+    },
+    {
+      "name": "Airtable — MAJ Status",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        960,
+        -200
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.id }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "={{ $json.newStatus }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "59ccc434-7190-412d-955e-f3fb233b04a9"
+    },
+    {
+      "name": "PC — approuver/rejeter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "parameters": {
+        "jsCode": "\nconst j=$json;\nconst H={'CF-Access-Client-Id':j.cfId,'CF-Access-Client-Secret':j.cfSecret,'Content-Type':'application/json'};\ntry{\n  await this.helpers.httpRequest({method:'POST',url:`${j.pcBase}/api/approvals/${j.id}/${j.action==='approve'?'approve':'reject'}`,headers:H,body:{},json:true});\n}catch(e){ j.label='⚠️ Erreur: '+(e.message||e); }\nreturn [{json:j}];\n"
+      },
+      "id": "c9349082-b005-44ad-a8d7-0c6500293452"
+    },
+    {
+      "name": "CMD — Paperclip",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        200
+      ],
+      "parameters": {
+        "jsCode": "\nconst j=$json; const cmd=(j.cmd||'').split(/\\s+/)[0];\nconst H={'CF-Access-Client-Id':j.cfId,'CF-Access-Client-Secret':j.cfSecret};\nconst GET=(p)=>this.helpers.httpRequest({method:'GET',url:`${j.pcBase}${p}`,headers:H,json:true});\nconst POST=(p)=>this.helpers.httpRequest({method:'POST',url:`${j.pcBase}${p}`,headers:{...H,'Content-Type':'application/json'},body:{},json:true});\nlet reply='';\ntry{\n  if(cmd==='/pause'){const a=await GET(`/api/companies/${j.cid}/agents`);let n=0;for(const x of a){if(x.status!=='paused'){await POST(`/api/agents/${x.id}/pause`);n++;}}reply=`⛔ Kill-switch : ${n} agent(s) mis en pause (${a.length} au total).`;}\n  else if(cmd==='/resume'){const a=await GET(`/api/companies/${j.cid}/agents`);let n=0;for(const x of a){if(x.status==='paused'){await POST(`/api/agents/${x.id}/resume`);n++;}}reply=`▶️ ${n} agent(s) repris.`;}\n  else if(cmd==='/kpis'){const d=await GET(`/api/companies/${j.cid}/dashboard`);reply='📊 KPIs\\n```'+JSON.stringify(d).slice(0,900)+'```';}\n  else if(cmd==='/budget'){const c=await GET(`/api/companies/${j.cid}`);reply='💰 Budget : '+((c.spentMonthlyCents||0)/100)+' / '+((c.budgetMonthlyCents||0)/100)+' $/mois utilisés';}\n  else if(cmd==='/pending'){let ap=[];try{ap=await GET(`/api/companies/${j.cid}/approvals`);}catch(e){}const p=(ap||[]).filter(x=>x.status==='pending');reply=`⏳ Approbations Paperclip en attente : ${p.length}`;}\n  else reply='Commandes : /pending · /kpis · /budget · /pause · /resume';\n}catch(e){ reply='⚠️ Erreur Paperclip : '+(e.message||e)+'\\n(tunnel + CF Access configurés ?)'; }\nreturn [{json:{token:j.token,chatId:j.chatId,text:reply}}];\n"
+      },
+      "id": "28cc4e0f-c515-4934-af64-9e5a6965db6c"
+    },
+    {
+      "name": "TG — answer (post)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        -260
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('Parse — Update').item.json.token }}/answerCallbackQuery",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({callback_query_id:$('Parse — Update').item.json.callbackQueryId,text:$('Parse — Update').item.json.label}) }}",
+        "options": {}
+      },
+      "id": "6d3dfc4c-68e5-4ad2-9909-ce8cf2e0c0d8"
+    },
+    {
+      "name": "TG — boutons off (post)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        -140
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('Parse — Update').item.json.token }}/editMessageReplyMarkup",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({chat_id:$('Parse — Update').item.json.chatId,message_id:$('Parse — Update').item.json.messageId,reply_markup:{inline_keyboard:[]}}) }}",
+        "options": {}
+      },
+      "id": "59454655-bc31-4466-8f02-450fc7b4269d"
+    },
+    {
+      "name": "TG — answer (pc)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        -20
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/answerCallbackQuery",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({callback_query_id:$json.callbackQueryId,text:$json.label}) }}",
+        "options": {}
+      },
+      "id": "75fe65d6-7c87-4ad6-a8dd-471e35e5a754"
+    },
+    {
+      "name": "TG — boutons off (pc)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/editMessageReplyMarkup",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({chat_id:$json.chatId,message_id:$json.messageId,reply_markup:{inline_keyboard:[]}}) }}",
+        "options": {}
+      },
+      "id": "0ccb34f4-44f4-4cdb-95ef-67df88385e24"
+    },
+    {
+      "name": "TG — réponse (cmd)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({chat_id:$json.chatId,text:$json.text,parse_mode:'Markdown'}) }}",
+        "options": {}
+      },
+      "id": "080be634-6c0a-4216-be54-a169637cd574"
+    },
+    {
+      "name": "IF email",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        720,
+        360
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.kind }}",
+              "rightValue": "email",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "dde73c41-0f9f-42a6-88ca-98ee5a0b021c"
+    },
+    {
+      "name": "Emails — MAJ Status",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        960,
+        360
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ml6zyrbi30de7d4",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.id }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "={{ $json.newStatus }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "da1c1afc-e445-4381-b6f3-881cfcb86b5e"
+    },
+    {
+      "name": "IF wa",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        720,
+        520
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.kind }}",
+              "rightValue": "wa",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "f0fb4426-59db-4d57-a487-4f0d36423338"
+    },
+    {
+      "name": "WhatsApp — MAJ Status",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        960,
+        520
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mntnzprdk1m1jg2",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.id }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "={{ $json.newStatus }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "1640761b-2e79-49c7-bcf9-25073754d521"
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Parse — Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Update": {
+      "main": [
+        [
+          {
+            "node": "IF post",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF pc",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF cmd",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF wa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF post": {
+      "main": [
+        [
+          {
+            "node": "Airtable — MAJ Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — MAJ Status": {
+      "main": [
+        [
+          {
+            "node": "TG — answer (post)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "TG — boutons off (post)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF pc": {
+      "main": [
+        [
+          {
+            "node": "PC — approuver/rejeter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PC — approuver/rejeter": {
+      "main": [
+        [
+          {
+            "node": "TG — answer (pc)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "TG — boutons off (pc)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF cmd": {
+      "main": [
+        [
+          {
+            "node": "CMD — Paperclip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CMD — Paperclip": {
+      "main": [
+        [
+          {
+            "node": "TG — réponse (cmd)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF email": {
+      "main": [
+        [
+          {
+            "node": "Emails — MAJ Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Emails — MAJ Status": {
+      "main": [
+        [
+          {
+            "node": "TG — answer (post)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "TG — boutons off (post)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF wa": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp — MAJ Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp — MAJ Status": {
+      "main": [
+        [
+          {
+            "node": "TG — answer (post)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "TG — boutons off (post)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "7f032131-049f-4daf-a6a3-f4c4ce1e20ab",
+  "activeVersionId": null,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-07-04T21:50:40.970Z",
+      "createdAt": "2026-07-04T21:50:40.970Z",
+      "role": "workflow:owner",
+      "workflowId": "kx2zNmzpelxHONWU",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

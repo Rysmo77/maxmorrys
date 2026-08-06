@@ -133,9 +133,12 @@ async function renderCardPng(payload) {
 }
 /**
  * POST /renderSocialCard
- * Body: { template, format, title, body?, cta?, accent?, backgroundUrl? }
+ * Body: { template, format, title, body?, cta?, accent?, backgroundUrl?, … }
  * Auth: header X-Render-Key === env RENDER_KEY (si défini).
  * Retour: { url } (PNG public dans Storage).
+ *
+ * Le gabarit `stat` porte son texte principal dans `stat` (le grand chiffre) plutôt que dans
+ * `title` : exiger `title` pour lui rejetait une charge parfaitement valide.
  */
 exports.renderSocialCard = (0, https_1.onRequest)({ region: 'europe-west1', memory: '2GiB', cpu: 2, timeoutSeconds: 120, cors: false }, async (req, res) => {
     try {
@@ -149,8 +152,18 @@ exports.renderSocialCard = (0, https_1.onRequest)({ region: 'europe-west1', memo
             return;
         }
         const payload = req.body;
-        if (!payload || !payload.template || !payload.format || !payload.title) {
-            res.status(400).json({ error: 'template, format et title sont requis' });
+        if (!payload || !payload.template || !payload.format) {
+            res.status(400).json({ error: 'template et format sont requis' });
+            return;
+        }
+        // `stat` se contente de son chiffre ; tous les autres gabarits ont besoin d'un titre.
+        const texteFourni = payload.template === 'stat'
+            ? Boolean(payload.stat || payload.title)
+            : Boolean(payload.title);
+        if (!texteFourni) {
+            res.status(400).json({
+                error: payload.template === 'stat' ? '`stat` ou `title` est requis' : '`title` est requis',
+            });
             return;
         }
         const png = await renderCardPng(payload);

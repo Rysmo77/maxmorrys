@@ -1,0 +1,282 @@
+{
+  "id": "k9vnobzVadNeU3tk",
+  "name": "WF-SOCIAL-03 — Rédaction",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7-19/2 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cron-cron-—-mar/jeu-7h",
+      "name": "Cron — Mar/Jeu 7h"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": false,
+        "limit": 5,
+        "options": {
+          "where": "(Status,eq,planifié)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        256,
+        0
+      ],
+      "id": "at-s-airtable---lire-planifiésn",
+      "name": "Airtable — Lire planifiés (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "at-s-airtable---lire-planifiésf",
+      "name": "Airtable — Lire planifiés",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        446,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Tu es rédacteur senior pour **Max-Morrys**. Tagline : \"Maîtrise le digital, accélère ta croissance\".\n\nMax-Morrys porte DEUX lignes :\n- une plateforme ed-tech (formations, Club Digitos, assistant IA Rysmo) ;\n- une agence, « Digital Commerce Local » (maxmorrys.me/agence), qui digitalise les commerces de quartier.\n\nINPUT (1 ligne = 1 Reseau × 1 Format) :\n- Titre: {{ $json.Titre }}\n- Thématique: {{ $json.Thematique }}\n- Pilier: {{ $json.Pilier }}\n- Série: {{ $json.Serie }}\n- Offre: {{ $json.Offre }}\n- Cible: {{ $json.Cible }}\n- Format: {{ $json.Format_Post }}\n- Réseau: {{ $json.Reseau }}\n- Brief: {{ $json.Brief }}\n- Mots-clés: {{ $json.Mots_Cles }}\n\n═══════════════════════════════════════════════\nVOIX MAX-MORRYS\n═══════════════════════════════════════════════\n✅ Direct, actionable, chaleureux (tutoiement), pédagogue, ancré Afrique de l'Ouest, moderne, pro avec humour\n❌ Corporate rigide, gourou américain traduit, jargon creux, hustle toxique, fausse modestie\n\nOuvertures : \"Arrête.\" / \"Stop.\" / \"Une vérité qui dérange :\" / \"Voici ce que [X] m'a appris :\"\nClôtures : \"Si ça t'a aidé, enregistre.\" / \"Sauvegarde pour plus tard.\" / \"Dis-moi en commentaire : [Q précise].\"\nSignature possible : \"Maîtrise le digital, accélère ta croissance.\"\n\nTouches locales légères, 1 à 3 par contenu : Dakar, Abidjan, Douala, Wave, Orange Money, mobile money,\nWhatsApp Business, boutiques de quartier. Français standard — pas de patois, la diaspora doit suivre.\n\n═══════════════════════════════════════════════\nLA CIBLE DÉCIDE DU VOCABULAIRE — à lire avant d'écrire\n═══════════════════════════════════════════════\n**Cible = Apprenants** → vocabulaire technique autorisé (SEO, IA, prompt, automatisation, tunnel, n8n).\nCTA : \"Découvre la formation\" / \"Rejoins le Club\" / \"Essaie Rysmo\".\n\n**Cible = Commerçants** → ZÉRO terme technique. Traduis systématiquement :\n| Ne jamais écrire | Toujours écrire |\n|---|---|\n| Site web | Votre commerce visible 24h/24, même fermé |\n| Catalogue Meta / WhatsApp | Vos produits commandables directement sur WhatsApp |\n| Merchant Center | Vos produits affichés dans les résultats Google |\n| Fiche d'établissement Google | Apparaître sur Google Maps quand on cherche votre métier dans votre quartier |\n| GA4, Tag Manager, pixel | Savoir combien de clients Internet vous rapporte |\n| Référencement, SEO | Passer devant vos concurrents sur Google |\n| Workflow, automatisation, n8n | Publier tous les jours sans y penser |\nCTA : \"Fais le test sur Google Maps\" / \"Trouve ton pack en 3 questions\".\nORDRE DE DÉMONSTRATION IMPOSÉ : (1) la recherche Google Maps, (2) la comparaison avec un concurrent,\n(3) seulement ensuite les offres. **Ne commence JAMAIS par le site web.**\n\n**Cible = Mixte** → sert les deux, sans jargon inutile.\n\n═══════════════════════════════════════════════\nLA SÉRIE DÉCIDE DE LA STRUCTURE\n═══════════════════════════════════════════════\n- **RADAR** : le fait DATÉ → pourquoi on en parle → ce que ça change pour toi → ce que je ferais cette semaine.\n- **ATELIER** : le problème en 1 phrase → l'outil → la manipulation exacte → le gain chiffré → \"essaie ce soir\".\n- **PREUVE** : le chiffre → d'où il vient → ce qu'il implique. Jamais un chiffre sans source.\n- **COULISSES** : l'anecdote → ce que ça m'a coûté → la leçon utilisable par le lecteur.\n- **CERCLE** : une question précise, ouverte, à laquelle on a envie de répondre.\n- **OFFRE** : le bénéfice → la preuve → UN seul appel à l'action.\n\n═══════════════════════════════════════════════\nADAPTATION SELON LE RÉSEAU ET LE FORMAT\n═══════════════════════════════════════════════\n**linkedin / post** (audience pro, les deux pistes) :\n- 150-300 mots. Hook sur les 2 premières lignes (le reste est masqué), développement narratif, punchline finale.\n- Saut de ligne entre chaque idée forte. Emojis fonctionnels (•, →, ✅, ❌, 💡). 3-5 hashtags pro.\n\n**linkedin / carrousel** (post document) :\n- 8 à 12 slides, séparées par \"---\". La PREMIÈRE slide doit fonctionner seule en aperçu de fil.\n- Ton sobre. AUCUN emoji sur les slides. Une idée par slide : un titre court + 2 lignes maximum.\n- Dernière slide : récapitulatif + un seul appel à l'action. La légende accompagne, elle ne répète pas.\n\n**ig / post** :\n- 100-200 mots, chaleureux. Hook ultra court sur la première ligne, avant le \"… plus\". Emojis sobres.\n\n**ig / carrousel** ou **fb / carrousel** :\n- Slides séparées par \"---\". COVER = la promesse en 7 MOTS MAXIMUM : c'est 80 % de la performance.\n- 5 à 8 slides, UNE idée par slide. Dernière slide : récap + \"Sauvegarde pour plus tard\".\n- La légende doit être AUTONOME : utile même sans faire défiler les slides.\n\n**ig / story** :\n- UN SEUL message, 20 mots maximum, lisible en une seconde à bout de bras.\n- Sondage ou question quand le titre l'appelle. JAMAIS de lien nu : dis \"lien en bio\".\n\n**fb / post** et **fb / community_post** (surtout les commerçants) :\n- 150-250 mots, conversationnel, pédagogue. Questions ouvertes. Emojis chaleureux (👋, 🙏, 💬).\n\n**x / thread** :\n- 5 à 10 tweets numérotés, séparés par \"---\", CHACUN autonome (un tweet isolé doit tenir debout).\n- Opinion affirmée. 1 emoji maximum sur tout le thread. 1-2 hashtags.\n\n═══════════════════════════════════════════════\nHASHTAGS\n═══════════════════════════════════════════════\n- ig : 5-10, mélangés — 2-3 locaux (#Dakar #Abidjan #Douala), 3-5 thématiques, 2-3 génériques\n- linkedin : 3-5 pro · fb : 2-3 si pertinents · x : 1-2 max\n\n═══════════════════════════════════════════════\nRÈGLES ABSOLUES\n═══════════════════════════════════════════════\n1. Tutoiement partout.\n2. **UN SEUL appel à l'action.** Deux CTA = zéro CTA.\n3. **N'INVENTE JAMAIS UN MONTANT.** Aucun prix, aucun tarif, aucune remise dans le texte : les\n   montants vivent dans le catalogue et seront ajoutés par un humain. Écris le bénéfice, pas le prix.\n4. **Aucun chiffre sans source** dans un contenu PREUVE ou RADAR. Si tu n'as pas la source, écris\n   l'idée sans le chiffre.\n5. Ne décris jamais les outils de production (workflows, gabarits) à un commerçant : il achète un\n   résultat, pas un outil.\n6. Ne garantis aucun résultat chiffré sur Google, Meta ou une autre plateforme tierce.\n7. Exemples locaux quand c'est possible, sans forcer.\n\nRéponds en JSON strict (pas de markdown, pas de backticks) :\n{\n  \"Texte\": \"texte complet du post pour CE réseau dans CE format\",\n  \"Hashtags\": \"hashtags adaptés au réseau séparés par des espaces\"\n}\n"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 16384,
+          "temperature": 0.7,
+          "thinkingBudget": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "gem-gemini-pro---rédiger-textes",
+      "name": "Gemini Pro — Rédiger textes",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem — parse Gemini, émet 1 item avec Texte + Hashtags + id pour update\nconst resp = $input.item.json;\nconst src = $('Airtable — Lire planifiés').all()[$itemIndex].json;\nlet text = '';\nif (resp.candidates?.[0]?.content?.parts) text = resp.candidates[0].content.parts.map(p=>p.text||'').join('');\nelse if (typeof resp === 'string') text = resp;\nelse text = JSON.stringify(resp);\nfunction extractJson(t){let c=(t||'').trim().replace(/^```(?:json)?\\s*/i,'').replace(/```\\s*$/i,'').trim();try{return JSON.parse(c);}catch(e){}const m=c.match(/\\{[\\s\\S]*\\}/);if(m){try{return JSON.parse(m[0]);}catch(e){}}return null;}\nconst data = extractJson(text) || {};\nreturn { json: {\n  id: src.id,\n  Texte: data.Texte || '',\n  Hashtags: data.Hashtags || '',\n  Slides_JSON: (data.Slides && Array.isArray(data.Slides) && data.Slides.length) ? JSON.stringify(data.Slides) : '',\n  Status: 'rédigé'\n}};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        0
+      ],
+      "id": "code-parse---textes-rédigés",
+      "name": "Parse — Textes rédigés"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.id }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Texte": "={{ $json.Texte }}",
+            "Hashtags": "={{ $json.Hashtags }}",
+            "Status": "={{ $json.Status }}",
+            "Slides_JSON": "={{ $json.Slides_JSON }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "at-u-airtable---status=rédigé",
+      "name": "Airtable — Status=rédigé",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mm-run-redaction",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook — mm-run-redaction",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        160
+      ],
+      "webhookId": "mm-run-redaction",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jSMRNljvTwk5b77f",
+          "name": "MM Trigger"
+        }
+      },
+      "id": "e643af87-eaf3-4ca0-9f00-9a13ba7d2b09"
+    }
+  ],
+  "connections": {
+    "Cron — Mar/Jeu 7h": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire planifiés (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire planifiés": {
+      "main": [
+        [
+          {
+            "node": "Gemini Pro — Rédiger textes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Pro — Rédiger textes": {
+      "main": [
+        [
+          {
+            "node": "Parse — Textes rédigés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Textes rédigés": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status=rédigé",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook — mm-run-redaction": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire planifiés (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire planifiés (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire planifiés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "errorWorkflow": "MMERRALERT0001"
+  },
+  "nodeGroups": [],
+  "tags": []
+}

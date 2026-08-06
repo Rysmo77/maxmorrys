@@ -6,14 +6,32 @@
     "coursesCreated": "Courses created"
   },
   "services": {
-    "train": { "title": "I train you", "desc": "Hands-on, actionable courses to master the digital world." },
-    "inform": { "title": "I keep you informed", "desc": "Articles, podcasts and videos to stay ahead of the curve." },
-    "transform": { "title": "I transform you", "desc": "Coaching and consulting to accelerate your growth." }
+    "train": {
+      "title": "I train you",
+      "desc": "Hands-on, actionable courses to master the digital world."
+    },
+    "inform": {
+      "title": "I keep you informed",
+      "desc": "Articles, podcasts and videos to stay ahead of the curve."
+    },
+    "transform": {
+      "title": "I transform you",
+      "desc": "Coaching and consulting to accelerate your growth."
+    }
   },
   "trustBadges": {
-    "certificate": { "title": "Certificate included", "desc": "Every course delivers a verifiable certificate." },
-    "lifetime": { "title": "Lifetime access", "desc": "Your courses stay available with no time limit." },
-    "guarantee": { "title": "Satisfaction guaranteed", "desc": "Refund within 7 days if you're not satisfied." }
+    "certificate": {
+      "title": "Certificate included",
+      "desc": "Every course delivers a verifiable certificate."
+    },
+    "lifetime": {
+      "title": "Lifetime access",
+      "desc": "Your courses stay available with no time limit."
+    },
+    "guarantee": {
+      "title": "Satisfaction guaranteed",
+      "desc": "Refund within 7 days if you're not satisfied."
+    }
   },
   "testimonialAria": "Testimonial {{number}}",
   "hero": {
@@ -48,6 +66,30 @@
     "eyebrow": "The catalog",
     "heading": "File your skills in the right folder.",
     "cta": "Discover all the courses"
+  },
+  "agency": {
+    "eyebrow": "Run a local business?",
+    "heading": "I'll digitalize it for you",
+    "desc": "No time to learn all that? I'll handle it. Website, Google listing, WhatsApp catalogue, result tracking and regular posts — I install them and I run them for your business.",
+    "cta": "See the agency offer",
+    "points": {
+      "found": {
+        "title": "Be found",
+        "text": "On Google Maps, when people search your trade in your neighbourhood."
+      },
+      "present": {
+        "title": "Show your offer",
+        "text": "Your site and your products, orderable on WhatsApp."
+      },
+      "convert": {
+        "title": "Convert",
+        "text": "Buttons that turn a visitor into a message."
+      },
+      "measure": {
+        "title": "Measure",
+        "text": "Finally know what your online presence brings you."
+      }
+    }
   },
   "quiz": {
     "eyebrow": "Level up",

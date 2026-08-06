@@ -1,0 +1,365 @@
+{
+  "seoTitle": "I Digitalize Your Business — Website, Google Maps, WhatsApp | Max-Morrys",
+  "seoDescription": "Websites, product catalogues, Google listing, analytics, SEO and content automation for local businesses in Senegal. Packs from 295,000 FCFA.",
+  "eyebrow": "For local businesses",
+  "heroTitle1": "Your customers are",
+  "heroTitle2": "looking for you online.",
+  "heroSubtitle": "Right now they're finding your competitors. I set up everything you need to be found, to be contacted, and to finally know what it brings you.",
+  "heroCta": "Find your pack in 3 questions",
+  "heroSecondary": "Talk about it on WhatsApp",
+  "stickyCta": "Ask my question on WhatsApp",
+  "proof": {
+    "title": "Try it right now",
+    "text": "Type your trade and your neighbourhood. I'll open the real Google Maps search. Look at who comes up first — if it isn't you, your competitors are getting those calls.",
+    "tradeLabel": "Your trade",
+    "tradePlaceholder": "Restaurant, hair salon, pharmacy...",
+    "areaLabel": "Your neighbourhood",
+    "areaPlaceholder": "Point E, Dakar",
+    "cta": "See",
+    "note": "That's exactly the first thing I fix."
+  },
+  "whatsapp": {
+    "greeting": "Hi Max-Morrys 👋",
+    "intro": "I've just filled in my request on your Agency page.",
+    "quoteLabel": "My summary",
+    "quickIntro": "Hi Max-Morrys 👋 I'm writing from your Agency page.",
+    "quoteIntro": "Hi Max-Morrys 👋 I'm contacting you about my summary",
+    "cardCta": "Talk about it on WhatsApp"
+  },
+  "journey": {
+    "title": "What you're really buying",
+    "subtitle": "Not just a website: a system to be found, to reassure, to receive WhatsApp enquiries and to measure your sales.",
+    "found": {
+      "title": "Be found",
+      "text": "Google listing, local search, Google Maps."
+    },
+    "present": {
+      "title": "Show your offer",
+      "text": "Your site, your WhatsApp catalogue, your Facebook and Instagram shop."
+    },
+    "convert": {
+      "title": "Convert",
+      "text": "WhatsApp buttons, a contact form, directions to your shop."
+    },
+    "measure": {
+      "title": "Measure",
+      "text": "How many people find you, call you, write to you."
+    },
+    "engage": {
+      "title": "Keep in touch",
+      "text": "Regular posts, prepared and scheduled for you."
+    }
+  },
+  "selector": {
+    "title": "Find your pack in 3 questions",
+    "subtitle": "Thirty seconds, and you'll know exactly where to start.",
+    "progress": "{{answered}} of {{total}} questions",
+    "resultEyebrow": "What you need",
+    "accept": "Request this quote",
+    "reset": "Start over",
+    "questions": {
+      "site": {
+        "label": "Do you already have a website?",
+        "options": {
+          "none": "No, none",
+          "outdated": "Yes, but it's outdated",
+          "working": "Yes, and it works"
+        }
+      },
+      "products": {
+        "label": "Do you sell products?",
+        "options": {
+          "services": "No, services",
+          "few": "Yes, fewer than 20",
+          "many": "Yes, more than 20",
+          "online": "Yes, and I want to get paid online"
+        }
+      },
+      "publishing": {
+        "label": "Who handles your posts?",
+        "options": {
+          "nobody": "Nobody",
+          "myself": "Me, regularly",
+          "irregular": "Me, when I have time"
+        }
+      }
+    },
+    "reasons": {
+      "online": "Getting paid online needs a real store: cart, orders and sales tracking. I add the monthly support, because a store without visitors sells nothing.",
+      "many": "With more than twenty products, your catalogue is your best argument. It needs to live on WhatsApp, Facebook, Instagram and in Google.",
+      "working": "Your site holds up — no need to rebuild it. What you're missing is consistency: being found and posting every week.",
+      "outdated": "An outdated site does more harm than no site at all. We start again with a credible storefront and your catalogue.",
+      "starting": "You're starting from nothing: what matters is existing on Google Maps and getting your first WhatsApp enquiries. We'll think bigger later."
+    }
+  },
+  "packs": {
+    "title": "The setup",
+    "subtitle": "A one-off payment to install everything. Excluding advertising, domain name and third-party subscriptions.",
+    "priceLabel": "Setup",
+    "promoLabel": "Launch price: {{price}}",
+    "featured": "Most chosen",
+    "recommended": "Recommended for you",
+    "cta": "Request this pack",
+    "supportIncluded": "{{days}} days of support included",
+    "presence": {
+      "name": "Local Presence",
+      "for": "Shops, salons, restaurants, craftspeople and local service providers.",
+      "features": [
+        "A single-page site, clear and fast",
+        "WhatsApp and direct call buttons",
+        "Your Google listing created and optimised",
+        "Your WhatsApp catalogue up to 20 products",
+        "Visit tracking installed",
+        "One year of hosting, and I'll show you how to run it"
+      ]
+    },
+    "visible": {
+      "name": "Visible Business",
+      "for": "You want a complete, measurable presence.",
+      "features": [
+        "A 5-page storefront site",
+        "Your catalogue on WhatsApp, Facebook and Instagram up to 40 products",
+        "Your complete Google listing with your photos",
+        "Full tracking: calls, messages, directions",
+        "Tracking of the enquiries that actually matter",
+        "Optimised for your neighbourhood and your trade",
+        "One year of hosting and a simplified dashboard"
+      ]
+    },
+    "boutique": {
+      "name": "Digital Store",
+      "for": "You have a structured catalogue and you want to sell online.",
+      "features": [
+        "Your online store up to 50 products",
+        "Cart and management of your orders",
+        "Ordering or support over WhatsApp",
+        "Your products shown in Google and on Facebook",
+        "Tracking of your sales and abandoned carts",
+        "Every product page optimised",
+        "I'll train you fully on running your store"
+      ],
+      "note": "Worth considering once you already have your products, clear prices and a delivery setup."
+    },
+    "selected": "Your choice"
+  },
+  "plans": {
+    "title": "Monthly support",
+    "subtitle": "This is what makes the difference over time. A site left untouched for six months disappears from search results.",
+    "setupLabel": "Setup",
+    "monthlyLabel": "then {{price}} per month",
+    "commitmentLabel": "{{months}}-month commitment — {{total}} in total",
+    "featured": "The recurring lever",
+    "recommended": "Recommended for you",
+    "cta": "Choose this plan",
+    "croissance": {
+      "name": "Automated Growth",
+      "for": "You want to post regularly without spending your days on it.",
+      "features": [
+        "A publishing calendar every month",
+        "12 posts I write for you",
+        "Visuals prepared and ready to publish",
+        "Your posts scheduled automatically — you approve with one message",
+        "Your Google listing kept up to date",
+        "A monthly report and maintenance of your site"
+      ]
+    },
+    "commerce360": {
+      "name": "Commerce 360",
+      "for": "You're ambitious and you want real steering over six months.",
+      "features": [
+        "Your advanced site or catalogue",
+        "Google, Facebook, Instagram and WhatsApp handled together",
+        "Your products distributed everywhere they can be seen",
+        "Full measurement and a commented report every month",
+        "Ongoing local search and content work",
+        "Commercial guidance, not just technical delivery"
+      ],
+      "note": "Advertising budget not included. We shape the plan together before signing."
+    },
+    "selected": "Your choice"
+  },
+  "options": {
+    "title": "Options and extras",
+    "subtitle": "Anything outside the packs is billed separately, with no nasty surprises.",
+    "toggle": "See option prices",
+    "perProduct": "per product",
+    "perPage": "per page",
+    "perMonth": "per month",
+    "range": "{{min}} to {{max}}",
+    "products": {
+      "name": "Additional products",
+      "text": "Depending on the quality of your photos, copywriting and categorisation."
+    },
+    "pages": {
+      "name": "Additional pages",
+      "text": "Service pages, category pages or campaign pages."
+    },
+    "tracking": {
+      "name": "Advanced measurement",
+      "text": "Dashboard, sales tracking, detailed events."
+    },
+    "automation": {
+      "name": "Custom automation",
+      "text": "A repetitive task I take off your hands end to end."
+    },
+    "maintenance": {
+      "name": "Maintenance",
+      "text": "Updates, reporting and light fixes."
+    },
+    "seo": {
+      "name": "Local search",
+      "text": "Six-month commitment recommended."
+    }
+  },
+  "process": {
+    "title": "How it works",
+    "subtitle": "Five steps, no surprises.",
+    "diagnostic": {
+      "title": "Diagnosis",
+      "text": "We look together at where you stand and how people reach you today."
+    },
+    "priorities": {
+      "title": "Priorities",
+      "text": "I pick the pack with you, based on your situation, your budget and your urgency."
+    },
+    "proof": {
+      "title": "Proof",
+      "text": "I show you exactly what will be delivered, before you sign."
+    },
+    "contract": {
+      "title": "Contract",
+      "text": "60% on order, 40% before going live."
+    },
+    "delivery": {
+      "title": "Delivery",
+      "text": "I train you hands-on, then 30 to 60 days of support depending on the pack."
+    }
+  },
+  "terms": {
+    "title": "Terms",
+    "toggle": "Read the terms",
+    "items": {
+      "payment": "60% on order and 40% before going live.",
+      "revisions": "Two rounds of revisions included.",
+      "exclusions": "Advertising, domain name, APIs and third-party subscriptions are not included.",
+      "extras": "Additional products, pages and automations are billed separately.",
+      "seoCommitment": "Monthly search work: six-month commitment recommended.",
+      "humanReview": "Nothing is published without your approval, including anything prepared automatically.",
+      "maintenance": "Maintenance covers fixes and monitoring, not new features.",
+      "ownership": "Your domain name and all your accounts are created in your name and belong to you."
+    }
+  },
+  "faq": {
+    "title": "Questions I get asked",
+    "items": [
+      {
+        "q": "It's too expensive for my business.",
+        "a": "What is a new customer worth to you? If it's 15,000 FCFA, the Visible Business pack pays for itself after 33 customers. The real question isn't the amount, it's how fast it comes back to you."
+      },
+      {
+        "q": "My nephew can build me a site for less.",
+        "a": "He can, yes. What he won't do is your Google listing, your WhatsApp catalogue, the measurement of what it earns you, and twelve posts a month for a year. A site is an object; what I sell you is a system."
+      },
+      {
+        "q": "How many customers do you guarantee me?",
+        "a": "None — and be wary of anyone who guarantees you a number. I guarantee the quality of what I install and the consistency of what I publish. How many customers that brings also depends on your offer and your prices, which I don't control."
+      },
+      {
+        "q": "If I stop, do I lose everything?",
+        "a": "No. Your domain name, your content and your Google, Facebook and WhatsApp accounts are created in your name from day one. They stay yours, whatever happens."
+      },
+      {
+        "q": "How long does setup take?",
+        "a": "One to three weeks depending on the pack, counting from when I've received your logo, your photos and your product list. The timeline mostly depends on how quickly you send them to me."
+      },
+      {
+        "q": "Can I start small?",
+        "a": "Yes, and I'd recommend it. Local Presence is enough to exist on Google Maps and get your first enquiries. We move up a level when your numbers justify it, not before."
+      }
+    ]
+  },
+  "form": {
+    "title": "Request your quote",
+    "subtitle": "I'll reply within 48 hours on WhatsApp. No commitment and no sales pitch.",
+    "businessName": "Your business name",
+    "businessNamePlaceholder": "Le Baobab Restaurant",
+    "contactName": "Your name",
+    "contactNamePlaceholder": "Aminata Diop",
+    "phone": "Your WhatsApp number",
+    "phonePlaceholder": "+221 77 000 00 00",
+    "email": "Your email (optional)",
+    "emailPlaceholder": "you@example.com",
+    "city": "Your city and neighbourhood",
+    "cityPlaceholder": "Dakar, Point E",
+    "sector": "Your line of business",
+    "pack": "The pack you're interested in",
+    "plan": "The support plan you want",
+    "message": "Tell me where you stand (optional)",
+    "messagePlaceholder": "I have a Facebook page but no website. I sell fabrics and take orders on WhatsApp.",
+    "referral": "Referral code (optional)",
+    "referralPlaceholder": "NAME-AGENCE",
+    "submit": "Send my request",
+    "submitting": "Sending...",
+    "undecided": "I'm not sure yet",
+    "noPlan": "None for now",
+    "sectors": {
+      "restaurant": "Restaurant, fast food, bakery",
+      "mode": "Clothing, shoes, cosmetics",
+      "beaute": "Beauty salon, barber, spa",
+      "sante": "Pharmacy, clinic, practice",
+      "commerce": "Hardware, building supplies, car parts",
+      "education": "School, training centre",
+      "autre": "Something else"
+    }
+  },
+  "validation": {
+    "businessNameRequired": "Enter your business name",
+    "contactNameRequired": "Enter your name",
+    "phoneRequired": "Enter your WhatsApp number",
+    "phoneInvalid": "That number doesn't look valid",
+    "cityRequired": "Enter your city",
+    "emailInvalid": "That email address isn't valid"
+  },
+  "toast": {
+    "success": "Request sent. I'll reply within 48 hours on WhatsApp.",
+    "error": "Sending failed. Try again, or message me directly on WhatsApp."
+  },
+  "success": {
+    "title": "Sent",
+    "text": "I'll come back to you within 48 hours on WhatsApp, with a free audit of your Google listing.",
+    "quoteReady": "Your summary is ready. Keep this link — you can reopen and share it whenever you like.",
+    "viewQuote": "View my summary",
+    "copyLink": "Copy link",
+    "copied": "Link copied",
+    "again": "Send another request",
+    "whatsappCta": "Continue on WhatsApp",
+    "whatsappHint": "I've already prepared the whole message: all you have to do is send it."
+  },
+  "quote": {
+    "seoTitle": "Your summary — Max-Morrys",
+    "eyebrow": "Summary",
+    "title": "Your digital project",
+    "reference": "Reference",
+    "issuedOn": "Issued on {{date}}",
+    "validUntil": "Valid until {{date}}",
+    "expired": "This summary has passed its validity date. Write to me and I'll refresh it.",
+    "forBusiness": "For",
+    "setupSection": "Setup",
+    "planSection": "Monthly support",
+    "monthly": "per month",
+    "upfrontTotal": "Total due at setup",
+    "deposit": "60% on order",
+    "balance": "40% before going live",
+    "commitmentTotal": "That is {{total}} over {{months}} months",
+    "notIncluded": "Not included: advertising, domain name, APIs and third-party subscriptions.",
+    "disclaimer": "This summary reflects what you selected on the site. It is not a contractual quote: I'll send you the final quote after we've spoken, once your situation is clear.",
+    "cta": "Continue on WhatsApp",
+    "print": "Print or save as PDF",
+    "backToOffer": "See the full offer",
+    "notFound": {
+      "title": "Summary not found",
+      "text": "This link doesn't exist or has been removed. Check the reference, or make a new request — it takes a minute.",
+      "cta": "Make a request"
+    }
+  }
+}

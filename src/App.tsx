@@ -57,6 +57,8 @@ const Videos = lazyWithReload(() => import('./pages/Videos'));
 const VideoDetail = lazyWithReload(() => import('./pages/VideoDetail'));
 const FAQPage = lazyWithReload(() => import('./pages/FAQ'));
 const Contact = lazyWithReload(() => import('./pages/Contact'));
+const Agence = lazyWithReload(() => import('./pages/Agence'));
+const AgenceDevis = lazyWithReload(() => import('./pages/AgenceDevis'));
 const MentionsLegales = lazyWithReload(() => import('./pages/legal/MentionsLegales'));
 const Confidentialite = lazyWithReload(() => import('./pages/legal/Confidentialite'));
 const CGV = lazyWithReload(() => import('./pages/legal/CGV'));
@@ -100,6 +102,7 @@ const AdminFAQ = lazyWithReload(() => import('./pages/admin/AdminFAQ'));
 const AdminTestimonials = lazyWithReload(() => import('./pages/admin/AdminTestimonials'));
 const AdminAppointments = lazyWithReload(() => import('./pages/admin/AdminAppointments'));
 const AdminClubDigitos = lazyWithReload(() => import('./pages/admin/AdminClubDigitos'));
+const AdminAgencyLeads = lazyWithReload(() => import('./pages/admin/AdminAgencyLeads'));
 const CertificatePage = lazyWithReload(() => import('./pages/lms/Certificate'));
 
 function PageLoader() {
@@ -222,6 +225,8 @@ function appChildren() {
         { path: 'videos/:slug', element: <Suspense fallback={<PageLoader />}><VideoDetail /></Suspense> },
         { path: 'faq', element: <Suspense fallback={<PageLoader />}><FAQPage /></Suspense> },
         { path: 'contact', element: <Suspense fallback={<PageLoader />}><Contact /></Suspense> },
+        { path: 'agence', element: <Suspense fallback={<PageLoader />}><Agence /></Suspense> },
+        { path: 'agence/devis/:ref', element: <Suspense fallback={<PageLoader />}><AgenceDevis /></Suspense> },
         { path: 'legal/mentions-legales', element: <Suspense fallback={<PageLoader />}><MentionsLegales /></Suspense> },
         { path: 'legal/confidentialite', element: <Suspense fallback={<PageLoader />}><Confidentialite /></Suspense> },
         { path: 'legal/cgv', element: <Suspense fallback={<PageLoader />}><CGV /></Suspense> },
@@ -324,6 +329,7 @@ function appChildren() {
         { path: 'temoignages', element: <Suspense fallback={<PageLoader />}><AdminTestimonials /></Suspense> },
         { path: 'rendez-vous', element: <Suspense fallback={<PageLoader />}><AdminAppointments /></Suspense> },
         { path: 'club-digitos', element: <Suspense fallback={<PageLoader />}><AdminClubDigitos /></Suspense> },
+        { path: 'prospects-agence', element: <Suspense fallback={<PageLoader />}><AdminAgencyLeads /></Suspense> },
       ],
     },
   ];

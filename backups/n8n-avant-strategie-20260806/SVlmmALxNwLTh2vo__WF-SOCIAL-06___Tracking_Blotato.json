@@ -1,0 +1,274 @@
+{
+  "updatedAt": "2026-07-04T21:50:40.970Z",
+  "createdAt": "2026-07-04T21:50:40.970Z",
+  "id": "SVlmmALxNwLTh2vo",
+  "name": "WF-SOCIAL-06 — Tracking Blotato",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/30 8-22 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cron-cron---toutes-30-min-8-22h",
+      "name": "Cron — Toutes 30 min 8-22h"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Status,eq,en_publication)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        250,
+        0
+      ],
+      "id": "at-s-airtable---lire-en_publicatin",
+      "name": "Airtable — Lire en_publication (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "at-s-airtable---lire-en_publicatif",
+      "name": "Airtable — Lire en_publication",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// runOnceForAllItems — 1 row with Blotato_PostSubmissionID non résolu → 1 item à tracker\nconst posts = $input.all().map(i => i.json);\nconst results = [];\nfor (const post of posts) {\n  if (!post.Blotato_PostSubmissionID) continue;\n  if (post.Blotato_PublicUrl) continue; // already resolved\n  results.push({ json: { recordId: post.id, postSubmissionId: post.Blotato_PostSubmissionID }});\n}\nreturn results.length ? results : [{ json: { _empty: true }}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ],
+      "id": "code-extract---unresolved-subs",
+      "name": "Extract — Unresolved subs"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://backend.blotato.com/v2/posts/{{ $json.postSubmissionId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        750,
+        0
+      ],
+      "id": "http-blotato---get-/v2/posts/{id}",
+      "name": "Blotato — GET /v2/posts/{id}",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LUdzToALNXHeRdgj",
+          "name": "Blotato API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// runOnceForEachItem — un Blotato response → update direct\nconst resp = $input.item.json;\nconst src = $('Extract — Unresolved subs').all()[$itemIndex].json;\nif (src._empty) return { json: { _skip: true }};\nconst status = resp.status || '';\nconst publicUrl = resp.publicUrl || '';\nconst errorMessage = resp.errorMessage || '';\n\nlet finalStatus = 'en_publication';\nif (status === 'published') finalStatus = 'publié';\nelse if (status === 'failed') finalStatus = 'échec';\n\nreturn { json: {\n  id: src.recordId,\n  Blotato_PublicUrl: (status === 'published' ? publicUrl : ''),\n  Status: finalStatus,\n  Erreurs: (status === 'failed' ? errorMessage : '')\n}};\n",
+        "mode": "runOnceForEachItem"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        0
+      ],
+      "id": "code-merge---track-status",
+      "name": "Merge — Track status"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.id }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Blotato_PublicUrl": "={{ $json.Blotato_PublicUrl }}",
+            "Status": "={{ $json.Status }}",
+            "Erreurs": "={{ $json.Erreurs }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1500,
+        0
+      ],
+      "id": "at-u-airtable---status-final",
+      "name": "Airtable — Status final",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron — Toutes 30 min 8-22h": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire en_publication (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire en_publication": {
+      "main": [
+        [
+          {
+            "node": "Extract — Unresolved subs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract — Unresolved subs": {
+      "main": [
+        [
+          {
+            "node": "Blotato — GET /v2/posts/{id}",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Blotato — GET /v2/posts/{id}": {
+      "main": [
+        [
+          {
+            "node": "Merge — Track status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge — Track status": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire en_publication (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire en_publication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Cron — Toutes 30 min 8-22h": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "0df0746d-060e-4588-ac95-076b3867da63",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-04T21:50:40.970Z",
+      "createdAt": "2026-07-04T21:50:40.970Z",
+      "role": "workflow:owner",
+      "workflowId": "SVlmmALxNwLTh2vo",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

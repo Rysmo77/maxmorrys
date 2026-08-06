@@ -1,0 +1,669 @@
+{
+  "updatedAt": "2026-07-20T16:10:52.559Z",
+  "createdAt": "2026-07-04T21:50:40.970Z",
+  "id": "i5EvGUGhVvzKIM2U",
+  "name": "WF-09 — Production de Newsletters",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 4"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron — Newsletter Jeudi 8h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "id": "wf09-read-articlesn",
+      "name": "Airtable — Articles récents (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        300,
+        200
+      ],
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mp8tvctpl38ufmo",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {}
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "wf09-read-articlesf",
+      "name": "Airtable — Articles récents",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        490,
+        200
+      ]
+    },
+    {
+      "id": "wf09-read-coursesn",
+      "name": "Airtable — Cours récents (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        300,
+        500
+      ],
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "moz0ikbdwhdryvj",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {}
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "wf09-read-coursesf",
+      "name": "Airtable — Cours récents",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        490,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Robust: wrap external .all() in try/catch to handle parallel branch failures\nlet articles = [], courses = [];\ntry {\n  articles = $('Airtable — Articles récents').all().map(i => i.json)\n    .filter(a => a.Status === 'produit_draft' || a.Status === 'publié').slice(-5);\n} catch(e) { articles = []; }\ntry {\n  courses = $('Airtable — Cours récents').all().map(i => i.json)\n    .filter(c => c.Status !== 'nouveau').slice(-3);\n} catch(e) { courses = []; }\nreturn [{ json: { recent_articles: articles, recent_courses: courses } }];"
+      },
+      "id": "wf09-prepare",
+      "name": "Préparer — Contenu newsletter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : REDIGER LA NEWSLETTER HEBDOMADAIRE\n\nRedige la newsletter de Max-Morrys. Son positionnement : \"Chaque semaine je partage mes meilleures decouvertes, mes strategies qui marchent et mes petits secrets.\"\n\nARTICLES RECENTS : {{ JSON.stringify($json.recent_articles) }}\nCOURS RECENTS : {{ JSON.stringify($json.recent_courses) }}\n\nSTRUCTURE OBLIGATOIRE :\n\n1. **Objet d'email** (45 chars max, accrocheur, tutoiement, sans emoji)\n2. **Preview text** (100 chars, complete l'objet)\n3. **Salutation** personnelle : \"Salut [Prenom],\" ou \"Hey toi,\" — ton amical\n\n4. **Edito** (100-150 mots) : Max-Morrys raconte une anecdote personnelle, un insight de sa semaine, un apprentissage — ton tres direct et authentique. Pas corporate.\n\n5. **L'article de la semaine** : bloc avec titre de l'article + 3 lignes de teasing + CTA \"Lis l'article complet\"\n\n6. **Le tips de la semaine** : une astuce actionnable en 4-5 lignes que le lecteur peut appliquer aujourd'hui (sujet different de l'article)\n\n7. **Le cours du moment** (si recent_courses non vide) : presentation du cours + valeur + CTA\n\n8. **Question de la communaute** : une question posee par un lecteur + reponse courte\n\n9. **Cloture** : \"A la semaine prochaine\" + signature \"— Max-Morrys, Dakar\"\n\nREPONSE JSON STRICT :\n{\n  \"subject\": \"45 chars max\",\n  \"preview_text\": \"100 chars\",\n  \"html_body\": \"HTML complet avec mise en forme (headings, paragraphes, boutons CTA inline styles)\",\n  \"plain_text\": \"version texte brut\",\n  \"main_cta\": { \"text\": \"\", \"url\": \"\" },\n  \"highlights\": [\"point cle 1\", \"point cle 2\"]\n}"
+            }
+          ]
+        },
+        "options": {
+          "maxOutputTokens": 4096,
+          "temperature": 0.7
+        },
+        "jsonOutput": true
+      },
+      "id": "wf09-gemini",
+      "name": "Gemini Flash — Rédiger newsletter",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\nlet newsletter;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  newsletter = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing newsletter: ' + e.message);\n}\n\nreturn [{\n  json: {\n    subject: newsletter.subject || 'Newsletter Max-Morrys',\n    preview_text: newsletter.preview_text || '',\n    html_body: newsletter.html_body || '',\n    plain_text: newsletter.plain_text || '',\n    main_cta: newsletter.main_cta || {},\n    generated_at: new Date().toISOString(),\n    status: 'draft'\n  }\n}];"
+      },
+      "id": "wf09-parse",
+      "name": "Parse — Newsletter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "934156307",
+        "text": "=📧 *Newsletter prête pour relecture*\n\n*Objet :* {{ $json.subject }}\n*Preview :* {{ $json.preview_text }}\n\n_Valide et envoie manuellement depuis n8n._",
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "wf09-email-preview",
+      "name": "Telegram — Preview à l'admin",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1500,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "k1sYsv0qUTCbCfRN",
+          "name": "Max-Morrys LMS Notifications Telegram"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "webhookId": "7cb00ae2-a1d1-437c-8173-d286fc0f5419"
+    }
+  ],
+  "connections": {
+    "Airtable — Articles récents": {
+      "main": [
+        [
+          {
+            "node": "Préparer — Contenu newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Cours récents": {
+      "main": [
+        [
+          {
+            "node": "Préparer — Contenu newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer — Contenu newsletter": {
+      "main": [
+        [
+          {
+            "node": "Gemini Flash — Rédiger newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Flash — Rédiger newsletter": {
+      "main": [
+        [
+          {
+            "node": "Parse — Newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Newsletter": {
+      "main": [
+        [
+          {
+            "node": "Telegram — Preview à l'admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron — Newsletter Jeudi 8h": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Articles récents (NocoDB)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — Cours récents (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Articles récents (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Articles récents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Cours récents (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Cours récents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "MMERRALERT0001"
+  },
+  "staticData": {
+    "node:Cron — Newsletter Jeudi 8h": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "a86d4da6-eaeb-42e1-8ef4-9390aec3a0e0",
+  "activeVersionId": "a86d4da6-eaeb-42e1-8ef4-9390aec3a0e0",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-07-04T21:50:40.970Z",
+      "createdAt": "2026-07-04T21:50:40.970Z",
+      "role": "workflow:owner",
+      "workflowId": "i5EvGUGhVvzKIM2U",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-08-06T13:25:51.731Z",
+    "createdAt": "2026-08-06T13:25:51.731Z",
+    "versionId": "a86d4da6-eaeb-42e1-8ef4-9390aec3a0e0",
+    "workflowId": "i5EvGUGhVvzKIM2U",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 8 * * 4"
+              }
+            ]
+          }
+        },
+        "id": "cron-trigger",
+        "name": "Cron — Newsletter Jeudi 8h",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          300
+        ]
+      },
+      {
+        "id": "wf09-read-articlesn",
+        "name": "Airtable — Articles récents (NocoDB)",
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          300,
+          200
+        ],
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "mp8tvctpl38ufmo",
+            "mode": "id"
+          },
+          "resource": "row",
+          "operation": "search",
+          "returnAll": true,
+          "options": {}
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+        },
+        "id": "wf09-read-articlesf",
+        "name": "Airtable — Articles récents",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          490,
+          200
+        ]
+      },
+      {
+        "id": "wf09-read-coursesn",
+        "name": "Airtable — Cours récents (NocoDB)",
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          300,
+          500
+        ],
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "moz0ikbdwhdryvj",
+            "mode": "id"
+          },
+          "resource": "row",
+          "operation": "search",
+          "returnAll": true,
+          "options": {}
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+        },
+        "id": "wf09-read-coursesf",
+        "name": "Airtable — Cours récents",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          490,
+          500
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Robust: wrap external .all() in try/catch to handle parallel branch failures\nlet articles = [], courses = [];\ntry {\n  articles = $('Airtable — Articles récents').all().map(i => i.json)\n    .filter(a => a.Status === 'produit_draft' || a.Status === 'publié').slice(-5);\n} catch(e) { articles = []; }\ntry {\n  courses = $('Airtable — Cours récents').all().map(i => i.json)\n    .filter(c => c.Status !== 'nouveau').slice(-3);\n} catch(e) { courses = []; }\nreturn [{ json: { recent_articles: articles, recent_courses: courses } }];"
+        },
+        "id": "wf09-prepare",
+        "name": "Préparer — Contenu newsletter",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          600,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : REDIGER LA NEWSLETTER HEBDOMADAIRE\n\nRedige la newsletter de Max-Morrys. Son positionnement : \"Chaque semaine je partage mes meilleures decouvertes, mes strategies qui marchent et mes petits secrets.\"\n\nARTICLES RECENTS : {{ JSON.stringify($json.recent_articles) }}\nCOURS RECENTS : {{ JSON.stringify($json.recent_courses) }}\n\nSTRUCTURE OBLIGATOIRE :\n\n1. **Objet d'email** (45 chars max, accrocheur, tutoiement, sans emoji)\n2. **Preview text** (100 chars, complete l'objet)\n3. **Salutation** personnelle : \"Salut [Prenom],\" ou \"Hey toi,\" — ton amical\n\n4. **Edito** (100-150 mots) : Max-Morrys raconte une anecdote personnelle, un insight de sa semaine, un apprentissage — ton tres direct et authentique. Pas corporate.\n\n5. **L'article de la semaine** : bloc avec titre de l'article + 3 lignes de teasing + CTA \"Lis l'article complet\"\n\n6. **Le tips de la semaine** : une astuce actionnable en 4-5 lignes que le lecteur peut appliquer aujourd'hui (sujet different de l'article)\n\n7. **Le cours du moment** (si recent_courses non vide) : presentation du cours + valeur + CTA\n\n8. **Question de la communaute** : une question posee par un lecteur + reponse courte\n\n9. **Cloture** : \"A la semaine prochaine\" + signature \"— Max-Morrys, Dakar\"\n\nREPONSE JSON STRICT :\n{\n  \"subject\": \"45 chars max\",\n  \"preview_text\": \"100 chars\",\n  \"html_body\": \"HTML complet avec mise en forme (headings, paragraphes, boutons CTA inline styles)\",\n  \"plain_text\": \"version texte brut\",\n  \"main_cta\": { \"text\": \"\", \"url\": \"\" },\n  \"highlights\": [\"point cle 1\", \"point cle 2\"]\n}"
+              }
+            ]
+          },
+          "options": {
+            "maxOutputTokens": 4096,
+            "temperature": 0.7
+          },
+          "jsonOutput": true
+        },
+        "id": "wf09-gemini",
+        "name": "Gemini Flash — Rédiger newsletter",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          900,
+          300
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\n\nlet newsletter;\ntry {\n  const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\n  newsletter = JSON.parse(text);\n} catch (e) {\n  throw new Error('Erreur parsing newsletter: ' + e.message);\n}\n\nreturn [{\n  json: {\n    subject: newsletter.subject || 'Newsletter Max-Morrys',\n    preview_text: newsletter.preview_text || '',\n    html_body: newsletter.html_body || '',\n    plain_text: newsletter.plain_text || '',\n    main_cta: newsletter.main_cta || {},\n    generated_at: new Date().toISOString(),\n    status: 'draft'\n  }\n}];"
+        },
+        "id": "wf09-parse",
+        "name": "Parse — Newsletter",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "chatId": "934156307",
+          "text": "=📧 *Newsletter prête pour relecture*\n\n*Objet :* {{ $json.subject }}\n*Preview :* {{ $json.preview_text }}\n\n_Valide et envoie manuellement depuis n8n._",
+          "additionalFields": {
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": true
+          }
+        },
+        "id": "wf09-email-preview",
+        "name": "Telegram — Preview à l'admin",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1500,
+          300
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "k1sYsv0qUTCbCfRN",
+            "name": "Max-Morrys LMS Notifications Telegram"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "webhookId": "7cb00ae2-a1d1-437c-8173-d286fc0f5419"
+      }
+    ],
+    "connections": {
+      "Airtable — Articles récents": {
+        "main": [
+          [
+            {
+              "node": "Préparer — Contenu newsletter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Cours récents": {
+        "main": [
+          [
+            {
+              "node": "Préparer — Contenu newsletter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Préparer — Contenu newsletter": {
+        "main": [
+          [
+            {
+              "node": "Gemini Flash — Rédiger newsletter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Flash — Rédiger newsletter": {
+        "main": [
+          [
+            {
+              "node": "Parse — Newsletter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Newsletter": {
+        "main": [
+          [
+            {
+              "node": "Telegram — Preview à l'admin",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cron — Newsletter Jeudi 8h": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Articles récents (NocoDB)",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Airtable — Cours récents (NocoDB)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Articles récents (NocoDB)": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Articles récents",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Cours récents (NocoDB)": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Cours récents",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "import",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "tags": []
+}

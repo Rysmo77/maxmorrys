@@ -12,3 +12,4 @@ export * from './club';
 export * from './dm';
 export * from './notifications';
 export * from './engagement';
+export * from './agency';

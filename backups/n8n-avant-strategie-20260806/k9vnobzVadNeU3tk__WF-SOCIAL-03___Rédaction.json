@@ -1,0 +1,590 @@
+{
+  "updatedAt": "2026-08-01T11:35:10.856Z",
+  "createdAt": "2026-07-09T16:34:37.927Z",
+  "id": "k9vnobzVadNeU3tk",
+  "name": "WF-SOCIAL-03 — Rédaction",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7-19/2 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cron-cron-—-mar/jeu-7h",
+      "name": "Cron — Mar/Jeu 7h"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": false,
+        "limit": 5,
+        "options": {
+          "where": "(Status,eq,planifié)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        256,
+        0
+      ],
+      "id": "at-s-airtable---lire-planifiésn",
+      "name": "Airtable — Lire planifiés (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "at-s-airtable---lire-planifiésf",
+      "name": "Airtable — Lire planifiés",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        446,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Tu es rédacteur senior pour **Max-Morrys** (agence personal branding + LMS). Tagline : \"Maîtrise le digital, accélère ta croissance\".\n\nCIBLE : entrepreneurs 25-45 ans AFW + diaspora. Tutoiement, direct, actionable.\n\nINPUT (1 row = 1 Reseau × 1 Format) :\n- Titre: {{ $json.Titre }}\n- Thématique: {{ $json.Thematique }}\n- Pilier: {{ $json.Pilier }}\n- Format: {{ $json.Format_Post }}\n- Réseau: {{ $json.Reseau }}\n- Brief: {{ $json.Brief }}\n- Mots-clés: {{ $json.Mots_Cles }}\n\n═══════════════════════════════════════════════\nMISSION (PRIORITÉ ABSOLUE — À LIRE EN PREMIER)\n═══════════════════════════════════════════════\nLe post doit DÉVELOPPER EXACTEMENT le sujet précis annoncé par le **Titre** ci-dessus.\nLe Titre EST le sujet du post : le corps doit livrer ce que le Titre promet (angle, exemples,\nconseils, chiffres SUR CE sujet précis). Un lecteur doit sentir que titre et texte parlent\nde la MÊME chose.\n❌ INTERDIT : dévier vers un sujet passe-partout (branding, mindset, « ton petit business »,\npeur de se lancer, « fais pas tout seul ») quand ce N'EST PAS le sujet du Titre.\n❌ INTERDIT : recycler une ouverture générique sans rapport avec le Titre.\nLe Pilier et la VOIX règlent le TON, JAMAIS le SUJET. Le storytelling reste, mais AU SERVICE\ndu sujet exact du Titre.\n\n\n═══════════════════════════════════════════════\nVOIX MAX-MORRYS\n═══════════════════════════════════════════════\n✅ Direct, actionable, chaleureux (tutoiement), pédagogue, ancré AFW, moderne, pro avec humour\n❌ Corporate rigide, gourou US traduit, jargon creux, hustle toxique, fausse modestie\n\nOuvertures : \"Arrête.\" / \"Stop.\" / \"Une vérité qui dérange :\" / \"Voici ce que [X ans dans Y] m'ont appris :\"\nClôtures CTA : \"Si ça t'a aidé, enregistre.\" / \"Sauvegarde pour plus tard.\" / \"Dis-moi en commentaire : [Q précise].\"\nSignature possible : \"Maîtrise le digital, accélère ta croissance.\"\n\n═══════════════════════════════════════════════\nADAPTATION SELON LE RÉSEAU (un seul réseau à produire)\n═══════════════════════════════════════════════\n**linkedin** (principal, audience pro + budget) :\n- Texte 150-300 mots, hook court / développement narratif / punchline CTA\n- Storytelling pro, posé, exemples concrets\n- Emojis modérés (•, →, ✅, ❌, 💡)\n- Saut de ligne entre idées fortes\n\n**ig** (Instagram — visuel, entrepreneurs 25-45) :\n- Texte 100-200 mots, chaleureux, inspirationnel\n- Hook ultra court (1ère ligne) avant \"…voir plus\"\n- Emojis présents mais classe\n- Carrousel → texte court + \"Sauvegarde et partage\"\n\n**tiktok** (découverte, plus jeune, viral) :\n- Caption 80-150 mots, direct, rythmé, didactique, décalé\n- Hook 3 premières secondes\n- Peu d'emojis\n- Formats \"POV :\" / \"3 erreurs sur X\" / \"Comment X en 60s\"\n\n**youtube** (SEO durable, autorité, LMS) :\n- Description 200-400 mots, mots-clés SEO dans les 150 premiers chars\n- Timestamps si video longue\n- CTA vers LMS / newsletter / page ressource\n\n**fb** (Facebook — communautaire AFW) :\n- Texte 150-250 mots, conversationnel, pédagogue\n- Questions ouvertes pour engagement\n- Emojis chaleureux (👋, 🙏, 💬)\n\n**x** (Twitter — thought leadership rapide) :\n- Si format=thread : 5-10 tweets numérotés, chacun autonome\n- Sinon : ≤280 chars, punchy, opinion affirmée\n- Pas d'emojis (1 max)\n\n═══════════════════════════════════════════════\nHASHTAGS (selon le réseau)\n═══════════════════════════════════════════════\n- ig : 5-10 hashtags mix (2-3 locaux AFW #Dakar #Abidjan #Douala, 3-5 thématiques, 2-3 génériques)\n- linkedin : 3-5 hashtags pro\n- tiktok : 3-5 dont 1-2 tendance\n- fb : 2-3 si pertinents\n- x : 1-2 max\n- youtube : dans la description\n\n═══════════════════════════════════════════════\nRÈGLES ABSOLUES\n═══════════════════════════════════════════════\n1. Tutoiement partout\n2. Finir par CTA actionable\n3. Exemples locaux AFW quand possible\n4. Adapter au FORMAT aussi (ex: carrousel = structure slides numérotées, thread X = tweets séparés par \"---\")\n\n═══════════════════════════════════════════════\nFORMAT DE SORTIE (JSON strict — pas de markdown, pas de backticks)\n═══════════════════════════════════════════════\n▸ Si Format = **carrousel** : découpe le contenu en SLIDES (le texte narratif devient des IMAGES).\n{\n  \"Texte\": \"LÉGENDE du post uniquement : accroche (1-2 lignes) + CTA final. AUCUN 'Slide N', AUCUN découpage numéroté. C'est la légende qui accompagne les images, pas le contenu des slides.\",\n  \"Hashtags\": \"hashtags adaptés au réseau séparés par espace\",\n  \"Slides\": [\n    {\"titre\": \"<accroche COVER, courte et forte>\", \"corps\": \"\"},\n    {\"titre\": \"<point clé 1, titre court>\", \"corps\": \"<1-2 phrases>\"},\n    {\"titre\": \"<point clé 2>\", \"corps\": \"<1-2 phrases>\"},\n    {\"titre\": \"<point clé 3>\", \"corps\": \"<1-2 phrases>\"},\n    {\"titre\": \"<CTA : Sauvegarde & partage>\", \"corps\": \"<1 phrase>\"}\n  ]\n}\nRÈGLES SLIDES : 5 à 6 slides. Slide 1 = cover (l'accroche, corps vide). Slides du milieu = UN point clé\nchacun. Dernière slide = CTA. Titres de slide COURTS (≤ 45 caractères). Corps CONCIS (≤ 140 caractères) —\nça doit tenir lisible sur une image. Le tout DÉVELOPPE le sujet du Titre (jamais générique).\n\n▸ Sinon (tout autre format) :\n{\n  \"Texte\": \"texte complet du post pour CE réseau dans CE format\",\n  \"Hashtags\": \"hashtags adaptés au réseau séparés par espace\",\n  \"Slides\": []\n}\n"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 16384,
+          "temperature": 0.7,
+          "thinkingBudget": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "gem-gemini-pro---rédiger-textes",
+      "name": "Gemini Pro — Rédiger textes",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// runOnceForEachItem — parse Gemini, émet 1 item avec Texte + Hashtags + id pour update\nconst resp = $input.item.json;\nconst src = $('Airtable — Lire planifiés').all()[$itemIndex].json;\nlet text = '';\nif (resp.candidates?.[0]?.content?.parts) text = resp.candidates[0].content.parts.map(p=>p.text||'').join('');\nelse if (typeof resp === 'string') text = resp;\nelse text = JSON.stringify(resp);\nfunction extractJson(t){let c=(t||'').trim().replace(/^```(?:json)?\\s*/i,'').replace(/```\\s*$/i,'').trim();try{return JSON.parse(c);}catch(e){}const m=c.match(/\\{[\\s\\S]*\\}/);if(m){try{return JSON.parse(m[0]);}catch(e){}}return null;}\nconst data = extractJson(text) || {};\nreturn { json: {\n  id: src.id,\n  Texte: data.Texte || '',\n  Hashtags: data.Hashtags || '',\n  Slides_JSON: (data.Slides && Array.isArray(data.Slides) && data.Slides.length) ? JSON.stringify(data.Slides) : '',\n  Status: 'rédigé'\n}};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        0
+      ],
+      "id": "code-parse---textes-rédigés",
+      "name": "Parse — Textes rédigés"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.id }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Texte": "={{ $json.Texte }}",
+            "Hashtags": "={{ $json.Hashtags }}",
+            "Status": "={{ $json.Status }}",
+            "Slides_JSON": "={{ $json.Slides_JSON }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "at-u-airtable---status=rédigé",
+      "name": "Airtable — Status=rédigé",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mm-run-redaction",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook — mm-run-redaction",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        160
+      ],
+      "webhookId": "mm-run-redaction",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jSMRNljvTwk5b77f",
+          "name": "MM Trigger"
+        }
+      },
+      "id": "e643af87-eaf3-4ca0-9f00-9a13ba7d2b09"
+    }
+  ],
+  "connections": {
+    "Cron — Mar/Jeu 7h": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire planifiés (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire planifiés": {
+      "main": [
+        [
+          {
+            "node": "Gemini Pro — Rédiger textes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Pro — Rédiger textes": {
+      "main": [
+        [
+          {
+            "node": "Parse — Textes rédigés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Textes rédigés": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status=rédigé",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook — mm-run-redaction": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire planifiés (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire planifiés (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire planifiés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "errorWorkflow": "MMERRALERT0001"
+  },
+  "staticData": {
+    "node:Cron — Mar/Jeu 7h": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "76687f1a-a710-4265-9e0b-36748e5b5bed",
+  "activeVersionId": "76687f1a-a710-4265-9e0b-36748e5b5bed",
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-07-09T16:34:37.927Z",
+      "createdAt": "2026-07-09T16:34:37.927Z",
+      "role": "workflow:owner",
+      "workflowId": "k9vnobzVadNeU3tk",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-08-06T13:25:51.731Z",
+    "createdAt": "2026-08-06T13:25:51.731Z",
+    "versionId": "76687f1a-a710-4265-9e0b-36748e5b5bed",
+    "workflowId": "k9vnobzVadNeU3tk",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 7-19/2 * * *"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ],
+        "id": "cron-cron-—-mar/jeu-7h",
+        "name": "Cron — Mar/Jeu 7h"
+      },
+      {
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "m3wim4coagaoot7",
+            "mode": "id"
+          },
+          "resource": "row",
+          "operation": "search",
+          "returnAll": false,
+          "limit": 5,
+          "options": {
+            "where": "(Status,eq,planifié)"
+          }
+        },
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          256,
+          0
+        ],
+        "id": "at-s-airtable---lire-planifiésn",
+        "name": "Airtable — Lire planifiés (NocoDB)",
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+        },
+        "id": "at-s-airtable---lire-planifiésf",
+        "name": "Airtable — Lire planifiés",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          446,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Tu es rédacteur senior pour **Max-Morrys** (agence personal branding + LMS). Tagline : \"Maîtrise le digital, accélère ta croissance\".\n\nCIBLE : entrepreneurs 25-45 ans AFW + diaspora. Tutoiement, direct, actionable.\n\nINPUT (1 row = 1 Reseau × 1 Format) :\n- Titre: {{ $json.Titre }}\n- Thématique: {{ $json.Thematique }}\n- Pilier: {{ $json.Pilier }}\n- Format: {{ $json.Format_Post }}\n- Réseau: {{ $json.Reseau }}\n- Brief: {{ $json.Brief }}\n- Mots-clés: {{ $json.Mots_Cles }}\n\n═══════════════════════════════════════════════\nMISSION (PRIORITÉ ABSOLUE — À LIRE EN PREMIER)\n═══════════════════════════════════════════════\nLe post doit DÉVELOPPER EXACTEMENT le sujet précis annoncé par le **Titre** ci-dessus.\nLe Titre EST le sujet du post : le corps doit livrer ce que le Titre promet (angle, exemples,\nconseils, chiffres SUR CE sujet précis). Un lecteur doit sentir que titre et texte parlent\nde la MÊME chose.\n❌ INTERDIT : dévier vers un sujet passe-partout (branding, mindset, « ton petit business »,\npeur de se lancer, « fais pas tout seul ») quand ce N'EST PAS le sujet du Titre.\n❌ INTERDIT : recycler une ouverture générique sans rapport avec le Titre.\nLe Pilier et la VOIX règlent le TON, JAMAIS le SUJET. Le storytelling reste, mais AU SERVICE\ndu sujet exact du Titre.\n\n\n═══════════════════════════════════════════════\nVOIX MAX-MORRYS\n═══════════════════════════════════════════════\n✅ Direct, actionable, chaleureux (tutoiement), pédagogue, ancré AFW, moderne, pro avec humour\n❌ Corporate rigide, gourou US traduit, jargon creux, hustle toxique, fausse modestie\n\nOuvertures : \"Arrête.\" / \"Stop.\" / \"Une vérité qui dérange :\" / \"Voici ce que [X ans dans Y] m'ont appris :\"\nClôtures CTA : \"Si ça t'a aidé, enregistre.\" / \"Sauvegarde pour plus tard.\" / \"Dis-moi en commentaire : [Q précise].\"\nSignature possible : \"Maîtrise le digital, accélère ta croissance.\"\n\n═══════════════════════════════════════════════\nADAPTATION SELON LE RÉSEAU (un seul réseau à produire)\n═══════════════════════════════════════════════\n**linkedin** (principal, audience pro + budget) :\n- Texte 150-300 mots, hook court / développement narratif / punchline CTA\n- Storytelling pro, posé, exemples concrets\n- Emojis modérés (•, →, ✅, ❌, 💡)\n- Saut de ligne entre idées fortes\n\n**ig** (Instagram — visuel, entrepreneurs 25-45) :\n- Texte 100-200 mots, chaleureux, inspirationnel\n- Hook ultra court (1ère ligne) avant \"…voir plus\"\n- Emojis présents mais classe\n- Carrousel → texte court + \"Sauvegarde et partage\"\n\n**tiktok** (découverte, plus jeune, viral) :\n- Caption 80-150 mots, direct, rythmé, didactique, décalé\n- Hook 3 premières secondes\n- Peu d'emojis\n- Formats \"POV :\" / \"3 erreurs sur X\" / \"Comment X en 60s\"\n\n**youtube** (SEO durable, autorité, LMS) :\n- Description 200-400 mots, mots-clés SEO dans les 150 premiers chars\n- Timestamps si video longue\n- CTA vers LMS / newsletter / page ressource\n\n**fb** (Facebook — communautaire AFW) :\n- Texte 150-250 mots, conversationnel, pédagogue\n- Questions ouvertes pour engagement\n- Emojis chaleureux (👋, 🙏, 💬)\n\n**x** (Twitter — thought leadership rapide) :\n- Si format=thread : 5-10 tweets numérotés, chacun autonome\n- Sinon : ≤280 chars, punchy, opinion affirmée\n- Pas d'emojis (1 max)\n\n═══════════════════════════════════════════════\nHASHTAGS (selon le réseau)\n═══════════════════════════════════════════════\n- ig : 5-10 hashtags mix (2-3 locaux AFW #Dakar #Abidjan #Douala, 3-5 thématiques, 2-3 génériques)\n- linkedin : 3-5 hashtags pro\n- tiktok : 3-5 dont 1-2 tendance\n- fb : 2-3 si pertinents\n- x : 1-2 max\n- youtube : dans la description\n\n═══════════════════════════════════════════════\nRÈGLES ABSOLUES\n═══════════════════════════════════════════════\n1. Tutoiement partout\n2. Finir par CTA actionable\n3. Exemples locaux AFW quand possible\n4. Adapter au FORMAT aussi (ex: carrousel = structure slides numérotées, thread X = tweets séparés par \"---\")\n\n═══════════════════════════════════════════════\nFORMAT DE SORTIE (JSON strict — pas de markdown, pas de backticks)\n═══════════════════════════════════════════════\n▸ Si Format = **carrousel** : découpe le contenu en SLIDES (le texte narratif devient des IMAGES).\n{\n  \"Texte\": \"LÉGENDE du post uniquement : accroche (1-2 lignes) + CTA final. AUCUN 'Slide N', AUCUN découpage numéroté. C'est la légende qui accompagne les images, pas le contenu des slides.\",\n  \"Hashtags\": \"hashtags adaptés au réseau séparés par espace\",\n  \"Slides\": [\n    {\"titre\": \"<accroche COVER, courte et forte>\", \"corps\": \"\"},\n    {\"titre\": \"<point clé 1, titre court>\", \"corps\": \"<1-2 phrases>\"},\n    {\"titre\": \"<point clé 2>\", \"corps\": \"<1-2 phrases>\"},\n    {\"titre\": \"<point clé 3>\", \"corps\": \"<1-2 phrases>\"},\n    {\"titre\": \"<CTA : Sauvegarde & partage>\", \"corps\": \"<1 phrase>\"}\n  ]\n}\nRÈGLES SLIDES : 5 à 6 slides. Slide 1 = cover (l'accroche, corps vide). Slides du milieu = UN point clé\nchacun. Dernière slide = CTA. Titres de slide COURTS (≤ 45 caractères). Corps CONCIS (≤ 140 caractères) —\nça doit tenir lisible sur une image. Le tout DÉVELOPPE le sujet du Titre (jamais générique).\n\n▸ Sinon (tout autre format) :\n{\n  \"Texte\": \"texte complet du post pour CE réseau dans CE format\",\n  \"Hashtags\": \"hashtags adaptés au réseau séparés par espace\",\n  \"Slides\": []\n}\n"
+              }
+            ]
+          },
+          "simplify": false,
+          "jsonOutput": true,
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 16384,
+            "temperature": 0.7,
+            "thinkingBudget": 0
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          448,
+          0
+        ],
+        "id": "gem-gemini-pro---rédiger-textes",
+        "name": "Gemini Pro — Rédiger textes",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "// runOnceForEachItem — parse Gemini, émet 1 item avec Texte + Hashtags + id pour update\nconst resp = $input.item.json;\nconst src = $('Airtable — Lire planifiés').all()[$itemIndex].json;\nlet text = '';\nif (resp.candidates?.[0]?.content?.parts) text = resp.candidates[0].content.parts.map(p=>p.text||'').join('');\nelse if (typeof resp === 'string') text = resp;\nelse text = JSON.stringify(resp);\nfunction extractJson(t){let c=(t||'').trim().replace(/^```(?:json)?\\s*/i,'').replace(/```\\s*$/i,'').trim();try{return JSON.parse(c);}catch(e){}const m=c.match(/\\{[\\s\\S]*\\}/);if(m){try{return JSON.parse(m[0]);}catch(e){}}return null;}\nconst data = extractJson(text) || {};\nreturn { json: {\n  id: src.id,\n  Texte: data.Texte || '',\n  Hashtags: data.Hashtags || '',\n  Slides_JSON: (data.Slides && Array.isArray(data.Slides) && data.Slides.length) ? JSON.stringify(data.Slides) : '',\n  Status: 'rédigé'\n}};\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          752,
+          0
+        ],
+        "id": "code-parse---textes-rédigés",
+        "name": "Parse — Textes rédigés"
+      },
+      {
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "m3wim4coagaoot7",
+            "mode": "id"
+          },
+          "resource": "row",
+          "operation": "update",
+          "dataToSend": "mapWithFields",
+          "id": "={{ $json.id }}",
+          "fieldsMapper": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Texte": "={{ $json.Texte }}",
+              "Hashtags": "={{ $json.Hashtags }}",
+              "Status": "={{ $json.Status }}",
+              "Slides_JSON": "={{ $json.Slides_JSON }}"
+            },
+            "matchingColumns": [],
+            "schema": []
+          }
+        },
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          1008,
+          0
+        ],
+        "id": "at-u-airtable---status=rédigé",
+        "name": "Airtable — Status=rédigé",
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "mm-run-redaction",
+          "authentication": "headerAuth",
+          "responseMode": "onReceived",
+          "options": {}
+        },
+        "name": "Webhook — mm-run-redaction",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          0,
+          160
+        ],
+        "webhookId": "mm-run-redaction",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "jSMRNljvTwk5b77f",
+            "name": "MM Trigger"
+          }
+        },
+        "id": "e643af87-eaf3-4ca0-9f00-9a13ba7d2b09"
+      }
+    ],
+    "connections": {
+      "Cron — Mar/Jeu 7h": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire planifiés (NocoDB)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire planifiés": {
+        "main": [
+          [
+            {
+              "node": "Gemini Pro — Rédiger textes",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Pro — Rédiger textes": {
+        "main": [
+          [
+            {
+              "node": "Parse — Textes rédigés",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Textes rédigés": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Status=rédigé",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook — mm-run-redaction": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire planifiés (NocoDB)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Lire planifiés (NocoDB)": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Lire planifiés",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "import",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "tags": []
+}

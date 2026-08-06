@@ -9,15 +9,85 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { toCanonicalPath } from '../../i18n/routing';
 import LocalizedLink from '../shared/LocalizedLink';
 
-const navLinks = [
-  { key: 'about', path: '/a-propos' },
-  { key: 'formations', path: '/formations' },
-  { key: 'blog', path: '/blog' },
+/**
+ * Surbrillance par entrée de menu : chaque item s'allume dans la couleur de son univers
+ * (cf. `src/lib/sectionThemes.ts`), au survol comme à l'état actif.
+ *
+ * IMPORTANT : chaînes statiques complètes — Tailwind ne détecte pas les noms de classes
+ * construits dynamiquement (purge du build).
+ *
+ * `accent` (orange) est réservé au parent « Je te transforme » : ce menu n'est pas un
+ * univers, et ses voisins immédiats (`morrys` pour À propos, `plum` pour Podcasts) sont
+ * deux violets indiscernables — il lui faut une teinte qui ne collisionne avec aucun.
+ *
+ * ⚠️ CONTRASTE : `lagoon` et `accent` plafonnent sous 4,5:1 en `-600` sur blanc, d'où le
+ * `-700` en mode clair. Ne pas « corriger » vers `-600`.
+ */
+type AccentKey = 'brand' | 'coral' | 'morrys' | 'plum' | 'red' | 'lagoon' | 'accent';
+
+interface NavAccent {
+  /** item actif : texte coloré + aplat doux */
+  active: string;
+  /** item au repos, avec surbrillance colorée au survol */
+  idle: string;
+  /** barre de soulignement (nav desktop) */
+  bar: string;
+}
+
+const navAccents: Record<AccentKey, NavAccent> = {
+  brand: {
+    active: 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20',
+    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20',
+    bar: 'bg-brand-500',
+  },
+  coral: {
+    active: 'text-coral-600 dark:text-coral-400 bg-coral-50 dark:bg-coral-900/20',
+    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-coral-600 dark:hover:text-coral-400 hover:bg-coral-50 dark:hover:bg-coral-900/20',
+    bar: 'bg-coral-500',
+  },
+  morrys: {
+    active: 'text-morrys-600 dark:text-morrys-400 bg-morrys-50 dark:bg-morrys-900/20',
+    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-morrys-600 dark:hover:text-morrys-400 hover:bg-morrys-50 dark:hover:bg-morrys-900/20',
+    bar: 'bg-morrys-500',
+  },
+  plum: {
+    active: 'text-plum-600 dark:text-plum-400 bg-plum-50 dark:bg-plum-900/20',
+    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-plum-600 dark:hover:text-plum-400 hover:bg-plum-50 dark:hover:bg-plum-900/20',
+    bar: 'bg-plum-500',
+  },
+  red: {
+    active: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
+    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20',
+    bar: 'bg-red-500',
+  },
+  lagoon: {
+    active: 'text-lagoon-700 dark:text-lagoon-400 bg-lagoon-50 dark:bg-lagoon-900/20',
+    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-lagoon-700 dark:hover:text-lagoon-400 hover:bg-lagoon-50 dark:hover:bg-lagoon-900/20',
+    bar: 'bg-lagoon-500',
+  },
+  accent: {
+    active: 'text-accent-700 dark:text-accent-400 bg-accent-50 dark:bg-accent-900/20',
+    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-accent-700 dark:hover:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-900/20',
+    bar: 'bg-accent-500',
+  },
+};
+
+/** Surbrillance des items au-dessus du hero : la couleur d'univers y serait illisible. */
+const transparentAccent: NavAccent = {
+  active: 'text-white bg-white/15',
+  idle: 'text-white/85 hover:text-white hover:bg-white/10',
+  bar: 'bg-white',
+};
+
+const navLinks: { key: string; path: string; accent: AccentKey }[] = [
+  { key: 'about', path: '/a-propos', accent: 'morrys' },
+  { key: 'formations', path: '/formations', accent: 'brand' },
+  { key: 'blog', path: '/blog', accent: 'coral' },
 ];
 
-const transformerLinks = [
-  { key: 'podcast', path: '/podcasts', icon: Headphones },
-  { key: 'videos', path: '/videos', icon: Youtube },
+const transformerLinks: { key: string; path: string; icon: typeof Headphones; accent: AccentKey }[] = [
+  { key: 'podcast', path: '/podcasts', icon: Headphones, accent: 'plum' },
+  { key: 'videos', path: '/videos', icon: Youtube, accent: 'red' },
 ];
 
 interface HeaderProps {
@@ -83,6 +153,9 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   // Header transparent par-dessus le hero (accueil, haut de page, menu fermé).
   const transparent = path === '/' && !scrolled && !mobileOpen;
 
+  const transformerAccent = transparent ? transparentAccent : navAccents.accent;
+  const agencyAccent = transparent ? transparentAccent : navAccents.lagoon;
+
   const userInitials = user?.displayName
     ? user.displayName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : user?.email?.[0]?.toUpperCase() ?? 'U';
@@ -128,25 +201,20 @@ export default function Header({ onSearchOpen }: HeaderProps) {
             <nav className="hidden lg:flex items-center gap-0.5 ml-auto">
               {navLinks.map((link) => {
                 const isActive = path === link.path || path.startsWith(link.path + '/');
+                const accent = transparent ? transparentAccent : navAccents[link.accent];
                 return (
                   <LocalizedLink
                     key={link.path}
                     to={link.path}
                     className={cn(
                       'relative px-3.5 py-2 text-[0.8125rem] font-semibold transition-colors duration-150 rounded-lg group',
-                      isActive
-                        ? transparent ? 'text-white font-semibold' : 'text-neutral-900 dark:text-white font-semibold'
-                        : transparent
-                          ? 'text-white/85 hover:text-white hover:bg-white/10'
-                          : 'text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
+                      isActive ? accent.active : accent.idle
                     )}
                   >
                     {t(link.key)}
                     <span className={cn(
                       'absolute bottom-1 left-3.5 right-3.5 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
-                      link.path === '/a-propos' ? 'bg-morrys-600 dark:bg-morrys-400'
-                        : link.path === '/blog' ? 'bg-coral-600 dark:bg-coral-400'
-                        : 'bg-brand-500',
+                      accent.bar,
                       isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                     )} />
                   </LocalizedLink>
@@ -167,18 +235,15 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   aria-label={t('transformAria')}
                   className={cn(
                     'relative flex items-center gap-1 px-3.5 py-2 text-[0.8125rem] font-semibold transition-colors duration-150 rounded-lg group',
-                    isTransformerActive
-                      ? transparent ? 'text-white font-semibold' : 'text-neutral-900 dark:text-white font-semibold'
-                      : transparent
-                        ? 'text-white/85 hover:text-white hover:bg-white/10'
-                        : 'text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/70 dark:hover:bg-neutral-800/60'
+                    isTransformerActive || dropdownOpen ? transformerAccent.active : transformerAccent.idle
                   )}
                 >
                   {t('transform')}
                   <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200', dropdownOpen && 'rotate-180')} aria-hidden="true" />
                   <span className={cn(
-                    'absolute bottom-1 left-3.5 right-8 h-[1.5px] bg-white rounded-full transition-transform duration-200 origin-left',
-                    isTransformerActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                    'absolute bottom-1 left-3.5 right-8 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
+                    transformerAccent.bar,
+                    isTransformerActive || dropdownOpen ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                   )} />
                 </button>
 
@@ -186,49 +251,41 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-80 z-50 pt-2.5">
                     <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-neutral-100 dark:border-neutral-800 py-2 animate-slide-down">
                       <div className="px-4 pb-2 pt-1 mb-1 border-b border-neutral-100 dark:border-neutral-800">
-                        <p className="text-[0.625rem] font-bold tracking-[0.2em] uppercase text-brand-600 dark:text-brand-400">
+                        <p className="text-[0.625rem] font-bold tracking-[0.2em] uppercase text-accent-700 dark:text-accent-400">
                           {t('freeContent')}
                         </p>
                       </div>
                       {transformerLinks.map((item) => {
-                        const isVideos = item.path === '/videos';
-                        const isPodcasts = item.path === '/podcasts';
+                        const isVideos = item.accent === 'red';
+                        const isActive = path.startsWith(item.path);
                         const iconBoxCls = isVideos
                           ? 'bg-red-50 dark:bg-red-900/30'
-                          : isPodcasts
-                            ? 'bg-plum-50 dark:bg-plum-900/30'
-                            : 'bg-brand-50 dark:bg-brand-900/30';
+                          : 'bg-plum-50 dark:bg-plum-900/30';
                         const iconCls = isVideos
                           ? 'text-red-600 dark:text-red-400'
-                          : isPodcasts
-                            ? 'text-plum-600 dark:text-plum-400'
-                            : 'text-brand-600 dark:text-brand-400';
-                        const hoverCls = isVideos
-                          ? 'group-hover/item:text-red-600 dark:group-hover/item:text-red-400'
-                          : isPodcasts
-                            ? 'group-hover/item:text-plum-600 dark:group-hover/item:text-plum-400'
-                            : 'group-hover/item:text-brand-600 dark:group-hover/item:text-brand-400';
-                        const activeCls = isVideos
-                          ? 'text-red-600 dark:text-red-400'
-                          : isPodcasts
-                            ? 'text-plum-600 dark:text-plum-400'
-                            : 'text-brand-600 dark:text-brand-400';
+                          : 'text-plum-600 dark:text-plum-400';
+                        const rowCls = isVideos
+                          ? cn('hover:bg-red-50 dark:hover:bg-red-900/20', isActive && 'bg-red-50 dark:bg-red-900/20')
+                          : cn('hover:bg-plum-50 dark:hover:bg-plum-900/20', isActive && 'bg-plum-50 dark:bg-plum-900/20');
+                        const labelCls = isVideos
+                          ? cn(
+                              'group-hover/item:text-red-600 dark:group-hover/item:text-red-400',
+                              isActive ? 'text-red-600 dark:text-red-400' : 'text-neutral-800 dark:text-neutral-200'
+                            )
+                          : cn(
+                              'group-hover/item:text-plum-600 dark:group-hover/item:text-plum-400',
+                              isActive ? 'text-plum-600 dark:text-plum-400' : 'text-neutral-800 dark:text-neutral-200'
+                            );
                         return (
                         <LocalizedLink
                           key={item.path}
                           to={item.path}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition-colors group/item"
+                          className={cn('flex items-center gap-3 px-4 py-3 transition-colors group/item', rowCls)}
                         >
                           <div className={`w-9 h-9 rounded-xl ${iconBoxCls} flex items-center justify-center shrink-0`}>
                             <item.icon className={`w-4 h-4 ${iconCls}`} />
                           </div>
-                          <p className={cn(
-                            'text-sm font-semibold leading-snug transition-colors',
-                            hoverCls,
-                            path.startsWith(item.path)
-                              ? activeCls
-                              : 'text-neutral-800 dark:text-neutral-200'
-                          )}>
+                          <p className={cn('text-sm font-semibold leading-snug transition-colors', labelCls)}>
                             {t(item.key)}
                           </p>
                         </LocalizedLink>
@@ -238,6 +295,22 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   </div>
                 )}
               </div>
+
+              {/* Je te digitalise — offre agence pour commerces */}
+              <LocalizedLink
+                to="/agence"
+                className={cn(
+                  'relative px-3.5 py-2 text-[0.8125rem] font-semibold transition-all duration-150 rounded-lg group',
+                  path === '/agence' ? agencyAccent.active : agencyAccent.idle
+                )}
+              >
+                {t('agency')}
+                <span className={cn(
+                  'absolute bottom-1 left-3.5 right-3.5 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
+                  agencyAccent.bar,
+                  path === '/agence' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                )} />
+              </LocalizedLink>
 
               {/* Contacte-moi */}
               <LocalizedLink
@@ -338,7 +411,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                       <div className="py-1">
                         <LocalizedLink
                           to="/mon-espace"
-                          className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+                          className={cn('flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors', navAccents.brand.idle)}
                         >
                           <GraduationCap className="w-4 h-4" />
                           {t('studentSpace')}
@@ -346,7 +419,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                         {userData?.role === 'admin' && (
                           <LocalizedLink
                             to="/admin"
-                            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition-colors"
+                            className={cn('flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors', navAccents.plum.idle)}
                           >
                             <LayoutDashboard className="w-4 h-4" />
                             {t('admin')}
@@ -415,8 +488,8 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     className={cn(
                       'block px-4 py-3 text-sm font-medium transition-colors rounded-xl',
                       isActive
-                        ? 'text-brand-600 dark:text-brand-400 font-semibold bg-brand-50 dark:bg-brand-900/20'
-                        : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60'
+                        ? cn('font-semibold', navAccents[link.accent].active)
+                        : navAccents[link.accent].idle
                     )}
                   >
                     {t(link.key)}
@@ -432,9 +505,9 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   aria-controls="mobile-transformer-menu"
                   className={cn(
                     'w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors rounded-xl',
-                    isTransformerActive
-                      ? 'text-brand-600 dark:text-brand-400 font-semibold bg-brand-50 dark:bg-brand-900/20'
-                      : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60'
+                    isTransformerActive || mobileTransformerOpen
+                      ? cn('font-semibold', navAccents.accent.active)
+                      : navAccents.accent.idle
                   )}
                 >
                   {t('transform')}
@@ -448,23 +521,15 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   )}
                 >
                     {transformerLinks.map((item) => {
-                      const isPodcasts = item.path === '/podcasts';
                       const isActive = path.startsWith(item.path);
+                      const accent = navAccents[item.accent];
                       return (
                       <LocalizedLink
                         key={item.path}
                         to={item.path}
                         className={cn(
-                          'flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/60',
-                          isPodcasts
-                            ? cn(
-                                'hover:text-plum-600 dark:hover:text-plum-400',
-                                isActive ? 'text-plum-600 dark:text-plum-400 font-semibold' : 'text-neutral-600 dark:text-neutral-400'
-                              )
-                            : cn(
-                                'hover:text-brand-600 dark:hover:text-brand-400',
-                                isActive ? 'text-brand-600 dark:text-brand-400 font-semibold' : 'text-neutral-600 dark:text-neutral-400'
-                              )
+                          'flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors rounded-xl',
+                          isActive ? cn('font-semibold', accent.active) : accent.idle
                         )}
                       >
                         <item.icon className="w-4 h-4" />
@@ -474,6 +539,17 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     })}
                 </div>
               </div>
+
+              {/* Mobile: Je te digitalise */}
+              <LocalizedLink
+                to="/agence"
+                className={cn(
+                  'block px-4 py-3 text-sm font-semibold transition-colors rounded-xl',
+                  path === '/agence' ? navAccents.lagoon.active : navAccents.lagoon.idle
+                )}
+              >
+                {t('agency')}
+              </LocalizedLink>
 
               {/* Mobile: Contacte-moi */}
               <LocalizedLink
@@ -504,7 +580,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                 <div className="space-y-0.5">
                   <LocalizedLink
                     to="/mon-espace"
-                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 rounded-xl"
+                    className={cn('flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors', navAccents.brand.idle)}
                   >
                     <GraduationCap className="w-4 h-4" />
                     {t('studentSpace')}

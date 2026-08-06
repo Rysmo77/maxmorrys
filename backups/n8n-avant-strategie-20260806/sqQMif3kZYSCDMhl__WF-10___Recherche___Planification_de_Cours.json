@@ -1,0 +1,1467 @@
+{
+  "updatedAt": "2026-07-20T16:11:18.638Z",
+  "createdAt": "2026-07-04T21:50:40.970Z",
+  "id": "sqQMif3kZYSCDMhl",
+  "name": "WF-10 — Recherche & Planification de Cours",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron — Recherche cours Dimanche 18h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "id": "wf10-read-existingn",
+      "name": "Airtable — Cours existants (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        350,
+        100
+      ],
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "moz0ikbdwhdryvj",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "wf10-read-existingf",
+      "name": "Airtable — Cours existants",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=formation+marketing+digital+Sénégal+Afrique+compétences+2026&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf10-search-local",
+      "name": "Alerte — Formation marketing Afrique",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "onError": "continueRegularOutput",
+      "position": [
+        350,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=best+online+courses+digital+marketing+2026+trending+skills&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf10-search-intl",
+      "name": "Alerte — Online courses trends",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "onError": "continueRegularOutput",
+      "position": [
+        350,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC2Aatk6UdrOBjhFXpFN5kew",
+        "options": {}
+      },
+      "id": "wf10-youtube-education",
+      "name": "YouTube XML — Cours marketing FR",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        350,
+        700
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=Udemy+marketing+digital+francais+cours+populaire&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf10-udemy-benchmark",
+      "name": "Alerte — Udemy marketing digital",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "onError": "continueRegularOutput",
+      "position": [
+        350,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=Coursera+marketing+digital+francais+certification&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf10-coursera-benchmark",
+      "name": "Alerte — Coursera marketing francophone",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "onError": "continueRegularOutput",
+      "position": [
+        350,
+        1100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://firestore.googleapis.com/v1/projects/max-morrys/databases/(default)/documents/messages?pageSize=20&orderBy=createdAt desc",
+        "options": {
+          "timeout": 15000
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi"
+      },
+      "id": "wf10-firestore-messages",
+      "name": "Firestore — Demandes de formation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        350,
+        1300
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleApi": {
+          "id": "6iOMFTsDdqjDRDAh",
+          "name": "Firebase Service Account Max-Morrys v1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://openclassrooms.com/fr/feeds/courses",
+        "options": {}
+      },
+      "id": "wf10-rss-openclassrooms",
+      "name": "RSS — OpenClassrooms",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        350,
+        1500
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const existing = $('Airtable \\u2014 Cours existants').all().map(i => i.json.Titre || '').filter(Boolean);\n\nconst allSources = [];\n\nconst rssNodes = [\n  { name: 'Formation Afrique', node: 'Alerte \\u2014 Formation marketing Afrique' },\n  { name: 'Courses trends', node: 'Alerte \\u2014 Online courses trends' },\n  { name: 'Udemy', node: 'Alerte \\u2014 Udemy marketing digital' },\n  { name: 'Coursera', node: 'Alerte \\u2014 Coursera marketing francophone' },\n  { name: 'OpenClassrooms', node: 'RSS \\u2014 OpenClassrooms' },\n  { name: 'Comp\\u00e9tences emploi', node: 'Alerte \\u2014 Comp\\u00e9tences num\\u00e9riques emploi Afrique' },\n  { name: 'Startups Afrique', node: 'Alerte \\u2014 Startups & incubateurs Afrique Ouest' },\n  { name: 'EdTech Afrique', node: 'GNews \\u2014 EdTech Afrique formation' },\n  { name: 'Certifications', node: 'GNews \\u2014 Certification professionnelle Afrique' },\n  { name: 'Emploi digital', node: 'GNews \\u2014 Emploi digital Afrique Ouest' },\n  { name: 'YT Marketing FR', node: 'YouTube XML \\u2014 Cours marketing FR' },\n  { name: 'YT Max-Morrys', node: 'YouTube XML \\u2014 Max-Morrys' }\n];\n\nfor (const src of rssNodes) {\n  try {\n    const items = $(src.node).all();\n    for (const item of items.slice(0, 5)) {\n      const j = item.json;\n      allSources.push({ title: j.title || '', snippet: (j.contentSnippet || j.content || '').substring(0, 300), url: j.link || '', source: src.name });\n    }\n  } catch (e) {}\n}\n\nlet formationRequests = [];\ntry {\n  const msgs = $('Firestore \\u2014 Demandes de formation').first().json;\n  formationRequests = (msgs?.documents || []).filter(doc => {\n    const s = (doc.fields?.subject?.stringValue || '').toLowerCase();\n    return s.includes('formation') || s.includes('cours') || s.includes('apprendre');\n  }).map(doc => ({\n    title: doc.fields?.subject?.stringValue || '',\n    snippet: (doc.fields?.message?.stringValue || '').substring(0, 200),\n    url: '', source: 'Demandes visiteurs'\n  }));\n} catch(e) {}\n\nreturn [{ json: {\n  existing_courses: existing,\n  rss_results: allSources,\n  formation_requests: formationRequests,\n  total_sources: allSources.length + formationRequests.length\n} }];"
+      },
+      "id": "wf10-merge",
+      "name": "Merge — Compiler les données",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : PROPOSER 5 SUJETS DE FORMATIONS\n\nMax-Morrys cherche des idees de nouveaux cours a creer. Analyse les sources et propose 5 sujets de formations pratiques.\n\nSOURCES : {{ JSON.stringify($json.rss_results) }}\nDEMANDES VISITEURS : {{ JSON.stringify($json.formation_requests) }}\nCOURS EXISTANTS (ne pas dupliquer) : {{ JSON.stringify($json.existing_courses) }}\n\nCRITERES :\n- **Pratiques et actionnables** — pas theoriques\n- **Niveau** : debutant, intermediaire ou avance — a preciser\n- **Duree realiste** : 5h, 10h, 15h ou 20h total\n- **Besoin concret** identifie en Afrique francophone (Ouest ET Centrale)\n- **Monetisation** : prix en FCFA adapte au marche (entre 15 000 et 75 000 FCFA pour debutant/intermediaire, 100 000+ pour avance)\n- Privilegier les sujets **mobile-first** (Mobile Money, WhatsApp Business, Instagram, TikTok)\n\nREPONSE JSON STRICT :\n{\n  \"course_proposals\": [{\n    \"title\": \"titre du cours\",\n    \"slug_suggested\": \"\",\n    \"category\": \"\",\n    \"level\": \"debutant|intermediaire|avance\",\n    \"target_audience\": \"qui est concerne precisement\",\n    \"why_needed_locally\": \"pourquoi ce cours est pertinent en Afrique francophone\",\n    \"learning_objectives\": [\"objectif actionnable 1\",\"objectif 2\"],\n    \"prerequisites\": [],\n    \"estimated_duration_hours\": 10,\n    \"estimated_modules\": 5,\n    \"estimated_lessons\": 20,\n    \"outline_preview\": [\"Module 1: ...\",\"Module 2: ...\"],\n    \"content_gap\": \"\",\n    \"competitive_advantage\": \"\",\n    \"monetization_potential\": \"gratuit|freemium|payant\",\n    \"suggested_price_fcfa\": \"25 000 FCFA\",\n    \"priority_score\": 9,\n    \"difficulty_to_create\": \"faible|moyen|eleve\"\n  }]\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {
+          "maxOutputTokens": 8192,
+          "temperature": 0.6,
+          "thinkingBudget": 0
+        }
+      },
+      "id": "wf10-gemini-native",
+      "name": "Gemini Pro — Proposer des cours",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        600
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\n// Robust extraction: handle markdown code fences, truncation, nested .content.parts\nfunction extractText(inp) {\n  if (inp.content?.parts) return inp.content.parts.map(p => p.text || '').join('');\n  if (inp.candidates?.[0]?.content?.parts) return inp.candidates[0].content.parts.map(p => p.text || '').join('');\n  if (typeof inp === 'string') return inp;\n  if (inp.text) return inp.text;\n  return '';\n}\nfunction cleanupJson(txt) {\n  // strip markdown fences ```json ... ```\n  let s = String(txt || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/i, '').trim();\n  // best-effort: cut at last closing brace if unterminated\n  const last = s.lastIndexOf('}');\n  if (last !== -1 && last < s.length - 1) s = s.slice(0, last + 1);\n  return s;\n}\n\nlet parsed;\ntry {\n  if (input.course_proposals) { parsed = input; }\n  else {\n    const txt = extractText(input);\n    if (!txt) { parsed = input; }\n    else parsed = JSON.parse(cleanupJson(txt));\n  }\n} catch (e) {\n  // Last resort: return empty list rather than crashing workflow\n  return [];\n}\n\nconst courses = (parsed.course_proposals || []).map(c => ({\n  Date: today, Titre: c.title, Niveau: c.level,\n  Audience: c.target_audience, Besoin_Local: c.why_needed_locally,\n  Duree: `${c.estimated_duration_hours}h (${c.estimated_modules} modules, ${c.estimated_lessons} leçons)`,\n  Score: c.priority_score, Status: 'nouveau',\n  slug: c.slug_suggested, category: c.category,\n  objectives: JSON.stringify(c.learning_objectives),\n  prerequisites: JSON.stringify(c.prerequisites),\n  outline: JSON.stringify(c.outline_preview),\n  price_range: c.suggested_price_range,\n  monetization: c.monetization_potential,\n  sources: (c.inspiration_sources || []).join(', ')\n}));\n\nreturn courses.map(c => ({ json: c }));"
+      },
+      "id": "wf10-parse",
+      "name": "Parse — Structurer les propositions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        600
+      ]
+    },
+    {
+      "id": "wf10-sheets",
+      "name": "Airtable — Sauvegarder propositions",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1700,
+        500
+      ],
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "moz0ikbdwhdryvj",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "upsert",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Airtable — Cours existants').all().find(r => r.json.Titre === $json.Titre)?.json.id ?? '' }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.Date }}",
+            "Titre": "={{ $json.Titre }}",
+            "Niveau": "={{ $json.Niveau }}",
+            "Audience": "={{ $json.Audience }}",
+            "Besoin_Local": "={{ $json.Besoin_Local }}",
+            "Duree": "={{ $json.Duree }}",
+            "Score": "={{ $json.Score }}",
+            "Status": "={{ $json.Status }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "934156307",
+        "text": "=📚 *Propositions de cours Max-Morrys* — {{ new Date().toISOString().split('T')[0] }}\n\n5 sujets de cours analysés depuis {{ $('Merge — Compiler les données').first().json.total_sources }} sources.\n\n[Voir les propositions](https://docs.google.com/spreadsheets/d/1XcCUvP2zerOhgD7GwVHcw-bujiN0iHktjPqniwfdEu8)\n\n_Valide les sujets retenus pour lancer WF-11._",
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "wf10-email",
+      "name": "Telegram — Propositions envoyées",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1700,
+        800
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "k1sYsv0qUTCbCfRN",
+          "name": "Max-Morrys LMS Notifications Telegram"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "webhookId": "0f6dcd4d-50aa-47b6-b3e4-2cdf5df6f6d1"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=comp%C3%A9tences+num%C3%A9riques+emploi+Afrique+francophone+2026&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf10-alerte-competences",
+      "name": "Alerte — Compétences numériques emploi Afrique",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        350,
+        1700
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=startup+incubateur+acc%C3%A9l%C3%A9rateur+Afrique+Ouest+Dakar+Abidjan&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf10-alerte-startup",
+      "name": "Alerte — Startups & incubateurs Afrique Ouest",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        350,
+        1900
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=EdTech+formation+en+ligne+Afrique+plateforme+%C3%A9ducation&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf10-gnews-edtech",
+      "name": "GNews — EdTech Afrique formation",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        350,
+        2100
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=certification+professionnelle+comp%C3%A9tences+dipl%C3%B4me+Afrique+2026&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf10-gnews-certif",
+      "name": "GNews — Certification professionnelle Afrique",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        350,
+        2300
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=emploi+digital+recrutement+marketing+Afrique+Ouest+Dakar&hl=fr&gl=SN&ceid=SN:fr",
+        "options": {}
+      },
+      "id": "wf10-gnews-emploi-digital",
+      "name": "GNews — Emploi digital Afrique Ouest",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        350,
+        2500
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://www.youtube.com/feeds/videos.xml?channel_id=%%YOUTUBE_CHANNEL_ID%%",
+        "options": {}
+      },
+      "id": "wf10-yt-maxmorrys",
+      "name": "YouTube XML — Max-Morrys",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        350,
+        2700
+      ],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Airtable — Cours existants": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — Formation marketing Afrique": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — Online courses trends": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — Udemy marketing digital": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — Coursera marketing francophone": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firestore — Demandes de formation": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS — OpenClassrooms": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge — Compiler les données": {
+      "main": [
+        [
+          {
+            "node": "Gemini Pro — Proposer des cours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Pro — Proposer des cours": {
+      "main": [
+        [
+          {
+            "node": "Parse — Structurer les propositions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Structurer les propositions": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Sauvegarder propositions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Sauvegarder propositions": {
+      "main": [
+        [
+          {
+            "node": "Telegram — Propositions envoyées",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — Compétences numériques emploi Afrique": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerte — Startups & incubateurs Afrique Ouest": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube XML — Cours marketing FR": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews — EdTech Afrique formation": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews — Certification professionnelle Afrique": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews — Emploi digital Afrique Ouest": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube XML — Max-Morrys": {
+      "main": [
+        [
+          {
+            "node": "Merge — Compiler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron — Recherche cours Dimanche 18h": {
+      "main": [
+        [
+          {
+            "node": "Alerte — Compétences numériques emploi Afrique",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alerte — Coursera marketing francophone",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alerte — Formation marketing Afrique",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alerte — Online courses trends",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alerte — Startups & incubateurs Afrique Ouest",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alerte — Udemy marketing digital",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Firestore — Demandes de formation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GNews — Certification professionnelle Afrique",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GNews — EdTech Afrique formation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GNews — Emploi digital Afrique Ouest",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS — OpenClassrooms",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — Cours existants (NocoDB)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "YouTube XML — Cours marketing FR",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "YouTube XML — Max-Morrys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Cours existants (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Cours existants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "MMERRALERT0001"
+  },
+  "staticData": {
+    "node:Cron — Recherche cours Dimanche 18h": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "ee1fefb3-ed84-43e7-90fc-e8e101ddd394",
+  "activeVersionId": "ee1fefb3-ed84-43e7-90fc-e8e101ddd394",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-07-04T21:50:40.970Z",
+      "createdAt": "2026-07-04T21:50:40.970Z",
+      "role": "workflow:owner",
+      "workflowId": "sqQMif3kZYSCDMhl",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-08-06T13:26:17.269Z",
+    "createdAt": "2026-08-06T13:26:17.269Z",
+    "versionId": "ee1fefb3-ed84-43e7-90fc-e8e101ddd394",
+    "workflowId": "sqQMif3kZYSCDMhl",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 18 * * 0"
+              }
+            ]
+          }
+        },
+        "id": "cron-trigger",
+        "name": "Cron — Recherche cours Dimanche 18h",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          300
+        ]
+      },
+      {
+        "id": "wf10-read-existingn",
+        "name": "Airtable — Cours existants (NocoDB)",
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          350,
+          100
+        ],
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "moz0ikbdwhdryvj",
+            "mode": "id"
+          },
+          "resource": "row",
+          "operation": "search",
+          "returnAll": true,
+          "options": {}
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+        },
+        "id": "wf10-read-existingf",
+        "name": "Airtable — Cours existants",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          540,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=formation+marketing+digital+Sénégal+Afrique+compétences+2026&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf10-search-local",
+        "name": "Alerte — Formation marketing Afrique",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "onError": "continueRegularOutput",
+        "position": [
+          350,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=best+online+courses+digital+marketing+2026+trending+skills&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf10-search-intl",
+        "name": "Alerte — Online courses trends",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "onError": "continueRegularOutput",
+        "position": [
+          350,
+          500
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC2Aatk6UdrOBjhFXpFN5kew",
+          "options": {}
+        },
+        "id": "wf10-youtube-education",
+        "name": "YouTube XML — Cours marketing FR",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          350,
+          700
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=Udemy+marketing+digital+francais+cours+populaire&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf10-udemy-benchmark",
+        "name": "Alerte — Udemy marketing digital",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "onError": "continueRegularOutput",
+        "position": [
+          350,
+          900
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=Coursera+marketing+digital+francais+certification&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf10-coursera-benchmark",
+        "name": "Alerte — Coursera marketing francophone",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "onError": "continueRegularOutput",
+        "position": [
+          350,
+          1100
+        ]
+      },
+      {
+        "parameters": {
+          "method": "GET",
+          "url": "=https://firestore.googleapis.com/v1/projects/max-morrys/databases/(default)/documents/messages?pageSize=20&orderBy=createdAt desc",
+          "options": {
+            "timeout": 15000
+          },
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googleApi"
+        },
+        "id": "wf10-firestore-messages",
+        "name": "Firestore — Demandes de formation",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          350,
+          1300
+        ],
+        "onError": "continueRegularOutput",
+        "credentials": {
+          "googleApi": {
+            "id": "6iOMFTsDdqjDRDAh",
+            "name": "Firebase Service Account Max-Morrys v1"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "https://openclassrooms.com/fr/feeds/courses",
+          "options": {}
+        },
+        "id": "wf10-rss-openclassrooms",
+        "name": "RSS — OpenClassrooms",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          350,
+          1500
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const existing = $('Airtable \\u2014 Cours existants').all().map(i => i.json.Titre || '').filter(Boolean);\n\nconst allSources = [];\n\nconst rssNodes = [\n  { name: 'Formation Afrique', node: 'Alerte \\u2014 Formation marketing Afrique' },\n  { name: 'Courses trends', node: 'Alerte \\u2014 Online courses trends' },\n  { name: 'Udemy', node: 'Alerte \\u2014 Udemy marketing digital' },\n  { name: 'Coursera', node: 'Alerte \\u2014 Coursera marketing francophone' },\n  { name: 'OpenClassrooms', node: 'RSS \\u2014 OpenClassrooms' },\n  { name: 'Comp\\u00e9tences emploi', node: 'Alerte \\u2014 Comp\\u00e9tences num\\u00e9riques emploi Afrique' },\n  { name: 'Startups Afrique', node: 'Alerte \\u2014 Startups & incubateurs Afrique Ouest' },\n  { name: 'EdTech Afrique', node: 'GNews \\u2014 EdTech Afrique formation' },\n  { name: 'Certifications', node: 'GNews \\u2014 Certification professionnelle Afrique' },\n  { name: 'Emploi digital', node: 'GNews \\u2014 Emploi digital Afrique Ouest' },\n  { name: 'YT Marketing FR', node: 'YouTube XML \\u2014 Cours marketing FR' },\n  { name: 'YT Max-Morrys', node: 'YouTube XML \\u2014 Max-Morrys' }\n];\n\nfor (const src of rssNodes) {\n  try {\n    const items = $(src.node).all();\n    for (const item of items.slice(0, 5)) {\n      const j = item.json;\n      allSources.push({ title: j.title || '', snippet: (j.contentSnippet || j.content || '').substring(0, 300), url: j.link || '', source: src.name });\n    }\n  } catch (e) {}\n}\n\nlet formationRequests = [];\ntry {\n  const msgs = $('Firestore \\u2014 Demandes de formation').first().json;\n  formationRequests = (msgs?.documents || []).filter(doc => {\n    const s = (doc.fields?.subject?.stringValue || '').toLowerCase();\n    return s.includes('formation') || s.includes('cours') || s.includes('apprendre');\n  }).map(doc => ({\n    title: doc.fields?.subject?.stringValue || '',\n    snippet: (doc.fields?.message?.stringValue || '').substring(0, 200),\n    url: '', source: 'Demandes visiteurs'\n  }));\n} catch(e) {}\n\nreturn [{ json: {\n  existing_courses: existing,\n  rss_results: allSources,\n  formation_requests: formationRequests,\n  total_sources: allSources.length + formationRequests.length\n} }];"
+        },
+        "id": "wf10-merge",
+        "name": "Merge — Compiler les données",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          800,
+          600
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=## IDENTITE EDITORIALE MAX-MORRYS\n\nTu ecris POUR Max-Morrys, formateur et consultant en marketing digital base a Dakar (Senegal), originaire de Douala (Cameroun), passe par Abidjan (Cote d'Ivoire). Il forme des entrepreneurs, PME et professionnels du digital en **Afrique francophone** (Ouest ET Centrale : Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso, Guinee, Togo, Benin, Gabon, RDC, Congo-Brazzaville, etc.).\n\n## TON ET VOIX (OBLIGATOIRE)\n- **Tutoiement systematique** : \"tu / ta / tes / toi\" — jamais de vouvoiement\n- **Pedagogique et instructif** avant tout — on apprend quelque chose de concret a chaque lecture\n- **Simple et accessible** — mots faciles, phrases courtes, pas de jargon sans explication\n- **Passionne et authentique** — on sent que Max-Morrys aime ce qu'il fait\n- **Orient resultats concrets** — evite les analyses theoriques, privilegie les actions applicables\n- **Amical mais expert** — comme un grand frere qui connait le sujet et partage sans filtre\n- **Phrases de Max-Morrys a reutiliser** : \"Je te forme, je t'informe, je te transforme\" / \"Pas de secret entre nous\" / \"Du concret, de la pratique\" / \"Ça marche vraiment\"\n\n## STYLE D'ECRITURE\n- Phrases **courtes et punchy** (15-20 mots max en moyenne)\n- Paragraphes **courts** (3-4 lignes max)\n- **Questions rhetoriques** pour engager : \"Tu te demandes comment ?\"\n- **Exemples concrets** ancres dans la realite africaine : Dakar, Abidjan, Douala, Libreville, Kinshasa, etc.\n- **Expressions locales** quand pertinent : FCFA (XOF/XAF), Mobile Money (Wave, Orange Money, MTN Mobile Money), WhatsApp Business\n- **Pas de ton corporate** — banir \"en effet\", \"par ailleurs\", \"toutefois\", \"il convient de noter\"\n- **Evite le jargon marketing pur** — si tu dois utiliser un terme technique (SEO, CTR, CAC, funnel), explique-le tout de suite entre parentheses ou dans la phrase suivante\n\n## PUBLIC CIBLE\n- Entrepreneurs africains (auto-entrepreneurs, fondateurs de PME, freelances)\n- Professionnels du digital qui se forment\n- Personnes qui ont envie d'apprendre mais n'ont pas des annees d'etudes marketing\n- Ils sont **mobile-first** (lisent sur smartphone), **debordes** (temps limite), **motives** (veulent des resultats rapides)\n\n## REGLES GEO-CULTURELLES\n- Ne pas dire \"en Afrique\" de maniere generique — precise \"en Afrique francophone\" ou cite des pays/villes\n- Couvrir **Afrique de l'Ouest ET Centrale** — pas que le Senegal\n- Exemples de villes a alterner : Dakar, Abidjan, Douala, Yaounde, Libreville, Kinshasa, Brazzaville, Lome, Cotonou, Ouagadougou, Bamako, Conakry\n- Monnaie : **FCFA** (preciser XOF pour l'Ouest ou XAF pour la Centrale si pertinent)\n- Calendrier : respecter les fetes musulmanes et chretiennes (Tabaski/Aid, Magal, Ramadan, Paques, Noel, Assomption)\n- Pas de cliches \"en Afrique on fait comme ci...\" — ecrire POUR, pas SUR\n\n## REGLES REDACTION WEB / SEO\n- **Titre H1** : contient le mot-cle principal, max 60 caracteres, accrocheur\n- **Meta description** : 150-155 caracteres, avec le mot-cle + promesse + CTA implicite\n- **Structure H2/H3** claire, chaque H2 commence par un chiffre ou un verbe d'action\n- **Introduction** : hook en 1 phrase qui accroche + enonce le probleme + promesse de la solution (max 100 mots)\n- **Corps de l'article** : 3-5 sections H2, chacune avec exemple concret + astuce actionnable\n- **Listes a puces/numerotees** pour rendre scannable\n- **Gras** sur les concepts cles (mais sans abuser)\n- **Conclusion** : \"A retenir\" en 3 bullet points + CTA (inviter a aller plus loin : formation, newsletter, contact)\n- **Mots-cles secondaires** dissemines naturellement\n- **Liens internes** suggeres : vers autres articles, formations Max-Morrys\n\n## INTERDIT\n- Emojis dans le corps (sauf 1-2 max dans l'intro/conclusion pour marquer le ton amical)\n- Mots savants sans explication\n- Analyses theoriques longues sans exemple\n- Tons condescendant, colonial, ou cliche sur l'Afrique\n- Faux \"on\" generalisant — toujours \"tu\" ou \"Max-Morrys\"\n- Contradictions avec la realite terrain africaine (ne jamais parler de Stripe si on a Wave/Orange Money disponible, etc.)\n\n\n## MISSION : PROPOSER 5 SUJETS DE FORMATIONS\n\nMax-Morrys cherche des idees de nouveaux cours a creer. Analyse les sources et propose 5 sujets de formations pratiques.\n\nSOURCES : {{ JSON.stringify($json.rss_results) }}\nDEMANDES VISITEURS : {{ JSON.stringify($json.formation_requests) }}\nCOURS EXISTANTS (ne pas dupliquer) : {{ JSON.stringify($json.existing_courses) }}\n\nCRITERES :\n- **Pratiques et actionnables** — pas theoriques\n- **Niveau** : debutant, intermediaire ou avance — a preciser\n- **Duree realiste** : 5h, 10h, 15h ou 20h total\n- **Besoin concret** identifie en Afrique francophone (Ouest ET Centrale)\n- **Monetisation** : prix en FCFA adapte au marche (entre 15 000 et 75 000 FCFA pour debutant/intermediaire, 100 000+ pour avance)\n- Privilegier les sujets **mobile-first** (Mobile Money, WhatsApp Business, Instagram, TikTok)\n\nREPONSE JSON STRICT :\n{\n  \"course_proposals\": [{\n    \"title\": \"titre du cours\",\n    \"slug_suggested\": \"\",\n    \"category\": \"\",\n    \"level\": \"debutant|intermediaire|avance\",\n    \"target_audience\": \"qui est concerne precisement\",\n    \"why_needed_locally\": \"pourquoi ce cours est pertinent en Afrique francophone\",\n    \"learning_objectives\": [\"objectif actionnable 1\",\"objectif 2\"],\n    \"prerequisites\": [],\n    \"estimated_duration_hours\": 10,\n    \"estimated_modules\": 5,\n    \"estimated_lessons\": 20,\n    \"outline_preview\": [\"Module 1: ...\",\"Module 2: ...\"],\n    \"content_gap\": \"\",\n    \"competitive_advantage\": \"\",\n    \"monetization_potential\": \"gratuit|freemium|payant\",\n    \"suggested_price_fcfa\": \"25 000 FCFA\",\n    \"priority_score\": 9,\n    \"difficulty_to_create\": \"faible|moyen|eleve\"\n  }]\n}"
+              }
+            ]
+          },
+          "jsonOutput": true,
+          "options": {
+            "maxOutputTokens": 8192,
+            "temperature": 0.6,
+            "thinkingBudget": 0
+          }
+        },
+        "id": "wf10-gemini-native",
+        "name": "Gemini Pro — Proposer des cours",
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          1100,
+          600
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nconst today = new Date().toISOString().split('T')[0];\n\n// Robust extraction: handle markdown code fences, truncation, nested .content.parts\nfunction extractText(inp) {\n  if (inp.content?.parts) return inp.content.parts.map(p => p.text || '').join('');\n  if (inp.candidates?.[0]?.content?.parts) return inp.candidates[0].content.parts.map(p => p.text || '').join('');\n  if (typeof inp === 'string') return inp;\n  if (inp.text) return inp.text;\n  return '';\n}\nfunction cleanupJson(txt) {\n  // strip markdown fences ```json ... ```\n  let s = String(txt || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/i, '').trim();\n  // best-effort: cut at last closing brace if unterminated\n  const last = s.lastIndexOf('}');\n  if (last !== -1 && last < s.length - 1) s = s.slice(0, last + 1);\n  return s;\n}\n\nlet parsed;\ntry {\n  if (input.course_proposals) { parsed = input; }\n  else {\n    const txt = extractText(input);\n    if (!txt) { parsed = input; }\n    else parsed = JSON.parse(cleanupJson(txt));\n  }\n} catch (e) {\n  // Last resort: return empty list rather than crashing workflow\n  return [];\n}\n\nconst courses = (parsed.course_proposals || []).map(c => ({\n  Date: today, Titre: c.title, Niveau: c.level,\n  Audience: c.target_audience, Besoin_Local: c.why_needed_locally,\n  Duree: `${c.estimated_duration_hours}h (${c.estimated_modules} modules, ${c.estimated_lessons} leçons)`,\n  Score: c.priority_score, Status: 'nouveau',\n  slug: c.slug_suggested, category: c.category,\n  objectives: JSON.stringify(c.learning_objectives),\n  prerequisites: JSON.stringify(c.prerequisites),\n  outline: JSON.stringify(c.outline_preview),\n  price_range: c.suggested_price_range,\n  monetization: c.monetization_potential,\n  sources: (c.inspiration_sources || []).join(', ')\n}));\n\nreturn courses.map(c => ({ json: c }));"
+        },
+        "id": "wf10-parse",
+        "name": "Parse — Structurer les propositions",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1400,
+          600
+        ]
+      },
+      {
+        "id": "wf10-sheets",
+        "name": "Airtable — Sauvegarder propositions",
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          1700,
+          500
+        ],
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "moz0ikbdwhdryvj",
+            "mode": "id"
+          },
+          "resource": "row",
+          "operation": "upsert",
+          "dataToSend": "mapWithFields",
+          "id": "={{ $('Airtable — Cours existants').all().find(r => r.json.Titre === $json.Titre)?.json.id ?? '' }}",
+          "fieldsMapper": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Date": "={{ $json.Date }}",
+              "Titre": "={{ $json.Titre }}",
+              "Niveau": "={{ $json.Niveau }}",
+              "Audience": "={{ $json.Audience }}",
+              "Besoin_Local": "={{ $json.Besoin_Local }}",
+              "Duree": "={{ $json.Duree }}",
+              "Score": "={{ $json.Score }}",
+              "Status": "={{ $json.Status }}"
+            },
+            "matchingColumns": [],
+            "schema": []
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "934156307",
+          "text": "=📚 *Propositions de cours Max-Morrys* — {{ new Date().toISOString().split('T')[0] }}\n\n5 sujets de cours analysés depuis {{ $('Merge — Compiler les données').first().json.total_sources }} sources.\n\n[Voir les propositions](https://docs.google.com/spreadsheets/d/1XcCUvP2zerOhgD7GwVHcw-bujiN0iHktjPqniwfdEu8)\n\n_Valide les sujets retenus pour lancer WF-11._",
+          "additionalFields": {
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": true
+          }
+        },
+        "id": "wf10-email",
+        "name": "Telegram — Propositions envoyées",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1700,
+          800
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "k1sYsv0qUTCbCfRN",
+            "name": "Max-Morrys LMS Notifications Telegram"
+          }
+        },
+        "onError": "continueRegularOutput",
+        "webhookId": "0f6dcd4d-50aa-47b6-b3e4-2cdf5df6f6d1"
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=comp%C3%A9tences+num%C3%A9riques+emploi+Afrique+francophone+2026&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf10-alerte-competences",
+        "name": "Alerte — Compétences numériques emploi Afrique",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          350,
+          1700
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=startup+incubateur+acc%C3%A9l%C3%A9rateur+Afrique+Ouest+Dakar+Abidjan&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf10-alerte-startup",
+        "name": "Alerte — Startups & incubateurs Afrique Ouest",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          350,
+          1900
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=EdTech+formation+en+ligne+Afrique+plateforme+%C3%A9ducation&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf10-gnews-edtech",
+        "name": "GNews — EdTech Afrique formation",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          350,
+          2100
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=certification+professionnelle+comp%C3%A9tences+dipl%C3%B4me+Afrique+2026&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf10-gnews-certif",
+        "name": "GNews — Certification professionnelle Afrique",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          350,
+          2300
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "https://news.google.com/rss/search?q=emploi+digital+recrutement+marketing+Afrique+Ouest+Dakar&hl=fr&gl=SN&ceid=SN:fr",
+          "options": {}
+        },
+        "id": "wf10-gnews-emploi-digital",
+        "name": "GNews — Emploi digital Afrique Ouest",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          350,
+          2500
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "url": "https://www.youtube.com/feeds/videos.xml?channel_id=%%YOUTUBE_CHANNEL_ID%%",
+          "options": {}
+        },
+        "id": "wf10-yt-maxmorrys",
+        "name": "YouTube XML — Max-Morrys",
+        "type": "n8n-nodes-base.rssFeedRead",
+        "typeVersion": 1,
+        "position": [
+          350,
+          2700
+        ],
+        "onError": "continueRegularOutput"
+      }
+    ],
+    "connections": {
+      "Airtable — Cours existants": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — Formation marketing Afrique": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — Online courses trends": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — Udemy marketing digital": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — Coursera marketing francophone": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Firestore — Demandes de formation": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS — OpenClassrooms": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge — Compiler les données": {
+        "main": [
+          [
+            {
+              "node": "Gemini Pro — Proposer des cours",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Pro — Proposer des cours": {
+        "main": [
+          [
+            {
+              "node": "Parse — Structurer les propositions",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse — Structurer les propositions": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Sauvegarder propositions",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Sauvegarder propositions": {
+        "main": [
+          [
+            {
+              "node": "Telegram — Propositions envoyées",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — Compétences numériques emploi Afrique": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alerte — Startups & incubateurs Afrique Ouest": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "YouTube XML — Cours marketing FR": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GNews — EdTech Afrique formation": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GNews — Certification professionnelle Afrique": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "GNews — Emploi digital Afrique Ouest": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "YouTube XML — Max-Morrys": {
+        "main": [
+          [
+            {
+              "node": "Merge — Compiler les données",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cron — Recherche cours Dimanche 18h": {
+        "main": [
+          [
+            {
+              "node": "Alerte — Compétences numériques emploi Afrique",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alerte — Coursera marketing francophone",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alerte — Formation marketing Afrique",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alerte — Online courses trends",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alerte — Startups & incubateurs Afrique Ouest",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Alerte — Udemy marketing digital",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Firestore — Demandes de formation",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "GNews — Certification professionnelle Afrique",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "GNews — EdTech Afrique formation",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "GNews — Emploi digital Afrique Ouest",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "RSS — OpenClassrooms",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Airtable — Cours existants (NocoDB)",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "YouTube XML — Cours marketing FR",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "YouTube XML — Max-Morrys",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Airtable — Cours existants (NocoDB)": {
+        "main": [
+          [
+            {
+              "node": "Airtable — Cours existants",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "import",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "tags": []
+}

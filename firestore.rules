@@ -213,6 +213,85 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Agency leads collection — demandes de devis "Presence Digitale" (cf. docs/OFFRE_AGENCE_TPE.md)
+    match /agency_leads/{leadId} {
+      // Le formulaire public /agence est accessible sans compte — validation stricte des champs
+      allow create: if request.resource.data.keys().hasAll(['businessName', 'contactName', 'phone', 'city', 'status'])
+        && request.resource.data.businessName is string
+        && request.resource.data.businessName.size() >= 2
+        && request.resource.data.businessName.size() <= 120
+        && request.resource.data.contactName is string
+        && request.resource.data.contactName.size() >= 2
+        && request.resource.data.contactName.size() <= 100
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() >= 6
+        && request.resource.data.phone.size() <= 30
+        && request.resource.data.city is string
+        && request.resource.data.city.size() <= 80
+        && request.resource.data.status == 'new'
+        && (!('email' in request.resource.data)
+            || (request.resource.data.email is string && request.resource.data.email.size() <= 254))
+        && (!('message' in request.resource.data)
+            || (request.resource.data.message is string && request.resource.data.message.size() <= 2000))
+        && (!('referralCode' in request.resource.data)
+            || (request.resource.data.referralCode is string && request.resource.data.referralCode.size() <= 40))
+        // Borne le nombre de champs : empeche le bourrage de document par un robot.
+        // Maximum legitime = 14 (8 obligatoires + 3 optionnels + status + createdAt + quoteRef).
+        && request.resource.data.keys().size() <= 15
+        && (!('quoteRef' in request.resource.data)
+            || (request.resource.data.quoteRef is string && request.resource.data.quoteRef.size() <= 20))
+        // Les notes internes ne peuvent jamais etre posees par le prospect
+        && !('notes' in request.resource.data);
+
+      // Pipeline commercial : lecture et qualification par admin et support
+      allow read, update: if isAdminOrSupport();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Agency quotes — devis partageables par lien (cf. docs/OFFRE_AGENCE_TPE.md)
+    //
+    // Le document est lisible par QUICONQUE possede la reference (URL non devinable,
+    // ~2,8e14 combinaisons). Il ne doit donc contenir AUCUNE donnee personnelle :
+    // telephone, email, nom du contact et message restent dans agency_leads.
+    // L'interdiction est imposee ici, cote serveur, et pas seulement dans le code client.
+    match /agency_quotes/{quoteRef} {
+      // get par ID exacte uniquement. Jamais de list : sans la reference, rien n'est atteignable.
+      allow get: if true;
+      allow list: if isAdminOrSupport();
+
+      allow create: if request.resource.data.keys().hasAll(
+          ['businessName', 'city', 'pack', 'plan', 'packPrice', 'planSetup', 'planMonthly', 'createdAt'])
+        // Aucune donnee personnelle, sous aucun pretexte
+        && !('phone' in request.resource.data)
+        && !('email' in request.resource.data)
+        && !('contactName' in request.resource.data)
+        && !('message' in request.resource.data)
+        && !('notes' in request.resource.data)
+        && !('referralCode' in request.resource.data)
+        && request.resource.data.businessName is string
+        && request.resource.data.businessName.size() >= 2
+        && request.resource.data.businessName.size() <= 120
+        && request.resource.data.city is string
+        && request.resource.data.city.size() <= 80
+        && request.resource.data.pack is string
+        && request.resource.data.plan is string
+        && request.resource.data.packPrice is int
+        && request.resource.data.packPrice >= 0
+        && request.resource.data.packPrice <= 5000000
+        && request.resource.data.planSetup is int
+        && request.resource.data.planSetup >= 0
+        && request.resource.data.planSetup <= 5000000
+        && request.resource.data.planMonthly is int
+        && request.resource.data.planMonthly >= 0
+        && request.resource.data.planMonthly <= 1000000
+        && request.resource.data.keys().size() <= 11;
+
+      // Un devis est immuable une fois emis : seul un admin peut le corriger ou le purger.
+      allow update, delete: if isAdmin();
+    }
+
     // Newsletter subscribers collection
     match /newsletter/{subscriberId} {
       // Only admins can read subscribers

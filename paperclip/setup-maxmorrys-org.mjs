@@ -57,8 +57,10 @@ const secretsPath = join(HERE, 'secrets.local.json');
 if (existsSync(secretsPath)) secretsFile = JSON.parse(readFileSync(secretsPath, 'utf8'));
 const secretVal = (name) => process.env[name] || secretsFile[name] || '';
 
-// Environnement runtime injecté à chaque agent (pour appeler ses "mains" n8n + Airtable + créas)
-const AGENT_ENV_KEYS = ['N8N_BASE_URL', 'N8N_WEBHOOK_BASE_URL', 'AIRTABLE_PAT', 'AIRTABLE_MARKETING_BASE_ID', 'FIREBASE_PROJECT_ID', 'FIREBASE_STORAGE_BUCKET', 'RENDER_CARD_URL', 'RENDER_KEY'];
+// Environnement runtime injecté à chaque agent (pour appeler ses "mains" n8n + NocoDB + créas).
+// AIRTABLE_PAT retiré : Airtable est gelé depuis le 2026-08-06 et n'est plus lu — l'injecter
+// donnerait à un agent le moyen d'écrire dans une base morte, sans erreur visible.
+const AGENT_ENV_KEYS = ['N8N_BASE_URL', 'N8N_WEBHOOK_BASE_URL', 'NOCODB_URL', 'NOCODB_TOKEN', 'NOCODB_BASE', 'NOCODB_TABLE_CONTENUS', 'NOCODB_TABLE_CONFIG', 'FIREBASE_PROJECT_ID', 'FIREBASE_STORAGE_BUCKET', 'RENDER_CARD_URL', 'RENDER_KEY'];
 function buildAgentEnv() {
   const e = { SITE_URL: D.siteUrl || 'https://maxmorrys.me', PAPERCLIP_COMPANY_ID: org.company.id };
   for (const k of AGENT_ENV_KEYS) { const v = secretVal(k); if (v) e[k] = v; }

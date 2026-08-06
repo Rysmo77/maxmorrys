@@ -12,6 +12,6 @@ description: >
 ## Red lines
 - Pas d'écriture Firestore prod sans approbation. E-E-A-T respecté. Pas de keyword stuffing.
 ## Outils
-- Lecture Firestore/Airtable SEO ; seo-kit ; brand-kit. Champs SEO : `src/types/index.ts`.
+- Lecture Firestore / table NocoDB SEO ; seo-kit ; brand-kit. Champs SEO : `src/types/index.ts`.
 ## Escalade
 - Refonte de contenu nécessaire → @SEO Content. Changement structurel → @SEO Tech.

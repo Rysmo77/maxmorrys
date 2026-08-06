@@ -24,7 +24,8 @@
     "sectionCommunity": "Communauté",
     "sectionCommerce": "Commerce",
     "sectionSite": "Site",
-    "backToSite": "Retour au site"
+    "backToSite": "Retour au site",
+    "agencyLeads": "Prospects agence"
   },
   "placeholder": {
     "description": "Cette section est en cours de développement et sera disponible prochainement."
@@ -62,7 +63,22 @@
     "statPublishedArticles": "Articles publiés",
     "statPublishedFormations": "Formations publiées",
     "statNewsletter": "Newsletter",
-    "statEnrollments": "Inscriptions"
+    "statEnrollments": "Inscriptions",
+    "metricAgency": "Prospects agence",
+    "subNewAgencyLeads_one": "{{count}} nouveau",
+    "subNewAgencyLeads_other": "{{count}} nouveaux",
+    "agencyPipeline": "Pipeline agence",
+    "agencySeeAll": "Voir tous les prospects",
+    "agencyPipelineValue": "Pipeline pondéré",
+    "agencyPipelineGross": "{{value}} au total, toutes étapes",
+    "agencySigned": "Signé",
+    "agencySignedCount_one": "{{count}} client",
+    "agencySignedCount_other": "{{count}} clients",
+    "agencyMonthly": "Récurrent mensuel",
+    "agencyMonthlyHint": "Accompagnements signés",
+    "agencyConversion": "Conversion",
+    "agencyConversionHint": "Signés / prospects atteignables",
+    "agencyReply": "Répondre sur WhatsApp"
   },
   "analytics": {
     "title": "Analytics",
@@ -94,7 +110,18 @@
     "rowEnrollments": "Inscriptions cours",
     "rowMessages": "Messages",
     "rowSubscribers": "Abonnés newsletter",
-    "advancedNote": "Pour des analytics de trafic avancées (pages vues, sources, durée), intégrez Google Analytics 4 ou Plausible."
+    "advancedNote": "Pour des analytics de trafic avancées (pages vues, sources, durée), intégrez Google Analytics 4 ou Plausible.",
+    "agencyTitle": "Agence — pipeline commercial",
+    "agencyTotal_one": "{{count}} prospect",
+    "agencyTotal_other": "{{count}} prospects",
+    "agencyWeighted": "Pipeline pondéré",
+    "agencySignedValue": "Chiffre signé",
+    "agencyConversion": "Taux de conversion",
+    "agencyByPack": "Par pack",
+    "agencyByPlan": "Par accompagnement",
+    "agencyBySector": "Par secteur",
+    "agencyByCity": "Par ville",
+    "rowAgencyLeads": "Prospects agence"
   },
   "appointments": {
     "title": "Rendez-vous",
@@ -119,6 +146,83 @@
     "toastConfirmed": "Rendez-vous confirmé.",
     "toastCancelled": "Rendez-vous annulé.",
     "toastUpdateError": "Erreur lors de la mise à jour."
+  },
+  "agencyLeads": {
+    "title": "Prospects agence",
+    "refresh": "Actualiser",
+    "searchPlaceholder": "Commerce, contact, téléphone, ville...",
+    "filterAll": "Tous les statuts",
+    "empty": "Aucun prospect pour le moment.",
+    "newCount_one": "{{count}} nouveau",
+    "newCount_other": "{{count}} nouveaux",
+    "totalCount_one": "{{count}} prospect au total",
+    "totalCount_other": "{{count}} prospects au total",
+    "receivedOn": "Reçu le {{date}}",
+    "interest": "Intéressé par : {{pack}} · Accompagnement {{plan}}",
+    "whatsapp": "WhatsApp",
+    "delete": "Supprimer ce prospect",
+    "confirmDelete": "Supprimer définitivement ce prospect ?",
+    "toastLoadError": "Impossible de charger les prospects.",
+    "toastUpdated": "Statut mis à jour.",
+    "toastUpdateError": "La mise à jour a échoué.",
+    "toastDeleted": "Prospect supprimé.",
+    "status": {
+      "new": "Nouveau",
+      "qualified": "Qualifié",
+      "quoted": "Devis envoyé",
+      "signed": "Signé",
+      "lost": "Perdu"
+    },
+    "packs": {
+      "presence": "Présence Locale",
+      "visible": "Commerce Visible",
+      "boutique": "Boutique Digitale",
+      "undecided": "Pack à définir"
+    },
+    "plans": {
+      "croissance": "Croissance Automatisée",
+      "commerce360": "Commerce 360",
+      "aucun": "sans accompagnement",
+      "undecided": "à définir"
+    },
+    "sectors": {
+      "restaurant": "Restauration",
+      "mode": "Mode & cosmétiques",
+      "beaute": "Beauté & bien-être",
+      "sante": "Santé",
+      "commerce": "Commerce & matériaux",
+      "education": "Éducation",
+      "autre": "Autre"
+    },
+    "quoteRef": "Devis {{ref}}",
+    "openQuote": "Ouvrir le récapitulatif",
+    "export": "Exporter",
+    "perMonth": "mois",
+    "notesAdd": "Ajouter une note interne",
+    "notesEdit": "Note interne",
+    "notesPlaceholder": "Contexte, budget évoqué, objection, prochaine relance...",
+    "notesHint": "Enregistré automatiquement en quittant le champ. Jamais visible du prospect.",
+    "notesSaving": "Enregistrement...",
+    "toastNoteSaved": "Note enregistrée.",
+    "csv": {
+      "filename": "prospects-agence",
+      "date": "Date",
+      "business": "Commerce",
+      "contact": "Contact",
+      "phone": "Téléphone",
+      "email": "Email",
+      "city": "Ville",
+      "sector": "Secteur",
+      "pack": "Pack",
+      "plan": "Accompagnement",
+      "upfront": "Mise en place (FCFA)",
+      "monthly": "Mensuel (FCFA)",
+      "status": "Statut",
+      "referral": "Parrainage",
+      "quoteRef": "Réf. devis",
+      "message": "Message",
+      "notes": "Notes internes"
+    }
   },
   "articles": {
     "title": "Articles",

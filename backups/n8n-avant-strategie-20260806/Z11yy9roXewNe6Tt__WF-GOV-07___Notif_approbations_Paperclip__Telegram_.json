@@ -1,0 +1,188 @@
+{
+  "updatedAt": "2026-07-06T15:18:10.132Z",
+  "createdAt": "2026-07-04T21:50:40.970Z",
+  "id": "Z11yy9roXewNe6Tt",
+  "name": "WF-GOV-07 — Notif approbations Paperclip (Telegram)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "name": "Cron — 15 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/30 7-22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "61654b17-0dc5-4010-b001-30b48046795c"
+    },
+    {
+      "name": "Airtable — Lire Config (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,TELEGRAM_BOT_TOKEN)~or(Cle,eq,TELEGRAM_CHAT_ID)~or(Cle,eq,PAPERCLIP_BASE)~or(Cle,eq,PAPERCLIP_COMPANY_ID)~or(Cle,eq,CF_ACCESS_CLIENT_ID)~or(Cle,eq,CF_ACCESS_CLIENT_SECRET)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "57569ec-69c7-4b7f-916e-e3f6e2d54f33n"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "57569ec-69c7-4b7f-916e-e3f6e2d54f33f",
+      "name": "Airtable — Lire Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        430,
+        0
+      ]
+    },
+    {
+      "name": "GET approbations Paperclip",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const cfg={};for(const r of $('Airtable — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nconst H={'CF-Access-Client-Id':cfg.CF_ACCESS_CLIENT_ID,'CF-Access-Client-Secret':cfg.CF_ACCESS_CLIENT_SECRET};\nlet ap=[]; try{ ap=await this.helpers.httpRequest({method:'GET',url:`${cfg.PAPERCLIP_BASE}/api/companies/${cfg.PAPERCLIP_COMPANY_ID}/approvals`,headers:H,json:true}); }catch(e){ return []; }\nconst sd=$getWorkflowStaticData('global'); sd.seen=sd.seen||{};\nconst out=[];\nfor(const a of (ap||[]).filter(x=>x.status==='pending')){\n  if(sd.seen[a.id]) continue; sd.seen[a.id]=true;\n  const p=a.payload||{}; const desc=p.title||p.name||(typeof p==='object'?JSON.stringify(p).slice(0,400):String(p));\n  const text=`🛡️ *Approbation requise* — ${a.type}\\n\\n${desc}`;\n  const reply_markup={inline_keyboard:[[{text:'✅ Approuver',callback_data:`approve:pc:${a.id}`},{text:'❌ Rejeter',callback_data:`reject:pc:${a.id}`}]]};\n  out.push({json:{token:cfg.TELEGRAM_BOT_TOKEN,body:{chat_id:cfg.TELEGRAM_CHAT_ID,text,parse_mode:'Markdown',reply_markup}}});\n}\nreturn out;\n"
+      },
+      "id": "485f9509-bd16-48f8-b22e-6c5836f587d7"
+    },
+    {
+      "name": "TG — sendMessage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "id": "3668b73f-e97a-4cd5-8503-aa9e6fd627b7"
+    }
+  ],
+  "connections": {
+    "Cron — 15 min": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "GET approbations Paperclip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET approbations Paperclip": {
+      "main": [
+        [
+          {
+            "node": "TG — sendMessage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Cron — 15 min": {
+      "recurrenceRules": []
+    },
+    "global": {
+      "seen": {}
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "aaf590f3-8317-4311-b9d8-b023905a638a",
+  "activeVersionId": null,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-07-04T21:50:40.970Z",
+      "createdAt": "2026-07-04T21:50:40.970Z",
+      "role": "workflow:owner",
+      "workflowId": "Z11yy9roXewNe6Tt",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
