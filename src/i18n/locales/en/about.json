@@ -85,43 +85,9 @@
       "stat": "Wergu Yaram project + Messages de Vie Senegal"
     }
   },
-  "platforms": {
-    "eyone": {
-      "tag": "Digital health",
-      "desc": "A platform digitizing care journeys across Africa."
-    },
-    "khanouss": {
-      "tag": "E-commerce",
-      "desc": "Full-stack e-commerce platform — catalog, cart and checkout."
-    },
-    "holycash": {
-      "tag": "Fintech",
-      "desc": "Web platform focused on financial services and payments."
-    },
-    "englishLab": {
-      "tag": "Education",
-      "desc": "An English coaching platform for French-speaking African professionals and students."
-    },
-    "steps": {
-      "tag": "Media",
-      "desc": "Premium Christian magazine in West Africa — spirituality and leadership."
-    },
-    "resho": {
-      "tag": "Community",
-      "desc": "Professional and community networking platform."
-    }
-  },
-  "preview": {
-    "desktopAlt": "Desktop preview of the {{name}} platform",
-    "mobileAlt": "Mobile preview of the {{name}} platform",
-    "desktopLabel": "Desktop",
-    "mobileLabel": "Mobile",
-    "deviceAria": "{{label}} preview",
-    "groupAria": "Choose the preview for {{name}}"
-  },
   "experiences": {
     "eyone": {
-      "role": "Digital Marketing, Growth & AI Automation Lead",
+      "role": "Marketing & Growth Manager",
       "period": "Since January 2024",
       "location": "Dakar, Senegal",
       "intro": "At Eyone, I lead the digital growth strategy, brand visibility, multichannel communication and several high-impact digital projects. My role goes beyond classic operational marketing and also covers project management, partnership coordination, web development and process automation.",
@@ -306,8 +272,6 @@
   "sectionNav": {
     "impact": "Impact",
     "expertise": "Expertise",
-    "plateformes": "Platforms",
-    "experiences": "Experience",
     "parcours": "Journey"
   },
   "hero": {
@@ -319,10 +283,10 @@
     "statFollowers": "Followers",
     "statPlatforms": "Platforms",
     "ctaWork": "Let's work together",
-    "ctaExperiences": "My experience",
     "imageAlt": "Max-Morrys Eyoum",
     "locationCity": "Dakar · Senegal",
-    "locationRegion": "French-speaking Africa"
+    "locationRegion": "French-speaking Africa",
+    "ctaParcours": "My journey"
   },
   "impact": {
     "eyebrow": "IMPACT SUMMARY",
@@ -338,19 +302,6 @@
   "expertiseSection": {
     "heading": "Expertise & skills",
     "desc": "Four complementary pillars — marketing, AI, web and management — serving growth and impact."
-  },
-  "platformsSection": {
-    "heading": "Platforms I maintain",
-    "desc": "Designed, deployed and maintained in production — full stack with database, security and monitoring.",
-    "prevAria": "Previous platforms",
-    "nextAria": "Next platforms",
-    "scrollHintMobile": "Swipe to see the other platforms",
-    "scrollHintDesktop": "Scroll or use the arrows to see the other platforms"
-  },
-  "experiencesSection": {
-    "eyebrow": "EXPERIENCE",
-    "heading": "Professional experience",
-    "desc": "From My Onoma to Eyone Medical: a multidisciplinary path at the intersection of marketing, tech and impact."
   },
   "stack": {
     "heading": "Everyday stack & tools",
@@ -380,7 +331,9 @@
     "p2": "For the little story, I never imagined I'd end up in marketing… Like every kid I wanted to be a pilot, then an engineer, then a banker and finally an entrepreneur. Digital marketing came by chance in 2021, and it became my passion!",
     "p3": "Today, I live this adventure from Dakar, at the crossroads of marketing, AI, web product and impact partnerships — proud to contribute to the digital development of French-speaking Africa.",
     "collapse": "Collapse the journey",
-    "expand": "See the start of the journey (2014 – 2021)"
+    "expand": "See the start of the journey (2014 – 2021)",
+    "showMissions": "View responsibilities",
+    "hideMissions": "Hide responsibilities"
   },
   "finalCta": {
     "eyebrow": "SHALL WE TALK?",
@@ -388,5 +341,17 @@
     "desc": "Marketing, AI automation, web platforms or partnerships — let's talk.",
     "ctaContact": "Get in touch",
     "ctaFormations": "Or discover my courses"
+  },
+  "beyond": {
+    "eyebrow": "Beyond the personal brand",
+    "heading": "I also build through MY ONOMA.",
+    "desc": "MY ONOMA is a Digital Product & Growth Studio based in Dakar. It builds products and systems for clients, builds growth machines, and develops its own products. Max-Morrys Agency is its Product, AI, Technology & Brand practice.",
+    "pillars": {
+      "build": "Product, technology, AI and brand",
+      "grow": "Growth, revenue, adtech and operations",
+      "own": "Products owned and operated"
+    },
+    "cta": "Discover MY ONOMA",
+    "ctaAgency": "See Max-Morrys Agency"
   }
 }
