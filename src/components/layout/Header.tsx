@@ -288,8 +288,22 @@ export default function Header({ onSearchOpen }: HeaderProps) {
    * Densité. La nav desktop n'apparaît qu'à partir de `xl` (1280) : à `lg` (1024), les
    * cinq libellés français longs plus la pastille Connexion réclamaient ~1109 px pour 960 px
    * disponibles. Sous `xl`, c'est le menu burger — le cas type étant une tablette en paysage.
+   *
+   * ⚠️ Depuis l'ajout de « Je te digitalise », la barre compte SIX libellés FR longs et le
+   * budget est SERRÉ : ~1208 px requis pour 1216 px disponibles.
+   *
+   * Ce budget ne dépend PAS de la largeur de l'écran. Le conteneur est plafonné à `max-w-7xl`
+   * (1280 px moins 2×32 px de gouttière = 1216 px) : une fenêtre de 1920 px n'offre pas un
+   * pixel de plus qu'une de 1280 px. Les anciennes montées en `2xl` (padding `px-3.5`,
+   * gouttière `gap-5`, rappel `⌘K`) partaient donc d'une prémisse fausse et faisaient passer
+   * les six libellés sur DEUX LIGNES à partir de 1536 px. La configuration est désormais
+   * unique au-delà de `xl`.
+   *
+   * `whitespace-nowrap` est un garde-fou délibéré : si un futur libellé fait déborder la
+   * barre, le débordement sera VISIBLE au lieu de se replier silencieusement sur deux lignes.
+   * Tout septième libellé impose de libérer de la place ailleurs — et de re-mesurer.
    */
-  const navItemCls = 'relative px-3 2xl:px-3.5 py-2 text-[0.8125rem] font-semibold transition-colors duration-150 rounded-lg group';
+  const navItemCls = 'relative px-2.5 py-2 text-[0.8125rem] font-semibold whitespace-nowrap transition-colors duration-150 rounded-lg group';
   /**
    * Bouton du bloc utilitaire segmenté. Les arrondis vivent sur le conteneur
    * (`overflow-hidden`) et non sur les enfants : langue et thème sont masqués sous `sm`,
@@ -330,7 +344,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
           )} />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-2 sm:gap-3 xl:gap-5 h-[var(--header-h)] transition-[height] duration-300">
+            <div className="flex items-center gap-2 sm:gap-3 xl:gap-4 h-[var(--header-h)] transition-[height] duration-300">
 
               {/* Logo */}
               <LocalizedLink
@@ -352,7 +366,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                 portait un aussi : elle se retrouvait plaquée à droite, avec un grand vide
                 au milieu et aucune séparation d'avec les utilitaires.
               */}
-              <nav className="hidden xl:flex items-center gap-0.5" aria-label={t('menu')}>
+              <nav className="hidden xl:flex items-center" aria-label={t('menu')}>
                 {navLinks.map((link) => {
                   const isActive = path === link.path || path.startsWith(link.path + '/');
                   const accent = transparent ? transparentAccent : navAccents[link.accent];
@@ -365,7 +379,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     >
                       {t(link.key)}
                       <span className={cn(
-                        'absolute bottom-1 left-3 right-3 2xl:left-3.5 2xl:right-3.5 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
+                        'absolute bottom-1 left-2.5 right-2.5 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
                         accent.bar,
                         isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                       )} />
@@ -403,7 +417,8 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                     {t('transform')}
                     <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200', dropdownOpen && 'rotate-180')} aria-hidden="true" />
                     <span className={cn(
-                      'absolute bottom-1 left-3 right-7 2xl:left-3.5 2xl:right-8 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
+                      /* right-6 = px-2.5 + la largeur du chevron et sa gouttière. */
+                      'absolute bottom-1 left-2.5 right-6 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
                       transformerAccent.bar,
                       isTransformerActive || dropdownOpen ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                     )} />
@@ -467,6 +482,41 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   )}
                 </div>
 
+                {/*
+                  Je te digitalise — offre Présence Digitale (commerces de proximité).
+
+                  ⚠️ Sa POSITION est un choix, pas un hasard. Un lien texte lagoon jouxtant
+                  la pastille lagoon a déjà été supprimé une fois : les deux menaient à
+                  /agence « à trois centimètres l'un de l'autre ». Ici les destinations
+                  diffèrent (/presence-digitale vs /agence) et les libellés ne partagent
+                  aucun mot, mais la séparation physique reste nécessaire : « Contacte-moi »,
+                  le bloc utilitaire segmenté, le séparateur et Connexion s'intercalent.
+                  Ne pas déplacer cette entrée vers la droite.
+
+                  Elle rejoint en revanche la famille « Je te… » — l'actif de marque du site
+                  (docs/UX-AUDIT.md §2). Le libellé a existé en nav par le passé mais pointait
+                  alors vers /agence, qui hébergeait l'offre TPE ; sa destination est
+                  désormais la bonne.
+                */}
+                <LocalizedLink
+                  to="/presence-digitale"
+                  aria-current={path === '/presence-digitale' ? 'page' : undefined}
+                  className={cn(
+                    navItemCls,
+                    focusRing,
+                    path === '/presence-digitale'
+                      ? (transparent ? transparentAccent.active : navAccents.lagoon.active)
+                      : (transparent ? transparentAccent.idle : navAccents.lagoon.idle)
+                  )}
+                >
+                  {t('presence')}
+                  <span className={cn(
+                    'absolute bottom-1 left-2.5 right-2.5 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
+                    transparent ? transparentAccent.bar : navAccents.lagoon.bar,
+                    path === '/presence-digitale' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                  )} />
+                </LocalizedLink>
+
                 {/* Contacte-moi */}
                 <LocalizedLink
                   to="/contact"
@@ -483,7 +533,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                 >
                   {t('contact')}
                   <span className={cn(
-                    'absolute bottom-1 left-3 right-3 2xl:left-3.5 2xl:right-3.5 h-[1.5px] bg-brand-500 rounded-full transition-transform duration-200 origin-left',
+                    'absolute bottom-1 left-2.5 right-2.5 h-[1.5px] bg-brand-500 rounded-full transition-transform duration-200 origin-left',
                     path === '/contact' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                   )} />
                 </LocalizedLink>
@@ -505,28 +555,29 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                       : 'border-neutral-200 dark:border-neutral-700 divide-neutral-200 dark:divide-neutral-700'
                   )}
                 >
+                  {/*
+                    Le rappel visuel « ⌘K » a été retiré de l'en-tête : avec six libellés de
+                    nav, ses ~23 px faisaient déborder la barre. Le raccourci lui-même reste
+                    actif à toutes les tailles, et le rappel subsiste dans l'espace membre,
+                    dont l'en-tête est bien moins chargé.
+                  */}
                   <button onClick={onSearchOpen} className={utilityCls} aria-label={t('search')}>
                     <Search className="w-5 h-5" aria-hidden="true" />
-                    {/* Rappel du raccourci, comme dans l'espace membre. */}
-                    <kbd
-                      className={cn(
-                        'hidden xl:inline text-[0.625rem] font-sans font-semibold tracking-wide',
-                        transparent ? 'text-white/60' : 'text-neutral-400 dark:text-neutral-500'
-                      )}
-                      aria-hidden="true"
-                    >
-                      ⌘K
-                    </kbd>
                   </button>
 
+                  {/*
+                    Bascule de langue en TEXTE seul. L'icône `Languages` doublait le code de
+                    langue — deux signes pour une seule affordance — et coûtait ~26 px que la
+                    barre à six libellés n'a plus. Le code (« EN » / « FR ») dit à lui seul ce
+                    que fait le bouton ; `aria-label` et `title` portent la phrase complète.
+                  */}
                   <button
                     onClick={toggleLanguage}
-                    className={cn(utilityCls, 'hidden sm:flex text-[0.7rem] font-bold tracking-wide')}
+                    className={cn(utilityCls, 'hidden sm:flex text-xs font-bold tracking-wide')}
                     aria-label={languageToggleLabel}
                     title={languageToggleLabel}
                   >
-                    <Languages className="w-5 h-5" aria-hidden="true" />
-                    <span>{language === 'fr' ? 'EN' : 'FR'}</span>
+                    {language === 'fr' ? 'EN' : 'FR'}
                   </button>
 
                   <button
@@ -571,8 +622,14 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                       <span className="w-7 h-7 rounded-full bg-brand-600 dark:bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
                         {userInitials}
                       </span>
+                      {/*
+                        `max-w-[64px]` et non 80 : c'est l'état CONNECTÉ qui dimensionne la
+                        barre. Ce bouton (avatar + prénom + chevron) est plus large que la
+                        pastille « Connexion » de l'état déconnecté, donc c'est lui qui décide
+                        si les six libellés de nav tiennent. Ne pas élargir sans re-mesurer.
+                      */}
                       <span className={cn(
-                        'hidden xl:block text-xs font-semibold max-w-[80px] truncate',
+                        'hidden xl:block text-xs font-semibold max-w-[64px] truncate',
                         transparent ? 'text-white/90' : 'text-neutral-700 dark:text-neutral-300'
                       )}>
                         {user.displayName?.split(' ')[0] || t('myAccount')}
@@ -640,10 +697,16 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                 )}
 
                 {/*
-                  Entrée AGENCE — unique. Le lien texte et le bouton « Travaillons ensemble »
-                  menaient tous deux à /agence, à trois centimètres l'un de l'autre. Une nav
-                  liste des destinations : le bouton porte donc le nom de la destination, et
-                  `workWithMe` reste réservé aux CTA de section et au hero de /agence.
+                  Entrée AGENCE — unique, et seul CTA plein du header. Un lien texte et un
+                  bouton « Travaillons ensemble » menaient tous deux ici, à trois centimètres
+                  l'un de l'autre : une nav liste des destinations, le bouton porte donc le
+                  nom de la destination. La clé `nav.workWithMe` qui portait l'ancien libellé
+                  a été supprimée (plus aucun usage) ; les pages gardent leurs propres clés.
+
+                  C'est cette pastille qui distingue les deux offres commerciales du site :
+                  bouton plein au nom d'entité pour Max-Morrys Agency, lien texte tutoyant
+                  (« Je te digitalise ») pour Présence Digitale. Ne pas donner de pastille
+                  pleine à la seconde — la différence de forme fait tout le travail.
 
                   ⚠️ Sur fond sombre, `bg-lagoon-500 text-neutral-900` — l'aplat signature
                   documenté à 8,1:1. Ne JAMAIS utiliser lagoon-500 en texte sur fond clair.
@@ -766,6 +829,21 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                   })}
                 </div>
               </div>
+
+              {/* Mobile: Je te digitalise — même ordre qu'en desktop. */}
+              <LocalizedLink
+                to="/presence-digitale"
+                aria-current={path === '/presence-digitale' ? 'page' : undefined}
+                className={cn(
+                  'block px-4 py-3 text-sm font-semibold transition-colors rounded-xl',
+                  FOCUS_RING,
+                  path === '/presence-digitale'
+                    ? navAccents.lagoon.active
+                    : navAccents.lagoon.idle
+                )}
+              >
+                {t('presence')}
+              </LocalizedLink>
 
               {/* Mobile: Contacte-moi */}
               <LocalizedLink

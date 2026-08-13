@@ -4,6 +4,7 @@
   "blog": "Je t'informe",
   "transform": "Je te transforme",
   "transformAria": "Je te transforme — contenu gratuit",
+  "presence": "Je te digitalise",
   "agency": "Agence",
   "freeContent": "Contenu gratuit",
   "podcast": "Le Podcast du Marketing",
@@ -19,6 +20,5 @@
   "signIn": "Connexion",
   "menu": "Menu",
   "accountMenu": "Menu du compte de {{name}}",
-  "skipToContent": "Aller au contenu principal",
-  "workWithMe": "Travaillons ensemble"
+  "skipToContent": "Aller au contenu principal"
 }

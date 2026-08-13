@@ -4,6 +4,7 @@
   "blog": "I Inform You",
   "transform": "I Transform You",
   "transformAria": "I Transform You — free content",
+  "presence": "I Digitalize You",
   "agency": "Agency",
   "freeContent": "Free content",
   "podcast": "The Marketing Podcast",
@@ -19,6 +20,5 @@
   "signIn": "Sign in",
   "menu": "Menu",
   "accountMenu": "Account menu for {{name}}",
-  "skipToContent": "Skip to main content",
-  "workWithMe": "Work with me"
+  "skipToContent": "Skip to main content"
 }

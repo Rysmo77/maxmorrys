@@ -20,8 +20,10 @@ const footerLinks = {
   plateforme: [
     { labelKey: 'links.formations', path: '/formations' },
     { labelKey: 'links.agency', path: '/agence' },
-    // L'offre TPE n'entre pas dans la navigation principale : elle s'atteint par ici,
-    // par la page d'accueil et par le bas de /agence. Voir docs/UX-AUDIT.md §1.
+    // L'offre TPE est entrée dans la navigation principale le 13/08/2026, sous « Je te
+    // digitalise » ; elle s'atteint aussi par ici, par la page d'accueil et par le bas de
+    // /agence. Le libellé du pied de page reste « Présence Digitale » — c'est un index de
+    // destinations, pas la voix de la marque. Voir docs/AGENCY-POSITIONING.md §9.
     { labelKey: 'links.presence', path: '/presence-digitale' },
     { labelKey: 'links.blog', path: '/blog' },
     { labelKey: 'links.podcasts', path: '/podcasts' },
