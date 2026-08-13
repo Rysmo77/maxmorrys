@@ -1,18 +1,22 @@
 import type { AgencyPack, AgencyPlan, AgencyLeadStatus } from '../../types';
 
 /**
- * Grille tarifaire de l'offre agence « Digital Commerce Local » — SOURCE DE VÉRITÉ UNIQUE.
+ * Grille tarifaire de l'offre « Digital Commerce Local » — SOURCE DE VÉRITÉ UNIQUE.
  *
- * Consommée par la page publique (`src/pages/Agence.tsx`), le devis partageable
- * (`src/pages/AgenceDevis.tsx`) et la vue admin (`src/pages/admin/AdminAgencyLeads.tsx`).
+ * Consommée par la page publique (`src/pages/PresenceDigitale.tsx`), le devis partageable
+ * (`src/pages/PresenceDevis.tsx`) et la vue admin (`src/pages/admin/AdminAgencyLeads.tsx`).
+ *
+ * ⚠️ Cette offre n'est PAS Max-Morrys Agency. Elle vit sur `/presence-digitale` et cible les
+ * commerces de proximité ; `/agence` porte la practice BUILD de MY ONOMA, high-ticket et sans
+ * grille tarifaire publique. Voir `docs/AGENCY-POSITIONING.md §9`.
  *
  * ⚠️ Toute modification de montant doit être répercutée dans :
  *   - `docs/OFFRE_AGENCE_TPE.md`        (référence commerciale)
  *   - `skills/commercial-kit/SKILL.md`  (mémoire des agents Sales)
  *   - `finance/model.py`                (projections 5 ans)
- *   - `functions/src/prerender.ts`      (bodyText SEO de /agence)
+ *   - `functions/src/prerender.ts`      (bodyText SEO de /presence-digitale)
  *
- * Montants en XOF (FCFA). Les libellés vivent dans les fichiers i18n `agency.json` :
+ * Montants en XOF (FCFA). Les libellés vivent dans les fichiers i18n `presence.json` :
  * ce module ne porte que des clés et des nombres, jamais de texte affichable.
  */
 

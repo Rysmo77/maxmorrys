@@ -158,6 +158,9 @@ export function universeFromPath(rawPath: string): Universe {
   if (path.startsWith('/videos')) return 'videos';
   if (path.startsWith('/club')) return 'club';
   if (path.startsWith('/a-propos')) return 'about';
-  if (path.startsWith('/agence')) return 'agency';
+  // `/agence` (Max-Morrys Agency) et `/presence-digitale` (Digital Commerce Local) sont deux
+  // offres distinctes, mais partagent l'univers turquoise : ce sont les deux surfaces
+  // commerciales du site. Voir `docs/AGENCY-POSITIONING.md §9`.
+  if (path.startsWith('/agence') || path.startsWith('/presence-digitale')) return 'agency';
   return 'formations';
 }

@@ -11,24 +11,24 @@ import LocalizedLink from '../components/shared/LocalizedLink';
 import Button from '../components/ui/Button';
 import Input, { Textarea } from '../components/ui/Input';
 import { useToast } from '../components/ui/Toast';
-import MapsProof from '../components/agency/MapsProof';
-import PackSelector from '../components/agency/PackSelector';
-import PricingCard from '../components/agency/PricingCard';
-import StickyWhatsApp from '../components/agency/StickyWhatsApp';
+import MapsProof from '../components/presence/MapsProof';
+import PackSelector from '../components/presence/PackSelector';
+import PricingCard from '../components/presence/PricingCard';
+import StickyWhatsApp from '../components/presence/StickyWhatsApp';
 import { saveAgencyLead } from '../lib/firestore';
 import { useFormat } from '../hooks/useFormat';
 import { captureError } from '../lib/sentry';
 import { trackGenerateLead } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
-import { SITE_URL } from '../components/seo/seo-config';
+import { SITE_URL, buildCanonical } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
 import { universeThemes } from '../lib/sectionThemes';
 import {
   PACKS, PLANS, OPTIONS, JOURNEY_STEPS, PROCESS_STEPS, TERMS, SECTOR_KEYS,
   PACK_KEYS, PLAN_KEYS, findPack, findPlan, computeTotals, type Recommendation,
-} from '../lib/agency/offer';
-import { whatsappUrl, buildWhatsAppMessage, buildQuickMessage } from '../lib/agency/whatsapp';
+} from '../lib/presence/offer';
+import { whatsappUrl, buildWhatsAppMessage, buildQuickMessage } from '../lib/presence/whatsapp';
 import type { AgencyPack, AgencyPlan } from '../types';
 
 const theme = universeThemes.agency;
@@ -63,8 +63,8 @@ const EMPTY_FORM = {
   message: '', referralCode: '', _hp: '',
 };
 
-export default function Agence() {
-  const { t } = useTranslation('agency');
+export default function PresenceDigitale() {
+  const { t } = useTranslation('presence');
   const { formatPrice, language } = useFormat();
   const { addToast } = useToast();
   const formRef = useRef<HTMLDivElement>(null);
@@ -121,7 +121,7 @@ export default function Agence() {
   }, []);
 
   const quoteUrl = quoteRef
-    ? `${SITE_URL}${language === 'en' ? '/en/agency/quote/' : '/agence/devis/'}${quoteRef}`
+    ? `${SITE_URL}${language === 'en' ? '/en/digital-presence/quote/' : '/presence-digitale/devis/'}${quoteRef}`
     : '';
 
   /** Libellés du message WhatsApp, traduits et formatés ici, assemblés par le module dédié. */
@@ -243,7 +243,13 @@ export default function Agence() {
 
   return (
     <div>
-      <SEOHead title={t('seoTitle')} description={t('seoDescription')} />
+      <SEOHead
+        title={t('seoTitle')}
+        description={t('seoDescription')}
+        canonical={buildCanonical('/presence-digitale')}
+        frPath="/presence-digitale"
+        enPath="/en/digital-presence"
+      />
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'Service',
@@ -786,7 +792,7 @@ export default function Agence() {
                     <p className="font-mono text-sm text-neutral-500 break-all mb-4">{quoteUrl}</p>
                     <div className="flex flex-wrap gap-3">
                       <LocalizedLink
-                        to={`/agence/devis/${quoteRef}`}
+                        to={`/presence-digitale/devis/${quoteRef}`}
                         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:border-lagoon-500 transition-colors"
                       >
                         {t('success.viewQuote')}

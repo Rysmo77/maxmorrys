@@ -13,7 +13,7 @@ const theme = universeThemes.agency;
  * ce qu'il voit de ses propres yeux. Placé AVANT tout prix, délibérément.
  */
 export default function MapsProof() {
-  const { t } = useTranslation('agency');
+  const { t } = useTranslation('presence');
   const [trade, setTrade] = useState('');
   const [area, setArea] = useState('');
 

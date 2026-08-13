@@ -1,6 +1,14 @@
+/**
+ * Prospects et devis de l'offre « Digital Commerce Local » (page `/presence-digitale`).
+ *
+ * ⚠️ Le fichier et les collections gardent le préfixe `agency_` : les renommer casserait
+ * les données de production, les règles Firestore et l'écran d'administration. Le
+ * vocabulaire a évolué dans l'interface, pas en base. Cette offre n'est PAS Max-Morrys
+ * Agency — voir `docs/AGENCY-POSITIONING.md §9`.
+ */
 import { orderBy } from 'firebase/firestore';
 import { getCollection, getDocById, createDoc, setDocById, updateDocById, deleteDocById } from './helpers';
-import { computeTotals, generateQuoteRef, isValidQuoteRef, QUOTE_VALIDITY_DAYS } from '../agency/offer';
+import { computeTotals, generateQuoteRef, isValidQuoteRef, QUOTE_VALIDITY_DAYS } from '../presence/offer';
 import type { AgencyLead, AgencyLeadStatus, AgencyQuote } from '../../types';
 
 /** Champs fournis par le prospect ; le statut et l'horodatage sont posés à la création. */

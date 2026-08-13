@@ -8,8 +8,8 @@ import { getAgencyQuote } from '../lib/firestore';
 import { useFormat } from '../hooks/useFormat';
 import { captureError } from '../lib/sentry';
 import { universeThemes } from '../lib/sectionThemes';
-import { computeTotals, depositAmount, balanceAmount, findPack, findPlan } from '../lib/agency/offer';
-import { whatsappUrl } from '../lib/agency/whatsapp';
+import { computeTotals, depositAmount, balanceAmount, findPack, findPlan } from '../lib/presence/offer';
+import { whatsappUrl } from '../lib/presence/whatsapp';
 import type { AgencyQuote } from '../types';
 
 const theme = universeThemes.agency;
@@ -23,9 +23,9 @@ const theme = universeThemes.agency;
  *
  * `noIndex` : un récapitulatif client n'a rien à faire dans les résultats de recherche.
  */
-export default function AgenceDevis() {
+export default function PresenceDevis() {
   const { ref } = useParams<{ ref: string }>();
-  const { t } = useTranslation('agency');
+  const { t } = useTranslation('presence');
   const { formatPrice, formatDate } = useFormat();
 
   const [quote, setQuote] = useState<AgencyQuote | null>(null);
@@ -64,7 +64,7 @@ export default function AgenceDevis() {
             {t('quote.notFound.text')}
           </p>
           <LocalizedLink
-            to="/agence"
+            to="/presence-digitale"
             className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-colors ${theme.buttonSolid}`}
           >
             {t('quote.notFound.cta')}
@@ -247,7 +247,7 @@ export default function AgenceDevis() {
         </div>
 
         <LocalizedLink
-          to="/agence"
+          to="/presence-digitale"
           className={`inline-flex items-center gap-2 mt-6 text-sm font-semibold print:hidden ${theme.accentText}`}
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />

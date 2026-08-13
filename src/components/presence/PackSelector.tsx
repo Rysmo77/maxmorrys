@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Compass, ArrowRight, RotateCcw } from 'lucide-react';
 import { universeThemes } from '../../lib/sectionThemes';
-import { SELECTOR_QUESTIONS, recommend, type SelectorAnswers, type Recommendation } from '../../lib/agency/offer';
+import { SELECTOR_QUESTIONS, recommend, type SelectorAnswers, type Recommendation } from '../../lib/presence/offer';
 
 const theme = universeThemes.agency;
 
@@ -31,7 +31,7 @@ interface Props {
  * gratuitement, choix annoncé aux lecteurs d'écran.
  */
 export default function PackSelector({ onRecommend, onAccept, onReset, resetSignal = 0 }: Props) {
-  const { t } = useTranslation('agency');
+  const { t } = useTranslation('presence');
   const [answers, setAnswers] = useState<SelectorAnswers>({});
 
   const reco = useMemo(() => recommend(answers), [answers]);

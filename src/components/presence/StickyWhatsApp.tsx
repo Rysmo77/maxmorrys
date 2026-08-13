@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MessageCircle } from 'lucide-react';
-import { whatsappUrl } from '../../lib/agency/whatsapp';
+import { whatsappUrl } from '../../lib/presence/whatsapp';
 
 interface Props {
   /** Message pré-rempli, construit à partir du pack sélectionné le cas échéant. */
@@ -16,7 +16,7 @@ interface Props {
  * pour ne pas recouvrir le premier écran.
  */
 export default function StickyWhatsApp({ message }: Props) {
-  const { t } = useTranslation('agency');
+  const { t } = useTranslation('presence');
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {

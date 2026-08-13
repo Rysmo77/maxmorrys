@@ -4,8 +4,8 @@ import {
   recommend, computeTotals, depositAmount, balanceAmount,
   isValidQuoteRef, generateQuoteRef,
   findPack, findPlan,
-} from '../../src/lib/agency/offer';
-import { buildWhatsAppMessage, whatsappUrl } from '../../src/lib/agency/whatsapp';
+} from '../../src/lib/presence/offer';
+import { buildWhatsAppMessage, whatsappUrl } from '../../src/lib/presence/whatsapp';
 import { localizeSegments, canonicalizeSegments } from '../../src/i18n/segments';
 
 describe('grille tarifaire', () => {
