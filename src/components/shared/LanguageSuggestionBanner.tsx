@@ -51,7 +51,7 @@ export default function LanguageSuggestionBanner() {
   };
 
   return (
-    <div className="fixed top-[4.75rem] left-1/2 -translate-x-1/2 z-[45] px-4 w-full max-w-md animate-slide-down">
+    <div className="fixed top-[calc(var(--header-h)+0.75rem)] left-1/2 -translate-x-1/2 z-[45] px-4 w-full max-w-md animate-slide-down">
       <div className="flex items-center gap-3 bg-white dark:bg-neutral-800 rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-700 px-4 py-3">
         <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 rounded-lg flex-shrink-0">
           <Languages className="w-4 h-4 text-brand-600 dark:text-brand-400" />

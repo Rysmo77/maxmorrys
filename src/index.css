@@ -7,6 +7,30 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /**
+   * Hauteur du header — SOURCE UNIQUE.
+   *
+   * Elle était recopiée en dur à trois endroits (`top-16` du panneau mobile,
+   * `top-[4.75rem]` du bandeau de langue, `top-16 lg:top-[68px]` de la sous-nav À propos).
+   * Trois valeurs qui devaient rester synchronisées à la main : tout consommateur passe
+   * désormais par `var(--header-h)`.
+   *
+   * `data-header-compact` est posé sur <html> par le Header au-delà de 20 px de défilement.
+   */
+  :root {
+    --header-h: 4rem;
+  }
+
+  :root[data-header-compact] {
+    --header-h: 3.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      --header-h: 4.25rem;
+    }
+  }
+
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
