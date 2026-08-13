@@ -60,6 +60,7 @@
       { "source": "/a-propos", "function": "prerender" },
       { "source": "/contact", "function": "prerender" },
       { "source": "/agence", "function": "prerender" },
+      { "source": "/presence-digitale", "function": "prerender" },
       { "source": "/legal/**", "function": "prerender" },
       { "source": "/en", "function": "prerender" },
       { "source": "/en/blog", "function": "prerender" },
@@ -74,6 +75,7 @@
       { "source": "/en/about", "function": "prerender" },
       { "source": "/en/contact", "function": "prerender" },
       { "source": "/en/agency", "function": "prerender" },
+      { "source": "/en/digital-presence", "function": "prerender" },
       { "source": "/en/legal/**", "function": "prerender" },
       {
         "source": "**",

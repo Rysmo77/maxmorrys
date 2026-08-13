@@ -22,6 +22,7 @@ const PRERENDER_EXACT = new Set([
   '/a-propos',
   '/contact',
   '/agence',
+  '/presence-digitale',
   '/en',
   '/en/blog',
   '/en/courses',
@@ -31,6 +32,7 @@ const PRERENDER_EXACT = new Set([
   '/en/about',
   '/en/contact',
   '/en/agency',
+  '/en/digital-presence',
 ]);
 
 /** Sources en `/xxx/**` — comparées en préfixe. */
