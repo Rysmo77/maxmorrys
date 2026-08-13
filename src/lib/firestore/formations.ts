@@ -31,8 +31,11 @@ export async function getPublishedFormationsPaginated(
 export async function getFormationBySlug(slug: string, lang: 'fr' | 'en' = 'fr'): Promise<Formation | null> {
   // En anglais, tenter d'abord le slug EN (index single-field auto), repli sur le slug FR.
   if (lang === 'en') {
-    const byEn = await getCollection<Formation>('formations', where('slug_en', '==', slug), limit(1));
-    if (byEn[0]?.status === 'published') return byEn[0];
+    // `status` doit figurer dans la requête : les règles n'autorisent la lecture
+    // anonyme que des documents publiés, et un filtre absent fait échouer le `list`
+    // entier en PERMISSION_DENIED — pas seulement les brouillons.
+    const byEn = await getCollection<Formation>('formations', where('slug_en', '==', slug), where('status', '==', 'published'), limit(1));
+    if (byEn[0]) return byEn[0];
   }
   const results = await getCollection<Formation>('formations', where('slug', '==', slug), where('status', '==', 'published'), limit(1));
   return results[0] ?? null;
