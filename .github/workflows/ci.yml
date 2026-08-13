@@ -27,6 +27,12 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Les suites unitaires gardent la cohérence des prix (Club, offre TPE) entre le code,
+      # les CGV et l'interface. Sans cette étape elles n'avaient AUCUNE couverture CI, et
+      # c'est ainsi que les CGV ont pu annoncer un tarif que le code ne pratiquait plus.
+      - name: Unit tests
+        run: npm test
+
       - name: Build
         run: npm run build
         env:

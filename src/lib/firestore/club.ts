@@ -29,7 +29,13 @@ export async function activateClubSubscription(
     expiresAt: expiresAt.toISOString(),
     autoRenew,
     status: 'pending',
-    amount: 19900,
+    /*
+     * ⚠️ Octroi gracieux par un administrateur : AUCUN franc n'est encaissé, le montant est
+     * donc nul. Il portait le plein tarif auparavant, ce qui gonflait le chiffre d'affaires
+     * du Club d'un abonnement fictif à chaque octroi. Un vrai paiement passe par
+     * `createClubCharge`, côté serveur, qui écrit le montant réellement débité.
+     */
+    amount: 0,
   } as DocumentData);
 }
 

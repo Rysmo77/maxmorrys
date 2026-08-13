@@ -21,6 +21,7 @@ import FormationCarousel from '../components/formations/FormationCarousel';
 import { testimonials } from '../data/testimonials';
 import { universeThemes } from '../lib/sectionThemes';
 import { useFormat } from '../hooks/useFormat';
+import { CLUB_PRICE_XOF } from '../lib/club/pricing';
 
 const theme = universeThemes.formations;
 const clubTheme = universeThemes.club;
@@ -64,6 +65,8 @@ const businessOffers = [
 export default function Formations() {
   const { t } = useTranslation('formations');
   const { locale } = useFormat();
+  /** Prix du Club — source unique : src/lib/club/pricing.ts */
+  const clubPrice = CLUB_PRICE_XOF.toLocaleString(locale);
   const [search, setSearch] = useState('');
   const [activeLevel, setActiveLevel] = useState('Tous');
   const [activeTab, setActiveTab] = useState('Toutes');
@@ -422,7 +425,7 @@ export default function Formations() {
                       {t('club.description')}
                     </p>
                     <div className="flex items-baseline gap-3 mb-6 pb-6 border-b border-white/10">
-                      <span className="text-4xl font-black text-white">19 900</span>
+                      <span className="text-4xl font-black text-white">{clubPrice}</span>
                       <div>
                         <span className="block text-neutral-300 font-bold text-sm">{t('club.priceUnit')}</span>
                         <span className="block text-neutral-500 text-xs">{t('club.renewal')}</span>

@@ -108,7 +108,7 @@
   },
   "subscriptionGate": {
     "title": "Club des Digitos",
-    "tagline": "Exclusive community · 19,900 FCFA/year",
+    "tagline": "Exclusive community · {{price}} FCFA/year",
     "intro": "Get access to the community, Live sessions, the forum, exclusive info and events organized by Max-Morrys.",
     "joinMembers_one": "Join {{count}} active member",
     "joinMembers_other": "Join {{count}} active members",
@@ -137,11 +137,11 @@
     "pendingText": "Your payment is awaiting confirmation. Your access will be activated automatically once received. If you run into an issue, ",
     "contactUs": "contact us",
     "activateTitle": "Activate the Club des Digitos",
-    "activateSubtitle": "19,900 FCFA / year · Automatic or manual renewal as you prefer.",
+    "activateSubtitle": "{{price}} FCFA / year · Automatic or manual renewal as you prefer.",
     "autoRenewLabel": "Automatic renewal ",
     "autoRenewHint": "(can be turned off anytime)",
     "processing": "Processing...",
-    "joinCta": "Join for 19,900 FCFA/year"
+    "joinCta": "Join for {{price}} FCFA/year"
   },
   "members": {
     "myProfile": "My member profile",

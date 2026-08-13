@@ -23,6 +23,7 @@ import { getPublishedVideos } from '../lib/firestore';
 import { queryKeys } from '../lib/queryClient';
 import { truncate } from '../lib/utils';
 import { useFormat } from '../hooks/useFormat';
+import { CLUB_PRICE_XOF } from '../lib/club/pricing';
 import type { Video } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
@@ -41,7 +42,9 @@ const PAGE_STEP = 9;
 
 export default function Videos() {
   const { t } = useTranslation('media');
-  const { formatDate } = useFormat();
+  const { formatDate, locale } = useFormat();
+  /** Prix du Club — source unique : src/lib/club/pricing.ts */
+  const clubPrice = CLUB_PRICE_XOF.toLocaleString(locale);
   const { language } = useLanguage();
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [visibleCount, setVisibleCount] = useState(PAGE_STEP);
@@ -453,7 +456,7 @@ export default function Videos() {
                   </div>
                 </div>
                 <div className="pt-4 border-t border-white/10 flex items-baseline gap-2">
-                  <span className="text-2xl font-black text-white">19 900</span>
+                  <span className="text-2xl font-black text-white">{clubPrice}</span>
                   <span className="text-plum-400 font-bold">{t('videos.clubPricePerYear')}</span>
                 </div>
               </div>

@@ -15,6 +15,7 @@ import AnimatedIcon from '../components/shared/AnimatedIcon';
 import { getPublishedPodcasts } from '../lib/firestore';
 import { queryKeys } from '../lib/queryClient';
 import { useFormat } from '../hooks/useFormat';
+import { CLUB_PRICE_XOF } from '../lib/club/pricing';
 import type { Podcast } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
@@ -59,7 +60,9 @@ function Eyebrow({ children, className = '' }: { children: React.ReactNode; clas
 
 export default function Podcasts() {
   const { t } = useTranslation('media');
-  const { formatDate } = useFormat();
+  const { formatDate, locale } = useFormat();
+  /** Prix du Club — source unique : src/lib/club/pricing.ts */
+  const clubPrice = CLUB_PRICE_XOF.toLocaleString(locale);
   const { language } = useLanguage();
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [tIndex, setTIndex] = useState(0);
@@ -573,7 +576,7 @@ export default function Podcasts() {
               </div>
               <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-6 py-4 flex items-center justify-between">
                 <span className="text-neutral-500 dark:text-neutral-400 text-sm">{t('podcasts.clubSubscriptionAnnual')}</span>
-                <span className="text-xl font-bold text-neutral-900 dark:text-white">19 900 <span className={`${theme.accentText} text-sm font-bold`}>{t('podcasts.clubPriceUnit')}</span></span>
+                <span className="text-xl font-bold text-neutral-900 dark:text-white">{clubPrice} <span className={`${theme.accentText} text-sm font-bold`}>{t('podcasts.clubPriceUnit')}</span></span>
               </div>
             </div>
           </div>

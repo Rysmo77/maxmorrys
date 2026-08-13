@@ -11,47 +11,67 @@ _Dernière mise à jour : 13 août 2026._
 
 ---
 
-## 1. Prix du Club des Digitos — **écart contractuel, priorité haute**
+## 1. Prix du Club des Digitos — ✅ **résolu le 13 août 2026**
 
-### Constat — pièces à l'appui
+### Ce qu'était l'écart
 
-Les CGV publiées sur le site annoncent un prix, le code en débite un autre.
+Les CGV publiées annonçaient **10 000 FCFA / an** quand le code débitait **19 900**. Le client
+était donc prélevé de 9 900 FCFA de plus que le montant figurant au document contractuel qu'il
+acceptait, sur un engagement de douze mois.
 
-| Source | Montant | Référence |
-| --- | --- | --- |
-| **CGV, article 3** | **10 000 FCFA / an** | `src/i18n/locales/fr/legal.json:126` |
-| Code de paiement (Cloud Functions) | **19 900 FCFA** | `functions/src/payment.ts:249` |
-| Code de paiement (Cloudflare Worker) | **19 900 FCFA** | `worker/apps/api/src/lib/bictorys.ts:123` |
-| Interface du Club | **19 900 FCFA / an** | `src/i18n/locales/fr/club.json:111,140,144` |
+### Sens retenu
 
-Texte exact des CGV :
+**Les CGV passent à 19 900 FCFA / an** — le prix réellement pratiqué, affiché partout ailleurs
+sur le site. C'est la seule option où le montant présenté au moment de la commande correspond à
+ce qui est débité.
 
-> « **Club des Digitos**, communauté privée payante en abonnement annuel (**10 000 FCFA / an**),
-> donnant accès à un fil d'actualité, à des discussions, à des sessions live, à des événements
-> et à des contenus exclusifs. »
+**Aucun abonné n'était concerné** : la question d'une reprise d'historique ne se pose pas.
 
-### Écart
+### Cause traitée, pas seulement le symptôme
 
-Le client est débité de **9 900 FCFA de plus** que le montant figurant dans les conditions
-générales de vente qu'il accepte. Les CGV sont le document contractuel opposable ; c'est donc
-le site qui est en écart avec lui-même, et l'interface comme le code sont alignés **contre** le
-contrat.
+L'écart n'était pas une faute de frappe mais une conséquence structurelle : le prix était
+recopié à **treize endroits** sans source unique, et les deux valeurs venaient de deux commits
+distincts qui ne s'étaient jamais croisés.
 
-L'article 5.4 précise par ailleurs un engagement de douze (12) mois à compter du paiement, ce
-qui donne à l'écart une portée sur toute la durée de l'abonnement.
+`src/lib/club/pricing.ts` devient la source unique côté client. En dérivent les quatre pages
+publiques, les trois chaînes du gate d'abonnement et le calcul de chiffre d'affaires admin.
 
-### Action attendue
+Les miroirs **serveur** restent dupliqués — `functions/`, `worker/` et `src/` sont trois projets
+TypeScript qui ne peuvent pas s'importer entre eux. L'en-tête de `pricing.ts` les énumère.
 
-1. Trancher le prix qui fait foi.
-2. Corriger la source erronée — **la correction n'a pas été faite ici** : modifier un prix
-   contractuel ou un montant débité est une décision commerciale et juridique, pas un
-   correctif de code.
-3. Déterminer le traitement des abonnements déjà encaissés à 19 900 FCFA sous des CGV
-   affichant 10 000 FCFA.
+`tests/unit/club-pricing.test.ts` vérifie que les CGV et l'interface portent bien la valeur de
+la constante, en FR comme en EN. Le garde-fou a été éprouvé : modifier la constante sans
+toucher aux CGV fait échouer la suite. `npm test` a par ailleurs été branché dans la CI, où il
+n'était **jamais exécuté** — ce qui redonne aussi une couverture aux 28 tests qui gardent les
+prix de l'offre TPE.
 
-### Règle appliquée dans le code
+### ⚠️ Reste ouvert — contradiction interne aux CGV
 
-Aucun des quatre emplacements n'a été modifié.
+L'**article 3.4** fixe désormais un montant explicite, tandis que l'**article 5.1** dispose que
+_« le prix applicable est celui affiché au moment de la commande »_. Les deux clauses coexistent
+et peuvent se contredire si le tarif évolue sans que l'article 3.4 soit repris.
+
+Laquelle prime relève d'un conseil juridique, pas du code. Deux voies possibles : retirer le
+montant de l'article 3.4 pour ne conserver que le renvoi au prix affiché, ou conserver les deux
+en ajoutant une clause de préséance.
+
+### ⚠️ Reste ouvert — offre mensuelle fantôme
+
+`BUSINESS_MODEL.md` décrit un abonnement Club **mensuel à 2 500 XOF** qui n'existe nulle part
+dans le code : ni constante, ni tunnel de paiement, ni affichage. Soit l'offre est à construire,
+soit la ligne est à retirer du document.
+
+### ⚠️ Reste ouvert — fiabilité du chiffre d'affaires affiché
+
+Le CA du tableau de bord admin somme désormais les montants réellement enregistrés au lieu de
+multiplier le nombre d'abonnés par le plein tarif — il tient donc compte des filleuls remisés à
+16 915 FCFA, et les octrois gracieux enregistrent maintenant un montant nul.
+
+Cela reste une estimation : `firestore.rules` ne valide pas le champ `amount` de
+`club_subscriptions`, et le document est écrasé au renouvellement, ce qui efface l'historique
+pluriannuel. Un chiffre d'affaires opposable doit se lire dans `transactions`, filtré sur
+`formationId === 'club_digitos'` et `status === 'completed'` — seule collection écrite
+exclusivement côté serveur puis confirmée par le webhook de paiement.
 
 ---
 
@@ -246,7 +266,7 @@ CGV art. 10). Si la version anglaise doit rester opposable, la faire valider par
 
 | # | Point | Nature |
 | --- | --- | --- |
-| 1 | Prix du Club : 10 000 ou 19 900 FCFA | **Commerciale + juridique, urgente** |
+| 1 | ~~Prix du Club~~ — **résolu**, aligné sur 19 900 FCFA | ✅ |
 | 2 | Graphie exacte et adresse complète de l'entité | Administrative |
 | 3 | Adresse e-mail de contact opposable | Administrative |
 | 4 | Accord écrit encadrant la marque Max-Morrys Agency | Juridique |

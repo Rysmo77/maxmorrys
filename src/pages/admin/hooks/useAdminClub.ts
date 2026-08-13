@@ -391,7 +391,20 @@ export function useAdminClub() {
 
   const activeCount = subscriptions.filter((s) => s.status === 'active').length;
   const pendingCount = subscriptions.filter((s) => s.status === 'pending').length;
-  const revenue = subscriptions.filter((s) => s.status === 'active').length * 19900;
+  /*
+   * Somme des montants réellement enregistrés, et non `nb_actifs × prix`. Le calcul précédent
+   * comptait un filleul remisé (16 915) comme un plein tarif, et un octroi gracieux — sans
+   * encaissement — comme un abonnement payé.
+   *
+   * ⚠️ Reste une estimation : `firestore.rules` ne valide pas `amount` sur `club_subscriptions`,
+   * et le document est écrasé au renouvellement, ce qui efface l'historique pluriannuel. Un
+   * chiffre d'affaires d'audit se lit dans `transactions`, filtré sur
+   * `formationId === 'club_digitos'` et `status === 'completed'` — seule collection écrite
+   * exclusivement côté serveur puis confirmée par le webhook.
+   */
+  const revenue = subscriptions
+    .filter((s) => s.status === 'active')
+    .reduce((total, s) => total + (s.amount ?? 0), 0);
 
   return {
     // Tab

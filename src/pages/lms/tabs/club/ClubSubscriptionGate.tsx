@@ -7,6 +7,8 @@ import {
 } from '@phosphor-icons/react';
 import Button from '../../../../components/ui/Button';
 import { cn } from '../../../../lib/utils';
+import { CLUB_PRICE_XOF } from '../../../../lib/club/pricing';
+import { useFormat } from '../../../../hooks/useFormat';
 import { getClubActiveMemberCount } from '../../../../lib/gamification';
 import { getApprovedTestimonials } from '../../../../lib/firestore';
 import type { Testimonial } from '../../../../types';
@@ -26,6 +28,9 @@ const initialsOf = (name: string) => name.split(' ').map((n) => n[0]).join('').s
 
 export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubSubscriptionGateProps) {
   const { t } = useTranslation('club');
+  const { locale } = useFormat();
+  /** Le prix ne vit qu'à un endroit : src/lib/club/pricing.ts. */
+  const price = CLUB_PRICE_XOF.toLocaleString(locale);
   const {
     isClubPending,
     clubAutoRenew, setClubAutoRenew,
@@ -58,7 +63,7 @@ export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubS
             </div>
             <div>
               <h2 className="text-2xl font-black">{t('subscriptionGate.title')}</h2>
-              <p className="text-plum-200 text-sm">{t('subscriptionGate.tagline')}</p>
+              <p className="text-plum-200 text-sm">{t('subscriptionGate.tagline', { price })}</p>
             </div>
           </div>
           <p className="text-plum-100 leading-relaxed max-w-lg">
@@ -165,7 +170,7 @@ export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubS
       ) : (
         <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
           <h3 className="font-bold text-neutral-900 dark:text-white mb-1">{t('subscriptionGate.activateTitle')}</h3>
-          <p className="text-sm text-neutral-500 mb-5">{t('subscriptionGate.activateSubtitle')}</p>
+          <p className="text-sm text-neutral-500 mb-5">{t('subscriptionGate.activateSubtitle', { price })}</p>
           <div className="flex items-center gap-3 mb-6">
             <button type="button" onClick={() => setClubAutoRenew((v) => !v)} className={cn('relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none', clubAutoRenew ? 'bg-plum-600' : 'bg-neutral-300 dark:bg-neutral-600')}>
               <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform', clubAutoRenew ? 'translate-x-6' : 'translate-x-1')} />
@@ -173,7 +178,7 @@ export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubS
             <span className="text-sm text-neutral-600 dark:text-neutral-400">{t('subscriptionGate.autoRenewLabel')}<span className="text-neutral-400">{t('subscriptionGate.autoRenewHint')}</span></span>
           </div>
           <Button onClick={handleActivateClub} disabled={activatingClub} className="!bg-plum-600 hover:!bg-plum-700" icon={activatingClub ? <CircleNotch className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" weight="fill" />}>
-            {activatingClub ? t('subscriptionGate.processing') : t('subscriptionGate.joinCta')}
+            {activatingClub ? t('subscriptionGate.processing') : t('subscriptionGate.joinCta', { price })}
           </Button>
         </div>
       )}
