@@ -1,0 +1,317 @@
+{
+  "seoTitle": "Max-Morrys Agency — Produit, IA, Technologie & Marque",
+  "seoDescription": "Nous concevons les produits numériques, systèmes IA et expériences digitales dont les entreprises ont besoin pour avancer. Practice Product, AI, Technology & Brand de MY ONOMA, depuis Dakar.",
+  "hero": {
+    "eyebrow": "Max-Morrys Agency",
+    "titlePart1": "Nous construisons les ",
+    "titleAccent": "produits numériques",
+    "titlePart2": " qui font avancer les entreprises.",
+    "subtitle": "Stratégie produit, ingénierie, systèmes IA et expériences de marque. Nous intervenons sur les projets où le produit, la technologie et le business doivent fonctionner ensemble.",
+    "disciplines": "Product · AI · Technology · Brand",
+    "cta": "Parlons de votre projet",
+    "ctaSecondary": "Voir nos réalisations"
+  },
+  "whoWeHelp": {
+    "eyebrow": "Avec qui nous travaillons",
+    "titlePart1": "Des organisations qui ont ",
+    "titleAccent": "quelque chose à construire",
+    "titlePart2": ".",
+    "subtitle": "Nous n'intervenons pas sur tous les projets. Nous intervenons sur ceux où une décision produit engage une décision technique, et inversement.",
+    "audiences": {
+      "founders": {
+        "title": "Fondateurs & startups",
+        "desc": "Passer d'une intuition à un produit en production, sans construire ce qui ne servira pas."
+      },
+      "companies": {
+        "title": "PME & scale-ups",
+        "desc": "Outiller, automatiser et faire tenir la charge quand la croissance dépasse les outils en place."
+      },
+      "institutions": {
+        "title": "Institutions & organisations",
+        "desc": "Concevoir des plateformes fiables, mesurables et maintenables sur la durée."
+      },
+      "executives": {
+        "title": "Marques personnelles premium",
+        "desc": "Construire l'écosystème digital d'une expertise : positionnement, plateforme, autorité."
+      }
+    },
+    "notForTitle": "Ce que nous ne faisons pas",
+    "notFor": "Nous ne sommes ni une agence web au forfait, ni une agence de communication, ni une agence 360°. Si votre besoin porte d'abord sur la croissance, l'acquisition ou les revenus, nous vous orientons vers la practice qui le porte."
+  },
+  "capabilities": {
+    "eyebrow": "Nos expertises",
+    "titlePart1": "Quatre façons de ",
+    "titleAccent": "construire",
+    "titlePart2": " avec nous.",
+    "product": {
+      "name": "Digital Product",
+      "tagline": "De l'intention au produit en production.",
+      "desc": "Nous cadrons, concevons et construisons des produits numériques : SaaS, plateformes métier, applications web, marketplaces, portails, outils internes. Du prototype au produit exploité.",
+      "items": [
+        "Stratégie et cadrage produit",
+        "Architecture produit et parcours",
+        "Design d'interface et design system",
+        "MVP, prototypes et mise en production"
+      ]
+    },
+    "ai": {
+      "name": "AI Systems & Automation",
+      "tagline": "L'IA rattachée à un problème réel.",
+      "desc": "Nous branchons l'IA là où elle change quelque chose : un workflow qui coûte cher, une tâche répétée, un service qui ne tient plus la charge. Jamais l'IA pour l'IA.",
+      "items": [
+        "Automatisation de workflows métier",
+        "Agents et assistants intégrés aux outils",
+        "Intégrations LLM et systèmes de génération",
+        "Produits augmentés par l'IA"
+      ]
+    },
+    "technology": {
+      "name": "Technology & Infrastructure",
+      "tagline": "Ce qui doit tenir, tient.",
+      "desc": "Architecture applicative, intégrations, APIs, authentification, paiement, données et tableaux de bord. La technique au service d'un résultat mesurable.",
+      "items": [
+        "Architecture applicative et données",
+        "APIs, intégrations et webhooks",
+        "Authentification et paiement",
+        "Tableaux de bord et mesure"
+      ]
+    },
+    "brand": {
+      "name": "Brand & Executive Presence",
+      "tagline": "Une expertise qui se voit.",
+      "desc": "Positionnement, architecture de contenu et plateforme digitale pour les marques personnelles et les dirigeants. C'est exactement ce que ce site démontre.",
+      "items": [
+        "Positionnement et architecture de marque",
+        "Écosystème digital et plateforme",
+        "Architecture de contenu",
+        "Infrastructure d'autorité"
+      ]
+    }
+  },
+  "work": {
+    "eyebrow": "Réalisations",
+    "titlePart1": "Ce que nous avons ",
+    "titleAccent": "construit",
+    "titlePart2": ".",
+    "clientsTitle": "Projets clients",
+    "clientsDesc": "Produits construits pour des tiers. Ils appartiennent à leurs clients ; nous indiquons uniquement le rôle que nous avons tenu.",
+    "venturesTitle": "Products built inside MY ONOMA",
+    "venturesDesc": "Produits que le studio conçoit, détient et opère. Chacun est une marque autonome.",
+    "roleLabel": "Notre rôle",
+    "stackLabel": "Stack",
+    "visitLabel": "Voir le site",
+    "capabilities": {
+      "productStrategy": "Stratégie produit",
+      "productDesign": "Design produit",
+      "uxui": "UX / UI",
+      "engineering": "Ingénierie",
+      "platformArchitecture": "Architecture de plateforme",
+      "designSystem": "Design system",
+      "aiAutomation": "IA & automatisation",
+      "securityRules": "Règles de sécurité",
+      "seo": "SEO"
+    },
+    "projects": {
+      "khanouss": {
+        "description": "Plateforme e-commerce full stack — catalogue, panier et paiement."
+      },
+      "holycash": {
+        "description": "Plateforme web orientée services financiers et paiement."
+      },
+      "english-lab": {
+        "description": "Plateforme d'accompagnement en anglais pour professionnels et étudiants africains francophones."
+      },
+      "resho-konnexion": {
+        "description": "Plateforme communautaire et professionnelle : emplois, événements, incubateur et annuaire."
+      },
+      "loma": {
+        "description": "Plateforme multi-services : transport, livraison et restaurants, avec espaces client, chauffeur, restaurant et administration."
+      },
+      "klio-pro": {
+        "description": "Site public, billetterie et back-office d'un cabinet de conseil et de formation en achats, à Dakar."
+      },
+      "je-temoigne": {
+        "description": "Recueil, modération et publication de témoignages en vidéo, audio ou texte, depuis le téléphone."
+      },
+      "lauraverse": {
+        "description": "Plateforme média et agenda des événements chrétiens en Afrique francophone."
+      },
+      "dunamis-holydays": {
+        "description": "Site d'événement : présentation, programme et inscriptions."
+      },
+      "jubile-de-grace": {
+        "description": "Site d'événement anniversaire — programme, temps forts et participation."
+      },
+      "in-senegal": {
+        "description": "Site institutionnel d'un événement national — présentation, programme et contact."
+      }
+    },
+    "categories": {
+      "consumer-product": "Consumer Product",
+      "e-commerce": "E-commerce",
+      "fintech": "Fintech",
+      "education": "Éducation",
+      "communaute": "Communauté",
+      "media": "Média",
+      "evenementiel": "Événementiel"
+    },
+    "filterAll": "Tous",
+    "filterAria": "Filtrer les projets par catégorie",
+    "resultCount_one": "{{count}} projet",
+    "resultCount_other": "{{count}} projets",
+    "selectProject": "Choisir un projet à afficher",
+    "listAria": "Liste des projets clients"
+  },
+  "howWeWork": {
+    "eyebrow": "Notre méthode",
+    "titlePart1": "Peu d'étapes, ",
+    "titleAccent": "beaucoup de clarté",
+    "titlePart2": ".",
+    "steps": {
+      "frame": {
+        "title": "Cadrer",
+        "desc": "Nous partons du problème et de la décision business, pas d'une liste de fonctionnalités. Ce qui ne sert pas ne se construit pas."
+      },
+      "design": {
+        "title": "Concevoir",
+        "desc": "Parcours, architecture et interface. Les arbitrages techniques et produit se prennent ensemble, pas l'un après l'autre."
+      },
+      "build": {
+        "title": "Construire",
+        "desc": "Livraisons régulières et vérifiables. Vous voyez le produit avancer plutôt qu'un rapport d'avancement."
+      },
+      "run": {
+        "title": "Exploiter",
+        "desc": "Mise en production, mesure, corrections et évolutions. Un produit livré n'est pas un produit terminé."
+      }
+    }
+  },
+  "myOnoma": {
+    "eyebrow": "Notre structure",
+    "title": "Max-Morrys Agency est la practice Product, AI, Technology & Brand de MY ONOMA.",
+    "body": "MY ONOMA est un Digital Product & Growth Studio. Il construit des produits et des systèmes pour ses clients, construit des machines de croissance, et développe ses propres produits.",
+    "legalNote": "Les prestations contractualisées sous MY ONOMA sont réalisées par MY ONOMA SARL.",
+    "pillarsLabel": "Les trois piliers du studio",
+    "pillars": {
+      "build": "Produit, technologie, IA et marque",
+      "grow": "Croissance, revenus, adtech et opérations",
+      "own": "Produits détenus et opérés"
+    },
+    "carriedBy": "Porté par",
+    "cta": "Découvrir MY ONOMA",
+    "growTitle": "Votre besoin porte sur la croissance ?",
+    "growBody": "Pour les missions de Growth, Revenue & Operations, nous intervenons au sein de MY ONOMA avec Cléa Growth Office. C'est une practice sœur, pas un sous-traitant.",
+    "growDistinction": "Max-Morrys Agency construit les systèmes. Cléa Growth Office construit et opère la machine de croissance.",
+    "growCta": "Voir Cléa Growth Office"
+  },
+  "faq": {
+    "eyebrow": "Questions fréquentes",
+    "titlePart1": "Ce qu'on nous demande ",
+    "titleAccent": "le plus souvent",
+    "titlePart2": ".",
+    "items": [
+      {
+        "q": "Quelle est la différence avec l'offre Présence Digitale ?",
+        "a": "Présence Digitale est une offre productisée pour les commerces de proximité : site, fiche Google, catalogue WhatsApp, publication régulière, à tarifs publics. Max-Morrys Agency intervient sur des projets sur mesure où produit, technologie et business sont liés. Ce sont deux offres distinctes, avec deux tunnels distincts."
+      },
+      {
+        "q": "Publiez-vous vos tarifs ?",
+        "a": "Non. Chaque mission est cadrée à partir d'un problème, d'un périmètre et d'un calendrier. Nous travaillons au projet, en accompagnement récurrent ou en advisory. Le formulaire comporte une fourchette budgétaire : elle sert à vérifier que nous sommes alignés avant de vous faire perdre du temps."
+      },
+      {
+        "q": "Qui contracte avec nous ?",
+        "a": "Max-Morrys Agency est une marque commerciale. Les prestations contractualisées sous MY ONOMA sont réalisées par MY ONOMA SARL, société de droit sénégalais basée à Dakar."
+      },
+      {
+        "q": "Travaillez-vous en dehors du Sénégal ?",
+        "a": "Oui. Le studio est basé à Dakar et travaille à distance. Le produit et l'ingénierie ne dépendent pas d'une présence sur site ; nous calons les rythmes de travail sur votre fuseau."
+      },
+      {
+        "q": "Utilisez-vous l'IA pour construire ?",
+        "a": "Oui, en ingénierie assistée par IA — sur la production de code, les tests et l'outillage. Cela accélère la livraison. Cela ne remplace ni les arbitrages d'architecture, ni la revue, ni la responsabilité de ce qui part en production."
+      },
+      {
+        "q": "À qui appartient ce que vous construisez ?",
+        "a": "Les livrables produits pour un client lui appartiennent, dans les termes de son contrat. Nos méthodes, nos composants génériques et notre outillage interne restent les nôtres. Cette frontière est explicite et figure dans nos contrats."
+      }
+    ]
+  },
+  "form": {
+    "eyebrow": "Démarrer",
+    "titlePart1": "Parlons de ",
+    "titleAccent": "votre projet",
+    "titlePart2": ".",
+    "subtitle": "Quelques questions pour comprendre votre besoin. Nous répondons sous deux jours ouvrés, et nous le disons franchement si nous ne sommes pas les bons interlocuteurs.",
+    "nameLabel": "Votre nom",
+    "namePlaceholder": "Awa Ndiaye",
+    "companyLabel": "Entreprise ou organisation",
+    "companyPlaceholder": "Nom de votre structure",
+    "emailLabel": "Email professionnel",
+    "emailPlaceholder": "vous@entreprise.com",
+    "websiteLabel": "Site web (facultatif)",
+    "websitePlaceholder": "https://",
+    "projectTypeLabel": "Type de projet",
+    "budgetLabel": "Budget envisagé",
+    "timelineLabel": "Échéance souhaitée",
+    "descriptionLabel": "Décrivez votre projet",
+    "descriptionPlaceholder": "Le problème que vous cherchez à résoudre, ce qui existe déjà, et ce qui vous bloque aujourd'hui.",
+    "submit": "Envoyer ma demande",
+    "submitting": "Envoi en cours…",
+    "required": "Champ obligatoire",
+    "invalidEmail": "Adresse email invalide",
+    "descriptionTooShort": "Quelques phrases de plus nous aideraient à préparer l'échange.",
+    "errorToast": "L'envoi a échoué. Réessayez ou écrivez-nous directement.",
+    "projectTypes": {
+      "product": "Produit numérique / SaaS",
+      "platform": "Plateforme web",
+      "application": "Application",
+      "ai": "IA / Automatisation",
+      "internalTool": "Outil interne",
+      "transformation": "Transformation digitale",
+      "brand": "Marque personnelle / dirigeant",
+      "growth": "Croissance / acquisition / revenus",
+      "other": "Autre"
+    },
+    "budgets": {
+      "exploring": "À définir",
+      "small": "Moins de 5 M FCFA",
+      "medium": "5 à 15 M FCFA",
+      "large": "15 à 40 M FCFA",
+      "xlarge": "Plus de 40 M FCFA"
+    },
+    "timelines": {
+      "urgent": "Moins d'un mois",
+      "quarter": "1 à 3 mois",
+      "halfYear": "3 à 6 mois",
+      "flexible": "Pas de date arrêtée"
+    },
+    "success": {
+      "title": "Demande envoyée",
+      "body": "Merci. Nous revenons vers vous sous deux jours ouvrés à l'adresse indiquée.",
+      "backCta": "Revenir à la page"
+    },
+    "growNotice": {
+      "title": "Ce besoin relève de Cléa Growth Office",
+      "body": "Croissance, go-to-market, revenus et opérations sont portés par Cléa Growth Office, la practice sœur au sein de MY ONOMA. Votre demande est bien enregistrée et transmise au bon interlocuteur.",
+      "cta": "En savoir plus"
+    }
+  },
+  "finalCta": {
+    "titlePart1": "Un projet où le produit et la ",
+    "titleAccent": "technologie",
+    "titlePart2": " doivent avancer ensemble ?",
+    "subtitle": "Décrivez-le. Nous vous dirons honnêtement si nous sommes les bons interlocuteurs.",
+    "cta": "Parlons de votre projet",
+    "presenceTitle": "Vous tenez un commerce de proximité ?",
+    "presenceBody": "L'offre Présence Digitale installe et pilote votre présence en ligne : site, fiche Google, catalogue WhatsApp et publication régulière. Tarifs publics.",
+    "presenceCta": "Voir l'offre Présence Digitale"
+  },
+  "preview": {
+    "desktopAlt": "Aperçu desktop de la plateforme {{name}}",
+    "mobileAlt": "Aperçu mobile de la plateforme {{name}}",
+    "desktopLabel": "Desktop",
+    "mobileLabel": "Mobile",
+    "deviceAria": "Aperçu {{label}}",
+    "groupAria": "Choisir l'aperçu de {{name}}"
+  }
+}

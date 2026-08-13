@@ -213,9 +213,58 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Engagement leads — demandes de mission Max-Morrys Agency (page /agence)
+    //
+    // A ne pas confondre avec agency_leads plus bas : ce sont deux offres distinctes.
+    // Ici, missions produit/IA/technologie high-ticket ; la-bas, packs "Digital Commerce
+    // Local" pour commerces de proximite. Cf. docs/AGENCY-POSITIONING.md
+    match /engagement_leads/{leadId} {
+      // Le formulaire public /agence est accessible sans compte — validation stricte des champs
+      allow create: if request.resource.data.keys().hasAll(
+          ['name', 'company', 'email', 'projectType', 'budget', 'timeline', 'description', 'status'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.company is string
+        && request.resource.data.company.size() >= 2
+        && request.resource.data.company.size() <= 120
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 5
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.projectType is string
+        && request.resource.data.projectType.size() <= 30
+        && request.resource.data.budget is string
+        && request.resource.data.budget.size() <= 30
+        && request.resource.data.timeline is string
+        && request.resource.data.timeline.size() <= 30
+        && request.resource.data.description is string
+        && request.resource.data.description.size() >= 40
+        && request.resource.data.description.size() <= 4000
+        // Un prospect ne peut pas se declarer qualifie, en cours de cadrage ou gagne.
+        && request.resource.data.status == 'new'
+        && (!('website' in request.resource.data)
+            || (request.resource.data.website is string && request.resource.data.website.size() <= 200))
+        && (!('routedTo' in request.resource.data)
+            || request.resource.data.routedTo == 'MY_ONOMA_GROW')
+        && (!('locale' in request.resource.data)
+            || request.resource.data.locale in ['fr', 'en'])
+        // Les notes internes ne peuvent jamais etre posees par le prospect
+        && !('notes' in request.resource.data)
+        // Borne le nombre de champs : empeche le bourrage de document par un robot.
+        // Maximum legitime = 11 (7 obligatoires + website + routedTo + locale + status
+        // + createdAt), soit 12 avec createdAt pose par createDoc.
+        && request.resource.data.keys().size() <= 12;
+
+      // Pipeline commercial : lecture et qualification par admin et support
+      allow read, update: if isAdminOrSupport();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
     // Agency leads collection — demandes de devis "Presence Digitale" (cf. docs/OFFRE_AGENCE_TPE.md)
     match /agency_leads/{leadId} {
-      // Le formulaire public /agence est accessible sans compte — validation stricte des champs
+      // Le formulaire public /presence-digitale est accessible sans compte — validation stricte
       allow create: if request.resource.data.keys().hasAll(['businessName', 'contactName', 'phone', 'city', 'status'])
         && request.resource.data.businessName is string
         && request.resource.data.businessName.size() >= 2
@@ -298,11 +347,20 @@ service cloud.firestore {
       allow read: if isAdmin();
 
       // Anyone can subscribe — with field validation
-      allow create: if request.resource.data.keys().hasAll(['email'])
+      //
+      // Le consentement est exige cote serveur, pas seulement dans le formulaire :
+      // une inscription sans `consent == true` est refusee. `consentAt` horodate le recueil.
+      //
+      // ⚠️ Le plafond de cles est passe de 3 a 5 EN MEME TEMPS que l'ajout de ces deux
+      // champs. Les dissocier ferait echouer 100% des inscriptions.
+      allow create: if request.resource.data.keys().hasAll(['email', 'consent'])
         && request.resource.data.email is string
         && request.resource.data.email.size() >= 5
         && request.resource.data.email.size() <= 254
-        && request.resource.data.keys().size() <= 3;
+        && request.resource.data.consent == true
+        && (!('consentAt' in request.resource.data)
+            || request.resource.data.consentAt is string)
+        && request.resource.data.keys().size() <= 5;
 
       // Only admins can update or delete
       allow update, delete: if isAdmin();
