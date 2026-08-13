@@ -67,7 +67,7 @@
     "heading": "File your skills in the right folder.",
     "cta": "Discover all the courses"
   },
-  "agency": {
+  "presence": {
     "eyebrow": "Run a local business?",
     "heading": "I'll digitalize it for you",
     "desc": "No time to learn all that? I'll handle it. Website, Google listing, WhatsApp catalogue, result tracking and regular posts — I install them and I run them for your business.",
@@ -90,6 +90,13 @@
         "text": "Finally know what your online presence brings you."
       }
     }
+  },
+  "agency": {
+    "eyebrow": "Work with me",
+    "heading": "Something to build?",
+    "desc": "Max-Morrys Agency builds digital products, AI systems and platforms for founders, SMEs and institutions. It is the Product, AI, Technology & Brand practice of MY ONOMA.",
+    "disciplines": "Product · AI · Technology · Brand",
+    "cta": "Explore the agency"
   },
   "quiz": {
     "eyebrow": "Level up",

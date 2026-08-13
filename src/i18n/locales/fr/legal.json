@@ -10,12 +10,13 @@
     "title": "Mentions légales",
     "editor": {
       "heading": "Éditeur du site",
-      "body": "Le site maxmorrys.me est édité par la société <1>My Onoma SARL</1>, opératrice de la marque Max-Morrys.",
-      "companyName": "<1>Raison sociale :</1> My Onoma SARL",
+      "body": "Le site maxmorrys.me est édité par la société <1>MY ONOMA SARL</1>, opératrice de la marque Max-Morrys.",
+      "companyName": "<1>Raison sociale :</1> MY ONOMA SARL",
+      "legalForm": "<1>Forme juridique :</1> Société à Responsabilité Limitée (SARL)",
       "capital": "<1>Capital social :</1> 100 000 FCFA",
       "rccm": "<1>RCCM :</1> SN DKR 2022 B 11134",
       "ninea": "<1>NINEA :</1> 009319501",
-      "headquarters": "<1>Siège social :</1> Dakar, Sénégal",
+      "headquarters": "<1>Siège social :</1> Quartier Ouakam, Cité Batrain, Lot 384 — Dakar, Sénégal",
       "publicationDirector": "<1>Directeur de la publication :</1> Max-Morrys Eyoum"
     },
     "hosting": {
@@ -33,7 +34,7 @@
     },
     "liability": {
       "heading": "Limitation de responsabilité",
-      "body": "My Onoma SARL s'efforce d'assurer l'exactitude et la mise à jour des informations diffusées sur ce site. Toutefois, l'éditeur ne peut garantir l'exactitude, la précision ou l'exhaustivité des informations mises à disposition."
+      "body": "MY ONOMA SARL s'efforce d'assurer l'exactitude et la mise à jour des informations diffusées sur ce site. Toutefois, l'éditeur ne peut garantir l'exactitude, la précision ou l'exhaustivité des informations mises à disposition."
     }
   },
   "privacy": {
@@ -42,7 +43,7 @@
     "title": "Politique de confidentialité",
     "intro": {
       "heading": "Introduction",
-      "p1": "La présente politique de confidentialité décrit comment <1>My Onoma SARL</1>, opératrice de la marque Max-Morrys, collecte, utilise et protège vos données personnelles lorsque vous utilisez notre site web et nos services.",
+      "p1": "La présente politique de confidentialité décrit comment <1>MY ONOMA SARL</1>, opératrice de la marque Max-Morrys, collecte, utilise et protège vos données personnelles lorsque vous utilisez notre site web et nos services.",
       "p2": "Nous nous engageons à respecter la loi sénégalaise n°2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel, ainsi que le RGPD pour les utilisateurs européens."
     },
     "collected": {
@@ -107,19 +108,19 @@
     "title": "Conditions Générales de Vente",
     "art1": {
       "heading": "Article 1 — Objet",
-      "body": "Les présentes Conditions Générales de Vente (CGV) régissent les relations contractuelles entre la société <1>My Onoma SARL</1> (ci-après « l'Éditeur ») et toute personne physique ou morale (ci-après « le Client ») souhaitant accéder aux formations en ligne et services proposés sur la plateforme Max-Morrys."
+      "body": "Les présentes Conditions Générales de Vente (CGV) régissent les relations contractuelles entre la société <1>MY ONOMA SARL</1> (ci-après « l'Éditeur ») et toute personne physique ou morale (ci-après « le Client ») souhaitant accéder aux formations en ligne et services proposés sur la plateforme Max-Morrys."
     },
     "art2": {
       "heading": "Article 2 — Identification de l'Éditeur",
       "intro": "La plateforme Max-Morrys est exploitée par :",
-      "item1": "<1>Société :</1> My Onoma SARL",
+      "item1": "<1>Société :</1> MY ONOMA SARL",
       "item2": "<1>RCCM :</1> SN DKR 2022 B 11134",
       "item3": "<1>NINEA :</1> 009319501",
       "item4": "<1>E-mail :</1> contact@maxmorrys.me"
     },
     "art3": {
       "heading": "Article 3 — Description des services",
-      "intro": "Max-Morrys propose, sous la marque exploitée par My Onoma SARL :",
+      "intro": "Max-Morrys propose, sous la marque exploitée par MY ONOMA SARL :",
       "item1": "<1>Formations en ligne</1> sur le marketing digital, le SEO et l'intelligence artificielle, accessibles à vie après achat (vidéos, contenus textuels, quiz, missions pratiques, ressources téléchargeables).",
       "item2": "<1>Certificats de réussite</1> délivrés à la complétion à 100 % d'une formation, vérifiables publiquement via un code unique.",
       "item3": "<1>Rysmo</1>, assistant pédagogique fondé sur l'intelligence artificielle, disponible pour les apprenants inscrits.",
@@ -139,7 +140,7 @@
       "sub52Heading": "5.2 — Paiement",
       "sub52Body": "Le règlement s'effectue via <1>Bictorys</1>, agrégateur de paiement intégrant Wave, Orange Money, Free Money et carte bancaire (Visa / Mastercard). La transaction est sécurisée et chiffrée par le prestataire de paiement.",
       "sub53Heading": "5.3 — Débit",
-      "sub53Body": "Le Client reconnaît que la transaction sera enregistrée sous le nom commercial de la société mère, <1>My Onoma</1>. Une facture est envoyée automatiquement par e-mail au nom de My Onoma SARL dès validation du paiement.",
+      "sub53Body": "Le Client reconnaît que la transaction sera enregistrée sous le nom commercial de la société mère, <1>MY ONOMA</1>. Une facture est envoyée automatiquement par e-mail au nom de MY ONOMA SARL dès validation du paiement.",
       "sub54Heading": "5.4 — Abonnement Club des Digitos",
       "sub54Body": "L'abonnement au Club des Digitos est conclu pour une durée de douze (12) mois à compter de la date de paiement.",
       "sub54Item1": "Le Client choisit, lors de l'activation, entre un <1>renouvellement automatique</1> à l'échéance ou un <3>renouvellement manuel</3>.",
@@ -155,7 +156,7 @@
     },
     "art7": {
       "heading": "Article 7 — Propriété intellectuelle",
-      "p1": "Tous les contenus (vidéos, textes, graphiques, supports PDF, modèles, etc.) présents sur la plateforme Max-Morrys sont la propriété exclusive de My Onoma SARL ou de Max-Morrys.",
+      "p1": "Tous les contenus (vidéos, textes, graphiques, supports PDF, modèles, etc.) présents sur la plateforme Max-Morrys sont la propriété exclusive de MY ONOMA SARL ou de Max-Morrys.",
       "p2": "Toute reproduction, distribution, modification ou utilisation commerciale de tout ou partie du contenu sans autorisation écrite préalable est strictement interdite et peut donner lieu à des poursuites judiciaires."
     },
     "art8": {
@@ -179,7 +180,7 @@
     "title": "Conditions d'utilisation",
     "art1": {
       "heading": "1. Objet",
-      "body": "Les présentes conditions générales d'utilisation (CGU) régissent l'accès et l'usage de la plateforme Max-Morrys, opérée par <1>My Onoma SARL</1>. En créant un compte ou en utilisant le service, tu acceptes ces conditions."
+      "body": "Les présentes conditions générales d'utilisation (CGU) régissent l'accès et l'usage de la plateforme Max-Morrys, opérée par <1>MY ONOMA SARL</1>. En créant un compte ou en utilisant le service, tu acceptes ces conditions."
     },
     "art2": {
       "heading": "2. Compte & accès",
@@ -228,7 +229,7 @@
     "what": {
       "heading": "Qu'est-ce qu'un cookie ?",
       "p1": "Un cookie est un petit fichier texte déposé sur votre terminal (ordinateur, tablette, smartphone) lors de la visite d'un site web. Il permet au site de reconnaître votre navigateur et de stocker certaines informations.",
-      "p2": "Le site Max-Morrys, opéré par <1>My Onoma SARL</1>, utilise des cookies et technologies similaires (stockage local du navigateur) pour assurer le fonctionnement du service et améliorer votre expérience."
+      "p2": "Le site Max-Morrys, opéré par <1>MY ONOMA SARL</1>, utilise des cookies et technologies similaires (stockage local du navigateur) pour assurer le fonctionnement du service et améliorer votre expérience."
     },
     "types": {
       "heading": "Types de cookies utilisés",

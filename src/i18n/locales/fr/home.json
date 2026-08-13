@@ -67,7 +67,7 @@
     "heading": "Range tes compétences dans le bon dossier.",
     "cta": "Découvrir toutes les formations"
   },
-  "agency": {
+  "presence": {
     "eyebrow": "Tu as un commerce ?",
     "heading": "Je le digitalise pour toi",
     "desc": "Tu n'as pas le temps d'apprendre tout ça ? Je m'en charge. Site web, fiche Google, catalogue WhatsApp, mesure des résultats et publications régulières — je les installe et je les pilote pour ton commerce.",
@@ -90,6 +90,13 @@
         "text": "Savoir enfin ce que ta présence en ligne te rapporte."
       }
     }
+  },
+  "agency": {
+    "eyebrow": "Travailler avec moi",
+    "heading": "Un produit à construire ?",
+    "desc": "Max-Morrys Agency conçoit des produits numériques, des systèmes IA et des plateformes pour les fondateurs, les PME et les institutions. C'est la practice Product, AI, Technology & Brand de MY ONOMA.",
+    "disciplines": "Product · AI · Technology · Brand",
+    "cta": "Découvrir l'agence"
   },
   "quiz": {
     "eyebrow": "Passe au niveau supérieur",

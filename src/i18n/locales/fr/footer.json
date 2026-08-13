@@ -11,7 +11,7 @@
   },
   "links": {
     "formations": "Je te forme",
-    "agency": "Je te digitalise",
+    "agency": "Agence",
     "blog": "Je t'informe",
     "podcasts": "Le Podcast du Marketing",
     "videos": "Le Marketing en Pratique",
@@ -23,7 +23,8 @@
     "privacy": "Confidentialité",
     "cgu": "CGU",
     "cgv": "CGV",
-    "cookies": "Cookies"
+    "cookies": "Cookies",
+    "presence": "Présence Digitale"
   },
   "copyright": "© {{year}} Max-Morrys. Tous droits réservés.",
   "operatedByPrefix": "Max-Morrys est une marque opérée par"

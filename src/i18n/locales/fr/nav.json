@@ -4,7 +4,7 @@
   "blog": "Je t'informe",
   "transform": "Je te transforme",
   "transformAria": "Je te transforme — contenu gratuit",
-  "agency": "Je te digitalise",
+  "agency": "Agence",
   "freeContent": "Contenu gratuit",
   "podcast": "Le Podcast du Marketing",
   "videos": "Le Marketing en Pratique avec Max-Morrys",
@@ -19,5 +19,6 @@
   "signIn": "Connexion",
   "menu": "Menu",
   "accountMenu": "Menu du compte de {{name}}",
-  "skipToContent": "Aller au contenu principal"
+  "skipToContent": "Aller au contenu principal",
+  "workWithMe": "Travaillons ensemble"
 }

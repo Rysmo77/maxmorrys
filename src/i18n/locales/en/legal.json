@@ -10,12 +10,13 @@
     "title": "Legal notice",
     "editor": {
       "heading": "Website publisher",
-      "body": "The maxmorrys.me website is published by <1>My Onoma SARL</1>, the company operating the Max-Morrys brand.",
-      "companyName": "<1>Company name:</1> My Onoma SARL",
+      "body": "The maxmorrys.me website is published by <1>MY ONOMA SARL</1>, the company operating the Max-Morrys brand.",
+      "companyName": "<1>Registered name:</1> MY ONOMA SARL",
+      "legalForm": "<1>Legal form:</1> Société à Responsabilité Limitée (SARL)",
       "capital": "<1>Share capital:</1> 100,000 FCFA",
       "rccm": "<1>RCCM:</1> SN DKR 2022 B 11134",
       "ninea": "<1>NINEA:</1> 009319501",
-      "headquarters": "<1>Registered office:</1> Dakar, Senegal",
+      "headquarters": "<1>Registered office:</1> Quartier Ouakam, Cité Batrain, Lot 384 — Dakar, Senegal",
       "publicationDirector": "<1>Publication director:</1> Max-Morrys Eyoum"
     },
     "hosting": {
@@ -33,7 +34,7 @@
     },
     "liability": {
       "heading": "Limitation of liability",
-      "body": "My Onoma SARL strives to ensure that the information published on this website is accurate and up to date. However, the publisher cannot guarantee the accuracy, precision or completeness of the information made available."
+      "body": "MY ONOMA SARL strives to ensure that the information published on this website is accurate and up to date. However, the publisher cannot guarantee the accuracy, precision or completeness of the information made available."
     }
   },
   "privacy": {
@@ -42,7 +43,7 @@
     "title": "Privacy policy",
     "intro": {
       "heading": "Introduction",
-      "p1": "This privacy policy describes how <1>My Onoma SARL</1>, the company operating the Max-Morrys brand, collects, uses and protects your personal data when you use our website and services.",
+      "p1": "This privacy policy describes how <1>MY ONOMA SARL</1>, the company operating the Max-Morrys brand, collects, uses and protects your personal data when you use our website and services.",
       "p2": "We are committed to complying with Senegalese law no. 2008-12 of 25 January 2008 on the protection of personal data, as well as the GDPR for European users."
     },
     "collected": {
@@ -107,19 +108,19 @@
     "title": "Terms and Conditions of Sale",
     "art1": {
       "heading": "Article 1 — Purpose",
-      "body": "These Terms and Conditions of Sale (T&Cs) govern the contractual relationship between <1>My Onoma SARL</1> (hereinafter \"the Publisher\") and any individual or legal entity (hereinafter \"the Customer\") wishing to access the online courses and services offered on the Max-Morrys platform."
+      "body": "These Terms and Conditions of Sale (T&Cs) govern the contractual relationship between <1>MY ONOMA SARL</1> (hereinafter \"the Publisher\") and any individual or legal entity (hereinafter \"the Customer\") wishing to access the online courses and services offered on the Max-Morrys platform."
     },
     "art2": {
       "heading": "Article 2 — Identification of the Publisher",
       "intro": "The Max-Morrys platform is operated by:",
-      "item1": "<1>Company:</1> My Onoma SARL",
+      "item1": "<1>Company:</1> MY ONOMA SARL",
       "item2": "<1>RCCM:</1> SN DKR 2022 B 11134",
       "item3": "<1>NINEA:</1> 009319501",
       "item4": "<1>Email:</1> contact@maxmorrys.me"
     },
     "art3": {
       "heading": "Article 3 — Description of services",
-      "intro": "Under the brand operated by My Onoma SARL, Max-Morrys offers:",
+      "intro": "Under the brand operated by MY ONOMA SARL, Max-Morrys offers:",
       "item1": "<1>Online courses</1> on digital marketing, SEO and artificial intelligence, accessible for life after purchase (videos, written content, quizzes, practical assignments, downloadable resources).",
       "item2": "<1>Certificates of completion</1> issued upon 100% completion of a course, publicly verifiable via a unique code.",
       "item3": "<1>Rysmo</1>, an educational assistant powered by artificial intelligence, available to enrolled learners.",
@@ -139,7 +140,7 @@
       "sub52Heading": "5.2 — Payment",
       "sub52Body": "Payment is made via <1>Bictorys</1>, a payment aggregator integrating Wave, Orange Money, Free Money and bank cards (Visa / Mastercard). The transaction is secured and encrypted by the payment provider.",
       "sub53Heading": "5.3 — Billing",
-      "sub53Body": "The Customer acknowledges that the transaction will be recorded under the trade name of the parent company, <1>My Onoma</1>. An invoice is automatically sent by email in the name of My Onoma SARL as soon as payment is confirmed.",
+      "sub53Body": "The Customer acknowledges that the transaction will be recorded under the trade name of the parent company, <1>MY ONOMA</1>. An invoice is automatically sent by email in the name of MY ONOMA SARL as soon as payment is confirmed.",
       "sub54Heading": "5.4 — Club des Digitos subscription",
       "sub54Body": "The subscription to the Club des Digitos is entered into for a period of twelve (12) months from the date of payment.",
       "sub54Item1": "Upon activation, the Customer chooses between <1>automatic renewal</1> at expiry or <3>manual renewal</3>.",
@@ -155,7 +156,7 @@
     },
     "art7": {
       "heading": "Article 7 — Intellectual property",
-      "p1": "All content (videos, texts, graphics, PDF materials, templates, etc.) on the Max-Morrys platform is the exclusive property of My Onoma SARL or Max-Morrys.",
+      "p1": "All content (videos, texts, graphics, PDF materials, templates, etc.) on the Max-Morrys platform is the exclusive property of MY ONOMA SARL or Max-Morrys.",
       "p2": "Any reproduction, distribution, modification or commercial use of all or part of the content without prior written authorization is strictly prohibited and may give rise to legal proceedings."
     },
     "art8": {
@@ -179,7 +180,7 @@
     "title": "Terms of use",
     "art1": {
       "heading": "1. Purpose",
-      "body": "These general terms of use (ToU) govern access to and use of the Max-Morrys platform, operated by <1>My Onoma SARL</1>. By creating an account or using the service, you accept these terms."
+      "body": "These general terms of use (ToU) govern access to and use of the Max-Morrys platform, operated by <1>MY ONOMA SARL</1>. By creating an account or using the service, you accept these terms."
     },
     "art2": {
       "heading": "2. Account & access",
@@ -228,7 +229,7 @@
     "what": {
       "heading": "What is a cookie?",
       "p1": "A cookie is a small text file placed on your device (computer, tablet, smartphone) when you visit a website. It allows the site to recognize your browser and store certain information.",
-      "p2": "The Max-Morrys website, operated by <1>My Onoma SARL</1>, uses cookies and similar technologies (browser local storage) to ensure the service works and to improve your experience."
+      "p2": "The Max-Morrys website, operated by <1>MY ONOMA SARL</1>, uses cookies and similar technologies (browser local storage) to ensure the service works and to improve your experience."
     },
     "types": {
       "heading": "Types of cookies used",

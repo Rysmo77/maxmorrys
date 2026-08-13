@@ -4,7 +4,7 @@ import { Users, BookOpen, FileText, MessageSquare, Mail, Award, Loader2, Refresh
 import Card from '../../components/ui/Card';
 import { getPlatformStats, getAgencyStats } from '../../lib/firestore';
 import type { AgencyStats } from '../../lib/firestore';
-import { PIPELINE_STAGES } from '../../lib/agency/offer';
+import { PIPELINE_STAGES } from '../../lib/presence/offer';
 import { useFormat } from '../../hooks/useFormat';
 
 interface Stats {

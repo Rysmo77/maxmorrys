@@ -9,7 +9,10 @@
     "submittingAria": "Inscription en cours…",
     "loading": "Chargement…",
     "successToast": "Inscription reussie ! Bienvenue dans la communaute.",
-    "errorToast": "Une erreur est survenue. Veuillez réessayer."
+    "errorToast": "Une erreur est survenue. Veuillez réessayer.",
+    "consentLabel": "J'accepte de recevoir la newsletter et j'ai lu la",
+    "consentPolicyLink": "politique de confidentialité",
+    "consentRequired": "Merci de confirmer ton accord avant de t'inscrire."
   },
   "announcement": {
     "learnMore": "En savoir plus →",

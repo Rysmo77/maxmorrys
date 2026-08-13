@@ -45,6 +45,8 @@ import uiFr from './locales/fr/ui.json';
 import uiEn from './locales/en/ui.json';
 import rysmoFr from './locales/fr/rysmo.json';
 import rysmoEn from './locales/en/rysmo.json';
+import presenceFr from './locales/fr/presence.json';
+import presenceEn from './locales/en/presence.json';
 import agencyFr from './locales/fr/agency.json';
 import agencyEn from './locales/en/agency.json';
 
@@ -70,6 +72,7 @@ export const NAMESPACES = [
   'adminClub',
   'ui',
   'rysmo',
+  'presence',
   'agency',
 ] as const;
 
@@ -96,6 +99,7 @@ const resources = {
     adminClub: adminClubFr,
     ui: uiFr,
     rysmo: rysmoFr,
+    presence: presenceFr,
     agency: agencyFr,
   },
   en: {
@@ -120,6 +124,7 @@ const resources = {
     adminClub: adminClubEn,
     ui: uiEn,
     rysmo: rysmoEn,
+    presence: presenceEn,
     agency: agencyEn,
   },
 };

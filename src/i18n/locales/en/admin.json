@@ -25,7 +25,8 @@
     "sectionCommerce": "Commerce",
     "sectionSite": "Site",
     "backToSite": "Back to site",
-    "agencyLeads": "Agency leads"
+    "agencyLeads": "Agency leads",
+    "missions": "Projects"
   },
   "placeholder": {
     "description": "This section is under development and will be available soon."
@@ -851,5 +852,77 @@
     "createRequiredFields": "Name, email and password are required.",
     "userCreated": "User created successfully.",
     "createError": "Error during creation."
+  },
+  "missions": {
+    "title": "Projects — Max-Morrys Agency",
+    "subtitle": "Product, AI, Technology & Brand engagement requests",
+    "refresh": "Refresh",
+    "export": "Export as CSV",
+    "searchPlaceholder": "Search a name, company, email…",
+    "empty": "No request matches this filter.",
+    "statusAll": "All",
+    "statusLabel": "Request status",
+    "routedBadge": "Routed to Cléa",
+    "routedCount": "{{count}} request(s) routed to Cléa Growth Office — excluded from the conversion rate.",
+    "notesLabel": "Internal notes",
+    "notesSaving": "Saving…",
+    "notesAria": "Internal notes",
+    "emailAria": "Email {{email}}",
+    "websiteAria": "Open the prospect's website",
+    "deleteAria": "Delete request",
+    "confirmDelete": "Permanently delete this request?",
+    "toastLoadError": "Could not load requests.",
+    "toastUpdated": "Status updated.",
+    "toastUpdateError": "Update failed.",
+    "toastDeleted": "Request deleted.",
+    "status": {
+      "new": "New",
+      "qualified": "Qualified",
+      "scoping": "Scoping",
+      "proposal": "Proposal",
+      "won": "Won",
+      "lost": "Lost"
+    },
+    "projectTypes": {
+      "product": "Product / SaaS",
+      "platform": "Web platform",
+      "application": "Application",
+      "ai": "AI / Automation",
+      "internalTool": "Internal tool",
+      "transformation": "Digital transformation",
+      "brand": "Personal brand",
+      "growth": "Growth",
+      "other": "Other"
+    },
+    "budgets": {
+      "exploring": "To be defined",
+      "small": "< 5M FCFA",
+      "medium": "5–15M FCFA",
+      "large": "15–40M FCFA",
+      "xlarge": "> 40M FCFA"
+    },
+    "timelines": {
+      "urgent": "< 1 month",
+      "quarter": "1–3 months",
+      "halfYear": "3–6 months",
+      "flexible": "No fixed date"
+    },
+    "csv": {
+      "filename": "max-morrys-agency-projects",
+      "headers": [
+        "Date",
+        "Name",
+        "Company",
+        "Email",
+        "Website",
+        "Project type",
+        "Budget",
+        "Timeline",
+        "Status",
+        "Routed to",
+        "Description",
+        "Internal notes"
+      ]
+    }
   }
 }

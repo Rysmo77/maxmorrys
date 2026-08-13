@@ -26,6 +26,7 @@ export default function MentionsLegales() {
             </p>
             <ul className="mt-3 space-y-1">
               <li><Trans i18nKey="mentions.editor.companyName" t={t} components={[<span />, <strong />]} /></li>
+              <li><Trans i18nKey="mentions.editor.legalForm" t={t} components={[<span />, <strong />]} /></li>
               <li><Trans i18nKey="mentions.editor.capital" t={t} components={[<span />, <strong />]} /></li>
               <li><Trans i18nKey="mentions.editor.rccm" t={t} components={[<span />, <strong />]} /></li>
               <li><Trans i18nKey="mentions.editor.ninea" t={t} components={[<span />, <strong />]} /></li>

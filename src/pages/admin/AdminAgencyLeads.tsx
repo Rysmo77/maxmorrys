@@ -4,7 +4,7 @@ import { Briefcase, Search, RefreshCw, Loader2, ChevronDown, MessageCircle, Tras
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import { getAllAgencyLeads, updateAgencyLeadStatus, updateAgencyLeadNotes, deleteAgencyLead } from '../../lib/firestore';
-import { computeTotals, PIPELINE_STAGES } from '../../lib/agency/offer';
+import { computeTotals, PIPELINE_STAGES } from '../../lib/presence/offer';
 import { exportToCsv } from '../../lib/utils';
 import { useFormat } from '../../hooks/useFormat';
 import type { AgencyLead, AgencyLeadStatus } from '../../types';

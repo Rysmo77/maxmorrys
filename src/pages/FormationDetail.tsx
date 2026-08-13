@@ -17,6 +17,7 @@ import type { Formation, Testimonial } from '../types';
 import { trackViewItem, trackAddToCart } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import { useLanguage } from '../contexts/LanguageContext';
+import { localizedPath } from '../i18n/routing';
 import { contentPath } from '../lib/contentPath';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
@@ -120,7 +121,10 @@ export default function FormationDetail() {
 
   const handleEnroll = () => {
     if (!user) {
-      navigate('/connexion', { state: { from: { pathname: `/checkout/${formation?.slug}` } } });
+      // ⚠️ `from` doit etre localise lui aussi : Login le rejoue tel quel apres connexion.
+      navigate(localizedPath('/connexion', language), {
+        state: { from: { pathname: localizedPath(`/checkout/${formation?.slug}`, language) } },
+      });
       return;
     }
     trackAddToCart({
@@ -130,7 +134,7 @@ export default function FormationDetail() {
       price: formation!.promoPrice ?? formation!.price,
       currency: 'XOF',
     });
-    navigate(`/checkout/${formation?.slug}`);
+    navigate(localizedPath(`/checkout/${formation?.slug}`, language));
   };
 
   /* ── Carte d'achat (réutilisée mobile + desktop) ── */

@@ -25,7 +25,8 @@
     "sectionCommerce": "Commerce",
     "sectionSite": "Site",
     "backToSite": "Retour au site",
-    "agencyLeads": "Prospects agence"
+    "agencyLeads": "Prospects agence",
+    "missions": "Projets"
   },
   "placeholder": {
     "description": "Cette section est en cours de développement et sera disponible prochainement."
@@ -851,5 +852,77 @@
     "createRequiredFields": "Nom, email et mot de passe sont obligatoires.",
     "userCreated": "Utilisateur créé avec succès.",
     "createError": "Erreur lors de la création."
+  },
+  "missions": {
+    "title": "Projets — Max-Morrys Agency",
+    "subtitle": "Demandes de mission Product, AI, Technology & Brand",
+    "refresh": "Actualiser",
+    "export": "Exporter en CSV",
+    "searchPlaceholder": "Rechercher un nom, une entreprise, un email…",
+    "empty": "Aucune demande pour ce filtre.",
+    "statusAll": "Toutes",
+    "statusLabel": "Statut de la demande",
+    "routedBadge": "Orienté Cléa",
+    "routedCount": "{{count}} demande(s) orientée(s) vers Cléa Growth Office — hors taux de conversion.",
+    "notesLabel": "Notes internes",
+    "notesSaving": "Enregistrement…",
+    "notesAria": "Notes internes",
+    "emailAria": "Écrire à {{email}}",
+    "websiteAria": "Ouvrir le site du prospect",
+    "deleteAria": "Supprimer la demande",
+    "confirmDelete": "Supprimer définitivement cette demande ?",
+    "toastLoadError": "Impossible de charger les demandes.",
+    "toastUpdated": "Statut mis à jour.",
+    "toastUpdateError": "La mise à jour a échoué.",
+    "toastDeleted": "Demande supprimée.",
+    "status": {
+      "new": "Nouvelle",
+      "qualified": "Qualifiée",
+      "scoping": "Cadrage",
+      "proposal": "Proposition",
+      "won": "Gagnée",
+      "lost": "Perdue"
+    },
+    "projectTypes": {
+      "product": "Produit / SaaS",
+      "platform": "Plateforme web",
+      "application": "Application",
+      "ai": "IA / Automatisation",
+      "internalTool": "Outil interne",
+      "transformation": "Transformation digitale",
+      "brand": "Marque personnelle",
+      "growth": "Croissance",
+      "other": "Autre"
+    },
+    "budgets": {
+      "exploring": "À définir",
+      "small": "< 5 M FCFA",
+      "medium": "5–15 M FCFA",
+      "large": "15–40 M FCFA",
+      "xlarge": "> 40 M FCFA"
+    },
+    "timelines": {
+      "urgent": "< 1 mois",
+      "quarter": "1–3 mois",
+      "halfYear": "3–6 mois",
+      "flexible": "Sans date arrêtée"
+    },
+    "csv": {
+      "filename": "max-morrys-agency-projets",
+      "headers": [
+        "Date",
+        "Nom",
+        "Entreprise",
+        "Email",
+        "Site",
+        "Type de projet",
+        "Budget",
+        "Échéance",
+        "Statut",
+        "Orienté vers",
+        "Description",
+        "Notes internes"
+      ]
+    }
   }
 }
