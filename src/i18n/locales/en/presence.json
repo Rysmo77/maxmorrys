@@ -361,5 +361,10 @@
       "text": "This link doesn't exist or has been removed. Check the reference, or make a new request — it takes a minute.",
       "cta": "Make a request"
     }
+  },
+  "agencyBridge": {
+    "title": "Is your project bigger than a storefront?",
+    "body": "If you are not after an online presence but a product to build — a platform, an app, an AI system — that is the job of Max-Morrys Agency, the product and technology practice of MY ONOMA.",
+    "cta": "Explore Max-Morrys Agency"
   }
 }

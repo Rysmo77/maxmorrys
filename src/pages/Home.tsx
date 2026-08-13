@@ -454,7 +454,15 @@ export default function Home() {
           La bifurcation principale du site : après le catalogue de formations, le visiteur
           qui ne veut pas apprendre mais faire construire trouve sa porte. Sobre et sombre,
           délibérément : c'est le registre premium de l'agence, pas l'aplat commercial.
-          Voir docs/BRAND-ARCHITECTURE.md §2. */}
+          Voir docs/BRAND-ARCHITECTURE.md §2.
+
+          ⚠️ Bloc centré, SANS carte ni grille — et ce n'est pas un oubli. Cette section
+          déclarait `grid lg:grid-cols-2` avec un seul enfant : la moitié droite restait vide
+          et la section passait pour une version appauvrie de PRÉSENCE DIGITALE, qui la
+          suivait immédiatement avec ses quatre cartes. Deux offres sans rapport (fondateurs
+          et PME au vouvoiement ici, commerces de proximité au tutoiement là-bas) ne doivent
+          jamais partager un squelette. Ne pas « compléter » avec des cartes : la valeur de ce
+          bloc tient à la typographie et au vide autour. Voir docs/UX-AUDIT.md §7. */}
       <motion.section
         className="bg-neutral-950 text-white"
         variants={slideUp}
@@ -462,36 +470,82 @@ export default function Home() {
         whileInView="visible"
         viewport={viewportOnce}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            <div>
-              <p className="text-xs font-bold tracking-[0.35em] uppercase mb-5 text-lagoon-400">
-                {t('agency.eyebrow')}
-              </p>
-              <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-balance mb-5">
-                {t('agency.heading')}
-              </h2>
-              <p className="text-lg leading-relaxed text-neutral-300 mb-6 max-w-lg">
-                {t('agency.desc')}
-              </p>
-              <p className="text-sm font-bold tracking-[0.2em] uppercase text-neutral-500 mb-8">
-                {t('agency.disciplines')}
-              </p>
-              <LocalizedLink
-                to="/agence"
-                className="group inline-flex items-center gap-2.5 bg-lagoon-500 text-neutral-900 font-bold text-sm px-8 py-4 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
-              >
-                {t('agency.cta')}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </LocalizedLink>
-            </div>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24 text-center">
+          <p className="text-xs font-bold tracking-[0.35em] uppercase mb-5 text-lagoon-400">
+            {t('agency.eyebrow')}
+          </p>
+          <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-balance mb-5">
+            {t('agency.heading')}
+          </h2>
+          <p className="text-lg leading-relaxed text-neutral-300 mb-6 max-w-xl mx-auto">
+            {t('agency.desc')}
+          </p>
+          <p className="text-sm font-bold tracking-[0.2em] uppercase text-neutral-500 mb-8">
+            {t('agency.disciplines')}
+          </p>
+          <LocalizedLink
+            to="/agence"
+            className="group inline-flex items-center gap-2.5 bg-lagoon-500 text-neutral-900 font-bold text-sm px-8 py-4 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
+          >
+            {t('agency.cta')}
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </LocalizedLink>
+        </div>
+      </motion.section>
+
+      {/* ── QUIZ / NIVEAU : "Prêt à accélérer ?" ──
+          ⚠️ Cette section sépare volontairement les deux blocs commerciaux du site. Elle
+          suivait PRÉSENCE DIGITALE ; elle la précède désormais. L'agence (neutral-950) et
+          l'offre commerce local (aplat lagoon) se touchaient, et leur voisinage les faisait
+          lire comme deux variantes d'une même offre. L'orange s'intercale et rompt à la fois
+          le scroll et la parenté chromatique. Ne pas réordonner sans relire
+          docs/AGENCY-POSITIONING.md §9. */}
+      <motion.section
+        className="relative bg-accent-500 overflow-hidden"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
+        <div className="grid lg:grid-cols-2">
+          <div className="px-6 sm:px-10 lg:px-16 py-20 lg:py-32 flex flex-col justify-center order-2 lg:order-1">
+            <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/80 mb-6">
+              {t('quiz.eyebrow')}
+            </p>
+            <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-white text-balance mb-6">
+              {t('quiz.headingReady')}<span className="italic text-neutral-900">{t('quiz.headingAccelerate')}</span>{t('quiz.headingEnd')}
+            </h2>
+            <p className="text-white/90 leading-relaxed mb-9 max-w-md">
+              {t('quiz.desc')}
+            </p>
+            <LocalizedLink
+              to="/formations"
+              className="group inline-flex w-fit items-center gap-2.5 bg-white text-accent-700 font-bold text-sm px-8 py-4 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
+            >
+              {t('quiz.cta')}
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </LocalizedLink>
+          </div>
+          <div className="relative min-h-[340px] order-1 lg:order-2">
+            <img
+              src="/niveau-superieur.webp"
+              alt={t('quiz.imageAlt')}
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+              width={1600}
+              height={1067}
+            />
           </div>
         </div>
       </motion.section>
 
       {/* ── PRÉSENCE DIGITALE : l'offre commerce local ──
           Deuxième bifurcation, distincte de l'agence : ce n'est ni le même client, ni le
-          même funnel. Voir docs/AGENCY-POSITIONING.md §9. */}
+          même funnel. Voir docs/AGENCY-POSITIONING.md §9.
+
+          Elle garde ses quatre cartes bénéfices — c'est ce qui convertit ici — là où la
+          section agence est un bloc centré nu. Les deux squelettes doivent rester distincts,
+          et le mot « agence » ne doit jamais réapparaître dans ce bloc. */}
       <motion.section
         className="bg-lagoon-500 text-neutral-900"
         variants={slideUp}
@@ -528,46 +582,6 @@ export default function Home() {
                 </li>
               ))}
             </ul>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ── QUIZ / NIVEAU : "Prêt à accélérer ?" ── */}
-      <motion.section
-        className="relative bg-accent-500 overflow-hidden"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="grid lg:grid-cols-2">
-          <div className="px-6 sm:px-10 lg:px-16 py-20 lg:py-32 flex flex-col justify-center order-2 lg:order-1">
-            <p className="text-xs font-bold tracking-[0.35em] uppercase text-white/80 mb-6">
-              {t('quiz.eyebrow')}
-            </p>
-            <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-white text-balance mb-6">
-              {t('quiz.headingReady')}<span className="italic text-neutral-900">{t('quiz.headingAccelerate')}</span>{t('quiz.headingEnd')}
-            </h2>
-            <p className="text-white/90 leading-relaxed mb-9 max-w-md">
-              {t('quiz.desc')}
-            </p>
-            <LocalizedLink
-              to="/formations"
-              className="group inline-flex w-fit items-center gap-2.5 bg-white text-accent-700 font-bold text-sm px-8 py-4 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
-            >
-              {t('quiz.cta')}
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </LocalizedLink>
-          </div>
-          <div className="relative min-h-[340px] order-1 lg:order-2">
-            <img
-              src="/niveau-superieur.webp"
-              alt={t('quiz.imageAlt')}
-              className="absolute inset-0 w-full h-full object-cover"
-              loading="lazy"
-              width={1600}
-              height={1067}
-            />
           </div>
         </div>
       </motion.section>

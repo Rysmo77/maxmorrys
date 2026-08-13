@@ -971,6 +971,33 @@ export default function PresenceDigitale() {
         </div>
       </section>
 
+      {/*
+        Bifurcation vers l'autre offre commerciale du site — miroir du bloc qui vit en bas de
+        /agence. Un fondateur ou une PME qui atterrit ici n'avait aucune sortie : le renvoi
+        n'existait que dans un sens.
+
+        ⚠️ Lien texte, jamais une pastille pleine : le tunnel de devis est ce qui convertit
+        sur cette page, et rien ne doit lui disputer l'attention. Registre tutoyant, comme le
+        reste de la page — c'est /agence qui vouvoie, pas ce renvoi.
+      */}
+      <section className="bg-white dark:bg-neutral-950 py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl border-t border-neutral-200 dark:border-neutral-800 pt-10">
+            <h2 className="font-bold text-neutral-900 dark:text-white">{t('agencyBridge.title')}</h2>
+            <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              {t('agencyBridge.body')}
+            </p>
+            <LocalizedLink
+              to="/agence"
+              className={`mt-4 inline-flex items-center gap-2 text-sm font-semibold ${theme.accentText} hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-500 rounded`}
+            >
+              {t('agencyBridge.cta')}
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </LocalizedLink>
+          </div>
+        </div>
+      </section>
+
       <StickyWhatsApp message={quickMessage} />
     </div>
   );

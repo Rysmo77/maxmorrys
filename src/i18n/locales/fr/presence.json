@@ -361,5 +361,10 @@
       "text": "Ce lien n'existe pas ou a été supprimé. Vérifie la référence, ou refais une demande — ça prend une minute.",
       "cta": "Faire une demande"
     }
+  },
+  "agencyBridge": {
+    "title": "Ton projet dépasse la vitrine ?",
+    "body": "Si tu ne cherches pas une présence en ligne mais un produit à construire — plateforme, application, système IA — c'est l'affaire de Max-Morrys Agency, l'agence produit et technologie de MY ONOMA.",
+    "cta": "Découvrir Max-Morrys Agency"
   }
 }

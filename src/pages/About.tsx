@@ -310,8 +310,14 @@ export default function About() {
                 </div>
               </motion.div>
 
+              {/*
+                « Travaillons ensemble » mène à /agence, pas à /contact : c'est l'appel B2B
+                de la page, et l'envoyer vers un formulaire générique était l'écart relevé
+                dans docs/UX-AUDIT.md §1. Le CTA générique « Prendre contact » du bloc final
+                garde /contact — partenariats, presse, questions hors agence.
+              */}
               <motion.div variants={staggerItem} className="flex flex-wrap gap-4">
-                <LocalizedLink to="/contact" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} text-sm font-bold rounded-full hover:-translate-y-0.5 active:scale-[0.97] hover:shadow-lg hover:shadow-morrys-600/25 transition-all duration-300 tracking-wide`}>
+                <LocalizedLink to="/agence" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} text-sm font-bold rounded-full hover:-translate-y-0.5 active:scale-[0.97] hover:shadow-lg hover:shadow-morrys-600/25 transition-all duration-300 tracking-wide`}>
                   {t('hero.ctaWork')} <ArrowRight className="w-4 h-4" />
                 </LocalizedLink>
                 <a href="#parcours" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-neutral-300 text-neutral-700 dark:border-neutral-600 dark:text-neutral-200 text-sm font-bold rounded-full hover:bg-white dark:hover:bg-neutral-800 hover:-translate-y-0.5 transition-all duration-300 tracking-wide">
