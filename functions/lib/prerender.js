@@ -166,17 +166,34 @@ const staticPages = {
             { name: 'FAQ', url: `${SITE_URL}/faq` },
         ],
     },
+    // Max-Morrys Agency — practice BUILD de MY ONOMA, offre high-ticket.
+    // ⚠️ Aucun tarif ici : la grille publique appartient à /presence-digitale.
     '/agence': {
+        title: `Max-Morrys Agency — Produit, IA, Technologie & Marque | ${SITE_NAME}`,
+        description: 'Nous concevons les produits numériques, systèmes IA et expériences digitales dont les entreprises ont besoin pour avancer. Practice Product, AI, Technology & Brand de MY ONOMA, depuis Dakar.',
+        ogType: 'website',
+        ogImage: DEFAULT_OG_IMAGE,
+        canonical: `${SITE_URL}/agence`,
+        h1: 'Nous construisons les produits numériques qui font avancer les entreprises',
+        bodyText: 'Max-Morrys Agency est la practice Product, AI, Technology & Brand de MY ONOMA. Nous intervenons sur quatre expertises : Digital Product (SaaS, plateformes métier, applications web, marketplaces, portails, outils internes, MVP), AI Systems & Automation (automatisation de workflows, agents et assistants métier, intégrations LLM, produits augmentés par l\'IA), Technology & Infrastructure (architecture applicative et données, APIs et intégrations, authentification, paiement, tableaux de bord) et Brand & Executive Presence (positionnement, écosystème digital, architecture de contenu). Nous travaillons avec des fondateurs, des PME, des scale-ups, des institutions et des marques personnelles premium. Les missions de Growth, Revenue et Operations sont portées par Cléa Growth Office, practice sœur au sein de MY ONOMA. Les prestations contractualisées sous MY ONOMA sont réalisées par MY ONOMA SARL, à Dakar.',
+        breadcrumbs: [
+            { name: 'Accueil', url: `${SITE_URL}/` },
+            { name: 'Agence', url: `${SITE_URL}/agence` },
+        ],
+    },
+    // Offre « Digital Commerce Local » — déplacée depuis /agence, à contenu constant.
+    // ⚠️ Les montants doivent rester alignés sur src/lib/presence/offer.ts.
+    '/presence-digitale': {
         title: `Je digitalise ton commerce — Site, Google Maps, WhatsApp | ${SITE_NAME}`,
         description: 'Ton commerce visible 24h/24, trouvé sur Google Maps et présent sur WhatsApp. Mise en place et accompagnement mensuel pour les commerces de Dakar, Abidjan et Cotonou. Packs à partir de 295 000 FCFA.',
         ogType: 'website',
         ogImage: DEFAULT_OG_IMAGE,
-        canonical: `${SITE_URL}/agence`,
+        canonical: `${SITE_URL}/presence-digitale`,
         h1: 'Tes clients te cherchent en ligne',
         bodyText: 'J\'installe la présence digitale complète de ton commerce : site web, fiche Google Business Profile, catalogue produits sur WhatsApp, Facebook, Instagram et Google Merchant, mesure des visites et référencement local. Trois packs de mise en place : Présence Locale à 295 000 FCFA, Commerce Visible à 495 000 FCFA, Boutique Digitale à 895 000 FCFA. Ensuite, un accompagnement mensuel qui publie pour toi, tient ton catalogue à jour et t\'envoie un rapport chaque mois : Croissance Automatisée à 375 000 FCFA puis 175 000 FCFA par mois, ou Commerce 360 à 750 000 FCFA puis 225 000 FCFA par mois. Basé à Dakar, pour les commerces du Sénégal et d\'Afrique de l\'Ouest.',
         breadcrumbs: [
             { name: 'Accueil', url: `${SITE_URL}/` },
-            { name: 'Agence', url: `${SITE_URL}/agence` },
+            { name: 'Présence Digitale', url: `${SITE_URL}/presence-digitale` },
         ],
     },
     '/contact': {

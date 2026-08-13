@@ -17,6 +17,7 @@ const SEGMENTS = {
     faq: 'faq',
     contact: 'contact',
     agence: 'agency',
+    'presence-digitale': 'digital-presence',
     legal: 'legal',
     'mentions-legales': 'legal-notice',
     confidentialite: 'privacy',
