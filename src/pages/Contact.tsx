@@ -15,7 +15,10 @@ import { captureError } from '../lib/sentry';
 import { trackGenerateLead, trackContact } from '../lib/tracking';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
-import { SITE_URL, DEFAULT_OG_IMAGE, SOCIAL_URLS } from '../components/seo/seo-config';
+import {
+  SITE_URL, DEFAULT_OG_IMAGE, SOCIAL_URLS,
+  CONTACT_EMAIL, CONTACT_PHONE_E164, CONTACT_PHONE_DISPLAY, WHATSAPP_BASE_URL,
+} from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
 
 const viewportOnce = { once: true, amount: 0.2 } as const;
@@ -23,10 +26,10 @@ const viewportOnce = { once: true, amount: 0.2 } as const;
 // Coordonnées : labelKey/valueKey traduits au rendu ; les valeurs « brutes »
 // (email, numéro) restent en dur car ce sont des données, pas du texte.
 const contactInfo = [
-  { icon: Mail, labelKey: 'info.email', value: 'hello@maxmorrys.me', valueKey: '', link: 'mailto:hello@maxmorrys.me' },
-  { icon: Phone, labelKey: 'info.phone', value: '+221 77 604 19 85', valueKey: '', link: 'tel:+221776041985' },
+  { icon: Mail, labelKey: 'info.email', value: CONTACT_EMAIL, valueKey: '', link: `mailto:${CONTACT_EMAIL}` },
+  { icon: Phone, labelKey: 'info.phone', value: CONTACT_PHONE_DISPLAY, valueKey: '', link: `tel:${CONTACT_PHONE_E164}` },
   { icon: MapPin, labelKey: 'info.location', value: '', valueKey: 'info.locationValue', link: '' },
-  { icon: MessageSquare, labelKey: 'info.whatsapp', value: '', valueKey: 'info.whatsappValue', link: 'https://wa.me/221776041985' },
+  { icon: MessageSquare, labelKey: 'info.whatsapp', value: '', valueKey: 'info.whatsappValue', link: WHATSAPP_BASE_URL },
 ];
 
 const TIME_SLOTS = [
@@ -166,8 +169,8 @@ export default function Contact() {
         mainEntity: {
           '@type': 'Organization',
           name: 'Max-Morrys',
-          telephone: '+221776041985',
-          email: 'hello@maxmorrys.me',
+          telephone: CONTACT_PHONE_E164,
+          email: CONTACT_EMAIL,
           address: { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
         },
       }} />
@@ -176,8 +179,8 @@ export default function Contact() {
         '@type': 'LocalBusiness',
         name: 'Max-Morrys',
         image: DEFAULT_OG_IMAGE,
-        telephone: '+221776041985',
-        email: 'hello@maxmorrys.me',
+        telephone: CONTACT_PHONE_E164,
+        email: CONTACT_EMAIL,
         url: SITE_URL,
         address: {
           '@type': 'PostalAddress',
@@ -185,7 +188,7 @@ export default function Contact() {
           addressCountry: 'SN',
         },
         priceRange: '€€',
-        sameAs: ['https://wa.me/221776041985', ...SOCIAL_URLS],
+        sameAs: [WHATSAPP_BASE_URL, ...SOCIAL_URLS],
       }} />
 
       {/* ── HERO ── */}

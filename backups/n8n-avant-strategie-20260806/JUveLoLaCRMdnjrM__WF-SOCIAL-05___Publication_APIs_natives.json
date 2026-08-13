@@ -1,0 +1,355 @@
+{
+  "updatedAt": "2026-07-06T15:17:29.269Z",
+  "createdAt": "2026-07-04T21:50:40.970Z",
+  "id": "JUveLoLaCRMdnjrM",
+  "name": "WF-SOCIAL-05 — Publication APIs natives",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/30 7-22 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cron-cron---toutes-15-min-7-22h",
+      "name": "Cron — Toutes 15 min 7-22h"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Status,eq,validé)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        250,
+        0
+      ],
+      "id": "at-s-airtable---lire-validésn",
+      "name": "Airtable — Lire validés (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "at-s-airtable---lire-validésf",
+      "name": "Airtable — Lire validés",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,PUBLISH_ENABLED)~or(Cle,eq,META_TOKEN)~or(Cle,eq,IG_USER_ID)~or(Cle,eq,FB_PAGE_ID)~or(Cle,eq,TIKTOK_TOKEN)~or(Cle,eq,LINKEDIN_TOKEN)~or(Cle,eq,LINKEDIN_AUTHOR_URN)~or(Cle,eq,X_TOKEN)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        250,
+        200
+      ],
+      "id": "at-s-airtable---lire-config-blotan",
+      "name": "Airtable — Lire Config (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "at-s-airtable---lire-config-blotaf",
+      "name": "Airtable — Lire Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.id }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Blotato_PostSubmissionID": "={{ $json.Blotato_PostSubmissionID }}",
+            "Status": "={{ $json.Status }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1500,
+        100
+      ],
+      "id": "at-u-airtable---status=en_publica",
+      "name": "Airtable — Status=en_publication",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m460m48wd0qnzsu",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "create",
+        "dataToSend": "mapWithFields",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Event": "=Publication native {{ $json.id }} ({{ $json.platform }})",
+            "Workflow": "WF-SOCIAL-05",
+            "Timestamp": "={{ $now.toISO() }}",
+            "Status": "success",
+            "Content_ID": "={{ $json.id }}",
+            "Details": "={{ $json.native_details }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1750,
+        100
+      ],
+      "id": "at-c-airtable---log-publication",
+      "name": "Airtable — Log publication",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "id": "publier-apis-natives",
+      "name": "Publier — APIs natives",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        550,
+        100
+      ],
+      "parameters": {
+        "jsCode": "// WF-SOCIAL-05 — Publication via APIs natives (remplace Blotato).\n// SECURITE: double garde. Rien n'est publie tant que Config.PUBLISH_ENABLED != 'true'\n// ET que le token de la plateforme est present. Workflow inactif par defaut (R1).\nconst posts = $('Airtable — Lire validés').all().map(i => i.json)\n  // Fenetre de 15 min : remplace IS_AFTER(NOW(), DATEADD(...,-15,'minutes'))\n  // d'Airtable, sans equivalent dans le filtre `where` de NocoDB.\n  .filter(p => { const d = p.Date_Publication_Prevue;\n                 return !d || new Date(d).getTime() - 15*60*1000 <= Date.now(); });\nconst cfgRows = $('Airtable — Lire Config').all().map(i => i.json);\nconst cfg = {};\nfor (const r of cfgRows) { if (r && r.Cle != null) cfg[r.Cle] = r.Valeur; }\nconst PUBLISH_ENABLED = String(cfg.PUBLISH_ENABLED || '').toLowerCase() === 'true';\nconst http = this.helpers.httpRequest.bind(this);\nconst isVideo = (u) => /\\.(mp4|mov|m4v|webm)(\\?|$)/i.test(u || '');\nconst out = [];\n\nasync function publishOne(post) {\n  const net = String(post.Reseau || '').toLowerCase();\n  const text = (post.Texte || '') + (post.Hashtags ? '\\n\\n' + post.Hashtags : '');\n  let media = [];\n  try { media = JSON.parse(post.Visuels_URLs || '[]'); } catch (e) {}\n  const media0 = media[0];\n  const skip = (reason) => ({ _skip: true, id: post.id, platform: net, reason });\n  const ok = (platform, pid, details) => ({ id: post.id, platform, Status: 'en_publication', Blotato_PostSubmissionID: pid, native_details: details });\n\n  if (!PUBLISH_ENABLED) return skip('PUBLISH_ENABLED != true (dry-run, garde R1)');\n\n  if (net === 'ig' || net === 'instagram') {\n    const IG = cfg.IG_USER_ID, TOK = cfg.META_TOKEN;\n    if (!IG || !TOK) return skip('IG_USER_ID/META_TOKEN manquant');\n    const base = 'https://graph.facebook.com/v21.0/' + IG;\n    const createBody = isVideo(media0)\n      ? { media_type: 'REELS', video_url: media0, caption: text, access_token: TOK }\n      : { image_url: media0, caption: text, access_token: TOK };\n    const c = await http({ method: 'POST', url: base + '/media', body: createBody, json: true });\n    const creationId = c.id;\n    const pub = await http({ method: 'POST', url: base + '/media_publish', body: { creation_id: creationId, access_token: TOK }, json: true });\n    return ok('instagram', pub.id || creationId, 'IG ' + (pub.id || creationId));\n  }\n\n  if (net === 'fb' || net === 'facebook') {\n    const PAGE = cfg.FB_PAGE_ID, TOK = cfg.META_TOKEN;\n    if (!PAGE || !TOK) return skip('FB_PAGE_ID/META_TOKEN manquant');\n    const base = 'https://graph.facebook.com/v21.0/' + PAGE;\n    let res;\n    if (media0 && !isVideo(media0)) res = await http({ method: 'POST', url: base + '/photos', body: { url: media0, caption: text, access_token: TOK }, json: true });\n    else res = await http({ method: 'POST', url: base + '/feed', body: { message: text, access_token: TOK }, json: true });\n    return ok('facebook', res.id || res.post_id, 'FB ' + (res.id || res.post_id));\n  }\n\n  if (net === 'tiktok') {\n    const TOK = cfg.TIKTOK_TOKEN;\n    if (!TOK) return skip('TIKTOK_TOKEN manquant');\n    if (!media0 || !isVideo(media0)) return skip('TikTok requiert une video (Visuels_URLs)');\n    const res = await http({ method: 'POST', url: 'https://open.tiktokapis.com/v2/post/publish/video/init/',\n      headers: { Authorization: 'Bearer ' + TOK, 'Content-Type': 'application/json; charset=UTF-8' },\n      body: { post_info: { title: (post.Titre || text || 'Max-Morrys').substring(0,150), privacy_level: 'PUBLIC_TO_EVERYONE', disable_comment: false }, source_info: { source: 'PULL_FROM_URL', video_url: media0 } }, json: true });\n    const pid = res && res.data ? res.data.publish_id : undefined;\n    return ok('tiktok', pid, 'TikTok ' + pid);\n  }\n\n  if (net === 'linkedin') {\n    const TOK = cfg.LINKEDIN_TOKEN, URN = cfg.LINKEDIN_AUTHOR_URN;\n    if (!TOK || !URN) return skip('LINKEDIN_TOKEN/LINKEDIN_AUTHOR_URN manquant');\n    const res = await http({ method: 'POST', url: 'https://api.linkedin.com/rest/posts',\n      headers: { Authorization: 'Bearer ' + TOK, 'LinkedIn-Version': '202401', 'X-Restli-Protocol-Version': '2.0.0', 'Content-Type': 'application/json' },\n      body: { author: URN, commentary: text, visibility: 'PUBLIC', distribution: { feedDistribution: 'MAIN_FEED', targetEntities: [], thirdPartyDistributionChannels: [] }, lifecycleState: 'PUBLISHED', isReshareDisabledByAuthor: false },\n      json: true, returnFullResponse: true });\n    const pid = (res.headers && (res.headers['x-restli-id'] || res.headers['x-linkedin-id'])) || 'posted';\n    return ok('linkedin', pid, 'LinkedIn ' + pid);\n  }\n\n  if (net === 'x' || net === 'twitter') {\n    const TOK = cfg.X_TOKEN;\n    if (!TOK) return skip('X_TOKEN manquant');\n    const res = await http({ method: 'POST', url: 'https://api.twitter.com/2/tweets',\n      headers: { Authorization: 'Bearer ' + TOK, 'Content-Type': 'application/json' },\n      body: { text: text.substring(0, 280) }, json: true });\n    const pid = res && res.data ? res.data.id : undefined;\n    return ok('x', pid, 'X ' + pid);\n  }\n\n  if (net === 'youtube') {\n    // Upload resumable non gere en code -> utiliser le noeud YouTube natif n8n (OAuth2).\n    return skip('YouTube = noeud n8n natif requis (upload resumable videos.insert)');\n  }\n  return skip('reseau inconnu: ' + net);\n}\n\nfor (const post of posts) {\n  try {\n    const r = await publishOne(post);\n    if (r && !r._skip) out.push({ json: r });\n    else console.log('SKIP', JSON.stringify(r));\n  } catch (e) {\n    console.log('ERREUR publication', post && post.id, e.message);\n    // on ne flip pas le statut -> retry au prochain cron\n  }\n}\nreturn out;"
+      }
+    }
+  ],
+  "connections": {
+    "Cron — Toutes 15 min 7-22h": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire validés (NocoDB)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — Lire Config (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire validés": {
+      "main": [
+        [
+          {
+            "node": "Publier — APIs natives",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Publier — APIs natives",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publier — APIs natives": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status=en_publication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Status=en_publication": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Log publication",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire validés (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire validés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Cron — Toutes 15 min 7-22h": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "4f507bd3-1424-41d4-a9f5-45bec88b9a13",
+  "activeVersionId": null,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-07-04T21:50:40.970Z",
+      "createdAt": "2026-07-04T21:50:40.970Z",
+      "role": "workflow:owner",
+      "workflowId": "JUveLoLaCRMdnjrM",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

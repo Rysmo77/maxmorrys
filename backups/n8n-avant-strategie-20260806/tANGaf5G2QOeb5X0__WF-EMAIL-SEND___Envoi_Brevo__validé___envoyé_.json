@@ -1,0 +1,368 @@
+{
+  "updatedAt": "2026-07-06T15:18:30.926Z",
+  "createdAt": "2026-07-04T21:50:40.970Z",
+  "id": "tANGaf5G2QOeb5X0",
+  "name": "WF-EMAIL-SEND — Envoi Brevo (validé → envoyé)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "name": "Cron — 10 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/30 7-22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "aff04b91-883a-4b05-9798-29c4021b98c3"
+    },
+    {
+      "name": "Airtable — Lire Config (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        240,
+        120
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,BREVO_SENDER_EMAIL)~or(Cle,eq,BREVO_SENDER_NAME)~or(Cle,eq,BREVO_LIST_ID)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "14396bf-5aba-4219-a7c9-a70ece107236n"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "14396bf-5aba-4219-a7c9-a70ece107236f",
+      "name": "Airtable — Lire Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        430,
+        120
+      ]
+    },
+    {
+      "name": "Airtable — Emails validés (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        240,
+        -80
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ml6zyrbi30de7d4",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Status,eq,validé)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "5968e6c-eed9-4179-88d6-b9977dce853bn"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "5968e6c-eed9-4179-88d6-b9977dce853bf",
+      "name": "Airtable — Emails validés",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        430,
+        -80
+      ]
+    },
+    {
+      "name": "Build — Campagne Brevo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        20
+      ],
+      "parameters": {
+        "jsCode": "const cfg={};for(const r of $('Airtable — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nconst out=[];\nfor(const it of $('Airtable — Emails validés').all()){\n  const e=it.json;\n  const body={name:(e.Subject||'Campagne')+' '+e.id, subject:e.Subject||'Max-Morrys',\n    sender:{name:cfg.BREVO_SENDER_NAME||'Max-Morrys',email:cfg.BREVO_SENDER_EMAIL},\n    htmlContent:e.HTML||('<p>'+(e.Preview||'')+'</p>'),\n    recipients:{listIds:[parseInt(e.ListId||cfg.BREVO_LIST_ID||'2',10)]}};\n  out.push({json:{recordId:e.id, body}});\n}\nreturn out;\n"
+      },
+      "id": "b4b8f5ba-bf47-401d-a1c1-b90ce209193b"
+    },
+    {
+      "name": "Brevo — Créer campagne",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        20
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/emailCampaigns",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {},
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "sendInBlueApi"
+      },
+      "credentials": {
+        "sendInBlueApi": {
+          "id": "ksWmfpiq38p8RKUd",
+          "name": "Brevo Max-Morrys"
+        }
+      },
+      "id": "dc633dc6-145e-4c11-a4ee-320d76d7b2ed"
+    },
+    {
+      "name": "Brevo — Envoyer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        20
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.brevo.com/v3/emailCampaigns/{{ $json.id }}/sendNow",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}",
+        "options": {},
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "sendInBlueApi"
+      },
+      "credentials": {
+        "sendInBlueApi": {
+          "id": "ksWmfpiq38p8RKUd",
+          "name": "Brevo Max-Morrys"
+        }
+      },
+      "id": "784d6145-6352-4642-904d-68c6a46e4128"
+    },
+    {
+      "name": "Airtable — Marquer envoyé",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1360,
+        20
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ml6zyrbi30de7d4",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Build — Campagne Brevo').item.json.recordId }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "envoyé",
+            "CampaignId": "={{ $('Brevo — Créer campagne').item.json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "677ccdbf-6b24-4672-ae9f-eddec21538cd"
+    }
+  ],
+  "connections": {
+    "Cron — 10 min": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config (NocoDB)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — Emails validés (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Build — Campagne Brevo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Emails validés": {
+      "main": [
+        [
+          {
+            "node": "Build — Campagne Brevo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build — Campagne Brevo": {
+      "main": [
+        [
+          {
+            "node": "Brevo — Créer campagne",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brevo — Créer campagne": {
+      "main": [
+        [
+          {
+            "node": "Brevo — Envoyer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brevo — Envoyer": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Marquer envoyé",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Emails validés (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Emails validés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Cron — 10 min": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "0fa14c53-ff35-4bd1-a491-75b3165e4a7b",
+  "activeVersionId": null,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-07-04T21:50:40.970Z",
+      "createdAt": "2026-07-04T21:50:40.970Z",
+      "role": "workflow:owner",
+      "workflowId": "tANGaf5G2QOeb5X0",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

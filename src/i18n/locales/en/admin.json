@@ -24,7 +24,9 @@
     "sectionCommunity": "Community",
     "sectionCommerce": "Commerce",
     "sectionSite": "Site",
-    "backToSite": "Back to site"
+    "backToSite": "Back to site",
+    "agencyLeads": "Agency leads",
+    "missions": "Projects"
   },
   "placeholder": {
     "description": "This section is under development and will be available soon."
@@ -62,7 +64,22 @@
     "statPublishedArticles": "Published articles",
     "statPublishedFormations": "Published courses",
     "statNewsletter": "Newsletter",
-    "statEnrollments": "Enrollments"
+    "statEnrollments": "Enrollments",
+    "metricAgency": "Agency leads",
+    "subNewAgencyLeads_one": "{{count}} new",
+    "subNewAgencyLeads_other": "{{count}} new",
+    "agencyPipeline": "Agency pipeline",
+    "agencySeeAll": "See all leads",
+    "agencyPipelineValue": "Weighted pipeline",
+    "agencyPipelineGross": "{{value}} in total, all stages",
+    "agencySigned": "Signed",
+    "agencySignedCount_one": "{{count}} client",
+    "agencySignedCount_other": "{{count}} clients",
+    "agencyMonthly": "Monthly recurring",
+    "agencyMonthlyHint": "Signed support plans",
+    "agencyConversion": "Conversion",
+    "agencyConversionHint": "Signed / reachable leads",
+    "agencyReply": "Reply on WhatsApp"
   },
   "analytics": {
     "title": "Analytics",
@@ -94,7 +111,18 @@
     "rowEnrollments": "Course enrollments",
     "rowMessages": "Messages",
     "rowSubscribers": "Newsletter subscribers",
-    "advancedNote": "For advanced traffic analytics (page views, sources, duration), integrate Google Analytics 4 or Plausible."
+    "advancedNote": "For advanced traffic analytics (page views, sources, duration), integrate Google Analytics 4 or Plausible.",
+    "agencyTitle": "Agency — sales pipeline",
+    "agencyTotal_one": "{{count}} lead",
+    "agencyTotal_other": "{{count}} leads",
+    "agencyWeighted": "Weighted pipeline",
+    "agencySignedValue": "Signed revenue",
+    "agencyConversion": "Conversion rate",
+    "agencyByPack": "By pack",
+    "agencyByPlan": "By support plan",
+    "agencyBySector": "By sector",
+    "agencyByCity": "By city",
+    "rowAgencyLeads": "Agency leads"
   },
   "appointments": {
     "title": "Appointments",
@@ -119,6 +147,83 @@
     "toastConfirmed": "Appointment confirmed.",
     "toastCancelled": "Appointment cancelled.",
     "toastUpdateError": "Error during update."
+  },
+  "agencyLeads": {
+    "title": "Agency leads",
+    "refresh": "Refresh",
+    "searchPlaceholder": "Business, contact, phone, city...",
+    "filterAll": "All statuses",
+    "empty": "No leads yet.",
+    "newCount_one": "{{count}} new",
+    "newCount_other": "{{count}} new",
+    "totalCount_one": "{{count}} lead in total",
+    "totalCount_other": "{{count}} leads in total",
+    "receivedOn": "Received on {{date}}",
+    "interest": "Interested in: {{pack}} · {{plan}} support",
+    "whatsapp": "WhatsApp",
+    "delete": "Delete this lead",
+    "confirmDelete": "Permanently delete this lead?",
+    "toastLoadError": "Could not load leads.",
+    "toastUpdated": "Status updated.",
+    "toastUpdateError": "Update failed.",
+    "toastDeleted": "Lead deleted.",
+    "status": {
+      "new": "New",
+      "qualified": "Qualified",
+      "quoted": "Quote sent",
+      "signed": "Signed",
+      "lost": "Lost"
+    },
+    "packs": {
+      "presence": "Local Presence",
+      "visible": "Visible Business",
+      "boutique": "Digital Store",
+      "undecided": "Pack to define"
+    },
+    "plans": {
+      "croissance": "Automated Growth",
+      "commerce360": "Commerce 360",
+      "aucun": "no support plan",
+      "undecided": "to define"
+    },
+    "sectors": {
+      "restaurant": "Food & drink",
+      "mode": "Fashion & cosmetics",
+      "beaute": "Beauty & wellness",
+      "sante": "Health",
+      "commerce": "Retail & building supplies",
+      "education": "Education",
+      "autre": "Other"
+    },
+    "quoteRef": "Quote {{ref}}",
+    "openQuote": "Open summary",
+    "export": "Export",
+    "perMonth": "month",
+    "notesAdd": "Add an internal note",
+    "notesEdit": "Internal note",
+    "notesPlaceholder": "Context, budget mentioned, objection, next follow-up...",
+    "notesHint": "Saved automatically when you leave the field. Never visible to the lead.",
+    "notesSaving": "Saving...",
+    "toastNoteSaved": "Note saved.",
+    "csv": {
+      "filename": "agency-leads",
+      "date": "Date",
+      "business": "Business",
+      "contact": "Contact",
+      "phone": "Phone",
+      "email": "Email",
+      "city": "City",
+      "sector": "Sector",
+      "pack": "Pack",
+      "plan": "Support plan",
+      "upfront": "Setup (FCFA)",
+      "monthly": "Monthly (FCFA)",
+      "status": "Status",
+      "referral": "Referral",
+      "quoteRef": "Quote ref.",
+      "message": "Message",
+      "notes": "Internal notes"
+    }
   },
   "articles": {
     "title": "Articles",
@@ -747,5 +852,77 @@
     "createRequiredFields": "Name, email and password are required.",
     "userCreated": "User created successfully.",
     "createError": "Error during creation."
+  },
+  "missions": {
+    "title": "Projects — Max-Morrys Agency",
+    "subtitle": "Product, AI, Technology & Brand engagement requests",
+    "refresh": "Refresh",
+    "export": "Export as CSV",
+    "searchPlaceholder": "Search a name, company, email…",
+    "empty": "No request matches this filter.",
+    "statusAll": "All",
+    "statusLabel": "Request status",
+    "routedBadge": "Routed to Cléa",
+    "routedCount": "{{count}} request(s) routed to Cléa Growth Office — excluded from the conversion rate.",
+    "notesLabel": "Internal notes",
+    "notesSaving": "Saving…",
+    "notesAria": "Internal notes",
+    "emailAria": "Email {{email}}",
+    "websiteAria": "Open the prospect's website",
+    "deleteAria": "Delete request",
+    "confirmDelete": "Permanently delete this request?",
+    "toastLoadError": "Could not load requests.",
+    "toastUpdated": "Status updated.",
+    "toastUpdateError": "Update failed.",
+    "toastDeleted": "Request deleted.",
+    "status": {
+      "new": "New",
+      "qualified": "Qualified",
+      "scoping": "Scoping",
+      "proposal": "Proposal",
+      "won": "Won",
+      "lost": "Lost"
+    },
+    "projectTypes": {
+      "product": "Product / SaaS",
+      "platform": "Web platform",
+      "application": "Application",
+      "ai": "AI / Automation",
+      "internalTool": "Internal tool",
+      "transformation": "Digital transformation",
+      "brand": "Personal brand",
+      "growth": "Growth",
+      "other": "Other"
+    },
+    "budgets": {
+      "exploring": "To be defined",
+      "small": "< 5M FCFA",
+      "medium": "5–15M FCFA",
+      "large": "15–40M FCFA",
+      "xlarge": "> 40M FCFA"
+    },
+    "timelines": {
+      "urgent": "< 1 month",
+      "quarter": "1–3 months",
+      "halfYear": "3–6 months",
+      "flexible": "No fixed date"
+    },
+    "csv": {
+      "filename": "max-morrys-agency-projects",
+      "headers": [
+        "Date",
+        "Name",
+        "Company",
+        "Email",
+        "Website",
+        "Project type",
+        "Budget",
+        "Timeline",
+        "Status",
+        "Routed to",
+        "Description",
+        "Internal notes"
+      ]
+    }
   }
 }

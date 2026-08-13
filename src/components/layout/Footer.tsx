@@ -5,6 +5,7 @@ import LocalizedLink from '../shared/LocalizedLink';
 import NewsletterForm from '../shared/NewsletterForm';
 import { XIcon, TikTokIcon } from '../shared/SocialIcons';
 import { SOCIAL_LINKS } from '../seo/seo-config';
+import { contact, corporateUrl, legalName } from '../../lib/brand';
 
 const socialIcons: Record<string, ComponentType<{ className?: string }>> = {
   LinkedIn: Linkedin,
@@ -18,6 +19,10 @@ const socialIcons: Record<string, ComponentType<{ className?: string }>> = {
 const footerLinks = {
   plateforme: [
     { labelKey: 'links.formations', path: '/formations' },
+    { labelKey: 'links.agency', path: '/agence' },
+    // L'offre TPE n'entre pas dans la navigation principale : elle s'atteint par ici,
+    // par la page d'accueil et par le bas de /agence. Voir docs/UX-AUDIT.md §1.
+    { labelKey: 'links.presence', path: '/presence-digitale' },
     { labelKey: 'links.blog', path: '/blog' },
     { labelKey: 'links.podcasts', path: '/podcasts' },
     { labelKey: 'links.videos', path: '/videos' },
@@ -134,15 +139,15 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm">
                 <Mail className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>hello@maxmorrys.me</span>
+                <span>{contact.email}</span>
               </li>
               <li className="flex items-start gap-3 text-sm">
                 <Phone className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>+221 77 604 19 85</span>
+                <span>{contact.phoneDisplay}</span>
               </li>
               <li className="flex items-start gap-3 text-sm">
                 <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>Dakar, Sénégal</span>
+                <span>{contact.city}, {contact.country}</span>
               </li>
             </ul>
           </div>
@@ -154,12 +159,12 @@ export default function Footer() {
           <p className="text-xs">
             {t('operatedByPrefix')}{' '}
             <a
-              href="https://myonoma.com"
+              href={corporateUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-neutral-300 hover:text-white font-medium underline-offset-2 hover:underline transition-colors"
             >
-              My Onoma SARL
+              {legalName}
             </a>
           </p>
         </div>

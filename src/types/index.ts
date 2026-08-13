@@ -281,6 +281,112 @@ export interface Appointment {
   createdAt: string;
 }
 
+/** Offre agence « Digital Commerce Local » — grille dans src/lib/presence/offer.ts (page /presence-digitale) */
+export type AgencyPack = 'presence' | 'visible' | 'boutique' | 'undecided';
+export type AgencyPlan = 'croissance' | 'commerce360' | 'aucun' | 'undecided';
+export type AgencyLeadStatus = 'new' | 'qualified' | 'quoted' | 'signed' | 'lost';
+
+export interface AgencyLead {
+  id: string;
+  businessName: string;
+  contactName: string;
+  phone: string;
+  email?: string;
+  city: string;
+  /** Clé de secteur d'activité (restaurant, mode, beaute, sante, commerce, education, autre) */
+  sector: string;
+  pack: AgencyPack;
+  plan: AgencyPlan;
+  message?: string;
+  /** Code de parrainage éventuel (format PRENOM-AGENCE) */
+  referralCode?: string;
+  status: AgencyLeadStatus;
+  /** Notes internes de qualification — jamais visibles du prospect */
+  notes?: string;
+  /** Langue de soumission du formulaire */
+  locale?: 'fr' | 'en';
+  /** Référence du devis partageable généré à la soumission (format DV-XXXXXXXXXXXX) */
+  quoteRef?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+/**
+ * Devis partageable par lien — collection `agency_quotes`, lisible publiquement par ID exacte.
+ *
+ * ⚠️ NE DOIT JAMAIS CONTENIR DE DONNÉE PERSONNELLE. Le lien est transmissible (WhatsApp,
+ * email) et donc potentiellement public. Le téléphone, l'email, le nom du contact et le
+ * message restent exclusivement dans `agency_leads`, accessible aux seuls admin/support.
+ * Les règles Firestore refusent la création d'un devis portant l'un de ces champs.
+ */
+export interface AgencyQuote {
+  /** Identifiant du document ET référence affichée (DV-XXXXXXXXXXXX) */
+  ref: string;
+  businessName: string;
+  city: string;
+  pack: AgencyPack;
+  plan: AgencyPlan;
+  packPrice: number;
+  planSetup: number;
+  planMonthly: number;
+  locale: 'fr' | 'en';
+  createdAt: string;
+  /** Fin de validité commerciale — indicatif, pas une frontière de sécurité */
+  expiresAt: string;
+}
+
+/**
+ * Demandes de mission Max-Morrys Agency — collection `engagement_leads` (page `/agence`).
+ *
+ * ⚠️ Distinct d'`AgencyLead`, qui porte les prospects de l'offre « Digital Commerce Local »
+ * sur `/presence-digitale`. Les deux schémas n'ont rien en commun : l'un parle de packs et de
+ * secteur d'activité, l'autre de type de projet, de budget et d'échéance. Ils sont
+ * volontairement séparés plutôt que fusionnés derrière des champs optionnels.
+ */
+export type EngagementProjectType =
+  | 'product'
+  | 'platform'
+  | 'application'
+  | 'ai'
+  | 'internalTool'
+  | 'transformation'
+  | 'brand'
+  | 'growth'
+  | 'other';
+
+export type EngagementBudget = 'exploring' | 'small' | 'medium' | 'large' | 'xlarge';
+
+export type EngagementTimeline = 'urgent' | 'quarter' | 'halfYear' | 'flexible';
+
+export type EngagementLeadStatus = 'new' | 'qualified' | 'scoping' | 'proposal' | 'won' | 'lost';
+
+/** Practice vers laquelle la demande est orientée, quand ce n'est pas BUILD. */
+export type EngagementRouting = 'MY_ONOMA_GROW';
+
+export interface EngagementLead {
+  id: string;
+  name: string;
+  company: string;
+  email: string;
+  website?: string;
+  projectType: EngagementProjectType;
+  budget: EngagementBudget;
+  timeline: EngagementTimeline;
+  description: string;
+  status: EngagementLeadStatus;
+  /**
+   * Posé quand la demande relève de Cléa Growth Office. Le lead n'est jamais rejeté :
+   * il est enregistré, tagué, et le prospect est orienté vers la bonne practice.
+   */
+  routedTo?: EngagementRouting;
+  /** Notes internes de qualification — jamais visibles du prospect */
+  notes?: string;
+  /** Langue de soumission du formulaire */
+  locale?: 'fr' | 'en';
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface Testimonial {
   id: string;
   name: string;

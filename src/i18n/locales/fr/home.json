@@ -6,14 +6,32 @@
     "coursesCreated": "Cours créés"
   },
   "services": {
-    "train": { "title": "Je te forme", "desc": "Des formations pratiques et actionnables pour maîtriser le digital." },
-    "inform": { "title": "Je t'informe", "desc": "Articles, podcasts et vidéos pour rester à la pointe." },
-    "transform": { "title": "Je te transforme", "desc": "Coaching et consulting pour accélérer ta croissance." }
+    "train": {
+      "title": "Je te forme",
+      "desc": "Des formations pratiques et actionnables pour maîtriser le digital."
+    },
+    "inform": {
+      "title": "Je t'informe",
+      "desc": "Articles, podcasts et vidéos pour rester à la pointe."
+    },
+    "transform": {
+      "title": "Je te transforme",
+      "desc": "Coaching et consulting pour accélérer ta croissance."
+    }
   },
   "trustBadges": {
-    "certificate": { "title": "Certificat inclus", "desc": "Chaque formation délivre un certificat vérifiable." },
-    "lifetime": { "title": "Accès à vie", "desc": "Tes formations restent accessibles sans limite." },
-    "guarantee": { "title": "Garantie satisfait", "desc": "Remboursement sous 7 jours si insatisfaction." }
+    "certificate": {
+      "title": "Certificat inclus",
+      "desc": "Chaque formation délivre un certificat vérifiable."
+    },
+    "lifetime": {
+      "title": "Accès à vie",
+      "desc": "Tes formations restent accessibles sans limite."
+    },
+    "guarantee": {
+      "title": "Garantie satisfait",
+      "desc": "Remboursement sous 7 jours si insatisfaction."
+    }
   },
   "testimonialAria": "Témoignage {{number}}",
   "hero": {
@@ -48,6 +66,37 @@
     "eyebrow": "Le catalogue",
     "heading": "Range tes compétences dans le bon dossier.",
     "cta": "Découvrir toutes les formations"
+  },
+  "presence": {
+    "eyebrow": "Tu as un commerce ?",
+    "heading": "Je le digitalise pour toi",
+    "desc": "Tu n'as pas le temps d'apprendre tout ça ? Je m'en charge. Site web, fiche Google, catalogue WhatsApp, mesure des résultats et publications régulières — je les installe et je les pilote pour ton commerce.",
+    "cta": "Découvrir l'offre agence",
+    "points": {
+      "found": {
+        "title": "Être trouvé",
+        "text": "Sur Google Maps, quand on cherche ton métier dans ton quartier."
+      },
+      "present": {
+        "title": "Présenter",
+        "text": "Ton site et tes produits commandables sur WhatsApp."
+      },
+      "convert": {
+        "title": "Convertir",
+        "text": "Des boutons qui transforment un visiteur en message."
+      },
+      "measure": {
+        "title": "Mesurer",
+        "text": "Savoir enfin ce que ta présence en ligne te rapporte."
+      }
+    }
+  },
+  "agency": {
+    "eyebrow": "Travailler avec moi",
+    "heading": "Un produit à construire ?",
+    "desc": "Max-Morrys Agency conçoit des produits numériques, des systèmes IA et des plateformes pour les fondateurs, les PME et les institutions. C'est la practice Product, AI, Technology & Brand de MY ONOMA.",
+    "disciplines": "Product · AI · Technology · Brand",
+    "cta": "Découvrir l'agence"
   },
   "quiz": {
     "eyebrow": "Passe au niveau supérieur",

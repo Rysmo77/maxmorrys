@@ -76,10 +76,12 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
   { path: '/videos', changefreq: 'weekly', priority: '0.8' },
   { path: '/faq', changefreq: 'monthly', priority: '0.5' },
   { path: '/agence', changefreq: 'monthly', priority: '0.8' },
+  { path: '/presence-digitale', changefreq: 'monthly', priority: '0.8' },
   { path: '/contact', changefreq: 'monthly', priority: '0.5' },
   { path: '/legal/mentions-legales', changefreq: 'yearly', priority: '0.3' },
   { path: '/legal/confidentialite', changefreq: 'yearly', priority: '0.3' },
   { path: '/legal/cgv', changefreq: 'yearly', priority: '0.3' },
+  { path: '/legal/cgu', changefreq: 'yearly', priority: '0.3' },
   { path: '/legal/cookies', changefreq: 'yearly', priority: '0.3' },
 ];
 

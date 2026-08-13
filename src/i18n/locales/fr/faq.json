@@ -4,7 +4,7 @@
   "eyebrow": "FAQ",
   "heroTitle1": "Questions",
   "heroTitle2": "fréquentes",
-  "heroSubtitle": "Trouvez rapidement des réponses à vos questions les plus courantes.",
+  "heroSubtitle": "Trouve rapidement des réponses à tes questions les plus courantes.",
   "allCategories": "Tous",
   "loadError": "Impossible de charger la FAQ.",
   "retry": "Réessayer",
@@ -13,9 +13,9 @@
   "thanksNegative": "Merci, je vais améliorer cette réponse.",
   "ctaTitle": "Tu ne trouves pas ta réponse ?",
   "ctaText": "N'hésite pas à me contacter directement.",
-  "ctaButton": "Nous contacter",
+  "ctaButton": "Me contacter",
   "crossEyebrow": "ENCORE DES QUESTIONS ?",
-  "crossTitle": "Écrivez-moi directement",
-  "crossText": "Je réponds personnellement à chaque message. N'hésitez pas à me contacter.",
+  "crossTitle": "Écris-moi directement",
+  "crossText": "Je réponds personnellement à chaque message. N'hésite pas à me contacter.",
   "crossButton": "Me contacter"
 }

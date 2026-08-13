@@ -11,8 +11,8 @@ description: >
 2. **Sweep des échecs** : `GET https://eyonemedical.app.n8n.cloud/api/v1/executions?status=error`
    (header `X-N8N-API-KEY: $N8N_API_KEY` — secret Paperclip). Regrouper par workflow.
 3. **Diagnostic** : pour chaque workflow en échec, `GET /api/v1/workflows/{id}` + lire le message
-   d'erreur. Causes fréquentes : expression cassée, champ Airtable renommé (cf. base
-   `apppkEbepilHCYiso`), rate limit, **modèle Gemini déprécié** (`gemini-3-*` cassés → utiliser
+   d'erreur. Causes fréquentes : expression cassée, champ NocoDB renommé (cf. base
+   `ph7ugup4mggzj2y`), rate limit, **modèle Gemini déprécié** (`gemini-3-*` cassés → utiliser
    `gemini-2.5-pro/flash`, `gemini-2.5-flash-image-preview`).
 4. **Proposer** : créer une Issue (projet P-OPS) avec la cause racine + un **diff JSON** du
    correctif, en commentaire. Brouillon, pas d'application.

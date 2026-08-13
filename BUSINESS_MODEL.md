@@ -467,6 +467,88 @@ Valeur indirecte par article : 10 000 visiteurs × 8% × 5% × 110K ARPU = 44 00
 | **Effort** | S — page "Annonceurs" + processus editorial |
 
 ---
+### LIGNE 11 : Agence « Digital Commerce Local »
+
+#### Fiche d'identite
+
+| Attribut | Detail |
+|----------|--------|
+| **Statut** | A lancer (offre definie : `docs/OFFRE_AGENCE_TPE.md`, page `/agence` livree, montants dans `src/lib/agency/offer.ts`) |
+| **Preuves code** | `src/pages/Agence.tsx` + `src/components/agency/`, `src/lib/agency/offer.ts`, `src/lib/firestore/agency.ts` (collections `agency_leads` et `agency_quotes`), `n8n/` (20 workflows VPS), `paperclip/` (agence social media) |
+| **Description** | Mise en place de la presence digitale des petits commerces : site web, catalogue produits (Meta / WhatsApp / Google Merchant), fiche d'etablissement Google, mesure (GA4/GTM/Pixel), SEO local. Puis accompagnement mensuel : calendrier editorial, publications preparees et programmees, reporting |
+| **Proposition de valeur** | Un systeme pour etre trouve, presenter son offre, recevoir des demandes WhatsApp et mesurer ce que ca rapporte — pas un simple site web |
+| **Audience cible** | Commerce physique etabli, 1-15 salaries, CA mensuel 800K-5M XOF, decideur unique joignable sur WhatsApp. Dakar, Abidjan, Cotonou |
+| **Concurrents** | Freelances Dakar (100-300K le site vitrine, pas de recurrent), agences locales (350-600K pour du plus professionnel, cible PME structurees), community managers independants (100-210K XOF/mois) |
+
+#### Modele de revenus recommande
+
+**Modele : setup-first — mise en place vendue seule, accompagnement vendu ensuite**
+
+*Pourquoi ce modele :*
+- La grille 295/495/895 kFCFA est calee sur les prix reellement observes au Senegal ; elle est plus vendable qu'un ticket d'entree eleve
+- Le commercant achete d'abord ce qu'il comprend (le site, la fiche Google) ; l'accompagnement se vend une fois la valeur demontree
+- La production de contenu etant automatisee (n8n + Paperclip), l'accompagnement porte une marge de ~96%
+
+*Risque principal :* **le plafond de livraison.** Chaque franc de revenu exige une nouvelle mise en place. A 3-4 livraisons/mois en solo, la ligne plafonne vers 20M XOF/an.
+*Ce qui casse le plafond :* **le taux de conversion des clients livres vers un accompagnement mensuel — cible >= 40%, mesure a J+30** (fin du support inclus). C'est le seul KPI a surveiller chaque mois sur cette ligne.
+
+#### Strategie de pricing
+
+**Mise en place (paiement unique) :**
+
+| Pack | Prix | Plancher | Contenu |
+|------|------|----------|---------|
+| Presence Locale | **295 000 XOF** | 225 000 | One page + fiche Google + WhatsApp Business + catalogue 20 produits + GA4/Search Console + SEO local + hebergement 1 an + 30j support |
+| **Commerce Visible** | **495 000 XOF** | 400 000 | Site 5 pages + catalogue Meta/WhatsApp 40 produits + fiche Google + GA4/GTM/Pixel + conversions + SEO initial + tableau de suivi + 30j support |
+| Boutique Digitale | **895 000 XOF** | 700 000 | E-commerce 50 produits + panier + Merchant Center + tracking e-commerce complet + 60j assistance |
+
+**Accompagnement (mise en place + mensuel) :**
+
+| Formule | Mise en place | Mensuel | Contenu |
+|---------|---------------|---------|---------|
+| **Croissance Automatisee** | **375 000 XOF** | **175 000 XOF** | Calendrier editorial + 12 publications redigees + visuels + programmation avec validation humaine + fiche Google + SEO leger + reporting |
+| Commerce 360 (6 mois) | **750 000 XOF** | **225 000 XOF** | Tout le perimetre, pilote sur 6 mois — soit **2 100 000 XOF au total** |
+
+**Principes appliques :**
+1. **Commerce Visible est l'offre principale** — c'est elle qui est mise en avant partout
+2. **Aucune remise sur la mise en place** : les planchers ne sont jamais franchis
+3. **Toute option achetee est deduite du prix d'un pack souscrit sous 60 jours**
+4. **Commerce 360 : annoncer le total ET la decomposition** — cacher les 2,1M detruit la confiance
+5. **60% a la commande, 40% avant mise en ligne** ; deux series de modifications incluses
+6. **Domaine et comptes crees au nom du client** — aucune retention d'actif
+
+#### Unit Economics
+
+| Metrique | Valeur | Calcul / Hypothese |
+|----------|--------|--------------------|
+| **ASP mise en place** | ~475 000 XOF | Mix 40% Presence + 45% Visible + 15% Boutique |
+| **Temps de livraison** | 8-14 h / mise en place | Gabarits + automatisation ; Boutique nettement plus lourde |
+| **Capacite solo** | **3-4 mises en place / mois** | LE facteur limitant du modele |
+| **Cout marginal / client accompagne** | 6 000 XOF/mois | Quote-part VPS + API Gemini/Kling + hebergement |
+| **Marge brute accompagnement** | 96% | ARPU mixte 190 000 - 6 000 |
+| **Taux de conversion cible J+30** | **>= 40%** | **Le KPI de la ligne** |
+| **CAC** | ~25 000 XOF | Inbound plateforme + parrainage sur la base des 1 486 etudiants |
+| **Charges fixes** | 100 000 XOF/mois | VPS 15K + Firebase/APIs 40K + outils 45K |
+
+**Projection Annee 1 (scenario base) :**
+
+| Source | Volume | Revenu |
+|--------|--------|--------|
+| Mises en place | 28 x 475 000 (ASP) | 13 300 000 |
+| Accompagnement — frais de mise en place | 11 conversions x 468 750 | 5 250 000 |
+| Accompagnement — mensualites | 11 clients x 4,6 mois moyens x 187 500 | 9 618 000 |
+| Options et supplements | 15% du CA mise en place | 1 995 000 |
+| **Total encaisse annee 1** | | **~30 200 000 XOF** |
+
+*Les mensualites de l'annee 1 portent sur 4,6 mois en moyenne et non 12 : une mise en place livree au mois m ne convertit qu'a m+1 (fin du support inclus). Calcul detaille dans `finance/model.py`.*
+
+A comparer aux 7 200 000 XOF de plafond structurel de la LIGNE 5 (Consulting).
+
+**Decision de capacite :** le declencheur de recrutement est **le volume de livraison**, pas le nombre d'abonnes. Des que le carnet depasse 4 mises en place par mois deux mois d'affilee, recruter un assistant delivery (300-400K XOF/mois).
+
+**Red lines :** ne jamais livrer les workflows n8n au client (actif strategique), ne jamais facturer a l'heure, ne jamais vendre "SEO" ou "Analytics" en ligne isolee, validation humaine obligatoire avant publication, aucun demarrage sans acompte de 60% encaisse. Detail complet : `docs/OFFRE_AGENCE_TPE.md`.
+
+---
 
 ## 4 — Phase 2 — Synergies & Ecosysteme
 

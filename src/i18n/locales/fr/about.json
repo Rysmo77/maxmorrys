@@ -85,43 +85,9 @@
       "stat": "Projet Wergu Yaram + Messages de Vie Sénégal"
     }
   },
-  "platforms": {
-    "eyone": {
-      "tag": "Santé digitale",
-      "desc": "Plateforme de digitalisation des parcours de soins en Afrique."
-    },
-    "khanouss": {
-      "tag": "E-commerce",
-      "desc": "Plateforme e-commerce full stack — catalogue, panier et paiement."
-    },
-    "holycash": {
-      "tag": "Fintech",
-      "desc": "Plateforme web orientée services financiers et paiement."
-    },
-    "englishLab": {
-      "tag": "Éducation",
-      "desc": "Plateforme d'accompagnement en anglais pour professionnels et étudiants africains francophones."
-    },
-    "steps": {
-      "tag": "Média",
-      "desc": "Magazine chrétien premium en Afrique de l'Ouest — spiritualité et leadership."
-    },
-    "resho": {
-      "tag": "Communauté",
-      "desc": "Plateforme de réseau professionnel et communautaire."
-    }
-  },
-  "preview": {
-    "desktopAlt": "Aperçu desktop de la plateforme {{name}}",
-    "mobileAlt": "Aperçu mobile de la plateforme {{name}}",
-    "desktopLabel": "Desktop",
-    "mobileLabel": "Mobile",
-    "deviceAria": "Aperçu {{label}}",
-    "groupAria": "Choisir l'aperçu de {{name}}"
-  },
   "experiences": {
     "eyone": {
-      "role": "Responsable Marketing Digital, Growth & Automatisation IA",
+      "role": "Marketing & Growth Manager",
       "period": "Depuis janvier 2024",
       "location": "Dakar, Sénégal",
       "intro": "Chez Eyone, je pilote la stratégie de croissance digitale, la visibilité de marque, la communication multicanale et plusieurs projets digitaux à fort impact. Mon rôle dépasse le marketing opérationnel classique et couvre également la gestion de projet, la coordination de partenariats, le développement web et l'automatisation de processus.",
@@ -306,8 +272,6 @@
   "sectionNav": {
     "impact": "Impact",
     "expertise": "Expertise",
-    "plateformes": "Plateformes",
-    "experiences": "Expériences",
     "parcours": "Parcours"
   },
   "hero": {
@@ -319,10 +283,10 @@
     "statFollowers": "Abonnés",
     "statPlatforms": "Plateformes",
     "ctaWork": "Travaillons ensemble",
-    "ctaExperiences": "Mes expériences",
     "imageAlt": "Max-Morrys Eyoum",
     "locationCity": "Dakar · Sénégal",
-    "locationRegion": "Afrique francophone"
+    "locationRegion": "Afrique francophone",
+    "ctaParcours": "Mon parcours"
   },
   "impact": {
     "eyebrow": "RÉSUMÉ D'IMPACT",
@@ -338,19 +302,6 @@
   "expertiseSection": {
     "heading": "Expertise & compétences",
     "desc": "Quatre piliers complémentaires — marketing, IA, web et management — au service de la croissance et de l'impact."
-  },
-  "platformsSection": {
-    "heading": "Plateformes que je maintiens",
-    "desc": "Conçues, déployées et maintenues en production — full stack avec base de données, sécurité et monitoring.",
-    "prevAria": "Plateformes précédentes",
-    "nextAria": "Plateformes suivantes",
-    "scrollHintMobile": "Faites glisser pour voir les autres plateformes",
-    "scrollHintDesktop": "Faites défiler ou utilisez les flèches pour voir les autres plateformes"
-  },
-  "experiencesSection": {
-    "eyebrow": "EXPÉRIENCES",
-    "heading": "Expériences professionnelles",
-    "desc": "De My Onoma à Eyone Medical : un parcours pluridisciplinaire à l'intersection du marketing, de la tech et de l'impact."
   },
   "stack": {
     "heading": "Stack & outils du quotidien",
@@ -380,7 +331,9 @@
     "p2": "Pour la petite histoire, je n'aurais jamais imaginé que j'allais faire du marketing… Comme tout enfant je voulais devenir pilote, puis ingénieur, ensuite banquier et au finish entrepreneur. Le marketing digital est arrivé par hasard en 2021, et c'est devenu ma passion !",
     "p3": "Aujourd'hui, je vis cette aventure depuis Dakar, à la croisée du marketing, de l'IA, du produit web et des partenariats à impact — fier de contribuer au développement digital de l'Afrique francophone.",
     "collapse": "Réduire le parcours",
-    "expand": "Voir le début du parcours (2014 – 2021)"
+    "expand": "Voir le début du parcours (2014 – 2021)",
+    "showMissions": "Voir les missions",
+    "hideMissions": "Masquer les missions"
   },
   "finalCta": {
     "eyebrow": "ON DISCUTE ?",
@@ -388,5 +341,17 @@
     "desc": "Marketing, automatisation IA, plateformes web ou partenariats — parlons-en.",
     "ctaContact": "Prendre contact",
     "ctaFormations": "Ou découvre mes formations"
+  },
+  "beyond": {
+    "eyebrow": "Au-delà de la marque personnelle",
+    "heading": "Je développe aussi mes activités au sein de MY ONOMA.",
+    "desc": "MY ONOMA est un Digital Product & Growth Studio basé à Dakar. Il construit des produits et des systèmes pour ses clients, construit des machines de croissance, et développe ses propres produits. Max-Morrys Agency en est la practice Product, AI, Technology & Brand.",
+    "pillars": {
+      "build": "Produit, technologie, IA et marque",
+      "grow": "Croissance, revenus, adtech et opérations",
+      "own": "Produits détenus et opérés"
+    },
+    "cta": "Découvrir MY ONOMA",
+    "ctaAgency": "Voir Max-Morrys Agency"
   }
 }

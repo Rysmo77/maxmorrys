@@ -9,7 +9,10 @@
     "submittingAria": "Subscribing…",
     "loading": "Loading…",
     "successToast": "You're in! Welcome to the community.",
-    "errorToast": "Something went wrong. Please try again."
+    "errorToast": "Something went wrong. Please try again.",
+    "consentLabel": "I agree to receive the newsletter and I have read the",
+    "consentPolicyLink": "privacy policy",
+    "consentRequired": "Please confirm your consent before subscribing."
   },
   "announcement": {
     "learnMore": "Learn more →",

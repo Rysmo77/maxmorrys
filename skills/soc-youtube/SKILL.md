@@ -21,20 +21,23 @@ description: >
 ## Escalade
 - Retard de production → @CMO.
 - Décision de mise en ligne → approbation board.
-## Soumettre dans Airtable (pont n8n)
-Pour pousser un contenu vers la file de publication, écris UNE ligne dans Airtable Contenus
-(base `apppkEbepilHCYiso`, table `tblPYoyzcZLdtBTO3`) via shell, avec le secret Paperclip
-`AIRTABLE_PAT` :
+## Soumettre dans NocoDB (pont n8n)
+Pour pousser un contenu vers la file de publication, écris UNE ligne dans la table NocoDB
+`Contenus` (`m3wim4coagaoot7`, base « Max-Morrys » `ph7ugup4mggzj2y`) via shell, avec les secrets
+Paperclip `NOCODB_URL` et `NOCODB_TOKEN` :
 
 ```bash
-curl -X POST "https://api.airtable.com/v0/apppkEbepilHCYiso/tblPYoyzcZLdtBTO3" \
-  -H "Authorization: Bearer $AIRTABLE_PAT" -H "Content-Type: application/json" \
-  -d '{"records":[{"fields":{
+curl -X POST "$NOCODB_URL/api/v2/tables/m3wim4coagaoot7/records" \
+  -H "xc-token: $NOCODB_TOKEN" -H "Content-Type: application/json" \
+  -d '{
     "Reseau":"ig","Titre":"...","Texte":"...","Hashtags":"...",
     "Thematique":"...","Pilier":"...","Format_Post":"...",
-    "Date_Publication_Prevue":"2026-07-01","Status":"prêt_à_valider"
-  }}]}'
+    "Serie":"...","Offre":"...","Cible":"...",
+    "Date_Publication_Prevue":"2026-09-01T09:00:00+00:00","Status":"prêt_à_valider"
+  }'
 ```
+⚠️ Les champs sont **à plat** (pas de `{"records":[{"fields":{…}}]}` comme Airtable), et **NocoDB
+refuse toute valeur hors options d'un `SingleSelect`** — pas de `typecast` qui la crée à la volée.
 
 - `Reseau` ∈ `ig|fb|tiktok|youtube|linkedin|x`.
 - `Status` **toujours** `prêt_à_valider` → le board valide (`validé`) → **WF-SOCIAL-05** publie via

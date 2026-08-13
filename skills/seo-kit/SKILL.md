@@ -27,7 +27,7 @@ Voix = brand kit (`skills/soc-brand-kit/SKILL.md`).
 | Tracking | `src/lib/tracking.ts` (GTM/GA4 + Meta Pixel) | ✅ |
 | Feeds | `functions/src/catalog.ts` (Meta/Google Merchant) | ✅ |
 | Contenu SEO (n8n) | WF-07 `LOvoUdV3nKCsPd46` (idées géoloc, Google CSE+Gemini), WF-08 `OQMIBhbc7Y9OFQzL` (rédaction → Firestore blog draft) | ✅ |
-| **Données GSC** | table Airtable **SEO** (alimentée par `WF-SEO-GSC`) | ⏳ en cours |
+| **Données GSC** | table NocoDB **SEO** (alimentée par `WF-SEO-GSC`) | ⏳ en cours |
 
 ## Gaps prioritaires (les chantiers)
 RSS-EN · plus de JSON-LD (HowTo, QAPage, ItemList) · Lighthouse CI + LCP tuning ·
@@ -57,5 +57,5 @@ hreflang fr/en/x-default sur chaque page. Toujours peupler `slug_en` (sinon fall
 - Outreach/link-building = **brouillons**, gated board (comme Community).
 
 ## Outils & données
-GSC (table Airtable SEO) · GA4 (GTM `GTM-PJ3R433M` / `G-5EFPZ71YX0`) · Google Custom Search (WF-07) ·
+GSC (table NocoDB SEO) · GA4 (GTM `GTM-PJ3R433M` / `G-5EFPZ71YX0`) · Google Custom Search (WF-07) ·
 Lighthouse · repo (claude_local + git + gh) · n8n (WF-07/08, WF-SEO-GSC).

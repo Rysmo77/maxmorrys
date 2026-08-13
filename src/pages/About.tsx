@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import LocalizedLink from '../components/shared/LocalizedLink';
-import { motion, AnimatePresence } from 'framer-motion';
+import { corporateUrl, pillars } from '../lib/brand';
+import { motion } from 'framer-motion';
 import CountUp from '../components/shared/CountUp';
 import AnimatedIcon from '../components/shared/AnimatedIcon';
 import {
@@ -17,10 +18,6 @@ import {
   Code2,
   HeartHandshake,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Monitor,
-  Smartphone,
   MapPin,
   Building2,
   GraduationCap,
@@ -50,149 +47,6 @@ const expertise = [
   { key: 'web', icon: Code2 },
   { key: 'management', icon: HeartHandshake },
 ];
-
-const platforms = [
-  { name: 'Eyone Medical', domain: 'eyone.net', url: 'https://eyone.net/', key: 'eyone' },
-  { name: 'Khanouss', domain: 'khanouss.shop', url: 'https://khanouss.shop/', key: 'khanouss' },
-  { name: 'HolyCash', domain: 'holycash.net', url: 'https://holycash.net/', key: 'holycash' },
-  { name: 'English Lab', domain: 'yessienglish.com', url: 'https://yessienglish.com/', key: 'englishLab' },
-  { name: 'STEPS Magazine', domain: 'stepsmag.com', url: 'https://stepsmag.com/', key: 'steps' },
-  { name: 'ResHo Konnexion', domain: 'resho.vasesdhonneursenegal.com', url: 'https://resho.vasesdhonneursenegal.com/', key: 'resho' },
-];
-
-/** Capture desktop — WordPress mShots (gratuit, illimité, cache CDN). */
-const desktopShotUrl = (url: string) =>
-  `https://s.wp.com/mshots/v1/${encodeURIComponent(url)}?w=1280&h=820`;
-
-/** Capture mobile réelle — Microlink émule un vrai viewport mobile.
- *  `embed=screenshot.url` → l'API renvoie directement l'image (utilisable en <img src>). */
-const mobileShotUrl = (url: string) =>
-  `https://api.microlink.io/?url=${encodeURIComponent(url)}` +
-  `&screenshot=true&meta=false&embed=screenshot.url` +
-  `&viewport.isMobile=true&viewport.width=400&viewport.height=860`;
-
-/** Aperçu d'une plateforme avec interrupteur desktop / mobile. */
-function PlatformPreview({ url, domain, name, t }: { url: string; domain: string; name: string; t: TFunction }) {
-  const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  const switchTo = (d: 'desktop' | 'mobile') => {
-    if (d === device) return;
-    setLoaded(false);
-    setFailed(false);
-    setDevice(d);
-  };
-
-  const src =
-    device === 'desktop' ? desktopShotUrl(url) : mobileShotUrl(url);
-
-  /** Capture + skeleton + fallback — partagés entre les 2 mockups. */
-  const screenshot = (
-    <>
-      {!loaded && !failed && (
-        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900" />
-      )}
-      {failed ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900">
-          <span className="text-lg font-black text-neutral-400/70 dark:text-neutral-600 tracking-tight px-3 text-center">{domain}</span>
-        </div>
-      ) : (
-        <img
-          src={src}
-          alt={device === 'mobile' ? t('preview.mobileAlt', { name }) : t('preview.desktopAlt', { name })}
-          loading="lazy"
-          width={device === 'mobile' ? 400 : 1280}
-          height={device === 'mobile' ? 860 : 800}
-          onLoad={() => setLoaded(true)}
-          onError={() => setFailed(true)}
-          className={`w-full h-full object-cover object-top transition-opacity duration-700 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-        />
-      )}
-    </>
-  );
-
-  const toggleBtn = (d: 'desktop' | 'mobile', Icon: typeof Monitor, label: string) => (
-    <button
-      type="button"
-      onClick={() => switchTo(d)}
-      aria-pressed={device === d}
-      aria-label={t('preview.deviceAria', { label })}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-        device === d
-          ? theme.buttonSolid
-          : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
-      }`}
-    >
-      <Icon className="w-3.5 h-3.5" /> {label}
-    </button>
-  );
-
-  return (
-    <div>
-      {/* Interrupteur desktop / mobile */}
-      <div className="flex justify-end mb-3">
-        <div
-          role="group"
-          aria-label={t('preview.groupAria', { name })}
-          className="inline-flex items-center gap-0.5 p-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700"
-        >
-          {toggleBtn('desktop', Monitor, t('preview.desktopLabel'))}
-          {toggleBtn('mobile', Smartphone, t('preview.mobileLabel'))}
-        </div>
-      </div>
-
-      <AnimatePresence mode="wait" initial={false}>
-        {device === 'desktop' ? (
-          <motion.div
-            key="desktop"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700 shadow-lg shadow-neutral-900/5 dark:shadow-black/30 overflow-hidden transition-shadow duration-300 group-hover:shadow-xl"
-          >
-            {/* Chrome navigateur */}
-            <div className="flex items-center gap-2.5 px-4 py-2.5 bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200/80 dark:border-neutral-700">
-              <span className="flex gap-1.5 shrink-0" aria-hidden="true">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
-              </span>
-              <span className="flex-1 truncate text-center text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 bg-white dark:bg-neutral-900 rounded-md px-3 py-1 mx-2">
-                {domain}
-              </span>
-              <span className="w-9 shrink-0" aria-hidden="true" />
-            </div>
-            {/* Corps de fenêtre — capture desktop */}
-            <div className="aspect-[16/10] bg-neutral-50 dark:bg-neutral-900 relative">
-              {screenshot}
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="mobile"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="flex justify-center py-2"
-          >
-            {/* Mockup téléphone */}
-            <div className="relative w-[240px] max-w-full rounded-[2.2rem] bg-neutral-900 dark:bg-neutral-800 p-2.5 shadow-xl shadow-neutral-900/20 dark:shadow-black/40 transition-shadow duration-300 group-hover:shadow-2xl">
-              {/* Encoche */}
-              <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-1/3 h-5 bg-neutral-900 dark:bg-neutral-800 rounded-b-2xl z-10" />
-              {/* Écran — capture mobile */}
-              <div className="aspect-[9/19.5] rounded-[1.6rem] overflow-hidden bg-neutral-50 dark:bg-neutral-900 relative">
-                {screenshot}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 type Experience = {
   company: string;
@@ -228,106 +82,142 @@ const experiences: Experience[] = [
   },
 ];
 
-const milestones = [
+/**
+ * La frise « Mon parcours » — chronologie UNIQUE de la page.
+ *
+ * `experienceKey` relie un jalon à une entrée d'`experiences` : le jalon devient alors
+ * dépliable et révèle les missions du poste.
+ *
+ * ⚠️ Il existait auparavant DEUX sections chronologiques — « Expériences professionnelles »
+ * et « Parcours » — qui listaient les 4 mêmes employeurs sur la même période. Les jalons
+ * professionnels absorbent désormais le détail : une seule chronologie, une seule ancre.
+ * Ne pas réintroduire une section d'expériences séparée.
+ */
+const milestones: { year: string; key: string; experienceKey?: string }[] = [
   { year: '2014', key: 'm2014' },
   { year: '2017', key: 'm2017' },
   { year: '2018', key: 'm2018' },
   { year: '2020', key: 'm2020' },
   { year: '2021', key: 'm2021' },
-  { year: '2023', key: 'm2023Onoma' },
+  { year: '2023', key: 'm2023Onoma', experienceKey: 'myOnoma' },
   { year: '2023', key: 'm2023Master' },
-  { year: '2024 — Janv.', key: 'm2024Jan' },
-  { year: '2024 — Mai', key: 'm2024May' },
-  { year: '2025 — Avril', key: 'm2025Apr' },
+  { year: '2024 — Janv.', key: 'm2024Jan', experienceKey: 'eyone' },
+  { year: '2024 — Mai', key: 'm2024May', experienceKey: 'academieLight' },
+  { year: '2025 — Avril', key: 'm2025Apr', experienceKey: 'messagesDeVie' },
   { year: '2025', key: 'm2025' },
 ];
 
 const sectionNav = [
   { id: 'impact', key: 'impact' },
   { id: 'expertise', key: 'expertise' },
-  { id: 'plateformes', key: 'plateformes' },
-  { id: 'experiences', key: 'experiences' },
   { id: 'parcours', key: 'parcours' },
 ];
 
-/** Une étape de la frise « Mon parcours ». */
-function MilestoneRow({ m, t }: { m: (typeof milestones)[number]; t: TFunction }) {
-  return (
-    <div className="relative pl-10">
-      <span
-        className="absolute left-2 top-1.5 -translate-x-1/2 w-3 h-3 rounded-full bg-morrys-500 ring-4 ring-neutral-50 dark:ring-neutral-900"
-        aria-hidden="true"
-      />
+/**
+ * Une étape de la frise « Mon parcours ».
+ *
+ * Un jalon portant un `experienceKey` devient dépliable et révèle les missions du poste —
+ * c'est ce qui a permis de supprimer la section « Expériences professionnelles » sans rien
+ * perdre. Les autres jalons restent des repères simples, non interactifs.
+ *
+ * Le mécanisme d'accordéon (`grid-rows-[1fr]/[0fr]`, `aria-expanded`, `aria-controls`) est
+ * repris tel quel de l'ancienne section : il fonctionnait et il était accessible.
+ */
+function MilestoneRow({
+  m, t, open, onToggle,
+}: {
+  m: (typeof milestones)[number];
+  t: TFunction;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const experience = m.experienceKey ? experiences.find((e) => e.key === m.experienceKey) : undefined;
+
+  const head = (
+    <>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1.5">
         <span className={`text-sm font-black tracking-tight ${theme.accentText}`}>{t(`milestones.${m.key}.year`)}</span>
         <span className="text-[11px] font-bold tracking-wider uppercase text-morrys-500 dark:text-morrys-400">{t(`milestones.${m.key}.lieu`)}</span>
       </div>
       <h3 className="text-lg font-black text-neutral-900 dark:text-white mb-1">{t(`milestones.${m.key}.title`)}</h3>
       <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">{t(`milestones.${m.key}.desc`)}</p>
+    </>
+  );
+
+  return (
+    <div className="relative pl-10">
+      <span
+        className="absolute left-2 top-1.5 -translate-x-1/2 w-3 h-3 rounded-full bg-morrys-500 ring-4 ring-neutral-50 dark:ring-neutral-900"
+        aria-hidden="true"
+      />
+
+      {experience ? (
+        <>
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={open}
+            aria-controls={`milestone-panel-${m.key}`}
+            className="w-full text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-morrys-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900 rounded"
+          >
+            {head}
+            <span className={`inline-flex items-center gap-1.5 mt-3 text-sm font-bold ${theme.accentText}`}>
+              {open ? t('parcours.hideMissions') : t('parcours.showMissions')}
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </span>
+          </button>
+
+          <div
+            id={`milestone-panel-${m.key}`}
+            className={`grid transition-all duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100 mt-5' : 'grid-rows-[0fr] opacity-0'}`}
+          >
+            <div className="overflow-hidden">
+              <div className="rounded-2xl bg-white dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 p-5 sm:p-6">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-4">
+                  <experience.icon className={`w-5 h-5 ${theme.accentText}`} aria-hidden="true" />
+                  <p className="font-bold text-neutral-900 dark:text-white">{t(`experiences.${experience.key}.role`)}</p>
+                  <span className="text-xs font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400">
+                    {t(`experiences.${experience.key}.period`)}
+                  </span>
+                </div>
+                <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-6">{t(`experiences.${experience.key}.intro`)}</p>
+                <div className="space-y-6">
+                  {experience.blockKeys.map((blockKey) => {
+                    const bullets = t(`experiences.${experience.key}.blocks.${blockKey}.bullets`, { returnObjects: true }) as string[];
+                    return (
+                      <div key={blockKey}>
+                        <h4 className={`font-black text-sm uppercase tracking-wider ${theme.eyebrow} mb-3`}>
+                          {t(`experiences.${experience.key}.blocks.${blockKey}.title`)}
+                        </h4>
+                        <ul className="space-y-2">
+                          {bullets.map((b, j) => (
+                            <li key={j} className="flex items-start gap-3 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                              <CheckCircle className="w-4 h-4 text-morrys-500 dark:text-morrys-400 shrink-0 mt-0.5" aria-hidden="true" />
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        head
+      )}
     </div>
   );
 }
 
 export default function About() {
   const { t } = useTranslation('about');
-  const [openExperience, setOpenExperience] = useState<number | null>(0);
+  /** Jalon dont les missions sont dépliées. `null` : aucun — la frise s'ouvre fermée. */
+  const [openMilestone, setOpenMilestone] = useState<string | null>(null);
   const [showAllMilestones, setShowAllMilestones] = useState(false);
   const [activeSection, setActiveSection] = useState('impact');
-
-  // Carrousel Plateformes
-  const trackRef = useRef<HTMLDivElement>(null);
-  const carouselWrapRef = useRef<HTMLDivElement>(null);
-  const [atStart, setAtStart] = useState(true);
-  const [atEnd, setAtEnd] = useState(false);
-  const [carouselPaused, setCarouselPaused] = useState(false);
-  const [carouselInView, setCarouselInView] = useState(false);
-
-  const updateArrows = () => {
-    const el = trackRef.current;
-    if (!el) return;
-    setAtStart(el.scrollLeft <= 8);
-    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 8);
-  };
-  const scrollCarousel = (dir: -1 | 1) => {
-    const el = trackRef.current;
-    if (el) el.scrollBy({ left: dir * el.clientWidth, behavior: 'smooth' });
-  };
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    updateArrows();
-    el.addEventListener('scroll', updateArrows, { passive: true });
-    window.addEventListener('resize', updateArrows);
-    return () => {
-      el.removeEventListener('scroll', updateArrows);
-      window.removeEventListener('resize', updateArrows);
-    };
-  }, []);
-
-  // Le carrousel ne s'anime que lorsque la section est visible à l'écran
-  useEffect(() => {
-    const el = carouselWrapRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => setCarouselInView(entry.isIntersecting),
-      { threshold: 0.3 }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  // Défilement automatique du carrousel (pause au survol / focus / hors-écran / reduced-motion)
-  useEffect(() => {
-    if (carouselPaused || !carouselInView) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const id = setInterval(() => {
-      const el = trackRef.current;
-      if (!el) return;
-      const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
-      el.scrollBy({ left: end ? -el.scrollLeft : el.clientWidth, behavior: 'smooth' });
-    }, 4500);
-    return () => clearInterval(id);
-  }, [carouselPaused, carouselInView]);
 
   // Scroll-spy pour le menu d'ancrage
   useEffect(() => {
@@ -424,8 +314,8 @@ export default function About() {
                 <LocalizedLink to="/contact" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} text-sm font-bold rounded-full hover:-translate-y-0.5 active:scale-[0.97] hover:shadow-lg hover:shadow-morrys-600/25 transition-all duration-300 tracking-wide`}>
                   {t('hero.ctaWork')} <ArrowRight className="w-4 h-4" />
                 </LocalizedLink>
-                <a href="#experiences" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-neutral-300 text-neutral-700 dark:border-neutral-600 dark:text-neutral-200 text-sm font-bold rounded-full hover:bg-white dark:hover:bg-neutral-800 hover:-translate-y-0.5 transition-all duration-300 tracking-wide">
-                  {t('hero.ctaExperiences')}
+                <a href="#parcours" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-neutral-300 text-neutral-700 dark:border-neutral-600 dark:text-neutral-200 text-sm font-bold rounded-full hover:bg-white dark:hover:bg-neutral-800 hover:-translate-y-0.5 transition-all duration-300 tracking-wide">
+                  {t('hero.ctaParcours')}
                 </a>
               </motion.div>
             </motion.div>
@@ -477,7 +367,7 @@ export default function About() {
       </section>
 
       {/* ── MENU D'ANCRAGE STICKY ── */}
-      <nav className="sticky top-16 lg:top-[68px] z-30 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border-y border-neutral-200/80 dark:border-neutral-800">
+      <nav className="sticky top-[var(--header-h)] z-30 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border-y border-neutral-200/80 dark:border-neutral-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
           <ul className="flex justify-start lg:justify-center gap-1.5 sm:gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {sectionNav.map((s, i) => {
@@ -618,205 +508,8 @@ export default function About() {
         </div>
       </motion.section>
 
-      {/* ── 4. PLATEFORMES ── */}
-      <motion.section
-        id="plateformes"
-        className="py-24 bg-white dark:bg-neutral-950 scroll-mt-32"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-4">
-              {t('platformsSection.heading')}
-            </h2>
-            <p className="text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto">
-              {t('platformsSection.desc')}
-            </p>
-          </div>
-          <div
-            ref={carouselWrapRef}
-            className="relative"
-            onMouseEnter={() => setCarouselPaused(true)}
-            onMouseLeave={() => setCarouselPaused(false)}
-            onFocusCapture={() => setCarouselPaused(true)}
-            onBlurCapture={() => setCarouselPaused(false)}
-            onTouchStart={() => setCarouselPaused(true)}
-          >
-            {/* Flèche précédente */}
-            <button
-              type="button"
-              onClick={() => scrollCarousel(-1)}
-              disabled={atStart}
-              aria-label={t('platformsSection.prevAria')}
-              className="hidden sm:flex absolute -left-3 lg:-left-5 top-1/2 -translate-y-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-lg text-neutral-700 dark:text-neutral-200 transition-all hover:bg-morrys-600 hover:text-white hover:border-morrys-600 disabled:opacity-0 disabled:pointer-events-none"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            {/* Flèche suivante */}
-            <button
-              type="button"
-              onClick={() => scrollCarousel(1)}
-              disabled={atEnd}
-              aria-label={t('platformsSection.nextAria')}
-              className="hidden sm:flex absolute -right-3 lg:-right-5 top-1/2 -translate-y-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-lg text-neutral-700 dark:text-neutral-200 transition-all hover:bg-morrys-600 hover:text-white hover:border-morrys-600 disabled:opacity-0 disabled:pointer-events-none"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
 
-            {/* Dégradés de bord — suggèrent le défilement */}
-            <div
-              aria-hidden="true"
-              className={`pointer-events-none absolute left-0 top-0 bottom-4 z-[5] w-12 sm:w-20 bg-gradient-to-r from-white dark:from-neutral-950 to-transparent transition-opacity duration-300 ${
-                atStart ? 'opacity-0' : 'opacity-100'
-              }`}
-            />
-            <div
-              aria-hidden="true"
-              className={`pointer-events-none absolute right-0 top-0 bottom-4 z-[5] w-12 sm:w-20 bg-gradient-to-l from-white dark:from-neutral-950 to-transparent transition-opacity duration-300 ${
-                atEnd ? 'opacity-0' : 'opacity-100'
-              }`}
-            />
-
-            {/* Piste défilante */}
-            <div
-              ref={trackRef}
-              tabIndex={0}
-              className="flex gap-6 lg:gap-8 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {platforms.map((p) => (
-                <div
-                  key={p.name}
-                  className="group snap-start shrink-0 w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(50%-1rem)]"
-                >
-                  <PlatformPreview url={p.url} domain={p.domain} name={p.name} t={t} />
-                  <div className="mt-5 px-1">
-                    <span className={`text-[11px] font-bold tracking-wider uppercase ${theme.eyebrow}`}>{t(`platforms.${p.key}.tag`)}</span>
-                    <h3 className="font-black text-lg text-neutral-900 dark:text-white mt-1.5 mb-1">{p.name}</h3>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">{t(`platforms.${p.key}.desc`)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Indication de défilement */}
-          <p
-            className={`flex items-center justify-center gap-1.5 text-center text-xs font-medium text-neutral-400 dark:text-neutral-500 mt-3 transition-opacity duration-300 ${
-              atEnd ? 'opacity-0' : 'opacity-100'
-            }`}
-          >
-            <span className="sm:hidden">{t('platformsSection.scrollHintMobile')}</span>
-            <span className="hidden sm:inline">{t('platformsSection.scrollHintDesktop')}</span>
-            <ChevronRight className="w-3.5 h-3.5 animate-pulse" />
-          </p>
-        </div>
-      </motion.section>
-
-      {/* ── 5. EXPÉRIENCES PROFESSIONNELLES ── */}
-      <motion.section
-        id="experiences"
-        className="py-24 bg-neutral-50 dark:bg-neutral-900 scroll-mt-32"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-14">
-            <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-5`}>
-              {t('experiencesSection.eyebrow')}
-            </p>
-            <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-4">
-              {t('experiencesSection.heading')}
-            </h2>
-            <p className="text-neutral-500 dark:text-neutral-400 max-w-2xl">
-              {t('experiencesSection.desc')}
-            </p>
-          </div>
-
-          <motion.div
-            className="space-y-4"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-          >
-            {experiences.map((exp, idx) => {
-              const open = openExperience === idx;
-              return (
-                <motion.div
-                  key={exp.company}
-                  variants={staggerItem}
-                  className="bg-white dark:bg-neutral-950 rounded-2xl border border-neutral-100 dark:border-neutral-800 overflow-hidden"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setOpenExperience(open ? null : idx)}
-                    aria-expanded={open}
-                    aria-controls={`exp-panel-${idx}`}
-                    className="w-full grid sm:grid-cols-[3.5rem_1fr_auto_auto] grid-cols-[3rem_1fr_auto] items-center gap-4 sm:gap-6 p-5 sm:p-6 text-left hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors"
-                  >
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-morrys-50 dark:bg-morrys-900/30 flex items-center justify-center shrink-0">
-                      <exp.icon className={`w-6 h-6 ${theme.accentText}`} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
-                        <h3 className="font-black text-lg sm:text-xl text-neutral-900 dark:text-white">{exp.company}</h3>
-                        <span className={`text-[11px] font-bold tracking-wider uppercase ${theme.eyebrow}`}>{t(`experiences.${exp.key}.location`)}</span>
-                      </div>
-                      <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 font-medium">{t(`experiences.${exp.key}.role`)}</p>
-                    </div>
-                    <p className="hidden sm:block text-xs font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 whitespace-nowrap">{t(`experiences.${exp.key}.period`)}</p>
-                    <ChevronDown
-                      className={`w-5 h-5 text-neutral-400 dark:text-neutral-500 shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-
-                  <div
-                    id={`exp-panel-${idx}`}
-                    className={`grid transition-all duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="px-5 sm:px-6 pb-7 pt-1">
-                        <div className="grid sm:grid-cols-[3.5rem_1fr] sm:gap-6">
-                          <div className="hidden sm:block" />
-                          <div>
-                            <p className="sm:hidden text-xs font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mb-4">{t(`experiences.${exp.key}.period`)}</p>
-                            <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-6">{t(`experiences.${exp.key}.intro`)}</p>
-                            <div className="space-y-6">
-                              {exp.blockKeys.map((blockKey) => {
-                                const bullets = t(`experiences.${exp.key}.blocks.${blockKey}.bullets`, { returnObjects: true }) as string[];
-                                return (
-                                <div key={blockKey}>
-                                  <h4 className={`font-black text-sm uppercase tracking-wider ${theme.eyebrow} mb-3`}>{t(`experiences.${exp.key}.blocks.${blockKey}.title`)}</h4>
-                                  <ul className="space-y-2">
-                                    {bullets.map((b, j) => (
-                                      <li key={j} className="flex items-start gap-3 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                                        <CheckCircle className="w-4 h-4 text-morrys-500 dark:text-morrys-400 shrink-0 mt-0.5" />
-                                        <span>{b}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* ── 6. STACK & OUTILS (rupture sombre) ── */}
+      {/* ── 5. STACK & OUTILS (rupture sombre) ── */}
       <motion.section
         className="py-16 bg-neutral-950 dark:bg-black"
         variants={slideUp}
@@ -899,7 +592,7 @@ export default function About() {
         </div>
       </motion.section>
 
-      {/* ── 8. PARCOURS (narrative + timeline fusionnés) ── */}
+      {/* ── 7. PARCOURS (narrative + timeline fusionnés) ── */}
       <motion.section
         id="parcours"
         className="py-24 lg:py-32 bg-neutral-50 dark:bg-neutral-900 scroll-mt-32"
@@ -957,7 +650,13 @@ export default function About() {
               <div className="overflow-hidden">
                 <div className="space-y-8 mb-8">
                   {milestones.slice(0, 5).map((m) => (
-                    <MilestoneRow key={m.key} m={m} t={t} />
+                    <MilestoneRow
+                      key={m.key}
+                      m={m}
+                      t={t}
+                      open={openMilestone === m.key}
+                      onToggle={() => setOpenMilestone(openMilestone === m.key ? null : m.key)}
+                    />
                   ))}
                 </div>
               </div>
@@ -966,9 +665,66 @@ export default function About() {
             {/* Étapes récentes (depuis 2023) — toujours visibles */}
             <div className="space-y-8">
               {milestones.slice(5).map((m) => (
-                <MilestoneRow key={m.key} m={m} t={t} />
+                <MilestoneRow
+                      key={m.key}
+                      m={m}
+                      t={t}
+                      open={openMilestone === m.key}
+                      onToggle={() => setOpenMilestone(openMilestone === m.key ? null : m.key)}
+                    />
               ))}
             </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ── 8. AU-DELÀ DE LA MARQUE PERSONNELLE ──
+          Section volontairement courte. MY ONOMA n'est pas une co-marque de ce site : elle
+          apparaît quand la structure a besoin d'être claire, et pas davantage.
+          ⚠️ Aucun rôle ni titre de Max-Morrys au sein de MY ONOMA n'est publié : cette
+          information n'est pas validée. Voir docs/CONTENT-TODO.md §4. */}
+      <motion.section
+        className="py-20 lg:py-24 bg-neutral-950 text-white"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-xs font-bold tracking-[0.35em] uppercase text-lagoon-400 mb-5">
+            {t('beyond.eyebrow')}
+          </p>
+          <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-balance mb-5">
+            {t('beyond.heading')}
+          </h2>
+          <p className="text-neutral-300 leading-relaxed max-w-2xl">{t('beyond.desc')}</p>
+
+          <ul className="mt-10 grid gap-4 sm:grid-cols-3">
+            {pillars.map((pillar) => (
+              <li key={pillar} className="rounded-2xl border border-neutral-800 p-5">
+                <span className="text-sm font-black tracking-[0.2em] text-white">{pillar}</span>
+                <p className="mt-2 text-sm text-neutral-400 leading-relaxed">
+                  {t(`beyond.pillars.${pillar.toLowerCase()}`)}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-10 flex flex-col sm:flex-row gap-6 sm:items-center">
+            <a
+              href={corporateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 font-semibold text-lagoon-400 hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-400 rounded"
+            >
+              {t('beyond.cta')} <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </a>
+            <LocalizedLink
+              to="/agence"
+              className="inline-flex items-center gap-2 font-semibold text-white hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+            >
+              {t('beyond.ctaAgency')} <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </LocalizedLink>
           </div>
         </div>
       </motion.section>

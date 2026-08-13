@@ -17,11 +17,18 @@
  * | videos      | Rouge         | red      |
  * | about       | Violet        | morrys   |
  * | club        | Violet        | plum     |
+ * | agency      | Turquoise     | lagoon   |
+ *
+ * ⚠️ `agency` DÉVIE de la convention : les autres univers utilisent la teinte `-600` pour le
+ * texte et les boutons pleins. `lagoon-600` ne plafonne qu'à 3,9:1 sur blanc et `lagoon-500`
+ * à 2,6:1 — tous deux sous le seuil WCAG AA (4,5:1). Cet univers utilise donc `-700` (5,7:1).
+ * La couleur de marque #00B4A4 (lagoon-500) reste visible en APLAT avec texte foncé dessus
+ * (8,1:1) et en texte de mode sombre via `-400`. Ne pas « corriger » vers `-600`.
  */
 
 import { toCanonicalPath } from '../i18n/routing';
 
-export type Universe = 'formations' | 'blog' | 'podcasts' | 'videos' | 'about' | 'club';
+export type Universe = 'formations' | 'blog' | 'podcasts' | 'videos' | 'about' | 'club' | 'agency';
 
 export interface UniverseTheme {
   /** nom de la palette Tailwind de base */
@@ -44,6 +51,12 @@ export interface UniverseTheme {
   focusRing: string;
   /** couleur d'un loader / spinner */
   spinner: string;
+  /**
+   * Aplat de la couleur de marque pleine, AVEC texte foncé dessus (jamais blanc).
+   * Optionnel : seuls les univers dont la teinte phare est trop claire pour porter du
+   * texte blanc en définissent un. C'est la signature visuelle de la section.
+   */
+  signatureFill?: string;
 }
 
 export const universeThemes: Record<Universe, UniverseTheme> = {
@@ -119,6 +132,21 @@ export const universeThemes: Record<Universe, UniverseTheme> = {
     focusRing: 'focus:ring-plum-500/20 focus:border-plum-500',
     spinner: 'text-plum-500',
   },
+  agency: {
+    palette: 'lagoon',
+    eyebrow: 'text-lagoon-700 dark:text-lagoon-400',
+    accentText: 'text-lagoon-700 dark:text-lagoon-400',
+    sectionBg: 'bg-lagoon-50 dark:bg-neutral-900',
+    softBadge: 'bg-lagoon-50 dark:bg-lagoon-900/30 text-lagoon-800 dark:text-lagoon-300',
+    buttonSolid: 'bg-lagoon-700 hover:bg-lagoon-800 active:bg-lagoon-900 text-white',
+    titleHover: 'group-hover:text-lagoon-700 dark:group-hover:text-lagoon-400',
+    borderHover: 'group-hover:border-lagoon-500 dark:group-hover:border-lagoon-400',
+    focusRing: 'focus:ring-lagoon-500/20 focus:border-lagoon-500',
+    // -600 et non -500 : un indicateur de chargement est un composant non textuel, seuil 3:1.
+    // lagoon-500 plafonne à 2,6:1 sur blanc et serait donc invisible pour certains utilisateurs.
+    spinner: 'text-lagoon-600',
+    signatureFill: 'bg-lagoon-500 text-neutral-900',
+  },
 };
 
 /** Déduit l'univers d'une route. Défaut : `formations` (couleur primaire). */
@@ -130,5 +158,9 @@ export function universeFromPath(rawPath: string): Universe {
   if (path.startsWith('/videos')) return 'videos';
   if (path.startsWith('/club')) return 'club';
   if (path.startsWith('/a-propos')) return 'about';
+  // `/agence` (Max-Morrys Agency) et `/presence-digitale` (Digital Commerce Local) sont deux
+  // offres distinctes, mais partagent l'univers turquoise : ce sont les deux surfaces
+  // commerciales du site. Voir `docs/AGENCY-POSITIONING.md §9`.
+  if (path.startsWith('/agence') || path.startsWith('/presence-digitale')) return 'agency';
   return 'formations';
 }

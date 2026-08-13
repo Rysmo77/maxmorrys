@@ -1,0 +1,296 @@
+{
+  "updatedAt": "2026-07-04T22:35:29.576Z",
+  "createdAt": "2026-07-04T21:50:40.970Z",
+  "id": "1X9KnrQSHw8NE1x0",
+  "name": "WF-SOCIAL-02 — Planification",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 20 * * 0"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cron-cron-—-dimanche-20h",
+      "name": "Cron — Dimanche 20h"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": false,
+        "limit": 100,
+        "options": {
+          "where": "(Status,eq,idée)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        256,
+        0
+      ],
+      "id": "at-s-airtable---lire-idéesn",
+      "name": "Airtable — Lire idées (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "at-s-airtable---lire-idéesf",
+      "name": "Airtable — Lire idées",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        446,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Planifie jusqu'à 21 contenus (3 slots × 7 jours) avec répartition équilibrée par réseau.\n// Slots 9h / 13h / 18h UTC (= Dakar GMT+0). Préfère 1 post/réseau/jour mais accepte surplus si nécessaire.\n\nconst all = $input.all().map(i => i.json);\n// Tri par createdTime asc\nall.sort((a, b) => (a.createdTime || '').localeCompare(b.createdTime || ''));\n\nconst SLOTS = [9, 13, 18];\nconst DAYS = 7;\n\n// Helper pour extraire le réseau (fallback sur ancien schema)\nfunction getReseau(item) {\n  if (item.Reseau) return String(item.Reseau).toLowerCase();\n  if (item.Plateforme_Principale) {\n    const m = { facebook:'fb', instagram:'ig', tiktok:'tiktok', youtube:'youtube', linkedin:'linkedin', twitter:'x' };\n    return m[String(item.Plateforme_Principale).toLowerCase()] || 'linkedin';\n  }\n  if (Array.isArray(item.Reseaux_Cibles) && item.Reseaux_Cibles.length) {\n    return String(item.Reseaux_Cibles[0]).toLowerCase();\n  }\n  return 'linkedin';\n}\n\n// On prend tous les items (la limite vient du nombre de slots dispo)\nconst queue = all.slice();\n\n// Construire la grille 7j × 3 slots\nconst grid = [];\nfor (let d = 1; d <= DAYS; d++) {\n  for (const h of SLOTS) {\n    grid.push({ day: d, hour: h, reseaux: [] });\n  }\n}\nconst MAX = grid.length; // 21\n\nconst now = new Date();\nconst results = [];\nconst usedSlots = new Set();\n\nfor (const item of queue) {\n  if (results.length >= MAX) break;\n  const r = getReseau(item);\n\n  // Pass 1 : trouver un slot libre où ce réseau n'a PAS encore posté ce jour-là\n  let chosen = -1;\n  for (let i = 0; i < grid.length; i++) {\n    if (usedSlots.has(i)) continue;\n    // Vérifier si un autre slot du même jour a déjà ce réseau\n    const sameDayHasReseau = grid.some((g, gi) => g.day === grid[i].day && g.reseaux.includes(r));\n    if (!sameDayHasReseau) { chosen = i; break; }\n  }\n  // Pass 2 : n'importe quel slot libre (fallback si saturation mono-réseau)\n  if (chosen === -1) {\n    for (let i = 0; i < grid.length; i++) {\n      if (!usedSlots.has(i)) { chosen = i; break; }\n    }\n  }\n  if (chosen === -1) break; // grille pleine\n\n  usedSlots.add(chosen);\n  grid[chosen].reseaux.push(r);\n\n  const d = new Date(now);\n  d.setUTCDate(now.getUTCDate() + grid[chosen].day);\n  d.setUTCHours(grid[chosen].hour, 0, 0, 0);\n\n  results.push({ json: {\n    id: item.id,\n    Status: 'planifié',\n    Date_Publication_Prevue: d.toISOString()\n  }});\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        0
+      ],
+      "id": "code-planifier---assigner-dates",
+      "name": "Planifier — Assigner dates"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $json.id }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "={{ $json.Status }}",
+            "Date_Publication_Prevue": "={{ $json.Date_Publication_Prevue }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        752,
+        0
+      ],
+      "id": "at-u-airtable---status=planifié",
+      "name": "Airtable — Status=planifié",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "934156307",
+        "text": "*WF-SOCIAL-02* — Planning hebdo généré ✅\n`{{ $items('Planifier — Assigner dates').length }}` contenus planifiés sur 7 jours.\nSlots : 09h / 13h / 18h UTC, max 1 post/plateforme/jour.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "tg-telegram---planning-fait",
+      "name": "Telegram — Planning fait",
+      "webhookId": "41723357-e4ca-4674-b2f0-c6ed114628e6",
+      "credentials": {
+        "telegramApi": {
+          "id": "k1sYsv0qUTCbCfRN",
+          "name": "Max-Morrys LMS Notifications Telegram"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c-has-items",
+              "leftValue": "={{ $items().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "if-has-planned",
+      "name": "IF — Planifié > 0"
+    }
+  ],
+  "connections": {
+    "Cron — Dimanche 20h": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire idées (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire idées": {
+      "main": [
+        [
+          {
+            "node": "Planifier — Assigner dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Planifier — Assigner dates": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Status=planifié",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Status=planifié": {
+      "main": [
+        [
+          {
+            "node": "IF — Planifié > 0",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF — Planifié > 0": {
+      "main": [
+        [
+          {
+            "node": "Telegram — Planning fait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Airtable — Lire idées (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire idées",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron — Dimanche 20h": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "455107ed-3995-47c2-b6fc-cd2b048c3aea",
+  "activeVersionId": null,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-07-04T21:50:40.970Z",
+      "createdAt": "2026-07-04T21:50:40.970Z",
+      "role": "workflow:owner",
+      "workflowId": "1X9KnrQSHw8NE1x0",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

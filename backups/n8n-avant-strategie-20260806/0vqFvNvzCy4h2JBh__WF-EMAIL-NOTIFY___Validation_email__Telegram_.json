@@ -1,0 +1,322 @@
+{
+  "updatedAt": "2026-06-28T21:39:56.338Z",
+  "createdAt": "2026-06-28T21:39:56.338Z",
+  "id": "0vqFvNvzCy4h2JBh",
+  "name": "WF-EMAIL-NOTIFY — Validation email (Telegram)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "name": "Cron — 15 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/15 7-22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "719b2c35-9b4d-4bfb-938f-b601449a305f"
+    },
+    {
+      "name": "Airtable — Lire Config (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        240,
+        140
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,TELEGRAM_BOT_TOKEN)~or(Cle,eq,TELEGRAM_CHAT_ID)~or(Cle,eq,BREVO_LIST_ID)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "cda6a9a-2ffd-4205-bea6-78402cf13509n"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "cda6a9a-2ffd-4205-bea6-78402cf13509f",
+      "name": "Airtable — Lire Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        430,
+        140
+      ]
+    },
+    {
+      "name": "Airtable — Emails à valider (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        240,
+        -60
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ml6zyrbi30de7d4",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Status,eq,prêt_à_valider)~and(TG_MsgId,is,blank)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "fc9ebf2-9468-41e3-8c2f-9f1520f87026n"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "fc9ebf2-9468-41e3-8c2f-9f1520f87026f",
+      "name": "Airtable — Emails à valider",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        430,
+        -60
+      ]
+    },
+    {
+      "name": "Build — Notif",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        40
+      ],
+      "parameters": {
+        "jsCode": "const cfg={};for(const r of $('Airtable — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nconst token=cfg.TELEGRAM_BOT_TOKEN,chatId=cfg.TELEGRAM_CHAT_ID;\nconst out=[];\nfor(const it of $('Airtable — Emails à valider').all()){\n  const e=it.json;\n  const text=`📧 *Email à valider*\\n\\n*Objet :* ${e.Subject||'(sans objet)'}\\n\\n${(e.Preview||'').slice(0,500)}\\n\\n_Liste : ${e.ListId||cfg.BREVO_LIST_ID}_`;\n  const reply_markup={inline_keyboard:[[{text:'✅ Approuver',callback_data:`approve:email:${e.id}`},{text:'❌ Rejeter',callback_data:`reject:email:${e.id}`}]]};\n  out.push({json:{recordId:e.id,token,body:{chat_id:chatId,text,parse_mode:'Markdown',reply_markup}}});\n}\nreturn out;\n"
+      },
+      "id": "1fc1f496-010c-4664-b7e6-587e7bf63d7d"
+    },
+    {
+      "name": "HTTP — Telegram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        40
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "id": "641e8c97-2d84-4f25-a6c9-454e01e4f228"
+    },
+    {
+      "name": "Airtable — Marquer notifié",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1080,
+        40
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ml6zyrbi30de7d4",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Build — Notif').item.json.recordId }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "TG_MsgId": "={{ $json.result.message_id }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "3c5b192c-5e34-4cc0-84b5-0be689687c8e"
+    }
+  ],
+  "connections": {
+    "Cron — 15 min": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config (NocoDB)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — Emails à valider (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Build — Notif",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Emails à valider": {
+      "main": [
+        [
+          {
+            "node": "Build — Notif",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build — Notif": {
+      "main": [
+        [
+          {
+            "node": "HTTP — Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP — Telegram": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Marquer notifié",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Emails à valider (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Emails à valider",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Cron — 15 min": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "bd2f501e-fc41-470b-a279-3a879e3ccbdb",
+  "activeVersionId": null,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-07-09T16:29:45.728Z",
+      "createdAt": "2026-07-09T16:29:45.728Z",
+      "role": "workflow:owner",
+      "workflowId": "0vqFvNvzCy4h2JBh",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

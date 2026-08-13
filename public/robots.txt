@@ -5,4 +5,11 @@ Disallow: /mon-espace
 Disallow: /checkout
 Disallow: /paiement
 Disallow: /403
+# Équivalents anglais — l'arbre de routes est monté deux fois, les chemins /en/ existent
+# réellement et étaient jusqu'ici indexables.
+Disallow: /en/admin
+Disallow: /en/my-space
+Disallow: /en/checkout
+Disallow: /en/payment
+Disallow: /en/403
 Sitemap: https://maxmorrys.me/sitemap.xml

@@ -5,8 +5,8 @@ calendrier éditorial, contenu, réseaux sociaux, SEO/veille, blog, email, Whats
 service client, analytics. Modelé sur la flotte khanouss, adapté au business ed-tech (Formations /
 Club Digitos / Rysmo, Afrique francophone) et à l'infra réelle maxmorrys.
 
-**Architecture** : Paperclip (le cerveau / org chart) · n8n `WF-*` (les mains) · Airtable
-`apppkEbepilHCYiso` (la mémoire) · Telegram `@MaxMorrys_notif_bot` (le garde-fou) ·
+**Architecture** : Paperclip (le cerveau / org chart) · n8n `WF-*` (les mains) · **NocoDB**
+`ph7ugup4mggzj2y` (la mémoire, depuis la migration du 2026-08-06) · Telegram `@MaxMorrys_notif_bot` (le garde-fou) ·
 `renderSocialCard` + Gemini (les créas) · Meta/TikTok/YouTube/LinkedIn/X + Brevo + WhatsApp (les canaux).
 
 ## Contenu de ce dossier

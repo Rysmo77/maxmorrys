@@ -1,7 +1,7 @@
 # Runbook — Flotte d'agents IA maxmorrys (marketing social)
 
 Doc de pilotage. Architecture : **Paperclip** (cerveau / 9 agents) · **n8n** (workflows `WF-*` = les
-mains) · **Airtable** `apppkEbepilHCYiso` (mémoire) · **Telegram** `@MaxMorrys_notif_bot` (garde-fou) ·
+mains) · **NocoDB** `ph7ugup4mggzj2y` (mémoire, depuis la migration du 2026-08-06) · **Telegram** `@MaxMorrys_notif_bot` (garde-fou) ·
 `renderSocialCard` + Gemini (créas) · canaux Meta/TikTok/YouTube/LinkedIn/X + Brevo + WhatsApp.
 
 ## La commande (idempotente)
@@ -13,12 +13,12 @@ node paperclip/setup-maxmorrys-org.mjs --apply --activate-routines             #
 Config & secrets : `paperclip/secrets.local.json` (**gitignoré**).
 
 ## Le garde-fou (règle d'or)
-Aucune action sortante ne part sans **✅ Telegram**. Flux **piloté par l'état Airtable** :
+Aucune action sortante ne part sans **✅ Telegram**. Flux **piloté par l'état en base (NocoDB)** :
 `agent pose Statut='prêt_à_valider' → WF-*-NOTIFY (Telegram [✅ ❌]) → (sur ✅) WF-TG-ROUTER passe à 'validé' → WF-*-SEND/PUBLISH`.
 Les agents ne passent JAMAIS un `Statut` à `validé`/`publié`. Publication = **double garde** :
 approbation **et** `PUBLISH_ENABLED=true` (+ WF-SOCIAL-05 actif).
 
-## Pipeline social (table `Contenus` `tblPYoyzcZLdtBTO3`, champ `Statut`)
+## Pipeline social (table `Contenus` `m3wim4coagaoot7`, champ `Status`)
 `idée → planifié → rédigé → visuel prêt → prêt_à_valider → (✅) → validé → publié`
 
 | Étape | Workflow | Agent responsable |

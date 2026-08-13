@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { localizedPath } from '../../i18n/routing';
 import { useToast } from '../../components/ui/Toast';
 import { localizeAuthError } from '../../lib/auth-errors';
 import { updateUserProfile, getUserById } from '../../lib/firestore';
@@ -36,6 +38,7 @@ export default function Register() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { signUp, signInWithGoogle } = useAuth();
+  const { language } = useLanguage();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -71,7 +74,7 @@ export default function Register() {
       await signUp(email, password, name);
       await captureReferral();
       addToast('success', t('register.successToast'));
-      navigate('/mon-espace');
+      navigate(localizedPath('/mon-espace', language));
     } catch (error: unknown) {
       addToast('error', localizeAuthError(error, t));
     }
@@ -84,7 +87,7 @@ export default function Register() {
       await signInWithGoogle();
       await captureReferral();
       addToast('success', t('register.successToast'));
-      navigate('/mon-espace');
+      navigate(localizedPath('/mon-espace', language));
     } catch (error: unknown) {
       addToast('error', localizeAuthError(error, t));
     }

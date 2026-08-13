@@ -1,0 +1,365 @@
+{
+  "seoTitle": "Je digitalise ton commerce — Site, Google Maps, WhatsApp | Max-Morrys",
+  "seoDescription": "Sites web, catalogues produits, fiche Google, analytics, SEO et automatisation de contenu pour les commerces du Sénégal. Packs à partir de 295 000 FCFA.",
+  "eyebrow": "Pour les commerces",
+  "heroTitle1": "Tes clients te",
+  "heroTitle2": "cherchent en ligne.",
+  "heroSubtitle": "Aujourd'hui, ils trouvent tes concurrents. Je mets en place tout ce qu'il faut pour qu'on te trouve, qu'on te contacte, et que tu saches enfin ce que ça te rapporte.",
+  "heroCta": "Trouve ton pack en 3 questions",
+  "heroSecondary": "En parler sur WhatsApp",
+  "stickyCta": "Poser ma question sur WhatsApp",
+  "proof": {
+    "title": "Fais le test tout de suite",
+    "text": "Tape ton métier et ton quartier. J'ouvre la vraie recherche Google Maps. Regarde qui apparaît en premier — si ce n'est pas toi, ce sont tes concurrents qui reçoivent les appels.",
+    "tradeLabel": "Ton métier",
+    "tradePlaceholder": "Restaurant, salon de coiffure, pharmacie...",
+    "areaLabel": "Ton quartier",
+    "areaPlaceholder": "Point E, Dakar",
+    "cta": "Voir",
+    "note": "C'est exactement le problème que je règle en premier."
+  },
+  "whatsapp": {
+    "greeting": "Bonjour Max-Morrys 👋",
+    "intro": "Je viens de remplir ma demande sur ta page Présence Digitale.",
+    "quoteLabel": "Mon récap",
+    "quickIntro": "Bonjour Max-Morrys 👋 Je t'écris depuis ta page Présence Digitale.",
+    "quoteIntro": "Bonjour Max-Morrys 👋 Je te contacte au sujet de mon récapitulatif",
+    "cardCta": "En parler sur WhatsApp"
+  },
+  "journey": {
+    "title": "Ce que tu achètes vraiment",
+    "subtitle": "Pas un simple site web : un système pour être trouvé, rassurer, recevoir des demandes WhatsApp et mesurer tes ventes.",
+    "found": {
+      "title": "Être trouvé",
+      "text": "Fiche Google, référencement local, Google Maps."
+    },
+    "present": {
+      "title": "Présenter",
+      "text": "Ton site, ton catalogue WhatsApp, ta boutique Facebook et Instagram."
+    },
+    "convert": {
+      "title": "Convertir",
+      "text": "Des boutons WhatsApp, un formulaire, l'itinéraire vers ta boutique."
+    },
+    "measure": {
+      "title": "Mesurer",
+      "text": "Combien de personnes te trouvent, t'appellent, t'écrivent."
+    },
+    "engage": {
+      "title": "Relancer",
+      "text": "Des publications régulières, préparées et programmées pour toi."
+    }
+  },
+  "selector": {
+    "title": "Trouve ton pack en 3 questions",
+    "subtitle": "Trente secondes, et tu sais exactement par où commencer.",
+    "progress": "{{answered}} question(s) sur {{total}}",
+    "resultEyebrow": "Ce qu'il te faut",
+    "accept": "Demander ce devis",
+    "reset": "Recommencer",
+    "questions": {
+      "site": {
+        "label": "Tu as déjà un site web ?",
+        "options": {
+          "none": "Non, aucun",
+          "outdated": "Oui, mais dépassé",
+          "working": "Oui, et il fonctionne"
+        }
+      },
+      "products": {
+        "label": "Tu vends des produits ?",
+        "options": {
+          "services": "Non, des services",
+          "few": "Oui, moins de 20",
+          "many": "Oui, plus de 20",
+          "online": "Oui, et je veux encaisser en ligne"
+        }
+      },
+      "publishing": {
+        "label": "Qui s'occupe de tes publications ?",
+        "options": {
+          "nobody": "Personne",
+          "myself": "Moi, régulièrement",
+          "irregular": "Moi, quand j'ai le temps"
+        }
+      }
+    },
+    "reasons": {
+      "online": "Encaisser en ligne demande une vraie boutique : panier, commandes et suivi des ventes. J'y ajoute le pilotage, parce qu'une boutique sans visiteurs ne vend rien.",
+      "many": "Avec plus de vingt produits, ton catalogue est ton meilleur argument. Il doit vivre sur WhatsApp, Facebook, Instagram et dans Google.",
+      "working": "Ton site tient la route : inutile de le refaire. Ce qui te manque, c'est la régularité — être trouvé et publier chaque semaine.",
+      "outdated": "Un site dépassé fait plus de mal que pas de site du tout. On repart sur une vitrine crédible avec ton catalogue.",
+      "starting": "Tu pars de zéro : l'essentiel est d'exister sur Google Maps et de recevoir tes premières demandes WhatsApp. On verra plus grand ensuite."
+    }
+  },
+  "packs": {
+    "title": "La mise en place",
+    "subtitle": "Un paiement unique pour tout installer. Hors publicité, nom de domaine et abonnements tiers.",
+    "priceLabel": "Mise en place",
+    "promoLabel": "Prix de lancement : {{price}}",
+    "featured": "Le plus choisi",
+    "recommended": "Recommandé pour toi",
+    "cta": "Demander ce pack",
+    "supportIncluded": "{{days}} jours de support inclus",
+    "presence": {
+      "name": "Présence Locale",
+      "for": "Boutiques, salons, restaurants, artisans et prestataires locaux.",
+      "features": [
+        "Un site d'une page, clair et rapide",
+        "Des boutons WhatsApp et appel direct",
+        "Ta fiche Google créée et optimisée",
+        "Ton catalogue WhatsApp jusqu'à 20 produits",
+        "La mesure de tes visites installée",
+        "Un an d'hébergement et je te forme à la prise en main"
+      ]
+    },
+    "visible": {
+      "name": "Commerce Visible",
+      "for": "Tu veux une présence complète et mesurable.",
+      "features": [
+        "Un site vitrine de 5 pages",
+        "Ton catalogue sur WhatsApp, Facebook et Instagram jusqu'à 40 produits",
+        "Ta fiche Google complète avec tes photos",
+        "La mesure complète : appels, messages, itinéraires",
+        "Le suivi des demandes qui comptent vraiment",
+        "L'optimisation pour ton quartier et ton métier",
+        "Un an d'hébergement et un tableau de suivi simplifié"
+      ]
+    },
+    "boutique": {
+      "name": "Boutique Digitale",
+      "for": "Tu as un catalogue structuré et tu veux vendre en ligne.",
+      "features": [
+        "Ta boutique en ligne jusqu'à 50 produits",
+        "Le panier et la gestion de tes commandes",
+        "La commande ou l'assistance sur WhatsApp",
+        "Tes produits affichés dans Google et sur Facebook",
+        "Le suivi de tes ventes et des paniers abandonnés",
+        "Chaque fiche produit optimisée",
+        "Je te forme complètement à la gestion de ta boutique"
+      ],
+      "note": "À envisager quand tu as déjà tes produits, des prix clairs et une organisation de livraison."
+    },
+    "selected": "Ton choix"
+  },
+  "plans": {
+    "title": "L'accompagnement mensuel",
+    "subtitle": "C'est ce qui fait la différence sur la durée. Un site laissé à l'abandon six mois disparaît des résultats.",
+    "setupLabel": "Mise en place",
+    "monthlyLabel": "puis {{price}} par mois",
+    "commitmentLabel": "Engagement {{months}} mois — soit {{total}} au total",
+    "featured": "Le levier récurrent",
+    "recommended": "Recommandé pour toi",
+    "cta": "Choisir cette formule",
+    "croissance": {
+      "name": "Croissance Automatisée",
+      "for": "Tu veux publier régulièrement sans y passer tes journées.",
+      "features": [
+        "Un calendrier de publication chaque mois",
+        "12 publications que je rédige pour toi",
+        "Les visuels préparés et prêts à publier",
+        "Tes publications programmées automatiquement — tu valides d'un message",
+        "Ta fiche Google tenue à jour",
+        "Un rapport mensuel et la maintenance de ton site"
+      ]
+    },
+    "commerce360": {
+      "name": "Commerce 360",
+      "for": "Tu es ambitieux et tu veux un vrai pilotage sur six mois.",
+      "features": [
+        "Ton site ou ton catalogue avancé",
+        "Google, Facebook, Instagram et WhatsApp tenus ensemble",
+        "Tes produits diffusés partout où ils peuvent être vus",
+        "La mesure complète et un rapport commenté chaque mois",
+        "Le référencement local et le contenu en continu",
+        "Un accompagnement commercial, pas seulement technique"
+      ],
+      "note": "Budget publicitaire non compris. On construit la formule ensemble avant de signer."
+    },
+    "selected": "Ton choix"
+  },
+  "options": {
+    "title": "Options et suppléments",
+    "subtitle": "Ce qui n'est pas dans les packs est facturé à part, sans mauvaise surprise.",
+    "toggle": "Voir les tarifs des options",
+    "perProduct": "par produit",
+    "perPage": "par page",
+    "perMonth": "par mois",
+    "range": "{{min}} à {{max}}",
+    "products": {
+      "name": "Produits supplémentaires",
+      "text": "Selon la qualité de tes photos, la rédaction et le classement."
+    },
+    "pages": {
+      "name": "Pages supplémentaires",
+      "text": "Pages services, catégories ou pages de campagne."
+    },
+    "tracking": {
+      "name": "Mesure avancée",
+      "text": "Tableau de bord, suivi des ventes, événements détaillés."
+    },
+    "automation": {
+      "name": "Automatisation sur mesure",
+      "text": "Une tâche répétitive que je prends en charge de bout en bout."
+    },
+    "maintenance": {
+      "name": "Maintenance",
+      "text": "Mises à jour, rapport et corrections légères."
+    },
+    "seo": {
+      "name": "Référencement local",
+      "text": "Engagement recommandé de six mois."
+    }
+  },
+  "process": {
+    "title": "Comment ça se passe",
+    "subtitle": "Cinq étapes, aucune surprise.",
+    "diagnostic": {
+      "title": "Diagnostic",
+      "text": "On regarde ensemble où tu en es et par quels canaux on te contacte aujourd'hui."
+    },
+    "priorities": {
+      "title": "Priorités",
+      "text": "Je choisis le pack avec toi, selon ta situation, ton budget et ton urgence."
+    },
+    "proof": {
+      "title": "Preuves",
+      "text": "Je te montre exactement ce qui sera livré, avant que tu signes."
+    },
+    "contract": {
+      "title": "Contrat",
+      "text": "60% à la commande, 40% avant la mise en ligne."
+    },
+    "delivery": {
+      "title": "Livraison",
+      "text": "Je te forme à la prise en main, puis 30 à 60 jours de support selon le pack."
+    }
+  },
+  "terms": {
+    "title": "Conditions",
+    "toggle": "Lire les conditions",
+    "items": {
+      "payment": "60% à la commande et 40% avant la mise en ligne.",
+      "revisions": "Deux séries de modifications incluses.",
+      "exclusions": "Publicité, nom de domaine, API et abonnements tiers ne sont pas compris.",
+      "extras": "Produits, pages et automatisations supplémentaires sont facturés à part.",
+      "seoCommitment": "Référencement mensuel : engagement recommandé de six mois.",
+      "humanReview": "Rien n'est publié sans ta validation, même ce qui est préparé automatiquement.",
+      "maintenance": "La maintenance couvre les corrections et le suivi, pas les nouvelles fonctionnalités.",
+      "ownership": "Ton nom de domaine et tous tes comptes sont créés à ton nom et t'appartiennent."
+    }
+  },
+  "faq": {
+    "title": "Les questions qu'on me pose",
+    "items": [
+      {
+        "q": "C'est trop cher pour mon commerce.",
+        "a": "Combien vaut un nouveau client pour toi ? Si c'est 15 000 FCFA, le pack Commerce Visible est remboursé au bout de 33 clients. La vraie question n'est pas le montant, c'est en combien de temps il te revient."
+      },
+      {
+        "q": "Mon neveu peut me faire un site pour moins cher.",
+        "a": "Il peut, oui. Ce qu'il ne fera pas, c'est ta fiche Google, ton catalogue sur WhatsApp, la mesure de ce que ça te rapporte, et douze publications par mois pendant un an. Un site est un objet ; ce que je te vends, c'est un système."
+      },
+      {
+        "q": "Combien de clients tu me garantis ?",
+        "a": "Aucun, et méfie-toi de quiconque te garantit un chiffre. Je garantis la qualité de ce que j'installe et la régularité de ce que je publie. Le nombre de clients dépend aussi de ton offre et de tes prix, sur lesquels je n'ai pas la main."
+      },
+      {
+        "q": "Et si j'arrête, je perds tout ?",
+        "a": "Non. Ton nom de domaine, tes contenus et tes comptes Google, Facebook et WhatsApp sont créés à ton nom dès le départ. Ils restent les tiens, quoi qu'il arrive."
+      },
+      {
+        "q": "Combien de temps pour la mise en place ?",
+        "a": "Une à trois semaines selon le pack, à compter du moment où j'ai reçu ton logo, tes photos et ta liste de produits. Le délai dépend surtout de la vitesse à laquelle tu me les transmets."
+      },
+      {
+        "q": "Est-ce que je peux commencer petit ?",
+        "a": "Oui, et je te le conseille. Présence Locale suffit à exister sur Google Maps et à recevoir tes premières demandes. On passe au niveau supérieur quand tes chiffres le justifient, pas avant."
+      }
+    ]
+  },
+  "form": {
+    "title": "Demande ton devis",
+    "subtitle": "Je te réponds sous 48 heures sur WhatsApp. Sans engagement et sans discours commercial.",
+    "businessName": "Le nom de ton commerce",
+    "businessNamePlaceholder": "Restaurant Le Baobab",
+    "contactName": "Ton nom",
+    "contactNamePlaceholder": "Aminata Diop",
+    "phone": "Ton numéro WhatsApp",
+    "phonePlaceholder": "+221 77 000 00 00",
+    "email": "Ton email (facultatif)",
+    "emailPlaceholder": "toi@exemple.com",
+    "city": "Ta ville et ton quartier",
+    "cityPlaceholder": "Dakar, Point E",
+    "sector": "Ton activité",
+    "pack": "Le pack qui t'intéresse",
+    "plan": "L'accompagnement que tu veux",
+    "message": "Dis-moi où tu en es (facultatif)",
+    "messagePlaceholder": "J'ai une page Facebook mais pas de site. Je vends des tissus et je reçois des commandes par WhatsApp.",
+    "referral": "Code de parrainage (facultatif)",
+    "referralPlaceholder": "PRENOM-AGENCE",
+    "submit": "Envoyer ma demande",
+    "submitting": "Envoi en cours...",
+    "undecided": "Je ne sais pas encore",
+    "noPlan": "Aucun pour l'instant",
+    "sectors": {
+      "restaurant": "Restaurant, fast-food, pâtisserie",
+      "mode": "Prêt-à-porter, chaussures, cosmétiques",
+      "beaute": "Salon de beauté, barbier, spa",
+      "sante": "Pharmacie, clinique, cabinet",
+      "commerce": "Quincaillerie, matériaux, pièces auto",
+      "education": "École, centre de formation",
+      "autre": "Autre activité"
+    }
+  },
+  "validation": {
+    "businessNameRequired": "Indique le nom de ton commerce",
+    "contactNameRequired": "Indique ton nom",
+    "phoneRequired": "Indique ton numéro WhatsApp",
+    "phoneInvalid": "Ce numéro ne semble pas valide",
+    "cityRequired": "Indique ta ville",
+    "emailInvalid": "Cette adresse email n'est pas valide"
+  },
+  "toast": {
+    "success": "Demande envoyée. Je te réponds sous 48 heures sur WhatsApp.",
+    "error": "L'envoi a échoué. Réessaie, ou écris-moi directement sur WhatsApp."
+  },
+  "success": {
+    "title": "C'est envoyé",
+    "text": "Je reviens vers toi sous 48 heures sur WhatsApp, avec l'audit gratuit de ta fiche Google.",
+    "quoteReady": "Ton récapitulatif est prêt. Garde ce lien, tu peux le rouvrir et le partager quand tu veux.",
+    "viewQuote": "Voir mon récapitulatif",
+    "copyLink": "Copier le lien",
+    "copied": "Lien copié",
+    "again": "Envoyer une autre demande",
+    "whatsappCta": "Continuer sur WhatsApp",
+    "whatsappHint": "J'ai déjà tout préparé dans le message : tu n'as plus qu'à l'envoyer."
+  },
+  "quote": {
+    "seoTitle": "Ton récapitulatif — Max-Morrys",
+    "eyebrow": "Récapitulatif",
+    "title": "Ton projet digital",
+    "reference": "Référence",
+    "issuedOn": "Établi le {{date}}",
+    "validUntil": "Valable jusqu'au {{date}}",
+    "expired": "Ce récapitulatif a dépassé sa date de validité. Écris-moi, je le remets à jour.",
+    "forBusiness": "Pour",
+    "setupSection": "Mise en place",
+    "planSection": "Accompagnement mensuel",
+    "monthly": "par mois",
+    "upfrontTotal": "Total à la mise en place",
+    "deposit": "60% à la commande",
+    "balance": "40% avant la mise en ligne",
+    "commitmentTotal": "Soit {{total}} sur {{months}} mois",
+    "notIncluded": "Non compris : publicité, nom de domaine, API et abonnements tiers.",
+    "disclaimer": "Ce récapitulatif reprend ce que tu as sélectionné sur le site. Il ne vaut pas devis contractuel : je t'envoie le devis définitif après notre échange, une fois ta situation précisée.",
+    "cta": "Continuer sur WhatsApp",
+    "print": "Imprimer ou enregistrer en PDF",
+    "backToOffer": "Voir toute l'offre",
+    "notFound": {
+      "title": "Récapitulatif introuvable",
+      "text": "Ce lien n'existe pas ou a été supprimé. Vérifie la référence, ou refais une demande — ça prend une minute.",
+      "cta": "Faire une demande"
+    }
+  }
+}

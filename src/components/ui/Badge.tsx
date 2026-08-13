@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 interface BadgeProps {
   children: ReactNode;
-  variant?: 'default' | 'brand' | 'success' | 'warning' | 'error' | 'accent' | 'coral' | 'plum' | 'teal';
+  variant?: 'default' | 'brand' | 'success' | 'warning' | 'error' | 'accent' | 'coral' | 'plum' | 'teal' | 'lagoon' | 'neutralOutline';
   size?: 'sm' | 'md';
   className?: string;
 }
@@ -18,6 +18,12 @@ const variants = {
   coral: 'bg-coral-100 text-coral-700 dark:bg-coral-900/40 dark:text-coral-300',
   plum: 'bg-plum-100 text-plum-700 dark:bg-plum-900/40 dark:text-plum-300',
   teal: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+  // Univers agence. Texte en `-700` sur fond clair : `lagoon-500` ne passerait pas le contraste.
+  lagoon: 'bg-lagoon-100 text-lagoon-700 dark:bg-lagoon-900/40 dark:text-lagoon-300',
+  // Mention de relation (« Client product ») — délibérément sobre, pour ne jamais entrer en
+  // concurrence visuelle avec le badge venture. Voir docs/BRAND-ARCHITECTURE.md §6.
+  neutralOutline:
+    'bg-transparent text-neutral-600 dark:text-neutral-400 ring-1 ring-inset ring-neutral-300 dark:ring-neutral-700',
 };
 
 const sizeMap = {

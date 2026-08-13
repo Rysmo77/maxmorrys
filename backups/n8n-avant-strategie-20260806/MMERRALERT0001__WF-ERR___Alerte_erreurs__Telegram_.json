@@ -1,0 +1,138 @@
+{
+  "updatedAt": "2026-07-20T15:59:48.386Z",
+  "createdAt": "2026-07-20T15:49:14.559Z",
+  "id": "MMERRALERT0001",
+  "name": "WF-ERR — Alerte erreurs (Telegram)",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "934156307",
+        "text": "=🔴 *n8n — échec de workflow*\n\n*Workflow :* {{ $json.workflow?.name || 'inconnu' }}\n*Nœud :* {{ $json.execution?.lastNodeExecuted || 'n/a' }}\n*Erreur :* {{ ($json.execution?.error?.message || 'n/a').toString().slice(0,300) }}\n*Quand :* {{ $now.setZone('Africa/Dakar').toFormat('dd/LL HH:mm') }}\n\n{{ $json.execution?.url || '' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000002",
+      "name": "Telegram — Alerte",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "k1sYsv0qUTCbCfRN",
+          "name": "Max-Morrys LMS Notifications Telegram"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Telegram — Alerte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Dakar"
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "204844df-2dcb-4b96-8cf7-8a5f429cb13b",
+  "activeVersionId": "204844df-2dcb-4b96-8cf7-8a5f429cb13b",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-20T15:49:14.559Z",
+      "createdAt": "2026-07-20T15:49:14.559Z",
+      "role": "workflow:owner",
+      "workflowId": "MMERRALERT0001",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-07-20T15:49:14.559Z",
+    "createdAt": "2026-07-20T15:49:14.559Z",
+    "versionId": "204844df-2dcb-4b96-8cf7-8a5f429cb13b",
+    "workflowId": "MMERRALERT0001",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "a1b2c3d4-0001-4000-8000-000000000001",
+        "name": "Error Trigger",
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          240,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "chatId": "934156307",
+          "text": "=🔴 *n8n — échec de workflow*\n\n*Workflow :* {{ $json.workflow?.name || 'inconnu' }}\n*Nœud :* {{ $json.execution?.lastNodeExecuted || 'n/a' }}\n*Erreur :* {{ ($json.execution?.error?.message || 'n/a').toString().slice(0,300) }}\n*Quand :* {{ $now.setZone('Africa/Dakar').toFormat('dd/LL HH:mm') }}\n\n{{ $json.execution?.url || '' }}",
+          "additionalFields": {
+            "parse_mode": "Markdown"
+          }
+        },
+        "id": "a1b2c3d4-0001-4000-8000-000000000002",
+        "name": "Telegram — Alerte",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          480,
+          300
+        ],
+        "credentials": {
+          "telegramApi": {
+            "id": "k1sYsv0qUTCbCfRN",
+            "name": "Max-Morrys LMS Notifications Telegram"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Telegram — Alerte",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "import",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "tags": []
+}

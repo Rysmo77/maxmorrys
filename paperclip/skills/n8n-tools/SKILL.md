@@ -1,13 +1,13 @@
 # Skill — Outils n8n (les « mains » de la flotte)
 
-Tu ne touches **jamais** directement aux réseaux sociaux, emails, WhatsApp, Firestore ou aux paiements. Tu agis sur le monde **via l'infra n8n + Airtable** déjà en place :
+Tu ne touches **jamais** directement aux réseaux sociaux, emails, WhatsApp, Firestore ou aux paiements. Tu agis sur le monde **via l'infra n8n + NocoDB** déjà en place :
 - API n8n : `N8N_BASE_URL` = `https://n8n.maxmorrys.me`
 - Webhooks n8n : `N8N_WEBHOOK_BASE_URL` = `https://n8n.maxmorrys.me/webhook`
 
-C'est la couche d'exécution auditée et sécurisée. **Airtable est la mémoire partagée** entre toi et n8n.
+C'est la couche d'exécution auditée et sécurisée. **NocoDB est la mémoire partagée** entre toi et n8n.
 
 ## Trois façons d'agir
-1. **Écrire l'état dans Airtable (la mémoire)** : tu crées/complètes un enregistrement `Contenus` et tu poses son champ **`Status`**. C'est la source de vérité.
+1. **Écrire l'état dans NocoDB (la mémoire)** : tu crées/complètes un enregistrement `Contenus` et tu poses son champ **`Status`**. C'est la source de vérité.
 2. **Appeler directement le workflow n8n pour agir MAINTENANT (temps réel)** : après avoir posé un `Status`, tu déclenches l'étape n8n correspondante par un `POST` sur son webhook, avec l'en-tête d'authentification **`X-MM-Trigger: {N8N_TRIGGER_TOKEN}`** :
    - après avoir posé `Status='planifié'` → `curl -X POST {N8N_WEBHOOK_BASE_URL}/mm-run-redaction -H "X-MM-Trigger: $N8N_TRIGGER_TOKEN"` → **WF-SOCIAL-03** rédige le lot en attente → `rédigé`.
    - après `Status='rédigé'` → `POST {N8N_WEBHOOK_BASE_URL}/mm-run-visuel` (même en-tête) → **WF-SOCIAL-04** génère la carte → `prêt_à_valider`.
@@ -17,7 +17,7 @@ C'est la couche d'exécution auditée et sécurisée. **Airtable est la mémoire
    - ⛔ **Il n'existe AUCUN webhook de publication.** Tu ne peux PAS déclencher WF-SOCIAL-05 : la publication reste **exclusivement** derrière ton ✅ Telegram (skill `approval-protocol`).
 3. **Appel HTTP direct de rendu** : `renderSocialCard` via `$RENDER_CARD_URL` (en-tête `X-Render-Key`) — non sortant (skill `creative-render-card`).
 
-## Pipeline social — table `Contenus` (`tblPYoyzcZLdtBTO3`), champ `Status`
+## Pipeline social — table `Contenus` (`m3wim4coagaoot7`), champ `Status`
 `idée` → `planifié` → `rédigé` → `prêt_à_valider` → *(✅ Telegram)* → `validé` → `publié`
 
 | Workflow | Rôle | Webhook « run-now » | Sortant ? |

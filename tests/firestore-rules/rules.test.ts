@@ -15,7 +15,7 @@ import {
   assertSucceeds,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { beforeAll, afterAll, afterEach, describe, it } from 'vitest';
 
 const PROJECT_ID = 'demo-rules-test';
@@ -180,6 +180,132 @@ describe('transactions — client creation restricted to free courses', () => {
     await assertFails(
       setDoc(doc(db, 'transactions', 't2'), {
         userId: ALICE, status: 'completed', paymentMethod: 'bictorys', amount: 5000,
+      }),
+    );
+  });
+});
+
+describe('engagement_leads — formulaire de qualification /agence', () => {
+  /** Demande valide type. Le formulaire est public : aucune authentification requise. */
+  const LEAD = (extra: Record<string, unknown> = {}) => ({
+    name: 'Awa Ndiaye',
+    company: 'Baobab Labs',
+    email: 'awa@baobablabs.sn',
+    projectType: 'product',
+    budget: 'medium',
+    timeline: 'quarter',
+    description:
+      'Nous voulons construire une plateforme de gestion pour nos agences regionales.',
+    status: 'new',
+    createdAt: '2026-08-13T10:00:00.000Z',
+    ...extra,
+  });
+
+  /** Firestore handle for an anonymous visitor. */
+  function asVisitor() {
+    return testEnv.unauthenticatedContext().firestore();
+  }
+
+  it('un visiteur anonyme peut soumettre une demande valide', async () => {
+    const db = asVisitor();
+    await assertSucceeds(setDoc(doc(db, 'engagement_leads', 'l1'), LEAD()));
+  });
+
+  it('accepte le marqueur de routage Growth', async () => {
+    const db = asVisitor();
+    await assertSucceeds(
+      setDoc(doc(db, 'engagement_leads', 'l2'), LEAD({ routedTo: 'MY_ONOMA_GROW' })),
+    );
+  });
+
+  /**
+   * Le cas le plus proche du plafond : TOUS les champs optionnels remplis (`website`) ET
+   * routage Growth declenche. C'est ce que soumet un prospect qui donne son site et decrit
+   * un besoin d'acquisition — 12 cles, soit exactement le plafond de la regle.
+   */
+  it('accepte le payload MAXIMAL (tous champs optionnels + routage)', async () => {
+    const db = asVisitor();
+    await assertSucceeds(
+      setDoc(
+        doc(db, 'engagement_leads', 'lmax'),
+        LEAD({ website: 'https://baobablabs.sn', routedTo: 'MY_ONOMA_GROW', locale: 'fr' }),
+      ),
+    );
+  });
+
+  it('refuse un statut autre que "new"', async () => {
+    const db = asVisitor();
+    await assertFails(setDoc(doc(db, 'engagement_leads', 'l3'), LEAD({ status: 'won' })));
+  });
+
+  it('refuse des notes internes posees par le prospect', async () => {
+    const db = asVisitor();
+    await assertFails(
+      setDoc(doc(db, 'engagement_leads', 'l4'), LEAD({ notes: 'lead chaud' })),
+    );
+  });
+
+  it('refuse une description trop courte pour etre qualifiable', async () => {
+    const db = asVisitor();
+    await assertFails(setDoc(doc(db, 'engagement_leads', 'l5'), LEAD({ description: 'salut' })));
+  });
+
+  it('refuse une valeur de routage inventee', async () => {
+    const db = asVisitor();
+    await assertFails(
+      setDoc(doc(db, 'engagement_leads', 'l6'), LEAD({ routedTo: 'SOMEWHERE_ELSE' })),
+    );
+  });
+
+  it('refuse le bourrage de document', async () => {
+    const db = asVisitor();
+    const stuffed: Record<string, unknown> = LEAD();
+    for (let i = 0; i < 10; i++) stuffed[`junk${i}`] = 'x';
+    await assertFails(setDoc(doc(db, 'engagement_leads', 'l7'), stuffed));
+  });
+
+  it('un utilisateur ordinaire ne peut pas relire les demandes', async () => {
+    await seed('engagement_leads/l8', LEAD());
+    const db = asUser(ALICE);
+    await assertFails(getDoc(doc(db, 'engagement_leads', 'l8')));
+  });
+});
+
+describe('newsletter — consentement explicite exige cote serveur', () => {
+  function asVisitor() {
+    return testEnv.unauthenticatedContext().firestore();
+  }
+
+  it('accepte une inscription avec consentement', async () => {
+    const db = asVisitor();
+    await assertSucceeds(
+      setDoc(doc(db, 'newsletter', 'n1'), {
+        email: 'awa@example.com',
+        subscribedAt: '2026-08-13T10:00:00.000Z',
+        source: 'footer',
+        consent: true,
+        consentAt: '2026-08-13T10:00:00.000Z',
+      }),
+    );
+  });
+
+  it('refuse une inscription sans champ de consentement', async () => {
+    const db = asVisitor();
+    await assertFails(
+      setDoc(doc(db, 'newsletter', 'n2'), {
+        email: 'awa@example.com',
+        subscribedAt: '2026-08-13T10:00:00.000Z',
+        source: 'footer',
+      }),
+    );
+  });
+
+  it('refuse un consentement a false', async () => {
+    const db = asVisitor();
+    await assertFails(
+      setDoc(doc(db, 'newsletter', 'n3'), {
+        email: 'awa@example.com',
+        consent: false,
       }),
     );
   });

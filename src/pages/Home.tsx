@@ -9,7 +9,7 @@ import { categoryToPole } from '../lib/blogCategories';
 import type { Formation, BlogPost, Testimonial, Podcast } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
-import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SOCIAL_URLS } from '../components/seo/seo-config';
+import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SOCIAL_URLS, CONTACT_PHONE_E164 } from '../components/seo/seo-config';
 import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
 import { universeThemes, universeFromPath } from '../lib/sectionThemes';
 import EditorialHeading, { CircularBadge } from '../components/shared/EditorialHeading';
@@ -175,7 +175,7 @@ export default function Home() {
           logo: DEFAULT_OG_IMAGE,
           contactPoint: {
             '@type': 'ContactPoint',
-            telephone: '+221776041985',
+            telephone: CONTACT_PHONE_E164,
             contactType: 'customer service',
             areaServed: ['SN', 'CI', 'CM', 'FR'],
             availableLanguage: 'French',
@@ -200,7 +200,12 @@ export default function Home() {
           name: 'Max-Morrys',
           url: SITE_URL,
           image: DEFAULT_OG_IMAGE,
-          jobTitle: 'Expert en marketing digital, SEO et IA',
+          // ⚠️ Doit rester IDENTIQUE au `jobTitle` du Person de /a-propos : c'est la même
+          // personne, avec les mêmes profils `sameAs`. Trois libellés concurrents coexistaient
+          // sur le site avant le 13 août 2026.
+          jobTitle: 'Marketing & Growth Manager',
+          // ⚠️ `worksFor` diverge de /a-propos, qui déclare Eyone Medical. C'est une question
+          // de fond — qui emploie qui — laissée ouverte. Voir docs/CONTENT-TODO.md.
           worksFor: { '@type': 'Organization', name: SITE_NAME },
           sameAs: [...SOCIAL_URLS],
         },
@@ -444,6 +449,88 @@ export default function Home() {
           </div>
         </motion.section>
       )}
+
+      {/* ── BUILD WITH ME : Max-Morrys Agency ──
+          La bifurcation principale du site : après le catalogue de formations, le visiteur
+          qui ne veut pas apprendre mais faire construire trouve sa porte. Sobre et sombre,
+          délibérément : c'est le registre premium de l'agence, pas l'aplat commercial.
+          Voir docs/BRAND-ARCHITECTURE.md §2. */}
+      <motion.section
+        className="bg-neutral-950 text-white"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            <div>
+              <p className="text-xs font-bold tracking-[0.35em] uppercase mb-5 text-lagoon-400">
+                {t('agency.eyebrow')}
+              </p>
+              <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-balance mb-5">
+                {t('agency.heading')}
+              </h2>
+              <p className="text-lg leading-relaxed text-neutral-300 mb-6 max-w-lg">
+                {t('agency.desc')}
+              </p>
+              <p className="text-sm font-bold tracking-[0.2em] uppercase text-neutral-500 mb-8">
+                {t('agency.disciplines')}
+              </p>
+              <LocalizedLink
+                to="/agence"
+                className="group inline-flex items-center gap-2.5 bg-lagoon-500 text-neutral-900 font-bold text-sm px-8 py-4 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
+              >
+                {t('agency.cta')}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </LocalizedLink>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ── PRÉSENCE DIGITALE : l'offre commerce local ──
+          Deuxième bifurcation, distincte de l'agence : ce n'est ni le même client, ni le
+          même funnel. Voir docs/AGENCY-POSITIONING.md §9. */}
+      <motion.section
+        className="bg-lagoon-500 text-neutral-900"
+        variants={slideUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            <div>
+              <p className="text-xs font-bold tracking-[0.35em] uppercase mb-5 opacity-70">
+                {t('presence.eyebrow')}
+              </p>
+              <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-balance mb-5">
+                {t('presence.heading')}
+              </h2>
+              <p className="text-lg leading-relaxed opacity-80 mb-8 max-w-lg">
+                {t('presence.desc')}
+              </p>
+              <LocalizedLink
+                to="/presence-digitale"
+                className="group inline-flex items-center gap-2.5 bg-neutral-900 text-white font-bold text-sm px-8 py-4 rounded-full hover:-translate-y-0.5 active:scale-[0.97] transition-transform duration-300"
+              >
+                {t('presence.cta')}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </LocalizedLink>
+            </div>
+
+            <ul className="grid sm:grid-cols-2 gap-4">
+              {['found', 'present', 'convert', 'measure'].map((key) => (
+                <li key={key} className="rounded-2xl bg-neutral-900/10 px-5 py-4">
+                  <p className="font-black text-sm mb-1">{t(`presence.points.${key}.title`)}</p>
+                  <p className="text-sm opacity-75 leading-relaxed">{t(`presence.points.${key}.text`)}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </motion.section>
 
       {/* ── QUIZ / NIVEAU : "Prêt à accélérer ?" ── */}
       <motion.section

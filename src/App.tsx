@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Outlet, ScrollRestoration, useLocation, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, ScrollRestoration, useLocation, useParams, Navigate } from 'react-router-dom';
 import type { RouteObject } from 'react-router-dom';
 import { useState, lazy, Suspense } from 'react';
 import type { ComponentType, ReactNode } from 'react';
@@ -31,13 +31,13 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { localizeSegments } from './i18n/segments';
+import { localizedPath } from './i18n/routing';
 import { ToastProvider } from './components/ui/Toast';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import ScrollProgress from './components/shared/ScrollProgress';
 import CookieBanner from './components/shared/CookieBanner';
 import LanguageSuggestionBanner from './components/shared/LanguageSuggestionBanner';
-import AnnouncementBanner from './components/shared/AnnouncementBanner';
 import SearchOverlay from './components/shared/SearchOverlay';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import MetaPixelTracker from './components/tracking/MetaPixelTracker';
@@ -57,6 +57,9 @@ const Videos = lazyWithReload(() => import('./pages/Videos'));
 const VideoDetail = lazyWithReload(() => import('./pages/VideoDetail'));
 const FAQPage = lazyWithReload(() => import('./pages/FAQ'));
 const Contact = lazyWithReload(() => import('./pages/Contact'));
+const Agence = lazyWithReload(() => import('./pages/Agence'));
+const PresenceDigitale = lazyWithReload(() => import('./pages/PresenceDigitale'));
+const PresenceDevis = lazyWithReload(() => import('./pages/PresenceDevis'));
 const MentionsLegales = lazyWithReload(() => import('./pages/legal/MentionsLegales'));
 const Confidentialite = lazyWithReload(() => import('./pages/legal/Confidentialite'));
 const CGV = lazyWithReload(() => import('./pages/legal/CGV'));
@@ -100,6 +103,8 @@ const AdminFAQ = lazyWithReload(() => import('./pages/admin/AdminFAQ'));
 const AdminTestimonials = lazyWithReload(() => import('./pages/admin/AdminTestimonials'));
 const AdminAppointments = lazyWithReload(() => import('./pages/admin/AdminAppointments'));
 const AdminClubDigitos = lazyWithReload(() => import('./pages/admin/AdminClubDigitos'));
+const AdminAgencyLeads = lazyWithReload(() => import('./pages/admin/AdminAgencyLeads'));
+const AdminMissions = lazyWithReload(() => import('./pages/admin/AdminMissions'));
 const CertificatePage = lazyWithReload(() => import('./pages/lms/Certificate'));
 
 function PageLoader() {
@@ -138,7 +143,6 @@ function PublicLayout() {
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold">
         {t('skipToContent')}
       </a>
-      <AnnouncementBanner />
       <ScrollProgress />
       <Header onSearchOpen={() => setSearchOpen(true)} />
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
@@ -191,6 +195,18 @@ function MonEspaceIndexRedirect() {
   return <Navigate to={localizeSegments('tableau-de-bord', language)} replace />;
 }
 
+/**
+ * Ancienne URL de devis `/agence/devis/:ref` → `/presence-digitale/devis/:ref`.
+ *
+ * L'offre « Digital Commerce Local » a quitté `/agence`, mais des récapitulatifs ont déjà
+ * été partagés en WhatsApp : ces liens doivent continuer de résoudre.
+ */
+function LegacyQuoteRedirect() {
+  const { language } = useLanguage();
+  const { ref } = useParams<{ ref: string }>();
+  return <Navigate to={localizedPath(`/presence-digitale/devis/${ref ?? ''}`, language)} replace />;
+}
+
 /** Clone récursif d'un arbre de routes en traduisant les segments `path` vers `lang`. */
 function localizeRouteTree(routes: RouteObject[], lang: 'fr' | 'en'): RouteObject[] {
   return routes.map((r) => {
@@ -222,6 +238,11 @@ function appChildren() {
         { path: 'videos/:slug', element: <Suspense fallback={<PageLoader />}><VideoDetail /></Suspense> },
         { path: 'faq', element: <Suspense fallback={<PageLoader />}><FAQPage /></Suspense> },
         { path: 'contact', element: <Suspense fallback={<PageLoader />}><Contact /></Suspense> },
+        { path: 'agence', element: <Suspense fallback={<PageLoader />}><Agence /></Suspense> },
+        { path: 'presence-digitale', element: <Suspense fallback={<PageLoader />}><PresenceDigitale /></Suspense> },
+        { path: 'presence-digitale/devis/:ref', element: <Suspense fallback={<PageLoader />}><PresenceDevis /></Suspense> },
+        // Legacy : des liens de devis circulent déjà sur WhatsApp, ils doivent continuer de résoudre.
+        { path: 'agence/devis/:ref', element: <LegacyQuoteRedirect /> },
         { path: 'legal/mentions-legales', element: <Suspense fallback={<PageLoader />}><MentionsLegales /></Suspense> },
         { path: 'legal/confidentialite', element: <Suspense fallback={<PageLoader />}><Confidentialite /></Suspense> },
         { path: 'legal/cgv', element: <Suspense fallback={<PageLoader />}><CGV /></Suspense> },
@@ -324,6 +345,8 @@ function appChildren() {
         { path: 'temoignages', element: <Suspense fallback={<PageLoader />}><AdminTestimonials /></Suspense> },
         { path: 'rendez-vous', element: <Suspense fallback={<PageLoader />}><AdminAppointments /></Suspense> },
         { path: 'club-digitos', element: <Suspense fallback={<PageLoader />}><AdminClubDigitos /></Suspense> },
+        { path: 'prospects-agence', element: <Suspense fallback={<PageLoader />}><AdminAgencyLeads /></Suspense> },
+        { path: 'projets', element: <Suspense fallback={<PageLoader />}><AdminMissions /></Suspense> },
       ],
     },
   ];

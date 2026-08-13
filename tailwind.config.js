@@ -122,6 +122,28 @@ export default {
           900: '#104f4b',
           950: '#032f2e',
         },
+        // NOTE: lagoon-500 (#00b4a4) ≈ teal-500 (#08bdaa) — collision intentionnelle, indiscernable à l'œil.
+        // teal   = identité Rysmo (widget chatbot, monté dans LmsLayout uniquement → espace élève).
+        // lagoon = identité Agence « Digital Commerce Local » (page /agence + bande Home → site public).
+        // RysmoWidget n'est jamais monté dans PublicLayout : les deux univers ne cohabitent pas.
+        //
+        // ⚠️ CONTRASTE : lagoon-500 sur blanc = 2,6:1 → INTERDIT pour du texte (WCAG AA exige 4,5:1).
+        //   - texte et boutons pleins sur fond clair → lagoon-700 (5,7:1 ✓)
+        //   - aplat lagoon-500 AVEC texte foncé dessus → 8,1:1 ✓ (c'est la signature visuelle de l'univers)
+        //   - texte en mode sombre → lagoon-400 sur neutral-950 (10,4:1 ✓)
+        lagoon: {
+          50: '#ecfdfa',
+          100: '#cffaf2',
+          200: '#a0f3e7',
+          300: '#67e7d7',
+          400: '#2dd1c0',
+          500: '#00b4a4',
+          600: '#009186',
+          700: '#00736c',
+          800: '#045b56',
+          900: '#084b48',
+          950: '#002e2c',
+        },
         // NOTE: morrys-600 (#8a3de8) == plum-600 (#8a3de8) — collision intentionnelle.
         // morrys = identité Max-Morrys (page /a-propos + eyebrow "BONJOUR !" Home + underline nav).
         // plum   = identité Club Digitos (blocs Club partout).

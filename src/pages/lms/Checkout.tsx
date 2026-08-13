@@ -8,6 +8,8 @@ import { httpsCallable } from 'firebase/functions';
 import { writeBatch, doc, collection } from 'firebase/firestore';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { localizedPath } from '../../i18n/routing';
 import { useToast } from '../../components/ui/Toast';
 import { getFormationBySlug } from '../../lib/firestore';
 import { db, functions } from '../../config/firebase';
@@ -25,6 +27,7 @@ export default function Checkout() {
   const { t } = useTranslation('lms');
   const { slug } = useParams();
   const { user } = useAuth();
+  const { language } = useLanguage();
   const { addToast } = useToast();
   const navigate = useNavigate();
 
@@ -51,9 +54,12 @@ export default function Checkout() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/connexion', { state: { from: { pathname: `/checkout/${slug}` } } });
+      // ⚠️ `from` doit etre localise : Login le rejoue tel quel apres connexion.
+      navigate(localizedPath('/connexion', language), {
+        state: { from: { pathname: localizedPath(`/checkout/${slug}`, language) } },
+      });
     }
-  }, [user, navigate, slug]);
+  }, [user, navigate, slug, language]);
 
   if (formation === undefined) {
     return (

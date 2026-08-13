@@ -1,0 +1,328 @@
+{
+  "updatedAt": "2026-07-04T21:50:40.970Z",
+  "createdAt": "2026-07-04T21:50:40.970Z",
+  "id": "6gusFWI5B5bzH6AC",
+  "name": "WF-WHATSAPP-SEND — Envoi Meta Cloud API (validé→envoyé)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "name": "Cron — 10 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/10 7-22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "02cc952f-43e5-474a-842b-30ed652399bd"
+    },
+    {
+      "name": "Airtable — Lire Config (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        240,
+        120
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,WHATSAPP_TOKEN)~or(Cle,eq,PHONE_NUMBER_ID)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "68ecfdc-eae3-4015-b236-4bddeddeeea5n"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "68ecfdc-eae3-4015-b236-4bddeddeeea5f",
+      "name": "Airtable — Lire Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        430,
+        120
+      ]
+    },
+    {
+      "name": "Airtable — WA validés (NocoDB)",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        240,
+        -80
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mntnzprdk1m1jg2",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Status,eq,validé)"
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "2efe6e5-f4d7-4f1a-b39c-7c43d63baae1n"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "2efe6e5-f4d7-4f1a-b39c-7c43d63baae1f",
+      "name": "Airtable — WA validés",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        430,
+        -80
+      ]
+    },
+    {
+      "name": "Build — Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        20
+      ],
+      "parameters": {
+        "jsCode": "const cfg={};for(const r of $('Airtable — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nconst token=cfg.WHATSAPP_TOKEN,phone=cfg.PHONE_NUMBER_ID;const out=[];\nfor(const it of $('Airtable — WA validés').all()){const w=it.json;\n  const body={messaging_product:'whatsapp',to:String(w.To||'').replace(/[^0-9]/g,''),type:'template',\n    template:{name:w.TemplateName,language:{code:w.TemplateLang||'en_US'}}};\n  out.push({json:{recordId:w.id,token,phone,body}});}\nreturn out;\n"
+      },
+      "id": "51bc68b7-af8c-4d9d-80e8-c73f0fae4f9e"
+    },
+    {
+      "name": "WhatsApp — Envoyer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        20
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $json.phone }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "id": "e5536dc2-e03e-4590-a9a8-e4bf5a4c2a56"
+    },
+    {
+      "name": "Airtable — Marquer envoyé",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1080,
+        20
+      ],
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mntnzprdk1m1jg2",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "update",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Build — Message').item.json.recordId }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "envoyé",
+            "MessageId": "={{ ($json.messages && $json.messages[0] && $json.messages[0].id) || '' }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "id": "93629739-de93-4657-b47a-d1d13dad87da"
+    }
+  ],
+  "connections": {
+    "Cron — 10 min": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config (NocoDB)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Airtable — WA validés (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Build — Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — WA validés": {
+      "main": [
+        [
+          {
+            "node": "Build — Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build — Message": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp — Envoyer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp — Envoyer": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Marquer envoyé",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — Lire Config (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable — WA validés (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Airtable — WA validés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "7d741085-7478-48d5-9320-0ec298c8664f",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-07-04T21:50:40.970Z",
+      "createdAt": "2026-07-04T21:50:40.970Z",
+      "role": "workflow:owner",
+      "workflowId": "6gusFWI5B5bzH6AC",
+      "projectId": "6OzWwq45GHqYfrnV"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

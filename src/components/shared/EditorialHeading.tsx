@@ -1,7 +1,7 @@
 import { useId } from 'react';
 
 /** Couleur de mise en valeur d'un segment de titre. */
-export type EditorialColor = 'brand' | 'accent' | 'coral' | 'plum' | 'morrys';
+export type EditorialColor = 'brand' | 'accent' | 'coral' | 'plum' | 'morrys' | 'lagoon';
 
 export interface EditorialSegment {
   /** Texte du segment (inclure les espaces autour si besoin). */
@@ -16,6 +16,9 @@ const COLOR_CLASS: Record<EditorialColor, string> = {
   coral: 'text-coral-600 dark:text-coral-400',
   plum: 'text-plum-600 dark:text-plum-400',
   morrys: 'text-morrys-600 dark:text-morrys-400',
+  // ⚠️ `lagoon-500` sur blanc ne fait que 2,6:1 — interdit pour du texte. On monte à `-700`
+  // en clair et on redescend à `-400` en sombre. Voir tailwind.config.js et sectionThemes.ts.
+  lagoon: 'text-lagoon-700 dark:text-lagoon-400',
 };
 
 interface CircularBadgeProps {

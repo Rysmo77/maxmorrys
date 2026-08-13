@@ -1,0 +1,317 @@
+{
+  "seoTitle": "Max-Morrys Agency — Product, AI, Technology & Brand",
+  "seoDescription": "We build the digital products, AI systems and brand experiences businesses need to move forward. The Product, AI, Technology & Brand practice of MY ONOMA, from Dakar.",
+  "hero": {
+    "eyebrow": "Max-Morrys Agency",
+    "titlePart1": "We build the ",
+    "titleAccent": "digital products",
+    "titlePart2": " that move businesses forward.",
+    "subtitle": "Product strategy, engineering, AI systems and brand experiences. We work on projects where product, technology and business have to work together.",
+    "disciplines": "Product · AI · Technology · Brand",
+    "cta": "Start a project",
+    "ctaSecondary": "See selected work"
+  },
+  "whoWeHelp": {
+    "eyebrow": "Who we work with",
+    "titlePart1": "Organisations with ",
+    "titleAccent": "something to build",
+    "titlePart2": ".",
+    "subtitle": "We don't take on every project. We take on the ones where a product decision drives a technical decision, and the other way round.",
+    "audiences": {
+      "founders": {
+        "title": "Founders & startups",
+        "desc": "Going from an intuition to a product in production, without building what won't be used."
+      },
+      "companies": {
+        "title": "SMEs & scale-ups",
+        "desc": "Tooling, automating and holding up when growth outgrows the systems in place."
+      },
+      "institutions": {
+        "title": "Institutions & organisations",
+        "desc": "Designing platforms that stay reliable, measurable and maintainable over time."
+      },
+      "executives": {
+        "title": "Premium personal brands",
+        "desc": "Building the digital ecosystem of an expertise: positioning, platform, authority."
+      }
+    },
+    "notForTitle": "What we don't do",
+    "notFor": "We are not a fixed-price web shop, a communications agency, or a full-service agency. If your need is primarily growth, acquisition or revenue, we'll point you to the practice that owns it."
+  },
+  "capabilities": {
+    "eyebrow": "What we do",
+    "titlePart1": "Four ways to ",
+    "titleAccent": "build",
+    "titlePart2": " with us.",
+    "product": {
+      "name": "Digital Product",
+      "tagline": "From intent to product in production.",
+      "desc": "We frame, design and build digital products: SaaS, business platforms, web applications, marketplaces, portals, internal tools. From prototype to running product.",
+      "items": [
+        "Product strategy and framing",
+        "Product architecture and user journeys",
+        "Interface design and design systems",
+        "MVPs, prototypes and production launch"
+      ]
+    },
+    "ai": {
+      "name": "AI Systems & Automation",
+      "tagline": "AI tied to an actual problem.",
+      "desc": "We put AI where it changes something: an expensive workflow, a repeated task, a service that no longer holds up. Never AI for its own sake.",
+      "items": [
+        "Business workflow automation",
+        "Agents and assistants inside your tools",
+        "LLM integrations and generation systems",
+        "AI-enabled products"
+      ]
+    },
+    "technology": {
+      "name": "Technology & Infrastructure",
+      "tagline": "What has to hold, holds.",
+      "desc": "Application architecture, integrations, APIs, authentication, payments, data and dashboards. Engineering in service of a measurable outcome.",
+      "items": [
+        "Application and data architecture",
+        "APIs, integrations and webhooks",
+        "Authentication and payments",
+        "Dashboards and measurement"
+      ]
+    },
+    "brand": {
+      "name": "Brand & Executive Presence",
+      "tagline": "Expertise that shows.",
+      "desc": "Positioning, content architecture and digital platform for personal brands and executives. This site is the demonstration.",
+      "items": [
+        "Positioning and brand architecture",
+        "Digital ecosystem and platform",
+        "Content architecture",
+        "Authority infrastructure"
+      ]
+    }
+  },
+  "work": {
+    "eyebrow": "Selected work",
+    "titlePart1": "What we've ",
+    "titleAccent": "built",
+    "titlePart2": ".",
+    "clientsTitle": "Client work",
+    "clientsDesc": "Products built for third parties. They belong to their clients; we state only the role we held.",
+    "venturesTitle": "Products built inside MY ONOMA",
+    "venturesDesc": "Products the studio designs, owns and operates. Each one is a brand in its own right.",
+    "roleLabel": "Our role",
+    "stackLabel": "Stack",
+    "visitLabel": "Visit site",
+    "capabilities": {
+      "productStrategy": "Product strategy",
+      "productDesign": "Product design",
+      "uxui": "UX / UI",
+      "engineering": "Engineering",
+      "platformArchitecture": "Platform architecture",
+      "designSystem": "Design system",
+      "aiAutomation": "AI & automation",
+      "securityRules": "Security rules",
+      "seo": "SEO"
+    },
+    "projects": {
+      "khanouss": {
+        "description": "Full-stack e-commerce platform — catalog, cart and checkout."
+      },
+      "holycash": {
+        "description": "Web platform focused on financial services and payments."
+      },
+      "english-lab": {
+        "description": "An English coaching platform for French-speaking African professionals and students."
+      },
+      "resho-konnexion": {
+        "description": "Professional and community platform: jobs, events, incubator and directory."
+      },
+      "loma": {
+        "description": "Multi-service platform: transport, delivery and restaurants, with client, driver, restaurant and admin spaces."
+      },
+      "klio-pro": {
+        "description": "Public site, ticketing and back-office for a procurement consulting and training firm in Dakar."
+      },
+      "je-temoigne": {
+        "description": "Collection, moderation and publishing of testimonials in video, audio or text, straight from the phone."
+      },
+      "lauraverse": {
+        "description": "Media platform and agenda of Christian events across French-speaking Africa."
+      },
+      "dunamis-holydays": {
+        "description": "Event site: presentation, programme and registrations."
+      },
+      "jubile-de-grace": {
+        "description": "Anniversary event site — programme, highlights and participation."
+      },
+      "in-senegal": {
+        "description": "Institutional site for a national event — presentation, programme and contact."
+      }
+    },
+    "categories": {
+      "consumer-product": "Consumer Product",
+      "e-commerce": "E-commerce",
+      "fintech": "Fintech",
+      "education": "Education",
+      "communaute": "Community",
+      "media": "Media",
+      "evenementiel": "Events"
+    },
+    "filterAll": "All",
+    "filterAria": "Filter projects by category",
+    "resultCount_one": "{{count}} project",
+    "resultCount_other": "{{count}} projects",
+    "selectProject": "Choose a project to display",
+    "listAria": "Client project list"
+  },
+  "howWeWork": {
+    "eyebrow": "How we work",
+    "titlePart1": "Few steps, ",
+    "titleAccent": "a lot of clarity",
+    "titlePart2": ".",
+    "steps": {
+      "frame": {
+        "title": "Frame",
+        "desc": "We start from the problem and the business decision, not a feature list. What won't be used doesn't get built."
+      },
+      "design": {
+        "title": "Design",
+        "desc": "Journeys, architecture and interface. Technical and product trade-offs are made together, not one after the other."
+      },
+      "build": {
+        "title": "Build",
+        "desc": "Regular, verifiable releases. You watch the product move rather than read a progress report."
+      },
+      "run": {
+        "title": "Run",
+        "desc": "Launch, measurement, fixes and evolution. A delivered product is not a finished product."
+      }
+    }
+  },
+  "myOnoma": {
+    "eyebrow": "How we're structured",
+    "title": "Max-Morrys Agency is the Product, AI, Technology & Brand practice of MY ONOMA.",
+    "body": "MY ONOMA is a Digital Product & Growth Studio. It builds products and systems for clients, builds growth machines, and develops its own products.",
+    "legalNote": "Engagements contracted under MY ONOMA are delivered by MY ONOMA SARL.",
+    "pillarsLabel": "The studio's three pillars",
+    "pillars": {
+      "build": "Product, technology, AI and brand",
+      "grow": "Growth, revenue, adtech and operations",
+      "own": "Products owned and operated"
+    },
+    "carriedBy": "Carried by",
+    "cta": "Discover MY ONOMA",
+    "growTitle": "Is your need about growth?",
+    "growBody": "For Growth, Revenue & Operations engagements, we work within MY ONOMA alongside Cléa Growth Office. It is a sibling practice, not a subcontractor.",
+    "growDistinction": "Max-Morrys Agency builds the systems. Cléa Growth Office builds and runs the growth machine.",
+    "growCta": "See Cléa Growth Office"
+  },
+  "faq": {
+    "eyebrow": "Frequently asked",
+    "titlePart1": "What we get asked ",
+    "titleAccent": "most often",
+    "titlePart2": ".",
+    "items": [
+      {
+        "q": "How is this different from the Digital Presence offer?",
+        "a": "Digital Presence is a productised offer for local businesses: website, Google listing, WhatsApp catalogue, regular publishing, at published prices. Max-Morrys Agency works on bespoke projects where product, technology and business are entangled. Two distinct offers, two distinct funnels."
+      },
+      {
+        "q": "Do you publish your rates?",
+        "a": "No. Every engagement is scoped from a problem, a perimeter and a timeline. We work per project, on retainer, or in an advisory capacity. The form includes a budget range: it's there to check we're aligned before wasting your time."
+      },
+      {
+        "q": "Who do we contract with?",
+        "a": "Max-Morrys Agency is a commercial brand. Engagements contracted under MY ONOMA are delivered by MY ONOMA SARL, a Senegalese company based in Dakar."
+      },
+      {
+        "q": "Do you work outside Senegal?",
+        "a": "Yes. The studio is based in Dakar and works remotely. Product and engineering don't depend on being on site; we align working rhythms with your time zone."
+      },
+      {
+        "q": "Do you use AI to build?",
+        "a": "Yes — AI-assisted engineering, across code, tests and tooling. It speeds delivery up. It does not replace architecture trade-offs, review, or accountability for what ships."
+      },
+      {
+        "q": "Who owns what you build?",
+        "a": "Deliverables built for a client belong to that client, under the terms of their contract. Our methods, generic components and internal tooling remain ours. That boundary is explicit and written into our contracts."
+      }
+    ]
+  },
+  "form": {
+    "eyebrow": "Get started",
+    "titlePart1": "Tell us about ",
+    "titleAccent": "your project",
+    "titlePart2": ".",
+    "subtitle": "A few questions to understand what you need. We reply within two working days, and we'll say so plainly if we're not the right fit.",
+    "nameLabel": "Your name",
+    "namePlaceholder": "Awa Ndiaye",
+    "companyLabel": "Company or organisation",
+    "companyPlaceholder": "Your organisation's name",
+    "emailLabel": "Work email",
+    "emailPlaceholder": "you@company.com",
+    "websiteLabel": "Website (optional)",
+    "websitePlaceholder": "https://",
+    "projectTypeLabel": "Project type",
+    "budgetLabel": "Budget range",
+    "timelineLabel": "Target timeline",
+    "descriptionLabel": "Describe your project",
+    "descriptionPlaceholder": "The problem you're trying to solve, what already exists, and what's blocking you today.",
+    "submit": "Send my request",
+    "submitting": "Sending…",
+    "required": "Required field",
+    "invalidEmail": "Invalid email address",
+    "descriptionTooShort": "A few more sentences would help us prepare the conversation.",
+    "errorToast": "Sending failed. Try again, or email us directly.",
+    "projectTypes": {
+      "product": "Digital product / SaaS",
+      "platform": "Web platform",
+      "application": "Application",
+      "ai": "AI / Automation",
+      "internalTool": "Internal tool",
+      "transformation": "Digital transformation",
+      "brand": "Personal / executive brand",
+      "growth": "Growth / acquisition / revenue",
+      "other": "Other"
+    },
+    "budgets": {
+      "exploring": "To be defined",
+      "small": "Under 5M FCFA",
+      "medium": "5 to 15M FCFA",
+      "large": "15 to 40M FCFA",
+      "xlarge": "Over 40M FCFA"
+    },
+    "timelines": {
+      "urgent": "Under a month",
+      "quarter": "1 to 3 months",
+      "halfYear": "3 to 6 months",
+      "flexible": "No fixed date"
+    },
+    "success": {
+      "title": "Request sent",
+      "body": "Thank you. We'll get back to you within two working days at the address you gave.",
+      "backCta": "Back to the page"
+    },
+    "growNotice": {
+      "title": "This one belongs to Cléa Growth Office",
+      "body": "Growth, go-to-market, revenue and operations are owned by Cléa Growth Office, the sibling practice within MY ONOMA. Your request is recorded and passed to the right people.",
+      "cta": "Learn more"
+    }
+  },
+  "finalCta": {
+    "titlePart1": "A project where product and ",
+    "titleAccent": "technology",
+    "titlePart2": " have to move together?",
+    "subtitle": "Describe it. We'll tell you honestly whether we're the right people.",
+    "cta": "Start a project",
+    "presenceTitle": "Do you run a local business?",
+    "presenceBody": "The Digital Presence offer sets up and runs your online presence: website, Google listing, WhatsApp catalogue and regular publishing. Published prices.",
+    "presenceCta": "See the Digital Presence offer"
+  },
+  "preview": {
+    "desktopAlt": "Desktop preview of the {{name}} platform",
+    "mobileAlt": "Mobile preview of the {{name}} platform",
+    "desktopLabel": "Desktop",
+    "mobileLabel": "Mobile",
+    "deviceAria": "{{label}} preview",
+    "groupAria": "Choose the preview for {{name}}"
+  }
+}

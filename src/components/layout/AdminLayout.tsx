@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, FileText, GraduationCap, Users, BarChart3, Settings,
   MessageSquare, Tag, Megaphone, HelpCircle,
-  Mic, Video, CreditCard, Calendar, Star, Crown, Home,
+  Mic, Video, CreditCard, Calendar, Star, Crown, Home, Briefcase, Boxes,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AppShell from './AppShell';
@@ -29,6 +29,8 @@ const ALL_NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/temoignages',    labelKey: 'nav.testimonials', titleKey: 'nav.testimonials', icon: Star,            adminOnly: false },
   { to: '/admin/rendez-vous',    labelKey: 'nav.appointments', titleKey: 'nav.appointments', icon: Calendar,        adminOnly: false },
   { to: '/admin/club-digitos',   labelKey: 'nav.club',         titleKey: 'nav.club',         icon: Crown,           adminOnly: true, tone: 'club' },
+  { to: '/admin/prospects-agence', labelKey: 'nav.agencyLeads', titleKey: 'nav.agencyLeads', icon: Briefcase,       adminOnly: false },
+  { to: '/admin/projets',        labelKey: 'nav.missions',     titleKey: 'nav.missions',     icon: Boxes,           adminOnly: false },
   { to: '/admin/analytics',      labelKey: 'nav.analytics',    titleKey: 'nav.analytics',    icon: BarChart3,       adminOnly: true },
   { to: '/admin/parametres',     labelKey: 'nav.settings',     titleKey: 'nav.settings',     icon: Settings,        adminOnly: true },
 ];
@@ -56,7 +58,7 @@ export default function AdminLayout() {
         { title: t('nav.sectionPilotage'), items: items.filter((i) => ['/admin', '/admin/analytics', '/admin/parametres'].includes(i.to)) },
         { title: t('nav.sectionContent'),  items: items.filter((i) => ['/admin/articles', '/admin/formations', '/admin/podcasts', '/admin/videos', '/admin/faq', '/admin/temoignages', '/admin/annonces'].includes(i.to)) },
         { title: t('nav.sectionCommunity'),items: items.filter((i) => ['/admin/utilisateurs', '/admin/messages', '/admin/rendez-vous', '/admin/club-digitos'].includes(i.to)) },
-        { title: t('nav.sectionCommerce'), items: items.filter((i) => ['/admin/transactions', '/admin/coupons'].includes(i.to)) },
+        { title: t('nav.sectionCommerce'), items: items.filter((i) => ['/admin/transactions', '/admin/coupons', '/admin/projets', '/admin/prospects-agence'].includes(i.to)) },
         { title: t('nav.sectionSite'),     items: [{ to: '/', label: t('nav.backToSite'), icon: Home, end: true }] },
       ].filter((section) => section.items.length > 0)}
     />
