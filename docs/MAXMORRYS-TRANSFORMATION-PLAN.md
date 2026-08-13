@@ -83,15 +83,22 @@ montée deux fois (FR canonique, EN sous `/en`).
 ### Navigation principale
 
 ```
-Je suis Max-Morrys · Je te forme · Je t'informe · Je te transforme ▾ · Agence
-                                                    [Travaillons ensemble] → /agence
+Je suis Max-Morrys · Je te forme · Je t'informe · Je te transforme ▾ · Je te digitalise · Contacte-moi
+                                          [🔍 FR ☾] │ Connexion │ [ Agence ]
 ```
 
-L'agence devient visible sans devenir le centre du site : une entrée de navigation neutre et le
-premier bouton plein de l'en-tête.
+L'agence devient visible sans devenir le centre du site : elle est le **seul bouton plein** de
+l'en-tête, et le seul libellé au registre entité. Le libellé « Travaillons ensemble » a été
+retiré de la nav (la clé `nav.workWithMe` est supprimée) : une nav liste des destinations.
 
-`/presence-digitale` n'entre **pas** dans la navigation principale — accès par le pied de page,
-une section de la page d'accueil et un renvoi en bas de `/agence`.
+`/presence-digitale` **est entrée** dans la navigation le 13/08/2026 sous « Je te digitalise »
+(révision de la décision initiale — voir `AGENCY-POSITIONING.md §9`). Elle reste accessible par
+le pied de page, une section de la page d'accueil et un renvoi en bas de `/agence`, désormais
+réciproque.
+
+⚠️ La barre compte six libellés FR longs : le padding des items, le rappel `⌘K` et la gouttière
+de la rangée ont été compactés pour tenir à `xl` (1280 px). Un septième libellé imposerait une
+nouvelle compensation.
 
 ---
 

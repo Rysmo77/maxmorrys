@@ -226,8 +226,30 @@ proximité) **n'est pas** Max-Morrys Agency. Elle est :
 
 - déplacée de `/agence` vers **`/presence-digitale`**, à contenu et à tarifs constants ;
 - conservée intégralement : tunnel, sélecteur, devis partageable, admin, collections Firestore ;
-- retirée de la navigation principale, accessible par le pied de page, la page d'accueil et un
+- accessible par une entrée de navigation dédiée, le pied de page, la page d'accueil et un
   renvoi en bas de `/agence`.
+
+### Entrée de navigation — révision du 13 août 2026
+
+L'offre est **entrée dans la navigation principale**, sous le libellé **« Je te digitalise »**
+(`nav.presence`), placé entre le menu « Je te transforme » et « Contacte-moi ».
+
+Ce point revient sur la décision initiale, qui la maintenait hors nav. L'objection d'origine
+(`UX-AUDIT §1`) était que « le libellé annonce un service aux commerçants, pas une practice
+produit » — elle visait un lien « Je te digitalise » qui pointait alors vers **`/agence`**. Depuis
+le déplacement de l'offre, le libellé pointe vers `/presence-digitale` : il décrit exactement sa
+destination, et complète le système de marque « Je te forme · Je t'informe · Je te transforme ».
+
+Les deux offres restent séparées **par la forme**, pas par l'absence de l'une des deux :
+
+| | Présence Digitale | Max-Morrys Agency |
+| --- | --- | --- |
+| Nav | Lien texte, tutoiement, famille « Je te… » | Pastille pleine, nom d'entité |
+| Registre | « Je te digitalise » | « Agence » |
+
+⚠️ Ne pas donner de pastille pleine à Présence Digitale, et ne pas rapprocher son lien de la
+pastille Agence : deux entrées lagoon voisines ont déjà dû être fusionnées une fois
+(`Header.tsx`, commit `7ba7874`).
 
 ### Pourquoi elle sort du périmètre
 

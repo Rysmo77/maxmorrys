@@ -20,6 +20,29 @@ pas qu'il peut **faire construire**.
 bouton plein de l'en-tête (« Travaillons ensemble »). L'accueil gagne une section « Build with
 me » distincte de la section commerce local.
 
+### Addendum — 13 août 2026 : la bifurcation était lisible, pas les deux offres
+
+La décision ci-dessus a résolu la visibilité de l'agence, et créé un problème voisin : les deux
+sections commerciales de l'accueil se lisaient comme deux variantes d'une même offre.
+
+| Cause mesurée | Correctif appliqué |
+| --- | --- |
+| Sections **adjacentes** (5 et 6 sur 13), même conteneur, même échelle typo, même pastille | Le quiz orange s'intercale : agence (5) → quiz (6) → présence (7) |
+| La section agence déclarait `grid lg:grid-cols-2` avec **un seul enfant** → colonne droite vide, elle passait pour une version appauvrie de sa voisine | Bloc centré `max-w-3xl`, purement typographique, sans carte. La présence garde ses 4 cartes : les squelettes ne sont plus partagés |
+| `home.presence.cta` = « **Découvrir l'offre agence** » pointait vers `/presence-digitale`, à côté de « Découvrir l'agence » → `/agence` | « Voir les packs et les tarifs ». Le mot « agence » disparaît du bloc commerce ; le prix devient le signal qui sépare |
+| `home.agency.eyebrow` = « **Travailler avec moi** », le libellé le plus générique du site : un commerçant s'y reconnaît | « Max-Morrys Agency ». Une section porte un **nom d'entité**, l'autre pose une **question d'audience** |
+
+**Deuxième décision** : « Je te digitalise » **revient en navigation**, pointant cette fois vers
+`/presence-digitale`. Le libellé n'a jamais été fautif — c'est sa destination qui l'était (il
+menait à `/agence` du temps où l'offre TPE y vivait). Voir `AGENCY-POSITIONING.md §9`.
+
+**Troisième décision** : le renvoi entre les deux offres devient **réciproque**. `/agence`
+renvoyait vers `/presence-digitale` sans contrepartie : un fondateur atterrissant sur la page
+commerce n'avait aucune sortie. Un bloc miroir a été ajouté en bas de `/presence-digitale`.
+
+Écart §1 corrigé au passage : `About.tsx` — « Travaillons ensemble » mène désormais à `/agence`.
+Le CTA générique « Prendre contact » du bloc final garde `/contact`.
+
 ---
 
 ## 2. Deux audiences, un seul registre
