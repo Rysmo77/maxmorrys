@@ -1,3 +1,5 @@
+import { contact, socialLinks } from '../../lib/brand';
+
 export const SITE_URL = 'https://maxmorrys.me';
 export const SITE_NAME = 'Max-Morrys';
 export const DEFAULT_TITLE = 'Max-Morrys | Maîtrisez le digital, accélérez votre croissance';
@@ -8,28 +10,24 @@ export const DEFAULT_OG_IMAGE = 'https://media.maxmorrys.me/Je-te-forme/2252.jpg
 export const TWITTER_HANDLE = '@max_morrys';
 
 /**
- * Coordonnées de contact — SOURCE UNIQUE.
+ * Coordonnées de contact — réexportées depuis `lib/brand/company.ts`.
  *
  * Ce numéro était recopié dans neuf fichiers sous trois formats différents. Un numéro
  * de téléphone dupliqué finit toujours par diverger : passer par ces constantes.
  *   - `CONTACT_PHONE_RAW` : format wa.me (indicatif sans « + » ni séparateur)
  *   - `CONTACT_PHONE_E164` : format des données structurées et des liens `tel:`
  *   - `CONTACT_PHONE_DISPLAY` : format lisible à l'écran
+ *
+ * Ces alias sont conservés parce qu'ils sont consommés dans tout le dépôt ; la valeur,
+ * elle, ne vit plus qu'à un seul endroit.
  */
-export const CONTACT_PHONE_RAW = '221776041985';
-export const CONTACT_PHONE_E164 = `+${CONTACT_PHONE_RAW}`;
-export const CONTACT_PHONE_DISPLAY = '+221 77 604 19 85';
-export const CONTACT_EMAIL = 'hello@maxmorrys.me';
+export const CONTACT_PHONE_RAW = contact.phoneRaw;
+export const CONTACT_PHONE_E164 = contact.phoneE164;
+export const CONTACT_PHONE_DISPLAY = contact.phoneDisplay;
+export const CONTACT_EMAIL = contact.email;
 export const WHATSAPP_BASE_URL = `https://wa.me/${CONTACT_PHONE_RAW}`;
 
-export const SOCIAL_LINKS = [
-  { name: 'LinkedIn', url: 'https://www.linkedin.com/in/max-morrys-eyoum/' },
-  { name: 'Facebook', url: 'https://www.facebook.com/maxmorrys.me/' },
-  { name: 'Instagram', url: 'https://www.instagram.com/maxmorrys.me' },
-  { name: 'YouTube', url: 'https://www.youtube.com/@maxmorrys-me' },
-  { name: 'TikTok', url: 'https://www.tiktok.com/@maxmorrys.me' },
-  { name: 'X', url: 'https://x.com/max_morrys' },
-] as const;
+export const SOCIAL_LINKS = socialLinks;
 
 export const SOCIAL_URLS = SOCIAL_LINKS.map((s) => s.url);
 
