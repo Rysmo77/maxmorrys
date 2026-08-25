@@ -55,7 +55,7 @@
         "operation": "search",
         "returnAll": true,
         "options": {
-          "where": "(Cle,eq,TELEGRAM_BOT_TOKEN)~or(Cle,eq,TELEGRAM_CHAT_ID)~or(Cle,eq,PAPERCLIP_BASE)~or(Cle,eq,PAPERCLIP_COMPANY_ID)~or(Cle,eq,CF_ACCESS_CLIENT_ID)~or(Cle,eq,CF_ACCESS_CLIENT_SECRET)"
+          "where": "(Cle,eq,TELEGRAM_BOT_TOKEN)~or(Cle,eq,TELEGRAM_CHAT_ID)~or(Cle,eq,PAPERCLIP_BASE)~or(Cle,eq,PAPERCLIP_COMPANY_ID)~or(Cle,eq,CF_ACCESS_CLIENT_ID)~or(Cle,eq,CF_ACCESS_CLIENT_SECRET)~or(Cle,eq,THEMES_CURRENT)~or(Cle,eq,PICK_THEME)~or(Cle,eq,TOOLS_CURRENT)~or(Cle,eq,TOOLS_PICKED)~or(Cle,eq,TRENDS_CURRENT)~or(Cle,eq,TRENDS_PICKED)"
         }
       },
       "credentials": {
@@ -88,7 +88,7 @@
         0
       ],
       "parameters": {
-        "jsCode": "const cfg={};for(const r of $('Airtable — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nconst upd=$('Telegram Trigger').first().json;\nconst b={token:cfg.TELEGRAM_BOT_TOKEN,chatId:cfg.TELEGRAM_CHAT_ID,pcBase:cfg.PAPERCLIP_BASE,cid:cfg.PAPERCLIP_COMPANY_ID,cfId:cfg.CF_ACCESS_CLIENT_ID,cfSecret:cfg.CF_ACCESS_CLIENT_SECRET};\nconst cq=upd.callback_query;\nif(cq&&cq.data){\n  const [action,kind,id]=cq.data.split(':');\n  const o={...b,action,id,callbackQueryId:cq.id,chatId:(cq.message&&cq.message.chat&&cq.message.chat.id)||b.chatId,messageId:cq.message&&cq.message.message_id};\n  o.label=action==='approve'?'✅ Approuvé':'❌ Rejeté';\n  o.offBody={chat_id:o.chatId,message_id:o.messageId,reply_markup:{inline_keyboard:[]}};\n  if(kind==='post'){o.kind='post';o.newStatus=action==='approve'?'validé':'rejeté';}\n  else if(kind==='pc'){o.kind='pc';} else if(kind==='email'){o.kind='email';o.newStatus=action==='approve'?'validé':'rejeté';} else if(kind==='wa'){o.kind='wa';o.newStatus=action==='approve'?'validé':'rejeté';}\n  else if(kind==='theme'){o.kind='theme';o.themeIndex=parseInt(id,10)||0;o.themesRaw=cfg.THEMES_CURRENT||'';o.label='⏳ Je décline ce thème…';}\n  else o.kind='ignore';\n  return [{json:o}];\n}\nconst txt=((upd.message&&upd.message.text)||'').trim();\nif(txt.startsWith('/')) return [{json:{...b,kind:'cmd',cmd:txt}}];\nreturn [{json:{...b,kind:'ignore'}}];"
+        "jsCode": "const cfg={};for(const r of $('Airtable — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nconst upd=$('Telegram Trigger').first().json;\nconst b={token:cfg.TELEGRAM_BOT_TOKEN,chatId:cfg.TELEGRAM_CHAT_ID,pcBase:cfg.PAPERCLIP_BASE,cid:cfg.PAPERCLIP_COMPANY_ID,cfId:cfg.CF_ACCESS_CLIENT_ID,cfSecret:cfg.CF_ACCESS_CLIENT_SECRET};\n\n// Clés d'état des deux menus. ⚠️ Chacune doit figurer dans le filterByFormula du nœud\n// « Airtable — Lire Config » : une clé absente du filtre est simplement invisible ici, sans erreur.\nconst MENU_KEYS={tool:{cur:'TOOLS_CURRENT',pick:'TOOLS_PICKED'},trend:{cur:'TRENDS_CURRENT',pick:'TRENDS_PICKED'}};\n\nconst cq=upd.callback_query;\nif(cq&&cq.data){\n  const [action,kind,id]=cq.data.split(':');\n  const o={...b,action,id,callbackQueryId:cq.id,chatId:(cq.message&&cq.message.chat&&cq.message.chat.id)||b.chatId,messageId:cq.message&&cq.message.message_id};\n  o.label=action==='approve'?'✅ Approuvé':'❌ Rejeté';\n  o.offBody={chat_id:o.chatId,message_id:o.messageId,reply_markup:{inline_keyboard:[]}};\n\n  // L'état des deux menus voyage avec CHAQUE callback : l'expansion finale en a besoin, et elle\n  // est déclenchée par un clic sur le menu des tendances, pas sur celui des outils.\n  let th={};try{th=JSON.parse(cfg.PICK_THEME||'{}');}catch(e){th={};}\n  o.pickTheme=th;\n  o.themeTitre=th.titre||'';\n  o.sousTitre=th.titre?('Thème : « '+th.titre+' »'):'';\n  o.cfgToolsCur=cfg.TOOLS_CURRENT||'[]';\n  o.cfgToolsPick=cfg.TOOLS_PICKED||'';\n  o.cfgTrendsCur=cfg.TRENDS_CURRENT||'[]';\n  o.cfgTrendsPick=cfg.TRENDS_PICKED||'';\n\n  if(kind==='post'){o.kind='post';o.newStatus=action==='approve'?'validé':'rejeté';}\n  else if(kind==='pc'){o.kind='pc';} else if(kind==='email'){o.kind='email';o.newStatus=action==='approve'?'validé':'rejeté';} else if(kind==='wa'){o.kind='wa';o.newStatus=action==='approve'?'validé':'rejeté';}\n  else if(kind==='theme'){o.kind='theme';o.themeIndex=parseInt(id,10)||0;o.themesRaw=cfg.THEMES_CURRENT||'';o.label='⏳ Je prépare les outils…';}\n  else if(kind==='tool'||kind==='trend'){\n    const k=MENU_KEYS[kind];\n    o.menu=kind;\n    o.optIndex=parseInt(id,10)||0;\n    o.menuOptions=cfg[k.cur]||'[]';\n    o.menuPicked=cfg[k.pick]||'';\n    o.pickKey=k.pick;\n    // `pick` coche/décoche (branche générique), `done` valide et fait avancer la chaîne.\n    o.kind=action==='done'?'done':'toggle';\n    o.label='';\n  }\n  else o.kind='ignore';\n  return [{json:o}];\n}\nconst txt=((upd.message&&upd.message.text)||'').trim();\nif(txt.startsWith('/')) return [{json:{...b,kind:'cmd',cmd:txt}}];\nreturn [{json:{...b,kind:'ignore'}}];"
       },
       "id": "6540545a-64ec-48d9-b58c-4dde4633a24d"
     },
@@ -525,7 +525,7 @@
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const GRID=[[0,9,'linkedin','post'],[0,18,'ig','carrousel'],[1,10,'linkedin','post'],[1,12,'fb','post'],[1,19,'tiktok','reel'],[2,9,'fb','post'],[2,18,'ig','story'],[3,11,'ig','carrousel'],[3,18,'fb','community_post'],[4,10,'linkedin','post'],[4,17,'x','thread'],[5,11,'ig','reel'],[5,18,'fb','post'],[6,10,'linkedin','post']];\nconst o=$json;\nlet themes=[];\ntry{const raw=JSON.parse(o.themesRaw||'[]');themes=Array.isArray(raw)?raw:(raw.themes||[]);}catch(e){themes=[];}\nconst t=themes[o.themeIndex]||themes[0]||{titre:'Contenu de la semaine',angle:'',pourquoi:''};\nconst base=$now.setZone('Africa/Lagos');\nconst du=((8-base.weekday)%7)||7;\nconst monday=base.plus({days:du}).startOf('day');\nconst slots=GRID.map(g=>{const dt=monday.plus({days:g[0],hours:g[1]});return {reseau:g[2],format:g[3],date:dt.toISO()};});\nconst N=slots.length;\nconst gridDesc=slots.map((s,i)=>`${i+1}. ${s.reseau} / ${s.format}`).join('\\n');\nconst prompt=`Tu es **CMO Aïcha**, directrice marketing de Max-Morrys (personal branding + LMS, cible entrepreneurs 25-45 Afrique francophone + diaspora).\nTHÈME CHOISI : « ${t.titre} » — angle : ${t.angle||''}.\nDécline ce thème en **exactement ${N} posts** alignés sur ces ${N} créneaux (respecte l'ordre + le réseau/format de chaque ligne) :\n${gridDesc}\nContraintes : piliers variés parmi Éducation / Inspiration / Produit / Communauté / Autorité (privilégie Éducation) ; inclus 2-3 posts « TENDANCE » qui surfent un sujet marketing/IA en vogue (GEO, agents IA, authenticité vs IA, faceless, founder-led...) ; titres accrocheurs adaptés au réseau/format ; le week-end (samedi/dimanche) = ton plus léger/communauté/inspiration.\nRéponds STRICTEMENT en JSON, sans texte autour : {\"posts\":[{\"pilier\":\"un des 5 piliers\",\"titre\":\"accroche\",\"tag\":\"THÈME ou TENDANCE\"}]} — exactement ${N}, même ordre que les créneaux.`;\nreturn [{json:{themeTitre:t.titre,expandPrompt:prompt,slots}}];"
+        "jsCode": "// Grille hebdomadaire — docs/STRATEGIE_COMMUNICATION_2026.md §5 et §6.\n// [jourOffset, heure, reseau, format, serie, cible] · lundi = 0 · Africa/Dakar.\n// 14 posts + 7 stories quotidiennes à 12h = 21 créneaux.\n// AUCUNE vidéo, AUCUN TikTok (décision board 2026-08-06) : la valeur `tiktok` reste dans le\n// singleSelect Airtable, on ne la programme simplement plus.\nconst GRID=[\n [0, 9,'linkedin','post',          'RADAR',    'Mixte'],\n [0,12,'ig',      'story',         'CERCLE',   'Mixte'],\n [0,18,'ig',      'carrousel',     'ATELIER',  'Apprenants'],\n [1,10,'linkedin','carrousel',     'ATELIER',  'Mixte'],\n [1,12,'ig',      'story',         'COULISSES','Mixte'],\n [1,12,'fb',      'carrousel',     'PREUVE',   'Commerçants'],\n [1,19,'ig',      'carrousel',     'ATELIER',  'Apprenants'],\n [2, 9,'fb',      'post',          'OFFRE',    'Commerçants'],\n [2,12,'ig',      'story',         'ATELIER',  'Apprenants'],\n [2,18,'ig',      'post',          'COULISSES','Apprenants'],\n [3,11,'ig',      'carrousel',     'PREUVE',   'Apprenants'],\n [3,12,'ig',      'story',         'PREUVE',   'Mixte'],\n [3,18,'fb',      'community_post','CERCLE',   'Commerçants'],\n [4,10,'linkedin','post',          'COULISSES','Mixte'],\n [4,12,'ig',      'story',         'CERCLE',   'Mixte'],\n [4,17,'x',       'thread',        'RADAR',    'Mixte'],\n [5,11,'ig',      'carrousel',     'OFFRE',    'Apprenants'],\n [5,12,'ig',      'story',         'OFFRE',    'Mixte'],\n [5,18,'fb',      'post',          'OFFRE',    'Commerçants'],\n [6,10,'linkedin','post',          'CERCLE',   'Mixte'],\n [6,12,'ig',      'story',         'COULISSES','Mixte']\n];\n// L'expansion est désormais déclenchée par la validation du menu TENDANCES, pas par le clic sur\n// le thème : on relit donc tout l'état depuis « Parse — Update ».\nconst o=$('Parse — Update').first().json;\nconst t=(o.pickTheme&&o.pickTheme.titre)?o.pickTheme:{titre:'Contenu de la semaine',angle:'',pourquoi:''};\n\nfunction jparse(raw){try{const v=JSON.parse(raw||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}\nfunction jpicked(raw,n){const seen={};const out=[];String(raw||'').split(',').forEach(function(p){const i=parseInt(p,10);if(!isFinite(i)||i<0||i>=n||seen[i])return;seen[i]=true;out.push(i);});return out.sort(function(a,b){return a-b;});}\n\nconst outilsAll=jparse(o.cfgToolsCur);\nconst outils=jpicked(o.cfgToolsPick,outilsAll.length).map(function(i){return outilsAll[i];}).filter(Boolean);\nconst tendAll=jparse(o.cfgTrendsCur);\nconst tendances=jpicked(o.cfgTrendsPick,tendAll.length).map(function(i){return tendAll[i];}).filter(Boolean);\n\nconst base=$now.setZone('Africa/Dakar');\nconst du=((8-base.weekday)%7)||7;\nconst monday=base.plus({days:du}).startOf('day');\nconst slots=GRID.map(g=>{const dt=monday.plus({days:g[0],hours:g[1]});return {jour:g[0],reseau:g[2],format:g[3],serie:g[4],cible:g[5],date:dt.toISO()};});\n\n// Répartition des choix du board sur les créneaux concernés, en tourniquet : 4 créneaux ATELIER\n// pour 1 à 3 outils, 2 créneaux RADAR pour 1 à 2 tendances.\nlet ia=0, ir=0;\nslots.forEach(function(s){\n  if(s.serie==='ATELIER'&&outils.length){ s.outil=outils[ia%outils.length]; ia++; }\n  if(s.serie==='RADAR'&&tendances.length){ s.tendance=tendances[ir%tendances.length]; ir++; }\n});\n\nconst N=slots.length;\nconst gridDesc=slots.map(function(s,i){\n  let suffixe='';\n  if(s.outil) suffixe=` — OUTIL IMPOSÉ : ${s.outil.nom}${s.outil.angle?' ('+s.outil.angle+')':''}`;\n  if(s.tendance) suffixe=` — TENDANCE IMPOSÉE : ${s.tendance.titre}${s.tendance.date?' ['+s.tendance.date+']':''}`;\n  return `${i+1}. ${s.reseau} / ${s.format} — série ${s.serie} — cible ${s.cible}${suffixe}`;\n}).join('\\n');\nconst outilsLabel=outils.length?outils.map(function(x){return x.nom;}).join(', '):'aucun';\nconst prompt=`Tu es **CMO Aïcha**, directrice marketing de Max-Morrys.\n\nTHÈME CHOISI : « ${t.titre} » — angle : ${t.angle||''}.\n\nDécline ce thème en **exactement ${N} contenus** alignés sur ces ${N} créneaux. Respecte l'ordre, et\nrespecte le réseau, le format, la SÉRIE et la CIBLE imposés à chaque ligne :\n${gridDesc}\n\n⚠️ **Les créneaux marqués « OUTIL IMPOSÉ » ou « TENDANCE IMPOSÉE » ne se négocient pas** : le board\na choisi. Le titre doit porter cet outil-là, ou cette tendance-là. N'en substitue aucun.\n\nLES SÉRIES (le rendez-vous éditorial — le titre doit refléter la série) :\n- **RADAR** — une tendance chaude, DATÉE, et ce qu'elle change concrètement cette semaine.\n- **ATELIER** — **un outil, un réglage, un gain.** L'outil est imposé créneau par créneau ci-dessus.\n  Jamais « 15 astuces » : toujours UNE manipulation précise.\n- **PREUVE** — chiffres, avant/après, étude de cas, « le vrai prix de… ».\n- **COULISSES** — parcours, fabrication, chantier anonymisé, échec assumé. Toujours une leçon utile.\n- **CERCLE** — sondage, question ouverte, mise en lumière d'un apprenant ou d'un commerçant.\n- **OFFRE** — mise en avant explicite et assumée, un seul appel à l'action.\n\nLES CIBLES :\n- **Apprenants** — vocabulaire technique autorisé (SEO, IA, automatisation, tunnel).\n- **Commerçants** — l'offre agence. **ZÉRO terme technique** : jamais « site web », « SEO »,\n  « catalogue Meta », « GA4 », « workflow », « n8n ». On dit « être trouvé sur Google Maps »,\n  « des produits commandables sur WhatsApp », « savoir ce que ça te rapporte ».\n- **Mixte** — sert honnêtement les deux.\n\nLES OFFRES (champ « offre ») :\n- Sur un créneau **OFFRE**, choisis parmi : Formations · Club Digitos · Rysmo · Agence · Accompagnement.\n- Sur **tout autre créneau**, mets « Non-produit ».\n- Le créneau OFFRE du mercredi sur Facebook porte TOUJOURS « Agence ».\n\nStyle : tutoiement, phrases courtes, sans blabla, orienté action, résultats mesurables, touches\nlocales légères (Dakar, Abidjan, Douala, Wave, Orange Money, WhatsApp). Les stories posent UNE seule\nidée. Le week-end, ton plus léger.\n\nAucun montant chiffré dans les titres : les prix se lisent dans le catalogue, jamais de mémoire.\n\nRéponds STRICTEMENT en JSON, sans texte autour :\n{\"posts\":[{\"pilier\":\"Éducation|Inspiration|Produit|Communauté|Autorité\",\"offre\":\"Formations|Club Digitos|Rysmo|Agence|Accompagnement|Non-produit\",\"titre\":\"accroche\"}]}\n— exactement ${N}, dans le même ordre que les créneaux.`;\nreturn [{json:{themeTitre:t.titre,expandPrompt:prompt,slots,outilsLabel}}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -578,7 +578,7 @@
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const src=$('TH — Décliner (build)').first().json;\nconst slots=src.slots||[];\nlet g=$input.first().json;\n// Extraction robuste : gere l'objet simplifie {posts:[...]} ET l'enveloppe Gemini brute {candidates:[{content:{parts:[{text}]}}]}\nfunction pickText(x){\n  if(x==null)return null;\n  if(typeof x==='string')return x;\n  if(Array.isArray(x)){for(const e of x){const t=pickText(e);if(t)return t;}return null;}\n  if(typeof x==='object'){\n    if(x.candidates)return pickText(x.candidates);\n    if(x.content)return pickText(x.content);\n    if(x.parts)return pickText(x.parts);\n    if(typeof x.text==='string')return x.text;\n    if(x.output)return pickText(x.output);\n    if(x.message)return pickText(x.message);\n  }\n  return null;\n}\nlet posts=[];\nif(g&&Array.isArray(g.posts))posts=g.posts;\nelse if(g&&Array.isArray(g.Posts))posts=g.Posts;\nelse{\n  let txt=pickText(g);\n  if(typeof txt==='string'){\n    txt=txt.trim().replace(/^```(json)?/i,'').replace(/```$/,'').trim();\n    try{const o=JSON.parse(txt);posts=o.posts||o.Posts||(Array.isArray(o)?o:[]);}catch(e){}\n  }\n}\nif(!Array.isArray(posts))posts=[];\nposts=posts.filter(p=>p&&p.titre&&String(p.titre).trim());\n// Plus de gabarits \"Post N\" : si extraction vide, on echoue -> alerte WF-ERR, aucun post cree\nif(!posts.length)throw new Error('TH décline: extraction Gemini échouée (0 post réel) — thème=\"'+(src.themeTitre||'?')+'\" sortie='+JSON.stringify(g).slice(0,250));\nconst PIL=new Set(['Éducation','Inspiration','Produit','Communauté','Autorité','Autre']);\nconst out=[];\n// ne cree QUE pour les posts reellement generes (pas de padding)\nfor(let i=0;i<slots.length&&i<posts.length;i++){\n  const p=posts[i];\n  const pil=PIL.has(p.pilier)?p.pilier:'Éducation';\n  out.push({json:{Titre:String(p.titre).slice(0,200),Reseau:slots[i].reseau,Format_Post:slots[i].format,Pilier:pil,Thematique:String(src.themeTitre||'').slice(0,100),Date_Publication_Prevue:slots[i].date,Status:'planifié'}});\n}\nreturn out;\n"
+        "jsCode": "/**\n * Logique des menus de choix Telegram (outils ATELIER, tendances RADAR).\n *\n * ⚠️ CE FICHIER EST LA SOURCE UNIQUE. Il est :\n *   1. inliné tel quel dans les nœuds Code de WF-TG-ROUTER par\n *      `scripts/n8n-patch-strategy-2026.py` ;\n *   2. évalué par `tests/unit/telegram-picker.test.ts`, via `new Function(...)` — donc dans les\n *      mêmes conditions qu'un nœud Code.\n *\n * D'où deux contraintes :\n *   - **aucune syntaxe de module** : ni `import`, ni `export`, ni `module.exports`. Un nœud Code\n *     n8n reçoit un corps de fonction, pas un module. Le test échouerait au chargement.\n *   - **aucune dépendance** : ni Luxon, ni les variables n8n (`$json`, `$now`…). Ce fichier ne\n *     contient que du calcul pur ; la glu propre à chaque nœud vit dans le patcher.\n *\n * On écrit la logique ici plutôt que dans le patcher pour qu'elle soit testable. Un toggle qui se\n * trompe d'index ne casse rien de visible : il coche simplement le mauvais outil, et la semaine\n * entière part sur le mauvais sujet.\n */\n\n/** Combien de choix par menu. 4 contenus ATELIER par semaine, 2 contenus RADAR. */\nvar PICK_LIMITS = { tool: 3, trend: 2 };\n\n/** Habillage de chaque menu. */\nvar MENUS = {\n  tool: {\n    icone: '🧰',\n    titre: 'Les outils de la semaine',\n    aide: '👉 Coche ceux que tu veux traiter, puis « Terminé ».',\n    vide: 'Choisis au moins un outil',\n  },\n  trend: {\n    icone: '📡',\n    titre: 'Les tendances de la semaine',\n    aide: '👉 Coche celle(s) à décrypter, puis « Terminé ».',\n    vide: 'Choisis au moins une tendance',\n  },\n};\n\n/** Échappe ce que Telegram interpréterait comme du HTML (`parse_mode: 'HTML'`). */\nfunction esc(s) {\n  return String(s === undefined || s === null ? '' : s)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\n/** Lit une liste d'options stockée en JSON dans Config. Tolère tout : ne jette jamais. */\nfunction parseList(raw) {\n  if (Array.isArray(raw)) return raw;\n  try {\n    var v = JSON.parse(raw || '[]');\n    return Array.isArray(v) ? v : [];\n  } catch (e) {\n    return [];\n  }\n}\n\n/**\n * Lit la sélection stockée en CSV d'index (« 0,2,5 »).\n * Dédoublonne et écarte tout ce qui n'est pas un index valide — la valeur vient de la table\n * Config (NocoDB), où elle a pu être éditée à la main.\n */\nfunction parsePicked(raw, optionCount) {\n  var seen = {};\n  var out = [];\n  String(raw === undefined || raw === null ? '' : raw)\n    .split(',')\n    .forEach(function (part) {\n      var n = parseInt(part, 10);\n      if (!isFinite(n) || n < 0) return;\n      if (optionCount !== undefined && n >= optionCount) return;\n      if (seen[n]) return;\n      seen[n] = true;\n      out.push(n);\n    });\n  return out;\n}\n\n/**\n * Retrouve le texte utile dans une réponse Gemini, quelle que soit sa forme.\n *\n * Selon la configuration du nœud, n8n rend soit l'objet déjà simplifié, soit **l'enveloppe brute**\n * `{candidates:[{content:{parts:[{text:\"…\"}]}}]}`. Un parseur qui n'attend que la forme simplifiée\n * ne lève aucune erreur : il ne trouve rien, retombe sur son défaut, et le menu n'affiche plus\n * qu'une seule option. Vécu en production le 2026-08-06 — Gemini avait bien renvoyé 7 outils.\n */\nfunction pickText(x) {\n  if (x === null || x === undefined) return null;\n  if (typeof x === 'string') return x;\n  if (Array.isArray(x)) {\n    for (var i = 0; i < x.length; i++) {\n      var t = pickText(x[i]);\n      if (t) return t;\n    }\n    return null;\n  }\n  if (typeof x === 'object') {\n    if (x.candidates) return pickText(x.candidates);\n    if (x.content) return pickText(x.content);\n    if (x.parts) return pickText(x.parts);\n    if (typeof x.text === 'string') return x.text;\n    if (x.output) return pickText(x.output);\n    if (x.message) return pickText(x.message);\n  }\n  return null;\n}\n\n/**\n * Extrait un tableau d'une réponse de modèle, sous l'une des clés attendues.\n * Tolère : objet déjà simplifié, enveloppe brute, JSON entouré de ```` ```json ````, tableau nu.\n * Rend `[]` plutôt que de jeter — au pire l'appelant applique son repli, en connaissance de cause.\n */\nfunction extraireListe(input, cles) {\n  var i;\n  if (input && typeof input === 'object' && !Array.isArray(input)) {\n    for (i = 0; i < cles.length; i++) {\n      if (Array.isArray(input[cles[i]])) return input[cles[i]];\n    }\n  }\n  var txt = pickText(input);\n  if (typeof txt === 'string') {\n    txt = txt.trim().replace(/^```(json)?/i, '').replace(/```$/, '').trim();\n    try {\n      var o = JSON.parse(txt);\n      for (i = 0; i < cles.length; i++) {\n        if (o && Array.isArray(o[cles[i]])) return o[cles[i]];\n      }\n      if (Array.isArray(o)) return o;\n    } catch (e) { /* réponse non JSON : on rend [] */ }\n  }\n  return [];\n}\n\n/** Sérialise la sélection pour Config. Trié, pour que deux états identiques s'écrivent pareil. */\nfunction serializePicked(picked) {\n  return picked\n    .slice()\n    .sort(function (a, b) { return a - b; })\n    .join(',');\n}\n\n/**\n * Coche / décoche une option.\n * Décocher est toujours permis ; cocher est refusé une fois le quota atteint — sinon on\n * accumulerait douze outils et la semaine n'aurait plus de fil.\n * Retourne `{picked, refus}` : `refus` est un message à afficher, ou null.\n */\nfunction togglePick(pickedRaw, index, menu, optionCount) {\n  var max = PICK_LIMITS[menu] || 3;\n  var picked = parsePicked(pickedRaw, optionCount);\n  var i = parseInt(index, 10);\n\n  if (!isFinite(i) || i < 0 || (optionCount !== undefined && i >= optionCount)) {\n    return { picked: picked, refus: 'Choix inconnu' };\n  }\n  var at = picked.indexOf(i);\n  if (at >= 0) {\n    picked.splice(at, 1);\n    return { picked: picked, refus: null };\n  }\n  if (picked.length >= max) {\n    return { picked: picked, refus: 'Maximum ' + max + ' — décoche-en un d’abord' };\n  }\n  picked.push(i);\n  return { picked: picked, refus: null };\n}\n\n/**\n * Construit le message et le clavier d'un menu.\n * Le clavier reprend l'état coché : c'est lui qui rend la multi-sélection lisible, puisque\n * Telegram ne connaît que des boutons sans mémoire.\n */\nfunction renderMenu(menu, options, picked, sousTitre) {\n  var m = MENUS[menu] || MENUS.tool;\n  var max = PICK_LIMITS[menu] || 3;\n  var mark = function (i) { return picked.indexOf(i) >= 0 ? '✅' : '⬜'; };\n\n  var lignes = options.map(function (o, i) {\n    var nom = esc(o && (o.nom || o.titre) ? (o.nom || o.titre) : 'Option ' + (i + 1));\n    var angle = o && o.angle ? ' — ' + esc(o.angle) : '';\n    return mark(i) + ' ' + (i + 1) + '. <b>' + nom + '</b>' + angle;\n  });\n\n  var entete = m.icone + ' <b>' + m.titre + ' — ' + picked.length + '/' + max + ' choisis</b>';\n  var texte = entete +\n    (sousTitre ? '\\n<i>' + esc(sousTitre) + '</i>' : '') +\n    '\\n\\n' + lignes.join('\\n') +\n    '\\n\\n' + m.aide;\n\n  // Trois boutons par ligne : au-delà, les libellés deviennent illisibles sur mobile.\n  var rows = [];\n  for (var i = 0; i < options.length; i += 3) {\n    var row = [];\n    for (var j = i; j < Math.min(i + 3, options.length); j++) {\n      row.push({ text: mark(j) + ' ' + (j + 1), callback_data: 'pick:' + menu + ':' + j });\n    }\n    rows.push(row);\n  }\n  rows.push([{\n    text: picked.length ? '✓ Terminé (' + picked.length + ')' : '✓ Terminé — coche d’abord',\n    callback_data: 'done:' + menu + ':0',\n  }]);\n\n  return { text: texte, keyboard: { inline_keyboard: rows } };\n}\n\n/** Les options réellement retenues, dans l'ordre d'affichage. */\nfunction selectedOptions(options, picked) {\n  return picked\n    .slice()\n    .sort(function (a, b) { return a - b; })\n    .map(function (i) { return options[i]; })\n    .filter(function (o) { return !!o; });\n}\n\n/*\n * Pas d'export : ce fichier est un CORPS DE FONCTION, pas un module. Le test l'évalue via\n * `new Function(source + 'return {…}')`, c'est-à-dire exactement comme n8n exécute un nœud Code —\n * ce qui vérifie au passage qu'il ne contient aucune syntaxe de module.\n */\nconst src=$('TH — Décliner (build)').first().json;\nconst slots=src.slots||[];\n// Même extracteur que les menus : si la réponse arrive dans l'enveloppe brute, un parseur naïf\n// rend [] sans erreur — les 21 contenus sortiraient alors tous avec un titre de repli.\nlet posts=extraireListe($input.first().json,['posts','Posts']);\n\n// Listes de valeurs autorisées. Elles doivent correspondre EXACTEMENT aux singleSelect Airtable :\n// une valeur inconnue est rejetée par l'API et fait échouer toute la ligne.\nconst PIL=new Set(['Éducation','Inspiration','Produit','Communauté','Autorité','Autre']);\nconst OFF=new Set(['Formations','Club Digitos','Rysmo','Agence','Accompagnement','Non-produit']);\nconst CIB=new Set(['Apprenants','Commerçants','Mixte']);\n\nconst out=[];\nfor(let i=0;i<slots.length;i++){\n  const p=posts[i]||{};\n  const s=slots[i];\n  const pil=PIL.has(p.pilier)?p.pilier:'Éducation';\n\n  // L'offre est déterministe là où la stratégie l'impose ; le modèle ne décide que du reste.\n  let offre;\n  if(s.serie!=='OFFRE'){ offre='Non-produit'; }\n  else if(s.jour===2&&s.reseau==='fb'){ offre='Agence'; } // le créneau du mercredi porte toujours l'agence\n  else if(s.format==='story'){ // le rappel du samedi alterne plateforme / agence d'une semaine à l'autre\n    offre=(DateTime.fromISO(s.date).weekNumber%2===1)?'Formations':'Agence';\n  }\n  else { offre=OFF.has(p.offre)&&p.offre!=='Non-produit'?p.offre:'Formations'; }\n\n  // Sur un créneau OFFRE, la cible SUIT l'offre retenue : annoncer l'agence à des apprenants\n  // (ou l'inverse) est le meilleur moyen de rater les deux. Ailleurs, la grille fait foi.\n  const LIGNE_AGENCE=(offre==='Agence'||offre==='Accompagnement');\n  let cible=CIB.has(s.cible)?s.cible:'Mixte';\n  if(s.serie==='OFFRE'&&s.cible==='Mixte'){ cible=LIGNE_AGENCE?'Commerçants':'Apprenants'; }\n\n  // ⚠️ `Thematique` est un SingleSelect à liste FERMÉE, et NocoDB refuse toute valeur hors options\n  // (`TH — Créer posts` replie donc sur « Contenu de la semaine »). Le thème hebdomadaire, lui, est\n  // du texte libre proposé par le modèle : il n'y entrerait jamais. On le porte donc dans `Brief`,\n  // qui est du texte libre ET déjà lu par WF-SOCIAL-03 au moment de rédiger.\n  const theme=String(src.themeTitre||'').trim();\n  const briefTheme=theme?('Thème de la semaine : « '+theme+' »'):'';\n\n  // Ce que le board a choisi redescend jusqu'à la ligne : `Outil` sert l'anti-répétition des\n  // semaines suivantes et le suivi de performance ; `Brief` est lu tel quel par WF-SOCIAL-03.\n  const row={\n    Titre:String(p.titre||('Post '+(i+1))).slice(0,200),\n    Reseau:s.reseau,\n    Format_Post:s.format,\n    Pilier:pil,\n    Serie:s.serie,\n    Offre:offre,\n    Cible:cible,\n    Thematique:theme.slice(0,100),\n    Date_Publication_Prevue:s.date,\n    Status:'planifié',\n    Brief:briefTheme\n  };\n  if(s.outil){\n    row.Outil=String(s.outil.nom||'').slice(0,80);\n    row.Brief=briefTheme+'\\nOutil imposé : '+row.Outil+(s.outil.angle?' — '+s.outil.angle:'')+(s.outil.gain?' | Gain visé : '+s.outil.gain:'');\n  }\n  if(s.tendance){\n    row.Brief=briefTheme+'\\nTendance imposée : '+String(s.tendance.titre||'')+(s.tendance.date?' ['+s.tendance.date+']':'')+(s.tendance.source?' — source : '+s.tendance.source:'')+(s.tendance.angle?' | Angle : '+s.tendance.angle:'');\n  }\n  out.push({json:row});\n}\nreturn out;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -621,7 +621,12 @@
             "Pilier": "={{ $json.Pilier }}",
             "Thematique": "={{ [\"Marketing digital\", \"SEO\", \"Social media\", \"Entrepreneuriat\", \"E-commerce\", \"IA & automatisation\", \"Branding\", \"Growth\", \"Autre\", \"Contenu de la semaine\"].includes($json.Thematique) ? $json.Thematique : 'Contenu de la semaine' }}",
             "Date_Publication_Prevue": "={{ $json.Date_Publication_Prevue }}",
-            "Status": "={{ $json.Status }}"
+            "Status": "={{ $json.Status }}",
+            "Serie": "={{ $json.Serie ?? '' }}",
+            "Offre": "={{ $json.Offre ?? '' }}",
+            "Cible": "={{ $json.Cible ?? '' }}",
+            "Outil": "={{ $json.Outil ?? '' }}",
+            "Brief": "={{ $json.Brief ?? '' }}"
           }
         }
       },
@@ -682,7 +687,7 @@
         "url": "=https://api.telegram.org/bot{{ $('Parse — Update').first().json.token }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({chat_id:$('Parse — Update').first().json.chatId,text:'✅ Semaine générée : « '+$('TH — Décliner (build)').first().json.themeTitre+' » — 10 posts créés, production en cours.',parse_mode:'HTML'}) }}",
+        "jsonBody": "={{ JSON.stringify({chat_id:$('Parse — Update').first().json.chatId,text:'✅ Semaine générée : « '+$('TH — Décliner (build)').first().json.themeTitre+' » — '+$('TH — Décliner (build)').first().json.slots.length+' contenus créés (outils : '+$('TH — Décliner (build)').first().json.outilsLabel+')',parse_mode:'HTML'}) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -692,7 +697,892 @@
         1400
       ],
       "id": "th-conf",
-      "name": "TH — confirme"
+      "name": "TH — confirme",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Serie,eq,ATELIER)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        140,
+        1800
+      ],
+      "id": "pk-recents-noco",
+      "name": "PK — Outils récents (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat de l'ancien nœud Airtable :\n// {...champs, id} — pour que les expressions $('<nom>').json.<Champ> restent valables.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        1800
+      ],
+      "id": "pk-recents",
+      "name": "PK — Outils récents"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Propose les outils de la semaine. Le board tranche ensuite sur Telegram.\nconst o=$('Parse — Update').first().json;\nlet themes=[];\ntry{const raw=JSON.parse(o.themesRaw||'[]');themes=Array.isArray(raw)?raw:(raw.themes||[]);}catch(e){themes=[];}\nconst t=themes[o.themeIndex]||themes[0]||{titre:'Contenu de la semaine',angle:'',pisteA:'',pisteB:''};\n\n// Anti-répétition : les outils déjà traités récemment, lus sur les lignes ATELIER de Contenus.\n// C'est ce qui empêche la liste de se refermer sur les trois mêmes noms.\nconst recents=[];\ntry{\n  $input.all().forEach(function(r){\n    const f=r.json.fields||r.json;\n    const v=String(f.Outil||'').trim();\n    if(v&&recents.indexOf(v)<0)recents.push(v);\n  });\n}catch(e){}\n\nconst prompt=`Tu es **CMO Aïcha**, directrice marketing de Max-Morrys.\n\nTHÈME DE LA SEMAINE : « ${t.titre} » — ${t.angle||''}\n\nPropose **7 outils** à traiter dans la série ATELIER cette semaine. Un contenu ATELIER, c'est\n**un outil, un réglage, un gain chiffré** — jamais « 15 astuces ».\n\nLes deux audiences à servir :\n- **Apprenants** — entrepreneurs, marketeurs, freelances, reconversions (Afrique de l'Ouest\n  francophone + diaspora). Vocabulaire technique autorisé.\n- **Commerçants** — commerces physiques de 1 à 15 salariés à Dakar, Abidjan, Cotonou.\n  **Zéro terme technique** : un outil ne leur est utile que s'il tient en « ce que ça te fait gagner ».\n\nRÈGLES :\n- **La liste n'est PAS fermée.** Propose ce qui est réellement pertinent aujourd'hui : outils de\n  design, de montage, d'IA, de rédaction, d'organisation, de visibilité locale, de conversation,\n  d'automatisation — **y compris des outils récents ou peu connus**.\n- **Au moins 2 propositions doivent sortir des incontournables** (Canva, CapCut, n8n, WhatsApp\n  Business, fiche Google) : c'est ce qui rend la série vivante.\n- Chaque outil doit tenir en un contenu concret, avec une manipulation précise.\n- Ne repropose PAS ces outils déjà traités récemment : ${recents.length?recents.join(', '):'(aucun pour l\\'instant)'}.\n\nRéponds STRICTEMENT en JSON, sans texte autour :\n{\"outils\":[{\"nom\":\"nom de l'outil\",\"angle\":\"la manipulation précise, en 4 à 7 mots\",\"piste\":\"Apprenants|Commerçants|Mixte\",\"gain\":\"le gain concret, chiffré si possible\"}]}\n— exactement 7 objets.`;\n\nreturn [{json:{...o,themeJson:JSON.stringify(t),themeTitre:t.titre,prompt:prompt}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        360,
+        1800
+      ],
+      "id": "pk-tool-build",
+      "name": "PK — Outils (build)"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "upsert",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Airtable — Lire Config').all().find(r => r.json.Cle === 'PICK_THEME')?.json.id ?? '' }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cle": "PICK_THEME",
+            "Valeur": "={{ $json.themeJson }}",
+            "Type": "json"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        580,
+        1940
+      ],
+      "id": "pk-store-theme",
+      "name": "PK — Stocker thème",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 16384,
+          "temperature": 0.8,
+          "thinkingBudget": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        580,
+        1800
+      ],
+      "id": "pk-tool-gem",
+      "name": "Gemini — Proposer outils",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Logique des menus de choix Telegram (outils ATELIER, tendances RADAR).\n *\n * ⚠️ CE FICHIER EST LA SOURCE UNIQUE. Il est :\n *   1. inliné tel quel dans les nœuds Code de WF-TG-ROUTER par\n *      `scripts/n8n-patch-strategy-2026.py` ;\n *   2. évalué par `tests/unit/telegram-picker.test.ts`, via `new Function(...)` — donc dans les\n *      mêmes conditions qu'un nœud Code.\n *\n * D'où deux contraintes :\n *   - **aucune syntaxe de module** : ni `import`, ni `export`, ni `module.exports`. Un nœud Code\n *     n8n reçoit un corps de fonction, pas un module. Le test échouerait au chargement.\n *   - **aucune dépendance** : ni Luxon, ni les variables n8n (`$json`, `$now`…). Ce fichier ne\n *     contient que du calcul pur ; la glu propre à chaque nœud vit dans le patcher.\n *\n * On écrit la logique ici plutôt que dans le patcher pour qu'elle soit testable. Un toggle qui se\n * trompe d'index ne casse rien de visible : il coche simplement le mauvais outil, et la semaine\n * entière part sur le mauvais sujet.\n */\n\n/** Combien de choix par menu. 4 contenus ATELIER par semaine, 2 contenus RADAR. */\nvar PICK_LIMITS = { tool: 3, trend: 2 };\n\n/** Habillage de chaque menu. */\nvar MENUS = {\n  tool: {\n    icone: '🧰',\n    titre: 'Les outils de la semaine',\n    aide: '👉 Coche ceux que tu veux traiter, puis « Terminé ».',\n    vide: 'Choisis au moins un outil',\n  },\n  trend: {\n    icone: '📡',\n    titre: 'Les tendances de la semaine',\n    aide: '👉 Coche celle(s) à décrypter, puis « Terminé ».',\n    vide: 'Choisis au moins une tendance',\n  },\n};\n\n/** Échappe ce que Telegram interpréterait comme du HTML (`parse_mode: 'HTML'`). */\nfunction esc(s) {\n  return String(s === undefined || s === null ? '' : s)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\n/** Lit une liste d'options stockée en JSON dans Config. Tolère tout : ne jette jamais. */\nfunction parseList(raw) {\n  if (Array.isArray(raw)) return raw;\n  try {\n    var v = JSON.parse(raw || '[]');\n    return Array.isArray(v) ? v : [];\n  } catch (e) {\n    return [];\n  }\n}\n\n/**\n * Lit la sélection stockée en CSV d'index (« 0,2,5 »).\n * Dédoublonne et écarte tout ce qui n'est pas un index valide — la valeur vient de la table\n * Config (NocoDB), où elle a pu être éditée à la main.\n */\nfunction parsePicked(raw, optionCount) {\n  var seen = {};\n  var out = [];\n  String(raw === undefined || raw === null ? '' : raw)\n    .split(',')\n    .forEach(function (part) {\n      var n = parseInt(part, 10);\n      if (!isFinite(n) || n < 0) return;\n      if (optionCount !== undefined && n >= optionCount) return;\n      if (seen[n]) return;\n      seen[n] = true;\n      out.push(n);\n    });\n  return out;\n}\n\n/**\n * Retrouve le texte utile dans une réponse Gemini, quelle que soit sa forme.\n *\n * Selon la configuration du nœud, n8n rend soit l'objet déjà simplifié, soit **l'enveloppe brute**\n * `{candidates:[{content:{parts:[{text:\"…\"}]}}]}`. Un parseur qui n'attend que la forme simplifiée\n * ne lève aucune erreur : il ne trouve rien, retombe sur son défaut, et le menu n'affiche plus\n * qu'une seule option. Vécu en production le 2026-08-06 — Gemini avait bien renvoyé 7 outils.\n */\nfunction pickText(x) {\n  if (x === null || x === undefined) return null;\n  if (typeof x === 'string') return x;\n  if (Array.isArray(x)) {\n    for (var i = 0; i < x.length; i++) {\n      var t = pickText(x[i]);\n      if (t) return t;\n    }\n    return null;\n  }\n  if (typeof x === 'object') {\n    if (x.candidates) return pickText(x.candidates);\n    if (x.content) return pickText(x.content);\n    if (x.parts) return pickText(x.parts);\n    if (typeof x.text === 'string') return x.text;\n    if (x.output) return pickText(x.output);\n    if (x.message) return pickText(x.message);\n  }\n  return null;\n}\n\n/**\n * Extrait un tableau d'une réponse de modèle, sous l'une des clés attendues.\n * Tolère : objet déjà simplifié, enveloppe brute, JSON entouré de ```` ```json ````, tableau nu.\n * Rend `[]` plutôt que de jeter — au pire l'appelant applique son repli, en connaissance de cause.\n */\nfunction extraireListe(input, cles) {\n  var i;\n  if (input && typeof input === 'object' && !Array.isArray(input)) {\n    for (i = 0; i < cles.length; i++) {\n      if (Array.isArray(input[cles[i]])) return input[cles[i]];\n    }\n  }\n  var txt = pickText(input);\n  if (typeof txt === 'string') {\n    txt = txt.trim().replace(/^```(json)?/i, '').replace(/```$/, '').trim();\n    try {\n      var o = JSON.parse(txt);\n      for (i = 0; i < cles.length; i++) {\n        if (o && Array.isArray(o[cles[i]])) return o[cles[i]];\n      }\n      if (Array.isArray(o)) return o;\n    } catch (e) { /* réponse non JSON : on rend [] */ }\n  }\n  return [];\n}\n\n/** Sérialise la sélection pour Config. Trié, pour que deux états identiques s'écrivent pareil. */\nfunction serializePicked(picked) {\n  return picked\n    .slice()\n    .sort(function (a, b) { return a - b; })\n    .join(',');\n}\n\n/**\n * Coche / décoche une option.\n * Décocher est toujours permis ; cocher est refusé une fois le quota atteint — sinon on\n * accumulerait douze outils et la semaine n'aurait plus de fil.\n * Retourne `{picked, refus}` : `refus` est un message à afficher, ou null.\n */\nfunction togglePick(pickedRaw, index, menu, optionCount) {\n  var max = PICK_LIMITS[menu] || 3;\n  var picked = parsePicked(pickedRaw, optionCount);\n  var i = parseInt(index, 10);\n\n  if (!isFinite(i) || i < 0 || (optionCount !== undefined && i >= optionCount)) {\n    return { picked: picked, refus: 'Choix inconnu' };\n  }\n  var at = picked.indexOf(i);\n  if (at >= 0) {\n    picked.splice(at, 1);\n    return { picked: picked, refus: null };\n  }\n  if (picked.length >= max) {\n    return { picked: picked, refus: 'Maximum ' + max + ' — décoche-en un d’abord' };\n  }\n  picked.push(i);\n  return { picked: picked, refus: null };\n}\n\n/**\n * Construit le message et le clavier d'un menu.\n * Le clavier reprend l'état coché : c'est lui qui rend la multi-sélection lisible, puisque\n * Telegram ne connaît que des boutons sans mémoire.\n */\nfunction renderMenu(menu, options, picked, sousTitre) {\n  var m = MENUS[menu] || MENUS.tool;\n  var max = PICK_LIMITS[menu] || 3;\n  var mark = function (i) { return picked.indexOf(i) >= 0 ? '✅' : '⬜'; };\n\n  var lignes = options.map(function (o, i) {\n    var nom = esc(o && (o.nom || o.titre) ? (o.nom || o.titre) : 'Option ' + (i + 1));\n    var angle = o && o.angle ? ' — ' + esc(o.angle) : '';\n    return mark(i) + ' ' + (i + 1) + '. <b>' + nom + '</b>' + angle;\n  });\n\n  var entete = m.icone + ' <b>' + m.titre + ' — ' + picked.length + '/' + max + ' choisis</b>';\n  var texte = entete +\n    (sousTitre ? '\\n<i>' + esc(sousTitre) + '</i>' : '') +\n    '\\n\\n' + lignes.join('\\n') +\n    '\\n\\n' + m.aide;\n\n  // Trois boutons par ligne : au-delà, les libellés deviennent illisibles sur mobile.\n  var rows = [];\n  for (var i = 0; i < options.length; i += 3) {\n    var row = [];\n    for (var j = i; j < Math.min(i + 3, options.length); j++) {\n      row.push({ text: mark(j) + ' ' + (j + 1), callback_data: 'pick:' + menu + ':' + j });\n    }\n    rows.push(row);\n  }\n  rows.push([{\n    text: picked.length ? '✓ Terminé (' + picked.length + ')' : '✓ Terminé — coche d’abord',\n    callback_data: 'done:' + menu + ':0',\n  }]);\n\n  return { text: texte, keyboard: { inline_keyboard: rows } };\n}\n\n/** Les options réellement retenues, dans l'ordre d'affichage. */\nfunction selectedOptions(options, picked) {\n  return picked\n    .slice()\n    .sort(function (a, b) { return a - b; })\n    .map(function (i) { return options[i]; })\n    .filter(function (o) { return !!o; });\n}\n\n/*\n * Pas d'export : ce fichier est un CORPS DE FONCTION, pas un module. Le test l'évalue via\n * `new Function(source + 'return {…}')`, c'est-à-dire exactement comme n8n exécute un nœud Code —\n * ce qui vérifie au passage qu'il ne contient aucune syntaxe de module.\n */\nconst src=$('PK — Outils (build)').first().json;\n// `extraireListe` gère l'enveloppe brute {candidates:[{content:{parts:[{text}]}}]} autant que\n// l'objet simplifié : sans ça, Gemini propose 7 outils et le menu n'en affiche qu'un (le repli).\nlet outils=extraireListe($input.first().json,['outils','Outils']);\noutils=outils.slice(0,8).filter(function(x){return x&&x.nom;});\nif(!outils.length)outils=[{nom:'Canva',angle:'le kit de marque',piste:'Mixte',gain:'20 min par visuel'}];\n\nconst vue=renderMenu('tool',outils,[],'Thème : « '+src.themeTitre+' »');\nconst tgBody={chat_id:src.chatId,text:vue.text,parse_mode:'HTML',reply_markup:vue.keyboard};\nreturn [{json:{token:src.token,chatId:src.chatId,outilsJson:JSON.stringify(outils),themeJson:src.themeJson,tgBody:tgBody}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        1800
+      ],
+      "id": "pk-tool-parse",
+      "name": "PK — Outils (parse)"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "upsert",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Airtable — Lire Config').all().find(r => r.json.Cle === 'TOOLS_CURRENT')?.json.id ?? '' }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cle": "TOOLS_CURRENT",
+            "Valeur": "={{ $json.outilsJson }}",
+            "Type": "json"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1020,
+        1800
+      ],
+      "id": "pk-store-tools",
+      "name": "PK — Stocker outils",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "upsert",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Airtable — Lire Config').all().find(r => r.json.Cle === 'TOOLS_PICKED')?.json.id ?? '' }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cle": "TOOLS_PICKED",
+            "Valeur": "-",
+            "Type": "json"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1240,
+        1800
+      ],
+      "id": "pk-reset-tools",
+      "name": "PK — Reset choix outils",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('PK — Outils (parse)').first().json.token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('PK — Outils (parse)').first().json.tgBody) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1460,
+        1800
+      ],
+      "id": "pk-send-tools",
+      "name": "PK — Envoyer outils",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.kind }}",
+              "rightValue": "toggle",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        -100,
+        2000
+      ],
+      "id": "if-toggle",
+      "name": "IF toggle"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Logique des menus de choix Telegram (outils ATELIER, tendances RADAR).\n *\n * ⚠️ CE FICHIER EST LA SOURCE UNIQUE. Il est :\n *   1. inliné tel quel dans les nœuds Code de WF-TG-ROUTER par\n *      `scripts/n8n-patch-strategy-2026.py` ;\n *   2. évalué par `tests/unit/telegram-picker.test.ts`, via `new Function(...)` — donc dans les\n *      mêmes conditions qu'un nœud Code.\n *\n * D'où deux contraintes :\n *   - **aucune syntaxe de module** : ni `import`, ni `export`, ni `module.exports`. Un nœud Code\n *     n8n reçoit un corps de fonction, pas un module. Le test échouerait au chargement.\n *   - **aucune dépendance** : ni Luxon, ni les variables n8n (`$json`, `$now`…). Ce fichier ne\n *     contient que du calcul pur ; la glu propre à chaque nœud vit dans le patcher.\n *\n * On écrit la logique ici plutôt que dans le patcher pour qu'elle soit testable. Un toggle qui se\n * trompe d'index ne casse rien de visible : il coche simplement le mauvais outil, et la semaine\n * entière part sur le mauvais sujet.\n */\n\n/** Combien de choix par menu. 4 contenus ATELIER par semaine, 2 contenus RADAR. */\nvar PICK_LIMITS = { tool: 3, trend: 2 };\n\n/** Habillage de chaque menu. */\nvar MENUS = {\n  tool: {\n    icone: '🧰',\n    titre: 'Les outils de la semaine',\n    aide: '👉 Coche ceux que tu veux traiter, puis « Terminé ».',\n    vide: 'Choisis au moins un outil',\n  },\n  trend: {\n    icone: '📡',\n    titre: 'Les tendances de la semaine',\n    aide: '👉 Coche celle(s) à décrypter, puis « Terminé ».',\n    vide: 'Choisis au moins une tendance',\n  },\n};\n\n/** Échappe ce que Telegram interpréterait comme du HTML (`parse_mode: 'HTML'`). */\nfunction esc(s) {\n  return String(s === undefined || s === null ? '' : s)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\n/** Lit une liste d'options stockée en JSON dans Config. Tolère tout : ne jette jamais. */\nfunction parseList(raw) {\n  if (Array.isArray(raw)) return raw;\n  try {\n    var v = JSON.parse(raw || '[]');\n    return Array.isArray(v) ? v : [];\n  } catch (e) {\n    return [];\n  }\n}\n\n/**\n * Lit la sélection stockée en CSV d'index (« 0,2,5 »).\n * Dédoublonne et écarte tout ce qui n'est pas un index valide — la valeur vient de la table\n * Config (NocoDB), où elle a pu être éditée à la main.\n */\nfunction parsePicked(raw, optionCount) {\n  var seen = {};\n  var out = [];\n  String(raw === undefined || raw === null ? '' : raw)\n    .split(',')\n    .forEach(function (part) {\n      var n = parseInt(part, 10);\n      if (!isFinite(n) || n < 0) return;\n      if (optionCount !== undefined && n >= optionCount) return;\n      if (seen[n]) return;\n      seen[n] = true;\n      out.push(n);\n    });\n  return out;\n}\n\n/**\n * Retrouve le texte utile dans une réponse Gemini, quelle que soit sa forme.\n *\n * Selon la configuration du nœud, n8n rend soit l'objet déjà simplifié, soit **l'enveloppe brute**\n * `{candidates:[{content:{parts:[{text:\"…\"}]}}]}`. Un parseur qui n'attend que la forme simplifiée\n * ne lève aucune erreur : il ne trouve rien, retombe sur son défaut, et le menu n'affiche plus\n * qu'une seule option. Vécu en production le 2026-08-06 — Gemini avait bien renvoyé 7 outils.\n */\nfunction pickText(x) {\n  if (x === null || x === undefined) return null;\n  if (typeof x === 'string') return x;\n  if (Array.isArray(x)) {\n    for (var i = 0; i < x.length; i++) {\n      var t = pickText(x[i]);\n      if (t) return t;\n    }\n    return null;\n  }\n  if (typeof x === 'object') {\n    if (x.candidates) return pickText(x.candidates);\n    if (x.content) return pickText(x.content);\n    if (x.parts) return pickText(x.parts);\n    if (typeof x.text === 'string') return x.text;\n    if (x.output) return pickText(x.output);\n    if (x.message) return pickText(x.message);\n  }\n  return null;\n}\n\n/**\n * Extrait un tableau d'une réponse de modèle, sous l'une des clés attendues.\n * Tolère : objet déjà simplifié, enveloppe brute, JSON entouré de ```` ```json ````, tableau nu.\n * Rend `[]` plutôt que de jeter — au pire l'appelant applique son repli, en connaissance de cause.\n */\nfunction extraireListe(input, cles) {\n  var i;\n  if (input && typeof input === 'object' && !Array.isArray(input)) {\n    for (i = 0; i < cles.length; i++) {\n      if (Array.isArray(input[cles[i]])) return input[cles[i]];\n    }\n  }\n  var txt = pickText(input);\n  if (typeof txt === 'string') {\n    txt = txt.trim().replace(/^```(json)?/i, '').replace(/```$/, '').trim();\n    try {\n      var o = JSON.parse(txt);\n      for (i = 0; i < cles.length; i++) {\n        if (o && Array.isArray(o[cles[i]])) return o[cles[i]];\n      }\n      if (Array.isArray(o)) return o;\n    } catch (e) { /* réponse non JSON : on rend [] */ }\n  }\n  return [];\n}\n\n/** Sérialise la sélection pour Config. Trié, pour que deux états identiques s'écrivent pareil. */\nfunction serializePicked(picked) {\n  return picked\n    .slice()\n    .sort(function (a, b) { return a - b; })\n    .join(',');\n}\n\n/**\n * Coche / décoche une option.\n * Décocher est toujours permis ; cocher est refusé une fois le quota atteint — sinon on\n * accumulerait douze outils et la semaine n'aurait plus de fil.\n * Retourne `{picked, refus}` : `refus` est un message à afficher, ou null.\n */\nfunction togglePick(pickedRaw, index, menu, optionCount) {\n  var max = PICK_LIMITS[menu] || 3;\n  var picked = parsePicked(pickedRaw, optionCount);\n  var i = parseInt(index, 10);\n\n  if (!isFinite(i) || i < 0 || (optionCount !== undefined && i >= optionCount)) {\n    return { picked: picked, refus: 'Choix inconnu' };\n  }\n  var at = picked.indexOf(i);\n  if (at >= 0) {\n    picked.splice(at, 1);\n    return { picked: picked, refus: null };\n  }\n  if (picked.length >= max) {\n    return { picked: picked, refus: 'Maximum ' + max + ' — décoche-en un d’abord' };\n  }\n  picked.push(i);\n  return { picked: picked, refus: null };\n}\n\n/**\n * Construit le message et le clavier d'un menu.\n * Le clavier reprend l'état coché : c'est lui qui rend la multi-sélection lisible, puisque\n * Telegram ne connaît que des boutons sans mémoire.\n */\nfunction renderMenu(menu, options, picked, sousTitre) {\n  var m = MENUS[menu] || MENUS.tool;\n  var max = PICK_LIMITS[menu] || 3;\n  var mark = function (i) { return picked.indexOf(i) >= 0 ? '✅' : '⬜'; };\n\n  var lignes = options.map(function (o, i) {\n    var nom = esc(o && (o.nom || o.titre) ? (o.nom || o.titre) : 'Option ' + (i + 1));\n    var angle = o && o.angle ? ' — ' + esc(o.angle) : '';\n    return mark(i) + ' ' + (i + 1) + '. <b>' + nom + '</b>' + angle;\n  });\n\n  var entete = m.icone + ' <b>' + m.titre + ' — ' + picked.length + '/' + max + ' choisis</b>';\n  var texte = entete +\n    (sousTitre ? '\\n<i>' + esc(sousTitre) + '</i>' : '') +\n    '\\n\\n' + lignes.join('\\n') +\n    '\\n\\n' + m.aide;\n\n  // Trois boutons par ligne : au-delà, les libellés deviennent illisibles sur mobile.\n  var rows = [];\n  for (var i = 0; i < options.length; i += 3) {\n    var row = [];\n    for (var j = i; j < Math.min(i + 3, options.length); j++) {\n      row.push({ text: mark(j) + ' ' + (j + 1), callback_data: 'pick:' + menu + ':' + j });\n    }\n    rows.push(row);\n  }\n  rows.push([{\n    text: picked.length ? '✓ Terminé (' + picked.length + ')' : '✓ Terminé — coche d’abord',\n    callback_data: 'done:' + menu + ':0',\n  }]);\n\n  return { text: texte, keyboard: { inline_keyboard: rows } };\n}\n\n/** Les options réellement retenues, dans l'ordre d'affichage. */\nfunction selectedOptions(options, picked) {\n  return picked\n    .slice()\n    .sort(function (a, b) { return a - b; })\n    .map(function (i) { return options[i]; })\n    .filter(function (o) { return !!o; });\n}\n\n/*\n * Pas d'export : ce fichier est un CORPS DE FONCTION, pas un module. Le test l'évalue via\n * `new Function(source + 'return {…}')`, c'est-à-dire exactement comme n8n exécute un nœud Code —\n * ce qui vérifie au passage qu'il ne contient aucune syntaxe de module.\n */\n// Coche / décoche une option et redessine le message. C'est la seule façon de faire de la\n// multi-sélection sur Telegram : les boutons n'ont pas de mémoire, l'état vit dans Airtable.\nconst o=$json;\nconst options=parseList(o.menuOptions);\nconst r=togglePick(o.menuPicked,o.optIndex,o.menu,options.length);\nconst vue=renderMenu(o.menu,options,r.picked,o.sousTitre);\n// `modifie` = le clic a réellement changé la sélection. Un clic REFUSÉ (quota atteint) laisse le\n// message identique, et Telegram rejette une édition sans changement :\n// « message is not modified ». On ne réécrit donc que si quelque chose a bougé — l'accusé de\n// réception, lui, part toujours, puisque c'est lui qui affiche « Maximum 3 ».\nreturn [{json:{...o,\n  modifie:r.refus===null,\n  pickedCsv:serializePicked(r.picked),\n  answerText:r.refus||'',\n  editBody:{chat_id:o.chatId,message_id:o.messageId,text:vue.text,parse_mode:'HTML',reply_markup:vue.keyboard}\n}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        140,
+        2000
+      ],
+      "id": "pk-toggle",
+      "name": "PK — Toggle"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.menu }}",
+              "rightValue": "tool",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $json.modifie }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        360,
+        1860
+      ],
+      "id": "if-pick-tool",
+      "name": "IF sél. outils"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "upsert",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Airtable — Lire Config').all().find(r => r.json.Cle === 'TOOLS_PICKED')?.json.id ?? '' }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cle": "TOOLS_PICKED",
+            "Valeur": "={{ $json.pickedCsv }}",
+            "Type": "json"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        580,
+        1860
+      ],
+      "id": "pk-save-tools",
+      "name": "PK — MAJ outils",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.menu }}",
+              "rightValue": "trend",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $json.modifie }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        360,
+        1720
+      ],
+      "id": "if-pick-trend",
+      "name": "IF sél. tendances"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "upsert",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Airtable — Lire Config').all().find(r => r.json.Cle === 'TRENDS_PICKED')?.json.id ?? '' }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cle": "TRENDS_PICKED",
+            "Valeur": "={{ $json.pickedCsv }}",
+            "Type": "json"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        580,
+        1720
+      ],
+      "id": "pk-save-trends",
+      "name": "PK — MAJ tendances",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.modifie }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        360,
+        2280
+      ],
+      "id": "if-modifie",
+      "name": "IF menu modifié"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/answerCallbackQuery",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({callback_query_id:$json.callbackQueryId,text:$json.answerText,show_alert:!!$json.answerText}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        360,
+        2140
+      ],
+      "id": "pk-ack-toggle",
+      "name": "PK — accusé (toggle)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/editMessageText",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.editBody) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        580,
+        2280
+      ],
+      "id": "pk-edit",
+      "name": "PK — Éditer message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.kind }}",
+              "rightValue": "done",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        -100,
+        2200
+      ],
+      "id": "if-done",
+      "name": "IF done"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Logique des menus de choix Telegram (outils ATELIER, tendances RADAR).\n *\n * ⚠️ CE FICHIER EST LA SOURCE UNIQUE. Il est :\n *   1. inliné tel quel dans les nœuds Code de WF-TG-ROUTER par\n *      `scripts/n8n-patch-strategy-2026.py` ;\n *   2. évalué par `tests/unit/telegram-picker.test.ts`, via `new Function(...)` — donc dans les\n *      mêmes conditions qu'un nœud Code.\n *\n * D'où deux contraintes :\n *   - **aucune syntaxe de module** : ni `import`, ni `export`, ni `module.exports`. Un nœud Code\n *     n8n reçoit un corps de fonction, pas un module. Le test échouerait au chargement.\n *   - **aucune dépendance** : ni Luxon, ni les variables n8n (`$json`, `$now`…). Ce fichier ne\n *     contient que du calcul pur ; la glu propre à chaque nœud vit dans le patcher.\n *\n * On écrit la logique ici plutôt que dans le patcher pour qu'elle soit testable. Un toggle qui se\n * trompe d'index ne casse rien de visible : il coche simplement le mauvais outil, et la semaine\n * entière part sur le mauvais sujet.\n */\n\n/** Combien de choix par menu. 4 contenus ATELIER par semaine, 2 contenus RADAR. */\nvar PICK_LIMITS = { tool: 3, trend: 2 };\n\n/** Habillage de chaque menu. */\nvar MENUS = {\n  tool: {\n    icone: '🧰',\n    titre: 'Les outils de la semaine',\n    aide: '👉 Coche ceux que tu veux traiter, puis « Terminé ».',\n    vide: 'Choisis au moins un outil',\n  },\n  trend: {\n    icone: '📡',\n    titre: 'Les tendances de la semaine',\n    aide: '👉 Coche celle(s) à décrypter, puis « Terminé ».',\n    vide: 'Choisis au moins une tendance',\n  },\n};\n\n/** Échappe ce que Telegram interpréterait comme du HTML (`parse_mode: 'HTML'`). */\nfunction esc(s) {\n  return String(s === undefined || s === null ? '' : s)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\n/** Lit une liste d'options stockée en JSON dans Config. Tolère tout : ne jette jamais. */\nfunction parseList(raw) {\n  if (Array.isArray(raw)) return raw;\n  try {\n    var v = JSON.parse(raw || '[]');\n    return Array.isArray(v) ? v : [];\n  } catch (e) {\n    return [];\n  }\n}\n\n/**\n * Lit la sélection stockée en CSV d'index (« 0,2,5 »).\n * Dédoublonne et écarte tout ce qui n'est pas un index valide — la valeur vient de la table\n * Config (NocoDB), où elle a pu être éditée à la main.\n */\nfunction parsePicked(raw, optionCount) {\n  var seen = {};\n  var out = [];\n  String(raw === undefined || raw === null ? '' : raw)\n    .split(',')\n    .forEach(function (part) {\n      var n = parseInt(part, 10);\n      if (!isFinite(n) || n < 0) return;\n      if (optionCount !== undefined && n >= optionCount) return;\n      if (seen[n]) return;\n      seen[n] = true;\n      out.push(n);\n    });\n  return out;\n}\n\n/**\n * Retrouve le texte utile dans une réponse Gemini, quelle que soit sa forme.\n *\n * Selon la configuration du nœud, n8n rend soit l'objet déjà simplifié, soit **l'enveloppe brute**\n * `{candidates:[{content:{parts:[{text:\"…\"}]}}]}`. Un parseur qui n'attend que la forme simplifiée\n * ne lève aucune erreur : il ne trouve rien, retombe sur son défaut, et le menu n'affiche plus\n * qu'une seule option. Vécu en production le 2026-08-06 — Gemini avait bien renvoyé 7 outils.\n */\nfunction pickText(x) {\n  if (x === null || x === undefined) return null;\n  if (typeof x === 'string') return x;\n  if (Array.isArray(x)) {\n    for (var i = 0; i < x.length; i++) {\n      var t = pickText(x[i]);\n      if (t) return t;\n    }\n    return null;\n  }\n  if (typeof x === 'object') {\n    if (x.candidates) return pickText(x.candidates);\n    if (x.content) return pickText(x.content);\n    if (x.parts) return pickText(x.parts);\n    if (typeof x.text === 'string') return x.text;\n    if (x.output) return pickText(x.output);\n    if (x.message) return pickText(x.message);\n  }\n  return null;\n}\n\n/**\n * Extrait un tableau d'une réponse de modèle, sous l'une des clés attendues.\n * Tolère : objet déjà simplifié, enveloppe brute, JSON entouré de ```` ```json ````, tableau nu.\n * Rend `[]` plutôt que de jeter — au pire l'appelant applique son repli, en connaissance de cause.\n */\nfunction extraireListe(input, cles) {\n  var i;\n  if (input && typeof input === 'object' && !Array.isArray(input)) {\n    for (i = 0; i < cles.length; i++) {\n      if (Array.isArray(input[cles[i]])) return input[cles[i]];\n    }\n  }\n  var txt = pickText(input);\n  if (typeof txt === 'string') {\n    txt = txt.trim().replace(/^```(json)?/i, '').replace(/```$/, '').trim();\n    try {\n      var o = JSON.parse(txt);\n      for (i = 0; i < cles.length; i++) {\n        if (o && Array.isArray(o[cles[i]])) return o[cles[i]];\n      }\n      if (Array.isArray(o)) return o;\n    } catch (e) { /* réponse non JSON : on rend [] */ }\n  }\n  return [];\n}\n\n/** Sérialise la sélection pour Config. Trié, pour que deux états identiques s'écrivent pareil. */\nfunction serializePicked(picked) {\n  return picked\n    .slice()\n    .sort(function (a, b) { return a - b; })\n    .join(',');\n}\n\n/**\n * Coche / décoche une option.\n * Décocher est toujours permis ; cocher est refusé une fois le quota atteint — sinon on\n * accumulerait douze outils et la semaine n'aurait plus de fil.\n * Retourne `{picked, refus}` : `refus` est un message à afficher, ou null.\n */\nfunction togglePick(pickedRaw, index, menu, optionCount) {\n  var max = PICK_LIMITS[menu] || 3;\n  var picked = parsePicked(pickedRaw, optionCount);\n  var i = parseInt(index, 10);\n\n  if (!isFinite(i) || i < 0 || (optionCount !== undefined && i >= optionCount)) {\n    return { picked: picked, refus: 'Choix inconnu' };\n  }\n  var at = picked.indexOf(i);\n  if (at >= 0) {\n    picked.splice(at, 1);\n    return { picked: picked, refus: null };\n  }\n  if (picked.length >= max) {\n    return { picked: picked, refus: 'Maximum ' + max + ' — décoche-en un d’abord' };\n  }\n  picked.push(i);\n  return { picked: picked, refus: null };\n}\n\n/**\n * Construit le message et le clavier d'un menu.\n * Le clavier reprend l'état coché : c'est lui qui rend la multi-sélection lisible, puisque\n * Telegram ne connaît que des boutons sans mémoire.\n */\nfunction renderMenu(menu, options, picked, sousTitre) {\n  var m = MENUS[menu] || MENUS.tool;\n  var max = PICK_LIMITS[menu] || 3;\n  var mark = function (i) { return picked.indexOf(i) >= 0 ? '✅' : '⬜'; };\n\n  var lignes = options.map(function (o, i) {\n    var nom = esc(o && (o.nom || o.titre) ? (o.nom || o.titre) : 'Option ' + (i + 1));\n    var angle = o && o.angle ? ' — ' + esc(o.angle) : '';\n    return mark(i) + ' ' + (i + 1) + '. <b>' + nom + '</b>' + angle;\n  });\n\n  var entete = m.icone + ' <b>' + m.titre + ' — ' + picked.length + '/' + max + ' choisis</b>';\n  var texte = entete +\n    (sousTitre ? '\\n<i>' + esc(sousTitre) + '</i>' : '') +\n    '\\n\\n' + lignes.join('\\n') +\n    '\\n\\n' + m.aide;\n\n  // Trois boutons par ligne : au-delà, les libellés deviennent illisibles sur mobile.\n  var rows = [];\n  for (var i = 0; i < options.length; i += 3) {\n    var row = [];\n    for (var j = i; j < Math.min(i + 3, options.length); j++) {\n      row.push({ text: mark(j) + ' ' + (j + 1), callback_data: 'pick:' + menu + ':' + j });\n    }\n    rows.push(row);\n  }\n  rows.push([{\n    text: picked.length ? '✓ Terminé (' + picked.length + ')' : '✓ Terminé — coche d’abord',\n    callback_data: 'done:' + menu + ':0',\n  }]);\n\n  return { text: texte, keyboard: { inline_keyboard: rows } };\n}\n\n/** Les options réellement retenues, dans l'ordre d'affichage. */\nfunction selectedOptions(options, picked) {\n  return picked\n    .slice()\n    .sort(function (a, b) { return a - b; })\n    .map(function (i) { return options[i]; })\n    .filter(function (o) { return !!o; });\n}\n\n/*\n * Pas d'export : ce fichier est un CORPS DE FONCTION, pas un module. Le test l'évalue via\n * `new Function(source + 'return {…}')`, c'est-à-dire exactement comme n8n exécute un nœud Code —\n * ce qui vérifie au passage qu'il ne contient aucune syntaxe de module.\n */\n// Valide un menu. Rien de coché → on refuse et on n'avance pas : mieux vaut redemander qu'inventer.\nconst o=$json;\nconst options=parseList(o.menuOptions);\nconst picked=parsePicked(o.menuPicked,options.length);\nconst retenus=selectedOptions(options,picked);\nconst m=MENUS[o.menu]||MENUS.tool;\nconst ok=retenus.length>0;\nreturn [{json:{...o,\n  ok:ok,\n  next:o.menu==='tool'?'trend':'expand',\n  chosenJson:JSON.stringify(retenus),\n  answerText:ok?('✅ '+retenus.length+' retenu(s)'):m.vide\n}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        140,
+        2200
+      ],
+      "id": "pk-done",
+      "name": "PK — Done"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/answerCallbackQuery",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({callback_query_id:$json.callbackQueryId,text:$json.answerText,show_alert:!$json.ok}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        360,
+        2340
+      ],
+      "id": "pk-ack-done",
+      "name": "PK — accusé (done)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "trend",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        360,
+        2200
+      ],
+      "id": "if-next-trend",
+      "name": "IF suite tendances"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "leftValue": "={{ $json.next }}",
+              "rightValue": "expand",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        360,
+        2480
+      ],
+      "id": "if-next-expand",
+      "name": "IF suite expansion"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Propose les tendances à décrypter. Une tendance sans date n'est pas une tendance.\nconst o=$('Parse — Update').first().json;\nconst done=$json;\nlet outils=[];\ntry{outils=JSON.parse(done.chosenJson||'[]');}catch(e){outils=[];}\nconst outilsLabel=outils.map(function(x){return x.nom;}).join(', ')||'aucun';\n\nconst prompt=`Tu es **CMO Aïcha**, directrice marketing de Max-Morrys.\n\nTHÈME DE LA SEMAINE : « ${o.themeTitre||''} »\nOutils déjà retenus pour la série ATELIER : ${outilsLabel}\n\nPropose **5 tendances** à décrypter dans la série RADAR. Un contenu RADAR répond à une seule\nquestion : **qu'est-ce que ça change concrètement, cette semaine, pour quelqu'un comme toi ?**\n\nRÈGLES NON NÉGOCIABLES :\n- **Chaque tendance porte une DATE** (au minimum le mois et l'année) et une **source nommée**.\n  Une tendance que tu ne peux pas dater, tu ne la proposes pas — c'est une opinion, pas une tendance.\n- Indique un **niveau de confiance** : confirmé, émergent, ou spéculatif.\n- Chaque tendance doit avoir un angle pour les **apprenants** ET un angle pour les **commerçants**.\n- Évite de répéter le thème : le RADAR éclaire l'actualité, il ne paraphrase pas le fil rouge.\n\nFamilles à balayer : recherche et découverte · IA générative et agents · formats et algorithmes\ndes plateformes · commerce conversationnel et paiement mobile en Afrique de l'Ouest · écosystème\nlocal · le métier du marketing lui-même.\n\nRéponds STRICTEMENT en JSON, sans texte autour :\n{\"tendances\":[{\"titre\":\"court et clair\",\"date\":\"mois AAAA\",\"source\":\"qui l'a annoncé ou observé\",\"confiance\":\"confirmé|émergent|spéculatif\",\"angle\":\"ce que ça change, en une phrase\"}]}\n— exactement 5 objets.`;\n\nreturn [{json:{...o,prompt:prompt,outilsJson:done.chosenJson}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        580,
+        2400
+      ],
+      "id": "pk-trend-build",
+      "name": "PK — Tendances (build)"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 16384,
+          "temperature": 0.8,
+          "thinkingBudget": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        2400
+      ],
+      "id": "pk-trend-gem",
+      "name": "Gemini — Proposer tendances",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Logique des menus de choix Telegram (outils ATELIER, tendances RADAR).\n *\n * ⚠️ CE FICHIER EST LA SOURCE UNIQUE. Il est :\n *   1. inliné tel quel dans les nœuds Code de WF-TG-ROUTER par\n *      `scripts/n8n-patch-strategy-2026.py` ;\n *   2. évalué par `tests/unit/telegram-picker.test.ts`, via `new Function(...)` — donc dans les\n *      mêmes conditions qu'un nœud Code.\n *\n * D'où deux contraintes :\n *   - **aucune syntaxe de module** : ni `import`, ni `export`, ni `module.exports`. Un nœud Code\n *     n8n reçoit un corps de fonction, pas un module. Le test échouerait au chargement.\n *   - **aucune dépendance** : ni Luxon, ni les variables n8n (`$json`, `$now`…). Ce fichier ne\n *     contient que du calcul pur ; la glu propre à chaque nœud vit dans le patcher.\n *\n * On écrit la logique ici plutôt que dans le patcher pour qu'elle soit testable. Un toggle qui se\n * trompe d'index ne casse rien de visible : il coche simplement le mauvais outil, et la semaine\n * entière part sur le mauvais sujet.\n */\n\n/** Combien de choix par menu. 4 contenus ATELIER par semaine, 2 contenus RADAR. */\nvar PICK_LIMITS = { tool: 3, trend: 2 };\n\n/** Habillage de chaque menu. */\nvar MENUS = {\n  tool: {\n    icone: '🧰',\n    titre: 'Les outils de la semaine',\n    aide: '👉 Coche ceux que tu veux traiter, puis « Terminé ».',\n    vide: 'Choisis au moins un outil',\n  },\n  trend: {\n    icone: '📡',\n    titre: 'Les tendances de la semaine',\n    aide: '👉 Coche celle(s) à décrypter, puis « Terminé ».',\n    vide: 'Choisis au moins une tendance',\n  },\n};\n\n/** Échappe ce que Telegram interpréterait comme du HTML (`parse_mode: 'HTML'`). */\nfunction esc(s) {\n  return String(s === undefined || s === null ? '' : s)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\n/** Lit une liste d'options stockée en JSON dans Config. Tolère tout : ne jette jamais. */\nfunction parseList(raw) {\n  if (Array.isArray(raw)) return raw;\n  try {\n    var v = JSON.parse(raw || '[]');\n    return Array.isArray(v) ? v : [];\n  } catch (e) {\n    return [];\n  }\n}\n\n/**\n * Lit la sélection stockée en CSV d'index (« 0,2,5 »).\n * Dédoublonne et écarte tout ce qui n'est pas un index valide — la valeur vient de la table\n * Config (NocoDB), où elle a pu être éditée à la main.\n */\nfunction parsePicked(raw, optionCount) {\n  var seen = {};\n  var out = [];\n  String(raw === undefined || raw === null ? '' : raw)\n    .split(',')\n    .forEach(function (part) {\n      var n = parseInt(part, 10);\n      if (!isFinite(n) || n < 0) return;\n      if (optionCount !== undefined && n >= optionCount) return;\n      if (seen[n]) return;\n      seen[n] = true;\n      out.push(n);\n    });\n  return out;\n}\n\n/**\n * Retrouve le texte utile dans une réponse Gemini, quelle que soit sa forme.\n *\n * Selon la configuration du nœud, n8n rend soit l'objet déjà simplifié, soit **l'enveloppe brute**\n * `{candidates:[{content:{parts:[{text:\"…\"}]}}]}`. Un parseur qui n'attend que la forme simplifiée\n * ne lève aucune erreur : il ne trouve rien, retombe sur son défaut, et le menu n'affiche plus\n * qu'une seule option. Vécu en production le 2026-08-06 — Gemini avait bien renvoyé 7 outils.\n */\nfunction pickText(x) {\n  if (x === null || x === undefined) return null;\n  if (typeof x === 'string') return x;\n  if (Array.isArray(x)) {\n    for (var i = 0; i < x.length; i++) {\n      var t = pickText(x[i]);\n      if (t) return t;\n    }\n    return null;\n  }\n  if (typeof x === 'object') {\n    if (x.candidates) return pickText(x.candidates);\n    if (x.content) return pickText(x.content);\n    if (x.parts) return pickText(x.parts);\n    if (typeof x.text === 'string') return x.text;\n    if (x.output) return pickText(x.output);\n    if (x.message) return pickText(x.message);\n  }\n  return null;\n}\n\n/**\n * Extrait un tableau d'une réponse de modèle, sous l'une des clés attendues.\n * Tolère : objet déjà simplifié, enveloppe brute, JSON entouré de ```` ```json ````, tableau nu.\n * Rend `[]` plutôt que de jeter — au pire l'appelant applique son repli, en connaissance de cause.\n */\nfunction extraireListe(input, cles) {\n  var i;\n  if (input && typeof input === 'object' && !Array.isArray(input)) {\n    for (i = 0; i < cles.length; i++) {\n      if (Array.isArray(input[cles[i]])) return input[cles[i]];\n    }\n  }\n  var txt = pickText(input);\n  if (typeof txt === 'string') {\n    txt = txt.trim().replace(/^```(json)?/i, '').replace(/```$/, '').trim();\n    try {\n      var o = JSON.parse(txt);\n      for (i = 0; i < cles.length; i++) {\n        if (o && Array.isArray(o[cles[i]])) return o[cles[i]];\n      }\n      if (Array.isArray(o)) return o;\n    } catch (e) { /* réponse non JSON : on rend [] */ }\n  }\n  return [];\n}\n\n/** Sérialise la sélection pour Config. Trié, pour que deux états identiques s'écrivent pareil. */\nfunction serializePicked(picked) {\n  return picked\n    .slice()\n    .sort(function (a, b) { return a - b; })\n    .join(',');\n}\n\n/**\n * Coche / décoche une option.\n * Décocher est toujours permis ; cocher est refusé une fois le quota atteint — sinon on\n * accumulerait douze outils et la semaine n'aurait plus de fil.\n * Retourne `{picked, refus}` : `refus` est un message à afficher, ou null.\n */\nfunction togglePick(pickedRaw, index, menu, optionCount) {\n  var max = PICK_LIMITS[menu] || 3;\n  var picked = parsePicked(pickedRaw, optionCount);\n  var i = parseInt(index, 10);\n\n  if (!isFinite(i) || i < 0 || (optionCount !== undefined && i >= optionCount)) {\n    return { picked: picked, refus: 'Choix inconnu' };\n  }\n  var at = picked.indexOf(i);\n  if (at >= 0) {\n    picked.splice(at, 1);\n    return { picked: picked, refus: null };\n  }\n  if (picked.length >= max) {\n    return { picked: picked, refus: 'Maximum ' + max + ' — décoche-en un d’abord' };\n  }\n  picked.push(i);\n  return { picked: picked, refus: null };\n}\n\n/**\n * Construit le message et le clavier d'un menu.\n * Le clavier reprend l'état coché : c'est lui qui rend la multi-sélection lisible, puisque\n * Telegram ne connaît que des boutons sans mémoire.\n */\nfunction renderMenu(menu, options, picked, sousTitre) {\n  var m = MENUS[menu] || MENUS.tool;\n  var max = PICK_LIMITS[menu] || 3;\n  var mark = function (i) { return picked.indexOf(i) >= 0 ? '✅' : '⬜'; };\n\n  var lignes = options.map(function (o, i) {\n    var nom = esc(o && (o.nom || o.titre) ? (o.nom || o.titre) : 'Option ' + (i + 1));\n    var angle = o && o.angle ? ' — ' + esc(o.angle) : '';\n    return mark(i) + ' ' + (i + 1) + '. <b>' + nom + '</b>' + angle;\n  });\n\n  var entete = m.icone + ' <b>' + m.titre + ' — ' + picked.length + '/' + max + ' choisis</b>';\n  var texte = entete +\n    (sousTitre ? '\\n<i>' + esc(sousTitre) + '</i>' : '') +\n    '\\n\\n' + lignes.join('\\n') +\n    '\\n\\n' + m.aide;\n\n  // Trois boutons par ligne : au-delà, les libellés deviennent illisibles sur mobile.\n  var rows = [];\n  for (var i = 0; i < options.length; i += 3) {\n    var row = [];\n    for (var j = i; j < Math.min(i + 3, options.length); j++) {\n      row.push({ text: mark(j) + ' ' + (j + 1), callback_data: 'pick:' + menu + ':' + j });\n    }\n    rows.push(row);\n  }\n  rows.push([{\n    text: picked.length ? '✓ Terminé (' + picked.length + ')' : '✓ Terminé — coche d’abord',\n    callback_data: 'done:' + menu + ':0',\n  }]);\n\n  return { text: texte, keyboard: { inline_keyboard: rows } };\n}\n\n/** Les options réellement retenues, dans l'ordre d'affichage. */\nfunction selectedOptions(options, picked) {\n  return picked\n    .slice()\n    .sort(function (a, b) { return a - b; })\n    .map(function (i) { return options[i]; })\n    .filter(function (o) { return !!o; });\n}\n\n/*\n * Pas d'export : ce fichier est un CORPS DE FONCTION, pas un module. Le test l'évalue via\n * `new Function(source + 'return {…}')`, c'est-à-dire exactement comme n8n exécute un nœud Code —\n * ce qui vérifie au passage qu'il ne contient aucune syntaxe de module.\n */\nconst src=$('PK — Tendances (build)').first().json;\nlet tend=extraireListe($input.first().json,['tendances','Tendances']);\ntend=tend.slice(0,6).filter(function(x){return x&&x.titre;});\nif(!tend.length)tend=[{titre:'À définir avec le board',date:'',source:'',confiance:'spéculatif',angle:''}];\n\nconst lignes=tend.map(function(t){return {titre:t.titre,angle:(t.date?'['+t.date+'] ':'')+(t.angle||''),date:t.date||'',source:t.source||'',confiance:t.confiance||''};});\nconst vue=renderMenu('trend',lignes,[],'Thème : « '+(src.themeTitre||'')+' »');\nconst tgBody={chat_id:src.chatId,text:vue.text,parse_mode:'HTML',reply_markup:vue.keyboard};\nreturn [{json:{token:src.token,chatId:src.chatId,tendancesJson:JSON.stringify(lignes),tgBody:tgBody}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        2400
+      ],
+      "id": "pk-trend-parse",
+      "name": "PK — Tendances (parse)"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "upsert",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Airtable — Lire Config').all().find(r => r.json.Cle === 'TRENDS_CURRENT')?.json.id ?? '' }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cle": "TRENDS_CURRENT",
+            "Valeur": "={{ $json.tendancesJson }}",
+            "Type": "json"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1240,
+        2400
+      ],
+      "id": "pk-store-trends",
+      "name": "PK — Stocker tendances",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "upsert",
+        "dataToSend": "mapWithFields",
+        "id": "={{ $('Airtable — Lire Config').all().find(r => r.json.Cle === 'TRENDS_PICKED')?.json.id ?? '' }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cle": "TRENDS_PICKED",
+            "Valeur": "-",
+            "Type": "json"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        1460,
+        2400
+      ],
+      "id": "pk-reset-trends",
+      "name": "PK — Reset choix tendances",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('PK — Tendances (parse)').first().json.token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('PK — Tendances (parse)').first().json.tgBody) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        2400
+      ],
+      "id": "pk-send-trends",
+      "name": "PK — Envoyer tendances",
+      "executeOnce": true
     }
   ],
   "connections": {
@@ -748,6 +1638,16 @@
           },
           {
             "node": "IF theme",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF toggle",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF done",
             "type": "main",
             "index": 0
           }
@@ -888,7 +1788,7 @@
       "main": [
         [
           {
-            "node": "TH — Décliner (build)",
+            "node": "PK — Outils récents (NocoDB)",
             "type": "main",
             "index": 0
           },
@@ -954,6 +1854,267 @@
         [
           {
             "node": "Airtable — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Outils récents (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "PK — Outils récents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Outils récents": {
+      "main": [
+        [
+          {
+            "node": "PK — Outils (build)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Outils (build)": {
+      "main": [
+        [
+          {
+            "node": "PK — Stocker thème",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gemini — Proposer outils",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini — Proposer outils": {
+      "main": [
+        [
+          {
+            "node": "PK — Outils (parse)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Outils (parse)": {
+      "main": [
+        [
+          {
+            "node": "PK — Stocker outils",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Stocker outils": {
+      "main": [
+        [
+          {
+            "node": "PK — Reset choix outils",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Reset choix outils": {
+      "main": [
+        [
+          {
+            "node": "PK — Envoyer outils",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF toggle": {
+      "main": [
+        [
+          {
+            "node": "PK — Toggle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Toggle": {
+      "main": [
+        [
+          {
+            "node": "IF sél. outils",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF sél. tendances",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "PK — accusé (toggle)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF menu modifié",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF sél. outils": {
+      "main": [
+        [
+          {
+            "node": "PK — MAJ outils",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF sél. tendances": {
+      "main": [
+        [
+          {
+            "node": "PK — MAJ tendances",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF menu modifié": {
+      "main": [
+        [
+          {
+            "node": "PK — Éditer message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF done": {
+      "main": [
+        [
+          {
+            "node": "PK — Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Done": {
+      "main": [
+        [
+          {
+            "node": "PK — accusé (done)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF suite tendances",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF suite expansion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF suite tendances": {
+      "main": [
+        [
+          {
+            "node": "PK — Tendances (build)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Tendances (build)": {
+      "main": [
+        [
+          {
+            "node": "Gemini — Proposer tendances",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini — Proposer tendances": {
+      "main": [
+        [
+          {
+            "node": "PK — Tendances (parse)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Tendances (parse)": {
+      "main": [
+        [
+          {
+            "node": "PK — Stocker tendances",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Stocker tendances": {
+      "main": [
+        [
+          {
+            "node": "PK — Reset choix tendances",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PK — Reset choix tendances": {
+      "main": [
+        [
+          {
+            "node": "PK — Envoyer tendances",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF suite expansion": {
+      "main": [
+        [
+          {
+            "node": "TH — Décliner (build)",
             "type": "main",
             "index": 0
           }

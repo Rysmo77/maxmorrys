@@ -26,7 +26,8 @@
     "sectionSite": "Site",
     "backToSite": "Retour au site",
     "agencyLeads": "Prospects agence",
-    "missions": "Projets"
+    "missions": "Projets",
+    "redirects": "Redirections"
   },
   "placeholder": {
     "description": "Cette section est en cours de développement et sera disponible prochainement."
@@ -773,6 +774,13 @@
     "notifNewUserDesc": "Notification pour chaque nouvel utilisateur",
     "notifCourseCompletionLabel": "Complétion de cours",
     "notifCourseCompletionDesc": "Quand un étudiant termine une formation",
+    "popupsTitle": "Pop-ups contextuelles",
+    "popupsSubtitle": "Sollicitations affichées aux visiteurs du site public",
+    "popupAudienceRouterLabel": "Aiguilleur d'audience sur /agence",
+    "popupAudienceRouterDesc": "À la sortie de la page agence : trois portes (produit, commerce, formation)",
+    "popupFormationsEntryLabel": "Mise en avant des formations",
+    "popupFormationsEntryDesc": "Pour un visiteur arrivé depuis un moteur de recherche ou la signature d'un site client",
+    "popupsCacheNote": "Une pop-up au maximum par session, et sept jours avant de reproposer la même. Les réglages sont mis en cache le temps de la session du visiteur : une coupure devient visible à sa prochaine visite.",
     "securityTitle": "Sécurité",
     "securitySubtitle": "Paramètres de sécurité et accès",
     "securityActive": "Actif",
@@ -920,9 +928,82 @@
         "Échéance",
         "Statut",
         "Orienté vers",
+        "Provenance",
         "Description",
         "Notes internes"
       ]
+    },
+    "viaBadge": "via {{slug}}"
+  },
+  "redirects": {
+    "title": "Redirections",
+    "count_one": "{{count}} redirection",
+    "count_other": "{{count}} redirections",
+    "new": "Nouvelle redirection",
+    "empty": "Aucune redirection. Créez le premier lien d'attribution.",
+    "propagationNotice": "Le Worker met la table en cache une minute : une création ou une modification est servie en moins de 60 secondes, pas instantanément.",
+    "hits_one": "{{count}} clic",
+    "hits_other": "{{count}} clics",
+    "lastHit": "dernier le {{date}}",
+    "filters": {
+      "all": "Toutes",
+      "via": "Attribution",
+      "path": "SEO"
+    },
+    "kinds": {
+      "via": "Attribution",
+      "path": "SEO"
+    },
+    "modal": {
+      "newTitle": "Nouvelle redirection",
+      "editTitle": "Modifier la redirection",
+      "close": "Fermer"
+    },
+    "form": {
+      "kindLabel": "Type",
+      "kindHint": {
+        "via": "Lien de crédit posé au pied d'un site client. Sert un 302 vers /agence et compte les clics.",
+        "path": "Ancienne URL de ce site à faire pointer ailleurs. Sert un 301, qui transmet le référencement."
+      },
+      "slugLabel": "Slug du client *",
+      "slugPlaceholder": "nom-du-client",
+      "slugInvalid": "Minuscules, chiffres et tirets uniquement, 64 caractères maximum.",
+      "sourceLabel": "Chemin source *",
+      "sourcePlaceholder": "/ancienne-page",
+      "targetLabel": "Cible *",
+      "targetInvalid": "La cible doit être un chemin interne commençant par « / ».",
+      "codeLabel": "Code",
+      "code301": "301 — permanent",
+      "code302": "302 — temporaire",
+      "labelLabel": "Libellé interne",
+      "labelPlaceholder": "Nom du client, raison…",
+      "activeLabel": "Active",
+      "activeHint": "Une redirection inactive retombe sur /agence pour un lien d'attribution, et n'est plus servie du tout pour une redirection SEO.",
+      "snippetLabel": "Ancre à coller au pied du site client"
+    },
+    "actions": {
+      "copyLink": "Copier le lien",
+      "copyAnchor": "Copier l'ancre",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "saving": "Enregistrement..."
+    },
+    "confirmDelete": {
+      "title": "Supprimer",
+      "message": "Supprimer la redirection {{source}} ? Les liens déjà posés chez le client retomberont sur /agence.",
+      "confirmLabel": "Supprimer"
+    },
+    "toasts": {
+      "loadError": "Erreur lors du chargement des redirections.",
+      "created": "Redirection créée.",
+      "updated": "Redirection mise à jour.",
+      "deleted": "Redirection supprimée.",
+      "duplicate": "{{source}} est déjà déclarée.",
+      "saveError": "Erreur lors de la sauvegarde.",
+      "deleteError": "Erreur lors de la suppression.",
+      "copyError": "Copie impossible. Sélectionnez le texte manuellement."
     }
   }
 }

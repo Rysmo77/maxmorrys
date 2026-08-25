@@ -274,6 +274,28 @@ porter : `name`, `role`, `organization`, `context` — et être authentique.
 Les visuels de l'ancienne page agence (`media.maxmorrys.me/Agence/hero.webp` et `process.webp`)
 suivent l'offre « Digital Commerce Local » vers `/presence-digitale`.
 
+### Mise à jour du 13 août 2026 — les deux visuels existent enfin
+
+Ils étaient référencés dans le code depuis la création de la page mais **n'avaient jamais été
+déposés** : les deux URLs renvoyaient 404 en permanence. Les replis silencieux
+(`heroFailed`, `ParallaxImage` qui se démonte à l'erreur) masquaient le problème à l'écran,
+mais la console en gardait la trace à chaque chargement.
+
+Deux photos Unsplash (licence Unsplash : usage commercial libre, sans attribution requise),
+recadrées en 1600×900 et encodées en WebP :
+
+| Clé R2 | Sujet | Poids |
+| --- | --- | --- |
+| `Agence/hero.webp` | Commerçante derrière son comptoir, boutique achalandée | 116 Ko |
+| `Agence/process.webp` | Vendeur sur un marché — pure texture sous un voile noir à 80% | 89 Ko |
+
+Le héro est recadré pour que le sujet tombe à ~68% de la largeur : les deux tiers gauches
+sont couverts par la carte givrée et le voile dégradé.
+
+⚠️ Le préfixe `Agence/` n'est pas déclaré dans les `FOLDER_RULES` du worker `media-api`,
+qui rejetterait un upload applicatif. Pour les remplacer :
+`npx wrangler r2 object put "maxmorrys-lms/Agence/hero.webp" --file=… --content-type=image/webp --remote`
+
 La `/agence` reste construite **sans photographie** : sa qualité repose sur la typographie, la
 mise en page, le rythme et la hiérarchie. Aucun visuel générique n'y a été introduit — ni
 dégradé violet/bleu, ni blob, ni robot, ni circuit imprimé, ni faux dashboard, ni photo de

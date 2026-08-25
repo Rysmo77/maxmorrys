@@ -54,8 +54,8 @@ node scripts/callable-parity.mjs https://api.maxmorrys.me \
 Il se place sur `maxmorrys.me/*` (route Cloudflare — la zone est déjà proxifiée,
 aucun changement DNS) et reprend au bord ce que `firebase.json` envoyait à des
 Cloud Functions : `/sitemap.xml`, `/rss.xml`, `/catalog.csv` et le prerender SEO
-d'une trentaine de routes. **Tout le reste est relayé à l'origine**
-`max-morrys.web.app`.
+d'une trentaine de routes. Il sert aussi la table de redirections décrite plus
+bas. **Tout le reste est relayé à l'origine** `max-morrys.web.app`.
 
 Deux filets de sécurité, volontairement redondants :
 
@@ -66,6 +66,25 @@ Deux filets de sécurité, volontairement redondants :
 
 ⚠️ Ne jamais faire pointer `ORIGIN` sur `maxmorrys.me` : le Worker se rappellerait
 lui-même (erreurs 1015 / 508). L'origine doit rester hors zone.
+
+### Les redirections `/via/<slug>`
+
+Le crédit d'agence posé au pied des sites clients pointe vers
+`https://maxmorrys.me/via/<slug>`. **C'est ce Worker, et lui seul, qui rend ces
+URL vivantes** : sans lui, l'origine sert le shell SPA et le routeur React tombe
+sur `NotFound` — chaque crédit déjà distribué devient un 404. Déployer le
+frontend ne suffit donc pas ; la table se gère dans `/admin/redirections` mais
+n'est lue que par `wrangler deploy` de `apps/site`.
+
+La même table porte les redirections SEO d'anciennes URL (301). Elle est lue
+avant le routage, mise en cache une minute (KV + mémo d'isolate, la carte
+périmée étant servie pendant son rafraîchissement) : **une entrée créée est
+active en moins de 60 secondes, pas instantanément**.
+
+La collection `redirects` est lue par compte de service, donc hors
+`firestore.rules` — elle n'a aucune lecture publique. Les cibles sont
+contraintes à des chemins internes : accepter une URL absolue ferait du domaine
+un redirecteur ouvert.
 
 ### Avant le premier déploiement
 

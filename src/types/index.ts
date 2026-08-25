@@ -383,6 +383,11 @@ export interface EngagementLead {
   notes?: string;
   /** Langue de soumission du formulaire */
   locale?: 'fr' | 'en';
+  /**
+   * Slug du site client par lequel le prospect est arrivé (`/via/<slug>` → `?via=`).
+   * Identifie le site émetteur, jamais la personne : aucune donnée du visiteur n'y transite.
+   */
+  via?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -681,4 +686,37 @@ export interface AppNotification {
   read: boolean;
   createdAt: string;
   link?: string;
+}
+
+// ── Redirections ───────────────────────────────────────────────────────────
+
+/**
+ * `via`  — lien d'attribution d'agence (`/via/<slug>`), 302, clics comptés.
+ * `path` — redirection d'une ancienne URL vers la nouvelle, 301, pour le SEO.
+ */
+export type RedirectKind = 'via' | 'path';
+
+/**
+ * Une entrée de la table de redirections, servie au bord par le Worker
+ * `maxmorrys-site`. Les formats sont normalisés par `src/lib/redirects.ts`.
+ */
+export interface Redirect {
+  id: string;
+  /** Chemin source normalisé : minuscules, « / » initial, sans slash final (`/via/eyone`). */
+  source: string;
+  /** Chemin cible **interne**, « / » initial obligatoire. Jamais une URL absolue. */
+  target: string;
+  /** 301 permanent (SEO) ou 302 temporaire (attribution). */
+  code: 301 | 302;
+  kind: RedirectKind;
+  active: boolean;
+  /** Libellé interne : nom du client, raison de la redirection. Jamais affiché publiquement. */
+  label?: string;
+  /** Résolutions servies. Incrémenté au bord, sur les entrées `via` uniquement. */
+  hits?: number;
+  lastHitAt?: string;
+  /** Hôte du `Referer` reçu — tout ce que `referrerPolicy="strict-origin"` laisse passer. */
+  lastReferrerHost?: string;
+  createdAt: string;
+  updatedAt?: string;
 }

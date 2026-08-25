@@ -21,6 +21,7 @@ import { beforeAll, afterAll, afterEach, describe, it } from 'vitest';
 const PROJECT_ID = 'demo-rules-test';
 const ALICE = 'alice';
 const BOB = 'bob';
+const CAROL = 'carol';
 
 let testEnv: RulesTestEnvironment;
 
@@ -219,18 +220,30 @@ describe('engagement_leads — formulaire de qualification /agence', () => {
   });
 
   /**
-   * Le cas le plus proche du plafond : TOUS les champs optionnels remplis (`website`) ET
-   * routage Growth declenche. C'est ce que soumet un prospect qui donne son site et decrit
-   * un besoin d'acquisition — 12 cles, soit exactement le plafond de la regle.
+   * Le cas le plus proche du plafond : TOUS les champs optionnels remplis (`website`, `via`)
+   * ET routage Growth declenche. C'est ce que soumet un prospect arrive par un credit
+   * d'agence, qui donne son site et decrit un besoin d'acquisition — 13 cles, soit
+   * exactement le plafond de la regle.
    */
-  it('accepte le payload MAXIMAL (tous champs optionnels + routage)', async () => {
+  it('accepte le payload MAXIMAL (tous champs optionnels + routage + provenance)', async () => {
     const db = asVisitor();
     await assertSucceeds(
       setDoc(
         doc(db, 'engagement_leads', 'lmax'),
-        LEAD({ website: 'https://baobablabs.sn', routedTo: 'MY_ONOMA_GROW', locale: 'fr' }),
+        LEAD({
+          website: 'https://baobablabs.sn',
+          routedTo: 'MY_ONOMA_GROW',
+          locale: 'fr',
+          via: 'eyone',
+        }),
       ),
     );
+  });
+
+  it('refuse une provenance surdimensionnee', async () => {
+    // `via` vient de la barre d'adresse : il ne doit pas devenir un champ de stockage libre.
+    const db = asVisitor();
+    await assertFails(setDoc(doc(db, 'engagement_leads', 'lvia'), LEAD({ via: 'x'.repeat(65) })));
   });
 
   it('refuse un statut autre que "new"', async () => {
@@ -308,5 +321,47 @@ describe('newsletter — consentement explicite exige cote serveur', () => {
         consent: false,
       }),
     );
+  });
+});
+
+describe('redirects — table servie au bord, reservee a l administration', () => {
+  const ENTRY = {
+    source: '/via/eyone',
+    target: '/agence',
+    code: 302,
+    kind: 'via',
+    active: true,
+    createdAt: '2026-08-25T10:00:00.000Z',
+  };
+
+  async function asAdmin() {
+    await seed(`users/${CAROL}`, { role: 'admin' });
+    return asUser(CAROL);
+  }
+
+  it('un administrateur gere la table', async () => {
+    const db = await asAdmin();
+    await assertSucceeds(setDoc(doc(db, 'redirects', 'r1'), ENTRY));
+    await assertSucceeds(getDoc(doc(db, 'redirects', 'r1')));
+    await assertSucceeds(updateDoc(doc(db, 'redirects', 'r1'), { active: false }));
+  });
+
+  it('un utilisateur ordinaire ne lit pas la table', async () => {
+    // Aucune lecture publique n'est necessaire : le Worker lit par compte de service,
+    // donc hors de ces regles.
+    await seed('redirects/r2', ENTRY);
+    const db = asUser(ALICE);
+    await assertFails(getDoc(doc(db, 'redirects', 'r2')));
+  });
+
+  it('un utilisateur ordinaire ne peut pas detourner une redirection', async () => {
+    await seed('redirects/r3', ENTRY);
+    const db = asUser(ALICE);
+    await assertFails(updateDoc(doc(db, 'redirects', 'r3'), { target: '/autre' }));
+  });
+
+  it('un visiteur anonyme ne peut rien creer', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(setDoc(doc(db, 'redirects', 'r4'), ENTRY));
   });
 });

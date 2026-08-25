@@ -1,0 +1,610 @@
+{
+  "updatedAt": "2026-08-06T17:46:15.633Z",
+  "createdAt": "2026-08-06T17:46:15.633Z",
+  "id": "cf8XLce9QG8ZF3CU",
+  "name": "WF-PICKS-RELANCE — Semaine non générée (filet de sécurité)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * 6"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 0"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "rl-cron",
+      "name": "Cron — Samedi 10h & dimanche 9h"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {
+          "where": "(Cle,eq,TELEGRAM_BOT_TOKEN)~or(Cle,eq,TELEGRAM_CHAT_ID)~or(Cle,eq,PAPERCLIP_BASE)~or(Cle,eq,PAPERCLIP_COMPANY_ID)~or(Cle,eq,CF_ACCESS_CLIENT_ID)~or(Cle,eq,CF_ACCESS_CLIENT_SECRET)~or(Cle,eq,THEMES_CURRENT)~or(Cle,eq,PICK_THEME)~or(Cle,eq,TOOLS_CURRENT)~or(Cle,eq,TOOLS_PICKED)~or(Cle,eq,TRENDS_CURRENT)~or(Cle,eq,TRENDS_PICKED)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        200,
+        0
+      ],
+      "id": "rl-config-noco",
+      "name": "Relance — Lire Config (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat de l'ancien nœud Airtable :\n// {...champs, id} — pour que les expressions $('<nom>').json.<Champ> restent valables.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ],
+      "id": "rl-config",
+      "name": "Relance — Lire Config"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "resource": "row",
+        "operation": "search",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        600,
+        0
+      ],
+      "id": "rl-contenus-noco",
+      "name": "Relance — Lire Contenus (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat de l'ancien nœud Airtable :\n// {...champs, id} — pour que les expressions $('<nom>').json.<Champ> restent valables.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "rl-contenus",
+      "name": "Relance — Lire Contenus"
+    },
+    {
+      "parameters": {
+        "jsCode": "// La semaine qui vient a-t-elle été générée ? Sinon, où la chaîne s'est-elle arrêtée ?\nconst cfg={};for(const r of $('Relance — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\n\nconst base=$now.setZone('Africa/Dakar');\nconst du=((8-base.weekday)%7)||7;\nconst monday=base.plus({days:du}).startOf('day');\nconst sunday=monday.plus({days:7});\n\nlet prevus=0;\nfor(const r of $input.all()){\n  const f=r.json.fields||r.json;\n  const d=f.Date_Publication_Prevue;\n  if(!d)continue;\n  const dt=DateTime.fromISO(d);\n  if(dt.isValid&&dt>=monday&&dt<sunday)prevus++;\n}\n\nfunction vide(v){return !v||String(v).trim()===''||String(v).trim()==='[]'||String(v).trim()==='{}';}\n\n// Le seuil de 5 est celui qu'utilise déjà WF-THEMES pour décider qu'une semaine est prise en main.\nconst genere=prevus>=5;\nlet etape='', quoi='';\nif(genere){ etape='ok'; }\nelse if(!vide(cfg.TRENDS_CURRENT)&&vide(cfg.TRENDS_PICKED)){ etape='tendances'; quoi='il manque la validation des <b>tendances</b> (menu 📡 déjà envoyé)'; }\nelse if(!vide(cfg.TOOLS_CURRENT)&&vide(cfg.TOOLS_PICKED)){ etape='outils'; quoi='il manque la validation des <b>outils</b> (menu 🧰 déjà envoyé)'; }\nelse if(vide(cfg.PICK_THEME)){ etape='theme'; quoi='tu n\\'as pas encore choisi le <b>thème</b> de la semaine'; }\nelse { etape='inconnu'; quoi='la chaîne s\\'est arrêtée après le choix du thème'; }\n\nconst semaine=monday.toFormat('dd LLL');\nconst text=`⚠️ <b>La semaine du ${semaine} n'est pas générée</b>\\n\\n${quoi}.\\n\\n`+\n  `Reprends le fil dans le chat : ${prevus} contenu(s) planifié(s) sur les 21 attendus.\\n`+\n  `<i>Rien ne part sans toi — mais rien ne part non plus si tu ne tranches pas.</i>`;\n\nreturn [{json:{skip:genere,etape:etape,prevus:prevus,semaine:semaine,\n  token:cfg.TELEGRAM_BOT_TOKEN,\n  tgBody:{chat_id:cfg.TELEGRAM_CHAT_ID,text:text,parse_mode:'HTML'}}}];",
+        "mode": "runOnceForAllItems"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        0
+      ],
+      "id": "rl-diag",
+      "name": "Relance — Diagnostic"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        0
+      ],
+      "id": "rl-if",
+      "name": "Semaine non générée ?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.tgBody) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        0
+      ],
+      "id": "rl-send",
+      "name": "Relance — Envoyer"
+    }
+  ],
+  "connections": {
+    "Cron — Samedi 10h & dimanche 9h": {
+      "main": [
+        [
+          {
+            "node": "Relance — Lire Config (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relance — Lire Config (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Relance — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relance — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "Relance — Lire Contenus (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relance — Lire Contenus (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "Relance — Lire Contenus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relance — Lire Contenus": {
+      "main": [
+        [
+          {
+            "node": "Relance — Diagnostic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relance — Diagnostic": {
+      "main": [
+        [
+          {
+            "node": "Semaine non générée ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Semaine non générée ?": {
+      "main": [
+        [
+          {
+            "node": "Relance — Envoyer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Dakar"
+  },
+  "staticData": {
+    "node:Cron — Samedi 10h & dimanche 9h": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "a5649fe7-2d54-4480-9d5b-3608a548aef4",
+  "activeVersionId": "a5649fe7-2d54-4480-9d5b-3608a548aef4",
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "shared": [
+    {
+      "updatedAt": "2026-08-06T17:46:15.633Z",
+      "createdAt": "2026-08-06T17:46:15.633Z",
+      "role": "workflow:owner",
+      "workflowId": "cf8XLce9QG8ZF3CU",
+      "projectId": "6OzWwq45GHqYfrnV",
+      "project": {
+        "updatedAt": "2026-07-04T22:32:53.448Z",
+        "createdAt": "2026-07-04T21:48:16.787Z",
+        "id": "6OzWwq45GHqYfrnV",
+        "name": "Max Morrys <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "b0d835bc-270d-4613-b03d-8aa950b18523"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-08-06T18:38:55.804Z",
+    "createdAt": "2026-08-06T17:46:15.633Z",
+    "versionId": "a5649fe7-2d54-4480-9d5b-3608a548aef4",
+    "workflowId": "cf8XLce9QG8ZF3CU",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 10 * * 6"
+              },
+              {
+                "field": "cronExpression",
+                "expression": "0 9 * * 0"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ],
+        "id": "rl-cron",
+        "name": "Cron — Samedi 10h & dimanche 9h"
+      },
+      {
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "mo6ubcgxi9x4u7d",
+            "mode": "id"
+          },
+          "resource": "row",
+          "operation": "search",
+          "returnAll": true,
+          "options": {
+            "where": "(Cle,eq,TELEGRAM_BOT_TOKEN)~or(Cle,eq,TELEGRAM_CHAT_ID)~or(Cle,eq,PAPERCLIP_BASE)~or(Cle,eq,PAPERCLIP_COMPANY_ID)~or(Cle,eq,CF_ACCESS_CLIENT_ID)~or(Cle,eq,CF_ACCESS_CLIENT_SECRET)~or(Cle,eq,THEMES_CURRENT)~or(Cle,eq,PICK_THEME)~or(Cle,eq,TOOLS_CURRENT)~or(Cle,eq,TOOLS_PICKED)~or(Cle,eq,TRENDS_CURRENT)~or(Cle,eq,TRENDS_PICKED)"
+          }
+        },
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          200,
+          0
+        ],
+        "id": "rl-config-noco",
+        "name": "Relance — Lire Config (NocoDB)",
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat de l'ancien nœud Airtable :\n// {...champs, id} — pour que les expressions $('<nom>').json.<Champ> restent valables.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          400,
+          0
+        ],
+        "id": "rl-config",
+        "name": "Relance — Lire Config"
+      },
+      {
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "m3wim4coagaoot7",
+            "mode": "id"
+          },
+          "resource": "row",
+          "operation": "search",
+          "returnAll": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          600,
+          0
+        ],
+        "id": "rl-contenus-noco",
+        "name": "Relance — Lire Contenus (NocoDB)",
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat de l'ancien nœud Airtable :\n// {...champs, id} — pour que les expressions $('<nom>').json.<Champ> restent valables.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          800,
+          0
+        ],
+        "id": "rl-contenus",
+        "name": "Relance — Lire Contenus"
+      },
+      {
+        "parameters": {
+          "jsCode": "// La semaine qui vient a-t-elle été générée ? Sinon, où la chaîne s'est-elle arrêtée ?\nconst cfg={};for(const r of $('Relance — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\n\nconst base=$now.setZone('Africa/Dakar');\nconst du=((8-base.weekday)%7)||7;\nconst monday=base.plus({days:du}).startOf('day');\nconst sunday=monday.plus({days:7});\n\nlet prevus=0;\nfor(const r of $input.all()){\n  const f=r.json.fields||r.json;\n  const d=f.Date_Publication_Prevue;\n  if(!d)continue;\n  const dt=DateTime.fromISO(d);\n  if(dt.isValid&&dt>=monday&&dt<sunday)prevus++;\n}\n\nfunction vide(v){return !v||String(v).trim()===''||String(v).trim()==='[]'||String(v).trim()==='{}';}\n\n// Le seuil de 5 est celui qu'utilise déjà WF-THEMES pour décider qu'une semaine est prise en main.\nconst genere=prevus>=5;\nlet etape='', quoi='';\nif(genere){ etape='ok'; }\nelse if(!vide(cfg.TRENDS_CURRENT)&&vide(cfg.TRENDS_PICKED)){ etape='tendances'; quoi='il manque la validation des <b>tendances</b> (menu 📡 déjà envoyé)'; }\nelse if(!vide(cfg.TOOLS_CURRENT)&&vide(cfg.TOOLS_PICKED)){ etape='outils'; quoi='il manque la validation des <b>outils</b> (menu 🧰 déjà envoyé)'; }\nelse if(vide(cfg.PICK_THEME)){ etape='theme'; quoi='tu n\\'as pas encore choisi le <b>thème</b> de la semaine'; }\nelse { etape='inconnu'; quoi='la chaîne s\\'est arrêtée après le choix du thème'; }\n\nconst semaine=monday.toFormat('dd LLL');\nconst text=`⚠️ <b>La semaine du ${semaine} n'est pas générée</b>\\n\\n${quoi}.\\n\\n`+\n  `Reprends le fil dans le chat : ${prevus} contenu(s) planifié(s) sur les 21 attendus.\\n`+\n  `<i>Rien ne part sans toi — mais rien ne part non plus si tu ne tranches pas.</i>`;\n\nreturn [{json:{skip:genere,etape:etape,prevus:prevus,semaine:semaine,\n  token:cfg.TELEGRAM_BOT_TOKEN,\n  tgBody:{chat_id:cfg.TELEGRAM_CHAT_ID,text:text,parse_mode:'HTML'}}}];",
+          "mode": "runOnceForAllItems"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1000,
+          0
+        ],
+        "id": "rl-diag",
+        "name": "Relance — Diagnostic"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "typeValidation": "loose"
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "leftValue": "={{ $json.skip }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "false",
+                  "singleValue": true
+                }
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          0
+        ],
+        "id": "rl-if",
+        "name": "Semaine non générée ?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://api.telegram.org/bot{{ $json.token }}/sendMessage",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json.tgBody) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1400,
+          0
+        ],
+        "id": "rl-send",
+        "name": "Relance — Envoyer"
+      }
+    ],
+    "connections": {
+      "Cron — Samedi 10h & dimanche 9h": {
+        "main": [
+          [
+            {
+              "node": "Relance — Lire Config (NocoDB)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Relance — Lire Config (NocoDB)": {
+        "main": [
+          [
+            {
+              "node": "Relance — Lire Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Relance — Lire Config": {
+        "main": [
+          [
+            {
+              "node": "Relance — Lire Contenus (NocoDB)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Relance — Lire Contenus (NocoDB)": {
+        "main": [
+          [
+            {
+              "node": "Relance — Lire Contenus",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Relance — Lire Contenus": {
+        "main": [
+          [
+            {
+              "node": "Relance — Diagnostic",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Relance — Diagnostic": {
+        "main": [
+          [
+            {
+              "node": "Semaine non générée ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Semaine non générée ?": {
+        "main": [
+          [
+            {
+              "node": "Relance — Envoyer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Max Morrys",
+    "name": "Version a5649fe7",
+    "description": "",
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-08-06T18:38:55.798Z",
+        "id": 209,
+        "workflowId": "cf8XLce9QG8ZF3CU",
+        "versionId": "a5649fe7-2d54-4480-9d5b-3608a548aef4",
+        "event": "activated",
+        "userId": "b0d835bc-270d-4613-b03d-8aa950b18523"
+      }
+    ]
+  }
+}

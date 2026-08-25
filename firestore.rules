@@ -250,10 +250,16 @@ service cloud.firestore {
             || request.resource.data.locale in ['fr', 'en'])
         // Les notes internes ne peuvent jamais etre posees par le prospect
         && !('notes' in request.resource.data)
+        // Slug du site client d'ou vient le prospect (`/via/<slug>` -> `?via=`).
+        // Jamais une donnee du visiteur : c'est le site emetteur qui est identifie.
+        && (!('via' in request.resource.data)
+            || (request.resource.data.via is string
+                && request.resource.data.via.size() > 0
+                && request.resource.data.via.size() <= 64))
         // Borne le nombre de champs : empeche le bourrage de document par un robot.
-        // Maximum legitime = 11 (7 obligatoires + website + routedTo + locale + status
-        // + createdAt), soit 12 avec createdAt pose par createDoc.
-        && request.resource.data.keys().size() <= 12;
+        // Maximum legitime = 12 (7 obligatoires + website + routedTo + locale + via
+        // + status), soit 13 avec createdAt pose par createDoc.
+        && request.resource.data.keys().size() <= 13;
 
       // Pipeline commercial : lecture et qualification par admin et support
       allow read, update: if isAdminOrSupport();
@@ -499,6 +505,13 @@ service cloud.firestore {
 
       // Admins can manage progress
       allow create, update, delete: if isAdmin();
+    }
+
+    // Table de redirections servie au bord (`/via/<slug>`, 301 de SEO).
+    match /redirects/{redirectId} {
+      // Aucune lecture publique : le Worker `maxmorrys-site` lit par compte de
+      // service, donc hors de ces regles. Personne d'autre n'a besoin de la table.
+      allow read, create, update, delete: if isAdmin();
     }
 
     // Site settings (single document)

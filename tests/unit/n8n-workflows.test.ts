@@ -101,6 +101,62 @@ describe.each(FILES)('%s', (file) => {
     expect(manquants).toEqual([]);
   });
 
+  /**
+   * n8n ne résout `{{ … }}` que dans une EXPRESSION, reconnaissable à son `=` initial. Un prompt
+   * qui l'oublie part chez le modèle avec ses accolades en toutes lettres : il ne voit ni titre ni
+   * texte, et improvise. C'est ce qui a produit 26 légendes hors-sujet entre le 7 et le 20 août
+   * 2026 — toutes la même, sous des titres qui n'avaient rien à voir — pendant que la créa, elle,
+   * affichait le vrai titre. D'où la plainte « les images ne matchent pas avec les textes ».
+   */
+  it('n’envoie aucun prompt à un modèle avec des accolades non résolues', () => {
+    const litteraux: string[] = [];
+    for (const n of wf.nodes) {
+      if (!n.type.toLowerCase().includes('gemini')) continue;
+      const messages =
+        (n.parameters as { messages?: { values?: Array<{ content?: string }> } })?.messages?.values ?? [];
+      for (const m of messages) {
+        const c = m.content ?? '';
+        if (c.includes('{{') && !c.startsWith('=')) litteraux.push(n.name);
+      }
+    }
+    expect(litteraux).toEqual([]);
+  });
+
+  /**
+   * `$input.item` et `$itemIndex` n'existent QUE dans le mode « une fois par item ». Un nœud Code
+   * qui les appelle en `runOnceForAllItems` lève à la première exécution — et seulement à la
+   * première exécution qui a des données, ce qui peut arriver des semaines plus tard.
+   * Vécu : `Build — URL publique` (WF-SOCIAL-04) a porté ce défaut du 7 au 20 août sans le montrer,
+   * la file d'illustration étant vide.
+   */
+  it('n’utilise `$input.item` que dans les nœuds Code en mode « par item »', () => {
+    const fautifs = wf.nodes
+      .filter((n) => n.parameters?.jsCode)
+      .filter((n) => (n.parameters as { mode?: string }).mode !== 'runOnceForEachItem')
+      .filter((n) => /\$input\.item|\$itemIndex/.test(n.parameters!.jsCode as string))
+      .map((n) => n.name);
+    expect(fautifs).toEqual([]);
+  });
+
+  /**
+   * NocoDB rend ses dates en « 2026-08-24 09:00:00+00:00 » — une espace là où l'ISO 8601 veut un
+   * « T ». `DateTime.fromISO` les refuse (`unparsable`), et comme le code teste `isValid` avant de
+   * compter, il compte zéro sans jamais lever. Airtable rendait `…T09:00:00.000Z` : la migration du
+   * 2026-08-06 a donc éteint en silence la garde de WF-THEMES (« cette semaine est déjà remplie »)
+   * et le diagnostic de WF-PICKS-RELANCE. Constaté le 2026-08-21 : `targetCount = 0` sur une semaine
+   * qui portait 19 contenus. `fromSQL` lit ce format.
+   */
+  it('lit les dates NocoDB avec un repli tolérant, jamais `fromISO` seul', () => {
+    // On ne vise que les LECTURES (`x.Date_Publication_Prevue`) : un nœud qui ÉCRIT ce champ
+    // (`Date_Publication_Prevue: s.date`) part d'une date que Luxon a produite, déjà en ISO.
+    const fautifs = wf.nodes
+      .filter((n) => /[.[]['"]?Date_Publication_Prevue/.test(n.parameters?.jsCode ?? ''))
+      .filter((n) => /fromISO/.test(n.parameters!.jsCode as string))
+      .filter((n) => !/fromSQL/.test(n.parameters!.jsCode as string))
+      .map((n) => n.name);
+    expect(fautifs).toEqual([]);
+  });
+
   it('ne conserve pas la copie périmée des nœuds (`activeVersion`)', () => {
     // L'export brut du serveur embarque `activeVersion.nodes`, figée à une version antérieure.
     // La garder trompe toute relecture : on la purge à la génération.

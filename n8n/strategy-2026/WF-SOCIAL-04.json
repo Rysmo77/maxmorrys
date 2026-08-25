@@ -79,46 +79,7 @@
     },
     {
       "parameters": {
-        "modelId": {
-          "__rl": true,
-          "value": "models/gemini-2.5-flash",
-          "mode": "list",
-          "cachedResultName": "models/gemini-2.5-flash"
-        },
-        "messages": {
-          "values": [
-            {
-              "content": "Tu es Directeur Artistique senior + CM pro (15 ans). Max-Morrys — agence personal branding + LMS, tagline \"Maîtrise le digital, accélère ta croissance\". Cible : entrepreneurs 25-45 AFW + diaspora.\n\nModèle image : **gemini-2.5-flash-image-preview** (Nano Banana Pro).\n\nINPUT (1 row = 1 Reseau × 1 Format) :\n- Titre: {{ $json.Titre }}\n- Format_Post: {{ $json.Format_Post }}\n- Reseau: {{ $json.Reseau }}\n- Thematique: {{ $json.Thematique }}\n- Pilier: {{ $json.Pilier }}\n- Texte: {{ $json.Texte }}\n- Brief: {{ $json.Brief }}\n- Mots_Cles: {{ $json.Mots_Cles }}\n\n═══════════════════════════════════════════════\nRÈGLE CRITIQUE — NOMBRE D'IMAGES (strict)\n═══════════════════════════════════════════════\n- Si Format_Post == \"carrousel\" : nombre_images = 5 à 10 (détecter dans Texte)\n- Si Format_Post ∈ (\"post\", \"story\", \"reel\", \"short\", \"community_post\", \"live\", \"thread\") : **nombre_images = 1 (UN SEUL prompt)**\n- `prompts` DOIT contenir EXACTEMENT `nombre_images` entrées (1 pour tout sauf carrousel)\n- NE JAMAIS générer plus d'une image pour un post/story/reel/short/community_post/live/thread\n\n═══════════════════════════════════════════════\nBRAND SYSTEM MAX-MORRYS\n═══════════════════════════════════════════════\nPalette : #0c93e7 (bleu primary), variants #0074c5 #015da0 · #ed9516 (accent orange) · #171717 (dark) · #f5f5f5 / white\nTypo : **Inter** (Black 900 / Bold 700 / Semibold 600)\nEsthétique : minimalisme éditorial, espace négatif, data viz style NYT/Atlantic, entrepreneurs AFW (Dakar/Abidjan/Douala coworking)\n\n═══════════════════════════════════════════════\nDIMENSIONS — 1 Reseau × 1 Format → dimensions uniques\n═══════════════════════════════════════════════\nUtilise la table (reseau, format_post) → aspect_ratio (toutes 2K) :\n\n- (ig, story), (fb, story), (ig, reel), (fb, reel), (youtube, short), (tiktok, reel), (tiktok, short) → 9:16 (1080x1920)\n- (ig, post), (fb, post), (ig, carrousel), (fb, carrousel) → 4:5 (1080x1350)\n- (linkedin, post), (linkedin, carrousel) → 1:1 (1080x1080)  [LinkedIn préfère carré ou 4:5 — privilégier 1:1 pour carrousel PDF]\n- (x, post), (x, thread) → 16:9 (1600x900)\n- (youtube, video), (youtube, live) → 16:9 (1920x1080)\n- (fb, live), (linkedin, live) → 16:9 (1920x1080)\n- (*, community_post) → 1:1 (1080x1080)\n- (linkedin, video) → 16:9 (1920x1080)\n\nDefault si non listé : 4:5 (1080x1350) à 2K.\n\n═══════════════════════════════════════════════\nTYPES DE VISUEL (choisir selon le PILIER)\n═══════════════════════════════════════════════\n- **Éducation** → infographie | typographique | carrousel slide-by-slide\n- **Inspiration** → citation_design | typographique majestueux\n- **Autorité** → data viz | composition_mixte (portrait + stats)\n- **Communauté** → photo_realiste (entrepreneurs AFW authentiques) | behind-the-scenes\n- **Produit** → composition_mixte avec bullets offre + CTA visuel\n\nMax-Morrys = agence digitale → privilégier INFOGRAPHIE, TYPOGRAPHIQUE, COMPOSITION_MIXTE. Photo seulement pour pilier Communauté.\n\n═══════════════════════════════════════════════\nCARROUSELS\n═══════════════════════════════════════════════\n1. Détecter nb slides dans Texte (5-10)\n2. Un prompt par slide, cohérence totale\n3. Chaque prompt inclut : \"Slide X of N in coherent Max-Morrys series. Maintain EXACT same: palette (#0c93e7 primary, #ed9516 accent, #171717 dark, white), Inter typography, minimalist editorial layout.\"\n4. Slide 1 = cover (titre fort) ; intermédiaires = \"01 — [point]\" ; dernière = CTA (\"Sauvegarde\", \"Partage\", \"Suis @maxmorrys\")\n5. ZERO personnes physiques sauf case study explicite\n\n═══════════════════════════════════════════════\nTEXTES SUR VISUEL\n═══════════════════════════════════════════════\n1. Orthographe française relue 3× (accents é è à ç)\n2. <15 mots idéal, 25 max\n3. Dans prompt : \"with the exact text 'TEXTE' rendered in [position] with Inter Black 900\"\n4. Tutoiement respecté\n\n═══════════════════════════════════════════════\nANTI-DÉRIVE (inclure dans CHAQUE prompt)\n═══════════════════════════════════════════════\nAVOID: tribal patterns, wax, masks, scarifications, touristic African stereotypes, generic corporate (handshake, gears, lightbulbs), AI artifacts, distorted text, extra fingers, cartoon style, saturated neon gradients, more than 3 dominant colors, stock photo style, emoji icons in visual.\n\nPRIVILÉGIER : modern professional African environments (Dakar/Abidjan/Douala coworking), authentic contemporary people, Inter typography, Max-Morrys palette (#0c93e7 #ed9516 #171717), minimalist editorial layout.\n\n═══════════════════════════════════════════════\nSORTIE JSON STRICT\n═══════════════════════════════════════════════\nPas de markdown, pas de backticks.\n\n{\n  \"visual_strategy\": {\n    \"type_visuel\": \"photo_realiste | illustration | typographique | infographie | composition_mixte | citation_design\",\n    \"rationale\": \"justification par pilier + réseau\",\n    \"nombre_images\": N,\n    \"format_specs\": {\n      \"dimensions_pixels\": \"1080x1350\",\n      \"aspect_ratio\": \"4:5\",\n      \"resolution\": \"2K\",\n      \"reseau\": \"ig\",\n      \"rationale_dimensions\": \"justification\"\n    },\n    \"coherence_serie\": \"instructions si N>1 sinon null\"\n  },\n  \"prompts\": [\n    {\n      \"image_index\": 1,\n      \"type\": \"cover | content | cta | standalone\",\n      \"prompt_gemini3\": \"prompt anglais 300-500 mots incluant brand system Max-Morrys + AVOID: clause\",\n      \"text_overlay\": {\n        \"has_text\": true,\n        \"text_content\": \"texte français tutoyé SANS FAUTE\",\n        \"text_placement\": \"top | center | bottom | left | right\",\n        \"text_typography_brief\": \"Inter Black 900, taille, couleur hex\"\n      },\n      \"api_config\": {\n        \"model\": \"gemini-2.5-flash-image-preview\",\n        \"aspectRatio\": \"4:5\",\n        \"resolution\": \"2K\"\n      }\n    }\n  ]\n}\n"
-            }
-          ]
-        },
-        "simplify": false,
-        "jsonOutput": true,
-        "builtInTools": {},
-        "options": {
-          "maxOutputTokens": 32768,
-          "temperature": 0.7,
-          "thinkingBudget": 0
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.googleGemini",
-      "typeVersion": 1.1,
-      "position": [
-        448,
-        0
-      ],
-      "id": "gem-gemini-pro---stratégie-v3",
-      "name": "Gemini Pro — Stratégie V3",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "wQPLkug1dt6DGOt4",
-          "name": "Google AI Max-Morrys LMS"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// runOnceForAllItems — parse Gemini V3, expand per prompt, ENFORCE aspect_ratio from deterministic table.\n// Gemini peut halluciner le aspect_ratio → on override selon (Reseau, Format_Post).\n\nconst MULTI_IMAGE_FORMATS = new Set(['carrousel']);\n\n// Table déterministe (reseau, format_post) → aspect_ratio (priorité absolue sur Gemini)\nfunction computeAspectRatio(reseau, format) {\n  const r = String(reseau || '').toLowerCase();\n  const f = String(format || '').toLowerCase();\n  // 9:16 — verticaux\n  if ((r === 'ig' || r === 'fb') && (f === 'story' || f === 'reel')) return '9:16';\n  if (r === 'youtube' && f === 'short') return '9:16';\n  if (r === 'tiktok' && (f === 'reel' || f === 'short')) return '9:16';\n  // 4:5 — portrait social\n  if ((r === 'ig' || r === 'fb') && (f === 'post' || f === 'carrousel')) return '4:5';\n  // 1:1 — carré LinkedIn\n  if (r === 'linkedin' && (f === 'post' || f === 'carrousel')) return '1:1';\n  if (f === 'community_post') return '1:1';\n  // 16:9 — paysage\n  if (r === 'x' && (f === 'post' || f === 'thread')) return '16:9';\n  if (r === 'youtube' && (f === 'video' || f === 'live')) return '16:9';\n  if ((r === 'fb' || r === 'linkedin') && f === 'live') return '16:9';\n  if (r === 'linkedin' && f === 'video') return '16:9';\n  // Default\n  return '4:5';\n}\n\nconst geminiResponses = $input.all();\nconst sources = $('Airtable — Lire rédigés').all();\nconst out = [];\n\nfunction extractJson(t) {\n  let c = (t || '').trim().replace(/^```(?:json)?\\s*/i, '').replace(/```\\s*$/i, '').trim();\n  try { return JSON.parse(c); } catch (e) {}\n  const m = c.match(/\\{[\\s\\S]*\\}/);\n  if (m) { try { return JSON.parse(m[0]); } catch (e) {} }\n  return null;\n}\n\nfor (let i = 0; i < geminiResponses.length; i++) {\n  const resp = geminiResponses[i].json || {};\n  const src = sources[i]?.json || {};\n  let text = '';\n  if (resp.candidates?.[0]?.content?.parts) text = resp.candidates[0].content.parts.map(p => p.text || '').join('');\n  else if (typeof resp === 'string') text = resp;\n  else if (resp.content?.parts) text = resp.content.parts.map(p => p.text || '').join('');\n  else text = JSON.stringify(resp);\n\n  const data = extractJson(text);\n  if (!data || !Array.isArray(data.prompts) || !data.prompts.length) {\n    out.push({ json: { id: src.id, _skip: true, error: 'Parse échec ou prompts vides', Status: 'rédigé' }});\n    continue;\n  }\n\n  const fmt = String(src.Format_Post || '').toLowerCase();\n  let prompts = data.prompts;\n  if (!MULTI_IMAGE_FORMATS.has(fmt) && prompts.length > 1) prompts = [prompts[0]];\n\n  // OVERRIDE aspect_ratio with deterministic table — ignore whatever Gemini chose\n  const enforcedAspectRatio = computeAspectRatio(src.Reseau, src.Format_Post);\n\n  for (let idx = 0; idx < prompts.length; idx++) {\n    const p = prompts[idx] || {};\n    out.push({ json: {\n      id: src.id,\n      src_titre: src.Titre,\n      src_format: src.Format_Post,\n      src_reseau: src.Reseau,\n      visual_strategy: data.visual_strategy,\n      image_index: p.image_index || (idx + 1),\n      total_images: prompts.length,\n      prompt_gemini3: p.prompt_gemini3,\n      text_overlay: p.text_overlay,\n      aspect_ratio: enforcedAspectRatio, // déterministe, pas celui de Gemini\n      resolution: '2K',\n      model: 'gemini-2.5-flash-image-preview'\n    }});\n  }\n}\n\nreturn out.length ? out : [{ json: { _empty: true }}];\n"
+        "jsCode": "// Découpe chaque contenu rédigé en cartes à rendre — une par slide.\nconst MAX_CARTES = 10;\n\nfunction lireCartes(raw) {\n  let v = raw;\n  if (typeof v === 'string') {\n    if (!v.trim()) return [];\n    try { v = JSON.parse(v); } catch (e) { return []; }\n  }\n  if (!Array.isArray(v)) return [];\n  const out = [];\n  for (const s of v) {\n    const o = (s && typeof s === 'object') ? s : { titre: String(s == null ? '' : s) };\n    const titre = String(o.titre || '').trim();\n    if (!titre) continue; // une carte sans titre ne se rend pas : autant la jeter ici\n    const carte = { titre: titre };\n    if (String(o.corps || '').trim()) carte.corps = String(o.corps).trim();\n    if (String(o.cta || '').trim()) carte.cta = String(o.cta).trim();\n    if (Array.isArray(o.options)) {\n      const opts = o.options.map(x => String(x == null ? '' : x).trim()).filter(Boolean).slice(0, 4);\n      if (opts.length >= 2) carte.options = opts; // un sondage à une seule réponse n'en est pas un\n    }\n    out.push(carte);\n    if (out.length >= MAX_CARTES) break;\n  }\n  return out;\n}\n\nconst out = [];\nfor (const item of $input.all()) {\n  const r = item.json || {};\n  let cartes = lireCartes(r.Slides_JSON);\n  const fmt = String(r.Format_Post || '').toLowerCase();\n  // Hors carrousel, un seul visuel : aucun autre format n'en publie plusieurs.\n  if (fmt !== 'carrousel' && cartes.length > 1) cartes = [cartes[0]];\n  // Repli sur le Titre : un post rédigé avant ce changement n'a pas de `Slides_JSON`. Il doit\n  // quand même sortir une carte — bloquer la file serait pire que rendre le titre seul.\n  if (!cartes.length) cartes = [{ titre: String(r.Titre || 'Max-Morrys').trim() || 'Max-Morrys' }];\n  for (let i = 0; i < cartes.length; i++) {\n    out.push({ json: { id: r.id, carte: cartes[i], image_index: i + 1, total_images: cartes.length } });\n  }\n}\nreturn out;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -127,36 +88,12 @@
         0
       ],
       "id": "code-parse---stratégie-visuelle",
-      "name": "Parse — Stratégie visuelle"
-    },
-    {
-      "parameters": {
-        "operation": "upload",
-        "bucketName": "maxmorrys-lms",
-        "fileName": "=social/{{ $json.id }}/{{ $json.image_index }}_{{ Date.now() }}.png",
-        "additionalFields": {
-          "acl": "publicRead"
-        }
-      },
-      "type": "n8n-nodes-base.s3",
-      "typeVersion": 1,
-      "position": [
-        1472,
-        0
-      ],
-      "id": "r2-r2---upload-image",
-      "name": "R2 — Upload image",
-      "credentials": {
-        "s3": {
-          "id": "1jkvWRlxegNgpKto",
-          "name": "Cloudflare R2 Max-Morrys"
-        }
-      }
+      "name": "Parse — Cartes"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const meta = $input.item.json;\nconst batch = $('Parse — Stratégie visuelle').all()[$itemIndex].json;\nconst R2_BASE = 'https://pub-98fc057dc71948c7bd129a674b4bcec8.r2.dev';\nconst k = meta.Key || meta.key || `social/${batch.id}/${batch.image_index}_${Date.now()}.png`;\nconst bgUrl = `${R2_BASE}/${k}`;\nlet RENDER_CARD_URL = '', RENDER_KEY = '';\ntry {\n  const rc = $('Airtable — Lire Config Render').all().map(i => i.json);\n  const g = (kk) => { const r = rc.find(x => (x.fields ? x.fields.Cle : x.Cle) === kk); return r ? (r.fields ? r.fields.Valeur : r.Valeur) : ''; };\n  RENDER_CARD_URL = g('RENDER_CARD_URL'); RENDER_KEY = g('RENDER_KEY');\n} catch (e) {}\nlet f = {};\ntry { const rows = $('Airtable — Lire rédigés').all().map(i => i.json); const row = rows.find(r => (r.id || (r.fields && r.fields.id)) === batch.id) || {}; f = row.fields || row; } catch (e) {}\n\nconst fmtMap = { story:'9:16', reel:'9:16', short:'9:16', carrousel:'4:5', post:'4:5', community_post:'1:1', thread:'1:1', live:'9:16' };\nconst format = fmtMap[String(f.Format_Post || '').toLowerCase()] || '4:5';\n\n// Choix du gabarit — le FORMAT décide d'abord, le style « poster » retenu par le board est le défaut.\n// Les gabarits plus riches (stat, checklist, versus, testimonial) demandent des données que ce\n// workflow n'a pas (un chiffre, une liste, deux colonnes) : c'est le Designer qui les appelle\n// explicitement sur ticket. Ici on ne produit que ce qu'on peut garantir.\nconst fp = String(f.Format_Post || '').toLowerCase();\nlet template = 'poster';\nif (fp === 'story') template = 'ask';\nelse if (fp === 'carrousel') template = 'slide';\n\n// Accent = couleur du Pilier. Carte canonique « poster-safe » sur fond bleu profond.\nconst accMap = { 'Éducation':'turquoise', 'Inspiration':'violet', 'Produit':'orange', 'Autorité':'corail', 'Communauté':'vert', 'Autre':'orange' };\nconst accent = accMap[f.Pilier] || 'orange';\n\n// L'eyebrow porte la SÉRIE quand elle existe : c'est ce qui rend le rendez-vous reconnaissable.\nconst eyebrow = f.Serie || f.Pilier || '';\n\nconst title = String(f.Titre || batch.visual_strategy || 'Max-Morrys').slice(0, 120);\nconst _hw = title.replace(/[^\\wÀ-ÿ\\s]/g, ' ').split(/\\s+/).filter((x) => x.length > 3);\nconst highlight = _hw.length ? _hw[_hw.length - 1] : '';\n\n// Un carrousel = une slide par image : la première est la promesse, la dernière le récap.\nconst idx = batch.image_index || 1;\nconst total = batch.total_images || 1;\nconst slideRole = idx === 1 ? 'cover' : (idx >= total ? 'outro' : 'body');\n\n// Seuls les gabarits « photo » consomment un fond. poster / slide / ask se rendent en mode marque :\n// aucun appel image, aucun risque de 403, et un rendu identique à chaque fois.\nconst PHOTO_TPL = new Set(['panel', 'quote', 'tip', 'promo']);\nconst _dims = ({ '9:16': [1024, 1536], '4:5': [1024, 1280], '1:1': [1024, 1024] })[format] || [1024, 1280];\nconst _vs = batch.visual_strategy;\nlet _sceneRaw = title;\nif (_vs && typeof _vs === 'object') { _sceneRaw = _vs.prompt_gemini3 || _vs.rationale || _vs.type_visuel || title; }\nelse if (typeof _vs === 'string' && _vs.trim()) { _sceneRaw = _vs; }\nconst _scene = String(_sceneRaw).replace(/\\s+/g, ' ').slice(0, 260);\nconst bgAi = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(_scene + '. Any people shown are Black or mixed-race African, authentic, diverse. Photorealistic, cinematic natural lighting, high detail, no text, no words, no letters, no logo, no watermark') + '?width=' + _dims[0] + '&height=' + _dims[1] + '&model=flux&nologo=true&enhance=true&seed=' + idx;\n\nconst payload = { template, format, title, eyebrow, highlight, accent, curve: false };\nif (template === 'slide') { payload.slideRole = slideRole; payload.slideIndex = idx; payload.slideTotal = total; }\nif (PHOTO_TPL.has(template)) { payload.backgroundUrl = bgAi; }\n\nreturn { json: { id: batch.id, image_index: idx, total_images: total, visual_strategy: batch.visual_strategy, bg_fallback: bgUrl, render_url: RENDER_CARD_URL, render_key: RENDER_KEY, payload } };"
+        "jsCode": "// Compose la charge du moteur de rendu, une par créa. Le TEXTE vient du rédacteur (`carte`),\n// la MISE EN FORME (gabarit, format, accent, eyebrow) des champs du contenu.\nlet RENDER_CARD_URL = '', RENDER_KEY = '';\ntry {\n  const rc = $('Airtable — Lire Config Render').all().map(i => i.json);\n  const g = (kk) => { const r = rc.find(x => (x.fields ? x.fields.Cle : x.Cle) === kk); return r ? (r.fields ? r.fields.Valeur : r.Valeur) : ''; };\n  RENDER_CARD_URL = g('RENDER_CARD_URL'); RENDER_KEY = g('RENDER_KEY');\n} catch (e) {}\n\n// Les champs du post, indexés par id : chaque créa retrouve SON contenu. L'appariement par\n// position, longtemps utilisé ici, croisait deux posts dès qu'un item se perdait en route.\nconst parId = {};\ntry {\n  for (const r of $('Airtable — Lire rédigés').all()) {\n    const f = r.json.fields || r.json;\n    parId[r.json.id || f.id] = f;\n  }\n} catch (e) {}\n\nconst fmtMap = { story:'9:16', reel:'9:16', short:'9:16', carrousel:'4:5', post:'4:5', community_post:'1:1', thread:'1:1', live:'9:16' };\n// Accent = couleur du Pilier, choisie pour rester lisible sur le bleu profond du fond.\nconst accMap = { 'Éducation':'turquoise', 'Inspiration':'violet', 'Produit':'orange', 'Autorité':'corail', 'Communauté':'vert', 'Autre':'orange' };\n\nreturn $input.all().map(item => {\n  const b = item.json || {};\n  const f = parId[b.id] || {};\n  const carte = b.carte || {};\n  const fp = String(f.Format_Post || '').toLowerCase();\n  const format = fmtMap[fp] || '4:5';\n\n  // Le FORMAT décide du gabarit. Les gabarits plus riches (stat, checklist, versus, testimonial)\n  // réclament des données que cette chaîne n'a pas — un chiffre, deux colonnes : c'est le Designer\n  // qui les appelle sur ticket. Ici on ne produit que ce qu'on peut garantir.\n  let template = 'poster';\n  if (fp === 'story') template = 'ask';\n  else if (fp === 'carrousel') template = 'slide';\n\n  const idx = b.image_index || 1;\n  const total = b.total_images || 1;\n  const title = String(carte.titre || f.Titre || 'Max-Morrys').slice(0, 120);\n  // Le mot surligné est le dernier mot long du titre : celui sur lequel l'œil s'arrête.\n  const mots = title.replace(/[^\\wÀ-ÿ\\s]/g, ' ').split(/\\s+/).filter(x => x.length > 3);\n\n  const payload = {\n    template: template,\n    format: format,\n    title: title,\n    eyebrow: f.Serie || f.Pilier || '', // la série rend le rendez-vous reconnaissable\n    highlight: mots.length ? mots[mots.length - 1] : '',\n    accent: accMap[f.Pilier] || 'orange',\n    curve: false\n  };\n  if (carte.corps) payload.body = String(carte.corps).slice(0, 240);\n  if (carte.cta) payload.cta = String(carte.cta).slice(0, 40);\n  if (template === 'ask' && Array.isArray(carte.options)) payload.options = carte.options;\n  if (template === 'slide') {\n    // La cover promet, l'outro récapitule, le reste porte une idée.\n    payload.slideRole = idx === 1 ? 'cover' : (idx >= total ? 'outro' : 'body');\n    payload.slideIndex = idx;\n    payload.slideTotal = total;\n  }\n\n  return { json: { id: b.id, image_index: idx, total_images: total, carte: carte,\n                   render_url: RENDER_CARD_URL, render_key: RENDER_KEY, payload: payload } };\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -169,7 +106,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// runOnceForAllItems — groupe par id, collecte les URLs, émet 1 item par contenu\n// Status auto/manual selon Config.VALIDATION_MODE (auto → validé, manual → prêt_à_valider)\nconst items = $input.all().map(i => i.json);\nlet mode = 'manual';\ntry {\n  const cfg = $('Airtable — Lire VALIDATION_MODE').all().map(i => i.json);\n  if (cfg.length && cfg[0].Valeur) mode = String(cfg[0].Valeur).trim().toLowerCase();\n} catch(e) {}\nconst targetStatus = mode === 'auto' ? 'validé' : 'prêt_à_valider';\n\nconst byId = {};\nfor (const it of items) {\n  if (!byId[it.id]) byId[it.id] = { id: it.id, urls: [], visual_strategy: it.visual_strategy };\n  byId[it.id].urls[it.image_index - 1] = it.public_url;\n}\nreturn Object.values(byId).map(g => ({ json: {\n  id: g.id,\n  Status: targetStatus,\n  Visuels_URLs: JSON.stringify(g.urls.filter(Boolean)),\n  Visual_Strategy: JSON.stringify(g.visual_strategy || {})\n}}));\n"
+        "jsCode": "// Regroupe les créas par contenu et décide du statut.\n// Un post à qui il manque une image ne part PAS en validation : il attend en `image_needed`,\n// visible dans la base, plutôt que d'arriver sur Telegram sans visuel — ou en carrousel amputé —\n// puis d'échouer à la publication (Instagram refuse un post sans média).\nconst items = $input.all().map(i => i.json);\nlet mode = 'manual';\ntry {\n  const cfg = $('Airtable — Lire VALIDATION_MODE').all().map(i => i.json);\n  if (cfg.length && cfg[0].Valeur) mode = String(cfg[0].Valeur).trim().toLowerCase();\n} catch (e) {}\nconst statutComplet = mode === 'auto' ? 'validé' : 'prêt_à_valider';\n\nconst parId = {};\nfor (const it of items) {\n  if (!parId[it.id]) parId[it.id] = { id: it.id, urls: [], cartes: [], erreurs: [], total: it.total_images || 1 };\n  const g = parId[it.id];\n  const rang = (it.image_index || 1) - 1;\n  g.urls[rang] = it.public_url || '';\n  g.cartes[rang] = it.carte || null;\n  if (!it.public_url) g.erreurs.push('#' + (it.image_index || 1) + ' ' + (it.erreur || 'rendu indisponible'));\n}\n\nreturn Object.values(parId).map(g => {\n  const urls = g.urls.filter(Boolean);\n  const complet = urls.length === g.total;\n  return { json: {\n    id: g.id,\n    Status: complet ? statutComplet : 'image_needed',\n    Visuels_URLs: JSON.stringify(urls),\n    Visual_Strategy: JSON.stringify({ cartes: g.cartes.filter(Boolean),\n                                      rendus: urls.length + '/' + g.total,\n                                      erreurs: g.erreurs })\n  }};\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -227,60 +164,6 @@
           "name": "NocoDB Max-Morrys"
         }
       }
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "googlePalmApi",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.prompt_gemini3 }] }], generationConfig: { responseModalities: ['TEXT','IMAGE'] } }) }}",
-        "options": {
-          "timeout": 60000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1024,
-        0
-      ],
-      "id": "http-gemini-image-v1",
-      "name": "HTTP — Gemini 3.1 Flash Image",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "wQPLkug1dt6DGOt4",
-          "name": "Google AI Max-Morrys LMS"
-        }
-      },
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "// runOnceForEachItem — parse Gemini API response, extract base64 image, convert to binary\nconst resp = $input.item.json;\nconst meta = $input.item; // to preserve upstream metadata we pass via $('Parse — Stratégie visuelle')\nconst srcMeta = $('Parse — Stratégie visuelle').all()[$itemIndex].json;\n\n// Extract base64 from Gemini response\nlet base64 = null;\nlet mimeType = 'image/png';\nconst candidates = resp.candidates || [];\nfor (const c of candidates) {\n  const parts = c?.content?.parts || [];\n  for (const p of parts) {\n    if (p?.inlineData?.data) {\n      base64 = p.inlineData.data;\n      mimeType = p.inlineData.mimeType || 'image/png';\n      break;\n    }\n  }\n  if (base64) break;\n}\n\nif (!base64) {\n  return { json: { _skip: true, error: 'Gemini response has no inlineData', id: srcMeta.id }};\n}\n\nconst buffer = Buffer.from(base64, 'base64');\nconst ext = mimeType.includes('jpeg') ? 'jpg' : 'png';\nconst fileName = `${srcMeta.id}_${srcMeta.image_index}.${ext}`;\nconst binary = await this.helpers.prepareBinaryData(buffer, fileName, mimeType);\n\nreturn {\n  json: {\n    id: srcMeta.id,\n    image_index: srcMeta.image_index,\n    total_images: srcMeta.total_images,\n    visual_strategy: srcMeta.visual_strategy,\n    aspect_ratio: srcMeta.aspect_ratio,\n    fileName: fileName,\n  },\n  binary: { data: binary }\n};\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1248,
-        0
-      ],
-      "id": "decode-base64-img",
-      "name": "Decode — Base64 → Binary"
     },
     {
       "id": "vm-b413ecd3af7fn",
@@ -418,7 +301,9 @@
         "options": {
           "timeout": 100000
         }
-      }
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
     },
     {
       "id": "finalize-01",
@@ -431,7 +316,7 @@
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const b = $('Build — URL publique').all()[$itemIndex].json;\nconst resp = $input.item.json;\nconst url = (resp && resp.url) ? resp.url : b.bg_fallback;\nreturn { json: { id: b.id, image_index: b.image_index, total_images: b.total_images, visual_strategy: b.visual_strategy, public_url: url } };"
+        "jsCode": "// Réapparie la réponse du moteur avec sa demande (le nœud HTTP conserve l'ordre et le nombre\n// d'items, y compris quand il échoue). Un rendu raté ressort sans URL plutôt qu'en exception :\n// il doit coûter une carte, pas le workflow entier.\nconst b = $('Build — URL publique').all()[$itemIndex].json;\nconst resp = $input.item.json || {};\nconst url = (typeof resp.url === 'string' && resp.url) ? resp.url : '';\nconst err = url ? '' : String((resp.error && (resp.error.message || resp.error)) || resp.message || 'rendu indisponible').slice(0, 200);\nreturn { json: { id: b.id, image_index: b.image_index, total_images: b.total_images,\n                 carte: b.carte, public_url: url, erreur: err } };"
       }
     },
     {
@@ -475,29 +360,7 @@
       "main": [
         [
           {
-            "node": "Gemini Pro — Stratégie V3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Gemini Pro — Stratégie V3": {
-      "main": [
-        [
-          {
-            "node": "Parse — Stratégie visuelle",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse — Stratégie visuelle": {
-      "main": [
-        [
-          {
-            "node": "Build — URL publique",
+            "node": "Parse — Cartes",
             "type": "main",
             "index": 0
           }
@@ -520,28 +383,6 @@
         [
           {
             "node": "Airtable — Status=prêt_à_valider",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Decode — Base64 → Binary": {
-      "main": [
-        [
-          {
-            "node": "R2 — Upload image",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP — Gemini 3.1 Flash Image": {
-      "main": [
-        [
-          {
-            "node": "Decode — Base64 → Binary",
             "type": "main",
             "index": 0
           }
@@ -630,6 +471,17 @@
         [
           {
             "node": "Airtable — Lire Config Render",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse — Cartes": {
+      "main": [
+        [
+          {
+            "node": "Build — URL publique",
             "type": "main",
             "index": 0
           }

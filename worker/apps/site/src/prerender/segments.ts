@@ -53,6 +53,7 @@ const SEGMENTS: Record<string, string> = {
   coupons: 'coupons',
   'rendez-vous': 'appointments',
   'club-digitos': 'club-digitos',
+  redirections: 'redirects',
 };
 
 const EN_TO_FR: Record<string, string> = {};

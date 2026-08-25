@@ -26,7 +26,8 @@
     "sectionSite": "Site",
     "backToSite": "Back to site",
     "agencyLeads": "Agency leads",
-    "missions": "Projects"
+    "missions": "Projects",
+    "redirects": "Redirects"
   },
   "placeholder": {
     "description": "This section is under development and will be available soon."
@@ -773,6 +774,13 @@
     "notifNewUserDesc": "Notification for each new user",
     "notifCourseCompletionLabel": "Course completion",
     "notifCourseCompletionDesc": "When a student completes a course",
+    "popupsTitle": "Contextual pop-ups",
+    "popupsSubtitle": "Prompts shown to visitors on the public site",
+    "popupAudienceRouterLabel": "Audience router on /agency",
+    "popupAudienceRouterDesc": "On leaving the agency page: three doors (product, shop, learning)",
+    "popupFormationsEntryLabel": "Courses highlight",
+    "popupFormationsEntryDesc": "For visitors arriving from a search engine or from a client site's signature link",
+    "popupsCacheNote": "At most one pop-up per session, and seven days before the same one is offered again. Settings are cached for the visitor's session: turning one off takes effect on their next visit.",
     "securityTitle": "Security",
     "securitySubtitle": "Security and access settings",
     "securityActive": "Active",
@@ -920,9 +928,82 @@
         "Timeline",
         "Status",
         "Routed to",
+        "Source",
         "Description",
         "Internal notes"
       ]
+    },
+    "viaBadge": "via {{slug}}"
+  },
+  "redirects": {
+    "title": "Redirects",
+    "count_one": "{{count}} redirect",
+    "count_other": "{{count}} redirects",
+    "new": "New redirect",
+    "empty": "No redirect yet. Create the first attribution link.",
+    "propagationNotice": "The Worker caches the table for one minute: a new or edited entry is served within 60 seconds, not instantly.",
+    "hits_one": "{{count}} click",
+    "hits_other": "{{count}} clicks",
+    "lastHit": "last on {{date}}",
+    "filters": {
+      "all": "All",
+      "via": "Attribution",
+      "path": "SEO"
+    },
+    "kinds": {
+      "via": "Attribution",
+      "path": "SEO"
+    },
+    "modal": {
+      "newTitle": "New redirect",
+      "editTitle": "Edit redirect",
+      "close": "Close"
+    },
+    "form": {
+      "kindLabel": "Type",
+      "kindHint": {
+        "via": "Credit link placed in a client site footer. Serves a 302 to /agence and counts clicks.",
+        "path": "An old URL of this site pointing somewhere else. Serves a 301, which passes ranking on."
+      },
+      "slugLabel": "Client slug *",
+      "slugPlaceholder": "client-name",
+      "slugInvalid": "Lowercase letters, digits and hyphens only, 64 characters maximum.",
+      "sourceLabel": "Source path *",
+      "sourcePlaceholder": "/old-page",
+      "targetLabel": "Target *",
+      "targetInvalid": "The target must be an internal path starting with “/”.",
+      "codeLabel": "Code",
+      "code301": "301 — permanent",
+      "code302": "302 — temporary",
+      "labelLabel": "Internal label",
+      "labelPlaceholder": "Client name, reason…",
+      "activeLabel": "Active",
+      "activeHint": "An inactive attribution link falls back to /agence; an inactive SEO redirect is no longer served at all.",
+      "snippetLabel": "Anchor to paste in the client site footer"
+    },
+    "actions": {
+      "copyLink": "Copy link",
+      "copyAnchor": "Copy anchor",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "confirmDelete": {
+      "title": "Delete",
+      "message": "Delete the redirect {{source}}? Links already placed on the client site will fall back to /agence.",
+      "confirmLabel": "Delete"
+    },
+    "toasts": {
+      "loadError": "Could not load redirects.",
+      "created": "Redirect created.",
+      "updated": "Redirect updated.",
+      "deleted": "Redirect deleted.",
+      "duplicate": "{{source}} is already declared.",
+      "saveError": "Could not save.",
+      "deleteError": "Could not delete.",
+      "copyError": "Copy failed. Select the text manually."
     }
   }
 }

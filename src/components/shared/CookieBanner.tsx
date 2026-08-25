@@ -66,6 +66,15 @@ function pushConsentToGoogle(analytics: boolean, marketing: boolean): void {
   }
 }
 
+/**
+ * Émis sur `window` dès qu'un choix de consentement est enregistré.
+ *
+ * Le consentement vit dans `localStorage`, que rien n'observe : les composants qui en dépendent
+ * ne se re-rendent pas tout seuls quand il change. `PopupManager` s'en sert pour s'armer dès que
+ * le bandeau disparaît, au lieu d'attendre le prochain changement de route.
+ */
+export const COOKIE_CONSENT_EVENT = 'mm-cookie-consent-change';
+
 function saveAndApplyConsent(analytics: boolean, marketing: boolean): void {
   localStorage.setItem('mm-cookie-consent', JSON.stringify({
     analytics,
@@ -78,6 +87,7 @@ function saveAndApplyConsent(analytics: boolean, marketing: boolean): void {
   } else {
     revokePixelConsent();
   }
+  window.dispatchEvent(new Event(COOKIE_CONSENT_EVENT));
 }
 
 export default function CookieBanner() {

@@ -41,6 +41,7 @@ import LanguageSuggestionBanner from './components/shared/LanguageSuggestionBann
 import SearchOverlay from './components/shared/SearchOverlay';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import MetaPixelTracker from './components/tracking/MetaPixelTracker';
+import PopupManager from './components/popups/PopupManager';
 import Home from './pages/Home';
 import Forbidden403 from './pages/Forbidden403';
 import NotFound from './pages/NotFound';
@@ -105,6 +106,7 @@ const AdminAppointments = lazyWithReload(() => import('./pages/admin/AdminAppoin
 const AdminClubDigitos = lazyWithReload(() => import('./pages/admin/AdminClubDigitos'));
 const AdminAgencyLeads = lazyWithReload(() => import('./pages/admin/AdminAgencyLeads'));
 const AdminMissions = lazyWithReload(() => import('./pages/admin/AdminMissions'));
+const AdminRedirects = lazyWithReload(() => import('./pages/admin/AdminRedirects'));
 const CertificatePage = lazyWithReload(() => import('./pages/lms/Certificate'));
 
 function PageLoader() {
@@ -153,6 +155,12 @@ function PublicLayout() {
       </main>
       <Footer />
       <CookieBanner />
+      {/*
+        Arbitre des pop-ups contextuelles. Import DIRECT et non `lazyWithReload` : ce dernier
+        recharge la page quand un chunk périmé échoue, ce qui serait disproportionné pour un
+        composant qui ne rend rien la plupart du temps.
+      */}
+      <PopupManager />
       <ScrollRestoration />
     </>
   );
@@ -347,6 +355,7 @@ function appChildren() {
         { path: 'club-digitos', element: <Suspense fallback={<PageLoader />}><AdminClubDigitos /></Suspense> },
         { path: 'prospects-agence', element: <Suspense fallback={<PageLoader />}><AdminAgencyLeads /></Suspense> },
         { path: 'projets', element: <Suspense fallback={<PageLoader />}><AdminMissions /></Suspense> },
+        { path: 'redirections', element: <Suspense fallback={<PageLoader />}><AdminRedirects /></Suspense> },
       ],
     },
   ];

@@ -124,6 +124,7 @@ export default function AdminMissions() {
       t(`missions.timelines.${l.timeline}`),
       t(`missions.status.${l.status}`),
       l.routedTo ?? '',
+      l.via ?? '',
       l.description,
       l.notes ?? '',
     ]);
@@ -237,6 +238,13 @@ export default function AdminMissions() {
                     {lead.routedTo && (
                       <span className="rounded-full bg-lagoon-100 dark:bg-lagoon-900/40 px-2 py-0.5 text-xs font-medium text-lagoon-700 dark:text-lagoon-300">
                         {t('missions.routedBadge')}
+                      </span>
+                    )}
+                    {lead.via && (
+                      // Provenance : le prospect est arrive par le credit d'agence
+                      // pose au pied du site `lead.via`.
+                      <span className="rounded-full bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 text-xs font-medium text-neutral-600 dark:text-neutral-300">
+                        {t('missions.viaBadge', { slug: lead.via })}
                       </span>
                     )}
                   </div>

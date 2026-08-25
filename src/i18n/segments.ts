@@ -59,6 +59,7 @@ const SEGMENTS: Record<string, { fr: string; en: string }> = {
   'club-digitos': { fr: 'club-digitos', en: 'club-digitos' },
   'prospects-agence': { fr: 'prospects-agence', en: 'agency-leads' },
   projets: { fr: 'projets', en: 'projects' },
+  redirections: { fr: 'redirections', en: 'redirects' },
 };
 
 // Tables inverses pré-calculées.

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Boxes, BrainCircuit, Server, Sparkle, ArrowRight, ChevronDown, Send, Check,
@@ -11,6 +12,7 @@ import { SITE_URL, buildCanonical } from '../components/seo/seo-config';
 import EditorialHeading from '../components/shared/EditorialHeading';
 import AnimatedIcon from '../components/shared/AnimatedIcon';
 import LocalizedLink from '../components/shared/LocalizedLink';
+import { markSuppressed } from '../lib/popups/rules';
 import Button from '../components/ui/Button';
 import Input, { Textarea } from '../components/ui/Input';
 import { useToast } from '../components/ui/Toast';
@@ -26,6 +28,7 @@ import {
   formatRegisteredAddress,
 } from '../lib/brand';
 import { saveEngagementLead } from '../lib/firestore';
+import { isValidSlug } from '../lib/redirects';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackEvent, trackGenerateLead } from '../lib/tracking';
 import { captureError } from '../lib/sentry';
@@ -94,6 +97,18 @@ export default function Agence() {
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number[]>([]);
   const formStarted = useRef(false);
+  const [searchParams] = useSearchParams();
+
+  /**
+   * Slug du site client par lequel le visiteur est arrivé, posé par la
+   * redirection `/via/<slug>` servie au bord. Revalidé ici : le paramètre est
+   * lisible et modifiable dans la barre d'adresse, il n'entre en base que s'il
+   * a la forme d'un slug. Identifie le site émetteur, jamais la personne.
+   */
+  const via = useMemo(() => {
+    const raw = searchParams.get('via');
+    return raw && isValidSlug(raw) ? raw : null;
+  }, [searchParams]);
 
   const faqItems = t('faq.items', { returnObjects: true }) as { q: string; a: string }[];
 
@@ -156,6 +171,7 @@ export default function Agence() {
         timeline: form.timeline,
         description: form.description.trim(),
         ...(routedTo ? { routedTo } : {}),
+        ...(via ? { via } : {}),
         locale: language,
       });
 
@@ -165,6 +181,7 @@ export default function Agence() {
         budget: form.budget,
         timeline: form.timeline,
         routed_to: routedTo ?? 'build',
+        ...(via ? { via } : {}),
       });
 
       setSubmitted(true);
@@ -627,7 +644,18 @@ export default function Agence() {
                 {t('form.subtitle')}
               </p>
 
-              <form onSubmit={handleSubmit} className="mt-10 space-y-5" noValidate>
+              {/*
+                Un prospect qui commence à qualifier sa demande est déjà dans le bon tunnel :
+                l'aiguilleur d'audience de sortie n'a plus rien à lui apprendre et deviendrait
+                une interruption. `onFocus` remonte depuis les champs (le focus « bulle », pas
+                `focusin` seulement) et suffit donc au niveau du formulaire.
+              */}
+              <form
+                onSubmit={handleSubmit}
+                onFocus={() => markSuppressed('agencyExit')}
+                className="mt-10 space-y-5"
+                noValidate
+              >
                 {/* Pot de miel — hors flux, hors tabulation, invisible aux lecteurs d'écran. */}
                 <div className="absolute w-px h-px overflow-hidden -m-px" aria-hidden="true">
                   <input

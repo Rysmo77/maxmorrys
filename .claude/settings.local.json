@@ -15,7 +15,7 @@
   "autoMode": {
     "allow": [
       "$defaults",
-      "Bash commands that write to the self-hosted n8n instance at eyonemedical.app.n8n.cloud through its public API (PUT/POST on /api/v1/workflows and /api/v1/credentials) are pre-authorized by the user for wiring the marketing WF-* pipeline.",
+      "Bash commands that write to the self-hosted n8n instance at n8n.maxmorrys.me (public API PUT/POST on /api/v1/workflows and /api/v1/credentials, and workflow imports via ssh/scp to the VPS 158.220.124.185) are pre-authorized by the user for the marketing WF-* pipeline.",
       "Bash commands that write (PATCH/POST) to the Airtable base apppkEbepilHCYiso (marketing Config and Contenus tables) are pre-authorized by the user.",
       "Running firebase deploy for the max-morrys Cloud Functions is pre-authorized by the user.",
       "Bash commands that publish content to Max-Morrys' own live social accounts (Instagram/Facebook via Meta Graph API, TikTok, LinkedIn, X) are pre-authorized by the user."

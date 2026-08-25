@@ -31,8 +31,13 @@ const du=((8-base.weekday)%7)||7;
 const monday=base.plus({days:du}).startOf('day');
 const sunday=monday.plus({days:7});
 const semaine=monday.toFormat('dd LLL');
+// NocoDB rend ses dates en « 2026-08-24 09:00:00+00:00 » — avec une ESPACE, pas le « T » de
+// l'ISO 8601. `DateTime.fromISO` les déclare `unparsable` : la garde comptait donc zéro post
+// quelle que soit la semaine, et ne protégeait plus rien depuis la migration du 2026-08-06.
+// (Airtable rendait `2026-08-24T09:00:00.000Z`, d'où le silence.) `fromSQL` lit ce format.
+function qd(v){if(!v)return null;const s=String(v);let dt=DateTime.fromISO(s);if(!dt.isValid)dt=DateTime.fromSQL(s);return dt.isValid?dt:null;}
 let targetCount=0;
-for(const x of rows){const d=x.Date_Publication_Prevue;if(!d)continue;const dt=DateTime.fromISO(d);if(dt.isValid&&dt>=monday&&dt<sunday)targetCount++;}
+for(const x of rows){const dt=qd(x.Date_Publication_Prevue);if(dt&&dt>=monday&&dt<sunday)targetCount++;}
 const skip=targetCount>=5;
 const recents=rows.map(x=>({t:x.Titre,d:x.Date_Publication_Prevue||''})).sort((a,b)=>(b.d>a.d?1:-1)).slice(0,25).map(x=>x.t);
 
@@ -255,7 +260,13 @@ return out;"""
 # ─────────────────────────────────────────────────────────────────────────────
 # WF-SOCIAL-03 — le prompt de rédaction
 # ─────────────────────────────────────────────────────────────────────────────
-SOCIAL03_PROMPT = """Tu es rédacteur senior pour **Max-Morrys**. Tagline : "Maîtrise le digital, accélère ta croissance".
+# ⚠️ Le `=` en tête de ce prompt n'est PAS décoratif. n8n ne résout `{{ … }}` que dans une
+# **expression**, et une expression se reconnaît à ce préfixe. Sans lui, Gemini reçoit
+# « {{ $json.Titre }} » en toutes lettres, ne voit aucun titre, et retombe sur le pitch de son
+# prompt système : c'est ce qui a produit 26 légendes « commerce de quartier » hors-sujet entre le
+# 7 et le 20 août 2026, sous des titres qui parlaient de GEO, de bio LinkedIn ou de chatbots.
+# Le test `tests/unit/n8n-workflows.test.ts` monte la garde sur ce point.
+SOCIAL03_PROMPT = """=Tu es rédacteur senior pour **Max-Morrys**. Tagline : "Maîtrise le digital, accélère ta croissance".
 
 Max-Morrys porte DEUX lignes :
 - une plateforme ed-tech (formations, Club Digitos, assistant IA Rysmo) ;
@@ -372,71 +383,199 @@ RÈGLES ABSOLUES
 Réponds en JSON strict (pas de markdown, pas de backticks) :
 {
   "Texte": "texte complet du post pour CE réseau dans CE format",
-  "Hashtags": "hashtags adaptés au réseau séparés par des espaces"
+  "Hashtags": "hashtags adaptés au réseau séparés par des espaces",
+  "Slides": [ { "titre": "…", "corps": "…", "cta": "…", "options": ["…", "…"] } ]
 }
+
+═══════════════════════════════════════════════
+SLIDES — CE QUE LA CRÉA DIT
+═══════════════════════════════════════════════
+`Slides` est le texte qui sera IMPRIMÉ SUR L'IMAGE. C'est toi qui l'écris, personne d'autre : la
+carte et la légende sortent ainsi de la même tête, et ne peuvent pas raconter deux histoires.
+
+- **carrousel** : 5 à 8 entrées, une idée par entrée, dans l'ordre de défilement. La première est
+  la promesse (`titre` de 7 mots maximum) ; la dernière récapitule et porte le `cta`.
+- **story** : UNE entrée. `titre` = la question ou l'affirmation, 12 mots maximum. Ajoute
+  `options` (2 à 4 réponses de 3 mots maximum) dès que la story pose une question.
+- **post, community_post, thread** : UNE entrée. `titre` = l'accroche en 10 mots maximum,
+  `corps` = la promesse en 20 mots maximum.
+- `titre` est TOUJOURS obligatoire ; `corps`, `cta` et `options` sont facultatifs — mieux vaut les
+  omettre que les remplir de vide.
+- Ce texte se lit à bout de bras, sans le reste de la légende : **aucun emoji, aucun hashtag,
+  aucune URL**, aucune phrase qui a besoin du paragraphe suivant pour se comprendre.
 """
 
 # ─────────────────────────────────────────────────────────────────────────────
 # WF-SOCIAL-04 — le choix du gabarit de créa
 # ─────────────────────────────────────────────────────────────────────────────
-SOCIAL04_BUILD = r"""const meta = $input.item.json;
-const batch = $('Parse — Stratégie visuelle').all()[$itemIndex].json;
-const R2_BASE = 'https://pub-98fc057dc71948c7bd129a674b4bcec8.r2.dev';
-const k = meta.Key || meta.key || `social/${batch.id}/${batch.image_index}_${Date.now()}.png`;
-const bgUrl = `${R2_BASE}/${k}`;
+# Une créa par entrée de `Slides_JSON`. Le texte imprimé sur l'image vient du RÉDACTEUR, pas d'un
+# second modèle : c'est la seule façon de garantir que le visuel et la légende racontent la même
+# chose. L'ancien nœud « Gemini Pro — Stratégie V3 » écrivait des prompts pour un modèle image
+# court-circuité depuis le 2026-07-09 ; il ne servait plus qu'à compter les visuels, et son propre
+# prompt partait en littéral — il inventait donc jusqu'au nombre d'images.
+SOCIAL04_PARSE = r"""// Découpe chaque contenu rédigé en cartes à rendre — une par slide.
+const MAX_CARTES = 10;
+
+function lireCartes(raw) {
+  let v = raw;
+  if (typeof v === 'string') {
+    if (!v.trim()) return [];
+    try { v = JSON.parse(v); } catch (e) { return []; }
+  }
+  if (!Array.isArray(v)) return [];
+  const out = [];
+  for (const s of v) {
+    const o = (s && typeof s === 'object') ? s : { titre: String(s == null ? '' : s) };
+    const titre = String(o.titre || '').trim();
+    if (!titre) continue; // une carte sans titre ne se rend pas : autant la jeter ici
+    const carte = { titre: titre };
+    if (String(o.corps || '').trim()) carte.corps = String(o.corps).trim();
+    if (String(o.cta || '').trim()) carte.cta = String(o.cta).trim();
+    if (Array.isArray(o.options)) {
+      const opts = o.options.map(x => String(x == null ? '' : x).trim()).filter(Boolean).slice(0, 4);
+      if (opts.length >= 2) carte.options = opts; // un sondage à une seule réponse n'en est pas un
+    }
+    out.push(carte);
+    if (out.length >= MAX_CARTES) break;
+  }
+  return out;
+}
+
+const out = [];
+for (const item of $input.all()) {
+  const r = item.json || {};
+  let cartes = lireCartes(r.Slides_JSON);
+  const fmt = String(r.Format_Post || '').toLowerCase();
+  // Hors carrousel, un seul visuel : aucun autre format n'en publie plusieurs.
+  if (fmt !== 'carrousel' && cartes.length > 1) cartes = [cartes[0]];
+  // Repli sur le Titre : un post rédigé avant ce changement n'a pas de `Slides_JSON`. Il doit
+  // quand même sortir une carte — bloquer la file serait pire que rendre le titre seul.
+  if (!cartes.length) cartes = [{ titre: String(r.Titre || 'Max-Morrys').trim() || 'Max-Morrys' }];
+  for (let i = 0; i < cartes.length; i++) {
+    out.push({ json: { id: r.id, carte: cartes[i], image_index: i + 1, total_images: cartes.length } });
+  }
+}
+return out;"""
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WF-SOCIAL-04 — la charge envoyée au moteur de rendu
+# ─────────────────────────────────────────────────────────────────────────────
+SOCIAL04_BUILD = r"""// Compose la charge du moteur de rendu, une par créa. Le TEXTE vient du rédacteur (`carte`),
+// la MISE EN FORME (gabarit, format, accent, eyebrow) des champs du contenu.
 let RENDER_CARD_URL = '', RENDER_KEY = '';
 try {
   const rc = $('Airtable — Lire Config Render').all().map(i => i.json);
   const g = (kk) => { const r = rc.find(x => (x.fields ? x.fields.Cle : x.Cle) === kk); return r ? (r.fields ? r.fields.Valeur : r.Valeur) : ''; };
   RENDER_CARD_URL = g('RENDER_CARD_URL'); RENDER_KEY = g('RENDER_KEY');
 } catch (e) {}
-let f = {};
-try { const rows = $('Airtable — Lire rédigés').all().map(i => i.json); const row = rows.find(r => (r.id || (r.fields && r.fields.id)) === batch.id) || {}; f = row.fields || row; } catch (e) {}
+
+// Les champs du post, indexés par id : chaque créa retrouve SON contenu. L'appariement par
+// position, longtemps utilisé ici, croisait deux posts dès qu'un item se perdait en route.
+const parId = {};
+try {
+  for (const r of $('Airtable — Lire rédigés').all()) {
+    const f = r.json.fields || r.json;
+    parId[r.json.id || f.id] = f;
+  }
+} catch (e) {}
 
 const fmtMap = { story:'9:16', reel:'9:16', short:'9:16', carrousel:'4:5', post:'4:5', community_post:'1:1', thread:'1:1', live:'9:16' };
-const format = fmtMap[String(f.Format_Post || '').toLowerCase()] || '4:5';
-
-// Choix du gabarit — le FORMAT décide d'abord, le style « poster » retenu par le board est le défaut.
-// Les gabarits plus riches (stat, checklist, versus, testimonial) demandent des données que ce
-// workflow n'a pas (un chiffre, une liste, deux colonnes) : c'est le Designer qui les appelle
-// explicitement sur ticket. Ici on ne produit que ce qu'on peut garantir.
-const fp = String(f.Format_Post || '').toLowerCase();
-let template = 'poster';
-if (fp === 'story') template = 'ask';
-else if (fp === 'carrousel') template = 'slide';
-
-// Accent = couleur du Pilier. Carte canonique « poster-safe » sur fond bleu profond.
+// Accent = couleur du Pilier, choisie pour rester lisible sur le bleu profond du fond.
 const accMap = { 'Éducation':'turquoise', 'Inspiration':'violet', 'Produit':'orange', 'Autorité':'corail', 'Communauté':'vert', 'Autre':'orange' };
-const accent = accMap[f.Pilier] || 'orange';
 
-// L'eyebrow porte la SÉRIE quand elle existe : c'est ce qui rend le rendez-vous reconnaissable.
-const eyebrow = f.Serie || f.Pilier || '';
+return $input.all().map(item => {
+  const b = item.json || {};
+  const f = parId[b.id] || {};
+  const carte = b.carte || {};
+  const fp = String(f.Format_Post || '').toLowerCase();
+  const format = fmtMap[fp] || '4:5';
 
-const title = String(f.Titre || batch.visual_strategy || 'Max-Morrys').slice(0, 120);
-const _hw = title.replace(/[^\wÀ-ÿ\s]/g, ' ').split(/\s+/).filter((x) => x.length > 3);
-const highlight = _hw.length ? _hw[_hw.length - 1] : '';
+  // Le FORMAT décide du gabarit. Les gabarits plus riches (stat, checklist, versus, testimonial)
+  // réclament des données que cette chaîne n'a pas — un chiffre, deux colonnes : c'est le Designer
+  // qui les appelle sur ticket. Ici on ne produit que ce qu'on peut garantir.
+  let template = 'poster';
+  if (fp === 'story') template = 'ask';
+  else if (fp === 'carrousel') template = 'slide';
 
-// Un carrousel = une slide par image : la première est la promesse, la dernière le récap.
-const idx = batch.image_index || 1;
-const total = batch.total_images || 1;
-const slideRole = idx === 1 ? 'cover' : (idx >= total ? 'outro' : 'body');
+  const idx = b.image_index || 1;
+  const total = b.total_images || 1;
+  const title = String(carte.titre || f.Titre || 'Max-Morrys').slice(0, 120);
+  // Le mot surligné est le dernier mot long du titre : celui sur lequel l'œil s'arrête.
+  const mots = title.replace(/[^\wÀ-ÿ\s]/g, ' ').split(/\s+/).filter(x => x.length > 3);
 
-// Seuls les gabarits « photo » consomment un fond. poster / slide / ask se rendent en mode marque :
-// aucun appel image, aucun risque de 403, et un rendu identique à chaque fois.
-const PHOTO_TPL = new Set(['panel', 'quote', 'tip', 'promo']);
-const _dims = ({ '9:16': [1024, 1536], '4:5': [1024, 1280], '1:1': [1024, 1024] })[format] || [1024, 1280];
-const _vs = batch.visual_strategy;
-let _sceneRaw = title;
-if (_vs && typeof _vs === 'object') { _sceneRaw = _vs.prompt_gemini3 || _vs.rationale || _vs.type_visuel || title; }
-else if (typeof _vs === 'string' && _vs.trim()) { _sceneRaw = _vs; }
-const _scene = String(_sceneRaw).replace(/\s+/g, ' ').slice(0, 260);
-const bgAi = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(_scene + '. Any people shown are Black or mixed-race African, authentic, diverse. Photorealistic, cinematic natural lighting, high detail, no text, no words, no letters, no logo, no watermark') + '?width=' + _dims[0] + '&height=' + _dims[1] + '&model=flux&nologo=true&enhance=true&seed=' + idx;
+  const payload = {
+    template: template,
+    format: format,
+    title: title,
+    eyebrow: f.Serie || f.Pilier || '', // la série rend le rendez-vous reconnaissable
+    highlight: mots.length ? mots[mots.length - 1] : '',
+    accent: accMap[f.Pilier] || 'orange',
+    curve: false
+  };
+  if (carte.corps) payload.body = String(carte.corps).slice(0, 240);
+  if (carte.cta) payload.cta = String(carte.cta).slice(0, 40);
+  if (template === 'ask' && Array.isArray(carte.options)) payload.options = carte.options;
+  if (template === 'slide') {
+    // La cover promet, l'outro récapitule, le reste porte une idée.
+    payload.slideRole = idx === 1 ? 'cover' : (idx >= total ? 'outro' : 'body');
+    payload.slideIndex = idx;
+    payload.slideTotal = total;
+  }
 
-const payload = { template, format, title, eyebrow, highlight, accent, curve: false };
-if (template === 'slide') { payload.slideRole = slideRole; payload.slideIndex = idx; payload.slideTotal = total; }
-if (PHOTO_TPL.has(template)) { payload.backgroundUrl = bgAi; }
+  return { json: { id: b.id, image_index: idx, total_images: total, carte: carte,
+                   render_url: RENDER_CARD_URL, render_key: RENDER_KEY, payload: payload } };
+});"""
 
-return { json: { id: batch.id, image_index: idx, total_images: total, visual_strategy: batch.visual_strategy, bg_fallback: bgUrl, render_url: RENDER_CARD_URL, render_key: RENDER_KEY, payload } };"""
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WF-SOCIAL-04 — réappariement du rendu, puis regroupement par contenu
+# ─────────────────────────────────────────────────────────────────────────────
+SOCIAL04_FINALIZE = r"""// Réapparie la réponse du moteur avec sa demande (le nœud HTTP conserve l'ordre et le nombre
+// d'items, y compris quand il échoue). Un rendu raté ressort sans URL plutôt qu'en exception :
+// il doit coûter une carte, pas le workflow entier.
+const b = $('Build — URL publique').all()[$itemIndex].json;
+const resp = $input.item.json || {};
+const url = (typeof resp.url === 'string' && resp.url) ? resp.url : '';
+const err = url ? '' : String((resp.error && (resp.error.message || resp.error)) || resp.message || 'rendu indisponible').slice(0, 200);
+return { json: { id: b.id, image_index: b.image_index, total_images: b.total_images,
+                 carte: b.carte, public_url: url, erreur: err } };"""
+
+
+SOCIAL04_COLLECT = r"""// Regroupe les créas par contenu et décide du statut.
+// Un post à qui il manque une image ne part PAS en validation : il attend en `image_needed`,
+// visible dans la base, plutôt que d'arriver sur Telegram sans visuel — ou en carrousel amputé —
+// puis d'échouer à la publication (Instagram refuse un post sans média).
+const items = $input.all().map(i => i.json);
+let mode = 'manual';
+try {
+  const cfg = $('Airtable — Lire VALIDATION_MODE').all().map(i => i.json);
+  if (cfg.length && cfg[0].Valeur) mode = String(cfg[0].Valeur).trim().toLowerCase();
+} catch (e) {}
+const statutComplet = mode === 'auto' ? 'validé' : 'prêt_à_valider';
+
+const parId = {};
+for (const it of items) {
+  if (!parId[it.id]) parId[it.id] = { id: it.id, urls: [], cartes: [], erreurs: [], total: it.total_images || 1 };
+  const g = parId[it.id];
+  const rang = (it.image_index || 1) - 1;
+  g.urls[rang] = it.public_url || '';
+  g.cartes[rang] = it.carte || null;
+  if (!it.public_url) g.erreurs.push('#' + (it.image_index || 1) + ' ' + (it.erreur || 'rendu indisponible'));
+}
+
+return Object.values(parId).map(g => {
+  const urls = g.urls.filter(Boolean);
+  const complet = urls.length === g.total;
+  return { json: {
+    id: g.id,
+    Status: complet ? statutComplet : 'image_needed',
+    Visuels_URLs: JSON.stringify(urls),
+    Visual_Strategy: JSON.stringify({ cartes: g.cartes.filter(Boolean),
+                                      rendus: urls.length + '/' + g.total,
+                                      erreurs: g.erreurs })
+  }};
+});"""
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -506,7 +645,12 @@ PATCHES = [
     ("WF-TG-ROUTER.json", "TH — Parse posts", "jsCode", TH_PARSE),
     ("WF-TG-ROUTER.json", "TH — confirme", "jsonBody", TH_CONFIRME_BODY),
     ("WF-SOCIAL-03.json", "Gemini Pro — Rédiger textes", "prompt", SOCIAL03_PROMPT),
+    # ⚠️ « Parse — Stratégie visuelle » est le nom d'AVANT le renommage opéré par `fix_social04`,
+    # qui tourne après cette table : c'est bien celui-ci qu'il faut viser ici.
+    ("WF-SOCIAL-04.json", "Parse — Stratégie visuelle", "jsCode", SOCIAL04_PARSE),
     ("WF-SOCIAL-04.json", "Build — URL publique", "jsCode", SOCIAL04_BUILD),
+    ("WF-SOCIAL-04.json", "Finalize carte", "jsCode", SOCIAL04_FINALIZE),
+    ("WF-SOCIAL-04.json", "Collect — URLs par contenu", "jsCode", SOCIAL04_COLLECT),
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -849,13 +993,16 @@ const du=((8-base.weekday)%7)||7;
 const monday=base.plus({days:du}).startOf('day');
 const sunday=monday.plus({days:7});
 
+// NocoDB rend ses dates en « 2026-08-24 09:00:00+00:00 » — avec une ESPACE, pas le « T » de
+// l'ISO 8601. `DateTime.fromISO` les déclare `unparsable` : la garde comptait donc zéro post
+// quelle que soit la semaine, et ne protégeait plus rien depuis la migration du 2026-08-06.
+// (Airtable rendait `2026-08-24T09:00:00.000Z`, d'où le silence.) `fromSQL` lit ce format.
+function qd(v){if(!v)return null;const s=String(v);let dt=DateTime.fromISO(s);if(!dt.isValid)dt=DateTime.fromSQL(s);return dt.isValid?dt:null;}
 let prevus=0;
 for(const r of $input.all()){
   const f=r.json.fields||r.json;
-  const d=f.Date_Publication_Prevue;
-  if(!d)continue;
-  const dt=DateTime.fromISO(d);
-  if(dt.isValid&&dt>=monday&&dt<sunday)prevus++;
+  const dt=qd(f.Date_Publication_Prevue);
+  if(dt&&dt>=monday&&dt<sunday)prevus++;
 }
 
 function vide(v){return !v||String(v).trim()===''||String(v).trim()==='[]'||String(v).trim()==='{}';}
@@ -984,6 +1131,64 @@ def fix_creer_posts(doc) -> None:
         mapper[champ] = "={{ $json.%s ?? '' }}" % champ
 
 
+# Le générateur de prompts d'image et la branche d'appel au modèle image, orpheline depuis son
+# court-circuit du 2026-07-09. Le style « poster » retenu par le board ne consomme aucune photo,
+# et le texte des créas vient désormais du rédacteur : plus rien ne les justifie.
+SOCIAL04_A_SUPPRIMER = [
+    "Gemini Pro — Stratégie V3",
+    "HTTP — Gemini 3.1 Flash Image",
+    "Decode — Base64 → Binary",
+    "R2 — Upload image",
+]
+
+
+def fix_social04(doc) -> None:
+    """Retire le second cerveau de la chaîne visuelle, et rend un rendu raté non fatal.
+
+    Le nœud Gemini de ce workflow réinventait la scène dans son coin — et son prompt partait en
+    littéral, faute du `=` : il ne voyait ni le titre ni le texte, et inventait jusqu'au nombre
+    d'images. Le rédacteur écrit maintenant les cartes ; il n'y a plus de second avis à demander.
+
+    Au passage, deux défauts de plomberie qui n'avaient encore jamais eu l'occasion de mordre,
+    la file étant vide depuis le 2026-08-12 :
+    - `Build — URL publique` est en `runOnceForAllItems` alors que son code lisait `$input.item`,
+      indisponible dans ce mode — le nouveau code boucle sur `$input.all()` ;
+    - `HTTP — renderSocialCard` n'avait pas de `onError` : un moteur injoignable emportait tout le
+      workflow au lieu de coûter une carte.
+    """
+    noms = {n["name"] for n in doc["nodes"]}
+    manquants = [n for n in SOCIAL04_A_SUPPRIMER if n not in noms]
+    if manquants:
+        raise KeyError("WF-SOCIAL-04 a changé de forme, nœuds absents : " + ", ".join(manquants))
+
+    a_retirer = set(SOCIAL04_A_SUPPRIMER)
+    doc["nodes"] = [n for n in doc["nodes"] if n["name"] not in a_retirer]
+    for nom in a_retirer:
+        doc.get("connections", {}).pop(nom, None)
+
+    # Le nom d'origine annonçait une « stratégie visuelle » qu'aucun modèle ne produit plus.
+    # Aucune expression `$('…')` ne cite ce nœud : le renommage se limite au graphe.
+    ancien, nouveau = "Parse — Stratégie visuelle", "Parse — Cartes"
+    for n in doc["nodes"]:
+        if n["name"] == ancien:
+            n["name"] = nouveau
+    cx = doc.setdefault("connections", {})
+    if ancien in cx:
+        cx[nouveau] = cx.pop(ancien)
+    for outs in cx.values():
+        for branch in outs.get("main", []):
+            for c in branch or []:
+                if c["node"] == ancien:
+                    c["node"] = nouveau
+
+    # La lecture des contenus alimente directement la fabrique de cartes.
+    _link(doc, "Airtable — Lire rédigés", [nouveau])
+
+    http = next(n for n in doc["nodes"] if n["name"] == "HTTP — renderSocialCard")
+    http["onError"] = "continueRegularOutput"
+    http["alwaysOutputData"] = True
+
+
 def strip_server_meta(doc) -> None:
     """Bug ② — les exports embarquent `activeVersion.nodes`, une copie PÉRIMÉE de tous les nœuds.
 
@@ -999,7 +1204,15 @@ def add_picker_nodes(doc) -> int:
 
     Le routage du workflow est un fan-out de nœuds `Filter` branchés sur « Parse — Update » : on
     étend ce motif, on ne le refait pas. Retourne le nombre de nœuds ajoutés.
+
+    **Idempotent.** Depuis que la stratégie 2026 S2 est en production, la base live contient déjà
+    ces nœuds : les rajouter produirait 29 doublons de nom et d'id, que `check_graph` refuse — donc
+    plus aucun fichier régénérable tant que le routeur reste en l'état. On repart alors du live
+    inchangé, qui porte déjà le câblage voulu.
     """
+    if any(n.get("id") == "pk-tool-build" for n in doc["nodes"]):
+        return 0
+
     y1, y2, y3, y4 = 1800, 2000, 2200, 2400
     new = [
         # ── Menu OUTILS — déclenché par le clic sur un thème ──
@@ -1210,12 +1423,23 @@ def main() -> int:
                 fix_creer_posts(doc)
                 fix_confirme_une_fois(doc)
                 added = add_picker_nodes(doc)
+                if not added:
+                    print(f"  · {wf:22} menus déjà en place dans le live — rien à ajouter")
                 print(f"  ✓ {wf:22} filtre Config corrigé ({len(CONFIG_KEYS)} clés)")
                 print(f"  ✓ {wf:22} TH — Créer posts : 5 champs ajoutés au mapper")
                 print(f"  ✓ {wf:22} TH — confirme : executeOnce (1 message, plus 21)")
                 print(f"  ✓ {wf:22} {added} nœuds ajoutés (menus outils + tendances)")
             except (KeyError, StopIteration) as e:
                 failures.append(f"{wf} : câblage des menus impossible — {e}")
+
+        if wf == "WF-SOCIAL-04.json":
+            try:
+                fix_social04(doc)
+                print(f"  ✓ {wf:22} {len(SOCIAL04_A_SUPPRIMER)} nœuds retirés (le second cerveau visuel)")
+                print(f"  ✓ {wf:22} Parse — Cartes branché sur la lecture des contenus")
+                print(f"  ✓ {wf:22} HTTP — renderSocialCard : un rendu raté ne coupe plus la chaîne")
+            except (KeyError, StopIteration) as e:
+                failures.append(f"{wf} : chaîne visuelle non recâblée — {e}")
 
         strip_server_meta(doc)
         errs, warns = check_graph(doc, wf, baseline)

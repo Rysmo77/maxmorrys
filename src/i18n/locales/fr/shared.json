@@ -59,6 +59,25 @@
     "title": "Va plus loin avec une formation pratique",
     "text": "Tu as aimé cet article ? Passe à la pratique avec une formation conçue pour des résultats concrets."
   },
+  "popups": {
+    "agencyExit": {
+      "title": "Avant de partir",
+      "intro": "Dites-nous ce que vous cherchez, nous vous emmenons au bon endroit.",
+      "buildLabel": "Je veux faire construire un produit",
+      "buildDesc": "Plateforme, application, refonte : c'est la practice qui porte ce sujet.",
+      "presenceLabel": "Je veux digitaliser mon commerce",
+      "presenceDesc": "Site, fiche Google, catalogue WhatsApp. Tarifs publics.",
+      "learnLabel": "Je veux me former",
+      "learnDesc": "Marketing digital, SEO, IA : formations pratiques et contenus gratuits.",
+      "continue": "Continuer sans choisir"
+    },
+    "formationsEntry": {
+      "title": "Tu es au bon endroit pour apprendre",
+      "text": "Marketing digital, SEO, intelligence artificielle : des formations pratiques, en français, pensées pour être appliquées dès le lendemain.",
+      "cta": "Voir les formations",
+      "dismiss": "Plus tard"
+    }
+  },
   "articleCard": {
     "readMore": "Lire Plus",
     "readTime": "{{count}} min de lecture",

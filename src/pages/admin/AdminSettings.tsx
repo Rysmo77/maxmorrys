@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Globe, Palette, Bell, Shield, Link2, Megaphone, Save, Loader2 } from 'lucide-react';
+import { Globe, Palette, Bell, Shield, Link2, Megaphone, MousePointerClick, Save, Loader2 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
@@ -27,6 +27,12 @@ interface Settings {
   notifCourseCompletion: boolean;
   announcementActive: boolean;
   announcementText: string;
+  /*
+    Interrupteurs des pop-ups contextuelles du site public. Lus par `lib/popups/settings.ts`.
+    Absents du document = actifs : un site jamais configuré doit en bénéficier tel quel.
+  */
+  popupAudienceRouter: boolean;
+  popupFormationsEntry: boolean;
 }
 
 const DEFAULT: Settings = {
@@ -47,6 +53,8 @@ const DEFAULT: Settings = {
   notifCourseCompletion: false,
   announcementActive: false,
   announcementText: '',
+  popupAudienceRouter: true,
+  popupFormationsEntry: true,
 };
 
 export default function AdminSettings() {
@@ -93,6 +101,11 @@ export default function AdminSettings() {
     { value: 'system', label: t('settings.themeSystem') },
     { value: 'light', label: t('settings.themeLight') },
     { value: 'dark', label: t('settings.themeDark') },
+  ];
+
+  const popups: { key: keyof Settings; label: string; desc: string }[] = [
+    { key: 'popupAudienceRouter', label: t('settings.popupAudienceRouterLabel'), desc: t('settings.popupAudienceRouterDesc') },
+    { key: 'popupFormationsEntry', label: t('settings.popupFormationsEntryLabel'), desc: t('settings.popupFormationsEntryDesc') },
   ];
 
   const notifications: { key: keyof Settings; label: string; desc: string }[] = [
@@ -242,6 +255,36 @@ export default function AdminSettings() {
               </label>
             ))}
           </div>
+        </Card>
+
+        {/* Pop-ups contextuelles */}
+        <Card>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-xl">
+              <MousePointerClick className="w-5 h-5 text-brand-600 dark:text-brand-400" />
+            </div>
+            <div>
+              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.popupsTitle')}</h2>
+              <p className="text-xs text-neutral-500">{t('settings.popupsSubtitle')}</p>
+            </div>
+          </div>
+          <div className="space-y-1">
+            {popups.map((p) => (
+              <label key={p.key} className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors cursor-pointer">
+                <div>
+                  <p className="text-sm font-medium text-neutral-900 dark:text-white">{p.label}</p>
+                  <p className="text-xs text-neutral-500">{p.desc}</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings[p.key] as boolean}
+                  onChange={(e) => set(p.key, e.target.checked)}
+                  className="rounded accent-brand-600 w-4 h-4 cursor-pointer"
+                />
+              </label>
+            ))}
+          </div>
+          <p className="mt-4 text-xs text-neutral-500 leading-relaxed">{t('settings.popupsCacheNote')}</p>
         </Card>
 
         {/* Security info */}

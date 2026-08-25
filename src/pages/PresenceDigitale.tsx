@@ -35,12 +35,18 @@ const theme = universeThemes.agency;
 const viewportOnce = { once: true, amount: 0.15 } as const;
 
 /**
- * Visuels de la page Agence — déposer les fichiers dans /Agence/ sur media.maxmorrys.me.
- * Format attendu : WebP, 1600 px de large au plus. Le héro n'est pas différable
- * (au-dessus de la ligne de flottaison), chaque kilo-octet s'y paie comptant.
+ * Visuels de la page — déposés dans /Agence/ sur media.maxmorrys.me (préfixe hérité
+ * de l'époque où cette offre vivait sur `/agence`). WebP 1600×900, photos Unsplash
+ * (licence Unsplash : usage commercial libre, sans attribution).
  *
- * Tant que les fichiers sont absents, les deux sections retombent proprement sur
- * leur couleur de fond pleine — aucun lien brisé, aucun décalage de mise en page.
+ * Le héro est recadré pour que la commerçante tombe à ~68% de la largeur : les deux
+ * tiers gauches disparaissent sous la carte givrée et le voile dégradé.
+ *
+ * Ce préfixe n'est pas dans les FOLDER_RULES du worker media-api : tout remplacement
+ * passe par `wrangler r2 object put`, pas par l'upload applicatif.
+ *
+ * Si un fichier venait à manquer, les deux sections retombent proprement sur leur
+ * couleur de fond pleine — aucun lien brisé, aucun décalage de mise en page.
  */
 const HERO_IMAGE = 'https://media.maxmorrys.me/Agence/hero.webp';
 const PROCESS_IMAGE = 'https://media.maxmorrys.me/Agence/process.webp';

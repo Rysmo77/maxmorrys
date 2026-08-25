@@ -1,0 +1,867 @@
+{
+  "updatedAt": "2026-08-06T17:53:02.825Z",
+  "createdAt": "2026-07-09T16:35:23.671Z",
+  "id": "KO5mTEtSvhiIMAwq",
+  "name": "WF-THEMES — Suggestions hebdo (CMO Aïcha)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 17 * * 5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        304
+      ],
+      "id": "th-cron",
+      "name": "Cron — Vendredi 17h"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "search",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        224,
+        304
+      ],
+      "id": "th-cfgn",
+      "name": "THEMES — Lire Config (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "th-cfgf",
+      "name": "THEMES — Lire Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "search",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "m3wim4coagaoot7",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        672,
+        304
+      ],
+      "id": "th-recn",
+      "name": "THEMES — Récents (NocoDB)",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+      },
+      "id": "th-recf",
+      "name": "THEMES — Récents",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows=$('THEMES — Récents').all().map(r=>r.json).filter(x=>x.Titre);\nconst base=$now.setZone('Africa/Dakar');\nconst du=((8-base.weekday)%7)||7;\nconst monday=base.plus({days:du}).startOf('day');\nconst sunday=monday.plus({days:7});\nconst semaine=monday.toFormat('dd LLL');\nlet targetCount=0;\nfor(const x of rows){const d=x.Date_Publication_Prevue;if(!d)continue;const dt=DateTime.fromISO(d);if(dt.isValid&&dt>=monday&&dt<sunday)targetCount++;}\nconst skip=targetCount>=5;\nconst recents=rows.map(x=>({t:x.Titre,d:x.Date_Publication_Prevue||''})).sort((a,b)=>(b.d>a.d?1:-1)).slice(0,25).map(x=>x.t);\n\n// Fil rouge du mois — docs/STRATEGIE_COMMUNICATION_2026.md §11.\n// Les 4 propositions doivent tenir DEDANS : c'est ce qui rend les semaines cumulatives\n// au lieu de partir dans une direction différente chaque vendredi.\nconst FILS={\n  8:\"Être trouvé — SEO local, Google Maps, GEO/AEO (être cité par ChatGPT et Gemini), fiche d'établissement, avis clients\",\n  9:\"Ton système, pas ton temps — automatisation, agents IA, calendrier éditorial, Canva, CapCut, prompts\",\n  10:\"Vendre sans forcer — conversion, WhatsApp Business, catalogue, preuve sociale, storytelling, prix\"\n};\nconst fil=FILS[monday.month]||\"(aucun fil rouge défini pour ce mois — propose 4 thèmes cohérents entre eux et signale-le au board)\";\n\nconst prompt=`Tu es **CMO Aïcha**, directrice marketing de Max-Morrys.\n\nLa marque porte DEUX lignes, et tes thèmes doivent pouvoir servir les deux :\n- **Piste A — apprenants** : formations, Club Digitos, Rysmo. Entrepreneurs, marketeurs, freelances,\n  reconversions, en Afrique de l'Ouest francophone + diaspora. Canal porteur : Instagram.\n- **Piste B — commerçants** : l'agence « Digital Commerce Local » (maxmorrys.me/agence). Commerces\n  physiques de 1 à 15 salariés, CA mensuel 800 000 à 5 000 000 XOF, décideur joignable sur WhatsApp,\n  à Dakar, Abidjan et Cotonou. Canal porteur : Facebook.\nLe fil qui relie les deux : « Soit tu apprends à le faire, soit je le fais pour toi. »\n\nFIL ROUGE DU MOIS (obligatoire) : ${fil}\n\nPropose **4 thématiques éditoriales** distinctes pour la semaine du ${semaine}. Chacune doit :\n- tenir DANS le fil rouge du mois ;\n- pouvoir se décliner en 21 contenus (14 posts + 7 stories) sur Instagram, Facebook, LinkedIn et X ;\n- offrir un angle pour la piste A ET un angle pour la piste B.\n\nContraintes :\n- **Au moins 1 thème de la série RADAR** : une tendance marketing/IA/plateformes que tu DATES\n  explicitement dans le champ « pourquoi » (mois et année au minimum). Une tendance non datée n'est\n  pas une tendance, c'est une opinion — dans ce cas, ne la propose pas.\n- **Au moins 1 thème qui sert directement la piste B** (visibilité locale, commandes WhatsApp,\n  preuve chiffrée pour un commerçant).\n- Aucun montant : les prix se lisent dans le catalogue, jamais de mémoire.\n- Évite ces sujets déjà traités récemment : ${recents.join(' | ')}.\n\nRéponds STRICTEMENT en JSON, sans texte autour :\n{\"themes\":[{\"titre\":\"court et accrocheur\",\"angle\":\"1 phrase sur l'angle éditorial\",\"pourquoi\":\"pourquoi ce thème maintenant — avec une date si c'est une tendance\",\"pisteA\":\"ce que ça apporte aux apprenants\",\"pisteB\":\"ce que ça apporte aux commerçants\"}]}\n— exactement 4 objets.`;\nreturn [{json:{prompt,skip,targetCount,semaine,fil}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        304
+      ],
+      "id": "th-build",
+      "name": "THEMES — Build prompt"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        304
+      ],
+      "id": "th-guard",
+      "name": "Semaine libre ?"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {
+          "maxOutputTokens": 32768,
+          "temperature": 0.8,
+          "thinkingBudget": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        304
+      ],
+      "id": "th-gem",
+      "name": "Gemini — CMO Aïcha (thèmes)",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wQPLkug1dt6DGOt4",
+          "name": "Google AI Max-Morrys LMS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg={};for(const r of $('THEMES — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nlet g=$input.first().json;\n// Extraction robuste : gere l'objet simplifie {themes:[...]} ET l'enveloppe Gemini brute {candidates:[{content:{parts:[{text}]}}]}\nfunction pickText(x){\n  if(x==null)return null;\n  if(typeof x==='string')return x;\n  if(Array.isArray(x)){for(const e of x){const t=pickText(e);if(t)return t;}return null;}\n  if(typeof x==='object'){\n    if(x.candidates)return pickText(x.candidates);\n    if(x.content)return pickText(x.content);\n    if(x.parts)return pickText(x.parts);\n    if(typeof x.text==='string')return x.text;\n    if(x.output)return pickText(x.output);\n    if(x.message)return pickText(x.message);\n  }\n  return null;\n}\nlet themes=[];\nif(g&&Array.isArray(g.themes))themes=g.themes;\nelse if(g&&Array.isArray(g.Themes))themes=g.Themes;\nelse{\n  let txt=pickText(g);\n  if(typeof txt==='string'){\n    txt=txt.trim().replace(/^```(json)?/i,'').replace(/```$/,'').trim();\n    try{const o=JSON.parse(txt);themes=o.themes||o.Themes||(Array.isArray(o)?o:[]);}catch(e){}\n  }\n}\nif(!Array.isArray(themes))themes=[];\nthemes=themes.filter(t=>t&&t.titre).slice(0,4);\n// Plus de fallback silencieux a 1 theme : si <2 themes reels, on echoue -> alerte WF-ERR\nif(themes.length<2)throw new Error('THEMES: extraction Gemini a echoue ('+themes.length+' theme) — sortie='+JSON.stringify(g).slice(0,300));\nconst lines=themes.map((t,i)=>`<b>${i+1}. ${t.titre}</b>\\n${t.angle||''}\\n<i>${t.pourquoi||''}</i>`).join('\\n\\n');\nconst text=`🗓️ <b>CMO Aïcha — thèmes proposés (semaine prochaine)</b>\\n\\n${lines}\\n\\n👉 Choisis-en un ci-dessous : je le décline en 10 posts prêts à valider.`;\nconst kb={inline_keyboard:themes.map((t,i)=>[{text:`${i+1}. ${String(t.titre).slice(0,32)}`,callback_data:`pick:theme:${i}`}])};\nconst tgBody={chat_id:cfg.TELEGRAM_CHAT_ID,text,parse_mode:'HTML',reply_markup:kb};\nreturn [{json:{token:cfg.TELEGRAM_BOT_TOKEN,themesJson:JSON.stringify(themes),tgBody}}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        304
+      ],
+      "id": "th-parse",
+      "name": "THEMES — Parse"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "upsert",
+        "workspaceId": {
+          "__rl": true,
+          "value": "wpaxkizo",
+          "mode": "id"
+        },
+        "projectId": {
+          "__rl": true,
+          "value": "ph7ugup4mggzj2y",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "mo6ubcgxi9x4u7d",
+          "mode": "id"
+        },
+        "id": "={{ $('THEMES — Lire Config').all().find(r => r.json.Cle === 'THEMES_CURRENT')?.json.id ?? '' }}",
+        "fieldsMapper": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cle": "THEMES_CURRENT",
+            "Valeur": "={{ $json.themesJson }}",
+            "Type": "json"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 4,
+      "position": [
+        2144,
+        304
+      ],
+      "id": "th-store",
+      "name": "THEMES — Stocker",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "MMNOCODBCRED001",
+          "name": "NocoDB Max-Morrys"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('THEMES — Parse').first().json.token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('THEMES — Parse').first().json.tgBody) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2368,
+        304
+      ],
+      "id": "th-send",
+      "name": "THEMES — Envoyer Telegram"
+    }
+  ],
+  "connections": {
+    "Cron — Vendredi 17h": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Lire Config (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Lire Config": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Récents (NocoDB)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Récents": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Build prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Build prompt": {
+      "main": [
+        [
+          {
+            "node": "Semaine libre ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Semaine libre ?": {
+      "main": [
+        [
+          {
+            "node": "Gemini — CMO Aïcha (thèmes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini — CMO Aïcha (thèmes)": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Parse": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Stocker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Stocker": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Envoyer Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Lire Config (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Lire Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "THEMES — Récents (NocoDB)": {
+      "main": [
+        [
+          {
+            "node": "THEMES — Récents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Lagos",
+    "errorWorkflow": "MMERRALERT0001",
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Cron — Vendredi 17h": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "5421b77d-1989-4f47-b99d-d48d6d96310f",
+  "activeVersionId": "5421b77d-1989-4f47-b99d-d48d6d96310f",
+  "versionCounter": 6,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "shared": [
+    {
+      "updatedAt": "2026-07-09T16:35:23.671Z",
+      "createdAt": "2026-07-09T16:35:23.671Z",
+      "role": "workflow:owner",
+      "workflowId": "KO5mTEtSvhiIMAwq",
+      "projectId": "6OzWwq45GHqYfrnV",
+      "project": {
+        "updatedAt": "2026-07-04T22:32:53.448Z",
+        "createdAt": "2026-07-04T21:48:16.787Z",
+        "id": "6OzWwq45GHqYfrnV",
+        "name": "Max Morrys <maxmorrys.me@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "b0d835bc-270d-4613-b03d-8aa950b18523"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-08-06T17:54:03.966Z",
+    "createdAt": "2026-08-06T17:53:02.831Z",
+    "versionId": "5421b77d-1989-4f47-b99d-d48d6d96310f",
+    "workflowId": "KO5mTEtSvhiIMAwq",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 17 * * 5"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          304
+        ],
+        "id": "th-cron",
+        "name": "Cron — Vendredi 17h"
+      },
+      {
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "operation": "search",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "mo6ubcgxi9x4u7d",
+            "mode": "id"
+          },
+          "returnAll": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          224,
+          304
+        ],
+        "id": "th-cfgn",
+        "name": "THEMES — Lire Config (NocoDB)",
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+        },
+        "id": "th-cfgf",
+        "name": "THEMES — Lire Config",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          448,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "operation": "search",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "m3wim4coagaoot7",
+            "mode": "id"
+          },
+          "returnAll": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          672,
+          304
+        ],
+        "id": "th-recn",
+        "name": "THEMES — Récents (NocoDB)",
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Aplatit la sortie NocoDB v3 {id, fields:{}} au format plat du noeud\n// Airtable historique : {...champs, id} -> aucune expression aval a changer.\nreturn $input.all().map(i => ({ json: { ...(i.json.fields || {}), id: i.json.id } }));"
+        },
+        "id": "th-recf",
+        "name": "THEMES — Récents",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          896,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const rows=$('THEMES — Récents').all().map(r=>r.json).filter(x=>x.Titre);\nconst base=$now.setZone('Africa/Dakar');\nconst du=((8-base.weekday)%7)||7;\nconst monday=base.plus({days:du}).startOf('day');\nconst sunday=monday.plus({days:7});\nconst semaine=monday.toFormat('dd LLL');\nlet targetCount=0;\nfor(const x of rows){const d=x.Date_Publication_Prevue;if(!d)continue;const dt=DateTime.fromISO(d);if(dt.isValid&&dt>=monday&&dt<sunday)targetCount++;}\nconst skip=targetCount>=5;\nconst recents=rows.map(x=>({t:x.Titre,d:x.Date_Publication_Prevue||''})).sort((a,b)=>(b.d>a.d?1:-1)).slice(0,25).map(x=>x.t);\n\n// Fil rouge du mois — docs/STRATEGIE_COMMUNICATION_2026.md §11.\n// Les 4 propositions doivent tenir DEDANS : c'est ce qui rend les semaines cumulatives\n// au lieu de partir dans une direction différente chaque vendredi.\nconst FILS={\n  8:\"Être trouvé — SEO local, Google Maps, GEO/AEO (être cité par ChatGPT et Gemini), fiche d'établissement, avis clients\",\n  9:\"Ton système, pas ton temps — automatisation, agents IA, calendrier éditorial, Canva, CapCut, prompts\",\n  10:\"Vendre sans forcer — conversion, WhatsApp Business, catalogue, preuve sociale, storytelling, prix\"\n};\nconst fil=FILS[monday.month]||\"(aucun fil rouge défini pour ce mois — propose 4 thèmes cohérents entre eux et signale-le au board)\";\n\nconst prompt=`Tu es **CMO Aïcha**, directrice marketing de Max-Morrys.\n\nLa marque porte DEUX lignes, et tes thèmes doivent pouvoir servir les deux :\n- **Piste A — apprenants** : formations, Club Digitos, Rysmo. Entrepreneurs, marketeurs, freelances,\n  reconversions, en Afrique de l'Ouest francophone + diaspora. Canal porteur : Instagram.\n- **Piste B — commerçants** : l'agence « Digital Commerce Local » (maxmorrys.me/agence). Commerces\n  physiques de 1 à 15 salariés, CA mensuel 800 000 à 5 000 000 XOF, décideur joignable sur WhatsApp,\n  à Dakar, Abidjan et Cotonou. Canal porteur : Facebook.\nLe fil qui relie les deux : « Soit tu apprends à le faire, soit je le fais pour toi. »\n\nFIL ROUGE DU MOIS (obligatoire) : ${fil}\n\nPropose **4 thématiques éditoriales** distinctes pour la semaine du ${semaine}. Chacune doit :\n- tenir DANS le fil rouge du mois ;\n- pouvoir se décliner en 21 contenus (14 posts + 7 stories) sur Instagram, Facebook, LinkedIn et X ;\n- offrir un angle pour la piste A ET un angle pour la piste B.\n\nContraintes :\n- **Au moins 1 thème de la série RADAR** : une tendance marketing/IA/plateformes que tu DATES\n  explicitement dans le champ « pourquoi » (mois et année au minimum). Une tendance non datée n'est\n  pas une tendance, c'est une opinion — dans ce cas, ne la propose pas.\n- **Au moins 1 thème qui sert directement la piste B** (visibilité locale, commandes WhatsApp,\n  preuve chiffrée pour un commerçant).\n- Aucun montant : les prix se lisent dans le catalogue, jamais de mémoire.\n- Évite ces sujets déjà traités récemment : ${recents.join(' | ')}.\n\nRéponds STRICTEMENT en JSON, sans texte autour :\n{\"themes\":[{\"titre\":\"court et accrocheur\",\"angle\":\"1 phrase sur l'angle éditorial\",\"pourquoi\":\"pourquoi ce thème maintenant — avec une date si c'est une tendance\",\"pisteA\":\"ce que ça apporte aux apprenants\",\"pisteB\":\"ce que ça apporte aux commerçants\"}]}\n— exactement 4 objets.`;\nreturn [{json:{prompt,skip,targetCount,semaine,fil}}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1120,
+          304
+        ],
+        "id": "th-build",
+        "name": "THEMES — Build prompt"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 1
+            },
+            "combinator": "and",
+            "conditions": [
+              {
+                "leftValue": "={{ $json.skip }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "false",
+                  "singleValue": true
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2,
+        "position": [
+          1344,
+          304
+        ],
+        "id": "th-guard",
+        "name": "Semaine libre ?"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "={{ $json.prompt }}"
+              }
+            ]
+          },
+          "simplify": false,
+          "jsonOutput": true,
+          "builtInTools": {},
+          "options": {
+            "maxOutputTokens": 32768,
+            "temperature": 0.8,
+            "thinkingBudget": 0
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          1568,
+          304
+        ],
+        "id": "th-gem",
+        "name": "Gemini — CMO Aïcha (thèmes)",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "wQPLkug1dt6DGOt4",
+            "name": "Google AI Max-Morrys LMS"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const cfg={};for(const r of $('THEMES — Lire Config').all())if(r.json.Cle)cfg[r.json.Cle]=r.json.Valeur;\nlet g=$input.first().json;\n// Extraction robuste : gere l'objet simplifie {themes:[...]} ET l'enveloppe Gemini brute {candidates:[{content:{parts:[{text}]}}]}\nfunction pickText(x){\n  if(x==null)return null;\n  if(typeof x==='string')return x;\n  if(Array.isArray(x)){for(const e of x){const t=pickText(e);if(t)return t;}return null;}\n  if(typeof x==='object'){\n    if(x.candidates)return pickText(x.candidates);\n    if(x.content)return pickText(x.content);\n    if(x.parts)return pickText(x.parts);\n    if(typeof x.text==='string')return x.text;\n    if(x.output)return pickText(x.output);\n    if(x.message)return pickText(x.message);\n  }\n  return null;\n}\nlet themes=[];\nif(g&&Array.isArray(g.themes))themes=g.themes;\nelse if(g&&Array.isArray(g.Themes))themes=g.Themes;\nelse{\n  let txt=pickText(g);\n  if(typeof txt==='string'){\n    txt=txt.trim().replace(/^```(json)?/i,'').replace(/```$/,'').trim();\n    try{const o=JSON.parse(txt);themes=o.themes||o.Themes||(Array.isArray(o)?o:[]);}catch(e){}\n  }\n}\nif(!Array.isArray(themes))themes=[];\nthemes=themes.filter(t=>t&&t.titre).slice(0,4);\n// Plus de fallback silencieux a 1 theme : si <2 themes reels, on echoue -> alerte WF-ERR\nif(themes.length<2)throw new Error('THEMES: extraction Gemini a echoue ('+themes.length+' theme) — sortie='+JSON.stringify(g).slice(0,300));\nconst lines=themes.map((t,i)=>`<b>${i+1}. ${t.titre}</b>\\n${t.angle||''}\\n<i>${t.pourquoi||''}</i>`).join('\\n\\n');\nconst text=`🗓️ <b>CMO Aïcha — thèmes proposés (semaine prochaine)</b>\\n\\n${lines}\\n\\n👉 Choisis-en un ci-dessous : je le décline en 10 posts prêts à valider.`;\nconst kb={inline_keyboard:themes.map((t,i)=>[{text:`${i+1}. ${String(t.titre).slice(0,32)}`,callback_data:`pick:theme:${i}`}])};\nconst tgBody={chat_id:cfg.TELEGRAM_CHAT_ID,text,parse_mode:'HTML',reply_markup:kb};\nreturn [{json:{token:cfg.TELEGRAM_BOT_TOKEN,themesJson:JSON.stringify(themes),tgBody}}];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1920,
+          304
+        ],
+        "id": "th-parse",
+        "name": "THEMES — Parse"
+      },
+      {
+        "parameters": {
+          "authentication": "nocoDbApiToken",
+          "operation": "upsert",
+          "workspaceId": {
+            "__rl": true,
+            "value": "wpaxkizo",
+            "mode": "id"
+          },
+          "projectId": {
+            "__rl": true,
+            "value": "ph7ugup4mggzj2y",
+            "mode": "id"
+          },
+          "table": {
+            "__rl": true,
+            "value": "mo6ubcgxi9x4u7d",
+            "mode": "id"
+          },
+          "id": "={{ $('THEMES — Lire Config').all().find(r => r.json.Cle === 'THEMES_CURRENT')?.json.id ?? '' }}",
+          "fieldsMapper": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Cle": "THEMES_CURRENT",
+              "Valeur": "={{ $json.themesJson }}",
+              "Type": "json"
+            },
+            "matchingColumns": [],
+            "schema": []
+          }
+        },
+        "type": "n8n-nodes-base.nocoDb",
+        "typeVersion": 4,
+        "position": [
+          2144,
+          304
+        ],
+        "id": "th-store",
+        "name": "THEMES — Stocker",
+        "credentials": {
+          "nocoDbApiToken": {
+            "id": "MMNOCODBCRED001",
+            "name": "NocoDB Max-Morrys"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://api.telegram.org/bot{{ $('THEMES — Parse').first().json.token }}/sendMessage",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($('THEMES — Parse').first().json.tgBody) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          2368,
+          304
+        ],
+        "id": "th-send",
+        "name": "THEMES — Envoyer Telegram"
+      }
+    ],
+    "connections": {
+      "Cron — Vendredi 17h": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Lire Config (NocoDB)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Lire Config": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Récents (NocoDB)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Récents": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Build prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Build prompt": {
+        "main": [
+          [
+            {
+              "node": "Semaine libre ?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Semaine libre ?": {
+        "main": [
+          [
+            {
+              "node": "Gemini — CMO Aïcha (thèmes)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini — CMO Aïcha (thèmes)": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Parse",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Parse": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Stocker",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Stocker": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Envoyer Telegram",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Lire Config (NocoDB)": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Lire Config",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "THEMES — Récents (NocoDB)": {
+        "main": [
+          [
+            {
+              "node": "THEMES — Récents",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Max Morrys",
+    "name": "Version 5421b77d",
+    "description": "",
+    "autosaved": true,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-08-06T17:54:03.961Z",
+        "id": 192,
+        "workflowId": "KO5mTEtSvhiIMAwq",
+        "versionId": "5421b77d-1989-4f47-b99d-d48d6d96310f",
+        "event": "activated",
+        "userId": "b0d835bc-270d-4613-b03d-8aa950b18523"
+      }
+    ]
+  }
+}
