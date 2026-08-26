@@ -18,12 +18,11 @@ import { staggerContainer, staggerItem } from '../../lib/animations';
  * visiteur (« Je veux… ») est le seul moyen de proposer les trois destinations dans une même
  * fenêtre sans casser le registre de l'une d'elles.
  *
- * ⚠️ **Chaque porte porte la signature visuelle de sa DESTINATION**, jamais une couleur décorative.
- * `/agence` et `/presence-digitale` partagent la teinte lagoon : deux cartes lagoon identiques ont
- * déjà dû être fusionnées une fois parce qu'elles se lisaient comme deux variantes d'une même
- * offre. La distinction passe donc par la FORME — lagoon en aplat doux pour l'agence, lagoon en
- * aplat plein (la signature de la présence digitale sur la page d'accueil) pour le commerce, bleu
- * `brand` pour les formations. Ne pas uniformiser ces trois traitements.
+ * ⚠️ **Chaque porte porte la signature de sa DESTINATION**, jamais une couleur décorative.
+ * `/agence` et `/presence-digitale` partagent la teinte lagoon : deux cartes lagoon identiques
+ * ont déjà dû être fusionnées une fois parce qu'elles se lisaient comme deux variantes de la même
+ * offre. Sur fond sombre la distinction passe par la FORME — contour lagoon pour l'agence, aplat
+ * lagoon plein pour le commerce, bleu `brand` pour les formations.
  */
 
 interface AudienceRouterPopupProps {
@@ -31,16 +30,16 @@ interface AudienceRouterPopupProps {
   onContinue: () => void;
 }
 
-const doorCls = 'group flex items-center gap-4 w-full text-left p-4 rounded-2xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500';
+const doorCls = 'group flex items-center gap-4 w-full text-left p-4 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-lagoon-400/50 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-400';
 const iconBoxCls = 'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3';
-const labelCls = 'block text-sm font-bold text-neutral-900 dark:text-white leading-snug';
-const descCls = 'block mt-0.5 text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed';
-const arrowCls = 'w-4 h-4 shrink-0 text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-200 group-hover:translate-x-1 transition-all duration-300';
+const labelCls = 'block text-sm font-bold text-white leading-snug';
+const descCls = 'block mt-0.5 text-xs text-white/50 leading-relaxed';
+const arrowCls = 'w-4 h-4 shrink-0 text-white/30 group-hover:text-lagoon-400 group-hover:translate-x-1 transition-all duration-300';
 
-/** Signature de la destination. Chaînes littérales : Tailwind purge tout nom construit. */
-const BUILD_TILE = 'bg-lagoon-50 dark:bg-lagoon-900/30 text-lagoon-700 dark:text-lagoon-400';
-const PRESENCE_TILE = 'bg-lagoon-500 text-neutral-900';
-const LEARN_TILE = 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400';
+/** Signatures de destination. Chaînes littérales : Tailwind purge tout nom construit. */
+const BUILD_TILE = 'border border-lagoon-400/40 text-lagoon-400';
+const PRESENCE_TILE = 'bg-lagoon-500 text-neutral-950';
+const LEARN_TILE = 'bg-brand-500/15 text-brand-300';
 
 export default function AudienceRouterPopup({ onChoose, onContinue }: AudienceRouterPopupProps) {
   const { t } = useTranslation('shared');
@@ -53,25 +52,34 @@ export default function AudienceRouterPopup({ onChoose, onContinue }: AudienceRo
 
   return (
     <div>
+      <p className="text-[0.625rem] font-bold tracking-[0.3em] uppercase text-lagoon-400">
+        {t('popups.agencyExit.eyebrow')}
+      </p>
+
       {/*
-        Filet lumineux décoratif : la seule respiration graphique de la fenêtre. Il balaie une
-        fois à l'ouverture, puis s'arrête — une boucle infinie tirerait l'œil hors des portes,
-        qui sont le vrai sujet.
+        Titre d'affichage : le site n'embarque aucune fonte condensée, son idiome de titrage est
+        `font-black` + interlettrage resserré (voir `fontSize.heading-hero` de la config Tailwind).
+        Le pastille pivotée chevauche volontairement la dernière ligne.
       */}
-      <div className="h-1 -mt-2 mb-5 rounded-full overflow-hidden bg-neutral-100 dark:bg-neutral-800" aria-hidden="true">
-        <motion.div
-          className="h-full w-1/2 rounded-full bg-gradient-to-r from-lagoon-400 via-brand-500 to-lagoon-400"
-          initial={reduced ? false : { x: '-100%' }}
-          animate={reduced ? undefined : { x: '200%' }}
-          transition={{ duration: 1.1, ease: 'easeOut' }}
-        />
+      <div className="relative mt-3 pr-16 sm:pr-24">
+        <h2 className="text-4xl sm:text-5xl font-black uppercase tracking-tight leading-[0.95] text-balance">
+          {t('popups.agencyExit.title')}
+        </h2>
+        <motion.span
+          initial={reduced ? false : { scale: 0.4, rotate: 0, opacity: 0 }}
+          animate={reduced ? undefined : { scale: 1, rotate: -8, opacity: 1 }}
+          transition={{ delay: 0.25, type: 'spring', stiffness: 320, damping: 14 }}
+          className="absolute -top-1 right-0 sm:right-4 inline-block px-3 py-1.5 rounded-md bg-lagoon-500 text-neutral-950 text-xs font-black uppercase tracking-wide shadow-lg shadow-lagoon-500/25 -rotate-6"
+        >
+          {t('popups.agencyExit.sticker')}
+        </motion.span>
       </div>
 
-      <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+      <p className="mt-4 text-sm text-white/60 leading-relaxed max-w-md">
         {t('popups.agencyExit.intro')}
       </p>
 
-      <motion.div className="mt-5 space-y-2.5" {...containerProps}>
+      <motion.div className="mt-7 space-y-2.5" {...containerProps}>
         {/*
           Porte BUILD : le visiteur est déjà au bon endroit. Ancre interne vers le formulaire de
           qualification — `#projet` est un id fixe de `Agence.tsx`, identique en FR et en EN.
@@ -123,7 +131,7 @@ export default function AudienceRouterPopup({ onChoose, onContinue }: AudienceRo
       <button
         type="button"
         onClick={onContinue}
-        className="mt-5 text-xs font-semibold text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+        className="mt-6 text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-400 rounded"
       >
         {t('popups.agencyExit.continue')}
       </button>

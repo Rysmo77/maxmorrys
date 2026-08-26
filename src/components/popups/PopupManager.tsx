@@ -12,6 +12,7 @@ import { loadPopupSettings, type PopupSettings } from '../../lib/popups/settings
 import { canShow, markShown, type PopupId } from '../../lib/popups/rules';
 import { useExitIntent } from '../../hooks/useExitIntent';
 import PopupSurface from './PopupSurface';
+import PopupAurora from './PopupAurora';
 import AudienceRouterPopup from './AudienceRouterPopup';
 import FormationsEntryPopup from './FormationsEntryPopup';
 
@@ -249,8 +250,8 @@ export default function PopupManager() {
         open
         onClose={() => handleAgencyLeave('close')}
         title={t('popups.agencyExit.title')}
-        size="lg"
         mobileSurface="modal"
+        media={<PopupAurora tone="lagoon" />}
       >
         <AudienceRouterPopup
           onChoose={handleAgencyChoose}
@@ -265,8 +266,27 @@ export default function PopupManager() {
       open
       onClose={handleFormationsDismiss}
       title={t('popups.formationsEntry.title')}
-      size="md"
       mobileSurface="sheet"
+      /*
+        Le panneau de droite EST la couverture de la formation quand elle est chargée. À défaut,
+        la composition lagoon prend le relais : le dialogue ne doit jamais montrer un trou.
+      */
+      media={
+        featured
+          ? (
+            <>
+              <img
+                src={featured.coverImage}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/40 to-transparent" />
+            </>
+          )
+          : <PopupAurora tone="brand" />
+      }
     >
       <FormationsEntryPopup
         formation={featured}

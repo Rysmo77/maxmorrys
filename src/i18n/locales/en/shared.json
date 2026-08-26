@@ -62,6 +62,8 @@
   "popups": {
     "agencyExit": {
       "title": "Before you go",
+      "eyebrow": "One question only",
+      "sticker": "3 doors",
       "intro": "Tell us what you're looking for and we'll point you to the right place.",
       "buildLabel": "I want a product built",
       "buildDesc": "Platform, application, rebuild — this is the practice that handles it.",
