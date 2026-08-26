@@ -5,6 +5,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { COOKIE_CONSENT_EVENT, getCookieConsent } from '../shared/CookieBanner';
 import { toCanonicalPath } from '../../i18n/routing';
 import { trackEvent } from '../../lib/tracking';
+import { getPublishedFormations } from '../../lib/firestore';
+import type { Formation } from '../../types';
 import { captureEntrySource, type EntrySource } from '../../lib/popups/entrySource';
 import { loadPopupSettings, type PopupSettings } from '../../lib/popups/settings';
 import { canShow, markShown, type PopupId } from '../../lib/popups/rules';
@@ -83,6 +85,7 @@ export default function PopupManager() {
   const [consentGiven, setConsentGiven] = useState(() => getCookieConsent() !== null);
   const [settings, setSettings] = useState<PopupSettings | null>(null);
   const [active, setActive] = useState<ActivePopup | null>(null);
+  const [featured, setFeatured] = useState<Formation | null>(null);
 
   const path = normalizePath(pathname);
   const activeTrigger = active?.trigger ?? null;
@@ -116,7 +119,31 @@ export default function PopupManager() {
   }, [settings, agencyCandidate, formationsCandidate]);
 
   const agencyExitReady = agencyCandidate && settings?.agencyExit === true && active === null;
-  const formationsReady = formationsCandidate && settings?.formationsEntry === true && active === null;
+  const formationsEnabled = formationsCandidate && settings?.formationsEntry === true;
+  const formationsReady = formationsEnabled && active === null;
+
+  /*
+    Préchargement de la formation vedette, dès que la pop-up devient plausible — donc bien avant
+    ses 25 s de temporisation. Sans cette avance, la fiche arriverait après l'ouverture et
+    décalerait la mise en page sous les yeux du visiteur.
+
+    Volontairement gardé par `formationsEnabled` et non par `formationsReady` : ce dernier
+    retombe à `false` à l'ouverture, ce qui annulerait le chargement au pire moment. L'échec
+    n'est jamais bloquant — la pop-up s'affiche avec son texte statique.
+  */
+  useEffect(() => {
+    if (!formationsEnabled || featured) return;
+    let alive = true;
+    getPublishedFormations()
+      .then((list) => {
+        if (!alive || list.length === 0) return;
+        setFeatured(list.find((f) => f.featured) ?? list[0]);
+      })
+      .catch(() => {
+        // Catalogue illisible : repli textuel, rien à remonter.
+      });
+    return () => { alive = false; };
+  }, [formationsEnabled, featured]);
 
   const open = useCallback((id: PopupId, trigger: PopupTrigger) => {
     markShown(id); // consomme le plafond de session AVANT l'affichage : une seule pop-up passera
@@ -241,7 +268,11 @@ export default function PopupManager() {
       size="md"
       mobileSurface="sheet"
     >
-      <FormationsEntryPopup onAccept={handleFormationsAccept} onDismiss={handleFormationsDismiss} />
+      <FormationsEntryPopup
+        formation={featured}
+        onAccept={handleFormationsAccept}
+        onDismiss={handleFormationsDismiss}
+      />
     </PopupSurface>
   );
 }

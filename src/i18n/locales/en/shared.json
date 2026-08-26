@@ -74,7 +74,10 @@
     "formationsEntry": {
       "title": "You're in the right place to learn",
       "text": "Digital marketing, SEO, artificial intelligence: hands-on courses built to be applied the very next day.",
+      "eyebrow": "Most popular course",
+      "students": "{{count}} learners",
       "cta": "Browse the courses",
+      "ctaWithFormation": "Explore this course",
       "dismiss": "Later"
     }
   },

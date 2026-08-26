@@ -74,7 +74,10 @@
     "formationsEntry": {
       "title": "Tu es au bon endroit pour apprendre",
       "text": "Marketing digital, SEO, intelligence artificielle : des formations pratiques, en français, pensées pour être appliquées dès le lendemain.",
+      "eyebrow": "La formation la plus suivie",
+      "students": "{{count}} inscrits",
       "cta": "Voir les formations",
+      "ctaWithFormation": "Découvrir cette formation",
       "dismiss": "Plus tard"
     }
   },

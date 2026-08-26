@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import Modal from '../ui/Modal';
 import { useIsDesktop } from '../../hooks/useMediaQuery';
@@ -73,16 +73,23 @@ export default function PopupSurface({
 
   if (asSheet) {
     return (
-      <div
+      <motion.div
         role="dialog"
         aria-modal="false"
         aria-labelledby="popup-sheet-title"
+        /*
+          Ressort plutôt que le `animate-slide-up` CSS : le bandeau vient du bas de l'écran, un
+          léger dépassement le fait exister comme un objet physique au lieu d'apparaître. Le
+          ressort est amorti — il ne rebondit pas, il se pose.
+        */
+        initial={reduced ? false : { y: '100%' }}
+        animate={reduced ? undefined : { y: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         className={cn(
           'fixed bottom-0 inset-x-0 z-50 max-h-[30vh] overflow-y-auto',
           'bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700',
           'shadow-[0_-4px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.5)]',
           'pb-[env(safe-area-inset-bottom)]',
-          !reduced && 'animate-slide-up',
         )}
       >
         <div className="px-4 py-4 pr-12">
@@ -98,7 +105,7 @@ export default function PopupSurface({
         >
           <X className="w-4 h-4" aria-hidden="true" />
         </button>
-      </div>
+      </motion.div>
     );
   }
 
