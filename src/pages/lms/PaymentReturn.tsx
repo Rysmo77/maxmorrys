@@ -8,6 +8,7 @@ import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { db } from '../../config/firebase';
 import Button from '../../components/ui/Button';
 import { trackPurchase } from '../../lib/tracking';
+import { clearCartPending } from '../../lib/popups/cart';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Transaction } from '../../types';
 
@@ -47,6 +48,7 @@ export default function PaymentReturn() {
 
         if (data.status === 'completed') {
           setStatus('completed');
+          clearCartPending(); // l'achat est fait : plus rien à rappeler
           trackPurchase({
             transactionId: data.metaEventId || data.id,
             item: {

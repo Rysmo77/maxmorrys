@@ -81,6 +81,40 @@
       "cta": "Voir les formations",
       "ctaWithFormation": "Découvrir cette formation",
       "dismiss": "Plus tard"
+    },
+    "formationExit": {
+      "title": "Une seconde",
+      "eyebrow": "Avant de refermer",
+      "sticker": "Sans risque",
+      "text": "Tu peux commencer cette formation aujourd'hui et avancer à ton rythme. Accès à vie, certificat à la clé.",
+      "cta": "Reprendre la formation",
+      "clubLabel": "Ou rejoins le Club Digitos",
+      "clubDesc": "Toutes les formations, la communauté et les sessions en direct, pour un seul abonnement.",
+      "dismiss": "Non merci"
+    },
+    "presenceExit": {
+      "title": "On chiffre ton projet ?",
+      "eyebrow": "Avant de partir",
+      "sticker": "Devis gratuit",
+      "text": "Dis-moi ce que tu vends et où tu es. Je te renvoie une proposition chiffrée sur WhatsApp, sans engagement.",
+      "cta": "Demander mon devis",
+      "secondary": "Revoir les packs",
+      "dismiss": "Plus tard"
+    },
+    "blogEnd": {
+      "title": "Tu as lu jusqu'au bout",
+      "eyebrow": "Ça t'a servi ?",
+      "sticker": "1 email / semaine",
+      "text": "Reçois chaque semaine un conseil concret en marketing digital, SEO et IA. Pas de blabla, pas de spam.",
+      "dismiss": "Non merci"
+    },
+    "cartRecovery": {
+      "title": "Tu n'as pas terminé",
+      "eyebrow": "Reprends où tu t'es arrêté",
+      "sticker": "Panier gardé",
+      "text": "Ta formation t'attend encore. Il ne reste que le paiement à finaliser.",
+      "cta": "Finaliser mon inscription",
+      "dismiss": "Plus tard"
     }
   },
   "articleCard": {

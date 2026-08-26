@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, BookOpen, FileText, MessageSquare, Mail, Award, Loader2, RefreshCw, Smartphone, Monitor, Globe, Briefcase } from 'lucide-react';
+import { Users, BookOpen, FileText, MessageSquare, Mail, Award, Loader2, RefreshCw, Smartphone, Monitor, Globe, Briefcase, MousePointerClick } from 'lucide-react';
 import Card from '../../components/ui/Card';
-import { getPlatformStats, getAgencyStats } from '../../lib/firestore';
-import type { AgencyStats } from '../../lib/firestore';
+import { getPlatformStats, getAgencyStats, getPopupStats } from '../../lib/firestore';
+import type { AgencyStats, PopupStatRow } from '../../lib/firestore';
 import { PIPELINE_STAGES } from '../../lib/presence/offer';
 import { useFormat } from '../../hooks/useFormat';
 
@@ -67,15 +67,17 @@ export default function AdminAnalytics() {
   const { t } = useTranslation('admin');
   const [stats, setStats] = useState<Stats | null>(null);
   const [agency, setAgency] = useState<AgencyStats | null>(null);
+  const [popups, setPopups] = useState<PopupStatRow[]>([]);
   const [loading, setLoading] = useState(true);
   const { formatPrice } = useFormat();
 
   const load = () => {
     setLoading(true);
-    Promise.all([getPlatformStats(), getAgencyStats()])
-      .then(([s, a]) => {
+    Promise.all([getPlatformStats(), getAgencyStats(), getPopupStats()])
+      .then(([s, a, p]) => {
         setStats(s);
         setAgency(a);
+        setPopups(p);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -333,6 +335,59 @@ export default function AdminAnalytics() {
               </p>
             </Card>
           )}
+
+          {/*
+            Pop-ups. La colonne « écart » est la SEULE qui réponde à la vraie question : le taux de
+            clic dit combien de gens cliquent, jamais si la fenêtre a aidé. Une pop-up peut être
+            très cliquée tout en faisant fuir plus de visiteurs qu'elle n'en convertit.
+          */}
+          <Card>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-plum-50 dark:bg-plum-900/20 rounded-xl">
+                <MousePointerClick className="w-5 h-5 text-plum-600 dark:text-plum-400" />
+              </div>
+              <div>
+                <h2 className="font-bold text-neutral-900 dark:text-white">{t('analytics.popupsTitle')}</h2>
+                <p className="text-xs text-neutral-500">{t('analytics.popupsSubtitle')}</p>
+              </div>
+            </div>
+
+            {popups.length === 0 ? (
+              <p className="text-sm text-neutral-500 leading-relaxed">{t('analytics.popupsEmpty')}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-xs uppercase tracking-wider text-neutral-400 border-b border-neutral-200 dark:border-neutral-700">
+                      <th className="py-2 px-3 font-semibold">{t('analytics.popupsColPopup')}</th>
+                      <th className="py-2 px-3 font-semibold text-right">{t('analytics.popupsColImpressions')}</th>
+                      <th className="py-2 px-3 font-semibold text-right">{t('analytics.popupsColClicks')}</th>
+                      <th className="py-2 px-3 font-semibold text-right">{t('analytics.popupsColCtr')}</th>
+                      <th className="py-2 px-3 font-semibold text-right">{t('analytics.popupsColControl')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                    {popups.map((row) => {
+                      const shown = row.treatment.impressions;
+                      const ctr = shown > 0 ? (row.treatment.clicks / shown) * 100 : 0;
+                      return (
+                        <tr key={row.popupId} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+                          <td className="py-2.5 px-3 font-medium text-neutral-900 dark:text-white">{row.popupId}</td>
+                          <td className="py-2.5 px-3 text-right text-neutral-700 dark:text-neutral-300">{shown}</td>
+                          <td className="py-2.5 px-3 text-right text-neutral-700 dark:text-neutral-300">{row.treatment.clicks}</td>
+                          <td className="py-2.5 px-3 text-right font-bold text-neutral-900 dark:text-white">{ctr.toFixed(1)} %</td>
+                          <td className="py-2.5 px-3 text-right text-neutral-500">{row.control.withheld}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <p className="text-xs text-neutral-400 mt-4 italic leading-relaxed">
+              {t('analytics.popupsNote')}
+            </p>
+          </Card>
         </>
       )}
     </div>

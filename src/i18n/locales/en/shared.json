@@ -81,6 +81,40 @@
       "cta": "Browse the courses",
       "ctaWithFormation": "Explore this course",
       "dismiss": "Later"
+    },
+    "formationExit": {
+      "title": "One second",
+      "eyebrow": "Before you close this",
+      "sticker": "No risk",
+      "text": "You can start this course today and move at your own pace. Lifetime access, certificate included.",
+      "cta": "Back to the course",
+      "clubLabel": "Or join Club Digitos",
+      "clubDesc": "Every course, the community and live sessions, for a single subscription.",
+      "dismiss": "No thanks"
+    },
+    "presenceExit": {
+      "title": "Shall we price your project?",
+      "eyebrow": "Before you go",
+      "sticker": "Free quote",
+      "text": "Tell me what you sell and where you are. I'll send a costed proposal back on WhatsApp, no strings attached.",
+      "cta": "Request my quote",
+      "secondary": "See the packs again",
+      "dismiss": "Later"
+    },
+    "blogEnd": {
+      "title": "You read it all the way through",
+      "eyebrow": "Was it useful?",
+      "sticker": "1 email / week",
+      "text": "Get one practical tip a week on digital marketing, SEO and AI. No filler, no spam.",
+      "dismiss": "No thanks"
+    },
+    "cartRecovery": {
+      "title": "You didn't finish",
+      "eyebrow": "Pick up where you left off",
+      "sticker": "Cart saved",
+      "text": "Your course is still waiting. Only the payment is left to complete.",
+      "cta": "Complete my enrolment",
+      "dismiss": "Later"
     }
   },
   "articleCard": {

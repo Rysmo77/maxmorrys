@@ -16,6 +16,81 @@ export async function saveSiteSettings(data: Record<string, unknown>): Promise<v
   await setDoc(doc(db, 'settings', 'site'), data, { merge: true });
 }
 
+// ── Mesure des pop-ups ────────────────────────────────────────────────────────
+
+/** Compteurs d'une pop-up pour une variante. */
+export interface PopupCounters {
+  impressions: number;
+  clicks: number;
+  dismissals: number;
+  withheld: number;
+}
+
+/** Agrégat par pop-up, exposé et témoin séparés. */
+export interface PopupStatRow {
+  popupId: string;
+  treatment: PopupCounters;
+  control: PopupCounters;
+}
+
+const EMPTY_COUNTERS = (): PopupCounters => ({ impressions: 0, clicks: 0, dismissals: 0, withheld: 0 });
+
+/** Nom de champ du Worker → nom de champ affiché. Le Worker écrit au singulier. */
+const EVENT_FIELDS: Record<string, keyof PopupCounters> = {
+  impression: 'impressions',
+  click: 'clicks',
+  dismiss: 'dismissals',
+  withheld: 'withheld',
+};
+
+/**
+ * Compteurs de pop-ups des `months` derniers mois, agrégés par pop-up et par variante.
+ *
+ * ⚠️ Les documents sont écrits par le WORKER (`popupEvent`), jamais par le client :
+ * `firestore.rules` interdit l'écriture sur `analytics`. Tant que le Worker n'a pas été déployé,
+ * ces documents n'existent pas et la fonction renvoie un tableau vide — ce n'est pas une erreur,
+ * et l'écran doit le présenter comme une absence de données, pas comme une panne.
+ *
+ * Structure lue : `analytics/popups-YYYY-MM` → `{ [jour]: { [popupId]: { [variante]: { [evt]: n } } } }`.
+ */
+export async function getPopupStats(months = 2): Promise<PopupStatRow[]> {
+  const now = new Date();
+  const ids: string[] = [];
+  for (let i = 0; i < months; i += 1) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    ids.push(`popups-${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`);
+  }
+
+  const snaps = await Promise.all(ids.map((id) => getDoc(doc(db, 'analytics', id))));
+  const byPopup = new Map<string, PopupStatRow>();
+
+  snaps.forEach((snap) => {
+    if (!snap.exists()) return;
+    const days = snap.data() as Record<string, unknown>;
+    Object.values(days).forEach((popups) => {
+      if (typeof popups !== 'object' || popups === null) return;
+      Object.entries(popups as Record<string, unknown>).forEach(([popupId, variants]) => {
+        if (typeof variants !== 'object' || variants === null) return;
+        const row = byPopup.get(popupId)
+          ?? { popupId, treatment: EMPTY_COUNTERS(), control: EMPTY_COUNTERS() };
+
+        Object.entries(variants as Record<string, unknown>).forEach(([variant, events]) => {
+          if (variant !== 'treatment' && variant !== 'control') return;
+          if (typeof events !== 'object' || events === null) return;
+          Object.entries(events as Record<string, unknown>).forEach(([evt, value]) => {
+            const field = EVENT_FIELDS[evt];
+            if (field && typeof value === 'number') row[variant][field] += value;
+          });
+        });
+
+        byPopup.set(popupId, row);
+      });
+    });
+  });
+
+  return [...byPopup.values()].sort((a, b) => b.treatment.impressions - a.treatment.impressions);
+}
+
 // ── Newsletter ────────────────────────────────────────────────────────────────
 
 export async function getNewsletterCount(): Promise<number> {

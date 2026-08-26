@@ -28,11 +28,22 @@ interface Settings {
   announcementActive: boolean;
   announcementText: string;
   /*
-    Interrupteurs des pop-ups contextuelles du site public. Lus par `lib/popups/settings.ts`.
-    Absents du document = actifs : un site jamais configuré doit en bénéficier tel quel.
+    Interrupteurs des pop-ups contextuelles du site public. Lus par `lib/popups/settings.ts`, dont
+    `settingsFieldFor()` fait foi pour le nom des champs. Absents du document = ACTIFS : un site
+    jamais configuré doit bénéficier du dispositif sans configuration préalable.
   */
-  popupAudienceRouter: boolean;
-  popupFormationsEntry: boolean;
+  popup_agencyExit: boolean;
+  popup_formationsEntry: boolean;
+  popup_formationExit: boolean;
+  popup_presenceExit: boolean;
+  popup_blogEnd: boolean;
+  popup_cartRecovery: boolean;
+  /*
+    Part du trafic exposée aux pop-ups ; le reste sert de groupe témoin et n'en voit aucune.
+    ⚠️ La descendre à 1 supprime le témoin — et avec lui toute possibilité de savoir si les
+    pop-ups aident ou nuisent. Ne le faire qu'une fois la question tranchée.
+  */
+  popupTreatmentShare: number;
 }
 
 const DEFAULT: Settings = {
@@ -53,8 +64,13 @@ const DEFAULT: Settings = {
   notifCourseCompletion: false,
   announcementActive: false,
   announcementText: '',
-  popupAudienceRouter: true,
-  popupFormationsEntry: true,
+  popup_agencyExit: true,
+  popup_formationsEntry: true,
+  popup_formationExit: true,
+  popup_presenceExit: true,
+  popup_blogEnd: true,
+  popup_cartRecovery: true,
+  popupTreatmentShare: 0.5,
 };
 
 export default function AdminSettings() {
@@ -104,9 +120,15 @@ export default function AdminSettings() {
   ];
 
   const popups: { key: keyof Settings; label: string; desc: string }[] = [
-    { key: 'popupAudienceRouter', label: t('settings.popupAudienceRouterLabel'), desc: t('settings.popupAudienceRouterDesc') },
-    { key: 'popupFormationsEntry', label: t('settings.popupFormationsEntryLabel'), desc: t('settings.popupFormationsEntryDesc') },
+    { key: 'popup_agencyExit', label: t('settings.popupAudienceRouterLabel'), desc: t('settings.popupAudienceRouterDesc') },
+    { key: 'popup_formationExit', label: t('settings.popupFormationExitLabel'), desc: t('settings.popupFormationExitDesc') },
+    { key: 'popup_presenceExit', label: t('settings.popupPresenceExitLabel'), desc: t('settings.popupPresenceExitDesc') },
+    { key: 'popup_cartRecovery', label: t('settings.popupCartRecoveryLabel'), desc: t('settings.popupCartRecoveryDesc') },
+    { key: 'popup_blogEnd', label: t('settings.popupBlogEndLabel'), desc: t('settings.popupBlogEndDesc') },
+    { key: 'popup_formationsEntry', label: t('settings.popupFormationsEntryLabel'), desc: t('settings.popupFormationsEntryDesc') },
   ];
+
+  const treatmentPercent = Math.round((settings.popupTreatmentShare ?? 0.5) * 100);
 
   const notifications: { key: keyof Settings; label: string; desc: string }[] = [
     { key: 'notifNewSale', label: t('settings.notifNewSaleLabel'), desc: t('settings.notifNewSaleDesc') },
@@ -284,6 +306,28 @@ export default function AdminSettings() {
               </label>
             ))}
           </div>
+          {/*
+            Groupe témoin. C'est la seule mesure qui distingue « la pop-up convertit » de « la
+            pop-up aide » : sans population non exposée, un bon taux de clic peut masquer des
+            visiteurs partis à cause d'elle.
+          */}
+          <div className="mt-5 pt-5 border-t border-neutral-200 dark:border-neutral-700">
+            <label htmlFor="treatment-share" className="block text-sm font-medium text-neutral-900 dark:text-white">
+              {t('settings.popupTreatmentLabel', { percent: treatmentPercent })}
+            </label>
+            <p className="mt-1 text-xs text-neutral-500 leading-relaxed">{t('settings.popupTreatmentDesc')}</p>
+            <input
+              id="treatment-share"
+              type="range"
+              min={0}
+              max={100}
+              step={10}
+              value={treatmentPercent}
+              onChange={(e) => set('popupTreatmentShare', Number(e.target.value) / 100)}
+              className="mt-3 w-full accent-brand-600 cursor-pointer"
+            />
+          </div>
+
           <p className="mt-4 text-xs text-neutral-500 leading-relaxed">{t('settings.popupsCacheNote')}</p>
         </Card>
 

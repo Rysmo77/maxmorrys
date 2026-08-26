@@ -7,6 +7,7 @@ import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { issueCertificate } from './handlers/issueCertificate';
 import { mediaToken } from './handlers/mediaToken';
 import { parseCv } from './handlers/parseCv';
+import { popupEvent } from './handlers/popupEvent';
 import {
   createBictorysCharge,
   createClubCharge,
@@ -58,6 +59,8 @@ export const HANDLERS: Record<string, CallHandler> = {
   // RGPD
   exportUserData,
   deleteUserAccount,
+  // Mesure — compteurs agrégés, sans donnée personnelle
+  popupEvent,
   // Accès aux médias protégés
   mediaToken,
 };

@@ -17,6 +17,7 @@ import { formatPrice } from '../../lib/utils';
 import type { Formation } from '../../types';
 import { generateEventId } from '../../lib/meta-pixel';
 import { trackBeginCheckout, trackPurchase } from '../../lib/tracking';
+import { markCartPending } from '../../lib/popups/cart';
 
 const createBictorysCharge = httpsCallable<
   { formationId: string; formationSlug: string; metaEventId?: string; couponCode?: string },
@@ -41,6 +42,8 @@ export default function Checkout() {
     getFormationBySlug(slug).then((data) => {
       setFormation(data);
       if (data) {
+        // Rappel de panier abandonné : levé au paiement abouti, expire seul à sept jours.
+        markCartPending(data.slug);
         trackBeginCheckout({
           id: data.id,
           name: data.title,
