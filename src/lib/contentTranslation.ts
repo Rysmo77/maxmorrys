@@ -18,9 +18,26 @@ const callable = httpsCallable<
 const cache = new Map<string, string>(); // texte source -> traduction EN
 const inflight = new Map<string, Promise<void>>(); // texte source -> promesse en cours
 
+/**
+ * Résolveurs en attente du prochain flush, par texte source.
+ *
+ * Une demande arrive jusqu'à 60 ms avant que sa promesse `inflight` n'existe.
+ * On enregistre donc son résolveur ici et `flush` le règle — succès comme échec.
+ * L'attente active qui occupait cette place bouclait indéfiniment dès qu'un
+ * appel échouait : `inflight` était vidé sans que `cache` soit peuplé.
+ */
+const waiters = new Map<string, Array<(value: string) => void>>();
+
 let queue = new Set<string>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 const MAX_BATCH = 60;
+
+function settle(src: string, value: string) {
+  const pending = waiters.get(src);
+  if (!pending) return;
+  waiters.delete(src);
+  for (const resolve of pending) resolve(value);
+}
 
 function flush() {
   flushTimer = null;
@@ -36,11 +53,16 @@ function flush() {
         const value = translations[src];
         if (typeof value === 'string') cache.set(src, value);
         inflight.delete(src);
+        settle(src, cache.get(src) ?? src);
       }
     })
     .catch(() => {
-      // Échec réseau / quota : on laisse le texte source (dégradation gracieuse).
-      for (const src of batch) inflight.delete(src);
+      // Échec réseau / quota : on sert le texte source (dégradation gracieuse).
+      // `cache` reste vide exprès — une demande ultérieure retentera l'appel.
+      for (const src of batch) {
+        inflight.delete(src);
+        settle(src, src);
+      }
     });
 
   for (const src of batch) inflight.set(src, promise);
@@ -62,15 +84,11 @@ export function requestTranslation(text: string): Promise<string> {
 
   queue.add(text);
   scheduleFlush();
-  // On attend le prochain flush ; la promesse inflight sera posée au flush.
+  // On attend le prochain flush ; le résolveur est réglé par `settle`.
   return new Promise((resolve) => {
-    const check = () => {
-      const p = inflight.get(text);
-      if (p) p.then(() => resolve(cache.get(text) ?? text));
-      else if (cache.has(text)) resolve(cache.get(text) as string);
-      else setTimeout(check, 30);
-    };
-    check();
+    const pending = waiters.get(text);
+    if (pending) pending.push(resolve);
+    else waiters.set(text, [resolve]);
   });
 }
 

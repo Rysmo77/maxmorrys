@@ -10,7 +10,8 @@ import ArticleCard from '../components/shared/ArticleCard';
 import TranslatedText from '../components/shared/TranslatedText';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
 import { getPostBySlug, getPublishedPosts, incrementBlogViews } from '../lib/firestore';
-import { markdownToHtml } from '../lib/utils';
+import { markdownToHtml } from '../lib/markdown';
+import { queryClient, queryKeys } from '../lib/queryClient';
 import { useFormat } from '../hooks/useFormat';
 import { categoryToPole } from '../lib/blogCategories';
 import type { BlogPost as BlogPostType } from '../types';
@@ -56,9 +57,12 @@ export default function BlogPost() {
             .then(() => sessionStorage.setItem(viewKey, '1'))
             .catch(() => null);
         }
-        getPublishedPosts().then((all) => {
-          setRelatedPosts(all.filter((p) => p.id !== data.id && p.category === data.category).slice(0, 3));
-        }).catch(() => null);
+        queryClient
+          .fetchQuery({ queryKey: queryKeys.blogPosts, queryFn: () => getPublishedPosts() })
+          .then((all) => {
+            setRelatedPosts(all.filter((p) => p.id !== data.id && p.category === data.category).slice(0, 3));
+          })
+          .catch(() => null);
       }
     }).catch(() => setPost(null));
   }, [slug, language]);

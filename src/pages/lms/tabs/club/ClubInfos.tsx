@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import {
   Heart, BellRinging, ArrowSquareOut, ShareFat, Check,
 } from '@phosphor-icons/react';
-import { cn, markdownToHtml } from '../../../../lib/utils';
+import { cn } from '../../../../lib/utils';
+import { markdownToHtml } from '../../../../lib/markdown';
 import { useFormat } from '../../../../hooks/useFormat';
 import { ClubEmptyState } from './_shared';
 import { SHARE_PLATFORMS } from '../../hooks/useClubData';

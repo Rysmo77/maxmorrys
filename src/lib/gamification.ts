@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, runTransaction, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, runTransaction, collection, query, orderBy, limit, getDocs, type DocumentSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import type { GamificationProfile } from '../types/gamification';
 import { getLevelFromXP } from '../types/gamification';
@@ -123,14 +123,39 @@ export interface LeaderboardEntry {
  * (Cloud Function `rebuildLeaderboard*`). Safe for any signed-in member —
  * individual gamification docs stay private.
  */
+/**
+ * Lecture mémoïsée de l'agrégat `leaderboard/global`.
+ *
+ * Classement et nombre de membres vivent dans le MÊME document, et quatre
+ * composants du Club le lisent au même montage — `ClubTab` deux fois de suite,
+ * pour l'un puis pour l'autre. Une promesse partagée ramène le tout à une seule
+ * lecture, et un TTL court suffit : l'agrégat est reconstruit côté serveur.
+ */
+const LEADERBOARD_TTL_MS = 60_000;
+let leaderboardDoc: Promise<DocumentSnapshot> | null = null;
+let leaderboardAt = 0;
+
+function readLeaderboardDoc(): Promise<DocumentSnapshot> {
+  const now = Date.now();
+  if (!leaderboardDoc || now - leaderboardAt > LEADERBOARD_TTL_MS) {
+    leaderboardAt = now;
+    leaderboardDoc = getDoc(doc(db, 'leaderboard', 'global')).catch((error: unknown) => {
+      // Ne pas mémoriser un échec : la prochaine lecture doit retenter.
+      leaderboardDoc = null;
+      throw error;
+    });
+  }
+  return leaderboardDoc;
+}
+
 export async function getClubLeaderboard(): Promise<LeaderboardEntry[]> {
-  const snap = await getDoc(doc(db, 'leaderboard', 'global'));
+  const snap = await readLeaderboardDoc();
   if (!snap.exists()) return [];
   return (snap.data().entries ?? []) as LeaderboardEntry[];
 }
 
 /** Public Club stats (active member count) from the same aggregate doc. */
 export async function getClubActiveMemberCount(): Promise<number> {
-  const snap = await getDoc(doc(db, 'leaderboard', 'global'));
+  const snap = await readLeaderboardDoc();
   return snap.exists() ? (snap.data().activeMembers ?? 0) : 0;
 }

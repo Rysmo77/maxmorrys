@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { getPublishedFormations } from '../../lib/firestore';
+import { getPublishedFormations } from '../../lib/firestore/formations';
+import { queryKeys } from '../../lib/queryClient';
 import type { Formation } from '../../types';
 import FormationCard from '../formations/FormationCard';
 import { universeThemes } from '../../lib/sectionThemes';
@@ -20,35 +22,36 @@ interface FormationCTAProps {
  */
 export default function FormationCTA({ category, tags = [] }: FormationCTAProps) {
   const { t } = useTranslation('shared');
-  const [formation, setFormation] = useState<Formation | null>(null);
+  /*
+    Lecture partagée : la même liste alimente la page d'accueil, l'arbitre de
+    pop-ups et la recherche. Avant, chaque montage relisait toute la collection
+    publiée pour n'en afficher qu'une carte — et `tags` valant `[]` par défaut,
+    l'effet se redéclenchait à chaque rendu du parent.
+  */
+  const { data: formations = [] } = useQuery({
+    queryKey: queryKeys.publishedFormations,
+    queryFn: () => getPublishedFormations(),
+  });
 
-  useEffect(() => {
-    getPublishedFormations().then((formations) => {
-      if (formations.length === 0) return;
+  const formation = useMemo<Formation | null>(() => {
+    if (formations.length === 0) return null;
 
-      // Try to match by category (case-insensitive partial match)
-      const normalise = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const cat = category ? normalise(category) : '';
-      const tagSet = tags.map(normalise);
+    const normalise = (v: string) => v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const cat = category ? normalise(category) : '';
+    const tagSet = tags.map(normalise);
 
-      let match = formations.find((f) => {
-        const fCat = normalise(f.category ?? '');
-        const fTags = (f.tags ?? []).map(normalise);
-        // Direct category match
-        if (cat && (fCat.includes(cat) || cat.includes(fCat))) return true;
-        // Tag overlap
-        if (tagSet.some((t) => fTags.includes(t) || fCat.includes(t))) return true;
-        return false;
-      });
+    const match = formations.find((f) => {
+      const fCat = normalise(f.category ?? '');
+      const fTags = (f.tags ?? []).map(normalise);
+      if (cat && (fCat.includes(cat) || cat.includes(fCat))) return true;
+      if (tagSet.some((tag) => fTags.includes(tag) || fCat.includes(tag))) return true;
+      return false;
+    });
 
-      // Fallback: featured formation, or first formation
-      if (!match) {
-        match = formations.find((f) => f.featured) ?? formations[0];
-      }
-
-      setFormation(match);
-    }).catch(() => null);
-  }, [category, tags]);
+    // Repli : formation à la une, sinon la première.
+    return match ?? formations.find((f) => f.featured) ?? formations[0] ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formations, category, tags.join('|')]);
 
   if (!formation) return null;
 

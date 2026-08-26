@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Info, Tag, Zap } from 'lucide-react';
 import LocalizedLink from './LocalizedLink';
-import { getActiveAnnouncements } from '../../lib/firestore';
+// Import direct plutôt que via le barrel `lib/firestore` : celui-ci fait
+// `export *` sur 17 modules, et cet unique import tirait tout `admin.ts`
+// (saveAnnouncement, deleteAnnouncement, …) dans le chunk d'entrée.
+import { getActiveAnnouncements } from '../../lib/firestore/admin';
 import type { Announcement } from '../../types';
 
 const TYPE_CONFIG = {

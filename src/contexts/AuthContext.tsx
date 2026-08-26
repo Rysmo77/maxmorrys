@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsubscribe;
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       trackLogin('email');
@@ -86,9 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('errors.signInFailed');
       }
     }
-  };
+  }, []);
 
-  const signUp = async (email: string, password: string, displayName: string) => {
+  const signUp = useCallback(async (email: string, password: string, displayName: string) => {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(cred.user, { displayName });
@@ -116,9 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('errors.signUpFailed');
       }
     }
-  };
+  }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     try {
       const provider = new GoogleAuthProvider();
       const cred = await signInWithPopup(auth, provider);
@@ -146,23 +146,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (errorCode === 'auth/popup-closed-by-user' || errorCode === 'auth/cancelled-popup-request') return;
       throw new Error('errors.googleSignInFailed');
     }
-  };
+  }, []);
 
-  const refreshUserData = async () => {
+  const refreshUserData = useCallback(async () => {
     if (!auth.currentUser) return;
     try {
       const docRef = doc(db, 'users', auth.currentUser.uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) setUserData(docSnap.data() as User);
     } catch { /* ignore */ }
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await firebaseSignOut(auth);
     setUserData(null);
-  };
+  }, []);
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = useCallback(async (email: string) => {
     try {
       await sendPasswordResetEmail(auth, email);
     } catch (error: unknown) {
@@ -176,10 +176,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('errors.resetEmailFailed');
       }
     }
-  };
+  }, []);
+
+  /*
+    Les six fonctions ci-dessus ne dépendent que de `auth`/`setUserData`, stables :
+    elles sont donc figées à la première monture. Sans ce memo, l'objet englobant
+    changeait d'identité à chaque rendu du provider et re-rendait tous les
+    `useAuth()` de l'application — y compris l'en-tête et les gardes de route.
+  */
+  const value = useMemo(
+    () => ({ user, userData, loading, signIn, signUp, signInWithGoogle, signOut, resetPassword, refreshUserData }),
+    [user, userData, loading, signIn, signUp, signInWithGoogle, signOut, resetPassword, refreshUserData],
+  );
 
   return (
-    <AuthContext.Provider value={{ user, userData, loading, signIn, signUp, signInWithGoogle, signOut, resetPassword, refreshUserData }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

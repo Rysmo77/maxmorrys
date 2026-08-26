@@ -35,17 +35,29 @@ export default function PopupAurora({ tone = 'lagoon' }: PopupAuroraProps) {
   const reduced = useReducedMotion();
   const { glow, halo, ring } = TONES[tone];
 
+  /*
+    Dérive en translation seule, volontairement sans `scale`.
+    Le rayon d'un `blur-3xl` (`filter: blur(64px)`) est exprimé en coordonnées
+    locales : mettre l'échelle à l'échelle oblige le navigateur à re-rastériser
+    un calque flouté de 416x416 px à chaque frame, deux fois, tant que la fenêtre
+    est ouverte — et par-dessus le `backdrop-blur` plein écran de `PopupSurface`.
+    Une translation sur un calque promu (`will-change: transform`) reste, elle,
+    entièrement au compositeur. Le mouvement est conservé ; seule la pulsation
+    de taille disparaît.
+  */
   const drift = reduced
     ? {}
     : {
-        animate: { scale: [1, 1.12, 1], x: [0, 18, 0], y: [0, -14, 0] },
+        animate: { x: [0, 18, 0], y: [0, -14, 0] },
         transition: { duration: 14, repeat: Infinity, ease: 'easeInOut' as const },
+        style: { willChange: 'transform' },
       };
   const counterDrift = reduced
     ? {}
     : {
-        animate: { scale: [1.08, 1, 1.08], x: [0, -22, 0] },
+        animate: { x: [0, -22, 0], y: [0, 10, 0] },
         transition: { duration: 18, repeat: Infinity, ease: 'easeInOut' as const },
+        style: { willChange: 'transform' },
       };
 
   return (
@@ -76,7 +88,7 @@ export default function PopupAurora({ tone = 'lagoon' }: PopupAuroraProps) {
 
       {/* Monogramme, recadré à la manière du sujet de la référence. */}
       <img
-        src="/icone-mm.png"
+        src="/monogramme-320.png"
         alt=""
         loading="lazy"
         decoding="async"

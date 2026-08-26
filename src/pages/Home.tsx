@@ -1,12 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import LocalizedLink from '../components/shared/LocalizedLink';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Star, Target, Zap, BarChart3, Play, Headphones, BadgeCheck, Infinity as InfinityIcon, Shield, Mail } from 'lucide-react';
-import { getPublishedFormations, getPublishedPosts, getFeaturedTestimonials, getPublishedPodcasts } from '../lib/firestore';
+// Imports directs plutôt que via le barrel `lib/firestore` : celui-ci fait
+// `export *` sur 17 modules, ce qui en tirait plusieurs dans le chunk d'entrée.
+import { getPublishedFormations } from '../lib/firestore/formations';
+import { getPublishedPosts } from '../lib/firestore/blog';
+import { getFeaturedTestimonials, getPublishedPodcasts } from '../lib/firestore/content';
+import { queryKeys } from '../lib/queryClient';
 import { truncate } from '../lib/utils';
 import { categoryToPole } from '../lib/blogCategories';
-import type { Formation, BlogPost, Testimonial, Podcast } from '../types';
+import type { Testimonial } from '../types';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SOCIAL_URLS, CONTACT_PHONE_E164 } from '../components/seo/seo-config';
@@ -132,19 +138,32 @@ function TestimonialCarousel({ testimonials }: { testimonials: Testimonial[] }) 
 
 export default function Home() {
   const { t } = useTranslation('home');
-  const [formations, setFormations] = useState<Formation[]>([]);
-  const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
-  const [recentPodcasts, setRecentPodcasts] = useState<Podcast[]>([]);
-  const [featuredTestimonials, setFeaturedTestimonials] = useState<Testimonial[]>([]);
+  /*
+    Lectures mises en cache et partagées (cf. `lib/queryClient`). Les listes
+    formations/podcasts servent aussi aux pages catalogue, à l'arbitre de pop-ups
+    et à la recherche : sous la même clé, elles ne sont lues qu'une fois.
+  */
+  const { data: formations = [] } = useQuery({
+    queryKey: queryKeys.publishedFormations,
+    queryFn: () => getPublishedFormations(),
+  });
+  const { data: recentPosts = [] } = useQuery({
+    queryKey: queryKeys.homeRecentPosts,
+    queryFn: () => getPublishedPosts(5),
+  });
+  const { data: recentPodcasts = [] } = useQuery({
+    queryKey: queryKeys.publishedPodcasts,
+    queryFn: () => getPublishedPodcasts(),
+  });
+  const { data: featuredTestimonials = [] } = useQuery({
+    queryKey: queryKeys.featuredTestimonials,
+    queryFn: () => getFeaturedTestimonials(),
+  });
 
-  useEffect(() => {
-    getPublishedFormations().then(setFormations).catch(() => {});
-    getPublishedPosts(5).then(setRecentPosts).catch(() => {});
-    getPublishedPodcasts().then(setRecentPodcasts).catch(() => {});
-    getFeaturedTestimonials().then(setFeaturedTestimonials).catch(() => {});
-  }, []);
-
-  const featuredFormations = formations.filter((f) => f.featured).slice(0, 3);
+  const featuredFormations = useMemo(
+    () => formations.filter((f) => f.featured).slice(0, 3),
+    [formations],
+  );
   const featuredPost = recentPosts[0];
   const listPosts = recentPosts.slice(1);
 

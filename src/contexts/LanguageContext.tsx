@@ -1,9 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import i18n from '../i18n';
+import i18n, { preloadRequestedNamespaces } from '../i18n';
 import { getLangFromPath, localizedPath, type Lang } from '../i18n/routing';
 import { useAuth } from './AuthContext';
-import { updateUserProfile } from '../lib/firestore';
+// Imports directs plutôt que via le barrel `lib/firestore` : celui-ci fait
+// `export *` sur 17 modules, ce qui en tirait plusieurs dans le chunk d'entrée.
+import { updateUserProfile } from '../lib/firestore/users';
 
 interface LanguageContextType {
   language: Lang;
@@ -64,11 +66,23 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   // Synchronise i18next + localStorage + <html lang> quand la langue d'URL change.
   useEffect(() => {
-    if (i18n.language !== language) i18n.changeLanguage(language);
+    let cancelled = false;
+    if (i18n.language !== language) {
+      // Les namespaces chargés à la demande n'existent que dans la langue où ils
+      // ont été demandés : il faut les avoir dans la nouvelle AVANT de basculer,
+      // sinon les pages montées affichent des clés brutes (`useSuspense: false`).
+      // `preloadRequestedNamespaces` ne rejette jamais.
+      void preloadRequestedNamespaces(language).then(() => {
+        if (!cancelled) void i18n.changeLanguage(language);
+      });
+    }
     try {
       localStorage.setItem(STORAGE_KEY, language);
     } catch { /* stockage indisponible (mode privé) */ }
     document.documentElement.lang = language;
+    return () => {
+      cancelled = true;
+    };
   }, [language]);
 
   // Persiste la préférence sur le profil utilisateur connecté (une fois par changement réel).
@@ -90,17 +104,31 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     })();
   }, [language, user, userData, refreshUserData]);
 
-  const setLanguage = (lang: Lang) => {
+  const setLanguage = useCallback((lang: Lang) => {
     rememberLanguageChoice(lang); // tout choix via toggle/settings/bannière est explicite
     if (lang === language) return;
     const target = localizedPath(location.pathname, lang) + location.search + location.hash;
     navigate(target);
-  };
+  }, [language, location.pathname, location.search, location.hash, navigate]);
 
-  const toggleLanguage = () => setLanguage(language === 'fr' ? 'en' : 'fr');
+  const toggleLanguage = useCallback(
+    () => setLanguage(language === 'fr' ? 'en' : 'fr'),
+    [language, setLanguage],
+  );
+
+  /*
+    Ce provider appelle `useLocation` : il re-rend donc à CHAQUE navigation.
+    Sans ce memo, tous les consommateurs de `useLanguage()` — dont l'en-tête et
+    le pied de page — re-rendaient à chaque changement de page alors que la
+    langue, elle, ne change presque jamais.
+  */
+  const value = useMemo(
+    () => ({ language, setLanguage, toggleLanguage }),
+    [language, setLanguage, toggleLanguage],
+  );
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, toggleLanguage }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

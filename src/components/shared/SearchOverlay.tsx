@@ -4,6 +4,7 @@ import { Search, X, FileText, GraduationCap, Mic, Video, ArrowRight, Loader2, He
 import { useNavigate } from 'react-router-dom';
 import { cn, debounce } from '../../lib/utils';
 import TranslatedText from './TranslatedText';
+import { queryClient, queryKeys } from '../../lib/queryClient';
 import { getPublishedPosts, getPublishedFormations, getPublishedPodcasts, getPublishedVideos, getAllFAQ } from '../../lib/firestore';
 import type { BlogPost, Formation, Podcast, Video as VideoType, FAQ } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -112,9 +113,15 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
     setLoading(true);
     Promise.all([
       cachedPosts     ? Promise.resolve(cachedPosts)     : getPublishedPosts(100),
-      cachedFormations? Promise.resolve(cachedFormations): getPublishedFormations(),
-      cachedPodcasts  ? Promise.resolve(cachedPodcasts)  : getPublishedPodcasts(),
-      cachedVideos    ? Promise.resolve(cachedVideos)    : getPublishedVideos(),
+      /*
+        `fetchQuery` sur les trois listes dont les arguments sont identiques à
+        ceux des pages catalogue : la recherche réutilise alors leur cache au
+        lieu de relire les collections. Les articles gardent un appel direct —
+        la recherche en demande 100, la page blog 50.
+      */
+      cachedFormations? Promise.resolve(cachedFormations): queryClient.fetchQuery({ queryKey: queryKeys.publishedFormations, queryFn: () => getPublishedFormations() }),
+      cachedPodcasts  ? Promise.resolve(cachedPodcasts)  : queryClient.fetchQuery({ queryKey: queryKeys.publishedPodcasts, queryFn: () => getPublishedPodcasts() }),
+      cachedVideos    ? Promise.resolve(cachedVideos)    : queryClient.fetchQuery({ queryKey: queryKeys.publishedVideos, queryFn: () => getPublishedVideos() }),
       cachedFAQ       ? Promise.resolve(cachedFAQ)       : getAllFAQ(),
     ]).then(([posts, formations, podcasts, videos, faq]) => {
       cachedPosts = posts;

@@ -2,8 +2,11 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/icone-mm.png" />
-    <link rel="apple-touch-icon" href="/icone-mm.png" />
+    <!-- Une favicone 32 px et une icône Apple 180 px, au lieu du monogramme
+         1254x1254 servi pour les deux : il pesait 44 Ko après optimisation, et
+         partait en priorité haute à chaque visite à froid. -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA. Par Max-Morrys depuis Dakar." />
     <meta name="theme-color" content="#0c93e7" />
@@ -32,8 +35,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://www.googletagmanager.com" />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" /></noscript>
+    <!-- Origine des médias (poster de la vidéo héros, couvertures, vignettes) :
+         sans cela, DNS + TLS se paient au moment du premier rendu. -->
+    <link rel="preconnect" href="https://media.maxmorrys.me" crossorigin />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" /></noscript>
     <title>Max-Morrys | Maîtrisez le digital, accélérez votre croissance</title>
 
     <!-- Google Consent Mode v2 (must load BEFORE GTM) -->

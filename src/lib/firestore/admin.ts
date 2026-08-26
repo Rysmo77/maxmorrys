@@ -1,5 +1,5 @@
 import {
-  collection, doc, getDocs, getDoc, setDoc, query, where, orderBy,
+  collection, doc, getDoc, setDoc, query, where, orderBy,
   getCountFromServer,
 } from 'firebase/firestore';
 import { getCollection, createDoc, setDocById, deleteDocById, updateDocById, db } from './helpers';
@@ -94,8 +94,10 @@ export async function getPopupStats(months = 2): Promise<PopupStatRow[]> {
 // ── Newsletter ────────────────────────────────────────────────────────────────
 
 export async function getNewsletterCount(): Promise<number> {
-  const snap = await getDocs(collection(db, 'newsletter'));
-  return snap.size;
+  // Agrégation serveur : lire la collection pour en prendre `.size` facturait une
+  // lecture par abonné. `getPlatformStats` procède déjà ainsi plus bas.
+  const snap = await getCountFromServer(collection(db, 'newsletter'));
+  return snap.data().count;
 }
 
 // ── Platform stats ────────────────────────────────────────────────────────────

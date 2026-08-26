@@ -1,4 +1,7 @@
-import { getSiteSettings } from '../firestore';
+// Import direct plutôt que via le barrel `lib/firestore` : ce module est chargé
+// par l'arbitre de pop-ups, donc dans le chunk d'entrée — le barrel y tirait
+// `certificates.ts` et ses dépendances au passage.
+import { getSiteSettings } from '../firestore/admin';
 import { captureError } from '../sentry';
 import type { PopupId } from './rules';
 import { DEFAULT_TREATMENT_SHARE } from './variant';

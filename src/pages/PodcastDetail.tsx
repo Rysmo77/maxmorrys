@@ -10,7 +10,8 @@ import { getPodcastBySlug, getPublishedPodcasts } from '../lib/firestore';
 import FormationCTA from '../components/shared/FormationCTA';
 import TranslatedText from '../components/shared/TranslatedText';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
-import { markdownToHtml } from '../lib/utils';
+import { markdownToHtml } from '../lib/markdown';
+import { queryClient, queryKeys } from '../lib/queryClient';
 import { useFormat } from '../hooks/useFormat';
 import type { Podcast } from '../types';
 import { trackViewItem, trackPodcastPlay } from '../lib/tracking';
@@ -56,7 +57,10 @@ export default function PodcastDetail() {
       if (data) {
         trackViewItem({ id: data.id, name: data.title, category: data.category, content_type: 'podcast' });
         trackPodcastPlay(data.id, data.title);
-        getPublishedPodcasts().then((all) => setOthers(all.filter((p) => p.id !== data.id).slice(0, 4))).catch(() => null);
+        queryClient
+          .fetchQuery({ queryKey: queryKeys.publishedPodcasts, queryFn: () => getPublishedPodcasts() })
+          .then((all) => setOthers(all.filter((p) => p.id !== data.id).slice(0, 4)))
+          .catch(() => null);
       }
     }).catch(() => setPodcast(null));
   }, [slug, language]);

@@ -2,7 +2,8 @@ import { useRef, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Bold, Italic, Heading2, Heading3, List, ListOrdered, Link as LinkIcon, Image, Code, Eye, Edit3 } from 'lucide-react';
-import { cn, markdownToHtml } from '../../lib/utils';
+import { cn } from '../../lib/utils';
+import { markdownToHtml } from '../../lib/markdown';
 
 interface RichEditorProps {
   value: string;

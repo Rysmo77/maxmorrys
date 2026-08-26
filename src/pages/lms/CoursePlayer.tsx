@@ -12,7 +12,7 @@ import { useToast } from '../../components/ui/Toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { getFormationBySlug, getUserEnrollments, updateEnrollmentProgress, issueCertificate } from '../../lib/firestore';
 import { updateDocById } from '../../lib/firestore/helpers';
-import { markdownToHtml } from '../../lib/utils';
+import { markdownToHtml } from '../../lib/markdown';
 import type { Formation, Lesson, Enrollment } from '../../types';
 import { captureError } from '../../lib/sentry';
 import { trackViewItem, trackLessonCompleted, trackCourseProgress } from '../../lib/tracking';

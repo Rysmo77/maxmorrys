@@ -25,6 +25,10 @@ export const queryKeys = {
   publishedFormations: ['formations', 'published'] as const,
   publishedVideos: ['videos', 'published'] as const,
   publishedPodcasts: ['podcasts', 'published'] as const,
+  // Clé distincte : la page d'accueil ne demande que 5 articles, là où la page
+  // blog en demande 50. Même clé = une des deux vues serait tronquée.
+  homeRecentPosts: ['blog', 'recent', 5] as const,
+  featuredTestimonials: ['testimonials', 'featured'] as const,
   allUsers: ['users', 'all'] as const,
   allFormations: ['formations', 'all'] as const,
   studentData: (userId: string) => ['student', userId] as const,

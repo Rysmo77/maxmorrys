@@ -10,9 +10,34 @@
   "theme_color": "#0c93e7",
   "lang": "fr",
   "dir": "ltr",
-  "categories": ["education", "business"],
+  "categories": [
+    "education",
+    "business"
+  ],
   "icons": [
-    { "src": "/icone-mm.png", "sizes": "1254x1254", "type": "image/png", "purpose": "any" },
-    { "src": "/icone-mm.png", "sizes": "1254x1254", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icone-mm.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icone-mm.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

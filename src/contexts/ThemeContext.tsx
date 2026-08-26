@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -24,10 +24,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('mm-theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
+  const toggleTheme = useCallback(() => setTheme((t) => (t === 'light' ? 'dark' : 'light')), []);
+
+  // Objet mémoïsé : recréé en ligne, il donnait une nouvelle identité à chaque
+  // rendu du provider et re-rendait tous les consommateurs sans raison.
+  const value = useMemo(() => ({ theme, toggleTheme, setTheme }), [theme, toggleTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

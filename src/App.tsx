@@ -3,13 +3,26 @@ import type { RouteObject } from 'react-router-dom';
 import { useState, lazy, Suspense } from 'react';
 import type { ComponentType, ReactNode } from 'react';
 
-/** Wrap React.lazy to auto-reload once when a stale chunk (post-deploy) fails to load. */
-function lazyWithReload<T extends ComponentType<unknown>>(
-  factory: () => Promise<{ default: T }>,
+/**
+ * Wrap React.lazy to auto-reload once when a stale chunk (post-deploy) fails to load.
+ *
+ * `namespaces` charge en parallèle les namespaces i18n de la route : ils sont
+ * donc prêts avant le montage, sous le `<Suspense>` qui enveloppe déjà chaque
+ * route. Sans cela, `useSuspense: false` afficherait les clés brutes le temps du
+ * chargement. `loadNamespaces` ne rejette jamais : un chunk de langue manquant
+ * ne doit pas déclencher le rechargement de page réservé aux chunks périmés.
+ */
+function lazyWithReload<P extends object>(
+  factory: () => Promise<{ default: ComponentType<P> }>,
+  namespaces?: readonly string[],
 ) {
   return lazy(async () => {
     try {
-      return await factory();
+      const [mod] = await Promise.all([
+        factory(),
+        namespaces?.length ? loadNamespaces(namespaces) : undefined,
+      ]);
+      return mod;
     } catch (err) {
       const KEY = 'mm-chunk-reload';
       if (typeof window !== 'undefined' && !sessionStorage.getItem(KEY)) {
@@ -25,7 +38,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 import { useTranslation } from 'react-i18next';
-import './i18n';
+import { loadNamespaces } from './i18n';
 import { pageVariants, pageTransition } from './lib/animations';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -38,7 +51,9 @@ import Footer from './components/layout/Footer';
 import ScrollProgress from './components/shared/ScrollProgress';
 import CookieBanner from './components/shared/CookieBanner';
 import LanguageSuggestionBanner from './components/shared/LanguageSuggestionBanner';
-import SearchOverlay from './components/shared/SearchOverlay';
+// Ne s'ouvre que sur action ; il renvoie `null` tant que `open` est faux, donc
+// le monter à la demande ne change rien au comportement.
+const SearchOverlay = lazyWithReload(() => import('./components/shared/SearchOverlay'));
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import MetaPixelTracker from './components/tracking/MetaPixelTracker';
 import PopupManager from './components/popups/PopupManager';
@@ -47,67 +62,69 @@ import Forbidden403 from './pages/Forbidden403';
 import NotFound from './pages/NotFound';
 
 // Lazy-loaded public pages
-const About = lazyWithReload(() => import('./pages/About'));
-const Blog = lazyWithReload(() => import('./pages/Blog'));
-const BlogPost = lazyWithReload(() => import('./pages/BlogPost'));
+const About = lazyWithReload(() => import('./pages/About'), ['about']);
+const Blog = lazyWithReload(() => import('./pages/Blog'), ['blog']);
+const BlogPost = lazyWithReload(() => import('./pages/BlogPost'), ['blog']);
 const Formations = lazyWithReload(() => import('./pages/Formations'));
 const FormationDetail = lazyWithReload(() => import('./pages/FormationDetail'));
-const Podcasts = lazyWithReload(() => import('./pages/Podcasts'));
-const PodcastDetail = lazyWithReload(() => import('./pages/PodcastDetail'));
-const Videos = lazyWithReload(() => import('./pages/Videos'));
-const VideoDetail = lazyWithReload(() => import('./pages/VideoDetail'));
-const FAQPage = lazyWithReload(() => import('./pages/FAQ'));
-const Contact = lazyWithReload(() => import('./pages/Contact'));
-const Agence = lazyWithReload(() => import('./pages/Agence'));
-const PresenceDigitale = lazyWithReload(() => import('./pages/PresenceDigitale'));
-const PresenceDevis = lazyWithReload(() => import('./pages/PresenceDevis'));
-const MentionsLegales = lazyWithReload(() => import('./pages/legal/MentionsLegales'));
-const Confidentialite = lazyWithReload(() => import('./pages/legal/Confidentialite'));
-const CGV = lazyWithReload(() => import('./pages/legal/CGV'));
-const CGU = lazyWithReload(() => import('./pages/legal/CGU'));
-const CookiesPage = lazyWithReload(() => import('./pages/legal/CookiesPage'));
+const Podcasts = lazyWithReload(() => import('./pages/Podcasts'), ['media']);
+const PodcastDetail = lazyWithReload(() => import('./pages/PodcastDetail'), ['media']);
+const Videos = lazyWithReload(() => import('./pages/Videos'), ['media']);
+const VideoDetail = lazyWithReload(() => import('./pages/VideoDetail'), ['media']);
+const FAQPage = lazyWithReload(() => import('./pages/FAQ'), ['faq']);
+const Contact = lazyWithReload(() => import('./pages/Contact'), ['contact']);
+const Agence = lazyWithReload(() => import('./pages/Agence'), ['agency']);
+const PresenceDigitale = lazyWithReload(() => import('./pages/PresenceDigitale'), ['presence']);
+const PresenceDevis = lazyWithReload(() => import('./pages/PresenceDevis'), ['presence']);
+const MentionsLegales = lazyWithReload(() => import('./pages/legal/MentionsLegales'), ['legal']);
+const Confidentialite = lazyWithReload(() => import('./pages/legal/Confidentialite'), ['legal']);
+const CGV = lazyWithReload(() => import('./pages/legal/CGV'), ['legal']);
+const CGU = lazyWithReload(() => import('./pages/legal/CGU'), ['legal']);
+const CookiesPage = lazyWithReload(() => import('./pages/legal/CookiesPage'), ['legal']);
 import { AdminRoute, ProtectedRoute } from './components/routing/ProtectedRoute';
-import RysmoWidget from './components/ai/RysmoWidget';
+// Rendu uniquement dans `LmsLayout`, mais l'import statique le plaçait — avec
+// DOMPurify — dans le chunk d'entrée de chaque visiteur anonyme.
+const RysmoWidget = lazyWithReload(() => import('./components/ai/RysmoWidget'), ['rysmo']);
 
 // Lazy-loaded routes — not needed on first public page load
-const Login = lazyWithReload(() => import('./pages/auth/Login'));
-const Register = lazyWithReload(() => import('./pages/auth/Register'));
-const ResetPassword = lazyWithReload(() => import('./pages/auth/ResetPassword'));
-const StudentLayout = lazyWithReload(() => import('./components/layout/StudentLayout'));
-const DashboardPage = lazyWithReload(() => import('./pages/lms/routes/DashboardPage'));
-const CoursesPage = lazyWithReload(() => import('./pages/lms/routes/CoursesPage'));
-const NotesPage = lazyWithReload(() => import('./pages/lms/routes/NotesPage'));
-const MessagesPage = lazyWithReload(() => import('./pages/lms/routes/MessagesPage'));
-const AchievementsPage = lazyWithReload(() => import('./pages/lms/routes/AchievementsPage'));
-const ProfilePage = lazyWithReload(() => import('./pages/lms/routes/ProfilePage'));
-const SettingsPage = lazyWithReload(() => import('./pages/lms/routes/SettingsPage'));
-const ClubPage = lazyWithReload(() => import('./pages/lms/routes/ClubPage'));
-const RysmoPage = lazyWithReload(() => import('./pages/lms/routes/RysmoPage'));
-const TestimonialsPage = lazyWithReload(() => import('./pages/lms/routes/TestimonialsPage'));
-const CoursePlayer = lazyWithReload(() => import('./pages/lms/CoursePlayer'));
-const Checkout = lazyWithReload(() => import('./pages/lms/Checkout'));
-const PaymentReturn = lazyWithReload(() => import('./pages/lms/PaymentReturn'));
-const AdminLayout = lazyWithReload(() => import('./components/layout/AdminLayout'));
-const AdminDashboard = lazyWithReload(() => import('./pages/admin/AdminDashboard'));
-const AdminArticles = lazyWithReload(() => import('./pages/admin/AdminArticles'));
-const AdminFormations = lazyWithReload(() => import('./pages/admin/AdminFormations'));
-const AdminUsers = lazyWithReload(() => import('./pages/admin/AdminUsers'));
-const AdminMessages = lazyWithReload(() => import('./pages/admin/AdminMessages'));
-const AdminAnalytics = lazyWithReload(() => import('./pages/admin/AdminAnalytics'));
-const AdminSettings = lazyWithReload(() => import('./pages/admin/AdminSettings'));
-const AdminPodcasts = lazyWithReload(() => import('./pages/admin/AdminPodcasts'));
-const AdminVideos = lazyWithReload(() => import('./pages/admin/AdminVideos'));
-const AdminTransactions = lazyWithReload(() => import('./pages/admin/AdminTransactions'));
-const AdminCoupons = lazyWithReload(() => import('./pages/admin/AdminCoupons'));
-const AdminAnnouncements = lazyWithReload(() => import('./pages/admin/AdminAnnouncements'));
-const AdminFAQ = lazyWithReload(() => import('./pages/admin/AdminFAQ'));
-const AdminTestimonials = lazyWithReload(() => import('./pages/admin/AdminTestimonials'));
-const AdminAppointments = lazyWithReload(() => import('./pages/admin/AdminAppointments'));
-const AdminClubDigitos = lazyWithReload(() => import('./pages/admin/AdminClubDigitos'));
-const AdminAgencyLeads = lazyWithReload(() => import('./pages/admin/AdminAgencyLeads'));
-const AdminMissions = lazyWithReload(() => import('./pages/admin/AdminMissions'));
-const AdminRedirects = lazyWithReload(() => import('./pages/admin/AdminRedirects'));
-const CertificatePage = lazyWithReload(() => import('./pages/lms/Certificate'));
+const Login = lazyWithReload(() => import('./pages/auth/Login'), ['auth']);
+const Register = lazyWithReload(() => import('./pages/auth/Register'), ['auth']);
+const ResetPassword = lazyWithReload(() => import('./pages/auth/ResetPassword'), ['auth']);
+const StudentLayout = lazyWithReload(() => import('./components/layout/StudentLayout'), ['lms']);
+const DashboardPage = lazyWithReload(() => import('./pages/lms/routes/DashboardPage'), ['lms', 'lmsTabs']);
+const CoursesPage = lazyWithReload(() => import('./pages/lms/routes/CoursesPage'), ['lms', 'lmsTabs']);
+const NotesPage = lazyWithReload(() => import('./pages/lms/routes/NotesPage'), ['lms', 'lmsTabs']);
+const MessagesPage = lazyWithReload(() => import('./pages/lms/routes/MessagesPage'), ['lms', 'lmsTabs']);
+const AchievementsPage = lazyWithReload(() => import('./pages/lms/routes/AchievementsPage'), ['lms', 'lmsTabs']);
+const ProfilePage = lazyWithReload(() => import('./pages/lms/routes/ProfilePage'), ['lms', 'lmsTabs']);
+const SettingsPage = lazyWithReload(() => import('./pages/lms/routes/SettingsPage'), ['lmsTabs']);
+const ClubPage = lazyWithReload(() => import('./pages/lms/routes/ClubPage'), ['club', 'lms']);
+const RysmoPage = lazyWithReload(() => import('./pages/lms/routes/RysmoPage'), ['lms', 'lmsTabs']);
+const TestimonialsPage = lazyWithReload(() => import('./pages/lms/routes/TestimonialsPage'), ['lms', 'lmsTabs']);
+const CoursePlayer = lazyWithReload(() => import('./pages/lms/CoursePlayer'), ['lms']);
+const Checkout = lazyWithReload(() => import('./pages/lms/Checkout'), ['lms']);
+const PaymentReturn = lazyWithReload(() => import('./pages/lms/PaymentReturn'), ['lms']);
+const AdminLayout = lazyWithReload(() => import('./components/layout/AdminLayout'), ['admin', 'lms']);
+const AdminDashboard = lazyWithReload(() => import('./pages/admin/AdminDashboard'), ['admin']);
+const AdminArticles = lazyWithReload(() => import('./pages/admin/AdminArticles'), ['admin']);
+const AdminFormations = lazyWithReload(() => import('./pages/admin/AdminFormations'), ['admin']);
+const AdminUsers = lazyWithReload(() => import('./pages/admin/AdminUsers'), ['admin', 'adminClub']);
+const AdminMessages = lazyWithReload(() => import('./pages/admin/AdminMessages'), ['admin']);
+const AdminAnalytics = lazyWithReload(() => import('./pages/admin/AdminAnalytics'), ['admin']);
+const AdminSettings = lazyWithReload(() => import('./pages/admin/AdminSettings'), ['admin']);
+const AdminPodcasts = lazyWithReload(() => import('./pages/admin/AdminPodcasts'), ['admin']);
+const AdminVideos = lazyWithReload(() => import('./pages/admin/AdminVideos'), ['admin']);
+const AdminTransactions = lazyWithReload(() => import('./pages/admin/AdminTransactions'), ['admin']);
+const AdminCoupons = lazyWithReload(() => import('./pages/admin/AdminCoupons'), ['admin']);
+const AdminAnnouncements = lazyWithReload(() => import('./pages/admin/AdminAnnouncements'), ['admin']);
+const AdminFAQ = lazyWithReload(() => import('./pages/admin/AdminFAQ'), ['admin']);
+const AdminTestimonials = lazyWithReload(() => import('./pages/admin/AdminTestimonials'), ['admin']);
+const AdminAppointments = lazyWithReload(() => import('./pages/admin/AdminAppointments'), ['admin']);
+const AdminClubDigitos = lazyWithReload(() => import('./pages/admin/AdminClubDigitos'), ['admin', 'adminClub']);
+const AdminAgencyLeads = lazyWithReload(() => import('./pages/admin/AdminAgencyLeads'), ['admin']);
+const AdminMissions = lazyWithReload(() => import('./pages/admin/AdminMissions'), ['admin']);
+const AdminRedirects = lazyWithReload(() => import('./pages/admin/AdminRedirects'), ['admin']);
+const CertificatePage = lazyWithReload(() => import('./pages/lms/Certificate'), ['lms']);
 
 function PageLoader() {
   const { t } = useTranslation('common');
@@ -147,7 +164,11 @@ function PublicLayout() {
       </a>
       <ScrollProgress />
       <Header onSearchOpen={() => setSearchOpen(true)} />
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+      {searchOpen && (
+        <Suspense fallback={null}>
+          <SearchOverlay open onClose={() => setSearchOpen(false)} />
+        </Suspense>
+      )}
       <main id="main-content" className="min-h-screen">
         <PageTransition>
           <Outlet />
@@ -181,7 +202,10 @@ function LmsLayout() {
     <>
       <MetaPixelTracker />
       <Outlet />
-      <RysmoWidget />
+      {/* `LmsLayout` n'est pas lui-même sous <Suspense> : le widget porte le sien. */}
+      <Suspense fallback={null}>
+        <RysmoWidget />
+      </Suspense>
       <ScrollRestoration />
     </>
   );

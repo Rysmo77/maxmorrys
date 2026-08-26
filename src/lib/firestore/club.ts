@@ -1,7 +1,7 @@
 import {
   doc, getDoc, setDoc, deleteDoc, updateDoc,
   arrayUnion, arrayRemove, increment,
-  orderBy, limit as firestoreLimit,
+  orderBy, where, limit as firestoreLimit,
   type DocumentData,
 } from 'firebase/firestore';
 import { getCollection, getDocById, createDoc, setDocById, deleteDocById, updateDocById, db } from './helpers';
@@ -220,8 +220,10 @@ export async function saveClubProfile(userId: string, data: Omit<ClubMemberProfi
 }
 
 export async function getClubMemberProfiles(): Promise<ClubMemberProfile[]> {
-  const all = await getCollection<ClubMemberProfile>('club_profiles');
-  return all.filter((p) => p.visible).sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
+  // `visible` est un booléen stocké : le filtre part au serveur (index à champ
+  // unique, automatique et gratuit) au lieu de facturer les profils masqués.
+  const visible = await getCollection<ClubMemberProfile>('club_profiles', where('visible', '==', true));
+  return visible.sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
 }
 
 /** Admin : tous les profils, visibles ou non. */

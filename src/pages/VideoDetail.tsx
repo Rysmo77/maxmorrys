@@ -11,7 +11,8 @@ import FormationCTA from '../components/shared/FormationCTA';
 import VideoCard from '../components/shared/VideoCard';
 import TranslatedText from '../components/shared/TranslatedText';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
-import { markdownToHtml } from '../lib/utils';
+import { markdownToHtml } from '../lib/markdown';
+import { queryClient, queryKeys } from '../lib/queryClient';
 import { useFormat } from '../hooks/useFormat';
 import type { Video } from '../types';
 import { trackViewItem, trackVideoPlay } from '../lib/tracking';
@@ -52,7 +53,10 @@ export default function VideoDetail() {
       if (data) {
         trackViewItem({ id: data.id, name: data.title, category: data.category, content_type: 'video' });
         trackVideoPlay(data.id, data.title);
-        getPublishedVideos().then((all) => setOthers(all.filter((v) => v.id !== data.id).slice(0, 10))).catch(() => null);
+        queryClient
+          .fetchQuery({ queryKey: queryKeys.publishedVideos, queryFn: () => getPublishedVideos() })
+          .then((all) => setOthers(all.filter((v) => v.id !== data.id).slice(0, 10)))
+          .catch(() => null);
       }
     }).catch(() => setVideo(null));
   }, [slug, language]);

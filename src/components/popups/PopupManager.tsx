@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useBlocker, useLocation, type BlockerFunction } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toCanonicalPath, localizedPath } from '../../i18n/routing';
 import { trackEvent } from '../../lib/tracking';
-import { getPublishedFormations, getFormationBySlug } from '../../lib/firestore';
+import { queryClient, queryKeys } from '../../lib/queryClient';
+// Imports directs plutôt que via le barrel `lib/firestore` : celui-ci fait
+// `export *` sur 17 modules, ce qui en tirait plusieurs dans le chunk d'entrée.
+import { getPublishedFormations, getFormationBySlug } from '../../lib/firestore/formations';
 import type { Formation } from '../../types';
 import { captureEntrySource, type EntrySource } from '../../lib/popups/entrySource';
 import { loadPopupSettings, type PopupSettings } from '../../lib/popups/settings';
@@ -16,14 +19,20 @@ import { getVariant, type PopupVariant } from '../../lib/popups/variant';
 import { sendPopupEvent } from '../../lib/popups/beacon';
 import { getPendingCart, clearCartPending } from '../../lib/popups/cart';
 import { useExitIntent } from '../../hooks/useExitIntent';
-import PopupSurface from './PopupSurface';
-import PopupAurora from './PopupAurora';
-import AudienceRouterPopup from './AudienceRouterPopup';
-import FormationsEntryPopup from './FormationsEntryPopup';
-import FormationExitPopup from './FormationExitPopup';
-import PresenceExitPopup from './PresenceExitPopup';
-import BlogEndPopup from './BlogEndPopup';
-import CartRecoveryPopup from './CartRecoveryPopup';
+/*
+  L'arbitre reste en import direct (cf. son montage dans `App.tsx`), mais les
+  surfaces qu'il rend ne le sont plus : elles pesaient dans le chunk d'entrée de
+  chaque visiteur alors que `PopupManager` renvoie `null` la quasi-totalité du
+  temps. Elles ne sont demandées qu'au moment où une pop-up devient active.
+*/
+const PopupSurface = lazy(() => import('./PopupSurface'));
+const PopupAurora = lazy(() => import('./PopupAurora'));
+const AudienceRouterPopup = lazy(() => import('./AudienceRouterPopup'));
+const FormationsEntryPopup = lazy(() => import('./FormationsEntryPopup'));
+const FormationExitPopup = lazy(() => import('./FormationExitPopup'));
+const PresenceExitPopup = lazy(() => import('./PresenceExitPopup'));
+const BlogEndPopup = lazy(() => import('./BlogEndPopup'));
+const CartRecoveryPopup = lazy(() => import('./CartRecoveryPopup'));
 
 /**
  * Arbitre UNIQUE des pop-ups contextuelles du site public.
@@ -77,7 +86,16 @@ export default function PopupManager() {
 
   const path = normalizePath(pathname);
   const activeTrigger = active?.trigger ?? null;
-  const pendingCartSlug = getPendingCart();
+  /*
+    Lecture localStorage + `JSON.parse`. Mémoïsée : cet arbitre est monté sur
+    toutes les pages publiques et re-rend à chaque navigation comme à chaque
+    rendu des providers auth/langue. `active` figure dans les dépendances pour
+    que la fermeture d'une fenêtre relise le marqueur effacé par `clearCartPending`.
+  */
+  // `path` et `active` ne sont pas des dépendances au sens strict : ce sont les
+  // deux moments où le marqueur a pu changer sous nos pieds.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const pendingCartSlug = useMemo(() => getPendingCart(), [path, active]);
 
   useEffect(() => {
     setSource(captureEntrySource());
@@ -88,7 +106,7 @@ export default function PopupManager() {
     témoin — parce que son objet est précisément de voir une fenêtre que les verrous empêchent
     d'apparaître. Il ne consomme aucun plafond et n'émet aucun événement.
   */
-  const forced = readPopupOverride(search);
+  const forced = useMemo(() => readPopupOverride(search), [search]);
   useEffect(() => {
     if (forced) setActive({ id: forced, trigger: 'forced' });
   }, [forced]);
@@ -138,7 +156,11 @@ export default function PopupManager() {
   useEffect(() => {
     if (!enabled || candidate?.id !== 'formationsEntry' || featured) return;
     let alive = true;
-    getPublishedFormations()
+    // `fetchQuery` et non un appel direct : la page d'accueil, la recherche et
+    // les fiches de contenu lisent la même liste sous cette clé — une seule
+    // lecture Firestore pour tout le monde, et rien si le cache est déjà chaud.
+    queryClient
+      .fetchQuery({ queryKey: queryKeys.publishedFormations, queryFn: () => getPublishedFormations() })
       .then((list) => {
         if (!alive || list.length === 0) return;
         setFeatured(list.find((f) => f.featured) ?? list[0]);
@@ -174,7 +196,6 @@ export default function PopupManager() {
     isSignedIn: context.isSignedIn,
     pendingCartSlug,
     eligibleHere: definition?.id ?? null,
-    blockedBy: definition ? blockedBy(definition.id) : 'noneEligibleOnThisPath',
     settingsLoaded: settings !== null,
     enabled,
     variant,
@@ -182,7 +203,20 @@ export default function PopupManager() {
     activePopup: active?.id ?? null,
   };
   useEffect(() => {
-    installPopupDebug(() => ({ context: contextRef.current }));
+    installPopupDebug(() => {
+      /*
+        `blockedBy` lit un sessionStorage et deux localStorage. Calculé ICI, au
+        moment où quelqu'un appelle `why()`, et non à chaque rendu : la valeur
+        n'a jamais servi qu'à ce diagnostic.
+      */
+      const eligible = contextRef.current.eligibleHere as PopupId | null;
+      return {
+        context: {
+          ...contextRef.current,
+          blockedBy: eligible ? blockedBy(eligible) : 'noneEligibleOnThisPath',
+        },
+      };
+    });
   }, []);
 
   // ── Ouverture et mesure ──────────────────────────────────────────────────────────────────────
@@ -327,15 +361,19 @@ export default function PopupManager() {
 
   /** Enveloppe commune : la surface ne varie que par son panneau média et son contenu. */
   const surface = (media: React.ReactNode, children: React.ReactNode) => (
-    <PopupSurface
-      open
-      onClose={() => close(active.id, 'close')}
-      title={t(`popups.${active.id}.title`)}
-      mobileSurface={mobileSurface}
-      media={media}
-    >
-      {children}
-    </PopupSurface>
+    // `null` en repli : une pop-up qui apparaît une fraction de seconde plus tard
+    // est préférable à un état de chargement par-dessus la page.
+    <Suspense fallback={null}>
+      <PopupSurface
+        open
+        onClose={() => close(active.id, 'close')}
+        title={t(`popups.${active.id}.title`)}
+        mobileSurface={mobileSurface}
+        media={media}
+      >
+        {children}
+      </PopupSurface>
+    </Suspense>
   );
 
   switch (active.id) {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -43,8 +43,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
+  /*
+    `addToast` est déjà stable, mais pas l'objet qui l'enveloppe : sans ce memo,
+    l'apparition d'un toast — et sa fermeture automatique 4 s plus tard —
+    re-rendait tous les `useToast()` de la page.
+  */
+  const value = useMemo(() => ({ addToast }), [addToast]);
+
   return (
-    <ToastContext.Provider value={{ addToast }}>
+    <ToastContext.Provider value={value}>
       {children}
       <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-sm" aria-live="polite" aria-atomic="false">
         {toasts.map((toast) => {
