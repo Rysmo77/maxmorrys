@@ -64,53 +64,68 @@ export async function handlePrerender(
       ? canonicalizeSegments(rawPath === '/en' ? '/' : rawPath.slice(3)) || '/'
       : rawPath;
 
-  let meta: PageMeta | null = null;
+  /*
+    Producteur unique : construction de la meta ET traduction anglaise, toutes
+    deux DANS l'enveloppe de cache.
 
-  const staticMeta = staticPages[canonicalPath];
-  if (staticMeta) {
-    const frUrl = `${SITE_URL}${canonicalPath}`;
-    const enUrl = `${SITE_URL}${enPath(canonicalPath)}`;
-    meta = {
-      ...staticMeta,
-      altFr: frUrl,
-      altEn: enUrl,
-      lang,
-      canonical: lang === 'en' ? enUrl : staticMeta.canonical || frUrl,
-    };
-  }
+    La traduction s'exécutait auparavant après le cache — et les pages statiques
+    ne le traversaient pas du tout. Chaque vue d'une page anglaise payait donc un
+    `getAll` Firestore en REST depuis le PoP jusqu'à GCP, en plein TTFB, pour un
+    résultat presque toujours déjà en cache ; et sur défaut, un appel Gemini
+    synchrone dans le chemin de la requête. Le français n'était pas concerné.
 
-  if (!meta) {
-    const db = getFirestore(env);
-    const entry = await cached<CachedMeta>(
-      env,
-      ctx,
-      `content:v1:${lang}:${canonicalPath}`,
-      CONTENT_TTL_SECONDS,
-      async () => {
-        const found = await getContentMeta(db, canonicalPath, lang);
-        return found ? { found: true, meta: found } : { found: false };
-      },
-    );
-    if (entry.found) meta = entry.meta;
-    else if (!entry.found) {
-      // Mémoriser aussi l'absence, avec un TTL plus court.
-      ctx.waitUntil(
-        env.SEO.put(`content:v1:${lang}:${canonicalPath}`, JSON.stringify(entry), {
-          expirationTtl: MISS_TTL_SECONDS,
-        }).catch(() => undefined),
+    La clé passe en `meta:v2` : les entrées `content:v1` contiennent des metas
+    non traduites et ne doivent pas être réutilisées telles quelles.
+  */
+  const cacheKey = `meta:v2:${lang}:${canonicalPath}`;
+
+  const produce = async (): Promise<CachedMeta> => {
+    let built: PageMeta | null = null;
+
+    const staticMeta = staticPages[canonicalPath];
+    if (staticMeta) {
+      const frUrl = `${SITE_URL}${canonicalPath}`;
+      const enUrl = `${SITE_URL}${enPath(canonicalPath)}`;
+      built = {
+        ...staticMeta,
+        altFr: frUrl,
+        altEn: enUrl,
+        lang,
+        canonical: lang === 'en' ? enUrl : staticMeta.canonical || frUrl,
+      };
+    } else {
+      built = await getContentMeta(getFirestore(env), canonicalPath, lang);
+    }
+
+    if (!built) return { found: false };
+
+    if (lang === 'en' && !built.noIndex) {
+      built = await translateMetaToEn(
+        getFirestore(env),
+        { baseUrl: env.GEMINI_BASE_URL, apiKey: env.GOOGLE_AI_API_KEY },
+        built,
       );
     }
+
+    return { found: true, meta: built };
+  };
+
+  const entry = await cached<CachedMeta>(env, ctx, cacheKey, CONTENT_TTL_SECONDS, produce);
+
+  let meta: PageMeta | null = null;
+  if (entry.found) {
+    meta = entry.meta;
+  } else {
+    // Mémoriser aussi l'absence, avec un TTL plus court : les robots martèlent
+    // les routes inconnues.
+    ctx.waitUntil(
+      env.SEO.put(cacheKey, JSON.stringify(entry), { expirationTtl: MISS_TTL_SECONDS }).catch(
+        () => undefined,
+      ),
+    );
   }
 
   if (!meta) meta = unknownRouteMeta(rawPath, canonicalPath, lang);
-
-  // Traduction des champs visibles pour les pages anglaises indexables.
-  if (lang === 'en' && !meta.noIndex) {
-    meta = await translateMetaToEn(getFirestore(env), {
-      baseUrl: env.GEMINI_BASE_URL,
-      apiKey: env.GOOGLE_AI_API_KEY,
-    }, meta);
-  }
 
   const shell = await getSpaShell(env, ctx);
   const shellHeaders = new Headers(shell.headers);
