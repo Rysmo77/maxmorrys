@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useBlocker, useLocation, type BlockerFunction } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { COOKIE_CONSENT_EVENT, getCookieConsent } from '../shared/CookieBanner';
 import { toCanonicalPath } from '../../i18n/routing';
 import { trackEvent } from '../../lib/tracking';
 import { getPublishedFormations } from '../../lib/firestore';
 import type { Formation } from '../../types';
 import { captureEntrySource, type EntrySource } from '../../lib/popups/entrySource';
 import { loadPopupSettings, type PopupSettings } from '../../lib/popups/settings';
-import { canShow, markShown, type PopupId } from '../../lib/popups/rules';
+import { canShow, markShown, blockedBy, type PopupId } from '../../lib/popups/rules';
+import { readPopupOverride, installPopupDebug } from '../../lib/popups/debug';
 import { useExitIntent } from '../../hooks/useExitIntent';
 import PopupSurface from './PopupSurface';
 import PopupAurora from './PopupAurora';
@@ -28,7 +28,7 @@ import FormationsEntryPopup from './FormationsEntryPopup';
  * Monté dans `PublicLayout` — donc jamais sur le LMS, l'authentification ni l'administration.
  */
 
-type PopupTrigger = 'exitIntent' | 'navigation' | 'dwell' | 'scroll';
+type PopupTrigger = 'exitIntent' | 'navigation' | 'dwell' | 'scroll' | 'forced';
 
 interface ActivePopup {
   id: PopupId;
@@ -74,16 +74,10 @@ function isUnder(path: string, root: string): boolean {
 
 export default function PopupManager() {
   const { t } = useTranslation('shared');
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { user, loading: authLoading } = useAuth();
 
   const [source, setSource] = useState<EntrySource>('unknown');
-  /*
-    Le consentement vit dans `localStorage` : rien ne le rend réactif. Sans cet état, un visiteur
-    qui accepte les cookies PUIS quitte la page ne verrait rien — les déclencheurs étaient
-    désarmés au moment du dernier rendu et rien ne les réveillerait.
-  */
-  const [consentGiven, setConsentGiven] = useState(() => getCookieConsent() !== null);
   const [settings, setSettings] = useState<PopupSettings | null>(null);
   const [active, setActive] = useState<ActivePopup | null>(null);
   const [featured, setFeatured] = useState<Formation | null>(null);
@@ -96,15 +90,19 @@ export default function PopupManager() {
     setSource(captureEntrySource());
   }, []);
 
+  /*
+    Aperçu forcé `?popup=<id>`. Contourne TOUS les verrous — plafonds, délais, réglages
+    d'administration, chemin — parce que son objet est précisément de voir une fenêtre que les
+    verrous empêchent d'apparaître. Il ne consomme aucun plafond et n'émet aucun événement.
+  */
+  const forced = readPopupOverride(search);
   useEffect(() => {
-    const sync = () => setConsentGiven(getCookieConsent() !== null);
-    window.addEventListener(COOKIE_CONSENT_EVENT, sync);
-    return () => window.removeEventListener(COOKIE_CONSENT_EVENT, sync);
-  }, []);
+    if (forced) setActive({ id: forced, trigger: 'forced' });
+  }, [forced]);
 
   // Éligibilité « bon marché » : chemin, contexte d'arrivée, plafonds locaux. Aucun réseau.
-  const agencyCandidate = consentGiven && path === AGENCY_PATH && canShow('agencyExit');
-  const formationsCandidate = consentGiven && !authLoading && !user
+  const agencyCandidate = path === AGENCY_PATH && canShow('agencyExit');
+  const formationsCandidate = !authLoading && !user
     && FORMATIONS_SOURCES.includes(source)
     && !FORMATIONS_EXCLUDED_PATHS.some((excluded) => isUnder(path, excluded))
     && canShow('formationsEntry');
@@ -145,6 +143,27 @@ export default function PopupManager() {
       });
     return () => { alive = false; };
   }, [formationsEnabled, featured]);
+
+  /*
+    Diagnostic console. `rules.ts` connaît ses propres verrous ; lui seul ignore le contexte de la
+    page — chemin courant, contexte d'arrivée, réglages d'administration. On le lui injecte, sinon
+    `why()` répondrait « éligible » sur une pop-up que le chemin exclut.
+
+    Les valeurs sont lues à l'appel via des refs : figer l'objet au montage renverrait un état
+    périmé dès le premier changement de route.
+  */
+  const contextRef = useRef<Record<string, unknown>>({});
+  contextRef.current = {
+    path,
+    entrySource: source,
+    settingsLoaded: settings !== null,
+    settings,
+    agencyExitBlockedBy: path !== AGENCY_PATH ? 'path' : blockedBy('agencyExit'),
+    activePopup: active?.id ?? null,
+  };
+  useEffect(() => {
+    installPopupDebug(() => ({ context: contextRef.current }));
+  }, []);
 
   const open = useCallback((id: PopupId, trigger: PopupTrigger) => {
     markShown(id); // consomme le plafond de session AVANT l'affichage : une seule pop-up passera
@@ -202,6 +221,15 @@ export default function PopupManager() {
     };
   }, [formationsReady, open]);
 
+  /*
+    Émetteur unique. Un affichage FORCÉ n'émet rien : l'aperçu sert à regarder une fenêtre, pas à
+    gonfler les compteurs que la mesure cherche à rendre fiables.
+  */
+  const emit = useCallback((event: string, params: Record<string, unknown>) => {
+    if (activeTrigger === 'forced') return;
+    trackEvent(event, { ...params, trigger: activeTrigger });
+  }, [activeTrigger]);
+
   // ── Fermetures ──────────────────────────────────────────────────────────────────────────────
   /*
     Fermer la fenêtre POURSUIT la navigation interceptée, jamais l'annule : le visiteur avait
@@ -209,13 +237,13 @@ export default function PopupManager() {
     un dark pattern. Seul un choix de porte annule la navigation d'origine — il la remplace.
   */
   const handleAgencyLeave = useCallback((destination: string) => {
-    trackEvent('popup_dismiss', { popup_id: 'agencyExit', trigger: activeTrigger, destination });
+    emit('popup_dismiss', { popup_id: 'agencyExit', destination });
     setActive(null);
     if (blocker.state === 'blocked') blocker.proceed();
-  }, [blocker, activeTrigger]);
+  }, [blocker, emit]);
 
   const handleAgencyChoose = useCallback((destination: 'build' | 'presence' | 'learn') => {
-    trackEvent('popup_click', { popup_id: 'agencyExit', trigger: activeTrigger, destination });
+    emit('popup_click', { popup_id: 'agencyExit', destination });
     setActive(null);
     // Un choix de porte REMPLACE la navigation interceptée : on l'abandonne au lieu de la reprendre.
     if (blocker.state === 'blocked') blocker.reset();
@@ -230,17 +258,17 @@ export default function PopupManager() {
         document.getElementById('projet')?.scrollIntoView({ block: 'start' });
       });
     }
-  }, [blocker, activeTrigger]);
+  }, [blocker, emit]);
 
   const handleFormationsDismiss = useCallback(() => {
-    trackEvent('popup_dismiss', { popup_id: 'formationsEntry', trigger: activeTrigger, destination: 'close' });
+    emit('popup_dismiss', { popup_id: 'formationsEntry', destination: 'close' });
     setActive(null);
-  }, [activeTrigger]);
+  }, [emit]);
 
   const handleFormationsAccept = useCallback(() => {
-    trackEvent('popup_click', { popup_id: 'formationsEntry', trigger: activeTrigger, destination: 'formations' });
+    emit('popup_click', { popup_id: 'formationsEntry', destination: 'formations' });
     setActive(null);
-  }, [activeTrigger]);
+  }, [emit]);
 
   if (!active) return null;
 
@@ -260,6 +288,13 @@ export default function PopupManager() {
       </PopupSurface>
     );
   }
+
+  /*
+    Rendu explicite. `PopupId` couvre déjà les six pop-ups prévues, mais quatre n'ont pas encore de
+    contenu : sans ce garde, forcer `?popup=blogEnd` afficherait la fenêtre des formations sous une
+    autre étiquette — un faux positif au moment précis où l'on cherche à vérifier quelque chose.
+  */
+  if (active.id !== 'formationsEntry') return null;
 
   return (
     <PopupSurface

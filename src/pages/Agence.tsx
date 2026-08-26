@@ -647,12 +647,16 @@ export default function Agence() {
               {/*
                 Un prospect qui commence à qualifier sa demande est déjà dans le bon tunnel :
                 l'aiguilleur d'audience de sortie n'a plus rien à lui apprendre et deviendrait
-                une interruption. `onFocus` remonte depuis les champs (le focus « bulle », pas
-                `focusin` seulement) et suffit donc au niveau du formulaire.
+                une interruption.
+
+                ⚠️ `onInput` et non `onFocus`. Le focus était trop large : une tabulation qui
+                traverse le formulaire, ou un clic pour lire une étiquette, désactivait la pop-up
+                — pendant trente jours désormais, et pour toujours dans la version d'origine.
+                Une frappe est une intention ; un focus ne l'est pas.
               */}
               <form
                 onSubmit={handleSubmit}
-                onFocus={() => markSuppressed('agencyExit')}
+                onInput={() => markSuppressed('agencyExit')}
                 className="mt-10 space-y-5"
                 noValidate
               >
