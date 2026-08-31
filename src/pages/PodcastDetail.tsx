@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Breadcrumb, Button, GlassPanel, MediaCard, Skeleton } from '@ds';
+import { Breadcrumb, Button, GlassPanel, MediaCard, Skeleton, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
@@ -134,6 +134,26 @@ export default function PodcastDetail() {
             <p className="mm-num rv mt-3 text-meta text-ink-2" style={{ ['--i' as string]: 3 }}>
               {formatDate(podcast.publishedAt)} · {podcast.duration}
             </p>
+
+            {/*
+              LE BANDEAU DE TRADUCTION, EN TÊTE DE CORPS.
+
+              Le titre, la catégorie et la description passent par `useTranslatedText` : cette
+              page sert donc bien du texte traduit à la machine, au même titre qu'un article.
+              La traduction est générée au pré-rendu ET MISE EN CACHE — une correction du
+              français n'atteint la version anglaise qu'à l'expiration du cache, et il n'y a
+              pas d'invalidation manuelle. Le dire coûte moins cher que de faire semblant.
+
+              Jamais en pied : après le contenu, un avertissement n'avertit plus.
+            */}
+            {language === 'en' && (
+              <TranslationNotice
+                date={formatDate(podcast.publishedAt)}
+                href={`/podcasts/${podcast.slug}`}
+                originalLabel={t('detail.translatedOriginal')}
+                style={{ marginTop: '18px', maxWidth: 'var(--measure-prose)' }}
+              />
+            )}
 
             {/*
               LE LECTEUR. Il ne se charge que si on le lance — `preload="none"` : sur un

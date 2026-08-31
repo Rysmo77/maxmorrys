@@ -171,6 +171,7 @@
       "Watch next"
     ],
     "notFound": "Episode not found",
-    "loading": "Loading the episode"
+    "loading": "Loading the episode",
+    "translatedOriginal": "Read the original"
   }
 }
