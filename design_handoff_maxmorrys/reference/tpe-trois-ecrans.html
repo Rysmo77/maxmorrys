@@ -1,0 +1,21 @@
+<!-- Référence de conception — Max-Morrys. group="Plateforme · apprenant" viewport="1280x1070" name="Présence Digitale" subtitle="Offre, devis partageable, grille complète — maillage Digitalise 
+     Copie de la maquette du système ; ce n'est pas du code de production. -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — Présence Digitale</title>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="stylesheet" href="board.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="./_bundle.js"></script>
+<script src="./_guard.js"></script>
+<script src="board.js"></script>
+<script type="text/babel" src="app-shell.js"></script>
+<script type="text/babel" src="screens-tpe.js"></script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+renderBoard([
+  {n:'01',titre:"Offre — l'ancrage désamorcé avant le prix",comp:'PresenceOffre',h:900},
+  {n:'02',titre:'Devis partageable — sans donnée personnelle',comp:'DevisPartageable',h:900},
+  {n:'03',titre:'Grille complète — packs et accompagnements',comp:'GrilleComplete',h:900}
+]);
+</script></body></html>

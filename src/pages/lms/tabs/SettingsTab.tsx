@@ -8,6 +8,7 @@ import { SiteEyebrow, useReveal } from '../../../components/site';
 import { functions } from '../../../config/firebase';
 import { useToast } from '../../../components/ui/Toast';
 import { useAuth } from '../../../contexts/AuthContext';
+import { tutorName } from '../../../lib/naming';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { updateUserProfile } from '../../../lib/firestore';
 
@@ -60,6 +61,10 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
   const { t } = useTranslation('lmsTabs');
   const { addToast } = useToast();
   const { signOut, user, userData, refreshUserData } = useAuth();
+  /* Le nom du répétiteur vient du profil, jamais d'une constante : chacun peut le renommer,
+     et les préférences sont l'un des deux chemins de renommage. Y écrire « Rysmo » — le nom
+     de l'APPLICATION — contredisait l'écran juste à côté. */
+  const tutor = tutorName(userData);
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const reveal = useReveal<HTMLDivElement>();
@@ -78,7 +83,7 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
         preferences: { ...userData.preferences, aiMemoryConsent: checked },
       });
       await refreshUserData();
-      addToast('success', checked ? t('settings.toastMemoryOn') : t('settings.toastMemoryOff'));
+      addToast('success', checked ? t('settings.toastMemoryOn', { tutor }) : t('settings.toastMemoryOff', { tutor }));
     } catch {
       addToast('error', t('settings.toastUpdateError'));
     } finally {
@@ -164,13 +169,13 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
       <GlassPanel level="flat" padding="6px 18px">
         <LessonRow
           state="plain"
-          title={t('settings.rysmoMemory')}
-          meta={savingConsent ? t('settings.updating') : t('settings.rysmoMemoryDesc')}
+          title={t('settings.rysmoMemory', { tutor })}
+          meta={savingConsent ? t('settings.updating') : t('settings.rysmoMemoryDesc', { tutor })}
           trailing={
             <Switch
               on={userData?.preferences?.aiMemoryConsent !== false}
               onChange={(on) => void handleToggleAiMemory(on)}
-              label={t('settings.rysmoMemory')}
+              label={t('settings.rysmoMemory', { tutor })}
             />
           }
           last

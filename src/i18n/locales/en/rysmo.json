@@ -1,6 +1,6 @@
 {
   "subtitle": "AI Tutor · Max-Morrys",
-  "greeting": "Hey {{name}}! I'm **Rysmo**, your AI tutor. I'm here to help you understand your courses, create quizzes, and recommend resources. How can I help you today?",
+  "greeting": "Hey {{name}}! I'm **{{tutor}}**, your AI tutor. I'm here to help you understand your courses, create quizzes, and recommend resources. How can I help you today?",
   "defaultName": "Student",
   "quickActions": {
     "explainConcept": "Explain a marketing concept to me",

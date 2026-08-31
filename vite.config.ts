@@ -11,8 +11,11 @@ import path from 'path';
  * sur *toutes* les pages. C'est ainsi que la page d'accueil préchargeait
  * l'intégralité des icônes utilisées par l'admin et le LMS.
  *
- * `lucide-react` n'a volontairement plus de groupe : Rollup co-localise alors
- * chaque icône avec la route qui l'utilise. `framer-motion` en garde un, lui,
+ * `lucide-react` A DISPARU DU PROJET. Il n'avait plus de groupe pour que Rollup
+ * co-localise chaque icône avec sa route ; il n'a plus de paquet du tout. Les 107
+ * glyphes qu'il servait sont entrés dans `MM_ICONS`, qui est de la DONNÉE pure —
+ * donc dans le chunk de l'entrée, pour 12,2 Ko avant gzip, et sans seconde famille.
+ * `framer-motion` en garde un, lui,
  * parce qu'il est réellement sur le chemin critique de la page d'accueil
  * (`PageTransition` dans `App.tsx`, et les nœuds `motion.*` de `Home`) —
  * l'isoler sert le cache, pas le poids.
@@ -50,7 +53,12 @@ export default defineConfig({
     }),
   ],
   resolve: {
-    alias: { '@': path.resolve(__dirname, 'src') },
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+      // Le point d'entrée unique du design system (AD-9). Une surface n'importe jamais
+      // un chemin profond de `design-system/react/`.
+      '@ds': path.resolve(__dirname, 'src/design-system'),
+    },
   },
   build: {
     sourcemap: 'hidden',

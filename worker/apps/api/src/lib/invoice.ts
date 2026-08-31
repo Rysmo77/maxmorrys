@@ -58,6 +58,10 @@ export interface Facture {
   text: string;
 }
 
+/** L'insécable, en ÉCHAPPEMENT et non en caractère littéral : invisible à la relecture,
+ *  elle est indistinguable d'une espace ordinaire — et `no-irregular-whitespace` la refuse. */
+const NB = '\u00A0';
+
 /**
  * SÉPARATEUR DE MILLIERS, À LA MAIN ET NON PAR `Intl`.
  *
@@ -71,9 +75,9 @@ export interface Facture {
  */
 export function formatMontant(montant: number, devise: string, langue: Langue): string {
   const entier = Math.round(montant);
-  const groupes = String(Math.abs(entier)).replace(/\B(?=(\d{3})+(?!\d))/g, langue === 'fr' ? ' ' : ',');
+  const groupes = String(Math.abs(entier)).replace(/\B(?=(\d{3})+(?!\d))/g, langue === 'fr' ? NB : ',');
   const signe = entier < 0 ? '-' : '';
-  return `${signe}${groupes} ${devise === 'XOF' ? 'FCFA' : devise}`;
+  return `${signe}${groupes}${NB}${devise === 'XOF' ? 'FCFA' : devise}`;
 }
 
 /** Date en toutes lettres, dans la langue du destinataire. Une facture datée « 03/04 » se lit

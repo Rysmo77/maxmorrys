@@ -74,11 +74,26 @@ describe('CGV — le contrat annonce le prix réellement débité', () => {
 describe("interface — le prix n'est jamais recopié", () => {
   for (const lang of ['fr', 'en'] as const) {
     for (const key of ['tagline', 'activateSubtitle', 'joinCta'] as const) {
-      it(`subscriptionGate.${key} (${lang}) passe par l'interpolation {{price}}`, () => {
+      it(`subscriptionGate.${key} (${lang}) n'écrit jamais un montant`, () => {
         const value: string = club[lang].subscriptionGate[key];
-        expect(value).toContain('{{price}}');
-        // Un montant en dur rendrait l'interpolation décorative.
+
+        /*
+         * LA RÈGLE EST « JAMAIS DE MONTANT EN DUR », PAS « TOUJOURS {{price}} ».
+         *
+         * Ce test exigeait `toContain('{{price}}')` sur les trois clés. Il a commencé à
+         * échouer quand `joinCta` est devenu « Rejoindre le Club » — un libellé qui ne
+         * mentionne plus de prix DU TOUT. C'est le cas le plus sûr des trois : il n'y a rien
+         * à désynchroniser. L'ancienne formulation le comptait pourtant comme une violation,
+         * c'est-à-dire qu'elle punissait la seule chaîne qui ne pouvait pas mentir.
+         *
+         * L'assertion dit maintenant ce que le commentaire d'origine disait déjà : un montant
+         * en dur rendrait l'interpolation décorative. Une clé qui interpole doit interpoler
+         * la vraie valeur ; une clé qui ne parle pas d'argent n'a rien à prouver.
+         */
         expect(value).not.toMatch(/\d[\d  ,]{3,}/);
+        if (/\d/.test(value.replace(/\{\{[^}]*\}\}/g, ''))) {
+          expect(value).toContain('{{price}}');
+        }
       });
     }
   }
@@ -88,8 +103,14 @@ describe('aucun montant du Club en dur dans le code client', () => {
   const sources = [
     'src/pages/Formations.tsx',
     'src/pages/Blog.tsx',
-    'src/pages/Videos.tsx',
-    'src/pages/Podcasts.tsx',
+    /*
+     * `Videos.tsx` et `Podcasts.tsx` ont fusionné en un seul pôle média, à l'URL que le kit
+     * nomme (`/podcast-et-videos`). Les deux anciens fichiers ont disparu, et ce test lisait
+     * encore leurs chemins : `readFileSync` échouait, ce qui se lisait « le prix est écrit en
+     * dur » alors que le fichier n'existait plus. Un test qui échoue pour la mauvaise raison
+     * ne protège plus rien.
+     */
+    'src/pages/MediaPole.tsx',
     'src/pages/lms/tabs/club/ClubSubscriptionGate.tsx',
     'src/pages/admin/hooks/useAdminClub.ts',
     'src/lib/firestore/club.ts',

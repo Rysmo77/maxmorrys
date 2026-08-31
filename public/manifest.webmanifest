@@ -1,13 +1,13 @@
 {
-  "name": "Max-Morrys",
-  "short_name": "Max-Morrys",
-  "description": "Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA.",
+  "name": "Rysmo — Max-Morrys",
+  "short_name": "Rysmo",
+  "description": "Tes formations, tes leçons et ton répétiteur. Garde tes leçons hors connexion.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0c93e7",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0057BC",
   "lang": "fr",
   "dir": "ltr",
   "categories": [
@@ -38,6 +38,18 @@
       "sizes": "1254x1254",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Reprendre ma leçon",
+      "short_name": "Reprendre",
+      "url": "/mon-espace/cours"
+    },
+    {
+      "name": "Mon répétiteur",
+      "short_name": "Répétiteur",
+      "url": "/mon-espace/repetiteur"
     }
   ]
 }

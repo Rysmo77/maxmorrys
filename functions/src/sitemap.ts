@@ -72,12 +72,26 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
   { path: '/a-propos', changefreq: 'monthly', priority: '0.7' },
   { path: '/blog', changefreq: 'daily', priority: '0.9' },
   { path: '/formations', changefreq: 'weekly', priority: '0.9' },
-  { path: '/podcasts', changefreq: 'weekly', priority: '0.8' },
-  { path: '/videos', changefreq: 'weekly', priority: '0.8' },
+  /*
+   * LE PÔLE MÉDIA, ET PAS SES DEUX ANCÊTRES. `/podcasts` et `/videos` REDIRIGENT désormais
+   * vers `/podcast-et-videos` : les laisser au sitemap y déclarait deux redirections comme
+   * des pages, ce que Google signale en « page avec redirection » et n'indexe pas. Leurs
+   * FICHES de détail, elles, gardent leurs adresses et restent poussées plus bas.
+   */
+  { path: '/podcast-et-videos', changefreq: 'weekly', priority: '0.8' },
+  /*
+   * L'autre étage du territoire violet — payant, fermé, mais sa page de vente est publique.
+   */
+  { path: '/club-des-digitos', changefreq: 'monthly', priority: '0.8' },
   { path: '/faq', changefreq: 'monthly', priority: '0.5' },
   { path: '/agence', changefreq: 'monthly', priority: '0.8' },
   { path: '/presence-digitale', changefreq: 'monthly', priority: '0.8' },
   { path: '/contact', changefreq: 'monthly', priority: '0.5' },
+  /*
+   * La vérification d'un code. Elle se cherche depuis un moteur par quelqu'un qui a un
+   * document entre les mains et ne connaît pas la marque — c'est exactement son public.
+   */
+  { path: '/verifier', changefreq: 'yearly', priority: '0.4' },
   { path: '/legal/mentions-legales', changefreq: 'yearly', priority: '0.3' },
   { path: '/legal/confidentialite', changefreq: 'yearly', priority: '0.3' },
   { path: '/legal/cgv', changefreq: 'yearly', priority: '0.3' },

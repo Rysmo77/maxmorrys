@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Rysmo",
+    "slug": "rysmo",
+    "scheme": "rysmo",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#FFFFFF",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "me.maxmorrys.rysmo"
+    },
+    "android": {
+      "package": "me.maxmorrys.rysmo",
+      "adaptiveIcon": { "backgroundColor": "#FFFFFF" }
+    },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true }
+  }
+}

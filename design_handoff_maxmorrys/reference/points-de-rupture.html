@@ -1,0 +1,61 @@
+<!-- Référence de conception — Max-Morrys. group="Points de rupture" viewport="1480x1000" name="Tablette et desktop" subtitle="Grille 2×2 à 1000 px, rangée de quatre à 1400 px, et la colonne de lecture qui ne s'élargit jamais" 
+     Copie de la maquette du système ; ce n'est pas du code de production. -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — points de rupture</title>
+<link rel="stylesheet" href="../css/styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:26px 24px 44px}
+*{box-sizing:border-box}
+.wrap{max-width:1440px;margin:0 auto}
+.eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+h1{font-family:var(--f-display);font-weight:900;font-size:40px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+p.k b{color:#fff;font-weight:600}
+.bloc{margin-top:34px;padding-top:30px;border-top:1px solid #171D24}
+.cap{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 10px}
+.cap b{display:block;margin-top:3px;font-family:var(--f-body);font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:#fff}
+.cap i{font-style:normal;color:#FFC46B}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{text-align:left;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6D7987;font-weight:400;padding:0 12px 8px 0}
+td{padding:9px 12px 9px 0;border-top:1px solid #1B222A;color:#B6C0CC;vertical-align:top}
+td b{color:#fff}
+.mono{font-family:var(--f-mono)}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="./_bundle.js"></script>
+<script src="./_guard.js"></script>
+<script type="text/babel" src="responsive.js"></script>
+</head><body><div class="wrap">
+<p class="eb">Points de rupture</p>
+<h1>Trois dispositions, et une règle<br>qui ne se négocie pas.</h1>
+<p class="k">L'espace gagné va à la marge et à la navigation, <b>jamais à la longueur de ligne</b>. Un article ou une leçon reste à 68 caractères par ligne quelle que soit la place disponible.</p>
+<table>
+<tr><th>Largeur</th><th>Cartes territoire</th><th>Navigation</th><th>Verre</th></tr>
+<tr><td class="mono"><b>&lt; 700 px</b></td><td>Empilées · chevauchement <b class="mono">−14 px</b> · chevron actif</td><td>Barre d'onglets basse, <b class="mono">80 px</b></td><td>Chrome fixe uniquement</td></tr>
+<tr><td class="mono"><b>700 → 1080</b></td><td>Grille <b>2 × 2</b> · chevron conservé · <b>aucun chevauchement</b></td><td>Latérale <b class="mono">250 px</b> en verre, quatre verbes et leur pastille</td><td>Latérale + chrome</td></tr>
+<tr><td class="mono"><b>&gt; 1080 px</b></td><td><b>Rangée de quatre</b> · la silhouette du M lue horizontalement</td><td>Supérieure flottante, détachée des bords, verbes soulignés</td><td>Barre flottante + panneaux</td></tr>
+</table>
+<p class="k" style="margin-top:16px">Pourquoi le chevron survit au-delà de 700 px alors que le chevauchement disparaît : <b>une encoche prise dans une carte large et isolée ne rappelle plus rien</b>, mais quatre chevrons posés côte à côte redonnent exactement la silhouette du logo.</p>
+
+<div class="bloc">
+  <p class="cap">700 → 1080 px<b>Catalogue en tablette · 1000 × 780</b></p>
+  <div id="t1"></div>
+</div>
+<div class="bloc">
+  <p class="cap">&gt; 1080 px<b>Accueil desktop · 1400 × 880</b> · <i>quatre chevrons en rangée</i></p>
+  <div id="t2"></div>
+</div>
+<div class="bloc">
+  <p class="cap">La règle qui ne se négocie pas<b>Article desktop · 1400 × 880</b> · <i>colonne toujours à 68 caractères</i></p>
+  <div id="t3"></div>
+</div>
+</div>
+<script type="text/babel">
+const R = window.MMRESP;
+ReactDOM.createRoot(document.getElementById('t1')).render(<MMBoundary><R.TabletteCatalogue /></MMBoundary>);
+ReactDOM.createRoot(document.getElementById('t2')).render(<MMBoundary><R.DesktopAccueil /></MMBoundary>);
+ReactDOM.createRoot(document.getElementById('t3')).render(<MMBoundary><R.DesktopArticle /></MMBoundary>);
+</script></body></html>

@@ -1,0 +1,28 @@
+<!-- Référence de conception — Max-Morrys. group="Plateforme · apprenant" viewport="3350x1010" name="Club des Digitos" subtitle="Mur d'abonnement, fil, discussions, agenda, membres, classement, opportunités, parrainage 
+     Copie de la maquette du système ; ce n'est pas du code de production. -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — Club des Digitos</title>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="stylesheet" href="board.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="./_bundle.js"></script>
+<script src="./_guard.js"></script>
+<script src="board.js"></script>
+<script type="text/babel" src="app-shell.js"></script>
+<script type="text/babel" src="screens-public.js"></script>
+<script type="text/babel" src="screens-space.js"></script>
+<script type="text/babel" src="screens-club.js"></script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+renderBoard([
+  {n:'01',titre:"Mur d'abonnement",comp:'Club',note:"prix cadré au mois et à l'année"},
+  {n:'02',titre:'Fil — bilan permanent en tête',comp:'ClubFil'},
+  {n:'03',titre:'Discussions — par catégorie',comp:'ClubDiscussions'},
+  {n:'04',titre:'Agenda — en ligne et présentiel',comp:'ClubAgenda'},
+  {n:'05',titre:'Membres — fiche et signalement',comp:'ClubMembre'},
+  {n:'06',titre:'Classement — par cohorte',comp:'ClubClassement',note:'aucun classement absolu'},
+  {n:'07',titre:'Opportunités — budgets annoncés',comp:'ClubOpportunites'},
+  {n:'08',titre:'Parrainage — 15 % au filleul',comp:'ClubParrainage'}
+]);
+</script></body></html>

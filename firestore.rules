@@ -18,6 +18,17 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    /*
+     * Une formation est gratuite si son prix effectif est nul — le prix promotionnel prime
+     * sur le prix public, exactement comme `Checkout.tsx` le calcule. Un document sans
+     * `promoPrice` retombe sur `price`.
+     */
+    function isFreeFormation(formationId) {
+      let f = get(/databases/$(database)/documents/formations/$(formationId)).data;
+      return f.status == 'published' &&
+        (('promoPrice' in f && f.promoPrice != null) ? f.promoPrice : f.price) == 0;
+    }
+
     function isAdminOrSupport() {
       return isSignedIn() &&
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
@@ -86,10 +97,30 @@ service cloud.firestore {
       // Users can read their own enrollments, admins can read all
       allow read: if isOwner(resource.data.userId) || isAdmin();
 
-      // Users can self-enroll in free courses (enrollment ID must be uid_formationId)
+      // ─────────────────────────────────────────────────────────────────────────────
+      // AUTO-INSCRIPTION : RÉSERVÉE AUX FORMATIONS RÉELLEMENT GRATUITES.
+      //
+      // Cette règle disait « free courses » en commentaire et ne le vérifiait NULLE PART.
+      // Elle n'exigeait que trois choses : être connecté, s'inscrire soi-même, et respecter
+      // le format d'identifiant. Le prix de la formation n'était jamais lu.
+      //
+      // Conséquence : n'importe quel compte connecté pouvait écrire
+      // `enrollments/{sonUid}_{idDUneFormationPayante}` et obtenir l'accès complet à une
+      // formation vendue, sans transaction. Le garde `isFree` existe bien — mais dans
+      // `Checkout.tsx`, c'est-à-dire dans le navigateur, donc chez la personne qui contourne.
+      //
+      // Le prédicat ci-dessous calque EXACTEMENT celui du client (`promoPrice ?? price`),
+      // pour qu'un catalogue à prix promotionnel nul reste inscriptible et qu'aucun parcours
+      // gratuit légitime ne casse. `status == 'published'` s'y ajoute : on ne s'inscrit pas
+      // à un brouillon.
+      //
+      // `get()` coûte une lecture par inscription. C'est le prix d'une vérification côté
+      // serveur, et il se paie une fois par personne et par formation.
+      // ─────────────────────────────────────────────────────────────────────────────
       allow create: if isSignedIn() &&
         request.resource.data.userId == request.auth.uid &&
-        enrollmentId == (request.auth.uid + '_' + request.resource.data.formationId);
+        enrollmentId == (request.auth.uid + '_' + request.resource.data.formationId) &&
+        isFreeFormation(request.resource.data.formationId);
 
       // Admins can create enrollments manually; payment webhook creates paid ones
       allow create: if isAdmin();
@@ -99,13 +130,21 @@ service cloud.firestore {
       // Progress is NOT a security gate for certificates anymore (the
       // issueCertificate Cloud Function re-derives completion server-side), so
       // progress may decrease (users can un-mark a lesson as complete).
+      //
+      // `maxProgress` est le repere de progression la plus haute jamais atteinte. Il ne
+      // pilote aucun droit : il sert uniquement a n'accorder l'XP d'apprentissage qu'une
+      // fois par palier franchi. Sans lui, decocher puis recocher une lecon rapportait de
+      // l'XP en boucle -- et cet XP alimente le classement et les badges de parrainage.
+      // Il ne peut donc que croitre, meme quand `progress` redescend.
       allow update: if isOwner(resource.data.userId) &&
         request.resource.data.userId == resource.data.userId &&
         request.resource.data.formationId == resource.data.formationId &&
         request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['completedLessons', 'progress', 'lastActivityAt', 'certificateIssued']) &&
+          .hasOnly(['completedLessons', 'progress', 'lastActivityAt', 'certificateIssued', 'maxProgress']) &&
         request.resource.data.progress >= 0 &&
-        request.resource.data.progress <= 100;
+        request.resource.data.progress <= 100 &&
+        request.resource.data.get('maxProgress', 0) >= resource.data.get('maxProgress', 0) &&
+        request.resource.data.get('maxProgress', 0) <= 100;
 
       // Admins can update any enrollment (for manual enrollments, refunds, etc.)
       allow update: if isAdmin();
@@ -493,6 +532,26 @@ service cloud.firestore {
 
       // Only admins can delete (in case of fraud)
       allow delete: if isAdmin();
+    }
+
+    // Miroir public d'un certificat, indexe PAR LE CODE de verification.
+    //
+    // Pourquoi cette collection existe : `certificates` est identifie par
+    // {uid}_{formationId}. Une page de verification qui ne connait que le code devait
+    // donc faire une requete de LISTE sur `certificates` -- que la regle ci-dessus
+    // refuse, y compris au proprietaire, puisque la requete n'est pas filtree sur
+    // userId. La verification publique etait donc cassee pour tout le monde.
+    //
+    // Ouvrir `certificates` en lecture aurait permis d'enumerer tous les certificats
+    // emis, donc de compter les clients, et aurait expose les UID. Ce miroir ne porte
+    // que ce qu'un certificat affiche deja a l'ecran, et son identifiant EST le code :
+    // la verification est un `get` direct, jamais une liste.
+    //
+    // Ecrit exclusivement par la Cloud Function issueCertificate (SDK Admin, qui
+    // contourne les regles) et par le backfill reserve aux admins.
+    match /certificate_lookups/{certificateCode} {
+      allow read: if true;
+      allow write: if false;
     }
 
     // User progress in lessons (subcollection under enrollments)

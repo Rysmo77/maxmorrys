@@ -8,6 +8,7 @@ import { captureError } from '../../lib/sentry';
 import { trackChatbotInteraction } from '../../lib/tracking';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { tutorName } from '../../lib/naming';
 import { Icon } from '@ds';
 
 interface Message {
@@ -193,7 +194,7 @@ export default function RysmoWidget() {
       setMessages([
         {
           role: 'assistant',
-          content: t('greeting', { name: displayName }),
+          content: t('greeting', { name: displayName, tutor: tutorName(userData) }),
         },
       ]);
     }
@@ -398,7 +399,20 @@ export default function RysmoWidget() {
                 <Icon name="bot" size={16} />
               </div>
               <div>
-                <p className="text-sm font-black tracking-wide">Rysmo</p>
+                {/*
+                  LE NOM DU RÉPÉTITEUR, PAS CELUI DE L'APPLICATION.
+
+                  Cette ligne écrivait « Rysmo » en dur — pas même une clé i18n. C'est
+                  exactement le défaut que le système désigne comme le plus facile à
+                  commettre : « Rysmo » est le nom de l'APPLICATION, le répétiteur qui vit
+                  dedans s'appelle « Répétiteur » par défaut et CHAQUE PERSONNE PEUT LE
+                  RENOMMER. Quelqu'un qui avait appelé le sien « Tonton » le retrouvait ici
+                  sous un autre nom, sans qu'aucun test ni aucun type ne le signale.
+
+                  L'en-tête de conversation est l'un des treize emplacements qui lisent le
+                  nom. Il le lit maintenant.
+                */}
+                <p className="text-sm font-black tracking-wide">{tutorName(userData)}</p>
                 <p className="text-[10px] text-[color:var(--paper-fixed)] font-medium">{t('subtitle')}</p>
               </div>
             </div>

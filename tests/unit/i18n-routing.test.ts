@@ -54,7 +54,7 @@ describe('localizeSegments / canonicalizeSegments', () => {
     expect(localizeSegments('/formations', 'en')).toBe('/courses');
     expect(localizeSegments('/a-propos', 'en')).toBe('/about');
     expect(localizeSegments('/legal/mentions-legales', 'en')).toBe('/legal/legal-notice');
-    expect(localizeSegments('/mon-espace/tableau-de-bord', 'en')).toBe('/my-space/dashboard');
+    expect(localizeSegments('/mon-espace/tableau-de-bord', 'en')).toBe('/my-learning/dashboard');
   });
   it('ne traduit pas les params ni les slugs inconnus', () => {
     expect(localizeSegments('/formations/:slug', 'en')).toBe('/courses/:slug');
@@ -70,7 +70,7 @@ describe('localizeSegments / canonicalizeSegments', () => {
   it('remappe EN -> FR', () => {
     expect(canonicalizeSegments('/courses')).toBe('/formations');
     expect(canonicalizeSegments('/learn/some-slug')).toBe('/cours/some-slug');
-    expect(canonicalizeSegments('/my-space/settings')).toBe('/mon-espace/parametres');
+    expect(canonicalizeSegments('/my-learning/settings')).toBe('/mon-espace/parametres');
   });
 });
 
@@ -78,7 +78,7 @@ describe('toCanonicalPath', () => {
   it('renvoie le chemin FR canonique depuis une URL EN', () => {
     expect(toCanonicalPath('/en/courses')).toBe('/formations');
     expect(toCanonicalPath('/en/about')).toBe('/a-propos');
-    expect(toCanonicalPath('/en/my-space/settings')).toBe('/mon-espace/parametres');
+    expect(toCanonicalPath('/en/my-learning/settings')).toBe('/mon-espace/parametres');
   });
   it('laisse les chemins FR inchangés', () => {
     expect(toCanonicalPath('/formations')).toBe('/formations');
@@ -94,7 +94,7 @@ describe('localizedPath avec segments', () => {
   });
   it('EN -> FR retire préfixe + remappe', () => {
     expect(localizedPath('/en/courses', 'fr')).toBe('/formations');
-    expect(localizedPath('/en/my-space/settings', 'fr')).toBe('/mon-espace/parametres');
+    expect(localizedPath('/en/my-learning/settings', 'fr')).toBe('/mon-espace/parametres');
   });
   it('idempotent même langue', () => {
     expect(localizedPath('/en/courses', 'en')).toBe('/en/courses');

@@ -20,78 +20,272 @@
       {
         "source": "/index.html",
         "headers": [
-          { "key": "Cache-Control", "value": "max-age=0, no-cache, no-store, must-revalidate" }
+          {
+            "key": "Cache-Control",
+            "value": "max-age=0, no-cache, no-store, must-revalidate"
+          }
         ]
       },
       {
         "source": "**/*.@(png|jpg|jpeg|gif|webp|avif|svg|ico|woff|woff2|ttf|webmanifest)",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=86400, stale-while-revalidate=604800"
+          }
         ]
       },
       {
         "source": "/assets/**",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
         ]
       },
       {
         "source": "**/*.@(js|css)",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
         ]
       },
       {
         "source": "**",
         "headers": [
-          { "key": "X-Content-Type-Options", "value": "nosniff" },
-          { "key": "X-Frame-Options", "value": "DENY" },
-          { "key": "X-XSS-Protection", "value": "1; mode=block" },
-          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-          { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
-          { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
-          { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://apis.google.com https://www.gstatic.com https://connect.facebook.net https://www.googletagmanager.com https://www.google-analytics.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data: blob:; font-src 'self' https://fonts.gstatic.com; media-src 'self' https://media.maxmorrys.me blob:; connect-src https://api.maxmorrys.me 'self' https://media-api.maxmorrys.me https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net wss://*.firebaseio.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.googletagmanager.com https://*.facebook.com; frame-src https://accounts.google.com https://*.firebaseapp.com https://www.youtube.com https://open.spotify.com https://embed.podcasts.apple.com https://www.googletagmanager.com https://td.doubleclick.net https://www.facebook.com; object-src 'none'; base-uri 'self'" }
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "DENY"
+          },
+          {
+            "key": "X-XSS-Protection",
+            "value": "1; mode=block"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "Permissions-Policy",
+            "value": "camera=(), microphone=(), geolocation=()"
+          },
+          {
+            "key": "Strict-Transport-Security",
+            "value": "max-age=31536000; includeSubDomains; preload"
+          },
+          {
+            "key": "Cross-Origin-Opener-Policy",
+            "value": "same-origin-allow-popups"
+          },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://apis.google.com https://www.gstatic.com https://connect.facebook.net https://www.googletagmanager.com https://www.google-analytics.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data: blob:; font-src 'self' https://fonts.gstatic.com; media-src 'self' https://media.maxmorrys.me blob:; connect-src https://api.maxmorrys.me 'self' https://media-api.maxmorrys.me https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net wss://*.firebaseio.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.googletagmanager.com https://*.facebook.com; frame-src https://accounts.google.com https://*.firebaseapp.com https://www.youtube.com https://open.spotify.com https://embed.podcasts.apple.com https://www.googletagmanager.com https://td.doubleclick.net https://www.facebook.com; object-src 'none'; base-uri 'self'"
+          }
         ]
       }
     ],
     "rewrites": [
-      { "source": "/sitemap.xml", "function": "sitemap" },
-      { "source": "/rss.xml", "function": "rss" },
-      { "source": "/catalog.csv", "function": "catalog" },
-      { "source": "/", "function": "prerender" },
-      { "source": "/blog", "function": "prerender" },
-      { "source": "/blog/**", "function": "prerender" },
-      { "source": "/formations", "function": "prerender" },
-      { "source": "/formations/**", "function": "prerender" },
-      { "source": "/podcasts", "function": "prerender" },
-      { "source": "/podcasts/**", "function": "prerender" },
-      { "source": "/videos", "function": "prerender" },
-      { "source": "/videos/**", "function": "prerender" },
-      { "source": "/faq", "function": "prerender" },
-      { "source": "/a-propos", "function": "prerender" },
-      { "source": "/contact", "function": "prerender" },
-      { "source": "/agence", "function": "prerender" },
-      { "source": "/presence-digitale", "function": "prerender" },
-      { "source": "/legal/**", "function": "prerender" },
-      { "source": "/en", "function": "prerender" },
-      { "source": "/en/blog", "function": "prerender" },
-      { "source": "/en/blog/**", "function": "prerender" },
-      { "source": "/en/courses", "function": "prerender" },
-      { "source": "/en/courses/**", "function": "prerender" },
-      { "source": "/en/podcasts", "function": "prerender" },
-      { "source": "/en/podcasts/**", "function": "prerender" },
-      { "source": "/en/videos", "function": "prerender" },
-      { "source": "/en/videos/**", "function": "prerender" },
-      { "source": "/en/faq", "function": "prerender" },
-      { "source": "/en/about", "function": "prerender" },
-      { "source": "/en/contact", "function": "prerender" },
-      { "source": "/en/agency", "function": "prerender" },
-      { "source": "/en/digital-presence", "function": "prerender" },
-      { "source": "/en/legal/**", "function": "prerender" },
+      {
+        "source": "/sitemap.xml",
+        "function": "sitemap"
+      },
+      {
+        "source": "/rss.xml",
+        "function": "rss"
+      },
+      {
+        "source": "/catalog.csv",
+        "function": "catalog"
+      },
+      {
+        "source": "/",
+        "function": "prerender"
+      },
+      {
+        "source": "/blog",
+        "function": "prerender"
+      },
+      {
+        "source": "/blog/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/formations",
+        "function": "prerender"
+      },
+      {
+        "source": "/formations/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/podcasts",
+        "function": "prerender"
+      },
+      {
+        "source": "/podcasts/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/videos",
+        "function": "prerender"
+      },
+      {
+        "source": "/videos/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/podcast-et-videos",
+        "function": "prerender"
+      },
+      {
+        "source": "/club-des-digitos",
+        "function": "prerender"
+      },
+      {
+        "source": "/verifier",
+        "function": "prerender"
+      },
+      {
+        "source": "/faq",
+        "function": "prerender"
+      },
+      {
+        "source": "/faq/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/a-propos",
+        "function": "prerender"
+      },
+      {
+        "source": "/contact",
+        "function": "prerender"
+      },
+      {
+        "source": "/agence",
+        "function": "prerender"
+      },
+      {
+        "source": "/presence-digitale",
+        "function": "prerender"
+      },
+      {
+        "source": "/legal/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/en",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/blog",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/blog/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/courses",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/courses/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/podcasts",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/podcasts/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/videos",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/videos/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/podcast-and-videos",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/digitos-club",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/verify",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/faq",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/faq/**",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/about",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/contact",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/agency",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/local-presence",
+        "function": "prerender"
+      },
+      {
+        "source": "/en/legal/**",
+        "function": "prerender"
+      },
       {
         "source": "**",
         "destination": "/index.html"
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/en/digital-presence",
+        "destination": "/en/local-presence",
+        "type": 301
+      },
+      {
+        "source": "/en/digital-presence/**",
+        "destination": "/en/local-presence/:splat",
+        "type": 301
+      },
+      {
+        "source": "/en/my-space",
+        "destination": "/en/my-learning",
+        "type": 301
+      },
+      {
+        "source": "/en/my-space/**",
+        "destination": "/en/my-learning/:splat",
+        "type": 301
+      },
+      {
+        "source": "/en/login",
+        "destination": "/en/sign-in",
+        "type": 301
       }
     ]
   },

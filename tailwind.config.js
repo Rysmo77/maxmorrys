@@ -1,329 +1,184 @@
+/**
+ * Tailwind LIT les jetons du design system — il ne les redéfinit jamais.  (AD-2)
+ *
+ * Le piège que cette configuration existe pour fermer : deux palettes concurrentes. Le dépôt
+ * portait 47 échelles maison (`brand-*`, `accent-*`, `plum-*`, `morrys-*`, `lagoon-*`,
+ * `coral-*`, `teal-*`) et 1 979 occurrences déjà posées ; le design system en apporte quatre
+ * teintes et leurs variantes nuit. Deux sources de couleur dans un même dépôt, c'est un
+ * arbitrage rendu au hasard, écran par écran, par qui écrit la ligne.
+ *
+ * Donc : toute couleur pointe ici sur une variable CSS, et les variables vivent dans
+ * `src/design-system/css/tokens/`, copies littérales du kit. Le mode sombre bascule seul, par
+ * la portée `.dk`, sans qu'aucune classe `dark:` de couleur ne soit nécessaire (AD-3).
+ *
+ * ✅ 30/08/2026 — la passe de migration est terminée : les 47 échelles héritées ont été
+ * retirées de ce fichier, et le dépôt ne compte plus une seule occurrence des noms `brand-*`,
+ * `accent-*`, `plum-*`, `morrys-*`, `lagoon-*`, `coral-*`, `teal-*`, `success-*`, `warning-*`,
+ * `error-*` ni `neutral-*`. À partir d'ici, écrire l'une de ces classes ne produit RIEN — ce qui
+ * est le but : un oubli se voit à l'écran au lieu de rendre une couleur de l'ancienne palette.
+ *
+ * ⚠️ Tailwind 3.4.1 — configuration JS. PAS la syntaxe v4 (`@theme` en CSS).
+ */
+
+/** Un jeton, tel que Tailwind doit le lire. */
+const t = (name) => `var(--${name})`;
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-  darkMode: 'class',
+
+  // Le thème est une PORTÉE CSS, pas une classe utilitaire (AD-3). `.dk` est posée sur <html>.
+  // Le variant `dark:` reste disponible pour la MISE EN PAGE ; il ne porte plus de couleur.
+  darkMode: ['selector', '.dk'],
+
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          200: '#bae0fd',
-          300: '#7cc8fb',
-          400: '#36adf6',
-          500: '#0c93e7',
-          600: '#0074c5',
-          700: '#015da0',
-          800: '#064f84',
-          900: '#0b436e',
-          950: '#072b49',
-        },
-        accent: {
-          50: '#fef9ec',
-          100: '#fcf0ca',
-          200: '#f9de90',
-          300: '#f6c957',
-          400: '#f4b52e',
-          500: '#ed9516',
-          600: '#d27010',
-          700: '#ae4f11',
-          800: '#8e3e14',
-          900: '#753314',
-          950: '#431906',
-        },
-        success: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-          950: '#052e16',
-        },
-        warning: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-          950: '#451a03',
-        },
-        error: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
-          950: '#450a0a',
-        },
-        neutral: {
-          50: '#fafafa',
-          100: '#f5f5f5',
-          200: '#e5e5e5',
-          300: '#d4d4d4',
-          400: '#a3a3a3',
-          500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
-          950: '#0a0a0a',
-        },
-        coral: {
-          50: '#fff5f1',
-          100: '#ffe7dc',
-          200: '#ffc9b3',
-          300: '#ffa180',
-          400: '#ff7a52',
-          500: '#fa5a2e',
-          600: '#e34014',
-          700: '#bc3012',
-          800: '#962815',
-          900: '#7a2415',
-          950: '#420f07',
-        },
-        plum: {
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d4ff',
-          300: '#d6b3fe',
-          400: '#bb84fc',
-          500: '#9d57f6',
-          600: '#8a3de8',
-          700: '#762ccb',
-          800: '#6225a4',
-          900: '#501e85',
-          950: '#320c5c',
-        },
-        teal: {
-          50: '#effefb',
-          100: '#c8fdf3',
-          200: '#91faea',
-          300: '#51efd9',
-          400: '#1ed8c2',
-          500: '#08bdaa',
-          600: '#04978a',
-          700: '#097870',
-          800: '#0d5f5b',
-          900: '#104f4b',
-          950: '#032f2e',
-        },
-        // NOTE: lagoon-500 (#00b4a4) ≈ teal-500 (#08bdaa) — collision intentionnelle, indiscernable à l'œil.
-        // teal   = identité Rysmo (widget chatbot, monté dans LmsLayout uniquement → espace élève).
-        // lagoon = identité Agence « Digital Commerce Local » (page /agence + bande Home → site public).
-        // RysmoWidget n'est jamais monté dans PublicLayout : les deux univers ne cohabitent pas.
-        //
-        // ⚠️ CONTRASTE : lagoon-500 sur blanc = 2,6:1 → INTERDIT pour du texte (WCAG AA exige 4,5:1).
-        //   - texte et boutons pleins sur fond clair → lagoon-700 (5,7:1 ✓)
-        //   - aplat lagoon-500 AVEC texte foncé dessus → 8,1:1 ✓ (c'est la signature visuelle de l'univers)
-        //   - texte en mode sombre → lagoon-400 sur neutral-950 (10,4:1 ✓)
-        lagoon: {
-          50: '#ecfdfa',
-          100: '#cffaf2',
-          200: '#a0f3e7',
-          300: '#67e7d7',
-          400: '#2dd1c0',
-          500: '#00b4a4',
-          600: '#009186',
-          700: '#00736c',
-          800: '#045b56',
-          900: '#084b48',
-          950: '#002e2c',
-        },
-        // NOTE: morrys-600 (#8a3de8) == plum-600 (#8a3de8) — collision intentionnelle.
-        // morrys = identité Max-Morrys (page /a-propos + eyebrow "BONJOUR !" Home + underline nav).
-        // plum   = identité Club Digitos (blocs Club partout).
-        // Les deux univers ne cohabitent jamais sur une même section, la collision visuelle est donc tolérée.
-        morrys: {
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d5ff',
-          300: '#d8b4fe',
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#8a3de8',
-          700: '#7e22ce',
-          800: '#6b21a8',
-          900: '#581c87',
-          950: '#3b0764',
+        // ── Les quatre territoires. Chaque teinte bascule seule sous `.dk`. ──────────
+        forme: t('mm-bleu'),
+        informe: t('mm-orange'),
+        transforme: t('mm-violet'),
+        digitalise: t('mm-teal'),
+        corail: t('mm-corail'),
+        // L'agence porte du texte en corail (barre haute). #FF6E7F fait 2,70:1 sur blanc :
+        // c'est cette variante-ci qui s'écrit, jamais la teinte pleine. Voir AD-20.
+        'corail-txt': t('mm-corail-t'),
+
+        // Versions TEXTE des teintes interdites sur blanc. L'orange fait 2,47:1 et le teal
+        // 2,84:1 : ni l'un ni l'autre ne porte du texte. Sous `.dk`, ces alias pointent
+        // d'eux-mêmes sur la variante nuit.
+        'informe-txt': t('mm-orange-t'),
+        'digitalise-txt': t('mm-teal-t'),
+        'transforme-txt': t('mm-violet-t'),
+
+        // ── Encre et papier ──────────────────────────────────────────────────────────
+        ink: t('ink'),
+        'ink-2': t('ink-2'),
+        // `ink-3` NE PORTE PAS DE TEXTE (AD-18) : 2,61:1 sur blanc pur, et aucun voile ne le
+        // sauve. Il reste exposé pour les filets, les puits d'icônes et l'état désactivé.
+        'ink-3': t('ink-3'),
+        paper: t('paper'),
+        'paper-2': t('paper-2'),
+        'paper-3': t('paper-3'),
+        line: t('line'),
+        night: t('night'),
+        'night-2': t('night-2'),
+        'night-3': t('night-3'),
+
+        /* ── Les deux échelles héritées que Tailwind livre LUI-MÊME ─────────────────
+           `brand`, `accent`, `plum`, `morrys`, `lagoon`, `coral`, `success`, `warning` et
+           `error` ont disparu avec le bloc hérité : ces noms n'existent nulle part ailleurs, et
+           toute occurrence oubliée est désormais une classe inexistante — visible.
+
+           `neutral` et `teal`, eux, sont DANS LA PALETTE PAR DÉFAUT de Tailwind. Les retirer
+           de `extend` ne les retire de rien : un `bg-neutral-<n>` oublié continuerait de rendre du gris,
+           et l'oubli resterait silencieux — exactement ce que la suppression du bloc hérité
+           devait rendre impossible (AD-2). On les annule donc explicitement. `white`, `black`,
+           `transparent`, `current` et le reste de la palette par défaut sont intacts.
+           ────────────────────────────────────────────────────────────────────────────── */
+        neutral: undefined,
+        teal: undefined,
+
+        // ── États ────────────────────────────────────────────────────────────────────
+        ok: t('ok'),
+        warn: t('warn'),
+        stop: t('stop'),
+
+        // ── Surfaces ─────────────────────────────────────────────────────────────────
+        surface: {
+          page: t('surface-page'),
+          card: t('surface-card'),
+          flat: t('surface-card-flat'),
+          hero: t('surface-hero'),
+          night: t('surface-night'),
+          quiet: t('surface-quiet'),
         },
       },
+
+      // Trois familles, trois rôles. Le monospace n'est PAS une option de style : il déclare
+      // qu'un nombre vient de la base ou d'une source citée (AD-5, règle 6).
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: [t('f-display')],
+        sans: [t('f-body')],
+        mono: [t('f-mono')],
       },
+
+      // L'échelle du kit, verbatim. Fraunces 900 ne descend jamais sous 22 px.
       fontSize: {
-        'heading-hero': ['clamp(2.5rem, 5vw + 1rem, 5rem)', { lineHeight: '1.05', letterSpacing: '-0.02em', fontWeight: '900' }],
-        'heading-section': ['clamp(2rem, 4vw + 0.5rem, 3.75rem)', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '900' }],
-        'heading-card': ['clamp(1.25rem, 2vw + 0.25rem, 1.5rem)', { lineHeight: '1.3', fontWeight: '700' }],
-        'heading-sub': ['1.125rem', { lineHeight: '1.4', fontWeight: '700' }],
-        'body-lg': ['1.125rem', { lineHeight: '1.75' }],
-        'body-sm': ['0.875rem', { lineHeight: '1.7' }],
-        'caption': ['0.625rem', { lineHeight: '1.5', letterSpacing: '0.15em', fontWeight: '700' }],
+        'dsp-xxl': [t('fs-dsp-xxl'), { lineHeight: t('lh-dsp-xxl'), letterSpacing: t('ls-dsp-xxl'), fontWeight: '900' }],
+        'dsp-xl': [t('fs-dsp-xl'), { lineHeight: t('lh-dsp-xl'), letterSpacing: t('ls-dsp-xl'), fontWeight: '900' }],
+        dsp: [t('fs-dsp'), { lineHeight: t('lh-dsp'), letterSpacing: t('ls-dsp'), fontWeight: '900' }],
+        'dsp-sm': [t('fs-dsp-sm'), { lineHeight: t('lh-dsp-sm'), letterSpacing: t('ls-dsp-sm'), fontWeight: '900' }],
+        'dsp-xs': [t('fs-dsp-xs'), { lineHeight: t('lh-dsp-xs'), letterSpacing: t('ls-dsp-xs'), fontWeight: '900' }],
+        ttl: [t('fs-ttl'), { letterSpacing: t('ls-ttl'), fontWeight: '900' }],
+        body: [t('fs-body'), { lineHeight: t('lh-body') }],
+        lede: [t('fs-lede'), { lineHeight: t('lh-lede') }],
+        prose: [t('fs-prose'), { lineHeight: t('lh-prose') }],
+        meta: [t('fs-meta')],
+        'meta-2': [t('fs-meta-2')],
+        small: [t('fs-small')],
+        eyebrow: [t('fs-eyebrow'), { letterSpacing: t('ls-eyebrow') }],
       },
+
+      /*
+       * L'ÉCHELLE D'ESPACEMENT DU KIT N'ENTRE PAS DANS L'ESPACE DE NOMS DE TAILWIND.
+       *
+       * La tentation était d'écrire `spacing: { 4: 'var(--sp-4)', 8: 'var(--sp-8)', … }`.
+       * Elle produit un défaut qu'aucune porte automatique ne voit : Tailwind compte en rem
+       * (`p-4` = 1rem = 16 px), le kit compte en pixels (`--sp-4` = 4 px). La clé `4` est la
+       * même, la valeur est DIVISÉE PAR QUATRE — sur 3 498 classes d'espacement du dépôt.
+       * Le typecheck passe, la build passe, le vérificateur des six règles passe. Seul l'œil
+       * voit, et seulement sur un écran déjà rendu.
+       *
+       * Les valeurs du kit servent là où le kit les écrit : dans les primitives du design
+       * system, en style calculé, qui lisent `var(--sp-N)` directement. Les surfaces, elles,
+       * continuent de compter en rem — c'est ce sur quoi elles sont bâties, et rien
+       * n'oblige les deux échelles à partager un espace de noms.
+       */
+
+      // Espacements que le kit pratique et que Tailwind n'a pas — nommés, jamais numérotés.
       spacing: {
-        18: '4.5rem',
-        88: '22rem',
-        128: '32rem',
+        gutter: t('gutter-screen'),
+        pane: t('gutter-pane'),
+        panel: t('pad-panel'),
+        tabbar: t('tabbar-h'),
+        touch: t('touch-aa'),
       },
+
       borderRadius: {
-        '4xl': '2rem',
+        s: t('r-s'),
+        m: t('r-m'),
+        l: t('r-l'),
+        xl: t('r-xl'),
+        media: t('r-media'),
+        pill: t('r-pill'),
       },
+
+      // Quatre durées, deux courbes, et rien d'autre (AD-16).
+      transitionDuration: { tap: t('t-tap'), ui: t('t-ui'), enter: t('t-enter'), scene: t('t-scene') },
+      transitionTimingFunction: { ds: t('ease'), 'ds-out': t('ease-out') },
+
+      // La seule règle de mise en page que le design system déclare non négociable (AD-14) :
+      // la colonne de lecture ne s'élargit jamais, à 1400 px comme à 390.
+      maxWidth: { prose: t('measure-prose'), doc: t('measure-doc') },
+
+      screens: { stack: '700px', wide: '1080px' },
+
       boxShadow: {
-        soft: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        glow: '0 0 20px rgba(12, 147, 231, 0.15)',
+        glass: t('glass-sh'),
+        'glass-hero': t('glass-sh-hero'),
+        'glass-flat': t('glass-sh-flat'),
+        forme: t('sh-bleu'),
+        transforme: t('sh-violet'),
+        digitalise: t('sh-teal'),
+        ink: t('sh-ink'),
+        card: t('card-sh'),
+        // Reprise de l'ancienne `shadow-soft` (12 usages) : l'ombre plate du système en est
+        // la jumelle — même famille douce et large, même opacité d'encre.
+        soft: t('glass-sh-flat'),
       },
-      animation: {
-        'fade-in': 'fadeIn 0.5s ease-out',
-        'slide-up': 'slideUp 0.5s ease-out',
-        'slide-down': 'slideDown 0.3s ease-out',
-        'scale-in': 'scaleIn 0.3s ease-out',
-        'spin-slow': 'spin 3s linear infinite',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideDown: {
-          '0%': { opacity: '0', transform: 'translateY(-10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        scaleIn: {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
-        },
-      },
-      typography: ({ theme }) => ({
-        DEFAULT: {
-          css: {
-            '--tw-prose-body': theme('colors.neutral.700'),
-            '--tw-prose-headings': theme('colors.neutral.900'),
-            '--tw-prose-lead': theme('colors.neutral.600'),
-            '--tw-prose-links': theme('colors.brand.600'),
-            '--tw-prose-bold': theme('colors.neutral.900'),
-            '--tw-prose-counters': theme('colors.brand.500'),
-            '--tw-prose-bullets': theme('colors.brand.400'),
-            '--tw-prose-hr': theme('colors.neutral.200'),
-            '--tw-prose-quotes': theme('colors.neutral.800'),
-            '--tw-prose-quote-borders': theme('colors.brand.500'),
-            '--tw-prose-captions': theme('colors.neutral.500'),
-            '--tw-prose-code': theme('colors.brand.700'),
-            '--tw-prose-pre-code': theme('colors.neutral.100'),
-            '--tw-prose-pre-bg': theme('colors.neutral.900'),
-            '--tw-prose-th-borders': theme('colors.neutral.300'),
-            '--tw-prose-td-borders': theme('colors.neutral.200'),
-            '--tw-prose-invert-body': theme('colors.neutral.300'),
-            '--tw-prose-invert-headings': theme('colors.white'),
-            '--tw-prose-invert-lead': theme('colors.neutral.400'),
-            '--tw-prose-invert-links': theme('colors.brand.400'),
-            '--tw-prose-invert-bold': theme('colors.white'),
-            '--tw-prose-invert-counters': theme('colors.brand.400'),
-            '--tw-prose-invert-bullets': theme('colors.brand.500'),
-            '--tw-prose-invert-hr': theme('colors.neutral.700'),
-            '--tw-prose-invert-quotes': theme('colors.neutral.100'),
-            '--tw-prose-invert-quote-borders': theme('colors.brand.400'),
-            '--tw-prose-invert-captions': theme('colors.neutral.400'),
-            '--tw-prose-invert-code': theme('colors.brand.300'),
-            '--tw-prose-invert-pre-code': theme('colors.neutral.300'),
-            '--tw-prose-invert-pre-bg': 'rgb(0 0 0 / 50%)',
-            '--tw-prose-invert-th-borders': theme('colors.neutral.600'),
-            '--tw-prose-invert-td-borders': theme('colors.neutral.700'),
-            // Spacing & rythme (confortable mais pas trop aere)
-            maxWidth: 'none',
-            fontSize: '1.0625rem',
-            lineHeight: '1.7',
-            'h1, h2, h3, h4': {
-              fontWeight: '900',
-              letterSpacing: '-0.02em',
-              scrollMarginTop: '6rem',
-              lineHeight: '1.25',
-            },
-            h1: { fontSize: '1.875rem', marginTop: '0', marginBottom: '1rem' },
-            h2: { fontSize: '1.5rem', marginTop: '1.625rem', marginBottom: '0.625rem' },
-            h3: { fontSize: '1.25rem', marginTop: '1.375rem', marginBottom: '0.5rem' },
-            h4: { fontSize: '1.1rem', marginTop: '1.125rem', marginBottom: '0.375rem' },
-            p: { marginTop: '0.875rem', marginBottom: '0.875rem' },
-            'ul, ol': { marginTop: '0.75rem', marginBottom: '0.75rem', paddingLeft: '1.25rem' },
-            li: { marginTop: '0.25rem', marginBottom: '0.25rem', paddingLeft: '0.25rem' },
-            'li > p': { marginTop: '0.25rem', marginBottom: '0.25rem' },
-            'li::marker': { fontSize: '0.9em' },
-            blockquote: {
-              fontStyle: 'italic',
-              borderLeftWidth: '3px',
-              paddingLeft: '1rem',
-              marginTop: '1.125rem',
-              marginBottom: '1.125rem',
-            },
-            a: {
-              fontWeight: '600',
-              textDecoration: 'underline',
-              textUnderlineOffset: '3px',
-              textDecorationThickness: '2px',
-              '&:hover': { color: theme('colors.brand.700') },
-            },
-            code: {
-              fontWeight: '600',
-              backgroundColor: theme('colors.brand.50'),
-              padding: '0.15rem 0.4rem',
-              borderRadius: '0.375rem',
-              fontSize: '0.9em',
-            },
-            'code::before': { content: '""' },
-            'code::after': { content: '""' },
-            img: {
-              borderRadius: '0.875rem',
-              marginTop: '1.125rem',
-              marginBottom: '1.125rem',
-              width: '100%',
-            },
-            hr: { marginTop: '1.625rem', marginBottom: '1.625rem' },
-            table: { fontSize: '0.95em', display: 'block', overflowX: 'auto' },
-            'thead th': { fontWeight: '700', textTransform: 'uppercase', fontSize: '0.8em', letterSpacing: '0.05em', whiteSpace: 'nowrap' },
-            pre: { overflowX: 'auto' },
-          },
-        },
-        sm: {
-          css: {
-            fontSize: '0.9375rem',
-            lineHeight: '1.65',
-            h1: { fontSize: '1.375rem' },
-            h2: { fontSize: '1.1875rem' },
-            h3: { fontSize: '1.0625rem' },
-            p: { marginTop: '0.625rem', marginBottom: '0.625rem' },
-            'ul, ol': { paddingLeft: '1rem' },
-            blockquote: { paddingLeft: '0.75rem' },
-          },
-        },
-        invert: {
-          css: {
-            code: {
-              backgroundColor: 'rgb(255 255 255 / 8%)',
-            },
-          },
-        },
-      }),
     },
   },
-  plugins: [
-    require('@tailwindcss/typography'),
-  ],
+
+  plugins: [require('@tailwindcss/typography')],
 };

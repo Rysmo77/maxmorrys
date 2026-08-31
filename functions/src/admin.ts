@@ -1,5 +1,6 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
+import { logActivity } from './audit';
 
 export const adminCreateUser = onCall(
   { region: 'us-central1' },
@@ -52,6 +53,13 @@ export const adminCreateUser = onCall(
     };
     await admin.firestore().doc(`users/${userRecord.uid}`).set(newUser);
 
+    await logActivity({
+      action: 'admin.user.create',
+      actorUid: request.auth.uid,
+      subjectUid: userRecord.uid,
+      details: { role: newUser.role },
+    });
+
     return { uid: userRecord.uid, success: true };
   }
 );
@@ -99,6 +107,12 @@ export const adminManageRysmoQuota = onCall(
       });
       const snap = await ref.get();
       const d = snap.data() ?? {};
+      await logActivity({
+        action: 'admin.rysmo.quota',
+        actorUid: request.auth.uid,
+        subjectUid: userId,
+        details: { operation: 'add', amount, newBalance },
+      });
       return { dayKey: d.dayKey ?? null, dayCount: d.dayCount ?? 0, packBalance: newBalance };
     }
 
@@ -107,6 +121,12 @@ export const adminManageRysmoQuota = onCall(
       await ref.set({ dayKey: todayKey, dayCount: 0, lastReset: Date.now() }, { merge: true });
       const snap = await ref.get();
       const d = snap.data() ?? {};
+      await logActivity({
+        action: 'admin.rysmo.quota',
+        actorUid: request.auth.uid,
+        subjectUid: userId,
+        details: { operation: 'reset' },
+      });
       return { dayKey: d.dayKey ?? null, dayCount: 0, packBalance: d.packBalance ?? 0 };
     }
 
@@ -153,9 +173,21 @@ export const adminManageEnrollment = onCall(
         completedLessons: [],
         certificateIssued: false,
       });
+      await logActivity({
+        action: 'admin.enrollment.manage',
+        actorUid: request.auth.uid,
+        subjectUid: userId,
+        details: { operation: 'create', formationId, enrollmentId },
+      });
       return { success: true, enrollmentId };
     } else if (action === 'delete') {
       await enrollmentRef.delete();
+      await logActivity({
+        action: 'admin.enrollment.manage',
+        actorUid: request.auth.uid,
+        subjectUid: userId,
+        details: { operation: 'delete', enrollmentId },
+      });
       return { success: true };
     } else {
       throw new HttpsError('invalid-argument', 'Action invalide. Utilisez "create" ou "delete".');

@@ -44,7 +44,7 @@ export {
 } from './storage-cleanup';
 
 // ── Certificates (server-side issuance) ───────────────────────────────────
-export { issueCertificate } from './certificates';
+export { issueCertificate, backfillCertificateLookups } from './certificates';
 
 // ── GDPR (user data export + account deletion) ────────────────────────────
 export { exportUserData, deleteUserAccount } from './gdpr';

@@ -20,7 +20,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
-    "paths": { "@/*": ["./src/*"] }
+    "paths": { "@/*": ["./src/*"], "@ds": ["./src/design-system"], "@ds/*": ["./src/design-system/*"] }
   },
   "include": ["src"]
 }

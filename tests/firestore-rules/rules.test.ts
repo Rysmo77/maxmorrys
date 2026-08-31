@@ -166,6 +166,78 @@ describe('enrollments — progress bounds', () => {
   });
 });
 
+describe('enrollments — repere maxProgress anti-farm XP', () => {
+  const ENR = `${ALICE}_f1`;
+  const base = {
+    userId: ALICE, formationId: 'f1', progress: 0,
+    completedLessons: [], certificateIssued: false, maxProgress: 0,
+  };
+
+  it('le proprietaire peut faire monter maxProgress', async () => {
+    await seed(`enrollments/${ENR}`, base);
+    const db = asUser(ALICE);
+    await assertSucceeds(updateDoc(doc(db, 'enrollments', ENR), { progress: 40, maxProgress: 40 }));
+  });
+
+  it('maxProgress ne peut PAS redescendre — c est ce qui empeche de refarmer l XP', async () => {
+    await seed(`enrollments/${ENR}`, { ...base, progress: 60, maxProgress: 60 });
+    const db = asUser(ALICE);
+    await assertFails(updateDoc(doc(db, 'enrollments', ENR), { progress: 20, maxProgress: 20 }));
+  });
+
+  it('progress peut redescendre pendant que maxProgress tient — decocher une lecon reste permis', async () => {
+    await seed(`enrollments/${ENR}`, { ...base, progress: 60, maxProgress: 60 });
+    const db = asUser(ALICE);
+    await assertSucceeds(updateDoc(doc(db, 'enrollments', ENR), { progress: 20, maxProgress: 60 }));
+  });
+
+  it('maxProgress ne peut pas depasser 100', async () => {
+    await seed(`enrollments/${ENR}`, base);
+    const db = asUser(ALICE);
+    await assertFails(updateDoc(doc(db, 'enrollments', ENR), { maxProgress: 140 }));
+  });
+
+  it('un tiers ne peut pas toucher au repere', async () => {
+    await seed(`enrollments/${ENR}`, base);
+    const db = asUser(BOB);
+    await assertFails(updateDoc(doc(db, 'enrollments', ENR), { maxProgress: 100 }));
+  });
+});
+
+describe('certificate_lookups — verification publique par code', () => {
+  const CODE = 'MM-ABCDEF1234';
+  const LOOKUP = {
+    certificateCode: CODE,
+    formationTitle: 'SEO local',
+    issuedAt: '2026-08-29T00:00:00.000Z',
+    holderName: 'Alice Diop',
+  };
+
+  it('un visiteur anonyme peut verifier un certificat par son code', async () => {
+    await seed(`certificate_lookups/${CODE}`, LOOKUP);
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(db, 'certificate_lookups', CODE)));
+  });
+
+  it('personne ne peut ecrire un miroir depuis le client — pas meme un admin', async () => {
+    await seed(`users/${CAROL}`, { role: 'admin' });
+    const db = asUser(CAROL);
+    await assertFails(setDoc(doc(db, 'certificate_lookups', CODE), LOOKUP));
+  });
+
+  it('le miroir reste immuable cote client', async () => {
+    await seed(`certificate_lookups/${CODE}`, LOOKUP);
+    const db = asUser(ALICE);
+    await assertFails(updateDoc(doc(db, 'certificate_lookups', CODE), { holderName: 'Quelqu un d autre' }));
+  });
+
+  it('le certificat prive, lui, reste ferme aux tiers', async () => {
+    await seed('certificates/alice_f1', { userId: ALICE, certificateCode: CODE, formationTitle: 'SEO local' });
+    const db = asUser(BOB);
+    await assertFails(getDoc(doc(db, 'certificates', 'alice_f1')));
+  });
+});
+
 describe('transactions — client creation restricted to free courses', () => {
   it('user can create a free (amount 0) completed transaction', async () => {
     const db = asUser(ALICE);
