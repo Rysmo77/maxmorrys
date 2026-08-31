@@ -66,7 +66,16 @@ export const Button = forwardRef<HTMLButtonElement & HTMLAnchorElement, ButtonPr
   const t = TONE[off ? 'disabled' : tone] ?? TONE.primary;
   const sm = size === 'sm';
 
-  const cls = ['mm-press', loading && 'mm-loading', focusInvert && 'mm-on-color', className]
+  // 42 px de DESSIN, 44 px de CIBLE — même arbitrage que `IconButton`.
+  //
+  // La taille `sm` reprend le 42 px du kit, que la consigne de fidélité interdit d'arrondir.
+  // Mais 42 est sous le plancher `--touch-aa`, et le handoff dit l'écart « assumé dans les
+  // maquettes, à ne pas reproduire en production ». `.mm-touch-extend` étend ce qui se touche
+  // sans toucher au dessin : le bouton reste à 42, la cible fait 44.
+  //
+  // Seule `sm` la porte. En `md`, `--touch-btn` vaut 54 : la classe n'aurait rien à étendre,
+  // et son `::before` centré à 44 px serait un mensonge de plus dans le DOM.
+  const cls = ['mm-press', sm && 'mm-touch-extend', loading && 'mm-loading', focusInvert && 'mm-on-color', className]
     .filter(Boolean).join(' ');
 
   const css: CSSProperties = {
