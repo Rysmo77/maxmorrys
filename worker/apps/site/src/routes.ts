@@ -18,6 +18,10 @@ const PRERENDER_EXACT = new Set([
   '/formations',
   '/podcasts',
   '/videos',
+  /* Le pôle média et l'autre étage de son territoire, plus la vérification d'un code. */
+  '/podcast-et-videos',
+  '/club-des-digitos',
+  '/verifier',
   '/faq',
   '/a-propos',
   '/contact',
@@ -28,11 +32,14 @@ const PRERENDER_EXACT = new Set([
   '/en/courses',
   '/en/podcasts',
   '/en/videos',
+  '/en/podcast-and-videos',
+  '/en/digitos-club',
+  '/en/verify',
   '/en/faq',
   '/en/about',
   '/en/contact',
   '/en/agency',
-  '/en/digital-presence',
+  '/en/local-presence',
 ]);
 
 /** Sources en `/xxx/**` — comparées en préfixe. */
@@ -41,11 +48,14 @@ const PRERENDER_PREFIXES = [
   '/formations/',
   '/podcasts/',
   '/videos/',
+  /* Une page PAR question — `/faq/<adresse>`, et sa contrepartie anglaise. */
+  '/faq/',
   '/legal/',
   '/en/blog/',
   '/en/courses/',
   '/en/podcasts/',
   '/en/videos/',
+  '/en/faq/',
   '/en/legal/',
 ];
 

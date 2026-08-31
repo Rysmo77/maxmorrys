@@ -32,6 +32,7 @@ import type { Env } from './env';
 import { handleExportDownload } from './exportDownload';
 import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
+import { sendRenewalNotices } from './lib/renewal';
 import { handleBictorysWebhook } from './webhook/bictorys';
 
 function migratedNames(env: Env): Set<string> {
@@ -100,5 +101,33 @@ export default {
     } catch (error: unknown) {
       return callableError(error, cors);
     }
+  },
+
+  /**
+   * LE RAPPEL D'ÉCHÉANCE DU CLUB — une fois par jour, à 08:00 UTC.
+   *
+   * C'est le premier `scheduled` du Worker. Il vit ici plutôt qu'en Cloud Function pour une
+   * raison simple : le canal d'envoi est le binding `EMAIL`, et un binding n'existe que dans
+   * le runtime Workers.
+   *
+   * Le cron est quotidien et la fenêtre est d'un jour calendaire exactement (voir
+   * `estAEcheance`). Une exécution manquée ne se rattrape donc pas le lendemain : « ton accès
+   * se termine dans 15 jours » écrit le quatorzième jour serait faux. Perdre un rappel est
+   * préférable à en envoyer un qui ment sur la date.
+   */
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(
+      (async () => {
+        try {
+          const bilan = await sendRenewalNotices(getFirestore(env), env);
+          console.log(
+            `Rappels d'échéance : ${bilan.envoyes} envoyé(s), ${bilan.echecs} échec(s), ` +
+              `sur ${bilan.examines} abonnement(s) actif(s).`,
+          );
+        } catch (error: unknown) {
+          console.error("Rappels d'échéance : exécution interrompue —", error);
+        }
+      })(),
+    );
   },
 } satisfies ExportedHandler<Env>;

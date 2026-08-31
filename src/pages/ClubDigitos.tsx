@@ -269,10 +269,22 @@ export default function ClubDigitos() {
             <GlassPanel level="flat" padding={22} className="rv mt-[22px] max-w-[46ch]" style={{ ['--i' as string]: 5 }}>
               <SiteEyebrow style={{ margin: 0 }}>{t('publicPage.renewalTitle')}</SiteEyebrow>
               {/*
-                CE PARAGRAPHE EST UN AVEU, PAS UNE RASSURANCE. Les conditions générales
-                promettent un renouvellement automatique avec préavis que rien n'implémente
-                (constaté au relevé du 30/08/2026). Tant que le préavis n'existe pas, la page
-                annonce l'arrêt sec — elle ne peut pas promettre un mécanisme absent.
+                CE PARAGRAPHE RESTE UN AVEU, MAIS IL A CHANGÉ D'OBJET.
+
+                Il disait « le préavis que promettent les conditions générales n'est pas
+                encore implémenté ». Il l'est désormais : cron quotidien sur le Worker,
+                e-mail à J-15 (`worker/apps/api/src/lib/renewal.ts`).
+
+                Ce qui n'existe toujours pas, et n'existera pas sur ces rails, c'est le
+                PRÉLÈVEMENT automatique. Bictorys n'expose aucun endpoint de récurrent, sa
+                tokenisation est réservée aux cartes et redemande le CVV à chaque charge, et
+                Wave n'a pas de mandat récurrent du tout. Un prélèvement automatique ne
+                serait donc possible qu'en carte — pour la minorité, en excluant le marché
+                pour lequel le produit existe.
+
+                La page nomme donc la contrainte au lieu de la masquer : rien n'est prélevé,
+                et on prévient à temps. C'est le maximum honnête, et le dire vaut mieux que
+                laisser quelqu'un le découvrir le jour où son accès s'arrête.
               */}
               <p className="mt-2 mb-0 text-[14.5px] leading-[1.6] text-ink-2">{t('publicPage.renewalBody')}</p>
             </GlassPanel>

@@ -151,8 +151,8 @@
       "sub53Body": "The Customer acknowledges that the transaction will be recorded under the trade name of the parent company, <1>MY ONOMA</1>. An invoice is automatically sent by email in the name of MY ONOMA SARL as soon as payment is confirmed.",
       "sub54Heading": "5.4 — Club des Digitos subscription",
       "sub54Body": "The subscription to the Club des Digitos is entered into for a period of twelve (12) months from the date of payment.",
-      "sub54Item1": "Upon activation, the Customer chooses between <1>automatic renewal</1> at expiry or <3>manual renewal</3>.",
-      "sub54Item2": "In the event of automatic renewal, the Customer is notified by email at least fifteen (15) days before expiry, and may disable renewal at any time from their student account.",
+      "sub54Item1": "On activation, the Client chooses whether to receive a <1>reminder before the term ends</1>. There is <3>no automatic renewal</3>: no amount is ever charged without a new action by the Client.",
+      "sub54Item2": "If the Client asked for the reminder, MY ONOMA SARL notifies them by email at least fifteen (15) days before the term ends. The Client may turn this reminder on or off at any time from their student area. When the term ends, access stops with no further formality.",
       "sub54Item3": "No pro rata refund is made in the event of cancellation during the subscription period."
     },
     "art6": {
@@ -185,7 +185,7 @@
       "Terms and conditions",
       "of sale"
     ],
-    "version": "30/08/2026"
+    "version": "31/08/2026"
   },
   "cgu": {
     "seoTitle": "Terms of use",

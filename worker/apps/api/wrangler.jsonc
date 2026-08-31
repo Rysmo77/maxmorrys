@@ -40,6 +40,11 @@
   // fuir. Le domaine `from` doit être activé au préalable (`wrangler email sending list`).
   "send_email": [{ "name": "EMAIL" }],
 
+  // Rappel d'échéance du Club, une fois par jour. La fenêtre de préavis est d'un jour
+  // calendaire exactement : une exécution manquée n'est pas rattrapée le lendemain, parce
+  // qu'un message « dans 15 jours » envoyé le quatorzième jour est faux.
+  "triggers": { "crons": ["0 8 * * *"] },
+
   // Secrets :
   //   npx wrangler secret put GCP_SA_JSON < ../../../max-morrys-<id>.json
   //   npx wrangler secret put SPOTIFY_CLIENT_ID

@@ -152,8 +152,8 @@
       "sub53Body": "Le Client reconnaît que la transaction sera enregistrée sous le nom commercial de la société mère, <1>MY ONOMA</1>. Une facture est envoyée automatiquement par e-mail au nom de MY ONOMA SARL dès validation du paiement.",
       "sub54Heading": "5.4 — Abonnement Club des Digitos",
       "sub54Body": "L'abonnement au Club des Digitos est conclu pour une durée de douze (12) mois à compter de la date de paiement.",
-      "sub54Item1": "Le Client choisit, lors de l'activation, entre un <1>renouvellement automatique</1> à l'échéance ou un <3>renouvellement manuel</3>.",
-      "sub54Item2": "En cas de renouvellement automatique, le Client est informé par e-mail au moins quinze (15) jours avant l'échéance, et peut désactiver le renouvellement à tout moment depuis son espace étudiant.",
+      "sub54Item1": "Le Client choisit, lors de l'activation, de recevoir ou non un <1>rappel avant l'échéance</1>. Il n'existe <3>aucun renouvellement automatique</3> : aucun montant n'est prélevé sans une nouvelle action du Client.",
+      "sub54Item2": "Si le Client a demandé le rappel, MY ONOMA SARL l'informe par e-mail au moins quinze (15) jours avant l'échéance. Le Client peut activer ou désactiver ce rappel à tout moment depuis son espace étudiant. À l'échéance, l'accès prend fin sans autre formalité.",
       "sub54Item3": "Aucun remboursement au prorata n'est effectué en cas de résiliation en cours d'abonnement."
     },
     "art6": {
@@ -186,7 +186,7 @@
       "Conditions générales",
       "de vente"
     ],
-    "version": "30/08/2026"
+    "version": "31/08/2026"
   },
   "cgu": {
     "seoTitle": "Conditions d'utilisation",

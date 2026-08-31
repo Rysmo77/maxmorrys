@@ -98,7 +98,7 @@ export const staticPages: Record<string, PageMeta> = {
       'Écoute le podcast de Max-Morrys : stratégies marketing digital, SEO, IA et croissance en Afrique. Disponible sur Spotify, Apple Podcasts et Deezer.',
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
-    canonical: `${SITE_URL}/podcasts`,
+    canonical: `${SITE_URL}/podcast-et-videos`,
     h1: 'Podcasts Marketing Digital',
     bodyText:
       "Le podcast Max-Morrys décrypte les stratégies marketing digital, le SEO, l'IA et la croissance des marques en Afrique francophone. Nouveaux épisodes chaque semaine.",
@@ -113,13 +113,73 @@ export const staticPages: Record<string, PageMeta> = {
       "Regarde les vidéos de Max-Morrys sur le marketing digital, le SEO et l'IA. Tutoriels pratiques et analyses sur YouTube.",
     ogType: 'website',
     ogImage: DEFAULT_OG_IMAGE,
-    canonical: `${SITE_URL}/videos`,
+    canonical: `${SITE_URL}/podcast-et-videos`,
     h1: 'Vidéos Marketing Digital',
     bodyText:
       'Les vidéos Max-Morrys : tutoriels marketing digital, analyses SEO, démonstrations IA, growth hacking. Contenu pratique en français pour entrepreneurs africains.',
     breadcrumbs: [
       { name: 'Accueil', url: `${SITE_URL}/` },
       { name: 'Vidéos', url: `${SITE_URL}/videos` },
+    ],
+  },
+  /*
+   * LE PÔLE MÉDIA — une adresse pour les deux formats, sous « Je te transforme ».
+   * `/podcasts` et `/videos` redirigent ici ; leurs entrées ci-dessus gardent une méta pour
+   * les robots qui les visitent encore, mais pointent leur canonique SUR CETTE PAGE.
+   */
+  '/podcast-et-videos': {
+    title: `Podcast & vidéos — Écouter et regarder, gratuitement | ${SITE_NAME}`,
+    description:
+      "Le podcast et les vidéos de Max-Morrys : des gens d'Afrique de l'Ouest racontent ce qu'ils ont fait pour vendre en ligne. Gratuit, sans compte, avec transcription.",
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/podcast-et-videos`,
+    h1: 'Écouter & regarder',
+    bodyText:
+      "Le blog donne des méthodes ; ici, des gens racontent ce qu'ils ont fait. Épisodes de podcast et vidéos réunis sur une seule page, gratuits et sans compte, avec une transcription pour qui compte son forfait.",
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Podcast & vidéos', url: `${SITE_URL}/podcast-et-videos` },
+    ],
+  },
+  /*
+   * LE CLUB — l'étage payant et fermé du même territoire. Sa page de vente, elle, est
+   * publique. AUCUN nombre de membres, ici comme à l'écran : le Club a ouvert cette année,
+   * le chiffre serait faible, et il se vérifie au premier écran après paiement.
+   */
+  '/club-des-digitos': {
+    title: `Le Club des Digitos — Une année avec moi | ${SITE_NAME}`,
+    description:
+      "Sessions en direct, missions qui circulent et une réponse de moi dans les discussions. 1 658 FCFA par mois, facturé 19 900 FCFA une fois par an. Wave, Orange Money ou carte.",
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/club-des-digitos`,
+    h1: 'Le Club des Digitos',
+    bodyText:
+      "Le Club des Digitos est une communauté annuelle payante, animée depuis Dakar. L'abonnement ouvre huit onglets — fil, discussions, membres, agenda, classement, opportunités, informations, parrainage — deux sessions en direct par mois, les ateliers en présentiel à Dakar, et un répétiteur porté à cinq questions par jour. 19 900 FCFA pour douze mois, soit 1 658 FCFA par mois. À l'échéance, l'accès s'arrête : rien n'est prélevé automatiquement.",
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Le Club des Digitos', url: `${SITE_URL}/club-des-digitos` },
+    ],
+  },
+  /*
+   * LA VÉRIFICATION D'UN CODE. Son public n'est pas l'apprenante mais un TIERS — employeur,
+   * client, jury — qui a un document entre les mains et cherche une réponse binaire. D'où le
+   * ton neutre, et rien à vendre sur cette page.
+   */
+  '/verifier': {
+    title: `Vérifier un certificat | ${SITE_NAME}`,
+    description:
+      "Contrôle l'authenticité d'un certificat Max-Morrys à partir de son code. Sans compte, sans inscription : la page répond à un code, et à un seul.",
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/verifier`,
+    h1: 'Vérifier un certificat',
+    bodyText:
+      "Colle le code figurant sur le document pour savoir s'il a été émis par Max-Morrys, MY ONOMA SARL, Dakar. La page affiche le titulaire, la formation, la date d'émission et le code. Elle ne liste pas les certificats émis et ne remonte à aucun compte.",
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: 'Vérifier un certificat', url: `${SITE_URL}/verifier` },
     ],
   },
   '/faq': {

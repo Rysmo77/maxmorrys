@@ -51,8 +51,8 @@
       "cancelled": "Annulé"
     },
     "renew": {
-      "auto": "Auto",
-      "manual": "Manuel"
+      "auto": "Rappel",
+      "manual": "Sans"
     },
     "activate": "Activer",
     "cancel": "Annuler"
@@ -262,8 +262,8 @@
       "start": "Début : {{date}}",
       "expiration": "Expiration : {{date}}",
       "renewal": "Renouvellement : {{value}}",
-      "renewalAuto": "Automatique",
-      "renewalManual": "Manuel",
+      "renewalAuto": "Rappel activé",
+      "renewalManual": "Sans rappel",
       "amount": "Montant : {{amount}} FCFA",
       "grant": "Accorder l'accès Club (1 an)",
       "granting": "Activation...",

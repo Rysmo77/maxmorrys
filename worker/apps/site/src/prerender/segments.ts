@@ -16,7 +16,7 @@ const SEGMENTS: Record<string, string> = {
   faq: 'faq',
   contact: 'contact',
   agence: 'agency',
-  'presence-digitale': 'digital-presence',
+  'presence-digitale': 'local-presence',
   legal: 'legal',
   'mentions-legales': 'legal-notice',
   confidentialite: 'privacy',
@@ -24,7 +24,7 @@ const SEGMENTS: Record<string, string> = {
   cgu: 'terms-of-use',
   cookies: 'cookies',
   // LMS
-  'mon-espace': 'my-space',
+  'mon-espace': 'my-learning',
   'tableau-de-bord': 'dashboard',
   cours: 'learn',
   notes: 'notes',
@@ -40,7 +40,7 @@ const SEGMENTS: Record<string, string> = {
   retour: 'return',
   certificat: 'certificate',
   // Auth
-  connexion: 'login',
+  connexion: 'sign-in',
   inscription: 'signup',
   'mot-de-passe-oublie': 'forgot-password',
   // Admin

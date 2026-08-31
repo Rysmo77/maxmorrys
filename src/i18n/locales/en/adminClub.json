@@ -51,8 +51,8 @@
       "cancelled": "Cancelled"
     },
     "renew": {
-      "auto": "Auto",
-      "manual": "Manual"
+      "auto": "Reminder",
+      "manual": "None"
     },
     "activate": "Activate",
     "cancel": "Cancel"
@@ -262,8 +262,8 @@
       "start": "Start: {{date}}",
       "expiration": "Expires: {{date}}",
       "renewal": "Renewal: {{value}}",
-      "renewalAuto": "Automatic",
-      "renewalManual": "Manual",
+      "renewalAuto": "Reminder on",
+      "renewalManual": "No reminder",
       "amount": "Amount: {{amount}} FCFA",
       "grant": "Grant Club access (1 year)",
       "granting": "Activating...",
