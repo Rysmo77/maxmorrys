@@ -279,7 +279,7 @@ export default function PresenceDigitale() {
         {/* ── LE SÉLECTEUR — 1fr 1fr, la promesse à gauche, les questions à droite ── */}
         <div className="mt-11 grid items-center gap-9 lg:grid-cols-2">
           <div>
-            <SiteDisplay as="h2" lines={[t('selector.title')]} size={34} />
+            <SiteDisplay as="h2" lines={t('selector.titleLines', { returnObjects: true }) as string[]} size={34} />
             <p className="rv mt-3 max-w-[44ch] text-meta leading-[1.6] text-ink-2" style={{ ['--i' as string]: 2 }}>
               {t('selector.subtitle')}
             </p>
@@ -296,7 +296,7 @@ export default function PresenceDigitale() {
 
         {/* ── CE QUE LE PACK CONTIENT, ÉTAPE PAR ÉTAPE ── */}
         <div className="mt-11">
-          <SiteDisplay as="h2" lines={[t('journey.title')]} size={34} />
+          <SiteDisplay as="h2" lines={t('journey.titleLines', { returnObjects: true }) as string[]} size={34} />
           <p className="rv mt-3 mm-prose text-meta leading-[1.6] text-ink-2" style={{ ['--i' as string]: 2 }}>
             {t('journey.subtitle')}
           </p>

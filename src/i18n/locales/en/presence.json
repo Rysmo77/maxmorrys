@@ -48,7 +48,11 @@
     "engage": {
       "title": "Keep in touch",
       "text": "Regular posts, prepared and scheduled for you."
-    }
+    },
+    "titleLines": [
+      "What you're",
+      "really buying"
+    ]
   },
   "selector": {
     "title": "Find your pack in 3 questions",
@@ -91,7 +95,11 @@
       "outdated": "An outdated site does more harm than no site at all. We start again with a credible storefront and your catalogue.",
       "starting": "You're starting from nothing: what matters is existing on Google Maps and getting your first WhatsApp enquiries. We'll think bigger later."
     },
-    "privacy": "No personal details are asked for before you've seen the recommendation. “I'm not sure” is a valid answer: it leads to a recommendation too."
+    "privacy": "No personal details are asked for before you've seen the recommendation. “I'm not sure” is a valid answer: it leads to a recommendation too.",
+    "titleLines": [
+      "Find your pack",
+      "in 3 questions"
+    ]
   },
   "packs": {
     "title": "The setup",
@@ -363,7 +371,11 @@
     "notFound": {
       "title": "Summary not found",
       "text": "This link doesn't exist or has been removed. Check the reference, or make a new request — it takes a minute.",
-      "cta": "Make a request"
+      "cta": "Make a request",
+      "titleLines": [
+        "Quote",
+        "not found"
+      ]
     },
     "eyebrowDs": "Quote · viewable without an account",
     "titleLine1": "Your quote,",

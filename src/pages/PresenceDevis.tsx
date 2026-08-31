@@ -96,7 +96,7 @@ export default function PresenceDevis() {
       <DsNavHost>
         <SEOHead title={t('quote.notFound.title')} description={t('quote.notFound.text')} noIndex />
         <PageSite>
-          <SiteDisplay lines={[t('quote.notFound.title')]} size={34} />
+          <SiteDisplay lines={t('quote.notFound.titleLines', { returnObjects: true }) as string[]} size={34} />
           {/*
             Motif réel, conséquence, sortie — dans cet ordre. Jamais d'excuse, jamais « oups ».
           */}

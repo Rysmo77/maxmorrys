@@ -48,7 +48,11 @@
     "engage": {
       "title": "Relancer",
       "text": "Des publications régulières, préparées et programmées pour toi."
-    }
+    },
+    "titleLines": [
+      "Ce que tu achètes",
+      "vraiment"
+    ]
   },
   "selector": {
     "title": "Trouve ton pack en 3 questions",
@@ -91,7 +95,11 @@
       "outdated": "Un site dépassé fait plus de mal que pas de site du tout. On repart sur une vitrine crédible avec ton catalogue.",
       "starting": "Tu pars de zéro : l'essentiel est d'exister sur Google Maps et de recevoir tes premières demandes WhatsApp. On verra plus grand ensuite."
     },
-    "privacy": "Aucune donnée personnelle n'est demandée avant que tu aies vu la recommandation. « Je ne sais pas » est une réponse valable : elle mène aussi à une recommandation."
+    "privacy": "Aucune donnée personnelle n'est demandée avant que tu aies vu la recommandation. « Je ne sais pas » est une réponse valable : elle mène aussi à une recommandation.",
+    "titleLines": [
+      "Trouve ton pack",
+      "en 3 questions"
+    ]
   },
   "packs": {
     "title": "La mise en place",
@@ -363,7 +371,11 @@
     "notFound": {
       "title": "Récapitulatif introuvable",
       "text": "Ce lien n'existe pas ou a été supprimé. Vérifie la référence, ou refais une demande — ça prend une minute.",
-      "cta": "Faire une demande"
+      "cta": "Faire une demande",
+      "titleLines": [
+        "Récapitulatif",
+        "introuvable"
+      ]
     },
     "eyebrowDs": "Devis · consultable sans compte",
     "titleLine1": "Ton devis,",
