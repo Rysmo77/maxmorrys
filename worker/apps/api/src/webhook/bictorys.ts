@@ -3,6 +3,8 @@ import { verifyHmacSha256 } from '@mm/shared';
 
 import { getFirestore } from '../context';
 import type { Env } from '../env';
+import { sendEmail } from '../lib/email';
+import { allocateInvoiceNumber, buildInvoice, type Langue } from '../lib/invoice';
 import { sendConversionEvent } from '../lib/meta-capi';
 import { asText, toNumber } from '../lib/values';
 
@@ -167,10 +169,68 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
     }
 
     // La transaction passe à `completed` EN DERNIER, une fois l'effet acquis.
-    await db.update(transaction.path, {
-      status: 'completed',
-      completedAt: new Date().toISOString(),
-    });
+    const completedAt = new Date().toISOString();
+    await db.update(transaction.path, { status: 'completed', completedAt });
+
+    /*
+     * LA FACTURE — ce que l'article 4 des CGV promet depuis toujours : « Une facture est
+     * envoyée automatiquement par e-mail au nom de MY ONOMA SARL dès validation du paiement ».
+     * Jusqu'à ce lot, le dépôt n'avait aucun canal d'envoi : la clause décrivait un produit
+     * qui n'existait pas.
+     *
+     * Comme Meta CAPI juste en dessous, et pour une raison plus forte : un échec ici ne doit
+     * JAMAIS faire échouer le webhook. Une réponse non-200 déclenche une relivraison Bictorys
+     * sur un paiement déjà encaissé et déjà crédité — un serveur de messagerie qui hoquette
+     * ferait rejouer le chemin de l'argent. `sendEmail` ne lève pas ; on journalise.
+     */
+    try {
+      const destinataire = asText(txn.userEmail) ?? '';
+      if (destinataire) {
+        // La langue du destinataire, pas celle du serveur. À défaut, le français : c'est la
+        // langue que j'écris et celle que je tiens à jour.
+        const profil = userId ? await db.get(`users/${userId}`) : null;
+        const prefs = profil?.data.preferences as { language?: string } | undefined;
+        const langue: Langue = prefs?.language === 'en' ? 'en' : 'fr';
+
+        // Attribué une seule fois et relu ensuite : une relivraison ne consomme pas un rang
+        // et n'envoie pas une seconde facture sous un autre numéro.
+        const numero = await allocateInvoiceNumber(db, transaction.path);
+
+        const facture = buildInvoice(
+          {
+            amount: toNumber(txn.amount),
+            currency: asText(txn.currency) || 'XOF',
+            designation: asText(txn.formationTitle),
+            userEmail: destinataire,
+            userName: asText(txn.userName),
+            chargeId,
+            paidAt: completedAt,
+          },
+          numero,
+          langue,
+          env.INVOICE_TAX_NOTICE || undefined,
+        );
+
+        const envoi = await sendEmail(env, {
+          to: destinataire,
+          subject: facture.subject,
+          html: facture.html,
+          text: facture.text,
+        });
+        if (envoi.sent) {
+          await db.update(transaction.path, { invoiceSentAt: new Date().toISOString() });
+          console.log('Webhook Bictorys : facture', numero, 'envoyée pour', chargeId);
+        } else {
+          // Le numéro reste attribué et écrit sur la transaction : la facture existe, seul
+          // son acheminement a échoué. `invoiceSentAt` absent est le marqueur à relancer.
+          console.error('Webhook Bictorys : facture', numero, 'non envoyée —', envoi.error);
+        }
+      } else {
+        console.error('Webhook Bictorys : aucune adresse sur la transaction', chargeId);
+      }
+    } catch (error: unknown) {
+      console.error('Webhook Bictorys : échec de facturation pour', chargeId, error);
+    }
 
     // Meta CAPI n'est pas critique : un échec ici ne doit jamais faire échouer le
     // webhook, ce qui déclencherait des relivraisons sur un paiement déjà traité.

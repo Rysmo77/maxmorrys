@@ -32,6 +32,27 @@ export interface Env {
   EXPORTS?: R2Bucket;
 
   /**
+   * Cloudflare Email Service — le premier canal sortant du produit.
+   *
+   * Optionnel à dessein : absent en développement local et dans les tests, où `sendEmail`
+   * répond « binding EMAIL absent » plutôt que de lever. Un canal manquant se journalise,
+   * il ne fait pas tomber le webhook de paiement.
+   */
+  EMAIL?: { send(message: { to: string; from: { email: string; name?: string }; subject: string; html?: string; text?: string }): Promise<unknown> };
+
+  /** Adresse d'expédition. Sous-domaine `mail.maxmorrys.me`, jamais la racine : la réputation
+   *  d'envoi transactionnel reste séparée de celle du domaine principal. */
+  EMAIL_FROM: string;
+  /** Nom affiché de l'expéditeur. */
+  EMAIL_FROM_NAME: string;
+  /**
+   * Mention de TVA portée par les factures. VIDE tant que le régime fiscal de MY ONOMA SARL
+   * n'est pas confirmé par son comptable : une facture qui n'affirme rien se corrige, une
+   * facture qui affirme faux se recopie chez le client.
+   */
+  INVOICE_TAX_NOTICE?: string;
+
+  /**
    * Base de l'API Gemini. Pointer sur AI Gateway apporte cache, budgets et
    * observabilité des coûts sans changer une ligne d'appel.
    */

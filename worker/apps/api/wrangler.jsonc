@@ -22,8 +22,23 @@
     "PUBLIC_MEDIA_BASE": "https://media.maxmorrys.me",
 
     // Remplacer par l'URL AI Gateway pour obtenir cache, budgets et traces.
-    "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com"
+    "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com",
+
+    // Sous-domaine d'envoi, activé par `wrangler email sending enable mail.maxmorrys.me`.
+    // Jamais la racine : un incident de réputation transactionnelle n'entame alors pas la
+    // délivrabilité de maxmorrys.me, d'où partent les échanges personnels.
+    "EMAIL_FROM": "facture@mail.maxmorrys.me",
+    "EMAIL_FROM_NAME": "Max-Morrys",
+
+    // Vide tant que le régime fiscal de MY ONOMA SARL n'est pas confirmé par son comptable.
+    // Une facture qui n'affirme rien sur la TVA se corrige ; une mention inventée se recopie
+    // chez le client, qui la produit à son propre comptable.
+    "INVOICE_TAX_NOTICE": ""
   },
+
+  // Cloudflare Email Service. Le binding évite toute clé API à stocker — et donc à faire
+  // fuir. Le domaine `from` doit être activé au préalable (`wrangler email sending list`).
+  "send_email": [{ "name": "EMAIL" }],
 
   // Secrets :
   //   npx wrangler secret put GCP_SA_JSON < ../../../max-morrys-<id>.json
@@ -52,9 +67,13 @@
     // En preview, les liens d'export doivent pointer sur le worker de preview.
         "API_BASE_URL": "https://maxmorrys-api-preview.rysmo.workers.dev",
         "PUBLIC_MEDIA_BASE": "https://media.maxmorrys.me",
-        "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com"
+        "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com",
+        "EMAIL_FROM": "facture@mail.maxmorrys.me",
+        "EMAIL_FROM_NAME": "Max-Morrys",
+        "INVOICE_TAX_NOTICE": ""
       },
       "r2_buckets": [{ "binding": "EXPORTS", "bucket_name": "maxmorrys-lms" }],
+      "send_email": [{ "name": "EMAIL" }],
       "observability": { "enabled": true }
     }
   }
