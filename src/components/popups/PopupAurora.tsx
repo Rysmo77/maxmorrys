@@ -20,14 +20,14 @@ interface PopupAuroraProps {
 /** Halos écrits en littéral : Tailwind purge tout nom de classe construit par concaténation. */
 const TONES = {
   lagoon: {
-    glow: 'bg-lagoon-500/30',
-    halo: 'bg-lagoon-400/20',
-    ring: 'border-lagoon-400/25',
+    glow: 'bg-[color-mix(in_srgb,var(--mm-teal)_30%,transparent)]',
+    halo: 'bg-[color-mix(in_srgb,var(--mm-teal)_20%,transparent)]',
+    ring: 'border-[color-mix(in_srgb,var(--mm-teal)_25%,transparent)]',
   },
   brand: {
-    glow: 'bg-brand-500/30',
-    halo: 'bg-brand-400/20',
-    ring: 'border-brand-400/25',
+    glow: 'bg-[color-mix(in_srgb,var(--mm-bleu)_30%,transparent)]',
+    halo: 'bg-[color-mix(in_srgb,var(--mm-bleu)_20%,transparent)]',
+    ring: 'border-[color-mix(in_srgb,var(--mm-bleu)_25%,transparent)]',
   },
 } as const;
 
@@ -61,7 +61,7 @@ export default function PopupAurora({ tone = 'lagoon' }: PopupAuroraProps) {
       };
 
   return (
-    <div className="absolute inset-0 bg-neutral-950 overflow-hidden">
+    <div className="absolute inset-0 bg-[color:var(--night-2)] overflow-hidden">
       {/* Halos : la source lumineuse de la composition. */}
       <motion.div
         className={`absolute -top-16 -right-10 w-[26rem] h-[26rem] rounded-full blur-3xl ${glow}`}
@@ -96,7 +96,7 @@ export default function PopupAurora({ tone = 'lagoon' }: PopupAuroraProps) {
       />
 
       {/* Fondu vers la colonne de contenu : la couture entre les deux moitiés ne doit pas se voir. */}
-      <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-neutral-950 to-transparent" />
+      <div className="absolute inset-y-0 left-0 w-32 bg-[image:linear-gradient(to_right,var(--night-2),transparent)]" />
     </div>
   );
 }

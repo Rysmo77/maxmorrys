@@ -1,13 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import {
-  Target, CheckCircle2, AlertCircle, XCircle,
-  Monitor, Smartphone, ChevronDown, ChevronUp,
-  Globe, AlertTriangle,
-} from 'lucide-react';
 import Input from '../ui/Input';
 import { cn } from '../../lib/utils';
+import { Icon } from '@ds';
 
 interface SEOPanelProps {
   // Données de base pour l'analyse (lecture seule)
@@ -134,8 +130,8 @@ function useChecks(props: SEOPanelProps): { checks: CheckResult[]; score: number
 }
 
 function ScoreRing({ score, t }: { score: number; t: TFunction }) {
-  const color = score >= 71 ? 'text-green-500' : score >= 40 ? 'text-amber-500' : 'text-red-500';
-  const bg = score >= 71 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : score >= 40 ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
+  const color = score >= 71 ? 'text-green-500' : score >= 40 ? 'text-amber-500' : 'text-stop';
+  const bg = score >= 71 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : score >= 40 ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-[color-mix(in_srgb,var(--stop)_4%,transparent)] border-[color-mix(in_srgb,var(--stop)_18%,transparent)]';
   const label = score >= 71 ? t('seo.scoreGood') : score >= 40 ? t('seo.scoreFair') : t('seo.scorePoor');
   return (
     <div className={cn('inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-bold', bg, color)}>
@@ -149,23 +145,23 @@ function ScoreRing({ score, t }: { score: number; t: TFunction }) {
 function CheckItem({ check, t }: { check: CheckResult; t: TFunction }) {
   if (check.pass) {
     return (
-      <li className="flex items-start gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-        <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+      <li className="flex items-start gap-2 text-sm text-ink-2">
+        <Icon name="check-circle" size={16} className="text-green-500 flex-shrink-0 mt-0.5" />
         {t(check.labelKey)}
       </li>
     );
   }
   if (check.severity === 'red') {
     return (
-      <li className="flex items-start gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-        <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+      <li className="flex items-start gap-2 text-sm text-ink-2">
+        <Icon name="x-circle" size={16} className="text-stop flex-shrink-0 mt-0.5" />
         {t(check.labelKey)}
       </li>
     );
   }
   return (
-    <li className="flex items-start gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-      <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+    <li className="flex items-start gap-2 text-sm text-ink-2">
+      <Icon name="alert-circle" size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
       {t(check.labelKey)}
     </li>
   );
@@ -177,7 +173,7 @@ function CounterBadge({ value, min, max }: { value: number; min: number; max: nu
       ? 'text-green-600 dark:text-green-400'
       : value >= min - 10 && value <= max + 10
       ? 'text-amber-600 dark:text-amber-400'
-      : 'text-red-600 dark:text-red-400';
+      : 'text-stop';
   return (
     <span className={cn('text-xs font-medium tabular-nums', color)}>
       {value}/{max}
@@ -188,10 +184,10 @@ function CounterBadge({ value, min, max }: { value: number; min: number; max: nu
 function MetaDescProgress({ value, max }: { value: number; max: number }) {
   const pct = Math.min((value / max) * 100, 100);
   const color =
-    value >= 120 && value <= 160 ? 'bg-green-500' : value >= 100 ? 'bg-amber-500' : 'bg-red-400';
+    value >= 120 && value <= 160 ? 'bg-green-500' : value >= 100 ? 'bg-amber-500' : 'bg-[color:var(--stop)]';
   return (
-    <div className="h-1 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden mt-1">
-      <div className={cn('h-full rounded-full transition-all duration-200', color)} style={{ width: `${pct}%` }} />
+    <div className="h-1 w-full rounded-full bg-[color:var(--fill-3)] overflow-hidden mt-1">
+      <div className={cn('h-full rounded-full prog-fill transition-[width] duration-200', color)} style={{ width: `${pct}%` }} />
     </div>
   );
 }
@@ -235,30 +231,31 @@ export default function SEOPanel(props: SEOPanelProps) {
     <div className="space-y-5">
 
       {/* ── A — Keyphrase cible ── */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5">
-        <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400 mb-3">{t('seo.keyphraseSection')}</p>
+      <div className="rounded-2xl border border-[color:var(--line)] bg-paper p-5">
+        <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2 mb-3">{t('seo.keyphraseSection')}</p>
         <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          <label htmlFor="seo-focus-keyword" className="block text-sm font-medium text-ink-2">
             {t('seo.focusKeywordLabel')}
           </label>
           <div className="relative">
-            <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Icon name="target" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-2" />
             <input
+              id="seo-focus-keyword"
               type="text"
               value={focusKeyword}
               onChange={(e) => onChange('focusKeyword', e.target.value)}
               placeholder={t('seo.focusKeywordPlaceholder')}
-              className="w-full rounded-xl border border-neutral-300 bg-white pl-10 pr-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500 dark:focus:border-brand-400"
+              className="w-full rounded-xl border border-[color:var(--line)] bg-paper pl-10 pr-4 py-2.5 text-sm text-ink transition-colors focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
             />
           </div>
-          <p className="text-xs text-neutral-400">{t('seo.focusKeywordHelp')}</p>
+          <p className="text-xs text-ink-2">{t('seo.focusKeywordHelp')}</p>
         </div>
       </div>
 
       {/* ── B — Score SEO ── */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5">
+      <div className="rounded-2xl border border-[color:var(--line)] bg-paper p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">{t('seo.analysisSection')}</p>
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2">{t('seo.analysisSection')}</p>
           <ScoreRing score={score} t={t} />
         </div>
         <ul className="space-y-2">
@@ -267,54 +264,56 @@ export default function SEOPanel(props: SEOPanelProps) {
       </div>
 
       {/* ── C — Champs Meta ── */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5 space-y-4">
-        <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">{t('seo.metaSection')}</p>
+      <div className="rounded-2xl border border-[color:var(--line)] bg-paper p-5 space-y-4">
+        <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2">{t('seo.metaSection')}</p>
 
         {/* SEO Title */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            <label htmlFor="seo-slug" className="block text-sm font-medium text-ink-2">
               {t('seo.seoTitleLabel')}
             </label>
             <CounterBadge value={(metaTitle.trim() || title).length} min={50} max={60} />
           </div>
           <input
+            id="seo-slug"
             type="text"
             value={metaTitle}
             onChange={(e) => onChange('metaTitle', e.target.value)}
             placeholder={title || t('seo.seoTitlePlaceholder')}
-            className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500 dark:focus:border-brand-400"
+            className="w-full rounded-xl border border-[color:var(--line)] bg-paper px-4 py-2.5 text-sm text-ink transition-colors focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
           />
           {!metaTitle.trim() && (
-            <p className="text-xs text-neutral-400 italic">{t('seo.useTitleFallback')}</p>
+            <p className="text-xs text-ink-2 italic">{t('seo.useTitleFallback')}</p>
           )}
         </div>
 
         {/* Meta Description */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            <label htmlFor="seo-meta-description" className="block text-sm font-medium text-ink-2">
               {t('seo.metaDescLabel')}
             </label>
             <CounterBadge value={(metaDescription.trim() || excerpt || '').length} min={120} max={160} />
           </div>
           <textarea
+            id="seo-meta-description"
             value={metaDescription}
             onChange={(e) => onChange('metaDescription', e.target.value)}
             placeholder={excerpt || t('seo.metaDescPlaceholder')}
             rows={3}
-            className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors resize-y focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500 dark:focus:border-brand-400"
+            className="w-full rounded-xl border border-[color:var(--line)] bg-paper px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
           />
           <MetaDescProgress value={(metaDescription.trim() || excerpt || '').length} max={160} />
         </div>
       </div>
 
       {/* ── D — Aperçu SERP ── */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5">
+      <div className="rounded-2xl border border-[color:var(--line)] bg-paper p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">{t('seo.googlePreview')}</p>
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2">{t('seo.googlePreview')}</p>
           <div className="flex gap-1">
-            {([['desktop', Monitor], ['mobile', Smartphone]] as const).map(([tab, Icon]) => (
+            {([['desktop', 'monitor'], ['mobile', 'smartphone']] as const).map(([tab, glyph]) => (
               <button
                 key={tab}
                 type="button"
@@ -322,41 +321,41 @@ export default function SEOPanel(props: SEOPanelProps) {
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
                   serpTab === tab
-                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
-                    : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                    ? 'bg-[color:var(--night-3)] text-white'
+                    : 'text-ink-2 hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)]'
                 )}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon name={glyph} size={14} />
                 {tab === 'desktop' ? t('seo.desktop') : t('seo.mobile')}
               </button>
             ))}
           </div>
         </div>
 
-        <div className={cn('bg-white dark:bg-neutral-900 rounded-xl border border-neutral-100 dark:border-neutral-700 p-4', serpTab === 'mobile' && 'max-w-[340px] mx-auto')}>
+        <div className={cn('bg-paper dark:bg-[color:var(--night-3)] rounded-xl border border-[color:var(--border-hair)] p-4', serpTab === 'mobile' && 'max-w-[340px] mx-auto')}>
           {/* URL */}
           <div className="flex items-center gap-1.5 mb-1">
-            <Globe className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
-            <p className="text-xs text-[#006621] dark:text-green-500 truncate">{displayUrl}</p>
+            <Icon name="globe" size={14} className="text-ink-2 flex-shrink-0" />
+            <p className="text-xs text-[#006621] dark:text-green-500 truncate">{displayUrl}</p>  // ok-ds — bleu et vert officiels d'un résultat Google — aperçu SERP
           </div>
           {/* Title */}
           <p
             className="font-medium mb-1 leading-snug cursor-pointer hover:underline"
-            style={{ color: '#1a0dab', fontSize: serpTab === 'desktop' ? '20px' : '16px' }}
+            style={{ color: '#1a0dab', fontSize: serpTab === 'desktop' ? '20px' : '16px' }}  // ok-ds — bleu et vert officiels d'un résultat Google — aperçu SERP
           >
             {displayTitle || t('seo.previewTitleFallback')}
           </p>
           {/* Description */}
-          <p className="text-sm leading-relaxed" style={{ color: '#545454', fontSize: '14px' }}>
+          <p className="text-sm leading-relaxed" style={{ color: '#545454', fontSize: '14px' }}>  // ok-ds — bleu et vert officiels d'un résultat Google — aperçu SERP
             {displayDesc || t('seo.previewDescFallback')}
           </p>
         </div>
       </div>
 
       {/* ── E — Réseaux sociaux ── */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5">
+      <div className="rounded-2xl border border-[color:var(--line)] bg-paper p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">{t('seo.socialSection')}</p>
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2">{t('seo.socialSection')}</p>
           <div className="flex gap-1">
             <button
               type="button"
@@ -364,8 +363,8 @@ export default function SEOPanel(props: SEOPanelProps) {
               className={cn(
                 'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
                 socialTab === 'facebook'
-                  ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
-                  : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                  ? 'bg-[color:var(--night-3)] text-white'
+                  : 'text-ink-2 hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)]'
               )}
             >
               Facebook / OG
@@ -377,8 +376,8 @@ export default function SEOPanel(props: SEOPanelProps) {
                 className={cn(
                   'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
                   socialTab === 'twitter'
-                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900'
-                    : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                    ? 'bg-[color:var(--night-3)] text-white'
+                    : 'text-ink-2 hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)]'
                 )}
               >
                 Twitter / X
@@ -390,22 +389,22 @@ export default function SEOPanel(props: SEOPanelProps) {
         {socialTab === 'facebook' && (
           <div className="space-y-4">
             {/* Card Facebook */}
-            <div className="rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900">
+            <div className="rounded-xl overflow-hidden border border-[color:var(--line)] bg-[color:var(--fill-1)] dark:bg-[color:var(--night-3)]">
               {ogDisplayImage ? (
                 <img src={ogDisplayImage} alt="OG preview" className="w-full aspect-[1.91/1] object-cover" />
               ) : (
-                <div className="w-full aspect-[1.91/1] bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
-                  <p className="text-xs text-neutral-400">{t('seo.noImageUseCover')}</p>
+                <div className="w-full aspect-[1.91/1] bg-[color:var(--fill-3)] flex items-center justify-center">
+                  <p className="text-xs text-ink-2">{t('seo.noImageUseCover')}</p>
                 </div>
               )}
-              <div className="p-3 border-t border-neutral-200 dark:border-neutral-700">
-                <p className="text-[10px] uppercase tracking-widest text-neutral-400 mb-1">
+              <div className="p-3 border-t border-[color:var(--line)]">
+                <p className="text-[10px] uppercase tracking-widest text-ink-2 mb-1">
                   {siteUrl.replace('https://', '')}
                 </p>
-                <p className="text-sm font-bold text-neutral-900 dark:text-white leading-snug line-clamp-2">
+                <p className="text-sm font-bold text-ink leading-snug line-clamp-2">
                   {ogDisplayTitle || t('seo.ogTitleFallback')}
                 </p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2">
+                <p className="text-xs text-ink-2 mt-1 line-clamp-2">
                   {ogDisplayDesc || t('seo.ogDescFallback')}
                 </p>
               </div>
@@ -418,13 +417,14 @@ export default function SEOPanel(props: SEOPanelProps) {
               placeholder={metaTitle.trim() || title || t('seo.ogTitlePlaceholder')}
             />
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('seo.ogDescriptionLabel')}</label>
+              <label htmlFor="seo-og-description" className="block text-sm font-medium text-ink-2">{t('seo.ogDescriptionLabel')}</label>
               <textarea
+                id="seo-og-description"
                 value={ogDescription}
                 onChange={(e) => onChange('ogDescription', e.target.value)}
                 placeholder={excerpt || t('seo.ogDescPlaceholder')}
                 rows={2}
-                className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors resize-y focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500 dark:focus:border-brand-400"
+                className="w-full rounded-xl border border-[color:var(--line)] bg-paper px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
               />
             </div>
             <Input
@@ -439,22 +439,22 @@ export default function SEOPanel(props: SEOPanelProps) {
         {socialTab === 'twitter' && hasTwitter && (
           <div className="space-y-4">
             {/* Card Twitter summary_large_image */}
-            <div className="rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900">
+            <div className="rounded-xl overflow-hidden border border-[color:var(--line)] bg-[color:var(--fill-1)] dark:bg-[color:var(--night-3)]">
               {twDisplayImage ? (
                 <img src={twDisplayImage} alt="Twitter preview" className="w-full aspect-video object-cover" />
               ) : (
-                <div className="w-full aspect-video bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
-                  <p className="text-xs text-neutral-400">{t('seo.noImage')}</p>
+                <div className="w-full aspect-video bg-[color:var(--fill-3)] flex items-center justify-center">
+                  <p className="text-xs text-ink-2">{t('seo.noImage')}</p>
                 </div>
               )}
-              <div className="p-3 border-t border-neutral-200 dark:border-neutral-700">
-                <p className="text-sm font-bold text-neutral-900 dark:text-white leading-snug line-clamp-1">
+              <div className="p-3 border-t border-[color:var(--line)]">
+                <p className="text-sm font-bold text-ink leading-snug line-clamp-1">
                   {twDisplayTitle || t('seo.twTitleFallback')}
                 </p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
+                <p className="text-xs text-ink-2 mt-0.5 line-clamp-2">
                   {twDisplayDesc || t('seo.twDescFallback')}
                 </p>
-                <p className="text-[10px] text-neutral-400 mt-1">{siteUrl.replace('https://', '')}</p>
+                <p className="text-[10px] text-ink-2 mt-1">{siteUrl.replace('https://', '')}</p>
               </div>
             </div>
             {/* Inputs Twitter */}
@@ -465,13 +465,14 @@ export default function SEOPanel(props: SEOPanelProps) {
               placeholder={ogDisplayTitle || t('seo.twitterTitlePlaceholder')}
             />
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">{t('seo.twitterDescriptionLabel')}</label>
+              <label htmlFor="seo-twitter-description" className="block text-sm font-medium text-ink-2">{t('seo.twitterDescriptionLabel')}</label>
               <textarea
+                id="seo-twitter-description"
                 value={twitterDescription ?? ''}
                 onChange={(e) => onChange('twitterDescription', e.target.value)}
                 placeholder={ogDisplayDesc || t('seo.twitterDescPlaceholder')}
                 rows={2}
-                className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 transition-colors resize-y focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500 dark:focus:border-brand-400"
+                className="w-full rounded-xl border border-[color:var(--line)] bg-paper px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
               />
             </div>
             <Input
@@ -485,20 +486,20 @@ export default function SEOPanel(props: SEOPanelProps) {
       </div>
 
       {/* ── F — Avancé (collapsible) ── */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 overflow-hidden">
+      <div className="rounded-2xl border border-[color:var(--line)] bg-paper overflow-hidden">
         <button
           type="button"
           onClick={() => setAdvancedOpen((o) => !o)}
-          className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-neutral-50 dark:hover:bg-neutral-700/40 transition-colors"
+          className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[color:var(--fill-1)] dark:hover:bg-[color-mix(in_srgb,var(--night-3)_40%,transparent)] transition-colors"
         >
-          <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400">{t('seo.advancedSection')}</p>
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2">{t('seo.advancedSection')}</p>
           {advancedOpen
-            ? <ChevronUp className="w-4 h-4 text-neutral-400" />
-            : <ChevronDown className="w-4 h-4 text-neutral-400" />}
+            ? <Icon name="chevron-up" size={16} className="text-ink-2" />
+            : <Icon name="chevron" size={16} className="text-ink-2" />}
         </button>
 
         {advancedOpen && (
-          <div className="px-5 pb-5 space-y-5 border-t border-neutral-100 dark:border-neutral-700 pt-4">
+          <div className="px-5 pb-5 space-y-5 border-t border-[color:var(--border-hair)] pt-4">
             {/* Canonical URL */}
             <Input
               label={t('seo.canonicalLabel')}
@@ -506,18 +507,18 @@ export default function SEOPanel(props: SEOPanelProps) {
               onChange={(e) => onChange('canonicalUrl', e.target.value)}
               placeholder={`${siteUrl}/${basePath}/${slug || 'mon-article'}`}
             />
-            <p className="text-xs text-neutral-400 -mt-3">
+            <p className="text-xs text-ink-2 -mt-3">
               {t('seo.canonicalHelp')}
             </p>
 
             {/* noIndex toggle */}
             <div>
-              <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-700/30">
+              <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-[color:var(--fill-1)]">
                 <div>
-                  <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                  <p className="text-sm font-medium text-ink">
                     {t('seo.noindexTitle')}
                   </p>
-                  <p className="text-xs text-neutral-500 mt-0.5">
+                  <p className="text-xs text-ink-2 mt-0.5">
                     {t('seo.noindexDesc')}
                   </p>
                 </div>
@@ -526,21 +527,21 @@ export default function SEOPanel(props: SEOPanelProps) {
                   onClick={() => onChange('noIndex', !noIndex)}
                   className={cn(
                     'relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none',
-                    noIndex ? 'bg-red-500' : 'bg-neutral-300 dark:bg-neutral-600'
+                    noIndex ? 'bg-[color:var(--stop)]' : 'bg-[color:var(--fill-4)]'
                   )}
                 >
                   <span
                     className={cn(
-                      'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200',
+                      'pointer-events-none inline-block h-5 w-5 rounded-full bg-paper shadow transform transition-transform duration-200',
                       noIndex ? 'translate-x-5' : 'translate-x-0'
                     )}
                   />
                 </button>
               </div>
               {noIndex && (
-                <div className="mt-2 flex items-start gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                  <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-red-700 dark:text-red-400">
+                <div className="mt-2 flex items-start gap-2 p-3 rounded-xl bg-[color-mix(in_srgb,var(--stop)_4%,transparent)] border border-[color-mix(in_srgb,var(--stop)_18%,transparent)]">
+                  <Icon name="alert" size={16} className="text-stop flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-stop">
                     {t('seo.noindexWarning')}
                   </p>
                 </div>
@@ -549,8 +550,8 @@ export default function SEOPanel(props: SEOPanelProps) {
 
             {/* Robots preview */}
             <div>
-              <p className="text-xs font-medium text-neutral-500 mb-1.5">{t('seo.robotsTagLabel')}</p>
-              <code className="block text-xs bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 px-3 py-2 rounded-lg font-mono">
+              <p className="text-xs font-medium text-ink-2 mb-1.5">{t('seo.robotsTagLabel')}</p>
+              <code className="block text-xs bg-[color:var(--fill-2)] dark:bg-[color:var(--night-3)] text-ink-2 px-3 py-2 rounded-lg font-mono">
                 {`<meta name="robots" content="${noIndex ? 'noindex,nofollow' : 'index,follow'}">`}
               </code>
             </div>

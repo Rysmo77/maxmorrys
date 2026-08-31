@@ -1,0 +1,111 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   COPIE LITTÉRALE de Design_System_Max-Morrys/brand/breakpoints.css — NE PAS ÉDITER.
+   Régénéré par `npm run ds:sync`. Tout écart délibéré vit dans overrides/.
+   ───────────────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════════
+   POINTS DE RUPTURE — le comportement de l'empilement en M à chacun.
+
+   Trois dispositions, une règle qui ne se négocie pas. Ce fichier donne la version
+   CSS pure de ce que le composant TerritoryCard fait par sa prop `layout` : à
+   l'implémentation, préférez les media queries si vos cartes sont du CSS, ou la prop
+   si vous recréez le composant en JS. Les deux doivent produire le même résultat.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── LA COLONNE DE LECTURE NE S'ÉLARGIT JAMAIS ──
+   68 caractères, à 390 px comme à 1400. L'espace gagné va à la marge et à la
+   navigation, jamais à la longueur de ligne. C'est la seule règle de mise en page
+   qui n'a aucune exception dans tout le produit. */
+.mm-prose,
+.mm-lesson-body,
+.mm-article-body { max-width: var(--measure-prose); }   /* 68ch */
+
+/* Le gabarit desktop : la prose garde sa mesure, les colonnes latérales absorbent
+   la place restante. Ne remplacez pas ce `minmax(0, var(--measure-prose))` par un
+   `1fr` — la colonne s'élargirait. */
+.mm-article-grid {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, var(--measure-prose)) 300px 1fr;
+  gap: 0 44px;
+}
+
+/* ══ < 700 px · EMPILEMENT EN M ══
+   Chevauchement −14 px, chevron actif. La silhouette du M se lit VERTICALEMENT :
+   chaque carte mord sur la précédente, et le chevron reprend la découpe du logo. */
+.mm-stack { display: block; }
+.mm-stack > .mm-card {
+  margin-top: var(--stack-overlap);            /* −14px */
+  padding: 24px 20px 36px;
+}
+.mm-stack > .mm-card:first-child { margin-top: 0; }
+.mm-stack > .mm-card > .mm-chevron,
+.mm-stack > .mm-card > .mm-grip { display: block; }
+
+/* ══ 700 → 1080 px · GRILLE 2 × 2 ══
+   L'empilement s'arrête. Le chevauchement disparaît, LE CHEVRON RESTE.
+
+   Pourquoi : au-delà de 700 px, une encoche prise dans une carte large et isolée
+   ne rappelle plus rien — c'est un accident graphique. Mais le chevron posé sur
+   quatre cartes en grille garde le rappel du logo. Deux axes distincts, donc. */
+@media (min-width: 700px) {
+  .mm-stack {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .mm-stack > .mm-card,
+  .mm-stack > .mm-card:first-child {
+    margin-top: 0;                             /* chevauchement supprimé */
+    padding: 24px 20px 28px;
+  }
+  /* Le chevron et la poignée restent : ne les masquez pas ici. */
+
+  /* Navigation latérale de 250 px en verre, quatre verbes et leur pastille. */
+  .mm-shell {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+  }
+  .mm-tabbar { display: none; }                /* la barre basse cède la place */
+  .mm-sidenav { display: flex; }
+}
+
+/* ══ > 1080 px · RANGÉE DE QUATRE ══
+   La silhouette du M se lit HORIZONTALEMENT, comme dans le logo : quatre chevrons
+   côte à côte redonnent la découpe. C'est le seul point de rupture où la forme du
+   logo réapparaît en entier. */
+@media (min-width: 1080px) {
+  .mm-stack {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .mm-stack > .mm-card { padding: 26px 20px 30px; }
+
+  /* Barre supérieure flottante en verre, détachée des bords, chaque verbe souligné
+     de la couleur de son territoire. */
+  .mm-shell { grid-template-columns: 1fr; }
+  .mm-sidenav { display: none; }
+  .mm-topbar {
+    display: flex;
+    margin: 16px 22px;                          /* détachée des bords */
+    border-radius: var(--r-pill);
+  }
+}
+
+/* ── LES SOULIGNÉS DE TERRITOIRE, BARRE SUPÉRIEURE ── */
+.mm-topbar [data-territory="forme"]       { border-bottom: 2px solid var(--mm-bleu) }
+.mm-topbar [data-territory="informe"]     { border-bottom: 2px solid var(--mm-orange) }
+.mm-topbar [data-territory="transforme"]  { border-bottom: 2px solid var(--mm-violet) }
+.mm-topbar [data-territory="digitalise"]  { border-bottom: 2px solid var(--mm-teal) }
+/* L'agence vit HORS des quatre verbes : séparateur, puis corail. Elle ne se range
+   pas sous « Je te digitalise » — c'est une autre promesse et un autre client. */
+.mm-topbar .mm-agency {
+  padding-left: 14px;
+  margin-left: 2px;
+  border-left: 1px solid var(--border-hair);
+  color: #B4231F;
+}
+
+/* ── DIAMÈTRE DES LOBES DE MAILLAGE PAR RUPTURE ──
+   340 px sur mobile, 460 à 520 sur écran large : au-delà, un lobe de 340 px se lit
+   comme une tache au lieu d'un fond. */
+.mesh b { width: 340px; height: 340px }
+@media (min-width: 700px)  { .mesh b { width: 460px; height: 460px } }
+@media (min-width: 1080px) { .mesh b { width: 520px; height: 520px } }

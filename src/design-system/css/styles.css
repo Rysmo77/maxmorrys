@@ -1,0 +1,33 @@
+/* Max-Morrys — point d'entrée du design system porté.
+   UNIQUEMENT des @import, dans cet ordre. Aucune règle ici : le point d'entrée du DS n'en
+   porte pas non plus, et c'est ce qui rend l'ordre de cascade lisible d'un coup d'œil.
+
+   Les jetons et le socle de marque sont des copies littérales (AD-1, `npm run ds:sync`).
+   Les écarts délibérés viennent EN DERNIER, dans overrides/, un fichier par décision. */
+
+/* ── 1 · jetons ─────────────────────────────────────────────────────────────── */
+@import url("./tokens/fonts.css");
+@import url("./tokens/colors.css");
+@import url("./tokens/typography.css");
+@import url("./tokens/spacing.css");
+@import url("./tokens/radius.css");
+@import url("./tokens/motion.css");
+@import url("./tokens/glass.css");
+@import url("./tokens/semantic.css");
+@import url("./tokens/dark.css");
+
+/* ── 2 · marque ─────────────────────────────────────────────────────────────── */
+@import url("./brand/base.css");
+@import url("./brand/mesh.css");
+@import url("./brand/surfaces.css");
+@import url("./brand/fallback.css");
+@import url("./brand/motion.css");
+@import url("./brand/interactions.css");
+@import url("./brand/states.css");        /* états : focus visible, désactivé, chargement, erreur */
+@import url("./brand/breakpoints.css");   /* les trois ruptures + la règle des 68 caractères */
+
+/* ── 3 · écarts délibérés du produit — voir overrides/README.md ──────────────── */
+@import url("./overrides/ad-18-voile.css");
+@import url("./overrides/ad-06-etats.css");
+@import url("./overrides/ad-20-corail-texte.css");
+@import url("./overrides/ad-21-radio-epaisseur.css");

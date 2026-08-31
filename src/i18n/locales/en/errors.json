@@ -3,16 +3,30 @@
     "seoTitle": "Page not found",
     "label": "Error 404",
     "title": "Page not found",
-    "text": "The page you're looking for doesn't exist or has been moved.",
+    "text": "Either it moved, or the address has a typo. Nothing's lost: the blog is open, and everything on it is free.",
     "home": "Back to home",
-    "blog": "See the blog"
+    "blog": "See the blog",
+    "titleLines": [
+      "This page",
+      "doesn't exist."
+    ],
+    "truthTitle": "What probably happened",
+    "truthBody": "An address changes when a piece of content is renamed. Old ones get redirected when I know about them — this one slipped through, and I'd rather tell you than let you guess."
   },
   "forbidden": {
     "seoTitle": "Access denied",
     "label": "Error 403",
     "title": "Access denied",
-    "text": "You don't have the permissions required to access this page. If you think this is a mistake, contact the administrator.",
     "home": "Back to home",
-    "space": "Go to my space"
+    "space": "Go to my space",
+    "titleLines": [
+      "This page isn't",
+      "for this role."
+    ],
+    "scopeTitle": "What the support role reaches",
+    "truthTitle": "What this page is, exactly",
+    "truthBody": "A route guard is client code: it hides, it doesn't forbid. The real separation lives in the database rules — this page only says what they already refused.",
+    "textBefore": "Your role is ",
+    "textAfter": ". It reaches exactly five screens, and this isn't one of them."
   }
 }

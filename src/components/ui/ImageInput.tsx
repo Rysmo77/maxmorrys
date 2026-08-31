@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { uploadMedia, randomFilename } from '../../lib/storage';
-import { Upload, X } from 'lucide-react';
+import { Icon } from '@ds';
 
 interface ImageInputProps {
   label: string;
@@ -13,7 +13,7 @@ interface ImageInputProps {
 }
 
 const inputBase =
-  'w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors';
+  'w-full px-3 py-2 rounded-xl border border-[color:var(--line)] bg-paper dark:bg-[color:var(--night-3)] text-sm text-ink focus:outline-none focus:ring-2 focus:border-forme transition-colors';
 
 export default function ImageInput({
   label,
@@ -26,6 +26,7 @@ export default function ImageInput({
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const fieldId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,13 +60,17 @@ export default function ImageInput({
 
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400">
+      {/* Lié au champ d'URL — le contrôle principal du groupe. Le bouton d'import a son
+          propre `title`, et le `<input type="file">` est masqué : le libellé n'a qu'une
+          cible possible, et il ne l'avait pas. */}
+      <label htmlFor={fieldId} className="block text-xs font-medium text-ink-2">
         {label}
       </label>
 
       {/* URL input + upload button row */}
       <div className="flex gap-2">
         <input
+          id={fieldId}
           type="text"
           value={value}
           onChange={(e) => { onChange(e.target.value); setUploadError(null); }}
@@ -78,9 +83,9 @@ export default function ImageInput({
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
           title={t('imageInput.importTitle')}
-          className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-xs font-semibold hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+          className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[color:var(--line)] bg-[color:var(--fill-1)] text-ink-2 text-xs font-semibold hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] disabled:opacity-50 transition-colors whitespace-nowrap"
         >
-          <Upload className="w-3.5 h-3.5" />
+          <Icon name="upload" size={14} />
           {uploading ? `${progress}%` : t('imageInput.import')}
         </button>
         <input
@@ -94,9 +99,9 @@ export default function ImageInput({
 
       {/* Upload progress bar */}
       {uploading && (
-        <div className="h-1 w-full bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+        <div className="h-1 w-full bg-[color:var(--fill-3)] rounded-full overflow-hidden">
           <div
-            className="h-full bg-brand-500 rounded-full transition-all duration-150"
+            className="h-full bg-[color:var(--mm-bleu)] rounded-full prog-fill transition-[width] duration-150"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -104,13 +109,13 @@ export default function ImageInput({
 
       {/* Error */}
       {uploadError && (
-        <p className="text-xs text-red-500 dark:text-red-400">{uploadError}</p>
+        <p className="text-xs text-stop">{uploadError}</p>
       )}
 
       {/* Preview */}
       {value && !uploading && (
         <div className="flex items-center gap-3 mt-0.5">
-          <div className="w-16 h-16 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 flex-shrink-0">
+          <div className="w-16 h-16 rounded-lg overflow-hidden border border-[color:var(--line)] bg-[color:var(--fill-2)] flex-shrink-0">
             <img
               src={value}
               alt=""
@@ -121,9 +126,9 @@ export default function ImageInput({
           <button
             type="button"
             onClick={() => onChange('')}
-            className="flex items-center gap-1 text-xs text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+            className="flex items-center gap-1 text-xs text-ink-2 hover:text-stop dark:hover:text-stop transition-colors"
           >
-            <X className="w-3 h-3" />
+            <Icon name="close" size={12} />
             {t('imageInput.remove')}
           </button>
         </div>

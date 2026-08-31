@@ -1,10 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import {
-  CalendarBlank, ArrowSquareOut, Plus, CheckCircle, CircleNotch,
-} from '@phosphor-icons/react';
+import { Button, GlassPanel, Icon, Tag } from '@ds';
 import { useFormat } from '../../../../hooks/useFormat';
-import { cn } from '../../../../lib/utils';
 import type { useClubData } from '../../hooks/useClubData';
 import { staggerContainer, staggerItem } from '../../../../lib/animations';
 import { ClubEmptyState } from './_shared';
@@ -15,52 +12,102 @@ interface ClubEventsProps {
   data: ClubData;
 }
 
+/**
+ * LES ÉVÉNEMENTS — la moitié haute de l'onglet Agenda, sur l'écran `ClubAgenda` du kit.
+ *
+ * Deux emoji tenaient lieu d'étiquettes de champ : 📅 devant la date et 📍 devant le lieu.
+ * Ils sont remplacés par les glyphes du jeu unique, `calendar` et `pin`. Ce n'est pas un
+ * échange décoratif : un emoji ne prend ni la couleur ni le trait de la ligne qu'il ouvre, il
+ * se dessine autrement sur chaque système, et il s'annonce en toutes lettres à un lecteur
+ * d'écran au milieu d'une date.
+ *
+ * L'événement en ligne prend l'encre `forme`, le présentiel l'encre `informe` — la même
+ * distinction que le kit fait entre sa session en ligne et son atelier à Dakar.
+ */
 export default function ClubEvents({ data }: ClubEventsProps) {
   const { t } = useTranslation('club');
   const { locale } = useFormat();
   const { clubEvents, registeredEvents, togglingReg, handleToggleEventReg } = data;
 
   if (clubEvents.length === 0) {
-    return <ClubEmptyState icon={CalendarBlank} title={t('events.emptyTitle')} subtitle={t('events.emptySubtitle')} />;
+    return <ClubEmptyState icon="calendar" title={t('events.emptyTitle')} subtitle={t('events.emptySubtitle')} />;
   }
 
   return (
     <motion.div
-      className="grid sm:grid-cols-2 gap-4"
+      className="grid gap-4 sm:grid-cols-2"
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
     >
       {clubEvents.map((event) => {
         const isReg = registeredEvents.has(event.id);
+        const upcoming = event.status === 'upcoming';
+        const online = event.type === 'online';
         return (
-          <motion.div key={event.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden relative hover:-translate-y-0.5 hover:shadow-md transition-all duration-300">
-            {event.imageUrl && <img src={event.imageUrl} alt={event.title} className="w-full aspect-[16/9] object-cover" />}
-            <div className="p-5">
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide', event.status === 'upcoming' ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400' : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500')}>
-                  {event.status === 'upcoming' ? t('events.upcoming') : t('events.past')}
+          <motion.div key={event.id} variants={staggerItem}>
+            <GlassPanel level="flat" padding={18} className="h-full">
+              {event.imageUrl && (
+                <img
+                  src={event.imageUrl}
+                  alt=""
+                  loading="lazy"
+                  className="mb-3 aspect-[16/9] w-full rounded-m object-cover"
+                />
+              )}
+              <div className="flex items-start gap-3">
+                <span
+                  aria-hidden="true"
+                  className="grid h-11 w-11 flex-none place-items-center rounded-m"
+                  style={{ background: online ? 'var(--action-forme)' : 'var(--action-informe)' }}
+                >
+                  <Icon name="calendar" size={20} color={online ? 'var(--paper-fixed)' : 'var(--ink-fixed)'} />
                 </span>
-                <span className={cn('text-xs px-2 py-1 rounded-full', event.type === 'online' ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400' : 'bg-accent-50 dark:bg-accent-900/20 text-accent-600 dark:text-accent-400')}>
-                  {event.type === 'online' ? t('events.online') : t('events.inPerson')}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-ink">{event.title}</p>
+                  <p className="mt-0.5 text-meta-2 text-ink-2">
+                    {new Date(event.date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    {event.time ? ` · ${event.time}` : ''}
+                  </p>
+                </div>
               </div>
-              <h4 className="font-bold text-neutral-900 dark:text-white mb-1">{event.title}</h4>
-              <p className="text-xs text-neutral-500 mb-3 leading-relaxed">{event.description}</p>
-              <div className="space-y-1 text-xs text-neutral-400 mb-4">
-                <p>📅 {new Date(event.date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}{event.time && ` · ${event.time}`}</p>
-                <p>📍 {event.location}</p>
+
+              {event.description && (
+                <p className="mt-3 text-meta-2 leading-relaxed text-ink-2">{event.description}</p>
+              )}
+
+              {event.location && (
+                <p className="mt-2 flex items-center gap-1.5 text-meta-2 text-ink-2">
+                  <span aria-hidden="true" className="flex-none"><Icon name="pin" size={14} /></span>
+                  {event.location}
+                </p>
+              )}
+
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Tag tone={upcoming ? 'ok' : 'neutral'}>{upcoming ? t('events.upcoming') : t('events.past')}</Tag>
+                  <Tag>{online ? t('events.online') : t('events.inPerson')}</Tag>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {event.link && (
+                    <Button tone="quiet" size="sm" href={event.link} target="_blank">
+                      <Icon name="share" size={15} /> {t('events.viewEvent')}
+                    </Button>
+                  )}
+                  {upcoming && (
+                    <Button
+                      tone={isReg ? 'quiet' : 'transforme'}
+                      size="sm"
+                      loading={togglingReg === event.id}
+                      onClick={() => handleToggleEventReg(event.id)}
+                    >
+                      {isReg ? <Icon name="check" size={15} color="var(--ok)" /> : <Icon name="plus" size={15} />}
+                      {isReg ? t('events.registered') : t('events.register')}
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                {event.link && <a href={event.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-plum-600 dark:text-plum-400 hover:underline"><ArrowSquareOut className="w-3.5 h-3.5" weight="bold" /> {t('events.viewEvent')}</a>}
-                {event.status === 'upcoming' && (
-                  <button onClick={() => handleToggleEventReg(event.id)} disabled={togglingReg === event.id} className={cn('ml-auto flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors disabled:opacity-50', isReg ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 hover:bg-error-100 hover:text-error-700' : 'bg-plum-600 text-white hover:bg-plum-700')}>
-                    {togglingReg === event.id ? <CircleNotch className="w-3.5 h-3.5 animate-spin" /> : isReg ? <CheckCircle className="w-3.5 h-3.5" weight="fill" /> : <Plus className="w-3.5 h-3.5" weight="bold" />}
-                    {isReg ? t('events.registered') : t('events.register')}
-                  </button>
-                )}
-              </div>
-            </div>
+            </GlassPanel>
           </motion.div>
         );
       })}

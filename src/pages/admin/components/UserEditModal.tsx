@@ -1,14 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import {
-  Loader2, X, Save, Trash2, BookOpen, CheckCircle, Crown, Plus, Bot, RotateCcw,
-} from 'lucide-react';
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useFormat } from '../../../hooks/useFormat';
 import type { User, Enrollment, Formation, ClubDigitosSubscription } from '../../../types';
 import type { EditTab, EditForm, AddForm } from '../hooks/useAdminUsers';
-import { inputCls } from '../hooks/useAdminUsers';
+import { Field, Icon } from '@ds';
+import ConsoleListSkeleton from './ConsoleListSkeleton';
 
 /* ── Edit User Modal ── */
 
@@ -69,40 +67,40 @@ export function UserEditModal({
       {editUser && (
         <div className="space-y-4">
           {/* User header */}
-          <div className="flex items-center gap-3 p-4 bg-neutral-50 dark:bg-neutral-700/30 rounded-xl">
-            <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <div className="flex items-center gap-3 p-4 bg-[color:var(--fill-1)] rounded-xl">
+            <div className="w-12 h-12 rounded-full bg-[color-mix(in_srgb,var(--mm-bleu)_5%,transparent)] flex items-center justify-center flex-shrink-0 overflow-hidden">
               {editUser.photoURL ? (
                 <img src={editUser.photoURL} alt="" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-sm font-bold text-brand-600 dark:text-brand-400">
+                <span className="text-sm font-bold text-forme">
                   {(editUser.displayName || editUser.email || '?').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
                 </span>
               )}
             </div>
             <div>
-              <p className="font-semibold text-neutral-900 dark:text-white">{editUser.displayName || t('userEdit.noName')}</p>
-              <p className="text-sm text-neutral-500">{editUser.email}</p>
+              <p className="font-semibold text-ink">{editUser.displayName || t('userEdit.noName')}</p>
+              <p className="text-sm text-ink-2">{editUser.email}</p>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1">
+          <div className="flex gap-1 bg-[color:var(--fill-2)] rounded-xl p-1">
             {([
               { id: 'info', label: t('userEdit.tabs.info') },
               { id: 'formations', label: t('userEdit.tabs.formations') },
-              { id: 'club', label: t('userEdit.tabs.club'), icon: Crown },
-              { id: 'rysmo', label: t('userEdit.tabs.rysmo'), icon: Bot },
+              { id: 'club', label: t('userEdit.tabs.club'), icon: 'crown' as const },
+              { id: 'rysmo', label: t('userEdit.tabs.rysmo'), icon: 'bot' as const },
             ] as const).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => handleEditTabChange(tab.id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                   editTab === tab.id
-                    ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm'
-                    : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
+                    ? 'bg-paper text-ink shadow-sm'
+                    : 'text-ink-2 hover:text-ink dark:hover:text-ink-2'
                 }`}
               >
-                {'icon' in tab && <tab.icon className="w-3.5 h-3.5 text-yellow-500" />}
+                {'icon' in tab && <Icon name={tab.icon} size={14} className="text-yellow-500" />}
                 {tab.label}
               </button>
             ))}
@@ -112,60 +110,40 @@ export function UserEditModal({
           {editTab === 'info' && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-neutral-500">{t('userEdit.info.firstName')}</label>
-                  <input value={editForm.firstName} onChange={(e) => setEditForm((p) => ({ ...p, firstName: e.target.value }))} placeholder={t('userEdit.info.firstName')} className={inputCls} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-neutral-500">{t('userEdit.info.lastName')}</label>
-                  <input value={editForm.lastName} onChange={(e) => setEditForm((p) => ({ ...p, lastName: e.target.value }))} placeholder={t('userEdit.info.lastName')} className={inputCls} />
-                </div>
+                <Field size="sm" label={t('userEdit.info.firstName')} value={editForm.firstName} onChange={(v) => setEditForm((p) => ({ ...p, firstName: v }))} placeholder={t('userEdit.info.firstName')} />
+                <Field size="sm" label={t('userEdit.info.lastName')} value={editForm.lastName} onChange={(v) => setEditForm((p) => ({ ...p, lastName: v }))} placeholder={t('userEdit.info.lastName')} />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('userEdit.info.displayName')}</label>
-                <input value={editForm.displayName} onChange={(e) => setEditForm((p) => ({ ...p, displayName: e.target.value }))} placeholder={t('userEdit.info.displayName')} className={inputCls} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('userEdit.info.email')}</label>
-                <input value={editForm.email} disabled className={`${inputCls} opacity-60 cursor-not-allowed`} />
-              </div>
+              <Field size="sm" label={t('userEdit.info.displayName')} value={editForm.displayName} onChange={(v) => setEditForm((p) => ({ ...p, displayName: v }))} placeholder={t('userEdit.info.displayName')} />
+              <Field size="sm" label={t('userEdit.info.email')} value={editForm.email} />
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-neutral-500">{t('userEdit.info.phone')}</label>
-                  <input value={editForm.phone} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} placeholder={t('userEdit.info.phonePlaceholder')} className={inputCls} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-neutral-500">{t('userEdit.info.whatsapp')}</label>
-                  <input value={editForm.whatsapp} onChange={(e) => setEditForm((p) => ({ ...p, whatsapp: e.target.value }))} placeholder={t('userEdit.info.phonePlaceholder')} className={inputCls} />
-                </div>
+                <Field size="sm" label={t('userEdit.info.phone')} value={editForm.phone} onChange={(v) => setEditForm((p) => ({ ...p, phone: v }))} placeholder={t('userEdit.info.phonePlaceholder')} />
+                <Field size="sm" label={t('userEdit.info.whatsapp')} value={editForm.whatsapp} onChange={(v) => setEditForm((p) => ({ ...p, whatsapp: v }))} placeholder={t('userEdit.info.phonePlaceholder')} />
               </div>
+              <Field size="sm" label={t('userEdit.info.linkedin')} type="url" value={editForm.linkedin} onChange={(v) => setEditForm((p) => ({ ...p, linkedin: v }))} placeholder="https://linkedin.com/in/..." />
+              <Field size="sm" label={t('userEdit.info.birthDate')} type="date" value={editForm.birthDate} onChange={(v) => setEditForm((p) => ({ ...p, birthDate: v }))} />
+              <Field size="sm" label={t('userEdit.info.bio')} as="textarea" value={editForm.bio} onChange={(v) => setEditForm((p) => ({ ...p, bio: v }))} rows={2} placeholder={t('userEdit.info.bioPlaceholder')} />
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('userEdit.info.linkedin')}</label>
-                <input type="url" value={editForm.linkedin} onChange={(e) => setEditForm((p) => ({ ...p, linkedin: e.target.value }))} placeholder="https://linkedin.com/in/..." className={inputCls} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('userEdit.info.birthDate')}</label>
-                <input type="date" value={editForm.birthDate} onChange={(e) => setEditForm((p) => ({ ...p, birthDate: e.target.value }))} className={inputCls} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('userEdit.info.bio')}</label>
-                <textarea value={editForm.bio} onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))} rows={2} placeholder={t('userEdit.info.bioPlaceholder')} className={`${inputCls} resize-none`} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('userEdit.info.role')}</label>
-                <select
+                <Field
+                  size="sm"
+                  as="select"
+                  label={t('userEdit.info.role')}
                   value={editForm.role}
-                  onChange={(e) => setEditForm((p) => ({ ...p, role: e.target.value as User['role'] }))}
-                  className={inputCls}
-                >
-                  <option value="student">{t('userEdit.info.roleStudent')}</option>
-                  <option value="support">{t('userEdit.info.roleSupport')}</option>
-                  {(canAssignAdmin || editForm.role === 'admin') && <option value="admin">{t('userEdit.info.roleAdmin')}</option>}
-                </select>
+                  onChange={(v) => setEditForm((p) => ({ ...p, role: v as User['role'] }))}
+                  options={[
+                    { value: 'student', label: t('userEdit.info.roleStudent') },
+                    { value: 'support', label: t('userEdit.info.roleSupport') },
+                    // L'entrée « admin » n'apparaît que si la personne a le droit de
+                    // l'attribuer — ou si l'utilisateur édité l'est déjà, sinon la modale
+                    // afficherait un rôle vide pour un compte qui en a un.
+                    ...(canAssignAdmin || editForm.role === 'admin'
+                      ? [{ value: 'admin', label: t('userEdit.info.roleAdmin') }]
+                      : []),
+                  ]}
+                />
               </div>
               <div className="flex justify-end gap-3 pt-1">
                 <Button variant="outline" onClick={onClose}>{t('userEdit.info.cancel')}</Button>
-                <Button onClick={handleSaveUser} disabled={saving} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
+                <Button onClick={handleSaveUser} disabled={saving} loading={saving} icon={<Icon name="save" size={16} />}>
                   {saving ? t('userEdit.info.saving') : t('userEdit.info.save')}
                 </Button>
               </div>
@@ -177,21 +155,23 @@ export function UserEditModal({
             <div className="space-y-4">
               {/* Add formation */}
               <div className="flex gap-2">
-                <select
+                <Field
+                  size="sm"
+                  as="select"
+                  hideLabel
+                  label={t('userEdit.formations.selectLabel')}
                   value={addFormationId}
-                  onChange={(e) => setAddFormationId(e.target.value)}
-                  className={`${inputCls} flex-1`}
-                >
-                  <option value="">{t('userEdit.formations.selectPlaceholder')}</option>
-                  {unenrolledFormations.map((f) => (
-                    <option key={f.id} value={f.id}>{f.title}</option>
-                  ))}
-                </select>
+                  onChange={setAddFormationId}
+                  placeholder={t('userEdit.formations.selectPlaceholder')}
+                  options={unenrolledFormations.map((f) => ({ value: f.id, label: f.title }))}
+                  className="flex-1"
+                  style={{ marginTop: 0 }}
+                />
                 <Button
                   size="sm"
                   onClick={handleAddEnrollment}
                   disabled={!addFormationId || addingFormation}
-                  icon={addingFormation ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  icon={<Icon name="plus" size={16} />}
                 >
                   {t('userEdit.formations.activate')}
                 </Button>
@@ -199,31 +179,31 @@ export function UserEditModal({
 
               {/* Enrolled list */}
               {loadingEnrollments ? (
-                <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
+                <ConsoleListSkeleton />
               ) : userEnrollments.length === 0 ? (
-                <div className="text-center py-8 border-2 border-dashed border-neutral-200 dark:border-neutral-700 rounded-xl">
-                  <BookOpen className="w-8 h-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-2" />
-                  <p className="text-sm text-neutral-400">{t('userEdit.formations.empty')}</p>
+                <div className="text-center py-8 border-2 border-dashed border-[color:var(--line)] rounded-xl">
+                  <Icon name="book" size={32} className="text-ink-2 mx-auto mb-2" />
+                  <p className="text-sm text-ink-2">{t('userEdit.formations.empty')}</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {userEnrollments.map((enrollment) => {
                     const formation = allFormations.find((f) => f.id === enrollment.formationId);
                     return (
-                      <div key={enrollment.id} className="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-700/30 rounded-xl">
-                        <CheckCircle className={`w-4 h-4 flex-shrink-0 ${enrollment.progress === 100 ? 'text-success-500' : 'text-neutral-300'}`} />
+                      <div key={enrollment.id} className="flex items-center gap-3 p-3 bg-[color:var(--fill-1)] rounded-xl">
+                        <Icon name="check-circle" className={`w-4 h-4 flex-shrink-0 ${enrollment.progress === 100 ? 'text-ok' : 'text-ink-2'}`} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">
+                          <p className="text-sm font-medium text-ink truncate">
                             {formation?.title ?? enrollment.formationId}
                           </p>
-                          <p className="text-xs text-neutral-400">{t('userEdit.formations.progress', { progress: enrollment.progress })}</p>
+                          <p className="text-xs text-ink-2">{t('userEdit.formations.progress', { progress: enrollment.progress })}</p>
                         </div>
                         <button
                           onClick={() => handleRemoveEnrollment(enrollment)}
                           disabled={removingId === enrollment.id}
-                          className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors flex-shrink-0"
+                          className="p-1.5 rounded-lg text-ink-2 hover:text-stop hover:bg-[color-mix(in_srgb,var(--stop)_8%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--stop)_20%,transparent)] transition-colors flex-shrink-0"
                         >
-                          {removingId === enrollment.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                          <Icon name="trash" size={14} />
                         </button>
                       </div>
                     );
@@ -237,7 +217,7 @@ export function UserEditModal({
           {editTab === 'club' && (
             <div className="space-y-4">
               {loadingClubSub ? (
-                <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
+                <ConsoleListSkeleton />
               ) : (
                 <>
                   {/* Status card */}
@@ -245,23 +225,23 @@ export function UserEditModal({
                     clubSub?.status === 'active'
                       ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
                       : clubSub?.status === 'pending'
-                      ? 'bg-warning-50 dark:bg-warning-900/20 border-warning-200 dark:border-warning-800'
-                      : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
+                      ? 'bg-[color-mix(in_srgb,var(--warn)_4%,transparent)] border-[color-mix(in_srgb,var(--warn)_18%,transparent)]'
+                      : 'bg-[color:var(--fill-1)] border-[color:var(--line)]'
                   }`}>
                     <div className="flex items-center gap-3 mb-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                         clubSub?.status === 'active'
                           ? 'bg-yellow-200 dark:bg-yellow-800/50'
-                          : 'bg-neutral-200 dark:bg-neutral-700'
+                          : 'bg-[color:var(--fill-3)]'
                       }`}>
-                        <Crown className={`w-5 h-5 ${clubSub?.status === 'active' ? 'text-yellow-600 dark:text-yellow-400' : 'text-neutral-400'}`} />
+                        <Icon name="crown" className={`w-5 h-5 ${clubSub?.status === 'active' ? 'text-yellow-600 dark:text-yellow-400' : 'text-ink-2'}`} />
                       </div>
                       <div>
-                        <p className="font-bold text-neutral-900 dark:text-white text-sm">{t('userEdit.club.title')}</p>
+                        <p className="font-bold text-ink text-sm">{t('userEdit.club.title')}</p>
                         <p className={`text-xs font-semibold ${
                           clubSub?.status === 'active' ? 'text-yellow-600 dark:text-yellow-400' :
-                          clubSub?.status === 'pending' ? 'text-warning-600 dark:text-warning-400' :
-                          'text-neutral-400'
+                          clubSub?.status === 'pending' ? 'text-warn' :
+                          'text-ink-2'
                         }`}>
                           {!clubSub ? t('userEdit.club.noSubscription') :
                            clubSub.status === 'active' ? t('userEdit.club.statusActive') :
@@ -272,7 +252,7 @@ export function UserEditModal({
                     </div>
 
                     {clubSub && (
-                      <div className="space-y-1 text-xs text-neutral-500 dark:text-neutral-400 mb-0">
+                      <div className="space-y-1 text-xs text-ink-2 mb-0">
                         <p>{t('userEdit.club.start', { date: new Date(clubSub.startedAt).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }) })}</p>
                         <p>{t('userEdit.club.expiration', { date: new Date(clubSub.expiresAt).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }) })}</p>
                         <p>{t('userEdit.club.renewal', { value: clubSub.autoRenew ? t('userEdit.club.renewalAuto') : t('userEdit.club.renewalManual') })}</p>
@@ -287,8 +267,8 @@ export function UserEditModal({
                       <Button
                         className="w-full"
                         onClick={handleGrantClub}
-                        disabled={togglingClub}
-                        icon={togglingClub ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
+                        disabled={togglingClub} loading={togglingClub}
+                        icon={<Icon name="crown" size={16} />}
                       >
                         {togglingClub ? t('userEdit.club.granting') : t('userEdit.club.grant')}
                       </Button>
@@ -304,16 +284,16 @@ export function UserEditModal({
                           }}
                           disabled={togglingClub}
                           variant="outline"
-                          icon={togglingClub ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
+                          icon={<Icon name="crown" size={16} />}
                         >
                           {t('userEdit.club.renew')}
                         </Button>
                         <button
                           onClick={() => handleRevokeClub('cancelled')}
                           disabled={togglingClub}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-error-300 dark:border-error-700 text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 text-sm font-medium transition-colors disabled:opacity-50"
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-stop text-stop hover:bg-[color-mix(in_srgb,var(--stop)_8%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--stop)_20%,transparent)] text-sm font-medium transition-colors disabled:opacity-50"
                         >
-                          {togglingClub ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                          <Icon name="close" size={16} />
                           {t('userEdit.club.revoke')}
                         </button>
                       </>
@@ -324,14 +304,14 @@ export function UserEditModal({
                         className="w-full"
                         onClick={() => handleRevokeClub('active')}
                         disabled={togglingClub}
-                        icon={togglingClub ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                        icon={<Icon name="check-circle" size={16} />}
                       >
                         {togglingClub ? t('userEdit.club.granting') : t('userEdit.club.confirmPayment')}
                       </Button>
                     )}
                   </div>
 
-                  <p className="text-xs text-neutral-400 text-center">
+                  <p className="text-xs text-ink-2 text-center">
                     {t('userEdit.club.note')}
                   </p>
                 </>
@@ -343,28 +323,28 @@ export function UserEditModal({
           {editTab === 'rysmo' && (
             <div className="space-y-4">
               {loadingRysmo ? (
-                <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
+                <ConsoleListSkeleton />
               ) : (
                 <>
                   {/* Status card */}
-                  <div className="rounded-2xl p-5 border bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800">
+                  <div className="rounded-2xl p-5 border bg-[color-mix(in_srgb,var(--mm-teal)_4%,transparent)] border-[color-mix(in_srgb,var(--mm-teal)_18%,transparent)]">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-teal-200 dark:bg-teal-800/50 flex items-center justify-center flex-shrink-0">
-                        <Bot className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                      <div className="w-10 h-10 rounded-xl bg-[color-mix(in_srgb,var(--mm-teal)_9%,transparent)] flex items-center justify-center flex-shrink-0">
+                        <Icon name="bot" size={20} className="text-digitalise-txt" />
                       </div>
                       <div>
-                        <p className="font-bold text-neutral-900 dark:text-white text-sm">{t('userEdit.rysmo.title')}</p>
-                        <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('userEdit.rysmo.subtitle')}</p>
+                        <p className="font-bold text-ink text-sm">{t('userEdit.rysmo.title')}</p>
+                        <p className="text-xs text-ink-2">{t('userEdit.rysmo.subtitle')}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-xl bg-white/60 dark:bg-neutral-800/40 p-3">
-                        <p className="text-xs text-neutral-500">{t('userEdit.rysmo.usedToday')}</p>
-                        <p className="text-xl font-black text-neutral-900 dark:text-white">{rysmoQuota?.dayCount ?? 0}</p>
+                      <div className="rounded-xl bg-[color-mix(in_srgb,var(--paper)_60%,transparent)] p-3">
+                        <p className="text-xs text-ink-2">{t('userEdit.rysmo.usedToday')}</p>
+                        <p className="text-xl font-black text-ink">{rysmoQuota?.dayCount ?? 0}</p>
                       </div>
-                      <div className="rounded-xl bg-white/60 dark:bg-neutral-800/40 p-3">
-                        <p className="text-xs text-neutral-500">{t('userEdit.rysmo.prepaid')}</p>
-                        <p className="text-xl font-black text-teal-600 dark:text-teal-400">{rysmoQuota?.packBalance ?? 0}</p>
+                      <div className="rounded-xl bg-[color-mix(in_srgb,var(--paper)_60%,transparent)] p-3">
+                        <p className="text-xs text-ink-2">{t('userEdit.rysmo.prepaid')}</p>
+                        <p className="text-xl font-black text-digitalise-txt">{rysmoQuota?.packBalance ?? 0}</p>
                       </div>
                     </div>
                   </div>
@@ -373,29 +353,37 @@ export function UserEditModal({
                   <button
                     onClick={handleResetRysmo}
                     disabled={togglingRysmo}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700/30 text-sm font-medium transition-colors disabled:opacity-50"
+                    aria-busy={togglingRysmo || undefined}
+                    className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[color:var(--line)] text-ink-2 hover:bg-[color:var(--fill-1)] dark:hover:bg-[color-mix(in_srgb,var(--night-3)_30%,transparent)] text-sm font-medium transition-colors disabled:opacity-50${togglingRysmo ? ' mm-loading' : ''}`}
                   >
-                    {togglingRysmo ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                    <Icon name="rotate" size={16} />
                     {t('userEdit.rysmo.reset')}
                   </button>
 
                   {/* Add tokens */}
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold text-neutral-500">{t('userEdit.rysmo.addLabel')}</label>
+                    <label htmlFor="rysmo-add-tokens" className="text-xs font-semibold text-ink-2">{t('userEdit.rysmo.addLabel')}</label>
                     <div className="flex gap-2">
-                      <input
+                      {/* Pas de `label` ici : le `<label htmlFor>` au-dessus est le libellé du
+                          champ, et il est déjà lié. Un second libellé en sr-only ferait
+                          annoncer le champ deux fois. */}
+                      <Field
+                        size="sm"
+                        id="rysmo-add-tokens"
                         type="number"
-                        min={1}
-                        max={10000}
+                        inputMode="numeric"
+                        min="1"
+                        max="10000"
                         value={addTokenAmount}
-                        onChange={(e) => setAddTokenAmount(e.target.value)}
-                        className={`${inputCls} flex-1`}
+                        onChange={setAddTokenAmount}
+                        className="flex-1"
+                        style={{ marginTop: 0 }}
                       />
                       <Button
                         size="sm"
                         onClick={handleAddRysmoTokens}
                         disabled={togglingRysmo}
-                        icon={togglingRysmo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        icon={<Icon name="plus" size={16} />}
                       >
                         {t('userEdit.rysmo.add')}
                       </Button>
@@ -405,7 +393,7 @@ export function UserEditModal({
                         <button
                           key={preset}
                           onClick={() => setAddTokenAmount(preset)}
-                          className="flex-1 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:border-teal-400 hover:text-teal-600 transition-colors"
+                          className="flex-1 py-1.5 rounded-lg border border-[color:var(--line)] text-xs font-medium text-ink-2 hover:border-digitalise hover:text-digitalise-txt transition-colors"
                         >
                           {preset}
                         </button>
@@ -413,7 +401,7 @@ export function UserEditModal({
                     </div>
                   </div>
 
-                  <p className="text-xs text-neutral-400 text-center">
+                  <p className="text-xs text-ink-2 text-center">
                     {t('userEdit.rysmo.note')}
                   </p>
                 </>
@@ -445,47 +433,33 @@ export function CreateUserModal({
     <Modal open={open} onClose={onClose} title={t('userCreate.title')}>
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-neutral-500">{t('userCreate.firstName')}</label>
-            <input value={addForm.firstName} onChange={(e) => setAddForm((p) => ({ ...p, firstName: e.target.value }))} placeholder={t('userCreate.firstName')} className={inputCls} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-neutral-500">{t('userCreate.lastName')}</label>
-            <input value={addForm.lastName} onChange={(e) => setAddForm((p) => ({ ...p, lastName: e.target.value }))} placeholder={t('userCreate.lastName')} className={inputCls} />
-          </div>
+          <Field size="sm" label={t('userCreate.firstName')} value={addForm.firstName} onChange={(v) => setAddForm((p) => ({ ...p, firstName: v }))} placeholder={t('userCreate.firstName')} />
+          <Field size="sm" label={t('userCreate.lastName')} value={addForm.lastName} onChange={(v) => setAddForm((p) => ({ ...p, lastName: v }))} placeholder={t('userCreate.lastName')} />
         </div>
-        <div className="space-y-1">
-          <label className="text-xs font-semibold text-neutral-500">{t('userCreate.displayName')} <span className="text-error-500">*</span></label>
-          <input value={addForm.displayName} onChange={(e) => setAddForm((p) => ({ ...p, displayName: e.target.value }))} placeholder={t('userCreate.displayName')} className={inputCls} />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-semibold text-neutral-500">{t('userCreate.email')} <span className="text-error-500">*</span></label>
-          <input type="email" value={addForm.email} onChange={(e) => setAddForm((p) => ({ ...p, email: e.target.value }))} placeholder={t('userCreate.emailPlaceholder')} className={inputCls} />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-semibold text-neutral-500">{t('userCreate.password')} <span className="text-error-500">*</span></label>
-          <input type="password" value={addForm.password} onChange={(e) => setAddForm((p) => ({ ...p, password: e.target.value }))} placeholder={t('userCreate.passwordPlaceholder')} className={inputCls} />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-semibold text-neutral-500">{t('userCreate.phone')}</label>
-          <input type="tel" value={addForm.phone} onChange={(e) => setAddForm((p) => ({ ...p, phone: e.target.value }))} placeholder={t('userCreate.phonePlaceholder')} className={inputCls} />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-semibold text-neutral-500">{t('userCreate.role')}</label>
-          {/* No 'admin' option: the adminCreateUser Cloud Function never creates
-              admins (it forces student/support). Promote to admin via the edit modal. */}
-          <select value={addForm.role} onChange={(e) => setAddForm((p) => ({ ...p, role: e.target.value as AddForm['role'] }))} className={inputCls}>
-            <option value="student">{t('userCreate.roleStudent')}</option>
-            <option value="support">{t('userCreate.roleSupport')}</option>
-          </select>
-        </div>
-        <p className="text-xs text-neutral-400">{t('userCreate.passwordNote')}</p>
+        <Field size="sm" required label={t('userCreate.displayName')} value={addForm.displayName} onChange={(v) => setAddForm((p) => ({ ...p, displayName: v }))} placeholder={t('userCreate.displayName')} />
+        <Field size="sm" required type="email" inputMode="email" autoComplete="email" label={t('userCreate.email')} value={addForm.email} onChange={(v) => setAddForm((p) => ({ ...p, email: v }))} placeholder={t('userCreate.emailPlaceholder')} />
+        <Field size="sm" required type="password" autoComplete="new-password" label={t('userCreate.password')} value={addForm.password} onChange={(v) => setAddForm((p) => ({ ...p, password: v }))} placeholder={t('userCreate.passwordPlaceholder')} />
+        <Field size="sm" label={t('userCreate.phone')} type="tel" value={addForm.phone} onChange={(v) => setAddForm((p) => ({ ...p, phone: v }))} placeholder={t('userCreate.phonePlaceholder')} />
+        {/* Aucune entrée « admin » : la Cloud Function `adminCreateUser` n'en crée jamais
+            (elle force student/support). La promotion passe par la modale d'édition. */}
+        <Field
+          size="sm"
+          as="select"
+          label={t('userCreate.role')}
+          value={addForm.role}
+          onChange={(v) => setAddForm((p) => ({ ...p, role: v as AddForm['role'] }))}
+          options={[
+            { value: 'student', label: t('userCreate.roleStudent') },
+            { value: 'support', label: t('userCreate.roleSupport') },
+          ]}
+        />
+        <p className="text-xs text-ink-2">{t('userCreate.passwordNote')}</p>
         <div className="flex justify-end gap-3 pt-1">
-          <Button variant="outline" onClick={onClose} icon={<X className="w-4 h-4" />}>{t('userCreate.cancel')}</Button>
+          <Button variant="outline" onClick={onClose} icon={<Icon name="close" size={16} />}>{t('userCreate.cancel')}</Button>
           <Button
             onClick={handleCreateUser}
-            disabled={creatingUser}
-            icon={creatingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            disabled={creatingUser} loading={creatingUser}
+            icon={<Icon name="plus" size={16} />}
           >
             {creatingUser ? t('userCreate.creating') : t('userCreate.create')}
           </Button>

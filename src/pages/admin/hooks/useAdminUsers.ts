@@ -40,7 +40,7 @@ export const emptyEditForm = {
 
 export type EditForm = typeof emptyEditForm;
 
-export const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
+export const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-[color:var(--line)] bg-[color:var(--fill-1)] text-ink text-sm focus:outline-none focus:ring-2 focus:border-forme transition-colors';
 
 export const roleLabels: Record<string, string> = { admin: 'Admin', support: 'Support', student: 'Étudiant' };
 export const roleVariants: Record<string, 'error' | 'warning' | 'default'> = { admin: 'error', support: 'warning', student: 'default' };

@@ -1,0 +1,97 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-6 · CE QUE `brand/states.css` NE COUVRE PAS
+
+   ⚠️ CE FICHIER A CHANGÉ DE RÔLE. Il portait auparavant TOUT le tableau d'états, parce que
+   le handoff décrivait `brand/states.css` comme « AJOUTÉ POUR CE TRANSFERT » sans le livrer.
+   LA RÉVISION REÇUE LE LIVRE. Il est donc désormais une copie littérale (AD-1), et tout ce
+   qu'il porte a été RETIRÉ d'ici : l'anneau de focus double, l'appui, le survol, le
+   désactivé, le chargement, le squelette, l'état sélectionné, les cibles tactiles.
+
+   Ne restent que quatre choses, chacune pour une raison nommée :
+     · ce que le kit dessine pour une MAQUETTE et que le port rend autrement (l'erreur) ;
+     · ce que le kit ne dessine pas du tout (le saut au contenu, le texte indicatif) ;
+     · deux jeux de jetons qu'aucun fichier du kit ne déclare (AD-2, AD-3) ;
+     · une valeur mesurée meilleure que celle du kit, et pourquoi (la cible tactile).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── L'ERREUR, SUR UN CHAMP RÉEL ──────────────────────────────────────────────
+   Le kit vise `.mm-field[data-state="error"] .mm-field-box` et `.mm-field-hint` : le DOM
+   d'une MAQUETTE, où `Field` rend un `<div>`. Le port rend un `<input>`, un `<textarea>` ou
+   un `<select>` réels — c'est le point ouvert B du handoff, remboursé. Ces deux sélecteurs
+   ne rencontrent donc rien dans ce dépôt, et les deux classes ci-dessous les remplacent sur
+   la structure qui existe : l'enveloppe porte l'anneau, le message vit sous le champ.
+
+   Le traitement, lui, est celui du kit au caractère près : bordure --stop, message SOUS le
+   champ, fondu de 220 ms. PAS DE SECOUSSE — elle ajoute du stress et ne dit pas ce qui est
+   faux. */
+.mm-invalid{border-color:var(--stop)!important;box-shadow:var(--error-ring)!important}
+.mm-error-msg{
+  color:var(--stop);font-size:var(--fs-meta-2);margin-top:var(--sp-6);
+  animation:mm-fade var(--t-ui) var(--ease) both;
+}
+@keyframes mm-fade{from{opacity:0}to{opacity:1}}
+
+/* ── CIBLE TACTILE — la seule valeur où ce fichier contredit le kit ───────────
+   Le kit fige la zone à `width:var(--touch-aa)`, soit 44 px EXACTEMENT. Sur une cible déjà
+   plus grande que 44 — un bouton pleine largeur de 54 px, une ligne de leçon — ce
+   pseudo-élément RÉTRÉCIT la zone au lieu de l'étendre, et le défaut est invisible : la
+   cible reste cliquable par le bouton lui-même, seule la zone du pseudo change.
+
+   `max(100%, var(--touch-aa))` garde l'intention du kit — le dessin reste à 42 px, la cible
+   passe à 44 — sans jamais mordre sur une cible qui était déjà conforme. */
+.mm-touch-extend::before{width:max(100%,var(--touch-aa));height:max(100%,var(--touch-aa))}
+
+/* ── SAUT AU CONTENU — absent du kit ──────────────────────────────────────────
+   Le premier élément focalisable de chaque page. Il n'a aucun coût et il est le seul moyen,
+   au clavier, d'éviter de retraverser la navigation à chaque page. */
+.mm-skip{
+  position:absolute;left:var(--sp-8);top:var(--sp-8);z-index:100;
+  padding:var(--sp-10) var(--sp-16);border-radius:var(--r-pill);
+  background:var(--action-primary);color:var(--text-on-primary);
+  font-family:var(--f-body);font-weight:700;font-size:var(--fs-meta);
+  /* Déplacé en transform, pas en `top` : la règle 3 ne fait pas d'exception pour le code
+     du système lui-même, et c'est le premier endroit où on serait tenté d'en faire une. */
+  transform:translateY(calc(-100% - var(--sp-16)));
+  transition:transform var(--t-ui) var(--ease);
+}
+.mm-skip:focus-visible{transform:none}
+
+/* ── AD-3 · le dégradé du mot-symbole bascule seul ────────────────────────────
+   Le `Wordmark` du kit prend une prop `night` — ce que la propre règle du système interdit :
+   « une prop dark est un piège : elle doit être passée à la main partout, personne ne le
+   fait, et le composant retombe silencieusement sur sa valeur claire ». Les variantes en
+   lettres n'en avaient pas besoin (elles lisent --mm-bleu, qui bascule seul) ; seul le
+   dégradé de « Hello ! » était écrit en dur. Il devient un jeton, et la prop disparaît. */
+:root{
+  --wordmark-hello:linear-gradient(96deg,#0057BC 0%,#F38B0A 52%,#02AC9C 100%);
+  --wordmark-hello-flat:#0057BC;
+}
+.dk{
+  --wordmark-hello:linear-gradient(96deg,#6FB1FF 0%,#FFB24D 52%,#3FD9C6 100%);
+  --wordmark-hello-flat:#6FB1FF;
+}
+
+/* ── AD-2 · les deux valeurs qui ne doivent PAS basculer ──────────────────────
+   Trois exceptions assumées au « aucune couleur en dur » vivent sur des surfaces COLORÉES,
+   qui ne changent pas de mode : l'encre du bouton orange, le texte sur un dégradé de
+   territoire, la pastille blanche du logo. Le kit les écrivait en dur (#0E1116, #fff), ce
+   qui les rendait indistinguables d'un oubli.
+
+   Ce sont des jetons FIXES : leur valeur est identique en clair et en sombre, et c'est
+   précisément ce qu'ils déclarent. `--ink` deviendrait blanc sous `.dk` et donnerait du
+   blanc sur orange clair ; `--text-invert` existe déjà mais dit « inverse de l'encre », pas
+   « posé sur une couleur de marque ». */
+:root,.dk{
+  --ink-fixed:#0E1116;    /* encre sur surface colorée claire — orange, pastels */
+  --paper-fixed:#FFFFFF;  /* papier sur surface colorée — pastille du logo, curseur d'interrupteur */
+}
+
+/* ── AD-6 · le texte indicatif des champs — absent du kit ─────────────────────
+   Un style en ligne ne peut pas exprimer `::placeholder` — le port des formulaires ne
+   pouvait donc pas le poser, et les champs héritaient du gris de l'agent utilisateur.
+   Celui de Chrome est proche de `--ink-3`, ce qui le rend illisible en mode sombre.
+
+   `--ink-2` et non `--ink-3` : un texte indicatif se lit (AD-18). Et il ne remplace jamais
+   le libellé — un champ dont le seul libellé est son placeholder perd son nom dès qu'on
+   commence à y écrire. */
+input::placeholder,textarea::placeholder{color:var(--ink-2);opacity:1}

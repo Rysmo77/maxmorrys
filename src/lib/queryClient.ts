@@ -29,6 +29,12 @@ export const queryKeys = {
   // blog en demande 50. Même clé = une des deux vues serait tronquée.
   homeRecentPosts: ['blog', 'recent', 5] as const,
   featuredTestimonials: ['testimonials', 'featured'] as const,
+  /* Une seule clé pour l'index ET la page d'une question : 46 documents, un aller. La page
+     d'une question y trouve aussi ses voisines, sans requête par catégorie. */
+  faq: ['faq', 'all'] as const,
+  /* Les seuls chiffres que les pages publiques ont le droit d'afficher (AD-5). Comptés côté
+     serveur, donc une lecture au lieu de quarante-six — le forfait est compté, ici. */
+  publicCounts: ['public', 'counts'] as const,
   allUsers: ['users', 'all'] as const,
   allFormations: ['formations', 'all'] as const,
   studentData: (userId: string) => ['student', userId] as const,

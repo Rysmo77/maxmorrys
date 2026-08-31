@@ -1,0 +1,17 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   COPIE LITTÉRALE de Design_System_Max-Morrys/tokens/motion.css — NE PAS ÉDITER.
+   Régénéré par `npm run ds:sync`. Tout écart délibéré vit dans overrides/.
+   ───────────────────────────────────────────────────────────────────────── */
+/* Quatre durées, deux courbes. Rien d'autre. */
+:root{
+  --t-tap:120ms; /* @kind other */    /* « j'ai senti ton doigt » */
+  --t-ui:220ms; /* @kind other */     /* « l'état a changé » */
+  --t-enter:380ms; /* @kind other */  /* « ceci vient d'arriver » */
+  --t-scene:700ms; /* @kind other */  /* « la page se met en place » */
+  --ease:cubic-bezier(.2,.7,.2,1); /* @kind other */
+  --ease-out:cubic-bezier(.16,1,.3,1); /* @kind other */
+  --stagger:70ms; /* @kind other */      /* décalage entre deux voisines qui entrent */
+  --stagger-line:90ms; /* @kind other */ /* décalage entre deux lignes de titre */
+  --press-scale:.975; /* @kind other */  /* enfoncement d'un bouton */
+  --press-scale-sm:.94; /* @kind other *//* enfoncement d'une pilule ou d'un bouton rond */
+}

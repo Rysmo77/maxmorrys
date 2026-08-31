@@ -1,856 +1,499 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Boxes, BrainCircuit, Server, Sparkle, ArrowRight, ChevronDown, Send, Check,
-  Rocket, Building2, Landmark, UserRound,
-} from 'lucide-react';
+import { Button, DocLine, Field, GlassPanel, Icon, Tag } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, buildCanonical } from '../components/seo/seo-config';
-import EditorialHeading from '../components/shared/EditorialHeading';
-import AnimatedIcon from '../components/shared/AnimatedIcon';
-import LocalizedLink from '../components/shared/LocalizedLink';
-import { markSuppressed } from '../lib/popups/rules';
-import Button from '../components/ui/Button';
-import Input, { Textarea } from '../components/ui/Input';
-import { useToast } from '../components/ui/Toast';
-import ClientWorkIndex from '../components/agency/ClientWorkIndex';
-import VentureCard from '../components/agency/VentureCard';
-import { staggerContainer, staggerItem } from '../lib/animations';
-import { universeThemes } from '../lib/sectionThemes';
-import {
-  agencyLeadConfig, isGrowthRequest, routingTagFor, MIN_DESCRIPTION_LENGTH,
-} from '../lib/agency/engagement';
-import {
-  practices, pillars, ventures, corporateUrl, legalName, legalEntity,
-  formatRegisteredAddress,
-} from '../lib/brand';
-import { saveEngagementLead } from '../lib/firestore';
-import { isValidSlug } from '../lib/redirects';
-import { useLanguage } from '../contexts/LanguageContext';
-import { trackEvent, trackGenerateLead } from '../lib/tracking';
-import { captureError } from '../lib/sentry';
-import type {
-  EngagementProjectType, EngagementBudget, EngagementTimeline,
-} from '../types';
-
-const theme = universeThemes.agency;
-const viewportOnce = { once: true, amount: 0.2 };
-
-/** Les quatre capabilities, dans l'ordre. Les icônes vivent ici, les libellés en i18n. */
-const CAPABILITIES = [
-  { key: 'product', icon: Boxes },
-  { key: 'ai', icon: BrainCircuit },
-  { key: 'technology', icon: Server },
-  { key: 'brand', icon: Sparkle },
-] as const;
-
-const AUDIENCES = [
-  { key: 'founders', icon: Rocket },
-  { key: 'companies', icon: Building2 },
-  { key: 'institutions', icon: Landmark },
-  { key: 'executives', icon: UserRound },
-] as const;
-
-const HOW_WE_WORK = ['frame', 'design', 'build', 'run'] as const;
-
-const EMPTY_FORM = {
-  name: '',
-  company: '',
-  email: '',
-  website: '',
-  projectType: 'product' as EngagementProjectType,
-  budget: 'exploring' as EngagementBudget,
-  timeline: 'quarter' as EngagementTimeline,
-  description: '',
-  _hp: '',
-};
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-type FormState = typeof EMPTY_FORM;
-type FormErrors = Partial<Record<keyof FormState, string>>;
+import DsNavHost from '../components/layout/DsNavHost';
+import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { useLocalizedPath } from '../contexts/LanguageContext';
+import { trackEvent } from '../lib/tracking';
+import { agencyLeadConfig } from '../lib/agency/engagement';
+import { practices, corporateUrl, legalName, legalEntity } from '../lib/brand';
+import { DESCRIPTION_MAX, useAgencyEngagement } from './agence/useAgencyEngagement';
 
 /**
- * Max-Morrys Agency — practice BUILD de MY ONOMA.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * /agence — LE SEUL TERRITOIRE QUI N'EN EST PAS UN.
  *
- * ⚠️ Cette page ne publie AUCUNE grille tarifaire, AUCUN chiffre, AUCUN logo client et
- * AUCUN témoignage : l'offre est high-ticket, et rien de chiffré n'est vérifiable à ce jour.
- * Voir `docs/AGENCY-POSITIONING.md` et `docs/CONTENT-TODO.md`.
+ * Le système est formel : « L'agence vit HORS des quatre verbes — séparateur dans la barre
+ * haute, entrée en corail : elle ne se range pas sous "Je te digitalise", c'est une autre
+ * promesse et un autre client. » `sectionThemes.agency` porte `territory: null, mesh: null` :
+ * cette page ne reçoit AUCUN maillage, et c'est voulu. Sa seule marque de couleur est le
+ * corail — en version TEXTE (`--mm-corail-t`, AD-20), parce que `#FF6E7F` fait 2,70:1 sur
+ * blanc et que le kit l'écrit quand même en dur, à quatre endroits.
  *
- * ⚠️ L'offre TPE « Digital Commerce Local » vit sur `/presence-digitale`, avec son propre
- * tunnel. Les deux ne doivent jamais se mélanger.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUE CETTE PAGE A CESSÉ DE FAIRE — 856 lignes, neuf sections, contre trois ici.
  *
- * ⚠️ Vouvoiement intégral — le reste du site tutoie, cette page s'adresse à des fondateurs,
- * des PME et des institutions. Voir `docs/UX-AUDIT.md §2`.
+ * 1. ELLE NE PUBLIE PLUS DE RÉFÉRENCES CLIENTS. `ClientWorkIndex` nommait publiquement douze
+ *    organisations, et le dépôt note lui-même que l'accord écrit n'est pas obtenu (FR-105).
+ *    Nommer un client sans son accord n'est pas une imprécision, c'est un risque juridique
+ *    porté par le client. La section ne se remplace pas par un contenu de substitution :
+ *    la NOTE DE DETTE, en bas de page, dit qu'elle a été retirée et pourquoi. Une absence
+ *    expliquée se répare ; une absence muette se relit comme un vide.
+ *
+ * 2. ELLE NE VOUVOIE PLUS, et ne dit plus « nous ». « Comment nous travaillons », « nous
+ *    répondons sous deux jours », « nous vous orientons » : quatre sections écrites à la
+ *    première personne du pluriel, sur une page dont toute la promesse est qu'une seule
+ *    personne lit, répond et cadre. Le kit tranche : « Réponse sous 48 h, par moi. »
+ *
+ * 3. ELLE NE MONTRE AUCUN MONTANT. Le kit l'écrit en commentaire — « Aucun montant. Aucune
+ *    organisation tierce nommée. » — et le contredit dans sa propre maquette en pré-remplissant
+ *    la fourchette avec « À partir de 3 M FCFA ». On garde la règle, pas la maquette :
+ *    les cinq fourchettes du formulaire nomment désormais une FORME D'ENGAGEMENT (durée,
+ *    équipe) et non une somme. La règle a d'ailleurs un second appui, structurel : AD-5 fait
+ *    de `<Num source asOf>` le seul chemin du dépôt vers un chiffre — et il n'entre pas dans
+ *    un `<option>`.
+ *
+ * 4. ELLE N'ANNONCE PLUS CLÉA AVANT L'ENVOI. L'encart « ce besoin relève de Cléa » s'ouvrait
+ *    pendant la saisie. Sur cette page, Cléa n'apparaît qu'APRÈS envoi, dans la carte de
+ *    réorientation — le lead est enregistré et tagué d'abord, orienté ensuite. Aucune demande
+ *    n'est rejetée ; elle est réorientée.
+ *
+ * 5. ELLE NE REDOUBLE PLUS `/faq`, ni le pied de page. La FAQ de six questions et ses données
+ *    structurées `FAQPage` sont parties avec la section : publier un balisage FAQ pour un
+ *    contenu absent de la page est une déclaration fausse à un tiers. La mention légale
+ *    finale l'était aussi, mot pour mot, dans `Footer`.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
+
+/** Décalage de la cascade d'entrée. Une seule écriture pour toute la page. */
+const rv = (i: number): CSSProperties => ({ ['--i' as string]: i });
+
+/**
+ * Les quatre familles du kit, illustratives : le formulaire, lui, propose les NEUF types
+ * réels de `agencyLeadConfig.projectTypes` — d'où la première ligne du titre de bande, qui
+ * les compte. Si la liste change, cette ligne ment : elle est vérifiée ici plutôt que crue.
+ */
+const BAND_TYPES = 4;
+
 export default function Agence() {
   const { t } = useTranslation('agency');
-  const { language } = useLanguage();
-  const { addToast } = useToast();
-
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number[]>([]);
-  const formStarted = useRef(false);
-  const [searchParams] = useSearchParams();
-
-  /**
-   * Slug du site client par lequel le visiteur est arrivé, posé par la
-   * redirection `/via/<slug>` servie au bord. Revalidé ici : le paramètre est
-   * lisible et modifiable dans la barre d'adresse, il n'entre en base que s'il
-   * a la forme d'un slug. Identifie le site émetteur, jamais la personne.
-   */
-  const via = useMemo(() => {
-    const raw = searchParams.get('via');
-    return raw && isValidSlug(raw) ? raw : null;
-  }, [searchParams]);
-
-  const faqItems = t('faq.items', { returnObjects: true }) as { q: string; a: string }[];
+  const path = useLocalizedPath();
+  const lead = useAgencyEngagement();
 
   const build = practices.build;
   const grow = practices.grow;
 
-  /** Vue de page — une seule fois, pas à chaque re-rendu. */
-  useEffect(() => {
-    trackEvent('agency_view', { practice: build.pillar });
-  }, [build.pillar]);
-
-  /** La demande relève-t-elle de Cléa ? Recalculé à chaque frappe pour prévenir en amont. */
-  const isGrowth = useMemo(
-    () => isGrowthRequest(form.projectType, form.description),
-    [form.projectType, form.description],
-  );
-
-  const selectCls = `w-full px-3 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 ${theme.focusRing}`;
-
-  const setField = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
-    // Premier contact avec le formulaire : signalé une seule fois.
-    if (!formStarted.current) {
-      formStarted.current = true;
-      trackEvent('agency_form_start');
-    }
-    setForm((prev) => ({ ...prev, [key]: value }));
-    setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
-  }, []);
-
-  function validate(): boolean {
-    const next: FormErrors = {};
-    if (!form.name.trim()) next.name = t('form.required');
-    if (!form.company.trim()) next.company = t('form.required');
-    if (!form.email.trim()) next.email = t('form.required');
-    else if (!EMAIL_RE.test(form.email.trim())) next.email = t('form.invalidEmail');
-    if (!form.description.trim()) next.description = t('form.required');
-    else if (form.description.trim().length < MIN_DESCRIPTION_LENGTH) {
-      next.description = t('form.descriptionTooShort');
-    }
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    // Pot de miel : un bot remplit tout, on abandonne sans le lui dire.
-    if (form._hp) return;
-    if (!validate()) return;
-
-    setSubmitting(true);
-    try {
-      const routedTo = routingTagFor(form.projectType, form.description);
-      await saveEngagementLead({
-        name: form.name.trim(),
-        company: form.company.trim(),
-        email: form.email.trim(),
-        ...(form.website.trim() ? { website: form.website.trim() } : {}),
-        projectType: form.projectType,
-        budget: form.budget,
-        timeline: form.timeline,
-        description: form.description.trim(),
-        ...(routedTo ? { routedTo } : {}),
-        ...(via ? { via } : {}),
-        locale: language,
-      });
-
-      trackGenerateLead('agency_engagement');
-      trackEvent('agency_form_submit', {
-        project_type: form.projectType,
-        budget: form.budget,
-        timeline: form.timeline,
-        routed_to: routedTo ?? 'build',
-        ...(via ? { via } : {}),
-      });
-
-      setSubmitted(true);
-      setForm(EMPTY_FORM);
-    } catch (error: unknown) {
-      captureError(error, { context: 'Agency engagement form submit failed' });
-      addToast('error', t('form.errorToast'));
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  const toggleFaq = (i: number) =>
-    setOpenFaq((prev) => (prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]));
-
-  /**
-   * Données structurées.
-   *
-   * ⚠️ `Service` avec `provider` = MY ONOMA SARL, et `brand` = Max-Morrys Agency.
-   * Max-Morrys Agency est une MARQUE, pas une personne morale : il ne doit jamais exister
-   * d'`Organization` autonome portant ce nom. Voir `docs/SEO-AUDIT.md §3`.
+  /*
+   * Les blocs STATIQUES sont mémorisés, et ce n'est pas de la coquetterie : l'état du
+   * formulaire vit dans ce composant, donc chaque caractère tapé le rend à nouveau. La
+   * version précédente reconstruisait à chaque frappe le tableau de la FAQ, trois objets de
+   * données structurées et une chaîne de classes de `<select>`.
    */
-  const jsonLd = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'Service',
-      name: build.brand,
-      serviceType: build.discipline,
-      description: t('seoDescription'),
-      url: buildCanonical('/agence'),
-      brand: { '@type': 'Brand', name: build.brand },
-      provider: {
-        '@type': 'Organization',
-        name: legalName,
-        url: corporateUrl,
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: legalEntity.registeredAddress,
-          addressLocality: legalEntity.city,
-          addressCountry: legalEntity.countryCode,
+  const jsonLd = useMemo(
+    () => [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: build.brand,
+        serviceType: build.discipline,
+        description: t('meta.description'),
+        url: buildCanonical('/agence'),
+        brand: { '@type': 'Brand', name: build.brand },
+        /*
+         * ⚠️ `Service` avec `provider` = MY ONOMA SARL, et `brand` = Max-Morrys Agency.
+         * Max-Morrys Agency est une MARQUE, pas une personne morale : il ne doit jamais
+         * exister d'`Organization` autonome portant ce nom.
+         */
+        provider: {
+          '@type': 'Organization',
+          name: legalName,
+          url: corporateUrl,
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: legalEntity.registeredAddress,
+            addressLocality: legalEntity.city,
+            addressCountry: legalEntity.countryCode,
+          },
         },
       },
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: faqItems.map((item) => ({
-        '@type': 'Question',
-        name: item.q,
-        acceptedAnswer: { '@type': 'Answer', text: item.a },
-      })),
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Max-Morrys', item: SITE_URL },
-        { '@type': 'ListItem', position: 2, name: build.brand, item: buildCanonical('/agence') },
-      ],
-    },
-  ];
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Max-Morrys', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: build.brand, item: buildCanonical('/agence') },
+        ],
+      },
+    ],
+    [t, build.brand, build.discipline],
+  );
 
-  return (
-    <div className="bg-white dark:bg-neutral-950">
+  const types = useMemo(
+    () => (t('band.types', { returnObjects: true }) as { title: string; body: string }[]).slice(0, BAND_TYPES),
+    [t],
+  );
+  const steps = useMemo(
+    () => t('process.steps', { returnObjects: true }) as { n: string; title: string; body: string }[],
+    [t],
+  );
+
+  const head = (
+    <>
       <SEOHead
-        title={t('seoTitle')}
-        description={t('seoDescription')}
+        title={t('meta.title')}
+        description={t('meta.description')}
         canonical={buildCanonical('/agence')}
         frPath="/agence"
         enPath="/en/agency"
       />
       <JsonLd data={jsonLd} />
+    </>
+  );
 
-      {/* ── 01 · Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative bg-neutral-950 text-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 lg:py-40">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="max-w-4xl"
-          >
-            <p className="text-xs font-bold tracking-[0.35em] uppercase text-lagoon-400 mb-6">
-              {t('hero.eyebrow')}
-            </p>
-            <h1 className="text-5xl lg:text-7xl font-black tracking-tight text-balance leading-[1.05]">
-              {t('hero.titlePart1')}
-              <span className="text-lagoon-400">{t('hero.titleAccent')}</span>
-              {t('hero.titlePart2')}
-            </h1>
-            <p className="mt-8 text-lg lg:text-xl text-neutral-300 max-w-2xl leading-relaxed">
-              {t('hero.subtitle')}
-            </p>
-            <p className="mt-8 text-sm font-bold tracking-[0.2em] uppercase text-neutral-500">
-              {t('hero.disciplines')}
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <a href="#projet" onClick={() => trackEvent('agency_cta_click', { location: 'hero' })}>
-                <Button size="lg" className="w-full sm:w-auto bg-lagoon-500 text-neutral-900 hover:bg-lagoon-400">
-                  {t('hero.cta')}
-                </Button>
-              </a>
-              <a href="#realisations">
-                <Button size="lg" variant="ghost" className="w-full sm:w-auto text-white hover:bg-white/10">
-                  {t('hero.ctaSecondary')}
-                </Button>
-              </a>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── 02 · Avec qui nous travaillons ────────────────────────────────────── */}
-      <section className="py-20 lg:py-28 border-b border-neutral-100 dark:border-neutral-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <EditorialHeading
-            eyebrow={t('whoWeHelp.eyebrow')}
-            eyebrowColor="lagoon"
-            segments={[
-              { text: t('whoWeHelp.titlePart1') },
-              { text: t('whoWeHelp.titleAccent'), color: 'lagoon' },
-              { text: t('whoWeHelp.titlePart2') },
-            ]}
-          />
-          <p className="mt-6 max-w-2xl text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
-            {t('whoWeHelp.subtitle')}
-          </p>
-
-          <motion.div
-            className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-          >
-            {AUDIENCES.map(({ key, icon }) => (
-              <motion.div
-                key={key}
-                variants={staggerItem}
-                className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6"
-              >
-                <AnimatedIcon icon={icon} animation="float" iconClassName="w-6 h-6 text-lagoon-700 dark:text-lagoon-400" />
-                <h3 className="mt-5 text-lg font-bold text-neutral-900 dark:text-white">
-                  {t(`whoWeHelp.audiences.${key}.title`)}
-                </h3>
-                <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                  {t(`whoWeHelp.audiences.${key}.desc`)}
-                </p>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <div className="mt-12 rounded-2xl bg-neutral-50 dark:bg-neutral-900 p-7 max-w-3xl">
-            <h3 className="text-sm font-bold tracking-[0.2em] uppercase text-neutral-500 dark:text-neutral-400 mb-3">
-              {t('whoWeHelp.notForTitle')}
-            </h3>
-            <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
-              {t('whoWeHelp.notFor')}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 03 · Capabilities ─────────────────────────────────────────────────── */}
-      <section className="py-20 lg:py-28 bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <EditorialHeading
-            eyebrow={t('capabilities.eyebrow')}
-            eyebrowColor="lagoon"
-            segments={[
-              { text: t('capabilities.titlePart1') },
-              { text: t('capabilities.titleAccent'), color: 'lagoon' },
-              { text: t('capabilities.titlePart2') },
-            ]}
-          />
-
-          <div className="mt-14 grid gap-6 lg:grid-cols-2">
-            {CAPABILITIES.map(({ key, icon: Icon }, index) => {
-              const items = t(`capabilities.${key}.items`, { returnObjects: true }) as string[];
-              return (
-                <motion.article
-                  key={key}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={viewportOnce}
-                  transition={{ duration: 0.4, delay: index * 0.06 }}
-                  onViewportEnter={() => trackEvent('agency_capability_view', { capability: key })}
-                  className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-7 lg:p-9"
-                >
-                  <div className="flex items-center gap-4 mb-5">
-                    <span className="grid place-items-center w-11 h-11 rounded-xl bg-lagoon-50 dark:bg-lagoon-900/30">
-                      <Icon className="w-5 h-5 text-lagoon-700 dark:text-lagoon-400" aria-hidden="true" />
-                    </span>
-                    <span className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 dark:text-neutral-500">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                  </div>
-                  <h3 className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
-                    {t(`capabilities.${key}.name`)}
-                  </h3>
-                  <p className="mt-2 text-lagoon-700 dark:text-lagoon-400 font-medium">
-                    {t(`capabilities.${key}.tagline`)}
-                  </p>
-                  <p className="mt-4 text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                    {t(`capabilities.${key}.desc`)}
-                  </p>
-                  <ul className="mt-6 space-y-2.5">
-                    {items.map((item) => (
-                      <li key={item} className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300">
-                        <Check className="w-4 h-4 mt-0.5 shrink-0 text-lagoon-600" aria-hidden="true" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.article>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 04 · Selected work ────────────────────────────────────────────────── */}
-      <section id="realisations" className="py-20 lg:py-28 border-b border-neutral-100 dark:border-neutral-800 scroll-mt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <EditorialHeading
-            eyebrow={t('work.eyebrow')}
-            eyebrowColor="lagoon"
-            segments={[
-              { text: t('work.titlePart1') },
-              { text: t('work.titleAccent'), color: 'lagoon' },
-              { text: t('work.titlePart2') },
-            ]}
-          />
-
-          {/*
-            ⚠️ Deux blocs séparés, jamais une grille commune : un projet client n'appartient
-            pas à MY ONOMA, une venture si. Voir docs/BRAND-ARCHITECTURE.md §6.
-          */}
-          <div className="mt-14">
-            <h3 className="text-xl font-bold text-neutral-900 dark:text-white">{t('work.clientsTitle')}</h3>
-            <p className="mt-2 max-w-2xl text-neutral-600 dark:text-neutral-400">{t('work.clientsDesc')}</p>
-            <ClientWorkIndex />
-          </div>
-
-          <div className="mt-16 pt-16 border-t border-neutral-200 dark:border-neutral-800">
-            <h3 className="text-xl font-bold text-neutral-900 dark:text-white">{t('work.venturesTitle')}</h3>
-            <p className="mt-2 max-w-2xl text-neutral-600 dark:text-neutral-400">{t('work.venturesDesc')}</p>
-            <div className="mt-7 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {ventures.map((venture) => (
-                <VentureCard key={venture.slug} venture={venture} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 05 · Comment nous travaillons ─────────────────────────────────────── */}
-      <section className="py-20 lg:py-28 bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <EditorialHeading
-            eyebrow={t('howWeWork.eyebrow')}
-            eyebrowColor="lagoon"
-            segments={[
-              { text: t('howWeWork.titlePart1') },
-              { text: t('howWeWork.titleAccent'), color: 'lagoon' },
-              { text: t('howWeWork.titlePart2') },
-            ]}
-          />
-          <motion.ol
-            className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-          >
-            {HOW_WE_WORK.map((step, i) => (
-              <motion.li key={step} variants={staggerItem} className="relative">
-                <span className="text-5xl font-black text-lagoon-500/25 dark:text-lagoon-400/20 tabular-nums">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <h3 className="mt-3 text-lg font-bold text-neutral-900 dark:text-white">
-                  {t(`howWeWork.steps.${step}.title`)}
-                </h3>
-                <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                  {t(`howWeWork.steps.${step}.desc`)}
-                </p>
-              </motion.li>
-            ))}
-          </motion.ol>
-        </div>
-      </section>
-
-      {/* ── 06 · MY ONOMA ─────────────────────────────────────────────────────── */}
-      <section className="py-20 lg:py-28 border-b border-neutral-100 dark:border-neutral-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-14 lg:grid-cols-2 lg:gap-20">
-          <div>
-            <p className="text-xs font-bold tracking-[0.35em] uppercase text-lagoon-700 dark:text-lagoon-400 mb-5">
-              {t('myOnoma.eyebrow')}
-            </p>
-            <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-balance text-neutral-900 dark:text-white">
-              {t('myOnoma.title')}
-            </h2>
-            <p className="mt-6 text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              {t('myOnoma.body')}
-            </p>
-            <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-500 leading-relaxed">
-              {t('myOnoma.legalNote')}
-            </p>
-            <a
-              href={corporateUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-8 inline-flex items-center gap-2 font-semibold text-lagoon-700 dark:text-lagoon-400 hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-600 rounded"
+  /*
+   * ── LA CONFIRMATION ─────────────────────────────────────────────────────────
+   * Un écran, pas un encart : le kit lui consacre une vue entière, et une demande envoyée
+   * n'a plus rien à faire à côté du formulaire qui l'a produite.
+   */
+  if (lead.receipt) {
+    const { receipt } = lead;
+    return (
+      <DsNavHost>
+        {head}
+        <PageSite>
+          <div className="mx-auto max-w-[620px]">
+            <span
+              aria-hidden="true"
+              className="rv-s grid h-[70px] w-[70px] place-items-center rounded-[22px]"
+              style={{ background: 'color-mix(in srgb, var(--mm-corail) 18%, transparent)' }}
             >
-              {t('myOnoma.cta')}
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </a>
-          </div>
+              <Icon name="check" size={30} color="var(--mm-corail-t)" strokeWidth={3.4} />
+            </span>
 
-          <div>
-            <p className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 dark:text-neutral-500 mb-5">
-              {t('myOnoma.pillarsLabel')}
+            <SiteDisplay
+              lines={t('sent.titleLines', { returnObjects: true }) as string[]}
+              size={40}
+              from={1}
+              style={{ marginTop: '24px' }}
+            />
+            <p className="rv mt-3 max-w-[46ch] text-[16px] leading-[1.55] text-ink-2" style={rv(4)}>
+              {t('sent.lede')}
             </p>
-            <ul className="space-y-4">
-              {pillars.map((pillar) => {
-                const practice =
-                  pillar === 'BUILD' ? build : pillar === 'GROW' ? grow : null;
-                return (
-                  <li
-                    key={pillar}
-                    className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5"
-                  >
-                    <div className="flex items-baseline justify-between gap-4">
-                      <span className="text-sm font-black tracking-[0.2em] text-neutral-900 dark:text-white">
-                        {pillar}
-                      </span>
-                      {practice && (
-                        <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                          {t('myOnoma.carriedBy')} {practice.brand}
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-                      {t(`myOnoma.pillars.${pillar.toLowerCase()}`)}
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
 
-            {/* Renvoi vers la practice sœur — jamais présentée comme un sous-traitant. */}
-            <div className="mt-8 rounded-2xl bg-neutral-50 dark:bg-neutral-900 p-6">
-              <h3 className="font-bold text-neutral-900 dark:text-white">{t('myOnoma.growTitle')}</h3>
-              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                {t('myOnoma.growBody')}
-              </p>
-              <p className="mt-3 text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed">
-                {t('myOnoma.growDistinction')}
-              </p>
-              <a
-                href={`${corporateUrl}${grow.corporatePath}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackEvent('growth_referral_click', { source: 'agency_myonoma' })}
-                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-lagoon-700 dark:text-lagoon-400 hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-600 rounded"
-              >
-                {t('myOnoma.growCta')}
-                <ArrowRight className="w-4 h-4" aria-hidden="true" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 07 · FAQ ──────────────────────────────────────────────────────────── */}
-      <section className="py-20 lg:py-28 bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <EditorialHeading
-            eyebrow={t('faq.eyebrow')}
-            eyebrowColor="lagoon"
-            segments={[
-              { text: t('faq.titlePart1') },
-              { text: t('faq.titleAccent'), color: 'lagoon' },
-              { text: t('faq.titlePart2') },
-            ]}
-          />
-          <div className="mt-12 divide-y divide-neutral-200 dark:divide-neutral-800 border-y border-neutral-200 dark:border-neutral-800">
-            {faqItems.map((item, i) => {
-              const open = openFaq.includes(i);
-              return (
-                <div key={item.q}>
-                  <button
-                    type="button"
-                    onClick={() => toggleFaq(i)}
-                    aria-expanded={open}
-                    aria-controls={`agency-faq-${i}`}
-                    className={`w-full flex items-center justify-between gap-6 py-5 text-left focus:outline-none focus-visible:ring-2 ${theme.focusRing} rounded`}
-                  >
-                    <span className="font-semibold text-neutral-900 dark:text-white">{item.q}</span>
-                    <ChevronDown
-                      className={`w-5 h-5 shrink-0 text-neutral-400 transition-transform ${open ? 'rotate-180' : ''}`}
-                      aria-hidden="true"
-                    />
-                  </button>
-                  <AnimatePresence initial={false}>
-                    {open && (
-                      <motion.div
-                        id={`agency-faq-${i}`}
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.22 }}
-                        className="overflow-hidden"
-                      >
-                        <p className="pb-6 pr-10 text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                          {item.a}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 08 · Formulaire de qualification ──────────────────────────────────── */}
-      <section id="projet" className="py-20 lg:py-28 scroll-mt-24">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          {submitted ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center rounded-2xl border border-lagoon-500/40 bg-lagoon-50 dark:bg-lagoon-900/20 p-10"
-            >
-              <span className="grid place-items-center w-14 h-14 mx-auto rounded-full bg-lagoon-500 text-neutral-900">
-                <Check className="w-7 h-7" aria-hidden="true" />
-              </span>
-              <h2 className="mt-6 text-2xl font-black text-neutral-900 dark:text-white">
-                {t('form.success.title')}
-              </h2>
-              <p className="mt-3 text-neutral-700 dark:text-neutral-300">{t('form.success.body')}</p>
-              <Button className="mt-8" variant="outline" onClick={() => setSubmitted(false)}>
-                {t('form.success.backCta')}
-              </Button>
-            </motion.div>
-          ) : (
-            <>
-              <EditorialHeading
-                eyebrow={t('form.eyebrow')}
-                eyebrowColor="lagoon"
-                segments={[
-                  { text: t('form.titlePart1') },
-                  { text: t('form.titleAccent'), color: 'lagoon' },
-                  { text: t('form.titlePart2') },
-                ]}
+            {/* Le récapitulatif ne porte AUCUN nombre : le kit y met une date de réception en
+                monospace, or un chiffre passe par <Num source asOf> ou ne s'affiche pas
+                (AD-5). Ce qui reste — le type, la fourchette communiquée, le statut — est du
+                texte, et c'est ce que la personne vient vérifier. */}
+            <GlassPanel level="flat" padding={18} className="rv mt-5" style={rv(5)}>
+              <SiteEyebrow style={{ marginBottom: '9px' }}>{t('sent.recapEyebrow')}</SiteEyebrow>
+              <DocLine
+                label={t('sent.recapType')}
+                value={t(`form.projectTypes.${receipt.projectType}`)}
               />
-              <p className="mt-6 text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                {t('form.subtitle')}
+              <DocLine label={t('sent.recapBudget')} value={t('sent.recapBudgetValue')} />
+              <DocLine label={t('sent.recapStatus')} value={t('sent.recapStatusValue')} last />
+            </GlassPanel>
+
+            {/*
+              LA CARTE DE RÉORIENTATION — le SEUL endroit de la page où Cléa est nommée, et il
+              est postérieur à l'envoi. Le lead est déjà écrit, déjà tagué `MY_ONOMA_GROW` :
+              ce panneau explique ce qui vient d'arriver, il ne demande rien de plus.
+            */}
+            {receipt.growth && (
+              <GlassPanel
+                level="flat"
+                padding={18}
+                className="rv mt-[14px]"
+                style={{ ...rv(6), borderColor: 'color-mix(in srgb, var(--mm-corail) 30%, transparent)' }}
+              >
+                <p className="m-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">
+                  {t('sent.growTitle')}
+                </p>
+                <p className="mt-2 mb-0 text-meta leading-[1.6] text-ink-2">
+                  {t('sent.growStart')}
+                  <b className="text-ink">{t('sent.growStrong')}</b>
+                  {t('sent.growEnd')}
+                </p>
+                {/* Cléa n'a pas de page sur maxmorrys.me : le renvoi va au site corporate,
+                    dans un nouvel onglet, et l'événement de suivi qui existait est conservé. */}
+                <a
+                  href={`${corporateUrl}${grow.corporatePath}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackEvent('growth_referral_click', { source: 'agency_sent' })}
+                  className="mt-3 inline-block text-meta font-bold text-corail-txt"
+                >
+                  {t('sent.growCta')}
+                </a>
+              </GlassPanel>
+            )}
+
+            <Button tone="quiet" className="rv mt-4" style={rv(7)} onClick={lead.reset}>
+              {t('sent.back')}
+            </Button>
+
+            {/* Sur `--ink-2`, jamais sur `--text-faint` : l'encre tertiaire ne porte pas de
+                texte (AD-18), et c'est ici la phrase qui engage le plus. */}
+            <p className="rv mt-[14px] mb-0 text-center text-small leading-[1.5] text-ink-2" style={rv(8)}>
+              {t('sent.footer')}
+            </p>
+          </div>
+        </PageSite>
+      </DsNavHost>
+    );
+  }
+
+  return (
+    <DsNavHost>
+      {head}
+
+      <PageSite>
+        {/* ── LE HÉROS — 1fr 1fr, gouttière 44, aligné au centre ────────────── */}
+        <div className="grid items-center gap-11 lg:grid-cols-2">
+          <div>
+            {/* La seule marque de couleur de la page, et sa version TEXTE. Le kit écrit ici
+                `#B4231F` — qui est `--stop`, la couleur d'un échec, pas celle de l'agence. */}
+            <SiteEyebrow className="text-corail-txt">
+              {t('page.eyebrow', { brand: build.brand, pillar: build.pillar })}
+            </SiteEyebrow>
+
+            <SiteDisplay
+              lines={t('page.titleLines', { returnObjects: true }) as string[]}
+              size={56}
+              from={1}
+              style={{ marginTop: '9px' }}
+            />
+
+            <p className="rv mt-4 max-w-[46ch] text-[16px] leading-[1.55] text-ink-2" style={rv(5)}>
+              {t('page.lede')}
+            </p>
+
+            {/*
+              L'ENCART DE VÉRITÉ — il ne s'excuse pas d'une absence de prix, il en donne le
+              motif et la SORTIE : l'offre qui, elle, a une grille publique.
+            */}
+            <GlassPanel level="truth" className="rv mt-[22px] max-w-[50ch]" style={rv(6)}>
+              <SiteEyebrow style={{ marginBottom: '6px' }}>{t('page.truthTitle')}</SiteEyebrow>
+              <p className="m-0 text-meta-2 leading-[1.6] text-ink-2">
+                {t('page.truthStart')}
+                <b className="text-ink">{t('page.truthStrong')}</b>
+                {t('page.truthEnd')}
               </p>
+            </GlassPanel>
+          </div>
+
+          {/* ── LE FORMULAIRE — le seul panneau héros de la page ──────────────
+              Les trois premiers champs sont ceux de la maquette, dans son ordre. Les trois
+              suivants ne s'y trouvent pas et ne sont pas négociables : `firestore.rules`
+              exige `name`, `company` et `email` à la création d'un `engagement_lead`, et
+              « Réponse sous 48 h, par moi » n'est tenable que si une adresse est arrivée. */}
+          <GlassPanel level="hero" padding={26} className="rv" style={rv(6)} as="section">
+            <SiteEyebrow style={{ margin: 0 }}>{t('panel.eyebrow')}</SiteEyebrow>
+
+            <form onSubmit={lead.handleSubmit} noValidate>
+              {/* Piège à robots — invisible à l'œil, retiré de l'arbre d'accessibilité, et
+                  exclu de la charge envoyée. Ce n'est pas un `Field` : un champ que personne
+                  ne doit remplir n'a pas d'étiquette à annoncer. */}
+              <div aria-hidden="true" className="hidden">
+                <input
+                  type="text"
+                  name="_hp"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={lead.form._hp}
+                  onChange={(e) => lead.update('_hp', e.target.value)}
+                />
+              </div>
+
+              <Field
+                as="select"
+                label={t('panel.typeLabel')}
+                value={lead.form.projectType}
+                onChange={(v) => lead.update('projectType', v)}
+                error={lead.errors.projectType}
+                placeholder={t('panel.typePlaceholder')}
+                options={agencyLeadConfig.projectTypes.map((key) => ({
+                  value: key,
+                  label: t(`form.projectTypes.${key}`),
+                }))}
+                required
+              />
 
               {/*
-                Un prospect qui commence à qualifier sa demande est déjà dans le bon tunnel :
-                l'aiguilleur d'audience de sortie n'a plus rien à lui apprendre et deviendrait
-                une interruption.
-
-                ⚠️ `onInput` et non `onFocus`. Le focus était trop large : une tabulation qui
-                traverse le formulaire, ou un clic pour lire une étiquette, désactivait la pop-up
-                — pendant trente jours désormais, et pour toujours dans la version d'origine.
-                Une frappe est une intention ; un focus ne l'est pas.
+                LA FOURCHETTE, SANS UN CHIFFRE. Les cinq clés stockées ne bougent pas —
+                l'administration lit toujours `exploring`…`xlarge` — mais leurs libellés
+                publics nomment une durée et une équipe au lieu d'une somme. C'est ce qui
+                permet au champ de filtrer sans que la page publie un prix.
               */}
-              <form
-                onSubmit={handleSubmit}
-                onInput={() => markSuppressed('agencyExit')}
-                className="mt-10 space-y-5"
-                noValidate
-              >
-                {/* Pot de miel — hors flux, hors tabulation, invisible aux lecteurs d'écran. */}
-                <div className="absolute w-px h-px overflow-hidden -m-px" aria-hidden="true">
-                  <input
-                    type="text"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    value={form._hp}
-                    onChange={(e) => setForm((p) => ({ ...p, _hp: e.target.value }))}
-                  />
-                </div>
+              <Field
+                as="select"
+                label={t('panel.budgetLabel')}
+                value={lead.form.budget}
+                onChange={(v) => lead.update('budget', v)}
+                error={lead.errors.budget}
+                placeholder={t('panel.budgetPlaceholder')}
+                hint={t('panel.budgetHint')}
+                options={agencyLeadConfig.budgets.map((key) => ({
+                  value: key,
+                  label: t(`panel.budgets.${key}`),
+                }))}
+                required
+              />
 
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <Input
-                    label={t('form.nameLabel')}
-                    placeholder={t('form.namePlaceholder')}
-                    value={form.name}
-                    error={errors.name}
-                    onChange={(e) => setField('name', e.target.value)}
-                  />
-                  <Input
-                    label={t('form.companyLabel')}
-                    placeholder={t('form.companyPlaceholder')}
-                    value={form.company}
-                    error={errors.company}
-                    onChange={(e) => setField('company', e.target.value)}
-                  />
-                </div>
+              <Field
+                as="select"
+                label={t('panel.timelineLabel')}
+                value={lead.form.timeline}
+                onChange={(v) => lead.update('timeline', v)}
+                error={lead.errors.timeline}
+                placeholder={t('panel.timelinePlaceholder')}
+                options={agencyLeadConfig.timelines.map((key) => ({
+                  value: key,
+                  label: t(`form.timelines.${key}`),
+                }))}
+                required
+              />
 
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <Input
-                    type="email"
-                    label={t('form.emailLabel')}
-                    placeholder={t('form.emailPlaceholder')}
-                    value={form.email}
-                    error={errors.email}
-                    onChange={(e) => setField('email', e.target.value)}
-                  />
-                  <Input
-                    type="url"
-                    label={t('form.websiteLabel')}
-                    placeholder={t('form.websitePlaceholder')}
-                    value={form.website}
-                    onChange={(e) => setField('website', e.target.value)}
-                  />
-                </div>
+              <Field
+                as="textarea"
+                label={t('panel.descriptionLabel')}
+                value={lead.form.description}
+                onChange={(v) => lead.update('description', v)}
+                error={lead.errors.description}
+                placeholder={t('panel.descriptionPlaceholder')}
+                rows={4}
+                /* Le plafond de `firestore.rules`, lu à sa source et non retapé ici. */
+                maxLength={DESCRIPTION_MAX}
+                required
+              />
 
-                <div className="grid gap-5 sm:grid-cols-3">
-                  <div>
-                    <label htmlFor="projectType" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                      {t('form.projectTypeLabel')}
-                    </label>
-                    <select
-                      id="projectType"
-                      className={selectCls}
-                      value={form.projectType}
-                      onChange={(e) => setField('projectType', e.target.value as EngagementProjectType)}
-                    >
-                      {agencyLeadConfig.projectTypes.map((key) => (
-                        <option key={key} value={key}>{t(`form.projectTypes.${key}`)}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="budget" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                      {t('form.budgetLabel')}
-                    </label>
-                    <select
-                      id="budget"
-                      className={selectCls}
-                      value={form.budget}
-                      onChange={(e) => setField('budget', e.target.value as EngagementBudget)}
-                    >
-                      {agencyLeadConfig.budgets.map((key) => (
-                        <option key={key} value={key}>{t(`form.budgets.${key}`)}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="timeline" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                      {t('form.timelineLabel')}
-                    </label>
-                    <select
-                      id="timeline"
-                      className={selectCls}
-                      value={form.timeline}
-                      onChange={(e) => setField('timeline', e.target.value as EngagementTimeline)}
-                    >
-                      {agencyLeadConfig.timelines.map((key) => (
-                        <option key={key} value={key}>{t(`form.timelines.${key}`)}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+              <SiteEyebrow style={{ margin: '18px 0 0' }}>{t('panel.replyEyebrow')}</SiteEyebrow>
 
-                <Textarea
-                  label={t('form.descriptionLabel')}
-                  placeholder={t('form.descriptionPlaceholder')}
-                  rows={6}
-                  value={form.description}
-                  error={errors.description}
-                  onChange={(e) => setField('description', e.target.value)}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  label={t('panel.nameLabel')}
+                  value={lead.form.name}
+                  onChange={(v) => lead.update('name', v)}
+                  error={lead.errors.name}
+                  placeholder={t('panel.namePlaceholder')}
+                  autoComplete="name"
+                  required
                 />
+                <Field
+                  label={t('panel.companyLabel')}
+                  value={lead.form.company}
+                  onChange={(v) => lead.update('company', v)}
+                  error={lead.errors.company}
+                  placeholder={t('panel.companyPlaceholder')}
+                  autoComplete="organization"
+                  required
+                />
+              </div>
 
-                {/*
-                  Routage Cléa : le prospect est prévenu AVANT d'envoyer, pas après. La
-                  demande part quand même — on ne rejette jamais un lead.
-                */}
-                <AnimatePresence>
-                  {isGrowth && (
-                    <motion.aside
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="rounded-2xl border border-lagoon-500/40 bg-lagoon-50 dark:bg-lagoon-900/20 p-6">
-                        <h3 className="font-bold text-neutral-900 dark:text-white">
-                          {t('form.growNotice.title')}
-                        </h3>
-                        <p className="mt-2 text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
-                          {t('form.growNotice.body')}
-                        </p>
-                        <a
-                          href={`${corporateUrl}${grow.corporatePath}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => trackEvent('growth_referral_click', { source: 'agency_form' })}
-                          className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-lagoon-700 dark:text-lagoon-400 hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-600 rounded"
-                        >
-                          {t('form.growNotice.cta')}
-                          <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                        </a>
-                      </div>
-                    </motion.aside>
-                  )}
-                </AnimatePresence>
+              <Field
+                label={t('panel.emailLabel')}
+                type="email"
+                value={lead.form.email}
+                onChange={(v) => lead.update('email', v)}
+                error={lead.errors.email}
+                placeholder={t('panel.emailPlaceholder')}
+                /* Sans `inputMode` ni `autoComplete`, aucun clavier adapté ne s'ouvre et rien
+                   ne se pré-remplit — ce qui coûte cher au pouce sur le marché visé (AD-6). */
+                inputMode="email"
+                autoComplete="email"
+                required
+              />
 
-                <Button
-                  type="submit"
-                  size="lg"
-                  loading={submitting}
-                  icon={<Send className="w-4 h-4" />}
-                  className="w-full sm:w-auto bg-lagoon-700 hover:bg-lagoon-800 text-white"
-                >
-                  {submitting ? t('form.submitting') : t('form.submit')}
-                </Button>
-              </form>
-            </>
-          )}
-        </div>
-      </section>
-
-      {/* ── 09 · CTA final + renvoi Présence Digitale ─────────────────────────── */}
-      <section className="bg-neutral-950 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-          <div className="max-w-3xl">
-            <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-balance">
-              {t('finalCta.titlePart1')}
-              <span className="text-lagoon-400">{t('finalCta.titleAccent')}</span>
-              {t('finalCta.titlePart2')}
-            </h2>
-            <p className="mt-5 text-lg text-neutral-300">{t('finalCta.subtitle')}</p>
-            <a href="#projet" onClick={() => trackEvent('agency_cta_click', { location: 'final' })}>
-              <Button size="lg" className="mt-8 bg-lagoon-500 text-neutral-900 hover:bg-lagoon-400">
-                {t('finalCta.cta')}
+              {/* Le corail plein ne s'écrit pas sur fond clair (AD-20) et n'a pas de dégradé
+                  d'action déclaré : l'agence n'ayant pas de territoire, son bouton plein est
+                  le primaire d'encre — exactement ce que `sectionThemes.agency` déclare. */}
+              <Button type="submit" loading={lead.loading} style={{ marginTop: '17px' }}>
+                {lead.loading ? t('panel.submitting') : t('panel.submit')}
               </Button>
-            </a>
-          </div>
+            </form>
 
-          {/*
-            Bifurcation vers l'autre offre commerciale du site : un commerçant qui atterrit
-            ici doit trouver sa porte, sans que la page d'agence vende des packs.
-          */}
-          <div className="mt-16 pt-10 border-t border-neutral-800 max-w-2xl">
-            <h3 className="font-bold text-white">{t('finalCta.presenceTitle')}</h3>
-            <p className="mt-2 text-sm text-neutral-400 leading-relaxed">{t('finalCta.presenceBody')}</p>
-            <LocalizedLink
-              to="/presence-digitale"
-              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-lagoon-400 hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-400 rounded"
-            >
-              {t('finalCta.presenceCta')}
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </LocalizedLink>
-          </div>
-
-          {/* Précision juridique — discrète, jamais un paragraphe corporate. */}
-          <p className="mt-14 text-xs text-neutral-500">
-            {legalName} · {formatRegisteredAddress()}
-          </p>
+            <p className="mt-[10px] mb-0 text-center text-small leading-[1.5] text-ink-2">
+              {t('panel.reply')}
+            </p>
+          </GlassPanel>
         </div>
-      </section>
-    </div>
+      </PageSite>
+
+      {/* ── LA BANDE — quatre familles, puis l'autre porte ────────────────── */}
+      <SiteBand>
+        <SiteDisplay as="h2" lines={t('band.titleLines', { returnObjects: true }) as string[]} size={34} />
+
+        <div className="mt-[22px] grid gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
+          {types.map((type, i) => (
+            <GlassPanel level="flat" key={type.title} padding={20} className="rv" style={rv(i + 1)}>
+              <p className="m-0 font-display text-[17px] font-black tracking-[-.03em] text-ink">
+                {type.title}
+              </p>
+              <p className="mt-[7px] mb-0 text-[13px] leading-[1.5] text-ink-2">{type.body}</p>
+            </GlassPanel>
+          ))}
+        </div>
+
+        {/*
+          LE RENVOI VERS PRÉSENCE DIGITALE. Un commerçant qui atterrit ici doit trouver sa
+          porte sans que la page d'agence se mette à vendre des packs — et sans qu'il ait le
+          sentiment d'être éconduit : l'autre offre est nommée pour ce qu'elle a, une grille
+          publique, ce qui est précisément ce qui manque ici.
+        */}
+        <GlassPanel
+          level="flat"
+          padding={24}
+          className="rv mt-[18px]"
+          style={{ ...rv(5), borderColor: 'color-mix(in srgb, var(--mm-teal) 24%, transparent)' }}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-5">
+            <div className="max-w-[62ch]">
+              <p className="m-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">
+                {t('band.presenceTitle')}
+              </p>
+              <p className="mt-2 mb-0 text-[14px] leading-[1.6] text-ink-2">{t('band.presenceBody')}</p>
+              <a href={path('/presence-digitale')} className="mt-3 inline-block text-meta font-bold text-digitalise-txt">
+                {t('band.presenceCta')}
+              </a>
+            </div>
+            <Tag>{t('band.presenceTag')}</Tag>
+          </div>
+        </GlassPanel>
+      </SiteBand>
+
+      {/* ── LE PROCESSUS, puis la note de dette ───────────────────────────── */}
+      <PageSite style={{ paddingTop: 'var(--sp-44, 44px)' }}>
+        <SiteDisplay as="h2" lines={t('process.titleLines', { returnObjects: true }) as string[]} size={34} />
+
+        {/* Une liste ORDONNÉE : l'ordre des étapes est porté par le balisage, ce qui laisse
+            le grand numéro être ce qu'il est — un ornement, sur `--fill-5`, retiré de
+            l'arbre d'accessibilité. Un lecteur d'écran annonce « 1 sur 3 », pas « zéro un ». */}
+        <ol className="mt-[22px] grid list-none gap-4 p-0 md:grid-cols-3">
+          {steps.map((step, i) => (
+            <li key={step.n}>
+              <GlassPanel level="flat" padding={24} className="rv" style={rv(i + 1)}>
+                <p
+                  className="mm-num m-0"
+                  style={{ fontSize: '30px', color: 'var(--fill-5)' }}
+                  aria-hidden="true"
+                >
+                  {step.n}
+                </p>
+                <p className="mt-2 mb-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">
+                  {step.title}
+                </p>
+                <p className="mt-2 mb-0 text-[14px] leading-[1.55] text-ink-2">{step.body}</p>
+              </GlassPanel>
+            </li>
+          ))}
+        </ol>
+
+        {/*
+          LA NOTE DE DETTE. Ce n'est pas une note de bas de page : c'est ce qui reste d'une
+          section entière — « avec qui nous travaillons », douze organisations nommées sans
+          accord écrit. Le système préfère une absence QUI SE DIT à une absence qu'on
+          maquille, parce que la première a une date de fin (FR-105) et la seconde non.
+        */}
+        <div
+          className="rv mt-6 max-w-[76ch] pl-[15px] text-[13.5px] leading-[1.6] text-ink-2"
+          style={{ ...rv(4), borderLeft: '2px solid var(--mm-corail-t)' }}
+        >
+          <b className="text-corail-txt">{t('note.lead')}</b> {t('note.body')}
+        </div>
+      </PageSite>
+    </DsNavHost>
   );
 }

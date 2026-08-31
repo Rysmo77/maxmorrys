@@ -48,7 +48,8 @@ import { localizedPath } from './i18n/routing';
 import { ToastProvider } from './components/ui/Toast';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import ScrollProgress from './components/shared/ScrollProgress';
+import PageMesh from './components/layout/PageMesh';
+import { OfflineBanner, PageSkeleton } from './components/states';
 import CookieBanner from './components/shared/CookieBanner';
 import LanguageSuggestionBanner from './components/shared/LanguageSuggestionBanner';
 // Ne s'ouvre que sur action ; il renvoie `null` tant que `open` est faux, donc
@@ -67,11 +68,14 @@ const Blog = lazyWithReload(() => import('./pages/Blog'), ['blog']);
 const BlogPost = lazyWithReload(() => import('./pages/BlogPost'), ['blog']);
 const Formations = lazyWithReload(() => import('./pages/Formations'));
 const FormationDetail = lazyWithReload(() => import('./pages/FormationDetail'));
-const Podcasts = lazyWithReload(() => import('./pages/Podcasts'), ['media']);
 const PodcastDetail = lazyWithReload(() => import('./pages/PodcastDetail'), ['media']);
-const Videos = lazyWithReload(() => import('./pages/Videos'), ['media']);
 const VideoDetail = lazyWithReload(() => import('./pages/VideoDetail'), ['media']);
 const FAQPage = lazyWithReload(() => import('./pages/FAQ'), ['faq']);
+/*
+ * UNE PAGE PAR QUESTION — l'écart que le kit nomme lui-même : « aujourd'hui la FAQ n'a qu'un
+ * index : aucune question n'a d'URL partageable ni de position propre en recherche ».
+ */
+const FAQQuestion = lazyWithReload(() => import('./pages/FAQQuestion'), ['faq']);
 const Contact = lazyWithReload(() => import('./pages/Contact'), ['contact']);
 const Agence = lazyWithReload(() => import('./pages/Agence'), ['agency']);
 const PresenceDigitale = lazyWithReload(() => import('./pages/PresenceDigitale'), ['presence']);
@@ -85,6 +89,16 @@ import { AdminRoute, ProtectedRoute } from './components/routing/ProtectedRoute'
 // Rendu uniquement dans `LmsLayout`, mais l'import statique le plaçait — avec
 // DOMPurify — dans le chunk d'entrée de chaque visiteur anonyme.
 const RysmoWidget = lazyWithReload(() => import('./components/ai/RysmoWidget'), ['rysmo']);
+
+/* Version installable. Chargés paresseusement comme le reste : quelqu'un qui n'installe pas
+   l'application ne doit pas payer leur poids en données. */
+const OfflinePage = lazy(() => import('./components/pwa/OfflineLibrary'));
+
+/* Le pôle média — une page pour les deux formats, sous « Je te transforme ». */
+const MediaPole = lazy(() => import('./pages/MediaPole'));
+/* L'autre étage du même territoire : la page publique du Club, payante et fermée. */
+const ClubDigitos = lazyWithReload(() => import('./pages/ClubDigitos'), ['club']);
+const NotificationsPage = lazy(() => import('./components/pwa/NotificationCenter'));
 
 // Lazy-loaded routes — not needed on first public page load
 const Login = lazyWithReload(() => import('./pages/auth/Login'), ['auth']);
@@ -125,14 +139,25 @@ const AdminAgencyLeads = lazyWithReload(() => import('./pages/admin/AdminAgencyL
 const AdminMissions = lazyWithReload(() => import('./pages/admin/AdminMissions'), ['admin']);
 const AdminRedirects = lazyWithReload(() => import('./pages/admin/AdminRedirects'), ['admin']);
 const CertificatePage = lazyWithReload(() => import('./pages/lms/Certificate'), ['lms']);
+/*
+ * La vérification d'un code. Elle n'est PAS le certificat : `/certificat/:code` affiche un
+ * document dont on a déjà le lien, `/verifier` répond à un code recopié depuis un PDF. Le
+ * pied de page annonçait la seconde depuis le début — elle tombait sur la page 404.
+ */
+const VerifyCertificate = lazyWithReload(() => import('./pages/VerifyCertificate'), ['lms']);
 
+/**
+ * Le repli des soixante routes paresseuses.
+ *
+ * C'était un rond qui tourne. Le système l'interdit — `Button` l'écrit pour tout le
+ * produit : « Un liseré le balaie. Jamais de rond qui tourne. » Et l'écran `Chargement`
+ * du kit dit ce qu'il faut faire à la place, en une phrase qu'il met lui-même en pied :
+ * **« Quand le contenu arrive, rien ne saute. »** D'où un squelette à la forme du contenu,
+ * qui réserve la place au lieu de la promettre.
+ */
 function PageLoader() {
   const { t } = useTranslation('common');
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950">
-      <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" aria-label={t('loading')} />
-    </div>
-  );
+  return <PageSkeleton label={t('loading')} />;
 }
 
 /** Transition d'entrée légère à chaque changement de route (fondu/glissé). */
@@ -155,21 +180,29 @@ function PageTransition({ children }: { children: ReactNode }) {
 
 function PublicLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
-  const { t } = useTranslation('nav');
   return (
     <>
       <MetaPixelTracker />
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold">
-        {t('skipToContent')}
-      </a>
-      <ScrollProgress />
+      {/*
+        LE FOND DU SITE — un maillage par territoire, posé une seule fois pour les quinze
+        pages. Poids : 0 octet. C'est ce qui remplace la vidéo d'accueil de 2 à 6 Mo.
+      */}
+      <PageMesh />
+      {/*
+        Le lien de saut vit maintenant DANS la barre haute, en `.mm-skip`, et il en est le
+        premier élément focalisable — c'est la primitive `TopBar` qui le pose. Celui qui vivait
+        ici en faisait un DOUBLON : deux « Aller au contenu » à la suite au clavier, dont un
+        seul stylé par le système.
+      */}
       <Header onSearchOpen={() => setSearchOpen(true)} />
       {searchOpen && (
         <Suspense fallback={null}>
           <SearchOverlay open onClose={() => setSearchOpen(false)} />
         </Suspense>
       )}
-      <main id="main-content" className="min-h-screen">
+      {/* `relative z-[1]` : le maillage est fixé à la fenêtre en `z-0`, le contenu se pose
+          dessus. Sans ça, une couche positionnée peindrait par-dessus le texte. */}
+      <main id="main-content" className="relative z-[1] min-h-screen">
         <PageTransition>
           <Outlet />
         </PageTransition>
@@ -217,6 +250,13 @@ function RootProviders() {
     <LanguageProvider>
       <Outlet />
       <LanguageSuggestionBanner />
+      {/*
+        Monté ICI et nulle part ailleurs : la coupure réseau ne connaît pas les coquilles.
+        Elle frappe le site public, la console et l'espace apprenant de la même façon, et
+        `RootProviders` est le seul point qui les couvre tous les trois. Il est aussi sous
+        `LanguageProvider`, dont le bandeau a besoin pour localiser son lien.
+      */}
+      <OfflineBanner />
     </LanguageProvider>
   );
 }
@@ -237,6 +277,28 @@ function LegacyQuoteRedirect() {
   const { language } = useLanguage();
   const { ref } = useParams<{ ref: string }>();
   return <Navigate to={localizedPath(`/presence-digitale/devis/${ref ?? ''}`, language)} replace />;
+}
+
+/**
+ * `/mon-espace/rysmo` → `/mon-espace/repetiteur`.  (AD-12)
+ *
+ * « Rysmo » désigne désormais l'APPLICATION, et le tuteur s'appelle « Répétiteur » —
+ * renommable par chaque personne depuis son profil. La route, elle, ne suit PAS le
+ * renommage : elle est un contrat, pas un libellé.
+ *
+ * L'ancienne route survit en redirection permanente. Elle a été partagée, mise en favori et
+ * indexée ; la casser pour un renommage de marque ferait payer le changement à ceux qui
+ * utilisaient déjà le produit.
+ */
+function LegacyTutorRedirect() {
+  const { language } = useLanguage();
+  return <Navigate to={localizedPath('/mon-espace/repetiteur', language)} replace />;
+}
+
+/** Les deux anciens index de média mènent désormais au pôle unique. */
+function MediaPoleRedirect() {
+  const { language } = useLanguage();
+  return <Navigate to={localizedPath('/podcast-et-videos', language)} replace />;
 }
 
 /** Clone récursif d'un arbre de routes en traduisant les segments `path` vers `lang`. */
@@ -264,11 +326,28 @@ function appChildren() {
         { path: 'blog/:slug', element: <Suspense fallback={<PageLoader />}><BlogPost /></Suspense> },
         { path: 'formations', element: <Suspense fallback={<PageLoader />}><Formations /></Suspense> },
         { path: 'formations/:slug', element: <Suspense fallback={<PageLoader />}><FormationDetail /></Suspense> },
-        { path: 'podcasts', element: <Suspense fallback={<PageLoader />}><Podcasts /></Suspense> },
+        { path: 'podcast-et-videos', element: <Suspense fallback={<PageLoader />}><MediaPole /></Suspense> },
+        /*
+         * La page publique du Club vit sur le MÊME territoire que le pôle média : la
+         * sous-navigation des deux pages montre les deux étages d'un coup — gratuit ouvert
+         * d'un côté, payant fermé de l'autre. Elle n'ouvre aucun tunnel de paiement : le
+         * bouton mène à `/mon-espace/club`, seul endroit où l'abonnement se crée, et gardé.
+         */
+        { path: 'club-des-digitos', element: <Suspense fallback={<PageLoader />}><ClubDigitos /></Suspense> },
+        /*
+         * Les deux anciens index redirigent vers le pôle. Leurs FICHES de détail, elles, ne
+         * bougent pas : un épisode et une vidéo ne se lisent pas pareil — transcription d'un
+         * côté, chapitres et choix de qualité de l'autre — et leurs URL sont indexées.
+         *
+         * Cette redirection est côté client. Le 301 pour le référencement passe par la table
+         * de redirections (`RedirectKind: 'path'`, administrable), qui existe déjà.
+         */
+        { path: 'podcasts', element: <MediaPoleRedirect /> },
+        { path: 'videos', element: <MediaPoleRedirect /> },
         { path: 'podcasts/:slug', element: <Suspense fallback={<PageLoader />}><PodcastDetail /></Suspense> },
-        { path: 'videos', element: <Suspense fallback={<PageLoader />}><Videos /></Suspense> },
         { path: 'videos/:slug', element: <Suspense fallback={<PageLoader />}><VideoDetail /></Suspense> },
         { path: 'faq', element: <Suspense fallback={<PageLoader />}><FAQPage /></Suspense> },
+        { path: 'faq/:slug', element: <Suspense fallback={<PageLoader />}><FAQQuestion /></Suspense> },
         { path: 'contact', element: <Suspense fallback={<PageLoader />}><Contact /></Suspense> },
         { path: 'agence', element: <Suspense fallback={<PageLoader />}><Agence /></Suspense> },
         { path: 'presence-digitale', element: <Suspense fallback={<PageLoader />}><PresenceDigitale /></Suspense> },
@@ -304,7 +383,10 @@ function appChildren() {
             { path: 'profil',          element: <Suspense fallback={<PageLoader />}><ProfilePage /></Suspense> },
             { path: 'parametres',      element: <Suspense fallback={<PageLoader />}><SettingsPage /></Suspense> },
             { path: 'club',            element: <Suspense fallback={<PageLoader />}><ClubPage /></Suspense> },
-            { path: 'rysmo',           element: <Suspense fallback={<PageLoader />}><RysmoPage /></Suspense> },
+            { path: 'repetiteur',      element: <Suspense fallback={<PageLoader />}><RysmoPage /></Suspense> },
+            { path: 'hors-connexion',  element: <Suspense fallback={<PageLoader />}><OfflinePage /></Suspense> },
+            { path: 'notifications',   element: <Suspense fallback={<PageLoader />}><NotificationsPage /></Suspense> },
+            { path: 'rysmo',           element: <LegacyTutorRedirect /> },
             { path: 'temoignages',     element: <Suspense fallback={<PageLoader />}><TestimonialsPage /></Suspense> },
           ],
         },
@@ -347,6 +429,7 @@ function appChildren() {
         { path: 'inscription', element: <Suspense fallback={<PageLoader />}><Register /></Suspense> },
         { path: 'mot-de-passe-oublie', element: <Suspense fallback={<PageLoader />}><ResetPassword /></Suspense> },
         { path: 'certificat/:code', element: <Suspense fallback={<PageLoader />}><CertificatePage /></Suspense> },
+        { path: 'verifier', element: <Suspense fallback={<PageLoader />}><VerifyCertificate /></Suspense> },
         { path: '403', element: <Forbidden403 /> },
         { path: '*', element: <NotFound /> },
       ],

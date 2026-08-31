@@ -34,10 +34,10 @@ export default function WorkFilters({ categories, active, onChange, resultCount 
   const chip = (isActive: boolean) =>
     cn(
       'px-4 py-2 rounded-full text-sm font-semibold transition-colors',
-      'focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950',
+      'focus:outline-none',
       isActive
         ? theme.buttonSolid
-        : 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500',
+        : 'bg-paper dark:bg-[color:var(--night-3)] border border-[color:var(--line)] text-ink-2 hover:border-[color:var(--fill-5)] dark:hover:border-[color:var(--border-hair)]',
     );
 
   return (
@@ -60,7 +60,7 @@ export default function WorkFilters({ categories, active, onChange, resultCount 
       </div>
 
       {/* Le comptage est annoncé : sans lui, un filtre est muet pour un lecteur d'écran. */}
-      <p aria-live="polite" className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
+      <p aria-live="polite" className="mt-3 text-sm text-ink-2">
         {t('work.resultCount', { count: resultCount })}
       </p>
     </div>

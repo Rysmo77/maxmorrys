@@ -248,7 +248,7 @@
       "year": "2024 — Jan.",
       "lieu": "Dakar, Senegal",
       "title": "Eyone Medical — Marketing & Growth Manager",
-      "desc": "I joined Eyone Medical, a pioneer in digitizing healthcare in Africa. Results after 18 months: +1,790% web traffic and +8,000 organic followers."
+      "desc": "I joined Eyone Medical, a pioneer in digitizing healthcare in Africa. Marketing, growth, content and partnerships — the role I still hold today."
     },
     "m2024May": {
       "year": "2024 — May",
@@ -279,25 +279,11 @@
     "title": "Marketing & Growth Manager.",
     "subtitle": "AI · Automation · Web Platforms · Partnerships",
     "blockquote": "I drive the growth of organizations across French-speaking Africa — health, services, education, social impact — by combining marketing strategy, data, content, partnerships, web development and process automation.",
-    "statTraffic": "Traffic",
-    "statFollowers": "Followers",
-    "statPlatforms": "Platforms",
     "ctaWork": "Let's work together",
     "imageAlt": "Max-Morrys Eyoum",
     "locationCity": "Dakar · Senegal",
     "locationRegion": "French-speaking Africa",
     "ctaParcours": "My journey"
-  },
-  "impact": {
-    "eyebrow": "IMPACT SUMMARY",
-    "heading": "The key numbers",
-    "desc": "Measurable growth, platforms in production and an expanded scope across marketing — tech — partnerships.",
-    "trafficLabel": "Eyone web traffic",
-    "trafficSub": "From 34 to 643 monthly visits in one year",
-    "followersLabel": "Organic followers",
-    "followersSub": "Including +4,000 on LinkedIn",
-    "platformsLabel": "Web platforms",
-    "platformsSub": "Health, e-commerce, education, fintech, institutional"
   },
   "expertiseSection": {
     "heading": "Expertise & skills",
@@ -353,5 +339,77 @@
     },
     "cta": "Discover MY ONOMA",
     "ctaAgency": "See Max-Morrys Agency"
+  },
+  "page": {
+    "eyebrow": "Trainer · consultant · Dakar",
+    "titleLines": [
+      "I'm",
+      "Max-Morrys."
+    ],
+    "lede": "I help you get a grip on digital marketing, SEO and AI — for French-speaking West Africa, with the means you actually have.",
+    "aloneBody": "Trainer, consultant and digital content creator based in Dakar. I write the articles, I build the courses, I run the Club, and I answer the messages.",
+    "aloneStrong": "There is nobody else behind this platform.",
+    "ctaContact": "Talk to me",
+    "ctaFormations": "See the courses",
+    "doesTitle": [
+      "What I do,",
+      "concretely."
+    ],
+    "doesTrainTitle": "I train",
+    "doesTrainBody": "Online courses on local search and on AI applied to prospecting. Written, filmed and corrected by me.",
+    "doesPublishTitle": "I publish",
+    "doesPublishBody": "A free blog, a podcast, videos. All of it in French, with examples taken from here and nowhere else.",
+    "doesSupportTitle": "I support",
+    "doesSupportBody": "Neighbourhood businesses I make findable online, and bespoke projects on the Agency side.",
+    "pathTitle": [
+      "The journey."
+    ],
+    "pathLede": "Dates and facts, not adjectives. That's what a visitor checks before reaching for a card.",
+    "pathCite": "journey declared by Max-Morrys",
+    "producedTitle": "What I have published",
+    "producedArticles": "articles published",
+    "producedFormations": "courses built",
+    "producedPodcasts": "podcast episodes",
+    "producedVideos": "videos",
+    "producedBody": "These are production figures, not audience figures. I announce no students, no views and no revenue:",
+    "producedStrong": "the platform has just opened, and an inflated number takes thirty seconds to check.",
+    "soloTitle": "Why I work alone",
+    "soloBody": "Because I'd rather answer you myself. It explains everything that is capped here: the tutor quota, the workshop seats, the publishing rhythm.",
+    "soloStrong": "Nothing is unlimited because nothing can be — and I'd rather write it than let you find out afterwards.",
+    "treeTitle": [
+      "Where all this",
+      "belongs."
+    ],
+    "treeLede": "Max-Morrys is a brand of MY ONOMA SARL. Two other practices sit alongside it, and they don't do the same thing.",
+    "treeLearnBadge": "Track LEARN",
+    "treeLearnBody": "The platform you're reading. Courses, blog, podcast, Club, and the Digital Presence offer for local businesses.",
+    "treePillarBadge": "{{pillar}} pillar",
+    "treeBuildBody": "Bespoke projects, no public price list, on a written brief. A sister practice, not a catalogue offer.",
+    "treeGrowBody": "Acquisition and growth. If your request belongs there, it gets passed on — never turned away.",
+    "treeRegistered": "Registered",
+    "treeSeat": "Head office",
+    "treePillars": "Pillars",
+    "treeCite": "certificate of registration, Ministry of Economy (Senegal)",
+    "findTitle": [
+      "Where to find me."
+    ],
+    "findLede": "I publish elsewhere too. If you'd rather follow me there, keep your habits — I won't force you back here.",
+    "findDeclared": "Declared",
+    "closingTitle": [
+      "Now you know who",
+      "writes all this."
+    ],
+    "closingBefore": "Start with the blog — it's free, and there are",
+    "closingAfter": "articles. Or write to me directly: I'm the one who reads.",
+    "closingBlog": "Read the blog",
+    "closingContact": "Talk to me",
+    "slotPortraitTitle": "Portrait to supply · FR-084",
+    "slotPortraitBody": "A real photograph, 4:5, taken in Dakar. The current portrait is AI-generated — on the one page whose job is to earn trust, that is the worst possible place for a synthetic image.",
+    "slotPathTitle": "Milestones · a verifiable result is missing",
+    "slotPathBody": "The dates, schools and employers above are declared by me. What is still missing, for each of them: a link you can open. The two figures that used to dress them up — traffic growth, follower count — are gone: they have no public source.",
+    "slotPathStrong": "I don't invent them, and I don't lift them from a third-party directory.",
+    "slotFindTitle": "Links to confirm",
+    "slotFindBody": "The profiles opposite are declared and verified one by one. What is missing: the listening platform for the podcast, which is declared nowhere.",
+    "slotFindStrong": "I'd rather leave it empty than guess an address — and no account shows its follower count."
   }
 }

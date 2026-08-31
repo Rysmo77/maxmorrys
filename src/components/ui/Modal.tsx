@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { Icon } from '@ds';
 
 interface ModalProps {
   open: boolean;
@@ -73,17 +73,17 @@ export default function Modal({ open, onClose, children, title, size = 'md' }: M
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby={title ? 'modal-title' : undefined}>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={onClose} aria-hidden="true" />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm mm-drop" onClick={onClose} aria-hidden="true" />
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={cn('relative bg-white dark:bg-neutral-800 rounded-2xl shadow-xl w-full animate-scale-in max-h-[90vh] overflow-y-auto focus:outline-none', sizeMap[size])}
+        className={cn('relative bg-paper rounded-2xl shadow-xl w-full mm-drop max-h-[90vh] overflow-y-auto focus:outline-none', sizeMap[size])}
       >
         {title && (
-          <div className="flex items-center justify-between p-6 border-b border-neutral-200 dark:border-neutral-700">
-            <h2 id="modal-title" className="text-lg font-semibold text-neutral-900 dark:text-white">{title}</h2>
-            <button onClick={onClose} className="p-1 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" aria-label={t('modal.close')}>
-              <X className="w-5 h-5" />
+          <div className="flex items-center justify-between p-6 border-b border-[color:var(--line)]">
+            <h2 id="modal-title" className="text-lg font-semibold text-ink">{title}</h2>
+            <button onClick={onClose} className="p-1 rounded-lg text-ink-2 hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors" aria-label={t('modal.close')}>
+              <Icon name="close" size={20} />
             </button>
           </div>
         )}

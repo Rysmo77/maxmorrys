@@ -1,39 +1,51 @@
-import type { Icon } from '@phosphor-icons/react';
+import type { ReactNode } from 'react';
+import { EmptyState, Icon, type IconName } from '@ds';
 
-/** Empty state cohérent pour le Club : pastille plum + icône duotone + titre + sous-titre + CTA optionnel. */
+/**
+ * LES DEUX PIÈCES QUE LES ONZE ONGLETS DU CLUB SE PARTAGENT.
+ *
+ * Elles portaient l'entrée de `@phosphor-icons/react` dans ce dépôt : leur prop `icon` avait
+ * pour type le COMPOSANT d'icône de Phosphor, ce qui obligeait chacun des dix appelants à
+ * importer cette seconde famille rien que pour lui passer un glyphe. Un type peut propager une
+ * dépendance aussi sûrement qu'un import, et c'est ce qui s'était passé ici.
+ *
+ * La prop prend désormais un NOM de glyphe (`IconName`), une chaîne. Le jeu unique du système
+ * est le seul chemin, et il n'y a plus rien à importer pour appeler ces deux composants.
+ */
+
+/** L'état vide du Club — le glyphe du système sur la pastille plum, puis l'action. */
 export function ClubEmptyState({
-  icon: IconCmp, title, subtitle, action,
+  icon, title, subtitle, action,
 }: {
-  icon: Icon;
+  icon: IconName;
   title: string;
   subtitle?: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
 }) {
   return (
-    <div className="text-center py-12 px-4 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700">
-      <div className="w-14 h-14 rounded-2xl bg-plum-50 dark:bg-plum-900/20 flex items-center justify-center mx-auto mb-3">
-        <IconCmp className="w-7 h-7 text-plum-500" weight="duotone" />
-      </div>
-      <p className="font-bold text-neutral-900 dark:text-white">{title}</p>
-      {subtitle && <p className="text-sm text-neutral-500 mt-1 max-w-sm mx-auto">{subtitle}</p>}
-      {action && <div className="mt-4 flex justify-center">{action}</div>}
-    </div>
+    <EmptyState
+      glyph={<Icon name={icon} size={26} color="var(--mm-violet)" />}
+      glyphBackground="color-mix(in srgb, var(--mm-violet) 10%, transparent)"
+      title={title}
+      body={subtitle}
+      action={action ? <div className="flex justify-center">{action}</div> : undefined}
+    />
   );
 }
 
-/** En-tête de section uniforme : icône plum + titre, action optionnelle à droite. */
+/** En-tête de section : glyphe plum + titre, action facultative à droite. */
 export function ClubSectionHeader({
-  icon: IconCmp, title, action,
+  icon, title, action,
 }: {
-  icon: Icon;
+  icon: IconName;
   title: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 mb-3">
+    <div className="mb-3 flex items-center justify-between gap-3">
       <div className="flex items-center gap-2">
-        <IconCmp className="w-5 h-5 text-plum-500" weight="duotone" />
-        <h3 className="font-bold text-neutral-900 dark:text-white">{title}</h3>
+        <span className="text-transforme" aria-hidden="true"><Icon name={icon} size={19} /></span>
+        <h3 className="font-bold text-ink">{title}</h3>
       </div>
       {action}
     </div>

@@ -1,12 +1,46 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
-import { Sparkles, Zap, Crown, Check, Loader2, Star } from 'lucide-react';
+import { Button, CheckLine, GlassPanel, Icon, Num, PriceBlock, QuotaMeter, Skeleton, StatTile, Tag } from '@ds';
 import { functions } from '../../../config/firebase';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/ui/Toast';
-import Button from '../../../components/ui/Button';
-import { formatPrice } from '../../../lib/utils';
+import { captureError } from '../../../lib/sentry';
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * LE QUOTA DU RÉPÉTITEUR, ET CE QUI L'AUGMENTE.
+ *
+ * Recomposé sur `ScreensRysmo.js` et sur le panneau de quota de `ScreensSpace.js` § Rysmo.
+ *
+ * UN QUOTA EST UNE MESURE, DONC IL PORTE SA DATE DE RELEVÉ. `getRysmoQuota` recalcule le
+ * compte du jour côté serveur : la source est `'server'`, et `asOf` est l'instant où la
+ * réponse est arrivée — pas l'instant du rendu. Les deux diffèrent dès qu'on laisse l'écran
+ * ouvert, et c'est exactement ce que la date sert à dire.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUI A DISPARU, ET POURQUOI
+ *
+ * · L'ÉCHEC SILENCIEUX. Quand `getRysmoQuota` échouait, le composant rendait `null` : un
+ *   cadre vide, sans un mot. La personne ne pouvait pas distinguer « tu n'as plus de
+ *   questions » de « je n'ai pas réussi à lire ton compte ». L'écran dit maintenant
+ *   « quota non relevé », et l'erreur part chez Sentry au lieu de `console.error`.
+ *
+ * · LES PRIX EN CHAÎNES FORMATÉES. `formatPrice()` figeait le groupement des milliers ; les
+ *   montants passent par <PriceBlock>, qui groupe selon la langue et exige leur source.
+ *   Cette source est vérifiée : `RYSMO_PACKS` et `RYSMO_SUBSCRIPTIONS` dans
+ *   `functions/src/payment.ts` portent les mêmes 500 / 1 500 / 3 500 et 3 000 / 7 500, et ce
+ *   sont eux qui débitent. Le tableau ci-dessous est un MIROIR d'affichage, jamais l'autorité.
+ *
+ * · LES QUATRE GLYPHES `lucide-react` (Sparkles, Zap, Crown, Star) et l'ambre en dur
+ *   (`text-amber-600 dark:text-amber-400`) — une couleur hors palette ET une classe `dark:`
+ *   de couleur, que le thème par portée `.dk` rend inutile (AD-2, AD-3).
+ *
+ * NE PAS CONFONDRE LE QUOTA ET LE SOLDE. Le quota se réarme à minuit ; un pack acheté ne se
+ * périme pas. Les afficher dans le même compteur ferait croire qu'on perd ce qu'on a payé —
+ * d'où deux cases distinctes, et la phrase qui le dit sous la seconde.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
 
 interface QuotaSnapshot {
   dailyLimit: number;
@@ -22,32 +56,46 @@ const getRysmoQuota = httpsCallable<Record<string, never>, QuotaSnapshot>(functi
 const createRysmoPackCharge = httpsCallable<{ pack: string }, { checkoutUrl: string; transactionId: string }>(functions, 'createRysmoPackCharge');
 const createRysmoSubscriptionCharge = httpsCallable<{ plan: string }, { checkoutUrl: string; transactionId: string }>(functions, 'createRysmoSubscriptionCharge');
 
+/** Miroir d'affichage de `RYSMO_PACKS` (functions/src/payment.ts). Le débit vient de LÀ-BAS. */
 const PACKS = [
   { id: 'discovery', requests: 30, price: 500, hasBadge: false },
   { id: 'regular', requests: 100, price: 1500, hasBadge: true },
   { id: 'intensive', requests: 300, price: 3500, hasBadge: true },
 ];
 
+/** Miroir d'affichage de `RYSMO_SUBSCRIPTIONS` et de `SUBSCRIPTION_QUOTAS`. */
 const PLANS = [
   { id: 'lite', perDay: 20, price: 3000 },
   { id: 'pro', perDay: 100, price: 7500 },
 ];
+
+/** La grille tarifaire est du code serveur : elle se cite, elle ne se devine pas. */
+const TARIFF_SOURCE = { cite: 'grille des packs et abonnements, côté serveur' } as const;
 
 export default function RysmoStoreTab() {
   const { t } = useTranslation('lmsTabs');
   const { user } = useAuth();
   const { addToast } = useToast();
   const [quota, setQuota] = useState<QuotaSnapshot | null>(null);
+  /* La date du relevé du quota : l'instant de la RÉPONSE, pas celui du rendu. */
+  const [quotaAsOf, setQuotaAsOf] = useState<Date | null>(null);
   const [loadingQuota, setLoadingQuota] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
+
+  /* La grille tarifaire est du code, pas un relevé : sa date est celle du rendu. */
+  const tariffAsOf = new Date();
 
   const loadQuota = useCallback(async () => {
     if (!user) return;
     try {
       const res = await getRysmoQuota({});
       setQuota(res.data);
-    } catch (err) {
-      console.error('Failed to load Rysmo quota', err);
+      setQuotaAsOf(new Date());
+    } catch (error: unknown) {
+      // Un relevé qui échoue se DIT. Le cadre vide d'avant laissait croire à un quota nul.
+      captureError(error, { context: 'Failed to load Rysmo quota' });
+      setQuota(null);
+      setQuotaAsOf(null);
     } finally {
       setLoadingQuota(false);
     }
@@ -82,113 +130,169 @@ export default function RysmoStoreTab() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* État du quota actuel */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-gradient-to-br from-teal-50 to-white dark:from-neutral-800 dark:to-neutral-900 p-5">
-        {loadingQuota ? (
-          <div className="flex items-center gap-2 text-neutral-500">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">{t('rysmoStore.loadingQuota')}</span>
-          </div>
-        ) : quota ? (
-          <div className="grid sm:grid-cols-3 gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">{t('rysmoStore.today')}</p>
-              <p className="text-2xl font-black text-teal-700 dark:text-teal-400">
-                {quota.dayRemaining}<span className="text-sm text-neutral-400 font-bold">/{quota.dailyLimit}</span>
-              </p>
-              <p className="text-xs text-neutral-500">{t('rysmoStore.requestsRemaining')}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">{t('rysmoStore.pack')}</p>
-              <p className="text-2xl font-black text-amber-600 dark:text-amber-400">{quota.packBalance}</p>
-              <p className="text-xs text-neutral-500">{t('rysmoStore.requestsReserve')}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">{t('rysmoStore.status')}</p>
-              <p className="text-sm font-bold mt-1 flex items-center gap-1.5">
-                {quota.hasActiveSubscription ? (
-                  <><Crown className="w-4 h-4 text-amber-500" /><span>Rysmo+ {quota.plan === 'pro' ? 'Pro' : 'Lite'}</span></>
-                ) : quota.hasClubBonus ? (
-                  <><Star className="w-4 h-4 text-amber-500" /><span>{t('rysmoStore.clubBonus')}</span></>
-                ) : (
-                  <span className="text-neutral-500">{t('rysmoStore.free')}</span>
-                )}
-              </p>
-            </div>
-          </div>
-        ) : null}
-      </div>
-
-      {/* Packs à usage */}
+    <div className="space-y-[16px]">
+      {/* ── Le relevé du quota ───────────────────────────────────────────────── */}
       <section>
-        <div className="flex items-center gap-2 mb-4">
-          <Zap className="w-5 h-5 text-teal-600" />
-          <h2 className="text-xl font-black text-neutral-900 dark:text-white">{t('rysmoStore.packsTitle')}</h2>
-        </div>
-        <p className="text-sm text-neutral-500 mb-5">
+        <p className="mm-eyebrow m-0">{t('rysmoStore.quotaEyebrow')}</p>
+
+        {loadingQuota ? (
+          <Skeleton height={96} radius="var(--r-l)" label={t('rysmoStore.loadingQuota')} style={{ marginTop: '10px' }} />
+        ) : !quota || !quotaAsOf ? (
+          <GlassPanel level="flat" padding={18} className="mt-[10px]">
+            {/* Une valeur absente se DIT : <Num> rend « non relevé », jamais un tiret. */}
+            <p className="m-0 text-meta font-semibold text-ink">
+              {t('rysmoStore.dailyQuotaLabel')} : <Num value={null} source="server" asOf={tariffAsOf} />
+            </p>
+            <p className="m-0 mt-[4px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
+              {t('rysmoStore.quotaUnavailable')}
+            </p>
+          </GlassPanel>
+        ) : (
+          <>
+            <GlassPanel level="flat" padding={18} className="mt-[10px]">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="m-0 text-meta font-semibold text-ink">{t('rysmoStore.dailyQuotaLabel')}</p>
+                  <QuotaMeter
+                    used={quota.dayCount}
+                    total={quota.dailyLimit}
+                    source="server"
+                    asOf={quotaAsOf}
+                    suffix={t('rysmoStore.quotaSuffix')}
+                    style={{ marginTop: '9px' }}
+                  />
+                </div>
+                {quota.hasActiveSubscription ? (
+                  <Tag tone="ok">{t(`rysmoStore.plans.${quota.plan === 'pro' ? 'pro' : 'lite'}.label`)}</Tag>
+                ) : quota.hasClubBonus ? (
+                  <Tag tone="ok">{t('rysmoStore.clubBonus')}</Tag>
+                ) : (
+                  <Tag>{t('rysmoStore.free')}</Tag>
+                )}
+              </div>
+              <p className="m-0 mt-[12px] text-small" style={{ color: 'var(--text-muted)' }}>
+                {t('rysmoStore.resetNote')}
+              </p>
+            </GlassPanel>
+
+            <div className="mt-[10px] grid grid-cols-2 gap-[10px]">
+              <StatTile
+                label={t('rysmoStore.requestsRemaining')}
+                value={quota.dayRemaining}
+                unit={t('rysmoStore.requestsLabel')}
+                source="server"
+                asOf={quotaAsOf}
+              />
+              <StatTile
+                label={t('rysmoStore.packBalanceLabel')}
+                value={quota.packBalance}
+                unit={t('rysmoStore.requestsLabel')}
+                source="server"
+                asOf={quotaAsOf}
+                foot={t('rysmoStore.packBalanceFoot')}
+              />
+            </div>
+          </>
+        )}
+      </section>
+
+      {/* ── Les packs ────────────────────────────────────────────────────────── */}
+      <section>
+        <p className="mm-eyebrow m-0">{t('rysmoStore.packsTitle')}</p>
+        <p className="m-0 mt-[4px] text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
           {t('rysmoStore.packsSubtitle')}
         </p>
-        <div className="grid sm:grid-cols-3 gap-4">
-          {PACKS.map((pack) => {
-            const isPopular = pack.id === 'regular';
-            return (
-            <div key={pack.id} className={`relative rounded-2xl border bg-white dark:bg-neutral-900 p-5 flex flex-col ${isPopular ? 'border-teal-400 dark:border-teal-600 shadow-md' : 'border-neutral-200 dark:border-neutral-700'}`}>
-              {pack.hasBadge && (
-                <span className="absolute -top-2.5 left-4 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide rounded-full bg-teal-600 text-white">{t(`rysmoStore.packs.${pack.id}.badge`)}</span>
-              )}
-              <h3 className="text-lg font-black text-neutral-900 dark:text-white">{t(`rysmoStore.packs.${pack.id}.label`)}</h3>
-              <p className="text-3xl font-black text-teal-700 dark:text-teal-400 mt-2">{formatPrice(pack.price)}</p>
-              <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mt-1">{t('rysmoStore.requests', { count: pack.requests })}</p>
-              <p className="text-xs text-neutral-500 mt-2 flex-1">{t(`rysmoStore.packs.${pack.id}.description`)}</p>
-              <Button onClick={() => handleBuyPack(pack.id)} disabled={purchasing !== null} className="mt-4 w-full">
-                {purchasing === `pack_${pack.id}` ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : t('rysmoStore.buyPack')}
+        <div className="mt-[12px] grid gap-[10px] sm:grid-cols-3">
+          {PACKS.map((pack) => (
+            <GlassPanel key={pack.id} level="flat" padding={18} className="flex flex-col">
+              <div className="flex items-start justify-between gap-2">
+                <p className="m-0 text-meta font-bold text-ink">{t(`rysmoStore.packs.${pack.id}.label`)}</p>
+                {pack.hasBadge && <Tag>{t(`rysmoStore.packs.${pack.id}.badge`)}</Tag>}
+              </div>
+              <PriceBlock
+                size={25}
+                amount={{ value: pack.price, source: TARIFF_SOURCE, asOf: tariffAsOf }}
+                currency="FCFA"
+                note={
+                  <>
+                    <Num value={pack.requests} source={TARIFF_SOURCE} asOf={tariffAsOf} /> {t('rysmoStore.requestsLabel')}
+                  </>
+                }
+                style={{ marginTop: '12px' }}
+              />
+              <p className="m-0 mt-[8px] flex-1 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
+                {t(`rysmoStore.packs.${pack.id}.description`)}
+              </p>
+              <Button
+                tone="transforme"
+                size="sm"
+                style={{ marginTop: '14px' }}
+                onClick={() => void handleBuyPack(pack.id)}
+                disabled={purchasing !== null}
+                loading={purchasing === `pack_${pack.id}`}
+              >
+                {t('rysmoStore.buyPack')}
               </Button>
-            </div>
-            );
-          })}
+            </GlassPanel>
+          ))}
         </div>
       </section>
 
-      {/* Abonnements Rysmo+ */}
+      {/* ── Les abonnements. « Rysmo+ » est un nom d'ABONNEMENT À L'APPLICATION,
+             pas le nom du répétiteur : il ne suit donc pas le renommage. ────── */}
       <section>
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-5 h-5 text-amber-500" />
-          <h2 className="text-xl font-black text-neutral-900 dark:text-white">{t('rysmoStore.subscriptionTitle')}</h2>
-        </div>
-        <p className="text-sm text-neutral-500 mb-5">
+        <p className="mm-eyebrow m-0">{t('rysmoStore.subscriptionTitle')}</p>
+        <p className="m-0 mt-[4px] text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
           {t('rysmoStore.subscriptionSubtitle')}
         </p>
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="mt-[12px] grid gap-[10px] sm:grid-cols-2">
           {PLANS.map((plan) => {
             const planLabel = t(`rysmoStore.plans.${plan.id}.label`);
+            const current = quota?.hasActiveSubscription && quota.plan === plan.id;
             return (
-            <div key={plan.id} className={`rounded-2xl border bg-white dark:bg-neutral-900 p-6 ${plan.id === 'pro' ? 'border-amber-400 dark:border-amber-600 shadow-md' : 'border-neutral-200 dark:border-neutral-700'}`}>
-              <div className="flex items-center gap-2 mb-1">
-                <Crown className={`w-4 h-4 ${plan.id === 'pro' ? 'text-amber-500' : 'text-teal-500'}`} />
-                <h3 className="text-lg font-black text-neutral-900 dark:text-white">{planLabel}</h3>
-              </div>
-              <p className="text-3xl font-black text-neutral-900 dark:text-white mt-2">
-                {formatPrice(plan.price)}<span className="text-sm text-neutral-500 font-medium">{t('rysmoStore.perMonth')}</span>
-              </p>
-              <p className="text-sm text-neutral-500 mt-2">{t(`rysmoStore.plans.${plan.id}.description`)}</p>
-              <ul className="space-y-1.5 mt-4">
-                {['feature1', 'feature2', 'feature3'].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-                    <Check className="w-4 h-4 text-teal-500 flex-shrink-0" /><span>{t(`rysmoStore.plans.${plan.id}.${f}`)}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button onClick={() => handleBuySubscription(plan.id)} disabled={purchasing !== null || quota?.hasActiveSubscription} className="mt-5 w-full">
-                {purchasing === `sub_${plan.id}` ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : quota?.hasActiveSubscription ? t('rysmoStore.alreadySubscribed') : t('rysmoStore.subscribeTo', { plan: planLabel })}
-              </Button>
-            </div>
+              <GlassPanel key={plan.id} level={plan.id === 'pro' ? 'hero' : 'flat'} padding={20}>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="m-0 text-meta font-bold text-ink">{planLabel}</p>
+                  {current && <Tag tone="ok">{t('rysmoStore.alreadySubscribed')}</Tag>}
+                </div>
+                <PriceBlock
+                  size={27}
+                  amount={{ value: plan.price, source: TARIFF_SOURCE, asOf: tariffAsOf }}
+                  currency="FCFA"
+                  note={t('rysmoStore.perMonth')}
+                  style={{ marginTop: '12px' }}
+                />
+                <p className="m-0 mt-[8px] text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
+                  {t(`rysmoStore.plans.${plan.id}.description`)}
+                </p>
+                <div className="mt-[12px]">
+                  {/* Le nombre de requêtes vient de la donnée, pas d'une chaîne traduite :
+                      c'est le même chiffre que `SUBSCRIPTION_QUOTAS` côté serveur. */}
+                  <CheckLine>
+                    <Num value={plan.perDay} source={TARIFF_SOURCE} asOf={tariffAsOf} /> {t('rysmoStore.perDayLabel')}
+                  </CheckLine>
+                  <CheckLine>{t(`rysmoStore.plans.${plan.id}.feature2`)}</CheckLine>
+                  <CheckLine>{t(`rysmoStore.plans.${plan.id}.feature3`)}</CheckLine>
+                </div>
+                <Button
+                  tone={plan.id === 'pro' ? 'transforme' : 'quiet'}
+                  style={{ marginTop: '15px' }}
+                  onClick={() => void handleBuySubscription(plan.id)}
+                  disabled={purchasing !== null || quota?.hasActiveSubscription}
+                  loading={purchasing === `sub_${plan.id}`}
+                >
+                  {quota?.hasActiveSubscription
+                    ? t('rysmoStore.alreadySubscribed')
+                    : t('rysmoStore.subscribeTo', { plan: planLabel })}
+                </Button>
+              </GlassPanel>
             );
           })}
         </div>
       </section>
 
-      <p className="text-xs text-neutral-400 text-center pt-2">
+      <p className="m-0 flex items-center justify-center gap-[7px] text-small" style={{ color: 'var(--text-muted)' }}>
+        <Icon name="lock" size={13} strokeWidth={2.4} />
         {t('rysmoStore.paymentNote')}
       </p>
     </div>

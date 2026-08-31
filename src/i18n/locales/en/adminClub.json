@@ -6,7 +6,10 @@
     "stats": {
       "activeMembers": "Active members",
       "pendingPayment": "Awaiting payment",
-      "revenue": "Club revenue (FCFA)"
+      "revenue": "Club revenue (FCFA)",
+      "pendingFoot": "no automatic follow-up",
+      "revenueCite": "sum of active subscriptions in the database",
+      "revenueFoot": "not audited revenue"
     },
     "tabs": {
       "subscriptions": "Subscriptions",
@@ -18,7 +21,10 @@
       "members": "Member profiles",
       "opportunities": "Opportunities",
       "reports": "Reports"
-    }
+    },
+    "sub": "Console · Club",
+    "sectionLabel": "Club section",
+    "scope": "This screen administers the Club; it does not collect its money. Setting a subscription to active triggers no payment, and removing it cancels none: the charge lives with the provider, outside this console. The revenue shown is the sum of the amounts recorded on active subscriptions — not audited revenue, which is read from the transactions confirmed by the webhook. Four sections — challenges, member profiles, opportunities, reports — load when their tab opens: their own status queue lives inside, and while the tab is closed this screen does not know what is waiting there. No renewal reminder: a subscription awaiting payment stays that way until someone opens it."
   },
   "common": {
     "save": "Save",
@@ -65,7 +71,8 @@
     "editAria": "Edit",
     "deleteAria": "Delete",
     "noComments": "No comments.",
-    "deleteCommentAria": "Delete comment"
+    "deleteCommentAria": "Delete comment",
+    "editLabel": "Edit post"
   },
   "events": {
     "new": "New event",
@@ -171,7 +178,10 @@
     "deleteConfirm": "Delete {{name}}'s profile?",
     "deleted": "Profile deleted.",
     "deleteTitle": "Delete",
-    "confirmLabel": "Delete"
+    "confirmLabel": "Delete",
+    "headlineLabel": "Headline",
+    "skillsLabel": "Skills",
+    "cityLabel": "City"
   },
   "opportunities": {
     "empty": "No opportunities published.",
@@ -239,7 +249,8 @@
       "selectPlaceholder": "— Select a course —",
       "activate": "Activate",
       "empty": "No course activated.",
-      "progress": "Progress: {{progress}}%"
+      "progress": "Progress: {{progress}}%",
+      "selectLabel": "Course to activate"
     },
     "club": {
       "title": "Club des Digitos",
@@ -267,7 +278,7 @@
       "usedToday": "Used today",
       "prepaid": "Prepaid tokens",
       "reset": "Reset today's counter",
-      "addLabel": "Gift tokens (added to prepaid balance)",
+      "addLabel": "Number of tokens to add",
       "add": "Add",
       "note": "Added tokens are used first and never expire."
     }

@@ -148,5 +148,66 @@
   "library": {
     "tab": "Le catalogue de formations",
     "moreInfo": "Plus d'infos"
+  },
+  "index": {
+    "eyebrow": "Je te forme",
+    "lifetimeLine": "Accès à vie.",
+    "countLine_one": "{{count}} formation.",
+    "countLine_other": "{{count}} formations.",
+    "lede": "Chaque formation est retravaillée quand le sujet bouge, et tu gardes l'accès à la version corrigée sans repayer.",
+    "sortNote": "Trié par date de publication",
+    "filterAll": "Tout",
+    "levelBeginner": "Débutant",
+    "levelIntermediate": "Intermédiaire",
+    "levelAdvanced": "Avancé",
+    "see": "Voir",
+    "whyTitle": [
+      "Pourquoi il n'y a",
+      "que deux titres."
+    ],
+    "whyBody": "Je préfère deux formations que je tiens à jour à un catalogue qui fait nombre. Le module d'ouverture de chacune est en accès libre : tu juges avant de payer.",
+    "c1": "Une fois payée, l'accès est à vie",
+    "c2": "Le module d'ouverture est gratuit",
+    "c3": "Tu paies en Wave ou en Orange Money",
+    "c4": "Certificat vérifiable par son code, sans compte",
+    "emptyTitle": "Le catalogue ouvre bientôt.",
+    "emptyBody": "Aucune formation n'est encore en ligne. Je préfère te le dire que te faire cliquer dans le vide. Crée ton compte : je t'alerte dans ton espace le jour de la mise en ligne.",
+    "emptyCta": "Crée ton compte",
+    "emptyNote": "Pas de « préviens-moi par e-mail » : le produit n'a aucun canal d'envoi. L'alerte arrive dans ton espace.",
+    "lifetime": "Une fois, accès à vie"
+  },
+  "sheet": {
+    "eyebrow": "Je te forme",
+    "preview": "Aperçu · module d'ouverture gratuit",
+    "program": "Le programme",
+    "free": "Gratuit",
+    "enroll": "Je m'inscris",
+    "startFree": "Commencer le module gratuit",
+    "lifetime": "Une fois, accès à vie",
+    "c1": "Accès à vie, mises à jour comprises",
+    "c2": "Certificat vérifiable par son code",
+    "c3": "Wave, Orange Money ou carte",
+    "truthTitle": "Ce que je peux te prouver",
+    "truthBody": "{{lessons}} leçons, {{modules}} modules, un certificat dont le code se vérifie sans compte. Je n'affiche ni note ni nombre d'inscrits : la plateforme vient d'ouvrir, je n'ai rien d'honnête à en dire.",
+    "forWhoTitle": [
+      "Pour qui c'est fait."
+    ],
+    "forYes": "C'est pour toi si…",
+    "forNo": "Autre chose, si…",
+    "y1": "Tu vends déjà quelque chose, même un peu",
+    "y2": "Tu veux appliquer le soir même, pas prendre des notes",
+    "y3": "Tu paies en francs CFA, sans carte à l'étranger",
+    "n1": "Tu cherches un diplôme reconnu par l'État",
+    "n2": "Tu veux qu'on le fasse à ta place — vois Présence Digitale",
+    "n3": "Tu débutes complètement : commence par le blog, il est gratuit",
+    "faqTitle": [
+      "Avant d'acheter."
+    ],
+    "q1": "Et si ça ne me convient pas ?",
+    "a1": "Tu as 14 jours. Écris-moi, je rembourse — et si tu me dis pourquoi, ça m'aide à corriger.",
+    "q2": "Combien de temps j'ai accès ?",
+    "a2": "À vie. Une formation retravaillée reste accessible dans sa version corrigée, sans repayer.",
+    "q3": "Je peux payer en plusieurs fois ?",
+    "a3": "Écris-moi avant de payer. Le montant débité est celui recalculé côté serveur, jamais celui affiché par ton navigateur."
   }
 }

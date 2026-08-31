@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Layers, Store, GraduationCap, ArrowRight } from 'lucide-react';
 import LocalizedLink from '../shared/LocalizedLink';
 import { staggerContainer, staggerItem } from '../../lib/animations';
+import { Icon } from '@ds';
 
 /**
  * Aiguilleur d'audience présenté quand un visiteur s'apprête à quitter `/agence`.
@@ -30,16 +30,16 @@ interface AudienceRouterPopupProps {
   onContinue: () => void;
 }
 
-const doorCls = 'group flex items-center gap-4 w-full text-left p-4 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-lagoon-400/50 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-400';
+const doorCls = 'group flex items-center gap-4 w-full text-left p-4 rounded-2xl border border-white/10 bg-paper/[0.03] hover:bg-paper/[0.07] hover:border-[color-mix(in_srgb,var(--mm-teal)_50%,transparent)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition duration-300 focus:outline-none focus-visible:ring-2';
 const iconBoxCls = 'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3';
 const labelCls = 'block text-sm font-bold text-white leading-snug';
 const descCls = 'block mt-0.5 text-xs text-white/50 leading-relaxed';
-const arrowCls = 'w-4 h-4 shrink-0 text-white/30 group-hover:text-lagoon-400 group-hover:translate-x-1 transition-all duration-300';
+const arrowCls = 'w-4 h-4 shrink-0 text-white/30 group-hover:text-digitalise-txt group-hover:translate-x-1 transition duration-300';
 
 /** Signatures de destination. Chaînes littérales : Tailwind purge tout nom construit. */
-const BUILD_TILE = 'border border-lagoon-400/40 text-lagoon-400';
-const PRESENCE_TILE = 'bg-lagoon-500 text-neutral-950';
-const LEARN_TILE = 'bg-brand-500/15 text-brand-300';
+const BUILD_TILE = 'border border-[color-mix(in_srgb,var(--mm-teal)_40%,transparent)] text-digitalise-txt';
+const PRESENCE_TILE = 'bg-[color:var(--mm-teal)] text-ink';
+const LEARN_TILE = 'bg-[color-mix(in_srgb,var(--mm-bleu)_15%,transparent)] text-forme';
 
 export default function AudienceRouterPopup({ onChoose, onContinue }: AudienceRouterPopupProps) {
   const { t } = useTranslation('shared');
@@ -52,7 +52,7 @@ export default function AudienceRouterPopup({ onChoose, onContinue }: AudienceRo
 
   return (
     <div>
-      <p className="text-[0.625rem] font-bold tracking-[0.3em] uppercase text-lagoon-400">
+      <p className="text-[0.625rem] font-bold tracking-[0.3em] uppercase text-digitalise-txt">
         {t('popups.agencyExit.eyebrow')}
       </p>
 
@@ -69,7 +69,7 @@ export default function AudienceRouterPopup({ onChoose, onContinue }: AudienceRo
           initial={reduced ? false : { scale: 0.4, rotate: 0, opacity: 0 }}
           animate={reduced ? undefined : { scale: 1, rotate: -8, opacity: 1 }}
           transition={{ delay: 0.25, type: 'spring', stiffness: 320, damping: 14 }}
-          className="absolute -top-1 right-0 sm:right-4 inline-block px-3 py-1.5 rounded-md bg-lagoon-500 text-neutral-950 text-xs font-black uppercase tracking-wide shadow-lg shadow-lagoon-500/25 -rotate-6"
+          className="absolute -top-1 right-0 sm:right-4 inline-block px-3 py-1.5 rounded-md bg-[color:var(--mm-teal)] text-ink text-xs font-black uppercase tracking-wide shadow-digitalise -rotate-6"
         >
           {t('popups.agencyExit.sticker')}
         </motion.span>
@@ -87,39 +87,39 @@ export default function AudienceRouterPopup({ onChoose, onContinue }: AudienceRo
         <motion.div {...itemProps}>
           <a href="#projet" onClick={() => onChoose('build')} className={doorCls}>
             <span className={`${iconBoxCls} ${BUILD_TILE}`}>
-              <Layers className="w-5 h-5" aria-hidden="true" />
+              <Icon name="layers" size={20} />
             </span>
             <span className="flex-1 min-w-0">
               <span className={labelCls}>{t('popups.agencyExit.buildLabel')}</span>
               <span className={descCls}>{t('popups.agencyExit.buildDesc')}</span>
             </span>
-            <ArrowRight className={arrowCls} aria-hidden="true" />
+            <Icon name="forward" className={arrowCls} />
           </a>
         </motion.div>
 
         <motion.div {...itemProps}>
           <LocalizedLink to="/presence-digitale" onClick={() => onChoose('presence')} className={doorCls}>
             <span className={`${iconBoxCls} ${PRESENCE_TILE}`}>
-              <Store className="w-5 h-5" aria-hidden="true" />
+              <Icon name="store" size={20} />
             </span>
             <span className="flex-1 min-w-0">
               <span className={labelCls}>{t('popups.agencyExit.presenceLabel')}</span>
               <span className={descCls}>{t('popups.agencyExit.presenceDesc')}</span>
             </span>
-            <ArrowRight className={arrowCls} aria-hidden="true" />
+            <Icon name="forward" className={arrowCls} />
           </LocalizedLink>
         </motion.div>
 
         <motion.div {...itemProps}>
           <LocalizedLink to="/formations" onClick={() => onChoose('learn')} className={doorCls}>
             <span className={`${iconBoxCls} ${LEARN_TILE}`}>
-              <GraduationCap className="w-5 h-5" aria-hidden="true" />
+              <Icon name="graduation" size={20} />
             </span>
             <span className="flex-1 min-w-0">
               <span className={labelCls}>{t('popups.agencyExit.learnLabel')}</span>
               <span className={descCls}>{t('popups.agencyExit.learnDesc')}</span>
             </span>
-            <ArrowRight className={arrowCls} aria-hidden="true" />
+            <Icon name="forward" className={arrowCls} />
           </LocalizedLink>
         </motion.div>
       </motion.div>
@@ -131,7 +131,7 @@ export default function AudienceRouterPopup({ onChoose, onContinue }: AudienceRo
       <button
         type="button"
         onClick={onContinue}
-        className="mt-6 text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-400 rounded"
+        className="mt-6 text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none focus-visible:ring-2 rounded"
       >
         {t('popups.agencyExit.continue')}
       </button>

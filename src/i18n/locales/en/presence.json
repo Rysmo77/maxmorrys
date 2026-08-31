@@ -90,7 +90,8 @@
       "working": "Your site holds up — no need to rebuild it. What you're missing is consistency: being found and posting every week.",
       "outdated": "An outdated site does more harm than no site at all. We start again with a credible storefront and your catalogue.",
       "starting": "You're starting from nothing: what matters is existing on Google Maps and getting your first WhatsApp enquiries. We'll think bigger later."
-    }
+    },
+    "privacy": "No personal details are asked for before you've seen the recommendation. “I'm not sure” is a valid answer: it leads to a recommendation too."
   },
   "packs": {
     "title": "The setup",
@@ -140,7 +141,10 @@
       ],
       "note": "Worth considering once you already have your products, clear prices and a delivery setup."
     },
-    "selected": "Your choice"
+    "selected": "Your choice",
+    "strikeLabel": "Previous price",
+    "promoNote": "Once · launch offer",
+    "onceNote": "Once"
   },
   "plans": {
     "title": "Monthly support",
@@ -360,11 +364,45 @@
       "title": "Summary not found",
       "text": "This link doesn't exist or has been removed. Check the reference, or make a new request — it takes a minute.",
       "cta": "Make a request"
-    }
+    },
+    "eyebrowDs": "Quote · viewable without an account",
+    "titleLine1": "Your quote,",
+    "titleLine2": "{{name}}.",
+    "titleNoPack": "made to order.",
+    "included": "included",
+    "monthlyLine": "Then every month",
+    "validFor": "Valid",
+    "daysUnit": "d",
+    "expiredTag": "Expired",
+    "gridCite": "Digital Presence price list",
+    "issuedOnLabel": "Issued on",
+    "validUntilLabel": "valid until",
+    "copy": "Copy the quote link",
+    "copied": "Link copied",
+    "truthTitle": "What this document contains, and what it does not",
+    "truthBody": "No personal data: not your phone, not your email. The link can be forwarded as is. The amounts, however, are read back from the current price list every time this page opens — if the list moves, this document moves with it. I'd rather write that here than let you find out at signing.",
+    "loading": "Loading the quote",
+    "commitmentLine": "{{months}}-month commitment"
   },
   "agencyBridge": {
     "title": "Is your project bigger than a storefront?",
     "body": "If you are not after an online presence but a product to build — a platform, an app, an AI system — that is the job of Max-Morrys Agency, the product and technology practice of MY ONOMA.",
     "cta": "Explore Max-Morrys Agency"
+  },
+  "anchor": {
+    "eyebrow": "The question everyone asks",
+    "question": "“An agency quotes me 400,000 F once for a website. What does the first year cost with you?”",
+    "answerBefore": "The answer before you fill in anything: ",
+    "answerAfter": " for the entry pack, once, everything included. Monthly support is a separate decision you make after you go live — not now, and not as a condition.",
+    "footnote": "If you only take the pack, it still works. This is written here so you don't have to ask."
+  },
+  "plansAside": {
+    "title": "Support, separately",
+    "body": "Two monthly plans, each with its own setup fee. Posts, review replies, fixes. You can stop whenever you want, and the pack keeps working without it.",
+    "cta": "See both plans"
+  },
+  "truth": {
+    "title": "What this page does not show",
+    "body": "No star ratings, no client counts, no testimonials. None of those numbers is something you could verify from this page. The only numbers written here are the catalogue prices and whatever you type into the Google search above."
   }
 }

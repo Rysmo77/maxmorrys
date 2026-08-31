@@ -40,7 +40,8 @@
     "messageRequired": "Le message est requis",
     "messageTooShort": "Le message doit faire au moins 10 caractères",
     "dateRequired": "La date est requise",
-    "timeRequired": "L'heure est requise"
+    "timeRequired": "L'heure est requise",
+    "nameTooShort": "Le nom doit faire au moins 2 caractères"
   },
   "toast": {
     "messageSuccess": "Message envoyé avec succès ! Je te répondrai rapidement.",
@@ -69,8 +70,60 @@
     "notesPlaceholder": "Précise ton besoin pour préparer l'appel...",
     "cancel": "Annuler",
     "submitting": "Envoi...",
-    "submit": "Confirmer la demande"
+    "submit": "Confirmer la demande",
+    "successBody": "Ta demande est enregistrée. Je regarde le créneau et je reviens vers toi : rien n'est confirmé tant que je ne l'ai pas fait, et le produit n'envoie aucun e-mail automatique."
   },
   "faqEyebrow": "FAQ",
-  "faqTitle": "Questions fréquentes"
+  "faqTitle": "Questions fréquentes",
+  "page": {
+    "titleLines": [
+      "Écris-moi.",
+      "Je réponds."
+    ],
+    "lede": "Une question sur une formation, un problème de paiement, une idée d'épisode. C'est moi qui lis, et c'est moi qui réponds — compte deux jours ouvrés.",
+    "triage": {
+      "title": "Avant d'écrire",
+      "paymentBefore": "Un paiement qui n'apparaît pas ? Regarde d'abord",
+      "paymentLink": "Mes formations",
+      "paymentAfter": "dans ton espace : l'accès s'y ouvre dès que le paiement est confirmé.",
+      "faqBefore": "Une question générale ? Elle est peut-être déjà dans la",
+      "faqLink": "FAQ",
+      "faqAfter": "et sa réponse y est en entier."
+    },
+    "agency": {
+      "title": "Pour un projet sur mesure",
+      "before": "Ce formulaire n'est pas le bon. Passe par",
+      "link": "Max-Morrys Agency",
+      "after": ": le formulaire y demande le budget et le périmètre, ce qui évite trois allers-retours."
+    },
+    "channels": {
+      "title": "Me joindre autrement",
+      "bookingBody": "Tu préfères parler de vive voix ? Réserve un créneau du soir, heure de Dakar."
+    },
+    "account": {
+      "title": "Tu écris depuis ton compte",
+      "body": "Ma réponse arrivera dans ton espace, et ce message restera dans ta boîte.",
+      "signedIn": "Compte connecté"
+    },
+    "form": {
+      "subjectLabel": "De quoi veux-tu parler ?",
+      "subjectPlaceholder": "Choisis un sujet",
+      "note": "Tu peux aussi écrire sans compte — mais je ne pourrai pas te répondre dans l'application."
+    },
+    "truth": {
+      "title": "Pourquoi cette carte est en tête",
+      "body": "Aujourd'hui un message envoyé depuis un compte connecté n'est pas rattaché à son auteur : il n'apparaît jamais dans sa boîte, et la réponse part dans le vide. Les messages anonymes restent possibles, et restent anonymes."
+    },
+    "facts": {
+      "replyLabel": "Réponse",
+      "replyValue": "≤ 48 h",
+      "replyNote": "Jours ouvrés, heure de Dakar",
+      "readerLabel": "Qui lit",
+      "readerValue": "Moi",
+      "readerNote": "Il n'y a pas de service client",
+      "langsLabel": "Langues",
+      "langsValue": "FR · EN",
+      "langsNote": "Écris dans celle que tu préfères"
+    }
+  }
 }

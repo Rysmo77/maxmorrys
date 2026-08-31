@@ -313,5 +313,137 @@
     "mobileLabel": "Mobile",
     "deviceAria": "Aperçu {{label}}",
     "groupAria": "Choisir l'aperçu de {{name}}"
+  },
+  "meta": {
+    "title": "Max-Morrys Agency — des projets qu'on mène à deux",
+    "description": "Refonte, plateforme, automatisation, intelligence artificielle. Peu de projets à la fois, cadrés avant d'être chiffrés. Aucune grille publique sur cette page : une conversation, puis un cadrage écrit."
+  },
+  "page": {
+    "eyebrow": "{{brand}} · practice {{pillar}}",
+    "titleLines": [
+      "Des projets",
+      "qu'on mène",
+      "à deux."
+    ],
+    "lede": "Refonte, plateforme, automatisation, intelligence artificielle. Peu de projets à la fois, cadrés avant d'être chiffrés. Si ça ne colle pas, je te le dis en une conversation plutôt qu'en trois devis.",
+    "truthTitle": "Pourquoi il n'y a aucun tarif sur cette page",
+    "truthStart": "Parce qu'aucun de ces projets ne se vend au catalogue. Si tu cherches une grille publique et un prix affiché, c'est ",
+    "truthStrong": "Présence Digitale",
+    "truthEnd": " qu'il te faut — c'est une autre offre, une autre équipe, et elle est faite pour ça."
+  },
+  "panel": {
+    "eyebrow": "Parlons-en",
+    "typeLabel": "De quoi s'agit-il ?",
+    "typePlaceholder": "Choisis un type de projet",
+    "budgetLabel": "Quel budget as-tu en tête ?",
+    "budgetPlaceholder": "Choisis une fourchette",
+    "budgetHint": "Je demande une fourchette au lieu d'en annoncer une : c'est la seule façon de savoir tout de suite si on peut travailler ensemble.",
+    "timelineLabel": "Pour quand ?",
+    "timelinePlaceholder": "Choisis une échéance",
+    "descriptionLabel": "Le projet en trois lignes",
+    "descriptionPlaceholder": "Ce que tu veux obtenir, et pour quand.",
+    "replyEyebrow": "Pour que je puisse te répondre",
+    "nameLabel": "Ton nom",
+    "namePlaceholder": "Awa Ndiaye",
+    "companyLabel": "Ta structure",
+    "companyPlaceholder": "Le nom sous lequel tu travailles",
+    "emailLabel": "Ton e-mail",
+    "emailPlaceholder": "toi@ta-structure.com",
+    "submit": "Envoyer ma demande",
+    "submitting": "Envoi en cours…",
+    "reply": "Réponse sous 48 h, par moi.",
+    "budgets": {
+      "exploring": "Je ne sais pas encore — j'aimerais en parler",
+      "small": "Une intervention courte, sur un seul périmètre",
+      "medium": "Un projet cadré, sur un trimestre",
+      "large": "Une plateforme, sur plusieurs trimestres",
+      "xlarge": "Un programme, avec une équipe dédiée"
+    },
+    "errors": {
+      "projectType": "Choisis un type. C'est ce qui décide si la demande est pour moi ou pour Cléa.",
+      "budget": "Choisis une fourchette. Sans elle, je ne peux pas te dire tout de suite si on peut travailler ensemble.",
+      "timeline": "Donne-moi une échéance, même approximative. C'est ce qui dit si je peux prendre le projet.",
+      "description": "Le projet en trois lignes, c'est ce qui me permet de répondre autre chose qu'un devis type. Écris-les ici.",
+      "descriptionShort": "Sous {{min}} caractères, je ne peux pas juger si le projet est pour moi. Ajoute ce que tu veux obtenir, et pour quand.",
+      "name": "Il me faut un nom pour te répondre. Le tien suffit.",
+      "company": "Dis-moi sous quel nom tu travailles : c'est ce qui me dit à qui je parle.",
+      "email": "Sans adresse, ta demande arrive et reste sans réponse. Ajoute la tienne.",
+      "emailInvalid": "Cette adresse n'a pas la forme d'un e-mail. Vérifie ce qu'il y a avant et après l'arobase.",
+      "sendFailed": "L'envoi n'est pas passé et rien n'a été enregistré. Ta demande est toujours dans le formulaire : réessaie dans un instant."
+    }
+  },
+  "band": {
+    "titleLines": [
+      "Neuf types de projet.",
+      "Aucune demande n'est rejetée."
+    ],
+    "types": [
+      {
+        "title": "Plateforme",
+        "body": "Produit métier, espace client, outil interne."
+      },
+      {
+        "title": "Refonte",
+        "body": "Site existant à reprendre sans perdre son référencement."
+      },
+      {
+        "title": "Automatisation",
+        "body": "Ce que ton équipe refait à la main chaque semaine."
+      },
+      {
+        "title": "Intégration IA",
+        "body": "Dans un flux qui existe déjà, pas à côté."
+      }
+    ],
+    "presenceTitle": "Si tu cherches une grille publique et un prix affiché",
+    "presenceBody": "Présence Digitale est l'autre porte : des packs chiffrés, une grille lisible, un tunnel fait pour un commerce qui veut être trouvable. Ce n'est pas un lot de consolation — c'est une autre offre, et elle est faite pour ça.",
+    "presenceTag": "Grille publique",
+    "presenceCta": "Voir Présence Digitale"
+  },
+  "process": {
+    "titleLines": [
+      "Comment ça se passe."
+    ],
+    "steps": [
+      {
+        "n": "01",
+        "title": "Une conversation",
+        "body": "Quarante-cinq minutes, sans engagement. On regarde si le problème vaut le budget que tu as en tête."
+      },
+      {
+        "n": "02",
+        "title": "Un cadrage écrit",
+        "body": "Le périmètre, les hypothèses, ce qui n'est pas inclus. C'est ce document qui est chiffré, pas une intuition."
+      },
+      {
+        "n": "03",
+        "title": "Des jalons livrés",
+        "body": "Tu vois quelque chose de fonctionnel à chaque étape. Pas de grande révélation à la fin."
+      }
+    ]
+  },
+  "note": {
+    "lead": "Section retirée volontairement.",
+    "body": "La page en production nomme publiquement douze organisations, et le dépôt note lui-même que l'accord écrit n'est pas obtenu. Tant que FR-105 n'est pas fait, la page se passe de références."
+  },
+  "sent": {
+    "titleLines": [
+      "C'est reçu.",
+      "Je te réponds sous 48 h."
+    ],
+    "lede": "Pas de séquence automatique, pas de relance commerciale. Une réponse écrite, par moi.",
+    "recapEyebrow": "Ta demande",
+    "recapType": "Type de projet",
+    "recapBudget": "Fourchette",
+    "recapBudgetValue": "Communiquée",
+    "recapStatus": "Statut",
+    "recapStatusValue": "Nouvelle",
+    "growTitle": "Ton projet relève plutôt de Cléa",
+    "growStart": "Le growth est piloté par ",
+    "growStrong": "Cléa Growth Office",
+    "growEnd": ". Je transmets ta demande telle quelle — tu n'as rien à refaire, et personne ne te renvoie vers un autre formulaire.",
+    "growCta": "Voir Cléa Growth Office",
+    "back": "Revenir à la page agence",
+    "footer": "Aucune demande n'est rejetée. Elle est réorientée."
   }
 }

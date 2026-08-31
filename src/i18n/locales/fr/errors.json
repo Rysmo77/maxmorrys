@@ -3,16 +3,30 @@
     "seoTitle": "Page introuvable",
     "label": "Erreur 404",
     "title": "Page introuvable",
-    "text": "La page que tu cherches n'existe pas ou a été déplacée.",
+    "text": "Soit elle a été déplacée, soit l'adresse comporte une faute. Rien n'est perdu : le blog est ouvert, et tout y est gratuit.",
     "home": "Retour à l'accueil",
-    "blog": "Voir le blog"
+    "blog": "Voir le blog",
+    "titleLines": [
+      "Cette page",
+      "n'existe pas."
+    ],
+    "truthTitle": "Ce qui a pu se passer",
+    "truthBody": "Une adresse change quand un contenu est renommé. Les anciennes sont redirigées quand je les connais — celle-ci m'a échappé, et c'est une information que je préfère te donner plutôt que te laisser deviner."
   },
   "forbidden": {
     "seoTitle": "Accès refusé",
     "label": "Erreur 403",
     "title": "Accès refusé",
-    "text": "Tu n'as pas les droits nécessaires pour accéder à cette page. Si tu penses qu'il s'agit d'une erreur, contacte l'administrateur.",
     "home": "Retour à l'accueil",
-    "space": "Aller à mon espace"
+    "space": "Aller à mon espace",
+    "titleLines": [
+      "Cette page n'est",
+      "pas pour ce rôle."
+    ],
+    "scopeTitle": "Ce que le rôle support atteint",
+    "truthTitle": "Ce que cette page est, exactement",
+    "truthBody": "Un garde de route est du code client : il cache, il n'interdit pas. Le vrai cloisonnement est dans les règles de la base — cette page dit simplement ce qu'elles ont déjà refusé.",
+    "textBefore": "Ton rôle est ",
+    "textAfter": ". Il atteint exactement cinq écrans, et celui-ci n'en fait pas partie."
   }
 }

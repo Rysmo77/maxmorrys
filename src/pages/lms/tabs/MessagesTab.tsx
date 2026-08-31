@@ -1,16 +1,36 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { Plus, X, Send, Inbox, Loader2 } from 'lucide-react';
-import Button from '../../../components/ui/Button';
-import { cn } from '../../../lib/utils';
+import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, Tag } from '@ds';
 import { useFormat } from '../../../hooks/useFormat';
 import { createDoc, getUserMessages } from '../../../lib/firestore';
 import type { ContactMessage } from '../../../types';
 import { captureError } from '../../../lib/sentry';
-import { staggerContainer, staggerItem } from '../../../lib/animations';
 
-const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * L'ÉCRAN « MES MESSAGES » — un écran de PILE, pas un des cinq à barre d'onglets.
+ *
+ * Recomposé sur `ScreensCompte.js` : panneau de verre pour le formulaire, champs <Field>,
+ * lignes de liste, et l'encart de vérité qui dit par où revient la réponse.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUI A DISPARU, ET POURQUOI
+ *
+ * · « L'ÉQUIPE MAX-MORRYS TE RÉPOND SOUS 24 H ». Deux mensonges dans une phrase de sept mots.
+ *   Il n'y a pas d'équipe — la page « à propos » dit « je préfère répondre moi-même », et
+ *   c'est de là que vient tout ce qui est plafonné dans le produit. Et il n'y a AUCUN CANAL
+ *   D'ENVOI D'E-MAIL : un délai de réponse annoncé sur un canal qui n'existe pas est une
+ *   promesse que rien ne peut tenir. L'encart de vérité dit désormais ce qui se passe
+ *   réellement : la réponse arrive dans les notifications, dans l'application.
+ *
+ * · LES TROIS `<label>` ORPHELINS. Le formulaire posait des `<label>` non associés à leurs
+ *   champs — invisibles pour un lecteur d'écran, et sans effet au clic. <Field> lie le
+ *   libellé au contrôle par un `id` généré.
+ *
+ * L'ÉTAT D'UN MESSAGE EST UNE INFORMATION, PAS UNE COULEUR. Les trois états passent par
+ * <Tag>, dont les tons viennent des jetons et basculent seuls sous `.dk`.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
 
 interface MessagesTabProps {
   userId: string;
@@ -37,6 +57,9 @@ export default function MessagesTab({
   const [msgForm, setMsgForm] = useState({ subject: '', message: '' });
   const [sendingMsg, setSendingMsg] = useState(false);
 
+  /* La date du relevé : l'instant de la lecture qui a produit cette liste. */
+  const asOf = new Date();
+
   const handleSendMessage = async () => {
     if (!userEmail || !msgForm.subject.trim() || !msgForm.message.trim()) return;
     setSendingMsg(true);
@@ -62,102 +85,98 @@ export default function MessagesTab({
     }
   };
 
+  /* Les quatre tons de <Tag> disent l'ÉTAT, pas la catégorie : `warn` = en attente de
+     réponse, `neutral` = lu, `ok` = répondu. Il n'y en a pas de cinquième. */
+  const statusTone = (status: ContactMessage['status']): 'ok' | 'warn' | 'neutral' =>
+    status === 'replied' ? 'ok' : status === 'read' ? 'neutral' : 'warn';
+  const statusLabel = (status: ContactMessage['status']) =>
+    status === 'new' ? t('messages.statusSent') : status === 'read' ? t('messages.statusRead') : t('messages.statusReplied');
+
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-4xl px-[18px] py-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="m-0 font-display text-dsp-xs text-ink">{t('messages.screenTitle')}</h1>
+          <p className="m-0 mt-[2px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
+            <Num value={sentMessages.length} source="db" asOf={asOf} /> {t('messages.countLabel')}
+          </p>
+        </div>
+        {!showMsgForm && (
+          <Button tone="forme" size="sm" fullWidth={false} onClick={() => setShowMsgForm(true)}>
+            {t('messages.newMessage')}
+          </Button>
+        )}
+      </div>
+
       {showMsgForm ? (
-        <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-neutral-900 dark:text-white">{t('messages.newMessage')}</h3>
-            <button onClick={() => setShowMsgForm(false)} className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-neutral-500">{t('messages.from')}</label>
-            <div className="px-3 py-2.5 rounded-xl bg-neutral-100 dark:bg-neutral-700 text-sm text-neutral-500">
-              {displayName} &lt;{userEmail}&gt;
-            </div>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-neutral-500">{t('messages.subject')}</label>
-            <input
-              value={msgForm.subject}
-              onChange={(e) => setMsgForm((p) => ({ ...p, subject: e.target.value }))}
-              placeholder={t('messages.subjectPlaceholder')}
-              maxLength={200}
-              className={inputCls}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-neutral-500">{t('messages.message')}</label>
-            <textarea
-              value={msgForm.message}
-              onChange={(e) => setMsgForm((p) => ({ ...p, message: e.target.value }))}
-              placeholder={t('messages.messagePlaceholder')}
-              rows={6}
-              maxLength={2000}
-              className={`${inputCls} resize-y`}
-            />
-          </div>
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setShowMsgForm(false)}>{t('messages.cancel')}</Button>
+        <GlassPanel level="hero" padding={22} className="mt-[18px]">
+          <p className="mm-eyebrow m-0">{t('messages.from')}</p>
+          <p className="m-0 mt-[3px] text-meta" style={{ color: 'var(--text-muted)' }}>
+            {displayName} · {userEmail}
+          </p>
+          <Field
+            label={t('messages.subjectLabel')}
+            value={msgForm.subject}
+            onChange={(v) => setMsgForm((p) => ({ ...p, subject: v }))}
+            placeholder={t('messages.subjectPlaceholder')}
+            maxLength={200}
+          />
+          <Field
+            as="textarea"
+            label={t('messages.messageLabel')}
+            value={msgForm.message}
+            onChange={(v) => setMsgForm((p) => ({ ...p, message: v }))}
+            placeholder={t('messages.messagePlaceholder')}
+            rows={8}
+            maxLength={2000}
+          />
+          <div className="mt-[17px] flex gap-[8px]">
+            <Button tone="quiet" onClick={() => setShowMsgForm(false)}>{t('messages.cancel')}</Button>
             <Button
-              onClick={handleSendMessage}
+              tone="forme"
+              onClick={() => void handleSendMessage()}
               disabled={sendingMsg || !msgForm.subject.trim() || !msgForm.message.trim()}
-              icon={sendingMsg ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              loading={sendingMsg}
             >
               {sendingMsg ? t('messages.sending') : t('messages.send')}
             </Button>
           </div>
+        </GlassPanel>
+      ) : loadingMessages ? (
+        <div className="mt-[18px] grid gap-[8px]">
+          {[0, 1, 2].map((i) => <Skeleton key={i} height={62} radius="var(--r-m)" label={t('messages.loadingLabel')} />)}
         </div>
+      ) : sentMessages.length === 0 ? (
+        <GlassPanel level="hero" padding={22} className="mt-[18px]">
+          <EmptyState
+            glyph={<Icon name="send" size={26} style={{ color: 'var(--mm-bleu)' }} />}
+            glyphBackground="color-mix(in srgb, var(--mm-bleu) 14%, transparent)"
+            title={t('messages.emptyTitle')}
+            body={t('messages.emptyText')}
+            action={<Button tone="forme" onClick={() => setShowMsgForm(true)}>{t('messages.sendMessage')}</Button>}
+          />
+        </GlassPanel>
       ) : (
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-neutral-900 dark:text-white">{t('messages.sentTitle')}</h3>
-          <Button size="sm" onClick={() => setShowMsgForm(true)} icon={<Plus className="w-4 h-4" />}>{t('messages.newMessage')}</Button>
-        </div>
+        <GlassPanel level="flat" padding="6px 18px" className="mt-[18px]">
+          {sentMessages.map((msg, i) => (
+            <LessonRow
+              key={msg.id}
+              state="plain"
+              icon={<Icon name="send" size={14} />}
+              title={msg.subject}
+              meta={formatDate(msg.sentAt)}
+              trailing={<Tag tone={statusTone(msg.status)}>{statusLabel(msg.status)}</Tag>}
+              last={i === sentMessages.length - 1}
+            />
+          ))}
+        </GlassPanel>
       )}
 
-      {!showMsgForm && (
-        loadingMessages ? (
-          <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
-        ) : sentMessages.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/20 flex items-center justify-center mx-auto mb-4">
-              <Inbox className="w-7 h-7 text-brand-500" />
-            </div>
-            <h4 className="font-bold text-neutral-900 dark:text-white mb-1">{t('messages.emptyTitle')}</h4>
-            <p className="text-sm text-neutral-500 mb-4 max-w-xs mx-auto">
-              {t('messages.emptyText')}
-            </p>
-            <Button size="sm" onClick={() => setShowMsgForm(true)} icon={<Send className="w-4 h-4" />}>{t('messages.sendMessage')}</Button>
-          </div>
-        ) : (
-          <motion.div
-            className="space-y-3"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-          >
-            {sentMessages.map((msg) => (
-              <motion.div key={msg.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="font-semibold text-neutral-900 dark:text-white text-sm">{msg.subject}</p>
-                  <span className={cn(
-                    'text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0',
-                    msg.status === 'new' ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400' :
-                    msg.status === 'read' ? 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500' :
-                    'bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400'
-                  )}>
-                    {msg.status === 'new' ? t('messages.statusSent') : msg.status === 'read' ? t('messages.statusRead') : t('messages.statusReplied')}
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-500 line-clamp-2">{msg.message}</p>
-                <p className="text-xs text-neutral-400 mt-2">{formatDate(msg.sentAt)}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        )
-      )}
+      {/* L'encart de vérité : par où la réponse revient, et ce que le produit ne sait pas faire. */}
+      <GlassPanel level="truth" className="mt-[16px]">
+        <p className="mm-eyebrow m-0 mb-[6px]">{t('messages.truthTitle')}</p>
+        <p className="m-0 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>{t('messages.truthBody')}</p>
+      </GlassPanel>
     </div>
   );
 }

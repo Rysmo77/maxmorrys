@@ -1,17 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { Button, GlassPanel, Icon, Num, Switch, Tag, TruthPanel, type IconName } from '@ds';
 import LocalizedLink from '../../../../components/shared/LocalizedLink';
-import {
-  Crown, Rss, VideoCamera, CalendarBlank, Info, ChatsCircle, BellRinging, CircleNotch, Users, Quotes, Star, Robot,
-} from '@phosphor-icons/react';
-import Button from '../../../../components/ui/Button';
-import { cn } from '../../../../lib/utils';
-import { CLUB_PRICE_XOF } from '../../../../lib/club/pricing';
-import { useFormat } from '../../../../hooks/useFormat';
-import { getClubActiveMemberCount } from '../../../../lib/gamification';
-import { getApprovedTestimonials } from '../../../../lib/firestore';
-import type { Testimonial } from '../../../../types';
+import { CLUB_PRICE_XOF, clubReferralPrice } from '../../../../lib/club/pricing';
 import { CLUB_CATEGORIES } from '../../hooks/useClubData';
 import type { useClubData } from '../../hooks/useClubData';
 import type { EnrolledFormation } from '../../hooks/useStudentData';
@@ -24,163 +16,208 @@ interface ClubSubscriptionGateProps {
   enrolledFormations: EnrolledFormation[];
 }
 
-const initialsOf = (name: string) => name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+const FEATURES: { icon: IconName; titleKey: string; descKey: string }[] = [
+  { icon: 'list', titleKey: 'feedTitle', descKey: 'feedDesc' },
+  { icon: 'chat', titleKey: 'forumTitle', descKey: 'forumDesc' },
+  { icon: 'video', titleKey: 'liveTitle', descKey: 'liveDesc' },
+  { icon: 'bell', titleKey: 'infosTitle', descKey: 'infosDesc' },
+  { icon: 'calendar', titleKey: 'eventsTitle', descKey: 'eventsDesc' },
+  { icon: 'send', titleKey: 'rysmoTitle', descKey: 'rysmoDesc' },
+  { icon: 'users', titleKey: 'communityTitle', descKey: 'communityDesc' },
+];
 
+/**
+ * LE MUR D'ABONNEMENT — et ce qu'il est exactement.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE COMPOSANT EST UN GARDE CLIENT : IL CACHE, IL N'INTERDIT PAS.
+ *
+ * C'est la formulation que `/403` porte déjà mot pour mot (`pages/Forbidden403.tsx`,
+ * `errors.forbidden.truthBody`), et elle est aussi vraie ici. Le vrai cloisonnement est dans
+ * `firestore.rules`, et il a été relu ligne à ligne avant d'écrire l'encart de vérité :
+ *
+ *   • `hasActiveClubSub()` — abonnement EXISTANT et `status == 'active'` — garde la LECTURE de
+ *     `club_posts`, `club_events`, `club_sessions`, `club_infos`, `club_profiles`,
+ *     `club_opportunities` et `club_challenges`. Sans lui, la requête est refusée par le
+ *     serveur : contourner cet écran ne donne rien à lire.
+ *   • `club_subscriptions/{userId}` : la personne ne peut créer son abonnement qu'avec
+ *     `status == 'pending'`, et une mise à jour est refusée si elle change `status`. Seul
+ *     l'administration active. Personne ne se rend membre depuis le navigateur.
+ *
+ * L'écran dit donc ce qui est vrai, et rien de plus.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * TROIS BLOCS ONT ÉTÉ SUPPRIMÉS, ET LE KIT LES INTERDIT NOMMÉMENT.
+ *
+ * 1. « Rejoins {{count}} membres actifs ». La page publique du Club, dans le kit, écrit son
+ *    contraire en toutes lettres : « je ne t'annoncerai pas un nombre de membres, parce qu'il
+ *    serait faux, et parce que tu le vérifieras au premier écran après avoir payé ». Un
+ *    compteur de membres sur un mur de vente est exactement le chiffre que le visiteur prend
+ *    en défaut trente secondes après avoir payé.
+ * 2. LES TÉMOIGNAGES et 3. LES NOTES EN ÉTOILES. `TruthPanel` les liste dans ses « interdits
+ *    absolus, sans exception » — témoignage, note en étoiles, nombre d'avis — et il existe
+ *    précisément POUR les remplacer. Les cinq étoiles étaient d'ailleurs rendues pleines
+ *    quelle que soit la note, ce qui en faisait un décor, pas une mesure.
+ *
+ * Ce qui prend leur place : les deux panneaux « Garanti » / « En construction » de l'écran
+ * `ClubGaranti` du kit, qui séparent ce qu'une personne peut tenir seule de ce qui dépend des
+ * membres — et ne vendent que le premier.
+ */
 export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubSubscriptionGateProps) {
   const { t } = useTranslation('club');
-  const { locale } = useFormat();
-  /** Le prix ne vit qu'à un endroit : src/lib/club/pricing.ts. */
-  const price = CLUB_PRICE_XOF.toLocaleString(locale);
   const {
     isClubPending,
     clubAutoRenew, setClubAutoRenew,
     activatingClub, handleActivateClub,
   } = data;
 
-  const [memberCount, setMemberCount] = useState(0);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-
-  useEffect(() => {
-    getClubActiveMemberCount().then(setMemberCount).catch(() => null);
-    getApprovedTestimonials().then((all) => {
-      setTestimonials(all.filter((t) => !t.targetType || t.targetType === 'platform' || t.targetType === 'mentor').slice(0, 3));
-    }).catch(() => null);
-  }, []);
+  const asOf = useRef(new Date()).current;
+  /** Le mensuel n'est PAS un prix débité : c'est l'annuel divisé par douze, et c'est écrit. */
+  const monthly = Math.round(CLUB_PRICE_XOF / 12);
 
   return (
-    <motion.div
-      className="space-y-6"
-      variants={slideUp}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-plum-600 to-plum-800 p-6 sm:p-8 text-white">
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-              <Crown className="w-6 h-6 text-white" weight="fill" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-black">{t('subscriptionGate.title')}</h2>
-              <p className="text-plum-200 text-sm">{t('subscriptionGate.tagline', { price })}</p>
-            </div>
-          </div>
-          <p className="text-plum-100 leading-relaxed max-w-lg">
-            {t('subscriptionGate.intro')}
-          </p>
-          {memberCount > 0 && (
-            <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur text-sm font-semibold">
-              <Users className="w-4 h-4" weight="fill" />
-              {t('subscriptionGate.joinMembers', { count: memberCount })}
-            </div>
-          )}
-        </div>
-        <Crown className="absolute -right-6 -bottom-6 w-40 h-40 text-white/5" weight="fill" />
-      </div>
+    <motion.div className="space-y-5" variants={slideUp} initial="hidden" animate="visible">
+      {/* ── Ce que c'est, et ce que ça coûte ────────────────────────────────── */}
+      <GlassPanel level="hero" padding={24}>
+        <p className="mm-eyebrow m-0">{t('subscriptionGate.eyebrow')}</p>
+        <h2 className="mt-2 font-display text-dsp-xs text-ink">{t('subscriptionGate.title')}</h2>
+        <p className="mt-3 max-w-prose text-lede text-ink-2">{t('subscriptionGate.intro')}</p>
 
-      {/* Avantages */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[
-          { icon: Rss, titleKey: 'feedTitle', descKey: 'feedDesc' },
-          { icon: ChatsCircle, titleKey: 'forumTitle', descKey: 'forumDesc' },
-          { icon: VideoCamera, titleKey: 'liveTitle', descKey: 'liveDesc' },
-          { icon: BellRinging, titleKey: 'infosTitle', descKey: 'infosDesc' },
-          { icon: CalendarBlank, titleKey: 'eventsTitle', descKey: 'eventsDesc' },
-          { icon: Robot, titleKey: 'rysmoTitle', descKey: 'rysmoDesc' },
-          { icon: Crown, titleKey: 'communityTitle', descKey: 'communityDesc' },
-        ].map((feat) => (
-          <div key={feat.titleKey} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-5 transition-all hover:border-plum-200 dark:hover:border-plum-800/60 hover:shadow-soft">
-            <div className="w-10 h-10 rounded-xl bg-plum-50 dark:bg-plum-900/20 flex items-center justify-center mb-3">
-              <feat.icon className="w-5 h-5 text-plum-600 dark:text-plum-400" weight="duotone" />
-            </div>
-            <p className="font-bold text-neutral-900 dark:text-white text-sm mb-1">{t(`subscriptionGate.features.${feat.titleKey}`)}</p>
-            <p className="text-xs text-neutral-500 leading-relaxed">{t(`subscriptionGate.features.${feat.descKey}`)}</p>
-          </div>
+        <div className="mt-5 flex flex-wrap items-end gap-x-6 gap-y-2">
+          <p className="m-0 text-[27px] text-ink">
+            <Num value={monthly} unit="F" source="server" asOf={asOf} />
+            <span className="ml-1 text-meta font-normal text-ink-2">{t('subscriptionGate.perMonth')}</span>
+          </p>
+          <p className="m-0 text-meta text-ink-2">
+            {t('subscriptionGate.billedOnce')}{' '}
+            <Num value={CLUB_PRICE_XOF} unit="F" source="server" asOf={asOf} />
+          </p>
+        </div>
+        <p className="mt-2 text-small text-ink-2">
+          {t('subscriptionGate.referredHint')}{' '}
+          <Num value={clubReferralPrice()} unit="F" source="server" asOf={asOf} />
+        </p>
+      </GlassPanel>
+
+      {/* ── Ce que l'abonnement ouvre ───────────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {FEATURES.map((feat) => (
+          <GlassPanel key={feat.titleKey} level="flat" padding={18}>
+            <span
+              aria-hidden="true"
+              className="mb-3 grid h-10 w-10 place-items-center rounded-m bg-[color-mix(in_srgb,var(--mm-violet)_12%,transparent)] text-transforme"
+            >
+              <Icon name={feat.icon} size={19} />
+            </span>
+            <p className="text-meta font-bold text-ink">{t(`subscriptionGate.features.${feat.titleKey}`)}</p>
+            <p className="mt-1 text-meta-2 leading-relaxed text-ink-2">{t(`subscriptionGate.features.${feat.descKey}`)}</p>
+          </GlassPanel>
         ))}
       </div>
 
-      {/* Teaser d'activité — thèmes discutés (sans exposer de contenu) */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4">
-        <p className="text-sm font-bold text-neutral-900 dark:text-white mb-2">{t('subscriptionGate.trendingTitle')}</p>
-        <div className="flex gap-2 flex-wrap">
+      {/* ── Ce qui s'y échange, sans en montrer le contenu ──────────────────── */}
+      <GlassPanel level="flat" padding={18}>
+        <p className="text-meta font-bold text-ink">{t('subscriptionGate.trendingTitle')}</p>
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {CLUB_CATEGORIES.map((c) => (
-            <span key={c.id} className={cn('inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-700/50', c.tint)}>
-              <c.icon className="w-3.5 h-3.5" weight="duotone" /> {t(c.labelKey)}
-            </span>
+            <Tag key={c.id}>
+              <Icon name={c.icon} size={13} /> {t(c.labelKey)}
+            </Tag>
           ))}
         </div>
+      </GlassPanel>
+
+      {/* ── Garanti / En construction — écran `ClubGaranti` du kit ──────────── */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <GlassPanel level="flat" padding={20}>
+          <Tag tone="ok">{t('subscriptionGate.guaranteed.tag')}</Tag>
+          <p className="mt-3 font-display text-[19px] font-black leading-tight tracking-[-.03em] text-ink">
+            {t('subscriptionGate.guaranteed.title')}
+          </p>
+          <p className="mt-2 text-meta leading-relaxed text-ink-2">{t('subscriptionGate.guaranteed.body')}</p>
+        </GlassPanel>
+        <GlassPanel level="flat" padding={20}>
+          <Tag tone="warn">{t('subscriptionGate.building.tag')}</Tag>
+          <p className="mt-3 font-display text-[19px] font-black leading-tight tracking-[-.03em] text-ink">
+            {t('subscriptionGate.building.title')}
+          </p>
+          <p className="mt-2 text-meta leading-relaxed text-ink-2">{t('subscriptionGate.building.body')}</p>
+        </GlassPanel>
       </div>
 
-      {/* Témoignages — preuve sociale */}
-      {testimonials.length > 0 && (
-        <div className="space-y-3">
-          <p className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-            <Quotes className="w-4 h-4 text-plum-500" weight="fill" /> {t('subscriptionGate.theyTalk')}
-          </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {testimonials.map((t) => (
-              <div key={t.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4">
-                <div className="flex gap-0.5 mb-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={cn('w-3.5 h-3.5', i < t.rating ? 'text-accent-500' : 'text-neutral-300 dark:text-neutral-700')} weight="fill" />
-                  ))}
-                </div>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed line-clamp-4 mb-3">"{t.content}"</p>
-                <div className="flex items-center gap-2">
-                  {t.avatar
-                    ? <img src={t.avatar} alt="" className="w-7 h-7 rounded-full object-cover" />
-                    : <span className="w-7 h-7 rounded-full bg-plum-100 dark:bg-plum-900/40 flex items-center justify-center text-[10px] font-bold text-plum-600 dark:text-plum-400">{initialsOf(t.name)}</span>}
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-neutral-900 dark:text-white truncate">{t.name}</p>
-                    <p className="text-[10px] text-neutral-400 truncate">{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* ── Ce que cet écran est, exactement ────────────────────────────────── */}
+      <TruthPanel
+        provenTitle={t('subscriptionGate.truth.provenTitle')}
+        withheldTitle={t('subscriptionGate.truth.withheldTitle')}
+        proven={[
+          t('subscriptionGate.truth.proven1'),
+          t('subscriptionGate.truth.proven2'),
+          t('subscriptionGate.truth.proven3'),
+        ]}
+        withheld={[
+          t('subscriptionGate.truth.withheld1'),
+          t('subscriptionGate.truth.withheld2'),
+        ]}
+      />
 
-      {/* Soft recommendation if no enrollments */}
+      {/* ── Le renvoi doux, quand rien n'est encore commencé ────────────────── */}
       {enrolledFormations.length === 0 && !isClubPending && (
-        <div className="bg-plum-50 dark:bg-plum-900/10 border border-plum-200 dark:border-plum-800/40 rounded-xl p-4 flex items-start gap-3">
-          <Info className="w-5 h-5 text-plum-500 flex-shrink-0 mt-0.5" weight="duotone" />
-          <div>
-            <p className="text-sm font-semibold text-plum-700 dark:text-plum-300">{t('subscriptionGate.tipTitle')}</p>
-            <p className="text-xs text-plum-600/80 dark:text-plum-400/80 mt-0.5">
-              {t('subscriptionGate.tipText')}{' '}
-              <LocalizedLink to="/formations" className="underline font-semibold">{t('subscriptionGate.seeFormations')}</LocalizedLink>
-            </p>
+        <GlassPanel level="flat" padding={16}>
+          <div className="flex items-start gap-3">
+            <span aria-hidden="true" className="mt-0.5 flex-none text-transforme"><Icon name="info" size={19} /></span>
+            <div>
+              <p className="text-meta font-semibold text-ink">{t('subscriptionGate.tipTitle')}</p>
+              <p className="mt-0.5 text-meta-2 text-ink-2">
+                {t('subscriptionGate.tipText')}{' '}
+                <LocalizedLink to="/formations" className="font-semibold text-transforme underline">
+                  {t('subscriptionGate.seeFormations')}
+                </LocalizedLink>
+              </p>
+            </div>
           </div>
-        </div>
+        </GlassPanel>
       )}
 
-      {/* Activation */}
+      {/* ── L'activation ───────────────────────────────────────────────────── */}
       {isClubPending ? (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-6 text-center">
-          <div className="w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center mx-auto mb-3">
-            <CircleNotch className="w-6 h-6 text-yellow-600 animate-spin" />
-          </div>
-          <p className="font-bold text-yellow-800 dark:text-yellow-300 mb-2">{t('subscriptionGate.pendingTitle')}</p>
-          <p className="text-sm text-yellow-700 dark:text-yellow-400 leading-relaxed max-w-sm mx-auto">
-            {t('subscriptionGate.pendingText')}<LocalizedLink to="/contact" className="underline font-semibold">{t('subscriptionGate.contactUs')}</LocalizedLink>.
+        <GlassPanel level="flat" padding={20}>
+          <Tag tone="warn">{t('subscriptionGate.pendingTag')}</Tag>
+          <p className="mt-3 font-bold text-ink">{t('subscriptionGate.pendingTitle')}</p>
+          <p className="mt-1 max-w-prose text-meta leading-relaxed text-ink-2">
+            {t('subscriptionGate.pendingText')}
+            <LocalizedLink to="/contact" className="font-semibold text-transforme underline">
+              {t('subscriptionGate.contactUs')}
+            </LocalizedLink>.
           </p>
-        </div>
+        </GlassPanel>
       ) : (
-        <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
-          <h3 className="font-bold text-neutral-900 dark:text-white mb-1">{t('subscriptionGate.activateTitle')}</h3>
-          <p className="text-sm text-neutral-500 mb-5">{t('subscriptionGate.activateSubtitle', { price })}</p>
-          <div className="flex items-center gap-3 mb-6">
-            <button type="button" onClick={() => setClubAutoRenew((v) => !v)} className={cn('relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none', clubAutoRenew ? 'bg-plum-600' : 'bg-neutral-300 dark:bg-neutral-600')}>
-              <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform', clubAutoRenew ? 'translate-x-6' : 'translate-x-1')} />
-            </button>
-            <span className="text-sm text-neutral-600 dark:text-neutral-400">{t('subscriptionGate.autoRenewLabel')}<span className="text-neutral-400">{t('subscriptionGate.autoRenewHint')}</span></span>
+        <GlassPanel level="flat" padding={20}>
+          <h3 className="font-bold text-ink">{t('subscriptionGate.activateTitle')}</h3>
+          <p className="mt-1 text-meta text-ink-2">
+            <Num value={CLUB_PRICE_XOF} unit="F" source="server" asOf={asOf} /> {t('subscriptionGate.perYear')}
+          </p>
+
+          <div className="mt-5 flex items-start justify-between gap-4">
+            <span className="text-meta text-ink-2">
+              {t('subscriptionGate.autoRenewLabel')}
+              <span className="block text-small text-ink-2">{t('subscriptionGate.autoRenewHint')}</span>
+            </span>
+            <Switch
+              on={clubAutoRenew}
+              label={t('subscriptionGate.autoRenewLabel')}
+              onChange={(on) => setClubAutoRenew(on)}
+            />
           </div>
-          <Button onClick={handleActivateClub} disabled={activatingClub} className="!bg-plum-600 hover:!bg-plum-700" icon={activatingClub ? <CircleNotch className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" weight="fill" />}>
-            {activatingClub ? t('subscriptionGate.processing') : t('subscriptionGate.joinCta', { price })}
+
+          <Button
+            tone="transforme"
+            loading={activatingClub}
+            onClick={handleActivateClub}
+            style={{ marginTop: '20px' }}
+          >
+            <Icon name="crown" size={17} /> {t('subscriptionGate.joinCta')}
           </Button>
-        </div>
+        </GlassPanel>
       )}
     </motion.div>
   );

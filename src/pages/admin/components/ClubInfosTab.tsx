@@ -1,11 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { Plus, X, Save, Pencil, Trash2, Loader2, ExternalLink } from 'lucide-react';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import { useFormat } from '../../../hooks/useFormat';
-import { inputCls } from '../hooks/useAdminClub';
 import type { ClubDigitosInfo } from '../../../types';
+import { Field, Icon } from '@ds';
 
 interface ClubInfosTabProps {
   infos: ClubDigitosInfo[];
@@ -29,46 +28,44 @@ export default function ClubInfosTab({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button size="sm" onClick={() => openInfoForm()} icon={<Plus className="w-4 h-4" />}>{t('infos.new')}</Button>
+        <Button size="sm" onClick={() => openInfoForm()} icon={<Icon name="plus" size={16} />}>{t('infos.new')}</Button>
       </div>
 
       {showInfoForm && (
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-neutral-900 dark:text-white">{editInfo ? t('infos.editTitle') : t('infos.newTitle')}</h3>
-            <button onClick={() => setShowInfoForm(false)} className="p-1 rounded-lg text-neutral-400 hover:text-neutral-600 transition-colors"><X className="w-4 h-4" /></button>
+            <h3 className="font-bold text-ink">{editInfo ? t('infos.editTitle') : t('infos.newTitle')}</h3>
+            <button onClick={() => setShowInfoForm(false)} className="p-1 rounded-lg text-ink-2 hover:text-ink-2 transition-colors"><Icon name="close" size={16} /></button>
           </div>
           <div className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2 space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('infos.titleLabel')}</label>
-                <input value={infoForm.title} onChange={(e) => setInfoForm((p) => ({ ...p, title: e.target.value }))} placeholder={t('infos.titlePlaceholder')} className={inputCls} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('infos.typeLabel')}</label>
-                <select value={infoForm.type} onChange={(e) => setInfoForm((p) => ({ ...p, type: e.target.value as ClubDigitosInfo['type'] }))} className={inputCls}>
-                  <option value="announcement">{t('infos.typeAnnouncement')}</option>
-                  <option value="article">{t('infos.typeArticle')}</option>
-                  <option value="resource">{t('infos.typeResource')}</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('infos.publishedAtLabel')}</label>
-                <input type="date" value={infoForm.publishedAt} onChange={(e) => setInfoForm((p) => ({ ...p, publishedAt: e.target.value }))} className={inputCls} />
-              </div>
-              <div className="sm:col-span-2 space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('infos.contentLabel')}</label>
-                <textarea value={infoForm.content} onChange={(e) => setInfoForm((p) => ({ ...p, content: e.target.value }))} rows={5} placeholder={t('infos.contentPlaceholder')} className={`${inputCls} resize-y`} />
-              </div>
-              <div className="sm:col-span-2 space-y-1">
-                <label className="text-xs font-semibold text-neutral-500">{t('infos.linkLabel')}</label>
-                <input type="url" value={infoForm.link} onChange={(e) => setInfoForm((p) => ({ ...p, link: e.target.value }))} placeholder="https://..." className={inputCls} />
-              </div>
+              <div className="sm:col-span-2">
+              <Field size="sm" label={t('infos.titleLabel')} value={infoForm.title} onChange={(v) => setInfoForm((p) => ({ ...p, title: v }))} placeholder={t('infos.titlePlaceholder')} />
+            </div>
+              <Field
+                size="sm"
+                as="select"
+                label={t('infos.typeLabel')}
+                value={infoForm.type}
+                onChange={(v) => setInfoForm((p) => ({ ...p, type: v as ClubDigitosInfo['type'] }))}
+                options={[
+                  { value: 'announcement', label: t('infos.typeAnnouncement') },
+                  { value: 'article', label: t('infos.typeArticle') },
+                  { value: 'resource', label: t('infos.typeResource') },
+                ]}
+              />
+              <Field size="sm" label={t('infos.publishedAtLabel')} type="date" value={infoForm.publishedAt} onChange={(v) => setInfoForm((p) => ({ ...p, publishedAt: v }))} />
+              <div className="sm:col-span-2">
+              <Field size="sm" label={t('infos.contentLabel')} as="textarea" value={infoForm.content} onChange={(v) => setInfoForm((p) => ({ ...p, content: v }))} rows={5} placeholder={t('infos.contentPlaceholder')} />
+            </div>
+              <div className="sm:col-span-2">
+              <Field size="sm" label={t('infos.linkLabel')} type="url" value={infoForm.link} onChange={(v) => setInfoForm((p) => ({ ...p, link: v }))} placeholder="https://..." />
+            </div>
             </div>
           </div>
           <div className="flex justify-end gap-3 mt-5">
             <Button variant="outline" onClick={() => setShowInfoForm(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleSaveInfo} disabled={savingInfo || !infoForm.title.trim() || !infoForm.content.trim()} icon={savingInfo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
+            <Button onClick={handleSaveInfo} disabled={savingInfo || !infoForm.title.trim() || !infoForm.content.trim()} loading={savingInfo} icon={<Icon name="save" size={16} />}>
               {savingInfo ? t('common.saving') : t('common.save')}
             </Button>
           </div>
@@ -76,7 +73,7 @@ export default function ClubInfosTab({
       )}
 
       {infos.length === 0 && !showInfoForm ? (
-        <Card><p className="text-center text-neutral-400 py-8">{t('infos.empty')}</p></Card>
+        <Card><p className="text-center text-ink-2 py-8">{t('infos.empty')}</p></Card>
       ) : (
         <div className="space-y-3">
           {infos.map((info) => (
@@ -87,15 +84,15 @@ export default function ClubInfosTab({
                     <Badge variant={info.type === 'announcement' ? 'warning' : info.type === 'resource' ? 'success' : 'brand'} size="sm">
                       {info.type === 'announcement' ? t('infos.typeAnnouncement') : info.type === 'resource' ? t('infos.typeResource') : t('infos.typeArticle')}
                     </Badge>
-                    <span className="text-xs text-neutral-400">{formatDate(info.publishedAt)}</span>
+                    <span className="text-xs text-ink-2">{formatDate(info.publishedAt)}</span>
                   </div>
-                  <p className="font-bold text-neutral-900 dark:text-white mb-1">{info.title}</p>
-                  <p className="text-sm text-neutral-500 line-clamp-2">{info.content}</p>
-                  {info.link && <a href={info.link} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-500 hover:underline inline-flex items-center gap-1 mt-1"><ExternalLink className="w-3 h-3" /> {t('infos.link')}</a>}
+                  <p className="font-bold text-ink mb-1">{info.title}</p>
+                  <p className="text-sm text-ink-2 line-clamp-2">{info.content}</p>
+                  {info.link && <a href={info.link} target="_blank" rel="noopener noreferrer" className="text-xs text-forme hover:underline inline-flex items-center gap-1 mt-1"><Icon name="external" size={12} /> {t('infos.link')}</a>}
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => openInfoForm(info)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => handleDeleteInfo(info.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => openInfoForm(info)} className="p-1.5 rounded-lg text-ink-2 hover:text-forme hover:bg-[color-mix(in_srgb,var(--mm-bleu)_8%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--mm-bleu)_20%,transparent)] transition-colors"><Icon name="pencil" size={14} /></button>
+                  <button onClick={() => handleDeleteInfo(info.id)} className="p-1.5 rounded-lg text-ink-2 hover:text-stop hover:bg-[color-mix(in_srgb,var(--stop)_8%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--stop)_20%,transparent)] transition-colors"><Icon name="trash" size={14} /></button>
                 </div>
               </div>
             </Card>

@@ -18,8 +18,8 @@ export default function Card({ children, hover, padding = 'md', className, ...pr
   return (
     <div
       className={cn(
-        'bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700',
-        hover && 'transition-all duration-300 hover:shadow-soft hover:-translate-y-1 hover:border-neutral-300 dark:hover:border-neutral-600',
+        'bg-paper rounded-2xl border border-[color:var(--line)]',
+        hover && 'transition duration-300 hover:shadow-soft hover:-translate-y-1 hover:border-[color:var(--line)] dark:hover:border-[color:var(--border-hair)]',
         paddings[padding],
         className
       )}

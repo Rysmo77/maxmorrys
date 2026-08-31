@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Star, Users } from 'lucide-react';
 import LocalizedLink from '../shared/LocalizedLink';
 import TranslatedText from '../shared/TranslatedText';
 import PopupHeading from './PopupHeading';
 import { formatPrice } from '../../lib/utils';
 import { CTA_BRAND, DISMISS, BODY, ACTIONS } from './popupStyles';
 import type { Formation } from '../../types';
+import { Icon } from '@ds';
 
 /**
  * Reprise d'un tunnel de paiement abandonné.
@@ -45,7 +45,7 @@ export default function CartRecoveryPopup({
       <p className={BODY}>{t('popups.cartRecovery.text')}</p>
 
       {formation && (
-        <div className="mt-3 lg:mt-6 flex items-start gap-3 lg:gap-4 lg:p-4 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-white/[0.03]">
+        <div className="mt-3 lg:mt-6 flex items-start gap-3 lg:gap-4 lg:p-4 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-paper/[0.03]">
           <span className="block shrink-0 overflow-hidden rounded-xl w-14 h-14 lg:w-20 lg:h-20">
             <img
               src={formation.coverImage}
@@ -64,13 +64,13 @@ export default function CartRecoveryPopup({
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
               {formation.rating > 0 && (
                 <span className="inline-flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-accent-400" fill="currentColor" aria-hidden="true" />
+                  <Icon name="star" size={14} className="text-informe-txt" />
                   {formation.rating.toFixed(1)}
                 </span>
               )}
               {formation.students > 0 && (
                 <span className="inline-flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5" aria-hidden="true" />
+                  <Icon name="users" size={14} />
                   {formation.students}
                 </span>
               )}
@@ -85,7 +85,7 @@ export default function CartRecoveryPopup({
       <div className={ACTIONS}>
         <LocalizedLink to={checkoutPath} onClick={onAccept} className={CTA_BRAND}>
           {t('popups.cartRecovery.cta')}
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+          <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
         </LocalizedLink>
         <button type="button" onClick={onDismiss} className={DISMISS}>
           {t('popups.cartRecovery.dismiss')}

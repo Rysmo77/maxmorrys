@@ -80,7 +80,45 @@
     "agencyMonthlyHint": "Signed support plans",
     "agencyConversion": "Conversion",
     "agencyConversionHint": "Signed / reachable leads",
-    "agencyReply": "Reply on WhatsApp"
+    "agencyReply": "Reply on WhatsApp",
+    "sub": "Console · operations",
+    "shopClosedTitle": "Your shop is closed",
+    "shopClosedBody_one": "<total></total> course in the database, <published></published> published. A visitor cannot buy anything.",
+    "shopClosedBody_other": "<total></total> courses in the database, <published></published> published. A visitor cannot buy anything.",
+    "shopClosedAction": "Publish a course",
+    "readingEyebrow": "Database reading",
+    "datedNote": "Every tile carries the date it was read. A tile without a date reads “not measured”, never an estimate.",
+    "tileAccounts": "Accounts",
+    "tileEnrollments": "Enrolments",
+    "tilePublishedFormations": "Published courses",
+    "tilePublishedPosts": "Published articles",
+    "tileLeads": "Leads",
+    "tileSubscribers": "Subscribers",
+    "footInBase": "in the database",
+    "footToQualify": "to qualify",
+    "footNoUnit": "since day one",
+    "queueEyebrow": "To handle",
+    "queueLeads_one": "lead to qualify",
+    "queueLeads_other": "leads to qualify",
+    "queueLeadsMeta": "received through /presence-digitale",
+    "queueMessages_one": "unread message",
+    "queueMessages_other": "unread messages",
+    "queueMessagesMeta": "contact form",
+    "queueDrafts_one": "article in draft",
+    "queueDrafts_other": "articles in draft",
+    "queueDraftsMeta": "invisible to the public",
+    "queueUnpublished_one": "unpublished course",
+    "queueUnpublished_other": "unpublished courses",
+    "queueUnpublishedMeta": "invisible in the catalogue",
+    "queueOpen": "Open",
+    "queueQualify": "Qualify",
+    "queuePublish": "Publish",
+    "queueEmptyTitle": "Nothing is waiting.",
+    "queueEmptyBody": "No queue had a pending item at the last reading. Refresh to measure again.",
+    "queueLabel": "Queues to handle",
+    "agencyEyebrow": "Agency leads",
+    "agencyRecentLabel": "Latest leads received",
+    "scope": "This screen answers one question: what is blocking today. It carries no audience, no cohorts and no curves — analysis lives on /admin/analytics. Running costs — infrastructure, model calls, payment fees — are measured nowhere in the application, and revenue does not appear here: it is read on the Transactions screen. Queues are counted at the reading shown, not live."
   },
   "analytics": {
     "title": "Analytics",
@@ -132,7 +170,30 @@
     "agencyByPlan": "By support plan",
     "agencyBySector": "By sector",
     "agencyByCity": "By city",
-    "rowAgencyLeads": "Agency leads"
+    "rowAgencyLeads": "Agency leads",
+    "sub": "Console · measurement",
+    "ratioCite": "computed from two database counters",
+    "queueTitle": "To handle",
+    "queueOpen": "Open",
+    "queueEmptyTitle": "Nothing is waiting",
+    "queueEmptyBody": "No unhandled message, no unqualified lead, no overdue draft as of the last measurement.",
+    "queue": {
+      "messages_one": "{{count}} message to handle",
+      "messages_other": "{{count}} messages to handle",
+      "leads_one": "{{count}} unqualified agency lead",
+      "leads_other": "{{count}} unqualified agency leads",
+      "formations_one": "{{count}} unpublished course",
+      "formations_other": "{{count}} unpublished courses",
+      "drafts_one": "{{count}} draft article",
+      "drafts_other": "{{count}} draft articles"
+    },
+    "measuredTitle": "Measurement",
+    "agencyFunnel": "Funnel",
+    "footPublished_one": "{{count}} published",
+    "footPublished_other": "{{count}} published",
+    "footHandled_one": "{{count}} handled",
+    "footHandled_other": "{{count}} handled",
+    "scope": "This screen measures; it steers nothing. It knows no audience, no traffic source, no visit duration, no cohort: those numbers are written nowhere in the database, and the “Devices” block that claimed to give them showed three values hard-coded in the file — it was removed rather than re-dated, because the rule does not say “date your estimates”, it says “never an estimate”. Pop-up counters are written by the Worker: a pop-up never shown has no row, and a missing row does not mean zero. Agency amounts are read from lead records, not from money received — a weighted pipeline is not revenue. And nothing is kept over time: each measurement overwrites the previous one, there is no series."
   },
   "appointments": {
     "title": "Appointments",
@@ -156,7 +217,33 @@
     "toastLoadError": "Error loading appointments.",
     "toastConfirmed": "Appointment confirmed.",
     "toastCancelled": "Appointment cancelled.",
-    "toastUpdateError": "Error during update."
+    "toastUpdateError": "Error during update.",
+    "sub": "Console · appointments",
+    "pipelineLabel": "Appointment status",
+    "stageAll": "all",
+    "stagePending": "pending",
+    "stageConfirmed": "confirmed",
+    "stageCancelled": "cancelled",
+    "searchLabel": "Search for an appointment",
+    "listLabel": "Appointment requests",
+    "open": "Open",
+    "closeSheet": "Close the request",
+    "sheetEyebrow": "Appointment request",
+    "tilePending": "Pending",
+    "tileConfirmed": "Confirmed",
+    "tileTotal": "Requests",
+    "footToDecide": "to decide",
+    "footAgreed": "slots agreed",
+    "footAllStatuses": "all statuses",
+    "docWhen": "Slot requested",
+    "docEmail": "E-mail",
+    "docPhone": "Phone",
+    "docSubject": "Subject",
+    "docMessage": "Message",
+    "docReceivedAt": "Received on",
+    "emptyTitle": "No request at this stage.",
+    "emptyBody": "The tiles count the whole collection; the stage and the search only filter the display.",
+    "scope": "Confirming or cancelling writes a status to the database and sends nothing: no e-mail, no SMS, no calendar invite. The person who asked for the slot will only know your answer if you write to them yourself, and no calendar is kept up to date anywhere else. The slot is not checked either: two requests can be confirmed on the same hour. The kit files this screen under “upcoming / past”; the pattern forbids filtering by date, so the stage stays the status."
   },
   "agencyLeads": {
     "title": "Agency leads",
@@ -233,7 +320,35 @@
       "quoteRef": "Quote ref.",
       "message": "Message",
       "notes": "Internal notes"
-    }
+    },
+    "sub": "Console · support role",
+    "pipelineLabel": "Sales cycle — Présence Digitale leads",
+    "stageAll": "all",
+    "searchLabel": "Search for a lead",
+    "listLabel": "Présence Digitale leads",
+    "open": "Open",
+    "closeSheet": "Close the record",
+    "sheetEyebrow": "Lead record",
+    "tileToQualify": "To qualify",
+    "tileSigned": "Signed",
+    "tileTotal": "Received",
+    "footNewest": "stage “new”",
+    "footSignedValue": "signed contracts",
+    "footAllStages": "all stages",
+    "docContact": "Contact",
+    "docCity": "City",
+    "docSector": "Sector",
+    "docPack": "Pack",
+    "docPlan": "Support plan",
+    "docUpfront": "Set-up",
+    "docMonthly": "Monthly",
+    "docReferral": "Referral",
+    "docQuote": "Quote",
+    "docMessage": "Message received",
+    "changeStatus": "Cycle stage",
+    "emptyTitle": "No lead at this stage.",
+    "emptyBody": "The tiles count the whole collection; the stage and the search only filter the display.",
+    "scope": "No automatic follow-up: every chase is a manual gesture, and nothing reminds you of a forgotten lead. The kit plans two sales cycles side by side — Présence Digitale and Max-Morrys Agency; the database stores only one, `agency_leads`, fed by /presence-digitale, so the second is not displayed. The monthly plan has no direct-debit rail in Senegal: a contract signed here is not revenue collected, and no amount on this screen ever reaches Transactions."
   },
   "articles": {
     "title": "Articles",
@@ -291,7 +406,23 @@
     "toastSaveError": "Error while saving.",
     "toastDeleted": "Article deleted.",
     "toastDeleteError": "Error during deletion.",
-    "toastUpdateError": "Error during update."
+    "toastUpdateError": "Error during update.",
+    "console": {
+      "sub": "Console · editorial",
+      "stageAll": "all",
+      "stagePublished": "published",
+      "stageDrafts": "drafts",
+      "filterLabel": "Article status",
+      "listLabel": "Articles",
+      "searchLabel": "Search an article",
+      "countUnit": "articles in the database",
+      "loadingCount": "reading the database",
+      "tagEnMissing": "EN slug missing",
+      "featuredShort": "featured",
+      "tabsLabel": "Article editor sections",
+      "slugEnHint": "Left empty, it is generated on save. Without it, the English URL carries the French slug.",
+      "scope": "No scheduled publishing and no editorial queue: a draft stays a draft until someone acts. This screen says nothing about audience — an article’s view counter lives on the document, it is not read here. And fixing the French text propagates nothing until the prerender translation cache expires."
+    }
   },
   "formations": {
     "pageTitle": "Courses",
@@ -384,7 +515,74 @@
     "toastSaveError": "Error while saving.",
     "toastDeleted": "Course deleted.",
     "toastDeleteError": "Error during deletion.",
-    "toastStatusError": "Error during update."
+    "toastStatusError": "Error during update.",
+    "console": {
+      "sub": "Console · catalogue",
+      "stageAll": "all",
+      "stagePublished": "published",
+      "stageDrafts": "drafts",
+      "filterLabel": "Course status",
+      "listLabel": "Courses",
+      "searchLabel": "Search a course",
+      "countUnit": "courses in the database",
+      "loadingCount": "reading the database",
+      "unitModules": "modules",
+      "unitLessons": "lessons",
+      "tagReady": "ready to publish",
+      "tagBlocked": "incomplete",
+      "tabsLabel": "Course editor sections",
+      "tabPublish": "Publish",
+      "untitled": "Untitled course",
+      "slugEnHint": "Left empty, it is generated on save. Without it, the English URL carries the French slug.",
+      "checklistSource": "Conditions computed on the open record",
+      "checklistProgressLabel": "Publishing conditions met",
+      "checklistTitle": "What “publishable” means here",
+      "condReady": "ready",
+      "condTodo": "to fix",
+      "checklistRule": "The “Publish” button stays inactive while one line is amber. The list is not advice: it is the condition.",
+      "checklistNotAGuard": "This list guards DATA ENTRY, not the database. `firestore.rules` lets any admin write `status: published` on any document, and no Cloud Function reacts to that write. It prevents the slip, never the deliberate act.",
+      "publishBlocked": "At least one condition is unmet — see the “Publish” tab.",
+      "lessonFreeNote": "The field is saved, but NO screen in the product reads it today: no lesson is actually offered as a preview.",
+      "triggersTitle": "What publishing sets off",
+      "triggerCatalog": "Appears in the catalogue",
+      "triggerCatalogValue": "immediately",
+      "triggerSitemap": "Sitemap and hreflang",
+      "triggerSitemapValue": "recomputed on request",
+      "triggerMeta": "Meta catalogue feed",
+      "triggerMetaValue": "on next read",
+      "triggerNotify": "Notification to accounts",
+      "triggerNotifyValue": "none",
+      "triggerEmail": "Announcement email",
+      "triggerEmailValue": "no channel",
+      "scope": "Publishing creates no campaign, sends no email and warns nobody outside the app: the commercial launch stays a separate, manual act. This screen shows neither enrolments, nor progress, nor certificates for a course — they live elsewhere in the console. And it does not order courses: the public catalogue sorts by creation date, not from here.",
+      "check": {
+        "identity": {
+          "title": "Title and summary filled in",
+          "ok": "saving already requires both",
+          "ko": "without them the record cannot even be saved"
+        },
+        "modules": {
+          "title": "No empty module",
+          "ok": "{{modules}} modules, all filled",
+          "ko": "{{emptyModules}} module(s) with no lesson — the player opens on `modules[0].lessons[0]`"
+        },
+        "lessons": {
+          "title": "No empty lesson",
+          "ok": "{{lessons}} lessons, all carrying text or video",
+          "ko": "{{emptyLessons}} lesson(s) with neither content nor video: a blank page in the player"
+        },
+        "price": {
+          "title": "Consistent promotional price",
+          "ok": "no promotion, or one strictly below the price",
+          "ko": "the promotional price must be above zero and below the price — it is the one charged and published as `sale_price`"
+        },
+        "cover": {
+          "title": "Cover image",
+          "ok": "the record has its visual",
+          "ko": "without it, the Meta catalogue and the social card fall back to the site’s generic visual"
+        }
+      }
+    }
   },
   "coupons": {
     "title": "Promo codes",
@@ -404,7 +602,8 @@
     },
     "modal": {
       "editTitle": "Edit coupon",
-      "newTitle": "New coupon"
+      "newTitle": "New coupon",
+      "close": "Close"
     },
     "form": {
       "code": "Code *",
@@ -431,7 +630,35 @@
       "saveError": "Error while saving.",
       "deleteError": "Error during deletion.",
       "error": "Error."
-    }
+    },
+    "consoleSub": "Console · discounts",
+    "stagesLabel": "Coupon status",
+    "stages": {
+      "all": "all",
+      "active": "active",
+      "exhausted": "used up",
+      "expired": "expired"
+    },
+    "tiles": {
+      "servable": "Servable",
+      "servableFoot": "accepted by the payment server",
+      "uses": "Uses",
+      "usesFoot": "cumulative since day one"
+    },
+    "searchLabel": "Search a code",
+    "loading": "Loading coupons",
+    "emptyBody": "A promo code is made for a dated campaign, not to stay open forever.",
+    "listLabel": "Promo codes",
+    "rowUses": "uses",
+    "rowExpires": "expires {{date}}",
+    "rowNoExpiry": "no end date",
+    "tags": {
+      "active": "active",
+      "exhausted": "used up",
+      "expired": "expired",
+      "off": "stopped"
+    },
+    "scope": "This screen refuses nothing: the payment server alone turns down a stopped, expired or used-up coupon. Nor does it say what a discount cost — reconciliation with payments happens in Transactions. A coupon switched off by hand has no stage of its own: it only shows under “all”."
   },
   "announcements": {
     "title": "Announcements",
@@ -473,7 +700,32 @@
     "toastToggleError": "Error.",
     "confirmDeleteMessage": "Delete this announcement?",
     "confirmDeleteTitle": "Delete",
-    "confirmDeleteLabel": "Delete"
+    "confirmDeleteLabel": "Delete",
+    "consoleSub": "Console · site banner",
+    "stagesLabel": "Announcement status",
+    "stages": {
+      "all": "all",
+      "live": "live",
+      "outOfWindow": "out of window",
+      "stopped": "stopped"
+    },
+    "tiles": {
+      "live": "Live",
+      "liveFoot": "visible today",
+      "outOfWindow": "Out of window",
+      "outOfWindowFoot": "active, but outside its dates"
+    },
+    "tags": {
+      "live": "live",
+      "scheduled": "scheduled",
+      "over": "over",
+      "stopped": "stopped"
+    },
+    "loading": "Loading announcements",
+    "emptyBody": "The banner only shows when an announcement is active AND inside its date window.",
+    "listLabel": "Banner announcements",
+    "linkHint": "Internal path or full URL. The banner opens it in the visitor's language.",
+    "scope": "This screen administers the public site banner: a title, a date window, a link. It measures nothing — no impression, no click, no dismissal — and the banner has no control group, so no rate can be shown here. The control group the kit names belongs to the contextual pop-ups, which are a different mechanism: their exposed share of traffic is set in Settings, and their counters — exposed against control — are read in Analytics. Finally, an announcement outside its window stays “active” in the database; it is simply not served."
   },
   "faq": {
     "title": "FAQ",
@@ -494,12 +746,17 @@
       "answerPlaceholder": "Full answer...",
       "categoryLabel": "Category",
       "categoryPlaceholder": "General, Course...",
-      "orderLabel": "Display order"
+      "orderLabel": "Display order",
+      "orderHint": "The lowest number shows first.",
+      "slugLabel": "Page address",
+      "slugPlaceholder": "paying-with-wave",
+      "slugHint": "Left empty, it's derived from the question — and moves if you reword it. Filled in, it's fixed."
     },
     "actions": {
       "cancel": "Cancel",
       "save": "Save",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "delete": "Delete"
     },
     "confirmDelete": {
       "title": "Delete",
@@ -513,7 +770,29 @@
       "deleted": "Question deleted.",
       "saveError": "Error while saving.",
       "deleteError": "Error during deletion."
-    }
+    },
+    "consoleSub": "Console · FAQ",
+    "stagesLabel": "Question status",
+    "stages": {
+      "all": "all",
+      "published": "published",
+      "derivedSlug": "derived slug"
+    },
+    "categoriesLabel": "Category",
+    "tiles": {
+      "questions": "Questions",
+      "questionsFoot": "all live, no drafts",
+      "derivedSlug": "Derived slug",
+      "derivedSlugFoot": "address follows the text"
+    },
+    "loading": "Loading questions",
+    "emptyBody": "A question asked three times in writing is worth an entry here — that is three fewer messages.",
+    "listLabel": "FAQ questions",
+    "rowOrder": "position",
+    "tags": {
+      "online": "live"
+    },
+    "scope": "A question has no draft: it goes live the moment it's saved, and its order is typed by hand. Every question now has its own page — /faq/<address> — with its trail, its nearby questions and its structured data. The « derived slug » stage counts the ones whose address is NOT fixed: it's derived from the text, so rewording the question moves the page and breaks links already shared, with nothing to signal it. This screen still doesn't say which questions get read or which ones are missing: nothing is measured on /faq."
   },
   "messages": {
     "title": "Messages",
@@ -543,7 +822,18 @@
       "updateError": "Error during update.",
       "deleted": "Message deleted.",
       "deleteError": "Error during deletion."
-    }
+    },
+    "sub": "Console · contact",
+    "pipelineLabel": "Message status",
+    "searchLabel": "Search a message",
+    "emptyTitle": "Nothing in this queue",
+    "stage": {
+      "all": "all",
+      "todo": "to handle",
+      "waiting": "waiting",
+      "closed": "closed"
+    },
+    "scope": "No reply leaves this screen: “Reply by email” opens the device's mail client, and nothing written there comes back to the record. “Closed” therefore does not mean a reply went out — it means someone said so. No thread, no attachment, no follow-up, and no screen on the visitor's side: whoever wrote will only learn where their message stands by receiving an answer."
   },
   "podcasts": {
     "title": "Podcasts",
@@ -603,7 +893,23 @@
     "toastSaveError": "Error while saving.",
     "toastDeleted": "Podcast deleted.",
     "toastDeleteError": "Error during deletion.",
-    "toastError": "Error."
+    "toastError": "Error.",
+    "console": {
+      "sub": "Console · editorial",
+      "stageAll": "all",
+      "stagePublished": "published",
+      "stageImported": "imported",
+      "filterLabel": "Episode status",
+      "listLabel": "Episodes",
+      "searchLabel": "Search an episode",
+      "countUnit": "episodes in the database",
+      "loadingCount": "reading the database",
+      "tagToReview": "to review",
+      "fromSpotify": "imported from Spotify",
+      "fetchingMeta": "Fetching Spotify details…",
+      "slugEnHint": "Left empty, it is generated on save. Without it, the English URL carries the French slug.",
+      "scope": "“Imported” is a PROVENANCE, not a status: a hand-written draft therefore has no stage of its own and shows only under “all”. The import never updates an episode already pulled in — it only creates the missing ones. And nothing goes back out to Spotify: the flow is one-way, and no notification announces an episode."
+    }
   },
   "videos": {
     "title": "Videos",
@@ -657,7 +963,24 @@
     "toastSaveError": "Error while saving.",
     "toastDeleted": "Video deleted.",
     "toastDeleteError": "Error during deletion.",
-    "toastError": "Error."
+    "toastError": "Error.",
+    "console": {
+      "sub": "Console · editorial",
+      "stageAll": "all",
+      "stagePublished": "published",
+      "stageDrafts": "drafts",
+      "filterLabel": "Video status",
+      "listLabel": "Videos",
+      "searchLabel": "Search a video",
+      "countUnit": "videos in the database",
+      "loadingCount": "reading the database",
+      "viewsSource": "YouTube API, copied over by the sync",
+      "viewsUnit": "views",
+      "viewsNote": "Copied from YouTube by the daily sync (03:00 UTC) or by this screen’s button. Between two runs, this number is stale.",
+      "fetchingMeta": "Fetching YouTube details…",
+      "slugEnHint": "Left empty, it is generated on save. Without it, the English URL carries the French slug.",
+      "scope": "The view count only moves when the sync runs: in between, it is stale. This screen publishes nothing to YouTube and reads neither comments, nor watch time, nor subscriptions. No video is hosted here: deleting a record leaves the video online on YouTube."
+    }
   },
   "testimonials": {
     "title": "Testimonials",
@@ -720,7 +1043,17 @@
     "toastSeedAlready": "Demo testimonials already imported.",
     "toastSeedImported_one": "{{count}} testimonial imported.",
     "toastSeedImported_other": "{{count}} testimonials imported.",
-    "toastSeedError": "Error during import."
+    "toastSeedError": "Error during import.",
+    "sub": "Console · moderation",
+    "pipelineLabel": "Testimonial status",
+    "emptyTitle": "Nothing in this queue",
+    "stage": {
+      "all": "all",
+      "pending": "pending",
+      "approved": "approved",
+      "rejected": "rejected"
+    },
+    "scope": "This screen moderates; it collects nothing. No identity check, no recorded consent, no collection date: a testimonial is worth exactly what the person who typed it is worth. “Approve” features it, and the Club subscription page then shows it as social proof — this is the only screen that puts it there, and the only one that can take it back. The import button writes six demo testimonials, signed with people's names, into that same collection: nothing tells them apart afterwards. Star ratings are no longer drawn here; the field stays in the database."
   },
   "transactions": {
     "title": "Transactions",
@@ -749,7 +1082,25 @@
     "refundConfirmMessage": "Mark this transaction as refunded?",
     "refundSuccess": "Transaction marked as refunded.",
     "refundError": "Error during refund.",
-    "confirmTitle": "Confirm"
+    "confirmTitle": "Confirm",
+    "sub": "Console · reconciliation",
+    "pipelineLabel": "Transaction status",
+    "stageAll": "all",
+    "stageCompleted": "completed",
+    "stagePending": "pending",
+    "stageRefunded": "refunded",
+    "stageFailed": "failed",
+    "searchLabel": "Search for a transaction",
+    "listLabel": "Transactions",
+    "footPending_one": "transaction pending",
+    "footPending_other": "transactions pending",
+    "footRefunded_one": "refunded operation",
+    "footRefunded_other": "refunded operations",
+    "refundExplainTitle": "What “Refund” does here",
+    "refundExplainBody": "The button writes the “refunded” status onto the transaction, and nothing else. No money moves as a result: the refund happens at the payment provider, and this screen only records it afterwards. The enrolment already granted is not withdrawn.",
+    "emptyTitle": "No transaction at this stage.",
+    "emptyBody": "The tiles above count the whole table; the stage and the search only filter the display.",
+    "scope": "This screen only RECONCILES: it reads what the payment webhook wrote and has no way to replay it, nor to force an enrolment that a completed transaction failed to trigger. No refund starts here — it happens at the provider, and the button only records the trace. On the buyer side there is no history screen at all: anyone wanting to know where their payment stands has to write in, and nobody will know before that."
   },
   "settings": {
     "pageTitle": "Settings",
@@ -809,7 +1160,17 @@
     "save": "Save settings",
     "toastLoadError": "Error loading settings.",
     "toastSaveSuccess": "Settings saved successfully.",
-    "toastSaveError": "Error while saving. Please try again."
+    "toastSaveError": "Error while saving. Please try again.",
+    "sub": "Console · settings",
+    "sectionLabel": "Settings section",
+    "section": {
+      "brand": "brand",
+      "notifications": "notifications",
+      "popups": "pop-ups",
+      "security": "security"
+    },
+    "securityReadOnlyNote": "These three lines are written in the screen’s own code: they describe the expected configuration, they do not query it.",
+    "scope": "Neither payment, nor search, nor roles are configured here. The payment provider's keys live in Cloud Functions secrets; redirects and the sitemap are produced elsewhere — the “Redirects” screen and the Worker's prerender; an account's role is changed under “Users”. Saving writes a single Firestore document straight from the browser: the operation is not logged, and nothing will later say who switched off which pop-up, or when. Pop-up settings are cached for the length of a visitor's session — switching one off only becomes visible on their next visit."
   },
   "users": {
     "title": "Users",
@@ -827,7 +1188,24 @@
     "manageUser": "Manage user",
     "roleAdmin": "Admin",
     "roleSupport": "Support",
-    "roleStudent": "Student"
+    "roleStudent": "Student",
+    "sub": "Console · accounts",
+    "pipelineLabel": "Account role",
+    "stageAll": "all",
+    "stageStudents": "learners",
+    "stageAdmins": "admins",
+    "stageSupport": "support",
+    "searchLabel": "Search for an account",
+    "manage": "Manage",
+    "listLabel": "Platform accounts",
+    "tileAll": "Accounts",
+    "tileStudents": "Learners",
+    "tileAdmins": "Admins",
+    "tileSupport": "Support",
+    "noName": "Unnamed account",
+    "emptyTitle": "No account matches.",
+    "emptyBody": "Change stage or clear the search: the four stages count the whole database, the search only filters what is left.",
+    "scope": "No suspension here: the data model carries no “suspended” state, so the kit stage that shows it has no source and is not displayed. Cutting someone off happens in the Firebase console, and that gesture leaves no trace in the application. Deleting an account, resetting a password and revoking open sessions do not exist on this screen either."
   },
   "clubHook": {
     "loadError": "Error while loading.",
@@ -952,7 +1330,39 @@
         "Internal notes"
       ]
     },
-    "viaBadge": "via {{slug}}"
+    "viaBadge": "via {{slug}}",
+    "consoleSub": "Console · agency requests",
+    "stagesLabel": "Request status",
+    "stages": {
+      "all": "all",
+      "open": "open",
+      "closed": "closed"
+    },
+    "tiles": {
+      "open": "Open",
+      "openFoot": "new, qualified, scoping, proposal",
+      "routed": "Routed to Cléa",
+      "routedFoot": "outside the Max-Morrys cycle"
+    },
+    "searchLabel": "Search a request",
+    "loading": "Loading requests",
+    "emptyBody": "Requests arrive from the /agence form. Nothing to do while the queue is empty.",
+    "listLabel": "Engagement requests",
+    "sheetClose": "Close the record",
+    "writeAction": "Email the prospect",
+    "docContact": "Contact",
+    "docReceived": "Received",
+    "docProjectType": "Project type",
+    "docBudget": "Budget",
+    "docTimeline": "Timeline",
+    "docSource": "Source",
+    "docSourceDirect": "direct",
+    "docRouted": "Routing",
+    "docRoutedNone": "Max-Morrys cycle",
+    "docWebsite": "Website",
+    "notesDirty": "Note not saved yet — it is written when the field loses focus.",
+    "confirmDeleteTitle": "Delete",
+    "scope": "No follow-up is automatic: every touch is a manual gesture, and nothing here writes to the prospect — the button opens their own mail client. The filter sorts the six statuses of the agency cycle into two queues; the precise status is chosen on the record. No conversion rate is shown: the one the data layer computes counts still-open requests as “decided”, so it measures nothing stable. And a won request is not money received — no collection rail runs through this screen."
   },
   "redirects": {
     "title": "Redirects",
@@ -1007,7 +1417,8 @@
       "delete": "Delete",
       "cancel": "Cancel",
       "save": "Save",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "copied": "Copied"
     },
     "confirmDelete": {
       "title": "Delete",
@@ -1023,6 +1434,45 @@
       "saveError": "Could not save.",
       "deleteError": "Could not delete.",
       "copyError": "Copy failed. Select the text manually."
-    }
+    },
+    "consoleSub": "Console · search",
+    "stagesLabel": "Redirect status",
+    "stages": {
+      "all": "all",
+      "active": "active",
+      "conflict": "in conflict"
+    },
+    "kindFilterLabel": "What the redirect is for",
+    "tiles": {
+      "active": "Active",
+      "activeFoot": "served at the edge",
+      "conflicts": "In conflict",
+      "conflictsFoot": "duplicate, loop, chain"
+    },
+    "loading": "Loading redirects",
+    "emptyBody": "An old URL with no redirect is a page lost to search engines.",
+    "listLabel": "Redirect table",
+    "hitsWord_one": "click",
+    "hitsWord_other": "clicks",
+    "tags": {
+      "active": "active",
+      "off": "stopped"
+    },
+    "conflicts": {
+      "duplicate": "duplicate",
+      "loop": "loop",
+      "chain": "chain",
+      "unserved": "never served"
+    },
+    "conflictHints": {
+      "duplicate": "Two active entries share this source. The Worker keeps only one — the most recently updated — and the other never applies.",
+      "loop": "The target is the source itself: the browser loops, then gives up, and the address becomes unreachable.",
+      "chain": "The target is itself the source of another active redirect. Visitors take two hops, search engines discount the chain, and an A→B→A round trip loops. Point straight at the final destination.",
+      "unserved": "The Worker drops this entry silently: a source reduced to “/”, or a target that is not an internal path, is never served."
+    },
+    "scope": "This screen writes the table; it does not try it. The Worker caches it for one minute, and the “in conflict” stage reads the table, never real traffic. Click counts exist for attribution links only: an SEO 301 is never counted, because bots follow most of them. And a redirect typed here does not replace the in-app hops: /podcasts and /videos currently reach /podcast-et-videos in JavaScript, which passes no ranking on — the two 301 entries are still to be typed in."
+  },
+  "motif": {
+    "scopeTitle": "What this screen does not cover"
   }
 }

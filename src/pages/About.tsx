@@ -1,247 +1,167 @@
-import { useState, useEffect } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
-import LocalizedLink from '../components/shared/LocalizedLink';
-import { corporateUrl, pillars } from '../lib/brand';
-import { motion } from 'framer-motion';
-import CountUp from '../components/shared/CountUp';
-import AnimatedIcon from '../components/shared/AnimatedIcon';
-import {
-  ArrowRight,
-  Target,
-  Heart,
-  BookOpen,
-  Globe,
-  BarChart3,
-  CheckCircle,
-  Sparkles,
-  Code2,
-  HeartHandshake,
-  ChevronDown,
-  MapPin,
-  Building2,
-  GraduationCap,
-  Briefcase,
-  HandHeart,
-} from 'lucide-react';
+import { Avatar, Button, GlassPanel, Icon, Num, Tag, type IconName } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SOCIAL_URLS } from '../components/seo/seo-config';
-import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
-import { universeThemes } from '../lib/sectionThemes';
+import DsNavHost from '../components/layout/DsNavHost';
+import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { useLocalizedPath } from '../contexts/LanguageContext';
+import { useFormat } from '../hooks/useFormat';
+import { legalEntity, pillars, practices, socialLinks } from '../lib/brand';
+import { getPublicCounts, type PublicCounts } from '../lib/firestore';
+import { queryKeys } from '../lib/queryClient';
 
-const theme = universeThemes.about;
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * « JE SUIS MAX-MORRYS » — la seule page dont le métier est d'inspirer confiance.
+ *
+ * La page faisait 768 lignes et neuf sections : héros corporate avec portrait généré par IA,
+ * menu d'ancrage collant et flouté, résumé d'impact, expertise, stack, valeurs, parcours à
+ * double accordéon, MY ONOMA, appel final. La maquette en dessine six, et le tri n'est pas
+ * une question de longueur.
+ *
+ * CE QUI EST PARTI, ET POURQUOI :
+ *
+ * 1. LES SIX `CountUp` NON SOURCÉS — +1 790 % de trafic, +8 000 abonnés, 5 plateformes,
+ *    affichés deux fois chacun (héros puis « résumé d'impact »). Deux d'entre eux sont des
+ *    chiffres d'AUDIENCE, ce qu'AD-5 interdit sans exception, et aucun des trois ne porte de
+ *    source. Ce qui les remplace n'est pas un vide : ce sont des COMPTEURS DE PRODUCTION —
+ *    articles publiés, formations montées — comptés côté serveur par `getPublicCounts()`,
+ *    rendus par `<Num value source asOf />`, avec la phrase qui dit pourquoi.
+ *
+ * 2. LE PORTRAIT GÉNÉRÉ PAR IA. Le fichier s'appelait littéralement « ChatGPT Image 14 mai
+ *    2026 ». Il est remplacé par un EMPLACEMENT DÉCLARÉ, pas par une autre image : sur la
+ *    seule page dont le métier est d'inspirer confiance, une image synthétique est le pire
+ *    endroit possible. Bénéfice annexe : une requête réseau de 640 × 800 en moins.
+ *
+ * 3. LE MENU D'ANCRAGE COLLANT, qui portait le seul `backdrop-blur` de la page (AD-4) et un
+ *    `IntersectionObserver` de scroll-spy pour trois ancres. Trois ancres ne valent pas un
+ *    second chrome collant sous celui du site.
+ *
+ * 4. L'ACCORDÉON DES MISSIONS. Onze jalons dont cinq dépliaient six blocs de puces chacun :
+ *    c'est un CV d'employeur, et le kit tranche — « des dates et des faits, pas des
+ *    adjectifs ». Les jalons gardent l'employeur, le rôle et la période ; les missions sortent
+ *    de l'écran. Les clés i18n `experiences.*` restent en place, non rendues.
+ *
+ * 5. « VALEURS », « EXPERTISE », « STACK ». Quatre valeurs adjectivales, quatre cartes de
+ *    compétences et une rupture sombre de logos d'outils. Rien de vérifiable, et la page les
+ *    répétait déjà en prose.
+ *
+ * TROIS EMPLACEMENTS DÉCLARÉS survivent à la place de ce qui manque — ils NOMMENT le manque
+ * au lieu de le combler. Voir `SiteSlot` et le rapport de recomposition pour les deux endroits
+ * où la copie du kit a dû être corrigée contre la donnée réelle du dépôt.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
 
-const viewportOnce = { once: true, amount: 0.2 } as const;
+/**
+ * La date à laquelle le parcours a été relevé auprès de son auteur.
+ *
+ * `<Num>` exige `asOf` : un jalon déclaré n'est pas lu en base, il est DIT par quelqu'un, à un
+ * moment. Le composant l'annonce au survol et au lecteur d'écran — « parcours déclaré par
+ * Max-Morrys · relevé du 30/08/2026 » — ce qui est exactement le statut de cette information.
+ */
+const DECLARED_AT = new Date('2026-08-30T00:00:00Z');
 
-const values = [
-  { icon: Heart, key: 'passion' },
-  { icon: Globe, key: 'vision' },
-  { icon: Sparkles, key: 'hybrid' },
-  { icon: Target, key: 'results' },
-];
+/** L'ordre de la frise. Chronologique, et il ne dépend pas de l'ordre des clés du JSON. */
+const MILESTONES = [
+  'm2014', 'm2017', 'm2018', 'm2020', 'm2021',
+  'm2023Onoma', 'm2023Master', 'm2024Jan', 'm2024May', 'm2025Apr', 'm2025',
+] as const;
 
-const expertise = [
-  { key: 'marketing', icon: BarChart3 },
-  { key: 'ai', icon: Sparkles },
-  { key: 'web', icon: Code2 },
-  { key: 'management', icon: HeartHandshake },
-];
-
-type Experience = {
-  company: string;
-  key: string;
-  icon: typeof Building2;
-  blockKeys: string[];
-};
-
-const experiences: Experience[] = [
-  {
-    company: 'Eyone Medical',
-    key: 'eyone',
-    icon: Building2,
-    blockKeys: ['strategy', 'branding', 'ai', 'web', 'partnerships', 'management'],
-  },
-  {
-    company: 'Messages de Vie Sénégal',
-    key: 'messagesDeVie',
-    icon: HandHeart,
-    blockKeys: ['strategy'],
-  },
-  {
-    company: 'Académie Light',
-    key: 'academieLight',
-    icon: GraduationCap,
-    blockKeys: ['training'],
-  },
-  {
-    company: 'My Onoma',
-    key: 'myOnoma',
-    icon: Briefcase,
-    blockKeys: ['strategy'],
-  },
+/** Les trois panneaux de « Ce que je fais ». Une teinte de territoire chacun, jamais un hex. */
+const DOES: { key: 'Train' | 'Publish' | 'Support'; glyph: IconName; tint: string; ink: string }[] = [
+  { key: 'Train', glyph: 'book', tint: 'var(--mm-bleu)', ink: 'var(--mm-bleu)' },
+  { key: 'Publish', glyph: 'list', tint: 'var(--mm-orange)', ink: 'var(--mm-orange-t)' },
+  { key: 'Support', glyph: 'bars', tint: 'var(--mm-teal)', ink: 'var(--mm-teal-t)' },
 ];
 
 /**
- * La frise « Mon parcours » — chronologie UNIQUE de la page.
+ * L'EMPLACEMENT DÉCLARÉ — il nomme ce qui manque, il ne le comble pas.
  *
- * `experienceKey` relie un jalon à une entrée d'`experiences` : le jalon devient alors
- * dépliable et révèle les missions du poste.
+ * Bordure en tirets, fond à 7 % d'orange, sourcil monospace précédé de l'icône `info`. Le kit
+ * le dessine en `rgba(243,139,10,…)` ; ici la teinte passe par `--mm-orange` en `color-mix`,
+ * donc elle suit le jeton si le système le corrige, et elle bascule sous `.dk` (AD-2, AD-3).
+ * L'encre du sourcil est `--mm-orange-t` : l'orange plein fait 2,47:1 sur blanc et ne porte
+ * jamais de texte.
  *
- * ⚠️ Il existait auparavant DEUX sections chronologiques — « Expériences professionnelles »
- * et « Parcours » — qui listaient les 4 mêmes employeurs sur la même période. Les jalons
- * professionnels absorbent désormais le détail : une seule chronologie, une seule ancre.
- * Ne pas réintroduire une section d'expériences séparée.
+ * Pourquoi il vit ICI et pas dans `components/site/` : c'est une pièce de cette page, comme
+ * dans le kit. Les trois emplacements disparaîtront le jour où la matière arrivera ; une
+ * primitive partagée survivrait à sa raison d'être.
  */
-const milestones: { year: string; key: string; experienceKey?: string }[] = [
-  { year: '2014', key: 'm2014' },
-  { year: '2017', key: 'm2017' },
-  { year: '2018', key: 'm2018' },
-  { year: '2020', key: 'm2020' },
-  { year: '2021', key: 'm2021' },
-  { year: '2023', key: 'm2023Onoma', experienceKey: 'myOnoma' },
-  { year: '2023', key: 'm2023Master' },
-  { year: '2024 — Janv.', key: 'm2024Jan', experienceKey: 'eyone' },
-  { year: '2024 — Mai', key: 'm2024May', experienceKey: 'academieLight' },
-  { year: '2025 — Avril', key: 'm2025Apr', experienceKey: 'messagesDeVie' },
-  { year: '2025', key: 'm2025' },
-];
-
-const sectionNav = [
-  { id: 'impact', key: 'impact' },
-  { id: 'expertise', key: 'expertise' },
-  { id: 'parcours', key: 'parcours' },
-];
-
-/**
- * Une étape de la frise « Mon parcours ».
- *
- * Un jalon portant un `experienceKey` devient dépliable et révèle les missions du poste —
- * c'est ce qui a permis de supprimer la section « Expériences professionnelles » sans rien
- * perdre. Les autres jalons restent des repères simples, non interactifs.
- *
- * Le mécanisme d'accordéon (`grid-rows-[1fr]/[0fr]`, `aria-expanded`, `aria-controls`) est
- * repris tel quel de l'ancienne section : il fonctionnait et il était accessible.
- */
-function MilestoneRow({
-  m, t, open, onToggle,
-}: {
-  m: (typeof milestones)[number];
-  t: TFunction;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  const experience = m.experienceKey ? experiences.find((e) => e.key === m.experienceKey) : undefined;
-
-  const head = (
-    <>
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1.5">
-        <span className={`text-sm font-black tracking-tight ${theme.accentText}`}>{t(`milestones.${m.key}.year`)}</span>
-        <span className="text-[11px] font-bold tracking-wider uppercase text-morrys-500 dark:text-morrys-400">{t(`milestones.${m.key}.lieu`)}</span>
-      </div>
-      <h3 className="text-lg font-black text-neutral-900 dark:text-white mb-1">{t(`milestones.${m.key}.title`)}</h3>
-      <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">{t(`milestones.${m.key}.desc`)}</p>
-    </>
-  );
-
+function SiteSlot({
+  title, children, style,
+}: { title: string; children: ReactNode; style?: CSSProperties }) {
   return (
-    <div className="relative pl-10">
-      <span
-        className="absolute left-2 top-1.5 -translate-x-1/2 w-3 h-3 rounded-full bg-morrys-500 ring-4 ring-neutral-50 dark:ring-neutral-900"
-        aria-hidden="true"
-      />
-
-      {experience ? (
-        <>
-          <button
-            type="button"
-            onClick={onToggle}
-            aria-expanded={open}
-            aria-controls={`milestone-panel-${m.key}`}
-            className="w-full text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-morrys-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900 rounded"
-          >
-            {head}
-            <span className={`inline-flex items-center gap-1.5 mt-3 text-sm font-bold ${theme.accentText}`}>
-              {open ? t('parcours.hideMissions') : t('parcours.showMissions')}
-              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
-            </span>
-          </button>
-
-          <div
-            id={`milestone-panel-${m.key}`}
-            className={`grid transition-all duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100 mt-5' : 'grid-rows-[0fr] opacity-0'}`}
-          >
-            <div className="overflow-hidden">
-              <div className="rounded-2xl bg-white dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 p-5 sm:p-6">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-4">
-                  <experience.icon className={`w-5 h-5 ${theme.accentText}`} aria-hidden="true" />
-                  <p className="font-bold text-neutral-900 dark:text-white">{t(`experiences.${experience.key}.role`)}</p>
-                  <span className="text-xs font-bold tracking-wider uppercase text-neutral-500 dark:text-neutral-400">
-                    {t(`experiences.${experience.key}.period`)}
-                  </span>
-                </div>
-                <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-6">{t(`experiences.${experience.key}.intro`)}</p>
-                <div className="space-y-6">
-                  {experience.blockKeys.map((blockKey) => {
-                    const bullets = t(`experiences.${experience.key}.blocks.${blockKey}.bullets`, { returnObjects: true }) as string[];
-                    return (
-                      <div key={blockKey}>
-                        <h4 className={`font-black text-sm uppercase tracking-wider ${theme.eyebrow} mb-3`}>
-                          {t(`experiences.${experience.key}.blocks.${blockKey}.title`)}
-                        </h4>
-                        <ul className="space-y-2">
-                          {bullets.map((b, j) => (
-                            <li key={j} className="flex items-start gap-3 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                              <CheckCircle className="w-4 h-4 text-morrys-500 dark:text-morrys-400 shrink-0 mt-0.5" aria-hidden="true" />
-                              <span>{b}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        head
-      )}
+    <div
+      style={{
+        borderRadius: 'var(--r-m)',
+        padding: '14px 16px',
+        background: 'color-mix(in srgb, var(--mm-orange) 7%, transparent)',
+        border: '1px dashed color-mix(in srgb, var(--mm-orange) 55%, transparent)',
+        ...style,
+      }}
+    >
+      <p className="mm-eyebrow m-0 flex items-center gap-[7px]" style={{ color: 'var(--mm-orange-t)' }}>
+        <Icon name="info" size={11} color="var(--mm-orange-t)" strokeWidth={2.6} />
+        {title}
+      </p>
+      <p className="mm-prose m-0 mt-[7px] max-w-[58ch] text-[13px] leading-[1.55] text-ink-2">{children}</p>
     </div>
   );
 }
 
 export default function About() {
   const { t } = useTranslation('about');
-  /** Jalon dont les missions sont dépliées. `null` : aucun — la frise s'ouvre fermée. */
-  const [openMilestone, setOpenMilestone] = useState<string | null>(null);
-  const [showAllMilestones, setShowAllMilestones] = useState(false);
-  const [activeSection, setActiveSection] = useState('impact');
+  const path = useLocalizedPath();
+  const { formatDate } = useFormat();
 
-  // Scroll-spy pour le menu d'ancrage
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) setActiveSection(e.target.id);
-        });
-      },
-      { rootMargin: '-40% 0px -55% 0px' }
-    );
-    sectionNav.forEach(({ id }) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
+  /*
+   * Les seuls chiffres que cette page a le droit d'afficher. `getPublicCounts()` compte côté
+   * serveur : une lecture au lieu de cinquante. Un échec rend `null`, jamais zéro — et `<Num>`
+   * affiche alors « non relevé » plutôt qu'un zéro faux.
+   */
+  const { data: counts } = useQuery<PublicCounts | null>({
+    queryKey: queryKeys.publicCounts,
+    queryFn: () => getPublicCounts(),
+  });
+  const asOf = counts?.asOf ?? new Date();
+
+  const production: { key: string; value: number | null }[] = [
+    { key: 'producedArticles', value: counts?.publishedArticles ?? null },
+    { key: 'producedFormations', value: counts?.publishedFormations ?? null },
+    { key: 'producedPodcasts', value: counts?.publishedPodcasts ?? null },
+    { key: 'producedVideos', value: counts?.publishedVideos ?? null },
+  ];
+
+  /* L'arbre de marque vient de `src/lib/brand` — jamais d'un littéral de composant. */
+  const tree = [
+    { name: 'Max-Morrys', badge: t('page.treeLearnBadge'), body: t('page.treeLearnBody'), accent: false },
+    {
+      name: practices.build.brand,
+      badge: t('page.treePillarBadge', { pillar: practices.build.pillar }),
+      body: t('page.treeBuildBody'),
+      /* L'agence vit hors des quatre verbes : elle porte le corail, en version texte (AD-20). */
+      accent: true,
+    },
+    {
+      name: practices.grow.brand,
+      badge: t('page.treePillarBadge', { pillar: practices.grow.pillar }),
+      body: t('page.treeGrowBody'),
+      accent: false,
+    },
+  ];
 
   return (
-    <div>
-      <SEOHead
-        title={t('seo.title')}
-        description={t('seo.description')}
-      />
+    <DsNavHost>
+      <SEOHead title={t('seo.title')} description={t('seo.description')} />
+      {/*
+        `sameAs` lit `SOCIAL_URLS`, donc `src/lib/brand/company.ts` — la même source que le
+        panneau « Où me trouver » plus bas. Deux listes de profils sur une même page finiraient
+        par diverger, et c'est la page dont le métier est justement d'être vérifiable.
+        AUCUN `aggregateRating`, aucun compteur d'abonnés : rien de tout ça n'a de source.
+      */}
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'Person',
@@ -249,518 +169,346 @@ export default function About() {
         url: `${SITE_URL}/a-propos`,
         jobTitle: 'Marketing & Growth Manager',
         worksFor: { '@type': 'Organization', name: 'Eyone Medical' },
-        address: { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
+        address: { '@type': 'PostalAddress', addressLocality: legalEntity.city, addressCountry: legalEntity.countryCode },
         sameAs: [...SOCIAL_URLS],
       }} />
 
-      {/* ── 1. HERO CORPORATE ── */}
-      <section className="pt-28 pb-24 lg:pt-36 lg:pb-32 bg-neutral-50 dark:bg-neutral-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            <motion.div
-              className="lg:col-span-7"
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div variants={staggerItem} className="flex items-center gap-3 mb-6">
-                <AnimatedIcon
-                  icon={Sparkles}
-                  animation="pulse"
-                  className="w-10 h-10 rounded-2xl bg-morrys-100 dark:bg-morrys-900/30 shrink-0"
-                  iconClassName="w-5 h-5 text-morrys-600 dark:text-morrys-400"
-                />
-                <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow}`}>
-                  {t('hero.eyebrow')}
-                </p>
-              </motion.div>
-              <motion.h1 variants={staggerItem} className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[0.95] tracking-tight text-neutral-900 dark:text-white mb-6 text-balance max-w-[15ch]">
-                {t('hero.title')}
-              </motion.h1>
-              <motion.p variants={staggerItem} className="text-base lg:text-lg text-neutral-500 dark:text-neutral-400 font-medium mb-8">
-                {t('hero.subtitle')}
-              </motion.p>
-
-              {/* Blockquote — profil hybride absorbé */}
-              <motion.blockquote variants={staggerItem} className="border-l-2 border-morrys-500 dark:border-morrys-400 pl-5 mb-10 max-w-2xl">
-                <p className="text-base lg:text-lg text-neutral-700 dark:text-neutral-300 leading-relaxed font-medium">
-                  {t('hero.blockquote')}
-                </p>
-              </motion.blockquote>
-
-              {/* Mini-stats inline — responsive sans divide-x */}
-              <motion.div variants={staggerItem} className="grid grid-cols-3 gap-4 sm:gap-6 mb-10 max-w-2xl">
-                <div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
-                    <CountUp value={1790} prefix="+" suffix=" %" format />
-                  </p>
-                  <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">{t('hero.statTraffic')}</p>
-                </div>
-                <div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
-                    <CountUp value={8000} prefix="+" format />
-                  </p>
-                  <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">{t('hero.statFollowers')}</p>
-                </div>
-                <div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">
-                    <CountUp value={5} prefix="+" />
-                  </p>
-                  <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-neutral-500 dark:text-neutral-400 mt-1">{t('hero.statPlatforms')}</p>
-                </div>
-              </motion.div>
-
-              {/*
-                « Travaillons ensemble » mène à /agence, pas à /contact : c'est l'appel B2B
-                de la page, et l'envoyer vers un formulaire générique était l'écart relevé
-                dans docs/UX-AUDIT.md §1. Le CTA générique « Prendre contact » du bloc final
-                garde /contact — partenariats, presse, questions hors agence.
-              */}
-              <motion.div variants={staggerItem} className="flex flex-wrap gap-4">
-                <LocalizedLink to="/agence" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} text-sm font-bold rounded-full hover:-translate-y-0.5 active:scale-[0.97] hover:shadow-lg hover:shadow-morrys-600/25 transition-all duration-300 tracking-wide`}>
-                  {t('hero.ctaWork')} <ArrowRight className="w-4 h-4" />
-                </LocalizedLink>
-                <a href="#parcours" className="inline-flex items-center gap-2 px-6 py-3 border-2 border-neutral-300 text-neutral-700 dark:border-neutral-600 dark:text-neutral-200 text-sm font-bold rounded-full hover:bg-white dark:hover:bg-neutral-800 hover:-translate-y-0.5 transition-all duration-300 tracking-wide">
-                  {t('hero.ctaParcours')}
-                </a>
-              </motion.div>
-            </motion.div>
-
-            <motion.div
-              className="lg:col-span-5 relative"
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, ease: 'easeOut', delay: 0.15 }}
-            >
-              <div className="aspect-[4/5] rounded-2xl overflow-hidden relative">
-                <img
-                  src="https://media.maxmorrys.me/A-propos/ChatGPT%20Image%2014%20mai%202026%2C%2000_44_30%20(1).png"
-                  alt={t('hero.imageAlt')}
-                  className="w-full h-full object-cover scale-x-[-1]"
-                  loading="lazy"
-                  width={640}
-                  height={800}
-                />
-                {/* Badge Dakar — INSIDE image on mobile/tablet */}
-                <div className="absolute bottom-4 right-4 lg:hidden bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm rounded-xl px-4 py-3 shadow-xl border border-white/40 dark:border-neutral-700 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-morrys-50 dark:bg-morrys-900/30 flex items-center justify-center shrink-0">
-                    <MapPin className={`w-4 h-4 ${theme.accentText}`} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-neutral-900 dark:text-white leading-none">{t('hero.locationCity')}</p>
-                    <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1 font-semibold tracking-wide uppercase">{t('hero.locationRegion')}</p>
-                  </div>
-                </div>
-              </div>
-              {/* Badge Dakar — floating on desktop only */}
-              <motion.div
-                className="hidden lg:flex absolute -bottom-6 -right-8 bg-white dark:bg-neutral-800 rounded-2xl px-5 py-4 shadow-xl border border-neutral-100 dark:border-neutral-700 items-center gap-3"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: 'easeOut', delay: 0.6 }}
-              >
-                <div className="w-10 h-10 rounded-full bg-morrys-50 dark:bg-morrys-900/20 flex items-center justify-center shrink-0">
-                  <MapPin className={`w-5 h-5 ${theme.accentText}`} />
-                </div>
-                <div>
-                  <p className="text-sm font-black text-neutral-900 dark:text-white leading-none">{t('hero.locationCity')}</p>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 font-medium tracking-wide uppercase">{t('hero.locationRegion')}</p>
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── MENU D'ANCRAGE STICKY ── */}
-      <nav className="sticky top-[var(--header-h)] z-30 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border-y border-neutral-200/80 dark:border-neutral-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
-          <ul className="flex justify-start lg:justify-center gap-1.5 sm:gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {sectionNav.map((s, i) => {
-              const active = activeSection === s.id;
-              return (
-                <li key={s.id}>
-                  <a
-                    href={`#${s.id}`}
-                    className={`group flex items-center gap-2 whitespace-nowrap rounded-full pl-2.5 pr-3.5 sm:pl-3 sm:pr-4 py-2 text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 ${
-                      active
-                        ? `${theme.buttonSolid} shadow-sm shadow-morrys-600/20`
-                        : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/70 hover:text-neutral-900 dark:hover:text-white'
-                    }`}
-                  >
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black tabular-nums transition-colors ${
-                        active
-                          ? 'bg-white/25 text-white'
-                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 group-hover:bg-morrys-100 group-hover:text-morrys-600 dark:group-hover:bg-morrys-900/40 dark:group-hover:text-morrys-300'
-                      }`}
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    {t(`sectionNav.${s.key}`)}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </nav>
-
-      {/* ── 2. RÉSUMÉ D'IMPACT ── */}
-      <motion.section
-        id="impact"
-        className="py-24 bg-white dark:bg-neutral-950 scroll-mt-32"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-14 text-center">
-            <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-5`}>
-              {t('impact.eyebrow')}
-            </p>
-            <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-4">
-              {t('impact.heading')}
-            </h2>
-            <p className="text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto">
-              {t('impact.desc')}
-            </p>
-          </div>
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-neutral-200 dark:divide-neutral-700 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-          >
-            <motion.div variants={staggerItem} className="text-center py-10 px-8 bg-neutral-50 dark:bg-neutral-900">
-              <p className={`text-5xl lg:text-6xl font-black ${theme.accentText} tracking-tight`}>
-                <CountUp value={1790} prefix="+" suffix=" %" format />
-              </p>
-              <p className="font-bold text-neutral-900 dark:text-white mt-2">{t('impact.trafficLabel')}</p>
-              <p className="text-xs text-neutral-400 mt-1">{t('impact.trafficSub')}</p>
-            </motion.div>
-            <motion.div variants={staggerItem} className="text-center py-10 px-8 bg-neutral-50 dark:bg-neutral-900">
-              <p className={`text-5xl lg:text-6xl font-black ${theme.accentText} tracking-tight`}>
-                <CountUp value={8000} prefix="+" format />
-              </p>
-              <p className="font-bold text-neutral-900 dark:text-white mt-2">{t('impact.followersLabel')}</p>
-              <p className="text-xs text-neutral-400 mt-1">{t('impact.followersSub')}</p>
-            </motion.div>
-            <motion.div variants={staggerItem} className="text-center py-10 px-8 bg-neutral-50 dark:bg-neutral-900">
-              <p className={`text-5xl lg:text-6xl font-black ${theme.accentText} tracking-tight`}>
-                <CountUp value={5} prefix="+" />
-              </p>
-              <p className="font-bold text-neutral-900 dark:text-white mt-2">{t('impact.platformsLabel')}</p>
-              <p className="text-xs text-neutral-400 mt-1">{t('impact.platformsSub')}</p>
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* ── 3. EXPERTISE & COMPÉTENCES (fusion) ── */}
-      <motion.section
-        id="expertise"
-        className="py-24 bg-neutral-50 dark:bg-neutral-900 scroll-mt-32"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-4">
-              {t('expertiseSection.heading')}
-            </h2>
-            <p className="text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto">
-              {t('expertiseSection.desc')}
-            </p>
-          </div>
-          <motion.div
-            className="grid md:grid-cols-2 gap-6"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-          >
-            {expertise.map((item) => {
-              const tags = t(`expertise.${item.key}.tags`, { returnObjects: true }) as string[];
-              return (
-                <motion.div
-                  key={item.key}
-                  variants={staggerItem}
-                  className="bg-white dark:bg-neutral-950 rounded-2xl p-8 border border-neutral-100 dark:border-neutral-800 flex flex-col hover:border-morrys-300 dark:hover:border-morrys-700 hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="w-10 h-10 rounded-full bg-morrys-50 dark:bg-morrys-900/20 flex items-center justify-center mb-5">
-                    <item.icon className={`w-5 h-5 ${theme.accentText}`} />
-                  </div>
-                  <h3 className="font-black text-xl text-neutral-900 dark:text-white mb-3">{t(`expertise.${item.key}.title`)}</h3>
-                  <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-5">{t(`expertise.${item.key}.desc`)}</p>
-                  <div className="flex flex-wrap items-start content-start gap-2 mb-6 flex-1">
-                    {tags.map((tag) => (
-                      <span key={tag} className={`px-3 py-1 ${theme.softBadge} text-xs font-semibold rounded-full whitespace-nowrap`}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <p className={`text-sm font-bold ${theme.accentText} border-t border-neutral-200 dark:border-neutral-700 pt-4`}>
-                    {t(`expertise.${item.key}.stat`)}
-                  </p>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
-      </motion.section>
-
-
-      {/* ── 5. STACK & OUTILS (rupture sombre) ── */}
-      <motion.section
-        className="py-16 bg-neutral-950 dark:bg-black"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-white leading-[0.95] mb-3">
-            {t('stack.heading')}
-          </h2>
-          <p className="text-neutral-400 max-w-xl mx-auto mb-10">
-            {t('stack.desc')}
-          </p>
-          <motion.div
-            className="flex flex-wrap justify-center gap-3"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.1 } },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-          >
-            {(t('stack.items', { returnObjects: true }) as string[]).map((tool) => (
-              <motion.span
-                key={tool}
-                variants={staggerItem}
-                className="px-4 py-2 rounded-full bg-neutral-900 border border-neutral-800 text-sm font-semibold text-neutral-200 hover:border-morrys-500 hover:text-white hover:-translate-y-0.5 transition-all duration-200"
-              >
-                {tool}
-              </motion.span>
-            ))}
-          </motion.div>
-        </div>
-      </motion.section>
-
-      {/* ── 7. VALEURS ── */}
-      <motion.section
-        className="py-24 bg-white dark:bg-neutral-950"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
-            <div>
-              <h2 className="text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-6">
-                {t('valuesSection.heading')}
-              </h2>
-              <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                {t('valuesSection.desc')}
-              </p>
-            </div>
-            <motion.div
-              className="border-t border-neutral-200 dark:border-neutral-800"
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOnce}
-            >
-              {values.map((v) => (
-                <motion.div
-                  key={v.key}
-                  variants={staggerItem}
-                  className="flex items-start gap-5 py-7 border-b border-neutral-200 dark:border-neutral-800"
-                >
-                  <div className="w-10 h-10 rounded-full bg-morrys-50 dark:bg-morrys-900/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <v.icon className={`w-5 h-5 ${theme.accentText}`} />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-lg text-neutral-900 dark:text-white mb-1">{t(`values.${v.key}.title`)}</h3>
-                    <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">{t(`values.${v.key}.desc`)}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ── 7. PARCOURS (narrative + timeline fusionnés) ── */}
-      <motion.section
-        id="parcours"
-        className="py-24 lg:py-32 bg-neutral-50 dark:bg-neutral-900 scroll-mt-32"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-14">
-            <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-4`}>
-              {t('parcours.eyebrow')}
-            </p>
-            <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-6">
-              {t('parcours.heading')}
-            </h2>
-            <div className="space-y-5 text-base lg:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-3xl">
-              <p>{t('parcours.p1')}</p>
-              <p>{t('parcours.p2')}</p>
-              <p>{t('parcours.p3')}</p>
-            </div>
-          </div>
-
-          {/* Timeline — rail unique, aligné mobile ET desktop */}
-          <div className="relative">
-            {/* Rail vertical */}
-            <div
-              className="absolute left-2 top-1.5 bottom-1.5 w-px bg-neutral-200 dark:bg-neutral-700"
-              aria-hidden="true"
+      <PageSite>
+        {/* ── 1 · Le héros — le positionnement, puis l'aveu ─────────────────── */}
+        <div className="grid items-center gap-[46px] pb-[14px] lg:grid-cols-[1.04fr_.96fr]">
+          <div>
+            <SiteEyebrow>{t('page.eyebrow')}</SiteEyebrow>
+            {/* Écrit ligne par ligne, jamais replié (AD-13). */}
+            <SiteDisplay
+              lines={t('page.titleLines', { returnObjects: true }) as string[]}
+              size={60}
+              from={1}
+              style={{ marginTop: '9px' }}
             />
 
-            {/* Nœud de bascule en tête de frise */}
-            <div className="relative pl-10 mb-8">
-              <span
-                className="absolute left-2 top-1.5 -translate-x-1/2 w-3.5 h-3.5 rounded-full border-2 border-morrys-400 dark:border-morrys-500 bg-neutral-50 dark:bg-neutral-900 ring-4 ring-neutral-50 dark:ring-neutral-900"
-                aria-hidden="true"
-              />
-              <button
-                type="button"
-                onClick={() => setShowAllMilestones((v) => !v)}
-                aria-expanded={showAllMilestones}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-700 text-sm font-bold text-neutral-700 dark:text-neutral-200 hover:bg-white dark:hover:bg-neutral-800 hover:border-morrys-400 dark:hover:border-morrys-600 transition-all"
-              >
-                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showAllMilestones ? 'rotate-180' : ''}`} />
-                {showAllMilestones ? t('parcours.collapse') : t('parcours.expand')}
-              </button>
-            </div>
-
-            {/* Étapes anciennes (2014-2021) — repliables */}
-            <div
-              className={`grid transition-all duration-500 ease-out ${
-                showAllMilestones ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-              }`}
+            <p
+              className="mm-prose rv mt-4 max-w-[46ch] text-[17px] leading-[1.55] text-ink-2"
+              style={{ ['--i' as string]: 4 }}
             >
-              <div className="overflow-hidden">
-                <div className="space-y-8 mb-8">
-                  {milestones.slice(0, 5).map((m) => (
-                    <MilestoneRow
-                      key={m.key}
-                      m={m}
-                      t={t}
-                      open={openMilestone === m.key}
-                      onToggle={() => setOpenMilestone(openMilestone === m.key ? null : m.key)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
+              {t('page.lede')}
+            </p>
+            <p
+              className="mm-prose rv mt-[14px] max-w-[46ch] text-[14.5px] leading-[1.6] text-ink-2"
+              style={{ ['--i' as string]: 5 }}
+            >
+              {t('page.aloneBody')} <b className="text-ink">{t('page.aloneStrong')}</b>
+            </p>
 
-            {/* Étapes récentes (depuis 2023) — toujours visibles */}
-            <div className="space-y-8">
-              {milestones.slice(5).map((m) => (
-                <MilestoneRow
-                      key={m.key}
-                      m={m}
-                      t={t}
-                      open={openMilestone === m.key}
-                      onToggle={() => setOpenMilestone(openMilestone === m.key ? null : m.key)}
+            <div className="rv mt-6 flex flex-wrap gap-3" style={{ ['--i' as string]: 6 }}>
+              <Button href={path('/contact')} tone="primary" fullWidth={false}>
+                {t('page.ctaContact')}
+              </Button>
+              <Button href={path('/formations')} tone="ghost" fullWidth={false}>
+                {t('page.ctaFormations')}
+              </Button>
+            </div>
+          </div>
+
+          {/*
+            LA PLACE DU PORTRAIT. Un dégradé de marque — `--action-informe`, poids zéro — et
+            DANS ce dégradé, l'emplacement déclaré. Ce n'est pas un fond d'attente : c'est la
+            réponse publiée à la question « pourquoi n'y a-t-il pas de photo ». (FR-084)
+          */}
+          <div
+            className="rv-s flex h-[400px] items-end rounded-xl p-[18px]"
+            style={{
+              background: 'var(--action-informe)',
+              boxShadow: '0 20px 46px color-mix(in srgb, var(--mm-orange) 24%, transparent)',
+              ['--i' as string]: 5,
+            }}
+          >
+            <SiteSlot
+              title={t('page.slotPortraitTitle')}
+              style={{
+                width: '100%',
+                background: 'color-mix(in srgb, var(--paper-fixed) 90%, transparent)',
+                borderColor: 'color-mix(in srgb, var(--mm-orange) 70%, transparent)',
+              }}
+            >
+              {t('page.slotPortraitBody')}
+            </SiteSlot>
+          </div>
+        </div>
+      </PageSite>
+
+      {/* ── 2 · Ce que je fais, concrètement ─────────────────────────────────── */}
+      <SiteBand>
+        <SiteDisplay as="h2" lines={t('page.doesTitle', { returnObjects: true }) as string[]} size={34} />
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {DOES.map((item, i) => (
+            <GlassPanel level="flat" padding={24} key={item.key} className="rv" style={{ ['--i' as string]: i + 1 }}>
+              <span
+                aria-hidden="true"
+                className="grid h-[38px] w-[38px] place-items-center rounded-[12px]"
+                style={{ background: `color-mix(in srgb, ${item.tint} 16%, transparent)` }}
+              >
+                <Icon name={item.glyph} size={19} color={item.ink} />
+              </span>
+              <p className="mt-[13px] mb-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">
+                {t(`page.does${item.key}Title`)}
+              </p>
+              <p className="mm-prose mt-2 mb-0 max-w-[42ch] text-[14px] leading-[1.55] text-ink-2">
+                {t(`page.does${item.key}Body`)}
+              </p>
+            </GlassPanel>
+          ))}
+        </div>
+      </SiteBand>
+
+      {/* ── 3 · Le parcours, et ce qu'il a réellement produit ────────────────── */}
+      <PageSite>
+        <div className="grid items-start gap-[46px] lg:grid-cols-[1fr_.9fr]">
+          <div>
+            <SiteDisplay as="h2" lines={t('page.pathTitle', { returnObjects: true }) as string[]} size={34} />
+            <p
+              className="mm-prose rv mt-[11px] max-w-[44ch] text-[15.5px] leading-[1.6] text-ink-2"
+              style={{ ['--i' as string]: 2 }}
+            >
+              {t('page.pathLede')}
+            </p>
+
+            {/*
+              LA FRISE. Un rail de 2 px en `--fill-3` et un point par jalon : `--fill-3` et
+              `--ink-3` sont des jetons de FILET, ils ne portent jamais de texte (AD-18).
+              La date passe par `<Num>` — c'est le seul chemin du dépôt vers la monospace — et
+              le lieu reste en corps, parce qu'un nom de ville n'est pas un nombre vérifié.
+            */}
+            <div
+              className="rv mt-[26px] pl-[22px]"
+              style={{ borderLeft: '2px solid var(--fill-3)', ['--i' as string]: 3 }}
+            >
+              {MILESTONES.map((key, i) => (
+                <div key={key} className="relative" style={{ paddingBottom: i === MILESTONES.length - 1 ? 0 : '24px' }}>
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-[-29px] top-[5px] h-3 w-3 rounded-full"
+                    style={{ background: 'var(--surface-page)', border: '2.5px solid var(--mm-orange)' }}
+                  />
+                  <p className="m-0 text-[11px] text-ink-2">
+                    <Num
+                      value={t(`milestones.${key}.year`)}
+                      source={{ cite: t('page.pathCite') }}
+                      asOf={DECLARED_AT}
                     />
+                    <span className="ml-[6px]">· {t(`milestones.${key}.lieu`)}</span>
+                  </p>
+                  <b className="mt-[3px] block text-[15.5px] font-bold text-ink">{t(`milestones.${key}.title`)}</b>
+                  <p className="mm-prose mt-[5px] mb-0 max-w-[52ch] text-[13.5px] leading-[1.55] text-ink-2">
+                    {t(`milestones.${key}.desc`)}
+                  </p>
+                </div>
               ))}
             </div>
+
+            {/* Emplacement déclaré nº 2 — ce que la frise ne peut toujours pas prouver. */}
+            <SiteSlot title={t('page.slotPathTitle')} style={{ marginTop: '18px' }}>
+              {t('page.slotPathBody')} <b className="text-ink">{t('page.slotPathStrong')}</b>
+            </SiteSlot>
+          </div>
+
+          <div>
+            {/*
+              LES COMPTEURS DE PRODUCTION — ce qui remplace les trois chiffres d'audience.
+              Quatre nombres, tous lus en base, tous datés. Le panneau porte lui-même la phrase
+              qui explique la substitution : sans elle, quatre petits chiffres passeraient pour
+              une modestie, alors que c'est une règle.
+            */}
+            <GlassPanel level="hero" padding={26} className="rv" style={{ ['--i' as string]: 4 }}>
+              <SiteEyebrow style={{ margin: 0 }}>
+                {t('page.producedTitle')} · {formatDate(asOf.toISOString())}
+              </SiteEyebrow>
+              <div className="mt-[14px] grid grid-cols-2 gap-[14px]">
+                {production.map((cell) => (
+                  <div key={cell.key}>
+                    <p className="m-0 text-[32px] text-ink">
+                      <Num value={cell.value} source="db" asOf={asOf} />
+                    </p>
+                    <p className="m-0 text-[12.5px] text-ink-2">{t(`page.${cell.key}`)}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="my-[18px] h-px bg-[color:var(--border-hair)]" />
+              <p className="mm-prose m-0 max-w-[46ch] text-[13px] leading-[1.55] text-ink-2">
+                {t('page.producedBody')} <b className="text-ink">{t('page.producedStrong')}</b>
+              </p>
+            </GlassPanel>
+
+            <GlassPanel level="flat" padding={24} className="rv mt-4" style={{ ['--i' as string]: 5 }}>
+              <SiteEyebrow style={{ margin: 0 }}>{t('page.soloTitle')}</SiteEyebrow>
+              <p className="mm-prose mt-[9px] mb-0 max-w-[46ch] text-[14.5px] leading-[1.6] text-ink-2">
+                {t('page.soloBody')} <b className="text-ink">{t('page.soloStrong')}</b>
+              </p>
+            </GlassPanel>
           </div>
         </div>
-      </motion.section>
+      </PageSite>
 
-      {/* ── 8. AU-DELÀ DE LA MARQUE PERSONNELLE ──
-          Section volontairement courte. MY ONOMA n'est pas une co-marque de ce site : elle
-          apparaît quand la structure a besoin d'être claire, et pas davantage.
-          ⚠️ Aucun rôle ni titre de Max-Morrys au sein de MY ONOMA n'est publié : cette
-          information n'est pas validée. Voir docs/CONTENT-TODO.md §4. */}
-      <motion.section
-        className="py-20 lg:py-24 bg-neutral-950 text-white"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-bold tracking-[0.35em] uppercase text-lagoon-400 mb-5">
-            {t('beyond.eyebrow')}
-          </p>
-          <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-balance mb-5">
-            {t('beyond.heading')}
-          </h2>
-          <p className="text-neutral-300 leading-relaxed max-w-2xl">{t('beyond.desc')}</p>
+      {/* ── 4 · Où tout ça se range — l'arbre de marque ──────────────────────── */}
+      <SiteBand>
+        <SiteDisplay as="h2" lines={t('page.treeTitle', { returnObjects: true }) as string[]} size={34} />
+        <p
+          className="mm-prose rv mt-[10px] max-w-[60ch] text-[15.5px] leading-[1.6] text-ink-2"
+          style={{ ['--i' as string]: 1 }}
+        >
+          {t('page.treeLede')}
+        </p>
 
-          <ul className="mt-10 grid gap-4 sm:grid-cols-3">
-            {pillars.map((pillar) => (
-              <li key={pillar} className="rounded-2xl border border-neutral-800 p-5">
-                <span className="text-sm font-black tracking-[0.2em] text-white">{pillar}</span>
-                <p className="mt-2 text-sm text-neutral-400 leading-relaxed">
-                  {t(`beyond.pillars.${pillar.toLowerCase()}`)}
-                </p>
-              </li>
+        <div className="mt-[22px] grid gap-4 md:grid-cols-3">
+          {tree.map((branch, i) => (
+            <GlassPanel
+              level="flat"
+              padding={24}
+              key={branch.name}
+              className="rv"
+              style={{
+                ['--i' as string]: i + 2,
+                borderColor: branch.accent ? 'color-mix(in srgb, var(--mm-corail) 32%, transparent)' : undefined,
+              }}
+            >
+              <Tag
+                style={branch.accent
+                  ? { background: 'color-mix(in srgb, var(--mm-corail) 14%, transparent)', color: 'var(--mm-corail-t)' }
+                  : undefined}
+              >
+                {branch.badge}
+              </Tag>
+              <p className="mt-[11px] mb-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">
+                {branch.name}
+              </p>
+              <p className="mm-prose mt-2 mb-0 max-w-[42ch] text-[14px] leading-[1.55] text-ink-2">{branch.body}</p>
+            </GlassPanel>
+          ))}
+        </div>
+
+        {/* Les trois faits corporate. Ils viennent de `legalEntity`, qui porte les pièces. */}
+        <GlassPanel level="flat" padding={22} className="rv mt-[18px]" style={{ ['--i' as string]: 5 }}>
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div>
+              <p className="m-0 text-[12.5px] text-ink-2">{t('page.treeRegistered')}</p>
+              <p className="mt-[2px] mb-0 text-[18px] text-ink">
+                <Num
+                  value={formatDate(legalEntity.registeredAt)}
+                  source={{ cite: t('page.treeCite') }}
+                  asOf={new Date(legalEntity.registeredAt)}
+                />
+              </p>
+            </div>
+            <div>
+              <p className="m-0 text-[12.5px] text-ink-2">{t('page.treeSeat')}</p>
+              <p className="mt-[2px] mb-0 text-[18px] font-semibold text-ink">
+                {legalEntity.city}, {legalEntity.country}
+              </p>
+            </div>
+            <div>
+              <p className="m-0 text-[12.5px] text-ink-2">{t('page.treePillars')}</p>
+              <p className="mt-[2px] mb-0 text-[18px] font-semibold text-ink">{pillars.join(' · ')}</p>
+            </div>
+          </div>
+        </GlassPanel>
+      </SiteBand>
+
+      {/* ── 5 · Où me trouver ────────────────────────────────────────────────── */}
+      <PageSite>
+        <div className="grid items-center gap-[44px] lg:grid-cols-[.95fr_1.05fr]">
+          <div>
+            <SiteDisplay as="h2" lines={t('page.findTitle', { returnObjects: true }) as string[]} size={34} />
+            <p
+              className="mm-prose rv mt-[11px] max-w-[40ch] text-[15.5px] leading-[1.6] text-ink-2"
+              style={{ ['--i' as string]: 2 }}
+            >
+              {t('page.findLede')}
+            </p>
+            {/* Emplacement déclaré nº 3 — ce qui reste vide, et pourquoi on ne le devine pas. */}
+            <SiteSlot title={t('page.slotFindTitle')} style={{ marginTop: '18px' }}>
+              {t('page.slotFindBody')} <b className="text-ink">{t('page.slotFindStrong')}</b>
+            </SiteSlot>
+          </div>
+
+          {/*
+            AUCUN LOGO DE PLATEFORME. Le kit dessine les marques tierces en aplat de leur
+            couleur — quatre hexadécimaux hors du système, quatre tracés à embarquer, et un
+            second jeu d'icônes sur un écran qui en a déjà un. La pastille d'initiale du DS
+            dit la même chose pour zéro octet, et le nom est écrit juste à côté.
+          */}
+          <GlassPanel level="flat" padding={24} className="rv" style={{ ['--i' as string]: 3 }}>
+            {socialLinks.map((profile, i) => (
+              <a
+                key={profile.name}
+                href={profile.url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 py-[11px] no-underline"
+                style={i ? { borderTop: '1px solid var(--border-hair)' } : undefined}
+              >
+                <Avatar
+                  initials={profile.name.slice(0, 1)}
+                  size={34}
+                  background={i % 2 ? 'var(--action-informe)' : 'var(--action-forme)'}
+                  style={{ borderRadius: '11px' }}
+                />
+                <span className="min-w-0 flex-1">
+                  <b className="block text-[14px] text-ink">{profile.name}</b>
+                  <span className="block truncate text-[12px] text-ink-2">
+                    {profile.url.replace(/^https?:\/\/(www\.)?/, '')}
+                  </span>
+                </span>
+                <Tag tone="ok">{t('page.findDeclared')}</Tag>
+              </a>
             ))}
-          </ul>
+          </GlassPanel>
+        </div>
 
-          <div className="mt-10 flex flex-col sm:flex-row gap-6 sm:items-center">
-            <a
-              href={corporateUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 font-semibold text-lagoon-400 hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-400 rounded"
+        {/* ── 6 · L'appel final ─────────────────────────────────────────────── */}
+        <div
+          className="rv mt-11 grid items-center gap-9 rounded-xl p-[34px] lg:grid-cols-[1.2fr_.8fr]"
+          style={{
+            background: 'var(--action-informe)',
+            color: 'var(--paper-fixed)',
+            boxShadow: '0 20px 48px color-mix(in srgb, var(--mm-orange) 30%, transparent)',
+          }}
+        >
+          <div>
+            <SiteDisplay
+              as="h2"
+              lines={t('page.closingTitle', { returnObjects: true }) as string[]}
+              size={33}
+              style={{ lineHeight: 1.06 }}
+            />
+            {/* Le compte d'articles est le seul argument de ce bloc : il passe par <Num>. */}
+            <p className="mm-prose mt-[11px] mb-0 max-w-[50ch] text-[15px]">
+              {t('page.closingBefore')}{' '}
+              <Num value={counts?.publishedArticles ?? null} source="db" asOf={asOf} />{' '}
+              {t('page.closingAfter')}
+            </p>
+          </div>
+          <div className="flex flex-col gap-[10px]">
+            <Button
+              href={path('/blog')}
+              focusInvert
+              style={{ background: 'var(--paper-fixed)', color: 'var(--ink-fixed)', boxShadow: 'none' }}
             >
-              {t('beyond.cta')} <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </a>
-            <LocalizedLink
-              to="/agence"
-              className="inline-flex items-center gap-2 font-semibold text-white hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+              {t('page.closingBlog')}
+            </Button>
+            <Button
+              href={path('/contact')}
+              focusInvert
+              style={{
+                background: 'color-mix(in srgb, var(--paper-fixed) 16%, transparent)',
+                color: 'var(--paper-fixed)',
+                border: '1px solid color-mix(in srgb, var(--paper-fixed) 30%, transparent)',
+                boxShadow: 'none',
+              }}
             >
-              {t('beyond.ctaAgency')} <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </LocalizedLink>
+              {t('page.closingContact')}
+            </Button>
           </div>
         </div>
-      </motion.section>
-
-      {/* ── 9. CTA FINAL ── */}
-      <motion.section
-        className="py-24 bg-gradient-to-br from-morrys-600 to-morrys-800 text-white"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xs font-bold tracking-[0.35em] uppercase text-morrys-200 mb-5">
-            {t('finalCta.eyebrow')}
-          </p>
-          <h2 className="text-4xl lg:text-5xl font-black mb-5 tracking-tight">{t('finalCta.heading')}</h2>
-          <p className="text-morrys-100 text-lg mb-10 leading-relaxed max-w-xl mx-auto">
-            {t('finalCta.desc')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-            <LocalizedLink to="/contact" className="inline-flex items-center gap-2 bg-white text-morrys-700 font-bold px-8 py-4 rounded-full hover:bg-morrys-50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide">
-              {t('finalCta.ctaContact')} <ArrowRight className="w-4 h-4" />
-            </LocalizedLink>
-            <LocalizedLink to="/formations" className="inline-flex items-center gap-2 text-white font-bold text-sm tracking-wide hover:text-morrys-100 hover:translate-x-0.5 transition-all duration-300">
-              <BookOpen className="w-4 h-4" /> {t('finalCta.ctaFormations')} <ArrowRight className="w-4 h-4" />
-            </LocalizedLink>
-          </div>
-        </div>
-      </motion.section>
-    </div>
+      </PageSite>
+    </DsNavHost>
   );
 }

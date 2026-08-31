@@ -1,8 +1,7 @@
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import {
-  Heart, BellRinging, ArrowSquareOut, ShareFat, Check,
-} from '@phosphor-icons/react';
+import { GlassPanel, Icon, Num, Tag, TruthPanel } from '@ds';
 import { cn } from '../../../../lib/utils';
 import { markdownToHtml } from '../../../../lib/markdown';
 import { useFormat } from '../../../../hooks/useFormat';
@@ -17,6 +16,26 @@ interface ClubInfosProps {
   data: ClubData;
 }
 
+/**
+ * LE SEUL DES HUIT ONGLETS QUE LE KIT NE DESSINE PAS.
+ *
+ * `club-huit-onglets.html` en maquette sept — Fil, Discussions, Agenda, Membres, Classement,
+ * Opportunités, Parrainage — et s'arrête là. « Infos exclusives » n'a pas d'écran.
+ *
+ * Son écriture existe pourtant ailleurs, dans `ClubGaranti` : une étiquette de ton, un titre
+ * en display, un corps en encre secondaire, sur du verre plat — puis un encart de vérité qui
+ * sépare ce qui est promis de ce qui dépend des membres. C'est exactement la forme dont une
+ * annonce, une ressource ou un article a besoin, et elle est REPRISE plutôt qu'inventée.
+ *
+ * L'encart de fin porte le fond de `ClubGaranti`, ramené à ce que cet onglet-ci peut tenir :
+ * la publication est du ressort de l'auteur, la densité du fil ne l'est pas. Le kit l'écrit
+ * pour la page de vente ; c'est encore plus vrai une fois payé.
+ *
+ * TROIS ÉTIQUETTES, UN SEUL TON. Le contrat de `Tag` est explicite : « une étiquette qui ne
+ * dit qu'une catégorie n'a pas de ton — elle est `neutral` ». Annonce, ressource et article
+ * sont trois catégories, pas trois états : elles ne peuvent pas emprunter `ok` et `warn` à
+ * `ClubGaranti`, où ces deux tons disent « acquis » et « en attente ».
+ */
 export default function ClubInfos({ data }: ClubInfosProps) {
   const { t } = useTranslation('club');
   const { formatDate } = useFormat();
@@ -26,52 +45,112 @@ export default function ClubInfos({ data }: ClubInfosProps) {
     handleLikeInfo, handleInfoShare,
   } = data;
 
+  /** La date à laquelle ces enregistrements ont été lus — la provenance que <Num> exige. */
+  const asOf = useRef(new Date()).current;
+
   if (clubInfos.length === 0) {
-    return <ClubEmptyState icon={BellRinging} title={t('infos.emptyTitle')} subtitle={t('infos.emptySubtitle')} />;
+    return <ClubEmptyState icon="bell" title={t('infos.emptyTitle')} subtitle={t('infos.emptySubtitle')} />;
   }
 
+  const typeLabel = (type: string) => (
+    type === 'announcement' ? t('infos.typeAnnouncement')
+      : type === 'resource' ? t('infos.typeResource')
+        : t('infos.typeArticle')
+  );
+
   return (
-    <motion.div
-      className="grid lg:grid-cols-2 gap-4 items-start"
-      variants={staggerContainer}
-      initial="hidden"
-      animate="visible"
-    >
-      {clubInfos.map((info) => {
-        const infoLiked = user ? (info.likes ?? []).includes(user.uid) : false;
-        return (
-          <motion.div key={info.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-5 relative">
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide', info.type === 'announcement' ? 'bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400' : info.type === 'resource' ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400' : 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400')}>
-                {info.type === 'announcement' ? t('infos.typeAnnouncement') : info.type === 'resource' ? t('infos.typeResource') : t('infos.typeArticle')}
-              </span>
-              <p className="text-xs text-neutral-400 flex-shrink-0">{formatDate(info.publishedAt)}</p>
-            </div>
-            <h4 className="font-bold text-neutral-900 dark:text-white mb-2">{info.title}</h4>
-            <div className="prose prose-sm dark:prose-invert max-w-none text-neutral-600 dark:text-neutral-400 leading-relaxed mb-3 prose-headings:text-neutral-900 dark:prose-headings:text-white prose-a:text-plum-600 dark:prose-a:text-plum-400" dangerouslySetInnerHTML={{ __html: markdownToHtml(info.content) }} />
-            {info.link && <a href={info.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-plum-600 dark:text-plum-400 hover:underline mb-3"><ArrowSquareOut className="w-3.5 h-3.5" weight="bold" /> {t('infos.learnMore')}</a>}
-            <div className="flex items-center gap-1 pt-3 border-t border-neutral-100 dark:border-neutral-700">
-              <button onClick={() => handleLikeInfo(info.id, !infoLiked)} className={cn('flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-xl transition-colors', infoLiked ? 'text-coral-500 bg-coral-50 dark:bg-coral-900/20' : 'text-neutral-400 hover:text-coral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700')}>
-                <Heart className="w-4 h-4" weight={infoLiked ? 'fill' : 'regular'} /> {(info.likes ?? []).length > 0 && (info.likes ?? []).length} {t('infos.like')}
-              </button>
-              <div className="relative ml-auto">
-                <button onClick={() => setInfoShareMenuOpen(infoShareMenuOpen === info.id ? null : info.id)} className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-xl text-neutral-400 hover:text-plum-600 dark:hover:text-plum-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
-                  {copiedInfoId === info.id ? <Check className="w-4 h-4 text-success-500" weight="bold" /> : <ShareFat className="w-4 h-4" />} {t('infos.share')}
-                </button>
-                {infoShareMenuOpen === info.id && (
-                  <div className="absolute right-0 bottom-full mb-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-44 max-w-[calc(100vw-1.5rem)]">
-                    {SHARE_PLATFORMS.map((p) => (
-                      <button key={p.id} onClick={() => handleInfoShare(p.id, info)} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
-                        <span>{p.emoji}</span> {p.label}
-                      </button>
-                    ))}
-                  </div>
+    <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        {clubInfos.map((info) => {
+          const likes = info.likes ?? [];
+          const infoLiked = user ? likes.includes(user.uid) : false;
+          return (
+            <motion.div key={info.id} variants={staggerItem}>
+              <GlassPanel level="flat" padding={20} className="relative h-full">
+                <div className="flex items-start justify-between gap-3">
+                  <Tag>{typeLabel(info.type)}</Tag>
+                  <p className="flex-none text-small text-ink-2">{formatDate(info.publishedAt)}</p>
+                </div>
+
+                {/* La forme de `ClubGaranti` : display 19 px, puis le corps en encre secondaire. */}
+                <h4 className="mt-3 font-display text-[19px] font-black leading-tight tracking-[-.03em] text-ink">
+                  {info.title}
+                </h4>
+
+                <div
+                  className="mt-2 text-meta leading-relaxed text-ink-2 [&_a]:font-semibold [&_a]:text-transforme [&_a]:underline [&_code]:rounded-s [&_code]:bg-[color:var(--fill-2)] [&_code]:px-1 [&_h1]:mt-3 [&_h1]:font-bold [&_h1]:text-ink [&_h2]:mt-3 [&_h2]:font-bold [&_h2]:text-ink [&_h3]:mt-3 [&_h3]:font-bold [&_h3]:text-ink [&_img]:mt-3 [&_img]:rounded-m [&_li]:mt-1 [&_ol]:mt-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mt-2 [&_strong]:text-ink [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5"
+                  dangerouslySetInnerHTML={{ __html: markdownToHtml(info.content) }}
+                />
+
+                {info.link && (
+                  <a
+                    href={info.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center gap-1.5 text-meta-2 font-semibold text-transforme hover:underline"
+                  >
+                    <Icon name="share" size={14} /> {t('infos.learnMore')}
+                  </a>
                 )}
-              </div>
-            </div>
-          </motion.div>
-        );
-      })}
+
+                <div className="mt-4 flex items-center gap-1 border-t border-[color:var(--border-hair)] pt-3">
+                  <button
+                    type="button"
+                    onClick={() => handleLikeInfo(info.id, !infoLiked)}
+                    aria-pressed={infoLiked}
+                    className={cn(
+                      'mm-touch-extend inline-flex items-center gap-1.5 rounded-m px-2.5 py-1.5 text-meta-2 font-medium transition-colors duration-ui ease-ds',
+                      infoLiked
+                        ? 'bg-[color-mix(in_srgb,var(--mm-corail)_10%,transparent)] text-corail-txt'
+                        : 'text-ink-2 hover:bg-[color:var(--fill-2)] hover:text-corail-txt',
+                    )}
+                  >
+                    <Icon name="heart" size={15} />
+                    {likes.length > 0 && <Num value={likes.length} source="db" asOf={asOf} />}
+                    {t('infos.like')}
+                  </button>
+
+                  <div className="relative ml-auto">
+                    <button
+                      type="button"
+                      onClick={() => setInfoShareMenuOpen(infoShareMenuOpen === info.id ? null : info.id)}
+                      aria-expanded={infoShareMenuOpen === info.id}
+                      className="mm-touch-extend inline-flex items-center gap-1.5 rounded-m px-2.5 py-1.5 text-meta-2 font-medium text-ink-2 transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)] hover:text-transforme"
+                    >
+                      {copiedInfoId === info.id
+                        ? <span className="text-ok"><Icon name="check" size={15} /></span>
+                        : <Icon name="share" size={15} />}
+                      {t('infos.share')}
+                    </button>
+                    {infoShareMenuOpen === info.id && (
+                      <div className="glass-flat absolute bottom-full right-0 z-30 mb-1 w-44 max-w-[calc(100vw-1.5rem)] p-1.5">
+                        {SHARE_PLATFORMS.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => handleInfoShare(p.id, info)}
+                            className="flex w-full items-center gap-2 rounded-s px-3 py-2 text-meta-2 text-ink-2 transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]"
+                          >
+                            <Icon name={p.icon} size={15} /> {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </GlassPanel>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Repris de `ClubGaranti` : ce qui est tenu, et ce qui ne l'est pas encore. */}
+      <TruthPanel
+        provenTitle={t('infos.truth.provenTitle')}
+        withheldTitle={t('infos.truth.withheldTitle')}
+        proven={[t('infos.truth.proven1'), t('infos.truth.proven2')]}
+        withheld={[t('infos.truth.withheld1')]}
+      />
     </motion.div>
   );
 }

@@ -1,13 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Trophy, Crown, Medal, CircleNotch } from '@phosphor-icons/react';
-import { useFormat } from '../../../../hooks/useFormat';
-import { cn } from '../../../../lib/utils';
+import { Avatar, GlassPanel, Icon, LessonRow, Num, Skeleton, TerritoryCard, TruthPanel } from '@ds';
 import { getClubLeaderboard, type LeaderboardEntry } from '../../../../lib/gamification';
 import { getLevelTitle } from '../../../../types/gamification';
 import type { useClubData } from '../../hooks/useClubData';
-import { staggerContainer, staggerItem } from '../../../../lib/animations';
+import { staggerContainer } from '../../../../lib/animations';
+import { ClubEmptyState } from './_shared';
 
 type ClubData = ReturnType<typeof useClubData>;
 
@@ -17,116 +16,113 @@ interface ClubLeaderboardProps {
 
 const initialsOf = (name: string) => name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
 
-const rankAccent = (rank: number) =>
-  rank === 1 ? 'text-accent-500' : rank === 2 ? 'text-neutral-400' : rank === 3 ? 'text-coral-500' : 'text-neutral-300 dark:text-neutral-600';
-
-function Avatar({ entry, size }: { entry: LeaderboardEntry; size: string }) {
-  return (
-    <div className={cn('rounded-full bg-plum-100 dark:bg-plum-900/40 flex items-center justify-center flex-shrink-0 overflow-hidden', size)}>
-      {entry.photoURL
-        ? <img src={entry.photoURL} alt="" className="w-full h-full object-cover" />
-        : <span className="font-bold text-plum-600 dark:text-plum-400">{initialsOf(entry.displayName)}</span>}
-    </div>
-  );
-}
-
+/**
+ * LE CLASSEMENT — et l'endroit où le kit décrit une fonction que le produit n'a pas.
+ *
+ * ⚠️ L'écran `ClubClassement` du kit repose ENTIÈREMENT sur une notion de vague d'arrivée :
+ * son bandeau dit « Tu es 4ᵉ de ta vague », son sélecteur propose « Ma cohorte / Ma
+ * progression », et son encart de vérité s'intitule « Pourquoi ce n'est pas un classement
+ * général ». Le produit, lui, n'a qu'un `getClubLeaderboard()` : un top 20 ABSOLU, trié par
+ * XP, sans date d'arrivée nulle part dans le modèle.
+ *
+ * Reprendre l'encart du kit tel quel afficherait, mot pour mot, le contraire de ce que fait le
+ * code — sur l'écran d'un produit qui vend l'honnêteté chiffrée. Le sélecteur de cohorte est
+ * donc absent, et l'encart de vérité dit ce qui est vrai : le classement EST général, la
+ * comparaison par vague n'existe pas encore, et c'est écrit plutôt que sous-entendu.
+ *
+ * Le bandeau de tête, lui, survit : il porte le rang réel de la personne, lu en base.
+ */
 export default function ClubLeaderboard({ data }: ClubLeaderboardProps) {
   const { t } = useTranslation('club');
-  const { locale } = useFormat();
   const { user } = data;
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
+  const asOf = useRef(new Date()).current;
 
   useEffect(() => {
     getClubLeaderboard().then(setEntries).catch(() => setEntries([]));
   }, []);
 
   if (entries === null) {
-    return <div className="flex justify-center py-16"><CircleNotch className="w-8 h-8 animate-spin text-plum-500" /></div>;
-  }
-
-  if (entries.length === 0) {
     return (
-      <div className="text-center py-12 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
-        <Trophy className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" weight="duotone" />
-        <p className="text-neutral-500">{t('leaderboard.emptyText')}</p>
+      <div className="space-y-3">
+        <Skeleton height={118} radius="var(--r-l)" label={t('leaderboard.title')} />
+        <Skeleton height={240} radius="var(--r-l)" label={t('leaderboard.title')} />
       </div>
     );
   }
 
-  const podium = entries.slice(0, 3);
-  const rest = entries.slice(3);
-  const myRank = user ? entries.find((e) => e.userId === user.uid)?.rank : undefined;
+  if (entries.length === 0) {
+    return <ClubEmptyState icon="trophy" title={t('leaderboard.title')} subtitle={t('leaderboard.emptyText')} />;
+  }
+
+  const me = user ? entries.find((e) => e.userId === user.uid) : undefined;
 
   return (
-    <motion.div className="space-y-5" variants={staggerContainer} initial="hidden" animate="visible">
-      {/* Heading */}
-      <div className="flex items-center gap-2">
-        <Trophy className="w-5 h-5 text-plum-500" weight="duotone" />
-        <h3 className="font-bold text-neutral-900 dark:text-white">{t('leaderboard.title')}</h3>
-      </div>
+    <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
+      {/* Le bandeau du kit, sur la carte de territoire plutôt que sur un dégradé écrit à la
+          main : les jetons `--g-transforme-*` prennent leur variante nuit, un hexadécimal non. */}
+      <TerritoryCard
+        territory="transforme"
+        layout="plain"
+        padding={22}
+        meta={t('leaderboard.scope')}
+        title={me
+          ? <>{t('leaderboard.youAreRank')} <Num value={me.rank} source="db" asOf={asOf} /></>
+          : t('leaderboard.notRankedTitle')}
+        titleSize={24}
+      >
+        <p className="mt-2 text-meta leading-relaxed" style={{ color: 'var(--card-ink-2)' }}>
+          {me ? t('leaderboard.rankExplain') : t('leaderboard.notInTop20')}
+        </p>
+      </TerritoryCard>
 
-      {/* Podium top 3 */}
-      <div className="grid grid-cols-3 gap-1.5 sm:gap-3 items-end">
-        {[podium[1], podium[0], podium[2]].filter(Boolean).map((entry) => {
-          const isFirst = entry.rank === 1;
+      <GlassPanel level="flat" padding="4px 18px" as="ol" className="m-0 list-none">
+        {entries.map((entry, i) => {
+          const isMe = user?.uid === entry.userId;
           return (
-            <motion.div
-              key={entry.userId}
-              variants={staggerItem}
-              className={cn(
-                'flex flex-col items-center text-center rounded-2xl border p-2 sm:p-4 min-w-0',
-                isFirst
-                  ? 'bg-gradient-to-b from-plum-50 to-white dark:from-plum-900/30 dark:to-neutral-800 border-plum-300 dark:border-plum-700 sm:-mt-2'
-                  : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700',
-              )}
-            >
-              <div className="relative">
-                <Avatar entry={entry} size={isFirst ? 'w-12 h-12 sm:w-16 sm:h-16 text-base sm:text-lg' : 'w-10 h-10 sm:w-12 sm:h-12 text-xs sm:text-sm'} />
-                {isFirst && <Crown className="absolute -top-2.5 sm:-top-3 left-1/2 -translate-x-1/2 w-4 h-4 sm:w-5 sm:h-5 text-accent-500" weight="fill" />}
-              </div>
-              <Medal className={cn('w-4 h-4 mt-2', rankAccent(entry.rank))} weight="fill" />
-              <p className="text-[11px] sm:text-xs font-bold text-neutral-900 dark:text-white truncate max-w-full mt-1">{entry.displayName}</p>
-              <p className="text-[10px] sm:text-[11px] text-plum-600 dark:text-plum-400 font-semibold tabular-nums">{entry.xp.toLocaleString(locale)} XP</p>
-            </motion.div>
+            <li key={entry.userId}>
+              <LessonRow
+                state="plain"
+                last={i === entries.length - 1}
+                iconBackground="transparent"
+                icon={
+                  <span className={isMe ? 'text-transforme' : 'text-ink-2'}>
+                    <Num value={entry.rank} source="db" asOf={asOf} />
+                  </span>
+                }
+                title={
+                  <span className="flex items-center gap-1.5">
+                    {entry.displayName}
+                    {isMe && <span className="text-meta-2 font-normal text-transforme">{t('leaderboard.you')}</span>}
+                    {entry.rank === 1 && (
+                      <span className="text-informe-txt" aria-hidden="true"><Icon name="crown" size={14} /></span>
+                    )}
+                    {entry.rank > 1 && entry.rank <= 3 && (
+                      <span className="text-ink-2" aria-hidden="true"><Icon name="medal" size={14} /></span>
+                    )}
+                  </span>
+                }
+                meta={t('leaderboard.level', { level: entry.level, title: getLevelTitle(entry.level) })}
+                trailing={
+                  <span className="flex items-center gap-2.5">
+                    {entry.photoURL
+                      ? <img src={entry.photoURL} alt="" loading="lazy" className="h-[30px] w-[30px] flex-none rounded-full object-cover" />
+                      : <Avatar initials={initialsOf(entry.displayName)} size={30} />}
+                    <Num value={entry.xp} unit="XP" source="db" asOf={asOf} />
+                  </span>
+                }
+              />
+            </li>
           );
         })}
-      </div>
+      </GlassPanel>
 
-      {/* Rest of the list */}
-      {rest.length > 0 && (
-        <div className="space-y-1.5">
-          {rest.map((entry) => {
-            const isMe = user?.uid === entry.userId;
-            return (
-              <motion.div
-                key={entry.userId}
-                variants={staggerItem}
-                className={cn(
-                  'flex items-center gap-3 rounded-xl border px-3 py-2.5',
-                  isMe ? 'bg-plum-50 dark:bg-plum-900/20 border-plum-300 dark:border-plum-700' : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700',
-                )}
-              >
-                <span className={cn('w-6 text-center text-sm font-bold tabular-nums', isMe ? 'text-plum-600 dark:text-plum-400' : 'text-neutral-400')}>{entry.rank}</span>
-                <Avatar entry={entry} size="w-9 h-9 text-xs" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">
-                    {entry.displayName}{isMe && <span className="text-xs text-plum-500 font-normal">{t('leaderboard.you')}</span>}
-                  </p>
-                  <p className="text-xs text-neutral-400">{t('leaderboard.level', { level: entry.level, title: getLevelTitle(entry.level) })}</p>
-                </div>
-                <span className="text-sm font-bold text-plum-600 dark:text-plum-400 tabular-nums flex-shrink-0">{entry.xp.toLocaleString(locale)} XP</span>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Current user out of top 20 */}
-      {user && !myRank && (
-        <p className="text-xs text-neutral-400 text-center pt-1">
-          {t('leaderboard.notInTop20')}
-        </p>
-      )}
+      <TruthPanel
+        provenTitle={t('leaderboard.truth.provenTitle')}
+        withheldTitle={t('leaderboard.truth.withheldTitle')}
+        proven={[t('leaderboard.truth.proven1'), t('leaderboard.truth.proven2')]}
+        withheld={[t('leaderboard.truth.withheld1')]}
+      />
     </motion.div>
   );
 }

@@ -1,13 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Clock, Linkedin, Copy, Check, Loader2, Twitter, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import LocalizedLink from '../components/shared/LocalizedLink';
-import NewsletterForm from '../components/shared/NewsletterForm';
-import FormationCTA from '../components/shared/FormationCTA';
-import ArticleCard from '../components/shared/ArticleCard';
-import TranslatedText from '../components/shared/TranslatedText';
+import { Avatar, Breadcrumb, Button, GlassPanel, Icon, ReadingBar, Skeleton, TerritoryCard, TranslationNotice } from '@ds';
+import DsNavHost from '../components/layout/DsNavHost';
+import { LinkedInIcon, XIcon } from '../components/shared/SocialIcons';
+import { PageSite, SiteBand, SiteDisplay, SiteEyebrow, useReadingProgress } from '../components/site';
+import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
 import { getPostBySlug, getPublishedPosts, incrementBlogViews } from '../lib/firestore';
 import { markdownToHtml } from '../lib/markdown';
@@ -22,13 +20,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { contentPath } from '../lib/contentPath';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from '../components/seo/seo-config';
-import Breadcrumbs from '../components/ui/Breadcrumbs';
-import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
-import { universeThemes } from '../lib/sectionThemes';
 
-const theme = universeThemes.blog;
 
-const viewportOnce = { once: true, amount: 0.2 } as const;
 
 export default function BlogPost() {
   const { t } = useTranslation('blog');
@@ -82,22 +75,41 @@ export default function BlogPost() {
   const translatedPole = useTranslatedText(post ? categoryToPole(post.category) : '');
   const translatedBody = useTranslatedText(post?.content);
   const seoTitle = useTranslatedText(post?.metaTitle || post?.title);
-  const seoDescription = useTranslatedText(post?.metaDescription || post?.excerpt);
+  const seoDescription = useTranslatedText(post?.metaDescription) || translatedExcerpt;
 
+  const path = useLocalizedPath();
+  const progress = useReadingProgress();
+
+  /*
+   * Le chargement est un SQUELETTE À LA FORME du contenu attendu, pour que rien ne saute
+   * quand il arrive. Jamais un rond qui tourne : il ne dit ni ce qui se passe, ni combien de
+   * temps. La page portait un `Loader2 animate-spin` centré ; il n'annonçait rien.
+   */
   if (post === undefined) {
     return (
-      <div className="pt-32 pb-20 flex justify-center">
-        <Loader2 className={`w-8 h-8 animate-spin ${theme.spinner}`} />
-      </div>
+      <PageSite>
+        <div className="grid gap-12 lg:grid-cols-[1fr_300px]">
+          <div className="grid gap-4">
+            <Skeleton width={220} height={12} label={t('post.loading')} />
+            <Skeleton height={44} width="82%" />
+            <Skeleton height={44} width="58%" />
+            <Skeleton height={40} radius="var(--r-m)" style={{ marginTop: '12px' }} />
+            {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} height={14} width={i % 3 === 2 ? '72%' : '100%'} />)}
+          </div>
+          <Skeleton height={220} radius="var(--r-l)" />
+        </div>
+      </PageSite>
     );
   }
 
   if (!post) {
     return (
-      <div className="pt-32 pb-20 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{t('post.notFoundTitle')}</h1>
-        <LocalizedLink to="/blog" className={`${theme.accentText} hover:underline`}>{t('post.notFoundLink')}</LocalizedLink>
-      </div>
+      <PageSite>
+        <SiteDisplay lines={[t('post.notFoundTitle')]} size={34} />
+        <p className="mt-4">
+          <Button href={path('/blog')} tone="quiet" size="sm" fullWidth={false}>{t('post.notFoundLink')}</Button>
+        </p>
+      </PageSite>
     );
   }
 
@@ -119,238 +131,135 @@ export default function BlogPost() {
   };
 
   const shareUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.href : `${SITE_URL}/blog/${post.slug}`);
-  const shareBtn = 'w-10 h-10 rounded-lg border border-neutral-200 dark:border-neutral-700 flex items-center justify-center text-neutral-500 dark:text-neutral-400 hover:border-coral-400 hover:text-coral-600 dark:hover:text-coral-400 transition-colors';
+  const shareBtn =
+    'w-10 h-10 rounded-m border border-[color:var(--line)] flex items-center justify-center text-ink-2 transition';
 
   return (
-    <div className="bg-white dark:bg-neutral-950">
-      <SEOHead
-        title={seoTitle}
-        description={seoDescription}
-        ogType="article"
-        ogTitle={post.ogTitle}
-        ogDescription={post.ogDescription}
-        ogImage={post.ogImage || post.coverImage}
-        twitterTitle={post.twitterTitle}
-        twitterDescription={post.twitterDescription}
-        twitterImage={post.twitterImage}
-        canonical={post.canonicalUrl}
-        frPath={contentPath('blog', post, 'fr')}
-        enPath={contentPath('blog', post, 'en')}
-        noIndex={post.noIndex}
-        publishedAt={post.publishedAt}
-        modifiedAt={post.updatedAt}
-        author={post.author}
-      >
-        <link rel="preload" as="image" href={post.coverImage} />
-      </SEOHead>
+    <DsNavHost>
+      <SEOHead title={seoTitle} description={seoDescription} ogImage={post.coverImage || DEFAULT_OG_IMAGE} />
       <JsonLd data={{
         '@context': 'https://schema.org',
-        '@type': 'Article',
+        '@type': 'BlogPosting',
         headline: post.title,
         description: post.excerpt,
-        image: post.coverImage,
         datePublished: post.publishedAt,
-        dateModified: post.updatedAt || post.publishedAt,
-        author: { '@type': 'Person', name: post.author || 'Max-Morrys' },
-        publisher: {
-          '@type': 'Organization',
-          name: SITE_NAME,
-          logo: { '@type': 'ImageObject', url: DEFAULT_OG_IMAGE },
-        },
-        mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${post.slug}` },
-        articleSection: post.category,
-        keywords: post.tags?.join(', '),
-      }} />
-      <JsonLd data={{
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
-          { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
-          { '@type': 'ListItem', position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
-        ],
+        dateModified: post.updatedAt ?? post.publishedAt,
+        url: `${SITE_URL}${contentPath('blog', post, language)}`,
+        author: { '@type': 'Person', name: 'Max-Morrys' },
+        publisher: { '@type': 'Organization', name: SITE_NAME },
       }} />
 
-      {/* ── Fil d'ariane + retour ── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-32">
-        <Breadcrumbs
+      {/*
+        LA BARRE DE LECTURE. C'est la seule animation de `width` du produit, et l'exception
+        est écrite dans le système : bornée à un élément de 3 px de haut, sans enfant. Elle
+        porte `prog-fill`, le nom sous lequel le vérificateur la reconnaît.
+      */}
+      <ReadingBar value={progress} label={translatedTitle || post.title} />
+
+      <PageSite>
+        <Breadcrumb
+          label={t('index.eyebrow')}
           items={[
-            { label: t('post.breadcrumbHome'), href: '/' },
-            { label: t('post.breadcrumbBlog'), href: '/blog' },
-            { label: translatedTitle },
+            { label: t('index.eyebrow'), href: path('/blog') },
+            { label: translatedPole || categoryToPole(post.category) },
           ]}
         />
-        <LocalizedLink to="/blog" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-coral-600 dark:hover:text-coral-400 mt-4 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> {t('post.backToBlog')}
-        </LocalizedLink>
-      </div>
 
-      {/* ── Image hero pleine largeur ── */}
-      <motion.div
-        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6"
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
-        <div className="aspect-[16/8] rounded-2xl overflow-hidden">
-          <img src={post.coverImage} alt={translatedTitle} className="w-full h-full object-cover" width={1200} height={600} />
-        </div>
-      </motion.div>
+        {/*
+          LA GRILLE DE LECTURE — colonne de prose, puis 300 px de colonne latérale.
+          La prose porte `.mm-prose`, donc 68 caractères par ligne, quelle que soit la place :
+          les pixels gagnés au-delà partent à la marge, jamais à la longueur de ligne.
+        */}
+        <div className="mt-4 grid items-start gap-12 lg:grid-cols-[1fr_300px]">
+          <article>
+            <SiteDisplay wrap lines={[translatedTitle || post.title]} size={46} style={{ maxWidth: '20ch' }} />
 
-      {/* ── Méta auteur/date + partage, puis titre ── */}
-      <motion.div
-        className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-10"
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div variants={staggerItem} className="flex flex-wrap items-start justify-between gap-6 pb-8 border-b border-neutral-100 dark:border-neutral-800">
-          <div className="flex gap-10">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">{t('post.writtenBy')}</p>
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-coral-100 dark:bg-coral-900/40 flex items-center justify-center">
-                  <span className="text-xs font-black text-coral-600 dark:text-coral-400">
-                    {(post.author || 'M').charAt(0).toUpperCase()}
-                  </span>
+            <div className="rv mt-[18px] flex max-w-prose flex-wrap items-center justify-between gap-5" style={{ ['--i' as string]: 3 }}>
+              <div className="flex items-center gap-3">
+                <Avatar initials="M" size={40} />
+                <div>
+                  <p className="m-0 text-[13.5px] font-semibold text-ink">Max-Morrys</p>
+                  <p className="mm-num m-0 text-[11.5px] text-ink-2">
+                    {formatDate(post.publishedAt)}{post.readTime ? ` · ${post.readTime}` : ''}
+                  </p>
                 </div>
-                <span className="font-semibold text-neutral-800 dark:text-neutral-200">{post.author}</span>
+              </div>
+
+              <div className="flex gap-2">
+                <a className={shareBtn} href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
+                   target="_blank" rel="noreferrer" aria-label="LinkedIn"
+                   onClick={() => trackShare('linkedin', 'article', post.id)}>
+                  <LinkedInIcon className="h-4 w-4" />
+                </a>
+                <a className={shareBtn} href={`https://twitter.com/intent/tweet?url=${shareUrl}`}
+                   target="_blank" rel="noreferrer" aria-label="X"
+                   onClick={() => trackShare('twitter', 'article', post.id)}>
+                  <XIcon className="h-4 w-4" />
+                </a>
+                <button type="button" className={shareBtn} onClick={handleCopy}
+                        aria-label={copied ? t('article.copied') : t('article.copy')}>
+                  {copied ? <Icon name="check" size={16} /> : <Icon name="copy" size={16} />}
+                </button>
               </div>
             </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">{t('post.publishedOn')}</p>
-              <p className="font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2 flex-wrap">
-                {formatDate(post.publishedAt)}
-                <span className="text-neutral-300 dark:text-neutral-600">·</span>
-                <span className="flex items-center gap-1 font-normal text-neutral-500 dark:text-neutral-400">
-                  <Clock className="w-3.5 h-3.5" />{t('post.readTime', { count: post.readTime })}
-                </span>
-                {post.views !== undefined && post.views > 0 && (
-                  <>
-                    <span className="text-neutral-300 dark:text-neutral-600">·</span>
-                    <span className="flex items-center gap-1 font-normal text-neutral-500 dark:text-neutral-400">
-                      <Eye className="w-3.5 h-3.5" />{t('post.viewsCount', { count: post.views, formattedCount: post.views.toLocaleString() })}
-                    </span>
-                  </>
-                )}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <a
-              href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${encodeURIComponent(post.title)}`}
-              target="_blank" rel="noopener noreferrer"
-              onClick={() => trackShare('twitter', 'article', post.id)}
-              aria-label={t('post.shareTwitter')}
-              className={shareBtn}
-            >
-              <Twitter className="w-4 h-4" />
-            </a>
-            <a
-              href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
-              target="_blank" rel="noopener noreferrer"
-              onClick={() => trackShare('linkedin', 'article', post.id)}
-              aria-label={t('post.shareLinkedin')}
-              className={shareBtn}
-            >
-              <Linkedin className="w-4 h-4" />
-            </a>
-            <button onClick={handleCopy} aria-label={t('post.copyLink')} className={shareBtn}>
-              {copied ? <Check className="w-4 h-4 text-success-500" /> : <Copy className="w-4 h-4" />}
-            </button>
-          </div>
-        </motion.div>
 
-        <motion.p variants={staggerItem} className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mt-8 mb-5`}>
-          {translatedPole}
-        </motion.p>
-        <motion.h1 variants={staggerItem} className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.05]">
-          {translatedTitle}
-        </motion.h1>
-      </motion.div>
+            {/*
+              LE BANDEAU DE TRADUCTION, obligatoire en tête de tout article anglais — jamais
+              en pied, où un avertissement n'avertit plus. La traduction est générée au
+              pré-rendu et mise en cache : une correction du français n'atteint cette page
+              qu'à l'expiration du cache, et il n'y a pas d'invalidation manuelle.
+            */}
+            {language === 'en' && (
+              <TranslationNotice
+                date={formatDate(post.updatedAt ?? post.publishedAt)}
+                href={`/blog/${post.slug}`}
+                originalLabel={t('article.translatedOriginal')}
+                style={{ marginTop: '18px', maxWidth: 'var(--measure-prose)' }}
+              />
+            )}
 
-      {/* ── CONTENU ── */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {post.excerpt && (
-          <p className="text-xl text-neutral-600 dark:text-neutral-300 leading-relaxed border-l-4 border-coral-500 pl-5 mb-10 italic">
-            {translatedExcerpt}
-          </p>
-        )}
-        <article
-          onClick={handleContentClick}
-          className="prose-article prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mb-12 prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-a:text-coral-600 dark:prose-a:text-coral-400 hover:prose-a:text-coral-700 prose-img:shadow-soft prose-blockquote:not-italic prose-blockquote:font-medium prose-blockquote:text-neutral-700 dark:prose-blockquote:text-neutral-200"
-          dangerouslySetInnerHTML={{ __html: markdownToHtml(translatedBody) }}
-        />
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-12">
-          {post.tags.map((tag) => (
-            <TranslatedText
-              key={tag}
-              as="span"
-              text={tag}
-              className={`px-4 py-1.5 ${theme.softBadge} text-xs font-semibold rounded-full uppercase tracking-wider`}
+            <div
+              className="rv mm-prose prose-article mt-6"
+              style={{ ['--i' as string]: 4 }}
+              onClick={handleContentClick}
+              dangerouslySetInnerHTML={{ __html: markdownToHtml(translatedBody || post.content) }}
             />
-          ))}
-        </div>
+          </article>
 
-        {/* Formation CTA */}
-        <div className="mb-12">
-          <FormationCTA category={post.category} tags={post.tags} />
+          {/* La colonne latérale colle sous le chrome, pas sous le haut de la fenêtre. */}
+          <aside className="lg:sticky lg:top-[calc(var(--header-h)+1rem)] grid gap-[14px]">
+            <GlassPanel level="hero" padding={22} className="rv" style={{ ['--i' as string]: 5 }}>
+              <SiteEyebrow style={{ marginBottom: '8px' }}>{t('article.gateTitle')}</SiteEyebrow>
+              <p className="m-0 mb-4 text-[14px] leading-[1.55] text-ink-2">{t('article.gateBody')}</p>
+              <Button href={path('/formations')} tone="forme">{t('article.gateCta')}</Button>
+              {/* La sortie honnête : on ne ferme pas la porte du gratuit derrière le payant. */}
+              <p className="mt-3 mb-0 text-center text-small leading-[1.5] text-ink-2">{t('article.gateAlt')}</p>
+            </GlassPanel>
+          </aside>
         </div>
+      </PageSite>
 
-        {/* Newsletter */}
-        <div className="mb-4">
-          <NewsletterForm variant="card" source="blog-post" />
-        </div>
-      </div>
-
-      {/* ── Articles similaires ── */}
       {relatedPosts.length > 0 && (
-        <motion.section
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20"
-          variants={slideUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-        >
-          <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-3`}>
-            {t('post.relatedEyebrow')}
-          </p>
-          <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-8">
-            {t('post.relatedTitle')}
-          </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
-            {relatedPosts.map((rp) => (
-              <ArticleCard key={rp.id} post={rp} compact />
+        <SiteBand>
+          <SiteDisplay as="h2" lines={t('article.nextTitle', { returnObjects: true }) as string[]} size={34} />
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {relatedPosts.slice(0, 3).map((related, i) => (
+              <div key={related.id} className="rv" style={{ ['--i' as string]: i + 1 }}>
+                <TerritoryCard
+                  layout="plain"
+                  territory={(['informe', 'rose', 'forme'] as const)[i % 3]}
+                  href={path(`/blog/${related.slug}`)}
+                  padding={22}
+                  meta={`${formatDate(related.publishedAt)}${related.readTime ? ` · ${related.readTime}` : ''}`}
+                  title={related.title}
+                  titleSize={19}
+                />
+              </div>
             ))}
           </div>
-        </motion.section>
+        </SiteBand>
       )}
 
-      {/* ── CTA croisé → Formations ── */}
-      <motion.section
-        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-4`}>
-            {t('post.crossEyebrow')}
-          </p>
-          <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white mb-4">
-            {t('post.crossTitle')}
-          </h2>
-          <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
-            {t('post.crossDescription')}
-          </p>
-          <LocalizedLink to="/formations" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide`}>
-            {t('post.crossCta')} <ArrowRight className="w-4 h-4" />
-          </LocalizedLink>
-        </div>
-      </motion.section>
-    </div>
+    </DsNavHost>
   );
 }

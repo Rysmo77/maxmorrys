@@ -1,0 +1,14 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   COPIE LITTÉRALE de Design_System_Max-Morrys/tokens/fonts.css — NE PAS ÉDITER.
+   Régénéré par `npm run ds:sync`. Tout écart délibéré vit dans overrides/.
+   ───────────────────────────────────────────────────────────────────────── */
+/* Trois familles, chargées depuis Google Fonts.
+   Le kit source les charge par <link> Google Fonts : aucun binaire de fonte n'a été fourni,
+   il n'y a donc pas de @font-face local ici. Voir readme.md § Fontes. */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap");
+
+:root{
+  --f-display:'Fraunces',Georgia,serif; /* @kind font */
+  --f-body:'Schibsted Grotesk',-apple-system,BlinkMacSystemFont,system-ui,sans-serif; /* @kind font */
+  --f-mono:'JetBrains Mono','SF Mono',Menlo,monospace; /* @kind font */
+}

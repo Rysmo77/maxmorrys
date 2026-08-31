@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mic, Video, Square, Upload, X, Loader2, RotateCcw } from 'lucide-react';
 import { uploadMedia } from '../../lib/storage';
+import { Icon, type IconName } from '@ds';
 
 interface MediaRecorderInputProps {
   mode: 'audio' | 'video';
@@ -150,10 +150,10 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
   };
 
   const previewUrl = value || localUrl;
-  const Icon = mode === 'video' ? Video : Mic;
+  const glyph: IconName = mode === 'video' ? 'video' : 'mic';
 
   return (
-    <div className="space-y-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50 p-4">
+    <div className="space-y-3 rounded-xl border border-[color:var(--line)] bg-[color:var(--fill-1)] dark:bg-[color-mix(in_srgb,var(--night-3)_50%,transparent)] p-4">
       {/* Live preview while recording video */}
       {mode === 'video' && recording && (
         <video ref={livePreviewRef} className="w-full max-h-64 rounded-lg bg-black" playsInline />
@@ -166,22 +166,22 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
             <button
               type="button"
               onClick={startRecording}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-forme hover:bg-[color:var(--mm-bleu)] text-white text-sm font-semibold transition-colors"
             >
-              <Icon className="w-4 h-4" /> {t('mediaRecorder.startRecording')}
+              <Icon name={glyph} size={16} /> {t('mediaRecorder.startRecording')}
             </button>
           ) : (
             <button
               type="button"
               onClick={stopRecording}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-error-600 hover:bg-error-500 text-white text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-stop hover:bg-[color:var(--stop)] text-white text-sm font-semibold transition-colors"
             >
-              <Square className="w-4 h-4" fill="currentColor" /> {t('mediaRecorder.stop')}
+              <Icon name="square" size={16} /> {t('mediaRecorder.stop')}
             </button>
           )}
           {recording && (
-            <span className="flex items-center gap-2 text-sm font-mono text-error-600 dark:text-error-400">
-              <span className="w-2 h-2 rounded-full bg-error-500 animate-pulse" />
+            <span className="flex items-center gap-2 text-sm font-mono text-stop">
+              <span className="w-2 h-2 rounded-full bg-[color:var(--stop)] animate-pulse" />
               {formatTime(elapsed)} / {formatTime(MAX_SECONDS)}
             </span>
           )}
@@ -194,9 +194,9 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-sm font-semibold hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[color:var(--line)] bg-paper text-ink-2 text-sm font-semibold hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors"
           >
-            <Upload className="w-4 h-4" /> {t('mediaRecorder.importFile')}
+            <Icon name="upload" size={16} /> {t('mediaRecorder.importFile')}
           </button>
           <input
             ref={fileInputRef}
@@ -206,7 +206,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
             onChange={handleFileChange}
           />
           {!canRecord && (
-            <p className="text-xs text-neutral-400 mt-2">
+            <p className="text-xs text-ink-2 mt-2">
               {mode === 'video' ? t('mediaRecorder.directRecordingUnavailableVideo') : t('mediaRecorder.directRecordingUnavailableAudio')}
             </p>
           )}
@@ -216,11 +216,13 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
       {/* Upload progress */}
       {uploading && (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-neutral-500">
-            <Loader2 className="w-4 h-4 animate-spin text-brand-500" /> {t('mediaRecorder.uploading', { progress })}
+          <div className="flex items-center gap-2 text-sm text-ink-2">
+            {/* Aucun rond : la barre sous cette ligne porte le POURCENTAGE RÉEL de l'envoi.
+                Un rond à côté d'une vraie mesure n'ajoute rien — il la concurrence. */}
+            {t('mediaRecorder.uploading', { progress })}
           </div>
-          <div className="h-1.5 w-full bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-            <div className="h-full bg-brand-500 rounded-full transition-all duration-150" style={{ width: `${progress}%` }} />
+          <div className="h-1.5 w-full bg-[color:var(--fill-3)] rounded-full overflow-hidden">
+            <div className="h-full bg-[color:var(--mm-bleu)] rounded-full prog-fill transition-[width] duration-150" style={{ width: `${progress}%` }} />
           </div>
         </div>
       )}
@@ -236,15 +238,15 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-error-500 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-ink-2 hover:text-stop transition-colors"
           >
-            {value ? <X className="w-3.5 h-3.5" /> : <RotateCcw className="w-3.5 h-3.5" />}
+            {value ? <Icon name="close" size={14} /> : <Icon name="rotate" size={14} />}
             {value ? t('mediaRecorder.delete') : t('mediaRecorder.restart')}
           </button>
         </div>
       )}
 
-      {error && <p className="text-xs text-error-500 dark:text-error-400">{error}</p>}
+      {error && <p className="text-xs text-stop">{error}</p>}
     </div>
   );
 }

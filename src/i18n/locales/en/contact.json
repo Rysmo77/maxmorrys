@@ -40,7 +40,8 @@
     "messageRequired": "Message is required",
     "messageTooShort": "Message must be at least 10 characters",
     "dateRequired": "Date is required",
-    "timeRequired": "Time is required"
+    "timeRequired": "Time is required",
+    "nameTooShort": "Name must be at least 2 characters"
   },
   "toast": {
     "messageSuccess": "Message sent successfully! I'll get back to you soon.",
@@ -69,8 +70,60 @@
     "notesPlaceholder": "Tell me what you need so I can prepare the call...",
     "cancel": "Cancel",
     "submitting": "Sending...",
-    "submit": "Confirm the request"
+    "submit": "Confirm the request",
+    "successBody": "Your request is saved. I'll look at the slot and come back to you: nothing is confirmed until I do, and the product sends no automatic email."
   },
   "faqEyebrow": "FAQ",
-  "faqTitle": "Frequently asked questions"
+  "faqTitle": "Frequently asked questions",
+  "page": {
+    "titleLines": [
+      "Write to me.",
+      "I answer."
+    ],
+    "lede": "A question about a course, a payment gone wrong, an idea for an episode. I'm the one who reads, and I'm the one who answers — give it two working days.",
+    "triage": {
+      "title": "Before you write",
+      "paymentBefore": "A payment that isn't showing? Check",
+      "paymentLink": "My courses",
+      "paymentAfter": "in your space first: access opens as soon as the payment is confirmed.",
+      "faqBefore": "A general question? It may already be in the",
+      "faqLink": "FAQ",
+      "faqAfter": "with the full answer."
+    },
+    "agency": {
+      "title": "For custom work",
+      "before": "This form is the wrong one. Go through",
+      "link": "Max-Morrys Agency",
+      "after": "— its form asks for budget and scope, which saves three rounds of back-and-forth."
+    },
+    "channels": {
+      "title": "Other ways to reach me",
+      "bookingBody": "Rather talk it through? Book an evening slot, Dakar time."
+    },
+    "account": {
+      "title": "You're writing from your account",
+      "body": "My answer will arrive in your space, and this message will stay in your inbox.",
+      "signedIn": "Signed in"
+    },
+    "form": {
+      "subjectLabel": "What do you want to talk about?",
+      "subjectPlaceholder": "Pick a topic",
+      "note": "You can write without an account too — but then I can't answer you inside the app."
+    },
+    "truth": {
+      "title": "Why that card sits on top",
+      "body": "Today a message sent from a signed-in account is not attached to its author: it never shows up in their inbox, and the answer goes nowhere. Anonymous messages stay possible, and stay anonymous."
+    },
+    "facts": {
+      "replyLabel": "Reply",
+      "replyValue": "≤ 48 h",
+      "replyNote": "Working days, Dakar time",
+      "readerLabel": "Who reads",
+      "readerValue": "Me",
+      "readerNote": "There is no support team",
+      "langsLabel": "Languages",
+      "langsValue": "FR · EN",
+      "langsNote": "Write in whichever you prefer"
+    }
+  }
 }

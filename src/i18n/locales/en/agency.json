@@ -313,5 +313,137 @@
     "mobileLabel": "Mobile",
     "deviceAria": "{{label}} preview",
     "groupAria": "Choose the preview for {{name}}"
+  },
+  "meta": {
+    "title": "Max-Morrys Agency — projects we run together",
+    "description": "Rebuilds, platforms, automation, applied AI. Few projects at a time, framed before they are priced. No public rate card on this page: a conversation first, then a written scope."
+  },
+  "page": {
+    "eyebrow": "{{brand}} · {{pillar}} practice",
+    "titleLines": [
+      "Few projects.",
+      "Run together.",
+      "End to end."
+    ],
+    "lede": "Rebuilds, platforms, automation, applied AI. Few projects at a time, framed before they are priced. If it doesn't fit, I'll tell you in one conversation rather than three quotes.",
+    "truthTitle": "Why there is no price on this page",
+    "truthStart": "Because none of these projects sells off a shelf. If you want a public rate card and a posted price, ",
+    "truthStrong": "Présence Digitale",
+    "truthEnd": " is what you're after — a different offer, a different team, and it is built for exactly that."
+  },
+  "panel": {
+    "eyebrow": "Let's talk",
+    "typeLabel": "What is it about?",
+    "typePlaceholder": "Pick a kind of project",
+    "budgetLabel": "What budget do you have in mind?",
+    "budgetPlaceholder": "Pick a range",
+    "budgetHint": "I ask for your range instead of announcing mine: it's the only way to know straight away whether we can work together.",
+    "timelineLabel": "By when?",
+    "timelinePlaceholder": "Pick a timeline",
+    "descriptionLabel": "The project in three lines",
+    "descriptionPlaceholder": "What you want to get, and by when.",
+    "replyEyebrow": "So that I can reply to you",
+    "nameLabel": "Your name",
+    "namePlaceholder": "Awa Ndiaye",
+    "companyLabel": "Your organisation",
+    "companyPlaceholder": "The name you work under",
+    "emailLabel": "Your email",
+    "emailPlaceholder": "you@your-organisation.com",
+    "submit": "Send my request",
+    "submitting": "Sending…",
+    "reply": "An answer within 48 hours, from me.",
+    "budgets": {
+      "exploring": "I don't know yet — I'd rather talk it through",
+      "small": "A short piece of work, one scope",
+      "medium": "A framed project, over a quarter",
+      "large": "A platform, over several quarters",
+      "xlarge": "A programme, with a dedicated team"
+    },
+    "errors": {
+      "projectType": "Pick a kind. It's what decides whether the request is mine or Cléa's.",
+      "budget": "Pick a range. Without it I can't tell you straight away whether we can work together.",
+      "timeline": "Give me a timeline, even a rough one. It's what says whether I can take the project on.",
+      "description": "The project in three lines is what lets me answer with something other than a template quote. Write them here.",
+      "descriptionShort": "Under {{min}} characters I can't judge whether the project is for me. Add what you want to get, and by when.",
+      "name": "I need a name to reply to. Yours will do.",
+      "company": "Tell me the name you work under: it's what tells me who I'm talking to.",
+      "email": "Without an address your request arrives and stays unanswered. Add yours.",
+      "emailInvalid": "That address isn't shaped like an email. Check what comes before and after the @.",
+      "sendFailed": "It didn't go through and nothing was saved. Your request is still in the form: try again in a moment."
+    }
+  },
+  "band": {
+    "titleLines": [
+      "Nine kinds of project.",
+      "No request is turned away."
+    ],
+    "types": [
+      {
+        "title": "Platform",
+        "body": "A business product, a client area, an internal tool."
+      },
+      {
+        "title": "Rebuild",
+        "body": "An existing site to take over without losing its ranking."
+      },
+      {
+        "title": "Automation",
+        "body": "What your team redoes by hand every week."
+      },
+      {
+        "title": "AI in the flow",
+        "body": "Inside a process that already exists, not beside it."
+      }
+    ],
+    "presenceTitle": "If you want a public rate card and a posted price",
+    "presenceBody": "Présence Digitale is the other door: priced packs, a readable rate card, a funnel built for a shop that wants to be found. It isn't a consolation prize — it's a different offer, and it is built for that.",
+    "presenceTag": "Public rate card",
+    "presenceCta": "See Présence Digitale"
+  },
+  "process": {
+    "titleLines": [
+      "How it actually goes."
+    ],
+    "steps": [
+      {
+        "n": "01",
+        "title": "A conversation",
+        "body": "Forty-five minutes, no commitment. We look at whether the problem is worth the budget you have in mind."
+      },
+      {
+        "n": "02",
+        "title": "A written scope",
+        "body": "The perimeter, the assumptions, what is not included. That document is what gets priced, not a hunch."
+      },
+      {
+        "n": "03",
+        "title": "Delivered milestones",
+        "body": "You see something that works at every step. No grand reveal at the end."
+      }
+    ]
+  },
+  "note": {
+    "lead": "Section removed on purpose.",
+    "body": "The page in production names twelve organisations publicly, and the repository itself notes that written consent has not been obtained. Until FR-105 is done, this page does without references."
+  },
+  "sent": {
+    "titleLines": [
+      "It's in.",
+      "I reply within 48 hours."
+    ],
+    "lede": "No automated sequence, no sales follow-up. A written answer, from me.",
+    "recapEyebrow": "Your request",
+    "recapType": "Kind of project",
+    "recapBudget": "Range",
+    "recapBudgetValue": "Given",
+    "recapStatus": "Status",
+    "recapStatusValue": "New",
+    "growTitle": "Your project belongs with Cléa",
+    "growStart": "Growth is run by ",
+    "growStrong": "Cléa Growth Office",
+    "growEnd": ". I pass your request on exactly as it is — you have nothing to redo, and nobody sends you back to another form.",
+    "growCta": "See Cléa Growth Office",
+    "back": "Back to the agency page",
+    "footer": "No request is turned away. It is redirected."
   }
 }

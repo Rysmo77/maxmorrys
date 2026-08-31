@@ -21,7 +21,7 @@ import type {
 
 export type AdminClubTab = 'subscriptions' | 'posts' | 'events' | 'sessions' | 'infos' | 'challenges' | 'members' | 'opportunities' | 'reports';
 
-export const inputCls = 'w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
+export const inputCls = 'w-full px-3 py-2 rounded-xl border border-[color:var(--line)] bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:border-forme transition-colors';
 
 const EMPTY_EVENT: Omit<ClubDigitosEvent, 'id' | 'createdAt'> = {
   title: '', description: '', date: '', time: '', location: '', type: 'online', link: '', imageUrl: '', status: 'upcoming',

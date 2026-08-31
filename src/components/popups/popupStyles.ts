@@ -8,10 +8,10 @@
  */
 
 /** CTA principal, teinte lagoon — agence et commerce de proximité. */
-export const CTA_LAGOON = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-lagoon-500 hover:bg-lagoon-400 text-neutral-950 font-black text-sm uppercase tracking-wide transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-lg shadow-lagoon-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950';
+export const CTA_LAGOON = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[color:var(--mm-teal)] hover:bg-[color:var(--mm-teal)] text-ink font-black text-sm uppercase tracking-wide transition duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-digitalise focus:outline-none';
 
 /** CTA principal, teinte brand — territoire de l'apprentissage. */
-export const CTA_BRAND = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-500 hover:bg-brand-400 text-neutral-950 font-black text-sm uppercase tracking-wide transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-lg shadow-brand-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950';
+export const CTA_BRAND = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[color:var(--mm-bleu)] hover:bg-[color:var(--mm-bleu)] text-ink font-black text-sm uppercase tracking-wide transition duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-forme focus:outline-none';
 
 /** Action secondaire, discrète mais atteignable au clavier. */
 export const DISMISS = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded';

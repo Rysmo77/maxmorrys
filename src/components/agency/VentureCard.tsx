@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { ArrowUpRight } from 'lucide-react';
 import Badge from '../ui/Badge';
 import SitePreview from './SitePreview';
 import { VENTURE_RELATION } from '../../lib/brand';
 import type { Venture } from '../../lib/brand';
+import { Icon } from '@ds';
 
 interface VentureCardProps {
   venture: Venture;
@@ -23,7 +23,7 @@ export default function VentureCard({ venture }: VentureCardProps) {
   const { t } = useTranslation('agency');
 
   return (
-    <article className="group relative flex flex-col rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 transition-colors hover:border-lagoon-500/60 overflow-hidden">
+    <article className="group relative flex flex-col rounded-2xl border border-[color:var(--line)] bg-[color:var(--fill-1)] dark:bg-[color-mix(in_srgb,var(--night-3)_60%,transparent)] transition-colors hover:border-[color-mix(in_srgb,var(--mm-teal)_60%,transparent)] overflow-hidden">
       {/* Aperçu réel du produit en production. */}
       <div className="p-4 pb-0">
         <SitePreview url={venture.website} domain={venture.domain} name={venture.name} />
@@ -32,10 +32,10 @@ export default function VentureCard({ venture }: VentureCardProps) {
       <div className="flex flex-col flex-1 p-6 pt-5">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
-            <h4 className="text-xl font-black tracking-tight text-neutral-900 dark:text-white">
+            <h4 className="text-xl font-black tracking-tight text-ink">
               {venture.name}
             </h4>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{venture.category}</p>
+            <p className="mt-1 text-sm text-ink-2">{venture.category}</p>
           </div>
           <Badge variant="lagoon" className="shrink-0">{VENTURE_RELATION}</Badge>
         </div>
@@ -44,10 +44,10 @@ export default function VentureCard({ venture }: VentureCardProps) {
           href={venture.website}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-lagoon-700 dark:text-lagoon-400 hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-600 rounded self-start"
+          className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-digitalise-txt hover:gap-3 transition focus:outline-none focus-visible:ring-2 rounded self-start"
         >
           {venture.domain}
-          <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
+          <Icon name="arrow-up-right" size={16} />
           <span className="sr-only">— {t('work.visitLabel')}</span>
         </a>
       </div>

@@ -1,7 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Edit2, Megaphone, Loader2, ChevronDown, ToggleLeft, ToggleRight } from 'lucide-react';
-import Button from '../../components/ui/Button';
+import {
+  Button, EmptyState, Field, Icon, LessonRow, Skeleton, StatTile, Switch, Tag,
+} from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { useReveal } from '../../components/site/useReveal';
+import ConsoleSheet from './components/ConsoleSheet';
 import Pagination from '../../components/ui/Pagination';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
@@ -18,17 +22,42 @@ const EMPTY: Omit<Announcement, 'id'> = {
   endDate: '', link: '',
 };
 
-const TYPE_COLORS: Record<Announcement['type'], string> = {
-  info: 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400',
-  promo: 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400',
-  update: 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400',
-};
+/**
+ * LE PIPELINE DU KIT DIT « POP-UPS · TOUT · ACTIVES · TÉMOIN · ARRÊTÉES ». CET ÉCRAN N'EST PAS
+ * CELUI-LÀ, ET L'ÉTAPE « TÉMOIN » N'A AUCUNE DONNÉE ICI.
+ *
+ * Ce que cet écran administre : la collection `announcements`, c'est-à-dire LE BANDEAU du site
+ * public (`src/components/shared/AnnouncementBanner.tsx`). Un titre, un type, une fenêtre de
+ * dates, un lien. Aucun champ de variante, aucune mesure, aucun compteur.
+ *
+ * Où vit réellement le groupe témoin : dans les POP-UPS CONTEXTUELLES, qui sont un autre
+ * dispositif — `src/components/popups/PopupManager.tsx` assigne `treatment` ou `control` selon
+ * une part de trafic réglée dans `settings/site` (écran Réglages), et le Worker écrit les
+ * compteurs par variante dans `analytics/popups-YYYY-MM`, lus par `getPopupStats()` et affichés
+ * dans Analytique. Rien de tout cela ne passe par ici.
+ *
+ * Poser une étape « témoin » sur ce pipeline aurait donc produit un filtre toujours vide, et
+ * surtout laissé croire que le bandeau est comparé à un groupe témoin — il ne l'est pas. La
+ * quatrième étape porte à la place la distinction que ces données rendent VRAIE et qu'un
+ * opérateur cherche vraiment : « hors fenêtre », c'est-à-dire active au drapeau mais invisible
+ * du site parce que sa fenêtre de dates ne couvre pas aujourd'hui. Le pied de l'écran nomme
+ * l'écart en toutes lettres.
+ */
+const STAGES = ['all', 'live', 'outOfWindow', 'stopped'] as const;
+type Stage = (typeof STAGES)[number];
+
+/** La fenêtre EXACTE de `getActiveAnnouncements()` : c'est elle qui décide de l'affichage. */
+const inWindow = (a: Announcement, today: string): boolean =>
+  a.startDate <= today && (!a.endDate || a.endDate >= today);
+const isLive = (a: Announcement, today: string): boolean => a.active && inWindow(a, today);
+const isOutOfWindow = (a: Announcement, today: string): boolean => a.active && !inWindow(a, today);
 
 export default function AdminAnnouncements() {
   const { t } = useTranslation('admin');
   const { formatDate } = useFormat();
   const { addToast } = useToast();
   const confirm = useConfirmDialog();
+  const reveal = useReveal<HTMLDivElement>();
   const TYPE_LABELS: Record<Announcement['type'], string> = {
     info: t('announcements.typeInfo'),
     promo: t('announcements.typePromo'),
@@ -36,6 +65,9 @@ export default function AdminAnnouncements() {
   };
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
+  /** Date du relevé : l'instant où la requête a répondu. Aucun compteur ne s'affiche sans elle. */
+  const [loadedAt, setLoadedAt] = useState<Date | null>(null);
+  const [stage, setStage] = useState<Stage>('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Announcement | null>(null);
   const [form, setForm] = useState<Omit<Announcement, 'id'>>(EMPTY);
@@ -43,7 +75,9 @@ export default function AdminAnnouncements() {
 
   const load = () => {
     setLoading(true);
-    getAllAnnouncements().then((data) => { setAnnouncements(data); setLoading(false); }).catch(() => setLoading(false));
+    getAllAnnouncements()
+      .then((data) => { setAnnouncements(data); setLoadedAt(new Date()); setLoading(false); })
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
@@ -77,9 +111,11 @@ export default function AdminAnnouncements() {
   };
 
   const handleDelete = (id: string) => {
+    // La feuille se referme d'abord : deux dialogues ouverts, ce sont deux pièges de focus.
+    setModalOpen(false);
     confirm.requestConfirm(t('announcements.confirmDeleteMessage'), async () => {
       try {
-        await deleteAnnouncement(id).catch(() => addToast('error', t('announcements.toastDeleteError')));
+        await deleteAnnouncement(id);
         setAnnouncements((prev) => prev.filter((a) => a.id !== id));
         addToast('success', t('announcements.toastDeleted'));
       } catch (error: unknown) {
@@ -90,130 +126,211 @@ export default function AdminAnnouncements() {
     });
   };
 
-  const handleToggleActive = async (a: Announcement) => {
-    await saveAnnouncement({ ...a, active: !a.active }).catch(() => addToast('error', t('announcements.toastToggleError')));
-    setAnnouncements((prev) => prev.map((ea) => ea.id === a.id ? { ...ea, active: !a.active } : ea));
-  };
+  /** Le jour du relevé, au format ISO court — la comparaison se fait sur des chaînes. */
+  const today = (loadedAt ?? new Date()).toISOString().split('T')[0];
 
-  const filtered = announcements;
+  const counts = useMemo(() => ({
+    live: announcements.filter((a) => isLive(a, today)).length,
+    outOfWindow: announcements.filter((a) => isOutOfWindow(a, today)).length,
+  }), [announcements, today]);
+
+  const filtered = useMemo(() => announcements.filter((a) => {
+    if (stage === 'live') return isLive(a, today);
+    if (stage === 'outOfWindow') return isOutOfWindow(a, today);
+    if (stage === 'stopped') return !a.active;
+    return true;
+  }), [announcements, stage, today]);
+
   const { paged, page, totalPages, setPage } = usePagination(filtered);
 
-  const inputCls = 'w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500';
+  const stageLabels = STAGES.map((s) => t(`announcements.stages.${s}`));
+
+  /** Un seul état par ligne : celui qui décide de ce que voit un visiteur aujourd'hui. */
+  const stateTag = (a: Announcement) => {
+    if (!a.active) return <Tag tone="neutral">{t('announcements.tags.stopped')}</Tag>;
+    if (isLive(a, today)) return <Tag tone="ok">{t('announcements.tags.live')}</Tag>;
+    if (a.startDate > today) return <Tag tone="warn">{t('announcements.tags.scheduled')}</Tag>;
+    return <Tag tone="stop">{t('announcements.tags.over')}</Tag>;
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">{t('announcements.title')}</h1>
-          <p className="text-sm text-neutral-500 mt-1">{t('announcements.activeCount', { count: announcements.filter((a) => a.active).length, total: announcements.length })}</p>
-        </div>
-        <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>{t('announcements.newAnnouncement')}</Button>
-      </div>
+    <div>
+      <ConsolePage title={t('announcements.title')} sub={t('announcements.consoleSub')}>
+        <ConsoleFilter
+          label={t('announcements.stagesLabel')}
+          stages={stageLabels}
+          active={t(`announcements.stages.${stage}`)}
+          onSelect={(label) => {
+            const index = stageLabels.indexOf(label);
+            if (index >= 0) setStage(STAGES[index]);
+          }}
+        />
 
-      {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>
-      ) : announcements.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
-          <Megaphone className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p className="text-neutral-500">{t('announcements.empty')}</p>
-        </div>
-      ) : (
-        <>
-        <div className="space-y-3">
-          {paged.map((a) => (
-            <div key={a.id} className={`bg-white dark:bg-neutral-800 border rounded-2xl p-5 transition-colors ${a.active ? 'border-neutral-200 dark:border-neutral-700' : 'border-dashed border-neutral-200 dark:border-neutral-700 opacity-60'}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${TYPE_COLORS[a.type]}`}>{TYPE_LABELS[a.type]}</span>
-                    {a.active && <span className="text-xs text-success-600 dark:text-success-400 font-medium">{t('announcements.badgeActive')}</span>}
-                  </div>
-                  <p className="font-semibold text-neutral-900 dark:text-white">{a.title}</p>
-                  <p className="text-sm text-neutral-500 mt-1 line-clamp-2">{a.content}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-neutral-400">
-                    <span>{t('announcements.dateFrom', { date: formatDate(a.startDate) })}</span>
-                    {a.endDate && <span>{t('announcements.dateTo', { date: formatDate(a.endDate) })}</span>}
-                    {a.link && <a href={a.link} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline truncate max-w-[150px]">{a.link}</a>}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button onClick={() => handleToggleActive(a)} className="transition-colors" aria-label={a.active ? t('announcements.ariaDeactivate') : t('announcements.ariaActivate')}>
-                    {a.active ? <ToggleRight className="w-6 h-6 text-success-500" /> : <ToggleLeft className="w-6 h-6 text-neutral-300 dark:text-neutral-600" />}
-                  </button>
-                  <button onClick={() => openEdit(a)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors" aria-label={t('announcements.ariaEdit')}><Edit2 className="w-4 h-4" /></button>
-                  <button onClick={() => handleDelete(a.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" aria-label={t('announcements.ariaDelete')}><Trash2 className="w-4 h-4" /></button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-center mt-4"><Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} /></div>
-        </>
-      )}
+        {loadedAt && (
+          <div className="mt-3.5 grid grid-cols-2 gap-2.5">
+            <StatTile
+              label={t('announcements.tiles.live')}
+              value={counts.live}
+              source="db"
+              asOf={loadedAt}
+              foot={t('announcements.tiles.liveFoot')}
+            />
+            <StatTile
+              label={t('announcements.tiles.outOfWindow')}
+              value={counts.outOfWindow}
+              source="db"
+              asOf={loadedAt}
+              foot={t('announcements.tiles.outOfWindowFoot')}
+            />
+          </div>
+        )}
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh] px-4">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
-          <div className="relative w-full max-w-lg bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex items-center justify-between z-10">
-              <h2 className="font-bold text-neutral-900 dark:text-white">{editing ? t('announcements.modalEditTitle') : t('announcements.modalNewTitle')}</h2>
-              <button onClick={() => setModalOpen(false)} className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" aria-label={t('announcements.ariaClose')}>✕</button>
+        <div className="mt-4 flex justify-end">
+          <Button size="sm" onClick={openNew}>{t('announcements.newAnnouncement')}</Button>
+        </div>
+
+        <div className="mt-3">
+          {loading || !loadedAt ? (
+            <div className="space-y-2.5">
+              {[0, 1, 2].map((i) => <Skeleton key={i} height={56} radius="var(--r-m)" label={t('announcements.loading')} />)}
             </div>
-            <div className="p-6 space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-500">{t('announcements.labelTitle')}</label>
-                <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder={t('announcements.placeholderTitle')} className={inputCls} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">{t('announcements.labelType')}</label>
-                  <div className="relative">
-                    <select value={form.type} onChange={(e) => setForm((p) => ({ ...p, type: e.target.value as Announcement['type'] }))} className={`${inputCls} appearance-none pr-8`}>
-                      <option value="info">{t('announcements.typeInfo')}</option>
-                      <option value="promo">{t('announcements.typePromo')}</option>
-                      <option value="update">{t('announcements.typeUpdate')}</option>
-                    </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
-                  </div>
-                </div>
-                <div className="space-y-1 flex items-center gap-3 pt-4">
-                  <button onClick={() => setForm((p) => ({ ...p, active: !p.active }))} className="transition-colors" aria-label={form.active ? t('announcements.ariaDeactivate') : t('announcements.ariaActivate')}>
-                    {form.active ? <ToggleRight className="w-7 h-7 text-success-500" /> : <ToggleLeft className="w-7 h-7 text-neutral-300 dark:text-neutral-600" />}
-                  </button>
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">{form.active ? t('announcements.statusActive') : t('announcements.statusInactive')}</span>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-500">{t('announcements.labelContent')}</label>
-                <textarea value={form.content} onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))} rows={3} placeholder={t('announcements.placeholderContent')} className={inputCls} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">{t('announcements.labelStartDate')}</label>
-                  <input type="date" value={form.startDate} onChange={(e) => setForm((p) => ({ ...p, startDate: e.target.value }))} className={inputCls} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">{t('announcements.labelEndDate')}</label>
-                  <input type="date" value={form.endDate} onChange={(e) => setForm((p) => ({ ...p, endDate: e.target.value }))} className={inputCls} />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-500">{t('announcements.labelLink')}</label>
-                <input value={form.link} onChange={(e) => setForm((p) => ({ ...p, link: e.target.value }))} placeholder="https://..." className={inputCls} />
-              </div>
-            </div>
-            <div className="sticky bottom-0 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 px-6 py-4 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setModalOpen(false)}>{t('announcements.cancel')}</Button>
-              <Button onClick={handleSave} disabled={saving || !form.title.trim()} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}>
-                {saving ? t('announcements.saving') : t('announcements.save')}
+          ) : filtered.length === 0 ? (
+            <EmptyState
+              glyph={<Icon name="bell" size={26} color="var(--mm-orange)" />}
+              glyphBackground="color-mix(in srgb, var(--mm-orange) 18%, transparent)"
+              title={t('announcements.empty')}
+              body={t('announcements.emptyBody')}
+              action={<Button onClick={openNew}>{t('announcements.newAnnouncement')}</Button>}
+            />
+          ) : (
+            <ConsoleList label={t('announcements.listLabel')}>
+              {paged.map((a, i) => (
+                <li key={a.id}>
+                  <LessonRow
+                    onClick={() => openEdit(a)}
+                    icon={<Icon name="bell" size={14} color="var(--mm-orange)" />}
+                    iconBackground="color-mix(in srgb, var(--mm-orange) 20%, transparent)"
+                    title={a.title}
+                    meta={(
+                      <>
+                        {TYPE_LABELS[a.type]}
+                        {` · ${t('announcements.dateFrom', { date: formatDate(a.startDate) })}`}
+                        {a.endDate ? ` ${t('announcements.dateTo', { date: formatDate(a.endDate) })}` : ''}
+                      </>
+                    )}
+                    trailing={stateTag(a)}
+                    last={i === paged.length - 1}
+                  />
+                </li>
+              ))}
+            </ConsoleList>
+          )}
+        </div>
+
+        {totalPages > 1 && (
+          <div className="mt-4 flex justify-center">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
+        )}
+
+        {/* `.rv` ne rend rien tant qu'un ancêtre ne porte pas `.play`, et la console n'en pose
+            aucun : sans déclencheur, le pied du motif — obligatoire — resterait à `opacity: 0`.
+            L'observateur est posé sur le PIED lui-même et non sur la page : au seuil de 12 %,
+            un écran plus haut que huit fois la fenêtre ne l'atteindrait jamais. */}
+        <div ref={reveal}>
+          <ConsoleScope>{t('announcements.scope')}</ConsoleScope>
+        </div>
+      </ConsolePage>
+
+      <ConsoleSheet
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        closeLabel={t('announcements.ariaClose')}
+        eyebrow={t('announcements.consoleSub')}
+        title={editing ? t('announcements.modalEditTitle') : t('announcements.modalNewTitle')}
+        footer={(
+          <>
+            {editing && (
+              <Button size="sm" tone="quiet" onClick={() => handleDelete(editing.id)} style={{ marginRight: 'auto' }}>
+                {t('announcements.confirmDeleteLabel')}
               </Button>
-            </div>
+            )}
+            <Button size="sm" tone="quiet" onClick={() => setModalOpen(false)}>{t('announcements.cancel')}</Button>
+            <Button size="sm" onClick={handleSave} loading={saving} disabled={!form.title.trim()}>
+              {saving ? t('announcements.saving') : t('announcements.save')}
+            </Button>
+          </>
+        )}
+      >
+        <Field
+          label={t('announcements.labelTitle')}
+          value={form.title}
+          onChange={(v) => setForm((p) => ({ ...p, title: v }))}
+          placeholder={t('announcements.placeholderTitle')}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <Field
+            as="select"
+            label={t('announcements.labelType')}
+            value={form.type}
+            onChange={(v) => setForm((p) => ({ ...p, type: v as Announcement['type'] }))}
+            options={[
+              { value: 'info', label: t('announcements.typeInfo') },
+              { value: 'promo', label: t('announcements.typePromo') },
+              { value: 'update', label: t('announcements.typeUpdate') },
+            ]}
+          />
+          <div className="flex items-end justify-between gap-3 pb-2">
+            <span className="text-meta-2 text-ink-2">
+              {form.active ? t('announcements.statusActive') : t('announcements.statusInactive')}
+            </span>
+            <Switch
+              on={form.active}
+              label={form.active ? t('announcements.ariaDeactivate') : t('announcements.ariaActivate')}
+              onChange={(on) => setForm((p) => ({ ...p, active: on }))}
+            />
           </div>
         </div>
-      )}
+        <Field
+          as="textarea"
+          rows={3}
+          label={t('announcements.labelContent')}
+          value={form.content}
+          onChange={(v) => setForm((p) => ({ ...p, content: v }))}
+          placeholder={t('announcements.placeholderContent')}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <Field
+            type="date"
+            label={t('announcements.labelStartDate')}
+            value={form.startDate}
+            onChange={(v) => setForm((p) => ({ ...p, startDate: v }))}
+          />
+          <Field
+            type="date"
+            label={t('announcements.labelEndDate')}
+            value={form.endDate}
+            onChange={(v) => setForm((p) => ({ ...p, endDate: v }))}
+          />
+        </div>
+        <Field
+          type="url"
+          label={t('announcements.labelLink')}
+          value={form.link ?? ''}
+          onChange={(v) => setForm((p) => ({ ...p, link: v }))}
+          placeholder="https://..."
+          hint={t('announcements.linkHint')}
+        />
+      </ConsoleSheet>
 
-      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title={t('announcements.confirmDeleteTitle')} message={confirm.message} confirmLabel={t('announcements.confirmDeleteLabel')} />
+      <ConfirmDialog
+        open={confirm.open}
+        onClose={confirm.closeConfirm}
+        onConfirm={confirm.onConfirm}
+        title={t('announcements.confirmDeleteTitle')}
+        message={confirm.message}
+        confirmLabel={t('announcements.confirmDeleteLabel')}
+      />
     </div>
   );
 }

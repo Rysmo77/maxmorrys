@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, LogOut, Settings, Shield, Sun, Moon, User as UserIcon, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { cn } from '../../lib/utils';
 import LocalizedLink from '../shared/LocalizedLink';
+import { Icon } from '@ds';
 
 interface UserMenuProps {
   compact?: boolean;
@@ -56,25 +56,25 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
         className={cn(
           'flex items-center gap-2 rounded-xl transition-colors',
           compact
-            ? 'p-0.5 hover:ring-2 hover:ring-brand-200 dark:hover:ring-brand-800'
-            : 'px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800',
+            ? 'mm-touch-extend p-0.5 hover:bg-[color:var(--fill-1)]'
+            : 'mm-touch-extend px-2 py-1.5 hover:bg-[color:var(--fill-1)]',
         )}
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center overflow-hidden flex-shrink-0">
+        <div className="w-8 h-8 rounded-full bg-[color-mix(in_srgb,var(--mm-bleu)_5%,transparent)] flex items-center justify-center overflow-hidden flex-shrink-0">
           {photoURL ? (
             <img src={photoURL} alt="" className="w-full h-full object-cover" />
           ) : (
-            <span className="text-xs font-bold text-brand-600 dark:text-brand-400">{initials}</span>
+            <span className="text-xs font-bold text-forme">{initials}</span>
           )}
         </div>
         {!compact && (
           <>
-            <span className="hidden sm:block text-sm font-semibold text-neutral-700 dark:text-neutral-200 max-w-[120px] truncate">
+            <span className="hidden sm:block text-sm font-semibold text-ink-2 max-w-[120px] truncate">
               {displayName}
             </span>
-            <ChevronDown className={cn('w-4 h-4 text-neutral-400 transition-transform hidden sm:block', open && 'rotate-180')} />
+            <Icon name="chevron" className={cn('w-4 h-4 text-ink-2 transition-transform hidden sm:block', open && 'rotate-180')} />
           </>
         )}
       </button>
@@ -82,65 +82,65 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl overflow-hidden z-50 animate-scale-in"
+          className="glass-flat absolute right-0 top-full mt-2 w-64 overflow-hidden z-50 mm-drop"
         >
-          <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-            <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">{displayName}</p>
-            <p className="text-xs text-neutral-500 truncate">{user.email}</p>
+          <div className="px-4 py-3 border-b border-[color:var(--line)]">
+            <p className="text-sm font-semibold text-ink truncate">{displayName}</p>
+            <p className="text-xs text-ink-2 truncate">{user.email}</p>
           </div>
 
           <div className="p-1.5">
             <LocalizedLink
               to="/mon-espace/profil"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
             >
-              <UserIcon className="w-4 h-4 text-neutral-400" />
+              <Icon name="user" size={16} className="text-ink-2" />
               {t('userMenu.profile')}
             </LocalizedLink>
             <LocalizedLink
               to="/mon-espace/parametres"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
             >
-              <Settings className="w-4 h-4 text-neutral-400" />
+              <Icon name="settings" size={16} className="text-ink-2" />
               {t('userMenu.settings')}
             </LocalizedLink>
             <button
               type="button"
               onClick={() => { toggleTheme(); }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-neutral-400" /> : <Moon className="w-4 h-4 text-neutral-400" />}
+              {theme === 'dark' ? <Icon name="sun" size={16} className="text-ink-2" /> : <Icon name="moon" size={16} className="text-ink-2" />}
               {theme === 'dark' ? t('userMenu.lightMode') : t('userMenu.darkMode')}
             </button>
             {isStaff && (
               <LocalizedLink
                 to="/admin"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
               >
-                <Shield className="w-4 h-4 text-neutral-400" />
+                <Icon name="shield" size={16} className="text-ink-2" />
                 {t('userMenu.adminPanel')}
               </LocalizedLink>
             )}
             <LocalizedLink
               to="/"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
             >
-              <ExternalLink className="w-4 h-4 text-neutral-400" />
+              <Icon name="external" size={16} className="text-ink-2" />
               {t('userMenu.backToSite')}
             </LocalizedLink>
           </div>
 
-          <div className="p-1.5 border-t border-neutral-200 dark:border-neutral-800">
+          <div className="p-1.5 border-t border-[color:var(--line)]">
             <button
               type="button"
               onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-stop hover:bg-[color-mix(in_srgb,var(--stop)_8%,transparent)] transition-colors duration-ui"
             >
-              <LogOut className="w-4 h-4" />
+              <Icon name="logout" size={16} />
               {t('userMenu.signOut')}
             </button>
           </div>

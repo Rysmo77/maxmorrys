@@ -35,7 +35,11 @@
     "liability": {
       "heading": "Limitation de responsabilité",
       "body": "MY ONOMA SARL s'efforce d'assurer l'exactitude et la mise à jour des informations diffusées sur ce site. Toutefois, l'éditeur ne peut garantir l'exactitude, la précision ou l'exhaustivité des informations mises à disposition."
-    }
+    },
+    "titleLines": [
+      "Mentions légales"
+    ],
+    "version": "30/08/2026"
   },
   "privacy": {
     "seoTitle": "Politique de confidentialité",
@@ -99,7 +103,12 @@
       "intro": "Pour toute question relative à cette politique, contactez-nous :",
       "email": "Email : contact@maxmorrys.me",
       "cdp": "Commission de Protection des Données Personnelles (CDP) du Sénégal : <1>www.cdp.sn</1>"
-    }
+    },
+    "titleLines": [
+      "Politique de",
+      "confidentialité"
+    ],
+    "version": "30/08/2026"
   },
   "cgv": {
     "seoTitle": "Conditions Générales de Vente",
@@ -172,7 +181,12 @@
     "art10": {
       "heading": "Article 10 — Droit applicable et litiges",
       "body": "Les présentes CGV sont soumises au droit sénégalais et aux normes de l'OHADA. En cas de litige, une solution amiable sera recherchée avant toute action judiciaire. À défaut, les tribunaux de Dakar seront seuls compétents."
-    }
+    },
+    "titleLines": [
+      "Conditions générales",
+      "de vente"
+    ],
+    "version": "30/08/2026"
   },
   "cgu": {
     "seoTitle": "Conditions d'utilisation",
@@ -220,7 +234,12 @@
     "contact": {
       "heading": "Contact",
       "body": "Pour toute question relative à ces conditions : <1>contact@maxmorrys.me</1>"
-    }
+    },
+    "titleLines": [
+      "Conditions",
+      "d'utilisation"
+    ],
+    "version": "30/08/2026"
   },
   "cookies": {
     "seoTitle": "Politique de cookies",
@@ -265,6 +284,11 @@
     "contact": {
       "heading": "Contact",
       "body": "Pour toute question relative à cette politique : <1>contact@maxmorrys.me</1>"
-    }
+    },
+    "titleLines": [
+      "Politique",
+      "de cookies"
+    ],
+    "version": "30/08/2026"
   }
 }

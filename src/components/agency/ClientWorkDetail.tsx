@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { ArrowUpRight } from 'lucide-react';
 import Badge from '../ui/Badge';
 import { CLIENT_RELATION, categoryKey } from '../../lib/brand';
 import type { ClientProject } from '../../lib/brand';
+import { Icon } from '@ds';
 
 interface ClientWorkDetailProps {
   project: ClientProject;
@@ -30,10 +30,10 @@ export default function ClientWorkDetail({ project }: ClientWorkDetailProps) {
     <div className="mt-6">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="min-w-0">
-          <h4 className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+          <h4 className="text-2xl font-black tracking-tight text-ink">
             {project.name}
           </h4>
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1 text-sm text-ink-2">
             {t(`work.categories.${categoryKey(project.category)}`)}
           </p>
         </div>
@@ -41,21 +41,21 @@ export default function ClientWorkDetail({ project }: ClientWorkDetailProps) {
       </div>
 
       {project.descriptionKey && (
-        <p className="mb-6 text-neutral-600 dark:text-neutral-400 leading-relaxed">
+        <p className="mb-6 text-ink-2 leading-relaxed">
           {t(`work.projects.${project.descriptionKey}.description`)}
         </p>
       )}
 
       {project.capabilities && project.capabilities.length > 0 && (
         <div className="mb-6">
-          <p className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 dark:text-neutral-500 mb-3">
+          <p className="text-xs font-bold tracking-[0.25em] uppercase text-ink-2 mb-3">
             {t('work.roleLabel')}
           </p>
           <ul className="flex flex-wrap gap-2">
             {project.capabilities.map((cap) => (
               <li
                 key={cap}
-                className="rounded-full bg-lagoon-50 dark:bg-lagoon-900/30 px-3 py-1 text-sm text-lagoon-800 dark:text-lagoon-200"
+                className="rounded-full bg-[color-mix(in_srgb,var(--mm-teal)_4%,transparent)] px-3 py-1 text-sm text-digitalise-txt"
               >
                 {t(`work.capabilities.${cap}`)}
               </li>
@@ -66,10 +66,10 @@ export default function ClientWorkDetail({ project }: ClientWorkDetailProps) {
 
       {project.stack && project.stack.length > 0 && (
         <div className="mb-6">
-          <p className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 dark:text-neutral-500 mb-3">
+          <p className="text-xs font-bold tracking-[0.25em] uppercase text-ink-2 mb-3">
             {t('work.stackLabel')}
           </p>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          <p className="text-sm text-ink-2 leading-relaxed">
             {project.stack.join(' · ')}
           </p>
         </div>
@@ -79,10 +79,10 @@ export default function ClientWorkDetail({ project }: ClientWorkDetailProps) {
         href={project.website}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 text-sm font-semibold text-lagoon-700 dark:text-lagoon-400 hover:gap-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-600 rounded"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-digitalise-txt hover:gap-3 transition focus:outline-none focus-visible:ring-2 rounded"
       >
         {project.domain}
-        <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
+        <Icon name="arrow-up-right" size={16} />
         <span className="sr-only">— {t('work.visitLabel')}</span>
       </a>
     </div>

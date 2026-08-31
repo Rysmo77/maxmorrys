@@ -17,14 +17,16 @@
       "referral": "Refer"
     },
     "upcomingEvents": "Upcoming events",
-    "liveSessions": "Live sessions"
+    "liveSessions": "Live sessions",
+    "statusActive": "Active",
+    "navLabel": "Club tabs"
   },
   "sessions": {
     "emptyTitle": "No live session scheduled",
     "emptySubtitle": "Upcoming live sessions with Max-Morrys will appear here.",
     "nextSession": "Next session",
     "pastSession": "Past session",
-    "duration": "⏱ Duration: {{duration}}",
+    "duration": "Duration: {{duration}}",
     "join": "Join",
     "registered": "Registered",
     "register": "Register"
@@ -50,8 +52,21 @@
     "convertedReferrals_one": "Referral converted",
     "convertedReferrals_other": "Referrals converted",
     "ambassador": "Ambassador",
-    "badgeUnlocked": "Badge unlocked 🎉",
-    "refer1Member": "Refer 1 member"
+    "badgeUnlocked": "Badge unlocked",
+    "refer1Member": "Refer 1 member",
+    "yourCode": "Your code",
+    "noCode": "code being created",
+    "priceLine": "Your code takes the Club from <0></0> down to <1></1> for the person you refer. The discount is computed server-side.",
+    "convertedTitle": "Referrals",
+    "unlockedTag": "Unlocked",
+    "truth": {
+      "provenTitle": "What referring does",
+      "withheldTitle": "What it doesn't earn you",
+      "proven1": "The discount is applied by the server at payment time, never by the browser.",
+      "proven2": "The referral counter only counts completed signups, not links sent.",
+      "withheld1": "No money for you: the discount goes to the person you refer. You earn XP and the Ambassador badge, and nothing else.",
+      "withheld2": "No share counter: a copied link leaves no trace, and a number there would be made up."
+    }
   },
   "infos": {
     "emptyTitle": "No exclusive info",
@@ -61,14 +76,32 @@
     "typeArticle": "Article",
     "learnMore": "Learn more",
     "like": "Like",
-    "share": "Share"
+    "share": "Share",
+    "truth": {
+      "provenTitle": "What I can prove here",
+      "withheldTitle": "What I don't show",
+      "proven1": "Every post carries its publication date and category, exactly as stored.",
+      "proven2": "Publishing here depends on me alone: the schedule is kept, or it isn't, and the dates show it.",
+      "withheld1": "No read or share counts: nothing measures them, and an invented counter is caught at a glance."
+    }
   },
   "leaderboard": {
     "emptyText": "The leaderboard is building up. Earn XP to make the list!",
     "title": "Community leaderboard",
     "you": " · you",
     "level": "Lvl {{level}} · {{title}}",
-    "notInTop20": "You're not in the top 20 yet — post, comment and learn to earn XP!"
+    "notInTop20": "You're not in the top 20 yet — post, comment and learn to earn XP!",
+    "scope": "Club-wide leaderboard",
+    "youAreRank": "You are",
+    "notRankedTitle": "You aren't ranked yet",
+    "rankExplain": "Your rank comes from the XP you earn across the Club: posting, commenting, learning.",
+    "truth": {
+      "provenTitle": "What this leaderboard actually says",
+      "withheldTitle": "What it doesn't do yet",
+      "proven1": "Ranks and XP are read from the database, with no rounding and no weighting.",
+      "proven2": "It shows the top twenty. Beyond that, your rank isn't displayed rather than estimated.",
+      "withheld1": "No comparison by joining wave: the model stores no join date, so someone who joined yesterday is ranked against someone who joined a year ago. That's a known gap, written here rather than hidden."
+    }
   },
   "opportunities": {
     "title": "Opportunities",
@@ -88,11 +121,28 @@
     "toastPublished": "Opportunity published.",
     "toastPublishError": "Something went wrong while publishing.",
     "toastDeleted": "Opportunity deleted.",
-    "toastDeleteError": "Something went wrong while deleting."
+    "toastDeleteError": "Something went wrong while deleting.",
+    "filterAll": "All",
+    "filterLabel": "Filter by type",
+    "titleLabel": "Title",
+    "descriptionLabel": "Description",
+    "typeLabel": "Type",
+    "budgetLabel": "Budget",
+    "budgetHint": "Optional. It shows exactly as you write it.",
+    "contactLabel": "Contact",
+    "deleteLabel": "Delete this opportunity",
+    "truth": {
+      "provenTitle": "What you're seeing, exactly",
+      "withheldTitle": "What isn't checked",
+      "proven1": "Every listing carries the name of whoever posted it and its date, exactly as stored.",
+      "proven2": "Only the author of a listing can take it down.",
+      "withheld1": "Budgets shown are the ones announced by whoever posts. The platform does not verify them, and that's written here rather than hidden.",
+      "withheld2": "Contact details aren't checked either: they go out as typed."
+    }
   },
   "discussions": {
     "memberFallback": "Member",
-    "startConversation": "Start the conversation 👋",
+    "startConversation": "Start the conversation.",
     "reported": "reported",
     "report": "report",
     "messagePlaceholder": "Write a message…",
@@ -104,7 +154,11 @@
     "toastOpenError": "Couldn't open the conversation.",
     "toastSendError": "Failed to send.",
     "toastReported": "Message reported to moderation.",
-    "toastReportError": "Something went wrong while reporting."
+    "toastReportError": "Something went wrong while reporting.",
+    "back": "Back to the list",
+    "send": "Send",
+    "messageLabel": "Your message",
+    "reportNote": "A report goes to moderation only. The person reported doesn't see it and can't cancel it."
   },
   "subscriptionGate": {
     "title": "Club des Digitos",
@@ -141,7 +195,32 @@
     "autoRenewLabel": "Automatic renewal ",
     "autoRenewHint": "(can be turned off anytime)",
     "processing": "Processing...",
-    "joinCta": "Join for {{price}} FCFA/year"
+    "joinCta": "Join the Club",
+    "eyebrow": "I'll push you further · paid, closed",
+    "perMonth": "per month",
+    "perYear": "per year",
+    "billedOnce": "billed once a year:",
+    "referredHint": "Referred? Your code brings it to:",
+    "pendingTag": "Pending",
+    "guaranteed": {
+      "tag": "Guaranteed",
+      "title": "What depends on me alone",
+      "body": "Sessions happen even if there are four of us. The agenda is published ahead of time. The opportunities I find, I post. The price doesn't move during your year."
+    },
+    "building": {
+      "tag": "Being built",
+      "title": "What depends on the members",
+      "body": "How busy the feed is. How good the help is. How many gigs the others share. That, I can't promise you — it gets built, and you're part of it."
+    },
+    "truth": {
+      "provenTitle": "What this screen is, exactly",
+      "withheldTitle": "What I don't show",
+      "proven1": "This screen hides the Club; it doesn't forbid it. The real separation lives in the database rules: without an active subscription they refuse to read the posts, the agenda, the directory, the opportunities and the exclusive info.",
+      "proven2": "Nobody makes themselves a member from the browser: the rules only accept creating a subscription with the status « pending », and refuse any change of status. Only the admin activates.",
+      "proven3": "The price shown is the one the server charges, and it lives in exactly one place in the code.",
+      "withheld1": "No member count. The Club opened this year: the number would be small, so making an argument of it would mislead you, and you'd check it on the first screen after paying.",
+      "withheld2": "No testimonials and no star ratings. What's said inside belongs to the people inside, and a rating on a closed club can't be verified."
+    }
   },
   "members": {
     "myProfile": "My member profile",
@@ -194,7 +273,16 @@
     "toastCvSuccess": "Resume analyzed — check, complete, then save.",
     "toastCvError": "Failed to analyze the resume.",
     "toastSaved": "Profile saved.",
-    "toastSaveError": "Something went wrong while saving."
+    "toastSaveError": "Something went wrong while saving.",
+    "completionLabel": "Profile completed",
+    "headlineLabel": "Professional headline",
+    "skillsLabel": "Skills",
+    "skillsHint": "Separate them with commas.",
+    "cityLabel": "City",
+    "whatsappLabel": "WhatsApp",
+    "websiteLabel": "Website",
+    "searchLabel": "Search for a member",
+    "close": "Close the profile"
   },
   "categories": {
     "general": "General",
@@ -239,6 +327,143 @@
     "tapToVote": " · tap to vote",
     "delete": "Delete",
     "noComments": "No comments yet. Be the first!",
-    "commentPlaceholder": "Write a comment…"
+    "commentPlaceholder": "Write a comment…",
+    "composerLabel": "Your post",
+    "commentLabel": "Your comment",
+    "commentSend": "Send the comment",
+    "commentsAction": "Comments",
+    "repostAction": "Repost",
+    "likeAction": "Like",
+    "postMenu": "Post actions",
+    "adminBadge": "Posted by the team",
+    "filterLabel": "Filter by category",
+    "removeMedia": "Remove the image",
+    "removeOption": "Remove option {{number}}",
+    "moods": {
+      "smile": "Happy",
+      "fire": "On it",
+      "idea": "An idea",
+      "celebrate": "Worth celebrating",
+      "strength": "Motivated",
+      "thinking": "Wondering",
+      "confident": "At ease",
+      "heart": "Love it",
+      "applause": "Well done",
+      "thanks": "Thank you"
+    }
+  },
+  "publicPage": {
+    "seoTitle": "The Digitos Club",
+    "seoDescription": "A year with me, and with people doing the same thing you are. Live sessions, gigs that circulate, and someone to ask the question you ask no one else.",
+    "subnavLabel": "I'll push you further",
+    "subnavFree": "Listen & watch",
+    "subnavClub": "The Digitos Club",
+    "eyebrow": "I'll push you further · paid, closed",
+    "titleLines": [
+      "THE DIGITOS",
+      "CLUB."
+    ],
+    "lede": "A year with me, and with people doing the same thing you are. Live sessions, gigs that circulate, and someone to ask the question you ask no one else.",
+    "cta": "I'm joining the Club",
+    "perMonth": "/ month",
+    "billedPre": "billed",
+    "billedPost": "once a year",
+    "referralPre": "Someone referred you? Your code brings it down to",
+    "includedTitle": "What you're paying for, exactly",
+    "included": {
+      "sessionsPost": "live sessions a month, with me",
+      "missions": "The gigs and calls for tender I pull out of my own notebook",
+      "workshops": "The in-person workshops in Dakar, seats kept for members",
+      "answer": "An answer from me in the discussions, not from a moderator",
+      "tutorPre": "Your tutor goes to",
+      "tutorMid": "questions a day instead of"
+    },
+    "includedNote": "Those five lines depend on me alone. That's why they're here, and not promises about the vibe.",
+    "guaranteeTitle": [
+      "What I can't",
+      "promise you yet."
+    ],
+    "guaranteeTruthTitle": "Why I'm telling you this instead of selling you a dream",
+    "guaranteeTruthBody": "The Club opened this year. I won't quote you a member count, because it would be false, and because you'd check it on the first screen after paying. I'd rather you came in knowing what you're buying: a year of access to what already exists, and a seat in what's being built.",
+    "tabsTitle": [
+      "Eight tabs.",
+      "Here's what they're for."
+    ],
+    "tabs": {
+      "feed": "What's happening this week, and what your subscription has brought you since day one.",
+      "discussions": "By category: help, tools, clients. The dumb question gets asked here.",
+      "members": "Who does what, and where. Private message, and a report if someone steps out of line.",
+      "agenda": "Online sessions and workshops in Dakar. Sign up in one move, no double booking.",
+      "leaderboard": "By joining wave, never absolute. You measure up against people who started when you did.",
+      "opportunities": "Gigs, calls for tender, hiring. With the budget stated whenever it is.",
+      "infos": "The weekly digest, written here and in your notifications. Not by email.",
+      "referral": "Your code gets the person you bring in 15 % off. You get nothing — and I'm telling you so."
+    },
+    "priceTitle": [
+      "One price,",
+      "said two ways."
+    ],
+    "priceBody": "A yearly subscription doesn't remove the hesitation, it concentrates it into one moment. So here are both numbers up front: the one you pay, and what it works out to each month.",
+    "renewalTitle": "What happens when it runs out",
+    "renewalBody": "When it runs out, your access stops. You resubscribe if you want to. Nothing is charged automatically: the notice period the terms promise isn't implemented yet, and this page won't announce it before it is.",
+    "priceUnit": "FCFA / month",
+    "priceBilledPre": "Billed",
+    "priceBilledPost": ", once, for twelve months.",
+    "payWave": "Wave",
+    "payOrange": "Orange Money",
+    "payCard": "Bank card",
+    "referralRow": "With a referral code",
+    "referralNote": "The discount is worked out on the server: it doesn't depend on which link you clicked.",
+    "fitTitle": [
+      "And if it isn't for you,",
+      "I'll say so."
+    ],
+    "fitYesTitle": "The Club, if…",
+    "fitYes1": "You already sell something, and you want to sell it better",
+    "fitYes2": "You work on your own, and that's the hard part",
+    "fitYes3": "You're looking for gigs, not courses",
+    "fitNoTitle": "Something else, if…",
+    "fitNo1": "You're starting from zero and want to learn a skill →",
+    "fitNo2": "You want it done for you →",
+    "fitNo3": "You just want to read and keep up →",
+    "fitNo3End": ", it's free",
+    "faqTitle": [
+      "The questions",
+      "people ask me"
+    ],
+    "faq": [
+      {
+        "q": "Can I pay in instalments?",
+        "a": "Not on the Club — it's yearly and doesn't split. Instalments exist on the courses, in three or four payments depending on the amount."
+      },
+      {
+        "q": "What if I never show up?",
+        "a": "You'll have paid for nothing, and I can't stop you. That's why the recap of what your subscription has brought you sits in the feed permanently, and not only when it runs out."
+      },
+      {
+        "q": "Do I get a refund if I change my mind?",
+        "a": "The fourteen-day withdrawal period applies to the courses. For the Club, access is immediate and complete on sign-up: write to me before paying if you're unsure, I'd rather have a conversation than a refund."
+      },
+      {
+        "q": "Is the Club just one more WhatsApp group?",
+        "a": "No — and that's exactly why it's paid. A free group fills up with people passing through. Here the agenda, the sign-ups, the opportunities and the discussions are structured, and nobody wanders in."
+      }
+    ],
+    "listenTitle": [
+      "Before you pay,",
+      "listen to them."
+    ],
+    "listenLede": "The podcast and the videos sit on this same territory, one floor down: free, no account. People from here telling what they did. The Club is when you want to talk to them instead of listening.",
+    "listenCta": "Listen first",
+    "listenEmpty": "No episode is online yet. When there is one, it'll be here, free and without an account.",
+    "listenTruthTitle": "What the free floor doesn't give you",
+    "listenTruthBody": "Listening is free and will stay free. What the subscription adds is elsewhere: the live sessions, the gigs that circulate, and an answer from me. The Club itself can't be toured — that's the price of keeping it closed.",
+    "finalPre": "One year.",
+    "finalPost": "a month.",
+    "finalSecondLine": "And someone on the other end.",
+    "finalBody": "If you want to judge before you pay, listen to the podcast and watch the videos: free, no account, same territory. The blog too.",
+    "finalCtaSecondary": "Talk to me first",
+    "sessionsCite": "the Club's stated commitment",
+    "truthProvenTitle": "What I can prove to you"
   }
 }

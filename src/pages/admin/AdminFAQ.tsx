@@ -1,24 +1,60 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Edit2, HelpCircle, Loader2, GripVertical } from 'lucide-react';
-import Button from '../../components/ui/Button';
+import {
+  Button, ChipRow, EmptyState, Field, Icon, LessonRow, Num, Skeleton, StatTile, Tag,
+} from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { useReveal } from '../../components/site/useReveal';
+import ConsoleSheet from './components/ConsoleSheet';
 import Pagination from '../../components/ui/Pagination';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
 import { getAllFAQ, saveFAQItem, deleteFAQItem } from '../../lib/firestore';
+import { faqSlug, hasAuthoredSlug } from '../../lib/faq/slug';
 import type { FAQ } from '../../types';
 import { captureError } from '../../lib/sentry';
 
-const EMPTY: Omit<FAQ, 'id'> = { question: '', answer: '', category: '', order: 0 };
+const EMPTY: Omit<FAQ, 'id'> = { question: '', answer: '', category: '', order: 0, slug: '' };
+
+/**
+ * LES TROIS ÉTAPES DE LA FAQ, ET CE QU'ELLES DISENT DU PRODUIT.
+ *
+ * Le kit donne le pipeline « tout · publiées · sans page », avec des compteurs de démonstration
+ * égaux — 12, 12, 12. Ce n'est pas une coïncidence de maquette, c'est la forme réelle des
+ * données :
+ *
+ *   • `publiées` vaut TOUT. Le type `FAQ` n'a pas de champ d'état : une question est en ligne
+ *     dès l'enregistrement, il n'existe ni brouillon ni file de relecture.
+ *   • `slug dérivé` compte les questions dont l'ADRESSE N'EST PAS FIGÉE.
+ *
+ * ⚠️ CETTE SECONDE ÉTAPE A CHANGÉ DE SENS, ET PAS DE FAÇON COSMÉTIQUE. Elle comptait
+ * autrefois les questions « sans page » — c'était TOUTES, puisque `/faq` était une route
+ * unique. `/faq/:slug` existe maintenant, et l'écran `FaqQuestion` du kit avec lui : toute
+ * question a donc une page. Ce qui reste à surveiller est plus fin et plus dangereux — le
+ * slug DÉRIVÉ du texte de la question, qui rend la page atteignable immédiatement mais
+ * DÉPLACE l'adresse dès qu'on reformule la question. Un lien partagé meurt, une position en
+ * recherche se perd, et rien ne le signale. Renseigner le champ « adresse » fige l'URL.
+ */
+const STAGES = ['all', 'published', 'derivedSlug'] as const;
+type Stage = (typeof STAGES)[number];
+
+/** Une question n'a pas d'état de brouillon : elle est en ligne dès l'enregistrement. */
+const isPublished = (): boolean => true;
+/** Vrai quand l'adresse est figée à la main, et ne suivra donc pas le texte de la question. */
+const hasStableSlug = (f: FAQ): boolean => hasAuthoredSlug(f);
 
 export default function AdminFAQ() {
   const { t } = useTranslation('admin');
   const { addToast } = useToast();
   const confirm = useConfirmDialog();
+  const reveal = useReveal<HTMLDivElement>();
   const [faq, setFaq] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
+  /** Date du relevé : l'instant où la requête a répondu. Aucun compteur ne s'affiche sans elle. */
+  const [loadedAt, setLoadedAt] = useState<Date | null>(null);
+  const [stage, setStage] = useState<Stage>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<FAQ | null>(null);
@@ -27,7 +63,7 @@ export default function AdminFAQ() {
 
   const load = () => {
     setLoading(true);
-    getAllFAQ().then((data) => { setFaq(data); setLoading(false); })
+    getAllFAQ().then((data) => { setFaq(data); setLoadedAt(new Date()); setLoading(false); })
       .catch(() => { addToast('error', t('faq.toasts.loadError')); setLoading(false); });
   };
 
@@ -43,7 +79,7 @@ export default function AdminFAQ() {
 
   const openEdit = (f: FAQ) => {
     setEditing(f);
-    setForm({ question: f.question, answer: f.answer, category: f.category, order: f.order });
+    setForm({ question: f.question, answer: f.answer, category: f.category, order: f.order, slug: f.slug ?? '' });
     setModalOpen(true);
   };
 
@@ -64,6 +100,9 @@ export default function AdminFAQ() {
   };
 
   const handleDelete = (id: string) => {
+    // La feuille se referme AVANT la demande de confirmation : deux dialogues ouverts, ce sont
+    // deux pièges de focus qui se disputent la touche Tab.
+    setModalOpen(false);
     confirm.requestConfirm(t('faq.confirmDelete.message'), async () => {
       try {
         await deleteFAQItem(id);
@@ -77,109 +116,204 @@ export default function AdminFAQ() {
     });
   };
 
-  const filtered = faq.filter((f) => categoryFilter === 'all' || f.category === categoryFilter);
+  const derivedSlugCount = useMemo(() => faq.filter((f) => !hasStableSlug(f)).length, [faq]);
+
+  const filtered = useMemo(() => faq.filter((f) => {
+    if (categoryFilter !== 'all' && f.category !== categoryFilter) return false;
+    if (stage === 'published') return isPublished();
+    if (stage === 'derivedSlug') return !hasStableSlug(f);
+    return true;
+  }), [faq, categoryFilter, stage]);
 
   const { paged, page, totalPages, setPage } = usePagination(filtered);
 
-  const inputCls = 'w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500';
+  const stageLabels = STAGES.map((s) => t(`faq.stages.${s}`));
+  const categoryLabels = categories.map((c) => (c === 'all' ? t('faq.filterAll') : c));
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">{t('faq.title')}</h1>
-          <p className="text-sm text-neutral-500 mt-1">{t('faq.count', { count: faq.length })}</p>
-        </div>
-        <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>{t('faq.newQuestion')}</Button>
-      </div>
+    <div>
+      <ConsolePage title={t('faq.title')} sub={t('faq.consoleSub')}>
+        <ConsoleFilter
+          label={t('faq.stagesLabel')}
+          stages={stageLabels}
+          active={t(`faq.stages.${stage}`)}
+          onSelect={(label) => {
+            const index = stageLabels.indexOf(label);
+            if (index >= 0) setStage(STAGES[index]);
+          }}
+        />
 
-      {categories.length > 2 && (
-        <div className="flex flex-wrap gap-2">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategoryFilter(cat)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${categoryFilter === cat ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900' : 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:border-neutral-400'}`}
-            >
-              {cat === 'all' ? t('faq.filterAll') : cat}
-            </button>
-          ))}
-        </div>
-      )}
+        {categories.length > 2 && (
+          <ChipRow
+            label={t('faq.categoriesLabel')}
+            options={categoryLabels}
+            value={categoryLabels[Math.max(0, categories.indexOf(categoryFilter))]}
+            onChange={(option) => {
+              // Par INDEX, jamais par libellé : une catégorie qui s'appellerait « Toutes »
+              // se confondrait avec l'entrée « toutes catégories ».
+              const index = categoryLabels.indexOf(option);
+              if (index >= 0) setCategoryFilter(categories[index]);
+            }}
+            height={36}
+            style={{ marginTop: '12px' }}
+          />
+        )}
 
-      {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
-          <HelpCircle className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p className="text-neutral-500">{t('faq.empty')}</p>
-        </div>
-      ) : (
-        <>
-        <div className="space-y-3">
-          {paged.map((f) => (
-            <div key={f.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-5">
-              <div className="flex items-start gap-3">
-                <GripVertical className="w-4 h-4 text-neutral-300 dark:text-neutral-600 mt-0.5 flex-shrink-0 cursor-grab" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    {f.category && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400">{f.category}</span>}
-                    <span className="text-xs text-neutral-400">#{f.order}</span>
-                  </div>
-                  <p className="font-semibold text-neutral-900 dark:text-white mb-1">{f.question}</p>
-                  <p className="text-sm text-neutral-500 line-clamp-2">{f.answer}</p>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button onClick={() => openEdit(f)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                  <button onClick={() => handleDelete(f.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-center mt-4"><Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} /></div>
-        </>
-      )}
-
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh] px-4">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
-          <div className="relative w-full max-w-lg bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-6 py-4 flex items-center justify-between z-10">
-              <h2 className="font-bold text-neutral-900 dark:text-white">{editing ? t('faq.modal.editTitle') : t('faq.modal.newTitle')}</h2>
-              <button onClick={() => setModalOpen(false)} aria-label={t('faq.modal.close')} className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">✕</button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-500">{t('faq.form.questionLabel')}</label>
-                <input value={form.question} onChange={(e) => setForm((p) => ({ ...p, question: e.target.value }))} placeholder={t('faq.form.questionPlaceholder')} className={inputCls} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-500">{t('faq.form.answerLabel')}</label>
-                <textarea value={form.answer} onChange={(e) => setForm((p) => ({ ...p, answer: e.target.value }))} rows={5} placeholder={t('faq.form.answerPlaceholder')} className={inputCls} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">{t('faq.form.categoryLabel')}</label>
-                  <input value={form.category} onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))} placeholder={t('faq.form.categoryPlaceholder')} className={inputCls} />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-500">{t('faq.form.orderLabel')}</label>
-                  <input type="number" min={0} value={form.order} onChange={(e) => setForm((p) => ({ ...p, order: Number(e.target.value) }))} className={inputCls} />
-                </div>
-              </div>
-            </div>
-            <div className="sticky bottom-0 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 px-6 py-4 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setModalOpen(false)}>{t('faq.actions.cancel')}</Button>
-              <Button onClick={handleSave} disabled={saving || !form.question.trim() || !form.answer.trim()} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}>
-                {saving ? t('faq.actions.saving') : t('faq.actions.save')}
-              </Button>
-            </div>
+        {loadedAt && (
+          <div className="mt-3.5 grid grid-cols-2 gap-2.5">
+            <StatTile
+              label={t('faq.tiles.questions')}
+              value={faq.length}
+              source="db"
+              asOf={loadedAt}
+              foot={t('faq.tiles.questionsFoot')}
+            />
+            <StatTile
+              label={t('faq.tiles.derivedSlug')}
+              value={derivedSlugCount}
+              source="db"
+              asOf={loadedAt}
+              foot={t('faq.tiles.derivedSlugFoot')}
+            />
           </div>
+        )}
+
+        <div className="mt-4 flex justify-end">
+          <Button size="sm" onClick={openNew}>{t('faq.newQuestion')}</Button>
         </div>
-      )}
-      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title={t('faq.confirmDelete.title')} message={confirm.message} confirmLabel={t('faq.confirmDelete.confirmLabel')} />
+
+        <div className="mt-3">
+          {loading || !loadedAt ? (
+            <div className="space-y-2.5">
+              {[0, 1, 2].map((i) => <Skeleton key={i} height={56} radius="var(--r-m)" label={t('faq.loading')} />)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState
+              glyph={<Icon name="chat" size={26} color="var(--mm-bleu)" />}
+              glyphBackground="color-mix(in srgb, var(--mm-bleu) 18%, transparent)"
+              title={t('faq.empty')}
+              body={t('faq.emptyBody')}
+              action={<Button onClick={openNew}>{t('faq.newQuestion')}</Button>}
+            />
+          ) : (
+            <ConsoleList label={t('faq.listLabel')}>
+              {paged.map((f, i) => (
+                <li key={f.id}>
+                  <LessonRow
+                    onClick={() => openEdit(f)}
+                    icon={<Icon name="chat" size={14} color="var(--mm-bleu)" />}
+                    iconBackground="color-mix(in srgb, var(--mm-bleu) 20%, transparent)"
+                    title={f.question}
+                    meta={(
+                      <>
+                        {t('faq.rowOrder')}
+                        {' '}
+                        <Num value={f.order} source="db" asOf={loadedAt} />
+                        {f.category ? ` · ${f.category}` : ''}
+                      </>
+                    )}
+                    trailing={<Tag tone="ok">{t('faq.tags.online')}</Tag>}
+                    last={i === paged.length - 1}
+                  />
+                </li>
+              ))}
+            </ConsoleList>
+          )}
+        </div>
+
+        {totalPages > 1 && (
+          <div className="mt-4 flex justify-center">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
+        )}
+
+        {/* `.rv` ne rend rien tant qu'un ancêtre ne porte pas `.play`, et la console n'en pose
+            aucun : sans déclencheur, le pied du motif — obligatoire — resterait à `opacity: 0`.
+            L'observateur est posé sur le PIED lui-même et non sur la page : au seuil de 12 %,
+            un écran plus haut que huit fois la fenêtre ne l'atteindrait jamais. */}
+        <div ref={reveal}>
+          <ConsoleScope>{t('faq.scope')}</ConsoleScope>
+        </div>
+      </ConsolePage>
+
+      <ConsoleSheet
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        closeLabel={t('faq.modal.close')}
+        eyebrow={t('faq.consoleSub')}
+        title={editing ? t('faq.modal.editTitle') : t('faq.modal.newTitle')}
+        footer={(
+          <>
+            {editing && (
+              <Button size="sm" tone="quiet" onClick={() => handleDelete(editing.id)} style={{ marginRight: 'auto' }}>
+                {t('faq.actions.delete')}
+              </Button>
+            )}
+            <Button size="sm" tone="quiet" onClick={() => setModalOpen(false)}>{t('faq.actions.cancel')}</Button>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              loading={saving}
+              disabled={!form.question.trim() || !form.answer.trim()}
+            >
+              {saving ? t('faq.actions.saving') : t('faq.actions.save')}
+            </Button>
+          </>
+        )}
+      >
+        <Field
+          label={t('faq.form.questionLabel')}
+          value={form.question}
+          onChange={(v) => setForm((p) => ({ ...p, question: v }))}
+          placeholder={t('faq.form.questionPlaceholder')}
+        />
+        <Field
+          as="textarea"
+          rows={5}
+          label={t('faq.form.answerLabel')}
+          value={form.answer}
+          onChange={(v) => setForm((p) => ({ ...p, answer: v }))}
+          placeholder={t('faq.form.answerPlaceholder')}
+        />
+        {/*
+          L'ADRESSE DE LA PAGE. Vide, elle se dérive de la question — la page existe tout de
+          suite, mais son URL SUIT le texte : corriger une faute de frappe déplace la page.
+          Renseignée, elle est figée, et les liens déjà partagés survivent à toute réécriture.
+        */}
+        <Field
+          label={t('faq.form.slugLabel')}
+          value={form.slug ?? ''}
+          onChange={(v) => setForm((p) => ({ ...p, slug: v }))}
+          placeholder={form.question ? faqSlug({ question: form.question, slug: '' }) : t('faq.form.slugPlaceholder')}
+          hint={t('faq.form.slugHint')}
+        />
+
+        <div className="grid grid-cols-2 gap-4">
+          <Field
+            label={t('faq.form.categoryLabel')}
+            value={form.category}
+            onChange={(v) => setForm((p) => ({ ...p, category: v }))}
+            placeholder={t('faq.form.categoryPlaceholder')}
+          />
+          <Field
+            type="number"
+            inputMode="numeric"
+            label={t('faq.form.orderLabel')}
+            hint={t('faq.form.orderHint')}
+            value={String(form.order)}
+            onChange={(v) => setForm((p) => ({ ...p, order: Number(v) || 0 }))}
+          />
+        </div>
+      </ConsoleSheet>
+
+      <ConfirmDialog
+        open={confirm.open}
+        onClose={confirm.closeConfirm}
+        onConfirm={confirm.onConfirm}
+        title={t('faq.confirmDelete.title')}
+        message={confirm.message}
+        confirmLabel={t('faq.confirmDelete.confirmLabel')}
+      />
     </div>
   );
 }

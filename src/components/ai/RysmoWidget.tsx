@@ -8,7 +8,7 @@ import { captureError } from '../../lib/sentry';
 import { trackChatbotInteraction } from '../../lib/tracking';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { X, Send, Mic, MicOff, Bot, Loader2, Volume2, VolumeX, Trash2, Sparkles } from 'lucide-react';
+import { Icon } from '@ds';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -348,7 +348,7 @@ export default function RysmoWidget() {
   const formatText = (text: string) => {
     // Contenus (avec slug ou page de listing) + pages publiques statiques.
     const INTERNAL_LINK_RE = /^\/(blog|podcasts|videos|formations)(\/[a-z0-9-]+)?$|^\/(a-propos|contact|faq)$/i;
-    const linkAttrs = 'target="_blank" rel="noopener noreferrer" class="text-teal-600 dark:text-teal-400 underline hover:text-teal-700 dark:hover:text-teal-300 font-medium"';
+    const linkAttrs = 'target="_blank" rel="noopener noreferrer" class="text-digitalise-txt underline hover:text-digitalise-txt dark:hover:text-digitalise-txt font-medium"';
     const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
     const raw = text
@@ -377,7 +377,7 @@ export default function RysmoWidget() {
       {open && (
         <div
           onClick={() => setOpen(false)}
-          className="sm:hidden fixed inset-0 bg-black/30 z-40 animate-fade-in"
+          className="sm:hidden fixed inset-0 bg-black/30 z-40 mm-drop"
           aria-hidden="true"
         />
       )}
@@ -385,21 +385,21 @@ export default function RysmoWidget() {
       {/* ── Panneau de chat ── */}
       {open && (
         <div
-          className="fixed z-50 flex flex-col overflow-hidden bg-white dark:bg-neutral-900 animate-slide-up inset-0 rounded-none border-0 shadow-none sm:inset-auto sm:bottom-24 sm:right-6 sm:w-96 sm:h-[600px] sm:max-h-[calc(100dvh-8rem)] sm:rounded-2xl sm:border sm:border-neutral-200 sm:dark:border-neutral-700 sm:shadow-2xl"
+          className="fixed z-50 flex flex-col overflow-hidden bg-paper dark:bg-[color:var(--night-3)] mm-drop inset-0 rounded-none border-0 shadow-none sm:inset-auto sm:bottom-24 sm:right-6 sm:w-96 sm:h-[600px] sm:max-h-[calc(100dvh-8rem)] sm:rounded-2xl sm:border sm:border-[color:var(--line)] sm:dark:border-[color:var(--border-hair)] sm:shadow-2xl"
         >
 
           {/* Header */}
           <div
-            className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white flex-shrink-0"
+            className="flex items-center justify-between px-4 py-3 bg-[image:var(--action-digitalise)] text-white flex-shrink-0"
             style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
           >
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                <Bot className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-full bg-[color-mix(in_srgb,var(--paper)_20%,transparent)] flex items-center justify-center">
+                <Icon name="bot" size={16} />
               </div>
               <div>
                 <p className="text-sm font-black tracking-wide">Rysmo</p>
-                <p className="text-[10px] text-teal-200 font-medium">{t('subtitle')}</p>
+                <p className="text-[10px] text-[color:var(--paper-fixed)] font-medium">{t('subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -408,10 +408,10 @@ export default function RysmoWidget() {
                   setVoiceEnabled((v) => !v);
                   if (voiceEnabled) window.speechSynthesis?.cancel();
                 }}
-                className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                className="p-2 rounded-full hover:bg-[color-mix(in_srgb,var(--paper)_20%,transparent)] transition-colors"
                 title={voiceEnabled ? t('muteVoice') : t('enableVoice')}
               >
-                {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                {voiceEnabled ? <Icon name="volume" size={16} /> : <Icon name="volume-off" size={16} />}
               </button>
               {messages.length > 1 && (
                 <button
@@ -422,18 +422,18 @@ export default function RysmoWidget() {
                     setMessages([]);
                     setHasGreeted(false);
                   }}
-                  className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                  className="p-2 rounded-full hover:bg-[color-mix(in_srgb,var(--paper)_20%,transparent)] transition-colors"
                   title={t('clearConversation')}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Icon name="trash" size={16} />
                 </button>
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                className="p-2 rounded-full hover:bg-[color-mix(in_srgb,var(--paper)_20%,transparent)] transition-colors"
                 aria-label={t('closeRysmo')}
               >
-                <X className="w-4 h-4" />
+                <Icon name="close" size={16} />
               </button>
             </div>
           </div>
@@ -443,15 +443,15 @@ export default function RysmoWidget() {
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role === 'assistant' && (
-                  <div className="w-6 h-6 rounded-full bg-teal-100 dark:bg-teal-900/50 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
-                    <Bot className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                  <div className="w-6 h-6 rounded-full bg-[color-mix(in_srgb,var(--mm-teal)_6%,transparent)] flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                    <Icon name="bot" size={14} className="text-digitalise-txt" />
                   </div>
                 )}
                 <div
                   className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-sm leading-relaxed ${
                     msg.role === 'user'
-                      ? 'bg-teal-600 text-white rounded-tr-sm'
-                      : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-tl-sm'
+                      ? 'bg-digitalise text-white rounded-tr-sm'
+                      : 'bg-[color:var(--fill-2)] text-ink rounded-tl-sm'
                   }`}
                   dangerouslySetInnerHTML={{ __html: formatText(msg.content) }}
                 />
@@ -461,11 +461,21 @@ export default function RysmoWidget() {
             {/* Indicateur de chargement */}
             {loading && (
               <div className="flex justify-start items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-teal-100 dark:bg-teal-900/50 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                <div className="w-6 h-6 rounded-full bg-[color-mix(in_srgb,var(--mm-teal)_6%,transparent)] flex items-center justify-center flex-shrink-0">
+                  <Icon name="bot" size={14} className="text-digitalise-txt" />
                 </div>
-                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-2xl rounded-tl-sm px-3 py-2.5">
-                  <Loader2 className="w-4 h-4 animate-spin text-teal-500" />
+                {/* Les trois points de `ChatBubble`, pas un rond : le système les décrit comme
+                    « un ÉVÉNEMENT, pas un décor » — quelqu'un est en train de répondre. Ils
+                    n'animent que l'opacité et une translation de 3 px. */}
+                <div className="bg-[color:var(--fill-2)] rounded-2xl rounded-tl-sm px-3 py-2.5 flex items-center gap-1.5" role="status" aria-live="polite">
+                  <span className="sr-only">{t('thinking')}</span>
+                  {[0, 0.15, 0.3].map((d) => (
+                    <i
+                      key={d}
+                      aria-hidden="true"
+                      style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--mm-teal)', opacity: 0.35, animation: 'blink 1.25s infinite', animationDelay: `${d}s` }}
+                    />
+                  ))}
                 </div>
               </div>
             )}
@@ -477,7 +487,7 @@ export default function RysmoWidget() {
                   <button
                     key={action}
                     onClick={() => sendMessage(action)}
-                    className="w-full text-left text-xs px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-teal-300 dark:hover:border-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-150"
+                    className="w-full text-left text-xs px-3 py-2 rounded-xl border border-[color:var(--line)] text-ink-2 hover:border-digitalise dark:hover:border-digitalise hover:bg-[color-mix(in_srgb,var(--mm-teal)_8%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--mm-teal)_20%,transparent)] transition duration-150"
                   >
                     {action}
                   </button>
@@ -490,18 +500,18 @@ export default function RysmoWidget() {
 
           {/* Input */}
           <div
-            className="flex-shrink-0 border-t border-neutral-100 dark:border-neutral-800 p-3"
+            className="flex-shrink-0 border-t border-[color:var(--border-hair)] p-3"
             style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
           >
             {/* Bannière upsell quand limite atteinte */}
             {limitReached && (
               <LocalizedLink
-                to="/mon-espace/rysmo?tab=tokens"
+                to="/mon-espace/repetiteur?tab=tokens"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold shadow-sm hover:from-amber-600 hover:to-orange-600 transition-all"
+                className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold shadow-sm hover:from-amber-600 hover:to-orange-600 transition"
               >
-                <Sparkles className="w-4 h-4 flex-shrink-0" />
+                <Icon name="sparkles" size={16} className="flex-shrink-0" />
                 <span className="flex-1">{t('upsellBanner')}</span>
               </LocalizedLink>
             )}
@@ -513,7 +523,7 @@ export default function RysmoWidget() {
                 onKeyDown={handleKeyDown}
                 placeholder={t('inputPlaceholder')}
                 rows={1}
-                className="flex-1 resize-none bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 dark:focus:border-teal-500 transition-colors max-h-24 overflow-y-auto"
+                className="flex-1 resize-none bg-[color:var(--fill-1)] border border-[color:var(--line)] rounded-xl px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:border-digitalise dark:focus:border-digitalise transition-colors max-h-24 overflow-y-auto"
                 style={{ height: 'auto' }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;
@@ -526,36 +536,36 @@ export default function RysmoWidget() {
                 onClick={toggleVoiceInput}
                 className={`p-2 rounded-xl transition-colors flex-shrink-0 ${
                   listening
-                    ? 'bg-red-500 text-white animate-pulse'
-                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                    ? 'bg-[color:var(--stop)] text-white animate-pulse'
+                    : 'bg-[color:var(--fill-2)] text-ink-2 hover:bg-[color:var(--fill-3)] dark:hover:bg-[color:var(--night-3)]'
                 }`}
                 title={listening ? t('stopDictation') : t('startDictation')}
               >
-                {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                {listening ? <Icon name="mic-off" size={16} /> : <Icon name="mic" size={16} />}
               </button>
               <button
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || loading}
-                className="p-2 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                className="p-2 bg-digitalise text-white rounded-xl hover:bg-digitalise disabled:opacity-40 transition-colors flex-shrink-0"
                 aria-label={t('send')}
               >
-                <Send className="w-4 h-4" />
+                <Icon name="send" size={16} />
               </button>
             </div>
             <div className="flex items-center justify-between mt-2 gap-2">
-              <p className="text-[10px] text-neutral-400 dark:text-neutral-600">
+              <p className="text-[10px] text-ink-2">
                 {t('disclaimer')}
               </p>
               {quota && (
                 <LocalizedLink
-                  to="/mon-espace/rysmo?tab=tokens"
+                  to="/mon-espace/repetiteur?tab=tokens"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] text-neutral-500 dark:text-neutral-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors flex items-center gap-1"
+                  className="text-[10px] text-ink-2 hover:text-digitalise-txt dark:hover:text-digitalise-txt transition-colors flex items-center gap-1"
                   title={t('quotaTooltip')}
                 >
                   {quota.packBalance > 0 && (
-                    <span className="font-semibold text-teal-600 dark:text-teal-400">{t('quotaPack', { balance: quota.packBalance })}</span>
+                    <span className="font-semibold text-digitalise-txt">{t('quotaPack', { balance: quota.packBalance })}</span>
                   )}
                   <span>
                     {t('quotaToday', { remaining: quota.dayRemaining, limit: quota.dailyLimit })}
@@ -565,7 +575,7 @@ export default function RysmoWidget() {
               )}
             </div>
             {voiceError && (
-              <p className="text-[11px] text-red-500 dark:text-red-400 mt-1.5 text-center">{voiceError}</p>
+              <p className="text-[11px] text-stop mt-1.5 text-center">{voiceError}</p>
             )}
           </div>
         </div>
@@ -574,20 +584,20 @@ export default function RysmoWidget() {
       {/* ── FAB bouton ── */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`fixed bottom-24 md:bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg items-center justify-center transition-all duration-300 ${
-          open ? 'hidden sm:flex bg-neutral-700 dark:bg-neutral-600 rotate-12 scale-90' : 'flex bg-teal-600 hover:bg-teal-700 hover:scale-105'
+        className={`fixed bottom-24 md:bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg items-center justify-center transition duration-300 ${
+          open ? 'hidden sm:flex bg-[color:var(--night-3)] rotate-12 scale-90' : 'flex bg-digitalise hover:bg-digitalise hover:scale-105'
         }`}
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
         aria-label={open ? t('closeRysmo') : t('openRysmo')}
       >
         {open ? (
-          <X className="w-5 h-5 text-white" />
+          <Icon name="close" size={20} className="text-white" />
         ) : (
-          <Bot className="w-6 h-6 text-white" />
+          <Icon name="bot" size={24} className="text-white" />
         )}
         {/* Pulse quand fermé */}
         {!open && (
-          <span className="absolute inset-0 rounded-full bg-teal-500 animate-ping opacity-20" />
+          <span className="absolute inset-0 rounded-full bg-[color:var(--mm-teal)] animate-ping opacity-20" />
         )}
       </button>
     </>

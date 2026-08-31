@@ -1,0 +1,47 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-18 · LE VOILE DE LISIBILITÉ REMONTE
+
+   Point A du handoff, resté ouvert : « les ratios de la palette sont calculés sur blanc pur ;
+   sur la pile réelle — lobe → voile 42 % → verre — l'encre tertiaire tombe à 1,48:1 et la
+   secondaire à 3,4:1. Le choix appartient au produit ; le statu quo n'est pas conforme. »
+
+   Tranché : remonter le voile. MESURÉ le 30/08/2026 (WCAG 2.x, 5 lobes × 3 niveaux de verre,
+   pire cas retenu) :
+
+     voile .42 → --ink-2 #5A6472  3,93:1   ✗
+     voile .60 → --ink-2 #5A6472  4,51:1   ✓
+     voile .60 → --ink    #0E1116 14,21:1  ✓
+
+   --ink-3 #98A1AE n'est PAS traité ici : il fait 2,61:1 sur blanc pur, donc il échouait avant
+   que le maillage existe, et il plafonne à 2,51:1 même sous un voile à 94 %. Aucun voile ne le
+   sauve. Le second volet d'AD-18 le retire du texte — voir ad-06-etats.css et ds:check.
+
+   En sombre, le voile seul ne suffit pas non plus pour --ink-2 #A2ADBB (2,15:1 à .42, encore
+   3,89:1 à .70). Ce qui résout : le voile est un DÉGRADÉ. Le .42 d'origine ne valait qu'en haut
+   d'écran, là où seul vit le titre d'affichage en Fraunces 900 à 41–74 px — du grand texte,
+   seuil 3:1, tenu à 4,28:1. D'où le corollaire de mise en page, contraignant :
+   AUCUN TEXTE DE CORPS NE SE PLACE DANS LE PREMIER TIERS D'UN ÉCRAN À MAILLAGE.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.mesh::after{
+  background:linear-gradient(180deg,
+    rgba(255,255,255,.60) 0%,
+    rgba(255,255,255,.78) 46%,
+    rgba(255,255,255,.90) 100%);
+}
+
+/* Maillage nuit de la console : voile d'encre, même correction. */
+.m-nuit::after{
+  background:linear-gradient(180deg,
+    rgba(10,13,17,.62) 0%,
+    rgba(10,13,17,.86) 48%,
+    rgba(10,13,17,.94) 100%);
+}
+
+/* Mode sombre du produit. */
+.dk .mesh::after{
+  background:linear-gradient(180deg,
+    rgba(11,14,19,.62) 0%,
+    rgba(11,14,19,.86) 48%,
+    rgba(11,14,19,.94) 100%);
+}

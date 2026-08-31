@@ -1,36 +1,71 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Search, RefreshCw, Loader2, ChevronDown, Check, X } from 'lucide-react';
-import Button from '../../components/ui/Button';
+import { Button, DocLine, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, StatTile, Tag } from '@ds';
+import type { TagTone } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { SiteEyebrow } from '../../components/site';
 import { useToast } from '../../components/ui/Toast';
 import { getAllAppointments, updateAppointmentStatus } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import type { Appointment } from '../../types';
 
-const STATUS_COLORS: Record<Appointment['status'], string> = {
-  pending: 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400',
-  confirmed: 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400',
-  cancelled: 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500',
+/**
+ * LES RENDEZ-VOUS, SUR LE MOTIF DE CONSOLE.
+ *
+ * ⚠️ LE KIT SE CONTREDIT ICI, ET LE MOTIF TRANCHE. Sa grille des quatorze écrans range les
+ * rendez-vous sous « tout · à venir · passés » — c'est-à-dire un filtre PAR DATE, que la
+ * première règle du même kit interdit en toutes lettres : « filtre par statut, jamais par
+ * date ; un opérateur unique cherche ce qui attend, pas ce qui s'est passé mardi ». « Passés »
+ * est exactement « ce qui s'est passé mardi », et c'est la seule chose dont personne n'a
+ * besoin sur un écran de console. Les étapes sont donc les trois statuts que la base porte
+ * réellement — `pending · confirmed · cancelled` — précédés de « tout ». Le pied de l'écran
+ * nomme l'écart, comme il nomme les autres.
+ *
+ * UNE ACTION PAR LIGNE, ET LA DÉCISION DANS LA FICHE. Confirmer et refuser sont deux issues
+ * d'une même décision : les poser côte à côte sur chaque ligne, c'est « une hésitation par
+ * ligne ». La ligne porte l'état et l'ouverture ; la fiche porte le message, les coordonnées,
+ * et les deux issues — dans cet ordre, parce qu'on décide APRÈS avoir lu.
+ */
+
+type Stage = 'all' | Appointment['status'];
+
+const STATUS_TONE: Record<Appointment['status'], TagTone> = {
+  pending: 'warn',
+  confirmed: 'ok',
+  cancelled: 'neutral',
+};
+
+const STATUS_TINT: Record<Appointment['status'], string> = {
+  pending: '--mm-orange',
+  confirmed: '--ok',
+  cancelled: '--ink-2',
 };
 
 export default function AdminAppointments() {
   const { t } = useTranslation('admin');
   const { formatDate } = useFormat();
   const { addToast } = useToast();
+
   const STATUS_LABELS: Record<Appointment['status'], string> = {
     pending: t('appointments.statusPending'),
     confirmed: t('appointments.statusConfirmed'),
     cancelled: t('appointments.statusCancelled'),
   };
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | Appointment['status']>('all');
+  const [stage, setStage] = useState<Stage>('all');
   const [updating, setUpdating] = useState<string | null>(null);
+  /** Demande ouverte — la fiche du motif : on lit, puis on décide. */
+  const [openId, setOpenId] = useState<string | null>(null);
+  /** Date de la MESURE, posée quand la lecture revient. */
+  const [asOf, setAsOf] = useState(() => new Date());
 
   const load = () => {
     setLoading(true);
-    getAllAppointments().then((data) => { setAppointments(data); setLoading(false); })
+    getAllAppointments()
+      .then((data) => { setAppointments(data); setAsOf(new Date()); setLoading(false); })
       .catch(() => { addToast('error', t('appointments.toastLoadError')); setLoading(false); });
   };
 
@@ -49,103 +84,185 @@ export default function AdminAppointments() {
     }
   };
 
-  const filtered = appointments.filter((a) => {
-    const matchSearch = a.name.toLowerCase().includes(search.toLowerCase()) || a.email.toLowerCase().includes(search.toLowerCase()) || a.subject.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === 'all' || a.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+  const stages: Stage[] = ['all', 'pending', 'confirmed', 'cancelled'];
+  const stageLabels: Record<Stage, string> = {
+    all: t('appointments.stageAll'),
+    pending: t('appointments.stagePending'),
+    confirmed: t('appointments.stageConfirmed'),
+    cancelled: t('appointments.stageCancelled'),
+  };
 
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return appointments.filter((a) => {
+      const matchSearch = !q
+        || a.name.toLowerCase().includes(q)
+        || a.email.toLowerCase().includes(q)
+        || a.subject.toLowerCase().includes(q);
+      const matchStage = stage === 'all' || a.status === stage;
+      return matchSearch && matchStage;
+    });
+  }, [appointments, search, stage]);
+
+  /** Les compteurs portent sur la COLLECTION entière, jamais sur l'affichage filtré. */
   const pendingCount = appointments.filter((a) => a.status === 'pending').length;
+  const confirmedCount = appointments.filter((a) => a.status === 'confirmed').length;
+
+  const sheet = appointments.find((a) => a.id === openId) ?? null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">{t('appointments.title')}</h1>
-          <p className="text-sm text-neutral-500 mt-1">
-            {pendingCount > 0 && <span className="text-warning-600 font-medium">{t('appointments.pendingCount', { count: pendingCount })} · </span>}
-            {t('appointments.totalCount', { count: appointments.length })}
-          </p>
+    // `.play` en dur : voir AdminDashboard.
+    <div className="play">
+      <ConsolePage title={t('appointments.title')} sub={t('appointments.sub')}>
+        <div className="mb-3.5 flex justify-end">
+          <Button size="sm" tone="quiet" onClick={load} disabled={loading}>
+            {t('appointments.refresh')}
+          </Button>
         </div>
-        <Button variant="outline" onClick={load} icon={<RefreshCw className="w-4 h-4" />}>{t('appointments.refresh')}</Button>
-      </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('appointments.searchPlaceholder')} className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
-        </div>
-        <div className="relative">
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)} className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
-            <option value="all">{t('appointments.filterAll')}</option>
-            <option value="pending">{t('appointments.filterPending')}</option>
-            <option value="confirmed">{t('appointments.filterConfirmed')}</option>
-            <option value="cancelled">{t('appointments.filterCancelled')}</option>
-          </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
-        </div>
-      </div>
+        <ConsoleFilter
+          className="rv"
+          stages={stages.map((s) => stageLabels[s])}
+          active={stageLabels[stage]}
+          onSelect={(label) => setStage(stages.find((s) => stageLabels[s] === label) ?? 'all')}
+          label={t('appointments.pipelineLabel')}
+        />
 
-      {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
-          <Calendar className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p className="text-neutral-500">{t('appointments.empty')}</p>
+        <div className="mt-3.5 grid gap-2.5 sm:grid-cols-3">
+          <StatTile
+            label={t('appointments.tilePending')}
+            value={loading ? null : pendingCount}
+            source="db"
+            asOf={asOf}
+            foot={t('appointments.footToDecide')}
+          />
+          <StatTile
+            label={t('appointments.tileConfirmed')}
+            value={loading ? null : confirmedCount}
+            source="db"
+            asOf={asOf}
+            foot={t('appointments.footAgreed')}
+          />
+          <StatTile
+            label={t('appointments.tileTotal')}
+            value={loading ? null : appointments.length}
+            source="db"
+            asOf={asOf}
+            foot={t('appointments.footAllStatuses')}
+          />
         </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((a) => (
-            <div key={a.id} className={`bg-white dark:bg-neutral-800 border rounded-2xl p-5 transition-colors ${a.status === 'pending' ? 'border-warning-200 dark:border-warning-800' : 'border-neutral-200 dark:border-neutral-700'}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-2">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLORS[a.status]}`}>{STATUS_LABELS[a.status]}</span>
-                    <span className="flex items-center gap-1 text-xs text-neutral-500">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {t('appointments.dateAtTime', { date: a.date, time: a.time })}
-                    </span>
-                    <span className="text-xs text-neutral-400">{t('appointments.receivedOn', { date: formatDate(a.createdAt) })}</span>
-                  </div>
-                  <p className="font-semibold text-neutral-900 dark:text-white">{a.name}</p>
-                  <p className="text-sm text-neutral-500">{a.email}{a.phone && ` · ${a.phone}`}</p>
-                  <p className="text-sm text-neutral-700 dark:text-neutral-300 mt-1 font-medium">{a.subject}</p>
-                  {a.message && <p className="text-sm text-neutral-500 mt-1 line-clamp-2">{a.message}</p>}
-                </div>
-                {a.status === 'pending' && (
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => handleStatus(a.id, 'confirmed')}
-                      disabled={updating === a.id}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 hover:bg-success-200 dark:hover:bg-success-900/50 transition-colors disabled:opacity-50"
-                    >
-                      {updating === a.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                      {t('appointments.confirm')}
-                    </button>
-                    <button
-                      onClick={() => handleStatus(a.id, 'cancelled')}
-                      disabled={updating === a.id}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-error-100 dark:bg-error-900/30 text-error-700 dark:text-error-400 hover:bg-error-200 dark:hover:bg-error-900/50 transition-colors disabled:opacity-50"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                      {t('appointments.refuse')}
-                    </button>
-                  </div>
-                )}
-                {a.status === 'confirmed' && (
-                  <button
-                    onClick={() => handleStatus(a.id, 'cancelled')}
-                    disabled={updating === a.id}
-                    className="flex items-center gap-1 text-xs text-neutral-400 hover:text-error-500 transition-colors disabled:opacity-50 flex-shrink-0"
-                  >
-                    <X className="w-3.5 h-3.5" /> {t('appointments.cancel')}
-                  </button>
-                )}
+
+        <div className="mt-3.5 max-w-sm">
+          <Field
+            as="input"
+            type="search"
+            label={t('appointments.searchLabel')}
+            hideLabel
+            value={search}
+            onChange={setSearch}
+            placeholder={t('appointments.searchPlaceholder')}
+            inputMode="search"
+          />
+        </div>
+
+        {/* ── La fiche : on lit la demande, puis on décide ──────────────────────── */}
+        {sheet && (
+          <GlassPanel level="night" padding={18} className="rv mt-3.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <SiteEyebrow style={{ marginBottom: '4px' }}>{t('appointments.sheetEyebrow')}</SiteEyebrow>
+                <p className="m-0 text-[15px] font-bold text-ink">{sheet.name}</p>
+                <p className="m-0 mt-1 text-meta-2 text-ink-2">{sheet.subject}</p>
               </div>
+              <Button size="sm" tone="quiet" onClick={() => setOpenId(null)}>
+                {t('appointments.closeSheet')}
+              </Button>
             </div>
-          ))}
-        </div>
-      )}
+
+            <div className="mt-3.5">
+              <DocLine
+                label={t('appointments.docWhen')}
+                value={t('appointments.dateAtTime', { date: sheet.date, time: sheet.time })}
+              />
+              <DocLine label={t('appointments.docEmail')} value={sheet.email} />
+              {sheet.phone && <DocLine label={t('appointments.docPhone')} value={sheet.phone} />}
+              <DocLine label={t('appointments.docSubject')} value={sheet.subject} />
+              <DocLine label={t('appointments.docReceivedAt')} value={formatDate(sheet.createdAt)} />
+              <DocLine label={t('appointments.docMessage')} value={sheet.message || '—'} last />
+            </div>
+
+            <div className="mt-3.5 flex flex-wrap gap-2">
+              {sheet.status !== 'confirmed' && (
+                <Button
+                  size="sm"
+                  tone="forme"
+                  onClick={() => handleStatus(sheet.id, 'confirmed')}
+                  loading={updating === sheet.id}
+                >
+                  {t('appointments.confirm')}
+                </Button>
+              )}
+              {sheet.status !== 'cancelled' && (
+                <Button
+                  size="sm"
+                  tone="quiet"
+                  onClick={() => handleStatus(sheet.id, 'cancelled')}
+                  loading={updating === sheet.id}
+                >
+                  {sheet.status === 'pending' ? t('appointments.refuse') : t('appointments.cancel')}
+                </Button>
+              )}
+            </div>
+          </GlassPanel>
+        )}
+
+        <SiteEyebrow style={{ marginTop: '22px', marginBottom: '10px' }}>
+          {stageLabels[stage]}
+        </SiteEyebrow>
+
+        {loading ? (
+          <div className="flex flex-col gap-2">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} height={60} radius="var(--r-l)" label={t('appointments.title')} />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            glyph={<Icon name="calendar" size={26} color="var(--mm-bleu)" />}
+            glyphBackground="color-mix(in srgb, var(--mm-bleu) 22%, transparent)"
+            title={t('appointments.emptyTitle')}
+            body={t('appointments.emptyBody')}
+          />
+        ) : (
+          <ConsoleList label={t('appointments.listLabel')} className="rv">
+            {filtered.map((a, i) => (
+              <li key={a.id}>
+                <LessonRow
+                  icon={<Icon name="calendar" size={14} color={`var(${STATUS_TINT[a.status]})`} />}
+                  iconBackground={`color-mix(in srgb, var(${STATUS_TINT[a.status]}) 22%, transparent)`}
+                  title={a.name}
+                  meta={`${t('appointments.dateAtTime', { date: a.date, time: a.time })} · ${a.subject}`}
+                  trailing={
+                    <span className="flex items-center gap-2">
+                      <Tag tone={STATUS_TONE[a.status]}>{STATUS_LABELS[a.status]}</Tag>
+                      <Button
+                        size="sm"
+                        tone="quiet"
+                        onClick={() => setOpenId(openId === a.id ? null : a.id)}
+                      >
+                        {t('appointments.open')}
+                      </Button>
+                    </span>
+                  }
+                  last={i === filtered.length - 1}
+                />
+              </li>
+            ))}
+          </ConsoleList>
+        )}
+
+        <ConsoleScope>{t('appointments.scope')}</ConsoleScope>
+      </ConsolePage>
     </div>
   );
 }

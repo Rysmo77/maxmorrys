@@ -10,9 +10,9 @@
     "contact": "Contact"
   },
   "links": {
-    "formations": "I train you",
+    "formations": "I'll train you",
     "agency": "Agency",
-    "blog": "I inform you",
+    "blog": "I'll keep you posted",
     "podcasts": "The Marketing Podcast",
     "videos": "Marketing in Practice",
     "faq": "FAQ",
@@ -24,8 +24,18 @@
     "cgu": "Terms of Use",
     "cgv": "Terms of Sale",
     "cookies": "Cookies",
-    "presence": "Digital Presence"
+    "presence": "Digital Presence",
+    "pole": "I'll push you further",
+    "club": "The Digitos Club",
+    "verify": "Verify a certificate"
   },
   "copyright": "© {{year}} Max-Morrys. All rights reserved.",
-  "operatedByPrefix": "Max-Morrys is a brand operated by"
+  "operatedByPrefix": "Max-Morrys is a brand operated by",
+  "followTitle": "Follow what I publish",
+  "followText": "The blog is the one place I write every week. Two ways not to miss anything.",
+  "rss": "RSS feed",
+  "rssAction": "Copy the link",
+  "alert": "Alert in your space",
+  "alertAction": "Create an account",
+  "noEmail": "There's no email newsletter yet. I won't make you fill a field that does nothing."
 }

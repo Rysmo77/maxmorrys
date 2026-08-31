@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
 
 interface CountryCode {
@@ -235,13 +236,23 @@ function formatValue(dial: string, number: string): string {
 }
 
 interface PhoneInputProps {
+  /**
+   * `id` du champ NUMÉRO — celui qu'un `<label htmlFor>` extérieur doit cibler.
+   *
+   * Ce composant rend DEUX contrôles : l'indicatif et le numéro. Un libellé posé à côté
+   * n'en désignait aucun, donc ni l'un ni l'autre n'avait de nom accessible. C'est le numéro
+   * qui porte le libellé de l'ensemble — c'est lui qu'on vient remplir ; l'indicatif se
+   * nomme lui-même, ci-dessous.
+   */
+  id?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
 }
 
-export default function PhoneInput({ value, onChange, placeholder = '77 123 45 67', className = '' }: PhoneInputProps) {
+export default function PhoneInput({ id, value, onChange, placeholder = '77 123 45 67', className = '' }: PhoneInputProps) {
+  const { t } = useTranslation('ui');
   const parsed = useMemo(() => parsePhone(value), [value]);
   const [dial, setDial] = useState(parsed.dial);
   const [number, setNumber] = useState(parsed.number);
@@ -267,10 +278,13 @@ export default function PhoneInput({ value, onChange, placeholder = '77 123 45 6
 
   return (
     <div className={`flex gap-0 ${className}`}>
+      {/* L'indicatif porte son propre nom : un `<select>` de 120 px rempli de drapeaux est
+          annoncé « liste » et rien d'autre sans lui. */}
       <select
+        aria-label={t('phoneInput.countryLabel')}
         value={dial}
         onChange={(e) => handleDialChange(e.target.value)}
-        className="flex-shrink-0 w-[120px] px-2 py-2.5 rounded-l-xl border border-r-0 border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors appearance-none cursor-pointer"
+        className="flex-shrink-0 w-[120px] px-2 py-2.5 rounded-l-xl border border-r-0 border-[color:var(--line)] bg-[color:var(--fill-2)] text-ink text-sm focus:outline-none focus:ring-2 focus:border-forme transition-colors appearance-none cursor-pointer"
         style={{ backgroundImage: 'none' }}
       >
         {COUNTRY_CODES.map((c) => (
@@ -280,11 +294,14 @@ export default function PhoneInput({ value, onChange, placeholder = '77 123 45 6
         ))}
       </select>
       <input
+        id={id}
         type="tel"
+        inputMode="tel"
+        autoComplete="tel-national"
         value={number}
         onChange={(e) => handleNumberChange(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400"
+        className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-[color:var(--line)] bg-[color:var(--fill-1)] dark:bg-[color:var(--night-3)] text-ink text-sm focus:outline-none focus:ring-2 focus:border-forme transition-colors"
       />
     </div>
   );

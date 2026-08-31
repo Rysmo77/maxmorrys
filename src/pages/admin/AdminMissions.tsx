@@ -1,64 +1,50 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Boxes, Search, RefreshCw, Loader2, Mail, Trash2, ExternalLink, Download, StickyNote, Signpost,
-} from 'lucide-react';
-import Button from '../../components/ui/Button';
-import { useToast } from '../../components/ui/Toast';
-import {
-  getEngagementLeads, updateEngagementLeadStatus, updateEngagementLeadNotes,
-  deleteEngagementLead, getMissionStats, MISSION_STAGES,
-} from '../../lib/firestore';
-import { exportToCsv } from '../../lib/utils';
+  Button, DocLine, EmptyState, Field, Icon, LessonRow, SearchPill, Skeleton, StatTile, Tag,
+} from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { useReveal } from '../../components/site/useReveal';
+import ConsoleSheet from './components/ConsoleSheet';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { useFormat } from '../../hooks/useFormat';
+import { MISSION_STAGES } from '../../lib/firestore';
+import { exportToCsv } from '../../lib/utils';
+import { useAdminMissions, isOpenLead } from './hooks/useAdminMissions';
 import type { EngagementLead, EngagementLeadStatus } from '../../types';
-
-const STATUS_COLORS: Record<EngagementLeadStatus, string> = {
-  new: 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400',
-  qualified: 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400',
-  scoping: 'bg-lagoon-100 dark:bg-lagoon-900/30 text-lagoon-700 dark:text-lagoon-300',
-  proposal: 'bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400',
-  won: 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400',
-  lost: 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500',
-};
 
 /**
  * Pipeline des demandes de mission Max-Morrys Agency (collection `engagement_leads`).
  *
  * ⚠️ Écran distinct de `AdminAgencyLeads`, qui suit les prospects de l'offre
  * « Digital Commerce Local » : deux offres, deux schémas, deux cycles de vente.
+ *
+ * Le kit appelle cet écran « Défis » et lui donne le pipeline « tout · en cours · clos ». Le
+ * nom ne correspond à rien ici — les défis du produit sont ceux du Club, administrés dans
+ * `AdminClubDigitos`. Le PIPELINE, lui, s'applique : voir `hooks/useAdminMissions.ts`, qui
+ * range les six statuts du cycle agence dans ces deux files.
  */
+const STAGES = ['all', 'open', 'closed'] as const;
+type Stage = (typeof STAGES)[number];
+
 export default function AdminMissions() {
   const { t } = useTranslation('admin');
   const { formatDate } = useFormat();
-  const { addToast } = useToast();
+  const reveal = useReveal<HTMLDivElement>();
+  const {
+    leads, loading, loadedAt, stats,
+    search, setSearch, updating, openId, setOpenId,
+    noteDrafts, setNoteDrafts, savingNote,
+    load, handleStatus, handleSaveNote, handleDelete, confirm,
+  } = useAdminMissions();
 
-  const [leads, setLeads] = useState<EngagementLead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | EngagementLeadStatus>('all');
-  const [updating, setUpdating] = useState<string | null>(null);
-  /** Fiche dont les notes internes sont dépliées */
-  const [openNotes, setOpenNotes] = useState<string | null>(null);
-  /** Brouillon local des notes, indexé par demande — évite un aller-retour par frappe */
-  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
-  const [savingNote, setSavingNote] = useState<string | null>(null);
-
-  const load = () => {
-    setLoading(true);
-    getEngagementLeads()
-      .then((data) => { setLeads(data); setLoading(false); })
-      .catch(() => { addToast('error', t('missions.toastLoadError')); setLoading(false); });
-  };
-
-  useEffect(() => { load(); }, []);
-
-  const stats = useMemo(() => getMissionStats(leads), [leads]);
+  const [stage, setStage] = useState<Stage>('all');
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return leads.filter((l) => {
-      if (statusFilter !== 'all' && l.status !== statusFilter) return false;
+      if (stage === 'open' && !isOpenLead(l)) return false;
+      if (stage === 'closed' && isOpenLead(l)) return false;
       if (!q) return true;
       return (
         l.name.toLowerCase().includes(q) ||
@@ -67,48 +53,7 @@ export default function AdminMissions() {
         l.description.toLowerCase().includes(q)
       );
     });
-  }, [leads, search, statusFilter]);
-
-  const handleStatus = async (id: string, status: EngagementLeadStatus) => {
-    setUpdating(id);
-    try {
-      await updateEngagementLeadStatus(id, status);
-      setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
-      addToast('success', t('missions.toastUpdated'));
-    } catch {
-      addToast('error', t('missions.toastUpdateError'));
-    } finally {
-      setUpdating(null);
-    }
-  };
-
-  /** Enregistre au `blur` : une écriture par frappe saturerait Firestore pour rien. */
-  const handleSaveNote = async (id: string) => {
-    const draft = noteDrafts[id];
-    if (draft === undefined) return;
-    const current = leads.find((l) => l.id === id)?.notes ?? '';
-    if (draft === current) return;
-    setSavingNote(id);
-    try {
-      await updateEngagementLeadNotes(id, draft);
-      setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, notes: draft } : l)));
-    } catch {
-      addToast('error', t('missions.toastUpdateError'));
-    } finally {
-      setSavingNote(null);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm(t('missions.confirmDelete'))) return;
-    try {
-      await deleteEngagementLead(id);
-      setLeads((prev) => prev.filter((l) => l.id !== id));
-      addToast('success', t('missions.toastDeleted'));
-    } catch {
-      addToast('error', t('missions.toastUpdateError'));
-    }
-  };
+  }, [leads, search, stage]);
 
   /** Exporte l'ensemble filtré, pas la collection entière. */
   const handleExport = () => {
@@ -131,221 +76,202 @@ export default function AdminMissions() {
     exportToCsv(t('missions.csv.filename'), headers, rows);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="w-6 h-6 animate-spin text-brand-500" aria-hidden="true" />
-      </div>
-    );
-  }
+  const stageLabels = STAGES.map((s) => t(`missions.stages.${s}`));
+  const openCount = leads.filter(isOpenLead).length;
+  const open = leads.find((l) => l.id === openId) ?? null;
+
+  /** Un seul état par ligne : le statut du cycle, tel qu'il est en base. */
+  const stateTag = (l: EngagementLead) => (
+    <Tag tone={l.status === 'won' ? 'ok' : l.status === 'lost' ? 'neutral' : 'warn'}>
+      {t(`missions.status.${l.status}`)}
+    </Tag>
+  );
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Boxes className="w-6 h-6 text-lagoon-600" aria-hidden="true" />
-          <div>
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {t('missions.title')}
-            </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              {t('missions.subtitle')}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" icon={<RefreshCw className="w-4 h-4" />} onClick={load}>
-            {t('missions.refresh')}
-          </Button>
-          <Button variant="outline" size="sm" icon={<Download className="w-4 h-4" />} onClick={handleExport}>
-            {t('missions.export')}
-          </Button>
-        </div>
-      </header>
-
-      {/* Compteurs cliquables — filtrent la liste */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
-        <button
-          type="button"
-          onClick={() => setStatusFilter('all')}
-          className={`rounded-xl border p-3 text-left transition-colors ${
-            statusFilter === 'all'
-              ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
-              : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'
-          }`}
-        >
-          <span className="block text-2xl font-bold text-neutral-900 dark:text-white">{stats.total}</span>
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">{t('missions.statusAll')}</span>
-        </button>
-        {MISSION_STAGES.map((stage) => (
-          <button
-            key={stage}
-            type="button"
-            onClick={() => setStatusFilter(stage)}
-            className={`rounded-xl border p-3 text-left transition-colors ${
-              statusFilter === stage
-                ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
-                : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'
-            }`}
-          >
-            <span className="block text-2xl font-bold text-neutral-900 dark:text-white">
-              {stats.byStatus[stage]}
-            </span>
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">
-              {t(`missions.status.${stage}`)}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {stats.routed.MY_ONOMA_GROW > 0 && (
-        <p className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-          <Signpost className="w-4 h-4 text-lagoon-600" aria-hidden="true" />
-          {t('missions.routedCount', { count: stats.routed.MY_ONOMA_GROW })}
-        </p>
-      )}
-
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" aria-hidden="true" />
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t('missions.searchPlaceholder')}
-          aria-label={t('missions.searchPlaceholder')}
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+    <div>
+      <ConsolePage title={t('missions.title')} sub={t('missions.consoleSub')}>
+        <ConsoleFilter
+          label={t('missions.stagesLabel')}
+          stages={stageLabels}
+          active={t(`missions.stages.${stage}`)}
+          onSelect={(label) => {
+            const index = stageLabels.indexOf(label);
+            if (index >= 0) setStage(STAGES[index]);
+          }}
         />
-      </div>
 
-      {filtered.length === 0 ? (
-        <p className="py-16 text-center text-neutral-500 dark:text-neutral-400">
-          {t('missions.empty')}
-        </p>
-      ) : (
-        <ul className="space-y-3">
-          {filtered.map((lead) => (
-            <li
-              key={lead.id}
-              className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-bold text-neutral-900 dark:text-white">{lead.company}</h2>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[lead.status]}`}>
-                      {t(`missions.status.${lead.status}`)}
-                    </span>
-                    {lead.routedTo && (
-                      <span className="rounded-full bg-lagoon-100 dark:bg-lagoon-900/40 px-2 py-0.5 text-xs font-medium text-lagoon-700 dark:text-lagoon-300">
-                        {t('missions.routedBadge')}
-                      </span>
-                    )}
-                    {lead.via && (
-                      // Provenance : le prospect est arrive par le credit d'agence
-                      // pose au pied du site `lead.via`.
-                      <span className="rounded-full bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 text-xs font-medium text-neutral-600 dark:text-neutral-300">
-                        {t('missions.viaBadge', { slug: lead.via })}
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-                    {lead.name} · {formatDate(lead.createdAt)}
-                  </p>
-                  <p className="mt-2 text-sm text-neutral-700 dark:text-neutral-300">
-                    {t(`missions.projectTypes.${lead.projectType}`)} ·{' '}
-                    {t(`missions.budgets.${lead.budget}`)} ·{' '}
-                    {t(`missions.timelines.${lead.timeline}`)}
-                  </p>
-                </div>
+        {loadedAt && (
+          <div className="mt-3.5 grid grid-cols-2 gap-2.5">
+            <StatTile
+              label={t('missions.tiles.open')}
+              value={openCount}
+              source="db"
+              asOf={loadedAt}
+              foot={t('missions.tiles.openFoot')}
+            />
+            <StatTile
+              label={t('missions.tiles.routed')}
+              value={stats.routed.MY_ONOMA_GROW}
+              source="db"
+              asOf={loadedAt}
+              foot={t('missions.tiles.routedFoot')}
+            />
+          </div>
+        )}
 
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`mailto:${lead.email}`}
-                    className="rounded-lg p-2 text-neutral-500 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                    aria-label={t('missions.emailAria', { email: lead.email })}
-                  >
-                    <Mail className="w-4 h-4" aria-hidden="true" />
-                  </a>
-                  {lead.website && (
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <SearchPill
+            label={t('missions.searchLabel')}
+            labelHidden
+            placeholder={t('missions.searchPlaceholder')}
+            icon={<Icon name="search" size={16} color="var(--text-muted)" />}
+            value={search}
+            onChange={setSearch}
+            height={46}
+            style={{ flex: '1 1 220px' }}
+          />
+          <Button size="sm" tone="quiet" onClick={load}>{t('missions.refresh')}</Button>
+          <Button size="sm" tone="quiet" onClick={handleExport}>{t('missions.export')}</Button>
+        </div>
+
+        <div className="mt-3">
+          {loading || !loadedAt ? (
+            <div className="space-y-2.5">
+              {[0, 1, 2].map((i) => <Skeleton key={i} height={56} radius="var(--r-m)" label={t('missions.loading')} />)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState
+              glyph={<Icon name="case" size={26} color="var(--mm-teal)" />}
+              glyphBackground="color-mix(in srgb, var(--mm-teal) 18%, transparent)"
+              title={t('missions.empty')}
+              body={t('missions.emptyBody')}
+            />
+          ) : (
+            <ConsoleList label={t('missions.listLabel')}>
+              {filtered.map((l, i) => (
+                <li key={l.id}>
+                  <LessonRow
+                    onClick={() => setOpenId(l.id)}
+                    icon={<Icon name="case" size={14} color="var(--mm-teal)" />}
+                    iconBackground="color-mix(in srgb, var(--mm-teal) 20%, transparent)"
+                    title={l.company}
+                    meta={(
+                      <>
+                        {`${l.name} · ${formatDate(l.createdAt)} · `}
+                        {t(`missions.projectTypes.${l.projectType}`)}
+                        {l.routedTo ? ` · ${t('missions.routedBadge')}` : ''}
+                        {l.via ? ` · ${t('missions.viaBadge', { slug: l.via })}` : ''}
+                      </>
+                    )}
+                    trailing={stateTag(l)}
+                    last={i === filtered.length - 1}
+                  />
+                </li>
+              ))}
+            </ConsoleList>
+          )}
+        </div>
+
+        {/* `.rv` ne rend rien tant qu'un ancêtre ne porte pas `.play`, et la console n'en pose
+            aucun : sans déclencheur, le pied du motif — obligatoire — resterait à `opacity: 0`.
+            L'observateur est posé sur le PIED lui-même et non sur la page : au seuil de 12 %,
+            un écran plus haut que huit fois la fenêtre ne l'atteindrait jamais. */}
+        <div ref={reveal}>
+          <ConsoleScope>{t('missions.scope')}</ConsoleScope>
+        </div>
+      </ConsolePage>
+
+      <ConsoleSheet
+        open={open !== null}
+        onClose={() => setOpenId(null)}
+        closeLabel={t('missions.sheetClose')}
+        eyebrow={open ? t(`missions.status.${open.status}`) : undefined}
+        title={open?.company ?? ''}
+        footer={open ? (
+          <>
+            <Button size="sm" tone="quiet" onClick={() => handleDelete(open.id)} style={{ marginRight: 'auto' }}>
+              {t('missions.deleteAria')}
+            </Button>
+            <Button size="sm" href={`mailto:${open.email}`}>{t('missions.writeAction')}</Button>
+          </>
+        ) : undefined}
+      >
+        {open && (
+          <>
+            <div>
+              <DocLine label={t('missions.docContact')} value={`${open.name} · ${open.email}`} />
+              <DocLine label={t('missions.docReceived')} value={formatDate(open.createdAt)} />
+              <DocLine label={t('missions.docProjectType')} value={t(`missions.projectTypes.${open.projectType}`)} />
+              <DocLine label={t('missions.docBudget')} value={t(`missions.budgets.${open.budget}`)} />
+              <DocLine label={t('missions.docTimeline')} value={t(`missions.timelines.${open.timeline}`)} />
+              <DocLine
+                label={t('missions.docSource')}
+                value={open.via ? t('missions.viaBadge', { slug: open.via }) : t('missions.docSourceDirect')}
+              />
+              <DocLine
+                label={t('missions.docRouted')}
+                value={open.routedTo ? t('missions.routedBadge') : t('missions.docRoutedNone')}
+                last={!open.website}
+              />
+              {open.website && (
+                <DocLine
+                  label={t('missions.docWebsite')}
+                  value={(
                     <a
-                      href={lead.website}
+                      href={open.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-lg p-2 text-neutral-500 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                      aria-label={t('missions.websiteAria')}
+                      className="underline"
+                      style={{ color: 'var(--text-link)' }}
                     >
-                      <ExternalLink className="w-4 h-4" aria-hidden="true" />
+                      {open.website}
                     </a>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => setOpenNotes(openNotes === lead.id ? null : lead.id)}
-                    className="rounded-lg p-2 text-neutral-500 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                    aria-label={t('missions.notesAria')}
-                    aria-expanded={openNotes === lead.id}
-                  >
-                    <StickyNote className="w-4 h-4" aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(lead.id)}
-                    className="rounded-lg p-2 text-neutral-500 hover:text-error-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                    aria-label={t('missions.deleteAria')}
-                  >
-                    <Trash2 className="w-4 h-4" aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-
-              <p className="mt-4 whitespace-pre-line text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                {lead.description}
-              </p>
-
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <label htmlFor={`status-${lead.id}`} className="sr-only">
-                  {t('missions.statusLabel')}
-                </label>
-                <select
-                  id={`status-${lead.id}`}
-                  value={lead.status}
-                  disabled={updating === lead.id}
-                  onChange={(e) => handleStatus(lead.id, e.target.value as EngagementLeadStatus)}
-                  className="rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-1.5 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-                >
-                  {MISSION_STAGES.map((stage) => (
-                    <option key={stage} value={stage}>{t(`missions.status.${stage}`)}</option>
-                  ))}
-                </select>
-                {updating === lead.id && (
-                  <Loader2 className="w-4 h-4 animate-spin text-brand-500" aria-hidden="true" />
-                )}
-              </div>
-
-              {openNotes === lead.id && (
-                <div className="mt-4">
-                  <label
-                    htmlFor={`notes-${lead.id}`}
-                    className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5"
-                  >
-                    {t('missions.notesLabel')}
-                  </label>
-                  <textarea
-                    id={`notes-${lead.id}`}
-                    rows={3}
-                    defaultValue={lead.notes ?? ''}
-                    onChange={(e) => setNoteDrafts((p) => ({ ...p, [lead.id]: e.target.value }))}
-                    onBlur={() => handleSaveNote(lead.id)}
-                    className="w-full rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                  {savingNote === lead.id && (
-                    <p className="mt-1 text-xs text-neutral-400">{t('missions.notesSaving')}</p>
-                  )}
-                </div>
+                  last
+                />
               )}
-            </li>
-          ))}
-        </ul>
-      )}
+            </div>
+
+            <p className="m-0 whitespace-pre-line text-meta leading-[1.6] text-ink-2">{open.description}</p>
+
+            <Field
+              as="select"
+              label={t('missions.statusLabel')}
+              value={open.status}
+              disabled={updating === open.id}
+              onChange={(v) => handleStatus(open.id, v as EngagementLeadStatus)}
+              options={MISSION_STAGES.map((s) => ({ value: s, label: t(`missions.status.${s}`) }))}
+            />
+
+            <Field
+              // Une fiche par champ : sans clé, le brouillon non contrôlé d'une demande
+              // resterait affiché sur la suivante.
+              key={open.id}
+              as="textarea"
+              rows={3}
+              label={t('missions.notesLabel')}
+              hint={savingNote === open.id ? t('missions.notesSaving') : undefined}
+              defaultValue={open.notes ?? ''}
+              onChange={(v) => setNoteDrafts((p) => ({ ...p, [open.id]: v }))}
+              onBlur={() => handleSaveNote(open.id)}
+            />
+            {/* Le brouillon vit dans le hook : rouvrir la fiche ne perd pas une note non encore
+                enregistrée, et le `blur` compare au contenu en base avant d'écrire. */}
+            {noteDrafts[open.id] !== undefined && noteDrafts[open.id] !== (open.notes ?? '') && (
+              <p className="m-0 text-meta-2 text-ink-2">{t('missions.notesDirty')}</p>
+            )}
+          </>
+        )}
+      </ConsoleSheet>
+
+      <ConfirmDialog
+        open={confirm.open}
+        onClose={confirm.closeConfirm}
+        onConfirm={confirm.onConfirm}
+        title={t('missions.confirmDeleteTitle')}
+        message={confirm.message}
+        confirmLabel={t('missions.deleteAria')}
+      />
     </div>
   );
 }

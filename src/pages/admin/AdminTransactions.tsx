@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, RefreshCw, CreditCard, Loader2, ChevronDown, ArrowDownLeft } from 'lucide-react';
-import Button from '../../components/ui/Button';
+import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag } from '@ds';
+import type { TagTone } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { SiteEyebrow } from '../../components/site';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import Pagination from '../../components/ui/Pagination';
 import { useToast } from '../../components/ui/Toast';
@@ -11,16 +13,49 @@ import { getAllTransactions, updateTransactionStatus } from '../../lib/firestore
 import { useFormat } from '../../hooks/useFormat';
 import type { Transaction } from '../../types';
 
-const STATUS_COLORS: Record<Transaction['status'], string> = {
-  pending: 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400',
-  completed: 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400',
-  refunded: 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500',
-  failed: 'bg-error-100 dark:bg-error-900/30 text-error-700 dark:text-error-400',
+/**
+ * L'ÉCRAN `TransactionsOps` DU KIT — réconciliation, et rien d'autre.
+ *
+ * LE CONSTAT `ds:check` DE LA LIGNE 141 TOMBE ICI, ET IL TOMBE PAR LA PORTE. L'ancien écran
+ * écrivait `className="font-mono"` sur `{tx.id.slice(0, 12)}...` : de la monospace sur ce qui
+ * ressemble à un nombre, hors de <Num> — règle 6, AD-5. Le déplacer ailleurs, ou le faire
+ * disparaître en retirant la référence, n'aurait rien réglé : la référence est justement CE
+ * QUE L'OPÉRATEUR RAPPROCHE avec le relevé du prestataire, elle doit rester lisible et
+ * tabulaire. Elle passe donc par <Num source="db" asOf>, qui est le seul chemin du dépôt
+ * vers `--f-mono` et qui exige de dire d'où vient la valeur. Plus une seule occurrence de
+ * `font-mono` dans ce fichier : le constat ne se déplace pas, il n'a plus lieu d'être.
+ *
+ * DEUX ÉCARTS AVEC LE KIT, ASSUMÉS ET DOCUMENTÉS ICI :
+ *
+ *   • Le kit dessine « toutes · complétées · en attente · échouées » — il oublie l'étape
+ *     `refunded`, qui existe en base, qui a un libellé traduit, et qui est le seul statut
+ *     que cet écran sait ÉCRIRE. Elle est ajoutée : cinq étapes, toutes lues en base.
+ *   • Le kit met DEUX actions sur sa fiche de transaction (« Rejouer le webhook » et
+ *     « Marquer échouée »), ce que son propre motif interdit — « deux actions par ligne,
+ *     c'est une hésitation par ligne ». Aucune des deux n'existe d'ailleurs dans ce dépôt :
+ *     `updateTransactionStatus` n'écrit que `refunded`. Une action par ligne, et c'est
+ *     celle-là.
+ */
+
+type Stage = 'all' | Transaction['status'];
+
+const STATUS_TONE: Record<Transaction['status'], TagTone> = {
+  pending: 'warn',
+  completed: 'ok',
+  refunded: 'neutral',
+  failed: 'stop',
+};
+
+const STATUS_TINT: Record<Transaction['status'], string> = {
+  pending: '--mm-orange',
+  completed: '--ok',
+  refunded: '--ink-2',
+  failed: '--stop',
 };
 
 export default function AdminTransactions() {
   const { t } = useTranslation('admin');
-  const { formatDate, locale } = useFormat();
+  const { formatDate, formatPrice } = useFormat();
   const { addToast } = useToast();
   const confirm = useConfirmDialog();
 
@@ -30,15 +65,20 @@ export default function AdminTransactions() {
     refunded: t('transactions.statusRefunded'),
     failed: t('transactions.statusFailed'),
   };
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | Transaction['status']>('all');
+  const [stage, setStage] = useState<Stage>('all');
   const [refunding, setRefunding] = useState<string | null>(null);
+  /** Date de la MESURE, posée quand la lecture revient — pas au rendu. */
+  const [asOf, setAsOf] = useState(() => new Date());
 
   const load = () => {
     setLoading(true);
-    getAllTransactions().then((data) => { setTransactions(data); setLoading(false); }).catch(() => setLoading(false));
+    getAllTransactions()
+      .then((data) => { setTransactions(data); setAsOf(new Date()); setLoading(false); })
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
@@ -59,123 +99,164 @@ export default function AdminTransactions() {
     });
   };
 
-  const filtered = transactions.filter((tx) => {
+  const stages: Stage[] = ['all', 'completed', 'pending', 'refunded', 'failed'];
+  const stageLabels: Record<Stage, string> = {
+    all: t('transactions.stageAll'),
+    completed: t('transactions.stageCompleted'),
+    pending: t('transactions.stagePending'),
+    refunded: t('transactions.stageRefunded'),
+    failed: t('transactions.stageFailed'),
+  };
+
+  const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    const matchSearch = !q || tx.id.toLowerCase().includes(q) || tx.userId.toLowerCase().includes(q)
-      || (tx.userName ?? '').toLowerCase().includes(q)
-      || (tx.userEmail ?? '').toLowerCase().includes(q)
-      || (tx.formationTitle ?? '').toLowerCase().includes(q);
-    const matchStatus = statusFilter === 'all' || tx.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+    return transactions.filter((tx) => {
+      const matchSearch = !q || tx.id.toLowerCase().includes(q) || tx.userId.toLowerCase().includes(q)
+        || (tx.userName ?? '').toLowerCase().includes(q)
+        || (tx.userEmail ?? '').toLowerCase().includes(q)
+        || (tx.formationTitle ?? '').toLowerCase().includes(q);
+      const matchStage = stage === 'all' || tx.status === stage;
+      return matchSearch && matchStage;
+    });
+  }, [transactions, search, stage]);
 
   const { paged, page, totalPages, setPage } = usePagination(filtered);
 
+  // Les cases de relevé portent sur la TABLE ENTIÈRE, jamais sur ce que le filtre laisse voir.
   const totalRevenue = transactions.filter((tx) => tx.status === 'completed').reduce((sum, tx) => sum + tx.amount, 0);
   const totalRefunded = transactions.filter((tx) => tx.status === 'refunded').reduce((sum, tx) => sum + tx.amount, 0);
+  const pendingCount = transactions.filter((tx) => tx.status === 'pending').length;
+  const refundedCount = transactions.filter((tx) => tx.status === 'refunded').length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">{t('transactions.title')}</h1>
-          <p className="text-sm text-neutral-500 mt-1">{t('transactions.count', { count: transactions.length })}</p>
+    // `.play` en dur : voir AdminDashboard.
+    <div className="play">
+      <ConsolePage title={t('transactions.title')} sub={t('transactions.sub')}>
+        <div className="mb-3.5 flex justify-end">
+          <Button size="sm" tone="quiet" onClick={load} disabled={loading}>
+            {t('transactions.refresh')}
+          </Button>
         </div>
-        <Button variant="outline" onClick={load} icon={<RefreshCw className="w-4 h-4" />}>{t('transactions.refresh')}</Button>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { label: t('transactions.statRevenue'), value: `${totalRevenue.toLocaleString(locale)} FCFA`, color: 'text-success-600' },
-          { label: t('transactions.statRefunds'), value: `${totalRefunded.toLocaleString(locale)} FCFA`, color: 'text-error-600' },
-          { label: t('transactions.statPending'), value: transactions.filter((tx) => tx.status === 'pending').length, color: 'text-warning-600' },
-        ].map((s, i) => (
-          <div key={i} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4">
-            <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-neutral-500 mt-0.5">{s.label}</p>
+        <ConsoleFilter
+          className="rv"
+          stages={stages.map((s) => stageLabels[s])}
+          active={stageLabels[stage]}
+          onSelect={(label) => setStage(stages.find((s) => stageLabels[s] === label) ?? 'all')}
+          label={t('transactions.pipelineLabel')}
+        />
+
+        <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2">
+          <StatTile
+            label={t('transactions.statRevenue')}
+            value={loading ? null : formatPrice(totalRevenue)}
+            source="db"
+            asOf={asOf}
+            foot={<><Num value={pendingCount} source="db" asOf={asOf} /> {t('transactions.footPending', { count: pendingCount })}</>}
+          />
+          <StatTile
+            label={t('transactions.statRefunds')}
+            value={loading ? null : formatPrice(totalRefunded)}
+            source="db"
+            asOf={asOf}
+            foot={<><Num value={refundedCount} source="db" asOf={asOf} /> {t('transactions.footRefunded', { count: refundedCount })}</>}
+          />
+        </div>
+
+        <div className="mt-3.5 max-w-sm">
+          <Field
+            as="input"
+            type="search"
+            label={t('transactions.searchLabel')}
+            hideLabel
+            value={search}
+            onChange={setSearch}
+            placeholder={t('transactions.searchPlaceholder')}
+            inputMode="search"
+          />
+        </div>
+
+        <SiteEyebrow style={{ marginTop: '22px', marginBottom: '10px' }}>
+          {stageLabels[stage]}
+        </SiteEyebrow>
+
+        {loading ? (
+          <div className="flex flex-col gap-2">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} height={60} radius="var(--r-l)" label={t('transactions.title')} />
+            ))}
           </div>
-        ))}
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('transactions.searchPlaceholder')} className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
-        </div>
-        <div className="relative">
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)} className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500">
-            <option value="all">{t('transactions.filterAll')}</option>
-            <option value="completed">{t('transactions.filterCompleted')}</option>
-            <option value="pending">{t('transactions.filterPending')}</option>
-            <option value="refunded">{t('transactions.filterRefunded')}</option>
-          </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
-          <CreditCard className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p className="text-neutral-500">{t('transactions.empty')}</p>
-        </div>
-      ) : (
-        <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-neutral-100 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50">
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">{t('transactions.colId')}</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400 hidden md:table-cell">{t('transactions.colUser')}</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400 hidden sm:table-cell">{t('transactions.colDate')}</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">{t('transactions.colAmount')}</th>
-                <th className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-400">{t('transactions.colStatus')}</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-700">
-              {paged.map((tx) => (
-                <tr key={tx.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/30 transition-colors">
-                  <td className="px-4 py-3">
-                    <p className="font-mono text-xs text-neutral-500">{tx.id.slice(0, 12)}...</p>
-                    <p className="text-xs text-neutral-400">{tx.paymentMethod}</p>
-                  </td>
-                  <td className="px-4 py-3 hidden md:table-cell">
-                    <p className="text-sm text-neutral-700 dark:text-neutral-300 truncate max-w-[180px]">{tx.userName || tx.userEmail || tx.userId.slice(0, 12) + '...'}</p>
-                    {tx.formationTitle && <p className="text-xs text-neutral-400 truncate max-w-[180px]">{tx.formationTitle}</p>}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-500 hidden sm:table-cell">{formatDate(tx.createdAt)}</td>
-                  <td className="px-4 py-3 font-semibold text-neutral-900 dark:text-white">{tx.amount.toLocaleString(locale)} {tx.currency}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[tx.status]}`}>
-                      {STATUS_LABELS[tx.status]}
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            glyph={<Icon name="card" size={26} color="var(--mm-bleu)" />}
+            glyphBackground="color-mix(in srgb, var(--mm-bleu) 22%, transparent)"
+            title={t('transactions.emptyTitle')}
+            body={t('transactions.emptyBody')}
+          />
+        ) : (
+          <ConsoleList label={t('transactions.listLabel')} className="rv">
+            {paged.map((tx, i) => (
+              <li key={tx.id}>
+                <LessonRow
+                  icon={<Icon name="card" size={14} color={`var(${STATUS_TINT[tx.status]})`} />}
+                  iconBackground={`color-mix(in srgb, var(${STATUS_TINT[tx.status]}) 22%, transparent)`}
+                  /* LA RÉFÉRENCE PASSE PAR <Num>, ET C'EST TOUT L'OBJET DE LA CORRECTION :
+                     c'est une valeur lue en base, tabulaire, que l'opérateur rapproche
+                     caractère par caractère avec le relevé du prestataire. */
+                  title={<Num value={tx.transactionRef ?? tx.id.slice(0, 12)} source="db" asOf={asOf} />}
+                  meta={
+                    <>
+                      <Num value={tx.amount} unit={tx.currency} source="db" asOf={asOf} />
+                      {' · '}{tx.paymentMethod}
+                      {' · '}{tx.userName || tx.userEmail || tx.formationTitle || formatDate(tx.createdAt)}
+                    </>
+                  }
+                  trailing={
+                    <span className="flex items-center gap-2">
+                      <Tag tone={STATUS_TONE[tx.status]}>{STATUS_LABELS[tx.status]}</Tag>
+                      {tx.status === 'completed' && (
+                        <Button
+                          size="sm"
+                          tone="quiet"
+                          onClick={() => handleRefund(tx.id)}
+                          loading={refunding === tx.id}
+                        >
+                          {t('transactions.refundAction')}
+                        </Button>
+                      )}
                     </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {tx.status === 'completed' && (
-                      <button
-                        onClick={() => handleRefund(tx.id)}
-                        disabled={refunding === tx.id}
-                        className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-error-600 transition-colors disabled:opacity-50"
-                      >
-                        {refunding === tx.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowDownLeft className="w-3.5 h-3.5" />}
-                        {t('transactions.refundAction')}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  }
+                  last={i === paged.length - 1}
+                />
+              </li>
+            ))}
+          </ConsoleList>
+        )}
+
+        <div className="mt-4 flex justify-center">
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
-      )}
 
-      <div className="flex justify-center mt-4">
-        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-      </div>
+        {/* Le kit met un encart « pourquoi rejouer est sans risque » à côté de son action.
+            Ici l'action est le remboursement, et ce qu'elle ne fait PAS est plus important
+            que ce qu'elle fait — d'où le même encart, avec le contenu de ce dépôt. */}
+        <GlassPanel level="night" padding={18} className="rv mt-3.5">
+          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('transactions.refundExplainTitle')}</SiteEyebrow>
+          <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('transactions.refundExplainBody')}</p>
+        </GlassPanel>
 
-      <ConfirmDialog open={confirm.open} onClose={confirm.closeConfirm} onConfirm={confirm.onConfirm} title={t('transactions.confirmTitle')} message={confirm.message} confirmLabel={t('transactions.refundAction')} variant="warning" />
+        <ConsoleScope>{t('transactions.scope')}</ConsoleScope>
+      </ConsolePage>
+
+      <ConfirmDialog
+        open={confirm.open}
+        onClose={confirm.closeConfirm}
+        onConfirm={confirm.onConfirm}
+        title={t('transactions.confirmTitle')}
+        message={confirm.message}
+        confirmLabel={t('transactions.refundAction')}
+        variant="warning"
+      />
     </div>
   );
 }

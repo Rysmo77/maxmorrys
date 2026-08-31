@@ -20,5 +20,7 @@
   "signIn": "Connexion",
   "menu": "Menu",
   "accountMenu": "Menu du compte de {{name}}",
-  "skipToContent": "Aller au contenu principal"
+  "skipToContent": "Aller au contenu principal",
+  "transformFree": "Écouter & regarder",
+  "transformClub": "Le Club des Digitos"
 }

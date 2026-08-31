@@ -37,5 +37,6 @@
   "quotaTooltip": "Voir mes quotas et packs Rysmo",
   "quotaPack": "{{balance}} pack",
   "quotaToday": "{{remaining}}/{{limit}} aujourd'hui",
-  "clubBonusTooltip": "Bonus Club Digitos"
+  "clubBonusTooltip": "Bonus Club Digitos",
+  "thinking": "Réponse en cours d'écriture"
 }

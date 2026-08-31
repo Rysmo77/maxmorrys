@@ -1,12 +1,34 @@
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { Loader2, GraduationCap, ArrowRight } from 'lucide-react';
-import LocalizedLink from '../../../components/shared/LocalizedLink';
-import Button from '../../../components/ui/Button';
-import FormationCard from '../../../components/formations/FormationCard';
+import { useNavigate } from 'react-router-dom';
+import { Button, EmptyState, GlassPanel, Icon, Num, ProgressBar, Skeleton, Tag, TerritoryCard } from '@ds';
+import { useLocalizedPath } from '../../../contexts/LanguageContext';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import type { Certificate } from '../../../types';
-import { staggerContainer, staggerItem } from '../../../lib/animations';
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * L'ÉCRAN « COURS » — la pile des formations de la personne.
+ *
+ * Recomposé sur `ScreensCatalogue.js` (la carte territoire) et sur la carte de reprise de
+ * `ScreensSpace.js` (la barre de progression et son compte de leçons).
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUI A DISPARU, ET POURQUOI
+ *
+ * · `FormationCard`. La carte du catalogue public rend une note en étoiles et un nombre
+ *   d'inscrits (`formation.rating`, `formation.students`) — deux des interdits absolus du
+ *   système — et importe `lucide-react`, ce qui poserait une seconde famille d'icônes sur cet
+ *   écran. La carte reste en place pour les surfaces publiques ; elle n'entre plus ici.
+ *   Ce que le kit demande — territoire, méta, progression, prix — est rendu par <TerritoryCard>.
+ *
+ * · LA PROMESSE « 3× PLUS VITE » de l'état vide. Un chiffre de conversion que rien ne mesure
+ *   dans ce produit. Un état vide invite ; il n'argumente pas avec un chiffre inventé.
+ *
+ * LA CARTE EST LE LIEN. Le kit pose un bouton « Voir » dans la carte ; ici la carte entière
+ * mène au lecteur. Un bouton interactif à l'intérieur d'un lien est du HTML invalide, et
+ * deux cibles pour une seule destination font hésiter au doigt.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
 
 interface CoursesTabProps {
   enrolledFormations: EnrolledFormation[];
@@ -16,48 +38,94 @@ interface CoursesTabProps {
 
 export default function CoursesTab({ enrolledFormations, loadingEnrollments, certificates = [] }: CoursesTabProps) {
   const { t } = useTranslation('lmsTabs');
+  const navigate = useNavigate();
+  const path = useLocalizedPath();
   const certByFormation = new Map(certificates.map((c) => [c.formationId, c]));
+
+  /* La date du relevé : l'instant de la lecture Firestore qui a produit ces inscriptions. */
+  const asOf = new Date();
+
+  if (loadingEnrollments) {
+    return (
+      <div className="mx-auto grid max-w-4xl gap-4 px-[18px] py-6 md:grid-cols-2">
+        {[0, 1].map((i) => <Skeleton key={i} height={200} radius="var(--r-l)" label={t('courses.loadingLabel')} />)}
+      </div>
+    );
+  }
+
+  if (enrolledFormations.length === 0) {
+    return (
+      <div className="mx-auto max-w-4xl px-[18px] py-6">
+        <GlassPanel level="hero" padding={22}>
+          <EmptyState
+            glyph={<Icon name="book" size={26} style={{ color: 'var(--mm-bleu)' }} />}
+            glyphBackground="color-mix(in srgb, var(--mm-bleu) 14%, transparent)"
+            title={t('courses.emptyTitle')}
+            body={t('courses.emptyText')}
+            action={<Button tone="forme" onClick={() => navigate(path('/formations'))}>{t('courses.explore')}</Button>}
+          />
+        </GlassPanel>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      {loadingEnrollments ? (
-        <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>
-      ) : enrolledFormations.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/20 flex items-center justify-center mx-auto mb-4">
-            <GraduationCap className="w-8 h-8 text-brand-500" />
-          </div>
-          <h4 className="font-bold text-neutral-900 dark:text-white mb-1">{t('courses.emptyTitle')}</h4>
-          <p className="text-sm text-neutral-500 mb-4 max-w-sm mx-auto">
-            {t('courses.emptyText')}
-          </p>
-          <LocalizedLink to="/formations"><Button icon={<ArrowRight className="w-4 h-4" />}>{t('courses.explore')}</Button></LocalizedLink>
-        </div>
-      ) : (
-        <motion.div
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          {enrolledFormations.map(({ enrollment, formation }) => (
-            <motion.div key={enrollment.id} variants={staggerItem}>
-              {formation ? (
-                <FormationCard
-                  formation={formation}
-                  variant="progress"
-                  enrollment={enrollment}
-                  certificate={certByFormation.get(enrollment.formationId)}
+    <div className="mx-auto max-w-4xl px-[18px] py-6">
+      <p className="mm-eyebrow m-0">{t('courses.countEyebrow')}</p>
+
+      <div className="mt-[14px] grid gap-4 md:grid-cols-2">
+        {enrolledFormations.map(({ enrollment, formation }, i) => {
+          if (!formation) {
+            return (
+              <GlassPanel key={enrollment.id} level="flat" padding={18}>
+                <p className="m-0 text-meta font-bold text-ink">{t('courses.unavailableTitle')}</p>
+                <p className="m-0 mt-[4px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
+                  {t('courses.unavailableText')}
+                </p>
+              </GlassPanel>
+            );
+          }
+
+          const cert = certByFormation.get(enrollment.formationId);
+          const lessons = formation.modules.reduce((n, m) => n + m.lessons.length, 0);
+
+          return (
+            <button
+              key={enrollment.id}
+              type="button"
+              onClick={() => navigate(path(`/cours/${formation.slug}`))}
+              className="mm-press block w-full cursor-pointer border-0 bg-transparent p-0 text-left"
+            >
+              <TerritoryCard
+                first
+                territory={i % 2 === 0 ? 'forme' : 'transforme'}
+                meta={formation.duration}
+                title={formation.title}
+                titleSize={20}
+              >
+                <ProgressBar
+                  value={enrollment.progress}
+                  source="db"
+                  asOf={asOf}
+                  label={t('courses.progressLabel')}
+                  readout
+                  style={{ marginTop: '15px' }}
                 />
-              ) : (
-                <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4">
-                  <p className="font-bold text-neutral-900 dark:text-white text-sm mb-2">{t('courses.unavailableTitle')}</p>
-                  <p className="text-xs text-neutral-400">{t('courses.unavailableText')}</p>
+                <div className="mt-[10px] flex flex-wrap items-center gap-2">
+                  <span className="text-meta-2" style={{ color: 'var(--card-ink-2)' }}>
+                    <Num value={enrollment.completedLessons.length} source="db" asOf={asOf} />
+                    {' / '}
+                    <Num value={lessons || null} source="db" asOf={asOf} />{' '}
+                    {t('courses.lessonsLabel')}
+                  </span>
+                  {enrollment.progress === 100 && <Tag tone="ok">{t('courses.completedTag')}</Tag>}
+                  {cert && <Tag>{t('courses.certificateTag')}</Tag>}
                 </div>
-              )}
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
+              </TerritoryCard>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

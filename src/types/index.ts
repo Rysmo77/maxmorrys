@@ -23,6 +23,19 @@ export interface User {
   twitter?: string;
   tiktok?: string;
   youtube?: string;
+  /**
+   * Le nom que CETTE personne a donné à son répétiteur.  (AD-12)
+   *
+   * Le nom du répétiteur est un RÉGLAGE, pas une constante. « Répétiteur » est la valeur par
+   * défaut ; le nom choisi remplace le mot PARTOUT — onglet, en-tête de conversation,
+   * première bulle, carte de reprise, écran de mémoire, ligne de suppression de compte,
+   * préférences. Treize emplacements le lisent, et ils passent tous par `tutorName()`.
+   *
+   * Un écran qui écrirait le nom en dur casserait le renommage sans que rien ne le signale :
+   * il n'y a ni erreur de type, ni test qui échoue, ni rendu cassé — juste une personne qui a
+   * renommé son répétiteur et qui retrouve « Répétiteur » à un endroit sur treize.
+   */
+  tutorName?: string;
   // Parrainage
   referralCode?: string;
   referredByCode?: string;
@@ -420,6 +433,15 @@ export interface FAQ {
   answer: string;
   category: string;
   order: number;
+  /**
+   * Le segment d'URL de la page de la question — `/faq/<slug>`.
+   *
+   * FACULTATIF, ET CE N'EST PAS UN CONFORT. Les 46 questions déjà en base n'en ont pas :
+   * `faqSlug()` en dérive un du texte de la question, ce qui rend la page atteignable tout de
+   * suite. Mais un slug dérivé CHANGE quand la question est reformulée, et l'URL partagée
+   * meurt sans que rien ne le signale. Renseigner ce champ fige l'adresse.
+   */
+  slug?: string;
 }
 
 export interface NewsletterSubscriber {
@@ -438,6 +460,29 @@ export interface Enrollment {
   completedLessons: string[];
   certificateIssued: boolean;
   certificateUrl?: string;
+  /**
+   * Progression la plus haute jamais atteinte, en pourcentage.
+   *
+   * Ne pilote aucun droit : sert uniquement à n'accorder l'XP d'apprentissage qu'une fois
+   * par palier franchi. Sans ce repère, décocher puis recocher une leçon rapportait de l'XP
+   * en boucle — et cet XP alimente le classement et les badges de parrainage. La règle
+   * Firestore lui interdit de décroître, même quand `progress` redescend.
+   */
+  maxProgress?: number;
+}
+
+/**
+ * Miroir public d'un certificat, lu par la page de vérification.
+ *
+ * Collection distincte de `certificates` : celle-ci est identifiée par `{uid}_{formationId}`
+ * et fermée en lecture au propriétaire, ce qui rendait la vérification par code impossible.
+ * Le miroir est identifié PAR LE CODE et ne porte aucun UID.
+ */
+export interface CertificateLookup {
+  certificateCode: string;
+  formationTitle: string;
+  issuedAt: string;
+  holderName: string;
 }
 
 export interface ContactMessage {

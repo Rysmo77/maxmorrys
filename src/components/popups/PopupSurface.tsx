@@ -1,10 +1,10 @@
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
-import { X } from 'lucide-react';
 import { useIsDesktop } from '../../hooks/useMediaQuery';
 import { useDialogA11y } from '../../hooks/useDialogA11y';
 import { cn } from '../../lib/utils';
+import { Icon } from '@ds';
 
 /**
  * Surface d'affichage d'une pop-up contextuelle : dialogue éditorial ou bandeau bas.
@@ -16,10 +16,10 @@ import { cn } from '../../lib/utils';
  * sur du trafic organique doit donc passer `mobileSurface="sheet"`.
  *
  * ⚠️ **La surface est SOMBRE dans les deux thèmes, délibérément.** Ce n'est pas un oubli de
- * `dark:` : `/agence` ouvre et referme déjà sur `bg-neutral-950 text-white` quel que soit le
+ * `dark:` : `/agence` ouvre et referme déjà sur `bg-[color:var(--night-2)] text-white` quel que soit le
  * thème. Ces fenêtres sont des respirations éditoriales, pas des boîtes de dialogue système.
  *
- * ⚠️ N'utilise PAS `ui/Modal` : cette carte claire impose `bg-white` et une gouttière `p-6`,
+ * ⚠️ N'utilise PAS `ui/Modal` : cette carte claire impose `bg-paper` et une gouttière `p-6`,
  * incompatibles avec une composition en deux colonnes à fond perdu. La mécanique d'accessibilité
  * est reprise via `useDialogA11y`, pas réécrite.
  */
@@ -39,7 +39,7 @@ interface PopupSurfaceProps {
   mobileSurface?: 'modal' | 'sheet';
 }
 
-const closeBtnCls = 'absolute top-4 right-4 z-20 p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-400';
+const closeBtnCls = 'absolute top-4 right-4 z-20 p-2 rounded-full text-white/60 hover:text-white hover:bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] transition-colors focus:outline-none focus-visible:ring-2';
 
 export default function PopupSurface({
   open,
@@ -77,14 +77,14 @@ export default function PopupSurface({
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         className={cn(
           'fixed bottom-0 inset-x-0 z-50 max-h-[30vh] overflow-y-auto focus:outline-none',
-          'bg-neutral-950 text-white border-t border-white/10',
+          'bg-[color:var(--night-2)] text-white border-t border-white/10',
           'shadow-[0_-8px_40px_rgba(0,0,0,0.6)]',
           'pb-[env(safe-area-inset-bottom)]',
         )}
       >
         <div className="px-4 py-4 pr-12">{children}</div>
         <button onClick={onClose} className={closeBtnCls} aria-label={t('modal.close')}>
-          <X className="w-4 h-4" aria-hidden="true" />
+          <Icon name="close" size={16} />
         </button>
       </motion.div>
     );
@@ -111,12 +111,12 @@ export default function PopupSurface({
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
           'relative w-full max-w-5xl max-h-[92vh] overflow-y-auto focus:outline-none',
-          'bg-neutral-950 text-white sm:rounded-3xl',
+          'bg-[color:var(--night-2)] text-white sm:rounded-3xl',
           'shadow-[0_40px_120px_-20px_rgba(0,0,0,0.9)] ring-1 ring-white/10',
         )}
       >
         <button onClick={onClose} className={closeBtnCls} aria-label={t('modal.close')}>
-          <X className="w-5 h-5" aria-hidden="true" />
+          <Icon name="close" size={20} />
         </button>
 
         {/*

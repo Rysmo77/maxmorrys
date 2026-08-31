@@ -1,143 +1,161 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Menu, X, Search, Sun, Moon, LogOut, LayoutDashboard, GraduationCap, ChevronDown, Headphones, Youtube, LogIn, Languages } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage, useLocalizedPath } from '../../contexts/LanguageContext';
 import { toCanonicalPath } from '../../i18n/routing';
 import LocalizedLink from '../shared/LocalizedLink';
 import AnnouncementBanner from '../shared/AnnouncementBanner';
+import DsNavHost from './DsNavHost';
+import { Icon } from '@ds';
+import {
+  Button, SideNav, SubNav, TopBar, Wordmark,
+  type SideNavItem, type SubNavItem, type Territory, type TopBarItem,
+} from '../../design-system';
 
 /**
- * Surbrillance par entrée de menu : chaque item s'allume dans la couleur de son univers
- * (cf. `src/lib/sectionThemes.ts`), au survol comme à l'état actif.
+ * LA BARRE HAUTE DU SITE — pilule de verre flottante, et l'UNE DES DEUX SEULES SURFACES
+ * FLOUTÉES DU PRODUIT.
  *
- * IMPORTANT : chaînes statiques complètes — Tailwind ne détecte pas les noms de classes
- * construits dynamiquement (purge du build).
+ * Elle y a droit pour une raison qui se vérifie à l'œil : elle ne défile pas, et le contenu
+ * passe RÉELLEMENT dessous. Partout ailleurs — tiroir, sous-navigation, menu de compte — c'est
+ * du faux verre (`.glass-flat`), gratuit à faire défiler. Le flou n'est jamais coûteux là où
+ * on l'écrit : il le devient là où le composant est répété.
  *
- * `accent` (orange) est réservé au parent « Je te transforme » : ce menu n'est pas un
- * univers, et ses voisins immédiats (`morrys` pour À propos, `plum` pour Podcasts) sont
- * deux violets indiscernables — il lui faut une teinte qui ne collisionne avec aucun.
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUI A CHANGÉ, ET POURQUOI
  *
- * ⚠️ CONTRASTE : `lagoon` et `accent` plafonnent sous 4,5:1 en `-600` sur blanc, d'où le
- * `-700` en mode clair. Ne pas « corriger » vers `-600`.
+ * 1. LES SIX LIBELLÉS SONT LES SIX VERBES, dans l'ordre du système : Je suis Max-Morrys ·
+ *    Je te forme · Je t'informe · Je te transforme · Je te digitalise · Contacte-moi. Chacun
+ *    porte le FILET DE SA COULEUR en permanence, pas seulement à l'état actif : c'est ce filet
+ *    qui apprend la correspondance entre un verbe et un maillage.
+ *
+ * 2. L'AGENCE SORT DE LA LISTE. Elle vivait dans la barre comme une pastille teal pleine, au
+ *    milieu des verbes. Elle est désormais DERRIÈRE UN SÉPARATEUR, en corail texte : « elle ne
+ *    se range pas sous Je te digitalise — c'est une autre promesse et un autre client ». Le
+ *    type `Territory` l'empêche d'en gagner un par accident, et le séparateur le dit à l'œil.
+ *
+ * 3. LE MENU DÉROULANT DE « JE TE TRANSFORME » DEVIENT UNE SOUS-NAVIGATION. Le système a une
+ *    primitive pour ça, et une raison commerciale de l'avoir : ce territoire abrite du contenu
+ *    GRATUIT ET OUVERT (podcast, vidéos) et du contenu PAYANT ET FERMÉ (le Club). Un menu qui
+ *    s'ouvre au survol ne dit pas cette séparation ; une sous-navigation en tête de page, si —
+ *    et elle existe aux trois largeurs, là où un survol n'existe pas sur mobile.
+ *
+ * 4. LE HEADER TRANSPARENT AU-DESSUS D'UN HÉROS A DISPARU. Il existait parce qu'une barre
+ *    blanche opaque créait une couture franche sur `/` et `/agence`. Une pilule de verre
+ *    détachée des bords n'a pas ce problème : elle flotte sur ce qu'il y a dessous, quel qu'il
+ *    soit. Avec lui partent `transparentAccent`, `FOCUS_RING_ON_HERO` et le second anneau de
+ *    focus — le système n'en a qu'un, bleu, câblé sur `:focus-visible` dans les jetons.
+ *
+ * 5. LES TROIS POINTS DE RUPTURE. Sous 1080 px, les six verbes passent dans un TIROIR de
+ *    250 px en faux verre (la primitive `SideNav`, ses pastilles de territoire comprises), et
+ *    la barre garde son verre, son mot-symbole et ses utilitaires. Au-delà, la barre
+ *    supérieure flottante porte les six libellés soulignés.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * `data-header-compact` reste publié sur `<html>` : `--header-h` en dépend, et avec elle le
+ * bandeau de langue et la sous-nav de la page À propos.
  */
-type AccentKey = 'brand' | 'coral' | 'morrys' | 'plum' | 'red' | 'lagoon' | 'accent';
 
-interface NavAccent {
-  /** item actif : texte coloré + aplat doux */
-  active: string;
-  /** item au repos, avec surbrillance colorée au survol */
-  idle: string;
-  /** barre de soulignement (nav desktop) */
-  bar: string;
+/** Une entrée de la navigation du site. `territory` porte le filet de couleur. */
+interface NavEntry {
+  /** Clé i18n dans le namespace `nav`. */
+  key: string;
+  /** Chemin CANONIQUE FR — `useLocalizedPath` le préfixe selon la langue. */
+  path: string;
+  /**
+   * Les quatre territoires, et seulement eux. « Je suis Max-Morrys » est une PERSONNE et
+   * « Contacte-moi » une action : ni l'un ni l'autre n'est une ligne de revenu, donc ni l'un
+   * ni l'autre ne porte de filet permanent.
+   */
+  territory?: Territory;
 }
 
-const navAccents: Record<AccentKey, NavAccent> = {
-  brand: {
-    active: 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20',
-    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20',
-    bar: 'bg-brand-500',
-  },
-  coral: {
-    active: 'text-coral-600 dark:text-coral-400 bg-coral-50 dark:bg-coral-900/20',
-    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-coral-600 dark:hover:text-coral-400 hover:bg-coral-50 dark:hover:bg-coral-900/20',
-    bar: 'bg-coral-500',
-  },
-  morrys: {
-    active: 'text-morrys-600 dark:text-morrys-400 bg-morrys-50 dark:bg-morrys-900/20',
-    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-morrys-600 dark:hover:text-morrys-400 hover:bg-morrys-50 dark:hover:bg-morrys-900/20',
-    bar: 'bg-morrys-500',
-  },
-  plum: {
-    active: 'text-plum-600 dark:text-plum-400 bg-plum-50 dark:bg-plum-900/20',
-    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-plum-600 dark:hover:text-plum-400 hover:bg-plum-50 dark:hover:bg-plum-900/20',
-    bar: 'bg-plum-500',
-  },
-  red: {
-    active: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
-    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20',
-    bar: 'bg-red-500',
-  },
-  lagoon: {
-    active: 'text-lagoon-700 dark:text-lagoon-400 bg-lagoon-50 dark:bg-lagoon-900/20',
-    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-lagoon-700 dark:hover:text-lagoon-400 hover:bg-lagoon-50 dark:hover:bg-lagoon-900/20',
-    bar: 'bg-lagoon-500',
-  },
-  accent: {
-    active: 'text-accent-700 dark:text-accent-400 bg-accent-50 dark:bg-accent-900/20',
-    idle: 'text-neutral-700 dark:text-neutral-300 hover:text-accent-700 dark:hover:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-900/20',
-    bar: 'bg-accent-500',
-  },
-};
-
-/** Surbrillance des items au-dessus du hero : la couleur d'univers y serait illisible. */
-const transparentAccent: NavAccent = {
-  active: 'text-white bg-white/15',
-  idle: 'text-white/85 hover:text-white hover:bg-white/10',
-  bar: 'bg-white',
-};
-
-const navLinks: { key: string; path: string; accent: AccentKey }[] = [
-  { key: 'about', path: '/a-propos', accent: 'morrys' },
-  { key: 'formations', path: '/formations', accent: 'brand' },
-  { key: 'blog', path: '/blog', accent: 'coral' },
-];
-
-const transformerLinks: { key: string; path: string; icon: typeof Headphones; accent: AccentKey }[] = [
-  { key: 'podcast', path: '/podcasts', icon: Headphones, accent: 'plum' },
-  { key: 'videos', path: '/videos', icon: Youtube, accent: 'red' },
+const SITE_NAV: NavEntry[] = [
+  { key: 'about', path: '/a-propos' },
+  { key: 'formations', path: '/formations', territory: 'forme' },
+  { key: 'blog', path: '/blog', territory: 'informe' },
+  { key: 'transform', path: '/podcast-et-videos', territory: 'transforme' },
+  { key: 'presence', path: '/presence-digitale', territory: 'digitalise' },
+  { key: 'contact', path: '/contact' },
 ];
 
 /**
- * Routes dont le hero occupe le haut de l'écran : le header s'y superpose en transparence
- * tant qu'on n'a pas défilé. Chemins CANONIQUES FR — `toCanonicalPath` ramène `/en/...` ici.
+ * LES DEUX ÉTAGES DE « JE TE TRANSFORME ». L'ORDRE N'EST PAS NÉGOCIABLE : le gratuit d'abord.
+ * Sans cette séparation visible, un visiteur croit le podcast derrière le mur et ne clique
+ * pas — et le haut de l'entonnoir perd sa fonction.
  *
- * `/agence` en fait partie depuis le repositionnement : son hero est `bg-neutral-950`, et un
- * header blanc opaque au-dessus créait une couture franche.
+ * ⚠️ CETTE LISTE A CHANGÉ DE NATURE, ET C'EST LA CORRECTION D'UN DÉFAUT SILENCIEUX.
+ * Elle portait `podcast` et `videos`, c'est-à-dire DEUX PORTES DU MÊME ÉTAGE — celui du
+ * gratuit — depuis leur fusion en un pôle unique. Les deux entrées menaient qui plus est à
+ * des routes qui redirigent désormais, donc la sous-navigation du territoire proposait deux
+ * redirections vers la même page et ne nommait jamais le Club. Ce sont bien les deux ÉTAGES
+ * qui s'y montrent : le pôle média (gratuit, ouvert) et le Club (payant, fermé).
  */
-const OVERLAY_ROUTES = ['/', '/agence'];
+const TRANSFORME_SUB: { key: string; path: string }[] = [
+  { key: 'transformFree', path: '/podcast-et-videos' },
+  { key: 'transformClub', path: '/club-des-digitos' },
+];
 
-/** Anneau de focus clavier — appliqué à CHAQUE cible du header, sans exception. */
-const FOCUS_RING =
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950';
-/** Même chose au-dessus d'un hero : l'anneau de marque y serait invisible. */
-const FOCUS_RING_ON_HERO =
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent';
+/** Les routes qui appartiennent au territoire « Je te transforme ». */
+const TRANSFORME_PATHS = ['/podcast-et-videos', '/podcasts', '/videos', '/club-des-digitos'];
 
-/** Sélecteur des éléments focusables, pour le piège de focus du menu mobile. */
+/**
+ * Les pages du territoire QUI PORTENT DÉJÀ LEUR PROPRE SOUS-NAVIGATION, en tête de contenu,
+ * là où le kit la dessine (`MediaPole`, `ClubDigitos`). Le chrome n'en pose pas une seconde :
+ * deux barres identiques empilées ne disent pas deux fois la même chose, elles font douter
+ * de laquelle est active.
+ *
+ * Les FICHES de détail — un épisode, une vidéo — n'en ont pas : c'est là que celle du chrome
+ * sert, et c'est le seul endroit.
+ */
+const TRANSFORME_OWN_SUBNAV = ['/podcast-et-videos', '/club-des-digitos'];
+
+/** Sélecteur des éléments focusables, pour le piège de focus du tiroir. */
 const FOCUSABLE =
   'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Un utilitaire de la barre : 36 px de dessin, 44 px de cible par `.mm-touch-extend`. On
+ * n'épaissit pas une barre de navigation pour satisfaire une règle, on étend ce qui se touche.
+ *
+ * AD-18 : au repos, `--ink-2`. L'encre tertiaire ne porte jamais de texte — 2,61:1 sur blanc
+ * pur, et aucun voile ne la sauve.
+ */
+const UTIL =
+  'mm-touch-extend inline-flex items-center justify-center h-9 rounded-pill text-ink-2 ' +
+  'hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui';
+const UTIL_ICON = cn(UTIL, 'w-9');
+const UTIL_TEXT = cn(UTIL, 'px-2.5 text-meta font-bold tracking-wide');
+
+/** Une ligne du menu de compte. */
+const MENU_ROW =
+  'flex items-center gap-2.5 w-full px-4 py-2.5 text-meta text-ink-2 ' +
+  'hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui';
 
 interface HeaderProps {
   onSearchOpen: () => void;
 }
 
 export default function Header({ onSearchOpen }: HeaderProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [mobileTransformerOpen, setMobileTransformerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { user, userData, signOut } = useAuth();
   const { language, toggleLanguage } = useLanguage();
   const { t } = useTranslation('nav');
   const { t: tc } = useTranslation('common');
   const location = useLocation();
+  const localize = useLocalizedPath();
   const path = toCanonicalPath(location.pathname);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const dropdownBtnRef = useRef<HTMLButtonElement>(null);
-  const dropdownPanelRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const profileBtnRef = useRef<HTMLButtonElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
-  const mobilePanelRef = useRef<HTMLDivElement>(null);
-  /** Temporisation de fermeture au survol : évite le clignotement en traversant le vide. */
-  const hoverCloseTimer = useRef<number | null>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -147,8 +165,8 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   }, []);
 
   /**
-   * Publie l'état compact sur <html> : `--header-h` en dépend, et avec elle le panneau
-   * mobile, le bandeau de langue et la sous-nav de la page À propos.
+   * Publie l'état compact sur <html> : `--header-h` en dépend, et avec elle le bandeau de
+   * langue et la sous-nav de la page À propos.
    */
   useEffect(() => {
     const root = document.documentElement;
@@ -157,14 +175,28 @@ export default function Header({ onSearchOpen }: HeaderProps) {
     return () => root.removeAttribute('data-header-compact');
   }, [scrolled]);
 
+  const isTransforme = TRANSFORME_PATHS.some((p) => path === p || path.startsWith(p + '/'));
+  /* La sous-navigation du chrome ne sert que là où la page n'en porte pas déjà une. */
+  const showTerritorySub = isTransforme && !TRANSFORME_OWN_SUBNAV.includes(path);
+
+  /**
+   * Publie la présence de la sous-navigation : elle ajoute une rangée au chrome fixe, et le
+   * contenu doit descendre d'autant. Sans ça, la première carte du héros passe SOUS la barre —
+   * un défaut qui ne se voit que sur trois routes, donc jamais sur la machine de qui l'écrit.
+   */
   useEffect(() => {
-    setMobileOpen(false);
+    const root = document.documentElement;
+    if (showTerritorySub) root.setAttribute('data-header-sub', '');
+    else root.removeAttribute('data-header-sub');
+    return () => root.removeAttribute('data-header-sub');
+  }, [showTerritorySub]);
+
+  useEffect(() => {
+    setDrawerOpen(false);
     setProfileOpen(false);
-    setDropdownOpen(false);
-    setMobileTransformerOpen(false);
   }, [location]);
 
-  // Cmd+K / Ctrl+K to open search — `toLowerCase` pour ne pas rater ⇧⌘K (cf. AppShell).
+  // Cmd+K / Ctrl+K ouvre la recherche — `toLowerCase` pour ne pas rater ⇧⌘K (cf. AppShell).
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -178,9 +210,6 @@ export default function Header({ onSearchOpen }: HeaderProps) {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setProfileOpen(false);
       }
@@ -190,40 +219,37 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   }, []);
 
   /**
-   * Échap ferme le calque ouvert le plus intérieur et REND LE FOCUS à son déclencheur —
-   * sans quoi le focus retombe sur <body> et la navigation clavier repart de zéro.
+   * Échap ferme le calque ouvert le plus intérieur et REND LE FOCUS à son déclencheur — sans
+   * quoi le focus retombe sur <body> et la navigation clavier repart de zéro.
    */
   useEffect(() => {
-    if (!dropdownOpen && !profileOpen && !mobileOpen) return;
+    if (!profileOpen && !drawerOpen) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
-      if (dropdownOpen) {
-        setDropdownOpen(false);
-        dropdownBtnRef.current?.focus();
-      } else if (profileOpen) {
+      if (profileOpen) {
         setProfileOpen(false);
         profileBtnRef.current?.focus();
-      } else if (mobileOpen) {
-        setMobileOpen(false);
+      } else if (drawerOpen) {
+        setDrawerOpen(false);
         burgerRef.current?.focus();
       }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [dropdownOpen, profileOpen, mobileOpen]);
+  }, [profileOpen, drawerOpen]);
 
-  /** Verrou du défilement de la page tant que le menu mobile est ouvert. */
+  /** Verrou du défilement de la page tant que le tiroir est ouvert. */
   useEffect(() => {
-    if (!mobileOpen) return;
+    if (!drawerOpen) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = previous; };
-  }, [mobileOpen]);
+  }, [drawerOpen]);
 
-  /** Piège de focus du menu mobile : la tabulation ne doit pas s'en échapper. */
+  /** Piège de focus du tiroir : la tabulation ne doit pas s'en échapper. */
   useEffect(() => {
-    if (!mobileOpen) return;
-    const panel = mobilePanelRef.current;
+    if (!drawerOpen) return;
+    const panel = drawerRef.current;
     if (!panel) return;
     panel.querySelector<HTMLElement>(FOCUSABLE)?.focus();
 
@@ -244,38 +270,35 @@ export default function Header({ onSearchOpen }: HeaderProps) {
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [mobileOpen]);
+  }, [drawerOpen]);
 
-  /** Flèches ↑↓ dans le menu « Je te transforme », comme un vrai menu. */
-  const handleMenuKeys = useCallback((e: React.KeyboardEvent) => {
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-    e.preventDefault();
-    const items = Array.from(
-      dropdownPanelRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [],
-    );
-    if (items.length === 0) return;
-    const current = items.indexOf(document.activeElement as HTMLElement);
-    const next = e.key === 'ArrowDown'
-      ? (current + 1) % items.length
-      : (current - 1 + items.length) % items.length;
-    items[next].focus();
-  }, []);
+  const isEntryActive = (entry: NavEntry) =>
+    entry.key === 'transform'
+      ? isTransforme
+      : path === entry.path || path.startsWith(entry.path + '/');
 
-  const openDropdownOnHover = () => {
-    if (hoverCloseTimer.current) window.clearTimeout(hoverCloseTimer.current);
-    setDropdownOpen(true);
-  };
-  const closeDropdownOnHover = () => {
-    hoverCloseTimer.current = window.setTimeout(() => setDropdownOpen(false), 120);
-  };
+  const activeEntry = SITE_NAV.find(isEntryActive);
+  const activeLabel = activeEntry ? t(activeEntry.key) : undefined;
 
-  const isTransformerActive = path.startsWith('/podcasts') || path.startsWith('/videos');
+  const navItems: TopBarItem[] = SITE_NAV.map((entry) => ({
+    label: t(entry.key),
+    href: localize(entry.path),
+    territory: entry.territory,
+  }));
 
-  // Header transparent par-dessus un hero plein écran (haut de page, menu fermé).
-  const transparent = OVERLAY_ROUTES.includes(path) && !scrolled && !mobileOpen;
+  /** Le tiroir reprend les six mêmes entrées, pastille de territoire comprise. */
+  const drawerItems: SideNavItem[] = SITE_NAV.map((entry) => ({
+    label: t(entry.key),
+    href: localize(entry.path),
+    territory: entry.territory,
+  }));
 
-  const transformerAccent = transparent ? transparentAccent : navAccents.accent;
-  const focusRing = transparent ? FOCUS_RING_ON_HERO : FOCUS_RING;
+  const subItems: SubNavItem[] = TRANSFORME_SUB.map((entry) => ({
+    label: t(entry.key),
+    href: localize(entry.path),
+    territory: 'transforme',
+  }));
+  const activeSub = TRANSFORME_SUB.find((entry) => path.startsWith(entry.path));
 
   const userInitials = user?.displayName
     ? user.displayName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
@@ -284,657 +307,264 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   const languageToggleLabel = language === 'fr' ? tc('switchToEnglish') : tc('switchToFrench');
   const themeToggleLabel = t('toggleTheme');
 
+  /* ── Utilitaires de la barre, repris à l'identique dans le tiroir ────────────── */
+
+  const searchButton = (
+    <button type="button" onClick={onSearchOpen} className={UTIL_ICON} aria-label={t('search')}>
+      <Icon name="search" size={18} strokeWidth={2.2} />
+    </button>
+  );
+
+  const languageButton = (
+    <button
+      type="button"
+      onClick={toggleLanguage}
+      className={UTIL_TEXT}
+      aria-label={languageToggleLabel}
+      title={languageToggleLabel}
+    >
+      {language === 'fr' ? 'EN' : 'FR'}
+    </button>
+  );
+
   /**
-   * Densité. La nav desktop n'apparaît qu'à partir de `xl` (1280) : à `lg` (1024), les
-   * cinq libellés français longs plus la pastille Connexion réclamaient ~1109 px pour 960 px
-   * disponibles. Sous `xl`, c'est le menu burger — le cas type étant une tablette en paysage.
+   * La bascule de thème sort de la barre sous 700 px, et se retrouve dans le tiroir.
    *
-   * ⚠️ Depuis l'ajout de « Je te digitalise », la barre compte SIX libellés FR longs et le
-   * budget est SERRÉ : ~1208 px requis pour 1216 px disponibles.
-   *
-   * Ce budget ne dépend PAS de la largeur de l'écran. Le conteneur est plafonné à `max-w-7xl`
-   * (1280 px moins 2×32 px de gouttière = 1216 px) : une fenêtre de 1920 px n'offre pas un
-   * pixel de plus qu'une de 1280 px. Les anciennes montées en `2xl` (padding `px-3.5`,
-   * gouttière `gap-5`, rappel `⌘K`) partaient donc d'une prémisse fausse et faisaient passer
-   * les six libellés sur DEUX LIGNES à partir de 1536 px. La configuration est désormais
-   * unique au-delà de `xl`.
-   *
-   * `whitespace-nowrap` est un garde-fou délibéré : si un futur libellé fait déborder la
-   * barre, le débordement sera VISIBLE au lieu de se replier silencieusement sur deux lignes.
-   * Tout septième libellé impose de libérer de la place ailleurs — et de re-mesurer.
+   * C'est une mesure, pas un goût : à 390 px, la pilule offre 322 px de contenu, et le
+   * mot-symbole plus les cinq utilitaires en réclament 356. Le budget de la barre ne dépend
+   * pas de la largeur de la fenêtre — la pilule est bornée par ses marges — donc quelque
+   * chose doit sortir, et c'est le contrôle qu'on touche le moins souvent.
    */
-  const navItemCls = 'relative px-2.5 py-2 text-[0.8125rem] font-semibold whitespace-nowrap transition-colors duration-150 rounded-lg group';
+  const themeButton = (className: string) => (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className={cn(UTIL_ICON, className)}
+      aria-label={themeToggleLabel}
+      aria-pressed={theme === 'dark'}
+      title={themeToggleLabel}
+    >
+      {theme === 'dark'
+        ? <Icon name="sun" size={18} strokeWidth={2.2} />
+        : <Icon name="moon" size={18} strokeWidth={2.2} />}
+    </button>
+  );
+
   /**
-   * Bouton du bloc utilitaire segmenté. Les arrondis vivent sur le conteneur
-   * (`overflow-hidden`) et non sur les enfants : langue et thème sont masqués sous `sm`,
-   * un `last:rounded-r-full` viserait alors un élément invisible et laisserait un bord carré.
+   * L'ENTRÉE AGENCE — hors des quatre verbes, derrière un séparateur, en corail TEXTE.
+   * `--mm-corail` fait 2,70:1 sur blanc : c'est `--mm-corail-t` qui s'écrit, jamais la teinte
+   * pleine (AD-20). Elle bascule seule sous `.dk`.
    */
-  const utilityCls = cn(
-    'flex items-center justify-center gap-1.5 h-10 px-2.5 sm:px-3 transition-colors',
-    transparent
-      ? 'text-white/85 hover:text-white hover:bg-white/10'
-      : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800',
-    focusRing,
+  const agencyLink = (
+    <LocalizedLink
+      to="/agence"
+      aria-current={path === '/agence' ? 'page' : undefined}
+      className="mm-touch-extend inline-flex items-center h-9 px-1 text-meta font-semibold text-corail-txt"
+    >
+      {t('agency')}
+    </LocalizedLink>
+  );
+
+  const separator = (
+    <span aria-hidden="true" className="w-px h-5 bg-[color:var(--border-hair)]" />
+  );
+
+  const accountControl = user ? (
+    <div className="relative" ref={profileRef}>
+      <button
+        ref={profileBtnRef}
+        onClick={() => setProfileOpen(!profileOpen)}
+        aria-expanded={profileOpen}
+        aria-haspopup="menu"
+        aria-controls="nav-account-menu"
+        aria-label={t('accountMenu', { name: user.displayName || user.email })}
+        className="mm-touch-extend flex items-center gap-2 h-9 pl-1 pr-2 rounded-pill hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
+      >
+        <span className="w-7 h-7 rounded-pill bg-[image:var(--action-forme)] text-[color:var(--paper-fixed)] flex items-center justify-center text-small font-bold">
+          {userInitials}
+        </span>
+        <span className="hidden wide:block text-meta-2 font-semibold text-ink-2 max-w-[64px] truncate">
+          {user.displayName?.split(' ')[0] || t('myAccount')}
+        </span>
+        <Icon name="chevron" className={cn('w-3 h-3 text-ink-2 transition-transform duration-ui', profileOpen && 'rotate-180')}
+          strokeWidth={2.4} />
+      </button>
+
+      {profileOpen && (
+        <div
+          id="nav-account-menu"
+          role="menu"
+          /* FAUX VERRE. Un menu de compte n'est pas du chrome fixe : il apparaît, il disparaît,
+             et rien ne passe dessous. `.glass-flat` — voile à 78 %, aucun flou. */
+          className="glass-flat absolute right-0 top-full mt-2.5 w-60 py-1.5 mm-drop"
+        >
+          <div className="px-4 py-3 border-b border-[color:var(--border-hair)]">
+            <p className="text-meta font-bold text-ink">{user.displayName || t('learner')}</p>
+            <p className="text-small text-ink-2 mt-0.5 truncate">{user.email}</p>
+          </div>
+          <div className="py-1">
+            <LocalizedLink to="/mon-espace" role="menuitem" className={MENU_ROW}>
+              <Icon name="graduation" size={16} strokeWidth={2.2} />
+              {t('studentSpace')}
+            </LocalizedLink>
+            {userData?.role === 'admin' && (
+              <LocalizedLink to="/admin" role="menuitem" className={MENU_ROW}>
+                <Icon name="dashboard" size={16} strokeWidth={2.2} />
+                {t('admin')}
+              </LocalizedLink>
+            )}
+          </div>
+          <div className="pt-1 border-t border-[color:var(--border-hair)]">
+            <button
+              onClick={() => { signOut(); setProfileOpen(false); }}
+              role="menuitem"
+              className={cn(MENU_ROW, 'text-stop hover:text-stop')}
+            >
+              <Icon name="logout" size={16} strokeWidth={2.2} />
+              {t('signOut')}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  ) : (
+    <LocalizedLink
+      to="/connexion"
+      className="mm-touch-extend hidden wide:inline-flex items-center gap-2 h-9 px-4 rounded-pill text-meta font-semibold text-ink-2 border border-[color:var(--line)] hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
+    >
+      <Icon name="login" size={16} strokeWidth={2.2} />
+      {t('signIn')}
+    </LocalizedLink>
   );
 
   return (
     <>
-      {/*
-        La bannière d'annonce vit DANS le header fixe. Auparavant elle était dans le flux en
-        `z-50` alors que le header est `fixed z-40` : les deux occupaient la même bande et la
-        bannière peignait par-dessus le logo.
-      */}
       <header className="fixed top-0 left-0 right-0 z-40">
+        {/*
+          La bannière d'annonce vit DANS le header fixe. Auparavant elle était dans le flux en
+          `z-50` alors que le header est `fixed z-40` : les deux occupaient la même bande et la
+          bannière peignait par-dessus le logo.
+        */}
         <AnnouncementBanner />
 
-        <div
-          className={cn(
-            'relative transition-colors duration-300',
-            transparent
-              ? 'bg-transparent'
-              : scrolled
-                ? 'bg-white dark:bg-neutral-900 shadow-[0_1px_0_0_rgba(0,0,0,0.08)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.06)]'
-                : 'bg-white dark:bg-neutral-950 border-b border-neutral-200/50 dark:border-neutral-800/50'
-          )}
-        >
-          {/* Brand accent stripe */}
-          <div className={cn(
-            'absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-500 via-brand-600 to-brand-400 transition-opacity duration-300',
-            scrolled ? 'opacity-100' : 'opacity-0'
-          )} />
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-2 sm:gap-3 xl:gap-4 h-[var(--header-h)] transition-[height] duration-300">
-
-              {/* Logo */}
-              <LocalizedLink
-                to="/"
-                className={cn('group shrink-0 flex items-center rounded-lg', focusRing)}
-              >
-                <span className={cn(
-                  'font-black text-[1.35rem] tracking-tight transition-colors duration-200 drop-shadow-sm',
-                  transparent
-                    ? 'text-white group-hover:text-brand-200'
-                    : 'text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400'
-                )}>
-                  Hellooo<span className="text-brand-500">!</span>
+        <DsNavHost>
+          <TopBar
+            className="mm-topbar"
+            /* « Hello ! » — le mot-symbole des PAGES WEB, en type pur, pour 0 octet. Le PNG du
+               logo pèse 273 Ko en 1254 × 1254 pour un rendu à 42 px ; il ne survit que sur
+               pastille blanche. Le dégradé est le jeton `--wordmark-hello`, qui bascule seul. */
+            brand={<Wordmark brand="hello" size={22} style={{ marginRight: '10px' }} />}
+            items={navItems}
+            active={activeLabel}
+            label={t('menu')}
+            /* Le lien de saut est le PREMIER élément focalisable de la barre. Il ne coûte rien
+               et il est le seul moyen, au clavier, de ne pas retraverser six entrées de
+               navigation à chaque page. Son libellé se traduit : un « Aller au contenu » figé
+               s'afficherait tel quel sur le site anglais. */
+            skipHref="#main-content"
+            skipLabel={t('skipToContent')}
+            /* La pilule flotte : ses marges viennent de `.mm-topbar`, qui sait les resserrer
+               à l'état compact. Le rembourrage, lui, tient dans le style en ligne. */
+            style={{ padding: '10px 16px' }}
+            trailing={
+              <>
+                {searchButton}
+                {languageButton}
+                {themeButton('hidden stack:inline-flex')}
+                {/* Le séparateur, puis l'agence : la frontière est visible avant d'être lue. */}
+                <span className="hidden wide:flex items-center gap-3">
+                  {separator}
+                  {agencyLink}
                 </span>
-              </LocalizedLink>
-
-              {/*
-                Nav collée au logo. Elle portait `ml-auto` alors que le bloc d'actions en
-                portait un aussi : elle se retrouvait plaquée à droite, avec un grand vide
-                au milieu et aucune séparation d'avec les utilitaires.
-              */}
-              <nav className="hidden xl:flex items-center" aria-label={t('menu')}>
-                {navLinks.map((link) => {
-                  const isActive = path === link.path || path.startsWith(link.path + '/');
-                  const accent = transparent ? transparentAccent : navAccents[link.accent];
-                  return (
-                    <LocalizedLink
-                      key={link.path}
-                      to={link.path}
-                      aria-current={isActive ? 'page' : undefined}
-                      className={cn(navItemCls, focusRing, isActive ? accent.active : accent.idle)}
-                    >
-                      {t(link.key)}
-                      <span className={cn(
-                        'absolute bottom-1 left-2.5 right-2.5 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
-                        accent.bar,
-                        isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                      )} />
-                    </LocalizedLink>
-                  );
-                })}
-
-                {/* Menu « Je te transforme » */}
-                <div
-                  className="relative"
-                  ref={dropdownRef}
-                  onMouseEnter={openDropdownOnHover}
-                  onMouseLeave={closeDropdownOnHover}
-                >
-                  <button
-                    ref={dropdownBtnRef}
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'ArrowDown' && !dropdownOpen) {
-                        e.preventDefault();
-                        setDropdownOpen(true);
-                      }
-                    }}
-                    aria-expanded={dropdownOpen}
-                    aria-haspopup="menu"
-                    aria-controls="nav-transformer-menu"
-                    aria-label={t('transformAria')}
-                    className={cn(
-                      navItemCls,
-                      focusRing,
-                      'flex items-center gap-1',
-                      isTransformerActive || dropdownOpen ? transformerAccent.active : transformerAccent.idle
-                    )}
-                  >
-                    {t('transform')}
-                    <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200', dropdownOpen && 'rotate-180')} aria-hidden="true" />
-                    <span className={cn(
-                      /* right-6 = px-2.5 + la largeur du chevron et sa gouttière. */
-                      'absolute bottom-1 left-2.5 right-6 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
-                      transformerAccent.bar,
-                      isTransformerActive || dropdownOpen ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                    )} />
-                  </button>
-
-                  {dropdownOpen && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-80 pt-2.5">
-                      <div
-                        id="nav-transformer-menu"
-                        role="menu"
-                        aria-label={t('transformAria')}
-                        ref={dropdownPanelRef}
-                        onKeyDown={handleMenuKeys}
-                        className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-neutral-100 dark:border-neutral-800 py-2 animate-slide-down"
-                      >
-                        <div className="px-4 pb-2 pt-1 mb-1 border-b border-neutral-100 dark:border-neutral-800">
-                          <p className="text-[0.625rem] font-bold tracking-[0.2em] uppercase text-accent-700 dark:text-accent-400">
-                            {t('freeContent')}
-                          </p>
-                        </div>
-                        {transformerLinks.map((item) => {
-                          const isVideos = item.accent === 'red';
-                          const isActive = path.startsWith(item.path);
-                          const iconBoxCls = isVideos
-                            ? 'bg-red-50 dark:bg-red-900/30'
-                            : 'bg-plum-50 dark:bg-plum-900/30';
-                          const iconCls = isVideos
-                            ? 'text-red-600 dark:text-red-400'
-                            : 'text-plum-600 dark:text-plum-400';
-                          const rowCls = isVideos
-                            ? cn('hover:bg-red-50 dark:hover:bg-red-900/20', isActive && 'bg-red-50 dark:bg-red-900/20')
-                            : cn('hover:bg-plum-50 dark:hover:bg-plum-900/20', isActive && 'bg-plum-50 dark:bg-plum-900/20');
-                          const labelCls = isVideos
-                            ? cn(
-                                'group-hover/item:text-red-600 dark:group-hover/item:text-red-400',
-                                isActive ? 'text-red-600 dark:text-red-400' : 'text-neutral-800 dark:text-neutral-200'
-                              )
-                            : cn(
-                                'group-hover/item:text-plum-600 dark:group-hover/item:text-plum-400',
-                                isActive ? 'text-plum-600 dark:text-plum-400' : 'text-neutral-800 dark:text-neutral-200'
-                              );
-                          return (
-                            <LocalizedLink
-                              key={item.path}
-                              to={item.path}
-                              role="menuitem"
-                              aria-current={isActive ? 'page' : undefined}
-                              className={cn('flex items-center gap-3 px-4 py-3 transition-colors group/item', rowCls, FOCUS_RING)}
-                            >
-                              <div className={`w-9 h-9 rounded-xl ${iconBoxCls} flex items-center justify-center shrink-0`}>
-                                <item.icon className={`w-4 h-4 ${iconCls}`} aria-hidden="true" />
-                              </div>
-                              <p className={cn('text-sm font-semibold leading-snug transition-colors', labelCls)}>
-                                {t(item.key)}
-                              </p>
-                            </LocalizedLink>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/*
-                  Je te digitalise — offre Présence Digitale (commerces de proximité).
-
-                  ⚠️ Sa POSITION est un choix, pas un hasard. Un lien texte lagoon jouxtant
-                  la pastille lagoon a déjà été supprimé une fois : les deux menaient à
-                  /agence « à trois centimètres l'un de l'autre ». Ici les destinations
-                  diffèrent (/presence-digitale vs /agence) et les libellés ne partagent
-                  aucun mot, mais la séparation physique reste nécessaire : « Contacte-moi »,
-                  le bloc utilitaire segmenté, le séparateur et Connexion s'intercalent.
-                  Ne pas déplacer cette entrée vers la droite.
-
-                  Elle rejoint en revanche la famille « Je te… » — l'actif de marque du site
-                  (docs/UX-AUDIT.md §2). Le libellé a existé en nav par le passé mais pointait
-                  alors vers /agence, qui hébergeait l'offre TPE ; sa destination est
-                  désormais la bonne.
-                */}
-                <LocalizedLink
-                  to="/presence-digitale"
-                  aria-current={path === '/presence-digitale' ? 'page' : undefined}
-                  className={cn(
-                    navItemCls,
-                    focusRing,
-                    path === '/presence-digitale'
-                      ? (transparent ? transparentAccent.active : navAccents.lagoon.active)
-                      : (transparent ? transparentAccent.idle : navAccents.lagoon.idle)
-                  )}
-                >
-                  {t('presence')}
-                  <span className={cn(
-                    'absolute bottom-1 left-2.5 right-2.5 h-[1.5px] rounded-full transition-transform duration-200 origin-left',
-                    transparent ? transparentAccent.bar : navAccents.lagoon.bar,
-                    path === '/presence-digitale' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                  )} />
-                </LocalizedLink>
-
-                {/* Contacte-moi */}
-                <LocalizedLink
-                  to="/contact"
-                  aria-current={path === '/contact' ? 'page' : undefined}
-                  className={cn(
-                    navItemCls,
-                    focusRing,
-                    transparent
-                      ? 'text-white hover:bg-white/10'
-                      : path === '/contact'
-                        ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
-                        : 'text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20'
-                  )}
-                >
-                  {t('contact')}
-                  <span className={cn(
-                    'absolute bottom-1 left-2.5 right-2.5 h-[1.5px] bg-brand-500 rounded-full transition-transform duration-200 origin-left',
-                    path === '/contact' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                  )} />
-                </LocalizedLink>
-              </nav>
-
-              {/* ── Zone droite : utilitaires · identité · CTA ────────────────────── */}
-              <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
-
-                {/*
-                  Recherche + langue + thème réunis en UN objet segmenté. Trois icônes
-                  isolées se lisaient comme trois cibles distinctes ; regroupées, elles
-                  n'en pèsent plus qu'une dans la densité perçue.
-                */}
-                <div
-                  className={cn(
-                    'flex items-center rounded-full border divide-x overflow-hidden',
-                    transparent
-                      ? 'border-white/25 divide-white/20'
-                      : 'border-neutral-200 dark:border-neutral-700 divide-neutral-200 dark:divide-neutral-700'
-                  )}
-                >
-                  {/*
-                    Le rappel visuel « ⌘K » a été retiré de l'en-tête : avec six libellés de
-                    nav, ses ~23 px faisaient déborder la barre. Le raccourci lui-même reste
-                    actif à toutes les tailles, et le rappel subsiste dans l'espace membre,
-                    dont l'en-tête est bien moins chargé.
-                  */}
-                  <button onClick={onSearchOpen} className={utilityCls} aria-label={t('search')}>
-                    <Search className="w-5 h-5" aria-hidden="true" />
-                  </button>
-
-                  {/*
-                    Bascule de langue en TEXTE seul. L'icône `Languages` doublait le code de
-                    langue — deux signes pour une seule affordance — et coûtait ~26 px que la
-                    barre à six libellés n'a plus. Le code (« EN » / « FR ») dit à lui seul ce
-                    que fait le bouton ; `aria-label` et `title` portent la phrase complète.
-                  */}
-                  <button
-                    onClick={toggleLanguage}
-                    className={cn(utilityCls, 'hidden sm:flex text-xs font-bold tracking-wide')}
-                    aria-label={languageToggleLabel}
-                    title={languageToggleLabel}
-                  >
-                    {language === 'fr' ? 'EN' : 'FR'}
-                  </button>
-
-                  <button
-                    onClick={toggleTheme}
-                    className={cn(utilityCls, 'hidden sm:flex')}
-                    aria-label={themeToggleLabel}
-                    aria-pressed={theme === 'dark'}
-                    title={themeToggleLabel}
-                  >
-                    {theme === 'dark'
-                      ? <Sun className="w-5 h-5" aria-hidden="true" />
-                      : <Moon className="w-5 h-5" aria-hidden="true" />}
-                  </button>
-                </div>
-
-                {/* Séparateur : navigation/utilitaires d'un côté, identité de l'autre. */}
-                <span
-                  className={cn(
-                    'hidden xl:block w-px h-6',
-                    transparent ? 'bg-white/20' : 'bg-neutral-200 dark:bg-neutral-700'
-                  )}
-                  aria-hidden="true"
-                />
-
-                {user ? (
-                  <div className="relative" ref={profileRef}>
-                    <button
-                      ref={profileBtnRef}
-                      onClick={() => setProfileOpen(!profileOpen)}
-                      aria-expanded={profileOpen}
-                      aria-haspopup="menu"
-                      aria-controls="nav-account-menu"
-                      aria-label={t('accountMenu', { name: user.displayName || user.email })}
-                      className={cn(
-                        'flex items-center gap-2 pl-1.5 pr-2.5 h-10 rounded-full border transition-all duration-200',
-                        focusRing,
-                        transparent
-                          ? 'border-white/30 hover:border-white/50 hover:bg-white/10'
-                          : 'border-neutral-200/80 dark:border-neutral-700/80 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-neutral-50 dark:hover:bg-neutral-800/60'
-                      )}
-                    >
-                      <span className="w-7 h-7 rounded-full bg-brand-600 dark:bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
-                        {userInitials}
-                      </span>
-                      {/*
-                        `max-w-[64px]` et non 80 : c'est l'état CONNECTÉ qui dimensionne la
-                        barre. Ce bouton (avatar + prénom + chevron) est plus large que la
-                        pastille « Connexion » de l'état déconnecté, donc c'est lui qui décide
-                        si les six libellés de nav tiennent. Ne pas élargir sans re-mesurer.
-                      */}
-                      <span className={cn(
-                        'hidden xl:block text-xs font-semibold max-w-[64px] truncate',
-                        transparent ? 'text-white/90' : 'text-neutral-700 dark:text-neutral-300'
-                      )}>
-                        {user.displayName?.split(' ')[0] || t('myAccount')}
-                      </span>
-                      <ChevronDown className={cn('w-3 h-3 transition-transform duration-200', transparent ? 'text-white/70' : 'text-neutral-400', profileOpen && 'rotate-180')} aria-hidden="true" />
-                    </button>
-
-                    {profileOpen && (
-                      <div
-                        id="nav-account-menu"
-                        role="menu"
-                        className="absolute right-0 top-full mt-2.5 w-60 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-neutral-100 dark:border-neutral-800 py-1.5 animate-slide-down"
-                      >
-                        <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800">
-                          <p className="text-sm font-bold text-neutral-900 dark:text-white">{user.displayName || t('learner')}</p>
-                          <p className="text-xs text-neutral-400 mt-0.5 truncate">{user.email}</p>
-                        </div>
-                        <div className="py-1">
-                          <LocalizedLink
-                            to="/mon-espace"
-                            role="menuitem"
-                            className={cn('flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors', navAccents.brand.idle, FOCUS_RING)}
-                          >
-                            <GraduationCap className="w-4 h-4" aria-hidden="true" />
-                            {t('studentSpace')}
-                          </LocalizedLink>
-                          {userData?.role === 'admin' && (
-                            <LocalizedLink
-                              to="/admin"
-                              role="menuitem"
-                              className={cn('flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors', navAccents.plum.idle, FOCUS_RING)}
-                            >
-                              <LayoutDashboard className="w-4 h-4" aria-hidden="true" />
-                              {t('admin')}
-                            </LocalizedLink>
-                          )}
-                        </div>
-                        <div className="pt-1 border-t border-neutral-100 dark:border-neutral-800">
-                          <button
-                            onClick={() => { signOut(); setProfileOpen(false); }}
-                            role="menuitem"
-                            className={cn('flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 w-full transition-colors', FOCUS_RING)}
-                          >
-                            <LogOut className="w-4 h-4" aria-hidden="true" />
-                            {t('signOut')}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <LocalizedLink
-                    to="/connexion"
-                    className={cn(
-                      'hidden xl:inline-flex items-center gap-2 px-4 h-10 text-[0.8125rem] font-semibold border rounded-full transition-all duration-200',
-                      focusRing,
-                      transparent
-                        ? 'text-white border-white/30 hover:border-white/50 hover:bg-white/10'
-                        : 'text-neutral-700 dark:text-neutral-200 border-neutral-200 dark:border-neutral-700 hover:border-brand-400 hover:text-brand-600 dark:hover:border-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/10'
-                    )}
-                  >
-                    <LogIn className="w-4 h-4" aria-hidden="true" />
-                    {t('signIn')}
-                  </LocalizedLink>
-                )}
-
-                {/*
-                  Entrée AGENCE — unique, et seul CTA plein du header. Un lien texte et un
-                  bouton « Travaillons ensemble » menaient tous deux ici, à trois centimètres
-                  l'un de l'autre : une nav liste des destinations, le bouton porte donc le
-                  nom de la destination. La clé `nav.workWithMe` qui portait l'ancien libellé
-                  a été supprimée (plus aucun usage) ; les pages gardent leurs propres clés.
-
-                  C'est cette pastille qui distingue les deux offres commerciales du site :
-                  bouton plein au nom d'entité pour Max-Morrys Agency, lien texte tutoyant
-                  (« Je te digitalise ») pour Présence Digitale. Ne pas donner de pastille
-                  pleine à la seconde — la différence de forme fait tout le travail.
-
-                  ⚠️ Sur fond sombre, `bg-lagoon-500 text-neutral-900` — l'aplat signature
-                  documenté à 8,1:1. Ne JAMAIS utiliser lagoon-500 en texte sur fond clair.
-                */}
-                <LocalizedLink
-                  to="/agence"
-                  aria-current={path === '/agence' ? 'page' : undefined}
-                  className={cn(
-                    'hidden sm:inline-flex items-center px-4 h-10 text-[0.8125rem] font-semibold rounded-full transition-colors shrink-0',
-                    focusRing,
-                    transparent
-                      ? 'bg-lagoon-500 text-neutral-900 hover:bg-lagoon-400'
-                      : 'bg-lagoon-700 text-white hover:bg-lagoon-800'
-                  )}
-                >
-                  {t('agency')}
-                </LocalizedLink>
-
+                {accountControl}
                 <button
                   ref={burgerRef}
-                  onClick={() => setMobileOpen(!mobileOpen)}
-                  aria-expanded={mobileOpen}
-                  aria-controls="mobile-menu"
+                  onClick={() => setDrawerOpen(!drawerOpen)}
+                  aria-expanded={drawerOpen}
+                  aria-controls="site-drawer"
                   aria-label={t('menu')}
-                  className={cn(
-                    'xl:hidden flex items-center justify-center w-10 h-10 transition-colors rounded-lg',
-                    focusRing,
-                    transparent
-                      ? 'text-white hover:bg-white/10'
-                      : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                  )}
+                  className={cn(UTIL_ICON, 'wide:hidden')}
                 >
-                  {mobileOpen
-                    ? <X className="w-5 h-5" aria-hidden="true" />
-                    : <Menu className="w-5 h-5" aria-hidden="true" />}
+                  {drawerOpen
+                    ? <Icon name="close" size={20} strokeWidth={2.2} />
+                    : <Icon name="menu" size={20} strokeWidth={2.2} />}
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
+              </>
+            }
+          />
+        </DsNavHost>
 
         {/*
-          Panneau mobile — enfant du header en `top-full` : il se cale sous la hauteur RÉELLE,
-          bannière d'annonce comprise, sans aucun nombre magique.
+          LA SOUS-NAVIGATION DU TERRITOIRE — et elle existe pour une raison commerciale précise.
+          « Je te transforme » abrite du contenu gratuit et ouvert et du contenu payant et
+          fermé. Sans cette séparation visible, un visiteur croit le podcast derrière le mur.
+          Faux verre, aucun flou : elle est en tête de page et l'état actif se lit au voile.
         */}
-        {mobileOpen && (
+        {/* `pt-1` n'est pas décoratif : `.mm-touch-extend` porte la cible à 44 px sur un
+            dessin de 42, et sans ces 4 px le débordement d'un pixel réveillerait une barre de
+            défilement verticale — `overflow-x: auto` fait passer l'autre axe en `auto`. */}
+        {showTerritorySub && (
+          <DsNavHost className="px-[18px] pt-1 pb-2 overflow-x-auto">
+            <SubNav
+              items={subItems}
+              active={activeSub ? t(activeSub.key) : undefined}
+              label={t('transformAria')}
+            />
+          </DsNavHost>
+        )}
+
+        {/*
+          LE TIROIR — 250 px de faux verre entre 700 et 1080 px, pleine largeur en dessous.
+          C'est la primitive `SideNav` : mêmes pastilles de territoire, même `aria-current`,
+          une vraie `<ul>` de vrais `<a href>`. Il se cale sous la hauteur RÉELLE du chrome,
+          bannière d'annonce et sous-navigation comprises, sans aucun nombre magique.
+        */}
+        {drawerOpen && (
           <div
-            id="mobile-menu"
-            ref={mobilePanelRef}
+            id="site-drawer"
+            ref={drawerRef}
             role="dialog"
             aria-modal="true"
             aria-label={t('menu')}
-            className="absolute top-full left-0 right-0 xl:hidden bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 shadow-xl animate-slide-down max-h-[calc(100dvh-var(--header-h))] overflow-y-auto"
+            /* `right-0` sous 700 px pour que la colonne puisse faire 100 % de large ;
+               `right-auto` au-delà, pour qu'elle se ferme sur ses 250 px. */
+            className="absolute top-full left-0 right-0 stack:right-auto wide:hidden max-h-[calc(100dvh-var(--header-h))] overflow-y-auto mm-drop"
           >
-            <nav className="py-3 px-3 space-y-0.5" aria-label={t('menu')}>
-              {navLinks.map((link) => {
-                const isActive = path === link.path || path.startsWith(link.path + '/');
-                return (
-                  <LocalizedLink
-                    key={link.path}
-                    to={link.path}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={cn(
-                      'block px-4 py-3 text-sm font-medium transition-colors rounded-xl',
-                      FOCUS_RING,
-                      isActive
-                        ? cn('font-semibold', navAccents[link.accent].active)
-                        : navAccents[link.accent].idle
+            <DsNavHost>
+              <SideNav
+                className="mm-drawer"
+                items={drawerItems}
+                active={activeLabel}
+                label={t('menu')}
+                footer={
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                      {agencyLink}
+                      {/* Le thème quitte la barre sous 700 px : il doit rester atteignable
+                          ici, sinon un visiteur sur petit écran n'a plus aucun moyen d'en
+                          changer. */}
+                      <span className="ml-auto stack:hidden">{themeButton('')}</span>
+                    </div>
+                    {!user && (
+                      <Button tone="primary" href={localize('/connexion')}>
+                        {t('signIn')}
+                      </Button>
                     )}
-                  >
-                    {t(link.key)}
-                  </LocalizedLink>
-                );
-              })}
-
-              {/* Mobile: Je te transforme */}
-              <div>
-                <button
-                  onClick={() => setMobileTransformerOpen(!mobileTransformerOpen)}
-                  aria-expanded={mobileTransformerOpen}
-                  aria-controls="mobile-transformer-menu"
-                  className={cn(
-                    'w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors rounded-xl',
-                    FOCUS_RING,
-                    isTransformerActive || mobileTransformerOpen
-                      ? cn('font-semibold', navAccents.accent.active)
-                      : navAccents.accent.idle
-                  )}
-                >
-                  {t('transform')}
-                  <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', mobileTransformerOpen && 'rotate-180')} aria-hidden="true" />
-                </button>
-                {/*
-                  `hidden` quand replié, et pas seulement `max-h-0` : sinon les liens restent
-                  atteignables à la tabulation alors qu'ils sont invisibles.
-                */}
-                <div
-                  id="mobile-transformer-menu"
-                  hidden={!mobileTransformerOpen}
-                  className="ml-3 mt-0.5 space-y-0.5"
-                >
-                  {transformerLinks.map((item) => {
-                    const isActive = path.startsWith(item.path);
-                    const accent = navAccents[item.accent];
-                    return (
-                      <LocalizedLink
-                        key={item.path}
-                        to={item.path}
-                        aria-current={isActive ? 'page' : undefined}
-                        className={cn(
-                          'flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors rounded-xl',
-                          FOCUS_RING,
-                          isActive ? cn('font-semibold', accent.active) : accent.idle
-                        )}
-                      >
-                        <item.icon className="w-4 h-4" aria-hidden="true" />
-                        {t(item.key)}
-                      </LocalizedLink>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Mobile: Je te digitalise — même ordre qu'en desktop. */}
-              <LocalizedLink
-                to="/presence-digitale"
-                aria-current={path === '/presence-digitale' ? 'page' : undefined}
-                className={cn(
-                  'block px-4 py-3 text-sm font-semibold transition-colors rounded-xl',
-                  FOCUS_RING,
-                  path === '/presence-digitale'
-                    ? navAccents.lagoon.active
-                    : navAccents.lagoon.idle
-                )}
-              >
-                {t('presence')}
-              </LocalizedLink>
-
-              {/* Mobile: Contacte-moi */}
-              <LocalizedLink
-                to="/contact"
-                aria-current={path === '/contact' ? 'page' : undefined}
-                className={cn(
-                  'block px-4 py-3 text-sm font-semibold transition-colors rounded-xl',
-                  FOCUS_RING,
-                  path === '/contact'
-                    ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
-                    : 'text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20'
-                )}
-              >
-                {t('contact')}
-              </LocalizedLink>
-
-              {/* Mobile: Agence — une seule entrée, comme en desktop. */}
-              <LocalizedLink
-                to="/agence"
-                aria-current={path === '/agence' ? 'page' : undefined}
-                className={cn(
-                  'block px-4 py-3 text-sm font-semibold text-center rounded-xl bg-lagoon-700 text-white hover:bg-lagoon-800 transition-colors',
-                  FOCUS_RING
-                )}
-              >
-                {t('agency')}
-              </LocalizedLink>
-
-              {/*
-                Langue et thème : masqués de la barre sous `sm` faute de place, ils doivent
-                donc rester atteignables ici — sinon un visiteur sur petit écran n'a plus
-                aucun moyen de changer de langue.
-              */}
-              <button
-                onClick={toggleLanguage}
-                className={cn('w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 rounded-xl', FOCUS_RING)}
-                aria-label={languageToggleLabel}
-              >
-                <Languages className="w-4 h-4" aria-hidden="true" />
-                {languageToggleLabel}
-              </button>
-
-              <button
-                onClick={toggleTheme}
-                aria-pressed={theme === 'dark'}
-                className={cn('w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 rounded-xl', FOCUS_RING)}
-              >
-                {theme === 'dark'
-                  ? <Sun className="w-4 h-4" aria-hidden="true" />
-                  : <Moon className="w-4 h-4" aria-hidden="true" />}
-                {themeToggleLabel}
-              </button>
-
-              <div className="h-px bg-neutral-100 dark:bg-neutral-800 my-1" />
-
-              {user ? (
-                <div className="space-y-0.5">
-                  <LocalizedLink
-                    to="/mon-espace"
-                    className={cn('flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors', navAccents.brand.idle, FOCUS_RING)}
-                  >
-                    <GraduationCap className="w-4 h-4" aria-hidden="true" />
-                    {t('studentSpace')}
-                  </LocalizedLink>
-                  <button
-                    onClick={() => { signOut(); }}
-                    className={cn('flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl w-full', FOCUS_RING)}
-                  >
-                    <LogOut className="w-4 h-4" aria-hidden="true" />
-                    {t('signOut')}
-                  </button>
-                </div>
-              ) : (
-                <LocalizedLink
-                  to="/connexion"
-                  className={cn('flex items-center justify-center gap-2 px-4 py-3 mt-1 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors', FOCUS_RING)}
-                >
-                  <LogIn className="w-4 h-4" aria-hidden="true" />
-                  {t('signIn')}
-                </LocalizedLink>
-              )}
-            </nav>
+                  </div>
+                }
+              />
+            </DsNavHost>
           </div>
         )}
       </header>
 
-      {/* Fond semi-opaque — frère du header, pour rester sous lui dans l'empilement. */}
-      {mobileOpen && (
+      {/* Fond semi-opaque — frère du header, pour rester sous lui dans l'empilement.
+          AUCUN FLOU : le budget est déjà tenu par la barre haute, et un voile d'encre
+          suffit à reculer la page. */}
+      {drawerOpen && (
         <div
-          className="fixed inset-0 z-30 xl:hidden bg-black/20 dark:bg-black/50 backdrop-blur-sm"
-          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 z-30 wide:hidden bg-[color-mix(in_srgb,var(--ink-fixed)_38%,transparent)]"
+          onClick={() => setDrawerOpen(false)}
           aria-hidden="true"
         />
       )}

@@ -50,7 +50,8 @@
     "allVideosTitle": "All videos",
     "allCategories": "All",
     "loadMore": "Load more videos",
-    "emptyCategory": "No videos in this category."
+    "emptyCategory": "No videos in this category.",
+    "notFound": "Video not found"
   },
   "videoDetail": {
     "notFoundTitle": "Video not found",
@@ -126,5 +127,50 @@
     "playerSoon": "Audio player coming soon",
     "transcriptTitle": "Transcript",
     "otherEpisodes": "Other episodes"
+  },
+  "pole": {
+    "eyebrow": "I'll push you further · free",
+    "titleLines": [
+      "PEOPLE FROM HERE",
+      "TELLING YOU WHAT",
+      "THEY ACTUALLY DID."
+    ],
+    "lede": "No method, no tutorial — that's the blog. Here, people who really sell something in Dakar and Abidjan tell you what worked, and what cost them dearly.",
+    "tagFree": "Free to listen, no account",
+    "tagTranscript": "Transcript readable without audio",
+    "rhythm": "One episode a month, when I have someone worth listening to. No calendar kept full for its own sake.",
+    "filterAll": "All",
+    "filterListen": "To listen",
+    "filterWatch": "To watch",
+    "truthTitle": "What I don't show yet",
+    "truthBody": "Each episode's and each video's weight should be written here — it's what lets you decide when your data plan is metered. It isn't measured at upload yet, and I'd rather tell you than announce a made-up number. No play counts either: with one episode, they'd say nothing useful.",
+    "clubTitle": [
+      "You've just heard",
+      "someone who did it."
+    ],
+    "clubBody": "The Club is where they are. Paid, closed, and it can't be toured — that's the price of keeping it closed.",
+    "clubCta": "See the Digitos Club",
+    "empty": "Nothing's online here yet. The blog is open though — and everything on it is free.",
+    "subnavFree": "Listen & watch",
+    "subnavClub": "The Digitos Club"
+  },
+  "detail": {
+    "breadcrumbRoot": "I'll push you further",
+    "listen": "Listen",
+    "watch": "Watch",
+    "transcript": "Transcript",
+    "chapters": "Chapters",
+    "about": "The episode",
+    "weightTitle": "What I don't show yet",
+    "weightBody": "The file's weight should be written here — it's what lets you decide when your data plan is metered. It isn't measured at upload, and I'd rather tell you than announce a made-up number.",
+    "transcriptMissing": "The transcript isn't produced for this episode yet. When it is, it'll read without loading the audio — which is often all you're after.",
+    "nextTitle": [
+      "Listen next"
+    ],
+    "nextTitleVideo": [
+      "Watch next"
+    ],
+    "notFound": "Episode not found",
+    "loading": "Loading the episode"
   }
 }

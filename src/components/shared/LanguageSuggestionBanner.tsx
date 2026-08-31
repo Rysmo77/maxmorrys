@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Languages, X } from 'lucide-react';
 import i18n from '../../i18n';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -9,6 +8,7 @@ import {
 } from '../../contexts/LanguageContext';
 import { detectPreferredLang } from '../../lib/detectLanguage';
 import type { Lang } from '../../i18n/routing';
+import { Icon } from '@ds';
 
 /**
  * Bannière non-intrusive : si la langue détectée (navigateur, repli géo-IP) diffère
@@ -51,27 +51,27 @@ export default function LanguageSuggestionBanner() {
   };
 
   return (
-    <div className="fixed top-[calc(var(--header-h)+0.75rem)] left-1/2 -translate-x-1/2 z-[45] px-4 w-full max-w-md animate-slide-down">
-      <div className="flex items-center gap-3 bg-white dark:bg-neutral-800 rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-700 px-4 py-3">
-        <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 rounded-lg flex-shrink-0">
-          <Languages className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+    <div className="fixed top-[calc(var(--header-h)+0.75rem)] left-1/2 -translate-x-1/2 z-[45] px-4 w-full max-w-md mm-drop">
+      <div className="flex items-center gap-3 bg-paper rounded-2xl shadow-xl border border-[color:var(--line)] px-4 py-3">
+        <div className="p-1.5 bg-[color-mix(in_srgb,var(--mm-bleu)_4%,transparent)] rounded-lg flex-shrink-0">
+          <Icon name="languages" size={16} className="text-forme" />
         </div>
-        <p className="flex-1 text-sm text-neutral-700 dark:text-neutral-200 leading-snug">
+        <p className="flex-1 text-sm text-ink-2 leading-snug">
           {t('langSuggest.message')}
         </p>
         <button
           onClick={handleSwitch}
-          className="flex-shrink-0 px-3 py-1.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition-colors"
+          className="flex-shrink-0 px-3 py-1.5 rounded-full bg-forme hover:bg-forme text-white text-xs font-semibold transition-colors"
         >
           {t('langSuggest.switch')}
         </button>
         <button
           onClick={handleDismiss}
-          className="flex-shrink-0 p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+          className="flex-shrink-0 p-1 text-ink-2 hover:text-ink-2 dark:hover:text-ink-2"
           aria-label={t('langSuggest.dismiss')}
           title={t('langSuggest.dismiss')}
         >
-          <X className="w-4 h-4" />
+          <Icon name="close" size={16} />
         </button>
       </div>
     </div>

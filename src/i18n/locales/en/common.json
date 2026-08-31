@@ -15,5 +15,9 @@
     "message": "This site is also available in English.",
     "switch": "Switch to English",
     "dismiss": "Dismiss"
+  },
+  "offline": {
+    "title": "No network. Your progress will sync as soon as it is back.",
+    "link": "What stays readable"
   }
 }

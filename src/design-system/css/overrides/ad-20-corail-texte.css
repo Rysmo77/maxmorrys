@@ -1,0 +1,26 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-20 · LE CORAIL A AUSSI UNE VERSION TEXTE
+
+   Le design system déclare une version texte pour chaque teinte trop claire sur blanc :
+
+       --mm-orange-t  #8A4B00   parce que #F38B0A fait 2,47:1
+       --mm-teal-t    #00695E   parce que #02AC9C fait 2,84:1
+       --mm-violet-t  #5A17BE   pour les prix et les coches du Club
+
+   Il oublie le corail. MESURÉ : --mm-corail #FF6E7F fait **2,70:1 sur blanc** — entre
+   l'orange et le teal, donc du même côté de la ligne qu'eux.
+
+   Ce ne serait qu'une teinte inutilisée si le système ne lui donnait pas un rôle de TEXTE :
+   « L'agence vit hors des quatre verbes — séparateur dans la barre haute, ENTRÉE EN CORAIL :
+   elle ne se range pas sous Je te digitalise, c'est une autre promesse et un autre client. »
+   Une entrée de navigation est du texte. Le kit demandait donc une couleur qu'il n'avait pas.
+
+   #C22A3C tient 5,69:1 sur blanc en restant reconnaissable comme le même rouge-rosé.
+
+   EN NUIT, RIEN À CORRIGER : #FF6E7F donne 7,17:1 sur #0B0E13. La version texte pointe donc
+   sur la teinte pleine sous `.dk` — exactement ce que dark.css fait déjà pour --mm-orange-t
+   et --mm-teal-t, dont les valeurs claires sont des teintes FONCÉES, illisibles en nuit.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root{ --mm-corail-t:#C22A3C; }  /* 5,69:1 sur blanc */
+.dk{   --mm-corail-t:#FF6E7F; }  /* 7,17:1 sur #0B0E13 — la teinte pleine suffit */

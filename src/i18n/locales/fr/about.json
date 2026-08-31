@@ -248,7 +248,7 @@
       "year": "2024 — Janv.",
       "lieu": "Dakar, Sénégal",
       "title": "Eyone Medical — Marketing & Growth Manager",
-      "desc": "Je rejoins Eyone Medical, pionnier de la digitalisation des soins en Afrique. Résultats à 18 mois : +1 790 % de trafic web et +8 000 abonnés organiques."
+      "desc": "Je rejoins Eyone Medical, pionnier de la digitalisation des soins en Afrique. Marketing, growth, contenu et partenariats — le poste que j'occupe encore aujourd'hui."
     },
     "m2024May": {
       "year": "2024 — Mai",
@@ -279,25 +279,11 @@
     "title": "Marketing & Growth Manager.",
     "subtitle": "IA · Automatisation · Plateformes Web · Partenariats",
     "blockquote": "J'accompagne la croissance d'organisations en Afrique francophone — santé, services, éducation, impact social — en combinant stratégie marketing, data, contenu, partenariats, développement web et automatisation des processus.",
-    "statTraffic": "Trafic",
-    "statFollowers": "Abonnés",
-    "statPlatforms": "Plateformes",
     "ctaWork": "Travaillons ensemble",
     "imageAlt": "Max-Morrys Eyoum",
     "locationCity": "Dakar · Sénégal",
     "locationRegion": "Afrique francophone",
     "ctaParcours": "Mon parcours"
-  },
-  "impact": {
-    "eyebrow": "RÉSUMÉ D'IMPACT",
-    "heading": "Les chiffres clés",
-    "desc": "Croissance mesurable, plateformes en production et périmètre élargi marketing — tech — partenariats.",
-    "trafficLabel": "Trafic web Eyone",
-    "trafficSub": "De 34 à 643 visites mensuelles en un an",
-    "followersLabel": "Abonnés organiques",
-    "followersSub": "Dont +4 000 sur LinkedIn",
-    "platformsLabel": "Plateformes web",
-    "platformsSub": "Santé, e-commerce, éducation, fintech, institutionnel"
   },
   "expertiseSection": {
     "heading": "Expertise & compétences",
@@ -353,5 +339,77 @@
     },
     "cta": "Découvrir MY ONOMA",
     "ctaAgency": "Voir Max-Morrys Agency"
+  },
+  "page": {
+    "eyebrow": "Formateur · consultant · Dakar",
+    "titleLines": [
+      "Je suis",
+      "Max-Morrys."
+    ],
+    "lede": "Je t'aide à maîtriser le marketing digital, le SEO et l'IA — pour le marché francophone d'Afrique de l'Ouest, avec les moyens que tu as vraiment.",
+    "aloneBody": "Formateur, consultant et créateur de contenu digital basé à Dakar. J'écris les articles, je monte les formations, j'anime le Club, et je réponds aux messages.",
+    "aloneStrong": "Il n'y a personne d'autre derrière cette plateforme.",
+    "ctaContact": "Contacte-moi",
+    "ctaFormations": "Voir les formations",
+    "doesTitle": [
+      "Ce que je fais,",
+      "concrètement."
+    ],
+    "doesTrainTitle": "Je forme",
+    "doesTrainBody": "Des formations en ligne sur le référencement local et l'IA appliquée à la prospection. Écrites, filmées et corrigées par moi.",
+    "doesPublishTitle": "Je publie",
+    "doesPublishBody": "Un blog gratuit, un podcast, des vidéos. Le tout en français, avec des exemples pris ici et pas ailleurs.",
+    "doesSupportTitle": "J'accompagne",
+    "doesSupportBody": "Des commerces de proximité que je rends trouvables en ligne, et des projets sur mesure côté Agency.",
+    "pathTitle": [
+      "Le parcours."
+    ],
+    "pathLede": "Des dates et des faits, pas des adjectifs. C'est ce qu'un visiteur vérifie avant de sortir sa carte.",
+    "pathCite": "parcours déclaré par Max-Morrys",
+    "producedTitle": "Ce que j'ai publié",
+    "producedArticles": "articles publiés",
+    "producedFormations": "formations montées",
+    "producedPodcasts": "épisodes de podcast",
+    "producedVideos": "vidéos",
+    "producedBody": "Ce sont des chiffres de production, pas d'audience. Je ne t'annonce ni élèves, ni vues, ni chiffre d'affaires :",
+    "producedStrong": "la plateforme vient d'ouvrir, et un chiffre gonflé se vérifie en trente secondes.",
+    "soloTitle": "Pourquoi je travaille seul",
+    "soloBody": "Parce que je préfère répondre moi-même. Ça explique tout ce qui est plafonné ici : le quota du répétiteur, les places en atelier, le rythme de publication.",
+    "soloStrong": "Rien n'est illimité parce que rien ne peut l'être — et je préfère l'écrire que te le faire découvrir après.",
+    "treeTitle": [
+      "Où tout ça",
+      "se range."
+    ],
+    "treeLede": "Max-Morrys est une marque de MY ONOMA SARL. Deux autres practices existent à côté, et elles ne font pas la même chose.",
+    "treeLearnBadge": "Track LEARN",
+    "treeLearnBody": "La plateforme que tu lis. Formations, blog, podcast, Club, et l'offre Présence Digitale pour les commerces.",
+    "treePillarBadge": "Pilier {{pillar}}",
+    "treeBuildBody": "Les projets sur mesure, sans grille publique, sur cadrage écrit. Une practice sœur, pas une offre du catalogue.",
+    "treeGrowBody": "L'acquisition et le growth. Si ta demande relève de là, elle y est transmise — jamais rejetée.",
+    "treeRegistered": "Immatriculée",
+    "treeSeat": "Siège",
+    "treePillars": "Piliers",
+    "treeCite": "avis d'immatriculation, Ministère de l'Économie (Sénégal)",
+    "findTitle": [
+      "Où me trouver."
+    ],
+    "findLede": "Je publie ailleurs aussi. Si tu préfères me suivre là-bas, garde tes habitudes — je ne t'obligerai pas à revenir ici.",
+    "findDeclared": "Déclaré",
+    "closingTitle": [
+      "Tu sais maintenant",
+      "qui écrit tout ça."
+    ],
+    "closingBefore": "Commence par le blog, c'est gratuit et il y a",
+    "closingAfter": "articles. Ou écris-moi directement — c'est moi qui lis.",
+    "closingBlog": "Lire le blog",
+    "closingContact": "Contacte-moi",
+    "slotPortraitTitle": "Portrait à fournir · FR-084",
+    "slotPortraitBody": "Une photographie réelle, en 4:5, prise à Dakar. Le portrait actuel est généré par IA — sur la seule page dont le métier est d'inspirer confiance, c'est le pire endroit possible pour une image synthétique.",
+    "slotPathTitle": "Jalons · une réalisation vérifiable manque",
+    "slotPathBody": "Les dates, les établissements et les employeurs ci-dessus sont déclarés par moi. Ce qui manque encore, pour chacun : un lien qu'on peut ouvrir. Les deux chiffres qui les décoraient — croissance de trafic, nombre d'abonnés — sont partis : ils n'ont aucune source publique.",
+    "slotPathStrong": "Je ne les invente pas, et je ne les reprends pas d'un annuaire tiers.",
+    "slotFindTitle": "Liens à confirmer",
+    "slotFindBody": "Les profils ci-contre sont déclarés et vérifiés un par un. Ce qui manque : la plateforme d'écoute du podcast, qui n'est déclarée nulle part.",
+    "slotFindStrong": "Je préfère laisser vide plutôt que de deviner une adresse — et aucun compte n'affiche son nombre d'abonnés."
   }
 }

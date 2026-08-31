@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Star, Users, Clock, BookOpen, Award, CheckCircle, Play, ArrowRight } from 'lucide-react';
 import LocalizedLink from '../shared/LocalizedLink';
 import TranslatedText from '../shared/TranslatedText';
 import { formatPrice } from '../../lib/utils';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { contentPath } from '../../lib/contentPath';
 import type { Formation, Enrollment, Certificate } from '../../types';
+import { Icon } from '@ds';
 
 function isRecent(dateString?: string): boolean {
   if (!dateString) return false;
@@ -50,7 +50,7 @@ export default function FormationCard({ formation, variant = 'default', enrollme
     const done = enrollment?.completedLessons.length ?? 0;
     const isComplete = progress === 100;
     return (
-      <div className="group flex flex-col bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+      <div className="group flex flex-col bg-paper border border-[color:var(--line)] rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-md transition duration-300">
         <LocalizedLink to={`/cours/${formation.slug}`} className="relative block aspect-[16/9] overflow-hidden">
           <img
             src={formation.coverImage}
@@ -59,37 +59,37 @@ export default function FormationCard({ formation, variant = 'default', enrollme
             loading="lazy"
           />
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
-            <span className="w-11 h-11 rounded-full bg-white/90 flex items-center justify-center">
-              <Play className="w-4 h-4 text-neutral-900 ml-0.5" fill="currentColor" />
+            <span className="w-11 h-11 rounded-full bg-[color-mix(in_srgb,var(--paper)_90%,transparent)] flex items-center justify-center">
+              <Icon name="play" size={16} className="text-ink ml-0.5" />
             </span>
           </div>
         </LocalizedLink>
         <div className="flex flex-col flex-1 p-4">
-          <TranslatedText text={formation.title} as="p" className="font-bold text-neutral-900 dark:text-white text-sm line-clamp-2 mb-3 flex-1" />
-          <div className="flex justify-between text-xs text-neutral-500 mb-1">
+          <TranslatedText text={formation.title} as="p" className="font-bold text-ink text-sm line-clamp-2 mb-3 flex-1" />
+          <div className="flex justify-between text-xs text-ink-2 mb-1">
             <span>{t('card.progress')}</span>
             <span className="font-semibold">{progress}%</span>
           </div>
-          <div className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden mb-1.5">
-            <div className="h-full bg-brand-500 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+          <div className="h-1.5 bg-[color:var(--fill-3)] rounded-full overflow-hidden mb-1.5">
+            <div className="h-full bg-[color:var(--mm-bleu)] rounded-full prog-fill transition-[width] duration-500" style={{ width: `${progress}%` }} />
           </div>
-          <p className="text-xs text-neutral-400 mb-3">
+          <p className="text-xs text-ink-2 mb-3">
             {t(done !== 1 ? 'card.lessonsDoneOther' : 'card.lessonsDoneOne', { count: done })}
           </p>
           <div className="flex gap-2 mt-auto">
             <LocalizedLink
               to={`/cours/${formation.slug}`}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-full transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-forme hover:bg-forme text-white text-sm font-semibold rounded-full transition-colors"
             >
-              {isComplete ? <CheckCircle className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              {isComplete ? <Icon name="check-circle" size={14} /> : <Icon name="play" size={14} />}
               {isComplete ? t('card.review') : t('card.continue')}
             </LocalizedLink>
             {isComplete && enrollment?.certificateIssued && certificate && (
               <LocalizedLink
                 to={`/certificat/${certificate.certificateCode}`}
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 border-2 border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-200 text-sm font-semibold rounded-full hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 border-2 border-[color:var(--line)] text-ink-2 text-sm font-semibold rounded-full hover:bg-[color:var(--fill-1)] dark:hover:bg-[color:var(--night-3)] transition-colors"
               >
-                <Award className="w-3.5 h-3.5" /> {t('card.certificate')}
+                <Icon name="award" size={14} /> {t('card.certificate')}
               </LocalizedLink>
             )}
           </div>
@@ -105,7 +105,7 @@ export default function FormationCard({ formation, variant = 'default', enrollme
     <div className="group relative h-full">
       <Link
         to={formationPath}
-        className="flex flex-col h-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl overflow-hidden hover:border-brand-500/40 hover:shadow-lg transition-all duration-300"
+        className="flex flex-col h-full bg-paper border border-[color:var(--line)] rounded-2xl overflow-hidden hover:border-[color-mix(in_srgb,var(--mm-bleu)_40%,transparent)] hover:shadow-lg transition duration-300"
       >
         <div className="relative aspect-[16/9] overflow-hidden">
           <img
@@ -115,11 +115,11 @@ export default function FormationCard({ formation, variant = 'default', enrollme
             loading="lazy"
           />
           {formation.featured ? (
-            <span className="absolute top-3 left-3 px-2.5 py-1 bg-accent-500 text-white text-[11px] font-bold rounded-full uppercase tracking-wider">
+            <span className="absolute top-3 left-3 px-2.5 py-1 bg-[color:var(--mm-orange)] text-white text-[11px] font-bold rounded-full uppercase tracking-wider">
               {t('card.featured')}
             </span>
           ) : isRecent(formation.publishedAt) ? (
-            <span className="absolute top-3 left-3 px-2.5 py-1 bg-brand-600 text-white text-[11px] font-bold rounded-full uppercase tracking-wider">
+            <span className="absolute top-3 left-3 px-2.5 py-1 bg-forme text-white text-[11px] font-bold rounded-full uppercase tracking-wider">
               {t('card.new')}
             </span>
           ) : null}
@@ -128,36 +128,36 @@ export default function FormationCard({ formation, variant = 'default', enrollme
           <TranslatedText
             text={formation.category}
             as="p"
-            className="text-[11px] font-bold tracking-[0.18em] uppercase text-brand-600 dark:text-brand-400 mb-1.5"
+            className="text-[11px] font-bold tracking-[0.18em] uppercase text-forme mb-1.5"
           />
           <TranslatedText
             text={formation.title}
             as="h3"
-            className="text-base font-bold tracking-tight text-neutral-900 dark:text-white leading-snug line-clamp-2 mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors"
+            className="text-base font-bold tracking-tight text-ink leading-snug line-clamp-2 mb-1 group-hover:text-forme dark:group-hover:text-forme transition-colors"
           />
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">Max-Morrys</p>
-          <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 mb-3">
+          <p className="text-xs text-ink-2 mb-2">Max-Morrys</p>
+          <div className="flex items-center gap-2 text-xs text-ink-2 mb-3">
             <span className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 text-accent-500" fill="currentColor" />
-              <span className="font-bold text-neutral-700 dark:text-neutral-200">{formation.rating}</span>
+              <Icon name="star" size={14} className="text-informe-txt" />
+              <span className="font-bold text-ink-2">{formation.rating}</span>
             </span>
             <span className="flex items-center gap-1">
-              <Users className="w-3.5 h-3.5" />
+              <Icon name="users" size={14} />
               {formation.students}
             </span>
             <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
+              <Icon name="clock" size={14} />
               {formation.duration}
             </span>
           </div>
           <div className="flex items-baseline gap-2 mt-auto">
             {price === 0 ? (
-              <span className="text-lg font-black text-success-600 dark:text-success-400">{t('card.free')}</span>
+              <span className="text-lg font-black text-ok">{t('card.free')}</span>
             ) : (
               <>
-                <span className="text-lg font-black text-neutral-900 dark:text-white">{formatPrice(price)}</span>
+                <span className="text-lg font-black text-ink">{formatPrice(price)}</span>
                 {hasPromo && (
-                  <span className="text-sm text-neutral-400 line-through">{formatPrice(formation.price)}</span>
+                  <span className="text-sm text-ink-2 line-through">{formatPrice(formation.price)}</span>
                 )}
               </>
             )}
@@ -167,27 +167,27 @@ export default function FormationCard({ formation, variant = 'default', enrollme
 
       {/* Popover détail — desktop uniquement (réplique le hover Udemy) */}
       {enablePopover && (
-      <div className="hidden lg:block absolute inset-x-0 top-full z-30 -mt-1 pt-3 opacity-0 translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200">
-        <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-2xl p-5">
-          <p className="text-xs font-bold tracking-[0.18em] uppercase text-brand-600 dark:text-brand-400 mb-2">
+      <div className="hidden lg:block absolute inset-x-0 top-full z-30 -mt-1 pt-3 opacity-0 translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition duration-200">
+        <div className="bg-paper border border-[color:var(--line)] rounded-2xl shadow-2xl p-5">
+          <p className="text-xs font-bold tracking-[0.18em] uppercase text-forme mb-2">
             <TranslatedText text={formation.category} /> · {levelLabels[formation.level] ?? formation.level}
           </p>
           <TranslatedText
             text={formation.description}
             as="p"
-            className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed line-clamp-3 mb-3"
+            className="text-sm text-ink-2 leading-relaxed line-clamp-3 mb-3"
           />
-          <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400 mb-3">
-            <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5 text-brand-500" />{t('card.lessonsCount', { count: totalLessons })}</span>
+          <div className="flex items-center gap-3 text-xs text-ink-2 mb-3">
+            <span className="flex items-center gap-1"><Icon name="book" size={14} className="text-forme" />{t('card.lessonsCount', { count: totalLessons })}</span>
             {formation.certificateEnabled && (
-              <span className="flex items-center gap-1"><Award className="w-3.5 h-3.5 text-success-500" />{t('card.popoverCertificate')}</span>
+              <span className="flex items-center gap-1"><Icon name="award" size={14} className="text-ok" />{t('card.popoverCertificate')}</span>
             )}
           </div>
           {learnItems.length > 0 && (
             <ul className="space-y-1.5 mb-4">
               {learnItems.map((item) => (
-                <li key={item} className="flex items-start gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-                  <CheckCircle className="w-4 h-4 text-success-500 shrink-0 mt-0.5" />
+                <li key={item} className="flex items-start gap-2 text-sm text-ink-2">
+                  <Icon name="check-circle" size={16} className="text-ok shrink-0 mt-0.5" />
                   <TranslatedText text={item} className="line-clamp-1" />
                 </li>
               ))}
@@ -195,9 +195,9 @@ export default function FormationCard({ formation, variant = 'default', enrollme
           )}
           <Link
             to={formationPath}
-            className="inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-full transition-colors"
+            className="inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 bg-forme hover:bg-forme text-white text-sm font-bold rounded-full transition-colors"
           >
-            {t('card.viewFormation')} <ArrowRight className="w-4 h-4" />
+            {t('card.viewFormation')} <Icon name="forward" size={16} />
           </Link>
         </div>
       </div>

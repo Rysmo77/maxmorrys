@@ -1,13 +1,26 @@
 import { useState } from 'react';
-import { useTranslation, Trans } from 'react-i18next';
-import { Mail, ArrowLeft } from 'lucide-react';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
+import { useTranslation } from 'react-i18next';
+import { Button, Field, GlassPanel, Icon } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import { localizeAuthError } from '../../lib/auth-errors';
-import LocalizedLink from '../../components/shared/LocalizedLink';
+import { AuthPage, SiteEyebrow } from '../../components/site';
+import { useLocalizedPath } from '../../contexts/LanguageContext';
 
+/**
+ * /mot-de-passe-oublie — l'écran qui refuse de rendre service.
+ *
+ * Il ne dit JAMAIS si une adresse a un compte. C'est délibéré, et le kit prend la peine de
+ * l'expliquer à la personne plutôt que de la laisser trouver la réponse évasive :
+ *
+ *   « Ça paraît moins serviable, mais ça évite qu'un inconnu puisse tester des adresses pour
+ *     savoir qui est inscrit. »
+ *
+ * ⚠️ ET IL AVOUE UNE DETTE. Le produit n'a AUCUN canal d'envoi d'e-mail. Le lien de
+ * réinitialisation part par Firebase Auth, pas par le produit — mais tout ce qui relève du
+ * produit lui-même (relances, notifications, lettres d'information) n'a pas de canal, et le
+ * système interdit de promettre le contraire. La note en pied le dit au lieu de le taire.
+ */
 export default function ResetPassword() {
   const { t } = useTranslation('auth');
   const [email, setEmail] = useState('');
@@ -15,6 +28,7 @@ export default function ResetPassword() {
   const [sent, setSent] = useState(false);
   const { resetPassword } = useAuth();
   const { addToast } = useToast();
+  const path = useLocalizedPath();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,59 +45,75 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 pt-20 pb-12 bg-neutral-50 dark:bg-neutral-950">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <LocalizedLink to="/" className="inline-block mb-8">
-            <span className="font-black text-2xl tracking-tight text-neutral-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-              MAX-MORRYS
-            </span>
-          </LocalizedLink>
-          <h1 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-2">{t('reset.title')}</h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            {sent ? t('reset.subtitleSent') : t('reset.subtitleDefault')}
+    <AuthPage
+      titleLines={t('reset.titleLines', { returnObjects: true }) as string[]}
+      seoTitle={t('reset.title')}
+      noIndex
+      footer={
+        <>
+          <GlassPanel level="truth" className="rv mt-[14px]" style={{ ['--i' as string]: 6 }}>
+            <SiteEyebrow style={{ marginBottom: '6px' }}>{t('reset.truthTitle')}</SiteEyebrow>
+            <p className="m-0 text-meta-2 text-ink-2 leading-[1.5]">{t('reset.truthBody')}</p>
+          </GlassPanel>
+
+          {/* La dette, écrite. Ne jamais promettre un canal que le produit n'a pas. */}
+          <p className="mt-3 text-center text-small text-ink-2 leading-[1.5]">
+            {t('reset.debtNote')}
           </p>
-        </div>
 
-        <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-700 p-8 shadow-sm">
-          {sent ? (
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-success-100 dark:bg-success-900/30 flex items-center justify-center mx-auto mb-5">
-                <Mail className="w-8 h-8 text-success-600 dark:text-success-400" />
-              </div>
-              <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
-                <Trans
-                  t={t}
-                  i18nKey="reset.sentMessage"
-                  values={{ email }}
-                  components={{ strong: <strong className="text-neutral-900 dark:text-white" /> }}
-                />
-              </p>
-              <LocalizedLink to="/connexion">
-                <Button variant="outline" className="w-full">{t('reset.backToLogin')}</Button>
-              </LocalizedLink>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <Input
-                label={t('reset.emailLabel')}
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('reset.emailPlaceholder')}
-                icon={<Mail className="w-4 h-4" />}
-              />
-              <Button type="submit" className="w-full" loading={loading}>{t('reset.submit')}</Button>
-            </form>
-          )}
-        </div>
+          <p className="mt-4 text-center text-meta">
+            <a href={path('/connexion')} className="text-ink-2">{t('reset.back')}</a>
+          </p>
+        </>
+      }
+    >
+      <p className="m-0 mb-[14px] text-lede text-ink-2">
+        {sent ? t('reset.subtitleSent') : t('reset.subtitleDefault')}
+      </p>
 
-        <div className="text-center mt-6">
-          <LocalizedLink to="/connexion" className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> {t('reset.backToLogin')}
-          </LocalizedLink>
+      {sent ? (
+        /*
+          La carte de confirmation. Bordure verte plutôt qu'un fond vert : sur un panneau qui
+          est déjà du verre, un second aplat serait le troisième fond que le système interdit.
+        */
+        <div
+          className="rounded-m border p-4 flex gap-3 items-start"
+          style={{ borderColor: 'color-mix(in srgb, var(--ok) 28%, transparent)' }}
+        >
+          <span
+            aria-hidden="true"
+            className="shrink-0 w-[30px] h-[30px] rounded-full grid place-items-center"
+            style={{ background: 'color-mix(in srgb, var(--ok) 16%, transparent)' }}
+          >
+            <Icon name="check" size={15} color="var(--ok)" strokeWidth={3.2} />
+          </span>
+          <div>
+            <p className="m-0 font-bold text-meta" style={{ color: 'var(--ok)' }}>
+              {t('reset.sentTitle')}
+            </p>
+            <p className="m-0 mt-1 text-meta-2 text-ink-2 leading-[1.5]">
+              {t('reset.subtitleSent')}
+            </p>
+          </div>
         </div>
-      </div>
-    </div>
+      ) : (
+        <form onSubmit={handleSubmit} noValidate>
+          <Field
+            label={t('reset.emailLabel')}
+            type="email"
+            value={email}
+            onChange={setEmail}
+            placeholder={t('reset.emailPlaceholder')}
+            inputMode="email"
+            autoComplete="email"
+            required
+            style={{ marginTop: 0 }}
+          />
+          <Button type="submit" tone="forme" loading={loading} disabled={loading} style={{ marginTop: '17px' }}>
+            {loading ? t('reset.submitting') : t('reset.submit')}
+          </Button>
+        </form>
+      )}
+    </AuthPage>
   );
 }

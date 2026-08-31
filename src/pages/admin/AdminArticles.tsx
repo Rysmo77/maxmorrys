@@ -1,474 +1,322 @@
-import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Search, Edit2, Trash2, ExternalLink, Loader2, Star, StarOff } from 'lucide-react';
-import Button from '../../components/ui/Button';
-import Card from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
+import {
+  Button, Field, GlassPanel, Icon, LessonRow, Num, Segmented, Skeleton, Switch, Tag,
+} from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import Modal from '../../components/ui/Modal';
-import Input from '../../components/ui/Input';
 import ImageInput from '../../components/ui/ImageInput';
 import RichEditor from '../../components/ui/RichEditor';
-import { useToast } from '../../components/ui/Toast';
-import { getAllPosts, savePost, deletePost } from '../../lib/firestore';
-import { slugify, calculateReadTime } from '../../lib/utils';
-import { generateSlugEn } from '../../lib/slugEn';
-import { useFormat } from '../../hooks/useFormat';
-import { BLOG_POLES, categoryToPole } from '../../lib/blogCategories';
-import type { BlogPost } from '../../types';
-import SEOPanel from '../../components/shared/SEOPanel';
-import { captureError } from '../../lib/sentry';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import Pagination from '../../components/ui/Pagination';
-import { usePagination } from '../../hooks/usePagination';
+import SEOPanel from '../../components/shared/SEOPanel';
+import { slugify } from '../../lib/utils';
+import { BLOG_POLES } from '../../lib/blogCategories';
+import { useFormat } from '../../hooks/useFormat';
+import { useArticles, type ArticleStage } from './articles/useArticles';
+import type { BlogPost } from '../../types';
 
-type FormState = {
-  title: string;
-  slug: string;
-  slug_en: string;
-  excerpt: string;
-  content: string;
-  category: string;
-  coverImage: string;
-  tags: string;
-  publishedAt: string;
-  status: 'draft' | 'published';
-  featured: boolean;
-  // SEO
-  focusKeyword: string;
-  metaTitle: string;
-  metaDescription: string;
-  ogTitle: string;
-  ogDescription: string;
-  ogImage: string;
-  twitterTitle: string;
-  twitterDescription: string;
-  twitterImage: string;
-  noIndex: boolean;
-  canonicalUrl: string;
-};
-
-const todayIso = () => new Date().toISOString().split('T')[0];
-
-const makeEmptyForm = (): FormState => ({
-  title: '', slug: '', slug_en: '', excerpt: '', content: '', category: BLOG_POLES[0],
-  coverImage: '', tags: '', publishedAt: todayIso(), status: 'draft', featured: false,
-  focusKeyword: '', metaTitle: '', metaDescription: '', ogTitle: '',
-  ogDescription: '', ogImage: '', twitterTitle: '', twitterDescription: '',
-  twitterImage: '', noIndex: false, canonicalUrl: '',
-});
-
+/**
+ * ─── CONTENU · l'écran que le kit dessine EN ENTIER, sous le nom `ContenuOps` ────────────
+ *
+ * Trois zones, dans l'ordre du motif : le filtre par STATUT (jamais par date), la liste dense
+ * à UNE action par ligne, le pied qui nomme ce que l'écran ne couvre pas.
+ *
+ * CE QUI A DISPARU, ET POURQUOI
+ *
+ *   • LE TABLEAU À CINQ COLONNES. Il portait quatre cibles par ligne — pastille de statut
+ *     cliquable, modifier, voir, supprimer. « Deux actions par ligne, c'est une hésitation
+ *     par ligne » : il y en avait quatre.
+ *   • LA PASTILLE DE STATUT CLIQUABLE. Elle ressemblait à une étiquette et ÉCRIVAIT EN BASE
+ *     au premier clic, sans confirmation ni annulation. Publier et dépublier restent
+ *     possibles — depuis l'éditeur, où les deux boutons portent leur nom. Le geste n'est pas
+ *     retiré, il cesse d'être accidentel.
+ *   • `Card`, `Badge`, `Input`, le rond qui tourne : remplacés par `GlassPanel`, `Tag`,
+ *     `Field`, `Skeleton`. Un doublon de primitive est une seconde source de vérité.
+ *
+ * L'ÉTIQUETTE « SLUG EN MANQUANT » — CE QU'ELLE DIT VRAIMENT. Le kit affiche « EN manquant »
+ * pour un article publié en français seul. Le produit ne sait pas si une page a été rendue
+ * sous /en : la traduction est produite au pré-rendu et mise en cache côté serveur. Ce que la
+ * console PEUT lire, c'est `slug_en`. Sans lui, `contentPath()` retombe sur le slug français
+ * et l'URL anglaise porte un slug français. L'étiquette dit donc ce qui est vérifiable, pas
+ * ce que le dessin promettait.
+ * ─────────────────────────────────────────────────────────────────────────────────────────
+ */
 export default function AdminArticles() {
   const { t } = useTranslation('admin');
   const { formatDate } = useFormat();
-  const { addToast } = useToast();
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
-  const [showModal, setShowModal] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>(makeEmptyForm);
-  const [activeTab, setActiveTab] = useState<'content' | 'seo'>('content');
-  const confirm = useConfirmDialog();
+  const a = useArticles();
 
-  const load = () => {
-    setLoading(true);
-    getAllPosts().then((data) => {
-      setPosts(data);
-      setLoading(false);
-    }).catch(() => {
-      addToast('error', t('articles.toastLoadError'));
-      setLoading(false);
-    });
+  const stageKeys: ArticleStage[] = ['all', 'published', 'draft'];
+  const stageLabels: Record<ArticleStage, string> = {
+    all: `${t('articles.console.stageAll')} ${a.counts.all}`,
+    published: `${t('articles.console.stagePublished')} ${a.counts.published}`,
+    draft: `${t('articles.console.stageDrafts')} ${a.counts.draft}`,
   };
 
-  useEffect(() => { load(); }, []);
-
-  const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
-
-  const openNew = () => {
-    setEditingId(null);
-    setForm(makeEmptyForm());
-    setActiveTab('content');
-    setShowModal(true);
-  };
-
-  const openEdit = (post: BlogPost) => {
-    setEditingId(post.id);
-    setForm({
-      title: post.title,
-      slug: post.slug,
-      slug_en: post.slug_en ?? '',
-      excerpt: post.excerpt,
-      content: post.content,
-      category: categoryToPole(post.category),
-      coverImage: post.coverImage,
-      tags: post.tags?.join(', ') ?? '',
-      publishedAt: post.publishedAt ? post.publishedAt.split('T')[0] : todayIso(),
-      status: post.status === 'published' ? 'published' : 'draft',
-      featured: post.featured ?? false,
-      focusKeyword: post.focusKeyword ?? '',
-      metaTitle: post.metaTitle ?? '',
-      metaDescription: post.metaDescription ?? post.excerpt,
-      ogTitle: post.ogTitle ?? '',
-      ogDescription: post.ogDescription ?? '',
-      ogImage: post.ogImage ?? post.coverImage,
-      twitterTitle: post.twitterTitle ?? '',
-      twitterDescription: post.twitterDescription ?? '',
-      twitterImage: post.twitterImage ?? '',
-      noIndex: post.noIndex ?? false,
-      canonicalUrl: post.canonicalUrl ?? '',
-    });
-    setActiveTab('content');
-    setShowModal(true);
-  };
-
-  const handleSave = async (status: 'draft' | 'published') => {
-    if (!form.title.trim() || !form.excerpt.trim()) {
-      addToast('error', t('articles.toastTitleExcerptRequired'));
-      return;
+  /** L'état de la ligne : publié, publié sans slug anglais, brouillon. Jamais une action. */
+  const rowState = (post: BlogPost) => {
+    if (post.status !== 'published') {
+      return { tone: 'warn' as const, label: t('articles.statusDraft'), ink: 'var(--warn)' };
     }
-    setSaving(true);
-    try {
-      const slug = form.slug || slugify(form.title);
-      const slug_en = form.slug_en || await generateSlugEn(form.title);
-      const postData = {
-        title: form.title.trim(),
-        slug,
-        slug_en,
-        excerpt: form.excerpt.trim(),
-        content: form.content,
-        category: form.category.trim(),
-        coverImage: form.coverImage.trim(),
-        tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
-        author: 'Max-Morrys',
-        publishedAt: form.publishedAt || todayIso(),
-        readTime: calculateReadTime(form.content),
-        featured: form.featured,
-        status,
-        focusKeyword: form.focusKeyword.trim(),
-        metaTitle: form.metaTitle.trim(),
-        metaDescription: form.metaDescription.trim() || form.excerpt.trim(),
-        ogTitle: form.ogTitle.trim(),
-        ogDescription: form.ogDescription.trim(),
-        ogImage: form.ogImage.trim() || form.coverImage.trim(),
-        twitterTitle: form.twitterTitle.trim(),
-        twitterDescription: form.twitterDescription.trim(),
-        twitterImage: form.twitterImage.trim(),
-        noIndex: form.noIndex,
-        canonicalUrl: form.canonicalUrl.trim(),
-      } as Omit<BlogPost, 'id'>;
-      await savePost(postData, editingId ?? undefined);
-      addToast('success', editingId ? t('articles.toastUpdated') : t('articles.toastCreated'));
-      setShowModal(false);
-      load();
-    } catch (error: unknown) {
-      captureError(error, { context: 'Save article failed' });
-      addToast('error', error instanceof Error ? error.message : t('articles.toastSaveError'));
-    } finally {
-      setSaving(false);
+    if (!post.slug_en) {
+      return { tone: 'stop' as const, label: t('articles.console.tagEnMissing'), ink: 'var(--stop)' };
     }
+    return { tone: 'ok' as const, label: t('articles.statusPublished'), ink: 'var(--ok)' };
   };
 
-  const doDelete = useCallback(async (id: string) => {
-    try {
-      await deletePost(id);
-      setPosts((prev) => prev.filter((p) => p.id !== id));
-      addToast('success', t('articles.toastDeleted'));
-    } catch {
-      addToast('error', t('articles.toastDeleteError'));
-    }
-    confirm.closeConfirm();
-  }, [addToast, confirm, t]);
-
-  const handleDelete = (id: string) => {
-    confirm.requestConfirm(t('articles.confirmDeleteMessage'), () => doDelete(id));
-  };
-
-  const toggleStatus = async (post: BlogPost) => {
-    const newStatus = post.status === 'published' ? 'draft' : 'published';
-    try {
-      await savePost({ ...post, status: newStatus } as Omit<BlogPost, 'id'>, post.id);
-      setPosts((prev) => prev.map((p) => p.id === post.id ? { ...p, status: newStatus } : p));
-    } catch {
-      addToast('error', t('articles.toastUpdateError'));
-    }
-  };
-
-  const filtered = posts.filter((p) => {
-    const matchSearch = p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.category?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === 'all' || p.status === filterStatus;
-    return matchSearch && matchStatus;
-  });
-
-  const { paged, page, totalPages, setPage } = usePagination(filtered);
+  const tabs = [t('articles.tabContent'), t('articles.tabSeo')];
+  const activeTabLabel = a.activeTab === 'content' ? tabs[0] : tabs[1];
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{t('articles.title')}</h1>
-          <p className="text-sm text-neutral-500">
-            {loading ? t('articles.loading') : t('articles.totalCount', { count: posts.length })}
-          </p>
-        </div>
-        <Button onClick={openNew} icon={<Plus className="w-4 h-4" />}>{t('articles.newArticle')}</Button>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('articles.searchPlaceholder')}
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white"
+    <ConsolePage title={t('articles.title')} sub={t('articles.console.sub')}>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="m-0 text-meta-2 text-ink-2">
+          <Num
+            value={a.loading ? null : a.counts.all}
+            source="db"
+            asOf={a.loadedAt ?? new Date()}
+            unit={t('articles.console.countUnit')}
+            showAsOf={!a.loading}
+            fallback={t('articles.console.loadingCount')}
           />
-        </div>
-        <div className="flex gap-2">
-          {(['all', 'published', 'draft'] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setFilterStatus(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                filterStatus === s
-                  ? 'bg-brand-500 text-white'
-                  : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-              }`}
-            >
-              {s === 'all' ? t('articles.filterAll') : s === 'published' ? t('articles.filterPublished') : t('articles.filterDrafts')}
-            </button>
-          ))}
-        </div>
+        </p>
+        <Button size="sm" onClick={a.openNew}>{t('articles.newArticle')}</Button>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-48">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-        </div>
-      ) : (
-        <>
-          <Card padding="none">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">{t('articles.colArticle')}</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden md:table-cell">{t('articles.colCategory')}</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden sm:table-cell">{t('articles.colDate')}</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">{t('articles.colStatus')}</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">{t('articles.colActions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.length === 0 ? (
-                    <tr><td colSpan={5} className="px-4 py-8 text-center text-neutral-500">{t('articles.emptyState')}</td></tr>
-                  ) : (
-                    paged.map((post) => (
-                      <tr key={post.id} className="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            {post.coverImage && (
-                              <img src={post.coverImage} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 hidden sm:block" loading="lazy" />
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-neutral-900 dark:text-white truncate max-w-xs">{post.title}</p>
-                              <p className="text-xs text-neutral-400">{t('articles.readTime', { count: post.readTime })}{post.featured ? t('articles.featuredSuffix') : ''}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 hidden md:table-cell">
-                          {post.category && <Badge variant="brand" size="sm">{post.category}</Badge>}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-neutral-500 hidden sm:table-cell">
-                          {post.publishedAt ? formatDate(post.publishedAt) : '—'}
-                        </td>
-                        <td className="px-4 py-3">
-                          <button onClick={() => toggleStatus(post)}>
-                            <Badge variant={post.status === 'published' ? 'success' : 'warning'} size="sm">
-                              {post.status === 'published' ? t('articles.statusPublished') : t('articles.statusDraft')}
-                            </Badge>
-                          </button>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-1">
-                            <button onClick={() => openEdit(post)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors" title={t('articles.actionEdit')}>
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            {post.status === 'published' && post.slug && (
-                              <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" title={t('articles.actionView')}>
-                                <ExternalLink className="w-4 h-4" />
-                              </a>
-                            )}
-                            <button onClick={() => handleDelete(post.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" title={t('articles.actionDelete')}>
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+      {/* ── ZONE 1 · le filtre par statut ─────────────────────────────────────────────── */}
+      <ConsoleFilter
+        stages={stageKeys.map((k) => stageLabels[k])}
+        active={stageLabels[a.stage]}
+        onSelect={(label) => {
+          const key = stageKeys.find((k) => stageLabels[k] === label);
+          if (key) a.setStage(key);
+        }}
+        label={t('articles.console.filterLabel')}
+      />
+
+      <Field
+        type="search"
+        label={t('articles.console.searchLabel')}
+        hideLabel
+        placeholder={t('articles.searchPlaceholder')}
+        value={a.search}
+        onChange={a.setSearch}
+      />
+
+      {/* ── ZONE 2 · la liste dense, UNE action par ligne : ouvrir la fiche ────────────── */}
+      <div className="mt-4">
+        {a.loading ? (
+          <ConsoleList label={t('articles.console.listLabel')}>
+            {[0, 1, 2, 3].map((i) => (
+              <li key={i} className="border-b border-[color:var(--border-hair)] py-4 last:border-0">
+                <Skeleton height={18} label={i === 0 ? t('articles.loading') : undefined} />
+              </li>
+            ))}
+          </ConsoleList>
+        ) : a.filtered.length === 0 ? (
+          <GlassPanel level="night" padding={24}>
+            <p className="m-0 text-center text-meta-2 text-ink-2">{t('articles.emptyState')}</p>
+          </GlassPanel>
+        ) : (
+          <>
+            <ConsoleList label={t('articles.console.listLabel')}>
+              {a.paged.map((post, i) => {
+                const st = rowState(post);
+                return (
+                  <li key={post.id}>
+                    <LessonRow
+                      icon={<Icon name="doc" size={14} color={st.ink} />}
+                      iconBackground={`color-mix(in srgb, ${st.ink} 18%, transparent)`}
+                      title={post.title}
+                      duration={post.readTime
+                        ? {
+                          value: t('articles.readTime', { count: post.readTime }),
+                          source: 'db',
+                          asOf: a.loadedAt ?? new Date(),
+                        }
+                        : undefined}
+                      meta={[
+                        post.category,
+                        post.publishedAt ? formatDate(post.publishedAt) : null,
+                        post.featured ? t('articles.console.featuredShort') : null,
+                      ].filter(Boolean).join(' · ')}
+                      trailing={<Tag tone={st.tone}>{st.label}</Tag>}
+                      onClick={() => a.openEdit(post)}
+                      last={i === a.paged.length - 1}
+                    />
+                  </li>
+                );
+              })}
+            </ConsoleList>
+            <div className="mt-4 flex justify-center">
+              <Pagination currentPage={a.page} totalPages={a.totalPages} onPageChange={a.setPage} />
             </div>
-          </Card>
-          <div className="flex justify-center mt-4">
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
 
-      {/* Article editor modal */}
-      <Modal open={showModal} onClose={() => setShowModal(false)} title={editingId ? t('articles.modalEditTitle') : t('articles.modalNewTitle')} size="xl">
-        {/* Tabs */}
-        <div className="flex gap-1 mb-6 border-b border-neutral-200 dark:border-neutral-700">
-          {[{ key: 'content', label: t('articles.tabContent') }, { key: 'seo', label: t('articles.tabSeo') }].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as typeof activeTab)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px ${
-                activeTab === tab.key
-                  ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      {/* ── ZONE 3 · ce que l'écran ne couvre pas ─────────────────────────────────────── */}
+      <ConsoleScope>{t('articles.console.scope')}</ConsoleScope>
 
-        {activeTab === 'content' && (
-          <div className="space-y-4">
-            <Input
+      {/* ── L'éditeur ─────────────────────────────────────────────────────────────────── */}
+      <Modal
+        open={a.showModal}
+        onClose={() => a.setShowModal(false)}
+        title={a.editingId ? t('articles.modalEditTitle') : t('articles.modalNewTitle')}
+        size="xl"
+      >
+        <Segmented
+          options={tabs}
+          value={activeTabLabel}
+          onChange={(label) => a.setActiveTab(label === tabs[1] ? 'seo' : 'content')}
+          label={t('articles.console.tabsLabel')}
+        />
+
+        {a.activeTab === 'content' && (
+          <div>
+            <Field
               label={t('articles.fieldTitleLabel')}
-              value={form.title}
-              onChange={(e) => {
-                set('title', e.target.value);
-                if (!editingId) set('slug', slugify(e.target.value));
+              value={a.form.title}
+              onChange={(v) => {
+                a.set('title', v);
+                if (!a.editingId) a.set('slug', slugify(v));
               }}
               placeholder={t('articles.fieldTitlePlaceholder')}
             />
-            <Input
+            <Field
               label={t('articles.fieldExcerptLabel')}
-              value={form.excerpt}
-              onChange={(e) => set('excerpt', e.target.value)}
+              value={a.form.excerpt}
+              onChange={(v) => a.set('excerpt', v)}
               placeholder={t('articles.fieldExcerptPlaceholder')}
             />
-            <RichEditor
-              label={t('articles.fieldContentLabel')}
-              value={form.content}
-              onChange={(v) => set('content', v)}
-              minHeight="400px"
-              placeholder={t('articles.fieldContentPlaceholder')}
-            />
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label htmlFor="category" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  {t('articles.fieldCategoryLabel')}
-                </label>
-                <select
-                  id="category"
-                  value={form.category}
-                  onChange={(e) => set('category', e.target.value)}
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:focus:border-brand-400"
-                >
-                  {BLOG_POLES.map((pole) => (
-                    <option key={pole} value={pole}>{pole}</option>
-                  ))}
-                </select>
-              </div>
-              <Input label={t('articles.fieldTagsLabel')} value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="SEO, Growth, Digital" />
+            <div className="mt-4">
+              <RichEditor
+                label={t('articles.fieldContentLabel')}
+                value={a.form.content}
+                onChange={(v) => a.set('content', v)}
+                minHeight="400px"
+                placeholder={t('articles.fieldContentPlaceholder')}
+              />
             </div>
-            <Input
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                as="select"
+                label={t('articles.fieldCategoryLabel')}
+                value={a.form.category}
+                onChange={(v) => a.set('category', v)}
+                options={BLOG_POLES.map((pole) => ({ value: pole, label: pole }))}
+              />
+              <Field
+                label={t('articles.fieldTagsLabel')}
+                value={a.form.tags}
+                onChange={(v) => a.set('tags', v)}
+                placeholder="SEO, Growth, Digital"
+              />
+            </div>
+            <Field
               label={t('articles.fieldPublishDateLabel')}
               type="date"
-              value={form.publishedAt}
-              onChange={(e) => set('publishedAt', e.target.value)}
+              value={a.form.publishedAt}
+              onChange={(v) => a.set('publishedAt', v)}
             />
-            <ImageInput label={t('articles.fieldCoverImageLabel')} value={form.coverImage} onChange={(url) => set('coverImage', url)} folder="articles" />
+            <div className="mt-4">
+              <ImageInput
+                label={t('articles.fieldCoverImageLabel')}
+                value={a.form.coverImage}
+                onChange={(url) => a.set('coverImage', url)}
+                folder="articles"
+              />
+            </div>
           </div>
         )}
 
-        {activeTab === 'seo' && (
-          <div className="space-y-5">
-            {/* Toggle featured — option éditoriale, hors SEOPanel */}
-            <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-700/30 rounded-xl">
-              <div>
-                <p className="text-sm font-medium text-neutral-900 dark:text-white">{t('articles.featuredTitle')}</p>
-                <p className="text-xs text-neutral-500">{t('articles.featuredDescription')}</p>
+        {a.activeTab === 'seo' && (
+          <div>
+            <GlassPanel level="flat" padding={16} className="mt-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="m-0 text-meta font-semibold text-ink">{t('articles.featuredTitle')}</p>
+                  <p className="m-0 text-meta-2 text-ink-2">{t('articles.featuredDescription')}</p>
+                </div>
+                <Switch
+                  on={a.form.featured}
+                  label={t('articles.featuredTitle')}
+                  onChange={(on) => a.set('featured', on)}
+                />
               </div>
-              <button
-                type="button"
-                onClick={() => set('featured', !form.featured)}
-                className={`p-2 rounded-xl transition-colors ${form.featured ? 'text-accent-500 bg-accent-50 dark:bg-accent-900/20' : 'text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
-              >
-                {form.featured ? <Star className="w-5 h-5 fill-current" /> : <StarOff className="w-5 h-5" />}
-              </button>
-            </div>
-            {/* Slug */}
-            <Input
+            </GlassPanel>
+            <Field
               label={t('articles.fieldSlugLabel')}
-              value={form.slug}
-              onChange={(e) => set('slug', slugify(e.target.value))}
+              value={a.form.slug}
+              onChange={(v) => a.set('slug', slugify(v))}
               placeholder="mon-super-article"
             />
-            {/* Slug EN */}
-            <Input
+            <Field
               label={t('articles.fieldSlugEnLabel')}
-              value={form.slug_en}
-              onChange={(e) => set('slug_en', slugify(e.target.value))}
+              value={a.form.slug_en}
+              onChange={(v) => a.set('slug_en', slugify(v))}
               placeholder="english-slug"
+              hint={t('articles.console.slugEnHint')}
             />
-            {/* SEOPanel complet */}
-            <SEOPanel
-              title={form.title}
-              slug={form.slug}
-              content={form.content}
-              excerpt={form.excerpt}
-              coverImage={form.coverImage}
-              siteUrl="https://maxmorrys.me"
-              basePath="blog"
-              focusKeyword={form.focusKeyword}
-              metaTitle={form.metaTitle}
-              metaDescription={form.metaDescription}
-              ogTitle={form.ogTitle}
-              ogDescription={form.ogDescription}
-              ogImage={form.ogImage}
-              twitterTitle={form.twitterTitle}
-              twitterDescription={form.twitterDescription}
-              twitterImage={form.twitterImage}
-              noIndex={form.noIndex}
-              canonicalUrl={form.canonicalUrl}
-              onChange={(field, value) => setForm((prev) => ({ ...prev, [field]: value }))}
-            />
+            <div className="mt-4">
+              <SEOPanel
+                title={a.form.title}
+                slug={a.form.slug}
+                content={a.form.content}
+                excerpt={a.form.excerpt}
+                coverImage={a.form.coverImage}
+                siteUrl="https://maxmorrys.me"
+                basePath="blog"
+                focusKeyword={a.form.focusKeyword}
+                metaTitle={a.form.metaTitle}
+                metaDescription={a.form.metaDescription}
+                ogTitle={a.form.ogTitle}
+                ogDescription={a.form.ogDescription}
+                ogImage={a.form.ogImage}
+                twitterTitle={a.form.twitterTitle}
+                twitterDescription={a.form.twitterDescription}
+                twitterImage={a.form.twitterImage}
+                noIndex={a.form.noIndex}
+                canonicalUrl={a.form.canonicalUrl}
+                onChange={(field, value) => a.setForm((prev) => ({ ...prev, [field]: value }))}
+              />
+            </div>
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-neutral-200 dark:border-neutral-700 mt-6">
-          <Button variant="outline" onClick={() => setShowModal(false)}>{t('articles.cancel')}</Button>
-          <Button variant="outline" onClick={() => handleSave('draft')} disabled={saving}>
-            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+        <div className="mt-6 flex flex-col gap-3 border-t border-[color:var(--line)] pt-6 sm:flex-row sm:justify-end">
+          {a.editingId && (
+            <>
+              <Button size="sm" tone="ghost" onClick={a.deleteEditing}>
+                {t('articles.actionDelete')}
+              </Button>
+              {a.form.status === 'published' && a.form.slug && (
+                <Button size="sm" tone="ghost" href={`/blog/${a.form.slug}`} target="_blank">
+                  {t('articles.actionView')}
+                </Button>
+              )}
+            </>
+          )}
+          <Button size="sm" tone="quiet" onClick={() => a.setShowModal(false)}>
+            {t('articles.cancel')}
+          </Button>
+          <Button size="sm" tone="quiet" onClick={() => a.handleSave('draft')} disabled={a.saving} loading={a.saving}>
             {t('articles.saveDraft')}
           </Button>
-          <Button onClick={() => handleSave('published')} disabled={saving}>
-            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-            {editingId ? t('articles.update') : t('articles.publish')}
+          <Button size="sm" onClick={() => a.handleSave('published')} disabled={a.saving} loading={a.saving}>
+            {a.editingId ? t('articles.update') : t('articles.publish')}
           </Button>
         </div>
       </Modal>
 
       <ConfirmDialog
-        open={confirm.open}
-        onClose={confirm.closeConfirm}
-        onConfirm={confirm.onConfirm}
+        open={a.confirm.open}
+        onClose={a.confirm.closeConfirm}
+        onConfirm={a.confirm.onConfirm}
         title={t('articles.confirmDeleteTitle')}
-        message={confirm.message}
+        message={a.confirm.message}
         confirmLabel={t('articles.confirmDeleteLabel')}
       />
-    </div>
+    </ConsolePage>
   );
 }

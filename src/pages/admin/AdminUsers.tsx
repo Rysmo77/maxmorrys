@@ -1,16 +1,34 @@
-import {
-  Search, Mail, Calendar, Shield, Loader2, UserCog, Plus,
-} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Card from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
-import Button from '../../components/ui/Button';
+import { Button, EmptyState, Field, Icon, LessonRow, Skeleton, StatTile, Tag } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { SiteEyebrow } from '../../components/site';
 import Pagination from '../../components/ui/Pagination';
 import { useToast } from '../../components/ui/Toast';
 import { usePagination } from '../../hooks/usePagination';
 import { useFormat } from '../../hooks/useFormat';
-import { useAdminUsers, roleVariants } from './hooks/useAdminUsers';
+import { useAdminUsers } from './hooks/useAdminUsers';
 import { UserEditModal, CreateUserModal } from './components/UserEditModal';
+import type { User } from '../../types';
+
+/**
+ * LES COMPTES, SUR LE MOTIF DE CONSOLE.
+ *
+ * ⚠️ LE PIPELINE DU KIT NE PEUT PAS ÊTRE REPRIS TEL QUEL, ET C'EST UN MANQUE DE DONNÉES,
+ * PAS UN CHOIX DE STYLE. Le kit annonce « tout · apprenants · admins · suspendus ». Les
+ * trois premières étapes se lisent en base — `User.role` vaut `student`, `admin` ou
+ * `support`. La quatrième n'existe nulle part : ni `User`, ni les règles Firestore, ni les
+ * Cloud Functions ne portent d'état suspendu, et rien dans le dépôt ne permet d'en compter
+ * un. Afficher « suspendus » aurait produit un zéro PERMANENT que l'opérateur lirait comme
+ * « personne n'est suspendu » alors qu'il faut lire « la suspension n'existe pas » — la
+ * confusion exacte que <Num> a été écrit pour empêcher.
+ *
+ * L'étape est donc remplacée par `support`, qui, elle, se compte — et le rôle support est
+ * précisément celui dont dépend le garde de cette console (`lib/adminAccess`). Ce que la
+ * quatrième étape du kit promettait est écrit noir sur blanc dans le pied de l'écran.
+ */
+
+type Stage = 'all' | User['role'];
 
 export default function AdminUsers() {
   const { t } = useTranslation('admin');
@@ -18,7 +36,7 @@ export default function AdminUsers() {
   const { addToast } = useToast();
   const state = useAdminUsers(addToast);
 
-  const roleLabels: Record<string, string> = {
+  const roleLabels: Record<User['role'], string> = {
     admin: t('users.roleAdmin'),
     support: t('users.roleSupport'),
     student: t('users.roleStudent'),
@@ -31,119 +49,147 @@ export default function AdminUsers() {
     showAddUser, setShowAddUser,
   } = state;
 
-  const { paged, page, totalPages, setPage } = usePagination(filtered);
+  /** Zone 1 — les quatre étapes du kit, dont la quatrième est celle qui a une source. */
+  const [stage, setStage] = useState<Stage>('all');
+  const stageLabels: Record<Stage, string> = {
+    all: t('users.stageAll'),
+    student: t('users.stageStudents'),
+    admin: t('users.stageAdmins'),
+    support: t('users.stageSupport'),
+  };
+  const stages: Stage[] = ['all', 'student', 'admin', 'support'];
+  const tileLabels: Record<Stage, string> = {
+    all: t('users.tileAll'),
+    student: t('users.tileStudents'),
+    admin: t('users.tileAdmins'),
+    support: t('users.tileSupport'),
+  };
+
+  /** Le relevé date de la dernière réponse de la requête, pas du rendu : une case de
+   *  console porte la date de sa MESURE. */
+  const [asOf, setAsOf] = useState(() => new Date());
+  useEffect(() => { if (!loading) setAsOf(new Date()); }, [users, loading]);
+
+  /** Les compteurs portent sur la BASE ENTIÈRE, pas sur ce que la recherche laisse voir. */
+  const counts = useMemo(() => ({
+    all: users.length,
+    student: users.filter((u) => u.role === 'student').length,
+    admin: users.filter((u) => u.role === 'admin').length,
+    support: users.filter((u) => u.role === 'support').length,
+  }), [users]);
+
+  // `filtered` porte déjà la recherche du hook ; l'étape s'y ajoute sans la remplacer.
+  const shown = useMemo(
+    () => (stage === 'all' ? filtered : filtered.filter((u) => u.role === stage)),
+    [filtered, stage],
+  );
+
+  const { paged, page, totalPages, setPage } = usePagination(shown);
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{t('users.title')}</h1>
-          <p className="text-sm text-neutral-500">
-            {loading ? t('users.loading') : t('users.userCount', { count: users.length })}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={load} disabled={loading}>
+    // `.play` en dur : voir AdminDashboard — sans lui, `.rv` reste à `opacity: 0` et le
+    // pied obligatoire du motif ne s'affiche pas du tout.
+    <div className="play">
+      <ConsolePage title={t('users.title')} sub={t('users.sub')}>
+        <div className="mb-3.5 flex flex-wrap items-center justify-end gap-2">
+          <Button size="sm" tone="quiet" onClick={load} disabled={loading}>
             {t('users.refresh')}
           </Button>
-          <Button size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => setShowAddUser(true)}>
+          <Button size="sm" onClick={() => setShowAddUser(true)}>
             {t('users.addUser')}
           </Button>
         </div>
-      </div>
 
-      <div className="mb-6">
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-          <input
+        <ConsoleFilter
+          className="rv"
+          stages={stages.map((s) => stageLabels[s])}
+          active={stageLabels[stage]}
+          onSelect={(label) => setStage(stages.find((s) => stageLabels[s] === label) ?? 'all')}
+          label={t('users.pipelineLabel')}
+        />
+
+        <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+          {stages.map((s) => (
+            <StatTile
+              key={s}
+              label={tileLabels[s]}
+              value={loading ? null : counts[s]}
+              source="db"
+              asOf={asOf}
+            />
+          ))}
+        </div>
+
+        <div className="mt-3.5 max-w-sm">
+          <Field
+            as="input"
+            type="search"
+            label={t('users.searchLabel')}
+            hideLabel
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={setSearch}
             placeholder={t('users.searchPlaceholder')}
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white"
+            inputMode="search"
           />
         </div>
-      </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-48">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-        </div>
-      ) : (
-        <Card padding="none">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">{t('users.colUser')}</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden sm:table-cell">{t('users.colRole')}</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase hidden md:table-cell">{t('users.colSignup')}</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-neutral-500 uppercase">{t('users.colActions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-neutral-500">{t('users.empty')}</td>
-                  </tr>
-                ) : (
-                  paged.map((u) => (
-                    <tr key={u.uid} className="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                            {u.photoURL ? (
-                              <img src={u.photoURL} alt="" className="w-9 h-9 rounded-full object-cover" />
-                            ) : (
-                              <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
-                                {(u.displayName || u.email || '?').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">{u.displayName || '—'}</p>
-                            <p className="text-xs text-neutral-400 flex items-center gap-1 truncate">
-                              <Mail className="w-3 h-3 flex-shrink-0" /> {u.email}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell">
-                        <Badge variant={roleVariants[u.role]} size="sm">
-                          <Shield className="w-3 h-3 mr-1" />
-                          {roleLabels[u.role]}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-neutral-500 hidden md:table-cell">
-                        {u.createdAt ? (
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {new Date(u.createdAt).toLocaleDateString(locale)}
-                          </span>
-                        ) : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => openEditUser(u)}
-                          className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
-                          title={t('users.manageUser')}
-                        >
-                          <UserCog className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        <SiteEyebrow style={{ marginTop: '22px', marginBottom: '10px' }}>
+          {stageLabels[stage]}
+        </SiteEyebrow>
+
+        {loading ? (
+          <div className="flex flex-col gap-2">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} height={60} radius="var(--r-l)" label={t('users.loading')} />
+            ))}
           </div>
-        </Card>
-      )}
+        ) : shown.length === 0 ? (
+          <EmptyState
+            glyph={<Icon name="users" size={26} color="var(--mm-bleu)" />}
+            glyphBackground="color-mix(in srgb, var(--mm-bleu) 22%, transparent)"
+            title={t('users.emptyTitle')}
+            body={t('users.emptyBody')}
+          />
+        ) : (
+          <ConsoleList label={t('users.listLabel')} className="rv">
+            {paged.map((u, i) => (
+              <li key={u.uid}>
+                {/* UN ÉTAT ET UNE ACTION PAR LIGNE : le rôle est l'état, « Gérer » est
+                    l'action. La ligne elle-même n'est pas cliquable — sinon le bouton
+                    de fin deviendrait un bouton dans un bouton, inatteignable au clavier. */}
+                <LessonRow
+                  icon={<Icon name="user" size={14} color="var(--mm-bleu)" />}
+                  iconBackground="color-mix(in srgb, var(--mm-bleu) 22%, transparent)"
+                  title={u.displayName || u.email || t('users.noName')}
+                  duration={u.createdAt
+                    ? { value: new Date(u.createdAt).toLocaleDateString(locale), source: 'db', asOf }
+                    : undefined}
+                  meta={u.email}
+                  trailing={
+                    <span className="flex items-center gap-2">
+                      <Tag tone={u.role === 'admin' ? 'stop' : u.role === 'support' ? 'warn' : 'neutral'}>
+                        {roleLabels[u.role]}
+                      </Tag>
+                      <Button size="sm" tone="quiet" onClick={() => openEditUser(u)}>
+                        {t('users.manage')}
+                      </Button>
+                    </span>
+                  }
+                  last={i === paged.length - 1}
+                />
+              </li>
+            ))}
+          </ConsoleList>
+        )}
 
-      <div className="flex justify-center mt-4">
-        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-      </div>
+        <div className="mt-4 flex justify-center">
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+        </div>
 
-      {/* ── Edit User Modal ── */}
+        <ConsoleScope>{t('users.scope')}</ConsoleScope>
+      </ConsolePage>
+
+      {/* ── Fiche d'édition ── */}
       <UserEditModal
         editUser={state.editUser}
         onClose={() => setEditUser(null)}
@@ -177,7 +223,7 @@ export default function AdminUsers() {
         handleAddRysmoTokens={state.handleAddRysmoTokens}
       />
 
-      {/* ── Add User Modal ── */}
+      {/* ── Création de compte ── */}
       <CreateUserModal
         open={showAddUser}
         onClose={() => setShowAddUser(false)}

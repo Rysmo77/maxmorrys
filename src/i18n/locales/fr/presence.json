@@ -90,7 +90,8 @@
       "working": "Ton site tient la route : inutile de le refaire. Ce qui te manque, c'est la régularité — être trouvé et publier chaque semaine.",
       "outdated": "Un site dépassé fait plus de mal que pas de site du tout. On repart sur une vitrine crédible avec ton catalogue.",
       "starting": "Tu pars de zéro : l'essentiel est d'exister sur Google Maps et de recevoir tes premières demandes WhatsApp. On verra plus grand ensuite."
-    }
+    },
+    "privacy": "Aucune donnée personnelle n'est demandée avant que tu aies vu la recommandation. « Je ne sais pas » est une réponse valable : elle mène aussi à une recommandation."
   },
   "packs": {
     "title": "La mise en place",
@@ -140,7 +141,10 @@
       ],
       "note": "À envisager quand tu as déjà tes produits, des prix clairs et une organisation de livraison."
     },
-    "selected": "Ton choix"
+    "selected": "Ton choix",
+    "strikeLabel": "Ancien prix",
+    "promoNote": "Une fois · promotion de lancement",
+    "onceNote": "Une fois"
   },
   "plans": {
     "title": "L'accompagnement mensuel",
@@ -360,11 +364,45 @@
       "title": "Récapitulatif introuvable",
       "text": "Ce lien n'existe pas ou a été supprimé. Vérifie la référence, ou refais une demande — ça prend une minute.",
       "cta": "Faire une demande"
-    }
+    },
+    "eyebrowDs": "Devis · consultable sans compte",
+    "titleLine1": "Ton devis,",
+    "titleLine2": "{{name}}.",
+    "titleNoPack": "sur mesure.",
+    "included": "incluse",
+    "monthlyLine": "Puis chaque mois",
+    "validFor": "Valide",
+    "daysUnit": "j",
+    "expiredTag": "Expiré",
+    "gridCite": "grille tarifaire Présence Digitale",
+    "issuedOnLabel": "Émis le",
+    "validUntilLabel": "valable jusqu'au",
+    "copy": "Copier le lien du devis",
+    "copied": "Lien copié",
+    "truthTitle": "Ce que ce document contient, et ne contient pas",
+    "truthBody": "Aucune donnée personnelle : ni ton téléphone, ni ton e-mail. Le lien peut être transféré tel quel. En revanche les montants sont relus dans la grille courante à chaque ouverture — si la grille bouge, ce document bouge avec elle. Je préfère l'écrire ici plutôt que te le faire découvrir à la signature.",
+    "loading": "Chargement du devis",
+    "commitmentLine": "Engagement {{months}} mois"
   },
   "agencyBridge": {
     "title": "Ton projet dépasse la vitrine ?",
     "body": "Si tu ne cherches pas une présence en ligne mais un produit à construire — plateforme, application, système IA — c'est l'affaire de Max-Morrys Agency, l'agence produit et technologie de MY ONOMA.",
     "cta": "Découvrir Max-Morrys Agency"
+  },
+  "anchor": {
+    "eyebrow": "La question que tout le monde pose",
+    "question": "« Une agence me vend un site 400 000 F une fois. Toi c'est combien la première année ? »",
+    "answerBefore": "Réponse avant que tu remplisses quoi que ce soit : ",
+    "answerAfter": " pour le pack d'entrée, une fois, tout compris. L'accompagnement mensuel est une décision séparée, que tu prends après la mise en ligne — pas maintenant, et pas comme condition.",
+    "footnote": "Si tu ne prends que le pack, ça fonctionne quand même. C'est écrit ici pour que tu n'aies pas à le demander."
+  },
+  "plansAside": {
+    "title": "L'accompagnement, séparément",
+    "body": "Deux formules mensuelles, avec des frais de mise en place distincts. Publications, réponses aux avis, corrections. Tu peux t'arrêter quand tu veux, et le pack continue de fonctionner sans.",
+    "cta": "Voir les deux formules"
+  },
+  "truth": {
+    "title": "Ce que cette page n'affiche pas",
+    "body": "Ni note en étoiles, ni nombre de clients, ni témoignage. Aucun de ces chiffres n'est vérifiable par toi depuis cette page. Les seuls nombres écrits ici sont les prix du catalogue et ce que tu tapes toi-même dans la recherche Google plus haut."
   }
 }

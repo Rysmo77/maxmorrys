@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Sparkles } from 'lucide-react';
 import LocalizedLink from '../shared/LocalizedLink';
 import PopupHeading from './PopupHeading';
 import { CTA_BRAND, DISMISS, BODY, ACTIONS } from './popupStyles';
+import { Icon } from '@ds';
 
 /**
  * Retenue sur une fiche formation — le moment de plus forte intention d'achat du site.
@@ -42,7 +42,7 @@ export default function FormationExitPopup({
       <div className={ACTIONS}>
         <LocalizedLink to={formationPath} onClick={onAccept} className={CTA_BRAND}>
           {t('popups.formationExit.cta')}
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+          <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
         </LocalizedLink>
         <button type="button" onClick={onDismiss} className={DISMISS}>
           {t('popups.formationExit.dismiss')}
@@ -53,10 +53,10 @@ export default function FormationExitPopup({
       <LocalizedLink
         to="/mon-espace/club"
         onClick={onClub}
-        className="group mt-5 lg:mt-7 hidden lg:flex items-center gap-3 p-4 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-plum-400/50 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-plum-400"
+        className="group mt-5 lg:mt-7 hidden lg:flex items-center gap-3 p-4 rounded-2xl border border-white/10 bg-paper/[0.03] hover:bg-paper/[0.07] hover:border-[color-mix(in_srgb,var(--mm-violet)_50%,transparent)] transition duration-300 focus:outline-none focus-visible:ring-2"
       >
-        <span className="w-10 h-10 rounded-xl bg-plum-500/15 text-plum-300 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
-          <Sparkles className="w-5 h-5" aria-hidden="true" />
+        <span className="w-10 h-10 rounded-xl bg-[color-mix(in_srgb,var(--mm-violet)_15%,transparent)] text-transforme flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
+          <Icon name="sparkles" size={20} />
         </span>
         <span className="flex-1 min-w-0">
           <span className="block text-sm font-bold text-white leading-snug">
@@ -66,7 +66,7 @@ export default function FormationExitPopup({
             {t('popups.formationExit.clubDesc')}
           </span>
         </span>
-        <ArrowRight className="w-4 h-4 shrink-0 text-white/30 group-hover:text-plum-300 group-hover:translate-x-1 transition-all duration-300" aria-hidden="true" />
+        <Icon name="forward" size={16} className="shrink-0 text-white/30 group-hover:text-transforme group-hover:translate-x-1 transition duration-300" />
       </LocalizedLink>
     </div>
   );

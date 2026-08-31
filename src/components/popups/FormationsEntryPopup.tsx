@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, Star, Users } from 'lucide-react';
 import LocalizedLink from '../shared/LocalizedLink';
 import TranslatedText from '../shared/TranslatedText';
 import { contentPath } from '../../lib/contentPath';
@@ -8,6 +7,7 @@ import { formatPrice } from '../../lib/utils';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { staggerContainer, staggerItem } from '../../lib/animations';
 import type { Formation } from '../../types';
+import { Icon } from '@ds';
 
 /**
  * Mise en avant de « Je te forme » pour un visiteur arrivé depuis un moteur de recherche ou
@@ -36,8 +36,8 @@ interface FormationsEntryPopupProps {
 }
 
 /** CTA « blob » : coins très arrondis et aplat de marque, dans l'esprit du bouton de référence. */
-const ctaCls = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-500 hover:bg-brand-400 text-neutral-950 font-black text-sm uppercase tracking-wide transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-lg shadow-brand-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950';
-const dismissCls = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 rounded';
+const ctaCls = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[color:var(--mm-bleu)] hover:bg-[color:var(--mm-bleu)] text-ink font-black text-sm uppercase tracking-wide transition duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-forme focus:outline-none';
+const dismissCls = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none focus-visible:ring-2 rounded';
 
 export default function FormationsEntryPopup({ formation, onAccept, onDismiss }: FormationsEntryPopupProps) {
   const { t } = useTranslation('shared');
@@ -58,7 +58,7 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
   if (!formation) {
     return (
       <div>
-        <p className="hidden lg:block text-[0.625rem] font-bold tracking-[0.3em] uppercase text-brand-400">
+        <p className="hidden lg:block text-[0.625rem] font-bold tracking-[0.3em] uppercase text-forme">
           {t('popups.formationsEntry.eyebrow')}
         </p>
         <div className="lg:mt-3">{title}</div>
@@ -68,7 +68,7 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
         <div className="mt-4 lg:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
           <LocalizedLink to="/formations" onClick={onAccept} className={ctaCls}>
             {t('popups.formationsEntry.cta')}
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+            <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
           </LocalizedLink>
           <button type="button" onClick={onDismiss} className={dismissCls}>
             {t('popups.formationsEntry.dismiss')}
@@ -85,7 +85,7 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
     <motion.div {...containerProps}>
       <motion.p
         {...itemProps}
-        className="hidden lg:block text-[0.625rem] font-bold tracking-[0.3em] uppercase text-brand-400"
+        className="hidden lg:block text-[0.625rem] font-bold tracking-[0.3em] uppercase text-forme"
       >
         {t('popups.formationsEntry.eyebrow')}
       </motion.p>
@@ -98,12 +98,12 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
       */}
       <motion.div
         {...itemProps}
-        className="mt-3 lg:mt-6 flex items-start gap-3 lg:gap-4 lg:p-4 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-white/[0.03]"
+        className="mt-3 lg:mt-6 flex items-start gap-3 lg:gap-4 lg:p-4 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-paper/[0.03]"
       >
         <LocalizedLink
           to={contentPath('formations', formation, language)}
           onClick={onAccept}
-          className="group block shrink-0 overflow-hidden rounded-xl w-14 h-14 lg:w-20 lg:h-20 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+          className="group block shrink-0 overflow-hidden rounded-xl w-14 h-14 lg:w-20 lg:h-20 focus:outline-none focus-visible:ring-2"
         >
           <img
             src={formation.coverImage}
@@ -123,13 +123,13 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
             {formation.rating > 0 && (
               <span className="inline-flex items-center gap-1">
-                <Star className="w-3.5 h-3.5 text-accent-400" fill="currentColor" aria-hidden="true" />
+                <Icon name="star" size={14} className="text-informe-txt" />
                 {formation.rating.toFixed(1)}
               </span>
             )}
             {formation.students > 0 && (
               <span className="inline-flex items-center gap-1">
-                <Users className="w-3.5 h-3.5" aria-hidden="true" />
+                <Icon name="users" size={14} />
                 {t('popups.formationsEntry.students', { count: formation.students })}
               </span>
             )}
@@ -144,7 +144,7 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
       <motion.div {...itemProps} className="mt-4 lg:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
         <LocalizedLink to="/formations" onClick={onAccept} className={ctaCls}>
           {t('popups.formationsEntry.ctaWithFormation')}
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+          <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
         </LocalizedLink>
         <button type="button" onClick={onDismiss} className={dismissCls}>
           {t('popups.formationsEntry.dismiss')}

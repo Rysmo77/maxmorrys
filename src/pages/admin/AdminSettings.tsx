@@ -1,13 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Globe, Palette, Bell, Shield, Link2, Megaphone, MousePointerClick, Save, Loader2 } from 'lucide-react';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import Card from '../../components/ui/Card';
+import { Button, DocLine, Field, GlassPanel, Icon, Segmented, Skeleton, Switch } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleScope } from '../../components/console';
+import { SiteEyebrow } from '../../components/site';
 import { useToast } from '../../components/ui/Toast';
 import { getSiteSettings, saveSiteSettings } from '../../lib/firestore';
-import { cn } from '../../lib/utils';
 import { captureError } from '../../lib/sentry';
+
+/**
+ * ── RÉGLAGES — motif de console ─────────────────────────────────────────────────────
+ *
+ * LE SEUL ÉCRAN DONT LE PIPELINE N'EST PAS UN STATUT MAIS UNE SECTION, et c'est cohérent
+ * avec le motif plutôt qu'une exception à lui. La zone 1 répond toujours à la même question
+ * — « où est ce que je cherche » —, et sur un écran de réglages la réponse n'est pas une
+ * file d'attente : c'est une section. Le geste est identique, `ConsoleFilter` reste le
+ * même composant, et il n'y a toujours aucun filtre par date.
+ *
+ * LE KIT NOMME `marque · paiement · SEO · rôles`. Trois de ces quatre sections N'EXISTENT
+ * PAS dans ce document : il n'y a ici ni clé de paiement, ni réglage de référencement, ni
+ * attribution de rôle. Inventer trois sections vides aurait fait croire le contraire — les
+ * noms réels sont donc ceux des quatre blocs qui existent, et le pied dit où vivent les
+ * trois autres. C'est exactement ce que le pied est là pour faire : « le non-dit d'un écran
+ * d'administration finit toujours en manœuvre manuelle non tracée ».
+ * ────────────────────────────────────────────────────────────────────────────────────
+ */
 
 interface Settings {
   siteName: string;
@@ -73,12 +89,18 @@ const DEFAULT: Settings = {
   popupTreatmentShare: 0.5,
 };
 
+type Section = 'brand' | 'notifications' | 'popups' | 'security';
+
+/** Les seules clés qu'un interrupteur peut porter : celles qui valent vrai ou faux. */
+type BooleanKey = { [K in keyof Settings]: Settings[K] extends boolean ? K : never }[keyof Settings];
+
 export default function AdminSettings() {
   const { t } = useTranslation('admin');
   const { addToast } = useToast();
   const [settings, setSettings] = useState<Settings>(DEFAULT);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [section, setSection] = useState<Section>('brand');
 
   useEffect(() => {
     getSiteSettings().then((data) => {
@@ -105,13 +127,12 @@ export default function AdminSettings() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
-      </div>
-    );
-  }
+  const sections: { key: Section; label: string }[] = [
+    { key: 'brand', label: t('settings.section.brand') },
+    { key: 'notifications', label: t('settings.section.notifications') },
+    { key: 'popups', label: t('settings.section.popups') },
+    { key: 'security', label: t('settings.section.security') },
+  ];
 
   const themeOptions: { value: Settings['defaultTheme']; label: string }[] = [
     { value: 'system', label: t('settings.themeSystem') },
@@ -119,7 +140,7 @@ export default function AdminSettings() {
     { value: 'dark', label: t('settings.themeDark') },
   ];
 
-  const popups: { key: keyof Settings; label: string; desc: string }[] = [
+  const popups: { key: BooleanKey; label: string; desc: string }[] = [
     { key: 'popup_agencyExit', label: t('settings.popupAudienceRouterLabel'), desc: t('settings.popupAudienceRouterDesc') },
     { key: 'popup_formationExit', label: t('settings.popupFormationExitLabel'), desc: t('settings.popupFormationExitDesc') },
     { key: 'popup_presenceExit', label: t('settings.popupPresenceExitLabel'), desc: t('settings.popupPresenceExitDesc') },
@@ -130,192 +151,141 @@ export default function AdminSettings() {
 
   const treatmentPercent = Math.round((settings.popupTreatmentShare ?? 0.5) * 100);
 
-  const notifications: { key: keyof Settings; label: string; desc: string }[] = [
+  const notifications: { key: BooleanKey; label: string; desc: string }[] = [
     { key: 'notifNewSale', label: t('settings.notifNewSaleLabel'), desc: t('settings.notifNewSaleDesc') },
     { key: 'notifNewMessage', label: t('settings.notifNewMessageLabel'), desc: t('settings.notifNewMessageDesc') },
     { key: 'notifNewUser', label: t('settings.notifNewUserLabel'), desc: t('settings.notifNewUserDesc') },
     { key: 'notifCourseCompletion', label: t('settings.notifCourseCompletionLabel'), desc: t('settings.notifCourseCompletionDesc') },
   ];
 
-  return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-1">{t('settings.pageTitle')}</h1>
-        <p className="text-sm text-neutral-500">{t('settings.pageSubtitle')}</p>
+  /** Une rangée de réglage : le libellé, sa raison, et UN interrupteur. */
+  const toggleRow = (key: BooleanKey, label: string, desc: string, last?: boolean) => (
+    <div
+      key={String(key)}
+      className="flex items-center justify-between gap-4 py-3"
+      style={{ borderBottom: last ? 0 : '1px solid var(--border-hair)' }}
+    >
+      <div className="min-w-0">
+        <p className="m-0 text-sm font-semibold text-ink">{label}</p>
+        <p className="m-0 text-meta-2 leading-[1.5] text-ink-2">{desc}</p>
       </div>
+      <Switch
+        on={settings[key]}
+        label={label}
+        onChange={(on) => set(key, on)}
+      />
+    </div>
+  );
 
-      <div className="space-y-6 max-w-3xl">
-        {/* General Info */}
-        <Card>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-xl">
-              <Globe className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-            </div>
-            <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.generalTitle')}</h2>
-              <p className="text-xs text-neutral-500">{t('settings.generalSubtitle')}</p>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <Input label={t('settings.siteNameLabel')} value={settings.siteName} onChange={(e) => set('siteName', e.target.value)} />
-            <Input label={t('settings.siteDescriptionLabel')} value={settings.siteDescription} onChange={(e) => set('siteDescription', e.target.value)} />
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Input label={t('settings.contactEmailLabel')} type="email" value={settings.contactEmail} onChange={(e) => set('contactEmail', e.target.value)} />
-              <Input label={t('settings.contactPhoneLabel')} value={settings.contactPhone} onChange={(e) => set('contactPhone', e.target.value)} />
-            </div>
-            <Input label={t('settings.addressLabel')} value={settings.address} onChange={(e) => set('address', e.target.value)} />
-          </div>
-        </Card>
+  return (
+    <ConsolePage title={t('settings.pageTitle')} sub={t('settings.sub')}>
+      <ConsoleFilter
+        stages={sections.map((s) => s.label)}
+        active={sections.find((s) => s.key === section)?.label}
+        onSelect={(label) => {
+          const hit = sections.find((s) => s.label === label);
+          if (hit) setSection(hit.key);
+        }}
+        label={t('settings.sectionLabel')}
+      />
 
-        {/* Social Links */}
-        <Card>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-accent-50 dark:bg-accent-900/20 rounded-xl">
-              <Link2 className="w-5 h-5 text-accent-600 dark:text-accent-400" />
-            </div>
-            <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.socialTitle')}</h2>
-              <p className="text-xs text-neutral-500">{t('settings.socialSubtitle')}</p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Input label="Facebook" placeholder="https://facebook.com/..." value={settings.facebook} onChange={(e) => set('facebook', e.target.value)} />
-            <Input label="Instagram" placeholder="https://instagram.com/..." value={settings.instagram} onChange={(e) => set('instagram', e.target.value)} />
-            <Input label="YouTube" placeholder="https://youtube.com/..." value={settings.youtube} onChange={(e) => set('youtube', e.target.value)} />
-            <Input label="LinkedIn" placeholder="https://linkedin.com/..." value={settings.linkedin} onChange={(e) => set('linkedin', e.target.value)} />
-            <Input label="WhatsApp" placeholder="+221 77 000 00 00" value={settings.whatsapp} onChange={(e) => set('whatsapp', e.target.value)} />
-          </div>
-        </Card>
+      {loading && (
+        <GlassPanel level="night" padding={18} className="mt-4">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} height={38} label={i === 0 ? t('settings.pageTitle') : undefined} style={{ marginBottom: '10px' }} />
+          ))}
+        </GlassPanel>
+      )}
 
-        {/* Announcement */}
-        <Card>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-warning-50 dark:bg-warning-900/20 rounded-xl">
-              <Megaphone className="w-5 h-5 text-warning-600 dark:text-warning-400" />
+      {!loading && section === 'brand' && (
+        <div className="mt-4 space-y-3">
+          <GlassPanel level="night" padding={18}>
+            <SiteEyebrow style={{ marginBottom: '12px' }}>{t('settings.generalTitle')}</SiteEyebrow>
+            <div className="space-y-4">
+              <Field label={t('settings.siteNameLabel')} value={settings.siteName} onChange={(v) => set('siteName', v)} />
+              <Field label={t('settings.siteDescriptionLabel')} value={settings.siteDescription} onChange={(v) => set('siteDescription', v)} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label={t('settings.contactEmailLabel')} type="email" value={settings.contactEmail} onChange={(v) => set('contactEmail', v)} />
+                <Field label={t('settings.contactPhoneLabel')} type="tel" value={settings.contactPhone} onChange={(v) => set('contactPhone', v)} />
+              </div>
+              <Field label={t('settings.addressLabel')} value={settings.address} onChange={(v) => set('address', v)} />
             </div>
-            <div className="flex-1">
-              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.announcementTitle')}</h2>
-              <p className="text-xs text-neutral-500">{t('settings.announcementSubtitle')}</p>
+          </GlassPanel>
+
+          <GlassPanel level="night" padding={18}>
+            <SiteEyebrow style={{ marginBottom: '12px' }}>{t('settings.socialTitle')}</SiteEyebrow>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Facebook" type="url" placeholder="https://facebook.com/..." value={settings.facebook} onChange={(v) => set('facebook', v)} />
+              <Field label="Instagram" type="url" placeholder="https://instagram.com/..." value={settings.instagram} onChange={(v) => set('instagram', v)} />
+              <Field label="YouTube" type="url" placeholder="https://youtube.com/..." value={settings.youtube} onChange={(v) => set('youtube', v)} />
+              <Field label="LinkedIn" type="url" placeholder="https://linkedin.com/..." value={settings.linkedin} onChange={(v) => set('linkedin', v)} />
+              <Field label="WhatsApp" type="tel" placeholder="+221 77 000 00 00" value={settings.whatsapp} onChange={(v) => set('whatsapp', v)} />
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={settings.announcementActive}
-                onChange={(e) => set('announcementActive', e.target.checked)}
+          </GlassPanel>
+
+          <GlassPanel level="night" padding={18}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <SiteEyebrow>{t('settings.announcementTitle')}</SiteEyebrow>
+                <p className="m-0 mt-1 text-meta-2 leading-[1.5] text-ink-2">{t('settings.announcementSubtitle')}</p>
+              </div>
+              <Switch
+                on={settings.announcementActive}
+                label={t('settings.announcementTitle')}
+                onChange={(on) => set('announcementActive', on)}
               />
-              <div className="w-11 h-6 bg-neutral-200 dark:bg-neutral-700 peer-focus:ring-2 peer-focus:ring-brand-500/20 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500" />
-            </label>
-          </div>
-          {settings.announcementActive && (
-            <Input
-              label={t('settings.announcementTextLabel')}
-              value={settings.announcementText}
-              onChange={(e) => set('announcementText', e.target.value)}
-              placeholder={t('settings.announcementTextPlaceholder')}
+            </div>
+            {settings.announcementActive && (
+              <div className="mt-4">
+                <Field
+                  label={t('settings.announcementTextLabel')}
+                  value={settings.announcementText}
+                  onChange={(v) => set('announcementText', v)}
+                  placeholder={t('settings.announcementTextPlaceholder')}
+                />
+              </div>
+            )}
+          </GlassPanel>
+
+          <GlassPanel level="night" padding={18}>
+            <SiteEyebrow style={{ marginBottom: '12px' }}>{t('settings.appearanceTitle')}</SiteEyebrow>
+            <Segmented
+              options={themeOptions.map((o) => o.label)}
+              value={themeOptions.find((o) => o.value === settings.defaultTheme)?.label}
+              onChange={(label) => {
+                const hit = themeOptions.find((o) => o.label === label);
+                if (hit) set('defaultTheme', hit.value);
+              }}
+              label={t('settings.defaultThemeLabel')}
             />
-          )}
-        </Card>
+          </GlassPanel>
+        </div>
+      )}
 
-        {/* Appearance */}
-        <Card>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-accent-50 dark:bg-accent-900/20 rounded-xl">
-              <Palette className="w-5 h-5 text-accent-600 dark:text-accent-400" />
-            </div>
-            <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.appearanceTitle')}</h2>
-              <p className="text-xs text-neutral-500">{t('settings.appearanceSubtitle')}</p>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">{t('settings.defaultThemeLabel')}</label>
-            <div className="flex gap-3">
-              {themeOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => set('defaultTheme', opt.value)}
-                  className={cn(
-                    'px-4 py-2 rounded-xl border-2 text-sm font-medium transition-colors',
-                    settings.defaultTheme === opt.value
-                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
-                      : 'border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400',
-                  )}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </Card>
+      {!loading && section === 'notifications' && (
+        <GlassPanel level="night" padding={18} className="mt-4">
+          <SiteEyebrow style={{ marginBottom: '4px' }}>{t('settings.notificationsTitle')}</SiteEyebrow>
+          <p className="m-0 mb-2 text-meta-2 leading-[1.5] text-ink-2">{t('settings.notificationsSubtitle')}</p>
+          {notifications.map((n, i) => toggleRow(n.key, n.label, n.desc, i === notifications.length - 1))}
+        </GlassPanel>
+      )}
 
-        {/* Notifications */}
-        <Card>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-success-50 dark:bg-success-900/20 rounded-xl">
-              <Bell className="w-5 h-5 text-success-600 dark:text-success-400" />
-            </div>
-            <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.notificationsTitle')}</h2>
-              <p className="text-xs text-neutral-500">{t('settings.notificationsSubtitle')}</p>
-            </div>
-          </div>
-          <div className="space-y-1">
-            {notifications.map((n) => (
-              <label key={n.key} className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors cursor-pointer">
-                <div>
-                  <p className="text-sm font-medium text-neutral-900 dark:text-white">{n.label}</p>
-                  <p className="text-xs text-neutral-500">{n.desc}</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings[n.key] as boolean}
-                  onChange={(e) => set(n.key, e.target.checked)}
-                  className="rounded accent-brand-600 w-4 h-4 cursor-pointer"
-                />
-              </label>
-            ))}
-          </div>
-        </Card>
+      {!loading && section === 'popups' && (
+        <GlassPanel level="night" padding={18} className="mt-4">
+          <SiteEyebrow style={{ marginBottom: '4px' }}>{t('settings.popupsTitle')}</SiteEyebrow>
+          <p className="m-0 mb-2 text-meta-2 leading-[1.5] text-ink-2">{t('settings.popupsSubtitle')}</p>
+          {popups.map((p, i) => toggleRow(p.key, p.label, p.desc, i === popups.length - 1))}
 
-        {/* Pop-ups contextuelles */}
-        <Card>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-xl">
-              <MousePointerClick className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-            </div>
-            <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.popupsTitle')}</h2>
-              <p className="text-xs text-neutral-500">{t('settings.popupsSubtitle')}</p>
-            </div>
-          </div>
-          <div className="space-y-1">
-            {popups.map((p) => (
-              <label key={p.key} className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors cursor-pointer">
-                <div>
-                  <p className="text-sm font-medium text-neutral-900 dark:text-white">{p.label}</p>
-                  <p className="text-xs text-neutral-500">{p.desc}</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings[p.key] as boolean}
-                  onChange={(e) => set(p.key, e.target.checked)}
-                  className="rounded accent-brand-600 w-4 h-4 cursor-pointer"
-                />
-              </label>
-            ))}
-          </div>
           {/*
             Groupe témoin. C'est la seule mesure qui distingue « la pop-up convertit » de « la
             pop-up aide » : sans population non exposée, un bon taux de clic peut masquer des
             visiteurs partis à cause d'elle.
           */}
-          <div className="mt-5 pt-5 border-t border-neutral-200 dark:border-neutral-700">
-            <label htmlFor="treatment-share" className="block text-sm font-medium text-neutral-900 dark:text-white">
+          <div className="mt-5 border-t border-[color:var(--line)] pt-5">
+            <label htmlFor="treatment-share" className="block text-sm font-semibold text-ink">
               {t('settings.popupTreatmentLabel', { percent: treatmentPercent })}
             </label>
-            <p className="mt-1 text-xs text-neutral-500 leading-relaxed">{t('settings.popupTreatmentDesc')}</p>
+            <p className="mt-1 text-meta-2 leading-relaxed text-ink-2">{t('settings.popupTreatmentDesc')}</p>
             <input
               id="treatment-share"
               type="range"
@@ -324,46 +294,34 @@ export default function AdminSettings() {
               step={10}
               value={treatmentPercent}
               onChange={(e) => set('popupTreatmentShare', Number(e.target.value) / 100)}
-              className="mt-3 w-full accent-brand-600 cursor-pointer"
+              className="mt-3 w-full cursor-pointer accent-[color:var(--mm-bleu)]"
             />
           </div>
 
-          <p className="mt-4 text-xs text-neutral-500 leading-relaxed">{t('settings.popupsCacheNote')}</p>
-        </Card>
+          <p className="mt-4 text-meta-2 leading-relaxed text-ink-2">{t('settings.popupsCacheNote')}</p>
+        </GlassPanel>
+      )}
 
-        {/* Security info */}
-        <Card>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-error-50 dark:bg-error-900/20 rounded-xl">
-              <Shield className="w-5 h-5 text-error-600 dark:text-error-400" />
-            </div>
-            <div>
-              <h2 className="font-bold text-neutral-900 dark:text-white">{t('settings.securityTitle')}</h2>
-              <p className="text-xs text-neutral-500">{t('settings.securitySubtitle')}</p>
-            </div>
-          </div>
-          <div className="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
-            <div className="flex items-center justify-between p-3 bg-success-50 dark:bg-success-900/10 rounded-xl">
-              <span>Firebase Authentication</span>
-              <span className="text-success-600 dark:text-success-400 font-medium">{t('settings.securityActive')}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-success-50 dark:bg-success-900/10 rounded-xl">
-              <span>HTTPS</span>
-              <span className="text-success-600 dark:text-success-400 font-medium">{t('settings.securityActive')}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-700/30 rounded-xl">
-              <span>{t('settings.securityFirestoreRules')}</span>
-              <span className="font-medium">{t('settings.securityRbacEnabled')}</span>
-            </div>
-          </div>
-        </Card>
+      {!loading && section === 'security' && (
+        <GlassPanel level="night" padding={18} className="mt-4">
+          <SiteEyebrow style={{ marginBottom: '4px' }}>{t('settings.securityTitle')}</SiteEyebrow>
+          <p className="m-0 mb-3 text-meta-2 leading-[1.5] text-ink-2">{t('settings.securitySubtitle')}</p>
+          <DocLine label="Firebase Authentication" value={t('settings.securityActive')} />
+          <DocLine label="HTTPS" value={t('settings.securityActive')} />
+          <DocLine label={t('settings.securityFirestoreRules')} value={t('settings.securityRbacEnabled')} last />
+          <p className="mt-4 text-meta-2 leading-relaxed text-ink-2">{t('settings.securityReadOnlyNote')}</p>
+        </GlassPanel>
+      )}
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave} size="lg" disabled={saving} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
-            {saving ? t('settings.saving') : t('settings.save')}
+      {!loading && (
+        <div className="mt-4 flex justify-end">
+          <Button onClick={() => { void handleSave(); }} loading={saving} fullWidth={false}>
+            <Icon name="check" size={16} /> {saving ? t('settings.saving') : t('settings.save')}
           </Button>
         </div>
-      </div>
-    </div>
+      )}
+
+      <ConsoleScope>{t('settings.scope')}</ConsoleScope>
+    </ConsolePage>
   );
 }

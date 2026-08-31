@@ -21,10 +21,21 @@ export function initSentry() {
   });
 }
 
-export function captureError(error: unknown, context?: Record<string, unknown>) {
+/**
+ * Renvoie l'IDENTIFIANT D'ÉVÉNEMENT Sentry, quand il y en a un.
+ *
+ * La maquette d'erreur du système affiche une « référence de l'incident » sous le message.
+ * Ce n'est pas un ornement : c'est la seule chose qu'une personne bloquée peut recopier au
+ * support, et la seule qui permette de retrouver SA trace parmi des milliers. Sentry produit
+ * cet identifiant à chaque envoi — il était jeté ici.
+ *
+ * Sans DSN (développement, ou télémétrie coupée), il n'y a pas d'identifiant : la fonction
+ * renvoie `undefined`, et l'appelant doit dire qu'il n'y en a pas plutôt qu'en inventer un.
+ */
+export function captureError(error: unknown, context?: Record<string, unknown>): string | undefined {
   if (DSN) {
-    Sentry.captureException(error, { extra: context });
-  } else {
-    console.error(error);
+    return Sentry.captureException(error, { extra: context });
   }
+  console.error(error);
+  return undefined;
 }

@@ -38,6 +38,7 @@
     "expandSidebar": "Expand sidebar",
     "collapseSidebar": "Collapse sidebar",
     "openCommandPalette": "Open command palette",
+    "locked": "Locked",
     "searchAndActions": "Search & actions",
     "primaryNav": "Main navigation",
     "openMenu": "Open menu",
@@ -75,8 +76,24 @@
     "completed100": "Course completed at 100%",
     "issuedDate": "Date issued",
     "verificationCode": "Verification code",
-    "shareText": "I earned my \"{{title}}\" certificate on Max-Morrys! 🎓",
-    "backToSite": "← Back to maxmorrys.me"
+    "shareText": "I earned my \"{{title}}\" certificate on Max-Morrys.",
+    "backToSite": "← Back to maxmorrys.me",
+    "doneLine": "IT'S DONE.",
+    "issuedOn": "Issued on {{date}}",
+    "verified": "Verified",
+    "certificateOf": "Certificate of completion",
+    "deliveredTo": "Issued to",
+    "verifiableBy": "Anyone can verify it, with no account, and without your name appearing in any list.",
+    "shareLinkedin": "Share on LinkedIn",
+    "copyLink": "Copy the verification link",
+    "copied": "Verification link copied.",
+    "copyError": "The link could not be copied.",
+    "whyItCounts": "Why it is worth something",
+    "whyItCountsBody": "The lessons were recounted server-side at issuing time: the certificate is not granted on the strength of a percentage sent by the browser. It is not a picture, it is a record your future employer checks for themselves.",
+    "notFoundLines": [
+      "THIS CODE",
+      "SAYS NOTHING."
+    ]
   },
   "checkout": {
     "notFoundTitle": "Course not found",
@@ -104,7 +121,42 @@
     "originalPrice": "Original price",
     "discount": "Discount",
     "total": "Total",
-    "free": "Free"
+    "free": "Free",
+    "titleLines": [
+      "How are you paying?"
+    ],
+    "freeTitleLines": [
+      "Let's go."
+    ],
+    "stepOf": "Step {{current}} of {{total}}",
+    "stepsLabel": "Order funnel",
+    "step1": "Pick the course",
+    "step2": "Check the amount",
+    "step3": "Confirm with the operator",
+    "serverComputed": "Amount computed and charged server-side.",
+    "methodsTitle": "Accepted payment methods",
+    "methodsNote": "You pick one on the operator's secure page, not here.",
+    "methodWave": "Wave",
+    "methodWaveNote": "You confirm in the Wave app",
+    "methodOm": "Orange Money",
+    "methodOmNote": "Confirmation code by SMS",
+    "methodCard": "Bank card",
+    "methodCardNote": "Visa, Mastercard",
+    "leaveNote": "You leave the site to confirm, then you come back here.",
+    "couponPlaceholder": "Your code",
+    "couponHint": "The code is checked at payment time. The discount shows on the operator's page, not on this total.",
+    "durationLabel": "Length",
+    "summaryLabel": "Order summary",
+    "notFoundLines": [
+      "THIS COURSE",
+      "DOES NOT EXIST."
+    ],
+    "successLines": [
+      "It's yours."
+    ],
+    "priceSource": "Catalogue price",
+    "payLabel": "Pay",
+    "lessonsLabel": "Lessons"
   },
   "paymentReturn": {
     "verifyingTitle": "Verifying payment...",
@@ -118,7 +170,34 @@
     "failedTitle": "Payment failed",
     "failedText": "The payment didn't go through. You can try again or contact us if the problem persists.",
     "backToFormations": "Back to courses",
-    "contactUs": "Contact us"
+    "contactUs": "Talk to me",
+    "verifyingTitleLines": [
+      "Checking",
+      "your payment."
+    ],
+    "pendingTitleLines": [
+      "Your payment",
+      "is under way."
+    ],
+    "confirmedTitleLines": [
+      "It's yours."
+    ],
+    "failedTitleLines": [
+      "The payment",
+      "did not go through."
+    ],
+    "reference": "Reference",
+    "statusLabel": "Status",
+    "statusChecking": "Checking",
+    "statusPending": "Pending",
+    "statusPaid": "Paid",
+    "statusFailed": "Failed",
+    "amountDebited": "Amount charged",
+    "confirmedFoot": "Charged once, lifetime access. The receipt is in your space.",
+    "pendingFoot": "Nothing is charged twice: every payment carries a unique reference.",
+    "failedFoot": "Nothing was charged. Your order stays open, you can pick it up where you left it.",
+    "retry": "Try the payment again",
+    "waitingAria": "Payment awaiting confirmation"
   },
   "onboarding": {
     "stepWelcomeSubtitle": "Personalize your profile",
@@ -191,7 +270,31 @@
     "courseOutline": "Course outline",
     "toastFormationCompleted": "Congratulations! You've completed this course!",
     "toastCertificateIssued": "Your certificate has been issued!",
-    "errorSaveProgress": "Error while saving your progress."
+    "errorSaveProgress": "Error while saving your progress.",
+    "moduleLesson": "Module {{module}} · Lesson {{lesson}}",
+    "programTitle": "The programme",
+    "programMeta": "{{modules}} modules · {{lessons}} lessons · {{done}} done",
+    "progressLabel": "Progress through the course",
+    "breadcrumbLabel": "Breadcrumb",
+    "videoLabel": "Lesson video player",
+    "moduleToggle": "Expand or collapse the module \"{{title}}\"",
+    "quizAnswersLabel": "Possible answers",
+    "lessonNotStarted": "to do",
+    "lessonCurrent": "in progress",
+    "outlineLabel": "Course outline",
+    "notFoundLines": [
+      "THIS COURSE",
+      "DOES NOT EXIST."
+    ],
+    "lockedLines": [
+      "THIS COURSE",
+      "IS CLOSED."
+    ],
+    "selectLines": [
+      "Pick",
+      "a lesson."
+    ],
+    "durationSource": "Length declared on the lesson record"
   },
   "rysmoPage": {
     "tabTokens": "Tokens & subscriptions",
@@ -223,5 +326,35 @@
     "record_one": "Record: {{count}} day",
     "record_other": "Record: {{count}} days",
     "xpBonus": "+{{xp}} XP bonus"
+  },
+  "verify": {
+    "seoTitle": "Verify a certificate",
+    "seoDescription": "Check a Max-Morrys certificate code. No account, no sign-up: the page answers one code, and nothing else.",
+    "titleLines": [
+      "Verify",
+      "a certificate"
+    ],
+    "lede": "Paste the code printed on the document. No account needed, and nothing is recorded about whoever is checking.",
+    "codeLabel": "Certificate code",
+    "codePlaceholder": "MM-0000-0000-0000",
+    "codeHint": "Four groups separated by dashes, exactly as they appear on the document.",
+    "submit": "Verify",
+    "emptyError": "Enter the code printed on the document.",
+    "idleTitle": "The result will show up here",
+    "idleBody": "Holder, course, issue date and code. Nothing else: the page doesn't lead back to any account.",
+    "validTitle": "Genuine certificate",
+    "validIssuer": "Issued by Max-Morrys, MY ONOMA SARL, Dakar.",
+    "holder": "Holder",
+    "formation": "Course",
+    "issuedOn": "Issued on",
+    "code": "Code",
+    "openCertificate": "See the certificate",
+    "notFoundTitle": "No certificate for that code",
+    "notFoundBody": "This code doesn't match anything issued. Check what you typed before concluding anything — one character off is enough. If the document still looks genuine to you, write to me.",
+    "failedTitle": "The check didn't go through",
+    "failedBody": "The request never reached the server. This is NOT an answer about the certificate: try again in a moment, or write to me if it keeps happening.",
+    "truthTitle": "What this page doesn't let you do",
+    "truthBody": "It doesn't list the certificates issued, and it doesn't lead back to an account. It answers one code, and one only. That's what makes it usable by an employer without exposing the holders.",
+    "contact": "Talk to me"
   }
 }

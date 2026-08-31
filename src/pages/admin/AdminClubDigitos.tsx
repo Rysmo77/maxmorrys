@@ -1,8 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Crown, Users, Rss, Calendar, Video, Bell, Trophy, Briefcase, Flag, Loader2, RefreshCw } from 'lucide-react';
-import Card from '../../components/ui/Card';
-import { cn } from '../../lib/utils';
-import { useFormat } from '../../hooks/useFormat';
+import { Button, GlassPanel, Icon, Skeleton, StatTile } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleScope } from '../../components/console';
 import { useAdminClub } from './hooks/useAdminClub';
 import type { AdminClubTab } from './hooks/useAdminClub';
 import ClubSubscriptionsTab from './components/ClubSubscriptionsTab';
@@ -15,78 +14,107 @@ import ClubMembersAdminTab from './components/ClubMembersAdminTab';
 import ClubOpportunitiesAdminTab from './components/ClubOpportunitiesAdminTab';
 import ClubReportsAdminTab from './components/ClubReportsAdminTab';
 
+/**
+ * ── CLUB DES DIGITOS — motif de console ─────────────────────────────────────────────
+ *
+ * LE KIT NE DESSINE PAS CET ÉCRAN ET NE LUI DONNE PAS DE PIPELINE. Les quatorze pipelines
+ * de `PipelinesRestants` couvrent les écrans du catalogue, pas ce concentrateur ; celui qui
+ * s'en approche — `Défis : tout · en cours · clos` — ne décrit qu'UN de ses neuf onglets,
+ * celui des défis, qui vit dans son propre composant.
+ *
+ * LA ZONE 1 REÇOIT DONC LES NEUF SECTIONS, comme sur l'écran des réglages, et pour la même
+ * raison : le filtre répond à « où est ce que je cherche », et ici la réponse est une
+ * section. Les files par statut de chaque section (un abonnement en attente, un défi clos)
+ * vivent dans la section qui les tient — c'est écrit dans le pied.
+ *
+ * LES COMPTEURS NE S'INVENTENT PAS. Cinq sections sont chargées par `useAdminClub` et
+ * portent leur nombre ; les quatre autres chargent à l'ouverture de leur onglet et n'en
+ * portent AUCUN. Écrire « défis 0 » sur une collection jamais lue serait un zéro fabriqué —
+ * exactement ce que la règle 6 interdit.
+ * ────────────────────────────────────────────────────────────────────────────────────
+ */
 export default function AdminClubDigitos() {
   const { t } = useTranslation('adminClub');
-  const { locale } = useFormat();
   const club = useAdminClub();
 
-  const tabs = [
-    { id: 'subscriptions' as AdminClubTab, icon: Users, label: t('page.tabs.subscriptions'), count: club.subscriptions.length },
-    { id: 'posts' as AdminClubTab, icon: Rss, label: t('page.tabs.posts'), count: club.posts.length },
-    { id: 'events' as AdminClubTab, icon: Calendar, label: t('page.tabs.events'), count: club.events.length },
-    { id: 'sessions' as AdminClubTab, icon: Video, label: t('page.tabs.sessions'), count: club.sessions.length },
-    { id: 'infos' as AdminClubTab, icon: Bell, label: t('page.tabs.infos'), count: club.infos.length },
-    { id: 'challenges' as AdminClubTab, icon: Trophy, label: t('page.tabs.challenges'), count: 0 },
-    { id: 'members' as AdminClubTab, icon: Users, label: t('page.tabs.members'), count: 0 },
-    { id: 'opportunities' as AdminClubTab, icon: Briefcase, label: t('page.tabs.opportunities'), count: 0 },
-    { id: 'reports' as AdminClubTab, icon: Flag, label: t('page.tabs.reports'), count: 0 },
+  /*
+    La date de relevé des trois cases. Elle n'est pas décorative : tant qu'aucun chargement
+    n'a abouti, il n'y a pas de relevé — les cases affichent « non relevé » plutôt qu'un zéro
+    qui se ferait passer pour une mesure.
+  */
+  const [asOf, setAsOf] = useState<Date | null>(null);
+  const loading = club.loading;
+  useEffect(() => {
+    if (!loading) setAsOf(new Date());
+  }, [loading]);
+
+  const sections: { id: AdminClubTab; label: string; count?: number }[] = [
+    { id: 'subscriptions', label: t('page.tabs.subscriptions'), count: club.subscriptions.length },
+    { id: 'posts', label: t('page.tabs.posts'), count: club.posts.length },
+    { id: 'events', label: t('page.tabs.events'), count: club.events.length },
+    { id: 'sessions', label: t('page.tabs.sessions'), count: club.sessions.length },
+    { id: 'infos', label: t('page.tabs.infos'), count: club.infos.length },
+    { id: 'challenges', label: t('page.tabs.challenges') },
+    { id: 'members', label: t('page.tabs.members') },
+    { id: 'opportunities', label: t('page.tabs.opportunities') },
+    { id: 'reports', label: t('page.tabs.reports') },
   ];
+  const bar = sections.map((s) => ({
+    ...s,
+    text: s.count === undefined ? s.label : `${s.label} ${s.count}`,
+  }));
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-plum-100 dark:bg-plum-900/30 flex items-center justify-center">
-            <Crown className="w-5 h-5 text-plum-600 dark:text-plum-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{t('page.title')}</h1>
-            <p className="text-sm text-neutral-500">{t('page.subtitle')}</p>
-          </div>
-        </div>
-        <button onClick={club.load} disabled={club.loading} className="p-2 rounded-xl text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors" title={t('page.refresh')}>
-          <RefreshCw className={`w-5 h-5 ${club.loading ? 'animate-spin' : ''}`} />
-        </button>
+    <ConsolePage title={t('page.title')} sub={t('page.sub')}>
+      <ConsoleFilter
+        stages={bar.map((s) => s.text)}
+        active={bar.find((s) => s.id === club.tab)?.text}
+        onSelect={(text) => {
+          const hit = bar.find((s) => s.text === text);
+          if (hit) club.setTab(hit.id);
+        }}
+        label={t('page.sectionLabel')}
+      />
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <StatTile
+          label={t('page.stats.activeMembers')}
+          value={asOf ? club.activeCount : null}
+          source="db"
+          asOf={asOf ?? new Date()}
+        />
+        <StatTile
+          label={t('page.stats.pendingPayment')}
+          value={asOf ? club.pendingCount : null}
+          source="db"
+          asOf={asOf ?? new Date()}
+          foot={t('page.stats.pendingFoot')}
+        />
+        <StatTile
+          label={t('page.stats.revenue')}
+          value={asOf ? club.revenue : null}
+          unit="FCFA"
+          source={{ cite: t('page.stats.revenueCite') }}
+          asOf={asOf ?? new Date()}
+          foot={t('page.stats.revenueFoot')}
+        />
       </div>
 
-      {/* Stats */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-6">
-        {[
-          { label: t('page.stats.activeMembers'), value: club.activeCount, color: 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400' },
-          { label: t('page.stats.pendingPayment'), value: club.pendingCount, color: 'bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400' },
-          { label: t('page.stats.revenue'), value: club.revenue.toLocaleString(locale), color: 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400' },
-        ].map((s) => (
-          <Card key={s.label} hover>
-            <p className="text-2xl font-bold text-neutral-900 dark:text-white">{s.value}</p>
-            <p className="text-sm text-neutral-500 mt-1">{s.label}</p>
-          </Card>
-        ))}
+      <div className="mt-4 flex justify-end">
+        <Button size="sm" tone="quiet" onClick={() => { void club.load(); }} loading={club.loading}>
+          <Icon name="repeat" size={15} /> {t('page.refresh')}
+        </Button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-neutral-200 dark:border-neutral-700 overflow-x-auto">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => club.setTab(t.id)}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition-colors',
-              club.tab === t.id
-                ? 'border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400'
-                : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300',
-            )}
-          >
-            <t.icon className="w-4 h-4" />
-            {t.label}
-            {t.count > 0 && (
-              <span className="text-xs bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 px-1.5 py-0.5 rounded-full">{t.count}</span>
-            )}
-          </button>
-        ))}
-      </div>
+      {club.loading && (
+        <GlassPanel level="night" padding="14px 18px" className="mt-4">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} height={44} label={i === 0 ? t('page.title') : undefined} style={{ marginBottom: '8px' }} />
+          ))}
+        </GlassPanel>
+      )}
 
-      {club.loading && <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>}
-
+      <div className="mt-4">
       {!club.loading && club.tab === 'subscriptions' && (
         <ClubSubscriptionsTab subscriptions={club.subscriptions} handleSubStatus={club.handleSubStatus} />
       )}
@@ -149,6 +177,9 @@ export default function AdminClubDigitos() {
       {!club.loading && club.tab === 'members' && <ClubMembersAdminTab />}
       {!club.loading && club.tab === 'opportunities' && <ClubOpportunitiesAdminTab />}
       {!club.loading && club.tab === 'reports' && <ClubReportsAdminTab />}
-    </div>
+      </div>
+
+      <ConsoleScope>{t('page.scope')}</ConsoleScope>
+    </ConsolePage>
   );
 }

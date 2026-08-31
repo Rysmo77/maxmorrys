@@ -1,0 +1,135 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   ÉTATS DES COMPOSANTS — repos · survol · focus visible · actif · désactivé ·
+   chargement · erreur.
+
+   Ce fichier est la pièce que le système de design n'avait PAS : les composants sont
+   écrits en styles inline (React), et un style inline ne peut exprimer ni `:focus-visible`,
+   ni `:active`, ni `:disabled`. Ces états doivent donc vivre en CSS, ici.
+
+   À l'implémentation : appliquez ces classes aux composants recréés dans votre
+   environnement. Les valeurs sont celles du système, pas des approximations.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── FOCUS VISIBLE ──
+   Le système déclarait `--focus-ring` sans jamais l'appliquer : AUCUNE indication de focus
+   n'existait. C'est le défaut d'accessibilité le plus grave relevé à l'audit.
+
+   `:focus-visible` et non `:focus` : au clic souris on ne veut pas d'anneau, au clavier on
+   le veut toujours. Deux anneaux superposés — un clair, un sombre — pour rester visible
+   sur n'importe quel fond, verre ou dégradé compris. */
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--surface-page), 0 0 0 4px var(--mm-bleu);
+  border-radius: inherit;
+}
+.dk :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  box-shadow: 0 0 0 2px #0B0E13, 0 0 0 4px var(--mm-bleu-n);
+}
+/* Sur une surface colorée (carte territoire, bouton dégradé), l'anneau bleu se perd :
+   il passe en blanc, doublé d'encre. */
+:where(.mm-on-color) :focus-visible,
+:where(button, a).mm-on-color:focus-visible {
+  box-shadow: 0 0 0 2px rgba(14,17,22,.55), 0 0 0 4px #FFFFFF;
+}
+
+/* ── APPUI · 120 ms ── « j'ai senti ton doigt »
+   Le seul retour systématique du produit. Il ne dit rien du résultat, seulement que le
+   geste est arrivé. Ni rebond, ni agrandissement, ni changement de couleur. */
+.mm-press, .mm-press-sm {
+  transition: transform var(--t-tap) var(--ease), box-shadow var(--t-ui) var(--ease);
+}
+.mm-press:active            { transform: scale(var(--press-scale)) }      /* .975 */
+.mm-press-sm:active         { transform: scale(var(--press-scale-sm)) }   /* .94  */
+.mm-press[aria-disabled="true"]:active,
+.mm-press:disabled:active   { transform: none }
+
+/* ── SURVOL ──
+   Ne porte JAMAIS d'information : sur mobile le survol n'existe pas. Il confirme une cible,
+   sur pointeur fin, et rien de plus. */
+@media (hover: hover) and (pointer: fine) {
+  .mm-press:hover, .mm-press-sm:hover { filter: brightness(1.03) }
+  .mm-press:disabled:hover,
+  .mm-press[aria-disabled="true"]:hover { filter: none }
+}
+
+/* ── DÉSACTIVÉ ──
+   Opacité, pas de gris plat : un gris plat sur verre devient un trou. Et `cursor: default`,
+   pas `not-allowed` — le curseur barré lit comme une erreur, alors que rien n'est en erreur. */
+:where(button, [role="button"], a)[aria-disabled="true"],
+:where(button, input, textarea, select):disabled {
+  opacity: .42;
+  cursor: default;
+  pointer-events: none;
+}
+/* Un interrupteur désactivé n'a AUCUN retour au toucher : un retour tactile sur un réglage
+   qui ne fait rien est un mensonge de plus. */
+.mm-switch[aria-disabled="true"] { opacity: .4 }
+.mm-switch[aria-disabled="true"]:active { transform: none }
+
+/* ── CHARGEMENT ──
+   Deux formes, jamais un rond qui tourne.
+
+   1 · Le bouton en cours : le libellé reste lisible, un liseré progresse dessous.
+       Le libellé ne devient jamais « Chargement… » — la personne perd ce qu'elle a demandé. */
+.mm-loading { position: relative; pointer-events: none; }
+.mm-loading::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  animation: mm-sweep 1.1s var(--ease) infinite;
+}
+@keyframes mm-sweep { from { transform: translateX(-100%) } to { transform: translateX(100%) } }
+
+/* 2 · Le squelette : il a EXACTEMENT la forme du contenu réel, pour que rien ne saute à
+      l'arrivée. Miroitement lent, en transform. */
+.mm-skeleton {
+  border-radius: var(--r-m);
+  background: linear-gradient(100deg, var(--fill-1) 30%, var(--fill-3) 48%, var(--fill-1) 62%);
+  background-size: 220% 100%;
+  animation: mm-shim 1.6s var(--ease) infinite;
+}
+@keyframes mm-shim { from { background-position: 120% 0 } to { background-position: -20% 0 } }
+
+/* ── ERREUR ──
+   Bordure rouge ET message SOUS le champ, en fondu de 220 ms.
+   PAS de secousse : une secousse ajoute du stress à un moment déjà raté, et elle ne dit
+   pas ce qui est faux. */
+.mm-field[data-state="error"] .mm-field-box {
+  border-color: var(--stop);
+  box-shadow: var(--error-ring);
+}
+.mm-field[data-state="error"] .mm-field-hint {
+  color: var(--stop);
+  animation: mm-fade var(--t-ui) var(--ease) both;
+}
+@keyframes mm-fade { from { opacity: 0 } to { opacity: 1 } }
+
+/* Le message d'erreur est TOUJOURS adjacent à son champ. Jamais un résumé en haut de page
+   seul : la personne doit pouvoir corriger sans remonter. Un résumé en tête est admis
+   EN PLUS, jamais À LA PLACE. */
+.mm-field-hint { display: block; margin-top: 6px; font-size: 12px; line-height: 1.45 }
+
+/* ── ÉTAT SÉLECTIONNÉ ──
+   Le repos est du verre, la sélection est de l'encre. Bordure et pastille radio basculent
+   SIMULTANÉMENT : deux confirmations décalées font douter du clic. */
+.mm-option            { border: 1.5px solid var(--ctl-off-brd); background: var(--ctl-off-bg);
+                        transition: border-color var(--t-ui) var(--ease), box-shadow var(--t-ui) var(--ease) }
+.mm-option[aria-checked="true"] { border-color: var(--ctl-sel-brd); box-shadow: var(--ctl-sel-ring), var(--glass-hl) }
+.mm-radio             { border: 2px solid var(--ctl-radio-brd); transition: border-width var(--t-ui) var(--ease) }
+.mm-option[aria-checked="true"] .mm-radio { border-width: 7px; border-color: var(--ink) }
+
+/* ── CIBLES TACTILES ──
+   Plancher 44 × 44, écart minimal 8 px. Le kit source pratique 42 px sur le chrome rond :
+   c'est un écart ASSUMÉ dans les maquettes, mais il ne doit pas passer en production.
+   Utilisez --touch-aa (44), pas --touch-min (42). */
+.mm-touch { min-width: var(--touch-aa); min-height: var(--touch-aa) }
+.mm-touch-row { display: flex; gap: var(--touch-gap) }   /* 8px, jamais 0 */
+
+/* Si la cible visuelle doit rester à 42 px, étendez la zone cliquable sans toucher au
+   dessin — la surface reste ronde à 42, la cible fait 44. */
+.mm-touch-extend { position: relative }
+.mm-touch-extend::before {
+  content: ""; position: absolute; top: 50%; left: 50%;
+  width: var(--touch-aa); height: var(--touch-aa);
+  transform: translate(-50%, -50%);
+}

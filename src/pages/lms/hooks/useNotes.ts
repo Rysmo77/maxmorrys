@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getUserNotes, saveNote, deleteNote } from '../../../lib/firestore';
 import type { Note } from '../../../lib/firestore';
+import { addXP } from '../../../lib/gamification';
+import { XP_REWARDS } from '../../../types/gamification';
 
 export function useNotes(userId: string | undefined, active: boolean) {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -51,6 +53,10 @@ export function useNotes(userId: string | undefined, active: boolean) {
         },
         editingNote?.id
       );
+      // XP à la création seulement : rééditer une note ne doit rien rapporter.
+      if (!editingNote) {
+        addXP(userId, XP_REWARDS.createNote).catch(() => null);
+      }
       const updatedNotes = await getUserNotes(userId);
       setNotes(updatedNotes);
       setShowNoteForm(false);

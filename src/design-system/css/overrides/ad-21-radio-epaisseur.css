@@ -1,0 +1,29 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-21 · L'ÉPAISSEUR DU LISERÉ RADIO NE S'ANIME PAS
+
+   `brand/states.css`, livré par la révision reçue, écrit ceci :
+
+       .mm-radio { border: 2px solid var(--ctl-radio-brd);
+                   transition: border-width var(--t-ui) var(--ease) }
+       .mm-option[aria-checked="true"] .mm-radio { border-width: 7px }
+
+   `border-width` est une propriété de MISE EN PAGE. La règle 3 n'admet que `transform` et
+   `opacity`, et REGLES-DE-REVUE.md ferme la porte explicitement : « Aucune nouvelle
+   exception. » Les deux seules admises — le remplissage de barre et le curseur du fil de
+   lecture — sont nommées, bornées à un élément de 3 à 8 px sans enfant, et déjà écrites.
+   Un liseré qui passe de 2 à 7 px déclenche un calcul de disposition à CHAQUE changement
+   d'état, sur une pastille qui vit par trois ou par cinq dans un choix de paiement.
+
+   CE N'EST PAS UNE DÉCOUVERTE : `react/forms/PayOption.tsx` avait déjà tranché exactement
+   ainsi, pour exactement cette raison, et l'a écrit dans son en-tête — « L'ÉPAISSEUR DU
+   LISERÉ NE S'ANIME PAS. Le kit transitionnait border-width ; AD-16 n'admet que transform
+   et opacity ». Le composant garde le 7 px du kit, et ne transitionne que la COULEUR.
+
+   Cet override applique la même décision à la recette CSS, pour que les deux voies — la
+   classe et le composant — ne divergent pas. Le dessin final est identique au kit : seule
+   l'INTERPOLATION disparaît. Le passage de 2 à 7 px reste instantané, ce qui est aussi ce
+   que le kit demande par ailleurs : « Bordure et pastille radio basculent SIMULTANÉMENT —
+   deux confirmations décalées font douter du clic. »
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.mm-radio{transition:border-color var(--t-ui) var(--ease)}

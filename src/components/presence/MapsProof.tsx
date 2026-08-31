@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Search } from 'lucide-react';
-import { universeThemes } from '../../lib/sectionThemes';
-
-const theme = universeThemes.agency;
+import { Button, Field, GlassPanel } from '@ds';
+import { SiteDisplay, SiteEyebrow } from '../site';
 
 /**
- * Démonstration interactive : le commerçant tape son métier et son quartier,
- * on ouvre la vraie recherche Google Maps dans un onglet.
+ * LA PREUVE PAR LA RECHERCHE — la seule démonstration de la page, et elle est vraie.
  *
- * C'est le meilleur argument de la page et il ne coûte rien : personne ne conteste
- * ce qu'il voit de ses propres yeux. Placé AVANT tout prix, délibérément.
+ * Le système interdit les notes en étoiles, les nombres d'inscrits et les témoignages :
+ * six interdits absolus, parce qu'aucun n'est vérifiable par la personne qui le lit. Cet
+ * encart tient l'inverse. Il ne raconte rien : il ouvre Google Maps sur le métier et la
+ * ville que le commerçant vient de taper, et le laisse constater lui-même qui apparaît
+ * avant lui. La démonstration se passe hors du site, dans un outil qui n'est pas le nôtre
+ * — c'est ce qui la rend impossible à truquer.
+ *
+ * D'où sa place : APRÈS les prix. Elle ne sert pas à convaincre d'entrer, mais à expliquer
+ * ce qu'on achète à quelqu'un qui regarde déjà les montants.
  */
 export default function MapsProof() {
   const { t } = useTranslation('presence');
@@ -30,61 +34,35 @@ export default function MapsProof() {
     );
   };
 
-  const inputCls = `w-full px-3.5 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 ${theme.focusRing}`;
-
   return (
-    <div className="rounded-3xl border border-lagoon-200 dark:border-lagoon-800 bg-lagoon-50 dark:bg-lagoon-900/20 p-7 sm:p-9">
-      <div className="flex items-center gap-3 mb-4">
-        <MapPin className={`w-6 h-6 shrink-0 ${theme.accentText}`} aria-hidden="true" />
-        <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
-          {t('proof.title')}
-        </h2>
-      </div>
+    <GlassPanel level="flat" padding={26}>
+      <SiteEyebrow style={{ margin: 0 }}>{t('proof.note')}</SiteEyebrow>
+      <SiteDisplay as="h2" lines={[t('proof.title')]} size={26} style={{ marginTop: '8px' }} />
+      <p className="mm-prose mt-3 text-meta leading-[1.6] text-ink-2">{t('proof.text')}</p>
 
-      <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed mb-6 max-w-2xl">
-        {t('proof.text')}
-      </p>
-
-      <form onSubmit={openMaps} className="grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-        <div className="space-y-1.5">
-          <label htmlFor="maps-trade" className="block text-xs font-bold tracking-widest uppercase text-neutral-500">
-            {t('proof.tradeLabel')}
-          </label>
-          <input
-            id="maps-trade"
-            value={trade}
-            onChange={(e) => setTrade(e.target.value)}
-            placeholder={t('proof.tradePlaceholder')}
-            className={inputCls}
-            autoComplete="off"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <label htmlFor="maps-area" className="block text-xs font-bold tracking-widest uppercase text-neutral-500">
-            {t('proof.areaLabel')}
-          </label>
-          <input
-            id="maps-area"
-            value={area}
-            onChange={(e) => setArea(e.target.value)}
-            placeholder={t('proof.areaPlaceholder')}
-            className={inputCls}
-            autoComplete="off"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={!canSearch}
-          className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${theme.buttonSolid}`}
-        >
-          <Search className="w-4 h-4" aria-hidden="true" />
+      <form onSubmit={openMaps} className="mt-4 grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
+        <Field
+          id="maps-trade"
+          label={t('proof.tradeLabel')}
+          value={trade}
+          onChange={setTrade}
+          placeholder={t('proof.tradePlaceholder')}
+          autoComplete="off"
+          style={{ marginTop: 0 }}
+        />
+        <Field
+          id="maps-area"
+          label={t('proof.areaLabel')}
+          value={area}
+          onChange={setArea}
+          placeholder={t('proof.areaPlaceholder')}
+          autoComplete="off"
+          style={{ marginTop: 0 }}
+        />
+        <Button type="submit" tone="digitalise" fullWidth={false} disabled={!canSearch}>
           {t('proof.cta')}
-        </button>
+        </Button>
       </form>
-
-      <p className={`text-sm font-semibold mt-6 ${theme.accentText}`}>
-        {t('proof.note')}
-      </p>
-    </div>
+    </GlassPanel>
   );
 }

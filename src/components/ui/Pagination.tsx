@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
+import { Icon } from '@ds';
 
 interface PaginationProps {
   currentPage: number;
@@ -26,15 +26,15 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="p-2 rounded-xl text-ink-2 hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] disabled:opacity-40 transition-colors"
         aria-label={t('pagination.previous')}
       >
-        <ChevronLeft className="w-4 h-4" />
+        <Icon name="chevron-left" size={16} />
       </button>
 
       {pages.map((page, i) =>
         page === '...' ? (
-          <span key={`dots-${i}`} className="px-2 text-neutral-400 text-sm">...</span>
+          <span key={`dots-${i}`} className="px-2 text-ink-2 text-sm">...</span>
         ) : (
           <button
             key={page}
@@ -42,8 +42,8 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
             className={cn(
               'w-9 h-9 rounded-xl text-sm font-medium transition-colors',
               page === currentPage
-                ? 'bg-brand-600 text-white'
-                : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800',
+                ? 'bg-forme text-white'
+                : 'text-ink-2 hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)]',
             )}
           >
             {page}
@@ -54,10 +54,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="p-2 rounded-xl text-ink-2 hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] disabled:opacity-40 transition-colors"
         aria-label={t('pagination.next')}
       >
-        <ChevronRight className="w-4 h-4" />
+        <Icon name="chevron-right" size={16} />
       </button>
     </nav>
   );

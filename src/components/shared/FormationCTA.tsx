@@ -56,16 +56,16 @@ export default function FormationCTA({ category, tags = [] }: FormationCTAProps)
   if (!formation) return null;
 
   return (
-    <div className="bg-gradient-to-br from-brand-50 to-brand-100/50 dark:from-brand-900/20 dark:to-brand-950/30 border border-brand-200 dark:border-brand-800/40 rounded-2xl p-6 sm:p-8">
+    <div className="bg-[color-mix(in_srgb,var(--mm-bleu)_12%,transparent)] border border-[color-mix(in_srgb,var(--mm-bleu)_7%,transparent)] rounded-2xl p-6 sm:p-8">
       <div className="grid sm:grid-cols-2 gap-6 items-center">
         <div>
           <p className={`text-xs font-bold tracking-[0.3em] uppercase ${theme.eyebrow} mb-3`}>
             {t('formationCta.eyebrow')}
           </p>
-          <h3 className="text-xl sm:text-2xl font-black tracking-tight text-neutral-900 dark:text-white mb-3 leading-tight">
+          <h3 className="text-xl sm:text-2xl font-black tracking-tight text-ink mb-3 leading-tight">
             {t('formationCta.title')}
           </h3>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          <p className="text-sm text-ink-2 leading-relaxed">
             {t('formationCta.text')}
           </p>
         </div>

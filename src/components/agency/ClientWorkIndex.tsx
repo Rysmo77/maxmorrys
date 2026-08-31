@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import WorkFilters from './WorkFilters';
 import ClientWorkDetail from './ClientWorkDetail';
@@ -9,6 +8,7 @@ import SitePreview from './SitePreview';
 import { clientProjects, clientCategories, categoryKey } from '../../lib/brand';
 import { staggerContainer, staggerItem } from '../../lib/animations';
 import { useIsDesktop } from '../../hooks/useMediaQuery';
+import { Icon } from '@ds';
 
 /**
  * Index des projets clients : liste numérotée à gauche, aperçu ancré à droite.
@@ -65,7 +65,7 @@ export default function ClientWorkIndex() {
           initial="hidden"
           animate="visible"
           aria-label={t('work.listAria')}
-          className="divide-y divide-neutral-200 dark:divide-neutral-800 border-y border-neutral-200 dark:border-neutral-800"
+          className="divide-y divide-[color:var(--fill-3)] dark:divide-[color:var(--line)] border-y border-[color:var(--line)]"
         >
           {filtered.map((project, index) => {
             const isSelected = project.slug === selected?.slug;
@@ -80,33 +80,30 @@ export default function ClientWorkIndex() {
                   aria-expanded={isSelected}
                   className={cn(
                     'w-full flex items-center gap-4 py-4 text-left transition-colors group',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-600 focus-visible:ring-inset rounded',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset rounded',
                     isSelected
-                      ? 'text-neutral-900 dark:text-white'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white',
+                      ? 'text-ink'
+                      : 'text-ink-2 hover:text-ink dark:hover:text-white',
                   )}
                 >
-                  <span className="text-xs font-bold tabular-nums text-lagoon-700 dark:text-lagoon-400 shrink-0">
+                  <span className="text-xs font-bold tabular-nums text-digitalise-txt shrink-0">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <span className="flex-1 min-w-0">
                     <span className="block text-lg font-black tracking-tight truncate">{project.name}</span>
-                    <span className="block text-sm text-neutral-500 dark:text-neutral-400">
+                    <span className="block text-sm text-ink-2">
                       {t(`work.categories.${categoryKey(project.category)}`)}
                     </span>
                   </span>
                   {/* Chevron : sur mobile il signale l'accordéon, sur desktop la sélection. */}
-                  <ChevronDown
-                    className={cn(
+                  <Icon name="chevron" className={cn(
                       'w-4 h-4 shrink-0 transition-transform lg:hidden',
                       isSelected && 'rotate-180',
-                    )}
-                    aria-hidden="true"
-                  />
+                    )} />
                   <span
                     className={cn(
-                      'hidden lg:block w-6 h-px transition-all shrink-0',
-                      isSelected ? 'bg-lagoon-600 w-10' : 'bg-neutral-300 dark:bg-neutral-700 group-hover:w-10',
+                      'hidden lg:block w-6 h-px transition shrink-0',
+                      isSelected ? 'bg-digitalise w-10' : 'bg-[color:var(--fill-4)] group-hover:w-10',
                     )}
                     aria-hidden="true"
                   />

@@ -1,37 +1,64 @@
 import { useTranslation } from 'react-i18next';
-import LocalizedLink from '../components/shared/LocalizedLink';
+import { Button, GlassPanel } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
+import DsNavHost from '../components/layout/DsNavHost';
+import { useLocalizedPath } from '../contexts/LanguageContext';
+import { SiteDisplay, SiteEyebrow } from '../components/site';
 
+/**
+ * /404 — même motif que le /403, dans le thème ambiant.
+ *
+ * Le kit ne rend en nuit que le 403, et la distinction tient : le 403 parle de RÈGLES, il
+ * interrompt ; le 404 parle de CONTENU, et il oriente. Le second reste donc dans le thème que
+ * la personne a choisi.
+ *
+ * Un message d'erreur ne s'excuse pas : motif réel, conséquence, sortie — dans cet ordre.
+ * D'où l'absence de « oups », et la présence d'un encart qui dit ce qui a pu se passer plutôt
+ * que de laisser deviner.
+ */
 export default function NotFound() {
   const { t } = useTranslation('errors');
+  const path = useLocalizedPath();
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950 px-4">
+    <div className="min-h-screen flex items-center justify-center px-[18px] py-16">
       <SEOHead title={t('notFound.seoTitle')} noIndex />
-      <div className="max-w-md w-full text-center space-y-6">
-        <div>
-          <p className="text-sm font-semibold tracking-wider text-brand-600 uppercase mb-2">{t('notFound.label')}</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white mb-2">
-            {t('notFound.title')}
-          </h1>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            {t('notFound.text')}
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <LocalizedLink
-            to="/"
-            className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium bg-brand-600 text-white hover:bg-brand-700 transition-colors"
-          >
-            {t('notFound.home')}
-          </LocalizedLink>
-          <LocalizedLink
-            to="/blog"
-            className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-          >
+
+      <DsNavHost className="play w-full max-w-[520px]">
+        {/* Le code, écrit. Quelqu'un qui cherche « erreur 404 » doit le trouver. */}
+        <p
+          className="mm-num rv-s m-0 leading-none tracking-[-.04em] text-[96px]"
+          style={{ color: 'color-mix(in srgb, var(--ink) 12%, transparent)' }}
+          aria-hidden="true"
+        >
+          404
+        </p>
+
+        <SiteDisplay
+          lines={t('notFound.titleLines', { returnObjects: true }) as string[]}
+          size={30}
+          style={{ marginTop: '6px' }}
+        />
+
+        <p className="rv mt-3 text-lede text-ink-2" style={{ ['--i' as string]: 4 }}>
+          {t('notFound.text')}
+        </p>
+
+        {/* Faux verre : cet encart défile avec la page. */}
+        <GlassPanel level="truth" className="rv mt-5" style={{ ['--i' as string]: 5 }}>
+          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('notFound.truthTitle')}</SiteEyebrow>
+          <p className="m-0 text-meta-2 text-ink-2 leading-[1.55]">{t('notFound.truthBody')}</p>
+        </GlassPanel>
+
+        <div className="mt-5 flex flex-col sm:flex-row gap-3">
+          <Button href={path('/blog')} tone="informe" size="sm" fullWidth={false}>
             {t('notFound.blog')}
-          </LocalizedLink>
+          </Button>
+          <Button href={path('/')} tone="quiet" size="sm" fullWidth={false}>
+            {t('notFound.home')}
+          </Button>
         </div>
-      </div>
+      </DsNavHost>
     </div>
   );
 }

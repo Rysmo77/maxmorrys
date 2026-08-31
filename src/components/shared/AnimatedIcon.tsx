@@ -1,12 +1,13 @@
-import type { LucideIcon } from 'lucide-react';
+import { Icon, type IconName } from '@ds';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { Transition, TargetAndTransition } from 'framer-motion';
 
 type AnimationKind = 'float' | 'pulse' | 'spin';
 
 interface AnimatedIconProps {
-  /** Composant d'icône lucide. */
-  icon: LucideIcon;
+  /** NOM du glyphe. C'était un composant `LucideIcon` — le dernier import de cette famille
+   *  dans `src/`, dans un composant que plus personne n'appelait. */
+  icon: IconName;
   /** Type d'animation en boucle. */
   animation?: AnimationKind;
   /** Classes de la boîte (taille, fond, arrondi…). */
@@ -26,7 +27,7 @@ const ANIMATIONS: Record<AnimationKind, { animate: TargetAndTransition; transiti
  * classes de boîte (taille, fond, arrondi). Statique si `prefers-reduced-motion`.
  */
 export default function AnimatedIcon({
-  icon: Icon,
+  icon: glyph,
   animation = 'float',
   className = '',
   iconClassName = '',
@@ -41,7 +42,7 @@ export default function AnimatedIcon({
       transition={reduced ? undefined : transition}
       aria-hidden="true"
     >
-      <Icon className={iconClassName} />
+      <Icon name={glyph} className={iconClassName} />
     </motion.div>
   );
 }

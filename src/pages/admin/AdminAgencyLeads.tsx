@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Briefcase, Search, RefreshCw, Loader2, ChevronDown, MessageCircle, Trash2, ExternalLink, Download, StickyNote } from 'lucide-react';
-import Button from '../../components/ui/Button';
+import { Button, DocLine, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag } from '@ds';
+import type { TagTone } from '@ds';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { SiteEyebrow } from '../../components/site';
 import { useToast } from '../../components/ui/Toast';
 import { getAllAgencyLeads, updateAgencyLeadStatus, updateAgencyLeadNotes, deleteAgencyLead } from '../../lib/firestore';
 import { computeTotals, PIPELINE_STAGES } from '../../lib/presence/offer';
@@ -9,12 +11,44 @@ import { exportToCsv } from '../../lib/utils';
 import { useFormat } from '../../hooks/useFormat';
 import type { AgencyLead, AgencyLeadStatus } from '../../types';
 
-const STATUS_COLORS: Record<AgencyLeadStatus, string> = {
-  new: 'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400',
-  qualified: 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400',
-  quoted: 'bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400',
-  signed: 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400',
-  lost: 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500',
+/**
+ * L'ÉCRAN `ProspectsOps` DU KIT — le cycle de vente Présence Digitale.
+ *
+ * LE MOTIF EST APPLIQUÉ DANS SA LECTURE COMPLÈTE, celle du README du kit : « une liste
+ * filtrable par statut, UNE FICHE D'ÉDITION, une action tracée. » L'ancien écran empilait
+ * quatre commandes sur chaque prospect — WhatsApp, changement de statut, notes, suppression —
+ * soit quatre hésitations par ligne. Elles ne sont pas supprimées : elles descendent dans la
+ * fiche, qui s'ouvre depuis la ligne. La ligne, elle, porte un état et UNE action : ouvrir.
+ *
+ * DEUX ÉCARTS AVEC LE KIT :
+ *
+ *   • Le kit ouvre sur un `Segmented` « Présence Digitale / Agence » — deux cycles de vente
+ *     que le kit dit ne jamais fusionner. La base n'en stocke qu'UN : `agency_leads`,
+ *     alimenté par /presence-digitale (le préfixe `agency_` est historique, cf.
+ *     `lib/firestore/agency.ts`). Un sélecteur dont la seconde entrée serait vide en
+ *     permanence apprendrait faux ; il n'est pas rendu, et le pied le dit.
+ *   • `PIPELINE_STAGES` est la source d'autorité des cinq étapes, pas le kit : ce sont les
+ *     mêmes (`new · qualified · quoted · signed · lost`), et elles vivent déjà dans
+ *     `lib/presence/offer.ts` avec leurs libellés traduits. « tout » est ajouté en tête,
+ *     par la convention de `ConsoleFilter`.
+ */
+
+type Stage = 'all' | AgencyLeadStatus;
+
+const STATUS_TONE: Record<AgencyLeadStatus, TagTone> = {
+  new: 'warn',
+  qualified: 'neutral',
+  quoted: 'neutral',
+  signed: 'ok',
+  lost: 'stop',
+};
+
+const STATUS_TINT: Record<AgencyLeadStatus, string> = {
+  new: '--mm-orange',
+  qualified: '--mm-bleu',
+  quoted: '--mm-violet',
+  signed: '--ok',
+  lost: '--ink-2',
 };
 
 export default function AdminAgencyLeads() {
@@ -25,18 +59,20 @@ export default function AdminAgencyLeads() {
   const [leads, setLeads] = useState<AgencyLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | AgencyLeadStatus>('all');
+  const [stage, setStage] = useState<Stage>('all');
   const [updating, setUpdating] = useState<string | null>(null);
-  /** Fiche dont les notes internes sont dépliées */
-  const [openNotes, setOpenNotes] = useState<string | null>(null);
+  /** Fiche ouverte — le motif du kit : la liste dense, puis UNE fiche d'édition. */
+  const [openLead, setOpenLead] = useState<string | null>(null);
   /** Brouillon local des notes, indexé par prospect — évite un aller-retour par frappe */
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [savingNote, setSavingNote] = useState<string | null>(null);
+  /** Date de la MESURE, posée quand la lecture revient. */
+  const [asOf, setAsOf] = useState(() => new Date());
 
   const load = () => {
     setLoading(true);
     getAllAgencyLeads()
-      .then((data) => { setLeads(data); setLoading(false); })
+      .then((data) => { setLeads(data); setAsOf(new Date()); setLoading(false); })
       .catch(() => { addToast('error', t('agencyLeads.toastLoadError')); setLoading(false); });
   };
 
@@ -78,6 +114,7 @@ export default function AdminAgencyLeads() {
     try {
       await deleteAgencyLead(id);
       setLeads((prev) => prev.filter((l) => l.id !== id));
+      setOpenLead((prev) => (prev === id ? null : prev));
       addToast('success', t('agencyLeads.toastDeleted'));
     } catch {
       addToast('error', t('agencyLeads.toastUpdateError'));
@@ -94,16 +131,20 @@ export default function AdminAgencyLeads() {
         || l.contactName.toLowerCase().includes(q)
         || l.phone.includes(q)
         || l.city.toLowerCase().includes(q);
-      const matchStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchSearch && matchStatus;
+      const matchStage = stage === 'all' || l.status === stage;
+      return matchSearch && matchStage;
     });
-  }, [leads, search, statusFilter]);
+  }, [leads, search, stage]);
 
+  /** Les compteurs portent sur la COLLECTION entière, jamais sur l'affichage filtré. */
   const counts = useMemo(() => {
     const acc = Object.fromEntries(PIPELINE_STAGES.map((s) => [s, 0])) as Record<AgencyLeadStatus, number>;
     for (const l of leads) acc[l.status] = (acc[l.status] ?? 0) + 1;
     return acc;
   }, [leads]);
+
+  const stages: Stage[] = ['all', ...PIPELINE_STAGES];
+  const stageLabel = (s: Stage) => (s === 'all' ? t('agencyLeads.stageAll') : t(`agencyLeads.status.${s}`));
 
   /** Lien WhatsApp direct — le canal de réponse attendu par le prospect. */
   const waLink = (phone: string) => `https://wa.me/${phone.replace(/\D/g, '')}`;
@@ -135,223 +176,218 @@ export default function AdminAgencyLeads() {
     exportToCsv(t('agencyLeads.csv.filename'), headers, rows);
   };
 
+  const sheet = leads.find((l) => l.id === openLead) ?? null;
+  const sheetTotals = sheet ? computeTotals(sheet.pack, sheet.plan) : null;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white">{t('agencyLeads.title')}</h1>
-          <p className="text-sm text-neutral-500 mt-1">
-            {counts.new > 0 && (
-              <span className="text-warning-600 font-medium">{t('agencyLeads.newCount', { count: counts.new })} · </span>
-            )}
-            {t('agencyLeads.totalCount', { count: leads.length })}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            disabled={filtered.length === 0}
-            icon={<Download className="w-4 h-4" />}
-          >
+    // `.play` en dur : voir AdminDashboard.
+    <div className="play">
+      <ConsolePage title={t('agencyLeads.title')} sub={t('agencyLeads.sub')}>
+        <div className="mb-3.5 flex flex-wrap items-center justify-end gap-2">
+          <Button size="sm" tone="quiet" onClick={handleExport} disabled={filtered.length === 0}>
             {t('agencyLeads.export')}
           </Button>
-          <Button variant="outline" onClick={load} icon={<RefreshCw className="w-4 h-4" />}>
+          <Button size="sm" tone="quiet" onClick={load} disabled={loading}>
             {t('agencyLeads.refresh')}
           </Button>
         </div>
-      </div>
 
-      {/* Compteurs de pipeline */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        {PIPELINE_STAGES.map((status) => (
-          <button
-            key={status}
-            onClick={() => setStatusFilter(statusFilter === status ? 'all' : status)}
-            className={`p-4 rounded-2xl border text-left transition-colors ${
-              statusFilter === status
-                ? 'border-brand-400 dark:border-brand-600 bg-brand-50 dark:bg-brand-900/20'
-                : 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600'
-            }`}
-          >
-            <p className="text-2xl font-black text-neutral-900 dark:text-white">{counts[status]}</p>
-            <p className="text-xs font-semibold text-neutral-500 mt-0.5">{t(`agencyLeads.status.${status}`)}</p>
-          </button>
-        ))}
-      </div>
+        <ConsoleFilter
+          className="rv"
+          stages={stages.map(stageLabel)}
+          active={stageLabel(stage)}
+          onSelect={(label) => setStage(stages.find((s) => stageLabel(s) === label) ?? 'all')}
+          label={t('agencyLeads.pipelineLabel')}
+        />
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('agencyLeads.searchPlaceholder')}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white"
+        <div className="mt-3.5 grid gap-2.5 sm:grid-cols-3">
+          <StatTile
+            label={t('agencyLeads.tileToQualify')}
+            value={loading ? null : counts.new}
+            source="db"
+            asOf={asOf}
+            foot={t('agencyLeads.footNewest')}
+          />
+          <StatTile
+            label={t('agencyLeads.tileSigned')}
+            value={loading ? null : counts.signed}
+            source="db"
+            asOf={asOf}
+            foot={t('agencyLeads.footSignedValue')}
+          />
+          <StatTile
+            label={t('agencyLeads.tileTotal')}
+            value={loading ? null : leads.length}
+            source="db"
+            asOf={asOf}
+            foot={t('agencyLeads.footAllStages')}
           />
         </div>
-        <div className="relative">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-            className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-          >
-            <option value="all">{t('agencyLeads.filterAll')}</option>
-            {PIPELINE_STAGES.map((s) => (
-              <option key={s} value={s}>{t(`agencyLeads.status.${s}`)}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+
+        <div className="mt-3.5 max-w-sm">
+          <Field
+            as="input"
+            type="search"
+            label={t('agencyLeads.searchLabel')}
+            hideLabel
+            value={search}
+            onChange={setSearch}
+            placeholder={t('agencyLeads.searchPlaceholder')}
+            inputMode="search"
+          />
         </div>
-      </div>
 
-      {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
-          <Briefcase className="w-10 h-10 text-neutral-300 dark:text-neutral-600 mx-auto mb-3" />
-          <p className="text-neutral-500">{t('agencyLeads.empty')}</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((lead) => (
-            <div
-              key={lead.id}
-              className={`bg-white dark:bg-neutral-800 border rounded-2xl p-5 transition-colors ${
-                lead.status === 'new'
-                  ? 'border-warning-200 dark:border-warning-800'
-                  : 'border-neutral-200 dark:border-neutral-700'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-2">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLORS[lead.status]}`}>
-                      {t(`agencyLeads.status.${lead.status}`)}
-                    </span>
-                    <span className="text-xs text-neutral-400">
-                      {t('agencyLeads.receivedOn', { date: formatDate(lead.createdAt) })}
-                    </span>
-                    {lead.referralCode && (
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400">
-                        {lead.referralCode}
-                      </span>
-                    )}
-                    {lead.quoteRef && (
-                      <a
-                        href={`/agence/devis/${lead.quoteRef}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={t('agencyLeads.openQuote')}
-                        className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-lagoon-100 dark:bg-lagoon-900/30 text-lagoon-800 dark:text-lagoon-300 hover:bg-lagoon-200 dark:hover:bg-lagoon-900/50 transition-colors"
-                      >
-                        {t('agencyLeads.quoteRef', { ref: lead.quoteRef })}
-                        <ExternalLink className="w-3 h-3" aria-hidden="true" />
-                      </a>
-                    )}
-                  </div>
-
-                  <p className="font-semibold text-neutral-900 dark:text-white">{lead.businessName}</p>
-                  <p className="text-sm text-neutral-500">
-                    {lead.contactName} · {lead.phone}
-                    {lead.email && ` · ${lead.email}`}
-                  </p>
-                  <p className="text-sm text-neutral-500">
-                    {lead.city} · {t(`agencyLeads.sectors.${lead.sector}`, { defaultValue: lead.sector })}
-                  </p>
-
-                  <p className="text-sm text-neutral-700 dark:text-neutral-300 mt-2 font-medium">
-                    {t('agencyLeads.interest', {
-                      pack: t(`agencyLeads.packs.${lead.pack}`, { defaultValue: lead.pack }),
-                      plan: t(`agencyLeads.plans.${lead.plan}`, { defaultValue: lead.plan }),
-                    })}
-                    {computeTotals(lead.pack, lead.plan).upfront > 0 && (
-                      <span className="text-neutral-500 font-normal tabular-nums">
-                        {' — '}{formatPrice(computeTotals(lead.pack, lead.plan).upfront)}
-                        {computeTotals(lead.pack, lead.plan).planMonthly > 0 &&
-                          ` + ${formatPrice(computeTotals(lead.pack, lead.plan).planMonthly)}/${t('agencyLeads.perMonth')}`}
-                      </span>
-                    )}
-                  </p>
-
-                  {lead.message && (
-                    <p className="text-sm text-neutral-500 mt-2 italic">« {lead.message} »</p>
-                  )}
-
-                  {/* Notes internes — jamais visibles du prospect (cf. firestore.rules) */}
-                  <div className="mt-3">
-                    <button
-                      type="button"
-                      onClick={() => setOpenNotes(openNotes === lead.id ? null : lead.id)}
-                      aria-expanded={openNotes === lead.id}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-lagoon-700 dark:hover:text-lagoon-400 transition-colors"
-                    >
-                      <StickyNote className="w-3.5 h-3.5" aria-hidden="true" />
-                      {lead.notes ? t('agencyLeads.notesEdit') : t('agencyLeads.notesAdd')}
-                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openNotes === lead.id ? 'rotate-180' : ''}`} aria-hidden="true" />
-                    </button>
-
-                    {openNotes === lead.id ? (
-                      <div className="mt-2">
-                        <textarea
-                          value={noteDrafts[lead.id] ?? lead.notes ?? ''}
-                          onChange={(e) => setNoteDrafts((p) => ({ ...p, [lead.id]: e.target.value }))}
-                          onBlur={() => handleSaveNote(lead.id)}
-                          rows={3}
-                          placeholder={t('agencyLeads.notesPlaceholder')}
-                          className="w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-lagoon-500/20 focus:border-lagoon-500"
-                        />
-                        <p className="text-xs text-neutral-400 mt-1">
-                          {savingNote === lead.id ? t('agencyLeads.notesSaving') : t('agencyLeads.notesHint')}
-                        </p>
-                      </div>
-                    ) : lead.notes ? (
-                      <p className="text-xs text-neutral-500 mt-1.5 line-clamp-2 whitespace-pre-line">{lead.notes}</p>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <a
-                    href={waLink(lead.phone)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 hover:bg-success-200 dark:hover:bg-success-900/50 transition-colors"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    {t('agencyLeads.whatsapp')}
-                  </a>
-
-                  <div className="relative">
-                    <select
-                      value={lead.status}
-                      onChange={(e) => handleStatus(lead.id, e.target.value as AgencyLeadStatus)}
-                      disabled={updating === lead.id}
-                      className="appearance-none pl-3 pr-7 py-1.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-xs font-semibold text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50"
-                    >
-                      {PIPELINE_STAGES.map((s) => (
-                        <option key={s} value={s}>{t(`agencyLeads.status.${s}`)}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
-                  </div>
-
-                  <button
-                    onClick={() => handleDelete(lead.id)}
-                    disabled={updating === lead.id}
-                    aria-label={t('agencyLeads.delete')}
-                    className="p-1.5 rounded-lg text-neutral-400 hover:text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors disabled:opacity-50"
-                  >
-                    {updating === lead.id
-                      ? <Loader2 className="w-4 h-4 animate-spin" />
-                      : <Trash2 className="w-4 h-4" />}
-                  </button>
-                </div>
+        {/* ── La fiche d'édition — tout ce que la ligne ne porte pas ────────────── */}
+        {sheet && sheetTotals && (
+          <GlassPanel level="night" padding={18} className="rv mt-3.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <SiteEyebrow style={{ marginBottom: '4px' }}>{t('agencyLeads.sheetEyebrow')}</SiteEyebrow>
+                <p className="m-0 text-[15px] font-bold text-ink">{sheet.businessName}</p>
+                <p className="m-0 mt-1 text-meta-2 text-ink-2">
+                  {t('agencyLeads.receivedOn', { date: formatDate(sheet.createdAt) })}
+                </p>
               </div>
+              <Button size="sm" tone="quiet" onClick={() => setOpenLead(null)}>
+                {t('agencyLeads.closeSheet')}
+              </Button>
             </div>
-          ))}
-        </div>
-      )}
+
+            <div className="mt-3.5">
+              <DocLine label={t('agencyLeads.docContact')} value={`${sheet.contactName} · ${sheet.phone}`} />
+              <DocLine label={t('agencyLeads.docCity')} value={sheet.city} />
+              <DocLine
+                label={t('agencyLeads.docSector')}
+                value={t(`agencyLeads.sectors.${sheet.sector}`, { defaultValue: sheet.sector })}
+              />
+              <DocLine
+                label={t('agencyLeads.docPack')}
+                value={t(`agencyLeads.packs.${sheet.pack}`, { defaultValue: sheet.pack })}
+              />
+              <DocLine
+                label={t('agencyLeads.docPlan')}
+                value={t(`agencyLeads.plans.${sheet.plan}`, { defaultValue: sheet.plan })}
+              />
+              {/* Les montants sortent de la grille tarifaire, jamais d'un calcul local :
+                  `computeTotals` est la source, <Num> la dit. */}
+              <DocLine
+                label={t('agencyLeads.docUpfront')}
+                value={<Num value={formatPrice(sheetTotals.upfront)} source="db" asOf={asOf} />}
+              />
+              <DocLine
+                label={t('agencyLeads.docMonthly')}
+                value={<Num value={formatPrice(sheetTotals.planMonthly)} source="db" asOf={asOf} />}
+              />
+              {sheet.referralCode && (
+                <DocLine label={t('agencyLeads.docReferral')} value={sheet.referralCode} />
+              )}
+              {sheet.quoteRef && (
+                <DocLine
+                  label={t('agencyLeads.docQuote')}
+                  value={
+                    <a
+                      href={`/agence/devis/${sheet.quoteRef}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-digitalise-txt hover:underline"
+                    >
+                      {t('agencyLeads.quoteRef', { ref: sheet.quoteRef })}
+                    </a>
+                  }
+                />
+              )}
+              <DocLine label={t('agencyLeads.docMessage')} value={sheet.message || '—'} last />
+            </div>
+
+            {/* Le statut est l'ÉTAT de la fiche, pas une action : il se règle par un champ. */}
+            <div className="mt-3.5 max-w-xs">
+              <Field
+                as="select"
+                label={t('agencyLeads.changeStatus')}
+                value={sheet.status}
+                onChange={(v) => handleStatus(sheet.id, v as AgencyLeadStatus)}
+                disabled={updating === sheet.id}
+                options={PIPELINE_STAGES.map((s) => ({ value: s, label: t(`agencyLeads.status.${s}`) }))}
+              />
+            </div>
+
+            {/* Notes internes — jamais visibles du prospect (cf. firestore.rules) */}
+            <div className="mt-3.5">
+              <Field
+                as="textarea"
+                rows={3}
+                label={sheet.notes ? t('agencyLeads.notesEdit') : t('agencyLeads.notesAdd')}
+                value={noteDrafts[sheet.id] ?? sheet.notes ?? ''}
+                onChange={(v) => setNoteDrafts((p) => ({ ...p, [sheet.id]: v }))}
+                onBlur={() => handleSaveNote(sheet.id)}
+                placeholder={t('agencyLeads.notesPlaceholder')}
+                hint={savingNote === sheet.id ? t('agencyLeads.notesSaving') : t('agencyLeads.notesHint')}
+              />
+            </div>
+
+            <div className="mt-3.5 flex flex-wrap gap-2">
+              <Button size="sm" tone="digitalise" href={waLink(sheet.phone)} target="_blank">
+                {t('agencyLeads.whatsapp')}
+              </Button>
+              <Button
+                size="sm"
+                tone="quiet"
+                onClick={() => handleDelete(sheet.id)}
+                loading={updating === sheet.id}
+              >
+                {t('agencyLeads.delete')}
+              </Button>
+            </div>
+          </GlassPanel>
+        )}
+
+        <SiteEyebrow style={{ marginTop: '22px', marginBottom: '10px' }}>
+          {stageLabel(stage)}
+        </SiteEyebrow>
+
+        {loading ? (
+          <div className="flex flex-col gap-2">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} height={60} radius="var(--r-l)" label={t('agencyLeads.title')} />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            glyph={<Icon name="case" size={26} color="var(--mm-teal)" />}
+            glyphBackground="color-mix(in srgb, var(--mm-teal) 22%, transparent)"
+            title={t('agencyLeads.emptyTitle')}
+            body={t('agencyLeads.emptyBody')}
+          />
+        ) : (
+          <ConsoleList label={t('agencyLeads.listLabel')} className="rv">
+            {filtered.map((lead, i) => (
+              <li key={lead.id}>
+                <LessonRow
+                  icon={<Icon name="case" size={14} color={`var(${STATUS_TINT[lead.status]})`} />}
+                  iconBackground={`color-mix(in srgb, var(${STATUS_TINT[lead.status]}) 22%, transparent)`}
+                  title={lead.businessName}
+                  meta={`${lead.city} · ${t(`agencyLeads.sectors.${lead.sector}`, { defaultValue: lead.sector })} · ${formatDate(lead.createdAt)}`}
+                  trailing={
+                    <span className="flex items-center gap-2">
+                      <Tag tone={STATUS_TONE[lead.status]}>{t(`agencyLeads.status.${lead.status}`)}</Tag>
+                      <Button
+                        size="sm"
+                        tone="quiet"
+                        onClick={() => setOpenLead(openLead === lead.id ? null : lead.id)}
+                      >
+                        {t('agencyLeads.open')}
+                      </Button>
+                    </span>
+                  }
+                  last={i === filtered.length - 1}
+                />
+              </li>
+            ))}
+          </ConsoleList>
+        )}
+
+        <ConsoleScope>{t('agencyLeads.scope')}</ConsoleScope>
+      </ConsolePage>
     </div>
   );
 }

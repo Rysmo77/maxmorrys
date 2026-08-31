@@ -1,0 +1,63 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   COPIE LITTÉRALE de Design_System_Max-Morrys/brand/fallback.css — NE PAS ÉDITER.
+   Régénéré par `npm run ds:sync`. Tout écart délibéré vit dans overrides/.
+   ───────────────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════════
+   TROIS REPLIS, UNE SEULE SURFACE À REPLIER.
+
+   Un repli n'existe que pour rendre lisible une surface qui PERD son flou. Depuis que le
+   budget de verre est réduit au chrome en position fixe, `.glass` est la seule surface encore
+   floutée : c'est donc la seule que ces trois blocs touchent.
+
+   `.glass-hero`, `.truth` et `.glass-d` en ont été RETIRÉS. Ils n'ont plus de flou à
+   compenser, et leur y laisser une opacité de repli comptait la compensation deux fois : sur
+   un appareil à 2 Go — que la règle 5 désigne comme LE profil du marché, pas un cas limite —
+   la carte de prix passait de 58 % à 90 % de blanc et l'encart de vérité de 72 % à 88 %,
+   sans aucune raison technique. Leur translucidité est désormais une décision de conception,
+   plus un artefact du flou : elle doit survivre au repli.
+
+   Deuxième principe, inchangé : AUCUN REPLI N'IGNORE LE THÈME. Une règle qui force un blanc
+   opaque sans regarder le mode affiche toutes les surfaces de verre en blanc sur un téléphone
+   d'entrée de gamme réglé en sombre. Chaque bloc est donc déclaré deux fois, une fois pour le
+   mode clair et une fois pour `.dk`.
+
+   Ce fichier est le SEUL endroit du système où `prefers-reduced-motion`,
+   `prefers-reduced-transparency` et `@supports not (backdrop-filter)` sont déclarés. Une
+   seconde déclaration locale gagnerait par ordre de chargement et rétablirait silencieusement
+   ce que la personne a refusé.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* — 0 · mouvement réduit —
+   Toutes les durées à 1 ms, dérive du maillage comprise. Les quatre jetons sont réécrits à la
+   racine : un composant qui lit le jeton hérite du réglage sans le savoir. */
+@media (prefers-reduced-motion:reduce){
+  :root{--t-tap:1ms; /* @kind other */ --t-ui:1ms; /* @kind other */ --t-enter:1ms; /* @kind other */ --t-scene:1ms; /* @kind other */}
+  *,*::before,*::after{animation:none!important;transition-duration:1ms!important}
+  html{scroll-behavior:auto}
+}
+
+/* — 1 · backdrop-filter absent du moteur — */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .glass,.mm-chrome{background:rgba(255,255,255,.92)!important}
+  .dk .glass,.dk .mm-chrome{background:rgba(255,255,255,.12)!important}
+}
+
+/* — 2 · réglage système de transparence réduite —
+   Ici on va plus loin que le repli technique : la personne demande MOINS de transparence,
+   donc les surfaces sans flou se densifient aussi. C'est une demande explicite, pas une
+   compensation. */
+@media (prefers-reduced-transparency:reduce){
+  .glass,.mm-chrome{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(255,255,255,.96)!important}
+  .glass-hero,.truth,.glass-flat{background:rgba(255,255,255,.96)!important}
+  .glass-d{background:rgba(14,17,22,.96)!important}
+  .dk .glass,.dk .mm-chrome,.dk .glass-hero{background:rgba(255,255,255,.16)!important}
+  .dk .glass-flat,.dk .truth{background:rgba(255,255,255,.14)!important}
+  .mesh b{animation:none!important}
+}
+
+/* — 3 · appareil modeste, détecté en JS (deviceMemory ≤ 2 ou ≤ 4 cœurs) —
+   Ce repli est une mesure de PERFORMANCE, pas de lisibilité : il coupe le flou et fige la
+   dérive. Il ne touche donc qu'à `.glass`, et laisse les voiles de conception intacts. */
+.lowfi .glass,.lowfi .mm-chrome{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(255,255,255,.9)!important}
+.lowfi .dk .glass,.lowfi .dk .mm-chrome{background:rgba(255,255,255,.13)!important}
+.lowfi .mesh b{animation:none!important}

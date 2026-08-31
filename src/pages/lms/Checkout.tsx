@@ -1,28 +1,67 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import LocalizedLink from '../../components/shared/LocalizedLink';
-import { ArrowLeft, CheckCircle, Shield, Clock, BookOpen, Award, Loader2, ShoppingBag } from 'lucide-react';
 import { httpsCallable } from 'firebase/functions';
 import { writeBatch, doc, collection } from 'firebase/firestore';
-import Button from '../../components/ui/Button';
+import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Mesh, Num, Skeleton, StepDots } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useLanguage, useLocalizedPath } from '../../contexts/LanguageContext';
 import { localizedPath } from '../../i18n/routing';
 import { useToast } from '../../components/ui/Toast';
+import { SiteDisplay, SiteEyebrow, useReveal } from '../../components/site';
+import DsNavHost from '../../components/layout/DsNavHost';
 import { getFormationBySlug } from '../../lib/firestore';
 import { db, functions } from '../../config/firebase';
-import { formatPrice } from '../../lib/utils';
 import type { Formation } from '../../types';
 import { generateEventId } from '../../lib/meta-pixel';
 import { trackBeginCheckout, trackPurchase } from '../../lib/tracking';
 import { markCartPending } from '../../lib/popups/cart';
 
+/**
+ * LE TUNNEL DE COMMANDE — étape 2 sur 3 (`ScreensPay.js` · `Paiement`).
+ *
+ * ═════════════════════════════════════════════════════════════════════════════
+ * POURQUOI IL N'Y A PAS DE `PayOption` SUR CET ÉCRAN, ALORS QUE LE KIT EN MET TROIS
+ *
+ * `PayOption` rend un vrai `<input type="radio">` partageant un `name` : c'est le navigateur
+ * qui porte l'exclusivité du choix, et c'est exactement ce qu'il faut QUAND IL Y A UN CHOIX
+ * À FAIRE. Ici, il n'y en a pas.
+ *
+ * `createBictorysCharge` (`functions/src/payment.ts`) omet `payment_type` DÉLIBÉRÉMENT — son
+ * commentaire le dit : « payment_type is intentionally omitted so the hosted page lets the
+ * user pick Wave / Orange Money / card ». Le moyen de paiement se choisit sur la page hébergée
+ * de l'opérateur, après la redirection. Trois boutons radio ici demanderaient une décision
+ * que rien ne transporte : la personne cocherait « Wave », arriverait sur une page qui lui
+ * redemande, et découvrirait que son choix n'a servi à rien. Sur un écran de paiement, c'est
+ * le pire endroit du produit pour faire semblant.
+ *
+ * Les trois moyens sont donc ANNONCÉS — ils sont vrais, l'opérateur les accepte — sans être
+ * présentés comme un contrôle. C'est la même décision que l'interrupteur grisé de `Switch` :
+ * dire ce que le produit fait plutôt que laisser croire.
+ *
+ * ⚠️ ÉCART SIGNALÉ, NON CORRIGÉ (hors lot) : LE TOTAL AFFICHÉ IGNORE LE CODE PROMO.
+ *
+ * `finalPrice` est lu ICI, dans le navigateur, sur la copie de catalogue (`promoPrice ??
+ * price`). Le serveur, lui, valide le coupon et débite `finalPrice - couponDiscount`. Quelqu'un
+ * qui saisit un code voit donc « Payer 95 000 » et se fait débiter moins. `couponHint` le dit
+ * en toutes lettres au lieu de le laisser découvrir, et `serverComputed` reprend la phrase du
+ * kit — « Montant calculé et débité côté serveur ». La vraie correction est de faire calculer
+ * le total par une fonction serveur avant l'affichage ; elle n'appartient pas à ce lot.
+ * ═════════════════════════════════════════════════════════════════════════════
+ */
+
 const createBictorysCharge = httpsCallable<
   { formationId: string; formationSlug: string; metaEventId?: string; couponCode?: string },
   { checkoutUrl: string; transactionId: string }
 >(functions, 'createBictorysCharge');
+
+/** Les trois moyens que la page hébergée accepte. Aucun logo de marque : pas de dégradé
+ *  tiers à faire entrer par l'échappatoire d'AD-2 pour une ligne qui ne se clique pas. */
+const METHODS = [
+  { key: 'Wave', glyph: 'send' as const },
+  { key: 'Om', glyph: 'card' as const },
+  { key: 'Card', glyph: 'card' as const },
+];
 
 export default function Checkout() {
   const { t } = useTranslation('lms');
@@ -31,16 +70,21 @@ export default function Checkout() {
   const { language } = useLanguage();
   const { addToast } = useToast();
   const navigate = useNavigate();
+  const path = useLocalizedPath();
+  const reveal = useReveal<HTMLDivElement>();
 
   const [formation, setFormation] = useState<Formation | null | undefined>(undefined);
   const [couponCode, setCouponCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  /** L'instant de la lecture du catalogue : c'est la date de relevé du prix affiché. */
+  const [readAt, setReadAt] = useState<Date>(() => new Date());
 
   useEffect(() => {
     if (!slug) return;
     getFormationBySlug(slug).then((data) => {
       setFormation(data);
+      setReadAt(new Date());
       if (data) {
         // Rappel de panier abandonné : levé au paiement abouti, expire seul à sept jours.
         markCartPending(data.slug);
@@ -66,23 +110,36 @@ export default function Checkout() {
 
   if (formation === undefined) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-500" aria-label={t('certificate.loadingAria')} />
-      </div>
+      <Frame>
+        <GlassPanel level="flat" padding={18}>
+          <Skeleton width="45%" height={19} label={t('certificate.loadingAria')} />
+          <Skeleton width="80%" height={30} style={{ marginTop: '16px' }} />
+          <Skeleton height={68} radius="var(--r-m)" style={{ marginTop: '20px' }} />
+          <Skeleton height={68} radius="var(--r-m)" style={{ marginTop: '10px' }} />
+        </GlassPanel>
+      </Frame>
     );
   }
 
   if (!formation) {
     return (
-      <div className="pt-32 pb-20 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{t('checkout.notFoundTitle')}</h1>
-        <LocalizedLink to="/formations" className="text-brand-600 dark:text-brand-400 hover:underline">{t('checkout.backToFormations')}</LocalizedLink>
-      </div>
+      <Frame>
+        <SiteDisplay lines={t('checkout.notFoundLines', { returnObjects: true }) as string[]} size={30} />
+        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+          <EmptyState
+            glyph={<Icon name="book" size={26} color="var(--text-muted)" />}
+            title={t('checkout.notFoundTitle')}
+            action={<Button tone="quiet" fullWidth href={path('/formations')}>{t('checkout.backToFormations')}</Button>}
+            style={{ padding: 0 }}
+          />
+        </GlassPanel>
+      </Frame>
     );
   }
 
   const finalPrice = formation.promoPrice ?? formation.price;
   const isFree = finalPrice === 0;
+  const lessonCount = (formation.modules ?? []).reduce((a, m) => a + m.lessons.length, 0);
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -159,161 +216,163 @@ export default function Checkout() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-success-100 dark:bg-success-900/30 flex items-center justify-center mx-auto mb-5">
-            <CheckCircle className="w-8 h-8 text-success-500" />
-          </div>
-          <h1 className="text-2xl font-black text-neutral-900 dark:text-white mb-2">
-            {t('checkout.successTitle')}
-          </h1>
-          <p className="text-neutral-500 text-sm mb-6 leading-relaxed">
-            {t('checkout.successText', { title: formation.title })}
-          </p>
-          <div className="flex flex-col gap-3">
-            <LocalizedLink to={`/cours/${formation.slug}`}>
-              <Button className="w-full">{t('checkout.startCourse')}</Button>
-            </LocalizedLink>
-            <LocalizedLink to="/formations" className="text-sm text-brand-600 dark:text-brand-400 hover:underline">
-              {t('checkout.seeOtherFormations')}
-            </LocalizedLink>
-          </div>
-        </div>
-      </div>
+      <Frame>
+        <SiteDisplay lines={t('checkout.successLines', { returnObjects: true }) as string[]} size={30} />
+        <p className="text-lede text-ink-2 mt-3">{t('checkout.successText', { title: formation.title })}</p>
+        <Button tone="digitalise" href={path(`/cours/${formation.slug}`)} className="mt-5">
+          {t('checkout.startCourse')}
+        </Button>
+        <Button tone="quiet" fullWidth href={path('/formations')} className="mt-2.5">
+          {t('checkout.seeOtherFormations')}
+        </Button>
+      </Frame>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 overflow-x-clip">
-      <motion.div
-        className="max-w-4xl mx-auto px-4 sm:px-6 pt-28 lg:pt-36 pb-20"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
-      >
-        {/* Back link */}
-        <LocalizedLink to={`/formations/${formation.slug}`} className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> {t('checkout.backToFormation')}
-        </LocalizedLink>
+    <Frame back={{ href: path(`/formations/${formation.slug}`), label: t('checkout.backToFormation') }}
+      center={t('checkout.stepOf', { current: 2, total: 3 })}>
+      <div ref={reveal}>
+        <StepDots
+          total={3}
+          current={2}
+          label={t('checkout.stepsLabel')}
+          steps={[t('checkout.step1'), t('checkout.step2'), t('checkout.step3')]}
+          style={{ marginBottom: '20px' }}
+        />
 
-        <div className="grid lg:grid-cols-[1fr_360px] gap-8">
+        <SiteDisplay
+          lines={t(isFree ? 'checkout.freeTitleLines' : 'checkout.titleLines', { returnObjects: true }) as string[]}
+          size={30}
+        />
 
-          {/* Left: Payment */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-black tracking-tight text-neutral-900 dark:text-white mb-2">
-                {t('checkout.finalizeTitle')}
-              </h1>
-              <p className="text-neutral-500 text-sm">
-                {isFree
-                  ? t('checkout.freeSubtitle')
-                  : t('checkout.paidSubtitle')}
-              </p>
-            </div>
+        {/* ── Le récapitulatif chiffré ───────────────────────────────────────
+            Chaque montant passe par <Num source="db"> : il vient du catalogue Firestore, et
+            `readAt` est l'instant où le navigateur l'a lu. La date de relevé n'est pas une
+            décoration — c'est ce qui distingue « le prix est 95 000 » de « le prix ÉTAIT
+            95 000 quand j'ai ouvert la page ». */}
+        <GlassPanel
+          level="flat" padding={18} className="rv mt-4"
+          style={{ ['--i' as string]: 2 }}
+          role="group" aria-label={t('checkout.summaryLabel')}
+        >
+          <p className="font-black text-ink text-body m-0">{formation.title}</p>
 
-            {!isFree && (
-              <>
-                {/* Payment info */}
-                <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-5 space-y-3">
-                  <h3 className="font-bold text-neutral-900 dark:text-white text-sm">{t('checkout.securePayment')}</h3>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                    {t('checkout.securePaymentText')}
-                  </p>
-                  <div className="bg-neutral-50 dark:bg-neutral-900 rounded-xl p-3">
-                    <p className="text-xs text-neutral-400 mb-0.5">{t('checkout.amountToPay')}</p>
-                    <p className="font-black text-xl text-brand-600 dark:text-brand-400">{formatPrice(finalPrice)}</p>
-                  </div>
-                </div>
-
-                {/* Coupon */}
-                <div className="space-y-1">
-                  <label htmlFor="coupon" className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                    {t('checkout.couponLabel')}
-                  </label>
-                  <input
-                    id="coupon"
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="MAXMORRYS2026"
-                    className="w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 placeholder-neutral-400"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Submit */}
-            <Button
-              className="w-full"
-              size="lg"
-              onClick={handleSubmit}
-              disabled={submitting}
-              icon={submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : isFree ? <CheckCircle className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
-            >
-              {submitting
-                ? t('checkout.processing')
-                : isFree
-                  ? t('checkout.confirmFree')
-                  : t('checkout.payAmount', { amount: formatPrice(finalPrice) })
-              }
-            </Button>
-
-            <p className="text-xs text-neutral-400 text-center flex items-center justify-center gap-1.5">
-              <Shield className="w-3.5 h-3.5" />
-              {t('checkout.secureGuarantee')}
-            </p>
+          <div className="mt-3">
+            <LessonRow state="plain" icon={<Icon name="clock" size={14} />} title={t('checkout.durationLabel')} meta={formation.duration} />
+            <LessonRow
+              state="plain" icon={<Icon name="book" size={14} />} title={t('checkout.lessonsLabel')}
+              meta={<Num value={lessonCount} source="db" asOf={readAt} />}
+            />
+            <LessonRow state="plain" icon={<Icon name="medal" size={14} />} title={t('checkout.certificateIncluded')} last />
           </div>
 
-          {/* Right: Order summary */}
-          <div className="lg:sticky lg:top-28 h-fit">
-            <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6">
-              <h2 className="font-bold text-neutral-900 dark:text-white mb-4 text-sm">{t('checkout.summary')}</h2>
-
-              {formation.coverImage && (
-                <img src={formation.coverImage} alt={formation.title} className="w-full h-32 object-cover rounded-xl mb-4" />
-              )}
-
-              <h3 className="font-black text-neutral-900 dark:text-white text-base mb-3">{formation.title}</h3>
-
-              <div className="space-y-2 text-sm text-neutral-500 mb-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-brand-500 flex-shrink-0" />
-                  <span>{formation.duration}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-brand-500 flex-shrink-0" />
-                  <span>{t('checkout.lessonsCount', { count: (formation.modules ?? []).reduce((a, m) => a + m.lessons.length, 0) })}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-brand-500 flex-shrink-0" />
-                  <span>{t('checkout.certificateIncluded')}</span>
-                </div>
+          {formation.promoPrice !== undefined && formation.promoPrice < formation.price && (
+            <>
+              <div className="flex items-center justify-between gap-3 mt-4">
+                <span className="text-meta text-ink-2">{t('checkout.originalPrice')}</span>
+                <s className="text-ink-2"><Num value={formation.price} source="db" asOf={readAt} /></s>
               </div>
-
-              <div className="border-t border-neutral-100 dark:border-neutral-800 pt-4 space-y-2">
-                {formation.promoPrice ? (
-                  <>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-neutral-500">{t('checkout.originalPrice')}</span>
-                      <span className="text-neutral-400 line-through">{formatPrice(formation.price)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-success-600 dark:text-success-400 font-medium">{t('checkout.discount')}</span>
-                      <span className="text-success-600 dark:text-success-400 font-medium">-{formatPrice(formation.price - (formation.promoPrice ?? 0))}</span>
-                    </div>
-                  </>
-                ) : null}
-                <div className="flex justify-between pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                  <span className="font-bold text-neutral-900 dark:text-white">{t('checkout.total')}</span>
-                  <span className="font-black text-xl text-brand-600 dark:text-brand-400">
-                    {isFree ? t('checkout.free') : formatPrice(finalPrice)}
-                  </span>
-                </div>
+              <div className="flex items-center justify-between gap-3 mt-2">
+                <span className="text-meta text-ok font-medium">{t('checkout.discount')}</span>
+                <span className="text-ok"><Num value={-(formation.price - formation.promoPrice)} source="db" asOf={readAt} /></span>
               </div>
-            </div>
+            </>
+          )}
+
+          <div className="h-px bg-[color:var(--border-hair)] my-[13px]" />
+
+          <div className="flex items-baseline justify-between gap-3">
+            <b className="text-body">{t('checkout.total')}</b>
+            {isFree
+              ? <b className="text-ttl text-ok">{t('checkout.free')}</b>
+              : <b style={{ fontSize: '23px' }}><Num value={finalPrice} unit="FCFA" source="db" asOf={readAt} /></b>}
           </div>
-        </div>
-      </motion.div>
+          {/* La phrase du kit, et elle n'est pas cosmétique : c'est le serveur qui recalcule
+              le montant et applique le coupon. Ce total-ci est une lecture, pas un engagement. */}
+          <p className="text-small text-ink-2 m-0 mt-1.5">{t('checkout.serverComputed')}</p>
+        </GlassPanel>
+
+        {!isFree && (
+          <>
+            {/* ── Les moyens acceptés — annoncés, pas choisis. Voir l'en-tête du fichier. */}
+            <SiteEyebrow style={{ marginTop: '22px' }}>{t('checkout.methodsTitle')}</SiteEyebrow>
+            <GlassPanel level="flat" padding="4px 18px" className="rv" style={{ ['--i' as string]: 3 }}>
+              {METHODS.map((m, i) => (
+                <LessonRow
+                  key={m.key}
+                  state="plain"
+                  icon={<Icon name={m.glyph} size={14} />}
+                  title={t(`checkout.method${m.key}`)}
+                  meta={t(`checkout.method${m.key}Note`)}
+                  last={i === METHODS.length - 1}
+                />
+              ))}
+            </GlassPanel>
+            <p className="rv text-small text-ink-2 mt-1.5" style={{ ['--i' as string]: 3 }}>{t('checkout.methodsNote')}</p>
+
+            <div className="rv" style={{ ['--i' as string]: 4 }}>
+              <Field
+                label={t('checkout.couponLabel')}
+                value={couponCode}
+                onChange={setCouponCode}
+                placeholder={t('checkout.couponPlaceholder')}
+                hint={t('checkout.couponHint')}
+                autoComplete="off"
+              />
+            </div>
+          </>
+        )}
+
+        <Button
+          tone={isFree ? 'digitalise' : 'forme'}
+          onClick={() => void handleSubmit()}
+          loading={submitting}
+          className="rv mt-5"
+          style={{ ['--i' as string]: 6 }}
+        >
+          {/* Le libellé et le montant sont deux morceaux, pas une phrase interpolée : le
+              montant doit passer par <Num> pour porter sa provenance, et une chaîne
+              « Payer {{amount}} » l'aurait rendu en corps, sans source. */}
+          {isFree ? t('checkout.confirmFree') : t('checkout.payLabel')}
+          {!isFree && <Num value={finalPrice} unit="FCFA" source="db" asOf={readAt} />}
+        </Button>
+
+        <p className="rv text-small text-ink-2 text-center mt-2.5" style={{ ['--i' as string]: 7 }}>
+          {isFree ? t('checkout.secureGuarantee') : t('checkout.leaveNote')}
+        </p>
+      </div>
+    </Frame>
+  );
+}
+
+/**
+ * La coquille d'un écran de PILE : maillage, gouttière de 18 px, barre haute à bouton retour.
+ * Pas de barre d'onglets — le kit est formel, seuls `Espace`, `Lecteur`, `Rysmo`, `Club` et
+ * `MesNotes` en portent une, et un tunnel de commande n'en est pas.
+ */
+function Frame({
+  children, back, center,
+}: {
+  children: React.ReactNode;
+  back?: { href: string; label: string };
+  center?: string;
+}) {
+  return (
+    <div className="relative min-h-screen isolate overflow-hidden px-[18px] pt-4 pb-16">
+      <Mesh territory="forme" />
+      <DsNavHost className="relative z-[3] w-full max-w-[520px] mx-auto">
+        {back && (
+          <div className="flex items-center gap-3 h-12 mb-2">
+            <a href={back.href} aria-label={back.label} className="mm-touch-extend inline-grid place-items-center w-touch h-touch rounded-full text-ink-2">
+              <Icon name="back" size={19} strokeWidth={2.4} />
+            </a>
+            {center && <span className="flex-1 text-center text-meta font-semibold text-ink-2">{center}</span>}
+            <span className="w-touch" aria-hidden="true" />
+          </div>
+        )}
+        {children}
+      </DsNavHost>
     </div>
   );
 }

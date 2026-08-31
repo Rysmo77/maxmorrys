@@ -454,7 +454,7 @@ function CoverPanel({ formation }: { formation: Formation }) {
         decoding="async"
         className="absolute inset-0 w-full h-full object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/40 to-transparent" />
+      <div className="absolute inset-0 bg-[image:linear-gradient(to_right,var(--night-2),color-mix(in_srgb,var(--night-2)_40%,transparent),transparent)]" />
     </>
   );
 }

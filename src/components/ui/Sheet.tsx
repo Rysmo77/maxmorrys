@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
+import { Icon } from '@ds';
 
 interface SheetProps {
   open: boolean;
@@ -60,33 +60,33 @@ export default function Sheet({ open, onClose, title, children }: SheetProps) {
     <div className="fixed inset-0 z-50 lg:hidden">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 animate-fade-in"
+        className="absolute inset-0 bg-black/50 mm-drop"
         onClick={onClose}
       />
 
       {/* Sheet */}
       <div
         ref={sheetRef}
-        className="absolute bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col animate-slide-up transition-transform"
+        className="absolute bottom-0 left-0 right-0 bg-paper dark:bg-[color:var(--night-3)] rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col mm-drop transition-transform"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+          <div className="w-10 h-1 rounded-full bg-[color:var(--fill-4)]" />
         </div>
 
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-200 dark:border-neutral-700">
-            <h3 className="font-bold text-neutral-900 dark:text-white text-sm">{title}</h3>
+          <div className="flex items-center justify-between px-5 py-3 border-b border-[color:var(--line)]">
+            <h3 className="font-bold text-ink text-sm">{title}</h3>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+              className="p-1.5 rounded-lg text-ink-2 hover:text-ink-2 hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors"
               aria-label={t('sheet.close')}
             >
-              <X className="w-4 h-4" />
+              <Icon name="close" size={16} />
             </button>
           </div>
         )}

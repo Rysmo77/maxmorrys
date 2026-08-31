@@ -2,11 +2,9 @@ import { useEffect, useState, lazy, Suspense } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toCanonicalPath } from '../../i18n/routing';
-import {
-  LayoutDashboard, BookOpen, BookMarked, Award, Inbox, User, Settings, Crown, Home, Bot, MessageSquareQuote,
-} from 'lucide-react';
 import AppShell from './AppShell';
 import { useAuth } from '../../contexts/AuthContext';
+import { tutorName } from '../../lib/naming';
 import { useToast } from '../ui/Toast';
 import { useStudentData, type EnrolledFormation } from '../../pages/lms/hooks/useStudentData';
 import { useNotes } from '../../pages/lms/hooks/useNotes';
@@ -133,7 +131,10 @@ export default function StudentLayout() {
       titleMap={{
         '/mon-espace/tableau-de-bord': t('titles.dashboard'),
         '/mon-espace/cours':           t('titles.courses'),
-        '/mon-espace/rysmo':           t('titles.rysmo'),
+        // AD-12 — le nom du répétiteur vient du PROFIL, jamais d'une clé de traduction.
+        // C'est un réglage : chaque personne peut le renommer, et le nom choisi doit
+        // remplacer le mot partout. Une clé i18n figerait « Rysmo » pour tout le monde.
+        '/mon-espace/repetiteur':      tutorName(userData),
         '/mon-espace/notes':           t('titles.notes'),
         '/mon-espace/succes':          t('titles.achievements'),
         '/mon-espace/messages':        t('titles.messages'),
@@ -146,20 +147,20 @@ export default function StudentLayout() {
         {
           title: t('nav.sectionSpace'),
           items: [
-            { to: '/mon-espace/tableau-de-bord', label: t('nav.dashboard'), icon: LayoutDashboard },
-            { to: '/mon-espace/cours',           label: t('nav.courses'),   icon: BookOpen },
-            { to: '/mon-espace/rysmo',           label: t('nav.rysmo'),     icon: Bot },
-            { to: '/mon-espace/notes',           label: t('nav.notes'),     icon: BookMarked },
-            { to: '/mon-espace/succes',          label: t('nav.achievements'), icon: Award },
-            { to: '/mon-espace/messages',        label: t('nav.messages'),  icon: Inbox },
-            { to: '/mon-espace/temoignages',     label: t('nav.testimonials'), icon: MessageSquareQuote },
+            { to: '/mon-espace/tableau-de-bord', label: t('nav.dashboard'), icon: 'dashboard' },
+            { to: '/mon-espace/cours',           label: t('nav.courses'),   icon: 'book' },
+            { to: '/mon-espace/repetiteur',      label: tutorName(userData), icon: 'bot' },
+            { to: '/mon-espace/notes',           label: t('nav.notes'),     icon: 'bookmark' },
+            { to: '/mon-espace/succes',          label: t('nav.achievements'), icon: 'award' },
+            { to: '/mon-espace/messages',        label: t('nav.messages'),  icon: 'inbox' },
+            { to: '/mon-espace/temoignages',     label: t('nav.testimonials'), icon: 'quote' },
           ],
         },
         {
           title: t('nav.sectionCommunity'),
           items: [
             {
-              to: '/mon-espace/club', label: t('nav.club'), icon: Crown, tone: 'club',
+              to: '/mon-espace/club', label: t('nav.club'), icon: 'crown', tone: 'club',
               locked: !isClubActive,
               badge: isClubPending ? t('nav.clubPending') : null,
             },
@@ -168,18 +169,18 @@ export default function StudentLayout() {
         {
           title: t('nav.sectionAccount'),
           items: [
-            { to: '/mon-espace/profil',     label: t('nav.profile'),    icon: User },
-            { to: '/mon-espace/parametres', label: t('nav.settings'),   icon: Settings },
-            { to: '/',                       label: t('nav.backToSite'), icon: Home, end: true },
+            { to: '/mon-espace/profil',     label: t('nav.profile'),    icon: 'user' },
+            { to: '/mon-espace/parametres', label: t('nav.settings'),   icon: 'settings' },
+            { to: '/',                       label: t('nav.backToSite'), icon: 'home', end: true },
           ],
         },
       ]}
       bottomNavItems={[
-        { to: '/mon-espace/tableau-de-bord', label: t('nav.bottomHome'),     icon: Home },
-        { to: '/mon-espace/cours',           label: t('nav.bottomCourses'),  icon: BookOpen },
-        { to: '/mon-espace/club',            label: t('nav.bottomClub'),     icon: Crown },
-        { to: '/mon-espace/messages',        label: t('nav.bottomMessages'), icon: Inbox },
-        { to: '/mon-espace/profil',          label: t('nav.bottomProfile'),  icon: User },
+        { to: '/mon-espace/tableau-de-bord', label: t('nav.bottomHome'),     icon: 'home' },
+        { to: '/mon-espace/cours',           label: t('nav.bottomCourses'),  icon: 'book' },
+        { to: '/mon-espace/club',            label: t('nav.bottomClub'),     icon: 'crown' },
+        { to: '/mon-espace/messages',        label: t('nav.bottomMessages'), icon: 'inbox' },
+        { to: '/mon-espace/profil',          label: t('nav.bottomProfile'),  icon: 'user' },
       ]}
       contentClassName="p-4 sm:p-6 max-w-6xl mx-auto w-full"
       outletContext={context}

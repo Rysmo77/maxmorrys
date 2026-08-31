@@ -26,12 +26,12 @@ interface PopupHeadingProps {
 /** Chaînes littérales : Tailwind purge tout nom de classe construit par concaténation. */
 const TONES = {
   lagoon: {
-    eyebrow: 'text-lagoon-400',
-    sticker: 'bg-lagoon-500 text-neutral-950 shadow-lagoon-500/25',
+    eyebrow: 'text-digitalise-txt',
+    sticker: 'bg-[color:var(--mm-teal)] text-ink shadow-digitalise',
   },
   brand: {
-    eyebrow: 'text-brand-400',
-    sticker: 'bg-brand-500 text-neutral-950 shadow-brand-500/25',
+    eyebrow: 'text-forme',
+    sticker: 'bg-[color:var(--mm-bleu)] text-ink shadow-forme',
   },
 } as const;
 
@@ -58,7 +58,7 @@ export default function PopupHeading({ eyebrow, title, sticker, tone = 'lagoon' 
             initial={reduced ? false : { scale: 0.4, rotate: 0, opacity: 0 }}
             animate={reduced ? undefined : { scale: 1, rotate: -8, opacity: 1 }}
             transition={{ delay: 0.25, type: 'spring', stiffness: 320, damping: 14 }}
-            className={`hidden lg:inline-block absolute -top-1 right-0 px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wide shadow-lg -rotate-6 ${palette.sticker}`}
+            className={`hidden lg:inline-block absolute -top-1 right-0 px-3 py-1.5 rounded-md text-xs font-black uppercase tracking-wide -rotate-6 ${palette.sticker}`}
           >
             {sticker}
           </motion.span>

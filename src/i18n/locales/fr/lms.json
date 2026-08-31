@@ -38,6 +38,7 @@
     "expandSidebar": "Étendre la barre latérale",
     "collapseSidebar": "Réduire la barre latérale",
     "openCommandPalette": "Ouvrir la palette de commandes",
+    "locked": "Verrouillé",
     "searchAndActions": "Recherche & actions",
     "primaryNav": "Navigation principale",
     "openMenu": "Ouvrir le menu",
@@ -75,8 +76,24 @@
     "completed100": "Formation complétée à 100%",
     "issuedDate": "Date d'obtention",
     "verificationCode": "Code de vérification",
-    "shareText": "J'ai obtenu mon certificat \"{{title}}\" sur Max-Morrys ! 🎓",
-    "backToSite": "← Retour sur maxmorrys.me"
+    "shareText": "J'ai obtenu mon certificat « {{title}} » sur Max-Morrys.",
+    "backToSite": "← Retour sur maxmorrys.me",
+    "doneLine": "C'EST FAIT.",
+    "issuedOn": "Émis le {{date}}",
+    "verified": "Vérifié",
+    "certificateOf": "Certificat de fin de formation",
+    "deliveredTo": "Délivré à",
+    "verifiableBy": "Vérifiable par n'importe qui, sans compte, sans que ton nom apparaisse dans une liste.",
+    "shareLinkedin": "Partager sur LinkedIn",
+    "copyLink": "Copier le lien de vérification",
+    "copied": "Lien de vérification copié.",
+    "copyError": "Impossible de copier le lien.",
+    "whyItCounts": "Pourquoi il vaut quelque chose",
+    "whyItCountsBody": "Les leçons ont été recomptées côté serveur au moment de l'émission : le certificat n'est pas émis sur la foi d'un pourcentage envoyé par le navigateur. Ce n'est pas une image, c'est un enregistrement que ton futur employeur contrôle lui-même.",
+    "notFoundLines": [
+      "CE CODE",
+      "NE DIT RIEN."
+    ]
   },
   "checkout": {
     "notFoundTitle": "Formation introuvable",
@@ -104,7 +121,42 @@
     "originalPrice": "Prix original",
     "discount": "Réduction",
     "total": "Total",
-    "free": "Gratuit"
+    "free": "Gratuit",
+    "titleLines": [
+      "Comment tu paies ?"
+    ],
+    "freeTitleLines": [
+      "On y va."
+    ],
+    "stepOf": "Étape {{current}} sur {{total}}",
+    "stepsLabel": "Tunnel de commande",
+    "step1": "Choisir la formation",
+    "step2": "Vérifier le montant",
+    "step3": "Valider chez l'opérateur",
+    "serverComputed": "Montant calculé et débité côté serveur.",
+    "methodsTitle": "Moyens de paiement acceptés",
+    "methodsNote": "Le choix se fait sur la page sécurisée de l'opérateur, pas ici.",
+    "methodWave": "Wave",
+    "methodWaveNote": "Tu valides dans l'application Wave",
+    "methodOm": "Orange Money",
+    "methodOmNote": "Code de confirmation par SMS",
+    "methodCard": "Carte bancaire",
+    "methodCardNote": "Visa, Mastercard",
+    "leaveNote": "Tu quittes le site pour valider, puis tu reviens ici.",
+    "couponPlaceholder": "Ton code",
+    "couponHint": "Le code est vérifié au moment du paiement. La remise apparaît sur la page de l'opérateur, pas sur ce total.",
+    "durationLabel": "Durée",
+    "summaryLabel": "Récapitulatif de la commande",
+    "notFoundLines": [
+      "CETTE FORMATION",
+      "N'EXISTE PAS."
+    ],
+    "successLines": [
+      "C'est à toi."
+    ],
+    "priceSource": "Prix du catalogue",
+    "payLabel": "Payer",
+    "lessonsLabel": "Leçons"
   },
   "paymentReturn": {
     "verifyingTitle": "Vérification du paiement...",
@@ -118,7 +170,34 @@
     "failedTitle": "Paiement échoué",
     "failedText": "Le paiement n'a pas abouti. Tu peux réessayer ou nous contacter si le problème persiste.",
     "backToFormations": "Retour aux formations",
-    "contactUs": "Nous contacter"
+    "contactUs": "Nous contacter",
+    "verifyingTitleLines": [
+      "On vérifie",
+      "ton paiement."
+    ],
+    "pendingTitleLines": [
+      "Ton paiement",
+      "est en cours."
+    ],
+    "confirmedTitleLines": [
+      "C'est à toi."
+    ],
+    "failedTitleLines": [
+      "Le paiement",
+      "n'est pas passé."
+    ],
+    "reference": "Référence",
+    "statusLabel": "Statut",
+    "statusChecking": "Vérification",
+    "statusPending": "En attente",
+    "statusPaid": "Payée",
+    "statusFailed": "Échouée",
+    "amountDebited": "Montant débité",
+    "confirmedFoot": "Débité une fois, accès à vie. Le reçu est dans ton espace.",
+    "pendingFoot": "Rien n'est débité deux fois : chaque paiement porte une référence unique.",
+    "failedFoot": "Rien n'a été débité. Ta commande reste ouverte, tu peux reprendre où tu en étais.",
+    "retry": "Réessayer le paiement",
+    "waitingAria": "Paiement en attente de confirmation"
   },
   "onboarding": {
     "stepWelcomeSubtitle": "Personnalise ton profil",
@@ -191,7 +270,31 @@
     "courseOutline": "Plan du cours",
     "toastFormationCompleted": "Félicitations ! Tu as terminé cette formation !",
     "toastCertificateIssued": "Ton certificat a ete emis !",
-    "errorSaveProgress": "Erreur lors de la sauvegarde de la progression."
+    "errorSaveProgress": "Erreur lors de la sauvegarde de la progression.",
+    "moduleLesson": "Module {{module}} · Leçon {{lesson}}",
+    "programTitle": "Le programme",
+    "programMeta": "{{modules}} modules · {{lessons}} leçons · {{done}} faites",
+    "progressLabel": "Progression dans la formation",
+    "breadcrumbLabel": "Fil de navigation",
+    "videoLabel": "Lecteur vidéo de la leçon",
+    "moduleToggle": "Déplier ou replier le module « {{title}} »",
+    "quizAnswersLabel": "Réponses possibles",
+    "lessonNotStarted": "à faire",
+    "lessonCurrent": "en cours",
+    "outlineLabel": "Plan du cours",
+    "notFoundLines": [
+      "CE COURS",
+      "N'EXISTE PAS."
+    ],
+    "lockedLines": [
+      "CE COURS",
+      "EST FERMÉ."
+    ],
+    "selectLines": [
+      "Choisis",
+      "une leçon."
+    ],
+    "durationSource": "Durée déclarée dans la fiche de la leçon"
   },
   "rysmoPage": {
     "tabTokens": "Tokens & abonnements",
@@ -223,5 +326,35 @@
     "record_one": "Record : {{count}} jour",
     "record_other": "Record : {{count}} jours",
     "xpBonus": "+{{xp}} XP bonus"
+  },
+  "verify": {
+    "seoTitle": "Vérifier un certificat",
+    "seoDescription": "Contrôle d'un code de certificat Max-Morrys. Sans compte, sans inscription : la page répond à un code, et à un seul.",
+    "titleLines": [
+      "Vérifier",
+      "un certificat"
+    ],
+    "lede": "Colle le code figurant sur le document. Aucun compte n'est nécessaire, et rien n'est enregistré sur la personne qui vérifie.",
+    "codeLabel": "Code du certificat",
+    "codePlaceholder": "MM-0000-0000-0000",
+    "codeHint": "Quatre groupes, séparés par des tirets, tels qu'ils figurent sur le document.",
+    "submit": "Vérifier",
+    "emptyError": "Entre le code figurant sur le document.",
+    "idleTitle": "Le résultat s'affichera ici",
+    "idleBody": "Titulaire, formation, date d'émission et code. Rien d'autre : la page ne remonte à aucun compte.",
+    "validTitle": "Certificat authentique",
+    "validIssuer": "Émis par Max-Morrys, MY ONOMA SARL, Dakar.",
+    "holder": "Titulaire",
+    "formation": "Formation",
+    "issuedOn": "Émis le",
+    "code": "Code",
+    "openCertificate": "Voir le certificat",
+    "notFoundTitle": "Aucun certificat à ce code",
+    "notFoundBody": "Ce code ne correspond à rien d'émis. Vérifie la saisie avant d'en conclure quoi que ce soit — un caractère de travers suffit. Si le document te paraît authentique malgré tout, écris-moi.",
+    "failedTitle": "La vérification n'a pas abouti",
+    "failedBody": "La demande n'a pas atteint le serveur. Ce n'est PAS une réponse sur le certificat : réessaie dans un instant, ou écris-moi si cela persiste.",
+    "truthTitle": "Ce que cette page ne permet pas",
+    "truthBody": "Elle ne liste pas les certificats émis, et ne remonte à aucun compte. Elle répond à un code, et à un seul. C'est ce qui la rend utilisable par un employeur sans exposer les titulaires.",
+    "contact": "Écris-moi"
   }
 }

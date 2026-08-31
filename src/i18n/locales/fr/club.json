@@ -17,14 +17,16 @@
       "referral": "Parrainer"
     },
     "upcomingEvents": "Événements à venir",
-    "liveSessions": "Sessions live"
+    "liveSessions": "Sessions live",
+    "statusActive": "Actif",
+    "navLabel": "Onglets du Club"
   },
   "sessions": {
     "emptyTitle": "Aucune session live programmée",
     "emptySubtitle": "Les prochaines sessions en direct avec Max-Morrys apparaîtront ici.",
     "nextSession": "Prochaine session",
     "pastSession": "Session passée",
-    "duration": "⏱ Durée : {{duration}}",
+    "duration": "Durée : {{duration}}",
     "join": "Rejoindre",
     "registered": "Inscrit(e)",
     "register": "S'inscrire"
@@ -50,8 +52,21 @@
     "convertedReferrals_one": "Filleul converti",
     "convertedReferrals_other": "Filleuls convertis",
     "ambassador": "Ambassadeur",
-    "badgeUnlocked": "Badge débloqué 🎉",
-    "refer1Member": "Parraine 1 membre"
+    "badgeUnlocked": "Badge débloqué",
+    "refer1Member": "Parraine 1 membre",
+    "yourCode": "Ton code",
+    "noCode": "code en cours de création",
+    "priceLine": "Ton code fait passer le Club de <0></0> à <1></1> pour la personne que tu parraines. La remise est calculée côté serveur.",
+    "convertedTitle": "Filleuls",
+    "unlockedTag": "Débloqué",
+    "truth": {
+      "provenTitle": "Ce que le parrainage fait",
+      "withheldTitle": "Ce qu'il ne te rapporte pas",
+      "proven1": "La remise est appliquée par le serveur au moment du paiement, jamais par le navigateur.",
+      "proven2": "Le compteur de filleuls ne compte que les inscriptions abouties, pas les liens envoyés.",
+      "withheld1": "Rien en argent pour toi : la remise va au filleul. Tu gagnes de l'XP et le badge Ambassadeur, et rien d'autre.",
+      "withheld2": "Aucun compteur de partages : un lien copié ne laisse aucune trace, et un chiffre à cet endroit serait inventé."
+    }
   },
   "infos": {
     "emptyTitle": "Aucune info exclusive",
@@ -61,14 +76,32 @@
     "typeArticle": "Article",
     "learnMore": "En savoir plus",
     "like": "J'aime",
-    "share": "Partager"
+    "share": "Partager",
+    "truth": {
+      "provenTitle": "Ce que je peux te prouver ici",
+      "withheldTitle": "Ce que je n'affiche pas",
+      "proven1": "Chaque info porte sa date de publication et sa catégorie, telles qu'elles sont enregistrées.",
+      "proven2": "Publier ici ne dépend que de moi : l'agenda de publication est tenu, ou il ne l'est pas, et ça se voit aux dates.",
+      "withheld1": "Aucun nombre de lectures ni de partages : rien ne les mesure, et un compteur inventé se prend en défaut au premier coup d'œil."
+    }
   },
   "leaderboard": {
     "emptyText": "Le classement se construit. Gagne de l'XP pour y figurer !",
     "title": "Classement de la communauté",
     "you": " · toi",
     "level": "Niv. {{level}} · {{title}}",
-    "notInTop20": "Tu n'es pas encore dans le top 20 — publie, commente et apprends pour gagner de l'XP !"
+    "notInTop20": "Tu n'es pas encore dans le top 20 — publie, commente et apprends pour gagner de l'XP !",
+    "scope": "Classement général du Club",
+    "youAreRank": "Tu es",
+    "notRankedTitle": "Tu n'es pas encore classé",
+    "rankExplain": "Ton rang se calcule sur l'XP gagné dans tout le Club : publier, commenter, apprendre.",
+    "truth": {
+      "provenTitle": "Ce que ce classement dit vraiment",
+      "withheldTitle": "Ce qu'il ne fait pas encore",
+      "proven1": "Les rangs et les XP sont lus en base, sans arrondi ni pondération.",
+      "proven2": "Il montre les vingt premiers. Au-delà, ton rang n'est pas affiché plutôt qu'estimé.",
+      "withheld1": "Aucune comparaison par vague d'arrivée : le modèle ne stocke pas de date d'entrée, donc quelqu'un arrivé hier est classé face à quelqu'un arrivé il y a un an. C'est un défaut connu, écrit ici plutôt que masqué."
+    }
   },
   "opportunities": {
     "title": "Opportunités",
@@ -88,11 +121,28 @@
     "toastPublished": "Opportunité publiée.",
     "toastPublishError": "Erreur lors de la publication.",
     "toastDeleted": "Opportunité supprimée.",
-    "toastDeleteError": "Erreur lors de la suppression."
+    "toastDeleteError": "Erreur lors de la suppression.",
+    "filterAll": "Toutes",
+    "filterLabel": "Filtrer par type",
+    "titleLabel": "Titre",
+    "descriptionLabel": "Description",
+    "typeLabel": "Type",
+    "budgetLabel": "Budget",
+    "budgetHint": "Facultatif. Il s'affiche tel que tu l'écris.",
+    "contactLabel": "Contact",
+    "deleteLabel": "Supprimer cette opportunité",
+    "truth": {
+      "provenTitle": "Ce que tu vois exactement",
+      "withheldTitle": "Ce qui n'est pas vérifié",
+      "proven1": "Chaque annonce porte le nom de qui l'a publiée et sa date, tels qu'enregistrés.",
+      "proven2": "Seul l'auteur d'une annonce peut la retirer.",
+      "withheld1": "Les budgets affichés sont ceux annoncés par la personne qui publie. Ils ne sont pas vérifiés par la plateforme, et c'est écrit ici plutôt que caché.",
+      "withheld2": "Aucun contrôle des coordonnées de contact : elles partent telles quelles."
+    }
   },
   "discussions": {
     "memberFallback": "Membre",
-    "startConversation": "Démarre la conversation 👋",
+    "startConversation": "Démarre la conversation.",
     "reported": "signalé",
     "report": "signaler",
     "messagePlaceholder": "Écris un message…",
@@ -104,7 +154,11 @@
     "toastOpenError": "Impossible d'ouvrir la conversation.",
     "toastSendError": "Échec de l'envoi.",
     "toastReported": "Message signalé à la modération.",
-    "toastReportError": "Erreur lors du signalement."
+    "toastReportError": "Erreur lors du signalement.",
+    "back": "Retour à la liste",
+    "send": "Envoyer",
+    "messageLabel": "Ton message",
+    "reportNote": "Le signalement part à la modération seule. La personne signalée ne le voit pas et ne peut pas l'annuler."
   },
   "subscriptionGate": {
     "title": "Club des Digitos",
@@ -141,7 +195,32 @@
     "autoRenewLabel": "Renouvellement automatique ",
     "autoRenewHint": "(désactivable à tout moment)",
     "processing": "Traitement...",
-    "joinCta": "Rejoindre pour {{price}} FCFA/an"
+    "joinCta": "Rejoindre le Club",
+    "eyebrow": "Je te transforme · payant, fermé",
+    "perMonth": "par mois",
+    "perYear": "par an",
+    "billedOnce": "facturé une fois par an :",
+    "referredHint": "Parrainé ? Ton code te fait :",
+    "pendingTag": "En attente",
+    "guaranteed": {
+      "tag": "Garanti",
+      "title": "Ce qui ne dépend que de moi",
+      "body": "Les sessions ont lieu même si nous sommes quatre. L'agenda est publié à l'avance. Les opportunités que je trouve, je les poste. Le prix ne bouge pas pendant ton année."
+    },
+    "building": {
+      "tag": "En construction",
+      "title": "Ce qui dépend des membres",
+      "body": "La densité du fil. La qualité de l'entraide. Le nombre de missions que les autres partagent. Ça, je ne peux pas te le promettre — ça se construit, et tu en fais partie."
+    },
+    "truth": {
+      "provenTitle": "Ce que cet écran est, exactement",
+      "withheldTitle": "Ce que je n'affiche pas",
+      "proven1": "Cet écran cache le Club ; il ne l'interdit pas. Le vrai cloisonnement est dans les règles de la base : sans abonnement actif, elles refusent la lecture des publications, de l'agenda, de l'annuaire, des opportunités et des infos.",
+      "proven2": "Personne ne se rend membre depuis le navigateur : les règles n'acceptent la création d'un abonnement qu'au statut « en attente », et refusent toute modification du statut. Seule l'administration active.",
+      "proven3": "Le prix affiché est celui que le serveur débite, et il vit à un seul endroit dans le code.",
+      "withheld1": "Aucun nombre de membres. Le Club a ouvert cette année : le chiffre serait faible, il serait donc trompeur d'en faire un argument, et tu le vérifierais au premier écran après avoir payé.",
+      "withheld2": "Aucun témoignage ni note en étoiles. Ce qui se dit à l'intérieur appartient à ceux qui y sont, et une note sur un club fermé ne se vérifie pas."
+    }
   },
   "members": {
     "myProfile": "Mon profil membre",
@@ -194,7 +273,16 @@
     "toastCvSuccess": "CV analysé — vérifie et complète, puis enregistre.",
     "toastCvError": "Échec de l'analyse du CV.",
     "toastSaved": "Profil enregistré.",
-    "toastSaveError": "Erreur lors de la sauvegarde."
+    "toastSaveError": "Erreur lors de la sauvegarde.",
+    "completionLabel": "Profil complété",
+    "headlineLabel": "Titre professionnel",
+    "skillsLabel": "Compétences",
+    "skillsHint": "Sépare-les par des virgules.",
+    "cityLabel": "Ville",
+    "whatsappLabel": "WhatsApp",
+    "websiteLabel": "Site web",
+    "searchLabel": "Rechercher un membre",
+    "close": "Fermer la fiche"
   },
   "categories": {
     "general": "Général",
@@ -239,6 +327,143 @@
     "tapToVote": " · tape pour voter",
     "delete": "Supprimer",
     "noComments": "Aucun commentaire. Sois le premier !",
-    "commentPlaceholder": "Écrire un commentaire…"
+    "commentPlaceholder": "Écrire un commentaire…",
+    "composerLabel": "Ta publication",
+    "commentLabel": "Ton commentaire",
+    "commentSend": "Envoyer le commentaire",
+    "commentsAction": "Commentaires",
+    "repostAction": "Republier",
+    "likeAction": "J'aime",
+    "postMenu": "Actions sur la publication",
+    "adminBadge": "Publication de l'équipe",
+    "filterLabel": "Filtrer par catégorie",
+    "removeMedia": "Retirer l'image",
+    "removeOption": "Retirer l'option {{number}}",
+    "moods": {
+      "smile": "Content",
+      "fire": "À fond",
+      "idea": "Une idée",
+      "celebrate": "Ça se fête",
+      "strength": "Motivé",
+      "thinking": "Je m'interroge",
+      "confident": "Serein",
+      "heart": "Coup de cœur",
+      "applause": "Bravo",
+      "thanks": "Merci"
+    }
+  },
+  "publicPage": {
+    "seoTitle": "Le Club des Digitos",
+    "seoDescription": "Une année avec moi, et avec ceux qui font la même chose que toi. Des sessions en direct, des missions qui circulent, et quelqu'un à qui poser la question que tu ne poses à personne.",
+    "subnavLabel": "Je te transforme",
+    "subnavFree": "Écouter & regarder",
+    "subnavClub": "Le Club des Digitos",
+    "eyebrow": "Je te transforme · payant, fermé",
+    "titleLines": [
+      "LE CLUB DES",
+      "DIGITOS."
+    ],
+    "lede": "Une année avec moi, et avec ceux qui font la même chose que toi. Des sessions en direct, des missions qui circulent, et quelqu'un à qui poser la question que tu ne poses à personne.",
+    "cta": "Je rejoins le Club",
+    "perMonth": "/ mois",
+    "billedPre": "facturé",
+    "billedPost": "une fois par an",
+    "referralPre": "Parrainé ? Ton code te fait",
+    "includedTitle": "Ce que tu paies, précisément",
+    "included": {
+      "sessionsPost": "sessions en direct par mois, avec moi",
+      "missions": "Les missions et appels d'offres que je sors de mon carnet",
+      "workshops": "Les ateliers en présentiel à Dakar, places réservées aux membres",
+      "answer": "Une réponse de moi dans les discussions, pas d'un modérateur",
+      "tutorPre": "Ton répétiteur à",
+      "tutorMid": "questions par jour au lieu de"
+    },
+    "includedNote": "Ces cinq lignes ne dépendent que de moi. C'est pour ça qu'elles sont ici, et pas des promesses sur l'ambiance.",
+    "guaranteeTitle": [
+      "Ce que je ne peux pas",
+      "encore te garantir."
+    ],
+    "guaranteeTruthTitle": "Pourquoi je te dis ça au lieu de te vendre du rêve",
+    "guaranteeTruthBody": "Le Club a ouvert cette année. Je ne t'annoncerai pas un nombre de membres, parce qu'il serait faux, et parce que tu le vérifieras au premier écran après avoir payé. Je préfère que tu entres en sachant ce que tu achètes : une année d'accès à ce qui existe déjà, et une place dans ce qui se construit.",
+    "tabsTitle": [
+      "Huit onglets.",
+      "Voilà à quoi ils servent."
+    ],
+    "tabs": {
+      "feed": "Ce qui se passe cette semaine, et ce que ton abonnement t'a apporté depuis le début.",
+      "discussions": "Par catégorie : entraide, outils, clients. La question bête se pose ici.",
+      "members": "Qui fait quoi, où. Message privé, et signalement si quelqu'un dérape.",
+      "agenda": "Sessions en ligne et ateliers à Dakar. Inscription en un geste, sans doublon possible.",
+      "leaderboard": "Par vague d'arrivée, jamais absolu. Tu te compares à ceux qui ont commencé quand toi.",
+      "opportunities": "Missions, appels d'offres, recrutements. Avec le budget annoncé quand il l'est.",
+      "infos": "Le digest de la semaine, écrit ici et dans tes notifications. Pas par e-mail.",
+      "referral": "Ton code fait gagner 15 % à celui que tu amènes. Toi, tu ne gagnes rien — et je te le dis."
+    },
+    "priceTitle": [
+      "Un prix,",
+      "dit des deux façons."
+    ],
+    "priceBody": "Un abonnement annuel ne supprime pas l'hésitation, il la concentre sur un instant. Alors je te donne les deux chiffres tout de suite : celui que tu paies, et celui que ça représente chaque mois.",
+    "renewalTitle": "Ce qui se passe à l'échéance",
+    "renewalBody": "À l'échéance, ton accès s'arrête. Tu réabonnes si tu veux. Rien n'est prélevé automatiquement : le préavis que promettent les conditions générales n'est pas encore implémenté, et cette page ne l'annoncera pas avant qu'il le soit.",
+    "priceUnit": "FCFA / mois",
+    "priceBilledPre": "Facturé",
+    "priceBilledPost": ", une fois, pour douze mois.",
+    "payWave": "Wave",
+    "payOrange": "Orange Money",
+    "payCard": "Carte bancaire",
+    "referralRow": "Avec un code de parrainage",
+    "referralNote": "La remise est calculée côté serveur : elle ne dépend pas du lien sur lequel tu as cliqué.",
+    "fitTitle": [
+      "Et si ce n'est pas pour toi,",
+      "je te le dis."
+    ],
+    "fitYesTitle": "Le Club, si…",
+    "fitYes1": "Tu vends déjà quelque chose, et tu veux le vendre mieux",
+    "fitYes2": "Tu travailles seul, et c'est ça le plus dur",
+    "fitYes3": "Tu cherches des missions, pas des cours",
+    "fitNoTitle": "Autre chose, si…",
+    "fitNo1": "Tu pars de zéro et tu veux apprendre une compétence →",
+    "fitNo2": "Tu veux qu'on le fasse à ta place →",
+    "fitNo3": "Tu veux juste lire et te tenir au courant →",
+    "fitNo3End": ", c'est gratuit",
+    "faqTitle": [
+      "Les questions",
+      "qu'on me pose"
+    ],
+    "faq": [
+      {
+        "q": "Je peux payer en plusieurs fois ?",
+        "a": "Non, pas sur le Club — il est annuel et ne se fractionne pas. Le fractionné existe sur les formations, en trois ou quatre échéances selon le montant."
+      },
+      {
+        "q": "Et si je n'y vais jamais ?",
+        "a": "Tu auras payé pour rien, et je ne peux pas t'en empêcher. C'est pour ça que le récapitulatif de ce que ton abonnement t'a apporté est visible en permanence dans le fil, et pas seulement à l'échéance."
+      },
+      {
+        "q": "Je suis remboursé si je change d'avis ?",
+        "a": "Les quatorze jours de rétractation s'appliquent aux formations. Pour le Club, l'accès est immédiat et complet dès l'inscription : écris-moi avant de payer si tu hésites, je préfère une conversation à un remboursement."
+      },
+      {
+        "q": "Le Club, c'est un groupe WhatsApp de plus ?",
+        "a": "Non — et c'est justement pour ça qu'il est payant. Un groupe gratuit se remplit de gens qui passent. Ici, l'agenda, les inscriptions, les opportunités et les discussions sont structurés, et personne n'entre par hasard."
+      }
+    ],
+    "listenTitle": [
+      "Avant de payer,",
+      "écoute-les."
+    ],
+    "listenLede": "Le podcast et les vidéos sont sur ce même territoire, à l'étage du dessous : gratuits, sans compte. Des gens d'ici racontent ce qu'ils ont fait. Le Club, c'est quand tu veux leur parler au lieu de les écouter.",
+    "listenCta": "Écouter d'abord",
+    "listenEmpty": "Aucun épisode n'est encore en ligne. Quand il y en aura un, il sera ici, gratuit et sans compte.",
+    "listenTruthTitle": "Ce que le gratuit ne donne pas",
+    "listenTruthBody": "Écouter est gratuit et le restera. Ce que l'abonnement ajoute est ailleurs : les sessions en direct, les missions qui circulent, et une réponse de moi. Le Club, lui, ne se visite pas — c'est la contrepartie de le garder fermé.",
+    "finalPre": "Une année.",
+    "finalPost": "par mois.",
+    "finalSecondLine": "Et quelqu'un au bout du fil.",
+    "finalBody": "Si tu veux juger avant de payer, écoute le podcast et regarde les vidéos : c'est gratuit, sans compte, et c'est le même territoire. Le blog aussi.",
+    "finalCtaSecondary": "Écris-moi d'abord",
+    "sessionsCite": "engagement du Club, annoncé",
+    "truthProvenTitle": "Ce que je peux te prouver"
   }
 }

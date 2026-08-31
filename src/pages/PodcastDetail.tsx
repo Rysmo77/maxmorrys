@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import LocalizedLink from '../components/shared/LocalizedLink';
+import { Breadcrumb, Button, GlassPanel, MediaCard, Skeleton } from '@ds';
+import DsNavHost from '../components/layout/DsNavHost';
+import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { contentPath } from '../lib/contentPath';
-import { motion } from 'framer-motion';
-import { Headphones, Clock, Calendar, ArrowLeft, Loader2, TrendingUp } from 'lucide-react';
 import { getPodcastBySlug, getPublishedPodcasts } from '../lib/firestore';
-import FormationCTA from '../components/shared/FormationCTA';
-import TranslatedText from '../components/shared/TranslatedText';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
 import { markdownToHtml } from '../lib/markdown';
 import { queryClient, queryKeys } from '../lib/queryClient';
@@ -19,13 +18,8 @@ import { useContentEngagement } from '../hooks/useContentEngagement';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
-import Breadcrumbs from '../components/ui/Breadcrumbs';
-import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
-import { universeThemes } from '../lib/sectionThemes';
 
-const theme = universeThemes.podcasts;
 
-const viewportOnce = { once: true, amount: 0.2 } as const;
 
 function resolveAudioEmbed(url: string): { type: 'iframe' | 'native'; src: string } {
   const spotifyMatch = url.match(/open\.spotify\.com\/(episode|show|track)\/([a-zA-Z0-9]+)/);
@@ -80,252 +74,147 @@ export default function PodcastDetail() {
   const tDescription = useTranslatedText(podcast?.description);
   const tTranscript = useTranslatedText(podcast?.transcript);
 
+  const path = useLocalizedPath();
+  /* Spotify, Apple, Anchor ou fichier brut : la résolution existait déjà, on la garde. */
+  const embed = podcast ? resolveAudioEmbed(podcast.audioUrl) : null;
+
   if (podcast === undefined) {
-    return <div className="pt-32 pb-20 flex justify-center"><Loader2 className={`w-8 h-8 animate-spin ${theme.spinner}`} /></div>;
+    return (
+      <PageSite>
+        <div className="grid max-w-[760px] gap-4">
+          <Skeleton width={200} height={12} />
+          <Skeleton height={38} width="80%" />
+          <Skeleton height={38} width="52%" />
+          <Skeleton height={190} radius="var(--r-media)" style={{ marginTop: '10px' }} />
+        </div>
+      </PageSite>
+    );
   }
 
   if (!podcast) {
     return (
-      <div className="pt-32 pb-20 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{t('podcastDetail.notFoundTitle')}</h1>
-        <LocalizedLink to="/podcasts" className={`${theme.accentText} hover:underline`}>{t('podcastDetail.notFoundLink')}</LocalizedLink>
-      </div>
+      <PageSite>
+        <SiteDisplay lines={[t('detail.notFound')]} size={34} />
+        <p className="mt-4">
+          <Button href={path('/podcast-et-videos')} tone="quiet" size="sm" fullWidth={false}>
+            {t('pole.subnavFree')}
+          </Button>
+        </p>
+      </PageSite>
     );
   }
 
   return (
-    <div>
-      <SEOHead
-        title={tTitle}
-        description={tDescription}
-        ogImage={podcast.coverImage}
-        frPath={contentPath('podcasts', podcast, 'fr')}
-        enPath={contentPath('podcasts', podcast, 'en')}
-      >
-        {podcast.coverImage && <link rel="preload" as="image" href={podcast.coverImage} />}
-      </SEOHead>
+    <DsNavHost>
+      <SEOHead title={tTitle || podcast.title} description={tDescription || podcast.description} ogImage={podcast.coverImage} />
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'PodcastEpisode',
-        name: tTitle,
-        description: tDescription,
+        name: podcast.title,
+        description: podcast.description,
         datePublished: podcast.publishedAt,
-        timeRequired: podcast.duration,
-        image: podcast.coverImage,
-        url: `${SITE_URL}/podcasts/${podcast.slug}`,
-        partOfSeries: {
-          '@type': 'PodcastSeries',
-          name: 'Le Podcast du Marketing — Max-Morrys',
-          url: `${SITE_URL}/podcasts`,
-        },
-        ...(podcast.audioUrl && {
-          associatedMedia: {
-            '@type': 'MediaObject',
-            contentUrl: podcast.audioUrl,
-          },
-        }),
-      }} />
-      <JsonLd data={{
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: t('podcastDetail.breadcrumbHome'), item: SITE_URL },
-          { '@type': 'ListItem', position: 2, name: t('podcastDetail.breadcrumbPodcasts'), item: `${SITE_URL}/podcasts` },
-          { '@type': 'ListItem', position: 3, name: tTitle, item: `${SITE_URL}/podcasts/${podcast.slug}` },
-        ],
+        url: `${SITE_URL}${contentPath('podcasts', podcast, language)}`,
+        associatedMedia: { '@type': 'MediaObject', contentUrl: podcast.audioUrl },
       }} />
 
-      {/* ── HERO ── */}
-      <section className={`relative overflow-hidden pt-28 pb-16 lg:pt-36 lg:pb-20 ${theme.sectionBg}`}>
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-plum-200/60 dark:bg-plum-500/10 pointer-events-none" />
-        <motion.div
-          className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div variants={staggerItem} className="mb-6">
-            <Breadcrumbs
-              items={[
-                { label: t('podcastDetail.breadcrumbHome'), href: '/' },
-                { label: t('podcastDetail.breadcrumbPodcasts'), href: '/podcasts' },
-                { label: tTitle },
-              ]}
-            />
-          </motion.div>
-          <motion.div variants={staggerItem}>
-            <LocalizedLink
-              to="/podcasts"
-              className="inline-flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-plum-600 dark:hover:text-plum-400 transition-colors mb-8"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {t('podcastDetail.allEpisodes')}
-            </LocalizedLink>
-          </motion.div>
+      <PageSite>
+        <Breadcrumb
+          label={t('detail.breadcrumbRoot')}
+          items={[
+            { label: t('detail.breadcrumbRoot'), href: path('/podcast-et-videos') },
+            { label: tCategory || podcast.category },
+          ]}
+        />
 
-          <motion.div variants={staggerItem} className="flex items-center gap-2 mb-5">
-            <span className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow}`}>
-              PODCAST
-            </span>
-            {podcast.category && (
-              <>
-                <span className="text-neutral-300 dark:text-neutral-700">·</span>
-                <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest">
-                  {tCategory}
-                </span>
-              </>
-            )}
-          </motion.div>
+        <div className="mt-4 grid items-start gap-12 lg:grid-cols-[1fr_300px]">
+          <article>
+            <SiteEyebrow>{t('detail.listen')}</SiteEyebrow>
+            <SiteDisplay wrap lines={[tTitle || podcast.title]} size={40} from={1} style={{ maxWidth: '22ch' }} />
 
-          <motion.h1 variants={staggerItem} className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.1] mb-6">
-            {tTitle}
-          </motion.h1>
+            <p className="mm-num rv mt-3 text-meta text-ink-2" style={{ ['--i' as string]: 3 }}>
+              {formatDate(podcast.publishedAt)} · {podcast.duration}
+            </p>
 
-          <motion.div
-            variants={staggerItem}
-            className="prose dark:prose-invert max-w-none mb-8 prose-headings:font-display prose-headings:tracking-tight prose-a:transition-colors prose-blockquote:not-italic prose-blockquote:font-medium"
-            dangerouslySetInnerHTML={{ __html: markdownToHtml(tDescription) }}
-          />
-
-          <motion.div variants={staggerItem} className="flex items-center gap-5 text-sm text-neutral-400 flex-wrap">
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4" />
-              {podcast.duration}
-            </span>
-            <span>·</span>
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4" />
-              {formatDate(podcast.publishedAt)}
-            </span>
-            {podcast.popularity !== undefined && (
-              <>
-                <span>·</span>
-                <span className="flex items-center gap-1.5" title={t('podcastDetail.popularityTitle')}>
-                  <TrendingUp className="w-4 h-4" />
-                  {t('podcastDetail.popularity', { score: podcast.popularity })}
-                </span>
-              </>
-            )}
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* ── PLAYER ── */}
-      <motion.div
-        className="bg-white dark:bg-neutral-950 pb-24"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
-          <div className="grid lg:grid-cols-3 gap-10">
-
-            {/* Cover + player */}
-            <div className="lg:col-span-2 space-y-6">
-              {podcast.audioUrl ? (() => {
-                const { type, src } = resolveAudioEmbed(podcast.audioUrl);
-                return type === 'iframe' ? (
-                  <div className="rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-700">
-                    <iframe
-                      src={src}
-                      className="w-full"
-                      height={src.includes('embed.podcasts.apple.com') ? '175' : '152'}
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      loading="lazy"
-                      title={tTitle}
-                    />
-                  </div>
-                ) : (
-                  <div className="rounded-2xl overflow-hidden bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 p-6">
-                    <div className="flex items-center gap-4 mb-5">
-                      {podcast.coverImage && (
-                        <img src={podcast.coverImage} alt={tTitle} className="w-20 h-20 rounded-xl object-cover flex-shrink-0" />
-                      )}
-                      <div>
-                        <p className="font-bold text-neutral-900 dark:text-white">{tTitle}</p>
-                        <p className="text-sm text-neutral-500">{podcast.duration}</p>
-                      </div>
-                    </div>
-                    <audio ref={audioRef} controls className="w-full" src={src}>
-                      {t('podcastDetail.audioUnsupported')}
-                    </audio>
-                  </div>
-                );
-              })() : (
-                <div className="rounded-2xl overflow-hidden aspect-video relative">
-                  <img
-                    src={podcast.coverImage}
-                    alt={tTitle}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="text-center text-white space-y-3">
-                      <div className="w-16 h-16 rounded-full bg-plum-600 flex items-center justify-center mx-auto">
-                        <Headphones className="w-7 h-7" />
-                      </div>
-                      <p className="text-sm font-medium">{t('podcastDetail.playerSoon')}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {podcast.transcript && (
-                <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-6">
-                  <h3 className="font-bold text-neutral-900 dark:text-white mb-3">{t('podcastDetail.transcriptTitle')}</h3>
-                  <div
-                    className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-display prose-a:transition-colors"
-                    dangerouslySetInnerHTML={{ __html: markdownToHtml(tTranscript) }}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Formation CTA */}
-            <div className="mb-8">
-              <FormationCTA category={podcast.category} />
-            </div>
-
-            {/* Autres épisodes */}
-            <motion.div
-              className="space-y-3"
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOnce}
-            >
-              <h3 className="text-xs font-bold tracking-[0.25em] uppercase text-neutral-400 mb-4">
-                {t('podcastDetail.otherEpisodes')}
-              </h3>
-              {others.map((ep) => (
-                <motion.div key={ep.id} variants={staggerItem}>
-                <Link
-                  to={contentPath('podcasts', ep, language)}
-                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors group"
+            {/*
+              LE LECTEUR. Il ne se charge que si on le lance — `preload="none"` : sur un
+              forfait compté, un audio préchargé est de l'argent dépensé pour rien.
+            */}
+            <div className="rv mt-5 overflow-hidden rounded-media" style={{ ['--i' as string]: 4 }}>
+              {embed?.type === 'iframe' ? (
+                <iframe
+                  src={embed.src}
+                  title={podcast.title}
+                  loading="lazy"
+                  className="h-[180px] w-full border-0"
+                  allow="encrypted-media"
+                />
+              ) : (
+                <audio
+                  controls
+                  preload="none"
+                  src={podcast.audioUrl}
+                  className="w-full"
+                  onPlay={() => trackPodcastPlay(podcast.id, podcast.title)}
                 >
-                  {ep.coverImage && (
-                    <img
-                      src={ep.coverImage}
-                      alt={ep.title}
-                      className="w-14 h-14 rounded-lg object-cover shrink-0 grayscale group-hover:grayscale-0 transition-all duration-500"
-                      loading="lazy"
-                    />
-                  )}
-                  <div className="min-w-0">
-                    <TranslatedText
-                      text={ep.title}
-                      as="p"
-                      className={`text-sm font-semibold text-neutral-800 dark:text-neutral-200 ${theme.titleHover} transition-colors leading-snug line-clamp-2`}
-                    />
-                    <p className="text-xs text-neutral-400 mt-1">{ep.duration}</p>
-                  </div>
-                </Link>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
+                  <track kind="captions" />
+                </audio>
+              )}
+            </div>
+
+            {/* L'aveu du poids manquant — la règle 6 appliquée à ce qu'on n'a pas. */}
+            <GlassPanel level="truth" className="mt-4 max-w-prose">
+              <SiteEyebrow style={{ marginBottom: '6px' }}>{t('detail.weightTitle')}</SiteEyebrow>
+              <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('detail.weightBody')}</p>
+            </GlassPanel>
+
+            <SiteEyebrow style={{ marginTop: '26px' }}>{t('detail.about')}</SiteEyebrow>
+            <div
+              className="mm-prose prose-article"
+              dangerouslySetInnerHTML={{ __html: markdownToHtml(tDescription || podcast.description) }}
+            />
+          </article>
+
+          <aside className="grid gap-[14px] lg:sticky lg:top-[calc(var(--header-h)+1rem)]">
+            <GlassPanel level="hero" padding={22}>
+              <SiteEyebrow style={{ marginBottom: '8px' }}>{t('detail.transcript')}</SiteEyebrow>
+              {podcast.transcript ? (
+                /*
+                  La transcription se lit SANS charger l'audio. Sur un forfait compté, c'est
+                  souvent tout ce qu'on cherche — d'où sa place dans la colonne, visible sans
+                  qu'on ait à lancer quoi que ce soit.
+                */
+                <div className="mm-prose text-meta-2">
+                  <div dangerouslySetInnerHTML={{ __html: markdownToHtml(tTranscript || podcast.transcript) }} />
+                </div>
+              ) : (
+                /* On ne fabrique pas ce qui n'existe pas : on dit que ça manque. */
+                <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('detail.transcriptMissing')}</p>
+              )}
+            </GlassPanel>
+          </aside>
         </div>
-      </motion.div>
-    </div>
+      </PageSite>
+
+      {others.length > 0 && (
+        <SiteBand>
+          <SiteDisplay as="h2" lines={t('detail.nextTitle', { returnObjects: true }) as string[]} size={34} />
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {others.slice(0, 3).map((other, i) => (
+              <div key={other.id} className="rv" style={{ ['--i' as string]: i + 1 }}>
+                <MediaCard
+                  format="audio"
+                  playHref={path(`/podcasts/${other.slug}`)}
+                  playLabel={`${t('detail.listen')} — ${other.title}`}
+                  title={other.title}
+                  eyebrow={other.duration}
+                  artHeight={130}
+                  titleSize={17}
+                />
+              </div>
+            ))}
+          </div>
+        </SiteBand>
+      )}
+    </DsNavHost>
   );
 }

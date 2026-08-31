@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MessageCircle } from 'lucide-react';
+import { Button } from '@ds';
 import { whatsappUrl } from '../../lib/presence/whatsapp';
 
 interface Props {
@@ -30,17 +30,20 @@ export default function StickyWhatsApp({ message }: Props) {
 
   const href = whatsappUrl(message);
 
+  /*
+   * Chrome fixe — donc l'un des trois seuls endroits où le flou est autorisé (règle 1).
+   * Il n'en porte pourtant pas : ce bouton est plein, opaque, posé sur du contenu qui
+   * défile dessous. Un voile flouté derrière un aplat ne se verrait pas, et coûterait
+   * une couche de composition à chaque image sur les téléphones que cette offre vise.
+   */
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      // pb-[env(safe-area-inset-bottom)] : évite la barre système des iPhone récents.
-      className="lg:hidden fixed bottom-4 inset-x-4 z-40 inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full font-bold text-sm bg-lagoon-700 hover:bg-lagoon-800 active:bg-lagoon-900 text-white shadow-xl shadow-lagoon-900/20 transition-colors"
+    <div
+      className="fixed inset-x-4 bottom-4 z-40 lg:hidden"
       style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <MessageCircle className="w-4 h-4" aria-hidden="true" />
-      {t('stickyCta')}
-    </a>
+      <Button href={href} tone="digitalise" target="_blank">
+        {t('stickyCta')}
+      </Button>
+    </div>
   );
 }

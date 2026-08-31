@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, X, FileText, GraduationCap, Mic, Video, ArrowRight, Loader2, HelpCircle, Command, CornerDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn, debounce } from '../../lib/utils';
 import TranslatedText from './TranslatedText';
@@ -13,6 +12,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { localizedPath } from '../../i18n/routing';
 import { contentPath, type ContentKind } from '../../lib/contentPath';
 import { buildCommands, filterCommands, type AppCommand } from '../../lib/commands';
+import { Icon, type IconName } from '@ds';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -37,12 +37,12 @@ const CONTENT_KIND: Partial<Record<ResultType, ContentKind>> = {
   video: 'videos',
 };
 
-const typeConfig: Record<ResultType, { icon: typeof FileText; labelKey: string; path: string; color: string }> = {
-  blog:      { icon: FileText,     labelKey: 'search.types.blog',      path: '/blog',       color: 'text-coral-500' },
-  formation: { icon: GraduationCap,labelKey: 'search.types.formation', path: '/formations', color: 'text-brand-500' },
-  podcast:   { icon: Mic,          labelKey: 'search.types.podcast',   path: '/podcasts',   color: 'text-green-500' },
-  video:     { icon: Video,        labelKey: 'search.types.video',     path: '/videos',     color: 'text-red-500' },
-  faq:       { icon: HelpCircle,   labelKey: 'search.types.faq',       path: '/contact',    color: 'text-neutral-500' },
+const typeConfig: Record<ResultType, { icon: IconName; labelKey: string; path: string; color: string }> = {
+  blog:      { icon: 'doc',          labelKey: 'search.types.blog',      path: '/blog',       color: 'text-corail-txt' },
+  formation: { icon: 'graduation',   labelKey: 'search.types.formation', path: '/formations', color: 'text-forme' },
+  podcast:   { icon: 'mic',          labelKey: 'search.types.podcast',   path: '/podcasts',   color: 'text-green-500' },
+  video:     { icon: 'video',        labelKey: 'search.types.video',     path: '/videos',     color: 'text-stop' },
+  faq:       { icon: 'help',         labelKey: 'search.types.faq',       path: '/contact',    color: 'text-ink-2' },
 };
 
 let cachedPosts: BlogPost[] | null = null;
@@ -238,20 +238,25 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={onClose} />
-      <div className="relative w-full max-w-2xl mx-4 bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl animate-scale-in overflow-hidden">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm mm-drop" onClick={onClose} />
+      <div className="relative w-full max-w-2xl mx-4 bg-paper dark:bg-[color:var(--night-3)] rounded-2xl shadow-2xl mm-drop overflow-hidden">
 
-        <div className="flex items-center gap-3 px-5 border-b border-neutral-200 dark:border-neutral-800">
-          {loading ? <Loader2 className="w-5 h-5 text-brand-500 animate-spin flex-shrink-0" /> : <Search className="w-5 h-5 text-neutral-400 flex-shrink-0" />}
+        {/* Pendant la recherche, la LIGNE porte le liseré `.mm-loading` ; la loupe reste une
+            loupe. Un rond à sa place effaçait le seul repère de l'écran. */}
+        <div
+          className={cn('flex items-center gap-3 px-5 border-b border-[color:var(--line)]', loading && 'mm-loading')}
+          aria-busy={loading || undefined}
+        >
+          <Icon name="search" size={20} className="text-ink-2 flex-shrink-0" />
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('search.placeholder')}
-            className="flex-1 py-4 bg-transparent text-neutral-900 dark:text-white placeholder-neutral-400 text-base focus:outline-none"
+            className="flex-1 py-4 bg-transparent text-ink text-base focus:outline-none"
           />
-          <button onClick={onClose} className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 flex-shrink-0">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-1 text-ink-2 hover:text-ink-2 dark:hover:text-ink-2 flex-shrink-0">
+            <Icon name="close" size={20} />
           </button>
         </div>
 
@@ -259,11 +264,11 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
           {/* Actions / commands */}
           {filteredCommands.length > 0 && (
             <div>
-              <p className="px-5 pt-3 pb-1 text-[0.625rem] font-bold tracking-[0.2em] uppercase text-brand-500">
+              <p className="px-5 pt-3 pb-1 text-[0.625rem] font-bold tracking-[0.2em] uppercase text-forme">
                 {commandsMode ? t('search.actions') : t('search.suggestions')}
               </p>
               {filteredCommands.map((cmd, i) => {
-                const Icon = cmd.icon;
+                const glyph = cmd.icon;
                 const isActive = highlightedIndex === i;
                 return (
                   <button
@@ -272,15 +277,15 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                     onClick={() => runCommand(cmd)}
                     className={cn(
                       'w-full flex items-center gap-3 px-5 py-2.5 text-left transition-colors',
-                      isActive ? 'bg-brand-50 dark:bg-brand-900/20' : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/60',
+                      isActive ? 'bg-[color-mix(in_srgb,var(--mm-bleu)_4%,transparent)]' : 'hover:bg-[color:var(--fill-1)] dark:hover:bg-[color-mix(in_srgb,var(--night-3)_60%,transparent)]',
                     )}
                   >
-                    <Icon className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+                    <Icon name={glyph} size={16} className="text-ink-2 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">{cmd.label}</p>
-                      {cmd.hint && <p className="text-xs text-neutral-500 truncate">{cmd.hint}</p>}
+                      <p className="text-sm font-semibold text-ink truncate">{cmd.label}</p>
+                      {cmd.hint && <p className="text-xs text-ink-2 truncate">{cmd.hint}</p>}
                     </div>
-                    {isActive && <CornerDownLeft className="w-3.5 h-3.5 text-brand-500 flex-shrink-0" />}
+                    {isActive && <Icon name="enter" size={14} className="text-forme flex-shrink-0" />}
                   </button>
                 );
               })}
@@ -294,7 +299,7 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                 const group = grouped[type];
                 if (!group.length) return null;
                 const cfg = typeConfig[type];
-                const Icon = cfg.icon;
+                const glyph = cfg.icon;
                 return (
                   <div key={type}>
                     <p className={cn('px-5 pt-3 pb-1 text-[0.625rem] font-bold tracking-[0.2em] uppercase', cfg.color)}>
@@ -310,17 +315,17 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                           onClick={() => goToResult(result)}
                           className={cn(
                             'w-full flex items-start gap-3 px-5 py-3 text-left transition-colors group',
-                            isActive ? 'bg-brand-50 dark:bg-brand-900/20' : 'hover:bg-neutral-50 dark:hover:bg-neutral-800/60',
+                            isActive ? 'bg-[color-mix(in_srgb,var(--mm-bleu)_4%,transparent)]' : 'hover:bg-[color:var(--fill-1)] dark:hover:bg-[color-mix(in_srgb,var(--night-3)_60%,transparent)]',
                           )}
                         >
-                          <Icon className={cn('w-4 h-4 mt-0.5 flex-shrink-0', cfg.color)} />
+                          <Icon name={glyph} size={16} className={cn('mt-0.5 flex-shrink-0', cfg.color)} />
                           <div className="flex-1 min-w-0">
-                            <TranslatedText text={result.title} as="p" className="text-sm font-semibold text-neutral-900 dark:text-white truncate" />
+                            <TranslatedText text={result.title} as="p" className="text-sm font-semibold text-ink truncate" />
                             {result.excerpt && (
-                              <TranslatedText text={result.excerpt} as="p" className="text-xs text-neutral-400 mt-0.5 line-clamp-1" />
+                              <TranslatedText text={result.excerpt} as="p" className="text-xs text-ink-2 mt-0.5 line-clamp-1" />
                             )}
                           </div>
-                          <ArrowRight className="w-4 h-4 text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5 flex-shrink-0" />
+                          <Icon name="forward" size={16} className="text-ink-2 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5 flex-shrink-0" />
                         </button>
                       );
                     })}
@@ -332,7 +337,7 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
           {/* Empty state for query */}
           {query && !loading && filteredCommands.length === 0 && results.length === 0 && (
-            <div className="py-12 text-center text-neutral-500 dark:text-neutral-400">
+            <div className="py-12 text-center text-ink-2">
               <p className="text-sm">{t('search.noResults', { query: query.replace(/^>/, '').trim() })}</p>
             </div>
           )}
@@ -342,26 +347,26 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
             <div className="py-6 px-5">
               {recentSearches.length > 0 && (
                 <div className="mb-5">
-                  <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-neutral-400 mb-2">{t('search.recentSearches')}</p>
+                  <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-ink-2 mb-2">{t('search.recentSearches')}</p>
                   <div className="space-y-0.5">
                     {recentSearches.map((recent) => (
                       <button
                         key={recent}
                         onClick={() => setQuery(recent)}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-left"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-ink-2 hover:bg-[color:var(--fill-1)] dark:hover:bg-[color:var(--night-3)] transition-colors text-left"
                       >
-                        <Search className="w-3.5 h-3.5 text-neutral-300 flex-shrink-0" />
+                        <Icon name="search" size={14} className="text-ink-2 flex-shrink-0" />
                         {recent}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
-              <div className="text-center text-neutral-400 dark:text-neutral-500">
+              <div className="text-center text-ink-2">
                 <p className="text-sm mb-3">{t('search.quickSearch')}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {(Object.values(typeConfig)).map((cfg) => (
-                    <span key={cfg.labelKey} className={cn('text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800', cfg.color)}>
+                    <span key={cfg.labelKey} className={cn('text-xs font-semibold px-2.5 py-1 rounded-full bg-[color:var(--fill-2)]', cfg.color)}>
                       {t(cfg.labelKey)}s
                     </span>
                   ))}
@@ -372,14 +377,14 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         </div>
 
         {/* Footer hints */}
-        <div className="border-t border-neutral-200 dark:border-neutral-800 px-4 py-2 flex items-center justify-between text-[11px] text-neutral-400">
+        <div className="border-t border-[color:var(--line)] px-4 py-2 flex items-center justify-between text-[11px] text-ink-2">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-neutral-200 dark:border-neutral-700 rounded">↑↓</kbd>{t('search.navigate')}</span>
-            <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-neutral-200 dark:border-neutral-700 rounded">↵</kbd>{t('search.open')}</span>
-            <span className="hidden sm:flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-neutral-200 dark:border-neutral-700 rounded">esc</kbd>{t('search.close')}</span>
+            <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-[color:var(--line)] rounded">↑↓</kbd>{t('search.navigate')}</span>
+            <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-[color:var(--line)] rounded">↵</kbd>{t('search.open')}</span>
+            <span className="hidden sm:flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-[color:var(--line)] rounded">esc</kbd>{t('search.close')}</span>
           </div>
           <span className="hidden sm:flex items-center gap-1">
-            <Command className="w-3 h-3" /> {t('search.typeForActions')} <kbd className="px-1 border border-neutral-200 dark:border-neutral-700 rounded">&gt;</kbd> {t('search.forActions')}
+            <Icon name="command" size={12} /> {t('search.typeForActions')} <kbd className="px-1 border border-[color:var(--line)] rounded">&gt;</kbd> {t('search.forActions')}
           </span>
         </div>
       </div>

@@ -1,16 +1,49 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { BookOpen, CheckCircle, BarChart2, Award, Play, ArrowRight, Loader2 } from 'lucide-react';
-import LocalizedLink from '../../../components/shared/LocalizedLink';
-import Button from '../../../components/ui/Button';
-import { staggerContainer, staggerItem } from '../../../lib/animations';
-import XPBar from '../../../components/lms/XPBar';
-import StreakWidget from '../../../components/lms/StreakWidget';
+import { useNavigate } from 'react-router-dom';
+import {
+  Button, GlassPanel, Icon, LessonRow, Num, ProgressBar, Skeleton, StatTile, TerritoryCard,
+  type IconName,
+} from '@ds';
+import { useLocalizedPath } from '../../../contexts/LanguageContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { tutorName } from '../../../lib/naming';
 import { getGamificationProfile, updateStreak, addXP } from '../../../lib/gamification';
+import { getLevelFromXP, getXPForNextLevel, XP_REWARDS } from '../../../types/gamification';
 import type { GamificationProfile } from '../../../types/gamification';
-import { XP_REWARDS } from '../../../types/gamification';
 import type { EnrolledFormation } from '../hooks/useStudentData';
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * L'ÉCRAN « ESPACE » — le premier des cinq écrans qui portent la barre d'onglets.
+ *
+ * Il est recomposé sur `ui_kits/plateforme/ScreensSpace.js` § Espace : carte de reprise en
+ * tête, deux cases de relevé, l'entrée vers le répétiteur, puis la liste « Dans ton espace ».
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUI A DISPARU, ET POURQUOI
+ *
+ * · LA CASE « CERTIFICATS ». Elle affichait `completedCount` — le nombre de formations
+ *   TERMINÉES — sous le libellé « Certificats ». Ce n'est pas le même nombre : une formation
+ *   finie ne devient un certificat que si la personne le réclame, et l'écran des
+ *   accomplissements le montre bien. La case annonçait donc un chiffre faux à qui n'a rien
+ *   réclamé. Le compte réel vit là où il se lit, sur l'écran des certificats.
+ *
+ * · `XPBar` ET `StreakWidget`. Deux composants de `components/lms/` qui rendent un feu en
+ *   emoji, `lucide-react` et des nombres sans source. Ils sont remplacés ici par deux
+ *   <StatTile> — mêmes données, sourcées et datées. Les composants restent en place : ils ne
+ *   sont pas de mon lot.
+ *
+ * · LE COMPTEUR DE QUOTA DU KIT. Le kit pose un <QuotaMeter> sous l'entrée du répétiteur.
+ *   Le quota n'est lisible que par l'appel `getRysmoQuota`, et cet écran ne le fait pas :
+ *   l'ajouter serait un second aller-retour serveur au chargement du tableau de bord. La
+ *   carte mène donc à l'écran du répétiteur, qui le relève et l'affiche — plutôt que
+ *   d'inventer un compte ici.
+ *
+ * NAVIGATION. Les boutons naviguent par `useNavigate` et non par `href` : dans la coquille
+ * applicative, un `<a href>` recharge la page entière et jette le cache de requêtes.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
 
 interface DashboardTabProps {
   displayName: string;
@@ -21,11 +54,24 @@ interface DashboardTabProps {
   completedCount: number;
 }
 
-export default function DashboardTab({ displayName, userId, enrolledFormations, loadingEnrollments, avgProgress, completedCount }: DashboardTabProps) {
+/** Les quatre entrées de « Dans ton espace ». Le glyphe vient du jeu unique du système. */
+const SPACE_LINKS: { to: string; glyph: IconName; title: string; meta: string }[] = [
+  { to: '/mon-espace/cours', glyph: 'book', title: 'linkCourses', meta: 'linkCoursesMeta' },
+  { to: '/mon-espace/notes', glyph: 'comment', title: 'linkNotes', meta: 'linkNotesMeta' },
+  { to: '/mon-espace/succes', glyph: 'star', title: 'linkAchievements', meta: 'linkAchievementsMeta' },
+  { to: '/mon-espace/messages', glyph: 'send', title: 'linkMessages', meta: 'linkMessagesMeta' },
+];
+
+export default function DashboardTab({
+  displayName, userId, enrolledFormations, loadingEnrollments, avgProgress, completedCount,
+}: DashboardTabProps) {
   const { t } = useTranslation('lmsTabs');
+  const navigate = useNavigate();
+  const path = useLocalizedPath();
+  const { userData } = useAuth();
   const [gamification, setGamification] = useState<GamificationProfile | null>(null);
 
-  // Update streak on dashboard view + load gamification
+  // La série est mise à jour à l'ouverture de l'écran, comme avant — cette logique ne bouge pas.
   useEffect(() => {
     if (!userId) return;
     (async () => {
@@ -37,138 +83,174 @@ export default function DashboardTab({ displayName, userId, enrolledFormations, 
       setGamification(profile);
     })().catch(() => null);
   }, [userId]);
+
+  /* Un relevé porte sa date. Celle-ci est l'instant du rendu, donc de la lecture Firestore. */
+  const asOf = new Date();
+  const tutor = tutorName(userData);
+  const firstName = displayName.split(' ')[0];
+
+  const inProgress = enrolledFormations.find((ef) => ef.enrollment.progress > 0 && ef.enrollment.progress < 100)
+    ?? enrolledFormations.find((ef) => ef.enrollment.progress < 100);
+
+  const level = gamification ? getLevelFromXP(gamification.xp) : null;
+  const levelFloor = level ? getXPForNextLevel(level - 1) : 0;
+  const levelCeil = level ? getXPForNextLevel(level) : 0;
+  const levelPct = level && Number.isFinite(levelCeil)
+    ? Math.min(100, Math.max(0, Math.round(((gamification!.xp - levelFloor) / (levelCeil - levelFloor)) * 100)))
+    : 100;
+
   return (
-    <div className="space-y-6">
-      {/* Welcome — with resume course or explore CTA */}
-      {(() => {
-        const inProgress = enrolledFormations.find((ef) => ef.enrollment.progress > 0 && ef.enrollment.progress < 100);
-        return (
-          <div className="bg-gradient-to-r from-brand-500 to-brand-700 rounded-2xl p-5 sm:p-6 text-white">
-            <h2 className="text-xl font-bold mb-1">{t('dashboard.greeting', { name: displayName.split(' ')[0] })}</h2>
-            {inProgress && inProgress.formation ? (
-              <div className="mt-3">
-                <p className="text-brand-100 text-sm mb-2">{t('dashboard.resumeWhere')}</p>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 bg-white/10 rounded-xl p-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    {inProgress.formation.coverImage && (
-                      <img src={inProgress.formation.coverImage} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">{inProgress.formation.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                          <div className="h-full bg-white rounded-full transition-all" style={{ width: `${inProgress.enrollment.progress}%` }} />
-                        </div>
-                        <span className="text-xs text-brand-100 flex-shrink-0">{inProgress.enrollment.progress}%</span>
-                      </div>
-                    </div>
-                  </div>
-                  <LocalizedLink
-                    to={`/cours/${inProgress.formation.slug}`}
-                    className="flex-shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-white text-brand-700 font-bold text-sm rounded-full hover:bg-brand-50 transition-colors w-full sm:w-auto"
-                  >
-                    <Play className="w-3.5 h-3.5" /> {t('dashboard.resume')}
-                  </LocalizedLink>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-2">
-                <p className="text-brand-100 text-sm mb-3">
-                  {enrolledFormations.length === 0
-                    ? t('dashboard.startAdventure')
-                    : t('dashboard.continueLearningHint')}
-                </p>
-                {enrolledFormations.length === 0 && (
-                  <LocalizedLink
-                    to="/formations"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-brand-700 font-bold text-sm rounded-full hover:bg-brand-50 transition-colors"
-                  >
-                    {t('dashboard.explore')} <ArrowRight className="w-3.5 h-3.5" />
-                  </LocalizedLink>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })()}
+    <div className="mx-auto max-w-4xl px-[18px] py-6">
+      <p className="mm-eyebrow m-0">{t('dashboard.eyebrow')}</p>
+      <h1 className="mt-[6px] font-display text-dsp-xs text-ink">{t('dashboard.greeting', { name: firstName })}</h1>
 
-      {/* Stats */}
-      <motion.div
-        className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        {[
-          { icon: BookOpen, label: t('dashboard.statFormations'), value: enrolledFormations.length, color: 'text-brand-600 dark:text-brand-400', bg: 'bg-brand-50 dark:bg-brand-900/20' },
-          { icon: CheckCircle, label: t('dashboard.statCompleted'), value: completedCount, color: 'text-success-600 dark:text-success-400', bg: 'bg-success-50 dark:bg-success-900/20' },
-          { icon: BarChart2, label: t('dashboard.statAvgProgress'), value: `${avgProgress}%`, color: 'text-accent-600 dark:text-accent-400', bg: 'bg-accent-50 dark:bg-accent-900/20' },
-          { icon: Award, label: t('dashboard.statCertificates'), value: completedCount, color: 'text-warning-600 dark:text-warning-400', bg: 'bg-warning-50 dark:bg-warning-900/20' },
-        ].map((s, i) => (
-          <motion.div key={i} variants={staggerItem} className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-4">
-            <div className={`p-2 rounded-xl ${s.bg} w-fit mb-2`}>
-              <s.icon className={`w-4 h-4 ${s.color}`} />
+      {/* ── La carte de reprise ──────────────────────────────────────────────── */}
+      {loadingEnrollments ? (
+        <Skeleton height={168} radius="var(--r-l)" label={t('dashboard.loadingLabel')} style={{ marginTop: '18px' }} />
+      ) : inProgress?.formation ? (
+        <div className="mt-[18px]">
+          <TerritoryCard
+            first
+            territory="forme"
+            meta={inProgress.formation.duration}
+            title={inProgress.formation.title}
+            titleSize={21}
+          >
+            <ProgressBar
+              value={inProgress.enrollment.progress}
+              source="db"
+              asOf={asOf}
+              label={t('dashboard.progressLabel')}
+              style={{ marginTop: '15px' }}
+            />
+            <div className="mt-[10px] flex items-center justify-between gap-3">
+              <span className="text-meta-2" style={{ color: 'var(--card-ink-2)' }}>
+                <Num value={inProgress.enrollment.completedLessons.length} source="db" asOf={asOf} />
+                {' / '}
+                <Num
+                  value={inProgress.formation.modules.reduce((n, m) => n + m.lessons.length, 0) || null}
+                  source="db"
+                  asOf={asOf}
+                />{' '}
+                {t('dashboard.lessonsLabel')}
+              </span>
+              <Button
+                tone="primary"
+                size="sm"
+                fullWidth={false}
+                onClick={() => navigate(path(`/cours/${inProgress.formation!.slug}`))}
+              >
+                {t('dashboard.resume')}
+              </Button>
             </div>
-            <p className="text-xl font-bold text-neutral-900 dark:text-white">{s.value}</p>
-            <p className="text-xs text-neutral-500">{s.label}</p>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Gamification widgets */}
-      {gamification && (
-        <div className="grid sm:grid-cols-2 gap-4">
-          <XPBar xp={gamification.xp} compact />
-          <StreakWidget currentStreak={gamification.currentStreak} longestStreak={gamification.longestStreak} compact />
+          </TerritoryCard>
         </div>
+      ) : (
+        <GlassPanel level="hero" padding={20} className="mt-[18px]">
+          <p className="m-0 text-body text-ink-2">
+            {enrolledFormations.length === 0 ? t('dashboard.startAdventure') : t('dashboard.continueLearningHint')}
+          </p>
+          {enrolledFormations.length === 0 && (
+            <Button tone="forme" style={{ marginTop: '15px' }} onClick={() => navigate(path('/formations'))}>
+              {t('dashboard.explore')}
+            </Button>
+          )}
+        </GlassPanel>
       )}
 
-      {/* Continue learning */}
-      <div>
-        <h3 className="font-bold text-neutral-900 dark:text-white mb-3">{t('dashboard.continueLearning')}</h3>
-        {loadingEnrollments ? (
-          <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
-        ) : enrolledFormations.length === 0 ? (
-          <div className="bg-white dark:bg-neutral-800 border border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl p-8 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/20 flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="w-7 h-7 text-brand-500" />
-            </div>
-            <h4 className="font-bold text-neutral-900 dark:text-white mb-1">{t('dashboard.readyTitle')}</h4>
-            <p className="text-sm text-neutral-500 mb-4 max-w-xs mx-auto">
-              {t('dashboard.readyText')}
-            </p>
-            <LocalizedLink to="/formations">
-              <Button size="sm" icon={<ArrowRight className="w-3.5 h-3.5" />}>{t('dashboard.discover')}</Button>
-            </LocalizedLink>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {enrolledFormations.filter((ef) => ef.enrollment.progress < 100).slice(0, 3).map(({ enrollment, formation }) => (
-              <div key={enrollment.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                  {formation?.coverImage && (
-                    <img src={formation.coverImage} alt="" className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover flex-shrink-0" loading="lazy" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-neutral-900 dark:text-white truncate">{formation?.title ?? t('dashboard.formationFallback')}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="flex-1 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                        <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: `${enrollment.progress}%` }} />
-                      </div>
-                      <span className="text-xs text-neutral-500 flex-shrink-0">{enrollment.progress}%</span>
-                    </div>
-                  </div>
-                </div>
-                {formation && (
-                  <LocalizedLink to={`/cours/${formation.slug}`} className="w-full sm:w-auto">
-                    <Button size="sm" className="w-full sm:w-auto" icon={<Play className="w-3.5 h-3.5" />}>{t('dashboard.continue')}</Button>
-                  </LocalizedLink>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+      {/* ── Deux cases de relevé ─────────────────────────────────────────────── */}
+      <div className="mt-[18px] grid grid-cols-2 gap-[10px]">
+        <StatTile
+          label={t('dashboard.statStreak')}
+          value={gamification ? gamification.currentStreak : null}
+          unit={t('dashboard.dayUnit')}
+          source="db"
+          asOf={asOf}
+          showAsOf={false}
+          foot={
+            gamification ? (
+              <>
+                {t('dashboard.statStreakRecord')} : <Num value={gamification.longestStreak} source="db" asOf={asOf} />
+              </>
+            ) : undefined
+          }
+        />
+        <StatTile
+          label={t('dashboard.statLevel')}
+          value={level}
+          source="db"
+          asOf={asOf}
+          showAsOf={false}
+          foot={
+            level ? (
+              <>
+                <Num value={gamification!.xp} unit={t('dashboard.xpUnit')} source="db" asOf={asOf} />
+                {Number.isFinite(levelCeil) && ` · ${t('dashboard.statLevelNext', { level: level + 1 })}`}
+              </>
+            ) : undefined
+          }
+        />
       </div>
+      {level && Number.isFinite(levelCeil) && (
+        <ProgressBar
+          value={levelPct}
+          source="db"
+          asOf={asOf}
+          height={6}
+          label={t('dashboard.statLevelNext', { level: level + 1 })}
+          style={{ marginTop: '10px' }}
+        />
+      )}
+
+      {/* ── Trois relevés du parcours ────────────────────────────────────────── */}
+      <div className="mt-[12px] grid grid-cols-2 gap-[10px] sm:grid-cols-3">
+        <StatTile label={t('dashboard.statFormations')} value={enrolledFormations.length} source="db" asOf={asOf} showAsOf={false} />
+        <StatTile label={t('dashboard.statCompleted')} value={completedCount} source="db" asOf={asOf} showAsOf={false} />
+        <StatTile
+          label={t('dashboard.statAvgProgress')}
+          value={enrolledFormations.length > 0 ? avgProgress : null}
+          unit="%"
+          source="db"
+          asOf={asOf}
+          showAsOf={false}
+        />
+      </div>
+
+      {/* ── L'entrée du répétiteur. Son nom vient du profil, jamais d'une constante. ── */}
+      <GlassPanel level="flat" padding={18} className="mt-[12px]">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="m-0 text-[14.5px] font-bold text-ink">{t('dashboard.tutorTitle', { tutor })}</p>
+            <p className="m-0 mt-[2px] text-meta-2" style={{ color: 'var(--text-muted)' }}>{t('dashboard.tutorBody')}</p>
+          </div>
+          <Button
+            tone="transforme"
+            size="sm"
+            fullWidth={false}
+            onClick={() => navigate(path('/mon-espace/repetiteur'))}
+            aria-label={t('dashboard.tutorTitle', { tutor })}
+          >
+            {t('dashboard.tutorCta')}
+          </Button>
+        </div>
+      </GlassPanel>
+
+      {/* ── Dans ton espace ──────────────────────────────────────────────────── */}
+      <p className="mm-eyebrow mt-[22px]">{t('dashboard.spaceEyebrow')}</p>
+      <GlassPanel level="flat" padding="4px 18px" className="mt-[10px]">
+        {SPACE_LINKS.map((link, i) => (
+          <LessonRow
+            key={link.to}
+            state="plain"
+            icon={<Icon name={link.glyph} size={14} />}
+            title={t(`dashboard.${link.title}`)}
+            meta={t(`dashboard.${link.meta}`)}
+            trailing={<Icon name="forward" size={16} strokeWidth={2.4} style={{ color: 'var(--ink-3)' }} />}
+            onClick={() => navigate(path(link.to))}
+            last={i === SPACE_LINKS.length - 1}
+          />
+        ))}
+      </GlassPanel>
     </div>
   );
 }

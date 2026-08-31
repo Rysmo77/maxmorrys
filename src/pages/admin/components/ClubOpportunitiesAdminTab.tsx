@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Trash2 } from 'lucide-react';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
@@ -9,6 +8,8 @@ import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { getClubOpportunities, deleteClubOpportunity } from '../../../lib/firestore';
 import { useFormat } from '../../../hooks/useFormat';
 import type { ClubOpportunity } from '../../../types';
+import { Icon } from '@ds';
+import ConsoleListSkeleton from './ConsoleListSkeleton';
 
 export default function ClubOpportunitiesAdminTab() {
   const { t } = useTranslation('adminClub');
@@ -37,8 +38,8 @@ export default function ClubOpportunitiesAdminTab() {
     });
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>;
-  if (items.length === 0) return <Card><p className="text-center text-neutral-400 py-8">{t('opportunities.empty')}</p></Card>;
+  if (loading) return <ConsoleListSkeleton />;
+  if (items.length === 0) return <Card><p className="text-center text-ink-2 py-8">{t('opportunities.empty')}</p></Card>;
 
   return (
     <div className="space-y-3">
@@ -49,13 +50,13 @@ export default function ClubOpportunitiesAdminTab() {
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <Badge variant="brand" size="sm">{TYPE_LABELS[item.type]}</Badge>
                 {item.budget && <Badge variant="warning" size="sm">{item.budget}</Badge>}
-                <span className="text-xs text-neutral-400">{item.userName} · {formatDate(item.createdAt)}</span>
+                <span className="text-xs text-ink-2">{item.userName} · {formatDate(item.createdAt)}</span>
               </div>
-              <p className="font-bold text-neutral-900 dark:text-white">{item.title}</p>
-              <p className="text-sm text-neutral-500 line-clamp-2 mt-0.5">{item.description}</p>
-              <p className="text-xs text-plum-600 dark:text-plum-400 font-semibold mt-1 break-words">{t('opportunities.contact', { contact: item.contact })}</p>
+              <p className="font-bold text-ink">{item.title}</p>
+              <p className="text-sm text-ink-2 line-clamp-2 mt-0.5">{item.description}</p>
+              <p className="text-xs text-transforme font-semibold mt-1 break-words">{t('opportunities.contact', { contact: item.contact })}</p>
             </div>
-            <button onClick={() => handleDelete(item)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors flex-shrink-0" aria-label={t('opportunities.deleteAria')}><Trash2 className="w-4 h-4" /></button>
+            <button onClick={() => handleDelete(item)} className="p-1.5 rounded-lg text-ink-2 hover:text-stop hover:bg-[color-mix(in_srgb,var(--stop)_8%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--stop)_20%,transparent)] transition-colors flex-shrink-0" aria-label={t('opportunities.deleteAria')}><Icon name="trash" size={16} /></button>
           </div>
         </Card>
       ))}

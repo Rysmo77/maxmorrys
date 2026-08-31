@@ -54,6 +54,44 @@
     "crossEyebrow": "DÉCOUVREZ AUSSI",
     "crossTitle": "Je te forme",
     "crossDescription": "Des formations pratiques pour aller plus loin et transformer vos connaissances en compétences réelles.",
-    "crossCta": "Voir les formations"
+    "crossCta": "Voir les formations",
+    "loading": "Chargement de l'article"
+  },
+  "index": {
+    "eyebrow": "Je t'informe",
+    "freeLine": "Tous gratuits.",
+    "countLine_one": "{{count}} article.",
+    "countLine_other": "{{count}} articles.",
+    "lede": "Des méthodes, pas des opinions. Ce qui marche pour un commerce à Dakar, écrit pour être appliqué le soir même.",
+    "searchLabel": "Chercher un sujet",
+    "searchHint": "un sujet",
+    "filterAll": "Tout",
+    "read": "Lire",
+    "listenTitle": [
+      "Tu préfères écouter ?"
+    ],
+    "listenBody": "Le podcast et les vidéos ne sont pas ici : ils sont sous « Je te transforme ». Le blog donne des méthodes ; là-bas, des gens racontent ce qu'ils ont fait.",
+    "listenCta": "Écouter & regarder",
+    "followTitle": "Suivre les publications",
+    "rss": "Flux RSS",
+    "rssAction": "Copier",
+    "alert": "Alerte dans ton espace",
+    "alertAction": "Créer un compte",
+    "noEmail": "Il n'y a pas encore de lettre par e-mail. Je ne te fais pas remplir un champ qui ne sert à rien.",
+    "empty": "Aucun article ne correspond. Retire un filtre, ou vide la recherche."
+  },
+  "article": {
+    "share": "Partager",
+    "copy": "Copier le lien",
+    "copied": "Lien copié",
+    "tocTitle": "Dans cet article",
+    "gateTitle": "Passe à la pratique",
+    "gateBody": "Cet article donne la méthode. La formation la déroule, leçon par leçon, avec les exercices.",
+    "gateCta": "Voir la formation",
+    "gateAlt": "Ou continue à lire — le reste du blog est gratuit.",
+    "nextTitle": [
+      "À lire ensuite"
+    ],
+    "translatedOriginal": "Lire l'original"
   }
 }

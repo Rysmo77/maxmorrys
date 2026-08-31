@@ -17,5 +17,39 @@
   "crossEyebrow": "ENCORE DES QUESTIONS ?",
   "crossTitle": "Écris-moi directement",
   "crossText": "Je réponds personnellement à chaque message. N'hésite pas à me contacter.",
-  "crossButton": "Me contacter"
+  "crossButton": "Me contacter",
+  "index": {
+    "eyebrow": "Je t'informe",
+    "titleLines": [
+      "Les questions",
+      "qu'on me pose."
+    ],
+    "lede": "Si la question revient, elle finit ici. C'est comme ça que cette page s'écrit.",
+    "searchLabel": "Chercher une question",
+    "searchHint": "une question",
+    "filterAll": "Tout",
+    "contactTitle": "Tu ne trouves pas ?",
+    "contactBody": "Écris-moi. C'est moi qui lis, et c'est moi qui réponds — compte deux jours ouvrés.",
+    "contactCta": "Contacte-moi",
+    "truthTitle": "Une question mérite d'être lue en entier",
+    "truthBody": "« Combien de membres y a-t-il dans le Club ? » a sa réponse ici, et elle commence par : « Je ne te le dirai pas, parce que le chiffre serait faux. » Une FAQ qui esquive ses questions gênantes ne sert à personne.",
+    "empty": "Aucune question ne correspond. Retire un filtre, ou vide la recherche."
+  },
+  "question": {
+    "breadcrumbRoot": "FAQ",
+    "notFoundTitle": [
+      "Cette question",
+      "n'existe pas."
+    ],
+    "notFoundBody": "L'adresse ne correspond à aucune question. Elle a peut-être été reformulée — l'index les porte toutes.",
+    "backToIndex": "Toutes les questions",
+    "loading": "Chargement de la question",
+    "neighboursTitle": "Questions voisines",
+    "neighboursEmpty": "C'est la seule question de cette catégorie, pour l'instant.",
+    "shareLabel": "Copier l'adresse de cette question",
+    "shareCopied": "Adresse copiée.",
+    "shareFailed": "La copie n'a pas abouti. L'adresse est dans la barre du navigateur.",
+    "truthTitle": "Ce que cette page corrige",
+    "truthBody": "L'index seul ne donnait à aucune question d'URL partageable ni de position propre en recherche. Une page par question, avec son fil et ses données structurées, ferme cet écart."
+  }
 }

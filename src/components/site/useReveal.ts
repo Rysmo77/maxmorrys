@@ -1,0 +1,62 @@
+import { useEffect, useRef } from 'react';
+
+/**
+ * LE DÉCLENCHEUR DE SCÈNE — il pose `.play` quand la section entre dans le champ.
+ *
+ * Le système décrit une entrée orchestrée : `.rv` (entrée simple), `.rv-s` (avec échelle) et
+ * `.rv-l` (ligne de titre sous masque `clip-path`), décalées de `--i × --stagger`. Les trois
+ * classes sont écrites dans `brand/motion.css` — mais elles ne font RIEN tant qu'un ancêtre
+ * ne porte pas `.play`.
+ *
+ * Les maquettes posent `.play` en dur, parce qu'un écran de planche est monté une fois et
+ * regardé tout de suite. En production, une page fait dix écrans de haut : jouer toutes les
+ * scènes au montage revient à ne rien animer du tout, puisque neuf dixièmes se déroulent hors
+ * du champ.
+ *
+ * DEUX PRÉCAUTIONS, et chacune vient d'un défaut prévisible :
+ *
+ *   • L'observation s'arrête après le premier passage. Une scène qui rejoue à chaque
+ *     défilement transforme une entrée en clignotement, et le système n'a que deux moments
+ *     scénarisés — l'attente de paiement et le certificat. Celui-ci n'en est pas un.
+ *   • Si `IntersectionObserver` manque, ou si la personne a demandé moins de mouvement, on
+ *     pose `.play` IMMÉDIATEMENT. Le repli d'une animation n'est pas l'absence de contenu :
+ *     `prefers-reduced-motion` ramène déjà toutes les durées à 1 ms dans `brand/fallback.css`,
+ *     donc `.play` posé d'emblée y rend le contenu visible, sans transition. L'oublier
+ *     laisserait la page vide pour qui a coché ce réglage.
+ */
+export function useReveal<T extends HTMLElement = HTMLDivElement>() {
+  const ref = useRef<T>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduced || typeof IntersectionObserver === 'undefined') {
+      el.classList.add('play');
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('play');
+          // Une seule fois : la scène a joué, elle ne se rejoue pas.
+          observer.unobserve(entry.target);
+        }
+      },
+      // 12 % suffit : la scène doit avoir commencé quand on arrive dessus, pas quand on l'a
+      // dépassée. `rootMargin` négatif en bas évite qu'elle parte pour un pixel visible.
+      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return ref;
+}

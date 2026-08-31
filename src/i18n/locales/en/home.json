@@ -7,15 +7,15 @@
   },
   "services": {
     "train": {
-      "title": "I train you",
+      "title": "I'll train you",
       "desc": "Hands-on, actionable courses to master the digital world."
     },
     "inform": {
-      "title": "I keep you informed",
+      "title": "I'll keep you posted",
       "desc": "Articles, podcasts and videos to stay ahead of the curve."
     },
     "transform": {
-      "title": "I transform you",
+      "title": "I'll push you further",
       "desc": "Coaching and consulting to accelerate your growth."
     }
   },
@@ -41,7 +41,17 @@
     "titleGrowth": "growth",
     "titleEnd": ".",
     "subtitle": "Courses, articles, a podcast and videos to transform your business — SEO, AI and digital marketing, no fluff.",
-    "cta": "Explore the courses"
+    "cta": "Explore the courses",
+    "titleLines": [
+      "I'LL TRAIN YOU",
+      "TO GO DIGITAL.",
+      "FROM DAKAR."
+    ],
+    "lede": "SEO, marketing and artificial intelligence, explained for the West African market. You pay with Wave or Orange Money, in CFA francs.",
+    "ctaCourses": "See the courses",
+    "ctaBlog": "Read the blog",
+    "truthTitle": "What I don't show",
+    "truthBody": "No ratings, no student count, no pass rate, no revenue figures. The platform just opened. What I can prove sits on each course page."
   },
   "manifesto": {
     "eyebrow": "Hi, I'm Max-Morrys",
@@ -152,5 +162,37 @@
     "desc": "Whether you're an entrepreneur, a marketer or changing careers, there's a course made for you.",
     "ctaFormations": "See the courses",
     "ctaContact": "Get in touch"
+  },
+  "territories": {
+    "formeMeta": "Courses · lifetime access",
+    "formeLabel": "published",
+    "informeMeta": "Free blog",
+    "informeLabel": "articles",
+    "transformeMeta": "Podcast, videos, Club",
+    "transformeLabel": "media",
+    "digitaliseMeta": "Local businesses",
+    "digitaliseLabel": "packs"
+  },
+  "why": {
+    "title": [
+      "Why here,",
+      "and not elsewhere."
+    ],
+    "r1Title": "You pay the way you already pay",
+    "r1Body": "Wave, Orange Money, in CFA francs. No card required, no conversion, no account abroad.",
+    "r2Title": "The examples are from here",
+    "r2Body": "« Almadies cosmetics », not « organic skincare Brooklyn ». What your customers actually type, in the words they use.",
+    "r3Title": "Built for a metered data plan",
+    "r3Body": "Every video's weight is shown before you start it. Every lesson has a transcript that costs nothing."
+  },
+  "free": {
+    "title": [
+      "Start for free."
+    ],
+    "all": "The whole blog",
+    "empty": "Nothing's published here yet. The blog opens first — it's the one place I write every week.",
+    "metaArticle": "Article · free",
+    "metaPodcast": "Podcast · free",
+    "metaCourse": "Opening module · free"
   }
 }

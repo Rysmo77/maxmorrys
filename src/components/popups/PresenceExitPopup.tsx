@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { ArrowRight } from 'lucide-react';
 import LocalizedLink from '../shared/LocalizedLink';
 import PopupHeading from './PopupHeading';
 import { whatsappUrl } from '../../lib/presence/whatsapp';
 import { CTA_LAGOON, DISMISS, BODY, ACTIONS } from './popupStyles';
+import { Icon } from '@ds';
 
 /**
  * Miroir commerçant de l'aiguilleur : retenue à la sortie de `/presence-digitale`.
@@ -49,12 +49,12 @@ export default function PresenceExitPopup({ onAccept, onSecondary, onDismiss }: 
           className={CTA_LAGOON}
         >
           {t('popups.presenceExit.cta')}
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+          <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
         </a>
         <LocalizedLink
           to="/presence-digitale#packs"
           onClick={onSecondary}
-          className="text-xs font-semibold text-lagoon-400 hover:text-lagoon-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-lagoon-400 rounded"
+          className="text-xs font-semibold text-digitalise-txt hover:text-digitalise-txt transition-colors focus:outline-none focus-visible:ring-2 rounded"
         >
           {t('popups.presenceExit.secondary')}
         </LocalizedLink>

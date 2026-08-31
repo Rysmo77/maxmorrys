@@ -1,29 +1,48 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { Camera, Linkedin, Globe2, ExternalLink, Loader2, Save } from 'lucide-react';
+import { updateProfile } from 'firebase/auth';
+import { Avatar, Button, Field, GlassPanel, Icon, IconButton, LessonRow, Num } from '@ds';
 import PhoneInput from '../../../components/ui/PhoneInput';
-import Button from '../../../components/ui/Button';
+import { SiteEyebrow, useReveal } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../components/ui/Toast';
 import { updateUserProfile, syncSocialsToClubProfile } from '../../../lib/firestore';
-import { updateProfile } from 'firebase/auth';
 import { uploadMedia } from '../../../lib/storage';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import { captureError } from '../../../lib/sentry';
-import { staggerContainer, staggerItem } from '../../../lib/animations';
 
-const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
+/**
+ * LE PROFIL (`ScreensCompte.js` · en-tête de `Preferences`).
+ *
+ * TROIS CHOSES CHANGENT, ET AUCUNE N'EST COSMÉTIQUE.
+ *
+ * 1. LES QUINZE `<input>` MAISON DEVIENNENT DES `Field`. La constante `inputCls` posait un
+ *    `focus:ring-2` sans couleur nommée et aucun `autoComplete` : le navigateur ne
+ *    pré-remplissait rien, et le clavier logiciel d'un téléphone s'ouvrait en alphabétique
+ *    pour un numéro de téléphone. `Field` expose `inputMode` et `autoComplete`, et lie chaque
+ *    `<label>` à son contrôle par un `id` généré — les libellés d'avant étaient orphelins.
+ *
+ * 2. LES SEPT PASTILLES DE MARQUE PERDENT LEURS COULEURS LITTÉRALES. `bg-green-500`,
+ *    `bg-blue-700`, `bg-gradient-to-br from-purple-500 to-pink-500` : des valeurs Tailwind
+ *    hors de toute échelle du système, qui ne basculent pas sous `.dk` et qu'aucun jeton ne
+ *    gouverne (AD-2). Les sept réseaux passent en lignes de liste, avec le glyphe du système
+ *    et le chevron de sortie — le dessin que le kit donne à « Dans ton espace ».
+ *
+ * 3. LES DEUX COMPTEURS DE « MON PARCOURS » PASSENT PAR `<Num>`. Ce sont des nombres, ils
+ *    viennent de la base, ils portent maintenant leur source et leur date de relevé. Ce ne
+ *    sont PAS des nombres d'inscrits au sens de l'interdit du système : personne d'autre ne
+ *    les lit, ils ne servent à convaincre personne.
+ */
 
-const socialLinks = [
-  { key: 'whatsapp', url: 'https://whatsapp.com/channel/0029Vb2mX9zDjiOe1qo3IR1H', color: 'bg-green-500' },
-  { key: 'linkedin', url: 'https://www.linkedin.com/in/max-morrys-eyoum/', color: 'bg-blue-700' },
-  { key: 'instagram', url: 'https://www.instagram.com/maxmorrys.me', color: 'bg-gradient-to-br from-purple-500 to-pink-500' },
-  { key: 'facebook', url: 'https://www.facebook.com/maxmorrys.me/', color: 'bg-blue-600' },
-  { key: 'youtube', url: 'https://www.youtube.com/@maxmorrys-me', color: 'bg-red-600' },
-  { key: 'tiktok', url: 'https://www.tiktok.com/@maxmorrys.me', color: 'bg-neutral-900 dark:bg-neutral-700' },
-  { key: 'x', url: 'https://x.com/max_morrys', color: 'bg-neutral-900 dark:bg-neutral-700' },
+const SOCIAL_LINKS = [
+  { key: 'whatsapp', url: 'https://whatsapp.com/channel/0029Vb2mX9zDjiOe1qo3IR1H' },
+  { key: 'linkedin', url: 'https://www.linkedin.com/in/max-morrys-eyoum/' },
+  { key: 'instagram', url: 'https://www.instagram.com/maxmorrys.me' },
+  { key: 'facebook', url: 'https://www.facebook.com/maxmorrys.me/' },
+  { key: 'youtube', url: 'https://www.youtube.com/@maxmorrys-me' },
+  { key: 'tiktok', url: 'https://www.tiktok.com/@maxmorrys.me' },
+  { key: 'x', url: 'https://x.com/max_morrys' },
 ];
 
 interface ProfileTabProps {
@@ -37,6 +56,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
   const { user, userData, refreshUserData } = useAuth();
   const { addToast } = useToast();
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const reveal = useReveal<HTMLDivElement>();
 
   const displayName = userData?.displayName || user?.displayName || user?.email?.split('@')[0] || t('profile.studentFallback');
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
@@ -48,9 +68,12 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  /** L'instant où le profil a été lu : la date de relevé des deux compteurs de parcours. */
+  const [readAt, setReadAt] = useState<Date>(() => new Date());
 
   useEffect(() => {
     if (userData) {
+      setReadAt(new Date());
       setProfileForm({
         displayName: userData.displayName || '',
         firstName: userData.firstName || '',
@@ -70,6 +93,8 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
       });
     }
   }, [userData]);
+
+  const set = (key: keyof typeof profileForm) => (v: string) => setProfileForm((p) => ({ ...p, [key]: v }));
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -135,158 +160,146 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
     }
   };
 
+
+  /*
+   * `.play` DOIT ÊTRE POSÉ ICI, ET RIEN NE LE POSAIT.
+   *
+   * `SiteEyebrow` rend `<p class="rv mm-eyebrow">`, et `.rv` vaut `opacity: 0` TANT QU'UN
+   * ANCÊTRE NE PORTE PAS `.play`. Les pages publiques l'obtiennent de `PageSite`, les écrans
+   * de compte de `AuthPage` — mais `AppShell`, la coquille de l'espace apprenant, n'appelle
+   * `useReveal` nulle part. Sans ce déclencheur, chaque sourcil de cet onglet resterait
+   * invisible, y compris pour qui a demandé moins de mouvement (le repli ramène les durées à
+   * 1 ms, il ne rend pas `.rv` visible — c'est `useReveal` qui pose `.play` d'emblée).
+   */
   return (
-    <motion.div
-      className="max-w-2xl space-y-6"
-      variants={staggerContainer}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* Photo de profil */}
-      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
-        <h3 className="font-bold text-neutral-900 dark:text-white mb-5">{t('profile.photoTitle')}</h3>
-        <div className="flex items-center gap-5">
+    <div ref={reveal} className="max-w-2xl">
+      {/* ── L'identité ─────────────────────────────────────────────────────── */}
+      <GlassPanel level="flat" padding={18}>
+        <div className="flex items-center gap-3.5">
           <div className="relative flex-shrink-0">
-            <div className="w-20 h-20 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center overflow-hidden ring-4 ring-brand-50 dark:ring-brand-900/20">
-              {photoURL ? (
-                <img src={photoURL} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-2xl font-bold text-brand-600 dark:text-brand-400">{initials}</span>
-              )}
-            </div>
-            <button
-              onClick={() => photoInputRef.current?.click()}
-              disabled={uploadingPhoto}
-              className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-brand-600 hover:bg-brand-500 text-white flex items-center justify-center shadow-lg transition-colors disabled:opacity-60"
-            >
-              {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-            </button>
+            {photoURL
+              ? <img src={photoURL} alt={t('profile.photoAlt')} className="w-14 h-14 rounded-full object-cover" />
+              : <Avatar initials={initials} size={56} />}
+            {/* Le déclencheur est un vrai bouton nommé : l'ancien n'avait ni libellé ni rôle
+                annoncé, et son rond de chargement disparaissait le sens de la cible. */}
+            <span className="absolute -bottom-1 -right-1">
+              <IconButton
+                label={t('profile.changePhoto')}
+                disabled={uploadingPhoto}
+                onClick={() => photoInputRef.current?.click()}
+                style={{ width: '32px', height: '32px' }}
+              >
+                <Icon name="image" size={15} />
+              </IconButton>
+            </span>
             <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
           </div>
-          <div>
-            <p className="font-semibold text-neutral-900 dark:text-white">{displayName}</p>
-            <p className="text-sm text-neutral-500">{user?.email}</p>
-            <p className="text-xs text-neutral-400 mt-1">{t('profile.photoHint')}</p>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-ink m-0 truncate">{displayName}</p>
+            <p className="text-meta text-ink-2 m-0 truncate">{user?.email}</p>
+            <p className="text-small text-ink-2 m-0 mt-0.5">{t('profile.photoHint')}</p>
           </div>
         </div>
-      </motion.div>
+      </GlassPanel>
 
-      {/* Informations personnelles */}
-      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
-        <h3 className="font-bold text-neutral-900 dark:text-white mb-5">{t('profile.personalInfo')}</h3>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.firstName')}</label>
-            <input value={profileForm.firstName} onChange={(e) => setProfileForm((p) => ({ ...p, firstName: e.target.value }))} placeholder={t('profile.firstNamePlaceholder')} className={inputCls} />
+      {/* ── Les informations ───────────────────────────────────────────────── */}
+      <SiteEyebrow style={{ marginTop: '22px' }}>{t('profile.personalInfo')}</SiteEyebrow>
+      <GlassPanel level="flat" padding={18} as="section" aria-label={t('profile.formLabel')}>
+        <div className="grid sm:grid-cols-2 gap-x-4">
+          <Field label={t('profile.firstName')} value={profileForm.firstName} onChange={set('firstName')} placeholder={t('profile.firstNamePlaceholder')} autoComplete="given-name" style={{ marginTop: 0 }} />
+          <Field label={t('profile.lastName')} value={profileForm.lastName} onChange={set('lastName')} placeholder={t('profile.lastNamePlaceholder')} autoComplete="family-name" style={{ marginTop: 0 }} />
+
+          <div className="sm:col-span-2">
+            <Field
+              label={t('profile.displayName')}
+              hint={t('profile.displayNameHint')}
+              value={profileForm.displayName}
+              onChange={set('displayName')}
+              placeholder={t('profile.displayNamePlaceholder')}
+              autoComplete="nickname"
+            />
           </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.lastName')}</label>
-            <input value={profileForm.lastName} onChange={(e) => setProfileForm((p) => ({ ...p, lastName: e.target.value }))} placeholder={t('profile.lastNamePlaceholder')} className={inputCls} />
+
+          <div className="sm:col-span-2">
+            {/* L'adresse ne se modifie pas ici : c'est l'identifiant d'authentification. */}
+            <Field label={t('profile.email')} type="email" value={user?.email || ''} readOnly disabled />
           </div>
-          <div className="space-y-1 sm:col-span-2">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.displayName')} <span className="font-normal text-neutral-400">{t('profile.displayNameHint')}</span></label>
-            <input value={profileForm.displayName} onChange={(e) => setProfileForm((p) => ({ ...p, displayName: e.target.value }))} placeholder={t('profile.displayNamePlaceholder')} className={inputCls} />
+
+          <Field label={t('profile.birthDate')} type="date" value={profileForm.birthDate} onChange={set('birthDate')} autoComplete="bday" />
+          <div className="mt-[var(--sp-14)]">
+            <label htmlFor="profile-phone" className="block text-meta-2 font-semibold text-ink-2 mb-1.5">{t('profile.phone')}</label>
+            <PhoneInput id="profile-phone" value={profileForm.phone} onChange={set('phone')} placeholder="77 123 45 67" />
           </div>
-          <div className="space-y-1 sm:col-span-2">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.email')}</label>
-            <input value={user?.email || ''} disabled className={`${inputCls} opacity-60 cursor-not-allowed`} />
+
+          <div className="mt-[var(--sp-14)]">
+            <label htmlFor="profile-whatsapp" className="block text-meta-2 font-semibold text-ink-2 mb-1.5">{t('profile.whatsapp')}</label>
+            <PhoneInput id="profile-whatsapp" value={profileForm.whatsapp} onChange={set('whatsapp')} placeholder="77 123 45 67" />
           </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.birthDate')}</label>
-            <input type="date" value={profileForm.birthDate} onChange={(e) => setProfileForm((p) => ({ ...p, birthDate: e.target.value }))} className={inputCls} />
+          <Field label={t('profile.linkedin')} type="url" inputMode="url" value={profileForm.linkedin} onChange={set('linkedin')} placeholder={t('profile.linkedinPlaceholder')} autoComplete="url" />
+
+          <Field label={t('profile.city')} value={profileForm.city} onChange={set('city')} placeholder={t('profile.cityPlaceholder')} autoComplete="address-level2" />
+          <Field label={t('profile.website')} type="url" inputMode="url" value={profileForm.website} onChange={set('website')} placeholder={t('profile.websitePlaceholder')} />
+
+          <Field label={t('profile.facebook')} value={profileForm.facebook} onChange={set('facebook')} placeholder={t('profile.handlePlaceholder')} />
+          <Field label={t('profile.instagram')} value={profileForm.instagram} onChange={set('instagram')} placeholder={t('profile.handlePlaceholder')} />
+          <Field label={t('profile.twitter')} value={profileForm.twitter} onChange={set('twitter')} placeholder={t('profile.handlePlaceholder')} />
+          <Field label={t('profile.tiktok')} value={profileForm.tiktok} onChange={set('tiktok')} placeholder={t('profile.handlePlaceholder')} />
+
+          <div className="sm:col-span-2">
+            <Field label={t('profile.youtube')} type="url" inputMode="url" value={profileForm.youtube} onChange={set('youtube')} placeholder={t('profile.youtubePlaceholder')} />
           </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.phone')}</label>
-            <PhoneInput value={profileForm.phone} onChange={(v) => setProfileForm((p) => ({ ...p, phone: v }))} placeholder="77 123 45 67" />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.whatsapp')}</label>
-            <PhoneInput value={profileForm.whatsapp} onChange={(v) => setProfileForm((p) => ({ ...p, whatsapp: v }))} placeholder="77 123 45 67" />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500 flex items-center gap-1.5"><Linkedin className="w-3 h-3" /> {t('profile.linkedin')}</label>
-            <input type="url" value={profileForm.linkedin} onChange={(e) => setProfileForm((p) => ({ ...p, linkedin: e.target.value }))} placeholder={t('profile.linkedinPlaceholder')} className={inputCls} />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.city')}</label>
-            <input value={profileForm.city} onChange={(e) => setProfileForm((p) => ({ ...p, city: e.target.value }))} placeholder={t('profile.cityPlaceholder')} className={inputCls} />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.website')}</label>
-            <input type="url" value={profileForm.website} onChange={(e) => setProfileForm((p) => ({ ...p, website: e.target.value }))} placeholder={t('profile.websitePlaceholder')} className={inputCls} />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.facebook')}</label>
-            <input value={profileForm.facebook} onChange={(e) => setProfileForm((p) => ({ ...p, facebook: e.target.value }))} placeholder={t('profile.handlePlaceholder')} className={inputCls} />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.instagram')}</label>
-            <input value={profileForm.instagram} onChange={(e) => setProfileForm((p) => ({ ...p, instagram: e.target.value }))} placeholder={t('profile.handlePlaceholder')} className={inputCls} />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.twitter')}</label>
-            <input value={profileForm.twitter} onChange={(e) => setProfileForm((p) => ({ ...p, twitter: e.target.value }))} placeholder={t('profile.handlePlaceholder')} className={inputCls} />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.tiktok')}</label>
-            <input value={profileForm.tiktok} onChange={(e) => setProfileForm((p) => ({ ...p, tiktok: e.target.value }))} placeholder={t('profile.handlePlaceholder')} className={inputCls} />
-          </div>
-          <div className="space-y-1 sm:col-span-2">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.youtube')}</label>
-            <input value={profileForm.youtube} onChange={(e) => setProfileForm((p) => ({ ...p, youtube: e.target.value }))} placeholder={t('profile.youtubePlaceholder')} className={inputCls} />
-          </div>
-          <div className="space-y-1 sm:col-span-2">
-            <label className="block text-xs font-semibold text-neutral-500">{t('profile.bio')}</label>
-            <textarea value={profileForm.bio} onChange={(e) => setProfileForm((p) => ({ ...p, bio: e.target.value }))} placeholder={t('profile.bioPlaceholder')} rows={3} className={`${inputCls} resize-y`} />
+          <div className="sm:col-span-2">
+            <Field as="textarea" rows={3} maxLength={600} label={t('profile.bio')} value={profileForm.bio} onChange={set('bio')} placeholder={t('profile.bioPlaceholder')} />
           </div>
         </div>
+
         <div className="flex justify-end mt-5">
-          <Button onClick={handleSaveProfile} disabled={savingProfile} icon={savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
+          <Button size="sm" onClick={() => void handleSaveProfile()} loading={savingProfile}>
             {savingProfile ? t('profile.saving') : t('profile.saveProfile')}
           </Button>
         </div>
-      </motion.div>
+      </GlassPanel>
 
-      {/* Rejoindre la communauté */}
-      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
-        <h3 className="font-bold text-neutral-900 dark:text-white mb-1">{t('profile.communityTitle')}</h3>
-        <p className="text-sm text-neutral-500 mb-5">{t('profile.communitySubtitle')}</p>
-        <div className="space-y-2">
-          {socialLinks.map((link) => (
-            <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors group">
-              <div className={`w-10 h-10 rounded-xl ${link.color} flex items-center justify-center flex-shrink-0`}>
-                <Globe2 className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-neutral-900 dark:text-white">{t(`profile.social.${link.key}Label`)}</p>
-                <p className="text-xs text-neutral-400">{t(`profile.social.${link.key}Desc`)}</p>
-              </div>
-              <ExternalLink className="w-4 h-4 text-neutral-300 group-hover:text-brand-500 transition-colors flex-shrink-0" />
-            </a>
-          ))}
-        </div>
-      </motion.div>
+      {/* ── La communauté ──────────────────────────────────────────────────── */}
+      <SiteEyebrow style={{ marginTop: '22px' }}>{t('profile.communityTitle')}</SiteEyebrow>
+      <p className="text-small text-ink-2 mb-2.5">{t('profile.communitySubtitle')}</p>
+      <GlassPanel level="flat" padding="6px 18px" as="nav" aria-label={t('profile.socialsLabel')}>
+        {SOCIAL_LINKS.map((link, i) => (
+          <LessonRow
+            key={link.url}
+            state="plain"
+            icon={<Icon name="globe" size={14} />}
+            title={t(`profile.social.${link.key}Label`)}
+            meta={t(`profile.social.${link.key}Desc`)}
+            href={link.url}
+            trailing={<Icon name="forward" size={16} color="var(--text-muted)" strokeWidth={2.4} />}
+            last={i === SOCIAL_LINKS.length - 1}
+          />
+        ))}
+      </GlassPanel>
 
-      {/* Mon parcours */}
-      <motion.div variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6">
-        <h3 className="font-bold text-neutral-900 dark:text-white mb-4">{t('profile.journeyTitle')}</h3>
-        <div className="space-y-3 text-sm">
-          <div className="flex justify-between py-2 border-b border-neutral-100 dark:border-neutral-700">
-            <span className="text-neutral-500">{t('profile.enrolled')}</span>
-            <span className="font-medium text-neutral-900 dark:text-white">{enrolledFormations.length}</span>
-          </div>
-          <div className="flex justify-between py-2 border-b border-neutral-100 dark:border-neutral-700">
-            <span className="text-neutral-500">{t('profile.completed')}</span>
-            <span className="font-medium text-neutral-900 dark:text-white">{completedCount}</span>
-          </div>
-          <div className="flex justify-between py-2">
-            <span className="text-neutral-500">{t('profile.memberSince')}</span>
-            <span className="font-medium text-neutral-900 dark:text-white">
-              {userData?.createdAt ? formatDate(userData.createdAt) : '—'}
-            </span>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
+      {/* ── Mon parcours ───────────────────────────────────────────────────── */}
+      <SiteEyebrow style={{ marginTop: '22px' }}>{t('profile.journeyTitle')}</SiteEyebrow>
+      <GlassPanel level="flat" padding="6px 18px">
+        <LessonRow
+          state="plain"
+          title={t('profile.enrolled')}
+          trailing={<Num value={enrolledFormations.length} source="db" asOf={readAt} />}
+        />
+        <LessonRow
+          state="plain"
+          title={t('profile.completed')}
+          trailing={<Num value={completedCount} source="db" asOf={readAt} />}
+        />
+        <LessonRow
+          state="plain"
+          title={t('profile.memberSince')}
+          // Un `—` cacherait la différence entre « je ne sais pas » et une vraie date :
+          // <Num> rend « non relevé » quand la valeur manque, ce qui est une information.
+          trailing={<Num value={userData?.createdAt ? formatDate(userData.createdAt) : null} source="db" asOf={readAt} />}
+          last
+        />
+      </GlassPanel>
+    </div>
   );
 }

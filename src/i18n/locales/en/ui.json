@@ -56,5 +56,8 @@
     "markAllRead": "Mark all as read",
     "empty": "No notifications",
     "emptyHint": "Your notifications will appear here."
+  },
+  "phoneInput": {
+    "countryLabel": "Country code"
   }
 }

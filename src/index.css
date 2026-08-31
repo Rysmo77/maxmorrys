@@ -1,3 +1,7 @@
+/* Le design system entre en premier : les jetons doivent exister avant que les couches
+   Tailwind ne les lisent. `styles.css` ne porte que des @import — voir son en-tête. */
+@import './design-system/css/styles.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -15,19 +19,83 @@
    * Trois valeurs qui devaient rester synchronisées à la main : tout consommateur passe
    * désormais par `var(--header-h)`.
    *
+   * ⚠️ ELLE COMPTE LES MARGES DE LA PILULE. La barre haute est désormais la pilule flottante
+   * du design system : 36 px de contrôles + 2 × 10 px de rembourrage + 2 × 12 px de marge,
+   * soit 80 px. Les marges FONT PARTIE du chrome — c'est ce qui le détache des bords — donc
+   * `--header-h` doit les compter, sinon le bandeau de langue et la sous-nav d'À propos se
+   * calent DERRIÈRE la pilule au lieu de dessous.
+   *
+   * La montée à 1024 px a disparu avec la raison qui la justifiait : la hauteur de la pilule
+   * ne dépend plus de la largeur de l'écran, parce que ce ne sont plus les libellés de
+   * navigation qui la dimensionnent — sous 1080 px ils sont dans le tiroir.
+   *
    * `data-header-compact` est posé sur <html> par le Header au-delà de 20 px de défilement.
    */
   :root {
-    --header-h: 4rem;
+    --header-h: 5rem;
   }
 
   :root[data-header-compact] {
-    --header-h: 3.5rem;
+    --header-h: 4.25rem;
   }
 
-  @media (min-width: 1024px) {
+  /*
+   * LA GOUTTIÈRE DES PAGES PUBLIQUES.
+   *
+   * Deux valeurs, une par point de rupture, déclarées ICI plutôt que dans les composants —
+   * `PageSite` et `SiteBand` les lisent, donc elles restent d'accord entre elles par
+   * construction. Le kit les écrit en dur des deux côtés, ce qui est exactement la façon dont
+   * un rembourrage et son débordement négatif finissent par diverger d'un pixel.
+   *
+   * Le 18 px mobile n'est pas un 40 arrondi : c'est le rembourrage latéral unique de tout le
+   * produit mobile, celui dont dérivent les débordements pleine largeur (`margin: 0 -18px`)
+   * d'une ligne de leçon courante ou de la ligne « Toi » d'un classement.
+   */
+  :root {
+    --site-pad: 26px 18px 40px;
+    --site-band-bleed: -18px;
+    --site-band-pad: 34px 18px;
+  }
+
+  /* `--bp-stack` du système : au-delà, la page passe en gouttière desktop. */
+  @media (min-width: 700px) {
     :root {
-      --header-h: 4.25rem;
+      --site-pad: 34px 40px 56px;
+      --site-band-bleed: -40px;
+      --site-band-pad: 44px 40px;
+    }
+  }
+
+
+  /**
+   * La sous-navigation d'un territoire ajoute une rangée au chrome fixe — 50 px, sur les
+   * seules routes de « Je te transforme ». `data-header-sub` est posé sur <html> par le
+   * Header, et le contenu descend d'autant : sans ça, le haut du héros passe SOUS la barre,
+   * sur trois routes, donc jamais sur la machine de qui l'écrit.
+   */
+  :root[data-header-sub] #main-content {
+    padding-top: 3.375rem;
+  }
+
+  /**
+   * LES LOBES DU MAILLAGE — 340 px sur mobile, 460 puis 520 sur écran large.
+   *
+   * Ce sont les valeurs que le kit pratique ; la primitive les expose par sa prop `size`,
+   * mais un style en ligne ne peut pas porter de point de rupture, et le maillage est posé
+   * une fois pour tout le produit. La règle vit donc ici, du côté du produit — la copie du
+   * design system, elle, reste littérale (AD-1).
+   */
+  @media (min-width: 700px) {
+    .mesh b {
+      width: 460px;
+      height: 460px;
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .mesh b {
+      width: 520px;
+      height: 520px;
     }
   }
 
@@ -37,9 +105,16 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Le corps lit les jetons : ils basculent seuls sous `.dk` (AD-3), donc aucune classe
+     `dark:` de couleur n'est nécessaire ici — ni nulle part ailleurs. */
   body {
-    @apply bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white font-sans;
+    margin: 0;
+    background: var(--surface-page);
+    color: var(--text-body);
+    font-family: var(--f-body);
+    font-size: var(--fs-body);
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
   }
 
   /* App shell: tame the bounce + nav bar overlap on iOS */
@@ -48,7 +123,12 @@
   }
 
   ::selection {
-    @apply bg-brand-200 dark:bg-brand-800 text-brand-900 dark:text-brand-100;
+    background: var(--mm-bleu-c);
+    color: var(--ink);
+  }
+  .dk ::selection {
+    background: rgba(111, 177, 255, 0.28);
+    color: var(--ink);
   }
 
   ::-webkit-scrollbar {
@@ -60,12 +140,16 @@
     @apply bg-transparent;
   }
 
+  /* Les remplissages neutres passent par l'échelle --fill-*, qui s'inverse sous `.dk` :
+     en clair ce sont des teintes d'encre, en sombre des teintes de lumière. Une valeur
+     rgba(14,17,22,…) écrite en dur ne blanchit pas en mode sombre — elle DISPARAÎT. */
   ::-webkit-scrollbar-thumb {
-    @apply bg-neutral-300 dark:bg-neutral-700 rounded-full;
+    background: var(--fill-3);
+    border-radius: var(--r-pill);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-neutral-400 dark:bg-neutral-600;
+    background: var(--fill-4);
   }
 
   input[type="search"]::-webkit-search-cancel-button {
@@ -74,6 +158,81 @@
 }
 
 @layer components {
+  /* ── Entrée d'un calque ─────────────────────────────────────
+     `transform` et `opacity` seulement (AD-16). La durée est le jeton `--t-enter` :
+     `prefers-reduced-motion` le ramène à 1 ms à la racine, une seule fois, dans
+     `brand/fallback.css` — il n'y a donc RIEN à redéclarer ici (règle 4). */
+  @keyframes mm-drop {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .mm-drop {
+    animation: mm-drop var(--t-enter) var(--ease-out) both;
+  }
+
+  /* ── La barre haute du site ──────────────────────────────────
+     Le dessin vient de la primitive `TopBar`. Ces règles disent les trois choses qu'un style
+     en ligne ne peut pas dire : une marge qui change d'état, et deux points de rupture.
+     Le `!important` vise un style EN LIGNE, pas une autre feuille — c'est le seul moyen. */
+  .mm-topbar {
+    margin: 12px 18px !important;
+  }
+
+  /* À l'état compact, la pilule se rapproche du bord. La marge n'est PAS animée : AD-16 ne
+     transitionne ni marge ni hauteur, et une barre qui grandit à chaque défilement coûte un
+     reflow par image sur un appareil à 2 Go. */
+  :root[data-header-compact] .mm-topbar {
+    margin: 6px 18px !important;
+  }
+
+  /* Le garde-fou du kit, gardé : un libellé qui déborde doit DÉBORDER, visiblement, plutôt
+     que de se replier en silence sur deux lignes. */
+  .mm-topbar a {
+    white-space: nowrap;
+  }
+
+  /* Sous 700 px, la pilule se resserre. Le budget de la barre ne dépend PAS de la largeur de
+     l'écran — elle est bornée par ses marges — et à 390 px le mot-symbole plus les
+     utilitaires réclament 34 px de plus qu'elle n'en offre. Ces 22 px, plus la bascule de
+     thème qui passe dans le tiroir, referment l'écart. */
+  @media (max-width: 699.98px) {
+    .mm-topbar {
+      gap: 10px !important;
+      padding: 10px 12px !important;
+    }
+  }
+
+  /* Sous 1080 px, les six verbes passent dans le tiroir. La barre garde son verre, son
+     mot-symbole et ses utilitaires : c'est la même surface, pas une seconde barre. */
+  @media (max-width: 1079.98px) {
+    .mm-topbar > nav {
+      display: none !important;
+    }
+  }
+
+  /* Entre 1080 et 1280 px, la gouttière de 24 px du kit fait déborder les six libellés
+     français — ils courent 18 % plus long que l'anglais. Elle se resserre à 14. */
+  @media (max-width: 1279.98px) {
+    .mm-topbar > nav {
+      gap: 14px !important;
+    }
+  }
+
+  /* ── Le tiroir du site ───────────────────────────────────────
+     250 px entre 700 et 1080 px, pleine largeur en dessous : à 390 px, une colonne de 250
+     laisserait 140 px de page inutilisable derrière un voile. */
+  .mm-drawer {
+    width: 100% !important;
+    min-height: 100%;
+  }
+
+  @media (min-width: 700px) {
+    .mm-drawer {
+      width: 250px !important;
+    }
+  }
+
   /* ── Prose responsive mobile fixes ─────────────────────────── */
   .prose-article {
     overflow-wrap: break-word;
@@ -142,11 +301,81 @@
       padding-left: 1rem;
     }
   }
+  /*
+   * LA PROSE CONTRACTUELLE — les recettes du kit, déclarées une fois.
+   *
+   * Valeurs relevées sur `ui_kits/site-public/PagesUtiles.js` (écran `Cgv`) et
+   * `ScreensEditorial.js` (écran `Article`) : ce sont les mêmes, à la taille de titre près.
+   *
+   * La MESURE n'est pas ici : elle vient de `.mm-prose`, qui pose `max-width: 68ch`. Une
+   * seconde déclaration en ferait une seconde vérité, et c'est ainsi qu'une règle « non
+   * négociable » se met à valoir deux valeurs selon la page.
+   */
+  .legal-prose h2 {
+    font-family: var(--f-display);
+    font-weight: 900;
+    font-size: 21px;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--ink);
+    margin: 24px 0 8px;
+  }
+
+  .legal-prose h2:first-child {
+    margin-top: 0;
+  }
+
+  .legal-prose p {
+    margin: 0 0 15px;
+  }
+
+  /* Les puces sont dessinées, pas natives : un marqueur `list-disc` ne prend pas la teinte
+     du territoire et ne s'aligne pas sur la première ligne d'un paragraphe de deux lignes. */
+  .legal-prose ul {
+    list-style: none;
+    margin: 0 0 15px;
+    padding: 0;
+    display: grid;
+    gap: 7px;
+  }
+
+  .legal-prose li {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+  }
+
+  .legal-prose li::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--mm-bleu);
+    margin-top: 9px;
+  }
+
+  .legal-prose strong {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
 }
 
+
 @layer utilities {
+  /*
+   * `.animate-in` référençait l'image-clé `fadeIn`, déclarée dans l'ancienne configuration
+   * Tailwind et partie avec elle. La classe survivait sans rien animer — une animation qui
+   * ne se voit pas ne se signale pas.
+   *
+   * Le système a ses propres entrées : `.rv`, `.rv-s`, `.rv-l`, orchestrées en cascade par
+   * `.play` sur un ancêtre. Elles supposent un IntersectionObserver, donc elles ne
+   * conviennent pas à ce qui apparaît sur commande — une modale, une feuille, un bandeau.
+   * D'où `.mm-drop`, écrite pour ce cas, en `opacity` et `transform` seulement.
+   */
   .animate-in {
-    animation: fadeIn 0.5s ease-out;
+    animation: mm-drop var(--t-enter) var(--ease-out) both;
   }
 
   .text-balance {
@@ -154,13 +383,14 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
+/* ─────────────────────────────────────────────────────────────────────────────
+   `prefers-reduced-motion` VIVAIT ICI, en double de brand/fallback.css.
+
+   C'est exactement le défaut que la règle 4 décrit : deux déclarations, des valeurs qui
+   divergent (0,01 ms ici, 1 ms là), et c'est l'ordre de chargement qui tranche. Le défaut
+   est invisible pour qui n'a pas activé le réglage — donc pour toute l'équipe.
+
+   La déclaration unique vit dans src/design-system/css/brand/fallback.css, où elle réécrit
+   AUSSI les quatre jetons de durée à la racine : un composant qui lit le jeton hérite du
+   réglage sans le savoir, ce que la version supprimée ici ne faisait pas.
+   ───────────────────────────────────────────────────────────────────────────── */

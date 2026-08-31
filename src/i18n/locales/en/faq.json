@@ -13,9 +13,43 @@
   "thanksNegative": "Thanks, I'll improve this answer.",
   "ctaTitle": "Can't find your answer?",
   "ctaText": "Feel free to reach out to me directly.",
-  "ctaButton": "Contact us",
+  "ctaButton": "Talk to me",
   "crossEyebrow": "STILL HAVE QUESTIONS?",
   "crossTitle": "Write to me directly",
   "crossText": "I reply personally to every message. Don't hesitate to get in touch.",
-  "crossButton": "Get in touch"
+  "crossButton": "Get in touch",
+  "index": {
+    "eyebrow": "I'll keep you posted",
+    "titleLines": [
+      "The questions",
+      "people ask me."
+    ],
+    "lede": "If a question keeps coming back, it ends up here. That's how this page gets written.",
+    "searchLabel": "Search a question",
+    "searchHint": "a question",
+    "filterAll": "All",
+    "contactTitle": "Can't find it?",
+    "contactBody": "Write to me. I'm the one who reads, and the one who answers — count two working days.",
+    "contactCta": "Talk to me",
+    "truthTitle": "A question deserves a full answer",
+    "truthBody": "« How many members are in the Club? » has its answer here, and it starts with: « I won't tell you, because the number would be false. » A FAQ that dodges its awkward questions is useless.",
+    "empty": "No question matches. Drop a filter, or clear the search."
+  },
+  "question": {
+    "breadcrumbRoot": "FAQ",
+    "notFoundTitle": [
+      "That question",
+      "doesn't exist."
+    ],
+    "notFoundBody": "This address doesn't match any question. It may have been reworded — the index carries them all.",
+    "backToIndex": "All the questions",
+    "loading": "Loading the question",
+    "neighboursTitle": "Nearby questions",
+    "neighboursEmpty": "It's the only question in this category, for now.",
+    "shareLabel": "Copy this question's address",
+    "shareCopied": "Address copied.",
+    "shareFailed": "The copy didn't go through. The address is in your browser bar.",
+    "truthTitle": "What this page fixes",
+    "truthBody": "The index on its own gave no question a shareable URL or a search position of its own. One page per question, with its trail and its structured data, closes that gap."
+  }
 }

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Loader2 } from 'lucide-react';
 import Modal from './Modal';
 import Button from './Button';
+import { Icon } from '@ds';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -38,17 +38,17 @@ export default function ConfirmDialog({
       <div className="text-center">
         <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
           variant === 'danger'
-            ? 'bg-error-100 dark:bg-error-900/30'
-            : 'bg-accent-100 dark:bg-accent-900/30'
+            ? 'bg-[color-mix(in_srgb,var(--stop)_4%,transparent)]'
+            : 'bg-[color-mix(in_srgb,var(--mm-orange)_4%,transparent)]'
         }`}>
-          <AlertTriangle className={`w-6 h-6 ${
+          <Icon name="alert" className={`w-6 h-6 ${
             variant === 'danger'
-              ? 'text-error-600 dark:text-error-400'
-              : 'text-accent-600 dark:text-accent-400'
+              ? 'text-stop'
+              : 'text-informe-txt'
           }`} />
         </div>
-        <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">{resolvedTitle}</h3>
-        {message && <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">{message}</p>}
+        <h3 className="text-lg font-bold text-ink mb-2">{resolvedTitle}</h3>
+        {message && <p className="text-sm text-ink-2 mb-6">{message}</p>}
         {children && <div className="text-left mb-6">{children}</div>}
         <div className="flex gap-3 justify-center">
           <Button variant="outline" onClick={onClose} disabled={loading}>
@@ -56,9 +56,8 @@ export default function ConfirmDialog({
           </Button>
           <Button
             onClick={onConfirm}
-            disabled={loading}
-            className={variant === 'danger' ? 'bg-error-600 hover:bg-error-700 text-white border-error-600' : ''}
-            icon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+            loading={loading}
+            className={variant === 'danger' ? 'bg-stop hover:bg-stop text-white border-stop' : ''}
           >
             {resolvedConfirmLabel}
           </Button>

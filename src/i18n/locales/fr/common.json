@@ -15,5 +15,9 @@
     "message": "Ce site est aussi disponible en français.",
     "switch": "Voir en français",
     "dismiss": "Non merci"
+  },
+  "offline": {
+    "title": "Pas de réseau. Ta progression partira dès qu'il revient.",
+    "link": "Ce qui reste lisible"
   }
 }

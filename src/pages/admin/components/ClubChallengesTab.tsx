@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, Save, Pencil, Trash2, Loader2, Trophy } from 'lucide-react';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import { useToast } from '../../../components/ui/Toast';
 import { useFormat } from '../../../hooks/useFormat';
-import { inputCls } from '../hooks/useAdminClub';
 import { getClubChallenges, saveClubChallenge, deleteClubChallenge } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';
 import type { ClubDigitosChallenge } from '../../../types';
+import { Field, Icon } from '@ds';
+import ConsoleListSkeleton from './ConsoleListSkeleton';
 
 const EMPTY: Omit<ClubDigitosChallenge, 'id'> = {
   title: '', description: '', reward: '', startsAt: '', endsAt: '', active: true,
@@ -69,49 +69,38 @@ export default function ClubChallengesTab() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>;
+  if (loading) return <ConsoleListSkeleton />;
 
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button size="sm" onClick={() => openForm()} icon={<Plus className="w-4 h-4" />}>{t('challenges.new')}</Button>
+        <Button size="sm" onClick={() => openForm()} icon={<Icon name="plus" size={16} />}>{t('challenges.new')}</Button>
       </div>
 
       {showForm && (
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-neutral-900 dark:text-white">{editing ? t('challenges.editTitle') : t('challenges.newTitle')}</h3>
-            <button onClick={() => setShowForm(false)} className="p-1 rounded-lg text-neutral-400 hover:text-neutral-600 transition-colors"><X className="w-4 h-4" /></button>
+            <h3 className="font-bold text-ink">{editing ? t('challenges.editTitle') : t('challenges.newTitle')}</h3>
+            <button onClick={() => setShowForm(false)} className="p-1 rounded-lg text-ink-2 hover:text-ink-2 transition-colors"><Icon name="close" size={16} /></button>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2 space-y-1">
-              <label className="text-xs font-semibold text-neutral-500">{t('challenges.titleLabel')}</label>
-              <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder={t('challenges.titlePlaceholder')} className={inputCls} />
+            <div className="sm:col-span-2">
+              <Field size="sm" label={t('challenges.titleLabel')} value={form.title} onChange={(v) => setForm((p) => ({ ...p, title: v }))} placeholder={t('challenges.titlePlaceholder')} />
             </div>
-            <div className="sm:col-span-2 space-y-1">
-              <label className="text-xs font-semibold text-neutral-500">{t('challenges.descriptionLabel')}</label>
-              <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={3} placeholder={t('challenges.descriptionPlaceholder')} className={`${inputCls} resize-y`} />
+            <div className="sm:col-span-2">
+              <Field size="sm" label={t('challenges.descriptionLabel')} as="textarea" value={form.description} onChange={(v) => setForm((p) => ({ ...p, description: v }))} rows={3} placeholder={t('challenges.descriptionPlaceholder')} />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-neutral-500">{t('challenges.rewardLabel')}</label>
-              <input value={form.reward ?? ''} onChange={(e) => setForm((p) => ({ ...p, reward: e.target.value }))} placeholder={t('challenges.rewardPlaceholder')} className={inputCls} />
-            </div>
+            <Field size="sm" label={t('challenges.rewardLabel')} value={form.reward ?? ''} onChange={(v) => setForm((p) => ({ ...p, reward: v }))} placeholder={t('challenges.rewardPlaceholder')} />
             <div className="flex items-center gap-2 pt-6">
               <input type="checkbox" id="ch-active" checked={form.active} onChange={(e) => setForm((p) => ({ ...p, active: e.target.checked }))} className="rounded" />
-              <label htmlFor="ch-active" className="text-sm text-neutral-700 dark:text-neutral-300">{t('challenges.activeLabel')}</label>
+              <label htmlFor="ch-active" className="text-sm text-ink-2">{t('challenges.activeLabel')}</label>
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-neutral-500">{t('challenges.startLabel')}</label>
-              <input type="date" value={form.startsAt} onChange={(e) => setForm((p) => ({ ...p, startsAt: e.target.value }))} className={inputCls} />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-neutral-500">{t('challenges.endLabel')}</label>
-              <input type="date" value={form.endsAt} onChange={(e) => setForm((p) => ({ ...p, endsAt: e.target.value }))} className={inputCls} />
-            </div>
+            <Field size="sm" label={t('challenges.startLabel')} type="date" value={form.startsAt} onChange={(v) => setForm((p) => ({ ...p, startsAt: v }))} />
+            <Field size="sm" label={t('challenges.endLabel')} type="date" value={form.endsAt} onChange={(v) => setForm((p) => ({ ...p, endsAt: v }))} />
           </div>
           <div className="flex justify-end gap-3 mt-5">
             <Button variant="outline" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleSave} disabled={saving || !form.title.trim() || !form.description.trim()} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
+            <Button onClick={handleSave} disabled={saving || !form.title.trim() || !form.description.trim()} loading={saving} icon={<Icon name="save" size={16} />}>
               {saving ? t('common.saving') : t('common.save')}
             </Button>
           </div>
@@ -119,7 +108,7 @@ export default function ClubChallengesTab() {
       )}
 
       {challenges.length === 0 && !showForm ? (
-        <Card><p className="text-center text-neutral-400 py-8">{t('challenges.empty')}</p></Card>
+        <Card><p className="text-center text-ink-2 py-8">{t('challenges.empty')}</p></Card>
       ) : (
         <div className="space-y-3">
           {challenges.map((c) => (
@@ -127,17 +116,17 @@ export default function ClubChallengesTab() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <Trophy className="w-4 h-4 text-plum-500" />
+                    <Icon name="trophy" size={16} className="text-transforme" />
                     <Badge variant={c.active ? 'success' : 'default'} size="sm">{c.active ? t('challenges.badgeActive') : t('challenges.badgeInactive')}</Badge>
-                    {c.startsAt && c.endsAt && <span className="text-xs text-neutral-400">{formatDate(c.startsAt)} → {formatDate(c.endsAt)}</span>}
+                    {c.startsAt && c.endsAt && <span className="text-xs text-ink-2">{formatDate(c.startsAt)} → {formatDate(c.endsAt)}</span>}
                   </div>
-                  <p className="font-bold text-neutral-900 dark:text-white mb-1">{c.title}</p>
-                  <p className="text-sm text-neutral-500 line-clamp-2">{c.description}</p>
-                  {c.reward && <p className="text-xs text-plum-600 dark:text-plum-400 mt-1 font-semibold">🏆 {c.reward}</p>}
+                  <p className="font-bold text-ink mb-1">{c.title}</p>
+                  <p className="text-sm text-ink-2 line-clamp-2">{c.description}</p>
+                  {c.reward && <p className="text-xs text-transforme mt-1 font-semibold">🏆 {c.reward}</p>}
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => openForm(c)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"><Pencil className="w-4 h-4" /></button>
-                  <button onClick={() => handleDelete(c.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => openForm(c)} className="p-1.5 rounded-lg text-ink-2 hover:text-forme hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors"><Icon name="pencil" size={16} /></button>
+                  <button onClick={() => handleDelete(c.id)} className="p-1.5 rounded-lg text-ink-2 hover:text-stop hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors"><Icon name="trash" size={16} /></button>
                 </div>
               </div>
             </Card>

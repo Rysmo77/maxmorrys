@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Trash2, Check, Flag } from 'lucide-react';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
@@ -8,9 +7,11 @@ import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import { useToast } from '../../../components/ui/Toast';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { getDmReports, updateDmReportStatus, deleteDmReport, deleteDmMessage } from '../../../lib/firestore';
+import { Icon, Num } from '@ds';
 import { useFormat } from '../../../hooks/useFormat';
 import { captureError } from '../../../lib/sentry';
 import type { DmReport } from '../../../types';
+import ConsoleListSkeleton from './ConsoleListSkeleton';
 
 export default function ClubReportsAdminTab() {
   const { t } = useTranslation('adminClub');
@@ -19,8 +20,22 @@ export default function ClubReportsAdminTab() {
   const confirm = useConfirmDialog();
   const [reports, setReports] = useState<DmReport[]>([]);
   const [loading, setLoading] = useState(true);
+  /*
+   * L'INSTANT OÙ LA REQUÊTE A RÉPONDU — pas celui du rendu.
+   *
+   * Les deux identifiants tronqués plus bas sont en monospace, et la règle 6 dit pourquoi :
+   * la fonte signale une valeur qui vient du système. Ils la portaient sans passer par
+   * `<Num>`, c'est-à-dire sans dire d'où ils venaient ni quand ils avaient été relevés.
+   * `new Date()` au rendu aurait prétendu qu'ils venaient d'être vérifiés à chaque
+   * réaffichage ; c'est la réponse de `getDmReports()` qui fait foi.
+   */
+  const [readAt, setReadAt] = useState<Date | null>(null);
 
-  useEffect(() => { getDmReports().then((r) => { setReports(r); setLoading(false); }).catch(() => setLoading(false)); }, []);
+  useEffect(() => {
+    getDmReports()
+      .then((r) => { setReports(r); setReadAt(new Date()); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
 
   const resolve = async (r: DmReport) => {
     setReports((prev) => prev.map((x) => x.id === r.id ? { ...x, status: 'resolved' } : x));
@@ -51,8 +66,8 @@ export default function ClubReportsAdminTab() {
     });
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>;
-  if (reports.length === 0) return <Card><p className="text-center text-neutral-400 py-8">{t('reports.empty')}</p></Card>;
+  if (loading) return <ConsoleListSkeleton />;
+  if (reports.length === 0) return <Card><p className="text-center text-ink-2 py-8">{t('reports.empty')}</p></Card>;
 
   return (
     <div className="space-y-3">
@@ -61,20 +76,25 @@ export default function ClubReportsAdminTab() {
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                <Flag className="w-4 h-4 text-error-500" />
+                <Icon name="flag" size={16} className="text-stop" />
                 <Badge variant={r.status === 'open' ? 'error' : 'default'} size="sm">{r.status === 'open' ? t('reports.statusOpen') : t('reports.statusResolved')}</Badge>
-                <span className="text-xs text-neutral-400">{formatDate(r.createdAt)}</span>
+                <span className="text-xs text-ink-2">{formatDate(r.createdAt)}</span>
               </div>
-              <div className="bg-neutral-50 dark:bg-neutral-900/40 rounded-lg px-3 py-2 mb-2">
-                <p className="text-sm text-neutral-700 dark:text-neutral-300 break-words whitespace-pre-wrap">« {r.text} »</p>
+              <div className="bg-[color:var(--fill-1)] dark:bg-[color-mix(in_srgb,var(--night-3)_40%,transparent)] rounded-lg px-3 py-2 mb-2">
+                <p className="text-sm text-ink-2 break-words whitespace-pre-wrap">« {r.text} »</p>
               </div>
-              <p className="text-xs text-neutral-400">{t('reports.reportedBy')} <span className="font-mono">{r.reporterId.slice(0, 8)}…</span> · {t('reports.author')} <span className="font-mono">{r.reportedUserId.slice(0, 8)}…</span></p>
+              <p className="text-xs text-ink-2">
+                {t('reports.reportedBy')}{' '}
+                <Num value={`${r.reporterId.slice(0, 8)}…`} source="db" asOf={readAt ?? new Date()} />
+                {' · '}{t('reports.author')}{' '}
+                <Num value={`${r.reportedUserId.slice(0, 8)}…`} source="db" asOf={readAt ?? new Date()} />
+              </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
-            <Button size="sm" variant="outline" onClick={() => removeMessage(r)} icon={<Trash2 className="w-3.5 h-3.5" />}>{t('reports.deleteMessage')}</Button>
-            {r.status === 'open' && <Button size="sm" variant="ghost" onClick={() => resolve(r)} icon={<Check className="w-3.5 h-3.5" />}>{t('reports.markResolved')}</Button>}
-            <Button size="sm" variant="ghost" onClick={() => removeReport(r)} icon={<Trash2 className="w-3.5 h-3.5" />}>{t('reports.deleteReport')}</Button>
+          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[color:var(--border-hair)]">
+            <Button size="sm" variant="outline" onClick={() => removeMessage(r)} icon={<Icon name="trash" size={14} />}>{t('reports.deleteMessage')}</Button>
+            {r.status === 'open' && <Button size="sm" variant="ghost" onClick={() => resolve(r)} icon={<Icon name="check" size={14} />}>{t('reports.markResolved')}</Button>}
+            <Button size="sm" variant="ghost" onClick={() => removeReport(r)} icon={<Icon name="trash" size={14} />}>{t('reports.deleteReport')}</Button>
           </div>
         </Card>
       ))}

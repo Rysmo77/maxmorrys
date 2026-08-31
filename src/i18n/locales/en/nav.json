@@ -1,15 +1,15 @@
 {
-  "about": "Who I Am",
-  "formations": "I Train You",
-  "blog": "I Inform You",
-  "transform": "I Transform You",
-  "transformAria": "I Transform You — free content",
-  "presence": "I Digitalize You",
+  "about": "I'm Max-Morrys",
+  "formations": "I'll train you",
+  "blog": "I'll keep you posted",
+  "transform": "I'll push you further",
+  "transformAria": "I'll push you further — free content",
+  "presence": "I'll get you online",
   "agency": "Agency",
   "freeContent": "Free content",
   "podcast": "The Marketing Podcast",
   "videos": "Marketing in Practice with Max-Morrys",
-  "contact": "Contact Me",
+  "contact": "Talk to me",
   "search": "Search",
   "toggleTheme": "Toggle theme",
   "studentSpace": "My student space",
@@ -20,5 +20,7 @@
   "signIn": "Sign in",
   "menu": "Menu",
   "accountMenu": "Account menu for {{name}}",
-  "skipToContent": "Skip to main content"
+  "skipToContent": "Skip to main content",
+  "transformFree": "Listen & watch",
+  "transformClub": "The Digitos Club"
 }

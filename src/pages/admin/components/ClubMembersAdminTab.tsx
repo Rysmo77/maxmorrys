@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Trash2, Eye, EyeOff, Pencil, Check, MapPin } from 'lucide-react';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
@@ -9,8 +8,9 @@ import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import { getAllClubProfiles, adminUpdateClubProfile, deleteClubProfile } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';
-import { inputCls } from '../hooks/useAdminClub';
 import type { ClubMemberProfile } from '../../../types';
+import { Field, Icon } from '@ds';
+import ConsoleListSkeleton from './ConsoleListSkeleton';
 
 const initialsOf = (n: string) => n.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
 
@@ -60,8 +60,8 @@ export default function ClubMembersAdminTab() {
     });
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-brand-500" /></div>;
-  if (profiles.length === 0) return <Card><p className="text-center text-neutral-400 py-8">{t('members.empty')}</p></Card>;
+  if (loading) return <ConsoleListSkeleton />;
+  if (profiles.length === 0) return <Card><p className="text-center text-ink-2 py-8">{t('members.empty')}</p></Card>;
 
   return (
     <div className="space-y-3">
@@ -69,40 +69,44 @@ export default function ClubMembersAdminTab() {
         <Card key={p.id}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3 flex-1 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-plum-100 dark:bg-plum-900/40 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {p.photoURL ? <img src={p.photoURL} alt="" className="w-full h-full object-cover" /> : <span className="text-xs font-bold text-plum-600 dark:text-plum-400">{initialsOf(p.displayName)}</span>}
+              <div className="w-10 h-10 rounded-full bg-[color-mix(in_srgb,var(--mm-violet)_5%,transparent)] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {p.photoURL ? <img src={p.photoURL} alt="" className="w-full h-full object-cover" /> : <span className="text-xs font-bold text-transforme">{initialsOf(p.displayName)}</span>}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                  <p className="text-sm font-semibold text-neutral-900 dark:text-white">{p.displayName}</p>
+                  <p className="text-sm font-semibold text-ink">{p.displayName}</p>
                   <Badge variant={p.visible ? 'default' : 'warning'} size="sm">{p.visible ? t('members.badgeVisible') : t('members.badgeHidden')}</Badge>
                   {p.available && <Badge variant="success" size="sm">{t('members.badgeAvailable')}</Badge>}
                 </div>
                 {editId === p.id ? (
                   <div className="space-y-2 mt-2">
-                    <input value={form.headline} onChange={(e) => setForm((f) => ({ ...f, headline: e.target.value }))} placeholder={t('members.headlinePlaceholder')} className={inputCls} />
-                    <input value={form.skills} onChange={(e) => setForm((f) => ({ ...f, skills: e.target.value }))} placeholder={t('members.skillsPlaceholder')} className={inputCls} />
-                    <input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} placeholder={t('members.cityPlaceholder')} className={inputCls} />
+                    {/* `hideLabel` et non « pas de libellé » : l'édition en ligne d'une fiche
+                        membre est compacte, mais un champ dont le seul nom est son texte
+                        indicatif PERD son nom dès qu'on commence à y écrire. Le libellé existe,
+                        il est lié au contrôle, il n'est simplement pas peint. */}
+                    <Field size="sm" hideLabel label={t('members.headlineLabel')} value={form.headline} onChange={(v) => setForm((f) => ({ ...f, headline: v }))} placeholder={t('members.headlinePlaceholder')} style={{ marginTop: 0 }} />
+                    <Field size="sm" hideLabel label={t('members.skillsLabel')} value={form.skills} onChange={(v) => setForm((f) => ({ ...f, skills: v }))} placeholder={t('members.skillsPlaceholder')} style={{ marginTop: 0 }} />
+                    <Field size="sm" hideLabel label={t('members.cityLabel')} value={form.city} onChange={(v) => setForm((f) => ({ ...f, city: v }))} placeholder={t('members.cityPlaceholder')} style={{ marginTop: 0 }} />
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => saveEdit(p)} disabled={saving} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}>{t('members.save')}</Button>
+                      <Button size="sm" onClick={() => saveEdit(p)} disabled={saving} loading={saving} icon={<Icon name="check" size={16} />}>{t('members.save')}</Button>
                       <Button size="sm" variant="outline" onClick={() => setEditId(null)}>{t('members.cancel')}</Button>
                     </div>
                   </div>
                 ) : (
                   <>
-                    {p.headline && <p className="text-xs text-neutral-500">{p.headline}</p>}
+                    {p.headline && <p className="text-xs text-ink-2">{p.headline}</p>}
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      {p.city && <span className="text-xs text-neutral-400 flex items-center gap-1"><MapPin className="w-3 h-3" /> {p.city}</span>}
-                      {p.skills.slice(0, 4).map((s) => <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-full bg-plum-50 dark:bg-plum-900/20 text-plum-700 dark:text-plum-300">{s}</span>)}
+                      {p.city && <span className="text-xs text-ink-2 flex items-center gap-1"><Icon name="pin" size={12} /> {p.city}</span>}
+                      {p.skills.slice(0, 4).map((s) => <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-full bg-[color-mix(in_srgb,var(--mm-violet)_4%,transparent)] text-transforme">{s}</span>)}
                     </div>
                   </>
                 )}
               </div>
             </div>
             <div className="flex gap-1 flex-shrink-0">
-              <button onClick={() => toggleVisible(p)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors" aria-label={t('members.visibilityAria')}>{p.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
-              <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors" aria-label={t('members.editAria')}><Pencil className="w-4 h-4" /></button>
-              <button onClick={() => handleDelete(p)} className="p-1.5 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors" aria-label={t('members.deleteAria')}><Trash2 className="w-4 h-4" /></button>
+              <button onClick={() => toggleVisible(p)} className="p-1.5 rounded-lg text-ink-2 hover:text-forme hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors" aria-label={t('members.visibilityAria')}>{p.visible ? <Icon name="eye" size={16} /> : <Icon name="eye-off" size={16} />}</button>
+              <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg text-ink-2 hover:text-forme hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors" aria-label={t('members.editAria')}><Icon name="pencil" size={16} /></button>
+              <button onClick={() => handleDelete(p)} className="p-1.5 rounded-lg text-ink-2 hover:text-stop hover:bg-[color-mix(in_srgb,var(--stop)_8%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--stop)_20%,transparent)] transition-colors" aria-label={t('members.deleteAria')}><Icon name="trash" size={16} /></button>
             </div>
           </div>
         </Card>

@@ -50,7 +50,8 @@
     "allVideosTitle": "Toutes les vidéos",
     "allCategories": "Tous",
     "loadMore": "Voir plus de vidéos",
-    "emptyCategory": "Aucune vidéo dans cette catégorie."
+    "emptyCategory": "Aucune vidéo dans cette catégorie.",
+    "notFound": "Vidéo introuvable"
   },
   "videoDetail": {
     "notFoundTitle": "Vidéo introuvable",
@@ -126,5 +127,50 @@
     "playerSoon": "Lecteur audio disponible prochainement",
     "transcriptTitle": "Transcription",
     "otherEpisodes": "Autres épisodes"
+  },
+  "pole": {
+    "eyebrow": "Je te transforme · gratuit",
+    "titleLines": [
+      "DES GENS D'ICI",
+      "QUI RACONTENT",
+      "CE QU'ILS ONT FAIT."
+    ],
+    "lede": "Pas de méthode, pas de tutoriel — ça, c'est le blog. Ici, des gens qui vendent vraiment quelque chose à Dakar et à Abidjan racontent ce qui a marché, et ce qui leur a coûté cher.",
+    "tagFree": "Écoute gratuite, sans compte",
+    "tagTranscript": "Transcription lisible sans audio",
+    "rhythm": "Un épisode par mois, quand j'ai quelqu'un qui vaut la peine d'être écouté. Pas de calendrier tenu à vide.",
+    "filterAll": "Tout",
+    "filterListen": "À écouter",
+    "filterWatch": "À regarder",
+    "truthTitle": "Ce que je n'affiche pas encore",
+    "truthBody": "Le poids de chaque épisode et de chaque vidéo devrait être écrit ici — c'est ce qui permet de décider quand le forfait est compté. Il n'est pas encore mesuré à l'enregistrement, et je préfère te le dire que t'annoncer un chiffre inventé. Aucun compteur d'écoute non plus : à un épisode, il ne dirait rien d'utile.",
+    "clubTitle": [
+      "Tu viens d'écouter",
+      "quelqu'un qui l'a fait."
+    ],
+    "clubBody": "Le Club, c'est là où ils sont. Payant, fermé, et il ne se visite pas — c'est la contrepartie de le garder fermé.",
+    "clubCta": "Voir le Club des Digitos",
+    "empty": "Rien n'est encore en ligne ici. Le blog, lui, est ouvert — et tout y est gratuit.",
+    "subnavFree": "Écouter & regarder",
+    "subnavClub": "Le Club des Digitos"
+  },
+  "detail": {
+    "breadcrumbRoot": "Je te transforme",
+    "listen": "Écouter",
+    "watch": "Regarder",
+    "transcript": "Transcription",
+    "chapters": "Chapitres",
+    "about": "L'épisode",
+    "weightTitle": "Ce que je n'affiche pas encore",
+    "weightBody": "Le poids du fichier devrait être écrit ici — c'est ce qui permet de décider quand le forfait est compté. Il n'est pas relevé à l'enregistrement, et je préfère te le dire que t'annoncer un chiffre inventé.",
+    "transcriptMissing": "La transcription n'est pas encore produite pour cet épisode. Quand elle le sera, elle se lira sans charger l'audio — c'est souvent tout ce qu'on cherche.",
+    "nextTitle": [
+      "À écouter ensuite"
+    ],
+    "nextTitleVideo": [
+      "À regarder ensuite"
+    ],
+    "notFound": "Épisode introuvable",
+    "loading": "Chargement de l'épisode"
   }
 }

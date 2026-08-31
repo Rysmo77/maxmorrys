@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Monitor, Smartphone } from 'lucide-react';
 import { universeThemes } from '../../lib/sectionThemes';
+import { Icon, type IconName } from '@ds';
 
 /**
  * Aperçu réel d'un site en production, avec bascule bureau / mobile.
@@ -60,12 +60,12 @@ export default function SitePreview({ url, domain, name }: SitePreviewProps) {
   const screenshot = (
     <>
       {!loaded && !failed && (
-        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900" />
+        <div className="absolute inset-0 animate-pulse bg-[color:var(--fill-2)]" />
       )}
       {failed ? (
         // Repli : le domaine, plutôt qu'une image cassée.
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900">
-          <span className="text-lg font-black text-neutral-400/70 dark:text-neutral-600 tracking-tight px-3 text-center">{domain}</span>
+        <div className="absolute inset-0 flex items-center justify-center bg-[color:var(--fill-2)]">
+          <span className="text-lg font-black text-[color-mix(in_srgb,var(--ink-2)_70%,transparent)] tracking-tight px-3 text-center">{domain}</span>
         </div>
       ) : (
         <img
@@ -82,7 +82,7 @@ export default function SitePreview({ url, domain, name }: SitePreviewProps) {
     </>
   );
 
-  const toggleBtn = (d: 'desktop' | 'mobile', Icon: typeof Monitor, label: string) => (
+  const toggleBtn = (d: 'desktop' | 'mobile', glyph: IconName, label: string) => (
     <button
       type="button"
       onClick={() => switchTo(d)}
@@ -91,10 +91,10 @@ export default function SitePreview({ url, domain, name }: SitePreviewProps) {
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
         device === d
           ? theme.buttonSolid
-          : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
+          : 'text-ink-2 hover:text-ink dark:hover:text-ink-2'
       }`}
     >
-      <Icon className="w-3.5 h-3.5" aria-hidden="true" /> {label}
+      <Icon name={glyph} size={14} /> {label}
     </button>
   );
 
@@ -105,10 +105,10 @@ export default function SitePreview({ url, domain, name }: SitePreviewProps) {
         <div
           role="group"
           aria-label={t('preview.groupAria', { name })}
-          className="inline-flex items-center gap-0.5 p-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700"
+          className="inline-flex items-center gap-0.5 p-0.5 rounded-full bg-[color:var(--fill-2)] border border-[color-mix(in_srgb,var(--line)_80%,transparent)]"
         >
-          {toggleBtn('desktop', Monitor, t('preview.desktopLabel'))}
-          {toggleBtn('mobile', Smartphone, t('preview.mobileLabel'))}
+          {toggleBtn('desktop', 'monitor', t('preview.desktopLabel'))}
+          {toggleBtn('mobile', 'smartphone', t('preview.mobileLabel'))}
         </div>
       </div>
 
@@ -120,22 +120,22 @@ export default function SitePreview({ url, domain, name }: SitePreviewProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700 shadow-lg shadow-neutral-900/5 dark:shadow-black/30 overflow-hidden transition-shadow duration-300 group-hover:shadow-xl"
+            className="rounded-2xl bg-[color:var(--fill-2)] border border-[color-mix(in_srgb,var(--line)_80%,transparent)] shadow-card overflow-hidden transition-shadow duration-300 group-hover:shadow-xl"
           >
             {/* Chrome navigateur */}
-            <div className="flex items-center gap-2.5 px-4 py-2.5 bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200/80 dark:border-neutral-700">
+            <div className="flex items-center gap-2.5 px-4 py-2.5 bg-[color:var(--fill-2)] border-b border-[color-mix(in_srgb,var(--line)_80%,transparent)]">
               <span className="flex gap-1.5 shrink-0" aria-hidden="true">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />  // ok-ds — couleurs officielles des boutons de fenêtre macOS — maquette de navigateur
+                <span className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />  // ok-ds — couleurs officielles des boutons de fenêtre macOS — maquette de navigateur
+                <span className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />  // ok-ds — couleurs officielles des boutons de fenêtre macOS — maquette de navigateur
               </span>
-              <span className="flex-1 truncate text-center text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 bg-white dark:bg-neutral-900 rounded-md px-3 py-1 mx-2">
+              <span className="flex-1 truncate text-center text-[11px] font-semibold text-ink-2 bg-paper dark:bg-[color:var(--night-3)] rounded-md px-3 py-1 mx-2">
                 {domain}
               </span>
               <span className="w-9 shrink-0" aria-hidden="true" />
             </div>
             {/* Corps de fenêtre — capture bureau */}
-            <div className="aspect-[16/10] bg-neutral-50 dark:bg-neutral-900 relative">
+            <div className="aspect-[16/10] bg-[color:var(--fill-1)] dark:bg-[color:var(--night-3)] relative">
               {screenshot}
             </div>
           </motion.div>
@@ -149,11 +149,11 @@ export default function SitePreview({ url, domain, name }: SitePreviewProps) {
             className="flex justify-center py-2"
           >
             {/* Mockup téléphone */}
-            <div className="relative w-[240px] max-w-full rounded-[2.2rem] bg-neutral-900 dark:bg-neutral-800 p-2.5 shadow-xl shadow-neutral-900/20 dark:shadow-black/40 transition-shadow duration-300 group-hover:shadow-2xl">
+            <div className="relative w-[240px] max-w-full rounded-[2.2rem] bg-[color:var(--night-3)] p-2.5 shadow-card transition-shadow duration-300 group-hover:shadow-2xl">
               {/* Encoche */}
-              <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-1/3 h-5 bg-neutral-900 dark:bg-neutral-800 rounded-b-2xl z-10" />
+              <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-1/3 h-5 bg-[color:var(--night-3)] rounded-b-2xl z-10" />
               {/* Écran — capture mobile */}
-              <div className="aspect-[9/19.5] rounded-[1.6rem] overflow-hidden bg-neutral-50 dark:bg-neutral-900 relative">
+              <div className="aspect-[9/19.5] rounded-[1.6rem] overflow-hidden bg-[color:var(--fill-1)] dark:bg-[color:var(--night-3)] relative">
                 {screenshot}
               </div>
             </div>

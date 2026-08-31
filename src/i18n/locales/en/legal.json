@@ -35,7 +35,11 @@
     "liability": {
       "heading": "Limitation of liability",
       "body": "MY ONOMA SARL strives to ensure that the information published on this website is accurate and up to date. However, the publisher cannot guarantee the accuracy, precision or completeness of the information made available."
-    }
+    },
+    "titleLines": [
+      "Legal notice"
+    ],
+    "version": "30/08/2026"
   },
   "privacy": {
     "seoTitle": "Privacy policy",
@@ -99,7 +103,11 @@
       "intro": "For any question relating to this policy, contact us:",
       "email": "Email: contact@maxmorrys.me",
       "cdp": "Senegal's Personal Data Protection Commission (CDP): <1>www.cdp.sn</1>"
-    }
+    },
+    "titleLines": [
+      "Privacy policy"
+    ],
+    "version": "30/08/2026"
   },
   "cgv": {
     "seoTitle": "Terms and Conditions of Sale",
@@ -172,7 +180,12 @@
     "art10": {
       "heading": "Article 10 — Governing law and disputes",
       "body": "These T&Cs are governed by Senegalese law and OHADA standards. In the event of a dispute, an amicable solution will be sought before any legal action. Failing this, the courts of Dakar shall have sole jurisdiction."
-    }
+    },
+    "titleLines": [
+      "Terms and conditions",
+      "of sale"
+    ],
+    "version": "30/08/2026"
   },
   "cgu": {
     "seoTitle": "Terms of use",
@@ -220,7 +233,11 @@
     "contact": {
       "heading": "Contact",
       "body": "For any question relating to these terms: <1>contact@maxmorrys.me</1>"
-    }
+    },
+    "titleLines": [
+      "Terms of use"
+    ],
+    "version": "30/08/2026"
   },
   "cookies": {
     "seoTitle": "Cookie policy",
@@ -265,6 +282,10 @@
     "contact": {
       "heading": "Contact",
       "body": "For any question relating to this policy: <1>contact@maxmorrys.me</1>"
-    }
+    },
+    "titleLines": [
+      "Cookie policy"
+    ],
+    "version": "30/08/2026"
   }
 }

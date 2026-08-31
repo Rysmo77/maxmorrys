@@ -1,11 +1,11 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mail, ArrowRight } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { trackSubscribeNewsletter } from '../../lib/tracking';
 import { useToast } from '../ui/Toast';
 import LocalizedLink from './LocalizedLink';
+import { Icon } from '@ds';
 
 interface NewsletterFormProps {
   variant?: 'inline' | 'card';
@@ -67,21 +67,21 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
         onChange={(e) => setConsent(e.target.checked)}
         className={`mt-0.5 h-4 w-4 shrink-0 rounded border ${
           tone === 'dark'
-            ? 'border-white/40 bg-white/10 text-brand-700 focus:ring-white/40'
-            : 'border-neutral-300 dark:border-neutral-600 text-brand-600 focus:ring-brand-500'
+            ? 'border-white/40 bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] text-forme focus:ring-white/40'
+            : 'border-[color:var(--line)] text-forme'
         }`}
       />
       <label
         htmlFor={consentId}
         className={`text-xs leading-relaxed ${
-          tone === 'dark' ? 'text-brand-100' : 'text-neutral-500 dark:text-neutral-400'
+          tone === 'dark' ? 'text-[color:var(--paper-fixed)]' : 'text-ink-2'
         }`}
       >
         {t('newsletter.consentLabel')}{' '}
         <LocalizedLink
           to="/legal/confidentialite"
           className={`underline underline-offset-2 ${
-            tone === 'dark' ? 'text-white' : 'text-brand-600 dark:text-brand-400'
+            tone === 'dark' ? 'text-white' : 'text-forme'
           }`}
         >
           {t('newsletter.consentPolicyLink')}
@@ -92,14 +92,14 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
 
   if (variant === 'card') {
     return (
-      <div className="bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl p-8 text-white">
+      <div className="bg-[image:var(--action-forme)] rounded-2xl p-8 text-white">
         <div className="flex items-center gap-3 mb-3">
-          <div className="p-2 bg-white/20 rounded-xl">
-            <Mail className="w-5 h-5" />
+          <div className="p-2 bg-[color-mix(in_srgb,var(--paper)_20%,transparent)] rounded-xl">
+            <Icon name="mail" size={20} />
           </div>
           <h3 className="text-lg font-bold">{t('newsletter.cardTitle')}</h3>
         </div>
-        <p className="text-brand-100 text-sm mb-6 leading-relaxed">
+        <p className="text-[color:var(--paper-fixed)] text-sm mb-6 leading-relaxed">
           {t('newsletter.cardText')}
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -112,13 +112,13 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t('newsletter.emailPlaceholder')}
               required
-              className="flex-1 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-brand-200 text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
             />
             <button
               type="submit"
               disabled={loading}
               aria-label={loading ? t('newsletter.submittingAria') : t('newsletter.submitAria')}
-              className="px-4 py-2.5 bg-white text-brand-700 rounded-xl font-semibold text-sm hover:bg-brand-50 transition-colors disabled:opacity-50"
+              className="px-4 py-2.5 bg-paper text-forme rounded-xl font-semibold text-sm hover:bg-[color-mix(in_srgb,var(--mm-bleu)_8%,transparent)] transition-colors disabled:opacity-50"
             >
               {loading ? t('newsletter.loading') : t('newsletter.submit')}
             </button>
@@ -133,7 +133,7 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" aria-hidden="true" />
+          <Icon name="mail" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-2" />
           <label htmlFor="newsletter-inline-email" className="sr-only">{t('newsletter.emailLabel')}</label>
           <input
             id="newsletter-inline-email"
@@ -142,16 +142,20 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t('newsletter.emailPlaceholder')}
             required
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+            /* `--field-bg` et non `bg-paper` : `--paper` ne bascule PAS sous `.dk` (c'est du
+               blanc fixe, réservé aux pastilles), alors que `--ink` devient #ECF0F5. Dans le
+               pied de page, qui porte la portée sombre, le couple donnait du blanc sur blanc.
+               Le jeton de champ, lui, s'inverse — 72 % de blanc en clair, 7 % en nuit. */
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[color:var(--line)] bg-[color:var(--field-bg)] text-sm text-ink focus:outline-none focus:ring-2 focus:border-forme"
           />
         </div>
         <button
           type="submit"
           disabled={loading}
           aria-label={loading ? t('newsletter.submittingAria') : t('newsletter.submitAria')}
-          className="px-4 py-2.5 bg-brand-600 text-white rounded-xl font-semibold text-sm hover:bg-brand-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+          className="px-4 py-2.5 bg-forme text-white rounded-xl font-semibold text-sm hover:bg-forme transition-colors disabled:opacity-50 flex items-center gap-1"
         >
-          <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          <Icon name="forward" size={16} />
         </button>
       </div>
       {consentField('light')}

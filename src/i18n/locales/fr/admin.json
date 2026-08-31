@@ -80,7 +80,45 @@
     "agencyMonthlyHint": "Accompagnements signés",
     "agencyConversion": "Conversion",
     "agencyConversionHint": "Signés / prospects atteignables",
-    "agencyReply": "Répondre sur WhatsApp"
+    "agencyReply": "Répondre sur WhatsApp",
+    "sub": "Console · pilotage",
+    "shopClosedTitle": "Ta boutique est fermée",
+    "shopClosedBody_one": "<total></total> formation en base, <published></published> publiée. Un visiteur ne peut rien acheter.",
+    "shopClosedBody_other": "<total></total> formations en base, <published></published> publiée. Un visiteur ne peut rien acheter.",
+    "shopClosedAction": "Publier une formation",
+    "readingEyebrow": "Relevé de la base",
+    "datedNote": "Chaque case porte sa date de relevé. Une case sans date affiche « non relevé », jamais une estimation.",
+    "tileAccounts": "Comptes",
+    "tileEnrollments": "Inscriptions",
+    "tilePublishedFormations": "Formations publiées",
+    "tilePublishedPosts": "Articles publiés",
+    "tileLeads": "Prospects",
+    "tileSubscribers": "Abonnés",
+    "footInBase": "en base",
+    "footToQualify": "à qualifier",
+    "footNoUnit": "depuis l'origine",
+    "queueEyebrow": "À traiter",
+    "queueLeads_one": "prospect à qualifier",
+    "queueLeads_other": "prospects à qualifier",
+    "queueLeadsMeta": "reçus par /presence-digitale",
+    "queueMessages_one": "message non lu",
+    "queueMessages_other": "messages non lus",
+    "queueMessagesMeta": "formulaire de contact",
+    "queueDrafts_one": "article en brouillon",
+    "queueDrafts_other": "articles en brouillon",
+    "queueDraftsMeta": "invisible du public",
+    "queueUnpublished_one": "formation non publiée",
+    "queueUnpublished_other": "formations non publiées",
+    "queueUnpublishedMeta": "invisible du catalogue",
+    "queueOpen": "Ouvrir",
+    "queueQualify": "Qualifier",
+    "queuePublish": "Publier",
+    "queueEmptyTitle": "Rien n'attend.",
+    "queueEmptyBody": "Aucune file n'a d'élément en attente au dernier relevé. Actualise pour reprendre la mesure.",
+    "queueLabel": "Files à traiter",
+    "agencyEyebrow": "Prospects agence",
+    "agencyRecentLabel": "Derniers prospects reçus",
+    "scope": "Cet écran ne répond qu'à « qu'est-ce qui bloque aujourd'hui ». Il ne porte ni audience, ni cohortes, ni courbes : l'analyse vit sur /admin/analytics. Le coût d'exploitation — infrastructure, appels au modèle, commissions de paiement — n'est mesuré nulle part dans l'application, et l'encaissement n'apparaît pas ici : il se lit sur l'écran Transactions. Les files se comptent au relevé affiché, pas en temps réel."
   },
   "analytics": {
     "title": "Analytics",
@@ -132,7 +170,30 @@
     "agencyByPlan": "Par accompagnement",
     "agencyBySector": "Par secteur",
     "agencyByCity": "Par ville",
-    "rowAgencyLeads": "Prospects agence"
+    "rowAgencyLeads": "Prospects agence",
+    "sub": "Console · relevé",
+    "ratioCite": "calculé sur deux compteurs de base",
+    "queueTitle": "À traiter",
+    "queueOpen": "Ouvrir",
+    "queueEmptyTitle": "Rien n’attend",
+    "queueEmptyBody": "Aucun message non traité, aucun prospect non qualifié, aucun brouillon en retard au dernier relevé.",
+    "queue": {
+      "messages_one": "{{count}} message à traiter",
+      "messages_other": "{{count}} messages à traiter",
+      "leads_one": "{{count}} prospect agence non qualifié",
+      "leads_other": "{{count}} prospects agence non qualifiés",
+      "formations_one": "{{count}} formation non publiée",
+      "formations_other": "{{count}} formations non publiées",
+      "drafts_one": "{{count}} article en brouillon",
+      "drafts_other": "{{count}} articles en brouillon"
+    },
+    "measuredTitle": "Relevé",
+    "agencyFunnel": "Entonnoir",
+    "footPublished_one": "{{count}} publiée",
+    "footPublished_other": "{{count}} publiés",
+    "footHandled_one": "{{count}} traité",
+    "footHandled_other": "{{count}} traités",
+    "scope": "Cet écran mesure ; il ne pilote rien. Il ne connaît ni audience, ni source de trafic, ni durée de visite, ni cohorte : ces chiffres ne sont écrits nulle part dans la base, et le bloc « Appareils » qui prétendait les donner affichait trois valeurs figées dans le code — il a été retiré plutôt que redaté, parce que la règle ne dit pas « dater les estimations », elle dit « jamais une estimation ». Les compteurs de pop-ups sont écrits par le Worker : une pop-up jamais affichée n'a pas de ligne, et une ligne absente ne vaut pas zéro. Les montants de l'agence sont lus sur les fiches prospects, pas sur les encaissements — un pipeline pondéré n'est pas un revenu. Enfin, rien ne s'historise : chaque relevé écrase le précédent, il n'y a aucune série dans le temps."
   },
   "appointments": {
     "title": "Rendez-vous",
@@ -156,7 +217,33 @@
     "toastLoadError": "Erreur lors du chargement des rendez-vous.",
     "toastConfirmed": "Rendez-vous confirmé.",
     "toastCancelled": "Rendez-vous annulé.",
-    "toastUpdateError": "Erreur lors de la mise à jour."
+    "toastUpdateError": "Erreur lors de la mise à jour.",
+    "sub": "Console · rendez-vous",
+    "pipelineLabel": "Statut des rendez-vous",
+    "stageAll": "tout",
+    "stagePending": "en attente",
+    "stageConfirmed": "confirmés",
+    "stageCancelled": "annulés",
+    "searchLabel": "Rechercher un rendez-vous",
+    "listLabel": "Demandes de rendez-vous",
+    "open": "Ouvrir",
+    "closeSheet": "Fermer la demande",
+    "sheetEyebrow": "Demande de rendez-vous",
+    "tilePending": "En attente",
+    "tileConfirmed": "Confirmés",
+    "tileTotal": "Demandes",
+    "footToDecide": "à décider",
+    "footAgreed": "créneaux tenus",
+    "footAllStatuses": "tous statuts",
+    "docWhen": "Créneau demandé",
+    "docEmail": "E-mail",
+    "docPhone": "Téléphone",
+    "docSubject": "Sujet",
+    "docMessage": "Message",
+    "docReceivedAt": "Reçue le",
+    "emptyTitle": "Aucune demande à cette étape.",
+    "emptyBody": "Les compteurs portent sur la collection entière ; l'étape et la recherche ne filtrent que l'affichage.",
+    "scope": "Confirmer ou annuler écrit un statut en base et n'envoie rien : ni e-mail, ni SMS, ni invitation d'agenda. La personne qui a demandé le créneau ne saura ta réponse que si tu la lui écris toi-même, et aucun calendrier n'est tenu à jour ailleurs. Le créneau n'est pas vérifié non plus : deux demandes peuvent être confirmées sur la même heure. Le kit range cet écran en « à venir / passés » ; le motif interdit de filtrer par date, donc l'étape reste le statut."
   },
   "agencyLeads": {
     "title": "Prospects agence",
@@ -233,7 +320,35 @@
       "quoteRef": "Réf. devis",
       "message": "Message",
       "notes": "Notes internes"
-    }
+    },
+    "sub": "Console · rôle support",
+    "pipelineLabel": "Cycle de vente — prospects Présence Digitale",
+    "stageAll": "tout",
+    "searchLabel": "Rechercher un prospect",
+    "listLabel": "Prospects Présence Digitale",
+    "open": "Ouvrir",
+    "closeSheet": "Fermer la fiche",
+    "sheetEyebrow": "Fiche prospect",
+    "tileToQualify": "À qualifier",
+    "tileSigned": "Signés",
+    "tileTotal": "Reçus",
+    "footNewest": "étape « nouveau »",
+    "footSignedValue": "contrats signés",
+    "footAllStages": "toutes étapes",
+    "docContact": "Contact",
+    "docCity": "Ville",
+    "docSector": "Secteur",
+    "docPack": "Pack",
+    "docPlan": "Accompagnement",
+    "docUpfront": "Mise en place",
+    "docMonthly": "Mensuel",
+    "docReferral": "Parrainage",
+    "docQuote": "Devis",
+    "docMessage": "Message reçu",
+    "changeStatus": "Étape du cycle",
+    "emptyTitle": "Aucun prospect à cette étape.",
+    "emptyBody": "Les compteurs portent sur la collection entière ; l'étape et la recherche ne filtrent que l'affichage.",
+    "scope": "Aucune relance automatique : chaque suivi est un geste manuel, et rien ne rappelle un prospect oublié. Le kit prévoit deux cycles de vente côte à côte — Présence Digitale et Max-Morrys Agency ; la base n'en stocke qu'un, `agency_leads`, alimenté par /presence-digitale, donc le second n'est pas affiché. L'accompagnement mensuel n'a pas de rail de prélèvement au Sénégal : un contrat signé ici n'est pas un revenu encaissé, et aucun montant de cet écran ne se retrouve dans Transactions."
   },
   "articles": {
     "title": "Articles",
@@ -291,7 +406,23 @@
     "toastSaveError": "Erreur lors de l'enregistrement.",
     "toastDeleted": "Article supprime.",
     "toastDeleteError": "Erreur de suppression.",
-    "toastUpdateError": "Erreur de mise à jour."
+    "toastUpdateError": "Erreur de mise à jour.",
+    "console": {
+      "sub": "Console · éditorial",
+      "stageAll": "tout",
+      "stagePublished": "publiés",
+      "stageDrafts": "brouillons",
+      "filterLabel": "Statut des articles",
+      "listLabel": "Articles",
+      "searchLabel": "Rechercher un article",
+      "countUnit": "articles en base",
+      "loadingCount": "relevé en cours",
+      "tagEnMissing": "slug EN manquant",
+      "featuredShort": "à la une",
+      "tabsLabel": "Sections de l'éditeur d'article",
+      "slugEnHint": "Laissé vide, il est généré à l'enregistrement. Sans lui, l'URL anglaise porte le slug français.",
+      "scope": "Aucune planification de publication, aucune file éditoriale : un brouillon reste un brouillon jusqu'à un geste manuel. Cet écran ne dit rien de l'audience — le compteur de vues d'un article vit sur le document, il n'est pas relevé ici. Et corriger le texte français ne propage rien tant que le cache de traduction du pré-rendu n'a pas expiré."
+    }
   },
   "formations": {
     "pageTitle": "Formations",
@@ -384,7 +515,74 @@
     "toastSaveError": "Erreur lors de l'enregistrement.",
     "toastDeleted": "Formation supprimée.",
     "toastDeleteError": "Erreur lors de la suppression.",
-    "toastStatusError": "Erreur de mise à jour."
+    "toastStatusError": "Erreur de mise à jour.",
+    "console": {
+      "sub": "Console · catalogue",
+      "stageAll": "tout",
+      "stagePublished": "publiées",
+      "stageDrafts": "brouillons",
+      "filterLabel": "Statut des formations",
+      "listLabel": "Formations",
+      "searchLabel": "Rechercher une formation",
+      "countUnit": "formations en base",
+      "loadingCount": "relevé en cours",
+      "unitModules": "modules",
+      "unitLessons": "leçons",
+      "tagReady": "prête à publier",
+      "tagBlocked": "à compléter",
+      "tabsLabel": "Sections de l'éditeur de formation",
+      "tabPublish": "Publier",
+      "untitled": "Formation sans titre",
+      "slugEnHint": "Laissé vide, il est généré à l'enregistrement. Sans lui, l'URL anglaise porte le slug français.",
+      "checklistSource": "Conditions calculées sur la fiche ouverte",
+      "checklistProgressLabel": "Conditions de publication remplies",
+      "checklistTitle": "« Publiable » veut dire ceci",
+      "condReady": "prêt",
+      "condTodo": "à régler",
+      "checklistRule": "Le bouton « Publier » reste inactif tant qu'une ligne est orange. La liste n'est pas un conseil : c'est la condition.",
+      "checklistNotAGuard": "Cette liste garde la SAISIE, pas la base. `firestore.rules` autorise tout administrateur à écrire `status: published` sur n'importe quel document, et aucune Cloud Function ne réagit à cette écriture. Elle empêche la faute d'inattention, jamais l'acte délibéré.",
+      "publishBlocked": "Une condition au moins n'est pas remplie — voir l'onglet « Publier ».",
+      "lessonFreeNote": "Le champ est enregistré, mais AUCUN écran du produit ne le lit aujourd'hui : aucune leçon n'est réellement offerte en aperçu.",
+      "triggersTitle": "Ce que la publication déclenche",
+      "triggerCatalog": "Apparition au catalogue",
+      "triggerCatalogValue": "immédiate",
+      "triggerSitemap": "Plan de site et hreflang",
+      "triggerSitemapValue": "recalculés à la demande",
+      "triggerMeta": "Flux catalogue Meta",
+      "triggerMetaValue": "à la prochaine lecture",
+      "triggerNotify": "Notification aux comptes",
+      "triggerNotifyValue": "aucune",
+      "triggerEmail": "E-mail d'annonce",
+      "triggerEmailValue": "aucun canal",
+      "scope": "La publication ne crée aucune campagne, n'envoie aucun e-mail et ne prévient personne hors de l'application : le lancement commercial reste un geste séparé, à la main. Cet écran ne montre ni les inscriptions, ni la progression, ni les certificats d'une formation — ils vivent ailleurs dans la console. Et il n'ordonne pas les formations entre elles : le catalogue public trie par date de création, pas depuis ici.",
+      "check": {
+        "identity": {
+          "title": "Titre et résumé renseignés",
+          "ok": "l'enregistrement les exige déjà",
+          "ko": "sans eux, la fiche ne peut même pas être enregistrée"
+        },
+        "modules": {
+          "title": "Aucun module vide",
+          "ok": "{{modules}} modules, tous pourvus",
+          "ko": "{{emptyModules}} module(s) sans leçon — le lecteur ouvre sur `modules[0].lessons[0]`"
+        },
+        "lessons": {
+          "title": "Aucune leçon vide",
+          "ok": "{{lessons}} leçons, toutes pourvues en texte ou en vidéo",
+          "ko": "{{emptyLessons}} leçon(s) sans contenu ni vidéo : page blanche dans le lecteur"
+        },
+        "price": {
+          "title": "Prix promo cohérent",
+          "ok": "aucun promo, ou un promo strictement inférieur au prix",
+          "ko": "le promo doit être supérieur à zéro et inférieur au prix — c'est lui qui est débité et publié en `sale_price`"
+        },
+        "cover": {
+          "title": "Image de couverture",
+          "ok": "la fiche a son visuel",
+          "ko": "sans elle, le catalogue Meta et la carte sociale prennent le visuel générique du site"
+        }
+      }
+    }
   },
   "coupons": {
     "title": "Codes promo",
@@ -404,7 +602,8 @@
     },
     "modal": {
       "editTitle": "Modifier le coupon",
-      "newTitle": "Nouveau coupon"
+      "newTitle": "Nouveau coupon",
+      "close": "Fermer"
     },
     "form": {
       "code": "Code *",
@@ -431,7 +630,35 @@
       "saveError": "Erreur lors de la sauvegarde.",
       "deleteError": "Erreur de suppression.",
       "error": "Erreur."
-    }
+    },
+    "consoleSub": "Console · réductions",
+    "stagesLabel": "Statut des coupons",
+    "stages": {
+      "all": "tout",
+      "active": "actifs",
+      "exhausted": "épuisés",
+      "expired": "expirés"
+    },
+    "tiles": {
+      "servable": "Servables",
+      "servableFoot": "acceptés par le serveur de paiement",
+      "uses": "Utilisations",
+      "usesFoot": "cumul depuis l'origine"
+    },
+    "searchLabel": "Chercher un code",
+    "loading": "Chargement des coupons",
+    "emptyBody": "Un code promo se crée pour une campagne datée, pas pour rester ouvert.",
+    "listLabel": "Codes promo",
+    "rowUses": "utilisations",
+    "rowExpires": "expire le {{date}}",
+    "rowNoExpiry": "sans date de fin",
+    "tags": {
+      "active": "actif",
+      "exhausted": "épuisé",
+      "expired": "expiré",
+      "off": "arrêté"
+    },
+    "scope": "Cet écran ne refuse aucun code : c'est le serveur de paiement qui écarte un coupon éteint, expiré ou épuisé, et lui seul. Il ne dit pas non plus ce qu'une remise a coûté — le rapprochement avec les paiements se fait dans Transactions. Un coupon éteint à la main n'a pas d'étape à lui : il n'apparaît que dans « tout »."
   },
   "announcements": {
     "title": "Annonces",
@@ -473,7 +700,32 @@
     "toastToggleError": "Erreur.",
     "confirmDeleteMessage": "Supprimer cette annonce ?",
     "confirmDeleteTitle": "Supprimer",
-    "confirmDeleteLabel": "Supprimer"
+    "confirmDeleteLabel": "Supprimer",
+    "consoleSub": "Console · bandeau du site",
+    "stagesLabel": "Statut des annonces",
+    "stages": {
+      "all": "tout",
+      "live": "actives",
+      "outOfWindow": "hors fenêtre",
+      "stopped": "arrêtées"
+    },
+    "tiles": {
+      "live": "En ligne",
+      "liveFoot": "visibles aujourd'hui",
+      "outOfWindow": "Hors fenêtre",
+      "outOfWindowFoot": "actives, mais hors dates"
+    },
+    "tags": {
+      "live": "en ligne",
+      "scheduled": "programmée",
+      "over": "terminée",
+      "stopped": "arrêtée"
+    },
+    "loading": "Chargement des annonces",
+    "emptyBody": "Le bandeau ne s'affiche que si une annonce est active ET dans sa fenêtre de dates.",
+    "listLabel": "Annonces du bandeau",
+    "linkHint": "Chemin interne ou URL complète. Le bandeau l'ouvre dans la langue du visiteur.",
+    "scope": "Cet écran administre le bandeau du site public : un titre, une fenêtre de dates, un lien. Il ne mesure rien — ni affichage, ni clic, ni fermeture —, et le bandeau n'a pas de groupe témoin : aucun taux ne peut donc s'afficher ici. Le témoin nommé par le kit est celui des pop-ups contextuelles, qui sont un autre dispositif : leur part de trafic exposée se règle dans Réglages, et leurs compteurs — exposés contre témoin — se lisent dans Analytique. Enfin, une annonce hors de sa fenêtre reste « active » en base : elle n'est simplement pas servie."
   },
   "faq": {
     "title": "FAQ",
@@ -494,12 +746,17 @@
       "answerPlaceholder": "Réponse complète...",
       "categoryLabel": "Catégorie",
       "categoryPlaceholder": "Général, Formation...",
-      "orderLabel": "Ordre d'affichage"
+      "orderLabel": "Ordre d'affichage",
+      "orderHint": "Le plus petit nombre s'affiche en premier.",
+      "slugLabel": "Adresse de la page",
+      "slugPlaceholder": "payer-en-wave",
+      "slugHint": "Vide, elle se dérive de la question — et se déplace si tu la reformules. Renseignée, elle est figée."
     },
     "actions": {
       "cancel": "Annuler",
       "save": "Enregistrer",
-      "saving": "Enregistrement..."
+      "saving": "Enregistrement...",
+      "delete": "Supprimer"
     },
     "confirmDelete": {
       "title": "Supprimer",
@@ -513,7 +770,29 @@
       "deleted": "Question supprimée.",
       "saveError": "Erreur lors de la sauvegarde.",
       "deleteError": "Erreur lors de la suppression."
-    }
+    },
+    "consoleSub": "Console · questions fréquentes",
+    "stagesLabel": "Statut des questions",
+    "stages": {
+      "all": "tout",
+      "published": "publiées",
+      "derivedSlug": "slug dérivé"
+    },
+    "categoriesLabel": "Catégorie",
+    "tiles": {
+      "questions": "Questions",
+      "questionsFoot": "toutes en ligne, aucun brouillon",
+      "derivedSlug": "Slug dérivé",
+      "derivedSlugFoot": "adresse qui suit le texte"
+    },
+    "loading": "Chargement des questions",
+    "emptyBody": "Une question posée trois fois par écrit vaut une entrée ici : c'est autant de messages en moins.",
+    "listLabel": "Questions de la FAQ",
+    "rowOrder": "position",
+    "tags": {
+      "online": "en ligne"
+    },
+    "scope": "Une question n'a pas de brouillon : elle est en ligne dès l'enregistrement, et son ordre se saisit à la main. Chaque question a maintenant sa page — /faq/<adresse> — avec son fil, ses questions voisines et ses données structurées. L'étape « slug dérivé » compte celles dont l'adresse n'est PAS figée : elle se dérive du texte, donc reformuler la question déplace la page et casse les liens déjà partagés, sans que rien ne le signale. Cet écran ne dit toujours pas quelles questions sont lues ni lesquelles manquent : rien n'est mesuré sur /faq."
   },
   "messages": {
     "title": "Messages",
@@ -543,7 +822,18 @@
       "updateError": "Erreur de mise à jour.",
       "deleted": "Message supprimé.",
       "deleteError": "Erreur de suppression."
-    }
+    },
+    "sub": "Console · contact",
+    "pipelineLabel": "Statut des messages",
+    "searchLabel": "Rechercher un message",
+    "emptyTitle": "Rien dans cette file",
+    "stage": {
+      "all": "tout",
+      "todo": "à traiter",
+      "waiting": "en attente",
+      "closed": "clos"
+    },
+    "scope": "Aucune réponse ne part d'ici : « Répondre par e-mail » ouvre le client de messagerie de l'appareil, et rien de ce qui s'y écrit ne revient dans la fiche. « Clos » ne dit donc pas qu'une réponse est partie — il dit que quelqu'un l'a déclaré. Pas de fil, pas de pièce jointe, pas de relance, et aucun écran côté visiteur : celui qui a écrit ne saura où en est son message qu'en recevant une réponse."
   },
   "podcasts": {
     "title": "Podcasts",
@@ -603,7 +893,23 @@
     "toastSaveError": "Erreur lors de la sauvegarde.",
     "toastDeleted": "Podcast supprimé.",
     "toastDeleteError": "Erreur de suppression.",
-    "toastError": "Erreur."
+    "toastError": "Erreur.",
+    "console": {
+      "sub": "Console · éditorial",
+      "stageAll": "tout",
+      "stagePublished": "publiés",
+      "stageImported": "importés",
+      "filterLabel": "Statut des épisodes",
+      "listLabel": "Épisodes",
+      "searchLabel": "Rechercher un épisode",
+      "countUnit": "épisodes en base",
+      "loadingCount": "relevé en cours",
+      "tagToReview": "à relire",
+      "fromSpotify": "importé de Spotify",
+      "fetchingMeta": "Récupération des informations Spotify…",
+      "slugEnHint": "Laissé vide, il est généré à l'enregistrement. Sans lui, l'URL anglaise porte le slug français.",
+      "scope": "« Importés » est une PROVENANCE, pas un statut : un brouillon saisi à la main n'a donc pas d'étape à lui et n'apparaît que sous « tout ». L'import ne met jamais à jour un épisode déjà rapatrié — il ne crée que les manquants. Et rien ne repart d'ici vers Spotify : le flux ne va que dans un sens, et aucune notification n'annonce un épisode."
+    }
   },
   "videos": {
     "title": "Vidéos",
@@ -657,7 +963,24 @@
     "toastSaveError": "Erreur lors de la sauvegarde.",
     "toastDeleted": "Vidéo supprimée.",
     "toastDeleteError": "Erreur de suppression.",
-    "toastError": "Erreur."
+    "toastError": "Erreur.",
+    "console": {
+      "sub": "Console · éditorial",
+      "stageAll": "tout",
+      "stagePublished": "publiées",
+      "stageDrafts": "brouillons",
+      "filterLabel": "Statut des vidéos",
+      "listLabel": "Vidéos",
+      "searchLabel": "Rechercher une vidéo",
+      "countUnit": "vidéos en base",
+      "loadingCount": "relevé en cours",
+      "viewsSource": "API YouTube, recopiée par la synchronisation",
+      "viewsUnit": "vues",
+      "viewsNote": "Recopié depuis YouTube par la synchronisation quotidienne (03:00 UTC) ou par le bouton de cet écran. Entre deux passages, ce nombre date.",
+      "fetchingMeta": "Récupération des informations YouTube…",
+      "slugEnHint": "Laissé vide, il est généré à l'enregistrement. Sans lui, l'URL anglaise porte le slug français.",
+      "scope": "Le nombre de vues ne bouge qu'au passage de la synchronisation : entre deux, il date. Cet écran ne publie rien vers YouTube et ne lit ni les commentaires, ni la durée de visionnage, ni l'abonnement. Aucune vidéo n'est hébergée ici : supprimer une fiche laisse la vidéo en ligne sur YouTube."
+    }
   },
   "testimonials": {
     "title": "Témoignages",
@@ -720,7 +1043,17 @@
     "toastSeedAlready": "Témoignages de démonstration déjà importés.",
     "toastSeedImported_one": "{{count}} témoignage importé.",
     "toastSeedImported_other": "{{count}} témoignages importés.",
-    "toastSeedError": "Erreur lors de l'import."
+    "toastSeedError": "Erreur lors de l'import.",
+    "sub": "Console · modération",
+    "pipelineLabel": "Statut des témoignages",
+    "emptyTitle": "Rien dans cette file",
+    "stage": {
+      "all": "tout",
+      "pending": "en attente",
+      "approved": "approuvés",
+      "rejected": "rejetés"
+    },
+    "scope": "Cet écran modère ; il ne recueille rien. Aucune vérification d'identité, aucun consentement tracé, aucune date de recueil : un témoignage vaut ce que vaut la personne qui l'a saisi. « Approuver » le met à la une, et la page d'abonnement au Club l'affiche alors en preuve sociale — c'est le seul écran qui l'y met, et le seul qui puisse l'en retirer. Le bouton d'import écrit six témoignages de démonstration, signés de noms de personnes, dans cette même collection : rien ne les en distingue ensuite. Les notes en étoiles ne sont plus dessinées ici ; le champ reste en base."
   },
   "transactions": {
     "title": "Transactions",
@@ -749,7 +1082,25 @@
     "refundConfirmMessage": "Marquer cette transaction comme remboursée ?",
     "refundSuccess": "Transaction marquée comme remboursée.",
     "refundError": "Erreur lors du remboursement.",
-    "confirmTitle": "Confirmer"
+    "confirmTitle": "Confirmer",
+    "sub": "Console · réconciliation",
+    "pipelineLabel": "Statut des transactions",
+    "stageAll": "toutes",
+    "stageCompleted": "complétées",
+    "stagePending": "en attente",
+    "stageRefunded": "remboursées",
+    "stageFailed": "échouées",
+    "searchLabel": "Rechercher une transaction",
+    "listLabel": "Transactions",
+    "footPending_one": "transaction en attente",
+    "footPending_other": "transactions en attente",
+    "footRefunded_one": "opération remboursée",
+    "footRefunded_other": "opérations remboursées",
+    "refundExplainTitle": "Ce que « Rembourser » fait ici",
+    "refundExplainBody": "Le bouton écrit le statut « remboursée » sur la transaction, et rien d'autre. Aucun mouvement d'argent n'en découle : le remboursement se fait chez le prestataire de paiement, et cet écran ne fait que l'enregistrer après coup. L'inscription déjà accordée n'est pas retirée.",
+    "emptyTitle": "Aucune transaction à cette étape.",
+    "emptyBody": "Les compteurs au-dessus portent sur la table entière ; l'étape et la recherche ne filtrent que l'affichage.",
+    "scope": "Cet écran ne fait que RÉCONCILIER : il lit ce que le webhook de paiement a écrit et n'a aucun moyen de le rejouer, ni de forcer une inscription qu'une transaction complétée n'aurait pas déclenchée. Aucun remboursement ne part d'ici — il se fait chez le prestataire, et le bouton ne fait qu'en enregistrer la trace. Côté acheteur, il n'existe aucun écran d'historique : quelqu'un qui veut savoir où en est son paiement doit écrire, et personne ne le saura avant."
   },
   "settings": {
     "pageTitle": "Paramètres",
@@ -809,7 +1160,17 @@
     "save": "Enregistrer les paramètres",
     "toastLoadError": "Erreur lors du chargement des paramètres.",
     "toastSaveSuccess": "Paramètres enregistrés avec succès.",
-    "toastSaveError": "Erreur lors de l'enregistrement. Veuillez réessayer."
+    "toastSaveError": "Erreur lors de l'enregistrement. Veuillez réessayer.",
+    "sub": "Console · réglages",
+    "sectionLabel": "Section des réglages",
+    "section": {
+      "brand": "marque",
+      "notifications": "notifications",
+      "popups": "pop-ups",
+      "security": "sécurité"
+    },
+    "securityReadOnlyNote": "Ces trois lignes sont écrites dans le code de l'écran : elles décrivent la configuration attendue, elles ne l'interrogent pas.",
+    "scope": "Ni le paiement, ni le référencement, ni les rôles ne se règlent ici. Les clés du prestataire de paiement vivent dans les secrets des Cloud Functions ; les redirections et le plan de site sont produits ailleurs — écran « Redirections » et pré-rendu du Worker ; le rôle d'un compte se change dans « Utilisateurs ». Enregistrer écrit un seul document Firestore depuis le navigateur : l'opération n'est pas journalisée, et rien ne dira plus tard qui a coupé quelle pop-up, ni quand. Les réglages de pop-ups sont mis en cache le temps de la session d'un visiteur — une coupure ne devient visible qu'à sa visite suivante."
   },
   "users": {
     "title": "Utilisateurs",
@@ -827,7 +1188,24 @@
     "manageUser": "Gérer l'utilisateur",
     "roleAdmin": "Admin",
     "roleSupport": "Support",
-    "roleStudent": "Étudiant"
+    "roleStudent": "Étudiant",
+    "sub": "Console · comptes",
+    "pipelineLabel": "Rôle des comptes",
+    "stageAll": "tout",
+    "stageStudents": "apprenants",
+    "stageAdmins": "admins",
+    "stageSupport": "support",
+    "searchLabel": "Rechercher un compte",
+    "manage": "Gérer",
+    "listLabel": "Comptes de la plateforme",
+    "tileAll": "Comptes",
+    "tileStudents": "Apprenants",
+    "tileAdmins": "Admins",
+    "tileSupport": "Support",
+    "noName": "Compte sans nom",
+    "emptyTitle": "Aucun compte ne correspond.",
+    "emptyBody": "Change d'étape ou vide la recherche : les quatre étapes se comptent sur la base entière, la recherche filtre ce qui reste.",
+    "scope": "Aucune suspension ici : le modèle de données ne porte pas d'état « suspendu », donc l'étape du kit qui l'affiche n'a pas de source et n'est pas montrée. Couper l'accès à quelqu'un se fait dans la console Firebase, et ce geste ne laisse aucune trace dans l'application. La suppression d'un compte, la réinitialisation d'un mot de passe et la révocation des sessions ouvertes n'existent pas non plus sur cet écran."
   },
   "clubHook": {
     "loadError": "Erreur lors du chargement.",
@@ -952,7 +1330,39 @@
         "Notes internes"
       ]
     },
-    "viaBadge": "via {{slug}}"
+    "viaBadge": "via {{slug}}",
+    "consoleSub": "Console · demandes d'agence",
+    "stagesLabel": "Statut des demandes",
+    "stages": {
+      "all": "tout",
+      "open": "en cours",
+      "closed": "clos"
+    },
+    "tiles": {
+      "open": "En cours",
+      "openFoot": "nouvelles, qualifiées, cadrage, proposition",
+      "routed": "Orientées Cléa",
+      "routedFoot": "hors cycle Max-Morrys"
+    },
+    "searchLabel": "Chercher une demande",
+    "loading": "Chargement des demandes",
+    "emptyBody": "Les demandes arrivent du formulaire de /agence. Rien à faire tant que la file est vide.",
+    "listLabel": "Demandes de mission",
+    "sheetClose": "Fermer la fiche",
+    "writeAction": "Écrire au prospect",
+    "docContact": "Contact",
+    "docReceived": "Reçue le",
+    "docProjectType": "Type de projet",
+    "docBudget": "Budget",
+    "docTimeline": "Échéance",
+    "docSource": "Provenance",
+    "docSourceDirect": "directe",
+    "docRouted": "Orientation",
+    "docRoutedNone": "cycle Max-Morrys",
+    "docWebsite": "Site",
+    "notesDirty": "Note non enregistrée — elle part quand le champ perd le focus.",
+    "confirmDeleteTitle": "Supprimer",
+    "scope": "Aucune relance n'est automatique : chaque suivi est un geste manuel, et rien ici n'écrit au prospect — le bouton ouvre son propre logiciel de messagerie. Le filtre range les six statuts du cycle agence en deux files ; le statut fin se choisit sur la fiche. Aucun taux de conversion n'est affiché : celui que calcule la couche données compte comme « décidées » des demandes encore ouvertes, il ne mesure donc rien de stable. Enfin, une demande gagnée n'est pas un encaissement — aucun rail de prélèvement ne passe par cet écran."
   },
   "redirects": {
     "title": "Redirections",
@@ -1007,7 +1417,8 @@
       "delete": "Supprimer",
       "cancel": "Annuler",
       "save": "Enregistrer",
-      "saving": "Enregistrement..."
+      "saving": "Enregistrement...",
+      "copied": "Copié"
     },
     "confirmDelete": {
       "title": "Supprimer",
@@ -1023,6 +1434,45 @@
       "saveError": "Erreur lors de la sauvegarde.",
       "deleteError": "Erreur lors de la suppression.",
       "copyError": "Copie impossible. Sélectionnez le texte manuellement."
-    }
+    },
+    "consoleSub": "Console · référencement",
+    "stagesLabel": "Statut des redirections",
+    "stages": {
+      "all": "tout",
+      "active": "actives",
+      "conflict": "en conflit"
+    },
+    "kindFilterLabel": "Usage de la redirection",
+    "tiles": {
+      "active": "Actives",
+      "activeFoot": "servies au bord",
+      "conflicts": "En conflit",
+      "conflictsFoot": "doublon, boucle, chaîne"
+    },
+    "loading": "Chargement des redirections",
+    "emptyBody": "Une ancienne URL sans redirection est une page perdue pour les moteurs.",
+    "listLabel": "Table des redirections",
+    "hitsWord_one": "clic",
+    "hitsWord_other": "clics",
+    "tags": {
+      "active": "active",
+      "off": "arrêtée"
+    },
+    "conflicts": {
+      "duplicate": "doublon",
+      "loop": "boucle",
+      "chain": "chaîne",
+      "unserved": "jamais servie"
+    },
+    "conflictHints": {
+      "duplicate": "Deux entrées actives portent cette même source. Le Worker n'en garde qu'une — la plus récemment modifiée — et l'autre ne s'applique jamais.",
+      "loop": "La cible est la source elle-même : le navigateur boucle puis abandonne, et l'adresse devient inatteignable.",
+      "chain": "La cible est elle-même la source d'une autre redirection active. Le visiteur fait deux sauts, les moteurs escomptent la chaîne, et un aller-retour A→B→A boucle. Pointer directement sur la destination finale.",
+      "unserved": "Le Worker écarte cette entrée sans un mot : une source réduite à « / » ou une cible qui n'est pas un chemin interne ne sont jamais servies."
+    },
+    "scope": "Cet écran écrit la table ; il ne l'essaie pas. Le Worker la met en cache une minute, et l'étape « en conflit » lit la table, jamais le trafic réel. Le comptage des clics ne vaut que pour les liens d'attribution : un 301 de référencement n'est jamais compté, parce que ce sont surtout des robots qui le suivent. Et une redirection saisie ici ne remplace pas les renvois écrits dans l'application : /podcasts et /videos partent aujourd'hui vers /podcast-et-videos en JavaScript, ce qui ne transmet aucun référencement — les deux entrées 301 restent à saisir."
+  },
+  "motif": {
+    "scopeTitle": "Ce que cet écran ne couvre pas"
   }
 }

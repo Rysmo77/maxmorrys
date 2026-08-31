@@ -24,35 +24,72 @@ const createClubCharge = httpsCallable<
   { checkoutUrl: string; transactionId: string }
 >(functions, 'createClubCharge');
 import type { ClubDigitosSubscription, ClubDigitosPost, ClubDigitosEvent, ClubDigitosSession, ClubDigitosInfo, ClubDigitosComment, ClubPostCategory } from '../../../types';
-import {
-  ChatCircleDots, Question, BookOpen, Star, Rocket, Megaphone, type Icon,
-} from '@phosphor-icons/react';
+import type { IconName } from '@ds';
 
 export type ClubSubTab = 'feed' | 'leaderboard' | 'members' | 'discussions' | 'opportunities' | 'agenda' | 'events' | 'sessions' | 'infos' | 'referral';
 
-// `labelKey` resolves against the `club` namespace (e.g. t('categories.general')).
-// `label` kept as a fallback for renderers not yet migrated to t(c.labelKey).
-export const CLUB_CATEGORIES: { id: ClubPostCategory; label: string; labelKey: string; emoji: string; icon: Icon; tint: string; dot: string }[] = [
-  { id: 'general', label: 'Général', labelKey: 'categories.general', emoji: '💬', icon: ChatCircleDots, tint: 'text-plum-600 dark:text-plum-400', dot: 'bg-plum-500' },
-  { id: 'question', label: 'Question', labelKey: 'categories.question', emoji: '❓', icon: Question, tint: 'text-brand-600 dark:text-brand-400', dot: 'bg-brand-500' },
-  { id: 'ressource', label: 'Ressource', labelKey: 'categories.ressource', emoji: '📚', icon: BookOpen, tint: 'text-teal-600 dark:text-teal-400', dot: 'bg-teal-500' },
-  { id: 'temoignage', label: 'Témoignage', labelKey: 'categories.temoignage', emoji: '⭐', icon: Star, tint: 'text-accent-600 dark:text-accent-400', dot: 'bg-accent-500' },
-  { id: 'opportunite', label: 'Opportunité', labelKey: 'categories.opportunite', emoji: '🚀', icon: Rocket, tint: 'text-coral-600 dark:text-coral-400', dot: 'bg-coral-500' },
-  { id: 'discussion', label: 'Discussion', labelKey: 'categories.discussion', emoji: '🗣️', icon: Megaphone, tint: 'text-success-600 dark:text-success-400', dot: 'bg-success-500' },
+/**
+ * ⚠️ `emoji` EST DE LA DONNÉE, ET IL NE S'AFFICHE PLUS.
+ *
+ * Le champ est écrit en base sur des publications qui existent : l'effacer d'ici casserait des
+ * enregistrements réels, et personne ne verrait la casse avant qu'un vieux post remonte dans
+ * le fil. Il reste donc, intact. Ce qui change est en aval : le design system écrit « aucun
+ * emoji, nulle part » à l'ÉCRAN, et les onglets rendent `icon` — un glyphe du jeu unique — à
+ * sa place. La donnée survit, le rendu obéit.
+ *
+ * `labelKey` se résout dans l'espace de noms `club` (par ex. t('categories.general')).
+ * `label` reste le repli des rendus qui ne sont pas encore passés par t(c.labelKey).
+ */
+export const CLUB_CATEGORIES: { id: ClubPostCategory; label: string; labelKey: string; emoji: string; icon: IconName; tint: string; dot: string }[] = [
+  { id: 'general', label: 'Général', labelKey: 'categories.general', emoji: '💬', icon: 'comment', tint: 'text-transforme', dot: 'bg-[color:var(--mm-violet)]' },
+  { id: 'question', label: 'Question', labelKey: 'categories.question', emoji: '❓', icon: 'info', tint: 'text-forme', dot: 'bg-[color:var(--mm-bleu)]' },
+  { id: 'ressource', label: 'Ressource', labelKey: 'categories.ressource', emoji: '📚', icon: 'book', tint: 'text-digitalise-txt', dot: 'bg-[color:var(--mm-teal)]' },
+  { id: 'temoignage', label: 'Témoignage', labelKey: 'categories.temoignage', emoji: '⭐', icon: 'star', tint: 'text-informe-txt', dot: 'bg-[color:var(--mm-orange)]' },
+  { id: 'opportunite', label: 'Opportunité', labelKey: 'categories.opportunite', emoji: '🚀', icon: 'case', tint: 'text-corail-txt', dot: 'bg-[color:var(--mm-corail)]' },
+  { id: 'discussion', label: 'Discussion', labelKey: 'categories.discussion', emoji: '🗣️', icon: 'chat', tint: 'text-ok', dot: 'bg-[color:var(--ok)]' },
 ];
 
+/**
+ * L'humeur d'une publication. LE CARACTÈRE EST LA VALEUR STOCKÉE — `post.mood` porte l'emoji
+ * lui-même, pas un identifiant. C'est ce qui interdit de renommer cette liste : des posts
+ * existants contiennent déjà « 🔥 » ou « 🙏 ».
+ */
 export const MOOD_OPTIONS = ['😊', '🔥', '💡', '🎉', '💪', '🤔', '😎', '❤️', '👏', '🙏'];
 
-export const SHARE_PLATFORMS = [
-  { id: 'whatsapp', label: 'WhatsApp', color: 'bg-green-500', emoji: '📱' },
-  { id: 'facebook', label: 'Facebook', color: 'bg-blue-600', emoji: '📘' },
-  { id: 'twitter', label: 'Twitter / X', color: 'bg-neutral-900 dark:bg-neutral-700', emoji: '🐦' },
-  { id: 'linkedin', label: 'LinkedIn', color: 'bg-blue-700', emoji: '💼' },
-  { id: 'telegram', label: 'Telegram', color: 'bg-sky-500', emoji: '✈️' },
-  { id: 'copy', label: 'Copier le texte', color: 'bg-neutral-500', emoji: '📋' },
-] as const;
+/**
+ * Le mot que porte chaque humeur à l'écran, puisque le caractère ne s'y affiche plus.
+ *
+ * Ce n'est pas une invention : c'est la LECTURE de chaque emoji, celle que fait un lecteur
+ * d'écran, ramenée dans l'interface pour tout le monde. Une humeur absente de cette table ne
+ * se rend PAS — mieux vaut ne rien afficher que de laisser filtrer le caractère.
+ */
+export const MOOD_LABEL_KEYS: Record<string, string> = {
+  '😊': 'feed.moods.smile',
+  '🔥': 'feed.moods.fire',
+  '💡': 'feed.moods.idea',
+  '🎉': 'feed.moods.celebrate',
+  '💪': 'feed.moods.strength',
+  '🤔': 'feed.moods.thinking',
+  '😎': 'feed.moods.confident',
+  '❤️': 'feed.moods.heart',
+  '👏': 'feed.moods.applause',
+  '🙏': 'feed.moods.thanks',
+};
 
-export const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
+/**
+ * Les destinations de partage. `emoji` reste pour ne rien casser côté appelant, mais il n'est
+ * plus rendu nulle part : c'était de la décoration, pas de la donnée, et `icon` la remplace.
+ */
+export const SHARE_PLATFORMS = [
+  { id: 'whatsapp', label: 'WhatsApp', color: 'bg-green-500', emoji: '📱', icon: 'chat' },
+  { id: 'facebook', label: 'Facebook', color: 'bg-blue-600', emoji: '📘', icon: 'users' },
+  { id: 'twitter', label: 'Twitter / X', color: 'bg-[color:var(--night-3)]', emoji: '🐦', icon: 'send' },
+  { id: 'linkedin', label: 'LinkedIn', color: 'bg-blue-700', emoji: '💼', icon: 'case' },
+  { id: 'telegram', label: 'Telegram', color: 'bg-sky-500', emoji: '✈️', icon: 'send' },
+  { id: 'copy', label: 'Copier le texte', color: 'bg-[color:var(--fill-1)]', emoji: '📋', icon: 'copy' },
+] as const satisfies readonly { id: string; label: string; color: string; emoji: string; icon: IconName }[];
+
+export const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-[color:var(--line)] bg-[color:var(--fill-1)] dark:bg-[color:var(--night-3)] text-ink text-sm focus:outline-none focus:ring-2 focus:border-forme transition-colors';
 
 export function useClubData() {
   const { t } = useTranslation('club');
@@ -196,9 +233,12 @@ export function useClubData() {
       setComposerMediaPreview(''); setShowMoodPicker(false);
       const posts = await getClubPosts(60);
       setClubPosts(posts);
-      // Gamification: reward club engagement + unlock community badge
-      addXP(user.uid, XP_REWARDS.clubPost).catch(() => null);
-      if (posts.filter((p) => p.userId === user.uid).length >= 10) {
+      // Gamification: reward club engagement + unlock community badge.
+      // Le premier post vaut davantage que les suivants — le barème `firstClubPost`
+      // existait dans le référentiel mais n'était câblé nulle part.
+      const ownPosts = posts.filter((p) => p.userId === user.uid).length;
+      addXP(user.uid, ownPosts <= 1 ? XP_REWARDS.firstClubPost : XP_REWARDS.clubPost).catch(() => null);
+      if (ownPosts >= 10) {
         awardBadge(user.uid, 'contributeur').catch(() => null);
       }
     } catch (error: unknown) {

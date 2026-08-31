@@ -6,7 +6,10 @@
     "stats": {
       "activeMembers": "Membres actifs",
       "pendingPayment": "En attente de paiement",
-      "revenue": "Revenus Club (FCFA)"
+      "revenue": "Revenus Club (FCFA)",
+      "pendingFoot": "aucune relance automatique",
+      "revenueCite": "somme des abonnements actifs en base",
+      "revenueFoot": "pas un chiffre d'affaires d'audit"
     },
     "tabs": {
       "subscriptions": "Abonnements",
@@ -18,7 +21,10 @@
       "members": "Profils membres",
       "opportunities": "Opportunités",
       "reports": "Signalements"
-    }
+    },
+    "sub": "Console · Club",
+    "sectionLabel": "Section du Club",
+    "scope": "Cet écran administre le Club ; il ne l'encaisse pas. Passer un abonnement en actif ne déclenche aucun paiement, et le retirer n'en annule aucun : le prélèvement vit chez le prestataire, hors de cette console. Les revenus affichés sont la somme des montants inscrits sur les abonnements actifs — pas un chiffre d'affaires d'audit, qui se lit dans les transactions confirmées par le webhook. Quatre sections — défis, profils membres, opportunités, signalements — chargent à l'ouverture de leur onglet : leur file par statut vit à l'intérieur, et tant que l'onglet est fermé, cet écran ignore ce qui y attend. Aucun rappel d'échéance : un abonnement en attente de paiement le reste jusqu'à ce que quelqu'un l'ouvre."
   },
   "common": {
     "save": "Enregistrer",
@@ -65,7 +71,8 @@
     "editAria": "Modifier",
     "deleteAria": "Supprimer",
     "noComments": "Aucun commentaire.",
-    "deleteCommentAria": "Supprimer le commentaire"
+    "deleteCommentAria": "Supprimer le commentaire",
+    "editLabel": "Modifier la publication"
   },
   "events": {
     "new": "Nouvel événement",
@@ -171,7 +178,10 @@
     "deleteConfirm": "Supprimer le profil de {{name}} ?",
     "deleted": "Profil supprimé.",
     "deleteTitle": "Supprimer",
-    "confirmLabel": "Supprimer"
+    "confirmLabel": "Supprimer",
+    "headlineLabel": "Titre",
+    "skillsLabel": "Compétences",
+    "cityLabel": "Ville"
   },
   "opportunities": {
     "empty": "Aucune opportunité publiée.",
@@ -239,7 +249,8 @@
       "selectPlaceholder": "— Sélectionner une formation —",
       "activate": "Activer",
       "empty": "Aucune formation activée.",
-      "progress": "Progression : {{progress}}%"
+      "progress": "Progression : {{progress}}%",
+      "selectLabel": "Formation à activer"
     },
     "club": {
       "title": "Club des Digitos",
@@ -267,7 +278,7 @@
       "usedToday": "Utilisées aujourd'hui",
       "prepaid": "Tokens prépayés",
       "reset": "Réinitialiser le compteur du jour",
-      "addLabel": "Offrir des tokens (ajout au solde prépayé)",
+      "addLabel": "Nombre de jetons à ajouter",
       "add": "Ajouter",
       "note": "Les tokens ajoutés sont consommés en priorité et n'expirent pas."
     }

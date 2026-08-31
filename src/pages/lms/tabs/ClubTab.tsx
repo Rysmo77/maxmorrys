@@ -1,17 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import {
-  Crown, Rss, UsersThree, ChatsCircle, CalendarBlank, VideoCamera, Trophy, Briefcase,
-  Info, Gift, ArrowsClockwise, CircleNotch, DotsThree, type Icon,
-} from '@phosphor-icons/react';
+import { ChipRow, GlassPanel, Icon, IconButton, Skeleton, Tag, type IconName } from '@ds';
 import { useFormat } from '../../../hooks/useFormat';
-import { cn } from '../../../lib/utils';
 import { slideUp } from '../../../lib/animations';
 import { useClubData } from '../hooks/useClubData';
 import type { ClubSubTab } from '../hooks/useClubData';
 import type { EnrolledFormation } from '../hooks/useStudentData';
-import { getClubActiveMemberCount, getClubLeaderboard } from '../../../lib/gamification';
 import ClubSubscriptionGate from './club/ClubSubscriptionGate';
 import ClubFeed from './club/ClubFeed';
 import ClubLeaderboard from './club/ClubLeaderboard';
@@ -28,151 +23,124 @@ interface ClubTabProps {
   enrolledFormations: EnrolledFormation[];
 }
 
-interface NavItem { id: ClubSubTab; icon: Icon; labelKey: string }
+interface NavItem { id: ClubSubTab; icon: IconName; labelKey: string }
 
-const PRIMARY: NavItem[] = [
-  { id: 'feed', icon: Rss, labelKey: 'tab.nav.feed' },
-  { id: 'members', icon: UsersThree, labelKey: 'tab.nav.members' },
-  { id: 'discussions', icon: ChatsCircle, labelKey: 'tab.nav.discussions' },
-  { id: 'agenda', icon: CalendarBlank, labelKey: 'tab.nav.agenda' },
-];
-const MORE: NavItem[] = [
-  { id: 'leaderboard', icon: Trophy, labelKey: 'tab.nav.leaderboard' },
-  { id: 'opportunities', icon: Briefcase, labelKey: 'tab.nav.opportunities' },
-  { id: 'infos', icon: Info, labelKey: 'tab.nav.infos' },
-  { id: 'referral', icon: Gift, labelKey: 'tab.nav.referral' },
+/** Les huit onglets du kit, dans l'ordre de `club-huit-onglets.html`. */
+const NAV: NavItem[] = [
+  { id: 'feed', icon: 'list', labelKey: 'tab.nav.feed' },
+  { id: 'discussions', icon: 'chat', labelKey: 'tab.nav.discussions' },
+  { id: 'agenda', icon: 'calendar', labelKey: 'tab.nav.agenda' },
+  { id: 'members', icon: 'users', labelKey: 'tab.nav.members' },
+  { id: 'leaderboard', icon: 'trophy', labelKey: 'tab.nav.leaderboard' },
+  { id: 'opportunities', icon: 'case', labelKey: 'tab.nav.opportunities' },
+  { id: 'infos', icon: 'bell', labelKey: 'tab.nav.infos' },
+  { id: 'referral', icon: 'gift', labelKey: 'tab.nav.referral' },
 ];
 
+/**
+ * LE CLUB — l'un des cinq écrans du produit qui portent la barre d'onglets, et ses huit
+ * sous-onglets.
+ *
+ * TROIS CHOSES ONT DISPARU DE CET EN-TÊTE, ET AUCUNE N'ÉTAIT COSMÉTIQUE.
+ *
+ * 1. LE NOMBRE DE MEMBRES ACTIFS. `TruthPanel` le range dans ses « interdits absolus, sans
+ *    exception », et la page publique du Club, dans le kit, écrit pourquoi : « je ne
+ *    t'annoncerai pas un nombre de membres, parce qu'il serait faux ». L'appel à
+ *    `getClubActiveMemberCount()` part avec lui — une lecture Firestore de moins à chaque
+ *    ouverture du Club, sur un appareil à 2 Go de mémoire qui EST le marché visé.
+ * 2. LA PASTILLE DE RANG. Elle déclenchait un `getClubLeaderboard()` complet rien que pour
+ *    lire un numéro déjà affiché, en entier, sur l'onglet Classement. Deuxième lecture
+ *    évitée, zéro information perdue.
+ * 3. LE MENU « PLUS ». Quatre onglets visibles et quatre cachés derrière un menu déroulant,
+ *    avec son écouteur de clic global et sa fermeture au clic extérieur — pour un contrôle
+ *    que `ChipRow` fait défiler nativement. Les huit sont désormais atteignables au geste,
+ *    dans l'ordre du kit, sans qu'aucun ne soit relégué.
+ *
+ * ⚠️ CE QUE LE KIT MONTRE ICI ET QUE LE PRODUIT N'A PAS : son panneau `Bilan` (« ce que ton
+ * abonnement t'a apporté : 6 sessions suivies, 14 opportunités vues, 2 missions décrochées »)
+ * n'a aucun équivalent en base — rien ne compte les sessions suivies ni les missions
+ * décrochées. Il n'est pas maquetté avec des zéros : trois compteurs à zéro qui ne bougeront
+ * jamais disent quelque chose de faux sur le produit, pas sur l'abonnement.
+ */
 export default function ClubTab({ enrolledFormations }: ClubTabProps) {
   const { t } = useTranslation('club');
   const { locale } = useFormat();
   const data = useClubData();
-  const { loadingClub, isClubActive, clubSubscription, clubTab, setClubTab, handleRefresh, user } = data;
+  const { loadingClub, isClubActive, clubSubscription, clubTab, setClubTab, handleRefresh } = data;
 
-  const [moreOpen, setMoreOpen] = useState(false);
-  const [memberCount, setMemberCount] = useState(0);
-  const [myRank, setMyRank] = useState<number | null>(null);
-  const moreRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isClubActive) return;
-    getClubActiveMemberCount().then(setMemberCount).catch(() => null);
-    getClubLeaderboard().then((entries) => {
-      const me = user ? entries.find((e) => e.userId === user.uid) : undefined;
-      setMyRank(me?.rank ?? null);
-    }).catch(() => null);
-  }, [isClubActive, user]);
-
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => { if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false); };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, []);
+  const labels = useMemo(() => NAV.map((it) => t(it.labelKey)), [t]);
+  const activeIndex = Math.max(0, NAV.findIndex((it) => it.id === clubTab));
 
   if (loadingClub) {
-    return <div className="flex justify-center py-16"><CircleNotch className="w-8 h-8 animate-spin text-plum-500" /></div>;
+    return (
+      <div className="space-y-5">
+        <Skeleton height={82} radius="var(--r-l)" label={t('tab.memberActive')} />
+        <Skeleton height={40} radius="var(--r-pill)" label={t('tab.navLabel')} />
+        <Skeleton height={260} radius="var(--r-l)" label={t('tab.memberActive')} />
+      </div>
+    );
   }
+
   if (!isClubActive) {
     return <ClubSubscriptionGate data={data} enrolledFormations={enrolledFormations} />;
   }
 
-  const moreActive = MORE.find((m) => m.id === clubTab);
-  const navBtn = (item: NavItem, active: boolean) => (
-    <button
-      key={item.id}
-      onClick={() => { setClubTab(item.id); setMoreOpen(false); }}
-      className={cn(
-        'flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap',
-        active ? 'bg-plum-50 dark:bg-plum-900/25 text-plum-700 dark:text-plum-300' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800',
-      )}
-    >
-      <item.icon className="w-4 h-4 flex-shrink-0" weight={active ? 'fill' : 'regular'} />
-      {t(item.labelKey)}
-    </button>
-  );
+  const expiresAt = new Date(clubSubscription!.expiresAt);
 
   return (
     <motion.div className="space-y-5" variants={slideUp} initial="hidden" animate="visible">
-      {/* En-tête compact */}
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 sm:p-5">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-plum-500 to-plum-700 flex items-center justify-center shadow-soft flex-shrink-0">
-              <Crown className="w-5 h-5 text-white" weight="fill" />
-            </div>
+      {/* ── L'état de l'abonnement ─────────────────────────────────────────── */}
+      <GlassPanel level="flat" padding={18}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="grid h-10 w-10 flex-none place-items-center rounded-m bg-[image:var(--action-transforme)]"
+            >
+              <Icon name="crown" size={19} color="var(--paper-fixed)" />
+            </span>
             <div className="min-w-0">
-              <p className="font-bold text-neutral-900 dark:text-white truncate">{t('tab.memberActive')}</p>
-              <p className="text-xs text-neutral-400 truncate">
-                {t('tab.expiresOn', { date: new Date(clubSubscription!.expiresAt).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }) })}
+              <p className="truncate font-bold text-ink">{t('tab.memberActive')}</p>
+              <p className="truncate text-meta-2 text-ink-2">
+                {t('tab.expiresOn', {
+                  date: expiresAt.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+                })}
                 {clubSubscription!.autoRenew ? t('tab.autoRenew') : t('tab.manual')}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {memberCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-700/60 text-neutral-600 dark:text-neutral-300">
-                <UsersThree className="w-3.5 h-3.5 text-plum-500" weight="fill" /> {memberCount}
-              </span>
-            )}
-            {myRank && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full bg-plum-50 dark:bg-plum-900/25 text-plum-700 dark:text-plum-300">
-                <Trophy className="w-3.5 h-3.5" weight="fill" /> #{myRank}
-              </span>
-            )}
-            <button onClick={handleRefresh} aria-label={t('tab.refresh')} className="p-2 rounded-xl text-neutral-400 hover:text-plum-600 dark:hover:text-plum-400 hover:bg-plum-50 dark:hover:bg-plum-900/20 transition-colors">
-              <ArrowsClockwise className="w-4 h-4" weight="bold" />
-            </button>
+          <div className="flex flex-none items-center gap-2">
+            <Tag tone="ok">{t('tab.statusActive')}</Tag>
+            <IconButton label={t('tab.refresh')} onClick={handleRefresh}>
+              <Icon name="repeat" size={17} />
+            </IconButton>
           </div>
         </div>
-      </div>
+      </GlassPanel>
 
-      {/* Navigation réduite + Plus */}
-      <div className="flex items-center gap-1.5 min-w-0">
-        <div className="flex items-center gap-1.5 overflow-x-auto min-w-0">
-          {PRIMARY.map((it) => navBtn(it, clubTab === it.id))}
-        </div>
-        <div className="relative flex-shrink-0" ref={moreRef}>
-          <button
-            onClick={() => setMoreOpen((v) => !v)}
-            className={cn(
-              'flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap',
-              moreActive ? 'bg-plum-50 dark:bg-plum-900/25 text-plum-700 dark:text-plum-300' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800',
-            )}
-          >
-            {moreActive ? <moreActive.icon className="w-4 h-4" weight="fill" /> : <DotsThree className="w-4 h-4" weight="bold" />}
-            {moreActive ? t(moreActive.labelKey) : t('tab.more')}
-          </button>
-          {moreOpen && (
-            <div className="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-52 max-w-[calc(100vw-1.5rem)]">
-              {MORE.map((it) => (
-                <button
-                  key={it.id}
-                  onClick={() => { setClubTab(it.id); setMoreOpen(false); }}
-                  className={cn(
-                    'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                    clubTab === it.id ? 'bg-plum-50 dark:bg-plum-900/25 text-plum-700 dark:text-plum-300' : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700',
-                  )}
-                >
-                  <it.icon className="w-4 h-4" weight={clubTab === it.id ? 'fill' : 'duotone'} /> {t(it.labelKey)}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      {/* ── Les huit onglets, tous atteignables ────────────────────────────── */}
+      <ChipRow
+        label={t('tab.navLabel')}
+        options={labels}
+        value={labels[activeIndex]}
+        onChange={(option) => {
+          const idx = labels.indexOf(option);
+          if (idx >= 0) setClubTab(NAV[idx].id);
+        }}
+      />
 
-      {/* Contenu */}
+      {/* ── Le contenu ─────────────────────────────────────────────────────── */}
       {clubTab === 'feed' && <ClubFeed data={data} />}
       {clubTab === 'members' && <ClubMembers data={data} />}
       {clubTab === 'discussions' && <ClubDiscussions data={data} />}
       {clubTab === 'agenda' && (
         <div className="space-y-8">
           <div>
-            <ClubSectionHeader icon={CalendarBlank} title={t('tab.upcomingEvents')} />
+            <ClubSectionHeader icon="calendar" title={t('tab.upcomingEvents')} />
             <ClubEvents data={data} />
           </div>
           <div>
-            <ClubSectionHeader icon={VideoCamera} title={t('tab.liveSessions')} />
+            <ClubSectionHeader icon="video" title={t('tab.liveSessions')} />
             <ClubSessions data={data} />
           </div>
         </div>

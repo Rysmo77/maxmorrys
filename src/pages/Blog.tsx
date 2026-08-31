@@ -1,331 +1,225 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Trans, useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Search, Clock, ArrowRight, Loader2, AlertCircle, MessageSquare, Rss, ChevronDown } from 'lucide-react';
-import AnimatedIcon from '../components/shared/AnimatedIcon';
-import LocalizedLink from '../components/shared/LocalizedLink';
-import { getPublishedPosts } from '../lib/firestore';
-import { truncate } from '../lib/utils';
-import { useFormat } from '../hooks/useFormat';
-import { CLUB_PRICE_XOF } from '../lib/club/pricing';
-import { trackSearch } from '../lib/tracking';
+import { useTranslation } from 'react-i18next';
+import { Button, ChipRow, GlassPanel, Icon, SearchPill, Skeleton, TerritoryCard } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
-import { slideUp, staggerContainer, staggerItem } from '../lib/animations';
-import { BLOG_POLES, categoryToPole } from '../lib/blogCategories';
-import ArticleCard from '../components/shared/ArticleCard';
-import TranslatedText from '../components/shared/TranslatedText';
-import { useTranslatedText } from '../hooks/useTranslatedContent';
-import { useLanguage } from '../contexts/LanguageContext';
+import DsNavHost from '../components/layout/DsNavHost';
+import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { useLocalizedPath } from '../contexts/LanguageContext';
+import { useFormat } from '../hooks/useFormat';
+import { getPublishedPosts } from '../lib/firestore';
 import { queryKeys } from '../lib/queryClient';
-import { contentPath } from '../lib/contentPath';
-import { universeThemes } from '../lib/sectionThemes';
+import { categoryToPole } from '../lib/blogCategories';
+import { trackSearch } from '../lib/tracking';
 
-const theme = universeThemes.blog;
-
-const viewportOnce = { once: true, amount: 0.2 } as const;
-
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * /blog — LE MOTIF « INDEX », et le seul territoire qui vit vraiment.
+ *
+ * Structure de la maquette : sourcil → titre → chapô → filtres → article à la une en grande
+ * carte territoire → grille de trois → bande de renvoi vers le pôle média.
+ *
+ * TROIS DÉCISIONS DU KIT, portées ici :
+ *
+ * 1. AUCUNE VIGNETTE PHOTO. « La couleur de la carte dit le type de contenu, et ne coûte rien
+ *    à charger. » Sur un marché où le panier de données 2 Go vaut 4,2 % du revenu national
+ *    brut par habitant, une grille de douze vignettes est un choix qu'on fait payer au
+ *    lecteur. Les cartes territoire portent un dégradé — poids zéro.
+ *
+ * 2. LE PODCAST N'EST PLUS ICI. Il est passé sous « Je te transforme » : le blog donne une
+ *    MÉTHODE, le pôle média donne une VOIX. La bande du bas le dit explicitement plutôt que
+ *    de laisser quelqu'un chercher.
+ *
+ * 3. AUCUN CHAMP DE LETTRE D'INFORMATION. Le produit n'a pas de canal d'envoi. Le panneau
+ *    « Suivre les publications » propose ce qui existe — un flux RSS, une alerte dans
+ *    l'espace — et écrit pourquoi il ne propose pas d'e-mail.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
 export default function Blog() {
   const { t } = useTranslation('blog');
-  const { formatDate, locale } = useFormat();
-  /** Prix du Club — source unique : src/lib/club/pricing.ts */
-  const clubPrice = CLUB_PRICE_XOF.toLocaleString(locale);
-  const { language } = useLanguage();
+  const path = useLocalizedPath();
+  const { formatDate } = useFormat();
+  const [pole, setPole] = useState<string>('');
   const [search, setSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState('Tous');
-  const [topicsOpen, setTopicsOpen] = useState(true);
 
-  // Lecture Firestore mise en cache par TanStack Query : un aller-retour de
-  // navigation ne relit plus la collection tant que les données sont « fresh ».
-  const { data: posts = [], isLoading: loading, isError: error, refetch } = useQuery({
+  const { data: posts = [], isLoading } = useQuery({
     queryKey: queryKeys.blogPosts,
     queryFn: () => getPublishedPosts(),
   });
 
-  useEffect(() => {
-    if (!search.trim()) return;
-    const timer = setTimeout(() => trackSearch(search.trim()), 500);
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  const categories = useMemo(() => {
-    const present = new Set(posts.map((p) => categoryToPole(p.category)));
-    return ['Tous', ...BLOG_POLES.filter((pole) => present.has(pole))];
+  /* Les compteurs de filtre DÉRIVENT de la liste — ce n'est pas un compteur libre. */
+  const poles = useMemo(() => {
+    const tally = new Map<string, number>();
+    for (const post of posts) {
+      const key = categoryToPole(post.category);
+      tally.set(key, (tally.get(key) ?? 0) + 1);
+    }
+    return [...tally.entries()].sort((a, b) => b[1] - a[1]);
   }, [posts]);
 
-  const filtered = useMemo(() => posts.filter((post) => {
-    const matchesSearch = post.title.toLowerCase().includes(search.toLowerCase()) || post.excerpt.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = activeCategory === 'Tous' || categoryToPole(post.category) === activeCategory;
-    return matchesSearch && matchesCategory;
-  }), [posts, search, activeCategory]);
+  const chips = useMemo(
+    () => [`${t('index.filterAll')} · ${posts.length}`, ...poles.map(([name, n]) => `${name} · ${n}`)],
+    [poles, posts.length, t],
+  );
 
-  // Article à la une : affiché uniquement sans filtre ni recherche.
-  const featuredPost = useMemo(() => {
-    if (activeCategory !== 'Tous' || search.trim()) return null;
-    return posts.find((p) => p.featured) ?? posts[0] ?? null;
-  }, [posts, activeCategory, search]);
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return posts.filter((post) => {
+      const matchesPole = !pole || categoryToPole(post.category) === pole;
+      const matchesSearch = !q || post.title.toLowerCase().includes(q) || post.excerpt?.toLowerCase().includes(q);
+      return matchesPole && matchesSearch;
+    });
+  }, [posts, pole, search]);
 
-  const gridPosts = featuredPost ? filtered.filter((p) => p.id !== featuredPost.id) : filtered;
-
-  // Traduction du contenu dynamique de l'article à la une (FR -> EN selon langue active).
-  const featuredTitle = useTranslatedText(featuredPost?.title);
-  const featuredExcerpt = useTranslatedText(featuredPost ? truncate(featuredPost.excerpt, 200) : '');
-  const featuredPole = useTranslatedText(featuredPost ? categoryToPole(featuredPost.category) : '');
+  const [featured, ...rest] = filtered;
 
   return (
-    <div>
-      <SEOHead
-        title={t('seo.title')}
-        description={t('seo.description')}
-      />
-      <JsonLd data={{
-        '@context': 'https://schema.org',
-        '@type': 'CollectionPage',
-        name: 'Blog Marketing Digital',
-        description: 'Articles et conseils en marketing digital, SEO et IA.',
-        url: `${SITE_URL}/blog`,
-        isPartOf: { '@type': 'WebSite', name: 'Max-Morrys', url: SITE_URL },
-      }} />
+    <DsNavHost>
+      <SEOHead title={t('seo.title')} description={t('seo.description')} />
+      {posts.length > 0 && (
+        <JsonLd data={{
+          '@context': 'https://schema.org',
+          '@type': 'Blog',
+          url: `${SITE_URL}/blog`,
+          blogPost: posts.slice(0, 10).map((p) => ({
+            '@type': 'BlogPosting', headline: p.title, datePublished: p.publishedAt,
+            url: `${SITE_URL}/blog/${p.slug}`,
+          })),
+        }} />
+      )}
 
-      {/* ── HERO : article à la une ── */}
-      <section className="pt-28 pb-14 lg:pt-36 lg:pb-16 bg-neutral-50 dark:bg-neutral-900">
-        <motion.div
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div variants={staggerItem} className="flex items-center gap-3 mb-8">
-            <AnimatedIcon
-              icon={Rss}
-              animation="float"
-              className="w-11 h-11 rounded-2xl bg-coral-100 dark:bg-coral-900/30 shrink-0"
-              iconClassName="w-5 h-5 text-coral-600 dark:text-coral-400"
+      <PageSite>
+        <SiteEyebrow>{t('index.eyebrow')}</SiteEyebrow>
+        {/*
+          La première ligne porte un COMPTE RÉEL, dérivé de la liste. La contrainte d'AD-13
+          n'est pas que la ligne soit une constante — c'est qu'elle ne se replie jamais toute
+          seule. Elle est composée, puis rendue insécable.
+        */}
+        <SiteDisplay
+          lines={[t('index.countLine', { count: posts.length }), t('index.freeLine')]}
+          size={52}
+          from={1}
+        />
+
+        <p className="rv mt-[14px] max-w-[52ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 4 }}>
+          {t('index.lede')}
+        </p>
+
+        <div className="rv mt-6 flex flex-wrap items-center justify-between gap-5" style={{ ['--i' as string]: 5 }}>
+          <div className="min-w-0 flex-1 max-w-[640px]">
+            <ChipRow
+              label={t('index.eyebrow')}
+              options={chips}
+              value={pole ? chips.find((c) => c.startsWith(pole)) : chips[0]}
+              onChange={(option) => setPole(option.startsWith(t('index.filterAll')) ? '' : option.split(' · ')[0])}
             />
-            <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow}`}>
-              {t('eyebrow')}
-            </p>
-          </motion.div>
-
-          {featuredPost ? (
-            <motion.div variants={staggerItem}>
-              <Link to={contentPath('blog', featuredPost, language)} className="group grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-                <div className="relative overflow-hidden rounded-2xl aspect-[4/3]">
-                  <img
-                    src={featuredPost.coverImage}
-                    alt={featuredTitle}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="eager"
-                    width={800}
-                    height={600}
-                  />
-                </div>
-                <div>
-                  <p className={`text-xs font-bold tracking-[0.3em] uppercase ${theme.eyebrow} mb-4`}>
-                    {t('hero.featuredEyebrow')} · {featuredPole}
-                  </p>
-                  <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-neutral-900 dark:text-white leading-[1.05] mb-5 ${theme.titleHover} transition-colors`}>
-                    {featuredTitle}
-                  </h1>
-                  <p className="text-base lg:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6">
-                    {featuredExcerpt}
-                  </p>
-                  <div className="flex items-center gap-3 text-xs text-neutral-400 mb-7">
-                    <span>{formatDate(featuredPost.publishedAt)}</span>
-                    <span>·</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {t('hero.readTime', { count: featuredPost.readTime })}</span>
-                  </div>
-                  <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-neutral-300 dark:border-neutral-600 text-sm font-bold text-neutral-900 dark:text-white group-hover:bg-coral-600 group-hover:border-coral-600 group-hover:text-white transition-colors">
-                    {t('hero.readMore')} <ArrowRight className="w-4 h-4" />
-                  </span>
-                </div>
-              </Link>
-            </motion.div>
-          ) : (
-            <motion.div variants={staggerItem} className="max-w-2xl">
-              <h1 className="text-5xl lg:text-6xl font-black tracking-tight text-neutral-900 dark:text-white leading-[0.95] mb-5">
-                {t('hero.emptyTitle')}
-              </h1>
-              <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                {t('hero.emptySubtitle')}
-              </p>
-            </motion.div>
-          )}
-        </motion.div>
-      </section>
-
-      {/* ── SUJETS + RECHERCHE + GRILLE ── */}
-      <div className="bg-white dark:bg-neutral-950 pb-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
-
-          {/* Sujets repliable */}
-          <button
-            type="button"
-            onClick={() => setTopicsOpen((v) => !v)}
-            className="flex items-center gap-2 text-xl font-black tracking-tight text-neutral-900 dark:text-white mb-5"
-            aria-expanded={topicsOpen}
-          >
-            {t('topics')}
-            <ChevronDown className={`w-5 h-5 text-neutral-400 transition-transform ${topicsOpen ? 'rotate-180' : ''}`} />
-          </button>
-          {topicsOpen && (
-            <div className="flex flex-wrap gap-2.5 mb-7">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${
-                    activeCategory === cat
-                      ? theme.buttonSolid
-                      : 'bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500'
-                  }`}
-                >
-                  {cat === 'Tous' ? t('all') : <TranslatedText text={cat} />}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Recherche */}
-          <div className="relative max-w-md mb-12">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-            <input
-              type="text"
+          </div>
+          <div className="w-full sm:w-[300px] sm:flex-none">
+            <SearchPill
+              label={t('index.searchLabel')}
+              labelHidden
+              hint={t('index.searchHint')}
+              icon={<Icon name="search" size={16} strokeWidth={2.4} />}
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('searchPlaceholder')}
-              className={`w-full pl-11 pr-5 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 ${theme.focusRing}`}
+              onChange={(v) => { setSearch(v); if (v.trim().length > 2) trackSearch(v.trim()); }}
             />
           </div>
-
-          {/* Loading / error states */}
-          {loading && (
-            <div className="flex justify-center py-20">
-              <Loader2 className={`w-8 h-8 animate-spin ${theme.spinner}`} />
-            </div>
-          )}
-          {!loading && error && (
-            <div className="flex flex-col items-center gap-4 py-20 text-center">
-              <AlertCircle className="w-8 h-8 text-error-500" />
-              <p className="text-neutral-600 dark:text-neutral-400">{t('states.loadError')}</p>
-              <button onClick={() => refetch()} className={`px-5 py-2 ${theme.buttonSolid} text-sm font-bold rounded-full transition-colors`}>
-                {t('states.retry')}
-              </button>
-            </div>
-          )}
-
-          {/* Grille articles */}
-          {!loading && !error && (
-            gridPosts.length > 0 ? (
-              <motion.div
-                className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12"
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-              >
-                {gridPosts.map((post) => (
-                  <motion.div key={post.id} variants={staggerItem}>
-                    <ArticleCard post={post} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            ) : (
-              <div className="text-center py-20">
-                <p className="text-neutral-500 dark:text-neutral-400">{t('states.empty')}</p>
-              </div>
-            )
-          )}
         </div>
-      </div>
 
-      {/* ── CLUB DES DIGITOS PROMO ── */}
-      <motion.section
-        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewportOnce}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl bg-neutral-900 dark:bg-neutral-900 dark:border dark:border-white/10 overflow-hidden">
-            <div className="grid lg:grid-cols-2 gap-0">
-
-              {/* Left: plum panel (Club universe) */}
-              <div className="bg-plum-600 p-10 lg:p-12 flex flex-col justify-between">
-                <div>
-                  <p className="text-xs font-bold tracking-[0.3em] uppercase text-white/70 mb-5">{t('club.eyebrow')}</p>
-                  <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-white leading-[0.95] mb-4">
-                    <Trans t={t} i18nKey="club.title" components={{ br: <br /> }} />
-                  </h2>
-                  <p className="text-white/85 leading-relaxed text-base mb-8">
-                    {t('club.description')}
-                  </p>
-                </div>
-                <LocalizedLink
-                  to="/mon-espace"
-                  className="inline-flex items-center gap-2 self-start px-7 py-3.5 bg-neutral-900 text-white font-bold rounded-full hover:bg-neutral-800 transition-colors text-sm tracking-wide"
-                >
-                  {t('club.join')} <ArrowRight className="w-4 h-4" />
-                </LocalizedLink>
-              </div>
-
-              {/* Right: features */}
-              <div className="p-10 lg:p-12 flex flex-col justify-center gap-8">
-                <div className="flex gap-5 items-start">
-                  <div className="w-12 h-12 rounded-2xl bg-plum-400/15 border border-plum-400/30 flex items-center justify-center flex-shrink-0">
-                    <Rss className="w-5 h-5 text-plum-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-white text-base mb-1">{t('club.feedTitle')}</h3>
-                    <p className="text-neutral-400 text-sm leading-relaxed">{t('club.feedDesc')}</p>
-                  </div>
-                </div>
-                <div className="flex gap-5 items-start">
-                  <div className="w-12 h-12 rounded-2xl bg-plum-400/15 border border-plum-400/30 flex items-center justify-center flex-shrink-0">
-                    <MessageSquare className="w-5 h-5 text-plum-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-white text-base mb-1">{t('club.forumTitle')}</h3>
-                    <p className="text-neutral-400 text-sm leading-relaxed">{t('club.forumDesc')}</p>
-                  </div>
-                </div>
-                <div className="pt-4 border-t border-white/10 flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-white">{clubPrice}</span>
-                  <span className="text-plum-400 font-bold">{t('club.priceUnit')}</span>
-                </div>
-              </div>
-
+        {isLoading ? (
+          /* Un squelette À LA FORME du contenu attendu, pour que rien ne saute quand il
+             arrive. Jamais un rond qui tourne : il ne dit ni quoi, ni combien de temps. */
+          <div className="mt-[22px] grid gap-4">
+            <Skeleton height={210} radius="var(--r-l)" label={t('index.eyebrow')} />
+            <div className="grid gap-[14px] md:grid-cols-3">
+              {[0, 1, 2].map((i) => <Skeleton key={i} height={140} radius="var(--r-l)" />)}
             </div>
           </div>
-        </div>
-      </motion.section>
+        ) : filtered.length === 0 ? (
+          <p className="mt-[22px] max-w-prose text-lede text-ink-2">{t('index.empty')}</p>
+        ) : (
+          <>
+            {featured && (
+              <div className="rv mt-[22px]" style={{ ['--i' as string]: 6 }}>
+                <TerritoryCard
+                  layout="plain"
+                  territory="informe"
+                  href={path(`/blog/${featured.slug}`)}
+                  padding={30}
+                  meta={`${formatDate(featured.publishedAt)}${featured.readTime ? ` · ${featured.readTime}` : ''}`}
+                  title={featured.title}
+                  titleSize={32}
+                  trailing={<Button tone="primary" size="sm" fullWidth={false}>{t('index.read')}</Button>}
+                >
+                  {featured.excerpt && (
+                    <p className="mt-[11px] mb-0 max-w-[60ch] text-[15px] leading-[1.55]" style={{ color: 'var(--card-ink-2)' }}>
+                      {featured.excerpt}
+                    </p>
+                  )}
+                </TerritoryCard>
+              </div>
+            )}
 
-      {/* ── CTA croisé → Podcast ── */}
-      <motion.section
-        className="py-16 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800"
-        variants={slideUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className={`text-xs font-bold tracking-[0.35em] uppercase ${theme.eyebrow} mb-4`}>
-            {t('crossPodcast.eyebrow')}
-          </p>
-          <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-neutral-900 dark:text-white mb-4">
-            {t('crossPodcast.title')}
-          </h2>
-          <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed max-w-md mx-auto">
-            {t('crossPodcast.description')}
-          </p>
-          <LocalizedLink to="/podcasts" className={`inline-flex items-center gap-2 px-6 py-3 ${theme.buttonSolid} font-bold rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 text-sm tracking-wide`}>
-            {t('crossPodcast.cta')} <ArrowRight className="w-4 h-4" />
-          </LocalizedLink>
+            {rest.length > 0 && (
+              <div className="mt-[14px] grid gap-[14px] md:grid-cols-3">
+                {rest.map((post, i) => (
+                  <div key={post.id} className="rv" style={{ ['--i' as string]: 7 + i }}>
+                    <TerritoryCard
+                      layout="plain"
+                      /* La couleur alterne sur les quatre territoires plus le rose : elle
+                         donne un rythme à la grille sans qu'aucune photo ne se charge. */
+                      territory={(['informe', 'rose', 'transforme', 'forme'] as const)[i % 4]}
+                      href={path(`/blog/${post.slug}`)}
+                      padding={22}
+                      meta={`${formatDate(post.publishedAt)}${post.readTime ? ` · ${post.readTime}` : ''}`}
+                      title={post.title}
+                      titleSize={19}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </PageSite>
+
+      {/* ── Le renvoi vers le pôle média, et ce qu'on peut suivre ─────────────── */}
+      <SiteBand>
+        <div className="grid items-center gap-9 lg:grid-cols-2">
+          <div>
+            <SiteDisplay as="h2" lines={t('index.listenTitle', { returnObjects: true }) as string[]} size={34} />
+            <p className="rv mt-3 max-w-[44ch] text-[15.5px] leading-[1.6] text-ink-2" style={{ ['--i' as string]: 1 }}>
+              {t('index.listenBody')}
+            </p>
+            <Button
+              href={path('/podcast-et-videos')}
+              tone="transforme"
+              size="sm"
+              fullWidth={false}
+              className="rv mt-4"
+              style={{ ['--i' as string]: 2 }}
+            >
+              {t('index.listenCta')}
+            </Button>
+          </div>
+
+          <GlassPanel level="flat" padding={22} className="rv" style={{ ['--i' as string]: 2 }}>
+            <SiteEyebrow style={{ margin: 0 }}>{t('index.followTitle')}</SiteEyebrow>
+            <div className="flex items-center justify-between gap-3 border-b border-[color:var(--border-hair)] py-[11px]">
+              <b className="text-[14px]">{t('index.rss')}</b>
+              <Button href={`${SITE_URL}/rss.xml`} tone="quiet" size="sm" fullWidth={false}>{t('index.rssAction')}</Button>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-[11px]">
+              <b className="text-[14px]">{t('index.alert')}</b>
+              <Button href={path('/inscription')} tone="quiet" size="sm" fullWidth={false}>{t('index.alertAction')}</Button>
+            </div>
+            {/* La contrainte, nommée. Ne jamais promettre un canal que le produit n'a pas. */}
+            <p className="mt-2 mb-0 text-small leading-[1.5] text-ink-2">{t('index.noEmail')}</p>
+          </GlassPanel>
         </div>
-      </motion.section>
-    </div>
+      </SiteBand>
+    </DsNavHost>
   );
 }

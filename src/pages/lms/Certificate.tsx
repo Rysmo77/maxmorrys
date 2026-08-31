@@ -1,32 +1,58 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import LocalizedLink from '../../components/shared/LocalizedLink';
-import { Award, CheckCircle, Loader2, Share2, ArrowLeft } from 'lucide-react';
-import Button from '../../components/ui/Button';
-import { getCollection } from '../../lib/firestore';
+import { Button, EmptyState, GlassPanel, Icon, Mesh, Num, Skeleton, Tag, Wordmark } from '@ds';
+import { getCertificateByCode } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
-import type { Certificate as CertificateType } from '../../types';
+import { useToast } from '../../components/ui/Toast';
+import { useLocalizedPath } from '../../contexts/LanguageContext';
+import { SiteDisplay, SiteEyebrow, useReveal } from '../../components/site';
+import DsNavHost from '../../components/layout/DsNavHost';
+import type { CertificateLookup } from '../../types';
 import { trackCertificateEarned, trackShare } from '../../lib/tracking';
 import SEOHead from '../../components/seo/SEOHead';
-import { where } from 'firebase/firestore';
 
+/**
+ * LE CERTIFICAT — LE SECOND DES DEUX SEULS MOMENTS SCÉNARISÉS DU SYSTÈME.
+ *
+ * Le kit (`ScreensPay.js` · `Certificat`) pose `.sheen` sur le panneau héros : une brillance
+ * qui balaie la carte DEUX FOIS, à 0,9 s, puis s'arrête. Elle ne se rejoue pas au défilement,
+ * et elle n'existe nulle part ailleurs dans le produit. C'est une licence, pas un motif :
+ * le seul autre endroit qui y a droit est l'attente de paiement (`.pulse`).
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUE CET ÉCRAN NE RECOPIE PAS DU KIT
+ *
+ * La maquette écrit « Les 47 leçons ont été recomptées côté serveur ». `CertificateLookup`
+ * ne porte PAS de nombre de leçons — il porte le code, le titre, la date et le nom. Le 47 est
+ * une donnée de démonstration, et un nombre de démonstration finit toujours en production
+ * (règle 6). L'encart de vérité dit donc la même chose SANS le chiffre : c'est la phrase qui
+ * porte la preuve, et elle reste vraie — `issueCertificate` re-dérive la complétion depuis
+ * l'ensemble réel des leçons, pas depuis le pourcentage envoyé par le navigateur.
+ *
+ * Le kit met aussi le prénom en titre d'affichage (« C'EST FAIT, AÏSSATOU. »). Un titre
+ * d'affichage est en `white-space: nowrap` par contrat (AD-13) : un nom de vingt caractères
+ * déborderait l'écran de 390 px. Le nom garde sa place dans la carte, où il est cadré.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
 export default function Certificate() {
   const { t } = useTranslation('lms');
   const { formatDate } = useFormat();
+  const { addToast } = useToast();
+  const path = useLocalizedPath();
   const { code } = useParams();
-  const [certificate, setCertificate] = useState<CertificateType | null>(null);
+  const reveal = useReveal<HTMLDivElement>();
+  const [certificate, setCertificate] = useState<CertificateLookup | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (!code) { setNotFound(true); setLoading(false); return; }
-    getCollection<CertificateType>('certificates', where('certificateCode', '==', code))
-      .then((certs) => {
-        if (certs.length > 0) {
-          setCertificate(certs[0]);
-          trackCertificateEarned(certs[0].formationTitle, certs[0].certificateCode);
+    getCertificateByCode(code)
+      .then((cert) => {
+        if (cert) {
+          setCertificate(cert);
+          trackCertificateEarned(cert.formationTitle, cert.certificateCode);
         } else {
           setNotFound(true);
         }
@@ -46,127 +72,134 @@ export default function Certificate() {
     if (certificate) trackShare(platform, 'certificate', certificate.certificateCode);
   };
 
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      addToast('success', t('certificate.copied'));
+      if (certificate) trackShare('copy', 'certificate', certificate.certificateCode);
+    } catch {
+      addToast('error', t('certificate.copyError'));
+    }
+  };
+
+  /*
+   * PAS DE ROND QUI TOURNE PENDANT LE CHARGEMENT — c'est le contrat de `Button`, et il vaut
+   * pour l'écran entier. Un squelette à la forme de la carte : rien ne saute quand elle
+   * arrive. Le maillage est posé dès la première image, donc la page n'est jamais blanche.
+   */
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-500" aria-label={t('certificate.loadingAria')} />
+      <div className="relative min-h-screen isolate overflow-hidden flex items-center justify-center px-[18px] py-16">
+        <Mesh territory="forme" />
+        <div className="relative z-[3] w-full max-w-[520px]">
+          <GlassPanel level="hero" padding={24}>
+            <Skeleton width="34%" height={27} label={t('certificate.loadingAria')} />
+            <Skeleton width="82%" height={34} style={{ marginTop: '24px' }} />
+            <Skeleton width="42%" height={19} style={{ marginTop: '12px' }} />
+            <div className="h-px bg-[color:var(--border-hair)] my-5" />
+            <Skeleton width="60%" height={24} />
+          </GlassPanel>
+        </div>
       </div>
     );
   }
 
   if (notFound || !certificate) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <Award className="w-16 h-16 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">{t('certificate.notFoundTitle')}</h1>
-          <p className="text-neutral-500 mb-6">{t('certificate.notFoundText')}</p>
-          <LocalizedLink to="/">
-            <Button icon={<ArrowLeft className="w-4 h-4" />}>{t('certificate.backHome')}</Button>
-          </LocalizedLink>
-        </div>
+      <div className="relative min-h-screen isolate overflow-hidden flex items-center justify-center px-[18px] py-16">
+        <Mesh territory="forme" />
+        <DsNavHost className="relative z-[3] w-full max-w-[440px]">
+          <SiteDisplay lines={t('certificate.notFoundLines', { returnObjects: true }) as string[]} size={30} />
+          <GlassPanel level="flat" padding={20} className="mt-[18px]">
+            <EmptyState
+              glyph={<Icon name="medal" size={26} color="var(--text-muted)" />}
+              title={t('certificate.notFoundTitle')}
+              body={t('certificate.notFoundText')}
+              action={<Button tone="quiet" fullWidth href={path('/')}>{t('certificate.backHome')}</Button>}
+              style={{ padding: 0 }}
+            />
+          </GlassPanel>
+        </DsNavHost>
       </div>
     );
   }
 
+  const issuedAt = new Date(certificate.issuedAt);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-brand-50/30 dark:from-neutral-950 dark:to-brand-950/20 flex items-center justify-center px-4 py-16">
+    <div className="relative min-h-screen isolate overflow-hidden px-[18px] py-16 flex items-center justify-center">
       <SEOHead
         title={t('certificate.seoTitle', { title: certificate.formationTitle })}
         description={t('certificate.seoDescription', { title: certificate.formationTitle })}
         noIndex
       />
-      <motion.div
-        className="w-full max-w-2xl"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.45, ease: 'easeOut' }}
-      >
-        {/* Certificate card */}
-        <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800">
-          {/* Header gradient */}
-          <div className="bg-gradient-to-r from-brand-600 to-brand-800 p-8 text-center text-white relative overflow-hidden">
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-4 left-4 w-32 h-32 border-2 border-white rounded-full" />
-              <div className="absolute bottom-4 right-4 w-24 h-24 border-2 border-white rounded-full" />
+      <Mesh territory="forme" />
+
+      <DsNavHost className="relative z-[3] w-full max-w-[520px]">
+        <div ref={reveal}>
+          <SiteEyebrow>{t('certificate.issuedOn', { date: formatDate(certificate.issuedAt) })}</SiteEyebrow>
+          <SiteDisplay lines={[t('certificate.doneLine')]} size={30} from={1} />
+
+          {/*
+            `.sheen` — la brillance qui passe deux fois. Elle vit sur `.glass-hero`, qui ne
+            porte AUCUN flou : le kit y mettait un `blur(30px)`, et cette carte défile sur un
+            écran étroit. Le voile de .58 tient le contraste sans lui.
+          */}
+          <GlassPanel level="hero" padding={24} className="sheen rv-s mt-5" style={{ ['--i' as string]: 4 }}>
+            <div className="flex items-start justify-between gap-3">
+              <Wordmark brand="signature" size={26} />
+              <Tag tone="ok">{t('certificate.verified')}</Tag>
             </div>
-            <div className="relative z-10">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-                <Award className="w-8 h-8 text-white" />
-              </div>
-              <p className="text-brand-200 text-xs font-bold tracking-[0.3em] uppercase mb-2">{t('certificate.badge')}</p>
-              <h1 className="text-2xl sm:text-3xl font-black">{t('certificate.academy')}</h1>
-            </div>
+
+            <SiteEyebrow style={{ marginTop: '22px' }}>{t('certificate.certificateOf')}</SiteEyebrow>
+            <p className="font-display text-dsp-xs text-ink m-0">{certificate.formationTitle}</p>
+
+            {certificate.holderName && (
+              <p className="text-body text-ink-2 mt-2.5 mb-0">
+                {t('certificate.deliveredTo')} <b className="text-ink">{certificate.holderName}</b>
+              </p>
+            )}
+
+            <div className="h-px bg-[color:var(--border-hair)] my-[19px]" />
+
+            <SiteEyebrow style={{ margin: 0 }}>{t('certificate.verificationCode')}</SiteEyebrow>
+            {/* Le code de vérification passe par <Num> : il vient de la base, il porte donc
+                sa provenance au survol et sa face tabulaire. C'est le seul chemin autorisé
+                vers la monospace (règle 6). */}
+            <p className="mt-1 mb-0" style={{ fontSize: '19px', letterSpacing: '.06em' }}>
+              <Num value={certificate.certificateCode} source="db" asOf={issuedAt} />
+            </p>
+            <p className="text-small text-ink-2 mt-2.5 mb-0 leading-[1.5]">{t('certificate.verifiableBy')}</p>
+          </GlassPanel>
+
+          <Button tone="forme" onClick={() => handleShare('linkedin')} className="rv mt-[17px]" style={{ ['--i' as string]: 6 }}>
+            <Icon name="share" size={17} color="var(--paper-fixed)" />
+            {t('certificate.shareLinkedin')}
+          </Button>
+
+          <Button tone="ghost" fullWidth onClick={() => void handleCopyLink()} className="rv mt-2.5" style={{ ['--i' as string]: 7 }}>
+            <Icon name="copy" size={17} />
+            {t('certificate.copyLink')}
+          </Button>
+
+          {/* Les deux autres partages du produit gardent leur fonction, au second rang :
+              le kit n'en dessine qu'un, mais retirer un canal de partage d'un certificat
+              serait retirer une fonction pour ressembler à une maquette. */}
+          <div className="rv flex gap-2.5 mt-2.5" style={{ ['--i' as string]: 7 }}>
+            <Button tone="quiet" size="sm" onClick={() => handleShare('whatsapp')} style={{ flex: 1 }}>WhatsApp</Button>
+            <Button tone="quiet" size="sm" onClick={() => handleShare('twitter')} style={{ flex: 1 }}>X</Button>
           </div>
 
-          {/* Certificate body */}
-          <div className="p-8 sm:p-12 text-center">
-            <p className="text-sm text-neutral-500 mb-2">{t('certificate.attests')}</p>
-            <div className="py-4 border-b border-neutral-200 dark:border-neutral-700 mb-4">
-              <p className="text-xs text-neutral-400 mb-1">{t('certificate.certifiedStudent')}</p>
-            </div>
+          <GlassPanel level="truth" className="rv mt-[18px]" style={{ ['--i' as string]: 8 }}>
+            <SiteEyebrow style={{ marginBottom: '6px' }}>{t('certificate.whyItCounts')}</SiteEyebrow>
+            <p className="text-meta-2 text-ink-2 leading-[1.5] m-0">{t('certificate.whyItCountsBody')}</p>
+          </GlassPanel>
 
-            <p className="text-sm text-neutral-500 mb-2">{t('certificate.completedFormation')}</p>
-            <h2 className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white mb-6">
-              {certificate.formationTitle}
-            </h2>
-
-            <div className="flex items-center justify-center gap-2 text-success-600 dark:text-success-400 mb-8">
-              <CheckCircle className="w-5 h-5" />
-              <span className="font-semibold text-sm">{t('certificate.completed100')}</span>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-neutral-500">
-              <div className="text-center">
-                <p className="text-xs text-neutral-400 mb-0.5">{t('certificate.issuedDate')}</p>
-                <p className="font-medium text-neutral-700 dark:text-neutral-300">{formatDate(certificate.issuedAt)}</p>
-              </div>
-              <div className="hidden sm:block w-px h-8 bg-neutral-200 dark:bg-neutral-700" />
-              <div className="text-center">
-                <p className="text-xs text-neutral-400 mb-0.5">{t('certificate.verificationCode')}</p>
-                <p className="font-mono font-medium text-neutral-700 dark:text-neutral-300">{certificate.certificateCode}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="border-t border-neutral-200 dark:border-neutral-700 p-6 bg-neutral-50 dark:bg-neutral-800/50">
-            <div className="flex flex-wrap justify-center gap-3">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleShare('linkedin')}
-                icon={<Share2 className="w-3.5 h-3.5" />}
-              >
-                LinkedIn
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleShare('whatsapp')}
-                icon={<Share2 className="w-3.5 h-3.5" />}
-              >
-                WhatsApp
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleShare('twitter')}
-                icon={<Share2 className="w-3.5 h-3.5" />}
-              >
-                Twitter
-              </Button>
-            </div>
-          </div>
+          <p className="rv text-center mt-5" style={{ ['--i' as string]: 9 }}>
+            <a href={path('/')} className="text-meta text-ink-2">{t('certificate.backToSite')}</a>
+          </p>
         </div>
-
-        {/* Back link */}
-        <div className="text-center mt-6">
-          <LocalizedLink to="/" className="text-sm text-neutral-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-            {t('certificate.backToSite')}
-          </LocalizedLink>
-        </div>
-      </motion.div>
+      </DsNavHost>
     </div>
   );
 }

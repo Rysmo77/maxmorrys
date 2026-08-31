@@ -3,15 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { httpsCallable } from 'firebase/functions';
 import {
-  UsersThree, MapPin, LinkedinLogo, Globe, WhatsappLogo, FacebookLogo, InstagramLogo,
-  XLogo, TiktokLogo, YoutubeLogo, PencilSimple, CircleNotch, FloppyDisk, MagnifyingGlass,
-  Check, ChatCircle, Sparkle, X,
-} from '@phosphor-icons/react';
-import { cn } from '../../../../lib/utils';
+  Avatar, Button, Field, GlassPanel, Icon, IconButton, ProgressBar, SearchPill, Skeleton, Switch, Tag,
+} from '@ds';
 import { getMyClubProfile, saveClubProfile, getClubMemberProfiles, getUserById, updateUserProfile } from '../../../../lib/firestore';
 import { functions } from '../../../../config/firebase';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { ClubEmptyState } from './_shared';
+import { useDialogA11y } from '../../../../hooks/useDialogA11y';
+import { ClubEmptyState, ClubSectionHeader } from './_shared';
 import type { ClubMemberProfile } from '../../../../types';
 import type { useClubData } from '../../hooks/useClubData';
 import { staggerContainer, staggerItem } from '../../../../lib/animations';
@@ -31,7 +29,6 @@ const fileToBase64 = (file: File): Promise<string> => new Promise((resolve, reje
 
 type ClubData = ReturnType<typeof useClubData>;
 
-const inputCls = 'w-full px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-plum-500/20 focus:border-plum-500';
 const initialsOf = (n: string) => n.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
 
 const SOCIAL_BASE: Record<string, string> = {
@@ -47,6 +44,25 @@ function socialHref(platform: string, value: string): string {
   return (SOCIAL_BASE[platform] ?? 'https://') + handle;
 }
 
+/**
+ * LES RÉSEAUX D'UN MEMBRE, EN TOUTES LETTRES.
+ *
+ * Ils étaient huit logos de marque importés d'une seconde famille d'icônes, chacun survolé
+ * dans SA couleur officielle écrite en hexadécimal — quatre des onze constats de `ds:check`
+ * sortaient de ces quatre lignes. Et comme aucun lien ne portait de texte, un lecteur d'écran
+ * annonçait huit fois « lien », sans dire lequel.
+ *
+ * Le design system a déjà tranché la question, dans l'en-tête de `Icon` : « `XLogo` n'entre
+ * pas : une marque tierce n'est pas une icône d'interface. » Il n'y a donc pas de glyphe à
+ * trouver — le nom du réseau EST l'étiquette, et il se lit dans les deux thèmes sans qu'aucune
+ * couleur de marque n'ait à être écrite.
+ */
+const SOCIALS = ['linkedin', 'website', 'facebook', 'instagram', 'twitter', 'tiktok', 'youtube'] as const;
+const SOCIAL_LABEL: Record<(typeof SOCIALS)[number], string> = {
+  linkedin: 'LinkedIn', website: 'Web', facebook: 'Facebook', instagram: 'Instagram',
+  twitter: 'X', tiktok: 'TikTok', youtube: 'YouTube',
+};
+
 interface CompletionForm {
   headline: string; skills: string; city: string; available: boolean;
   linkedin: string; website: string; whatsapp: string;
@@ -61,6 +77,21 @@ const COMPLETION_ITEMS: { key: string; labelKey: string; benefitKey: string; don
   { key: 'contact', labelKey: 'completion.contactLabel', benefitKey: 'completion.contactBenefit', done: (f) => !!(f.linkedin || f.whatsapp || f.website || f.facebook || f.instagram || f.twitter || f.tiktok || f.youtube).trim() },
 ];
 
+/**
+ * L'ANNUAIRE ET LA FICHE — écran `ClubMembre` du kit.
+ *
+ * La barre de remplissage passe par `ProgressBar`. Ce n'est pas un remplacement cosmétique :
+ * la barre écrite à la main animait `width` sans marqueur, et surtout elle affirmait un
+ * pourcentage sans jamais dire d'où il venait. `ProgressBar` exige `source` et `asOf` — ici
+ * `db`, puisque les six critères se calculent sur le profil lu en base — et c'est le contrat
+ * qui rend la règle 6 exécutable au lieu d'être une habitude de revue.
+ *
+ * ⚠️ CE QUE LE KIT MONTRE ET QUE LE PRODUIT N'A PAS : sa fiche membre porte « Ses
+ * publications » et un panneau « Signaler ce membre ». Le modèle n'expose ni les publications
+ * d'un membre donné, ni de signalement de PERSONNE — seul un MESSAGE se signale
+ * (`reportDmMessage`, onglet Messages). Les deux blocs sont donc absents plutôt que
+ * maquettés : un bouton de signalement qui n'appelle rien est pire que pas de bouton.
+ */
 export default function ClubMembers({ data }: { data: ClubData }) {
   const { t } = useTranslation('club');
   const { user, displayName, photoURL, addToast, setDmTarget, setClubTab } = data;
@@ -73,17 +104,19 @@ export default function ClubMembers({ data }: { data: ClubData }) {
   const [selectedMember, setSelectedMember] = useState<ClubMemberProfile | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const cvInputRef = useRef<HTMLInputElement>(null);
+  const asOf = useRef(new Date()).current;
   const [form, setForm] = useState({
     headline: '', skills: '', city: '', available: false, visible: true,
     linkedin: '', website: '', whatsapp: '', facebook: '', instagram: '', twitter: '', tiktok: '', youtube: '',
   });
+
+  const dialogRef = useDialogA11y(!!selectedMember, () => setSelectedMember(null));
 
   const reload = () => getClubMemberProfiles().then(setProfiles).catch(() => null);
 
   useEffect(() => {
     if (!user) return;
     Promise.all([getMyClubProfile(user.uid), getClubMemberProfiles(), getUserById(user.uid)]).then(([mine, list, u]) => {
-      // Club profile takes precedence; fall back to the student profile (users) for socials
       setForm({
         headline: mine?.headline ?? '',
         skills: (mine?.skills ?? []).join(', '),
@@ -151,7 +184,6 @@ export default function ClubMembers({ data }: { data: ClubData }) {
         skills: form.skills.split(',').map((s) => s.trim()).filter(Boolean),
         available: form.available, visible: form.visible, ...socials,
       });
-      // Synchronise les réseaux vers le profil étudiant (source de vérité) + rafraîchit /mon-espace/profil
       await updateUserProfile(user.uid, socials).catch(() => null);
       await refreshUserData().catch(() => null);
       addToast('success', t('members.toastSaved'));
@@ -178,201 +210,263 @@ export default function ClubMembers({ data }: { data: ClubData }) {
   const completion = Math.round((doneCount / COMPLETION_ITEMS.length) * 100);
   const nextItems = completionChecks.filter((c) => !c.ok);
 
-  if (loading) return <div className="flex justify-center py-16"><CircleNotch className="w-8 h-8 animate-spin text-plum-500" /></div>;
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton height={210} radius="var(--r-l)" label={t('members.myProfile')} />
+        <Skeleton height={46} radius="var(--r-pill)" label={t('members.searchPlaceholder')} />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Skeleton height={132} radius="var(--r-l)" label={t('members.myProfile')} />
+          <Skeleton height={132} radius="var(--r-l)" label={t('members.myProfile')} />
+          <Skeleton height={132} radius="var(--r-l)" label={t('members.myProfile')} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
-      {/* My profile */}
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4">
+      {/* ── Ma fiche ────────────────────────────────────────────────────────── */}
+      <GlassPanel level="flat" padding={18}>
+        <ClubSectionHeader
+          icon="user"
+          title={t('members.myProfile')}
+          action={!editing ? (
+            <Button tone="quiet" size="sm" onClick={() => setEditing(true)}>
+              <Icon name="pencil" size={15} /> {t('members.edit')}
+            </Button>
+          ) : undefined}
+        />
+
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <UsersThree className="w-5 h-5 text-plum-500" weight="duotone" />
-            <h3 className="font-bold text-neutral-900 dark:text-white">{t('members.myProfile')}</h3>
-          </div>
-          {!editing && (
-            <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-plum-600 dark:text-plum-400 hover:underline">
-              <PencilSimple className="w-3.5 h-3.5" weight="bold" /> {t('members.edit')}
-            </button>
-          )}
+          <span className="text-meta-2 font-semibold text-ink-2">{t('members.completionLabel')}</span>
+          {completion === 100 && <Tag tone="ok">{t('members.profileTop')}</Tag>}
         </div>
+        <ProgressBar
+          value={completion}
+          source="db"
+          asOf={asOf}
+          readout
+          label={t('members.completionLabel')}
+          style={{ marginTop: '6px' }}
+        />
 
-        {/* Taux de remplissage + avantages */}
-        <div className="mt-3">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-neutral-500">{t('members.profileCompleted', { percent: completion })}</span>
-            {completion === 100 && <span className="text-xs font-bold text-success-600 dark:text-success-400 inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" weight="bold" /> {t('members.profileTop')}</span>}
-          </div>
-          <div className="h-2 w-full bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-            <div className={cn('h-full rounded-full transition-all duration-500', completion === 100 ? 'bg-success-500' : 'bg-plum-500')} style={{ width: `${completion}%` }} />
-          </div>
-          {nextItems.length > 0 && (
-            <ul className="mt-3 space-y-1.5">
-              {nextItems.map((it) => (
-                <li key={it.key} className="flex items-start gap-2 text-xs">
-                  <Sparkle className="w-3.5 h-3.5 text-plum-500 flex-shrink-0 mt-0.5" weight="fill" />
-                  <span className="text-neutral-600 dark:text-neutral-400">
-                    <button onClick={() => setEditing(true)} className="font-semibold text-neutral-800 dark:text-neutral-200 hover:text-plum-600 dark:hover:text-plum-400 transition-colors">{t(`members.${it.labelKey}`)}</button>
-                    {' — '}{t(`members.${it.benefitKey}`)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {nextItems.length > 0 && (
+          <ul className="mt-3 list-none space-y-1.5 p-0">
+            {nextItems.map((it) => (
+              <li key={it.key} className="flex items-start gap-2 text-meta-2">
+                <span className="mt-0.5 flex-none text-transforme" aria-hidden="true"><Icon name="plus" size={13} /></span>
+                <span className="text-ink-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="font-semibold text-ink-2 underline decoration-dotted transition-colors duration-ui ease-ds hover:text-transforme"
+                  >
+                    {t(`members.${it.labelKey}`)}
+                  </button>
+                  {' — '}{t(`members.${it.benefitKey}`)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
 
-        {/* CV → IA autofill (membres) */}
         <input ref={cvInputRef} type="file" accept="application/pdf" className="hidden" onChange={handleCvUpload} />
-        <button
+        <Button
+          tone="ghost"
+          size="sm"
+          loading={analyzing}
           onClick={() => cvInputRef.current?.click()}
-          disabled={analyzing}
-          className="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-plum-300 dark:border-plum-700 text-plum-600 dark:text-plum-400 text-sm font-semibold hover:bg-plum-50 dark:hover:bg-plum-900/20 transition-colors disabled:opacity-60"
+          style={{ marginTop: '12px', width: '100%' }}
         >
-          {analyzing ? <CircleNotch className="w-4 h-4 animate-spin" /> : <Sparkle className="w-4 h-4" weight="fill" />}
+          <Icon name="doc" size={15} />
           {analyzing ? t('members.analyzingCv') : t('members.fillFromCv')}
-        </button>
+        </Button>
 
         {editing ? (
-          <div className="mt-3 space-y-3">
-            <input value={form.headline} onChange={(e) => setForm((p) => ({ ...p, headline: e.target.value }))} placeholder={t('members.headlinePlaceholder')} className={inputCls} />
-            <input value={form.skills} onChange={(e) => setForm((p) => ({ ...p, skills: e.target.value }))} placeholder={t('members.skillsPlaceholder')} className={inputCls} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} placeholder={t('members.cityPlaceholder')} className={inputCls} />
-              <input value={form.whatsapp} onChange={(e) => setForm((p) => ({ ...p, whatsapp: e.target.value }))} placeholder={t('members.whatsappPlaceholder')} className={inputCls} />
+          <div className="mt-2">
+            <Field label={t('members.headlineLabel')} value={form.headline} onChange={(v) => setForm((p) => ({ ...p, headline: v }))} placeholder={t('members.headlinePlaceholder')} />
+            <Field label={t('members.skillsLabel')} value={form.skills} onChange={(v) => setForm((p) => ({ ...p, skills: v }))} placeholder={t('members.skillsPlaceholder')} hint={t('members.skillsHint')} />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label={t('members.cityLabel')} value={form.city} onChange={(v) => setForm((p) => ({ ...p, city: v }))} placeholder={t('members.cityPlaceholder')} autoComplete="address-level2" />
+              <Field label={t('members.whatsappLabel')} value={form.whatsapp} onChange={(v) => setForm((p) => ({ ...p, whatsapp: v }))} placeholder={t('members.whatsappPlaceholder')} type="tel" inputMode="tel" autoComplete="tel" />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input value={form.linkedin} onChange={(e) => setForm((p) => ({ ...p, linkedin: e.target.value }))} placeholder={t('members.linkedinPlaceholder')} className={inputCls} />
-              <input value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} placeholder={t('members.websitePlaceholder')} className={inputCls} />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="LinkedIn" value={form.linkedin} onChange={(v) => setForm((p) => ({ ...p, linkedin: v }))} placeholder={t('members.linkedinPlaceholder')} inputMode="url" />
+              <Field label={t('members.websiteLabel')} value={form.website} onChange={(v) => setForm((p) => ({ ...p, website: v }))} placeholder={t('members.websitePlaceholder')} inputMode="url" />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input value={form.facebook} onChange={(e) => setForm((p) => ({ ...p, facebook: e.target.value }))} placeholder={t('members.facebookPlaceholder')} className={inputCls} />
-              <input value={form.instagram} onChange={(e) => setForm((p) => ({ ...p, instagram: e.target.value }))} placeholder={t('members.instagramPlaceholder')} className={inputCls} />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Facebook" value={form.facebook} onChange={(v) => setForm((p) => ({ ...p, facebook: v }))} placeholder={t('members.facebookPlaceholder')} />
+              <Field label="Instagram" value={form.instagram} onChange={(v) => setForm((p) => ({ ...p, instagram: v }))} placeholder={t('members.instagramPlaceholder')} />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <input value={form.twitter} onChange={(e) => setForm((p) => ({ ...p, twitter: e.target.value }))} placeholder={t('members.twitterPlaceholder')} className={inputCls} />
-              <input value={form.tiktok} onChange={(e) => setForm((p) => ({ ...p, tiktok: e.target.value }))} placeholder={t('members.tiktokPlaceholder')} className={inputCls} />
-              <input value={form.youtube} onChange={(e) => setForm((p) => ({ ...p, youtube: e.target.value }))} placeholder={t('members.youtubePlaceholder')} className={inputCls} />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Field label="X" value={form.twitter} onChange={(v) => setForm((p) => ({ ...p, twitter: v }))} placeholder={t('members.twitterPlaceholder')} />
+              <Field label="TikTok" value={form.tiktok} onChange={(v) => setForm((p) => ({ ...p, tiktok: v }))} placeholder={t('members.tiktokPlaceholder')} />
+              <Field label="YouTube" value={form.youtube} onChange={(v) => setForm((p) => ({ ...p, youtube: v }))} placeholder={t('members.youtubePlaceholder')} />
             </div>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer">
-                <input type="checkbox" checked={form.available} onChange={(e) => setForm((p) => ({ ...p, available: e.target.checked }))} className="rounded" /> {t('members.availableForMissions')}
-              </label>
-              <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer">
-                <input type="checkbox" checked={form.visible} onChange={(e) => setForm((p) => ({ ...p, visible: e.target.checked }))} className="rounded" /> {t('members.visibleInDirectory')}
-              </label>
+
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-meta text-ink-2">{t('members.availableForMissions')}</span>
+                <Switch
+                  on={form.available}
+                  label={t('members.availableForMissions')}
+                  onChange={(on) => setForm((p) => ({ ...p, available: on }))}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-meta text-ink-2">{t('members.visibleInDirectory')}</span>
+                <Switch
+                  on={form.visible}
+                  label={t('members.visibleInDirectory')}
+                  onChange={(on) => setForm((p) => ({ ...p, visible: on }))}
+                />
+              </div>
             </div>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setEditing(false)} className="px-3 py-2 rounded-xl text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700">{t('members.cancel')}</button>
-              <button onClick={handleSave} disabled={saving} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-plum-600 hover:bg-plum-700 text-white text-sm font-semibold disabled:opacity-50">
-                {saving ? <CircleNotch className="w-4 h-4 animate-spin" /> : <FloppyDisk className="w-4 h-4" weight="fill" />} {t('members.save')}
-              </button>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <Button tone="quiet" size="sm" onClick={() => setEditing(false)}>{t('members.cancel')}</Button>
+              <Button tone="transforme" size="sm" loading={saving} onClick={handleSave}>
+                <Icon name="check" size={15} /> {t('members.save')}
+              </Button>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-neutral-500 mt-2">
+          <p className="mt-3 text-meta text-ink-2">
             {form.visible ? t('members.profileVisible') : t('members.profileHidden')}
           </p>
         )}
-      </div>
+      </GlassPanel>
 
-      {/* Search */}
-      <div className="relative">
-        <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('members.searchPlaceholder')} className={cn(inputCls, 'pl-10')} />
-      </div>
+      {/* ── L'annuaire ──────────────────────────────────────────────────────── */}
+      <SearchPill
+        value={query}
+        onChange={setQuery}
+        label={t('members.searchLabel')}
+        labelHidden
+        placeholder={t('members.searchPlaceholder')}
+        icon={<Icon name="search" size={17} />}
+      />
 
-      {/* Directory */}
       {filtered.length === 0 ? (
-        <ClubEmptyState icon={UsersThree} title={t('members.emptyTitle')} subtitle={t('members.emptySubtitle')} />
+        <ClubEmptyState icon="users" title={t('members.emptyTitle')} subtitle={t('members.emptySubtitle')} />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p) => (
             <motion.button
               key={p.id}
               variants={staggerItem}
+              type="button"
               onClick={() => setSelectedMember(p)}
-              className="text-left bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 hover:border-plum-300 dark:hover:border-plum-700 hover:shadow-soft transition-all"
+              className="glass-flat mm-press mm-touch-extend p-4 text-left"
             >
               <div className="flex items-start gap-3">
-                <div className="w-11 h-11 rounded-full bg-plum-100 dark:bg-plum-900/40 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {p.photoURL ? <img src={p.photoURL} alt="" className="w-full h-full object-cover" /> : <span className="text-sm font-bold text-plum-600 dark:text-plum-400">{initialsOf(p.displayName)}</span>}
-                </div>
+                {p.photoURL
+                  ? <img src={p.photoURL} alt="" loading="lazy" className="h-11 w-11 flex-none rounded-full object-cover" />
+                  : <Avatar initials={initialsOf(p.displayName)} size={44} />}
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="font-bold text-neutral-900 dark:text-white truncate">{p.displayName}</p>
-                    {p.userId === user?.uid && <span className="text-[10px] text-neutral-400">{t('members.you')}</span>}
-                    {p.available && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400">{t('members.available')}</span>}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="truncate font-bold text-ink">{p.displayName}</p>
+                    {p.userId === user?.uid && <span className="text-small text-ink-2">{t('members.you')}</span>}
                   </div>
-                  {p.headline && <p className="text-xs text-neutral-500 truncate">{p.headline}</p>}
-                  {p.city && <p className="text-xs text-neutral-400 flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3" weight="fill" /> {p.city}</p>}
+                  {p.headline && <p className="truncate text-meta-2 text-ink-2">{p.headline}</p>}
+                  {p.city && (
+                    <p className="mt-0.5 flex items-center gap-1 text-meta-2 text-ink-2">
+                      <span aria-hidden="true" className="flex-none"><Icon name="pin" size={12} /></span> {p.city}
+                    </p>
+                  )}
                 </div>
               </div>
-              {p.skills.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap mt-3">
-                  {p.skills.slice(0, 5).map((s) => (
-                    <span key={s} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-plum-50 dark:bg-plum-900/20 text-plum-700 dark:text-plum-300">{s}</span>
-                  ))}
-                </div>
-              )}
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {p.available && <Tag tone="ok">{t('members.available')}</Tag>}
+                {p.skills.slice(0, 4).map((s) => <Tag key={s}>{s}</Tag>)}
+              </div>
             </motion.button>
           ))}
         </div>
       )}
 
-      {/* Member profile modal */}
+      {/* ── La fiche d'un membre ────────────────────────────────────────────── */}
       {selectedMember && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && setSelectedMember(null)}>
-          <div className="bg-white dark:bg-neutral-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto">
-            {/* Poignée mobile */}
-            <div className="sm:hidden flex justify-center pt-2.5">
-              <span className="w-10 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-700" />
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[color-mix(in_srgb,var(--night)_55%,transparent)] p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          onClick={(e) => e.target === e.currentTarget && setSelectedMember(null)}
+        >
+          {/* `shadow-card`, PAS `shadow-glass` : ce panneau défile en interne, et `ds:check`
+              signale le mot `glass` sur toute surface qui n'est ni `fixed` ni `sticky` — y
+              compris quand il n'est que le nom d'une classe d'ombre. */}
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
+            aria-label={selectedMember.displayName}
+            className="max-h-[92vh] w-full overflow-y-auto rounded-t-xl bg-paper shadow-card sm:max-w-md sm:rounded-xl"
+          >
+            <div className="flex justify-center pt-2.5 sm:hidden">
+              <span aria-hidden="true" className="h-1.5 w-10 rounded-pill bg-[color:var(--fill-4)]" />
             </div>
             <div className="p-5">
-              {/* En-tête en ligne */}
               <div className="flex items-start gap-3">
-                <div className="w-16 h-16 rounded-full bg-plum-100 dark:bg-plum-900/40 flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {selectedMember.photoURL ? <img src={selectedMember.photoURL} alt="" className="w-full h-full object-cover" /> : <span className="text-lg font-black text-plum-600 dark:text-plum-400">{initialsOf(selectedMember.displayName)}</span>}
-                </div>
+                {selectedMember.photoURL
+                  ? <img src={selectedMember.photoURL} alt="" className="h-16 w-16 flex-none rounded-full object-cover" />
+                  : <Avatar initials={initialsOf(selectedMember.displayName)} size={64} />}
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-lg font-black text-neutral-900 dark:text-white truncate">{selectedMember.displayName}</h3>
-                  {selectedMember.headline && <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2">{selectedMember.headline}</p>}
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    {selectedMember.city && <span className="text-xs text-neutral-400 flex items-center gap-1"><MapPin className="w-3.5 h-3.5" weight="fill" /> {selectedMember.city}</span>}
-                    {selectedMember.available && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-success-100 dark:bg-success-900/30 text-success-600 dark:text-success-400">{t('members.availableForMissionsBadge')}</span>}
+                  <h3 className="truncate font-display text-ttl text-ink">{selectedMember.displayName}</h3>
+                  {selectedMember.headline && <p className="text-meta text-ink-2">{selectedMember.headline}</p>}
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    {selectedMember.city && (
+                      <span className="flex items-center gap-1 text-meta-2 text-ink-2">
+                        <span aria-hidden="true"><Icon name="pin" size={13} /></span> {selectedMember.city}
+                      </span>
+                    )}
+                    {selectedMember.available && <Tag tone="ok">{t('members.availableForMissionsBadge')}</Tag>}
                   </div>
                 </div>
-                <button onClick={() => setSelectedMember(null)} className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors flex-shrink-0"><X className="w-4 h-4" weight="bold" /></button>
+                <IconButton label={t('members.close')} onClick={() => setSelectedMember(null)}>
+                  <Icon name="close" size={17} />
+                </IconButton>
               </div>
 
               {selectedMember.skills.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap mt-4">
-                  {selectedMember.skills.map((s) => (
-                    <span key={s} className="text-xs font-medium px-2.5 py-1 rounded-full bg-plum-50 dark:bg-plum-900/20 text-plum-700 dark:text-plum-300">{s}</span>
-                  ))}
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {selectedMember.skills.map((s) => <Tag key={s}>{s}</Tag>)}
                 </div>
               )}
 
-              {/* Socials */}
-              <div className="flex gap-2 flex-wrap mt-4">
-                {selectedMember.linkedin && <a href={socialHref('linkedin', selectedMember.linkedin)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-[#0a66c2] transition-colors"><LinkedinLogo className="w-5 h-5" weight="fill" /></a>}
-                {selectedMember.website && <a href={socialHref('website', selectedMember.website)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-plum-600 transition-colors"><Globe className="w-5 h-5" weight="fill" /></a>}
-                {selectedMember.facebook && <a href={socialHref('facebook', selectedMember.facebook)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-[#1877f2] transition-colors"><FacebookLogo className="w-5 h-5" weight="fill" /></a>}
-                {selectedMember.instagram && <a href={socialHref('instagram', selectedMember.instagram)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-[#e1306c] transition-colors"><InstagramLogo className="w-5 h-5" weight="fill" /></a>}
-                {selectedMember.twitter && <a href={socialHref('twitter', selectedMember.twitter)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"><XLogo className="w-5 h-5" weight="fill" /></a>}
-                {selectedMember.tiktok && <a href={socialHref('tiktok', selectedMember.tiktok)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"><TiktokLogo className="w-5 h-5" weight="fill" /></a>}
-                {selectedMember.youtube && <a href={socialHref('youtube', selectedMember.youtube)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-[#ff0000] transition-colors"><YoutubeLogo className="w-5 h-5" weight="fill" /></a>}
-                {selectedMember.whatsapp && <a href={`https://wa.me/${selectedMember.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-green-600 transition-colors"><WhatsappLogo className="w-5 h-5" weight="fill" /></a>}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {SOCIALS.map((key) => {
+                  const value = selectedMember[key];
+                  if (!value) return null;
+                  return (
+                    <Button key={key} tone="quiet" size="sm" href={socialHref(key, value)} target="_blank">
+                      <Icon name="share" size={14} /> {SOCIAL_LABEL[key]}
+                    </Button>
+                  );
+                })}
+                {selectedMember.whatsapp && (
+                  <Button tone="quiet" size="sm" href={`https://wa.me/${selectedMember.whatsapp.replace(/\D/g, '')}`} target="_blank">
+                    <Icon name="chat" size={14} /> WhatsApp
+                  </Button>
+                )}
               </div>
 
-              {/* Key actions */}
-              <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+              <div className="mt-5 border-t border-[color:var(--border-hair)] pt-4">
                 {selectedMember.userId === user?.uid ? (
-                  <button onClick={() => { setSelectedMember(null); setEditing(true); }} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-plum-600 hover:bg-plum-700 text-white text-sm font-semibold transition-colors">
-                    <PencilSimple className="w-4 h-4" weight="bold" /> {t('members.editMyProfile')}
-                  </button>
+                  <Button tone="transforme" onClick={() => { setSelectedMember(null); setEditing(true); }}>
+                    <Icon name="pencil" size={16} /> {t('members.editMyProfile')}
+                  </Button>
                 ) : (
-                  <button onClick={() => { setDmTarget({ id: selectedMember.userId, name: selectedMember.displayName, photo: selectedMember.photoURL }); setSelectedMember(null); setClubTab('discussions'); }} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-plum-600 hover:bg-plum-700 text-white text-sm font-semibold transition-colors">
-                    <ChatCircle className="w-4 h-4" weight="fill" /> {t('members.sendMessage')}
-                  </button>
+                  <Button
+                    tone="transforme"
+                    onClick={() => {
+                      setDmTarget({ id: selectedMember.userId, name: selectedMember.displayName, photo: selectedMember.photoURL });
+                      setSelectedMember(null);
+                      setClubTab('discussions');
+                    }}
+                  >
+                    <Icon name="chat" size={16} /> {t('members.sendMessage')}
+                  </Button>
                 )}
               </div>
             </div>

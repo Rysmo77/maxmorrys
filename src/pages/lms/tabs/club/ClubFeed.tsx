@@ -1,18 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import {
-  ChatCircle, Repeat, Heart, ShareFat, ImageSquare, Microphone, VideoCamera, Smiley, PaperPlaneTilt,
-  SealCheck, DotsThree, X, Trash, Check, CircleNotch, Rss, CaretDown, ChartBar, Plus, Trophy,
-} from '@phosphor-icons/react';
-import Button from '../../../../components/ui/Button';
+import { Avatar, Button, ChipRow, Field, GlassPanel, Icon, Num, Skeleton, Tag } from '@ds';
 import MediaRecorderInput from '../../../../components/lms/MediaRecorderInput';
 import { getActiveClubChallenge } from '../../../../lib/firestore';
 import type { ClubDigitosChallenge } from '../../../../types';
 import { cn } from '../../../../lib/utils';
 import { useFormat } from '../../../../hooks/useFormat';
 import { ClubEmptyState } from './_shared';
-import { CLUB_CATEGORIES, MOOD_OPTIONS, SHARE_PLATFORMS, inputCls } from '../../hooks/useClubData';
+import { CLUB_CATEGORIES, MOOD_OPTIONS, MOOD_LABEL_KEYS, SHARE_PLATFORMS } from '../../hooks/useClubData';
 import type { useClubData } from '../../hooks/useClubData';
 import { slideUp } from '../../../../lib/animations';
 
@@ -22,6 +18,33 @@ interface ClubFeedProps {
   data: ClubData;
 }
 
+const initialsOf = (n: string) => n.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
+
+/**
+ * LE FIL — écran `ClubFil` du kit, et l'endroit où les emoji du Club posaient une question.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * L'HUMEUR EST DE LA DONNÉE. Elle n'est plus DESSINÉE ; elle est NOMMÉE.
+ *
+ * `post.mood` contient le caractère lui-même — « 🔥 », « 🙏 » — écrit en base sur des
+ * publications qui existent. Le design system écrit « aucun emoji, nulle part » ; effacer le
+ * champ pour obéir casserait des enregistrements réels, et personne ne le verrait avant qu'un
+ * vieux post remonte. La règle porte sur l'ÉCRAN : la donnée reste, `MOOD_LABEL_KEYS` la
+ * traduit en mot, et le mot s'affiche dans un `<Tag>`.
+ *
+ * UNE HUMEUR ABSENTE DE LA TABLE NE SE REND PAS. Ni le caractère en repli — ce serait
+ * réintroduire l'emoji par la porte de derrière — ni un point d'interrogation. Elle disparaît
+ * de la ligne, et le reste de la publication est intact.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * DEUX AUTRES EMOJI ÉTAIENT, EUX, DE LA PURE DÉCORATION, et n'ont laissé aucune donnée
+ * derrière eux : 🏆 devant la récompense du défi, et les six pictogrammes des destinations de
+ * partage (📱📘🐦💼✈️📋). Ils passent aux glyphes du jeu unique.
+ *
+ * LES QUATRE COMPTEURS D'UNE PUBLICATION — commentaires, republications, j'aime, votes —
+ * passent par `<Num source="db">`. Ce ne sont pas des chiffres de façade : ils sortent des
+ * tableaux stockés sur le document, et c'est exactement ce que la source `db` déclare.
+ */
 export default function ClubFeed({ data }: ClubFeedProps) {
   const { t } = useTranslation('club');
   const { formatDate } = useFormat();
@@ -50,6 +73,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [postMenuOpen, setPostMenuOpen] = useState<string | null>(null);
   const [challenge, setChallenge] = useState<ClubDigitosChallenge | null>(null);
+  const asOf = useRef(new Date()).current;
 
   useEffect(() => {
     getActiveClubChallenge().then(setChallenge).catch(() => null);
@@ -58,165 +82,255 @@ export default function ClubFeed({ data }: ClubFeedProps) {
   const filtered = clubCategoryFilter === 'all' ? clubPosts : clubPosts.filter((p) => p.category === clubCategoryFilter);
   const activeCat = CLUB_CATEGORIES.find((c) => c.id === composerCategory) ?? CLUB_CATEGORIES[0];
 
+  /** Le mot d'une humeur, ou rien. Jamais le caractère en repli. */
+  const moodLabel = (mood: string | undefined) => {
+    const key = mood ? MOOD_LABEL_KEYS[mood] : undefined;
+    return key ? t(key) : null;
+  };
+
+  const filterOptions = useMemo(
+    () => [t('feed.filterAll'), ...CLUB_CATEGORIES.map((c) => t(c.labelKey))],
+    [t],
+  );
+  const activeFilterLabel = clubCategoryFilter === 'all'
+    ? filterOptions[0]
+    : t(CLUB_CATEGORIES.find((c) => c.id === clubCategoryFilter)?.labelKey ?? 'feed.filterAll');
+
+  const busy = postingToClub || uploadingMedia;
+
   return (
     <motion.div className="space-y-4" variants={slideUp} initial="hidden" animate="visible">
-      {/* ───────── Défi de la semaine ───────── */}
+      {/* ── Le défi en cours ────────────────────────────────────────────────── */}
       {challenge && (
-        <div className="rounded-2xl border border-plum-200 dark:border-plum-800/60 bg-gradient-to-br from-plum-50 to-white dark:from-plum-900/30 dark:to-neutral-800 p-4">
+        <GlassPanel level="flat" padding={16}>
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-plum-600 flex items-center justify-center flex-shrink-0">
-              <Trophy className="w-5 h-5 text-white" weight="fill" />
-            </div>
+            <span
+              aria-hidden="true"
+              className="grid h-10 w-10 flex-none place-items-center rounded-m bg-[image:var(--action-transforme)]"
+            >
+              <Icon name="trophy" size={19} color="var(--paper-fixed)" />
+            </span>
             <div className="min-w-0">
-              <p className="text-xs font-bold text-plum-600 dark:text-plum-400 uppercase tracking-wide">{t('feed.challengeEyebrow')}</p>
-              <p className="font-bold text-neutral-900 dark:text-white">{challenge.title}</p>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-0.5">{challenge.description}</p>
-              {challenge.reward && <p className="text-xs text-plum-600 dark:text-plum-400 font-semibold mt-1.5">🏆 {challenge.reward}</p>}
+              <p className="mm-eyebrow m-0 text-transforme">{t('feed.challengeEyebrow')}</p>
+              <p className="mt-0.5 font-bold text-ink">{challenge.title}</p>
+              {challenge.description && <p className="mt-0.5 text-meta text-ink-2">{challenge.description}</p>}
+              {challenge.reward && (
+                <p className="mt-2 flex items-center gap-1.5 text-meta-2 font-semibold text-transforme">
+                  <span aria-hidden="true" className="flex-none"><Icon name="gift" size={14} /></span>
+                  {challenge.reward}
+                </p>
+              )}
             </div>
           </div>
-        </div>
+        </GlassPanel>
       )}
 
-      {/* ───────── Composer ───────── */}
-      <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 shadow-soft">
+      {/* ── Le composeur ────────────────────────────────────────────────────── */}
+      <GlassPanel level="flat" padding={16}>
         <div className="flex items-start gap-3">
-          <div className="w-11 h-11 rounded-full bg-plum-100 dark:bg-plum-900/40 flex items-center justify-center flex-shrink-0 overflow-hidden ring-2 ring-plum-50 dark:ring-plum-900/20">
-            {photoURL ? <img src={photoURL} alt="" className="w-full h-full object-cover" /> : <span className="text-sm font-bold text-plum-600 dark:text-plum-400">{initials}</span>}
-          </div>
-          <div className="flex-1 space-y-3">
-            <textarea
-              value={clubPostContent}
-              onChange={(e) => setClubPostContent(e.target.value)}
-              placeholder={t('feed.composerPlaceholder')}
+          {photoURL
+            ? <img src={photoURL} alt="" className="h-11 w-11 flex-none rounded-full object-cover" />
+            : <Avatar initials={initials} size={44} />}
+
+          <div className="min-w-0 flex-1">
+            <Field
+              as="textarea"
               rows={2}
               maxLength={2000}
-              className={cn(inputCls, 'resize-none border-0 bg-transparent px-0 text-base focus:ring-0 placeholder-neutral-400')}
+              label={t('feed.composerLabel')}
+              hideLabel
+              value={clubPostContent}
+              onChange={setClubPostContent}
+              placeholder={t('feed.composerPlaceholder')}
+              style={{ marginTop: 0 }}
             />
 
             {composerMediaType === 'image' && composerMediaPreview && (
-              <div className="relative w-full max-w-sm">
-                <img src={composerMediaPreview} alt={t('feed.previewAlt')} className="rounded-xl w-full object-cover max-h-56 border border-neutral-200 dark:border-neutral-700" />
-                <button type="button" onClick={() => { setComposerMediaFile(null); if (composerMediaPreview) URL.revokeObjectURL(composerMediaPreview); setComposerMediaPreview(''); }} className="absolute top-1.5 right-1.5 p-1 bg-black/60 rounded-full text-white hover:bg-black/80 transition-colors">
-                  <X className="w-3.5 h-3.5" weight="bold" />
+              <div className="relative mt-3 w-full max-w-sm">
+                <img src={composerMediaPreview} alt={t('feed.previewAlt')} className="max-h-56 w-full rounded-m border border-[color:var(--line)] object-cover" />
+                <button
+                  type="button"
+                  aria-label={t('feed.removeMedia')}
+                  onClick={() => {
+                    setComposerMediaFile(null);
+                    if (composerMediaPreview) URL.revokeObjectURL(composerMediaPreview);
+                    setComposerMediaPreview('');
+                  }}
+                  className="mm-touch-extend absolute right-1.5 top-1.5 rounded-pill bg-[color-mix(in_srgb,var(--night)_65%,transparent)] p-1 text-[color:var(--paper-fixed)]"
+                >
+                  <Icon name="close" size={14} />
                 </button>
               </div>
             )}
+
             {composerMediaType !== 'image' && user && (
-              <MediaRecorderInput mode={composerMediaType} userId={user.uid} value={composerAvUrl} onChange={setComposerAvUrl} folder="club_media" />
+              <div className="mt-3">
+                <MediaRecorderInput mode={composerMediaType} userId={user.uid} value={composerAvUrl} onChange={setComposerAvUrl} folder="club_media" />
+              </div>
             )}
 
             {composerPoll && (
-              <div className="space-y-2 rounded-xl border border-neutral-200 dark:border-neutral-700 p-3">
+              <div className="mt-3 rounded-m border border-[color:var(--line)] p-3">
                 {pollOptions.map((opt, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <input
+                  <div key={i} className="flex items-end gap-2">
+                    <Field
+                      label={t('feed.optionPlaceholder', { number: i + 1 })}
+                      hideLabel
                       value={opt}
-                      onChange={(e) => setPollOptions(pollOptions.map((o, j) => (j === i ? e.target.value : o)))}
+                      onChange={(v) => setPollOptions(pollOptions.map((o, j) => (j === i ? v : o)))}
                       placeholder={t('feed.optionPlaceholder', { number: i + 1 })}
                       maxLength={80}
-                      className="flex-1 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-plum-500/20 focus:border-plum-500"
+                      className="flex-1"
+                      style={{ marginTop: '8px' }}
                     />
                     {pollOptions.length > 2 && (
-                      <button type="button" onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))} className="p-1 rounded-lg text-neutral-400 hover:text-error-500 transition-colors">
-                        <X className="w-4 h-4" weight="bold" />
+                      <button
+                        type="button"
+                        aria-label={t('feed.removeOption', { number: i + 1 })}
+                        onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}
+                        className="mm-touch-extend mb-2 rounded-s p-1 text-ink-2 transition-colors duration-ui ease-ds hover:text-stop"
+                      >
+                        <Icon name="close" size={15} />
                       </button>
                     )}
                   </div>
                 ))}
                 {pollOptions.length < 4 && (
-                  <button type="button" onClick={() => setPollOptions([...pollOptions, ''])} className="flex items-center gap-1.5 text-xs font-semibold text-plum-600 dark:text-plum-400 hover:underline">
-                    <Plus className="w-3.5 h-3.5" weight="bold" /> {t('feed.addOption')}
-                  </button>
+                  <Button tone="quiet" size="sm" onClick={() => setPollOptions([...pollOptions, ''])} style={{ marginTop: '10px' }}>
+                    <Icon name="plus" size={14} /> {t('feed.addOption')}
+                  </Button>
                 )}
               </div>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-neutral-100 dark:border-neutral-700">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--border-hair)] pt-3">
               <div className="flex flex-wrap items-center gap-1">
-                {/* Category picker */}
+                {/* Catégorie */}
                 <div className="relative">
-                  <button type="button" onClick={() => { setShowCategoryPicker((v) => !v); setShowMoodPicker(false); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', activeCat.tint, 'hover:bg-neutral-100 dark:hover:bg-neutral-700')}>
-                    <activeCat.icon className="w-4 h-4" weight="duotone" />
+                  <button
+                    type="button"
+                    aria-expanded={showCategoryPicker}
+                    onClick={() => { setShowCategoryPicker((v) => !v); setShowMoodPicker(false); }}
+                    className={cn(
+                      'mm-touch-extend flex items-center gap-1.5 rounded-pill px-2.5 py-1.5 text-meta-2 font-semibold transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]',
+                      activeCat.tint,
+                    )}
+                  >
+                    <Icon name={activeCat.icon} size={15} />
                     {t(activeCat.labelKey)}
-                    <CaretDown className="w-3 h-3 opacity-60" />
+                    <Icon name="chevron" size={12} />
                   </button>
                   {showCategoryPicker && (
-                    <div className="absolute bottom-full left-0 mb-1 z-20 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-1.5 shadow-lg w-48 max-w-[calc(100vw-1.5rem)]">
+                    <div className="glass-flat absolute bottom-full left-0 z-20 mb-1 w-48 max-w-[calc(100vw-1.5rem)] p-1.5">
                       {CLUB_CATEGORIES.map((c) => (
-                        <button key={c.id} type="button" onClick={() => { setComposerCategory(c.id); setShowCategoryPicker(false); }} className={cn('w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700', composerCategory === c.id ? c.tint : 'text-neutral-600 dark:text-neutral-300')}>
-                          <c.icon className="w-4 h-4" weight="duotone" /> {t(c.labelKey)}
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => { setComposerCategory(c.id); setShowCategoryPicker(false); }}
+                          className={cn(
+                            'flex w-full items-center gap-2 rounded-s px-2.5 py-2 text-meta-2 font-medium transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]',
+                            composerCategory === c.id ? c.tint : 'text-ink-2',
+                          )}
+                        >
+                          <Icon name={c.icon} size={15} /> {t(c.labelKey)}
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
 
-                {/* Mood */}
+                {/* Humeur — le mot, jamais le caractère */}
                 <div className="relative">
-                  <button type="button" onClick={() => { setShowMoodPicker((v) => !v); setShowCategoryPicker(false); }} className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
-                    {composerMood ? <span className="text-base leading-none">{composerMood}</span> : <Smiley className="w-4 h-4" weight="duotone" />}
-                    <span className="hidden sm:inline">{t('feed.mood')}</span>
+                  <button
+                    type="button"
+                    aria-expanded={showMoodPicker}
+                    onClick={() => { setShowMoodPicker((v) => !v); setShowCategoryPicker(false); }}
+                    className="mm-touch-extend flex items-center gap-1.5 rounded-pill px-2.5 py-1.5 text-meta-2 font-semibold text-ink-2 transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]"
+                  >
+                    <Icon name="smile" size={15} />
+                    {moodLabel(composerMood) ?? t('feed.mood')}
                   </button>
                   {showMoodPicker && (
-                    <div className="absolute bottom-full left-0 mb-1 z-20 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl p-2 shadow-lg flex gap-1 flex-wrap w-44 max-w-[calc(100vw-1.5rem)]">
-                      {MOOD_OPTIONS.map((m) => (
-                        <button key={m} type="button" onClick={() => { setComposerMood(composerMood === m ? '' : m); setShowMoodPicker(false); }} className={cn('text-xl p-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors', composerMood === m && 'bg-plum-50 dark:bg-plum-900/20')}>
-                          {m}
-                        </button>
-                      ))}
+                    <div className="glass-flat absolute bottom-full left-0 z-20 mb-1 flex w-56 max-w-[calc(100vw-1.5rem)] flex-wrap gap-1.5 p-2">
+                      {MOOD_OPTIONS.map((m) => {
+                        const label = moodLabel(m);
+                        if (!label) return null;
+                        const on = composerMood === m;
+                        return (
+                          <button
+                            key={m}
+                            type="button"
+                            aria-pressed={on}
+                            onClick={() => { setComposerMood(on ? '' : m); setShowMoodPicker(false); }}
+                            className="mm-touch-extend"
+                          >
+                            <Tag tone={on ? 'ok' : 'neutral'}>{label}</Tag>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
 
-                {/* Media format: photo / audio / vidéo */}
+                {/* Pièce jointe : photo, audio, vidéo, sondage */}
                 <input type="file" accept="image/*" ref={mediaInputRef} onChange={handleMediaSelect} className="hidden" />
-                <button type="button" onClick={() => { setComposerMediaType('image'); setComposerAvUrl(''); mediaInputRef.current?.click(); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', composerMediaType === 'image' && composerMediaPreview ? 'text-plum-600 bg-plum-50 dark:bg-plum-900/20' : 'text-neutral-500 hover:text-plum-600 hover:bg-plum-50 dark:hover:bg-plum-900/20')}>
-                  <ImageSquare className="w-4 h-4" weight="duotone" />
-                  <span className="hidden sm:inline">{t('feed.photo')}</span>
-                </button>
-                <button type="button" onClick={() => { setComposerMediaType(composerMediaType === 'audio' ? 'image' : 'audio'); setComposerMediaFile(null); setComposerMediaPreview(''); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', composerMediaType === 'audio' ? 'text-plum-600 bg-plum-50 dark:bg-plum-900/20' : 'text-neutral-500 hover:text-plum-600 hover:bg-plum-50 dark:hover:bg-plum-900/20')}>
-                  <Microphone className="w-4 h-4" weight="duotone" />
-                  <span className="hidden sm:inline">{t('feed.audio')}</span>
-                </button>
-                <button type="button" onClick={() => { setComposerMediaType(composerMediaType === 'video' ? 'image' : 'video'); setComposerMediaFile(null); setComposerMediaPreview(''); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', composerMediaType === 'video' ? 'text-plum-600 bg-plum-50 dark:bg-plum-900/20' : 'text-neutral-500 hover:text-plum-600 hover:bg-plum-50 dark:hover:bg-plum-900/20')}>
-                  <VideoCamera className="w-4 h-4" weight="duotone" />
-                  <span className="hidden sm:inline">{t('feed.video')}</span>
-                </button>
-                <button type="button" onClick={() => { setComposerPoll(!composerPoll); setComposerMediaType('image'); setComposerMediaFile(null); setComposerMediaPreview(''); setComposerAvUrl(''); }} className={cn('flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-colors', composerPoll ? 'text-plum-600 bg-plum-50 dark:bg-plum-900/20' : 'text-neutral-500 hover:text-plum-600 hover:bg-plum-50 dark:hover:bg-plum-900/20')}>
-                  <ChartBar className="w-4 h-4" weight="duotone" />
-                  <span className="hidden sm:inline">{t('feed.poll')}</span>
-                </button>
+                {([
+                  { key: 'image', icon: 'image', label: t('feed.photo'), on: composerMediaType === 'image' && !!composerMediaPreview,
+                    act: () => { setComposerMediaType('image'); setComposerAvUrl(''); mediaInputRef.current?.click(); } },
+                  { key: 'audio', icon: 'mic', label: t('feed.audio'), on: composerMediaType === 'audio',
+                    act: () => { setComposerMediaType(composerMediaType === 'audio' ? 'image' : 'audio'); setComposerMediaFile(null); setComposerMediaPreview(''); } },
+                  { key: 'video', icon: 'video', label: t('feed.video'), on: composerMediaType === 'video',
+                    act: () => { setComposerMediaType(composerMediaType === 'video' ? 'image' : 'video'); setComposerMediaFile(null); setComposerMediaPreview(''); } },
+                  { key: 'poll', icon: 'bars', label: t('feed.poll'), on: composerPoll,
+                    act: () => { setComposerPoll(!composerPoll); setComposerMediaType('image'); setComposerMediaFile(null); setComposerMediaPreview(''); setComposerAvUrl(''); } },
+                ] as const).map((b) => (
+                  <button
+                    key={b.key}
+                    type="button"
+                    aria-pressed={b.on}
+                    onClick={b.act}
+                    className={cn(
+                      'mm-touch-extend flex items-center gap-1.5 rounded-pill px-2.5 py-1.5 text-meta-2 font-semibold transition-colors duration-ui ease-ds',
+                      b.on
+                        ? 'bg-[color-mix(in_srgb,var(--mm-violet)_12%,transparent)] text-transforme'
+                        : 'text-ink-2 hover:bg-[color:var(--fill-2)] hover:text-transforme',
+                    )}
+                  >
+                    <Icon name={b.icon} size={15} />
+                    <span className="hidden sm:inline">{b.label}</span>
+                  </button>
+                ))}
               </div>
 
               <Button
+                tone="transforme"
                 size="sm"
+                loading={busy}
+                disabled={!clubPostContent.trim()}
                 onClick={handleClubPost}
-                disabled={postingToClub || uploadingMedia || !clubPostContent.trim()}
-                className="!bg-plum-600 hover:!bg-plum-700 !rounded-full"
-                icon={(postingToClub || uploadingMedia) ? <CircleNotch className="w-4 h-4 animate-spin" /> : <PaperPlaneTilt className="w-4 h-4" weight="fill" />}
               >
+                <Icon name="send" size={15} />
                 {uploadingMedia ? t('feed.sending') : postingToClub ? t('feed.publishing') : t('feed.publish')}
               </Button>
             </div>
           </div>
         </div>
-      </div>
+      </GlassPanel>
 
-      {/* ───────── Category filter ───────── */}
-      <div className="flex gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1">
-        <button onClick={() => setClubCategoryFilter('all')} className={cn('flex-shrink-0 text-xs px-3.5 py-1.5 rounded-full font-semibold transition-colors', clubCategoryFilter === 'all' ? 'bg-plum-600 text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700')}>
-          {t('feed.filterAll')}
-        </button>
-        {CLUB_CATEGORIES.map((c) => (
-          <button key={c.id} onClick={() => setClubCategoryFilter(c.id)} className={cn('flex-shrink-0 flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full font-semibold transition-colors whitespace-nowrap', clubCategoryFilter === c.id ? 'bg-plum-600 text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700')}>
-            <c.icon className="w-3.5 h-3.5" weight={clubCategoryFilter === c.id ? 'fill' : 'duotone'} /> {t(c.labelKey)}
-          </button>
-        ))}
-      </div>
+      {/* ── Le filtre par catégorie ─────────────────────────────────────────── */}
+      <ChipRow
+        label={t('feed.filterLabel')}
+        options={filterOptions}
+        value={activeFilterLabel}
+        onChange={(option) => {
+          const idx = filterOptions.indexOf(option);
+          setClubCategoryFilter(idx <= 0 ? 'all' : CLUB_CATEGORIES[idx - 1].id);
+        }}
+      />
 
-      {/* ───────── Posts ───────── */}
+      {/* ── Les publications ───────────────────────────────────────────────── */}
       {filtered.length === 0 ? (
-        <ClubEmptyState icon={Rss} title={t('feed.emptyTitle')} subtitle={t('feed.emptySubtitle')} />
+        <ClubEmptyState icon="list" title={t('feed.emptyTitle')} subtitle={t('feed.emptySubtitle')} />
       ) : (
         <div className="space-y-3">
           {filtered.map((post) => {
@@ -228,38 +342,43 @@ export default function ClubFeed({ data }: ClubFeedProps) {
             const repostCount = (post.reposts ?? []).length;
             const commentCount = post.commentsCount ?? 0;
             const isOwner = !!user && post.userId === user.uid;
-            return (
-              <div key={post.id} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 transition-all hover:border-plum-200 dark:hover:border-plum-800/60 hover:shadow-soft">
-                {/* Header — inline X-style */}
-                <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-full bg-plum-100 dark:bg-plum-900/40 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {post.userPhoto ? <img src={post.userPhoto} alt="" className="w-full h-full object-cover" /> : <span className="text-sm font-bold text-plum-600 dark:text-plum-400">{post.userName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}</span>}
-                  </div>
+            const mood = moodLabel(post.mood);
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm font-bold text-neutral-900 dark:text-white truncate">{post.userName}</span>
-                      {post.isAdmin && <SealCheck className="w-4 h-4 text-plum-500 flex-shrink-0" weight="fill" />}
-                      {post.mood && <span className="text-sm leading-none">{post.mood}</span>}
-                      <span className="text-xs text-neutral-400">· {formatDate(post.createdAt)}</span>
+            return (
+              <GlassPanel key={post.id} level="flat" padding={16}>
+                <div className="flex items-start gap-3">
+                  {post.userPhoto
+                    ? <img src={post.userPhoto} alt="" loading="lazy" className="h-11 w-11 flex-none rounded-full object-cover" />
+                    : <Avatar initials={initialsOf(post.userName)} size={44} />}
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="truncate text-meta font-bold text-ink">{post.userName}</span>
+                      {post.isAdmin && (
+                        <span className="flex-none text-transforme">
+                          <Icon name="check" size={14} title={t('feed.adminBadge')} />
+                        </span>
+                      )}
+                      <span className="text-meta-2 text-ink-2">· {formatDate(post.createdAt)}</span>
+                      {mood && <Tag>{mood}</Tag>}
                       {catInfo && (
-                        <span className="inline-flex items-center gap-1 text-xs text-neutral-400">
-                          <span className={cn('w-1.5 h-1.5 rounded-full', catInfo.dot)} />
+                        <span className="inline-flex items-center gap-1 text-meta-2 text-ink-2">
+                          <span aria-hidden="true" className={cn('h-1.5 w-1.5 rounded-full', catInfo.dot)} />
                           {t(catInfo.labelKey)}
                         </span>
                       )}
                     </div>
 
-                    {/* Content */}
-                    <p className="text-[15px] text-neutral-800 dark:text-neutral-200 leading-relaxed mt-1.5 whitespace-pre-wrap break-words">{post.content}</p>
+                    <p className="mt-1.5 whitespace-pre-wrap break-words text-body leading-relaxed text-ink-2">{post.content}</p>
+
                     {post.mediaUrl && post.mediaType === 'video' && (
-                      <video src={post.mediaUrl} controls playsInline className="w-full rounded-xl max-h-80 mt-3 bg-black border border-neutral-200 dark:border-neutral-700" />
+                      <video src={post.mediaUrl} controls playsInline className="mt-3 max-h-80 w-full rounded-m border border-[color:var(--line)]" />
                     )}
                     {post.mediaUrl && post.mediaType === 'audio' && (
-                      <audio src={post.mediaUrl} controls className="w-full mt-3" />
+                      <audio src={post.mediaUrl} controls className="mt-3 w-full" />
                     )}
                     {post.mediaUrl && post.mediaType !== 'video' && post.mediaType !== 'audio' && (
-                      <img src={post.mediaUrl} alt="" className="w-full rounded-xl object-cover max-h-80 mt-3 border border-neutral-200 dark:border-neutral-700" loading="lazy" />
+                      <img src={post.mediaUrl} alt="" loading="lazy" className="mt-3 max-h-80 w-full rounded-m border border-[color:var(--line)] object-cover" />
                     )}
 
                     {post.poll && (() => {
@@ -280,61 +399,101 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                                 disabled={voted}
                                 onClick={() => handleVotePoll(post.id, i)}
                                 className={cn(
-                                  'relative w-full text-left rounded-xl border overflow-hidden transition-colors',
-                                  mine ? 'border-plum-400 dark:border-plum-600' : 'border-neutral-200 dark:border-neutral-700',
-                                  !voted && 'hover:border-plum-300 dark:hover:border-plum-700',
+                                  'relative w-full overflow-hidden rounded-m border text-left transition-colors duration-ui ease-ds',
+                                  mine ? 'border-transforme' : 'border-[color:var(--line)]',
+                                  !voted && 'hover:border-transforme',
                                 )}
                               >
-                                {voted && <div className="absolute inset-y-0 left-0 bg-plum-100 dark:bg-plum-900/30 transition-all" style={{ width: `${pct}%` }} />}
-                                <div className="relative flex items-center justify-between px-3 py-2 text-sm">
-                                  <span className="flex items-center gap-1.5 font-medium text-neutral-800 dark:text-neutral-200">
-                                    {mine && <Check className="w-4 h-4 text-plum-600 dark:text-plum-400" weight="bold" />}
+                                {voted && (
+                                  <span
+                                    aria-hidden="true"
+                                    className="prog-fill absolute inset-y-0 left-0 bg-[color-mix(in_srgb,var(--mm-violet)_12%,transparent)] transition-[width] duration-scene ease-ds"
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                )}
+                                <span className="relative flex items-center justify-between gap-2 px-3 py-2 text-meta">
+                                  <span className="flex items-center gap-1.5 font-medium text-ink-2">
+                                    {mine && <span className="text-transforme"><Icon name="check" size={14} /></span>}
                                     {opt}
                                   </span>
-                                  {voted && <span className="tabular-nums text-xs text-neutral-500 flex-shrink-0">{pct}%</span>}
-                                </div>
+                                  {voted && <Num value={pct} unit="%" source="db" asOf={asOf} className="flex-none" />}
+                                </span>
                               </button>
                             );
                           })}
-                          <p className="text-xs text-neutral-400">{t('feed.votes', { count: total })}{!voted && t('feed.tapToVote')}</p>
+                          <p className="text-meta-2 text-ink-2">
+                            {t('feed.votes', { count: total })}{!voted && t('feed.tapToVote')}
+                          </p>
                         </div>
                       );
                     })()}
 
-                    {/* Action bar — X-style icons + counts */}
-                    <div className="flex items-center justify-between max-w-md mt-3 -ml-1.5">
-                      <button onClick={() => handleToggleComments(post.id)} className={cn('group flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium transition-colors', commentsOpen ? 'text-plum-600 dark:text-plum-400' : 'text-neutral-400 hover:text-plum-600 dark:hover:text-plum-400')}>
-                        <span className="p-1 rounded-full group-hover:bg-plum-50 dark:group-hover:bg-plum-900/20 transition-colors">
-                          <ChatCircle className="w-[18px] h-[18px]" weight={commentsOpen ? 'fill' : 'regular'} />
-                        </span>
-                        {commentCount > 0 && <span className="tabular-nums">{commentCount}</span>}
+                    {/* Barre d'action */}
+                    <div className="mt-3 flex max-w-md items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleComments(post.id)}
+                        aria-expanded={commentsOpen}
+                        className={cn(
+                          'mm-touch-extend flex items-center gap-1.5 rounded-pill px-2 py-1 text-meta-2 font-medium transition-colors duration-ui ease-ds',
+                          commentsOpen ? 'text-transforme' : 'text-ink-2 hover:text-transforme',
+                        )}
+                      >
+                        <Icon name="comment" size={17} />
+                        {commentCount > 0 && <Num value={commentCount} source="db" asOf={asOf} />}
+                        <span className="sr-only">{t('feed.commentsAction')}</span>
                       </button>
 
-                      <button onClick={() => handleRepost(post.id, !reposted)} className={cn('group flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium transition-colors', reposted ? 'text-teal-600 dark:text-teal-400' : 'text-neutral-400 hover:text-teal-600 dark:hover:text-teal-400')}>
-                        <span className="p-1 rounded-full group-hover:bg-teal-50 dark:group-hover:bg-teal-900/20 transition-colors">
-                          <Repeat className="w-[18px] h-[18px]" weight={reposted ? 'bold' : 'regular'} />
-                        </span>
-                        {repostCount > 0 && <span className="tabular-nums">{repostCount}</span>}
+                      <button
+                        type="button"
+                        onClick={() => handleRepost(post.id, !reposted)}
+                        aria-pressed={reposted}
+                        className={cn(
+                          'mm-touch-extend flex items-center gap-1.5 rounded-pill px-2 py-1 text-meta-2 font-medium transition-colors duration-ui ease-ds',
+                          reposted ? 'text-digitalise-txt' : 'text-ink-2 hover:text-digitalise-txt',
+                        )}
+                      >
+                        <Icon name="repeat" size={17} />
+                        {repostCount > 0 && <Num value={repostCount} source="db" asOf={asOf} />}
+                        <span className="sr-only">{t('feed.repostAction')}</span>
                       </button>
 
-                      <button onClick={() => handleLikePost(post.id, !liked)} className={cn('group flex items-center gap-1.5 px-1.5 py-1 rounded-full text-xs font-medium transition-colors', liked ? 'text-coral-500' : 'text-neutral-400 hover:text-coral-500')}>
-                        <span className="p-1 rounded-full group-hover:bg-coral-50 dark:group-hover:bg-coral-900/20 transition-colors">
-                          <Heart className="w-[18px] h-[18px]" weight={liked ? 'fill' : 'regular'} />
-                        </span>
-                        {likeCount > 0 && <span className="tabular-nums">{likeCount}</span>}
+                      <button
+                        type="button"
+                        onClick={() => handleLikePost(post.id, !liked)}
+                        aria-pressed={liked}
+                        className={cn(
+                          'mm-touch-extend flex items-center gap-1.5 rounded-pill px-2 py-1 text-meta-2 font-medium transition-colors duration-ui ease-ds',
+                          liked ? 'text-corail-txt' : 'text-ink-2 hover:text-corail-txt',
+                        )}
+                      >
+                        <Icon name="heart" size={17} />
+                        {likeCount > 0 && <Num value={likeCount} source="db" asOf={asOf} />}
+                        <span className="sr-only">{t('feed.likeAction')}</span>
                       </button>
 
                       <div className="relative">
-                        <button onClick={() => { setShareMenuOpen(shareMenuOpen === post.id ? null : post.id); setPostMenuOpen(null); }} className="group flex items-center px-1.5 py-1 rounded-full text-neutral-400 hover:text-plum-600 dark:hover:text-plum-400 transition-colors">
-                          <span className="p-1 rounded-full group-hover:bg-plum-50 dark:group-hover:bg-plum-900/20 transition-colors">
-                            {copiedPostId === post.id ? <Check className="w-[18px] h-[18px] text-success-500" weight="bold" /> : <ShareFat className="w-[18px] h-[18px]" weight="regular" />}
-                          </span>
+                        <button
+                          type="button"
+                          aria-label={t('infos.share')}
+                          aria-expanded={shareMenuOpen === post.id}
+                          onClick={() => { setShareMenuOpen(shareMenuOpen === post.id ? null : post.id); setPostMenuOpen(null); }}
+                          className="mm-touch-extend flex items-center rounded-pill px-2 py-1 text-ink-2 transition-colors duration-ui ease-ds hover:text-transforme"
+                        >
+                          {copiedPostId === post.id
+                            ? <span className="text-ok"><Icon name="check" size={17} /></span>
+                            : <Icon name="share" size={17} />}
                         </button>
                         {shareMenuOpen === post.id && (
-                          <div className="absolute right-0 bottom-full mb-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-44 max-w-[calc(100vw-1.5rem)]">
+                          <div className="glass-flat absolute bottom-full right-0 z-30 mb-1 w-44 max-w-[calc(100vw-1.5rem)] p-1.5">
                             {SHARE_PLATFORMS.map((p) => (
-                              <button key={p.id} onClick={() => handleShare(p.id, post)} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
-                                <span>{p.emoji}</span> {p.label}
+                              <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => handleShare(p.id, post)}
+                                className="flex w-full items-center gap-2 rounded-s px-3 py-2 text-meta-2 text-ink-2 transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]"
+                              >
+                                <Icon name={p.icon} size={15} /> {p.label}
                               </button>
                             ))}
                           </div>
@@ -343,16 +502,25 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                     </div>
                   </div>
 
-                  {/* Overflow menu (author) */}
                   {isOwner && (
-                    <div className="relative flex-shrink-0">
-                      <button onClick={() => { setPostMenuOpen(postMenuOpen === post.id ? null : post.id); setShareMenuOpen(null); }} className="p-1.5 rounded-full text-neutral-300 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
-                        <DotsThree className="w-5 h-5" weight="bold" />
+                    <div className="relative flex-none">
+                      <button
+                        type="button"
+                        aria-label={t('feed.postMenu')}
+                        aria-expanded={postMenuOpen === post.id}
+                        onClick={() => { setPostMenuOpen(postMenuOpen === post.id ? null : post.id); setShareMenuOpen(null); }}
+                        className="mm-touch-extend rounded-pill p-1.5 text-ink-2 transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]"
+                      >
+                        <Icon name="dots" size={18} />
                       </button>
                       {postMenuOpen === post.id && (
-                        <div className="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg p-1.5 min-w-40 max-w-[calc(100vw-1.5rem)]">
-                          <button onClick={() => { handleDeleteClubPost(post.id); setPostMenuOpen(null); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors">
-                            <Trash className="w-4 h-4" weight="duotone" /> {t('feed.delete')}
+                        <div className="glass-flat absolute right-0 top-full z-30 mt-1 w-40 max-w-[calc(100vw-1.5rem)] p-1.5">
+                          <button
+                            type="button"
+                            onClick={() => { handleDeleteClubPost(post.id); setPostMenuOpen(null); }}
+                            className="flex w-full items-center gap-2 rounded-s px-3 py-2 text-meta-2 font-medium text-stop transition-colors duration-ui ease-ds hover:bg-[color-mix(in_srgb,var(--stop)_10%,transparent)]"
+                          >
+                            <Icon name="trash" size={15} /> {t('feed.delete')}
                           </button>
                         </div>
                       )}
@@ -360,57 +528,88 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                   )}
                 </div>
 
-                {/* Comments */}
+                {/* Commentaires */}
                 {commentsOpen && (
-                  <div className="mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-700 space-y-3 pl-3 sm:pl-14">
+                  <div className="mt-3 space-y-3 border-t border-[color:var(--border-hair)] pt-3 sm:pl-14">
                     {loadingComments[post.id] ? (
-                      <div className="flex justify-center py-4"><CircleNotch className="w-5 h-5 animate-spin text-plum-500" /></div>
+                      <div className="space-y-2">
+                        <Skeleton height={44} radius="var(--r-m)" label={t('feed.commentsAction')} />
+                        <Skeleton height={44} radius="var(--r-m)" label={t('feed.commentsAction')} />
+                      </div>
                     ) : (postComments[post.id] ?? []).length === 0 ? (
-                      <p className="text-xs text-neutral-400 text-center py-2">{t('feed.noComments')}</p>
+                      <p className="py-2 text-center text-meta-2 text-ink-2">{t('feed.noComments')}</p>
                     ) : (
                       <div className="space-y-2.5">
                         {(postComments[post.id] ?? []).map((c) => (
-                          <div key={c.id} className="flex items-start gap-2 group">
-                            <div className="w-7 h-7 rounded-full bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                              {c.userPhoto ? <img src={c.userPhoto} alt="" className="w-full h-full object-cover" /> : <span className="text-[10px] font-bold text-neutral-500">{c.userName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}</span>}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl rounded-tl-sm px-3 py-2">
-                                <p className="text-xs font-semibold text-neutral-900 dark:text-white flex items-center gap-1">
+                          <div key={c.id} className="group flex items-start gap-2">
+                            {c.userPhoto
+                              ? <img src={c.userPhoto} alt="" loading="lazy" className="h-7 w-7 flex-none rounded-full object-cover" />
+                              : <Avatar initials={initialsOf(c.userName)} size={28} />}
+                            <div className="min-w-0 flex-1">
+                              <div className="rounded-m rounded-tl-s bg-[color:var(--fill-1)] px-3 py-2">
+                                <p className="flex items-center gap-1 text-meta-2 font-semibold text-ink">
                                   {c.userName}
-                                  {c.isAdmin && <SealCheck className="w-3 h-3 text-plum-500" weight="fill" />}
+                                  {c.isAdmin && (
+                                    <span className="text-transforme">
+                                      <Icon name="check" size={12} title={t('feed.adminBadge')} />
+                                    </span>
+                                  )}
                                 </p>
-                                <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5 whitespace-pre-wrap break-words">{c.content}</p>
+                                <p className="mt-0.5 whitespace-pre-wrap break-words text-meta-2 text-ink-2">{c.content}</p>
                               </div>
-                              <span className="text-[10px] text-neutral-400 ml-1">{formatDate(c.createdAt)}</span>
+                              <span className="ml-1 text-small text-ink-2">{formatDate(c.createdAt)}</span>
                             </div>
-                            {user && (c.userId === user.uid) && (
-                              <button onClick={() => handleDeleteComment(post.id, c.id)} className="p-1 rounded-lg opacity-0 group-hover:opacity-100 text-neutral-300 hover:text-error-500 transition-all">
-                                <X className="w-3.5 h-3.5" weight="bold" />
+                            {user && c.userId === user.uid && (
+                              <button
+                                type="button"
+                                aria-label={t('feed.delete')}
+                                onClick={() => handleDeleteComment(post.id, c.id)}
+                                className="mm-touch-extend rounded-s p-1 text-ink-2 opacity-0 transition-opacity duration-ui ease-ds hover:text-stop focus-visible:opacity-100 group-hover:opacity-100"
+                              >
+                                <Icon name="close" size={14} />
                               </button>
                             )}
                           </div>
                         ))}
                       </div>
                     )}
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-plum-100 dark:bg-plum-900/40 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {photoURL ? <img src={photoURL} alt="" className="w-full h-full object-cover" /> : <span className="text-[10px] font-bold text-plum-600 dark:text-plum-400">{initials}</span>}
-                      </div>
-                      <input
+
+                    {/*
+                      UN VRAI `<form>` : la touche Entrée soumet nativement, et le clavier
+                      logiciel mobile — dont la touche d'envoi soumet le formulaire sans
+                      toujours émettre d'Entrée — fonctionne sans écouteur de touche.
+                    */}
+                    <form
+                      onSubmit={(e) => { e.preventDefault(); handleAddComment(post.id); }}
+                      className="flex items-end gap-2"
+                    >
+                      {photoURL
+                        ? <img src={photoURL} alt="" className="mb-2 h-7 w-7 flex-none rounded-full object-cover" />
+                        : <Avatar initials={initials} size={28} style={{ marginBottom: '8px' }} />}
+                      <Field
+                        label={t('feed.commentLabel')}
+                        hideLabel
                         value={commentDraft[post.id] ?? ''}
-                        onChange={(e) => setCommentDraft((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(post.id); } }}
+                        onChange={(v) => setCommentDraft((prev) => ({ ...prev, [post.id]: v }))}
                         placeholder={t('feed.commentPlaceholder')}
-                        className="flex-1 px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-plum-500/20 focus:border-plum-500 placeholder-neutral-400"
+                        className="flex-1"
+                        style={{ marginTop: 0 }}
                       />
-                      <button onClick={() => handleAddComment(post.id)} disabled={submittingComment === post.id || !commentDraft[post.id]?.trim()} className="p-2 rounded-full bg-plum-600 text-white hover:bg-plum-700 disabled:opacity-50 transition-colors flex-shrink-0">
-                        {submittingComment === post.id ? <CircleNotch className="w-3.5 h-3.5 animate-spin" /> : <PaperPlaneTilt className="w-3.5 h-3.5" weight="fill" />}
-                      </button>
-                    </div>
+                      <Button
+                        tone="transforme"
+                        size="sm"
+                        type="submit"
+                        loading={submittingComment === post.id}
+                        disabled={!commentDraft[post.id]?.trim()}
+                        style={{ marginBottom: '0' }}
+                      >
+                        <Icon name="send" size={15} />
+                        <span className="sr-only">{t('feed.commentSend')}</span>
+                      </Button>
+                    </form>
                   </div>
                 )}
-              </div>
+              </GlassPanel>
             );
           })}
         </div>

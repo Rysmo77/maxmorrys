@@ -11,14 +11,15 @@ export interface EditorialSegment {
 }
 
 const COLOR_CLASS: Record<EditorialColor, string> = {
-  brand: 'text-brand-600 dark:text-brand-400',
-  accent: 'text-accent-500 dark:text-accent-400',
-  coral: 'text-coral-600 dark:text-coral-400',
-  plum: 'text-plum-600 dark:text-plum-400',
-  morrys: 'text-morrys-600 dark:text-morrys-400',
-  // ⚠️ `lagoon-500` sur blanc ne fait que 2,6:1 — interdit pour du texte. On monte à `-700`
-  // en clair et on redescend à `-400` en sombre. Voir tailwind.config.js et sectionThemes.ts.
-  lagoon: 'text-lagoon-700 dark:text-lagoon-400',
+  brand: 'text-forme',
+  accent: 'text-informe-txt',
+  coral: 'text-corail-txt',
+  plum: 'text-transforme',
+  morrys: 'text-transforme',
+  // ⚠️ `--mm-teal` sur blanc ne fait que 2,84:1 — interdit pour du texte. `text-digitalise-txt`
+  // lit `--mm-teal-t`, foncé en clair, qui repasse sur la variante nuit sous `.dk`, sans
+  // aucune classe `dark:`. Voir sectionThemes.ts et AD-20.
+  lagoon: 'text-digitalise-txt',
 };
 
 interface CircularBadgeProps {
@@ -37,7 +38,7 @@ export function CircularBadge({ text, center, className = '' }: CircularBadgePro
     <div className={`relative ${className}`}>
       <svg
         viewBox="0 0 100 100"
-        className="w-full h-full animate-[spin_22s_linear_infinite] text-neutral-500 dark:text-neutral-400"
+        className="w-full h-full animate-[spin_22s_linear_infinite] text-ink-2"
         aria-hidden="true"
       >
         <defs>
@@ -49,7 +50,7 @@ export function CircularBadge({ text, center, className = '' }: CircularBadgePro
       </svg>
       {center && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-bold text-lg text-neutral-700 dark:text-neutral-200">{center}</span>
+          <span className="font-bold text-lg text-ink-2">{center}</span>
         </div>
       )}
     </div>
@@ -90,7 +91,7 @@ export default function EditorialHeading({
           {eyebrow}
         </p>
       )}
-      <Tag className="text-5xl lg:text-6xl font-black tracking-tight text-balance text-neutral-900 dark:text-white">
+      <Tag className="text-5xl lg:text-6xl font-black tracking-tight text-balance text-ink">
         {segments.map((seg, i) => (
           <span key={i} className={seg.color ? COLOR_CLASS[seg.color] : undefined}>
             {seg.text}

@@ -1,6 +1,25 @@
 import { cn } from '../../lib/utils';
 import type { ReactNode, ButtonHTMLAttributes } from 'react';
 
+/**
+ * LE BOUTON DE LA CONSOLE — et les deux règles qu'il enfreignait.
+ *
+ * Il reste distinct du `Button` de `@ds` tant que la console n'est pas portée : ses cinq
+ * variantes (dont `danger`, que le système ne nomme pas) et son API `icon` sont câblées dans
+ * une cinquantaine d'appels. Mais deux de ses comportements contredisaient le système, et
+ * ils sont corrigés ici plutôt que dans chacun de ces appels :
+ *
+ * 1 · IL FAISAIT TOURNER UN ROND. Le contrat du `Button` du système est explicite : « le
+ *     libellé RESTE pendant le chargement — un bouton dont le texte disparaît fait douter de
+ *     ce qu'on vient de déclencher. Un liseré le balaie. Jamais de rond qui tourne. » Celui-ci
+ *     REMPLAÇAIT l'icône par un rond : le libellé restait, mais l'action, elle, disparaissait.
+ *     Il porte désormais `.mm-loading`, le liseré du système, et garde son icône.
+ *
+ * 2 · IL BARRAIT LE CURSEUR. `cursor: not-allowed` se lit comme une erreur de la personne
+ *     alors que c'est un état du produit — le système impose `default`, et `states.css`
+ *     l'applique déjà à tout `[disabled]`. La classe est retirée pour ne pas la contredire.
+ */
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
@@ -10,11 +29,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 shadow-sm',
-  secondary: 'bg-neutral-800 text-white hover:bg-neutral-900 dark:bg-neutral-200 dark:text-neutral-900 dark:hover:bg-neutral-100',
-  outline: 'border-2 border-neutral-300 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800',
-  ghost: 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800',
-  danger: 'bg-error-600 text-white hover:bg-error-700 active:bg-error-800',
+  primary: 'bg-forme text-white hover:bg-forme active:bg-forme shadow-sm',
+  secondary: 'bg-[color:var(--night-3)] text-white hover:bg-[color:var(--night-3)] dark:hover:bg-[color:var(--fill-2)]',
+  // Les jetons de remplissage s'inversent seuls sous `.dk` — de teintes d'encre à teintes de
+  // lumière — donc le survol n'a pas de moitié sombre à écrire.
+  outline: 'border-2 border-[color:var(--line)] text-ink hover:bg-[color:var(--fill-1)]',
+  ghost: 'text-ink-2 hover:bg-[color:var(--fill-2)]',
+  danger: 'bg-stop text-white hover:bg-stop active:bg-stop',
 };
 
 const sizes = {
@@ -36,22 +57,20 @@ export default function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-semibold rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed',
+        'mm-press inline-flex items-center justify-center gap-2 font-semibold rounded-full transition duration-200 focus:outline-none',
+        loading && 'mm-loading',
         variants[variant],
         sizes[size],
         className
       )}
       disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...props}
     >
-      {loading ? (
-        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-      ) : icon ? (
-        icon
-      ) : null}
+      {/* L'icône NE BOUGE PAS pendant le chargement : c'est le liseré de `.mm-loading` qui
+          dit que quelque chose se passe. Échanger l'icône contre un rond faisait disparaître
+          l'action qu'on venait de déclencher, au moment précis où on la cherche des yeux. */}
+      {icon}
       {children}
     </button>
   );

@@ -1,12 +1,34 @@
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { Search, Plus, X, Edit3, Trash2, FileText, Save, Loader2 } from 'lucide-react';
-import Button from '../../../components/ui/Button';
+import { Button, EmptyState, Field, GlassPanel, Icon, IconButton, LessonRow, Num, SearchPill, Skeleton, Tag } from '@ds';
 import { useFormat } from '../../../hooks/useFormat';
 import type { Note } from '../../../lib/firestore';
-import { staggerContainer, staggerItem } from '../../../lib/animations';
 
-const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors placeholder-neutral-400';
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * L'ÉCRAN « MES NOTES » — le cinquième des écrans qui portent la barre d'onglets.
+ *
+ * Recomposé sur `ui_kits/plateforme/ScreensNotes.js` § MesNotes : un compte en tête, une
+ * étiquette qui dit qui les lit, la liste en lignes, et l'encart de vérité en pied.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUI A DISPARU, ET POURQUOI
+ *
+ * · « LA PRISE DE NOTES AUGMENTE LA RÉTENTION DE 40 % ». Un chiffre d'étude que le produit ne
+ *   mesure pas, ne cite pas, et ne peut pas prouver. Il est remplacé par ce que les notes
+ *   font réellement ici : elles survivent au cours et suivent d'un appareil à l'autre.
+ *
+ * · LES DEUX COMMANDES AU SURVOL. Modifier et supprimer n'apparaissaient qu'au survol
+ *   (`opacity-0 group-hover:opacity-100`) : sur un écran tactile, où il n'y a pas de survol,
+ *   les deux commandes étaient invisibles et atteintes par accident. Elles sont désormais
+ *   posées en permanence, à la taille de cible exigée.
+ *
+ * POURQUOI LA LIGNE N'EST PAS CLIQUABLE. Le contrat de <LessonRow> demande de ne pas mettre
+ * de contrôle dans son `trailing` ; le kit en met un lui-même sur l'écran de mémoire. Il est
+ * tranché ici par le HTML : une ligne cliquable est un `<button>`, et un bouton de
+ * suppression à l'intérieur d'un bouton est invalide. La ligne reste donc inerte, et porte
+ * ses deux commandes nommées.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
 
 interface NotesTabProps {
   notes: Note[];
@@ -28,6 +50,7 @@ interface NotesTabProps {
 }
 
 export default function NotesTab({
+  notes,
   filteredNotes,
   loadingNotes,
   showNoteForm,
@@ -46,6 +69,10 @@ export default function NotesTab({
 }: NotesTabProps) {
   const { t } = useTranslation('lmsTabs');
   const { formatDate } = useFormat();
+
+  /* La date du relevé : l'instant de la lecture qui a produit cette liste. */
+  const asOf = new Date();
+
   const handleSave = async () => {
     const result = await onSaveNote();
     if (result?.success) {
@@ -61,78 +88,119 @@ export default function NotesTab({
     else if (success === false) addToast('error', t('notes.toastDeleteError'));
   };
 
-  return (
-    <div className="space-y-4">
-      {showNoteForm ? (
-        <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 space-y-4">
-          <h3 className="font-bold text-neutral-900 dark:text-white">{editingNote ? t('notes.editTitle') : t('notes.newTitle')}</h3>
-          <input
+  /* ── Le formulaire prend tout l'écran : écrire une note n'est pas une tâche de côté. ── */
+  if (showNoteForm) {
+    return (
+      <div className="mx-auto max-w-4xl px-[18px] py-6">
+        <p className="mm-eyebrow m-0">{t('notes.screenTitle')}</p>
+        <h1 className="mt-[6px] font-display text-dsp-xs text-ink">
+          {editingNote ? t('notes.editTitle') : t('notes.newTitle')}
+        </h1>
+
+        <GlassPanel level="hero" padding={22} className="mt-[18px]">
+          <Field
+            label={t('notes.titleLabel')}
             value={noteForm.title}
-            onChange={(e) => setNoteForm((p) => ({ ...p, title: e.target.value }))}
+            onChange={(v) => setNoteForm((p) => ({ ...p, title: v }))}
             placeholder={t('notes.titlePlaceholder')}
             maxLength={200}
-            className={inputCls}
+            style={{ marginTop: 0 }}
           />
-          <textarea
+          <Field
+            as="textarea"
+            label={t('notes.contentLabel')}
             value={noteForm.content}
-            onChange={(e) => setNoteForm((p) => ({ ...p, content: e.target.value }))}
+            onChange={(v) => setNoteForm((p) => ({ ...p, content: v }))}
             placeholder={t('notes.contentPlaceholder')}
-            rows={8}
-            className={`${inputCls} resize-y font-mono`}
+            rows={10}
           />
-          <div className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={() => setShowNoteForm(false)} icon={<X className="w-4 h-4" />}>{t('notes.cancel')}</Button>
-            <Button onClick={handleSave} disabled={savingNote || !noteForm.title.trim()} icon={savingNote ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
+          <div className="mt-[17px] flex gap-[8px]">
+            <Button tone="quiet" onClick={() => setShowNoteForm(false)}>{t('notes.cancel')}</Button>
+            <Button
+              tone="forme"
+              onClick={() => void handleSave()}
+              disabled={savingNote || !noteForm.title.trim()}
+              loading={savingNote}
+            >
               {savingNote ? t('notes.saving') : t('notes.save')}
             </Button>
           </div>
+        </GlassPanel>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-4xl px-[18px] py-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="m-0 font-display text-dsp-xs text-ink">{t('notes.screenTitle')}</h1>
+          <p className="m-0 mt-[2px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
+            <Num value={notes.length} source="db" asOf={asOf} /> {t('notes.countLabel')}
+          </p>
         </div>
+        <Tag>{t('notes.privateTag')}</Tag>
+      </div>
+
+      <div className="mt-[14px] flex flex-wrap items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <SearchPill
+            label={t('notes.searchLabel')}
+            labelHidden
+            placeholder={t('notes.searchPlaceholder')}
+            value={noteSearch}
+            onChange={setNoteSearch}
+            height={48}
+            icon={<Icon name="search" size={17} strokeWidth={2.4} />}
+          />
+        </div>
+        <Button tone="forme" size="sm" fullWidth={false} onClick={openNewNote}>{t('notes.newNote')}</Button>
+      </div>
+
+      {loadingNotes ? (
+        <div className="mt-[14px] grid gap-[8px]">
+          {[0, 1, 2].map((i) => <Skeleton key={i} height={62} radius="var(--r-m)" label={t('notes.loadingLabel')} />)}
+        </div>
+      ) : filteredNotes.length === 0 ? (
+        <GlassPanel level="hero" padding={22} className="mt-[14px]">
+          <EmptyState
+            glyph={<Icon name="comment" size={26} style={{ color: 'var(--mm-bleu)' }} />}
+            glyphBackground="color-mix(in srgb, var(--mm-bleu) 14%, transparent)"
+            title={t('notes.emptyTitle')}
+            body={t('notes.emptyText')}
+            action={<Button tone="forme" onClick={openNewNote}>{t('notes.createFirst')}</Button>}
+          />
+        </GlassPanel>
       ) : (
-        <>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="relative w-full sm:flex-1 sm:max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-              <input value={noteSearch} onChange={(e) => setNoteSearch(e.target.value)} placeholder={t('notes.searchPlaceholder')} className="w-full pl-10 pr-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-neutral-900 dark:text-white" />
-            </div>
-            <Button size="sm" className="w-full sm:w-auto" onClick={openNewNote} icon={<Plus className="w-4 h-4" />}>{t('notes.newNote')}</Button>
-          </div>
-          {loadingNotes ? (
-            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-brand-500" /></div>
-          ) : filteredNotes.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-100 to-accent-50 dark:from-accent-900/40 dark:to-accent-900/20 flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-7 h-7 text-accent-500" />
-              </div>
-              <h4 className="font-bold text-neutral-900 dark:text-white mb-1">{t('notes.emptyTitle')}</h4>
-              <p className="text-sm text-neutral-500 mb-4 max-w-xs mx-auto">
-                {t('notes.emptyText')}
-              </p>
-              <Button size="sm" onClick={openNewNote} icon={<Plus className="w-4 h-4" />}>{t('notes.createFirst')}</Button>
-            </div>
-          ) : (
-            <motion.div
-              className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-            >
-              {filteredNotes.map((note) => (
-                <motion.div key={note.id} variants={staggerItem} className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-4 group hover:-translate-y-0.5 hover:shadow-md transition-all duration-300">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h4 className="font-semibold text-neutral-900 dark:text-white text-sm line-clamp-1">{note.title}</h4>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                      <button onClick={() => openEditNote(note)} className="p-1 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => handleDelete(note.id)} className="p-1 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-                  </div>
-                  <p className="text-xs text-neutral-500 line-clamp-3 mb-3">{note.content}</p>
-                  <p className="text-xs text-neutral-400">{formatDate(note.updatedAt)}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </>
+        <GlassPanel level="flat" padding="6px 18px" className="mt-[14px]">
+          {filteredNotes.map((note, i) => (
+            <LessonRow
+              key={note.id}
+              state="plain"
+              icon={<Icon name="comment" size={14} />}
+              title={note.title}
+              meta={formatDate(note.updatedAt)}
+              last={i === filteredNotes.length - 1}
+              trailing={
+                <span className="flex flex-shrink-0 gap-[8px]">
+                  <IconButton label={`${t('notes.edit')} : ${note.title}`} onClick={() => openEditNote(note)}>
+                    <Icon name="pencil" size={15} />
+                  </IconButton>
+                  <IconButton label={`${t('notes.delete')} : ${note.title}`} onClick={() => void handleDelete(note.id)}>
+                    <Icon name="trash" size={15} style={{ color: 'var(--stop)' }} />
+                  </IconButton>
+                </span>
+              }
+            />
+          ))}
+        </GlassPanel>
       )}
+
+      {/* L'encart de vérité du kit : un sourcil, un paragraphe, aucun chiffre. */}
+      <GlassPanel level="truth" className="mt-[16px]">
+        <p className="mm-eyebrow m-0 mb-[6px]">{t('notes.truthTitle')}</p>
+        <p className="m-0 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>{t('notes.truthBody')}</p>
+      </GlassPanel>
     </div>
   );
 }

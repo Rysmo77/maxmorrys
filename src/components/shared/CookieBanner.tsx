@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Cookie, X } from 'lucide-react';
 import Button from '../ui/Button';
 import { grantPixelConsent, revokePixelConsent } from '../../lib/meta-pixel';
+import { Icon } from '@ds';
 
 export interface CookieConsent {
   analytics: boolean;
@@ -123,48 +123,48 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6 animate-slide-up">
-      <div className="max-w-3xl mx-auto bg-white dark:bg-neutral-800 rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-700 p-6">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6 mm-drop">
+      <div className="max-w-3xl mx-auto bg-paper rounded-2xl shadow-xl border border-[color:var(--line)] p-6">
         <div className="flex items-start gap-4">
-          <div className="p-2 bg-accent-100 dark:bg-accent-900/30 rounded-xl flex-shrink-0">
-            <Cookie className="w-5 h-5 text-accent-600 dark:text-accent-400" />
+          <div className="p-2 bg-[color-mix(in_srgb,var(--mm-orange)_4%,transparent)] rounded-xl flex-shrink-0">
+            <Icon name="cookie" size={20} className="text-informe-txt" />
           </div>
           <div className="flex-1">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-semibold text-neutral-900 dark:text-white mb-1">{t('cookies.title')}</h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                <h3 className="font-semibold text-ink mb-1">{t('cookies.title')}</h3>
+                <p className="text-sm text-ink-2 leading-relaxed">
                   {t('cookies.text')}
                 </p>
               </div>
-              <button onClick={() => setVisible(false)} className="p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300" aria-label={t('cookies.close')}>
-                <X className="w-4 h-4" />
+              <button onClick={() => setVisible(false)} className="p-1 text-ink-2 hover:text-ink-2 dark:hover:text-ink-2" aria-label={t('cookies.close')}>
+                <Icon name="close" size={16} />
               </button>
             </div>
 
             {showDetails && (
               <div className="mt-4 space-y-3 text-sm">
-                <label className="flex items-center gap-3 cursor-not-allowed opacity-70">
-                  <input type="checkbox" checked disabled className="rounded accent-brand-600" />
-                  <span className="text-neutral-700 dark:text-neutral-300"><strong>{t('cookies.essentialLabel')}</strong> — {t('cookies.essentialDesc')}</span>
+                <label className="flex items-center gap-3 opacity-70">
+                  <input type="checkbox" checked disabled className="rounded accent-[color:var(--mm-bleu)]" />
+                  <span className="text-ink-2"><strong>{t('cookies.essentialLabel')}</strong> — {t('cookies.essentialDesc')}</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={analytics}
                     onChange={(e) => setAnalytics(e.target.checked)}
-                    className="rounded accent-brand-600"
+                    className="rounded accent-[color:var(--mm-bleu)]"
                   />
-                  <span className="text-neutral-700 dark:text-neutral-300"><strong>{t('cookies.analyticsLabel')}</strong> — {t('cookies.analyticsDesc')}</span>
+                  <span className="text-ink-2"><strong>{t('cookies.analyticsLabel')}</strong> — {t('cookies.analyticsDesc')}</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={marketing}
                     onChange={(e) => setMarketing(e.target.checked)}
-                    className="rounded accent-brand-600"
+                    className="rounded accent-[color:var(--mm-bleu)]"
                   />
-                  <span className="text-neutral-700 dark:text-neutral-300"><strong>{t('cookies.marketingLabel')}</strong> — {t('cookies.marketingDesc')}</span>
+                  <span className="text-ink-2"><strong>{t('cookies.marketingLabel')}</strong> — {t('cookies.marketingDesc')}</span>
                 </label>
               </div>
             )}
@@ -177,7 +177,7 @@ export default function CookieBanner() {
               )}
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-sm text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 underline underline-offset-2"
+                className="text-sm text-ink-2 hover:text-ink dark:hover:text-ink-2 underline underline-offset-2"
               >
                 {showDetails ? t('cookies.hideDetails') : t('cookies.customize')}
               </button>

@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
  * piège de focus, et restitution du focus à l'élément d'origine.
  *
  * ⚠️ Pourquoi ce hook existe alors que `ui/Modal` fait déjà tout cela : `ui/Modal` est une carte
- * claire à en-tête et gouttière fixe (`bg-white`, `p-6`). Les pop-ups contextuelles sont une
+ * claire à en-tête et gouttière fixe (`bg-paper`, `p-6`). Les pop-ups contextuelles sont une
  * surface éditoriale sombre à fond perdu, en deux colonnes — elles ne peuvent pas vivre dans ce
  * conteneur. Plutôt que d'ouvrir `ui/Modal` à des variantes qui compliqueraient un composant
  * utilisé partout, la mécanique est extraite ici. `ui/Modal` pourra l'adopter plus tard.
