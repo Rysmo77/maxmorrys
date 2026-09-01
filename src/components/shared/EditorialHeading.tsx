@@ -91,7 +91,7 @@ export default function EditorialHeading({
           {eyebrow}
         </p>
       )}
-      <Tag className="text-5xl lg:text-6xl font-black tracking-tight text-balance text-ink">
+      <Tag className="text-5xl wide:text-6xl font-black tracking-tight text-balance text-ink">
         {segments.map((seg, i) => (
           <span key={i} className={seg.color ? COLOR_CLASS[seg.color] : undefined}>
             {seg.text}

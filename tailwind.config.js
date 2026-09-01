@@ -212,7 +212,29 @@ export default {
       // la colonne de lecture ne s'élargit jamais, à 1400 px comme à 390.
       maxWidth: { prose: t('measure-prose'), doc: t('measure-doc') },
 
-      screens: { stack: '700px', wide: '1080px' },
+      /*
+       * ── LE SYSTÈME NE DÉCLARE QUE DEUX RUPTURES, ET MAINTENANT LUI SEUL EN A ──────
+       *
+       * `brand/breakpoints.css` — copie littérale du kit — n'écrit que deux media
+       * queries : 700 px et 1080 px. Le dépôt en pratiquait pourtant QUATRE de plus,
+       * celles de Tailwind : `sm` 640, `md` 768, `lg` 1024, `xl` 1280, sur 116 classes.
+       *
+       * Concrètement, deux règles de mise en page basculaient à 60 px d'écart sur la
+       * même page : une grille passait à deux colonnes à 640 pendant que la carte
+       * voisine attendait 700. La bande entre les deux n'a jamais été dessinée par
+       * personne — et c'est justement la largeur qui compte le plus ici, la tablette
+       * en portrait.
+       *
+       * Les 116 classes sont migrées vers la rupture la plus proche (`sm`/`md` →
+       * `stack`, `lg`/`xl` → `wide`) — vérifié sans aucune collision. Et les quatre
+       * échelles héritées sont ANNULÉES, comme les couleurs le sont plus haut : un
+       * `sm:` oublié ne rend désormais RIEN, donc il se voit.
+       */
+      screens: {
+        stack: '700px',
+        wide: '1080px',
+        sm: undefined, md: undefined, lg: undefined, xl: undefined, '2xl': undefined,
+      },
 
       boxShadow: {
         glass: t('glass-sh'),

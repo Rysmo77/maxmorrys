@@ -227,7 +227,7 @@ export default function StudentLayout() {
         { to: '/mon-espace/club',            label: t('nav.bottomClub'),    icon: 'crown' },
         { to: '/mon-espace/profil',          label: t('nav.bottomProfile'), icon: 'user' },
       ]}
-      contentClassName="p-4 sm:p-6 max-w-6xl mx-auto w-full"
+      contentClassName="p-4 stack:p-6 max-w-6xl mx-auto w-full"
       outletContext={context}
       beforeOutlet={
         showOnboarding ? (

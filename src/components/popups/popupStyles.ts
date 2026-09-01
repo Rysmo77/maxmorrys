@@ -17,7 +17,7 @@ export const CTA_BRAND = 'group inline-flex items-center gap-2 px-6 py-3 rounded
 export const DISMISS = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none rounded';
 
 /** Paragraphe de corps. */
-export const BODY = 'mt-2 lg:mt-4 text-sm text-white/60 leading-relaxed max-w-md';
+export const BODY = 'mt-2 wide:mt-4 text-sm text-white/60 leading-relaxed max-w-md';
 
 /** Rangée d'actions : le CTA et la sortie, jamais empilés sur mobile. */
-export const ACTIONS = 'mt-4 lg:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2';
+export const ACTIONS = 'mt-4 wide:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2';

@@ -25,7 +25,7 @@ export default function ClientWorkIndex() {
   const { t } = useTranslation('agency');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   /*
-   * ⚠️ Rendu conditionnel en JS, pas en CSS. Un `lg:hidden` monterait quand même le panneau
+   * ⚠️ Rendu conditionnel en JS, pas en CSS. Un `wide:hidden` monterait quand même le panneau
    * mobile ET le panneau desktop : deux `SitePreview` pour un seul projet, donc deux captures
    * externes téléchargées au lieu d'une. `display: none` cache, il n'empêche pas de charger.
    */
@@ -56,7 +56,7 @@ export default function ClientWorkIndex() {
         resultCount={filtered.length}
       />
 
-      <div className="mt-10 grid gap-10 wide:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-14">
+      <div className="mt-10 grid gap-10 wide:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] wide:gap-14">
         {/* ── Index ─────────────────────────────────────────────────────────── */}
         <motion.ul
           // `key` composite : rejoue le stagger à chaque changement de filtre.
@@ -109,12 +109,12 @@ export default function ClientWorkIndex() {
                   </span>
                   {/* Chevron : sur mobile il signale l'accordéon, sur desktop la sélection. */}
                   <Icon name="chevron" className={cn(
-                      'w-4 h-4 shrink-0 transition-transform lg:hidden',
+                      'w-4 h-4 shrink-0 transition-transform wide:hidden',
                       isSelected && 'rotate-180',
                     )} />
                   <span
                     className={cn(
-                      'hidden lg:block w-6 h-px transition shrink-0',
+                      'hidden wide:block w-6 h-px transition shrink-0',
                       isSelected ? 'bg-digitalise w-10' : 'bg-[color:var(--fill-4)] group-hover:w-10',
                     )}
                     aria-hidden="true"

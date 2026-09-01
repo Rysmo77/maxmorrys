@@ -76,7 +76,7 @@ export function Sheet({ open, onClose, title, children, closeLabel = 'Fermer' }:
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 lg:hidden">
+    <div className="fixed inset-0 z-50 wide:hidden">
       {/* Voile — DÉCORATIF pour un lecteur d'écran.
           Il ferme au clic, mais ce n'est pas la seule sortie : Échap ferme aussi, et le
           panneau porte un bouton de fermeture. `aria-hidden` évite donc d'annoncer un

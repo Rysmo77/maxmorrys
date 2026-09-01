@@ -463,7 +463,7 @@ export default function BlogPost() {
           </article>
 
           {/* La colonne latérale colle sous le chrome, pas sous le haut de la fenêtre. */}
-          {/* `wide:` et non `lg:` : la colonne devient collante à la rupture où la grille
+          {/* `wide:` et non `wide:` : la colonne devient collante à la rupture où la grille
               passe à deux colonnes (1080), pas cinquante-six pixels plus tôt. */}
           <aside className="grid min-w-0 gap-[14px] wide:sticky wide:top-[calc(var(--header-h)+1rem)]">
             {/*

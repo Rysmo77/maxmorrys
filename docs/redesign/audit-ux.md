@@ -256,16 +256,31 @@ Second point, structurel : `fonts.css` charge les vraies fontes par `@import url
 de l'URL Google → feuille Google → `woff2`. Trois allers-retours avant le premier texte
 dans la bonne fonte, sur des appareils dont le profil courant est `deviceMemory ≤ 2`.
 
-### 4.5 ◐ Moyen — deux systèmes de points de rupture coexistent
+### 4.5 ✅ CORRIGÉ — deux systèmes de points de rupture coexistaient
 
-| Origine | Points | Usages |
-|---|---|---|
-| Kit | `stack` (700 px), `wide` (1080 px) | **210** |
-| Tailwind par défaut | `sm` 640, `md` 768, `lg` 1024, `xl` 1280 | **129** |
+`brand/breakpoints.css`, copie littérale du kit, n'écrit que **deux** media queries :
+700 px et 1080 px. Le dépôt en pratiquait **quatre de plus**, celles de Tailwind —
+`sm` 640 (49 usages), `md` 768 (2), `lg` 1024 (64), `xl` 1280 (1). **116 classes.**
 
-`sm:` (640) et `stack:` (700) produisent une bande de 60 px où deux règles de mise en page
-basculent à des moments différents. `md:` n'est utilisé que 6 fois — assez pour créer une
-exception, pas assez pour constituer une intention.
+Le défaut n'était pas cosmétique : deux règles de mise en page basculaient à 60 px
+d'écart sur la même page — une grille passait à deux colonnes à 640 pendant que la carte
+voisine attendait 700. **La bande entre les deux n'a jamais été dessinée par personne**,
+et c'est justement la largeur qui compte le plus ici : la tablette en portrait.
+
+Les 116 classes sont migrées vers la rupture la plus proche (`sm`/`md` → `stack`,
+`lg`/`xl` → `wide`), après vérification qu'aucune fusion ne créait de collision — deux
+préfixes différents portant le même utilitaire sur la même ligne. **Zéro collision.**
+
+Les quatre échelles sont ensuite **annulées** dans la configuration, comme les couleurs :
+un `sm:` oublié ne rend plus rien. Le CSS de production ne contient désormais que
+`@media (min-width: 700px)` × 9 et `@media (min-width: 1080px)` × 5.
+
+> ⚠️ La substitution a d'abord débordé sur des **clés d'objet** : la table des largeurs
+> de `Modal` (`sm: 'max-w-md', md: …`) s'écrit exactement comme un préfixe en début de
+> ligne, et les quatre clés sont devenues deux `stack` et deux `wide`. Le typecheck l'a
+> dit immédiatement. Le fichier porte maintenant l'avertissement.
+
+`tests/unit/breakpoints.test.ts` garde la porte, à l'écriture plutôt qu'à l'écran.
 
 ### 4.6 ◐ Moyen — la palette Tailwind par défaut reste atteignable
 
@@ -361,7 +376,7 @@ Cet audit est un audit de code. Trois chiffres ne s'en déduisent pas et manquen
 | 3 | ~~Sortir Firebase de la première vue~~ ✅ fait le 01/09 | ⚠ | — | −60,2 Ko gzip (−17 %) ; Motion reste, il est sur le chemin critique |
 | 4 | Retirer Inter, dé-sérialiser les fontes | ⚠ | Faible | Requête bloquante pour zéro pixel |
 | 5 | Combler les 6 trous du DS (§ `design-system-audit.md`) | ◐ | Élevé | Débloque 72 des 81 imports hérités |
-| 6 | Unifier les points de rupture | ◐ | Moyen | 60 px d'incohérence sur tout le responsive |
+| 6 | ~~Unifier les points de rupture~~ ✅ fait le 01/09 | ◐ | — | 116 classes migrées, 4 échelles annulées, garde posée |
 | 7 | Annuler le reste de la palette par défaut | ◐ | Faible | Ferme AD-2 pour de bon |
 | 8 | ~~Page 500 + `ErrorBoundary` par surface~~ ✅ fait le 01/09 | ◐ | — | un `errorElement` par route, 404 distingué du 500 |
 | 9 | Trier les 68 valeurs arbitraires | ○ | Élevé | Vérification, pas normalisation |

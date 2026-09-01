@@ -208,7 +208,7 @@ export default function Blog() {
               onChange={(option) => setParam('pole', chips.versPole.get(option) ?? '')}
             />
           </div>
-          <div className="w-full sm:w-[300px] sm:flex-none">
+          <div className="w-full stack:w-[300px] stack:flex-none">
             {/* LE LIBELLÉ REDEVIENT VISIBLE. Le kit le rend en deux temps DANS la pilule —
                 « Cherche » en gras, « une question » en gris (`PagesUtiles.js:24`) : c'est ce qui
                 donne au champ sa silhouette et dit ce qu'on remplit avant d'y toucher. `labelHidden`

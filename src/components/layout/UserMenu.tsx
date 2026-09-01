@@ -71,10 +71,10 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
         </div>
         {!compact && (
           <>
-            <span className="hidden sm:block text-sm font-semibold text-ink-2 max-w-[120px] truncate">
+            <span className="hidden stack:block text-sm font-semibold text-ink-2 max-w-[120px] truncate">
               {displayName}
             </span>
-            <Icon name="chevron" className={cn('w-4 h-4 text-ink-2 transition-transform hidden sm:block', open && 'rotate-180')} />
+            <Icon name="chevron" className={cn('w-4 h-4 text-ink-2 transition-transform hidden stack:block', open && 'rotate-180')} />
           </>
         )}
       </button>

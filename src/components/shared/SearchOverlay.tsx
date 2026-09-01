@@ -387,9 +387,9 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-[color:var(--line)] rounded">↑↓</kbd>{t('search.navigate')}</span>
             <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-[color:var(--line)] rounded">↵</kbd>{t('search.open')}</span>
-            <span className="hidden sm:flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-[color:var(--line)] rounded">esc</kbd>{t('search.close')}</span>
+            <span className="hidden stack:flex items-center gap-1"><kbd className="px-1.5 py-0.5 border border-[color:var(--line)] rounded">esc</kbd>{t('search.close')}</span>
           </div>
-          <span className="hidden sm:flex items-center gap-1">
+          <span className="hidden stack:flex items-center gap-1">
             <Icon name="command" size={12} /> {t('search.typeForActions')} <kbd className="px-1 border border-[color:var(--line)] rounded">&gt;</kbd> {t('search.forActions')}
           </span>
         </div>

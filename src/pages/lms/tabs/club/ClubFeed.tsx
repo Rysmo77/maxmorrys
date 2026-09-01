@@ -297,7 +297,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                     )}
                   >
                     <Icon name={b.icon} size={15} />
-                    <span className="hidden sm:inline">{b.label}</span>
+                    <span className="hidden stack:inline">{b.label}</span>
                   </button>
                 ))}
               </div>
@@ -530,7 +530,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
 
                 {/* Commentaires */}
                 {commentsOpen && (
-                  <div className="mt-3 space-y-3 border-t border-[color:var(--border-hair)] pt-3 sm:pl-14">
+                  <div className="mt-3 space-y-3 border-t border-[color:var(--border-hair)] pt-3 stack:pl-14">
                     {loadingComments[post.id] ? (
                       <div className="space-y-2">
                         <Skeleton height={44} radius="var(--r-m)" label={t('feed.commentsAction')} />

@@ -39,6 +39,10 @@ import { Icon } from '../brand/Icon';
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+/* ⚠️ CE SONT DES NOMS DE TAILLE, PAS DES RUPTURES. La migration des points de
+   rupture (`sm:`→`stack:`, `lg:`→`wide:`) a écrasé ces quatre clés d'un coup, parce
+   qu'elles s'écrivent pareil : `sm:` en début de ligne. Deux `stack` et deux `wide`
+   dans le même objet — le typecheck l'a dit tout de suite. */
 const WIDTH = {
   sm: 'max-w-md',
   md: 'max-w-lg',

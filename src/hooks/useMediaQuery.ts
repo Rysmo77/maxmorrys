@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
  * ⚠️ À réserver aux cas où masquer en CSS ne suffit PAS. `display: none` cache un élément
  * mais ne l'empêche ni d'être monté, ni de déclencher ses requêtes réseau : une image
  * masquée est quand même téléchargée. Quand le rendu conditionnel a un coût réseau, il doit
- * donc passer par JavaScript et non par une classe `lg:hidden`.
+ * donc passer par JavaScript et non par une classe `wide:hidden`.
  *
  * Rend `false` au premier rendu côté serveur ou avant hydratation — les appelants doivent
  * traiter ce cas comme « pas encore connu », jamais comme « faux ».

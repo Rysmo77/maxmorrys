@@ -389,7 +389,7 @@ export default function ClubMembers({ data }: { data: ClubData }) {
       {/* ── La fiche d'un membre ────────────────────────────────────────────── */}
       {selectedMember && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-[color-mix(in_srgb,var(--night)_55%,transparent)] p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-[color-mix(in_srgb,var(--night)_55%,transparent)] p-0 backdrop-blur-sm stack:items-center stack:p-4"
           onClick={(e) => e.target === e.currentTarget && setSelectedMember(null)}
         >
           {/* `shadow-card`, PAS `shadow-glass` : ce panneau défile en interne, et `ds:check`
@@ -401,9 +401,9 @@ export default function ClubMembers({ data }: { data: ClubData }) {
             aria-modal="true"
             tabIndex={-1}
             aria-label={selectedMember.displayName}
-            className="max-h-[92vh] w-full overflow-y-auto rounded-t-xl bg-surface-sheet shadow-card sm:max-w-md sm:rounded-xl"
+            className="max-h-[92vh] w-full overflow-y-auto rounded-t-xl bg-surface-sheet shadow-card stack:max-w-md stack:rounded-xl"
           >
-            <div className="flex justify-center pt-2.5 sm:hidden">
+            <div className="flex justify-center pt-2.5 stack:hidden">
               <span aria-hidden="true" className="h-1.5 w-10 rounded-pill bg-[color:var(--fill-4)]" />
             </div>
             <div className="p-5">

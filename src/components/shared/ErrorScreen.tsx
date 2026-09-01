@@ -63,7 +63,7 @@ export default function ErrorScreen({ incident }: { incident?: string }) {
           <p className="m-0 text-meta leading-[1.5] text-ink">{T.effect}</p>
         </div>
 
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-5 flex flex-col gap-3 stack:flex-row">
           <button
             type="button"
             onClick={() => window.location.reload()}

@@ -10,8 +10,8 @@ import { SiteEyebrow } from '../site';
  * `tailwind.config.js` les expose sous les noms `stack:` et `wide:` — les jetons de
  * `brand/breakpoints.css` étant, eux, une copie littérale.
  *
- * Les dix-neuf écrans de console comptaient pourtant **cinquante et une** classes en `sm:`
- * (640 px), `lg:` (1024) et `xl:` (1280) : trois ruptures que le système ne connaît pas, et
+ * Les dix-neuf écrans de console comptaient pourtant **cinquante et une** classes en `stack:`
+ * (640 px), `wide:` (1024) et `wide:` (1280) : trois ruptures que le système ne connaît pas, et
  * aucune des deux qu'il déclare. Concrètement, les grilles de cases de relevé passaient à deux
  * colonnes soixante pixels trop tôt et à quatre deux cents pixels trop tard — sur la seule
  * largeur qui compte vraiment ici, la tablette en portrait.

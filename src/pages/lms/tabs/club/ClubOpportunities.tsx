@@ -213,14 +213,14 @@ export default function ClubOpportunities({ data }: { data: ClubData }) {
                 <p className="mt-2 font-bold text-ink">{item.title}</p>
                 <p className="mt-1 whitespace-pre-wrap break-words text-meta text-ink-2">{item.description}</p>
 
-                <div className="mt-3 flex flex-col gap-2 border-t border-[color:var(--border-hair)] pt-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-3 flex flex-col gap-2 border-t border-[color:var(--border-hair)] pt-3 stack:flex-row stack:items-center stack:justify-between">
                   <div className="flex min-w-0 items-center gap-2">
                     {item.userPhoto
                       ? <img src={item.userPhoto} alt="" loading="lazy" className="h-6 w-6 flex-none rounded-full object-cover" />
                       : <Avatar initials={initialsOf(item.userName)} size={24} />}
                     <span className="truncate text-meta-2 text-ink-2">{item.userName} · {formatDate(item.createdAt)}</span>
                   </div>
-                  <span className="truncate text-meta-2 font-semibold text-transforme sm:max-w-[45%]">{item.contact}</span>
+                  <span className="truncate text-meta-2 font-semibold text-transforme stack:max-w-[45%]">{item.contact}</span>
                 </div>
               </GlassPanel>
             </motion.div>

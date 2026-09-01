@@ -167,7 +167,7 @@ export default function FormationCard({ formation, variant = 'default', enrollme
 
       {/* Popover détail — desktop uniquement (réplique le hover Udemy) */}
       {enablePopover && (
-      <div className="hidden lg:block absolute inset-x-0 top-full z-30 -mt-1 pt-3 opacity-0 translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition duration-200">
+      <div className="hidden wide:block absolute inset-x-0 top-full z-30 -mt-1 pt-3 opacity-0 translate-y-1 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition duration-200">
         <div className="bg-surface-sheet border border-[color:var(--line)] rounded-2xl shadow-2xl p-5">
           <p className="text-xs font-bold tracking-[0.18em] uppercase text-forme mb-2">
             <TranslatedText text={formation.category} /> · {levelLabels[formation.level] ?? formation.level}

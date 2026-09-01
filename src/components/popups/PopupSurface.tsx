@@ -96,7 +96,7 @@ export default function PopupSurface({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 stack:p-4">
       <motion.div
         className="fixed inset-0 bg-black/80 backdrop-blur-md"
         initial={reduced ? false : { opacity: 0 }}
@@ -116,7 +116,7 @@ export default function PopupSurface({
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
           'relative w-full max-w-5xl max-h-[92vh] overflow-y-auto focus:outline-none mm-on-color',
-          'bg-[color:var(--night-2)] text-white sm:rounded-3xl',
+          'bg-[color:var(--night-2)] text-white stack:rounded-3xl',
           'shadow-[0_40px_120px_-20px_rgba(0,0,0,0.9)] ring-1 ring-white/10',
         )}
       >
@@ -129,9 +129,9 @@ export default function PopupSurface({
           l'empiler au-dessus du contenu repousserait l'action sous la ligne de flottaison.
         */}
         <div className={cn('grid', hasMedia && 'wide:grid-cols-[1.05fr_0.95fr]')}>
-          <div className="p-6 sm:p-9 lg:p-11 min-w-0">{children}</div>
+          <div className="p-6 stack:p-9 wide:p-11 min-w-0">{children}</div>
           {hasMedia && (
-            <div className="relative hidden lg:block overflow-hidden lg:rounded-r-3xl" aria-hidden="true">
+            <div className="relative hidden wide:block overflow-hidden wide:rounded-r-3xl" aria-hidden="true">
               {media}
             </div>
           )}

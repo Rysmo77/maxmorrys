@@ -76,7 +76,7 @@ export default function BlogEndPopup({ onDismiss }: BlogEndPopupProps) {
 
       <p className={BODY}>{t('popups.blogEnd.text')}</p>
 
-      <div className="mt-4 lg:mt-6">
+      <div className="mt-4 wide:mt-6">
         <Canal
           label={t('popups.blogEnd.rss')}
           action={t('popups.blogEnd.rssAction')}

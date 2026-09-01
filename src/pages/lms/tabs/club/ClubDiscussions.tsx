@@ -116,7 +116,7 @@ export default function ClubDiscussions({ data }: { data: ClubData }) {
         <GlassPanel
           level="flat"
           padding={0}
-          className="flex h-[calc(100svh-300px)] max-h-[680px] min-h-[360px] flex-col overflow-hidden sm:h-[calc(100dvh-220px)]"
+          className="flex h-[calc(100svh-300px)] max-h-[680px] min-h-[360px] flex-col overflow-hidden stack:h-[calc(100dvh-220px)]"
         >
           <div className="flex flex-none items-center gap-3 border-b border-[color:var(--line)] p-3">
             <IconButton label={t('discussions.back')} onClick={() => setSelected(null)}>

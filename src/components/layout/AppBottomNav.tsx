@@ -18,7 +18,7 @@ import DsNavHost from './DsNavHost';
  *
  * 1. LA HAUTEUR. 64 px (`h-16`) contre les 80 px du jeton `--tabbar-h`. Les 16 px manquants
  *    sont exactement ce qui permet à un libellé de tenir sous son glyphe sans se serrer.
- * 2. LE POINT DE RUPTURE. `md:hidden` (768 px) contre les 700 px du système. Entre les deux
+ * 2. LE POINT DE RUPTURE. `stack:hidden` (768 px) contre les 700 px du système. Entre les deux
  *    vivaient les tablettes en portrait, qui recevaient une barre d'onglets là où le système
  *    prévoit la navigation latérale.
  * 3. LE VERRE. `bg-[color-mix(in_srgb,var(--paper)_95%,transparent)] backdrop-blur` écrivait un flou en ligne, invérifiable par grep, et

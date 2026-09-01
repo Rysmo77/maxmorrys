@@ -154,7 +154,7 @@ export default function Footer() {
       {/* ── Colonnes ──────────────────────────────────────────────────────────── */}
       {/*
         ── LA GOUTTIÈRE DU PIED DE PAGE EST CELLE DU CORPS ─────────────────────────
-        Il portait `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8` : une largeur maximale de 1280 px
+        Il portait `max-w-7xl mx-auto px-4 stack:px-6 wide:px-8` : une largeur maximale de 1280 px
         centrée, avec un rembourrage de 16 → 32 px. Le corps des pages, lui, n'a pas de largeur
         maximale et prend 18 px sur mobile, 40 en desktop (`--site-pad`).
 

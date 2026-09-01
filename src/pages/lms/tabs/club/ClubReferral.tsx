@@ -69,7 +69,7 @@ export default function ClubReferral({ data }: { data: ClubData }) {
      passe, ni combien de temps, et il fait sauter la mise en page à l'arrivée du contenu. */
   if (loading) {
     return (
-      <div className="mx-auto max-w-2xl space-y-4 lg:mx-0">
+      <div className="mx-auto max-w-2xl space-y-4 wide:mx-0">
         <Skeleton height={132} radius="var(--r-l)" label={t('referral.yourLink')} />
         <Skeleton height={104} radius="var(--r-l)" label={t('referral.yourLink')} />
         <div className="grid grid-cols-2 gap-3">
@@ -82,7 +82,7 @@ export default function ClubReferral({ data }: { data: ClubData }) {
 
   return (
     <motion.div
-      className="mx-auto max-w-2xl space-y-4 lg:mx-0"
+      className="mx-auto max-w-2xl space-y-4 wide:mx-0"
       variants={slideUp}
       initial="hidden"
       animate="visible"

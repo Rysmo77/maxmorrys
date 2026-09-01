@@ -68,7 +68,7 @@ export default function StickyWhatsApp({ message, hideNear }: Props) {
    */
   return (
     <div
-      className="fixed inset-x-4 bottom-4 z-40 lg:hidden"
+      className="fixed inset-x-4 bottom-4 z-40 wide:hidden"
       style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
     >
       <Button href={href} tone="digitalise" target="_blank">

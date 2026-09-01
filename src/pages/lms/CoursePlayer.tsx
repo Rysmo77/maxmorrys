@@ -494,7 +494,7 @@ export default function CoursePlayer() {
               )}
 
               {activeLesson.type !== 'quiz' && activeLesson.type !== 'mission' && (
-                <div className="p-[18px] border-t border-[color:var(--border-hair)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-[18px] border-t border-[color:var(--border-hair)] flex flex-col stack:flex-row stack:items-center justify-between gap-3">
                   <div>
                     <p className="font-semibold text-ink m-0">{activeLesson.title}</p>
                     <p className="text-meta text-ink-2 m-0">{activeLesson.duration}</p>
@@ -557,17 +557,17 @@ export default function CoursePlayer() {
 
           {/* Sous 1024 px, le programme vit dans la feuille du bas : ici, seul le grand écran
               l'a dans la colonne de droite. */}
-          <div className="lg:hidden mt-3.5">{outline}</div>
+          <div className="wide:hidden mt-3.5">{outline}</div>
         </div>
 
-        <aside className="hidden lg:block wide:sticky lg:top-6">{outline}</aside>
+        <aside className="hidden wide:block wide:sticky wide:top-6">{outline}</aside>
       </div>
 
       {/* Déclencheur de la feuille, petit écran seulement. */}
       <button
         type="button"
         onClick={() => setMobileOutlineOpen(true)}
-        className="mm-press mm-touch-extend lg:hidden fixed bottom-6 right-6 z-40 inline-flex items-center gap-2"
+        className="mm-press mm-touch-extend wide:hidden fixed bottom-6 right-6 z-40 inline-flex items-center gap-2"
         style={{
           minHeight: 'var(--touch-btn)', padding: '0 20px', borderRadius: 'var(--r-pill)',
           background: 'var(--action-forme)', color: 'var(--paper-fixed)', border: 0,

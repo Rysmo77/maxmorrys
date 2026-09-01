@@ -61,15 +61,15 @@ export default function AudienceRouterPopup({ onChoose, onContinue }: AudienceRo
         `font-black` + interlettrage resserré (voir `fontSize.heading-hero` de la config Tailwind).
         Le pastille pivotée chevauche volontairement la dernière ligne.
       */}
-      <div className="relative mt-3 pr-16 sm:pr-24">
-        <h2 className="text-4xl sm:text-5xl font-black uppercase tracking-tight leading-[0.95] text-balance">
+      <div className="relative mt-3 pr-16 stack:pr-24">
+        <h2 className="text-4xl stack:text-5xl font-black uppercase tracking-tight leading-[0.95] text-balance">
           {t('popups.agencyExit.title')}
         </h2>
         <motion.span
           initial={reduced ? false : { scale: 0.4, rotate: 0, opacity: 0 }}
           animate={reduced ? undefined : { scale: 1, rotate: -8, opacity: 1 }}
           transition={{ delay: 0.25, type: 'spring', stiffness: 320, damping: 14 }}
-          className="absolute -top-1 right-0 sm:right-4 inline-block px-3 py-1.5 rounded-md bg-[color:var(--mm-teal)] text-ink text-xs font-black uppercase tracking-wide shadow-digitalise -rotate-6"
+          className="absolute -top-1 right-0 stack:right-4 inline-block px-3 py-1.5 rounded-md bg-[color:var(--mm-teal)] text-ink text-xs font-black uppercase tracking-wide shadow-digitalise -rotate-6"
         >
           {t('popups.agencyExit.sticker')}
         </motion.span>

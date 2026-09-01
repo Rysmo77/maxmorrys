@@ -48,8 +48,8 @@ export default function CartRecoveryPopup({
       <p className={BODY}>{t('popups.cartRecovery.text')}</p>
 
       {formation && (
-        <div className="mt-3 lg:mt-6 flex items-start gap-3 lg:gap-4 lg:p-4 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-surface-sheet/[0.03]">
-          <span className="block shrink-0 overflow-hidden rounded-xl w-14 h-14 lg:w-20 lg:h-20">
+        <div className="mt-3 wide:mt-6 flex items-start gap-3 wide:gap-4 wide:p-4 wide:rounded-2xl wide:border wide:border-white/10 wide:bg-surface-sheet/[0.03]">
+          <span className="block shrink-0 overflow-hidden rounded-xl w-14 h-14 wide:w-20 wide:h-20">
             <img
               src={formation.coverImage}
               alt=""
@@ -62,7 +62,7 @@ export default function CartRecoveryPopup({
             <TranslatedText
               text={formation.title}
               as="p"
-              className="text-sm lg:text-base font-bold text-white leading-snug line-clamp-2"
+              className="text-sm wide:text-base font-bold text-white leading-snug line-clamp-2"
             />
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
               {formation.rating > 0 && (

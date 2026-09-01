@@ -68,7 +68,16 @@ describe('port natif — les jetons sont la seule source de couleur', () => {
    * `theme.tsx` est le pont de jetons et `Surface.tsx` convertit les voiles du système en
    * couleurs opaques — les deux ont le droit d'écrire des canaux. Partout ailleurs, non.
    */
-  const AUTORISES = new Set(['mobile/ds/theme.tsx', 'mobile/ds/Surface.tsx']);
+  const AUTORISES = new Set([
+    'mobile/ds/theme.tsx',
+    'mobile/ds/Surface.tsx',
+    /*
+     * La TABLE de jetons, écrite par `npm run ds:tokens` depuis le CSS du système : c'est
+     * elle, la source de couleur du natif. Lui interdire d'écrire des valeurs n'aurait aucun
+     * sens — et elle n'est pas éditée à la main, donc elle ne peut pas dériver toute seule.
+     */
+    'mobile/ds/tokens.generated.ts',
+  ]);
 
   it("aucun écran n'écrit une couleur hexadécimale", () => {
     const fautes: string[] = [];
@@ -169,8 +178,51 @@ describe('port natif — les primitives publiées', () => {
     const index = readFileSync(join(MOBILE, 'ds/index.ts'), 'utf8');
     const manquants = readdirSync(join(MOBILE, 'ds'))
       .filter((n) => (n.endsWith('.tsx') || n.endsWith('.ts')) && n !== 'index.ts')
+      // Les fichiers `*.generated.ts` sont des COPIES écrites par `npm run ds:tokens` —
+      // jetons et tracés d'icônes. Ils alimentent les primitives, ils n'en sont pas.
+      .filter((n) => !n.endsWith('.generated.ts'))
       .map((n) => n.replace(/\.tsx?$/, ''))
       .filter((n) => !index.includes(`'./${n}'`));
     expect(manquants).toEqual([]);
+  });
+});
+
+describe('port natif — rien ne sort du dossier', () => {
+  /**
+   * AUCUN IMPORT NE REMONTE AU-DESSUS DE `mobile/`.
+   *
+   * C'est le défaut le plus coûteux trouvé sur ce port, parce qu'il passait TOUTES les
+   * portes. `ds/theme.tsx` lisait `../../src/design-system/tokens.generated`, `ds/Icon.tsx`
+   * lisait `../../src/design-system/icons`, `ds/Mesh.tsx` un type au même endroit.
+   * TypeScript résout ces chemins sans broncher — le typecheck natif était vert. Metro, le
+   * bundler de React Native, ne résout RIEN hors de la racine du projet :
+   *
+   *     Error: Unable to resolve module ../../src/design-system/tokens.generated
+   *
+   * L'application ne pouvait donc ni se bundler, ni tourner, ni se construire — et rien ne
+   * le disait. L'intention était juste (une seule source de vérité, AD-8) ; le mécanisme ne
+   * l'était pas. `npm run ds:tokens` écrit maintenant les jetons ET les tracés DANS
+   * `mobile/ds/`, en `*.generated.ts`. Recopier une source unique n'est pas la dupliquer.
+   *
+   * Ce test est la porte que le typecheck ne peut pas être. La preuve du bundle, elle, est
+   * `npx expo export --platform ios --platform android` — à refaire après tout nouvel import.
+   */
+  it('aucun fichier natif n’importe au-dessus de `mobile/`', () => {
+    const fautes: string[] = [];
+    for (const f of walk(MOBILE)) {
+      for (const m of code(f).matchAll(/from\s+'(\.\.\/[^']*)'/g)) {
+        const cible = join(f, '..', m[1]);
+        if (!cible.startsWith(MOBILE)) fautes.push(`${rel(f)} → ${m[1]}`);
+      }
+    }
+    expect(fautes).toEqual([]);
+  });
+
+  it('les copies générées sont présentes', () => {
+    // Sans elles, le bundle échoue — et elles sont écrites par un script de la RACINE, donc
+    // absentes d'une installation fraîche du seul dossier natif tant qu'on ne l'a pas lancé.
+    for (const n of ['tokens.generated.ts', 'icons.generated.ts']) {
+      expect(existsSync(join(MOBILE, 'ds', n)), `mobile/ds/${n} manque`).toBe(true);
+    }
   });
 });

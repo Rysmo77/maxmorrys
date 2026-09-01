@@ -400,7 +400,7 @@ export default function RysmoWidget() {
       {open && (
         <div
           onClick={() => setOpen(false)}
-          className="sm:hidden fixed inset-0 bg-black/30 z-40 mm-drop"
+          className="stack:hidden fixed inset-0 bg-black/30 z-40 mm-drop"
           aria-hidden="true"
         />
       )}
@@ -408,7 +408,7 @@ export default function RysmoWidget() {
       {/* ── Panneau de chat ── */}
       {open && (
         <div
-          className="fixed z-50 flex flex-col overflow-hidden bg-surface-sheet mm-drop inset-0 rounded-none border-0 shadow-none sm:inset-auto sm:bottom-24 sm:right-6 sm:w-96 sm:h-[600px] sm:max-h-[calc(100dvh-8rem)] sm:rounded-2xl sm:border sm:border-[color:var(--line)] sm:dark:border-[color:var(--border-hair)] sm:shadow-2xl"
+          className="fixed z-50 flex flex-col overflow-hidden bg-surface-sheet mm-drop inset-0 rounded-none border-0 shadow-none stack:inset-auto stack:bottom-24 stack:right-6 stack:w-96 stack:h-[600px] stack:max-h-[calc(100dvh-8rem)] stack:rounded-2xl stack:border stack:border-[color:var(--line)] stack:dark:border-[color:var(--border-hair)] stack:shadow-2xl"
         >
 
           {/* Header */}
@@ -631,8 +631,8 @@ export default function RysmoWidget() {
       {/* ── FAB bouton ── */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`fixed bottom-24 md:bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg items-center justify-center transition duration-300 ${
-          open ? 'hidden sm:flex bg-[color:var(--night-3)] rotate-12 scale-90' : 'flex bg-digitalise hover:bg-digitalise hover:scale-105'
+        className={`fixed bottom-24 stack:bottom-6 right-4 stack:right-6 z-50 w-14 h-14 rounded-full shadow-lg items-center justify-center transition duration-300 ${
+          open ? 'hidden stack:flex bg-[color:var(--night-3)] rotate-12 scale-90' : 'flex bg-digitalise hover:bg-digitalise hover:scale-105'
         }`}
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
         aria-label={open ? t('closeRysmo', { tutor: tutorName(userData) }) : t('openRysmo', { tutor: tutorName(userData) })}

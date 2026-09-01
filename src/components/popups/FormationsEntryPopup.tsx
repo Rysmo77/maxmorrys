@@ -24,7 +24,7 @@ import { Icon } from '@ds';
  * ⚠️ Deux mises en page dans un seul composant, et c'est voulu. Sous `lg` cette pop-up s'affiche
  * en bandeau bas plafonné à 30 vh : titre réduit, vignette en ligne, aucun ornement. À partir de
  * `lg` elle devient le dialogue éditorial pleine largeur. Tout ce qui grossit est donc conditionné
- * par `lg:` — ajouter un élément non conditionné pousserait le CTA sous la ligne de flottaison du
+ * par `wide:` — ajouter un élément non conditionné pousserait le CTA sous la ligne de flottaison du
  * bandeau sur un petit téléphone.
  */
 
@@ -54,7 +54,7 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
   const itemProps = reduced ? {} : { variants: staggerItem };
 
   const title = (
-    <h2 className="text-base lg:text-5xl font-bold lg:font-black lg:uppercase lg:tracking-tight lg:leading-[0.95] text-white text-balance">
+    <h2 className="text-base wide:text-5xl font-bold wide:font-black wide:uppercase wide:tracking-tight wide:leading-[0.95] text-white text-balance">
       {t('popups.formationsEntry.title')}
     </h2>
   );
@@ -62,14 +62,14 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
   if (!formation) {
     return (
       <div>
-        <p className="hidden lg:block text-[0.625rem] font-bold tracking-[0.3em] uppercase text-forme">
+        <p className="hidden wide:block text-[0.625rem] font-bold tracking-[0.3em] uppercase text-forme">
           {t('popups.formationsEntry.eyebrow')}
         </p>
-        <div className="lg:mt-3">{title}</div>
-        <p className="mt-2 lg:mt-4 text-sm text-white/60 leading-relaxed max-w-md">
+        <div className="wide:mt-3">{title}</div>
+        <p className="mt-2 wide:mt-4 text-sm text-white/60 leading-relaxed max-w-md">
           {t('popups.formationsEntry.text')}
         </p>
-        <div className="mt-4 lg:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
+        <div className="mt-4 wide:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
           <LocalizedLink to="/formations" onClick={onAccept} className={ctaCls}>
             {t('popups.formationsEntry.cta')}
             <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -89,12 +89,12 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
     <motion.div {...containerProps}>
       <motion.p
         {...itemProps}
-        className="hidden lg:block text-[0.625rem] font-bold tracking-[0.3em] uppercase text-forme"
+        className="hidden wide:block text-[0.625rem] font-bold tracking-[0.3em] uppercase text-forme"
       >
         {t('popups.formationsEntry.eyebrow')}
       </motion.p>
 
-      <motion.div {...itemProps} className="lg:mt-3">{title}</motion.div>
+      <motion.div {...itemProps} className="wide:mt-3">{title}</motion.div>
 
       {/*
         Fiche de la formation. Sous `lg`, la vignette reste en ligne : la couverture pleine largeur
@@ -102,12 +102,12 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
       */}
       <motion.div
         {...itemProps}
-        className="mt-3 lg:mt-6 flex items-start gap-3 lg:gap-4 lg:p-4 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-surface-sheet/[0.03]"
+        className="mt-3 wide:mt-6 flex items-start gap-3 wide:gap-4 wide:p-4 wide:rounded-2xl wide:border wide:border-white/10 wide:bg-surface-sheet/[0.03]"
       >
         <LocalizedLink
           to={contentPath('formations', formation, language)}
           onClick={onAccept}
-          className="group block shrink-0 overflow-hidden rounded-xl w-14 h-14 lg:w-20 lg:h-20 focus:outline-none"
+          className="group block shrink-0 overflow-hidden rounded-xl w-14 h-14 wide:w-20 wide:h-20 focus:outline-none"
         >
           <img
             src={formation.coverImage}
@@ -122,7 +122,7 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
           <TranslatedText
             text={formation.title}
             as="p"
-            className="text-sm lg:text-base font-bold text-white leading-snug line-clamp-2"
+            className="text-sm wide:text-base font-bold text-white leading-snug line-clamp-2"
           />
           {/*
             LA NOTE ET LE NOMBRE D'INSCRITS ONT ÉTÉ RETIRÉS D'ICI.
@@ -147,7 +147,7 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
         </div>
       </motion.div>
 
-      <motion.div {...itemProps} className="mt-4 lg:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
+      <motion.div {...itemProps} className="mt-4 wide:mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
         <LocalizedLink to="/formations" onClick={onAccept} className={ctaCls}>
           {t('popups.formationsEntry.ctaWithFormation')}
           <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
