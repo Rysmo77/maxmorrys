@@ -56,6 +56,7 @@ import LanguageSuggestionBanner from './components/shared/LanguageSuggestionBann
 // le monter à la demande ne change rien au comportement.
 const SearchOverlay = lazyWithReload(() => import('./components/shared/SearchOverlay'));
 import ErrorBoundary from './components/shared/ErrorBoundary';
+import RouteError from './components/shared/RouteError';
 import MetaPixelTracker from './components/tracking/MetaPixelTracker';
 import PopupManager from './components/popups/PopupManager';
 import Home from './pages/Home';
@@ -517,12 +518,39 @@ function appChildren() {
   ];
 }
 
+/**
+ * ── UN FILET D'ERREUR PAR ROUTE, POSÉ EN UNE FOIS ─────────────────────────────────────
+ *
+ * Le dépôt n'avait qu'UNE frontière, autour des fournisseurs, pour soixante-dix routes :
+ * le plantage d'un écran emportait l'en-tête, la navigation et le pied avec lui.
+ *
+ * React Router fait remonter une erreur jusqu'à l'`errorElement` le plus proche. En
+ * l'annotant sur chaque nœud, l'écran fautif est remplacé DANS l'`<Outlet>` de son
+ * gabarit : la coquille reste debout, la navigation reste utilisable.
+ *
+ * Écrit en récursion plutôt qu'à la main sur soixante-dix objets de route — une annotation
+ * manuelle aurait été oubliée à la première route ajoutée, et rien ne l'aurait signalé.
+ * `errorElement` déjà posé est respecté : la fonction n'écrase aucune décision explicite.
+ */
+function withRouteErrors(routes: RouteObject[]): RouteObject[] {
+  return routes.map((route): RouteObject => {
+    const errorElement = route.errorElement ?? <RouteError />;
+    /* `RouteObject` est une union DISCRIMINÉE : une route `index` déclare
+       `children?: undefined`. Un `...spread` unique la casse, d'où les deux branches —
+       chacune reconstruit la forme que TypeScript attend. */
+    return route.children
+      ? { ...route, errorElement, children: withRouteErrors(route.children) }
+      : { ...route, errorElement };
+  });
+}
+
 const router = createBrowserRouter([
   {
     element: <RootProviders />,
+    errorElement: <RouteError />,
     children: [
-      { path: '/en', children: localizeRouteTree(appChildren() as RouteObject[], 'en') },
-      { path: '/', children: appChildren() as RouteObject[] },
+      { path: '/en', children: withRouteErrors(localizeRouteTree(appChildren() as RouteObject[], 'en')) },
+      { path: '/', children: withRouteErrors(appChildren() as RouteObject[]) },
     ],
   },
 ]);

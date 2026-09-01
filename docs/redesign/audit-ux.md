@@ -313,11 +313,27 @@ fournit `Breadcrumb`, `Skeleton` et `Switch`. Suppression sans risque.
 | 404 | `NotFound.tsx` |
 | 403 | `Forbidden403.tsx` |
 | Quota | `QuotaMeter` (DS) — quotas Rysmo |
-| Erreur applicative | **`ErrorBoundary` : 2 fichiers seulement** |
-| 500 | **absent** |
+| Erreur applicative | ✅ **un `errorElement` par route** + `ErrorBoundary` en dernier recours |
+| 500 | ✅ `ErrorScreen`, partagé par les deux filets |
 
-**Deux trous réels** : pas de page 500, et deux `ErrorBoundary` pour 70 routes. Le reste
-est en place et bien mieux traité que dans la plupart des applications de cette taille.
+> ✅ **Corrigé le 01/09.** Le dépôt n'avait qu'**une** frontière d'erreur, autour des
+> fournisseurs, pour **70 routes** : le plantage d'un écran emportait l'en-tête, la
+> navigation et le pied avec lui, et ne laissait que le rechargement comme sortie.
+>
+> `withRouteErrors()` annote l'arbre entier par récursion — écrit une fois plutôt que sur
+> soixante-dix objets, où la première route ajoutée aurait été oubliée sans que rien ne le
+> signale. React Router fait remonter l'erreur à la frontière la plus proche : l'écran
+> fautif est remplacé **dans l'`<Outlet>` de son gabarit**, la coquille reste debout.
+>
+> `RouteError` distingue le **404 du 500** — `errorElement` attrape aussi les réponses du
+> routeur, et afficher « le code a échoué » sur une adresse inexistante serait un faux
+> motif. Le 404 n'est pas remonté à la télémétrie : ce n'est pas un incident.
+>
+> Le dessin est extrait dans `ErrorScreen`, partagé par les deux filets — le recopier
+> aurait donné deux écrans d'erreur à faire diverger.
+
+Le reste était déjà en place, et bien mieux traité que dans la plupart des applications de
+cette taille.
 
 ---
 
@@ -347,6 +363,6 @@ Cet audit est un audit de code. Trois chiffres ne s'en déduisent pas et manquen
 | 5 | Combler les 6 trous du DS (§ `design-system-audit.md`) | ◐ | Élevé | Débloque 72 des 81 imports hérités |
 | 6 | Unifier les points de rupture | ◐ | Moyen | 60 px d'incohérence sur tout le responsive |
 | 7 | Annuler le reste de la palette par défaut | ◐ | Faible | Ferme AD-2 pour de bon |
-| 8 | Page 500 + `ErrorBoundary` par surface | ◐ | Faible | 70 routes, 2 filets |
+| 8 | ~~Page 500 + `ErrorBoundary` par surface~~ ✅ fait le 01/09 | ◐ | — | un `errorElement` par route, 404 distingué du 500 |
 | 9 | Trier les 68 valeurs arbitraires | ○ | Élevé | Vérification, pas normalisation |
 | 10 | Supprimer les 3 primitives mortes | ○ | Trivial | — |
