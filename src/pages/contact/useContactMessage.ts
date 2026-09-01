@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../../config/firebase';
+import { db } from '../../config/db';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../components/ui/Toast';
 import { captureError } from '../../lib/sentry';

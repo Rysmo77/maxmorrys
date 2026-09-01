@@ -1,5 +1,5 @@
 import { collection, getCountFromServer, query, where } from 'firebase/firestore';
-import { db } from '../../config/firebase';
+import { db } from '../../config/db';
 
 /**
  * LES SEULS CHIFFRES QUE LA PAGE D'ACCUEIL A LE DROIT D'AFFICHER.  (AD-5, règle 6)

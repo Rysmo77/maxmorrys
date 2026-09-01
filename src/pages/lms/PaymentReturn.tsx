@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Button, GlassPanel, Icon, Mesh, Num, Tag, type TagTone } from '@ds';
-import { db } from '../../config/firebase';
+import { db } from '../../config/db';
 import { SiteDisplay, useReveal } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';
 import { useLocalizedPath } from '../../contexts/LanguageContext';

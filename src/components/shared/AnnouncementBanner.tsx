@@ -4,7 +4,6 @@ import LocalizedLink from './LocalizedLink';
 // Import direct plutôt que via le barrel `lib/firestore` : celui-ci fait
 // `export *` sur 17 modules, et cet unique import tirait tout `admin.ts`
 // (saveAnnouncement, deleteAnnouncement, …) dans le chunk d'entrée.
-import { getActiveAnnouncements } from '../../lib/firestore/admin';
 import type { Announcement } from '../../types';
 import { Icon } from '@ds';
 
@@ -20,7 +19,13 @@ export default function AnnouncementBanner() {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    getActiveAnnouncements().then(setAnnouncements).catch(() => {});
+    /* Chargé à la demande : ce bandeau est monté par l'en-tête, donc au démarrage, mais
+       il ne lit ses annonces qu'après. En import statique, il suffisait à faire entrer
+       le SDK Firestore dans le préchargement de toutes les pages. */
+    import('../../lib/firestore/admin')
+      .then((m) => m.getActiveAnnouncements())
+      .then(setAnnouncements)
+      .catch(() => {});
   }, []);
 
   const visible = announcements.filter((a) => !dismissed.has(a.id));

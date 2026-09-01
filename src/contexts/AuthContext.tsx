@@ -10,8 +10,27 @@ import {
   signInWithPopup,
   type User as FirebaseUser,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+import { auth } from '../config/firebase';
+
+/**
+ * Firestore, chargé À LA DEMANDE.
+ *
+ * Ce contexte est monté au démarrage : il doit savoir tout de suite si quelqu'un est
+ * connecté. Mais la lecture du document utilisateur, elle, n'arrive QUE si quelqu'un
+ * l'est — un visiteur anonyme n'interroge rien. En import statique, le SDK Firestore
+ * entrait quand même dans le graphe de l'entrée : 59,4 Ko gzip préchargés sur toutes
+ * les pages, pour rien dans le cas le plus fréquent.
+ *
+ * Les quatre appels d'ici sont déjà asynchrones, donc l'attente ne coûte rien de plus.
+ * Le module est mis en cache par le navigateur dès le premier appel.
+ */
+async function firestore() {
+  const [{ db }, sdk] = await Promise.all([
+    import('../config/db'),
+    import('firebase/firestore'),
+  ]);
+  return { db, doc: sdk.doc, getDoc: sdk.getDoc, setDoc: sdk.setDoc };
+}
 import { setUserData as setPixelUserData } from '../lib/meta-pixel';
 import { trackSignUp, trackLogin } from '../lib/tracking';
 import type { User } from '../types';
@@ -42,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const uid = firebaseUser.uid;
         (async () => {
           try {
+            const { db, doc, getDoc } = await firestore();
             const docRef = doc(db, 'users', uid);
             const docSnap = await getDoc(docRef);
             // Guard contre la race condition : ignorer si l'utilisateur a changé entre-temps
@@ -100,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
         preferences: { theme: 'system', language: 'fr', newsletter: false, aiMemoryConsent: true },
       };
+      const { db, doc, setDoc } = await firestore();
       await setDoc(doc(db, 'users', cred.user.uid), newUser);
       setUserData(newUser);
       trackSignUp('email');
@@ -122,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const provider = new GoogleAuthProvider();
       const cred = await signInWithPopup(auth, provider);
+      const { db, doc, getDoc, setDoc } = await firestore();
       const docRef = doc(db, 'users', cred.user.uid);
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
@@ -151,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUserData = useCallback(async () => {
     if (!auth.currentUser) return;
     try {
+      const { db, doc, getDoc } = await firestore();
       const docRef = doc(db, 'users', auth.currentUser.uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) setUserData(docSnap.data() as User);

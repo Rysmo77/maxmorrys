@@ -3,7 +3,7 @@ import {
   query, onSnapshot, serverTimestamp,
   type QueryConstraint, type Unsubscribe, type DocumentData,
 } from 'firebase/firestore';
-import { db } from '../../config/firebase';
+import { db } from '../../config/db';
 import { captureError } from '../sentry';
 
 // ── Generic helpers ──────────────────────────────────────────────────────────

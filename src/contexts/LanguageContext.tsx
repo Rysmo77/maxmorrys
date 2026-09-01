@@ -5,7 +5,6 @@ import { getLangFromPath, localizedPath, type Lang } from '../i18n/routing';
 import { useAuth } from './AuthContext';
 // Imports directs plutôt que via le barrel `lib/firestore` : celui-ci fait
 // `export *` sur 17 modules, ce qui en tirait plusieurs dans le chunk d'entrée.
-import { updateUserProfile } from '../lib/firestore/users';
 
 interface LanguageContextType {
   language: Lang;
@@ -96,6 +95,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     syncedPrefRef.current = language;
     (async () => {
       try {
+        /* Chargé à la demande : ce contexte est monté au démarrage, et un import
+           statique d'ici faisait entrer tout le SDK Firestore dans la première vue —
+           pour une écriture qui n'arrive QUE si quelqu'un de connecté change de langue. */
+        const { updateUserProfile } = await import('../lib/firestore/users');
         await updateUserProfile(user.uid, {
           preferences: { ...userData.preferences, language },
         });

@@ -1,7 +1,8 @@
 import { doc, getDoc, where } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { getCollection } from './helpers';
-import { db, functions } from '../../config/firebase';
+import { functions } from '../../config/firebase';
+import { db } from '../../config/db';
 import type { Certificate, CertificateLookup, ContactMessage } from '../../types';
 
 export async function getUserCertificates(userId: string): Promise<Certificate[]> {

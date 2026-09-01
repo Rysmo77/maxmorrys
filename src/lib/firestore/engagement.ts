@@ -1,5 +1,5 @@
 import { doc, runTransaction } from 'firebase/firestore';
-import { db } from '../../config/firebase';
+import { db } from '../../config/db';
 import { captureError } from '../sentry';
 import type { ContentEngagement } from '../../types';
 

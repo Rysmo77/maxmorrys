@@ -8,7 +8,6 @@ import { trackEvent } from '../../lib/tracking';
 import { queryClient, queryKeys } from '../../lib/queryClient';
 // Imports directs plutôt que via le barrel `lib/firestore` : celui-ci fait
 // `export *` sur 17 modules, ce qui en tirait plusieurs dans le chunk d'entrée.
-import { getPublishedFormations, getFormationBySlug } from '../../lib/firestore/formations';
 import type { Formation } from '../../types';
 import { captureEntrySource, type EntrySource } from '../../lib/popups/entrySource';
 import { loadPopupSettings, type PopupSettings } from '../../lib/popups/settings';
@@ -160,7 +159,13 @@ export default function PopupManager() {
     // les fiches de contenu lisent la même liste sous cette clé — une seule
     // lecture Firestore pour tout le monde, et rien si le cache est déjà chaud.
     queryClient
-      .fetchQuery({ queryKey: queryKeys.publishedFormations, queryFn: () => getPublishedFormations() })
+      /* Chargé à la demande : ce gestionnaire est monté au démarrage, mais il ne lit
+         rien avant qu'un popup ne soit éligible. En import statique, il faisait entrer
+         le SDK Firestore dans la première vue de TOUTES les pages. */
+      .fetchQuery({
+        queryKey: queryKeys.publishedFormations,
+        queryFn: async () => (await import('../../lib/firestore/formations')).getPublishedFormations(),
+      })
       .then((list) => {
         if (!alive || list.length === 0) return;
         setFeatured(list.find((f) => f.featured) ?? list[0]);
@@ -174,7 +179,8 @@ export default function PopupManager() {
   useEffect(() => {
     if (!enabled || candidate?.id !== 'cartRecovery' || !pendingCartSlug || cartFormation) return;
     let alive = true;
-    getFormationBySlug(pendingCartSlug)
+    import('../../lib/firestore/formations')
+      .then((m) => m.getFormationBySlug(pendingCartSlug))
       .then((found) => { if (alive && found) setCartFormation(found); })
       .catch(() => {
         // Formation dépubliée ou introuvable : la fenêtre garde son texte seul.

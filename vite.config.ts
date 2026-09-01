@@ -30,10 +30,26 @@ function manualChunks(id: string): string | undefined {
   // impossible de le mettre en cache indépendamment d'une montée de react-router.
   if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'vendor-react';
 
-  // `firebase/storage` n'est plus utilisé (les médias passent par R2) et
-  // `firebase/functions`, utilisé 14×, manquait — il atterrissait donc dans le
-  // chunk d'entrée, qu'une montée du SDK Functions invalidait entièrement.
-  if (/node_modules\/(@firebase|firebase)\//.test(id)) return 'firebase';
+  /*
+   * FIRESTORE A SON PROPRE GROUPE, ET C'EST CE QUI LE SORT DE LA PREMIÈRE VUE.
+   *
+   * Le groupe unique `firebase` réunissait app, auth, firestore et functions. Comme
+   * `AuthContext` a besoin d'auth au démarrage, le chunk entier était statiquement
+   * atteignable depuis l'entrée — et Firestore, 59,4 Ko gzip, était préchargé sur
+   * toutes les pages pour un visiteur anonyme qui n'interroge aucune collection.
+   *
+   * Rendre l'import dynamique (`config/db.ts`, `AuthContext`) ne suffisait PAS : tant
+   * que Rollup les regroupe, le morceau dynamique voyage avec le morceau statique.
+   * Mesuré : le total de première vue avait même AUGMENTÉ, à 387,7 Ko.
+   *
+   * Les deux vont donc ensemble — import dynamique ET groupe séparé.
+   *
+   * `firebase/storage` n'est plus utilisé (les médias passent par R2) ; `firebase/functions`
+   * garde son groupe, il n'est appelé que par des callables de fonctionnalité.
+   */
+  if (/node_modules\/(@firebase\/firestore|firebase\/firestore)/.test(id)) return 'firebase-firestore';
+  if (/node_modules\/(@firebase\/functions|firebase\/functions)/.test(id)) return 'firebase-functions';
+  if (/node_modules\/(@firebase|firebase)\//.test(id)) return 'firebase-core';
 
   if (/node_modules\/(framer-motion|motion-dom|motion-utils)\//.test(id)) return 'motion';
 

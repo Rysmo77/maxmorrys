@@ -9,10 +9,7 @@ import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow, TerritoryRow, useTerritoryLayout, type TerritoryLayout } from '../components/site';
 import { useLanguage, useLocalizedPath } from '../contexts/LanguageContext';
 import { portrait } from '../lib/author';
-import { getPublishedFormations } from '../lib/firestore/formations';
-import { getPublishedPosts } from '../lib/firestore/blog';
-import { getPublishedPodcasts } from '../lib/firestore/content';
-import { getPublicCounts, type PublicCounts } from '../lib/firestore';
+import type { PublicCounts } from '../lib/firestore/publicCounts';
 import { queryKeys } from '../lib/queryClient';
 import { CLUB_PRICE_XOF } from '../lib/club/pricing';
 import { PACKS as presencePacks } from '../lib/presence/offer';
@@ -118,21 +115,37 @@ export default function Home() {
    */
   const { language } = useLanguage();
 
+  /*
+    ── LES QUATRE LECTURES SONT CHARGÉES À LA DEMANDE, PAS À L'IMPORT ──────────────
+    Cette page est la SEULE du site montée sans `lazy()` — c'est la page d'atterrissage,
+    et un aller-retour de plus avant son premier pixel coûterait plus qu'il ne rapporte.
+    Mais quatre imports statiques de `lib/firestore` suffisaient à faire entrer le SDK
+    Firestore — 90 Ko gzip — dans le graphe de l'entrée, donc dans le `modulepreload`
+    de TOUTES les pages.
+
+    ⚠️ LA QUATRIÈME LIGNE ÉTAIT LA PIRE : `from '../lib/firestore'` visait le BARILLET,
+    qui fait `export *` sur quatorze modules. Une ligne tirait l'administration, le Club,
+    les missions et les redirections dans la page d'accueil.
+
+    `useQuery` n'appelle `queryFn` qu'après le montage : l'import dynamique s'y glisse
+    sans rien changer au comportement, et le SDK descend EN PARALLÈLE du premier rendu
+    au lieu de le précéder. Les états de chargement existaient déjà.
+  */
   const { data: counts } = useQuery<PublicCounts | null>({
     queryKey: queryKeys.publicCounts,
-    queryFn: () => getPublicCounts(),
+    queryFn: async () => (await import('../lib/firestore/publicCounts')).getPublicCounts(),
   });
   const { data: posts = [] } = useQuery({
     queryKey: queryKeys.homeRecentPosts,
-    queryFn: () => getPublishedPosts(5),
+    queryFn: async () => (await import('../lib/firestore/blog')).getPublishedPosts(5),
   });
   const { data: podcasts = [] } = useQuery({
     queryKey: queryKeys.publishedPodcasts,
-    queryFn: () => getPublishedPodcasts(),
+    queryFn: async () => (await import('../lib/firestore/content')).getPublishedPodcasts(),
   });
   const { data: formations = [] } = useQuery({
     queryKey: queryKeys.publishedFormations,
-    queryFn: () => getPublishedFormations(),
+    queryFn: async () => (await import('../lib/firestore/formations')).getPublishedFormations(),
   });
 
   /*

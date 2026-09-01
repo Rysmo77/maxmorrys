@@ -1,6 +1,5 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 const requiredEnvVars = [
@@ -30,7 +29,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+/* ⚠️ `db` N'EST PLUS ICI, ET NE DOIT PAS Y REVENIR. Ce module est sur le chemin de
+   DÉMARRAGE — `AuthContext` l'importe pour savoir tout de suite si quelqu'un est
+   connecté. Y importer `firebase/firestore` remettait 59,4 Ko gzip dans le
+   `modulepreload` de toutes les pages, pour un visiteur anonyme qui n'interroge
+   aucune collection. Firestore vit dans `config/db.ts`, qui explique le reste. */
 
 // Le second argument accepte soit une région, soit un domaine personnalisé : le
 // SDK appelle alors `${domaine}/${nomDeLaFonction}`. C'est le point de bascule

@@ -194,27 +194,47 @@ recette du kit est intacte.
 | `RysmoWidget` | **aucune sortie clavier** — Échap ne fermait pas | écouteur `Escape`, posé seulement à l'ouverture |
 | `AppShell` (tiroir mobile) | **aucune sortie clavier** | idem |
 
-### 4.3 ⚠ Élevé — la première vue charge 156 Ko dont un visiteur anonyme n'a pas besoin
+### 4.3 ✅ CORRIGÉ — la première vue chargeait Firestore, dont l'accueil a besoin *après*
 
-Mesure du build présent (`dist/`, 1er sept. 20:46), **en octets réellement transférés (gzip)** :
+> ⚠️ **Le constat était en partie faux.** Il disait « Firebase et Motion, soit 156,5 Ko,
+> pour des fonctions qu'une page publique n'appelle pas ». **L'accueil appelle bel et bien
+> Firestore** — il lit les formations, les articles, les podcasts et les compteurs publics.
+> Le SDK n'était donc pas inutile : il était chargé **trop tôt**, avant le premier pixel,
+> au lieu d'en parallèle.
+>
+> Et `motion` est sur le chemin critique par décision documentée (`vite.config.ts`) :
+> `PageTransition` et les nœuds `motion.*` de l'accueil. Il reste.
 
-| Ressource préchargée | gzip |
+**Cinq arêtes tiraient Firestore dans le graphe statique de l'entrée**, aucune évidente :
+
+| Arête | Pourquoi elle existait |
 |---|---|
-| `index.js` | 102,8 Ko |
-| `firebase.js` | **115,5 Ko** |
-| `vendor-react.js` | 44,5 Ko |
-| `motion.js` | **41,0 Ko** |
-| `router.js` | 31,4 Ko |
-| `index.css` | 21,4 Ko |
-| **Total code, première vue** | **356,6 Ko** |
+| `AuthContext` → `config/firebase` | le fichier exportait `db` |
+| `Home` → `lib/firestore` | **le BARILLET** — `export *` sur quatorze modules |
+| `LanguageContext` → `lib/firestore/users` | une écriture de profil au changement de langue |
+| `PopupManager` → `lib/popups/settings` → `firestore/admin` | lecture des réglages |
+| `Header` → `AnnouncementBanner` → `firestore/admin` | lecture des annonces |
 
-Les six sont en `modulepreload` dans `dist/index.html` : **quelqu'un qui lit l'accueil
-télécharge tout le SDK Firebase et Framer Motion avant de pouvoir interagir**, soit
-156,5 Ko — **44 % du budget code** — pour des fonctions qu'une page publique n'appelle pas.
+Toutes ces lectures sont **asynchrones et postérieures au montage** : les passer en
+`await import()` ne change rien au comportement, et le SDK descend désormais en parallèle
+du premier rendu. `db` a quitté `config/firebase.ts` pour `config/db.ts`, et
+`vite.config.ts` donne à Firestore son propre groupe — **les deux sont nécessaires** :
+tant que Rollup les regroupe, le morceau dynamique voyage avec le morceau statique. La
+mesure intermédiaire l'a montré, le total avait d'abord *augmenté* à 388,4 Ko.
 
-Le budget déclaré est de **900 Ko, fontes comprises**, sur un marché où le panier de 2 Go
-coûte 4,2 % du revenu national brut par habitant. 356,6 Ko de code laissent ~543 Ko aux
-fontes et aux images. **La marge n'a jamais été mesurée** (voir §6, mesure manquante).
+| Première vue (gzip) | Avant | Après |
+|---|---|---|
+| `firebase` | 115,5 Ko | **53,6 Ko** (core+auth) + 3,7 (functions) |
+| dont Firestore | *inclus* | **0 — chargé à la demande** |
+| **Total** | **356,6 Ko** | **296,4 Ko** |
+
+**−60,2 Ko, soit −17 %**, sur un marché où le panier de 2 Go coûte 4,2 % du revenu
+national brut par habitant.
+
+`tests/unit/first-view-graph.test.ts` marche le graphe d'imports **des sources** — pas de
+`dist/`, donc pas besoin de build — et échoue en nommant la chaîne complète si l'arête
+revient. Il vérifie aussi que `firebase/auth` reste bien statique, sans quoi il ne
+prouverait rien.
 
 ### 4.4 ⚠ Élevé — une famille de fontes est chargée sans être utilisée nulle part
 
@@ -322,7 +342,7 @@ Cet audit est un audit de code. Trois chiffres ne s'en déduisent pas et manquen
 |---|---|---|---|---|
 | 1 | Fermer la collision `rounded-s` / `rounded-l` | ⛔ | Faible | 17 écrans rendent faux, en silence, dans la coque de l'app |
 | 2 | ~~Anneau de focus systématique~~ ✅ fait le 01/09 | ⚠ | — | 30 anneaux concurrents retirés, garde posée |
-| 3 | Sortir Firebase et Motion de la première vue | ⚠ | Moyen | 156 Ko rendus à un visiteur qui ne s'en sert pas |
+| 3 | ~~Sortir Firebase de la première vue~~ ✅ fait le 01/09 | ⚠ | — | −60,2 Ko gzip (−17 %) ; Motion reste, il est sur le chemin critique |
 | 4 | Retirer Inter, dé-sérialiser les fontes | ⚠ | Faible | Requête bloquante pour zéro pixel |
 | 5 | Combler les 6 trous du DS (§ `design-system-audit.md`) | ◐ | Élevé | Débloque 72 des 81 imports hérités |
 | 6 | Unifier les points de rupture | ◐ | Moyen | 60 px d'incohérence sur tout le responsive |

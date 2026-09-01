@@ -1,7 +1,6 @@
 // Import direct plutôt que via le barrel `lib/firestore` : ce module est chargé
 // par l'arbitre de pop-ups, donc dans le chunk d'entrée — le barrel y tirait
 // `certificates.ts` et ses dépendances au passage.
-import { getSiteSettings } from '../firestore/admin';
 import { captureError } from '../sentry';
 import type { PopupId } from './rules';
 import { DEFAULT_TREATMENT_SHARE } from './variant';
@@ -78,6 +77,9 @@ function readCache(): PopupSettings | null {
  * cache de session, puis une promesse partagée, dédoublonnent les appels concurrents.
  */
 export async function loadPopupSettings(): Promise<PopupSettings> {
+  /* `PopupManager` est monté au démarrage ; les réglages, eux, ne sont lus qu'après.
+     L'import dynamique garde `firestore/admin` — donc le SDK — hors de la première vue. */
+  const { getSiteSettings } = await import('../firestore/admin');
   const cached = readCache();
   if (cached) return cached;
 

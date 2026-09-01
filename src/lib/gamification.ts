@@ -1,5 +1,5 @@
 import { doc, getDoc, setDoc, runTransaction, collection, query, orderBy, limit, getDocs, type DocumentSnapshot } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db } from '../config/db';
 import type { GamificationProfile } from '../types/gamification';
 import { getLevelFromXP } from '../types/gamification';
 

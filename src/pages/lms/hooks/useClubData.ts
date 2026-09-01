@@ -17,7 +17,8 @@ import { uploadMedia } from '../../../lib/storage';
 import { captureError } from '../../../lib/sentry';
 import { addXP, awardBadge } from '../../../lib/gamification';
 import { XP_REWARDS } from '../../../types/gamification';
-import { db, functions } from '../../../config/firebase';
+import { functions } from '../../../config/firebase';
+import { db } from '../../../config/db';
 
 const createClubCharge = httpsCallable<
   { autoRenew?: boolean },
