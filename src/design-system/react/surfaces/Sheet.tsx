@@ -1,16 +1,35 @@
 import { useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Icon } from '@ds';
+import { Icon } from '../brand/Icon';
 
-interface SheetProps {
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * LA FEUILLE DU BAS — le dialogue du pouce.
+ *
+ * Portée depuis `components/ui/Sheet`. Contrairement à `ImageInput`, `RichEditor` et
+ * `NotificationDropdown`, restés côté application, celle-ci n'a AUCUNE dépendance au
+ * produit : ni service, ni contexte, ni bibliothèque maison. C'est ce qui en fait une
+ * primitive et non un composant d'écran.
+ *
+ * i18next en sort pour la même raison que sur `Modal` : le kit doit rester utilisable
+ * hors de ce dépôt, et c'est ce qui permet à `mobile/ds` d'en partager les jetons.
+ * `components/dialogs/` injecte le libellé.
+ *
+ * ── CE QUI EST CORRIGÉ ────────────────────────────────────────────────────────
+ * Le voile passe `aria-hidden` — il ferme au clic, mais Échap ferme aussi et le bouton
+ * de fermeture est atteignable : l'annoncer ne donne rien à personne. La feuille prend
+ * `role="dialog"`, `aria-modal` et son titre pour nom : elle n'en avait aucun.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+export interface SheetProps {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  /** Libellé de fermeture. La coquille traduit — le DS ne connaît pas i18next. */
+  closeLabel?: string;
 }
 
-export default function Sheet({ open, onClose, title, children }: SheetProps) {
-  const { t } = useTranslation('ui');
+export function Sheet({ open, onClose, title, children, closeLabel = 'Fermer' }: SheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const currentY = useRef(0);
@@ -91,7 +110,7 @@ export default function Sheet({ open, onClose, title, children }: SheetProps) {
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg text-ink-2 hover:text-ink-2 hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors"
-              aria-label={t('sheet.close')}
+              aria-label={closeLabel}
             >
               <Icon name="close" size={16} />
             </button>

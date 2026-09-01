@@ -86,40 +86,39 @@ si un jeton reprend un suffixe réservé — vérifié en réintroduisant le dé
 
 ---
 
-## 3. Les six trous — le vrai chantier
+## 3. ✅ Les six trous — comblés le 01/09
 
-81 imports subsistent vers `src/components/ui/`. **72 d'entre eux (89 %) existent parce que
-le DS n'a pas d'équivalent.**
+81 imports subsistaient vers `src/components/ui/`. **Le dossier n'existe plus.**
 
-| Composant manquant | Imports | Surface principale |
-|---|---|---|
-| **Toast** | **30** | partout |
-| **ConfirmDialog** | **16** | admin |
-| **Pagination** | **12** | admin |
-| **Modal** | **7** | admin + LMS |
-| **ImageInput** | **5** | admin |
-| **RichEditor** (TipTap) | 2 | admin |
-| | **72** | |
+| Composant | Imports | Destination | Ce que le portage a corrigé |
+|---|---|---|---|
+| **Toast** | 30 | `ds/surfaces` | texte à **1,5:1** — `color-mix(…30%, transparent)` copié depuis le voile de fond |
+| **ConfirmDialog** | 16 | `ds/surfaces` | bouton destructif à **2,28:1** en mode sombre ; survol sans effet |
+| **Pagination** | 12 | `ds/navigation` | `dark:` de couleur (AD-3), rayon de 30 px sur une case de 36, `text-white` |
+| **Modal** | 7 | `ds/surfaces` | `id="modal-title"` **en dur** — deux modales = deux `id` identiques |
+| **ImageInput** | 5 | `components/forms` | dépend de `lib/storage` → composant d'application |
+| **RichEditor** | 2 | `components/forms` | dépend de `lib/markdown` → composant d'application |
 
-Les six sont exactement l'outillage d'une console d'administration — d'où la concentration
-de 24 des 81 imports hérités sur les 19 pages d'admin.
+**Deux des six n'avaient rien à faire dans le design system**, et c'est le portage qui
+l'a montré : `ImageInput` appelle le service de dépôt de médias, `RichEditor` la
+bibliothèque markdown maison. Les mettre dans le kit aurait inversé la dépendance et
+rendu le kit inutilisable hors de ce dépôt — le même raisonnement qui garde
+`useDialogA11y` côté application. Ils sont relocalisés, pas portés.
 
-**Les 9 imports restants sont de vrais doublons**, à migrer sans rien écrire de neuf :
+Les neuf doublons ont suivi : `Badge`→`Tag`, `Button`→`Button`, `Card`→`GlassPanel`,
+`Input`→`Field`, `Sheet`→`ds/surfaces`, `PhoneInput` et `NotificationDropdown` relocalisés.
 
-| Hérité | Imports | Équivalent DS |
-|---|---|---|
-| `Button` | 2 | `Button` |
-| `Badge` | 2 | `Tag` |
-| `Input` | 1 | `Field` |
-| `Card` | 1 | `GlassPanel` / `TerritoryCard` |
-| `Sheet` | 1 | — (à couvrir avec `Modal`) |
-| `PhoneInput` | 1 | — (spécialisation de `Field`) |
-| `NotificationDropdown` | 1 | — (spécialisation) |
+### Ce que le portage a fait apparaître
 
-**Trois fichiers hérités sont morts** — 0 import : `Breadcrumbs`, `Skeleton`, `Toggle`.
-Le DS fournit `Breadcrumb`, `Skeleton` et `Switch`.
+**AD-24 — le kit n'a pas de ton d'action destructive.** Cinq fonds d'action, aucun qui
+dise « ce bouton supprime ». L'écart passe par `overrides/`, avec des contrastes mesurés
+(6,56:1 en clair, 8,28:1 en nuit) et **aucune couleur inventée** : ce sont les teintes
+d'état du kit, avec le rôle qui manquait.
 
----
+**Le design system ne connaît pas i18next, et ne doit pas.** Les composants hérités
+lisaient leurs libellés dans `t('ui.…')` ; 35 appels s'y fiaient. `components/dialogs/`
+est une couche d'adaptation de trente lignes qui les injecte. Le kit reste portable —
+c'est ce qui permet à `mobile/ds` d'en partager les jetons.
 
 ## 4. Couverture face à la liste de la Phase 2 du brief
 
@@ -213,15 +212,15 @@ panel de références.
 Le brief prévoit « construire le design system complet AVANT de toucher aux écrans ». Il est
 construit. La Phase 2 se réduit donc à :
 
-| # | Action | Effort |
+| # | Action | État |
 |---|---|---|
-| 1 | Fermer la collision de rayons (`s` → `xs`, `l` → `lg`, ou annuler l'échelle par défaut) | Faible |
-| 2 | Écrire les 6 composants manquants — `Toast`, `Modal`, `ConfirmDialog`, `Pagination`, `ImageInput`, `RichEditor` | Élevé |
-| 3 | Migrer les 9 doublons | Faible |
-| 4 | Supprimer les 3 fichiers morts | Trivial |
-| 5 | Ajouter `Table`, `Tooltip`, palette de commandes, page 500 | Moyen |
-| 6 | Étendre `ds:check` au CSS **généré**, pas seulement aux sources | Moyen |
-| 7 | Annuler le reste de la palette Tailwind par défaut | Faible |
+| 1 | Fermer la collision de rayons | ✅ `a03e3f2` — `s`→`xs`, `l`→`card`, garde posée |
+| 2 | Les 6 composants manquants | ✅ 4 portés au DS, 2 relocalisés (dépendances d'application) |
+| 3 | Migrer les 9 doublons | ✅ `components/ui/` n'existe plus |
+| 4 | Supprimer les 3 fichiers morts | ✅ `a03e3f2` |
+| 5 | `Table`, `Tooltip`, page 500 | page 500 ✅ `81840b6` · palette de commandes **existait déjà** · `Table`/`Tooltip` restent |
+| 6 | Étendre `ds:check` au CSS **généré** | ✅ par test — `tailwind-radius-collision`, `focus-ring`, `first-view-graph` |
+| 7 | Annuler le reste de la palette Tailwind | ✅ `a03e3f2` — 22 échelles |
 
 **Aucune de ces sept actions ne demande une nouvelle direction artistique.** C'est le
 constat central de la Phase 0, et il rend la Phase 1 du brief — proposer 2-3 moodboards —

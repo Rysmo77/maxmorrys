@@ -101,6 +101,8 @@ export { Mesh } from './react/surfaces/Mesh';
 export type { MeshProps } from './react/surfaces/Mesh';
 export { Modal } from './react/surfaces/Modal';
 export type { ModalProps } from './react/surfaces/Modal';
+export { Sheet } from './react/surfaces/Sheet';
+export type { SheetProps } from './react/surfaces/Sheet';
 export { Skeleton } from './react/surfaces/Skeleton';
 export type { SkeletonProps } from './react/surfaces/Skeleton';
 export { TerritoryCard } from './react/surfaces/TerritoryCard';

@@ -6,7 +6,7 @@ import { toCanonicalPath } from '../../i18n/routing';
 import AppSidebar, { type AppSidebarSection } from './AppSidebar';
 import AppBottomNav, { type BottomNavItem } from './AppBottomNav';
 import UserMenu from './UserMenu';
-import NotificationDropdown from '../ui/NotificationDropdown';
+import NotificationDropdown from '@/components/layout/NotificationDropdown';
 import SearchOverlay from '../shared/SearchOverlay';
 import { Mesh, type Territory, type WordmarkProps } from '../../design-system';
 import { Icon } from '@ds';

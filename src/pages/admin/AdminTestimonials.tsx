@@ -5,7 +5,7 @@ import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../com
 import { Modal } from '@/components/dialogs';
 import { Pagination } from '@/components/dialogs';
 import { ConfirmDialog } from '@/components/dialogs';
-import ImageInput from '../../components/ui/ImageInput';
+import ImageInput from '@/components/forms/ImageInput';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
 import { getAllTestimonials, saveTestimonial, deleteTestimonial } from '../../lib/firestore';

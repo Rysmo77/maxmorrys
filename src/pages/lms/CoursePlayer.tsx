@@ -5,7 +5,7 @@ import {
   Breadcrumb, Button, EmptyState, GlassPanel, Icon, LessonRow, Mesh, Num,
   ProgressBar, Skeleton, Tag, type IconName,
 } from '@ds';
-import Sheet from '../../components/ui/Sheet';
+import { Sheet } from '@/components/dialogs';
 import { SiteDisplay, SiteEyebrow, useReveal } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';
 import { useLocalizedPath } from '../../contexts/LanguageContext';

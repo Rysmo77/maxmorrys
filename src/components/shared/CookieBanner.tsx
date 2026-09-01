@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import Button from '../ui/Button';
 import { grantPixelConsent, revokePixelConsent } from '../../lib/meta-pixel';
-import { Icon } from '@ds';
+import { Button, Icon } from '@ds';
 
 export interface CookieConsent {
   analytics: boolean;
@@ -170,10 +169,10 @@ export default function CookieBanner() {
             )}
 
             <div className="flex flex-wrap items-center gap-3 mt-4">
-              <Button size="sm" onClick={acceptAll}>{t('cookies.acceptAll')}</Button>
-              <Button variant="outline" size="sm" onClick={acceptEssential}>{t('cookies.essentialOnly')}</Button>
+              <Button size="sm" fullWidth={false} onClick={acceptAll}>{t('cookies.acceptAll')}</Button>
+              <Button tone="quiet" size="sm" fullWidth={false} onClick={acceptEssential}>{t('cookies.essentialOnly')}</Button>
               {showDetails && (
-                <Button variant="outline" size="sm" onClick={saveCustom}>{t('cookies.saveChoices')}</Button>
+                <Button tone="quiet" size="sm" fullWidth={false} onClick={saveCustom}>{t('cookies.saveChoices')}</Button>
               )}
               <button
                 onClick={() => setShowDetails(!showDetails)}

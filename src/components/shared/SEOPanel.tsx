@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import Input from '../ui/Input';
 import { cn } from '../../lib/utils';
-import { Icon } from '@ds';
+import { Field, Icon } from '@ds';
 
 interface SEOPanelProps {
   // Données de base pour l'analyse (lecture seule)
@@ -410,10 +409,10 @@ export default function SEOPanel(props: SEOPanelProps) {
               </div>
             </div>
             {/* Inputs OG */}
-            <Input
+            <Field
               label={t('seo.ogTitleLabel')}
               value={ogTitle}
-              onChange={(e) => onChange('ogTitle', e.target.value)}
+              onChange={(v) => onChange('ogTitle', v)}
               placeholder={metaTitle.trim() || title || t('seo.ogTitlePlaceholder')}
             />
             <div className="space-y-1.5">
@@ -427,10 +426,10 @@ export default function SEOPanel(props: SEOPanelProps) {
                 className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:outline-none dark:focus:border-forme"
               />
             </div>
-            <Input
+            <Field
               label={t('seo.ogImageLabel')}
               value={ogImage}
-              onChange={(e) => onChange('ogImage', e.target.value)}
+              onChange={(v) => onChange('ogImage', v)}
               placeholder={coverImage || t('seo.ogImagePlaceholder')}
             />
           </div>
@@ -458,10 +457,10 @@ export default function SEOPanel(props: SEOPanelProps) {
               </div>
             </div>
             {/* Inputs Twitter */}
-            <Input
+            <Field
               label={t('seo.twitterTitleLabel')}
               value={twitterTitle ?? ''}
-              onChange={(e) => onChange('twitterTitle', e.target.value)}
+              onChange={(v) => onChange('twitterTitle', v)}
               placeholder={ogDisplayTitle || t('seo.twitterTitlePlaceholder')}
             />
             <div className="space-y-1.5">
@@ -475,10 +474,10 @@ export default function SEOPanel(props: SEOPanelProps) {
                 className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:outline-none dark:focus:border-forme"
               />
             </div>
-            <Input
+            <Field
               label={t('seo.twitterImageLabel')}
               value={twitterImage ?? ''}
-              onChange={(e) => onChange('twitterImage', e.target.value)}
+              onChange={(v) => onChange('twitterImage', v)}
               placeholder={ogDisplayImage || t('seo.twitterImagePlaceholder')}
             />
           </div>
@@ -501,10 +500,10 @@ export default function SEOPanel(props: SEOPanelProps) {
         {advancedOpen && (
           <div className="px-5 pb-5 space-y-5 border-t border-[color:var(--border-hair)] pt-4">
             {/* Canonical URL */}
-            <Input
+            <Field
               label={t('seo.canonicalLabel')}
               value={canonicalUrl}
-              onChange={(e) => onChange('canonicalUrl', e.target.value)}
+              onChange={(v) => onChange('canonicalUrl', v)}
               placeholder={`${siteUrl}/${basePath}/${slug || 'mon-article'}`}
             />
             <p className="text-xs text-ink-2 -mt-3">

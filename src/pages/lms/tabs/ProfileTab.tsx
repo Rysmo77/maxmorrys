@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { updateProfile } from 'firebase/auth';
 import { Avatar, Button, Field, GlassPanel, Icon, IconButton, LessonRow, Num, useToast } from '@ds';
-import PhoneInput from '../../../components/ui/PhoneInput';
+import PhoneInput from '@/components/forms/PhoneInput';
 import { SiteEyebrow, useReveal } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
 import { useAuth } from '../../../contexts/AuthContext';

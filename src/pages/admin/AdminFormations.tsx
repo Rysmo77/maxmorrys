@@ -6,8 +6,8 @@ import {
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { Modal } from '@/components/dialogs';
-import ImageInput from '../../components/ui/ImageInput';
-import RichEditor from '../../components/ui/RichEditor';
+import ImageInput from '@/components/forms/ImageInput';
+import RichEditor from '@/components/forms/RichEditor';
 import { ConfirmDialog } from '@/components/dialogs';
 import { Pagination } from '@/components/dialogs';
 import SEOPanel from '../../components/shared/SEOPanel';

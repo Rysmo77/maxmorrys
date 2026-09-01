@@ -1,11 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/dialogs';
-import Button from '../../../components/ui/Button';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useFormat } from '../../../hooks/useFormat';
 import type { User, Enrollment, Formation, ClubDigitosSubscription } from '../../../types';
 import type { EditTab, EditForm, AddForm } from '../hooks/useAdminUsers';
-import { Field, Icon } from '@ds';
+import { Button, Field, Icon } from '@ds';
 import ConsoleListSkeleton from './ConsoleListSkeleton';
 
 /* ── Edit User Modal ── */
@@ -142,10 +141,10 @@ export function UserEditModal({
                 />
               </div>
               <div className="flex justify-end gap-3 pt-1">
-                <Button variant="outline" onClick={onClose}>{t('userEdit.info.cancel')}</Button>
-                <Button onClick={handleSaveUser} disabled={saving} loading={saving} icon={<Icon name="save" size={16} />}>
+                <Button tone="quiet" onClick={onClose}>{t('userEdit.info.cancel')}</Button>
+                <Button onClick={handleSaveUser} disabled={saving} loading={saving}><span className="inline-flex items-center gap-2"><Icon name="save" size={16} />
                   {saving ? t('userEdit.info.saving') : t('userEdit.info.save')}
-                </Button>
+                </span></Button>
               </div>
             </div>
           )}
@@ -171,10 +170,9 @@ export function UserEditModal({
                   size="sm"
                   onClick={handleAddEnrollment}
                   disabled={!addFormationId || addingFormation}
-                  icon={<Icon name="plus" size={16} />}
-                >
+                ><span className="inline-flex items-center gap-2"><Icon name="plus" size={16} />
                   {t('userEdit.formations.activate')}
-                </Button>
+                </span></Button>
               </div>
 
               {/* Enrolled list */}
@@ -265,28 +263,26 @@ export function UserEditModal({
                   <div className="space-y-2">
                     {(!clubSub || clubSub.status !== 'active') && (
                       <Button
-                        className="w-full"
+                        fullWidth
                         onClick={handleGrantClub}
                         disabled={togglingClub} loading={togglingClub}
-                        icon={<Icon name="crown" size={16} />}
-                      >
+                      ><span className="inline-flex items-center gap-2"><Icon name="crown" size={16} />
                         {togglingClub ? t('userEdit.club.granting') : t('userEdit.club.grant')}
-                      </Button>
+                      </span></Button>
                     )}
 
                     {clubSub?.status === 'active' && (
                       <>
                         <Button
-                          className="w-full"
+                          fullWidth
                           onClick={() => {
                             // Renew 1 more year from now
                             handleGrantClub();
                           }}
                           disabled={togglingClub}
-                          variant="outline"
-                          icon={<Icon name="crown" size={16} />}
+                          tone="quiet"
                         >
-                          {t('userEdit.club.renew')}
+                          <span className="inline-flex items-center gap-2"><Icon name="crown" size={16} />{t('userEdit.club.renew')}</span>
                         </Button>
                         <button
                           onClick={() => handleRevokeClub('cancelled')}
@@ -301,12 +297,11 @@ export function UserEditModal({
 
                     {clubSub?.status === 'pending' && (
                       <Button
-                        className="w-full"
+                        fullWidth
                         onClick={() => handleRevokeClub('active')}
                         disabled={togglingClub}
-                        icon={<Icon name="check-circle" size={16} />}
                       >
-                        {togglingClub ? t('userEdit.club.granting') : t('userEdit.club.confirmPayment')}
+                        <span className="inline-flex items-center gap-2"><Icon name="check-circle" size={16} />{togglingClub ? t('userEdit.club.granting') : t('userEdit.club.confirmPayment')}</span>
                       </Button>
                     )}
                   </div>
@@ -383,10 +378,9 @@ export function UserEditModal({
                         size="sm"
                         onClick={handleAddRysmoTokens}
                         disabled={togglingRysmo}
-                        icon={<Icon name="plus" size={16} />}
-                      >
+                      ><span className="inline-flex items-center gap-2"><Icon name="plus" size={16} />
                         {t('userEdit.rysmo.add')}
-                      </Button>
+                      </span></Button>
                     </div>
                     <div className="flex gap-2">
                       {['30', '100', '300'].map((preset) => (
@@ -455,14 +449,13 @@ export function CreateUserModal({
         />
         <p className="text-xs text-ink-2">{t('userCreate.passwordNote')}</p>
         <div className="flex justify-end gap-3 pt-1">
-          <Button variant="outline" onClick={onClose} icon={<Icon name="close" size={16} />}>{t('userCreate.cancel')}</Button>
+          <Button tone="quiet" onClick={onClose}><span className="inline-flex items-center gap-2"><Icon name="close" size={16} />{t('userCreate.cancel')}</span></Button>
           <Button
             onClick={handleCreateUser}
             disabled={creatingUser} loading={creatingUser}
-            icon={<Icon name="plus" size={16} />}
-          >
+          ><span className="inline-flex items-center gap-2"><Icon name="plus" size={16} />
             {creatingUser ? t('userCreate.creating') : t('userCreate.create')}
-          </Button>
+          </span></Button>
         </div>
       </div>
     </Modal>

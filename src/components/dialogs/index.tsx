@@ -1,9 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import {
   ConfirmDialog as DsConfirmDialog, Modal as DsModal, Pagination as DsPagination,
+  Sheet as DsSheet,
   type ConfirmDialogProps as DsConfirmDialogProps,
   type ModalProps as DsModalProps,
   type PaginationProps as DsPaginationProps,
+  type SheetProps as DsSheetProps,
 } from '@ds';
 
 /**
@@ -54,6 +56,11 @@ export function ConfirmDialog({ title, confirmLabel, cancelLabel, ...rest }: Con
       closeLabel={t('modal.close')}
     />
   );
+}
+
+export function Sheet(props: Omit<DsSheetProps, 'closeLabel'>) {
+  const { t } = useTranslation('ui');
+  return <DsSheet {...props} closeLabel={t('modal.close')} />;
 }
 
 export function Pagination(props: Omit<DsPaginationProps, 'label' | 'previousLabel' | 'nextLabel' | 'pageLabel'>) {

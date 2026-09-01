@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, Tag } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { Modal } from '@/components/dialogs';
-import ImageInput from '../../components/ui/ImageInput';
+import ImageInput from '@/components/forms/ImageInput';
 import { ConfirmDialog } from '@/components/dialogs';
 import { Pagination } from '@/components/dialogs';
 import { slugify } from '../../lib/utils';
