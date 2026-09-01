@@ -238,8 +238,14 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm mm-drop" onClick={onClose} />
-      <div className="relative w-full max-w-2xl mx-4 bg-surface-sheet rounded-2xl shadow-2xl mm-drop overflow-hidden">
+      {/* Voile décoratif : Échap ferme aussi, et le champ garde le focus. */}
+      <div aria-hidden="true" className="fixed inset-0 bg-black/50 backdrop-blur-sm mm-drop" onClick={onClose} />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('search.quickSearch')}
+        className="relative w-full max-w-2xl mx-4 bg-surface-sheet rounded-2xl shadow-2xl mm-drop overflow-hidden"
+      >
 
         {/* Pendant la recherche, la LIGNE porte le liseré `.mm-loading` ; la loupe reste une
             loupe. Un rond à sa place effaçait le seul repère de l'écran. */}

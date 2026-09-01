@@ -140,6 +140,22 @@ export default function RysmoWidget() {
     return () => window.removeEventListener(RYSMO_OPEN_EVENT, onOpen);
   }, []);
 
+  /*
+    ── ÉCHAP FERME ─────────────────────────────────────────────────────────────
+    Le panneau n'avait AUCUNE sortie au clavier : le voile se ferme au clic, et le
+    bouton de fermeture est atteignable, mais quelqu'un qui navigue au clavier depuis
+    le champ de saisie devait traverser toute la conversation pour en sortir.
+
+    L'écouteur n'est posé que quand le panneau est ouvert — sinon il intercepterait
+    Échap sur chaque écran du site, au bénéfice de rien.
+  */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
   const displayName = user
     ? (userData?.displayName || user.displayName || user.email?.split('@')[0] || t('defaultName'))
     : '';

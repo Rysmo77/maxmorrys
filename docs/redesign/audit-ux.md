@@ -173,7 +173,26 @@ recette du kit est intacte.
 **Ce qui reste vrai du constat initial** : la sémantique ARIA est sérieuse —
 116 fichiers portent des attributs `aria-*` (101 `aria-label`, 111 `aria-hidden`,
 23 `aria-current`, 9 `aria-live`), rôles posés (`dialog` 7, `alert` 6, `status` 8).
-Restent **4 `<div onClick>`** et **3 `<img>` sans `alt`**, non traités dans ce lot.
+
+> ⚠️ **Les « 4 `<div onClick>` » et « 3 `<img>` sans alt » étaient aussi des faux
+> positifs**, mesurés le 01/09 en dépouillant les commentaires : **zéro `<img>` sans
+> `alt`** en code réel, et les trois `<div onClick>` restants sont des motifs légitimes —
+> deux délégations d'événement sur `<a>` (`DsNavHost`, `BlogPost`, où l'entrée clavier
+> déclenche un clic qui remonte, comme leurs commentaires l'expliquent) et un conteneur de
+> dialogue qui ne ferme que sur lui-même, adossé à `useDialogA11y`.
+>
+> C'est le **cinquième** sur-comptage du même type dans ce document. Ils viennent tous de
+> `grep` sans exclusion des commentaires, sur un dépôt qui documente abondamment le code
+> qu'il a retiré.
+
+**Les vrais trous, trouvés en instruisant et corrigés le 01/09** :
+
+| Surface | Défaut | Correctif |
+|---|---|---|
+| `ui/Sheet` | voile annoncé, dialogue sans nom ni rôle | `aria-hidden` sur le voile, `role="dialog"` + `aria-modal` + `aria-label` |
+| `SearchOverlay` | idem | idem, nommé par `search.quickSearch` |
+| `RysmoWidget` | **aucune sortie clavier** — Échap ne fermait pas | écouteur `Escape`, posé seulement à l'ouverture |
+| `AppShell` (tiroir mobile) | **aucune sortie clavier** | idem |
 
 ### 4.3 ⚠ Élevé — la première vue charge 156 Ko dont un visiteur anonyme n'a pas besoin
 

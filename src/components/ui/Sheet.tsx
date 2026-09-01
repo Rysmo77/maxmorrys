@@ -58,8 +58,12 @@ export default function Sheet({ open, onClose, title, children }: SheetProps) {
 
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
-      {/* Backdrop */}
+      {/* Voile — DÉCORATIF pour un lecteur d'écran.
+          Il ferme au clic, mais ce n'est pas la seule sortie : Échap ferme aussi, et le
+          panneau porte un bouton de fermeture. `aria-hidden` évite donc d'annoncer un
+          élément vide et non atteignable au clavier, sans rien retirer à personne. */}
       <div
+        aria-hidden="true"
         className="absolute inset-0 bg-black/50 mm-drop"
         onClick={onClose}
       />
@@ -67,6 +71,9 @@ export default function Sheet({ open, onClose, title, children }: SheetProps) {
       {/* Sheet */}
       <div
         ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         className="absolute bottom-0 left-0 right-0 bg-surface-sheet rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col mm-drop transition-transform"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}

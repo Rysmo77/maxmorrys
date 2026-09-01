@@ -109,6 +109,19 @@ export default function AppShell({
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  /*
+    ── ÉCHAP FERME LE TIROIR MOBILE ────────────────────────────────────────────
+    Il ne se fermait qu'au clic sur le voile ou sur son bouton. Un voile n'est pas
+    atteignable au clavier, et le tiroir couvre l'écran : sans Échap, la seule sortie
+    au clavier était de retrouver le bouton de fermeture à la tabulation.
+  */
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileOpen]);
+
   const canonicalPath = toCanonicalPath(location.pathname);
   const pageTitle = titleMap?.[canonicalPath] ?? deriveTitleFromPath(canonicalPath);
   /*
