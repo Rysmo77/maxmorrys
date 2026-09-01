@@ -336,7 +336,7 @@ export default function SEOPanel(props: SEOPanelProps) {
           {/* URL */}
           <div className="flex items-center gap-1.5 mb-1">
             <Icon name="globe" size={14} className="text-ink-2 flex-shrink-0" />
-            <p className="text-xs text-[#006621] dark:text-green-500 truncate">{displayUrl}</p>  {/* ok-ds — bleu et vert officiels d'un résultat Google — aperçu SERP */}
+            <p className="text-xs text-[#006621] dark:text-[#22c55e] truncate">{displayUrl}</p>  {/* ok-ds — vert officiel d'un résultat Google (aperçu SERP), en valeur littérale : la palette Tailwind par défaut est annulée, et une marque tierce ne se recolore pas au jeton. Rendu inchangé — `green-500` valait exactement #22c55e. */}
           </div>
           {/* Title */}
           <p

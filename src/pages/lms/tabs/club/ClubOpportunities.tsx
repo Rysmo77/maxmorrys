@@ -203,7 +203,7 @@ export default function ClubOpportunities({ data }: { data: ClubData }) {
                       type="button"
                       onClick={() => handleDelete(item)}
                       aria-label={t('opportunities.deleteLabel')}
-                      className="mm-touch-extend flex-none rounded-s p-1 text-ink-2 transition-colors duration-ui ease-ds hover:text-stop"
+                      className="mm-touch-extend flex-none rounded-xs p-1 text-ink-2 transition-colors duration-ui ease-ds hover:text-stop"
                     >
                       <Icon name="trash" size={16} />
                     </button>

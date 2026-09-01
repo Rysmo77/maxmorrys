@@ -184,7 +184,7 @@ export default function AppShell({
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="mm-touch-extend stack:hidden p-2 -ml-1 rounded-s text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
+              className="mm-touch-extend stack:hidden p-2 -ml-1 rounded-xs text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
               aria-label={t('shell.openMenu')}
             >
               <Icon name="menu" size={20} strokeWidth={2.2} />
@@ -207,14 +207,14 @@ export default function AppShell({
             >
               <Icon name="search" size={16} strokeWidth={2.2} />
               <span className="hidden wide:inline">{t('shell.searchPlaceholder')}</span>
-              <kbd className="hidden wide:inline text-small font-bold tracking-wider text-ink-2 border border-[color:var(--line)] rounded-s px-1 py-0.5">⌘K</kbd>
+              <kbd className="hidden wide:inline text-small font-bold tracking-wider text-ink-2 border border-[color:var(--line)] rounded-xs px-1 py-0.5">⌘K</kbd>
             </button>
 
             {/* Recherche, petit écran */}
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
-              className="mm-touch-extend stack:hidden p-2 rounded-s text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
+              className="mm-touch-extend stack:hidden p-2 rounded-xs text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
               aria-label={t('shell.search')}
             >
               <Icon name="search" size={20} strokeWidth={2.2} />

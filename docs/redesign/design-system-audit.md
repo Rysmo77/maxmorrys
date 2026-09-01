@@ -61,10 +61,15 @@ Le raisonnement de la décision n°1 n'a pas été appliqué à `borderRadius`. 
 `s / m / l / xl / media / pill` mais **ne retire pas** l'échelle par défaut. Deux
 conséquences :
 
-**a. Collision silencieuse.** `rounded-s` et `rounded-l` sont des utilitaires directionnels
-Tailwind. Vérifié au compilateur, la règle directionnelle est émise **après** et gagne :
-17 usages rendent 4 px sur deux coins au lieu du rayon du kit sur quatre.
-Détail complet et liste des fichiers dans `audit-ux.md` §4.1.
+**a. Collision silencieuse — ✅ CORRIGÉ le 01/09.** `rounded-s` est un utilitaire
+directionnel Tailwind. La règle directionnelle était émise **après** et gagnait :
+16 usages rendaient 4 px sur deux coins au lieu des 10 px du kit sur quatre.
+*(`rounded-l` figurait à tort dans le constat initial — voir `audit-ux.md` §4.1.)*
+
+Le jeton est renommé `s` → `xs`, le jeton `l` retiré de la table (il empêchait
+`rounded-l-xl`), les 16 usages migrés. **Et la porte est posée** :
+`tests/unit/tailwind-radius-collision.test.ts` compile la vraie configuration et échoue
+si un jeton reprend un suffixe réservé — vérifié en réintroduisant le défaut.
 
 **b. Deux échelles pour la même forme.**
 

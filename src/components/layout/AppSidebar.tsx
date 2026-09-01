@@ -85,7 +85,7 @@ export default function AppSidebar({
           <button
             type="button"
             onClick={onToggleCollapsed}
-            className="mm-touch-extend hidden wide:flex p-1.5 rounded-s text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
+            className="mm-touch-extend hidden wide:flex p-1.5 rounded-xs text-ink-2 hover:text-ink hover:bg-[color:var(--fill-1)] transition-colors duration-ui"
             aria-label={collapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
           >
             {collapsed
@@ -110,7 +110,7 @@ export default function AppSidebar({
             {!collapsed && (
               <>
                 <span className="flex-1 text-left">{t('shell.searchAndActions')}</span>
-                <kbd className="text-small font-bold tracking-wider text-ink-2 border border-[color:var(--line)] rounded-s px-1 py-0.5">⌘K</kbd>
+                <kbd className="text-small font-bold tracking-wider text-ink-2 border border-[color:var(--line)] rounded-xs px-1 py-0.5">⌘K</kbd>
               </>
             )}
           </button>
@@ -158,7 +158,7 @@ export default function AppSidebar({
                         {!collapsed && item.tone === 'club' && (
                           <span
                             aria-hidden="true"
-                            className="w-2 h-2 rounded-s shrink-0 bg-[color:var(--mm-violet)]"
+                            className="w-2 h-2 rounded-xs shrink-0 bg-[color:var(--mm-violet)]"
                           />
                         )}
                         <Icon

@@ -300,8 +300,8 @@ export default function TestimonialsTab({
 
       {loadingTestimonials ? (
         <GlassPanel level="flat" padding={18}>
-          <div className="h-4 w-2/5 rounded-s bg-[color:var(--fill-2)]" />
-          <div className="h-4 w-4/5 rounded-s bg-[color:var(--fill-2)] mt-3" />
+          <div className="h-4 w-2/5 rounded-xs bg-[color:var(--fill-2)]" />
+          <div className="h-4 w-4/5 rounded-xs bg-[color:var(--fill-2)] mt-3" />
         </GlassPanel>
       ) : myTestimonials.length === 0 ? (
         <GlassPanel level="flat" padding={18}>

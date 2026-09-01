@@ -76,8 +76,24 @@ export default {
            devait rendre impossible (AD-2). On les annule donc explicitement. `white`, `black`,
            `transparent`, `current` et le reste de la palette par défaut sont intacts.
            ────────────────────────────────────────────────────────────────────────────── */
-        neutral: undefined,
-        teal: undefined,
+        /* ── 30/08 : `neutral` et `teal` · 01/09 : TOUTES LES AUTRES ─────────────
+           Le raisonnement ci-dessus ne valait que pour deux échelles, alors qu'il vaut
+           pour les vingt-deux : `bg-blue-500` rendait du bleu Tailwind, silencieusement,
+           à côté d'un `bg-forme` qui rend le bleu de la marque et bascule sous `.dk`.
+
+           Le dépôt n'en comptait plus qu'UNE seule occurrence réelle au moment de
+           fermer la porte — l'aperçu SERP de `SEOPanel`, passée en valeur littérale
+           parce qu'une marque tierce ne se recolore pas au jeton. Les autres
+           correspondances d'une recherche naïve étaient des COMMENTAIRES qui
+           documentaient des retraits déjà faits.
+
+           `white`, `black`, `transparent`, `current` et `inherit` restent : ce ne sont
+           pas des teintes concurrentes, et le dépôt s'en sert. */
+        slate: undefined, gray: undefined, zinc: undefined, neutral: undefined, stone: undefined,
+        red: undefined, orange: undefined, amber: undefined, yellow: undefined, lime: undefined,
+        green: undefined, emerald: undefined, teal: undefined, cyan: undefined, sky: undefined,
+        blue: undefined, indigo: undefined, violet: undefined, purple: undefined,
+        fuchsia: undefined, pink: undefined, rose: undefined,
 
         // ── États ────────────────────────────────────────────────────────────────────
         ok: t('ok'),
@@ -148,10 +164,36 @@ export default {
         touch: t('touch-aa'),
       },
 
+      /*
+       * ⚠️ LES SUFFIXES QUE TAILWIND SE RÉSERVE NE PEUVENT PAS SERVIR DE NOM DE JETON.
+       *
+       * Depuis la 3.3, Tailwind génère des utilitaires DIRECTIONNELS de rayon :
+       * `rounded-s` et `rounded-e` (logiques, start/end), `rounded-t/r/b/l`, et les
+       * quatre coins `rounded-tl/tr/br/bl` — plus les logiques `ss/se/es/ee`.
+       *
+       * Nommer un jeton `s` produisait donc DEUX règles pour la même classe, et la
+       * directionnelle, émise en second, gagnait :
+       *
+       *     .rounded-s { border-radius: var(--r-s) }              ← 10 px, 4 coins
+       *     .rounded-s { border-start-start-radius: .25rem;
+       *                  border-end-start-radius:   .25rem }      ← 4 px, 2 coins ✔ appliquée
+       *
+       * Seize classes du dépôt rendaient un rayon de 4 px sur DEUX coins au lieu des
+       * 10 px du kit sur quatre — vérifié dans le CSS de production, pas déduit. Rien ne
+       * le signalait : la classe existe, le typecheck passe, la build passe, `ds:check`
+       * rendait 0 constat. C'est exactement le défaut que le bloc `neutral: undefined`
+       * ci-dessus existe pour empêcher côté couleur, appliqué au mauvais espace de noms.
+       *
+       * D'où `xs` plutôt que `s`. `m`, `xl`, `media` et `pill` ne sont réservés par rien.
+       * `l` reste hors de cette table pour la même raison — `rounded-l-xl` (le côté
+       * gauche au rayon `xl`) est un usage légitime qu'un jeton `l` casserait.
+       *
+       * `tests/unit/tailwind-radius-collision.test.ts` compile la configuration et
+       * échoue si un jeton reprend un suffixe réservé. C'est la porte qui manquait.
+       */
       borderRadius: {
-        s: t('r-s'),
+        xs: t('r-s'),
         m: t('r-m'),
-        l: t('r-l'),
         xl: t('r-xl'),
         media: t('r-media'),
         pill: t('r-pill'),

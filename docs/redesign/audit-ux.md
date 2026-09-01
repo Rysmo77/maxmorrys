@@ -104,7 +104,14 @@ Généré et vérifié au compilateur Tailwind :
              border-bottom-left-radius: 0.25rem }           /* 4 px, 2 coins  — appliquée */
 ```
 
-**Exposition : 17 usages.** `rounded-s` × 16, `rounded-l` × 1.
+**Exposition : 16 usages de `rounded-s`.**
+
+> ⚠️ **Corrigé le 01/09 en appliquant le correctif.** Ce paragraphe annonçait
+> « 17 usages, dont `rounded-l` × 1 ». Le `rounded-l` était un **faux positif** : la seule
+> occurrence est `rounded-l-xl` dans `PhoneInput`, c'est-à-dire l'utilitaire directionnel
+> *côté gauche, rayon `xl`* — un usage parfaitement légitime que ma recherche par
+> frontière de mot avait attrapé par son préfixe. Le CSS de production le confirme :
+> aucune règle `.rounded-l{}` n'y existe. **Seul `rounded-s` était cassé.**
 
 | Fichier | Surface |
 |---|---|
@@ -197,13 +204,20 @@ exception, pas assez pour constituer une intention.
 `tailwind.config.js` annule explicitement `neutral` et `teal` (`undefined`) pour qu'un
 oubli **se voie à l'écran**. Le reste de la palette par défaut n'a pas été annulé :
 
-`green` 2 · `amber` 3 · `blue` 1 · `orange` 1 · `purple` 1 · `pink` 1 — **9 occurrences.**
-
-Deux d'entre elles portent une conséquence de contraste réelle :
-`dark:text-green-500` et `dark:text-amber-400` court-circuitent `--ok` et `--warn`, dont
-le kit a précisément calculé les variantes nuit (`#4ADE9B` à 11,0:1, `#FFB24D` à 10,8:1).
-La règle AD-3 — aucune classe `dark:` ne porte de couleur — est tenue à 18 exceptions près
-sur 70, dont 17 sont des `color-mix` légitimes.
+> ⚠️ **Corrigé le 01/09 en appliquant le correctif.** Ce paragraphe annonçait
+> **9 occurrences**. C'était un sur-comptage : huit d'entre elles vivaient dans des
+> **commentaires** qui documentaient des retraits *déjà faits* (`ProfileTab`,
+> `RysmoStoreTab`, `RysmoWidget` expliquent tous pourquoi telle couleur est partie).
+>
+> **Une seule occurrence réelle** subsistait : `SEOPanel.tsx:339`, le vert d'un résultat
+> Google dans l'aperçu SERP — une **exemption légitime et annotée**, une marque tierce ne
+> se recolorant pas au jeton.
+>
+> Le chantier était donc quasi gratuit, et il est fait : la couleur SERP est passée en
+> valeur littérale (rendu identique — `green-500` valait exactement `#22c55e`) et les
+> **vingt-deux échelles** de la palette Tailwind par défaut sont annulées, `white`,
+> `black`, `transparent`, `current` et `inherit` exceptés. Un oubli rend désormais
+> *visiblement rien*, ce qui était l'intention d'AD-2 depuis le début.
 
 ### 4.7 ◐ Moyen — 68 valeurs de pixel arbitraires, dont il faut trier le légitime
 

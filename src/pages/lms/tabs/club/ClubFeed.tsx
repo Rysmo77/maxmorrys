@@ -188,7 +188,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                         type="button"
                         aria-label={t('feed.removeOption', { number: i + 1 })}
                         onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}
-                        className="mm-touch-extend mb-2 rounded-s p-1 text-ink-2 transition-colors duration-ui ease-ds hover:text-stop"
+                        className="mm-touch-extend mb-2 rounded-xs p-1 text-ink-2 transition-colors duration-ui ease-ds hover:text-stop"
                       >
                         <Icon name="close" size={15} />
                       </button>
@@ -228,7 +228,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                           type="button"
                           onClick={() => { setComposerCategory(c.id); setShowCategoryPicker(false); }}
                           className={cn(
-                            'flex w-full items-center gap-2 rounded-s px-2.5 py-2 text-meta-2 font-medium transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]',
+                            'flex w-full items-center gap-2 rounded-xs px-2.5 py-2 text-meta-2 font-medium transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]',
                             composerCategory === c.id ? c.tint : 'text-ink-2',
                           )}
                         >
@@ -491,7 +491,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                                 key={p.id}
                                 type="button"
                                 onClick={() => handleShare(p.id, post)}
-                                className="flex w-full items-center gap-2 rounded-s px-3 py-2 text-meta-2 text-ink-2 transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]"
+                                className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-meta-2 text-ink-2 transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]"
                               >
                                 <Icon name={p.icon} size={15} /> {p.label}
                               </button>
@@ -518,7 +518,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                           <button
                             type="button"
                             onClick={() => { handleDeleteClubPost(post.id); setPostMenuOpen(null); }}
-                            className="flex w-full items-center gap-2 rounded-s px-3 py-2 text-meta-2 font-medium text-stop transition-colors duration-ui ease-ds hover:bg-[color-mix(in_srgb,var(--stop)_10%,transparent)]"
+                            className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-meta-2 font-medium text-stop transition-colors duration-ui ease-ds hover:bg-[color-mix(in_srgb,var(--stop)_10%,transparent)]"
                           >
                             <Icon name="trash" size={15} /> {t('feed.delete')}
                           </button>
@@ -564,7 +564,7 @@ export default function ClubFeed({ data }: ClubFeedProps) {
                                 type="button"
                                 aria-label={t('feed.delete')}
                                 onClick={() => handleDeleteComment(post.id, c.id)}
-                                className="mm-touch-extend rounded-s p-1 text-ink-2 opacity-0 transition-opacity duration-ui ease-ds hover:text-stop focus-visible:opacity-100 group-hover:opacity-100"
+                                className="mm-touch-extend rounded-xs p-1 text-ink-2 opacity-0 transition-opacity duration-ui ease-ds hover:text-stop focus-visible:opacity-100 group-hover:opacity-100"
                               >
                                 <Icon name="close" size={14} />
                               </button>

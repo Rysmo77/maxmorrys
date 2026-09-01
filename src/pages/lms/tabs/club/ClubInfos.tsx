@@ -78,7 +78,7 @@ export default function ClubInfos({ data }: ClubInfosProps) {
                 </h4>
 
                 <div
-                  className="mt-2 text-meta leading-relaxed text-ink-2 [&_a]:font-semibold [&_a]:text-transforme [&_a]:underline [&_code]:rounded-s [&_code]:bg-[color:var(--fill-2)] [&_code]:px-1 [&_h1]:mt-3 [&_h1]:font-bold [&_h1]:text-ink [&_h2]:mt-3 [&_h2]:font-bold [&_h2]:text-ink [&_h3]:mt-3 [&_h3]:font-bold [&_h3]:text-ink [&_img]:mt-3 [&_img]:rounded-m [&_li]:mt-1 [&_ol]:mt-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mt-2 [&_strong]:text-ink [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5"
+                  className="mt-2 text-meta leading-relaxed text-ink-2 [&_a]:font-semibold [&_a]:text-transforme [&_a]:underline [&_code]:rounded-xs [&_code]:bg-[color:var(--fill-2)] [&_code]:px-1 [&_h1]:mt-3 [&_h1]:font-bold [&_h1]:text-ink [&_h2]:mt-3 [&_h2]:font-bold [&_h2]:text-ink [&_h3]:mt-3 [&_h3]:font-bold [&_h3]:text-ink [&_img]:mt-3 [&_img]:rounded-m [&_li]:mt-1 [&_ol]:mt-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mt-2 [&_strong]:text-ink [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5"
                   dangerouslySetInnerHTML={{ __html: markdownToHtml(info.content) }}
                 />
 
@@ -129,7 +129,7 @@ export default function ClubInfos({ data }: ClubInfosProps) {
                             key={p.id}
                             type="button"
                             onClick={() => handleInfoShare(p.id, info)}
-                            className="flex w-full items-center gap-2 rounded-s px-3 py-2 text-meta-2 text-ink-2 transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]"
+                            className="flex w-full items-center gap-2 rounded-xs px-3 py-2 text-meta-2 text-ink-2 transition-colors duration-ui ease-ds hover:bg-[color:var(--fill-2)]"
                           >
                             <Icon name={p.icon} size={15} /> {p.label}
                           </button>

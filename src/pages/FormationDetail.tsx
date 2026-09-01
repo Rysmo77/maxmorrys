@@ -7,7 +7,6 @@ import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site
 import { useLanguage, useLocalizedPath } from '../contexts/LanguageContext';
 import { useFormat } from '../hooks/useFormat';
 import { useTranslatedContent, useTranslatedText } from '../hooks/useTranslatedContent';
-import { useAuth } from '../contexts/AuthContext';
 import { getFormationBySlug } from '../lib/firestore';
 import { markdownToHtml } from '../lib/markdown';
 import type { Formation } from '../types';
@@ -25,7 +24,6 @@ export default function FormationDetail() {
   const { slug } = useParams();
   const { language } = useLanguage();
   const { formatDate } = useFormat();
-  const { user } = useAuth();
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [formation, setFormation] = useState<Formation | null | undefined>(undefined);
 
@@ -259,8 +257,27 @@ export default function FormationDetail() {
                 currency="FCFA"
                 note={t('sheet.lifetime')}
               />
+              {/*
+                ── LE CTA POINTE SUR LE PAIEMENT, CONNECTÉ OU NON ────────────────────────
+                Il envoyait les visiteurs déconnectés sur `/connexion` SANS état de retour.
+                Or `Login.tsx:43` retombe alors sur son défaut, `/mon-espace` : quelqu'un
+                qui venait de cliquer « S'inscrire » sur une formation atterrissait sur son
+                tableau de bord, et devait retrouver la formation à la main. Six à sept clics
+                au lieu de trois, au moment de la plus forte intention d'achat du site.
+
+                Le mécanisme correct existait déjà et sert partout ailleurs : `/checkout/:slug`
+                est sous `ProtectedRoute` (`App.tsx:455-457`), qui renvoie vers la connexion
+                AVEC `state={{ from: location }}` — et `Login` lit ce `from`. Cette page était
+                la seule à court-circuiter le garde en devinant la destination elle-même.
+
+                Le `href` est conservé plutôt qu'un `navigate()` : c'est une page publique, et
+                un CTA de vente doit rester ouvrable dans un nouvel onglet et copiable. Le
+                rechargement complet que `Button href` provoque est un défaut réel, mais il est
+                SYSTÉMIQUE au composant — le corriger ici seul, en dégradant le lien en bouton,
+                échangerait un défaut contre un autre.
+              */}
               <Button
-                href={user ? path(`/checkout/${formation.slug}`) : path('/connexion')}
+                href={path(`/checkout/${formation.slug}`)}
                 tone="forme"
                 onClick={() => trackAddToCart({ id: formation.id, name: formation.title, category: formation.category, price, currency: 'XOF' })}
                 style={{ marginTop: '15px' }}

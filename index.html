@@ -38,8 +38,31 @@
     <!-- Origine des médias (poster de la vidéo héros, couvertures, vignettes) :
          sans cela, DNS + TLS se paient au moment du premier rendu. -->
     <link rel="preconnect" href="https://media.maxmorrys.me" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" /></noscript>
+    <!--
+      LES TROIS FAMILLES DU KIT — Fraunces, Schibsted Grotesk, JetBrains Mono.
+
+      CE LIEN CHARGEAIT INTER, QUE PLUS RIEN N'UTILISE. Les familles du système sont
+      déclarées dans `design-system/css/tokens/fonts.css`, et `tailwind.config.js` fait
+      pointer `display` / `sans` / `mono` dessus. Recherche de « Inter » comme
+      `font-family` dans tout le dépôt : aucune occurrence — les seules correspondances
+      textuelles sont `setInterval` et `isIntersecting`. C'était donc une requête
+      bloquante pour zéro pixel rendu, sur un marché où le panier de 2 Go coûte 4,2 %
+      du revenu national brut par habitant.
+
+      POURQUOI LE LIEN RESTE, AVEC LA BONNE URL. `fonts.css` charge les vraies fontes par
+      `@import` DEPUIS L'INTÉRIEUR du CSS, ce qui sérialise la chaîne : HTML → index.css
+      → découverte de l'URL Google → feuille Google → woff2. Quatre allers-retours avant
+      le premier texte dans la bonne fonte, sur des terminaux dont le profil courant est
+      `deviceMemory ≤ 2`. Déclarer la même URL ici la fait partir dès l'analyse du HTML ;
+      l'`@import` la retrouve alors en cache.
+
+      ⚠️ L'URL EST DUPLIQUÉE AVEC `tokens/fonts.css`, ET ELLE DOIT LE RESTER À
+      L'IDENTIQUE — c'est ce qui permet au navigateur de dédupliquer la requête. Le
+      fichier de jetons est une copie littérale du kit (AD-1) : on n'y touche pas, on
+      s'aligne dessus. `tests/unit/fonts-sync.test.ts` échoue si les deux divergent.
+    -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&amp;family=Schibsted+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&amp;family=Schibsted+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" /></noscript>
     <title>Max-Morrys | Maîtrisez le digital, accélérez votre croissance</title>
 
     <!-- Google Consent Mode v2 (must load BEFORE GTM) -->
