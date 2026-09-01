@@ -167,13 +167,30 @@ attributs `accessibilityLabel` / `Role` / `State` / `Value` présents.
 | `Platform.OS` / `Platform.select` | **0** |
 | Retour haptique | **0** |
 
-**L'application présente exactement la même interface sur iOS et sur Android.** Elle a une
-barre d'onglets iOS sur les deux, pas de navigation Material 3, pas de FAB, pas de
-snackbar, pas d'effet d'ondulation, pas de retour haptique sur les actions importantes.
+**L'application présentait exactement la même interface sur iOS et sur Android.**
 
-C'est précisément ce que les Phases 4 et 5 du brief interdisent : « **Ne PAS copier-coller
-entre web/iOS/Android — respecter les patterns natifs.** » Comme vous avez confirmé que
-cette application est un produit vivant, c'est le plus gros chantier restant du dossier.
+> ✅ **Première passe faite le 01/09.** `mobile/ds/platform.ts` porte ce qui doit différer,
+> et rien d'autre — les jetons, les teintes, la typographie et l'ordre des écrans ne
+> bougent pas, c'est la marque.
+>
+> | Ce qui diffère désormais | iOS | Android |
+> |---|---|---|
+> | Mouvement de navigation | `slide_from_right`, 260 ms | fondu axe Z, 200 ms |
+> | Geste de retour au bord | oui | non — concurrent du retour prédictif |
+> | Barre d'onglets | translucide **et floutée** | opaque, élévation 3 |
+> | Retour au toucher | enfoncement `scale(.975)` | ondulation partant du doigt |
+>
+> ⚠️ **Une trouvaille en chemin** : `(tabs)/_layout.tsx` documentait un flou posé « par
+> `expo-blur` sur `tabBarBackground` » — **qui n'existait nulle part dans le fichier**. Or
+> `--tabbar-bg` vaut `rgba(255,255,255,.62)` : la barre laissait donc voir le texte
+> défiler dessous sans le flouter, c'est-à-dire exactement le défaut que la règle 1
+> nomme, dans le fichier qui prétendait l'éviter. Le flou est posé, et seulement sur iOS.
+
+**Ce qui reste** : le retour **haptique** (0 usage). Il demande `expo-haptics`, donc une
+entrée de plus dans `mobile/package.json` — fichier en cours de modification pour le
+passage aux builds natifs EAS. À poser quand ce chantier sera stabilisé. Restent aussi
+le FAB et la snackbar Material, qui supposent des décisions de conception, pas seulement
+de plateforme.
 
 ---
 

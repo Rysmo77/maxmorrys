@@ -1,4 +1,5 @@
 import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ripple } from './platform';
 import type { ReactNode } from 'react';
 import { useToken, veil } from './theme';
 import { Icon } from './Icon';
@@ -116,6 +117,9 @@ export function LessonRow({
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
+      /* L'onde reste DANS la ligne (`borderless: false`) : débordante, dans une liste
+         dense, elle donne l'impression d'avoir touché la ligne voisine. */
+      android_ripple={ripple(t('ink3'))}
       // `scale(.975)` — la valeur du système. Ni rebond, ni couleur : le geste est arrivé.
       style={({ pressed }: { pressed: boolean }) => ({
         transform: [{ scale: pressed ? Number.parseFloat(t('pressScale')) || 0.975 : 1 }],

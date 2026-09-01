@@ -3,6 +3,12 @@ export { ThemeScope, useScheme, useToken, useTokens, useSpace, px, veil } from '
 /* `veil` DÉRIVE un fond de son encre — c'est la seule façon d'obtenir une couleur
    translucide sans écrire de canaux, donc sans figer un mode. */
 
+/* Ce qui doit différer d'une plateforme à l'autre — et rien d'autre. */
+export {
+  isIOS, isAndroid, screenAnimation, screenAnimationDuration,
+  edgeSwipeBack, translucentTabBar, ripple, navBarElevation,
+} from './platform';
+
 /* Surfaces et fond */
 export { Mesh } from './Mesh';
 export { Surface } from './Surface';

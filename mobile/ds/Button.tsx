@@ -1,4 +1,5 @@
 import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ripple } from './platform';
 import type { ReactNode } from 'react';
 import { useToken, px } from './theme';
 
@@ -52,6 +53,16 @@ export function Button({
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled }}
       onPress={disabled ? undefined : onPress}
+      /*
+        L'ONDULATION EST LE « J'AI SENTI TON DOIGT » D'ANDROID, comme l'enfoncement
+        est celui d'iOS. Les deux disent la même chose dans deux langues, et
+        l'application ne parlait que la seconde. `ripple()` rend `undefined` sur iOS :
+        le `scale(.975)` ci-dessous y reste le seul retour, ce qui est correct.
+
+        La couleur est l'encre du bouton, pas une valeur écrite : sur un fond de
+        marque, une onde grise se voit comme une salissure.
+      */
+      android_ripple={ripple(c.fg)}
       // `scale(.975)` sur les boutons — la valeur du système, pas une approximation.
       style={({ pressed }: { pressed: boolean }) => [
         {

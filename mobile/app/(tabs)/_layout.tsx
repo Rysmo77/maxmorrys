@@ -1,6 +1,8 @@
 import { Tabs } from 'expo-router';
+import { BlurView } from 'expo-blur';
+import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Icon, px, useToken, useTutorNom } from '../../ds';
+import { Icon, navBarElevation, px, translucentTabBar, useScheme, useToken, useTutorNom } from '../../ds';
 
 /**
  * ── LA BARRE D'ONGLETS ────────────────────────────────────────────────────────────────
@@ -23,10 +25,24 @@ import { Icon, px, useToken, useTutorNom } from '../../ds';
  * FIXE. Il est posé par `expo-blur` sur `tabBarBackground`, pas par une opacité de fond —
  * un fond translucide sans flou laisse voir le texte qui passe dessous, ce qui est
  * exactement ce que la règle veut éviter.
+ *
+ * ⚠️ ET IL N'ÉTAIT PAS POSÉ. Ce commentaire décrivait un `tabBarBackground` en `expo-blur`
+ * qui n'existait nulle part dans le fichier : la barre n'avait qu'un `backgroundColor`.
+ * Or `--tabbar-bg` vaut `rgba(255,255,255,.62)` en clair et `rgba(13,17,23,.72)` en nuit —
+ * TRANSLUCIDE. La barre laissait donc voir le texte défiler dessous, sans le flouter :
+ * précisément le défaut que la règle 1 nomme, dans le fichier qui prétendait l'éviter.
+ *
+ * ── ET LE FLOU NE VAUT QUE SUR iOS ────────────────────────────────────────────────────
+ * Le flou translucide est une CONVENTION iOS : le contenu glisse dessous et transparaît.
+ * Une barre de navigation Material 3 est OPAQUE et se détache par son élévation. Garder
+ * le flou sur Android n'était pas seulement étranger au système : c'était une couche de
+ * composition payée pour rien sur un appareil à 2 Go — exactement le coût que la règle 1
+ * existe pour surveiller.
  * ─────────────────────────────────────────────────────────────────────────────────────
  */
 export default function TabsLayout() {
   const t = useToken();
+  const scheme = useScheme();
   /* `useTutorNom()` et non `tutorNom()` : la barre doit se redessiner quand quelqu'un
      renomme son tuteur depuis l'écran de mémoire. Avec l'accesseur simple, elle gardait
      l'ancien nom jusqu'au prochain rendu — et affichait donc « Répétiteur » sous un écran
@@ -44,10 +60,24 @@ export default function TabsLayout() {
         tabBarStyle: {
           height: height + insets.bottom,
           paddingBottom: insets.bottom,
-          backgroundColor: t('tabbarBg'),
+          /* Opaque sur Android — la surface de la page, pas le fond translucide de la
+             barre — et l'élévation prend le relais du filet pour détacher la barre. */
+          backgroundColor: translucentTabBar ? t('tabbarBg') : t('surfacePage'),
           borderTopColor: t('tabbarBrd'),
-          borderTopWidth: 1,
+          borderTopWidth: translucentTabBar ? 1 : 0,
+          elevation: navBarElevation,
         },
+        /* Le flou promis, enfin posé — et seulement là où la convention l'attend.
+           `intensity: 24` reprend les 24–26 px du système, comme `ds/Surface`. */
+        tabBarBackground: translucentTabBar
+          ? () => (
+            <BlurView
+              intensity={24}
+              tint={scheme === 'dark' ? 'dark' : 'light'}
+              style={StyleSheet.absoluteFill}
+            />
+          )
+          : undefined,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
       }}
     >
