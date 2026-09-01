@@ -6,6 +6,8 @@ import {
   type IconName,
 } from '@ds';
 import { useLocalizedPath } from '../../../contexts/LanguageContext';
+import { useMediaQuery } from '../../../hooks/useMediaQuery';
+import TutorPanel from '../components/TutorPanel';
 import { useAuth } from '../../../contexts/AuthContext';
 import { tutorName } from '../../../lib/naming';
 import { getGamificationProfile, updateStreak, addXP } from '../../../lib/gamification';
@@ -75,6 +77,23 @@ export default function DashboardTab({
   const { userData } = useAuth();
   const [gamification, setGamification] = useState<GamificationProfile | null>(null);
 
+  /*
+    ── POURQUOI UN CROCHET ET PAS UNE CLASSE, POUR LE SEUL PANNEAU ─────────────────
+    `TutorPanel` relève le quota par un appel serveur à son montage. Une classe
+    `hidden` le monterait quand même sur téléphone — l'appel partirait, invisible.
+    `useMediaQuery` le laisse DÉMONTÉ sous 1080 px : le chargement du téléphone est
+    exactement celui d'avant.
+
+    La carte du répétiteur, elle, ne coûte rien : elle se cache en CSS (`wide:hidden`).
+    Mélanger les deux mécanismes est délibéré — le CSS évite le clignotement au premier
+    rendu, où le crochet vaut encore `false`, et le crochet évite l'appel réseau.
+
+    1080 px et non `useIsDesktop()` (1024) : `wide` est la rupture que le système
+    déclare, et c'est celle que la grille ci-dessous utilise. Deux valeurs différentes
+    ouvriraient une bande de 56 px où la colonne existe sans son panneau.
+  */
+  const isWide = useMediaQuery('(min-width: 1080px)');
+
   // La série est mise à jour à l'ouverture de l'écran, comme avant — cette logique ne bouge pas.
   useEffect(() => {
     if (!userId) return;
@@ -96,6 +115,24 @@ export default function DashboardTab({
   const inProgress = enrolledFormations.find((ef) => ef.enrollment.progress > 0 && ef.enrollment.progress < 100)
     ?? enrolledFormations.find((ef) => ef.enrollment.progress < 100);
 
+  /* ── « Le programme » — les modules de la formation en cours ────────────────
+     Le handoff en fait un objet du tableau de bord desktop, et il n'y était pas :
+     l'écran listait les ENTRÉES de l'espace, jamais le contenu du parcours. Rien
+     n'est relevé en plus — `enrolledFormations` porte déjà les modules et les leçons
+     terminées. C'est de la mise en forme, pas une lecture. */
+  const done = new Set(inProgress?.enrollment.completedLessons ?? []);
+  const modules = (inProgress?.formation?.modules ?? [])
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map((m) => {
+      const total = m.lessons.length;
+      const finished = m.lessons.filter((l) => done.has(l.id)).length;
+      return { id: m.id, title: m.title, total, finished };
+    });
+  /* Le module « en cours » est le premier non terminé — et il n'y en a qu'un. Marquer
+     tous les modules entamés comme « en cours » ferait trois puces actives sur cinq. */
+  const currentModuleId = modules.find((m) => m.finished < m.total)?.id ?? null;
+
   const level = gamification ? getLevelFromXP(gamification.xp) : null;
   const levelFloor = level ? getXPForNextLevel(level - 1) : 0;
   const levelCeil = level ? getXPForNextLevel(level) : 0;
@@ -104,7 +141,21 @@ export default function DashboardTab({
     : 100;
 
   return (
-    <div className="mx-auto max-w-4xl px-[18px] py-6">
+    /*
+      ── TROIS COLONNES EN 1440, UNE SEULE EN 390 ────────────────────────────────
+      `handoff_tableaux_de_bord` compose l'espace en navigation 250 · travail fluide ·
+      répétiteur 340. `AppShell` pose déjà la première et décale de 250 px ; cet écran
+      ajoute la troisième.
+
+      LA COLONNE DE TRAVAIL NE S'ÉTIRE PAS. La règle d'élargissement du système est
+      explicite : « l'espace gagné va à la marge et à la navigation, jamais à la
+      longueur de ligne ». `max-w-4xl` saute en desktop pour laisser la grille prendre
+      la largeur, mais la colonne de travail garde sa propre borne — sans quoi les
+      lignes de leçon deviendraient illisibles à 1440.
+    */
+    <div className="mx-auto max-w-4xl px-[18px] py-6 wide:max-w-none wide:px-pane">
+      <div className="wide:grid wide:grid-cols-[minmax(0,1fr)_340px] wide:items-start wide:gap-6">
+        <div className="min-w-0 wide:max-w-[46rem]">
       <p className="mm-eyebrow m-0">{t('dashboard.eyebrow')}</p>
       {/* La salutation n'est PAS le titre de la page — celui-ci est « Tableau de bord », rendu
           en <h1> par la barre haute de `AppShell`. Le kit la pose d'ailleurs dans la barre, pas
@@ -223,8 +274,11 @@ export default function DashboardTab({
         />
       </div>
 
-      {/* ── L'entrée du répétiteur. Son nom vient du profil, jamais d'une constante. ── */}
-      <GlassPanel level="flat" padding={18} className="mt-[12px]">
+      {/* ── L'entrée du répétiteur. Son nom vient du profil, jamais d'une constante. ──
+          Elle disparaît en desktop : le panneau permanent de la troisième colonne la
+          remplace, et garder les deux donnerait deux entrées vers le même endroit sur
+          le même écran. Le masquage est en CSS, pas par le crochet — voir `isWide`. */}
+      <GlassPanel level="flat" padding={18} className="mt-[12px] wide:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="m-0 text-[14.5px] font-bold text-ink">{t('dashboard.tutorTitle', { tutor })}</p>
@@ -242,6 +296,39 @@ export default function DashboardTab({
         </div>
       </GlassPanel>
 
+      {/* ── Le programme ─────────────────────────────────────────────────────── */}
+      {modules.length > 0 && (
+        <>
+          <p className="mm-eyebrow mt-[22px]">{t('dashboard.programEyebrow')}</p>
+          <GlassPanel level="flat" padding="4px 18px" className="mt-[10px]">
+            {modules.map((m, i) => (
+              <LessonRow
+                key={m.id}
+                state={m.finished === m.total ? 'done' : m.id === currentModuleId ? 'current' : 'todo'}
+                title={m.title}
+                /* Le compte des leçons est un relevé, donc il passe par <Num>. La phrase
+                   est coupée autour du chiffre plutôt qu'interpolée : une chaîne traduite
+                   ne peut pas porter la provenance. */
+                meta={
+                  <>
+                    <Num value={m.finished} source="db" asOf={asOf} />
+                    {' / '}
+                    <Num value={m.total} source="db" asOf={asOf} />{' '}
+                    {t('dashboard.lessonsLabel')}
+                  </>
+                }
+                onClick={
+                  inProgress?.formation
+                    ? () => navigate(path(`/cours/${inProgress.formation!.slug}`))
+                    : undefined
+                }
+                last={i === modules.length - 1}
+              />
+            ))}
+          </GlassPanel>
+        </>
+      )}
+
       {/* ── Dans ton espace ──────────────────────────────────────────────────── */}
       <p className="mm-eyebrow mt-[22px]">{t('dashboard.spaceEyebrow')}</p>
       <GlassPanel level="flat" padding="4px 18px" className="mt-[10px]">
@@ -258,6 +345,20 @@ export default function DashboardTab({
           />
         ))}
       </GlassPanel>
+        </div>
+
+        {/* ── Le répétiteur en panneau permanent — le seul gain réel du desktop ──
+            Monté seulement au-delà de 1080 px : il relève le quota au montage, et une
+            classe `hidden` aurait laissé partir l'appel sur téléphone. */}
+        {isWide && (
+          <aside
+            className="wide:sticky wide:top-2 wide:max-h-[calc(100vh-5rem)] wide:overflow-y-auto"
+            aria-label={tutor}
+          >
+            <TutorPanel />
+          </aside>
+        )}
+      </div>
     </div>
   );
 }

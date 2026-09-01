@@ -3,6 +3,7 @@ import AppShell from './AppShell';
 import { useAuth } from '../../contexts/AuthContext';
 import type { AppSidebarItem } from './AppSidebar';
 import { isSupportAllowedPath } from '../../lib/adminAccess';
+import { useConsoleCounts } from '../../lib/admin/consoleCounts';
 
 interface AdminNavItem extends Omit<AppSidebarItem, 'label'> {
   labelKey: string;
@@ -47,9 +48,42 @@ export default function AdminLayout() {
   // Il n'y a volontairement plus de drapeau `adminOnly` ici : c'était un second endroit où
   // déclarer le périmètre du rôle support, et un écran pouvait devenir visible sans être
   // atteignable. Une seule table, deux lecteurs.
+  /*
+    ── LES COMPTEURS DU MENU ───────────────────────────────────────────────────────
+    Le handoff des tableaux de bord veut un compte par entrée, parce que l'opérateur
+    est une seule personne : un menu muet l'oblige à ouvrir les dix-neuf écrans pour
+    savoir lequel attend quelque chose.
+
+    ON N'EN POSE QUE CINQ, ET C'EST DÉLIBÉRÉ. `getPlatformStats()` relève onze
+    nombres ; les autres entrées n'en ont aucun. Un badge absent dit « non relevé ».
+    Inventer « 0 » pour les entrées sans compte serait affirmer un relevé qu'on n'a
+    pas fait — exactement ce que la règle 6 interdit, et ce que le handoff redit :
+    « une donnée d'exemple est un mensonge qu'on oublie de retirer ».
+
+    Les seuils (`> 0`) ne cachent pas une information : ils évitent d'afficher
+    « 0 brouillon » là où l'absence de badge dit déjà qu'il n'y a rien à traiter.
+    Le compte des comptes utilisateurs, lui, s'affiche même à 5 — un zéro daté est
+    une information, et c'est le seul relevé qui vaut sans condition.
+  */
+  const { counts } = useConsoleCounts();
+  const drafts = counts ? counts.articles - counts.publishedPosts : 0;
+  const unpublished = counts ? counts.formations - counts.publishedFormations : 0;
+
+  const badges: Record<string, string | null> = counts
+    ? {
+        '/admin/utilisateurs': String(counts.users),
+        '/admin/articles': drafts > 0 ? t('nav.badgeDrafts', { count: drafts }) : null,
+        '/admin/formations': unpublished > 0 ? t('nav.badgeUnpublished', { count: unpublished }) : null,
+        '/admin/messages': counts.newMessages > 0 ? t('nav.badgeNew', { count: counts.newMessages }) : null,
+        '/admin/prospects-agence': counts.newAgencyLeads > 0 ? t('nav.badgeToQualify', { count: counts.newAgencyLeads }) : null,
+      }
+    : {};
+
   const items: AppSidebarItem[] = ALL_NAV_ITEMS
     .filter((item) => isAdmin || isSupportAllowedPath(item.to))
-    .map(({ to, labelKey, icon, end, tone, badge, locked }) => ({ to, label: t(labelKey), icon, end, tone, badge, locked }));
+    .map(({ to, labelKey, icon, end, tone, badge, locked }) => ({
+      to, label: t(labelKey), icon, end, tone, badge: badges[to] ?? badge, locked,
+    }));
 
   return (
     <AppShell

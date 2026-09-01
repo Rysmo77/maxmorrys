@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag } from '@ds';
-import { ConsolePage, ConsoleList, ConsoleScope } from '../../components/console';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { useToast } from '../../components/ui/Toast';
-import { getPlatformStats, subscribeMessages, getAllAgencyLeads, getAgencyStats } from '../../lib/firestore';
+import { getPlatformStats, subscribeMessages, getAllAgencyLeads, getAgencyStats, updateAgencyLeadStatus } from '../../lib/firestore';
 import type { AgencyStats } from '../../lib/firestore';
+import { invalidateConsoleCounts } from '../../lib/admin/consoleCounts';
+import { PIPELINE_STAGES } from '../../lib/presence/offer';
 import { useFormat } from '../../hooks/useFormat';
-import type { ContactMessage, AgencyLead } from '../../types';
+import LeadPanel from './components/LeadPanel';
+import type { ContactMessage, AgencyLead, AgencyLeadStatus } from '../../types';
 
 /**
  * L'ÉCRAN `DashboardOps` DU KIT — `ui_kits/console/ScreensMotif.js`.
@@ -52,10 +56,16 @@ const chip = (token: string) => `color-mix(in srgb, var(${token}) 22%, transpare
 export default function AdminDashboard() {
   const { t } = useTranslation('admin');
   const { formatDate, formatPrice } = useFormat();
+  const navigate = useNavigate();
   const { addToast } = useToast();
   const [stats, setStats] = useState<Stats | null>(null);
   const [recentMessages, setRecentMessages] = useState<ContactMessage[]>([]);
+  /* La file COMPLÈTE, pas les cinq premiers : le filtre par statut et le panneau de
+     détail travaillent dessus. L'affichage, lui, continue de n'en montrer que cinq. */
   const [agencyLeads, setAgencyLeads] = useState<AgencyLead[]>([]);
+  const [leadFilter, setLeadFilter] = useState<AgencyLeadStatus | 'all'>('all');
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [updatingLead, setUpdatingLead] = useState(false);
   const [agencyStats, setAgencyStats] = useState<AgencyStats | null>(null);
   const [loading, setLoading] = useState(true);
   /** La date du relevé. Elle est posée QUAND la lecture revient, pas au rendu : une case
@@ -70,7 +80,7 @@ export default function AdminDashboard() {
         getAllAgencyLeads(),
       ]);
       setStats(s);
-      setAgencyLeads(leads.slice(0, 5));
+      setAgencyLeads(leads);
       // Les agrégats sont calculés sur la liste déjà chargée : pas de seconde lecture.
       setAgencyStats(await getAgencyStats(leads));
       setAsOf(new Date());
@@ -86,6 +96,54 @@ export default function AdminDashboard() {
     const unsub = subscribeMessages((msgs) => setRecentMessages(msgs.slice(0, 5)));
     return unsub;
   }, []);
+
+  /* ── Le prospect en cours de traitement ────────────────────────────────────
+     Le handoff veut que « la file reste visible pendant qu'on traite ». Ça suppose
+     une sélection, et une sélection suppose un défaut : sans lui, le panneau s'ouvre
+     vide et la largeur ne sert à rien tant qu'on n'a pas cliqué.
+
+     LE DÉFAUT EST LE PREMIER PROSPECT QUI ATTEND, pas le plus récent. C'est la même
+     règle que le tableau de bord entier : il « s'ouvre sur ce qui bloque ». */
+  const filteredLeads = useMemo(
+    () => (leadFilter === 'all' ? agencyLeads : agencyLeads.filter((l) => l.status === leadFilter)),
+    [agencyLeads, leadFilter],
+  );
+
+  const selectedLead = useMemo(() => {
+    const byId = selectedLeadId ? filteredLeads.find((l) => l.id === selectedLeadId) : undefined;
+    return byId ?? filteredLeads.find((l) => l.status === 'new') ?? filteredLeads[0] ?? null;
+  }, [filteredLeads, selectedLeadId]);
+
+  /* Faire avancer un statut change DEUX choses relevées : la liste locale et les
+     compteurs de la navigation. Recharger tout serait onze requêtes d'agrégat pour
+     un champ ; on corrige la liste sur place et on invalide le cache des compteurs,
+     qui se relèvera à la prochaine lecture. */
+  const handleAdvance = async (id: string, status: AgencyLeadStatus) => {
+    setUpdatingLead(true);
+    try {
+      await updateAgencyLeadStatus(id, status);
+      setAgencyLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
+      invalidateConsoleCounts();
+      addToast('success', t('agencyLeads.toastUpdated'));
+    } catch {
+      addToast('error', t('agencyLeads.toastUpdateError'));
+    } finally {
+      setUpdatingLead(false);
+    }
+  };
+
+  /* Les étapes du filtre, libellées AVEC leur compte — c'est ce que le handoff dessine
+     (« tout 12 · à traiter 3 »). `Pipeline` s'identifie par la chaîne affichée, d'où le
+     couple {key, label} : la clé pilote le filtre, le libellé pilote le composant. */
+  const leadStages: { key: AgencyLeadStatus | 'all'; label: string }[] = agencyStats
+    ? [
+        { key: 'all', label: `${t('agencyLeads.stageAll')} ${agencyStats.total}` },
+        ...PIPELINE_STAGES.map((st) => ({
+          key: st,
+          label: `${t(`agencyLeads.status.${st}`)} ${agencyStats.byStatus[st] ?? 0}`,
+        })),
+      ]
+    : [];
 
   /* ── L'alerte du kit, sous condition de données ────────────────────────────
      « Ta boutique est fermée » n'a de sens que si elle est vraie : des formations en base,
@@ -165,6 +223,23 @@ export default function AdminDashboard() {
     // resterait alors à `opacity: 0`, c'est-à-dire absent.
     <div className="play">
       <ConsolePage title={t('dashboard.title')} sub={t('dashboard.sub')}>
+        {/*
+          ── LA TROISIÈME COLONNE, ET SEULEMENT À PARTIR DE 1080 ─────────────────────
+          `handoff_tableaux_de_bord` compose la console en 1440 : navigation 230 · liste
+          fluide · détail 380. La première colonne existe déjà — `AppShell` la pose et la
+          décale de 250 px. Cet écran n'ajoute donc que la troisième.
+
+          `wide:` (1080 px) est la seule rupture du système au-dessus de la tablette ; en
+          dessous, la grille ne s'arme pas et le panneau redevient un bloc empilé sous la
+          file. C'est la même valeur que les cases de relevé prennent déjà, et ça évite
+          d'introduire une quatrième rupture que le kit ne déclare pas.
+
+          Le panneau est COLLANT, pas fixe : « la file reste visible pendant qu'on traite »
+          suppose qu'on puisse défiler la file sans perdre le détail — et l'inverse, qu'un
+          détail plus haut que la fenêtre reste lisible, d'où son propre défilement.
+        */}
+        <div className="wide:grid wide:grid-cols-[minmax(0,1fr)_380px] wide:items-start wide:gap-5">
+          <div className="min-w-0">
         {shopClosed && stats && (
           <GlassPanel
             level="night"
@@ -299,33 +374,63 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                {agencyLeads.length > 0 && (
+                {/*
+                  ── ZONE 1 DU MOTIF : LE FILTRE PAR STATUT ──────────────────────────
+                  Le handoff en pose un sur le tableau de bord, alors que cet écran était
+                  jusqu'ici le seul des dix-neuf à s'en passer. Il porte sur les prospects,
+                  seule collection de cet écran qui ait de vrais statuts — filtrer la file
+                  « à traiter », qui mélange brouillons, messages et formations, aurait été
+                  un filtre sur rien.
+
+                  Les comptes viennent de `agencyStats.byStatus`, agrégé sur la liste déjà
+                  chargée : aucune lecture supplémentaire.
+                */}
+                <ConsoleFilter
+                  label={t('agencyLeads.pipelineLabel')}
+                  stages={leadStages.map((s) => s.label)}
+                  active={leadStages.find((s) => s.key === leadFilter)?.label}
+                  onSelect={(label) => {
+                    const stage = leadStages.find((s) => s.label === label);
+                    if (!stage) return;
+                    setLeadFilter(stage.key);
+                    /* La sélection retombe sur le défaut du nouveau filtre : garder un
+                       prospect que le filtre vient d'exclure ferait mentir le panneau. */
+                    setSelectedLeadId(null);
+                  }}
+                  className="rv"
+                  style={{ marginTop: '10px' }}
+                />
+
+                {filteredLeads.length > 0 && (
                   <ConsoleList label={t('dashboard.agencyRecentLabel')} className="rv" style={{ marginTop: '10px' }}>
-                    {agencyLeads.map((lead, i) => (
+                    {filteredLeads.slice(0, 5).map((lead, i, shown) => (
                       <li key={lead.id}>
                         <LessonRow
                           icon={<Icon name="case" size={14} color="var(--mm-teal)" />}
                           iconBackground={chip('--mm-teal')}
                           title={lead.businessName}
                           meta={`${lead.city} · ${formatDate(lead.createdAt)}`}
+                          /*
+                            UNE ACTION PAR LIGNE, ET C'EST DÉSORMAIS « MONTRER ». Le bouton
+                            WhatsApp vivait ici ; il est parti dans le panneau de détail.
+
+                            Ce n'est pas un choix de goût : `LessonRow` rend un `<button>`
+                            dès qu'on lui passe `onClick`, et son contrat dit que `trailing`
+                            n'accepte « jamais un contrôle ». Garder les deux aurait imbriqué
+                            un bouton dans un bouton — invalide, et inatteignable au clavier
+                            pour celui de l'intérieur. Le `Tag` reste : il porte un état, pas
+                            une action.
+
+                            Le canal de réponse est mieux placé dans le panneau de toute
+                            façon : on écrit à quelqu'un après avoir lu sa fiche.
+                          */
+                          onClick={() => setSelectedLeadId(lead.id)}
                           trailing={
-                            <span className="flex items-center gap-2">
-                              <Tag tone={lead.status === 'signed' ? 'ok' : lead.status === 'new' ? 'warn' : 'neutral'}>
-                                {t(`agencyLeads.status.${lead.status}`)}
-                              </Tag>
-                              {/* UNE action par ligne, et c'est la seule qui soit propre à
-                                  CE prospect : le canal de réponse qu'il attend. */}
-                              <Button
-                                size="sm"
-                                tone="quiet"
-                                href={`https://wa.me/${lead.phone.replace(/\D/g, '')}`}
-                                target="_blank"
-                              >
-                                {t('dashboard.agencyReply')}
-                              </Button>
-                            </span>
+                            <Tag tone={lead.status === 'signed' ? 'ok' : lead.status === 'new' ? 'warn' : 'neutral'}>
+                              {t(`agencyLeads.status.${lead.status}`)}
+                            </Tag>
                           }
-                          last={i === agencyLeads.length - 1}
+                          last={i === shown.length - 1}
                         />
                       </li>
                     ))}
@@ -337,6 +442,22 @@ export default function AdminDashboard() {
         )}
 
         <ConsoleScope>{t('dashboard.scope')}</ConsoleScope>
+          </div>
+
+          <aside
+            className="mt-4 wide:mt-0 wide:sticky wide:top-2 wide:max-h-[calc(100vh-5rem)] wide:overflow-y-auto"
+            aria-label={t('dashboard.panelEyebrow')}
+          >
+            <LeadPanel
+              lead={selectedLead}
+              loading={loading}
+              onAdvance={handleAdvance}
+              onOpenFull={() => navigate('/admin/prospects-agence')}
+              updating={updatingLead}
+              asOf={asOf}
+            />
+          </aside>
+        </div>
       </ConsolePage>
     </div>
   );

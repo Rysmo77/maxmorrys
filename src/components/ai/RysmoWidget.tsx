@@ -11,10 +11,10 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { tutorName } from '../../lib/naming';
 import { Icon } from '@ds';
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+/* Le fil et sa persistance vivent dans `lib/rysmo/conversation` : le panneau permanent
+   du tableau de bord lit LE MÊME fil, et une clé de stockage écrite à deux endroits est
+   une clé qu'un renommage casse à moitié. */
+type Message = RysmoMessage;
 
 interface QuotaInfo {
   dailyLimit: number;
@@ -86,35 +86,17 @@ interface SpeechRecognitionAlternative {
   readonly confidence: number;
 }
 
+import {
+  loadConversation, persistConversation, clearConversation,
+  RYSMO_OPEN_EVENT, type RysmoMessage, type RysmoOpenDetail,
+} from '../../lib/rysmo/conversation';
+
 const rysmoCallable = httpsCallable<
   { message: string; conversationHistory: Message[]; language?: 'fr' | 'en'; userContext?: { displayName?: string; enrolledCourses?: string[] } },
   RysmoResponse
 >(functions, 'rysmo');
 
 const getRysmoQuotaCallable = httpsCallable<Record<string, never>, QuotaSnapshot>(functions, 'getRysmoQuota');
-
-const STORAGE_KEY = 'rysmo_conversation';
-
-function loadPersistedMessages(uid: string): Message[] {
-  try {
-    const raw = sessionStorage.getItem(`${STORAGE_KEY}_${uid}`);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as Message[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function persistMessages(uid: string, messages: Message[]) {
-  try {
-    // Keep last 50 messages to avoid storage bloat
-    const toStore = messages.slice(-50);
-    sessionStorage.setItem(`${STORAGE_KEY}_${uid}`, JSON.stringify(toStore));
-  } catch {
-    // sessionStorage full or unavailable — silently ignore
-  }
-}
 
 export default function RysmoWidget() {
   const { t } = useTranslation('rysmo');
@@ -134,6 +116,30 @@ export default function RysmoWidget() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
+  /*
+    ── OUVERTURE DEPUIS AILLEURS ─────────────────────────────────────────────────
+    Le panneau permanent du tableau de bord (`TutorPanel`) ne connaît pas ce widget :
+    il émet `rysmo:open` avec la question déjà écrite, et c'est ici qu'on la reçoit.
+
+    Le widget est monté UNE fois pour toute l'application (`App.tsx`), donc un seul
+    écouteur existe — pas de risque de double ouverture. Et l'écouteur ne dépend de
+    rien : il est posé au montage et retiré au démontage, sans se réarmer à chaque
+    frappe dans le champ.
+  */
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const detail = (e as CustomEvent<RysmoOpenDetail>).detail;
+      setOpen(true);
+      if (detail?.question) setInput(detail.question);
+      /* Le focus suit l'ouverture : sans lui, quelqu'un qui vient d'écrire sa question
+         dans le panneau devrait la retrouver au clic. Le délai laisse le panneau se
+         monter — `inputRef` n'existe pas tant qu'il est fermé. */
+      window.setTimeout(() => inputRef.current?.focus(), 120);
+    };
+    window.addEventListener(RYSMO_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(RYSMO_OPEN_EVENT, onOpen);
+  }, []);
+
   const displayName = user
     ? (userData?.displayName || user.displayName || user.email?.split('@')[0] || t('defaultName'))
     : '';
@@ -151,7 +157,7 @@ export default function RysmoWidget() {
   // Restore persisted messages on mount
   useEffect(() => {
     if (!user) return;
-    const persisted = loadPersistedMessages(user.uid);
+    const persisted = loadConversation(user.uid);
     if (persisted.length > 0) {
       setMessages(persisted);
       setHasGreeted(true);
@@ -161,7 +167,7 @@ export default function RysmoWidget() {
   // Persist messages whenever they change
   useEffect(() => {
     if (user && messages.length > 0) {
-      persistMessages(user.uid, messages);
+      persistConversation(user.uid, messages);
     }
   }, [messages, user]);
 
@@ -431,7 +437,7 @@ export default function RysmoWidget() {
                 <button
                   onClick={() => {
                     if (user) {
-                      sessionStorage.removeItem(`${STORAGE_KEY}_${user.uid}`);
+                      clearConversation(user.uid);
                     }
                     setMessages([]);
                     setHasGreeted(false);

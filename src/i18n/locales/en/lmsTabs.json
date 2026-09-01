@@ -88,7 +88,19 @@
     "linkMessagesMeta": "replies land in your notifications",
     "loadingLabel": "Loading your courses",
     "linkPayments": "My payments",
-    "linkPaymentsMeta": "receipts and references"
+    "linkPaymentsMeta": "receipts and references",
+    "programEyebrow": "The programme",
+    "tutorPanelMemory": "Your {{tutor}}'s memory",
+    "tutorPanelQuotaLoading": "Reading your quota",
+    "tutorPanelQuotaLabel": "Questions today",
+    "tutorPanelQuotaSuffix": "today",
+    "tutorPanelQuotaUnknown": "Your quota couldn't be read. Open your tutor to see it.",
+    "tutorPanelGreeting": "I'm your {{tutor}}. Ask away — I know where you left off.",
+    "tutorPanelRemainingBefore": "You have",
+    "tutorPanelRemainingAfter_one": "question left today. Resets at midnight.",
+    "tutorPanelRemainingAfter_other": "questions left today. Resets at midnight.",
+    "tutorPanelPlaceholder": "Ask your question",
+    "tutorPanelSend": "Send to your {{tutor}}"
   },
   "messages": {
     "newMessage": "New message",

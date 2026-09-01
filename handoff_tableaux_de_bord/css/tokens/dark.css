@@ -1,0 +1,100 @@
+/* Mode sombre : un seul sélecteur, aucun composant redessiné.
+   Seules les surfaces et les valeurs de teinte changent.
+
+   LE PIÈGE. Une palette ne se transpose pas d'un fond à l'autre. Sur #0B0E13, le bleu
+   #0057BC tombe à 2,84:1 et le violet #6C23DD à 2,69:1 : tous deux INTERDITS en texte.
+   C'est exactement l'inverse du mode clair, où l'orange (2,47:1) et le teal (2,84:1) sont
+   les interdits. Les quatre variantes nuit sont donc des JETONS DISTINCTS, pas un filtre :
+   elles sont déclarées ici en valeur, et les alias sémantiques les récupèrent par cascade. */
+.dk{
+  /* Encre */
+  --ink:#ECF0F5; --ink-2:#A2ADBB; --ink-3:#77828F; --line:rgba(255,255,255,.1);
+  --text-body:#ECF0F5; --text-muted:#A2ADBB; --text-faint:#77828F;
+
+  /* Les quatre teintes prennent leur valeur nuit. Toute la cascade suit :
+     --text-link, les sourcils colorés, les chiffres accentués. */
+  --mm-bleu:#6FB1FF;     /* 8,66:1  — remplace #0057BC (2,84:1) */
+  --mm-violet:#B98CFF;   /* 7,60:1  — remplace #6C23DD (2,69:1) */
+  --mm-orange:#FFB24D;   /* 10,79:1 */
+  --mm-teal:#3FD9C6;     /* 11:1 */
+
+  /* Sémantique d'état. Comme les teintes du logo, elle s'inverse : #0F7B52 tombe à 3,4:1 sur
+     #0B0E13 et #B4231F à 2,6:1. Les variantes nuit tiennent 11,0:1, 10,8:1 et 7,9:1. */
+  --ok:#4ADE9B; --warn:#FFB24D; --stop:#FF8A80;
+
+  /* Les versions « texte » du mode clair sont des teintes FONCÉES : illisibles ici.
+     Elles pointent sur la variante nuit correspondante. */
+  --mm-teal-t:#3FD9C6; --mm-orange-t:#FFB24D; --mm-violet-t:#B98CFF;
+
+  /* Surfaces — verre nuit : même recette, opacité effondrée.
+     7,5 % au lieu de 62 % : sur fond sombre, un voile léger suffit à détacher une surface,
+     un voile épais la fait flotter comme un carton. Le liseré de lumière, lui, ne change
+     pas — c'est lui qui porte l'effet. */
+  --surface-page:#0B0E13;
+  --surface-card:rgba(255,255,255,.075);
+  --surface-card-flat:rgba(255,255,255,.055);
+  --surface-hero:rgba(255,255,255,.055);
+  --surface-quiet:rgba(255,255,255,.1);
+  --border-hair:rgba(255,255,255,.09);
+  --border-field:rgba(255,255,255,.15);
+  --border-glass:rgba(255,255,255,.13);
+  --glass-hl:inset 0 1px 0 rgba(255,255,255,.1); /* @kind shadow */
+  --glass-sh:0 14px 38px rgba(0,0,0,.46);
+
+  /* Chrome et contrôles : mêmes recettes, opacités effondrées. Un disque de chrome à 60 %
+     de blanc sous un glyphe #ECF0F5 donne 1,4:1 — c'est le défaut qui rend une barre haute
+     illisible dans les 12 écrans à la fois. */
+  --chrome-bg:rgba(255,255,255,.1);
+  --chrome-brd:rgba(255,255,255,.15);
+  --chrome-hl:inset 0 1px 0 rgba(255,255,255,.12); /* @kind shadow */
+  --tabbar-bg:rgba(13,17,23,.72);
+  --tabbar-brd:rgba(255,255,255,.1);
+  --tabbar-hl:inset 0 1px 0 rgba(255,255,255,.09); /* @kind shadow */
+  --ctl-off-bg:rgba(255,255,255,.08);
+  --ctl-off-brd:rgba(255,255,255,.13);
+  --ctl-sel-brd:#ECF0F5;
+  --ctl-sel-ring:0 0 0 3px rgba(255,255,255,.1); /* @kind shadow */
+  --ctl-radio-brd:rgba(255,255,255,.26);
+  --fill-1:rgba(255,255,255,.07);
+  --fill-2:rgba(255,255,255,.1);
+  --fill-3:rgba(255,255,255,.14);
+  --fill-4:rgba(255,255,255,.18);
+  --fill-5:rgba(255,255,255,.24);
+  --fill-tag:rgba(255,255,255,.09);
+  --seg-on-bg:rgba(255,255,255,.16);
+  --seg-on-sh:0 2px 8px rgba(0,0,0,.34); /* @kind shadow */
+
+  --field-bg:rgba(255,255,255,.07);
+  --field-hl:none; /* @kind shadow */
+  --pill-bg:rgba(255,255,255,.13);
+  --bubble-bg:rgba(255,255,255,.09);
+  --bubble-brd:rgba(255,255,255,.14);
+  --nav-on-bg:rgba(255,255,255,.1);
+  --nav-on-sh:0 2px 10px rgba(0,0,0,.3); /* @kind shadow */
+  --nav-brd:rgba(255,255,255,.1);
+
+  /* Actions. Le bouton primaire s'inverse : fond clair, encre sombre. */
+  --action-primary:#ECF0F5;
+  --text-on-primary:#0B0E13;
+  --btn-ghost-bg:rgba(255,255,255,.13); /* relevé de .1 : plus de flou sur le fantôme */
+  --btn-ghost-brd:1.5px solid rgba(255,255,255,.32); /* @kind other */
+  --btn-quiet-brd:1px solid rgba(255,255,255,.14); /* @kind other */
+  --btn-off-bg:rgba(255,255,255,.08);
+  --focus-ring:0 0 0 3px rgba(111,177,255,.22);
+  --error-ring:0 0 0 3px rgba(255,138,128,.2);
+
+  /* Cartes territoire : mêmes couples de teintes, portés à leur version profonde.
+     L'encre de carte s'inverse avec eux — sinon le méta reste noir sur bleu nuit. */
+  --g-forme-1:#12294D; --g-forme-2:#241C4E;
+  --g-informe-1:#3A2510; --g-informe-2:#3B1A24;
+  --g-transforme-1:#241C4E; --g-transforme-2:#132A4E;
+  --g-digitalise-1:#0B3B39; --g-digitalise-2:#122B4A;
+  --g-rose-1:#3B1A24; --g-rose-2:#3A2510;
+  --card-ink:#ECF0F5;
+  --card-ink-2:rgba(236,240,245,.7);
+  --card-hl:inset 0 1px 0 rgba(255,255,255,.14); /* @kind shadow */
+  --card-sh:0 10px 28px rgba(0,0,0,.4);
+  --card-grip:rgba(255,255,255,.42);
+
+  background:#0B0E13; color:#ECF0F5;
+}

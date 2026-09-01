@@ -125,12 +125,22 @@ d'achat est-il un état conçu, ou un message d'erreur ? Non déterminable stati
 
 ## Parcours 5 — Administration quotidienne ◐
 
-19 pages d'admin, **aucune palette de commandes (Cmd+K)**, aucune recherche globale.
+> ⚠️ **Correction du 1er septembre.** Ce paragraphe affirmait d'abord « aucune palette de
+> commandes, aucune recherche globale ». **C'est faux.** `AppShell.tsx:100-103` installe un
+> raccourci global `Cmd/Ctrl+K` et monte un `SearchOverlay`, et **`AdminLayout` comme
+> `StudentLayout` passent tous deux par `AppShell`** : les deux surfaces en héritent.
 
 L'admin est **mono-utilisateur** : la plateforme est opérée par une seule personne. Le
 levier n'est donc pas la clarté pour un nouvel arrivant, mais la **vitesse pour quelqu'un
-qui connaît déjà les 19 pages par cœur**. C'est le cas d'école du raccourci clavier — et
-c'est aussi la surface où l'absence d'anneau de focus coûte le plus cher.
+qui connaît déjà les 19 pages par cœur**. La palette existe ; ce qui manque est ailleurs.
+
+**Ce qui manque réellement — vérifié :** `AppSidebar` expose une prop `badge` par entrée
+(`AppSidebar.tsx:45`, rendue ligne 173), et la navigation est **déjà groupée en cinq
+familles** par `AdminLayout`. Mais **aucun compteur n'est passé**. L'opérateur lit
+« Transactions » sans savoir qu'une attend, « Articles » sans savoir que 47 sont en
+brouillon. La capacité est là, inutilisée.
+
+C'est aussi la surface où l'absence d'anneau de focus coûte le plus cher.
 
 C'est également la surface qui concentre **24 des 81 imports hérités**, presque tous dus
 aux six trous du DS (`Toast`, `ConfirmDialog`, `Pagination`, `Modal`, `ImageInput`,
@@ -173,7 +183,7 @@ cette application est un produit vivant, c'est le plus gros chantier restant du 
 |---|---|---|---|---|
 | 1 | Achat d'une formation | ⛔ | **Faible** | 6-7 clics → 3, un rechargement supprimé, destination correcte |
 | 2 | Différenciation iOS / Android | ⚠ | **Élevé** | Conformité HIG + Material 3 sur un produit vivant |
-| 3 | Palette de commandes admin | ◐ | Moyen | Vitesse sur la surface mono-utilisateur |
+| 3 | Compteurs dans la navigation admin | ◐ | Faible | La prop `badge` existe et n'est pas passée |
 | 4 | Profondeur du Club | ◐ | Moyen | 3 niveaux sans fil d'Ariane |
 | 5 | Quota Rysmo → pack | ◐ | Faible | À qualifier au navigateur d'abord |
 | 6 | Inscription / onboarding | ✅ | — | **Ne rien changer** |

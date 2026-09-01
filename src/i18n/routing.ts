@@ -41,12 +41,34 @@ export function toCanonicalPath(pathname: string): string {
  * il est d'abord canonicalisé, puis localisé + préfixé.
  */
 export function localizedPath(path: string, lang: Lang): string {
-  const canonical = toCanonicalPath(path);
+  /*
+    ⚠️ LA CHAÎNE DE REQUÊTE ET L'ANCRE SORTENT AVANT LA TRADUCTION DES SEGMENTS.
+
+    Sans cette découpe, `localizeSegments` reçoit `repetiteur?tab=tokens` comme UN
+    segment. Il ne correspond à aucune entrée de la table, il ressort donc tel quel —
+    et l'URL anglaise garde un segment français :
+
+        /mon-espace/repetiteur          → /en/my-learning/tutor        ✔
+        /mon-espace/repetiteur?tab=…    → /en/my-learning/repetiteur?…  ✘
+
+    La seconde ne correspond à aucune route déclarée : quelqu'un en anglais tombait
+    sur un 404 en cliquant un lien interne. `LocalizedLink` passe `to` ici sans le
+    découper, donc tous ses appelants portaient le défaut — deux dans le widget du
+    répétiteur, vers l'écran des packs, c'est-à-dire vers l'achat.
+
+    Le défaut ne se voyait qu'en anglais ET seulement sur les liens à requête : c'est
+    la raison pour laquelle il a tenu si longtemps.
+  */
+  const cut = path.search(/[?#]/);
+  const bare = cut === -1 ? path : path.slice(0, cut);
+  const suffix = cut === -1 ? '' : path.slice(cut);
+
+  const canonical = toCanonicalPath(bare);
   const localized = localizeSegments(canonical, lang);
   if (lang === 'en') {
-    return localized === '/' ? '/en' : `/en${localized}`;
+    return (localized === '/' ? '/en' : `/en${localized}`) + suffix;
   }
-  return localized;
+  return localized + suffix;
 }
 
 /** Locale Intl correspondant à la langue (dates, nombres, devises). */

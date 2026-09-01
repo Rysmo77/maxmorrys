@@ -28,7 +28,15 @@
     "agencyLeads": "Agency leads",
     "missions": "Projects",
     "redirects": "Redirects",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "badgeDrafts_one": "{{count}} draft",
+    "badgeDrafts_other": "{{count}} drafts",
+    "badgeUnpublished_one": "{{count}} unpublished",
+    "badgeUnpublished_other": "{{count}} unpublished",
+    "badgeNew_one": "{{count}} new",
+    "badgeNew_other": "{{count}} new",
+    "badgeToQualify_one": "{{count}} to qualify",
+    "badgeToQualify_other": "{{count}} to qualify"
   },
   "placeholder": {
     "description": "This section is under development and will be available soon."
@@ -119,7 +127,12 @@
     "queueLabel": "Queues to handle",
     "agencyEyebrow": "Agency leads",
     "agencyRecentLabel": "Latest leads received",
-    "scope": "This screen answers one question: what is blocking today. It carries no audience, no cohorts and no curves — analysis lives on /admin/analytics. Running costs — infrastructure, model calls, payment fees — are measured nowhere in the application, and revenue does not appear here: it is read on the Transactions screen. Queues are counted at the reading shown, not live."
+    "scope": "This screen answers one question: what is blocking today. It carries no audience, no cohorts and no curves — analysis lives on /admin/analytics. Running costs — infrastructure, model calls, payment fees — are measured nowhere in the application, and revenue does not appear here: it is read on the Transactions screen. Queues are counted at the reading shown, not live.",
+    "panelEyebrow": "Selected lead",
+    "panelEmpty": "No lead in this status. Switch filter, or take a breath — this screen is asking nothing of you.",
+    "panelReceived": "Received on",
+    "panelAdvance": "Move to “{{status}}”",
+    "panelOpenFull": "Open the full record"
   },
   "analytics": {
     "title": "Analytics",

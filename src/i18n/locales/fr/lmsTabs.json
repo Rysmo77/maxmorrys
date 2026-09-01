@@ -88,7 +88,19 @@
     "linkMessagesMeta": "les réponses arrivent dans tes notifications",
     "loadingLabel": "Chargement de tes formations",
     "linkPayments": "Mes paiements",
-    "linkPaymentsMeta": "reçus et références"
+    "linkPaymentsMeta": "reçus et références",
+    "programEyebrow": "Le programme",
+    "tutorPanelMemory": "Mémoire de ton {{tutor}}",
+    "tutorPanelQuotaLoading": "Relevé de ton quota",
+    "tutorPanelQuotaLabel": "Questions du jour",
+    "tutorPanelQuotaSuffix": "aujourd'hui",
+    "tutorPanelQuotaUnknown": "Ton quota n'a pas pu être relevé. Ouvre ton répétiteur pour le voir.",
+    "tutorPanelGreeting": "Je suis ton {{tutor}}. Pose ta question — je sais où tu t'es arrêté.",
+    "tutorPanelRemainingBefore": "Il te reste",
+    "tutorPanelRemainingAfter_one": "question aujourd'hui. Remis à zéro à minuit.",
+    "tutorPanelRemainingAfter_other": "questions aujourd'hui. Remis à zéro à minuit.",
+    "tutorPanelPlaceholder": "Pose ta question",
+    "tutorPanelSend": "Envoyer à ton {{tutor}}"
   },
   "messages": {
     "newMessage": "Nouveau message",

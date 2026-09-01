@@ -28,7 +28,15 @@
     "agencyLeads": "Prospects agence",
     "missions": "Projets",
     "redirects": "Redirections",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "badgeDrafts_one": "{{count}} brouillon",
+    "badgeDrafts_other": "{{count}} brouillons",
+    "badgeUnpublished_one": "{{count}} non publiée",
+    "badgeUnpublished_other": "{{count}} non publiées",
+    "badgeNew_one": "{{count}} nouveau",
+    "badgeNew_other": "{{count}} nouveaux",
+    "badgeToQualify_one": "{{count}} à qualifier",
+    "badgeToQualify_other": "{{count}} à qualifier"
   },
   "placeholder": {
     "description": "Cette section est en cours de développement et sera disponible prochainement."
@@ -119,7 +127,12 @@
     "queueLabel": "Files à traiter",
     "agencyEyebrow": "Prospects agence",
     "agencyRecentLabel": "Derniers prospects reçus",
-    "scope": "Cet écran ne répond qu'à « qu'est-ce qui bloque aujourd'hui ». Il ne porte ni audience, ni cohortes, ni courbes : l'analyse vit sur /admin/analytics. Le coût d'exploitation — infrastructure, appels au modèle, commissions de paiement — n'est mesuré nulle part dans l'application, et l'encaissement n'apparaît pas ici : il se lit sur l'écran Transactions. Les files se comptent au relevé affiché, pas en temps réel."
+    "scope": "Cet écran ne répond qu'à « qu'est-ce qui bloque aujourd'hui ». Il ne porte ni audience, ni cohortes, ni courbes : l'analyse vit sur /admin/analytics. Le coût d'exploitation — infrastructure, appels au modèle, commissions de paiement — n'est mesuré nulle part dans l'application, et l'encaissement n'apparaît pas ici : il se lit sur l'écran Transactions. Les files se comptent au relevé affiché, pas en temps réel.",
+    "panelEyebrow": "Prospect sélectionné",
+    "panelEmpty": "Aucun prospect dans ce statut. Change de filtre, ou souffle — c'est un écran qui n'a rien à te réclamer.",
+    "panelReceived": "Reçu le",
+    "panelAdvance": "Passer en « {{status}} »",
+    "panelOpenFull": "Ouvrir la fiche complète"
   },
   "analytics": {
     "title": "Analytics",

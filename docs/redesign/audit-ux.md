@@ -47,7 +47,7 @@ Score 1–5. Les notes basses sont adossées à une mesure, jamais à une impres
 
 | Critère | Public | LMS | Admin | Mobile | Fondement de la note |
 |---|---|---|---|---|---|
-| Clarté | 4 | 4 | 3 | 4 | L'admin empile 19 pages sans palette de commandes ni recherche globale |
+| Clarté | 4 | 4 | 4 | 4 | — |
 | Focus | 4 | 4 | 3 | 4 | — |
 | Hiérarchie | 5 | 4 | 3 | 4 | Le kit impose une échelle typographique unique (13 tailles nommées), appliquée |
 | Actions | 4 | 4 | 3 | 4 | `Button` du DS porte les tons ; l'admin garde 2 boutons hérités |
