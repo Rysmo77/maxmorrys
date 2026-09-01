@@ -27,6 +27,19 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # ── Les six règles du design system, rendues exécutables ──────────────
+      # Elles ne se voient sur AUCUNE capture d'écran : le flou de trop, le repli qui ignore
+      # le thème, le nombre affiché sans source rendent correctement sur la machine de qui
+      # les écrit. Ils ne se manifestent que sur l'appareil, le thème ou le réglage
+      # d'accessibilité de quelqu'un d'autre — donc jamais en revue.
+      #
+      # `ds:check` prouve aussi AD-1 : que `src/design-system/css/` est bien la COPIE
+      # LITTÉRALE du kit livré. Cette étape n'existait pas ; la source de `ds:sync` avait
+      # entre-temps été supprimée du dépôt et le script plantait à l'exécution, sans que
+      # rien ne le signale. Un vérificateur qu'aucun job n'invoque ne vérifie rien.
+      - name: Design system — six règles + copie littérale (AD-1)
+        run: npm run ds:check
+
       # Les suites unitaires gardent la cohérence des prix (Club, offre TPE) entre le code,
       # les CGV et l'interface. Sans cette étape elles n'avaient AUCUNE couverture CI, et
       # c'est ainsi que les CGV ont pu annoncer un tarif que le code ne pratiquait plus.

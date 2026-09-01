@@ -67,3 +67,21 @@ export function useSpace(): (name: TokenName) => number {
   const t = useToken();
   return (name) => px(t(name));
 }
+
+/**
+ * UN VOILE DÉRIVÉ DE SON ENCRE, jamais une seconde valeur.
+ *
+ * Le web écrit ses fonds d'état en dur — `rgba(15,123,82,.16)` pour la pastille verte,
+ * `rgba(108,35,221,.15)` pour la coche violette. Recopier ces canaux ici créerait une valeur
+ * de plus à maintenir, et surtout une valeur QUI NE BASCULERAIT PAS : en mode sombre, `--ok`
+ * devient #4ADE9B et son voile doit suivre. Un `rgba` figé resterait le vert du mode clair.
+ *
+ * On dérive donc le voile de l'encre déjà résolue par `useToken()`. Une seule valeur, un seul
+ * mode de panne, et le voile suit son encre par construction.
+ */
+export function veil(color: string, alpha: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(color.trim());
+  if (!m) return color;
+  const n = Number.parseInt(m[1], 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+}

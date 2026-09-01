@@ -10,8 +10,37 @@ ne vient pas du kit ? » — la réponse est ce dossier, et rien d'autre.
 | Fichier | Décision | Pourquoi |
 |---|---|---|
 | `ad-18-voile.css` | AD-18 | Le point A du handoff : le voile de lisibilité remonte pour que `--ink-2` tienne 4,5:1 sur le fond réel. Mesuré, pas estimé. |
-| `ad-06-etats.css` | AD-6 | **Réduit** : le kit livre désormais `brand/states.css`. Ne restent que l'erreur sur un champ réel, le saut au contenu, le texte indicatif, les jetons AD-2/AD-3, et une cible tactile mesurée meilleure. |
+| `ad-06-etats.css` | AD-6 | **Réduit** : le kit livre désormais `brand/states.css`. Ne restent que l'erreur sur un champ réel, le saut au contenu, le texte indicatif, les jetons AD-2, et une cible tactile mesurée meilleure. Ceux d'AD-3 sont partis dans `ad-23-hello-arc.css` avec la peinture du mot-symbole. |
+| `ad-22-surface-feuille.css` | AD-22 | `--paper` est le blanc de RÉFÉRENCE et ne bascule pas sous `.dk` ; l'encre, si. Toute surface opaque qui le lisait donnait **1,06:1** en mode sombre. `--surface-sheet` bascule. Mesuré. |
 | `ad-20-corail-texte.css` | AD-20 | Le DS donne au corail un rôle de **texte** (l'entrée « agence » de la barre haute) mais aucune version lisible : `#FF6E7F` fait 2,70:1 sur blanc. Mesuré. |
+| `ad-21-radio-epaisseur.css` | AD-21 | `brand/states.css` transitionne `border-width` sur `.mm-radio` — une propriété de mise en page, ce qu'AD-16 interdit. La copie littérale (AD-1) ne peut pas être corrigée sur place : l'écart la neutralise par une transition de couleur. |
+| `ad-23-hello-arc.css` | AD-23 | Le mot-symbole « Hello ! » portait son dégradé en permanence et n'était cliquable nulle part. Il devient une **cible** : `--ink-2` au repos comme les autres commandes de la barre, l'arc des cinq teintes qui se remplit de la gauche vers la droite au survol. Remplace les jetons AD-3 d'`ad-06-etats.css`. |
+
+## Un écart qui ne vit pas dans ce dossier — AD-24
+
+`ds:sync` ne copie que du **CSS** : les composants de `src/design-system/react/` sont portés à
+la main, et un écart qui les concerne n'a pas de fichier à écrire ici. Il est noté quand même,
+parce que la question à laquelle ce dossier répond — « qu'est-ce qui, dans le rendu, ne vient
+pas du kit ? » — ne s'arrête pas à la frontière des feuilles de style.
+
+**AD-24 · `MediaCard` accepte une photographie.** Le kit l'interdisait en toutes lettres
+(« Dégradé de la vignette. Par défaut celui du format. **Aucune photographie.** ») au nom d'un
+argument qui tient : *la silhouette dit le format*, et une forme se lit là où le mot « Podcast »
+se perd. Mais `Video.thumbnailUrl` et `Podcast.coverImage` sont des champs **obligatoires**,
+remplis automatiquement par les imports YouTube et Spotify, et la fiche vidéo affichait déjà sa
+miniature une page plus loin. La carte était le seul endroit du parcours qui les jetait.
+
+L'écart **garde l'argument** au lieu de le rembourser : la photo remplit la vignette, l'onde et
+le cadre 16:9 se redessinent **par-dessus**, sur un voile sombre qui les tient lisibles quelle
+que soit l'image. Le dégradé n'est pas retiré — il devient le **repli** : pochette absente, URL
+cassée, image encore en vol, c'est lui qu'on voit.
+
+Ce qui n'a pas été repris de la maquette : le `backdrop-filter: blur(8px)` qu'elle pose sur le
+badge (`uploads/maxmorrys-pole-media.html:442`). Une carte de média vit en grille — c'est la
+règle 1, et `ds:check` la fait respecter.
+
+Le détail du raisonnement est en tête de
+[`react/data/MediaCard.tsx`](../../react/data/MediaCard.tsx), au plus près du code qu'il régit.
 
 ## Deux écarts RETIRÉS par la révision reçue
 

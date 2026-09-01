@@ -124,10 +124,24 @@ export function useCoursePlayer(slug: string | undefined): CoursePlayerState {
           setEnrollment(e);
           setCompletedLessons(e.completedLessons ?? []);
         }
-        // Auto-expand first module
-        if (f.modules?.[0]) {
-          setExpandedModules([f.modules[0].id]);
-          setActiveLesson(f.modules[0].lessons?.[0] ?? null);
+        /*
+          Le module et la leçon d'ouverture.
+
+          SANS INSCRIPTION, on ouvre sur la première leçon MARQUÉE GRATUITE, pas sur la
+          première tout court : c'est l'aperçu que la fiche et le catalogue promettent
+          — « le module d'ouverture est en accès libre, tu juges avant de payer ». Ouvrir
+          sur une leçon verrouillée montrerait un mur là où on annonce une porte.
+        */
+        const firstFree = e
+          ? null
+          : (f.modules ?? []).flatMap((m) => m.lessons ?? []).find((l) => l.isFree) ?? null;
+        const moduleOfFirstFree = firstFree
+          ? (f.modules ?? []).find((m) => (m.lessons ?? []).some((l) => l.id === firstFree.id))
+          : null;
+        const openModule = moduleOfFirstFree ?? f.modules?.[0];
+        if (openModule) {
+          setExpandedModules([openModule.id]);
+          setActiveLesson(firstFree ?? openModule.lessons?.[0] ?? null);
         }
       }
       setLoading(false);

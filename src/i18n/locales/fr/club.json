@@ -163,16 +163,14 @@
   "subscriptionGate": {
     "title": "Club des Digitos",
     "tagline": "Communauté exclusive · {{price}} FCFA/an",
-    "intro": "Accédez à la communauté, aux sessions Live, au forum, aux infos exclusives et aux événements organisés par Max-Morrys.",
-    "joinMembers_one": "Rejoins {{count}} membre actif",
-    "joinMembers_other": "Rejoins {{count}} membres actifs",
+    "intro": "Tu accèdes à la communauté, aux sessions en direct, au forum, aux infos exclusives et aux événements.",
     "features": {
       "feedTitle": "Fil d'actualité",
       "feedDesc": "Publications et posts en temps réel de Max-Morrys et des membres.",
       "forumTitle": "Forum & discussions",
-      "forumDesc": "Échangez, posez vos questions, interagissez avec la communauté.",
+      "forumDesc": "Échange, pose tes questions, réponds à celles des autres.",
       "liveTitle": "Sessions Live",
-      "liveDesc": "Participez aux sessions en direct avec Max-Morrys.",
+      "liveDesc": "Participe aux sessions en direct, avec moi.",
       "infosTitle": "Infos exclusives",
       "infosDesc": "Analyses, ressources et contenus réservés aux membres.",
       "eventsTitle": "Événements",
@@ -180,7 +178,7 @@
       "rysmoTitle": "Rysmo boosté",
       "rysmoDesc": "+3 requêtes par jour avec ton répétiteur IA Rysmo, incluses avec le Club.",
       "communityTitle": "Communauté",
-      "communityDesc": "Réseau de professionnels du digital passionnés."
+      "communityDesc": "Les autres membres, joignables directement. Ce qu'ils en font ne dépend pas de moi — c'est pour ça que ce n'est pas dans ce que je te garantis."
     },
     "trendingTitle": "Ce qui s'échange en ce moment",
     "theyTalk": "Ils en parlent",
@@ -189,9 +187,8 @@
     "seeFormations": "Voir les formations",
     "pendingTitle": "Paiement en cours de traitement",
     "pendingText": "Ton paiement est en attente de confirmation. Ton accès sera activé automatiquement dès réception. Si tu as un souci, ",
-    "contactUs": "contacte-nous",
+    "contactUs": "écris-moi",
     "activateTitle": "Activer le Club des Digitos",
-    "activateSubtitle": "{{price}} FCFA / an · Renouvellement automatique ou manuel à ta convenance.",
     "autoRenewLabel": "Préviens-moi avant l'échéance ",
     "autoRenewHint": "(un e-mail 15 jours avant, rien n'est prélevé)",
     "processing": "Traitement...",
@@ -229,7 +226,7 @@
     "profileTop": "Profil au top !",
     "completion": {
       "photoLabel": "Photo de profil",
-      "photoBenefit": "Une photo inspire confiance — les profils avec photo sont bien plus contactés.",
+      "photoBenefit": "Une photo, c'est ce qui fait qu'on te reconnaît en atelier.",
       "headlineLabel": "Titre professionnel",
       "headlineBenefit": "Décris ton expertise en une ligne pour être identifié au premier coup d'œil.",
       "skillsLabel": "Compétences",
@@ -237,7 +234,7 @@
       "cityLabel": "Ville",
       "cityBenefit": "Indiquer ta ville te référence localement et te rend repérable pour des opportunités près de chez toi.",
       "availableLabel": "Disponibilité",
-      "availableBenefit": "Active « Dispo pour missions » pour apparaître en priorité auprès des recruteurs du Club.",
+      "availableBenefit": "Active « Dispo pour missions » pour que ça se voie sur ton profil quand quelqu'un cherche quelqu'un.",
       "contactLabel": "Un moyen de contact",
       "contactBenefit": "Ajoute au moins un réseau (LinkedIn, WhatsApp, site…) pour que les membres puissent te joindre."
     },
@@ -390,11 +387,11 @@
       "Voilà à quoi ils servent."
     ],
     "tabs": {
-      "feed": "Ce qui se passe cette semaine, et ce que ton abonnement t'a apporté depuis le début.",
-      "discussions": "Par catégorie : entraide, outils, clients. La question bête se pose ici.",
-      "members": "Qui fait quoi, où. Message privé, et signalement si quelqu'un dérape.",
+      "feed": "Ce qui se passe cette semaine, et l'échéance de ton abonnement, toujours sous les yeux.",
+      "discussions": "Écrire à quelqu'un directement, sans passer par le fil. Un message se signale s'il dérape.",
+      "members": "Qui fait quoi, où. Message privé, et profils tenus par leurs auteurs.",
       "agenda": "Sessions en ligne et ateliers à Dakar. Inscription en un geste, sans doublon possible.",
-      "leaderboard": "Par vague d'arrivée, jamais absolu. Tu te compares à ceux qui ont commencé quand toi.",
+      "leaderboard": "Le classement du Club, par expérience gagnée. Il ne compare pas les revenus, et il ne sert à rien d'autre qu'à situer.",
       "opportunities": "Missions, appels d'offres, recrutements. Avec le budget annoncé quand il l'est.",
       "infos": "Le digest de la semaine, écrit ici et dans tes notifications. Pas par e-mail.",
       "referral": "Ton code fait gagner 15 % à celui que tu amènes. Toi, tu ne gagnes rien — et je te le dis."
@@ -434,11 +431,11 @@
     "faq": [
       {
         "q": "Je peux payer en plusieurs fois ?",
-        "a": "Non, pas sur le Club — il est annuel et ne se fractionne pas. Le fractionné existe sur les formations, en trois ou quatre échéances selon le montant."
+        "a": "Non. Le Club est annuel et ne se fractionne pas, et les formations non plus aujourd'hui : le tunnel n'accepte qu'un paiement unique. Si le montant bloque, écris-moi avant de payer."
       },
       {
         "q": "Et si je n'y vais jamais ?",
-        "a": "Tu auras payé pour rien, et je ne peux pas t'en empêcher. C'est pour ça que le récapitulatif de ce que ton abonnement t'a apporté est visible en permanence dans le fil, et pas seulement à l'échéance."
+        "a": "Tu auras payé pour rien, et je ne peux pas t'en empêcher. C'est pour ça que l'échéance de ton abonnement est affichée en permanence dans le Club, avec son rappel — et pas seulement le dernier jour."
       },
       {
         "q": "Je suis remboursé si je change d'avis ?",

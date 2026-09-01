@@ -42,6 +42,15 @@ export default function Cours() {
           </Body>
         </Surface>
 
+        {/* La sortie de l'état vide. Un écran vide est une invitation à agir : sans ce lien,
+            quelqu'un sans inscription n'a nulle part où aller depuis cet onglet. */}
+        <Link href="/catalogue" asChild>
+          <Surface level="flat" style={{ marginTop: 14, padding: 20 }}>
+            <Eyebrow>Le catalogue</Eyebrow>
+            <Body style={{ marginTop: 6, fontWeight: '700' }}>Voir les formations</Body>
+          </Surface>
+        </Link>
+
         <Link href="/lecon" asChild>
           <Surface level="hero" style={{ marginTop: 14, padding: 20 }}>
             <Eyebrow>Aperçu</Eyebrow>

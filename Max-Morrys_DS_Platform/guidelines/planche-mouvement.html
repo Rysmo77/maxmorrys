@@ -1,0 +1,181 @@
+<!-- @dsCard group="Mouvement" viewport="1180x900" name="Système de mouvement" subtitle="Quatre durées, deux courbes — un exemple vivant de chacune" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — système de mouvement</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:28px 26px 46px}
+*{box-sizing:border-box}
+.wrap{max-width:1180px;margin:0 auto}
+.eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+h1{font-family:var(--f-display);font-weight:900;font-size:44px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+h2{font-family:var(--f-display);font-weight:900;font-size:26px;letter-spacing:-.03em;line-height:1;margin:0 0 10px;color:#fff}
+p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+p.k b{color:#fff;font-weight:600}
+.sec{padding:34px 0;border-top:1px solid #171D24}
+.mono{font-family:var(--f-mono)}
+.seq{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.fr{background:#0F151B;border:1px solid #222932;border-radius:var(--r-l);overflow:hidden}
+.fr .stage{height:190px;position:relative;overflow:hidden;background:#FBFCFE}
+.fr .meta{padding:12px 14px;border-top:1px solid #1B222A}
+.fr .meta b{display:block;color:#fff;font-size:12.5px;margin-bottom:3px}
+.fr .meta span{font-family:var(--f-mono);font-size:10.5px;color:#8B95A3;line-height:1.5}
+.t{font-family:var(--f-mono);font-size:10px;color:#0E1116;background:rgba(255,255,255,.86);padding:3px 6px;border-radius:5px;position:absolute;z-index:5}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{text-align:left;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6D7987;font-weight:400;padding:0 12px 8px 0}
+td{padding:9px 12px 9px 0;border-top:1px solid #1B222A;color:#B6C0CC;vertical-align:top}
+td b{color:#fff}
+.note{border-left:2px solid var(--mm-orange);padding:2px 0 2px 15px;color:#C3CDD9;max-width:76ch;margin:18px 0;font-size:13.5px;line-height:1.6}
+.note b{color:#FFC46B}
+
+.demo{background:#FBFCFE;border-radius:var(--r-l);padding:20px;color:var(--ink);position:relative;overflow:hidden}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.rejouer{border:0;cursor:pointer;border-radius:999px;padding:10px 16px;font-family:var(--f-body);font-size:12.5px;font-weight:700;background:#fff;color:#0E1116}
+.btn-demo{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:0 22px;border-radius:999px;font-weight:700;font-size:15px;border:0;cursor:pointer;background:var(--action-forme);color:#fff;box-shadow:var(--sh-bleu)}
+.chip{height:40px;display:inline-flex;align-items:center;padding:0 16px;border-radius:999px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.6);color:var(--ink-2);font-size:13px;font-weight:500;cursor:pointer;transition:background var(--t-ui) var(--ease),color var(--t-ui) var(--ease)}
+.chip.on{background:var(--ink);color:#fff;font-weight:600;border-color:var(--ink)}
+.dsp{font-family:var(--f-display);font-weight:900;font-size:34px;letter-spacing:-.035em;line-height:.9;color:var(--ink);margin:0}
+.card{border-radius:var(--r-l);padding:16px;background:linear-gradient(150deg,var(--g-forme-1),var(--g-forme-2));border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 10px 28px rgba(14,17,22,.1);color:var(--ink)}
+</style></head><body><div class="wrap">
+<p class="eb">Système de mouvement</p>
+<h1>Quatre durées, deux courbes,<br>et rien d'autre.</h1>
+<p class="k">Le piège du mouvement est d'animer tout avec la même durée : ça se voit immédiatement, et ça donne l'impression d'un thème appliqué plutôt que d'une intention. Ici, chaque durée dit quelque chose de différent. <b>Appuie sur les éléments, et rejoue les scènes.</b></p>
+<table>
+<tr><th>Jeton</th><th>Durée</th><th>Courbe</th><th>Ce que ça dit</th><th>Où</th></tr>
+<tr><td class="mono">--t-tap</td><td class="mono"><b>120 ms</b></td><td class="mono">.2,.7,.2,1</td><td>« J'ai senti ton doigt »</td><td>Boutons, pilules, options de paiement, lignes cliquables — <span class="mono">scale(.975)</span>, <span class="mono">.94</span> sur les ronds</td></tr>
+<tr><td class="mono">--t-ui</td><td class="mono"><b>220 ms</b></td><td class="mono">.2,.7,.2,1</td><td>« L'état a changé »</td><td>Filtre sélectionné, radio cochée, interrupteur basculé, segment de quota, étiquette de statut</td></tr>
+<tr><td class="mono">--t-enter</td><td class="mono"><b>380 ms</b></td><td class="mono">.16,1,.3,1</td><td>« Ceci vient d'arriver »</td><td>Entrée d'élément : +16 px et opacité, décalage de 70 ms entre voisins</td></tr>
+<tr><td class="mono">--t-scene</td><td class="mono"><b>700 ms</b></td><td class="mono">.16,1,.3,1</td><td>« La page se met en place »</td><td>Titre display sous masque, ligne par ligne à 90 ms ; barre de progression qui se remplit</td></tr>
+</table>
+
+<section class="sec">
+<h2>120 ms — j'ai senti ton doigt</h2>
+<p class="k">Le seul retour systématique du produit. Il ne dit rien du résultat, seulement que le geste est arrivé. Appuie et maintiens.</p>
+<div class="demo" style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+  <button class="btn-demo mm-press">Je m'inscris</button>
+  <span class="mm-press-sm" style="background:rgba(14,17,22,.9);color:#fff;border-radius:999px;padding:0 17px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;min-height:42px;display:inline-flex;align-items:center;cursor:pointer">Menu</span>
+  <span class="mm-press-sm" style="width:42px;height:42px;border-radius:50%;background:rgba(14,17,22,.06);border:1px solid var(--line);display:grid;place-items:center;cursor:pointer"><img src="../assets/icons/back.svg" width="19" height="19" alt=""></span>
+  <span class="mm-press" style="flex:1;min-width:220px;display:flex;align-items:center;gap:13px;padding:15px;border-radius:var(--r-m);min-height:68px;background:#fff;border:1.5px solid rgba(14,17,22,.85);box-shadow:0 0 0 3px rgba(14,17,22,.07);cursor:pointer">
+    <span style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#3FD8FF,#009FE3);display:grid;place-items:center;font-family:var(--f-display);font-weight:900;color:#fff">W</span>
+    <span><b style="display:block;font-size:14.5px">Wave</b><span style="font-size:12px;color:var(--ink-3)">Tu valides dans l'app Wave</span></span>
+  </span>
+</div>
+<div class="note"><b>Ce que ça n'est pas.</b> Ni un rebond, ni un agrandissement, ni un changement de couleur. Un enfoncement de 2,5 % — assez pour être senti, trop peu pour être remarqué.</div>
+</section>
+
+<section class="sec">
+<h2>220 ms — l'état a changé</h2>
+<p class="k">La durée du basculement. Elle est assez longue pour qu'on voie <i>quoi</i> a changé, assez courte pour ne pas attendre.</p>
+<div class="demo grid2" style="display:grid">
+  <div>
+    <p class="eb" style="color:#98A1AE">Filtre · clique</p>
+    <div id="chips" style="display:flex;gap:8px">
+      <span class="chip on">Tout</span><span class="chip">SEO</span><span class="chip">IA</span><span class="chip">Marketing</span>
+    </div>
+    <p class="eb" style="color:#98A1AE;margin-top:18px">Interrupteur · clique</p>
+    <span id="sw" style="width:48px;height:29px;border-radius:16px;position:relative;display:inline-block;cursor:pointer;background:var(--action-forme);transition:background var(--t-ui) var(--ease)">
+      <b id="knob" style="position:absolute;left:3px;top:3px;width:23px;height:23px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(14,17,22,.24);transform:translateX(19px);transition:transform var(--t-ui) var(--ease)"></b>
+    </span>
+  </div>
+  <div>
+    <p class="eb" style="color:#98A1AE">Quota Rysmo · clique pour consommer</p>
+    <div id="quota" style="display:flex;gap:3px;align-items:center">
+      <i style="width:15px;height:5px;border-radius:3px;background:var(--mm-violet);transition:background var(--t-ui) var(--ease)"></i>
+      <i style="width:15px;height:5px;border-radius:3px;background:var(--mm-violet);transition:background var(--t-ui) var(--ease)"></i>
+      <i style="width:15px;height:5px;border-radius:3px;background:rgba(14,17,22,.12);transition:background var(--t-ui) var(--ease)"></i>
+      <i style="width:15px;height:5px;border-radius:3px;background:rgba(14,17,22,.12);transition:background var(--t-ui) var(--ease)"></i>
+      <i style="width:15px;height:5px;border-radius:3px;background:rgba(14,17,22,.12);transition:background var(--t-ui) var(--ease)"></i>
+      <span class="mono" style="font-size:11.5px;color:var(--ink-2);margin-left:6px" id="qn">2 / 5</span>
+    </div>
+    <p class="eb" style="color:#98A1AE;margin-top:18px">Étiquette de statut · clique</p>
+    <span id="tag" style="display:inline-flex;align-items:center;height:27px;padding:0 11px;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;background:rgba(243,139,10,.18);color:var(--warn);transition:background var(--t-ui) var(--ease),color var(--t-ui) var(--ease)">En attente</span>
+  </div>
+</div>
+</section>
+
+<section class="sec">
+<h2>380 ms — ceci vient d'arriver</h2>
+<p class="k">Une translation de 16 px vers le haut et une opacité, avec <b>70 ms</b> entre voisins. Le décalage suffit à faire lire la liste dans l'ordre, sans jamais donner l'impression d'attendre.</p>
+<button class="rejouer" onclick="rejouer('cascade')">Rejouer la cascade</button>
+<div class="demo" id="cascade" style="margin-top:14px">
+  <div style="display:grid;gap:12px">
+    <div class="card rv" style="--i:0"><b>Je te forme</b></div>
+    <div class="card rv" style="--i:1;background:linear-gradient(150deg,var(--g-informe-1),var(--g-informe-2))"><b>Je t'informe</b></div>
+    <div class="card rv" style="--i:2;background:linear-gradient(150deg,var(--g-transforme-1),var(--g-transforme-2))"><b>Je te transforme</b></div>
+    <div class="card rv" style="--i:3;background:linear-gradient(150deg,var(--g-digitalise-1),var(--g-digitalise-2))"><b>Je te digitalise</b></div>
+  </div>
+</div>
+</section>
+
+<section class="sec">
+<h2>700 ms — la page se met en place</h2>
+<p class="k">Deux usages, deux seulement : le titre display qui monte <b>sous un masque</b>, ligne par ligne à 90 ms d'écart, et la barre de progression qui rejoint sa valeur.</p>
+<button class="rejouer" onclick="rejouer('scene')">Rejouer la scène</button>
+<div class="demo" id="scene" style="margin-top:14px">
+  <p class="dsp"><span class="rv-l" style="--i:0;display:block">JE TE FORME</span><span class="rv-l" style="--i:1;display:block">AU DIGITAL.</span><span class="rv-l" style="--i:2;display:block">DEPUIS DAKAR.</span></p>
+  <div style="height:8px;border-radius:5px;background:rgba(14,17,22,.09);overflow:hidden;margin-top:20px">
+    <i class="prog-fill" style="display:block;height:100%;width:0;border-radius:5px;background:linear-gradient(90deg,#0057BC,#6C23DD,#F38B0A,#02AC9C);transition:width var(--t-scene) var(--ease-out)"></i>
+  </div>
+  <p class="mono" style="font-size:11.5px;color:var(--ink-2);margin-top:8px">16 / 47 leçons · 34 %</p>
+</div>
+</section>
+
+<section class="sec">
+<h2>Ambiance permanente — la dérive du maillage</h2>
+<p class="k">Trois lobes flous par territoire, en dérive désynchronisée sur <b>25 à 38 secondes</b>, animés en <span class="mono">transform</span> uniquement — jamais en <span class="mono">background-position</span>, qui repeindrait à chaque image. C'est la seule animation en boucle du produit, et elle ne demande jamais l'attention.</p>
+<div class="seq">
+  <div class="fr"><div class="stage"><div class="mesh m-forme"><b></b><b></b><b></b></div></div><div class="meta"><b>Forme · 26 s</b><span>bleu → violet → teal</span></div></div>
+  <div class="fr"><div class="stage"><div class="mesh m-informe"><b></b><b></b><b></b></div></div><div class="meta"><b>Informe · 27 s</b><span>orange → corail → bleu</span></div></div>
+  <div class="fr"><div class="stage"><div class="mesh m-transforme"><b></b><b></b><b></b></div></div><div class="meta"><b>Transforme · 25 s</b><span>violet → bleu → orange</span></div></div>
+</div>
+</section>
+
+<section class="sec">
+<h2>Ce que je m'interdis</h2>
+<table>
+<tr><td style="width:34%"><b>Animer <span class="mono">width</span>, <span class="mono">height</span>, <span class="mono">top</span>, <span class="mono">left</span></b></td><td>Interdit. <span class="mono">transform</span> et <span class="mono">opacity</span> seulement : les deux propriétés que le compositeur traite sans repasser par la mise en page. Une animation de <span class="mono">width</span> fait échouer la revue de code.</td></tr>
+<tr><td><b>Défilement détourné</b></td><td>Interdit. Le défilement appartient à la personne.</td></tr>
+<tr><td><b>Information portée par le survol</b></td><td>Interdit. Sur mobile, le survol n'existe pas. Le survol ne fait que confirmer une cible, sur pointeur fin.</td></tr>
+<tr><td><b><span class="mono">prefers-reduced-motion</span></b></td><td>Toutes les durées passent à <b>1 ms</b>, dérive du maillage comprise. Câblé une fois, globalement, jamais réintroduit localement.</td></tr>
+<tr><td><b>Appareil modeste</b></td><td><span class="mono">deviceMemory ≤ 2</span> ou <span class="mono">hardwareConcurrency ≤ 4</span> → classe <span class="mono">.lowfi</span> : la dérive est figée et le flou coupé. C'est le profil d'appareil du marché visé, pas un cas limite.</td></tr>
+</table>
+</section>
+
+<script>
+(function(){
+  var m = navigator.deviceMemory, c = navigator.hardwareConcurrency;
+  if ((m && m <= 2) || (c && c <= 4)) document.documentElement.classList.add('lowfi');
+})();
+function rejouer(id){
+  var n = document.getElementById(id);
+  n.classList.remove('play');
+  var f = n.querySelector('.prog-fill');
+  if (f) f.style.width = '0';
+  void n.offsetWidth;
+  requestAnimationFrame(function(){ n.classList.add('play'); if (f) f.style.width = '34%'; });
+}
+rejouer('cascade'); rejouer('scene');
+document.getElementById('chips').addEventListener('click', function(e){
+  if (!e.target.classList.contains('chip')) return;
+  [].forEach.call(this.children, function(c){ c.classList.remove('on'); });
+  e.target.classList.add('on');
+});
+var sw = document.getElementById('sw'), knob = document.getElementById('knob'), on = true;
+sw.addEventListener('click', function(){
+  on = !on;
+  sw.style.background = on ? 'var(--action-forme)' : 'rgba(14,17,22,.16)';
+  knob.style.transform = on ? 'translateX(19px)' : 'none';
+});
+var q = 2;
+document.getElementById('quota').addEventListener('click', function(){
+  q = q >= 5 ? 0 : q + 1;
+  var bars = this.querySelectorAll('i');
+  for (var i = 0; i < bars.length; i++) bars[i].style.background = i < q ? 'var(--mm-violet)' : 'rgba(14,17,22,.12)';
+  document.getElementById('qn').textContent = q + ' / 5';
+});
+var tag = document.getElementById('tag'), etats = [['En attente','rgba(243,139,10,.18)','var(--warn)'],['Payée','rgba(15,123,82,.13)','var(--ok)'],['Échouée','rgba(180,35,31,.13)','var(--stop)']], ei = 0;
+tag.addEventListener('click', function(){
+  ei = (ei + 1) % etats.length;
+  tag.textContent = etats[ei][0]; tag.style.background = etats[ei][1]; tag.style.color = etats[ei][2];
+});
+</script>
+</div></body></html>

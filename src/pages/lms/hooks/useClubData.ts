@@ -79,13 +79,26 @@ export const MOOD_LABEL_KEYS: Record<string, string> = {
 /**
  * Les destinations de partage. `emoji` reste pour ne rien casser côté appelant, mais il n'est
  * plus rendu nulle part : c'était de la décoration, pas de la donnée, et `icon` la remplace.
+ *
+ * LES QUATRE COULEURS DE MARQUE ONT ÉTÉ RETIRÉES, et la liste était déjà incohérente avec
+ * elle-même : WhatsApp, Facebook, LinkedIn et Telegram portaient `bg-green-500`,
+ * `bg-blue-600`, `bg-blue-700` et `bg-sky-500` — la palette PAR DÉFAUT de Tailwind — pendant
+ * que Twitter et « copier » lisaient déjà des jetons du système.
+ *
+ * Ces quatre valeurs ne sont même pas les couleurs officielles des marques qu'elles imitent
+ * (#25D366 pour WhatsApp, #1877F2 pour Facebook) : ce sont des approximations. Le système
+ * n'admet une couleur tierce que dans sa valeur EXACTE et jamais recolorée — une approximation
+ * n'a donc aucun droit d'exister ici, et elle ne bascule pas sous `.dk` par-dessus le marché.
+ *
+ * C'est la décision déjà prise pour les sept réseaux de `ProfileTab` : le GLYPHE distingue la
+ * destination, le fond reste neutre. Le kit n'affiche d'ailleurs aucun logo de plateforme.
  */
 export const SHARE_PLATFORMS = [
-  { id: 'whatsapp', label: 'WhatsApp', color: 'bg-green-500', emoji: '📱', icon: 'chat' },
-  { id: 'facebook', label: 'Facebook', color: 'bg-blue-600', emoji: '📘', icon: 'users' },
-  { id: 'twitter', label: 'Twitter / X', color: 'bg-[color:var(--night-3)]', emoji: '🐦', icon: 'send' },
-  { id: 'linkedin', label: 'LinkedIn', color: 'bg-blue-700', emoji: '💼', icon: 'case' },
-  { id: 'telegram', label: 'Telegram', color: 'bg-sky-500', emoji: '✈️', icon: 'send' },
+  { id: 'whatsapp', label: 'WhatsApp', color: 'bg-[color:var(--fill-2)]', emoji: '📱', icon: 'chat' },
+  { id: 'facebook', label: 'Facebook', color: 'bg-[color:var(--fill-2)]', emoji: '📘', icon: 'users' },
+  { id: 'twitter', label: 'Twitter / X', color: 'bg-[color:var(--fill-2)]', emoji: '🐦', icon: 'send' },
+  { id: 'linkedin', label: 'LinkedIn', color: 'bg-[color:var(--fill-2)]', emoji: '💼', icon: 'case' },
+  { id: 'telegram', label: 'Telegram', color: 'bg-[color:var(--fill-2)]', emoji: '✈️', icon: 'send' },
   { id: 'copy', label: 'Copier le texte', color: 'bg-[color:var(--fill-1)]', emoji: '📋', icon: 'copy' },
 ] as const satisfies readonly { id: string; label: string; color: string; emoji: string; icon: IconName }[];
 

@@ -1,0 +1,80 @@
+<!-- Référence de conception — Max-Morrys. group="Plateforme · apprenant" viewport="1700x1070" name="Mode sombre" subtitle="Fond #0B0E13, palette nuit, verre à 7,5 % — les mêmes écrans, aucun redessiné" 
+     Copie de la maquette du système ; ce n'est pas du code de production. -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — mode sombre</title>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="stylesheet" href="board.css">
+<style>
+body{background:#05070A}
+.dev{background:#0B0E13;box-shadow:0 30px 70px rgba(0,0,0,.7)}
+.bandeau{position:fixed;left:0;right:0;top:0;z-index:50;display:flex;align-items:center;gap:16px;padding:11px 24px;background:rgba(11,14,19,.86);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.09)}
+.bandeau p{margin:0;font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#77828F}
+.bandeau b{display:block;margin-top:3px;font-family:var(--f-body);font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:#ECF0F5}
+.bascule{margin-left:auto;display:flex;gap:7px}
+.bascule button{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#ECF0F5;font-family:var(--f-body);font-size:12.5px;font-weight:700;padding:9px 15px;border-radius:999px;cursor:pointer}
+.bascule button[data-on="1"]{background:#ECF0F5;color:#0B0E13;border-color:#ECF0F5}
+#root{padding-top:62px}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="./_bundle.js"></script>
+<script src="./_guard.js"></script>
+<script>document.documentElement.setAttribute('data-mm-dark','');</script>
+<script src="board.js"></script>
+<script type="text/babel" src="app-shell.js"></script>
+<script type="text/babel" src="screens-public.js"></script>
+<script type="text/babel" src="screens-catalogue.js"></script>
+<script type="text/babel" src="screens-pay.js"></script>
+<script type="text/babel" src="screens-pay-end.js"></script>
+<script type="text/babel" src="screens-space.js"></script>
+<script type="text/babel" src="screens-club.js"></script>
+<script type="text/babel" src="screens-editorial.js"></script>
+<script type="text/babel" src="screens-media.js"></script>
+</head><body>
+<div class="bandeau">
+  <p>Mode sombre<b>#0B0E13 · palette nuit · verre à 7,5 %</b></p>
+  <p>Le lecteur est l'écran ouvert à 23 h, au lit<b>C'est là que le mode sombre change l'usage, pas l'apparence</b></p>
+  <span class="bascule">
+    <button id="b-clair">Clair</button>
+    <button id="b-nuit" data-on="1">Sombre</button>
+  </span>
+</div>
+<div id="root"></div>
+<script type="text/babel">
+renderBoard([
+  {n:'01',titre:'Accueil — maillage Forme, voile inversé',comp:'Accueil',h:900,note:'encre à 42 % en haut, 94 % en bas'},
+  {n:'02',titre:'Fiche formation — prix en teinte nuit',comp:'Fiche',h:900,note:'#6FB1FF au lieu de #0057BC'},
+  {n:'03',titre:'Lecteur de leçon — le plus important',comp:'Lecteur',h:900,note:'23 h, au lit : moins de lumière émise'},
+  {n:'04',titre:'Club — mur d\'abonnement',comp:'Club',h:900,note:'violet #B98CFF, 7,60:1'},
+  {n:'05',titre:'Mon espace',comp:'Espace',h:900},
+  {n:'06',titre:'Rysmo — quota en violet nuit',comp:'Rysmo',h:900},
+  {n:'07',titre:'Paiement — options radio',comp:'Paiement',h:900},
+  {n:'08',titre:'Attente — anneaux Wave',comp:'Attente',h:900},
+  {n:'09',titre:'Certificat — la brillance tient',comp:'Certificat',h:900},
+  {n:'10',titre:'Fil du Club — verre nuit sur maillage nuit',comp:'ClubFil',h:900},
+  {n:'11',titre:'Article — prose en #ECF0F5',comp:'Article',h:900},
+  {n:'12',titre:'Pôle média',comp:'MediaPole',h:900}
+]);
+</script>
+<script>
+/* La bascule prouve le point : c'est la même arborescence, une portée CSS de plus. */
+(function(){
+  var c = document.getElementById('b-clair'), n = document.getElementById('b-nuit');
+  function pose(sombre){
+    document.documentElement.toggleAttribute('data-mm-dark', sombre);
+    document.body.style.background = sombre ? '#05070A' : '#E9EDF2';
+    [].forEach.call(document.querySelectorAll('.dev'), function(d){ d.style.background = sombre ? '#0B0E13' : '#fff'; });
+    n.dataset.on = sombre ? '1' : '';
+    c.dataset.on = sombre ? '' : '1';
+    if (window.mmRerender) window.mmRerender();
+  }
+  c.addEventListener('click', function(){ pose(false); });
+  n.addEventListener('click', function(){ pose(true); });
+})();
+/* Appareil modeste : flou coupé, maillage figé — et le repli connaît le thème. */
+(function(){
+  var m = navigator.deviceMemory, c = navigator.hardwareConcurrency;
+  if ((m && m <= 2) || (c && c <= 4)) document.documentElement.classList.add('lowfi');
+})();
+</script>
+</body></html>

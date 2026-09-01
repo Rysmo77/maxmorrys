@@ -123,7 +123,7 @@ export default function PopupSurface({
           Le média n'occupe une colonne qu'à partir de `lg`. Sous ce seuil il disparaît :
           l'empiler au-dessus du contenu repousserait l'action sous la ligne de flottaison.
         */}
-        <div className={cn('grid', hasMedia && 'lg:grid-cols-[1.05fr_0.95fr]')}>
+        <div className={cn('grid', hasMedia && 'wide:grid-cols-[1.05fr_0.95fr]')}>
           <div className="p-6 sm:p-9 lg:p-11 min-w-0">{children}</div>
           {hasMedia && (
             <div className="relative hidden lg:block overflow-hidden lg:rounded-r-3xl" aria-hidden="true">

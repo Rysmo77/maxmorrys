@@ -1,0 +1,39 @@
+<!-- @dsCard group="Composants" viewport="700x420" name="Formulaires" subtitle="Champs, interrupteurs, segments, chips, moyens de paiement, étapes" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Formulaires</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>html,body{margin:0}body{font-family:var(--f-body);color:var(--ink);background:#FBFCFE;padding:18px}*{box-sizing:border-box}.lbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}.g{display:grid;grid-template-columns:1fr 1fr;gap:20px}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+</head><body><div id="root"></div><script type="text/babel">
+const { Field, Switch, Segmented, ChipRow, PayOption, StepDots, Icon } = window.DesignSystem_b7a7ca;
+function Card(){return (<div className="g">
+  <div>
+    <p className="lbl">Champs — repos, focus, erreur</p>
+    <Field label="Ton e-mail" placeholder="aissatou@exemple.sn" style={{marginTop:0}} />
+    <Field label="Ton mot de passe" value="••••••••••" state="focus" trailing={<Icon name="eye" size={18} color="#5A6472" />} />
+    <Field label="Écris SUPPRIMER pour confirmer" placeholder="SUPPRIMER" state="error" hint="Le texte ne correspond pas encore." />
+    <Field label="Ton message" placeholder="Dis-moi tout." multiline />
+  </div>
+  <div>
+    <p className="lbl">Interrupteurs</p>
+    <div style={{display:'flex',gap:'12px',alignItems:'center'}}><Switch on /><Switch /><Switch disabled /><span style={{fontSize:'12px',color:'var(--ink-2)'}}>désactivé = promesse non tenue, déclarée</span></div>
+    <p className="lbl" style={{marginTop:'18px'}}>Segments</p>
+    <Segmented options={['Français','English']} />
+    <div style={{height:'8px'}} />
+    <Segmented options={['Clair','Sombre','Système']} value="Sombre" />
+    <p className="lbl" style={{marginTop:'18px'}}>Chips de filtre</p>
+    <ChipRow options={['Tout','SEO','IA','Marketing']} />
+    <p className="lbl" style={{marginTop:'18px'}}>Moyens de paiement</p>
+    <div style={{display:'grid',gap:'10px'}}>
+      <PayOption on logo="W" logoBackground="linear-gradient(135deg,#3FD8FF,#009FE3)" title="Wave" note="Tu valides dans l'app Wave" />
+      <PayOption logo="OM" logoBackground="linear-gradient(135deg,#FFA030,#FF5A00)" title="Orange Money" note="Code de confirmation par SMS" />
+    </div>
+    <p className="lbl" style={{marginTop:'18px'}}>Étapes · 2 sur 3</p>
+    <StepDots total={3} current={2} />
+  </div>
+</div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<MMBoundary><Card /></MMBoundary>);
+</script></body></html>

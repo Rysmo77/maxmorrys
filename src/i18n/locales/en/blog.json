@@ -63,7 +63,7 @@
     "countLine_one": "{{count}} article.",
     "countLine_other": "{{count}} articles.",
     "lede": "Methods, not opinions. What works for a shop in Dakar, written to be applied the same evening.",
-    "searchLabel": "Search a topic",
+    "searchLabel": "Search ",
     "searchHint": "a topic",
     "filterAll": "All",
     "read": "Read",
@@ -78,7 +78,17 @@
     "alert": "Alert in your space",
     "alertAction": "Create an account",
     "noEmail": "There's no email newsletter yet. I won't make you fill a field that does nothing.",
-    "empty": "No article matches. Drop a filter, or clear the search."
+    "empty": "No article matches. Drop a filter, or clear the search.",
+    "featuredMarker": "Featured",
+    "tagFilter": "Topic: {{tag}}",
+    "clearFilter": "Clear filter",
+    "more": "Show more articles",
+    "moreCount_one": "Show {{count}} more article",
+    "moreCount_other": "Show {{count}} more articles",
+    "errorTitle": "The articles did not arrive",
+    "emptyTitle": "Nothing under this filter",
+    "emptyAction": "Show everything",
+    "shown": "{{shown}} of {{total}}"
   },
   "article": {
     "share": "Share",
@@ -92,6 +102,11 @@
     "nextTitle": [
       "Read next"
     ],
-    "translatedOriginal": "Read the original"
+    "translatedOriginal": "Read the original",
+    "crumbBlog": "Blog",
+    "gateEyebrow": "The full method",
+    "gateLessons_one": "lesson, with the opening module free.",
+    "gateLessons_other": "lessons, with the opening module free.",
+    "tagsTitle": "Topics covered"
   }
 }

@@ -93,9 +93,11 @@ export default function NotesTab({
     return (
       <div className="mx-auto max-w-4xl px-[18px] py-6">
         <p className="mm-eyebrow m-0">{t('notes.screenTitle')}</p>
-        <h1 className="mt-[6px] font-display text-dsp-xs text-ink">
+        {/* <h2> et non <h1> : le titre de la page reste « Mes notes », porté par la barre
+            haute. Celui-ci nomme la SECTION ouverte par-dessus la liste. */}
+        <h2 className="mt-[6px] font-display text-dsp-xs text-ink">
           {editingNote ? t('notes.editTitle') : t('notes.newTitle')}
-        </h1>
+        </h2>
 
         <GlassPanel level="hero" padding={22} className="mt-[18px]">
           <Field
@@ -132,10 +134,13 @@ export default function NotesTab({
 
   return (
     <div className="mx-auto max-w-4xl px-[18px] py-6">
+      {/* Le titre de l'écran est celui de la barre haute de `AppShell`, alimentée par
+          `titleMap` — donc pour chaque route sans exception. En rendre un second ici donnait
+          DEUX <h1> par écran et le même mot écrit deux fois à quinze centimètres d'intervalle.
+          C'est la décision déjà prise pour les dix-neuf écrans de console (`ConsolePage`). */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="m-0 font-display text-dsp-xs text-ink">{t('notes.screenTitle')}</h1>
-          <p className="m-0 mt-[2px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
+          <p className="m-0 text-meta-2" style={{ color: 'var(--text-muted)' }}>
             <Num value={notes.length} source="db" asOf={asOf} /> {t('notes.countLabel')}
           </p>
         </div>

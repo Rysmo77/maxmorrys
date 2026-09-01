@@ -64,7 +64,7 @@ export function BookingDialog({ booking }: { booking: ReturnType<typeof useAppoi
             </div>
           ) : (
             <form onSubmit={booking.handleSubmit} noValidate>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 stack:grid-cols-2">
                 <Field
                   label={t('booking.dateLabel')}
                   type="date"
@@ -93,7 +93,7 @@ export function BookingDialog({ booking }: { booking: ReturnType<typeof useAppoi
                 options={SUBJECT_KEYS.map((key) => ({ value: key, label: t(`subjects.${key}`) }))}
               />
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 stack:grid-cols-2">
                 <Field
                   label={t('booking.nameLabel')}
                   value={booking.form.name}

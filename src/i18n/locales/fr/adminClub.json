@@ -24,7 +24,7 @@
     },
     "sub": "Console · Club",
     "sectionLabel": "Section du Club",
-    "scope": "Cet écran administre le Club ; il ne l'encaisse pas. Passer un abonnement en actif ne déclenche aucun paiement, et le retirer n'en annule aucun : le prélèvement vit chez le prestataire, hors de cette console. Les revenus affichés sont la somme des montants inscrits sur les abonnements actifs — pas un chiffre d'affaires d'audit, qui se lit dans les transactions confirmées par le webhook. Quatre sections — défis, profils membres, opportunités, signalements — chargent à l'ouverture de leur onglet : leur file par statut vit à l'intérieur, et tant que l'onglet est fermé, cet écran ignore ce qui y attend. Aucun rappel d'échéance : un abonnement en attente de paiement le reste jusqu'à ce que quelqu'un l'ouvre."
+    "scope": "Cet écran administre le Club ; il ne l'encaisse pas. Passer un abonnement en actif ne déclenche aucun paiement, et le retirer n'en annule aucun : le prélèvement vit chez le prestataire, hors de cette console. Les revenus affichés sont la somme des montants inscrits sur les abonnements actifs — pas un chiffre d'affaires d'audit, qui se lit dans les transactions confirmées par le webhook. SIX sections portent une file par statut : abonnements, événements, sessions live, défis, profils membres, signalements. Les TROIS autres n'en portent pas, et pas par oubli — publications, infos exclusives et opportunités n'ont aucun état en base : elles sont en ligne à la seconde où elles sont écrites, sans relecture, sans file d'attente et sans date d'expiration. La seule modération du Club est a posteriori, et c'est la section Signalements qui la tient. Quatre sections — défis, profils membres, opportunités, signalements — chargent à l'ouverture de leur onglet : tant qu'il est fermé, cet écran ignore ce qui y attend, y compris un signalement à traiter. Aucun rappel d'échéance : un abonnement en attente de paiement le reste jusqu'à ce que quelqu'un l'ouvre."
   },
   "common": {
     "save": "Enregistrer",
@@ -32,7 +32,9 @@
     "cancel": "Annuler",
     "uploading": "Upload...",
     "deleteError": "Erreur de suppression.",
-    "genericError": "Erreur."
+    "genericError": "Erreur.",
+    "close": "Fermer",
+    "sectionScopeTitle": "Ce que cette section ne couvre pas"
   },
   "subscriptions": {
     "empty": "Aucun abonnement pour l'instant.",
@@ -55,7 +57,19 @@
       "manual": "Sans"
     },
     "activate": "Activer",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "stages": {
+      "all": "tout"
+    },
+    "pipelineLabel": "Statut des abonnements",
+    "listLabel": "Abonnements au Club",
+    "emptyAll": "Aucun abonnement n'a encore été enregistré. Le premier arrivera par le tunnel de paiement, ou par un octroi manuel depuis la fiche d'un utilisateur.",
+    "emptyStage": "Aucun abonnement dans cette file. Les autres statuts sont accessibles par le filtre au-dessus.",
+    "metaExpires": "expire le {{date}}",
+    "cancelAccess": "Annuler l'accès",
+    "amountLabel": "Montant enregistré",
+    "sheetNotice": "Activer ouvre l'accès pour la période inscrite sur ce document ; annuler le referme immédiatement. Aucun des deux gestes ne touche au paiement : ni débit, ni remboursement, ni notification au membre.",
+    "scope": "Cette liste ne sait rien du paiement lui-même : le montant affiché est celui écrit sur le document d'abonnement, que les règles Firestore ne valident pas, et le document est écrasé au renouvellement — l'historique pluriannuel n'existe donc pas. Un abonnement expiré ne se recalcule pas tout seul : rien ne compare la date d'expiration à aujourd'hui, c'est le statut écrit en base qui fait foi. Et aucune relance n'est envoyée à personne, à aucun moment."
   },
   "posts": {
     "publishAsAdmin": "Publier en tant qu'Admin",
@@ -72,7 +86,20 @@
     "deleteAria": "Supprimer",
     "noComments": "Aucun commentaire.",
     "deleteCommentAria": "Supprimer le commentaire",
-    "editLabel": "Modifier la publication"
+    "editLabel": "Modifier la publication",
+    "listLabel": "Publications du fil",
+    "emptyBody": "Le fil du Club est vide. Une publication d'équipe l'ouvre ; les membres écrivent ensuite sans passer par ici.",
+    "likesWord": "j'aime",
+    "commentsWord": "commentaires",
+    "memberPost": "Publication d'un membre",
+    "deletePost": "Supprimer la publication",
+    "dateLabel": "Publiée le",
+    "likesLabel": "Mentions j'aime",
+    "commentsLabel": "Commentaires",
+    "showComments": "Afficher les commentaires",
+    "hideComments": "Masquer les commentaires",
+    "composerNotice": "Une publication d'équipe apparaît immédiatement dans le fil du Club, signée de ton compte et marquée « Admin ». Aucune notification n'est envoyée : personne n'est prévenu tant qu'il n'ouvre pas le fil.",
+    "scope": "Le fil n'a pas de file de modération, et ce n'est pas un manque d'écran : une publication n'a aucun état en base, elle est visible dès qu'elle est écrite et rien ne la retient. La modération du Club est a posteriori — elle passe par la section Signalements, qui, elle, a sa file. Supprimer une publication ici ne prévient pas son auteur et ne laisse aucune trace consultable. Seules les cent dernières publications sont chargées ; au-delà, cet écran ne voit rien."
   },
   "events": {
     "new": "Nouvel événement",
@@ -97,7 +124,21 @@
     "empty": "Aucun événement créé.",
     "registrations": "Inscriptions",
     "noRegistrations": "Aucune inscription.",
-    "link": "Lien"
+    "link": "Lien",
+    "stages": {
+      "all": "tout",
+      "upcoming": "à venir",
+      "past": "passés"
+    },
+    "pipelineLabel": "Statut des événements",
+    "listLabel": "Événements du Club",
+    "emptyBody": "Aucun événement dans cette file. Le filtre au-dessus donne accès aux autres statuts.",
+    "delete": "Supprimer l'événement",
+    "removeImage": "Retirer l'image",
+    "showRegistrations": "Voir les inscriptions",
+    "hideRegistrations": "Masquer les inscriptions",
+    "regsNotLoaded": "non relevé",
+    "scope": "Le statut « à venir / passé » est écrit à la main : rien ne le fait basculer quand la date est dépassée, un événement d'il y a six mois reste « à venir » jusqu'à ce que quelqu'un le corrige. Les inscriptions ne se chargent qu'à la demande, événement par événement, et ne sont ni exportables ni notifiables depuis ici : aucun rappel n'est envoyé aux inscrits, ni avant, ni après. Supprimer un événement ne supprime pas ses inscriptions."
   },
   "sessions": {
     "new": "Nouvelle session",
@@ -120,7 +161,21 @@
     "badgePast": "Passée",
     "connectionLink": "Lien de connexion",
     "registrations": "Inscriptions",
-    "noRegistrations": "Aucune inscription."
+    "noRegistrations": "Aucune inscription.",
+    "stages": {
+      "all": "tout",
+      "upcoming": "à venir",
+      "past": "passées"
+    },
+    "pipelineLabel": "Statut des sessions",
+    "listLabel": "Sessions live du Club",
+    "emptyBody": "Aucune session dans cette file. Le filtre au-dessus donne accès aux autres statuts.",
+    "delete": "Supprimer la session",
+    "removeImage": "Retirer l'image",
+    "showRegistrations": "Voir les inscriptions",
+    "hideRegistrations": "Masquer les inscriptions",
+    "regsNotLoaded": "non relevé",
+    "scope": "Comme pour les événements, le statut se règle à la main : l'heure programmée ne fait rien basculer toute seule. Le lien de connexion n'est ni généré ni vérifié ici — c'est un champ de texte, et une session dont le lien a expiré ressemble exactement à une session valide. Aucun rappel n'est envoyé aux inscrits, et rien n'enregistre qui s'est réellement connecté."
   },
   "infos": {
     "new": "Nouvelle info",
@@ -137,7 +192,20 @@
     "contentPlaceholder": "Contenu de l'information exclusive...",
     "linkLabel": "Lien externe (optionnel)",
     "empty": "Aucune info exclusive créée.",
-    "link": "Lien"
+    "link": "Lien",
+    "types": {
+      "announcement": "Annonce",
+      "article": "Article",
+      "resource": "Ressource"
+    },
+    "listLabel": "Infos exclusives",
+    "emptyBody": "Aucune info exclusive publiée. La première apparaîtra dans l'espace membres dès son enregistrement.",
+    "delete": "Supprimer l'info",
+    "likesWord": "j'aime",
+    "likesLabel": "Mentions j'aime",
+    "openLink": "Ouvrir le lien",
+    "publishedAtHint": "Date affichée aux membres. Elle ne programme rien.",
+    "scope": "Il n'y a pas de file par statut ici, et c'est un fait de produit : une info exclusive n'a aucun état en base. La date de publication est un AFFICHAGE — la lecture des membres ne la filtre pas, une date future ne masque donc rien et l'info est visible dès l'enregistrement. Aucune notification n'est envoyée à la publication, et le contenu n'est pas traduit : il s'affiche tel qu'il est écrit, aux lecteurs français comme anglais."
   },
   "challenges": {
     "new": "Nouveau défi",
@@ -158,7 +226,18 @@
     "updated": "Défi mis à jour.",
     "created": "Défi créé.",
     "saveError": "Erreur lors de la sauvegarde.",
-    "deleted": "Défi supprimé."
+    "deleted": "Défi supprimé.",
+    "stages": {
+      "all": "tout",
+      "open": "en cours",
+      "closed": "clos"
+    },
+    "pipelineLabel": "Statut des défis",
+    "listLabel": "Défis du Club",
+    "emptyBody": "Aucun défi dans cette file. Le filtre au-dessus donne accès aux défis clos.",
+    "delete": "Supprimer le défi",
+    "activeHint": "Un défi en cours apparaît aux membres. Clos, il disparaît de leur écran sans être supprimé.",
+    "scope": "Les dates de début et de fin sont décoratives : rien ne clôt un défi quand sa date de fin est passée, c'est l'interrupteur qui décide seul de ce que voient les membres. Aucune participation n'est enregistrée, aucun gagnant n'est désigné, aucune récompense n'est attribuée — le champ « récompense » est un texte affiché, pas un objet remis. Le suivi des participations se fait entièrement hors de cette console."
   },
   "members": {
     "empty": "Aucun profil membre.",
@@ -181,7 +260,23 @@
     "confirmLabel": "Supprimer",
     "headlineLabel": "Titre",
     "skillsLabel": "Compétences",
-    "cityLabel": "Ville"
+    "cityLabel": "Ville",
+    "stages": {
+      "all": "tout",
+      "visible": "visibles",
+      "hidden": "masqués"
+    },
+    "pipelineLabel": "Visibilité des profils",
+    "listLabel": "Profils membres",
+    "emptyBody": "Aucun profil dans cette file. Un profil se crée depuis l'espace membre, jamais depuis ici.",
+    "emptyBodyAll": "Aucun membre n'a encore rempli son profil d'annuaire.",
+    "delete": "Supprimer le profil",
+    "visibilityLabel": "Visible dans l'annuaire",
+    "visibilityHint": "Masquer retire le profil de l'annuaire du Club sans effacer ce que le membre a écrit.",
+    "availableLabel": "Ouvert aux missions",
+    "notAvailable": "Non déclaré",
+    "noSkills": "Aucune compétence renseignée",
+    "scope": "Cet écran modifie la FICHE D'ANNUAIRE, pas le compte : masquer ou supprimer un profil ne suspend pas l'accès au Club, ne touche pas à l'abonnement et n'empêche pas le membre d'écrire dans le fil. Il n'existe aucun historique des modifications : un titre corrigé ici écrase celui que le membre avait écrit, sans trace et sans qu'il en soit informé. La disponibilité « ouvert aux missions » est déclarée par le membre et ne se règle pas d'ici."
   },
   "opportunities": {
     "empty": "Aucune opportunité publiée.",
@@ -196,7 +291,17 @@
     "deleteConfirm": "Supprimer l'opportunité « {{title}} » ?",
     "deleted": "Opportunité supprimée.",
     "deleteTitle": "Supprimer",
-    "confirmLabel": "Supprimer"
+    "confirmLabel": "Supprimer",
+    "listLabel": "Opportunités publiées",
+    "emptyBody": "Aucune opportunité publiée. Les membres les écrivent depuis leur espace ; cet écran ne fait que les relire.",
+    "delete": "Supprimer l'opportunité",
+    "authorLabel": "Publiée par",
+    "dateLabel": "Publiée le",
+    "typeLabel": "Type",
+    "budgetLabel": "Budget annoncé",
+    "contactLabel": "Contact",
+    "sheetNotice": "Supprimer retire l'annonce de l'espace membres immédiatement. Son auteur n'en est pas informé, et rien n'en garde la trace.",
+    "scope": "Aucune file par statut : une opportunité n'a pas d'état en base — elle est publiée dès qu'un membre l'écrit, elle n'est ni validée avant, ni close après, ni datée d'expiration. Une annonce pourvue depuis six mois reste donc en tête de liste jusqu'à ce que quelqu'un la supprime. Rien ne vérifie le contact annoncé, et cet écran ne sait pas si une mise en relation a eu lieu."
   },
   "reports": {
     "empty": "Aucun signalement.",
@@ -214,7 +319,19 @@
     "messageDeleted": "Message supprimé et signalement résolu.",
     "messageDeleteError": "Erreur lors de la suppression du message.",
     "confirmTitle": "Confirmer",
-    "confirmLabel": "Confirmer"
+    "confirmLabel": "Confirmer",
+    "stages": {
+      "all": "tout"
+    },
+    "pipelineLabel": "Statut des signalements",
+    "listLabel": "Messages signalés",
+    "emptyOpen": "Aucun signalement n'attend. Le filtre au-dessus donne accès aux signalements déjà traités.",
+    "emptyAll": "Aucun membre n'a signalé de message privé.",
+    "sheetTitle": "Message signalé",
+    "dateLabel": "Signalé le",
+    "conversationLabel": "Conversation",
+    "sheetNotice": "Trois gestes différents, et deux sont irréversibles. « Supprimer le message » retire le contenu de la conversation des deux membres et clôt le signalement. « Supprimer le signalement » jette la plainte et LAISSE le message en place. « Marquer résolu » ne touche à rien : il classe.",
+    "scope": "Cet écran ne voit que le message signalé, jamais la conversation autour : il n'y a aucun moyen de lire ce qui précède, donc de distinguer une phrase isolée d'une série. Aucune sanction n'existe — on ne peut ni avertir, ni suspendre, ni bloquer un membre depuis ici, et un même auteur signalé dix fois se présente comme dix lignes sans lien entre elles. Le signalant n'est jamais informé de la suite donnée."
   },
   "userEdit": {
     "title": "Gestion de l'utilisateur",

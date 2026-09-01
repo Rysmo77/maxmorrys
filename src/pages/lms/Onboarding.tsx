@@ -2,15 +2,18 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import LocalizedLink from '../../components/shared/LocalizedLink';
-import Button from '../../components/ui/Button';
+/* `ui/Button` est le bouton de la CONSOLE. Il vivait ici à côté du `Field` et de l'`Icon`
+   du système : deux familles de boutons sur un même écran, dont une qui ne connaît ni les
+   sept tons de territoire ni l'appui à `scale(.975)`. */
 import { useAuth } from '../../contexts/AuthContext';
+import { tutorName } from '../../lib/naming';
 import { useToast } from '../../components/ui/Toast';
 import { updateUserProfile } from '../../lib/firestore';
 import { updateProfile } from 'firebase/auth';
 import { uploadMedia } from '../../lib/storage';
 import { captureError } from '../../lib/sentry';
 import { trackEvent } from '../../lib/tracking';
-import { Field, Icon } from '@ds';
+import { Button, Field, Icon, type IconName } from '@ds';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -24,7 +27,7 @@ const STEPS = [
 
 export default function Onboarding({ onComplete }: OnboardingProps) {
   const { t } = useTranslation('lms');
-  const { user, refreshUserData } = useAuth();
+  const { user, userData, refreshUserData } = useAuth();
   const { addToast } = useToast();
   const [step, setStep] = useState(0);
   const [displayName, setDisplayName] = useState(user?.displayName || '');
@@ -94,7 +97,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
       <motion.div
-        className="w-full max-w-lg bg-paper dark:bg-[color:var(--night-3)] rounded-3xl shadow-2xl overflow-hidden"
+        className="w-full max-w-lg bg-surface-sheet rounded-3xl shadow-2xl overflow-hidden"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -187,8 +190,13 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 rows={2}
               />
 
-              <Button className="w-full" onClick={handleSaveProfile} disabled={saving} loading={saving} icon={<Icon name="forward" size={16} />}>
+              {/* `icon` n'existe pas dans le contrat du système : le glyphe est un enfant,
+                  comme le libellé. Et `loading` y garde le libellé — « un bouton dont le texte
+                  disparaît fait douter de ce qu'on vient de déclencher » —, donc le libellé de
+                  chargement n'a plus à être choisi ici. */}
+              <Button tone="forme" fullWidth onClick={handleSaveProfile} disabled={saving} loading={saving}>
                 {saving ? t('onboarding.saving') : t('onboarding.continue')}
+                <Icon name="forward" size={16} />
               </Button>
 
               <button onClick={() => setStep(1)} className="w-full text-center text-xs text-ink-2 hover:text-ink-2 transition-colors">
@@ -210,14 +218,23 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               </div>
 
               <div className="space-y-3">
+                {/* LES QUATRE EMOJI SONT PARTIS. « Aucun emoji, nulle part » est l'un des cinq
+                    non-négociables du système, et cet écran en portait cinq — le seul du produit
+                    à le faire. Chaque glyphe vient maintenant du jeu unique, à trait de 2,2 px,
+                    dans le puits de territoire qui dit de quoi la ligne parle. */}
                 {[
-                  { emoji: '🎯', title: t('onboarding.feature1Title'), desc: t('onboarding.feature1Desc') },
-                  { emoji: '🤖', title: t('onboarding.feature2Title'), desc: t('onboarding.feature2Desc') },
-                  { emoji: '🏆', title: t('onboarding.feature3Title'), desc: t('onboarding.feature3Desc') },
-                  { emoji: '👥', title: t('onboarding.feature4Title'), desc: t('onboarding.feature4Desc') },
+                  { glyph: 'book',  tint: 'var(--mm-bleu)',   ink: 'var(--mm-bleu)',      title: t('onboarding.feature1Title'), desc: t('onboarding.feature1Desc') },
+                  { glyph: 'chat',  tint: 'var(--mm-violet)', ink: 'var(--mm-violet-t)',  title: t('onboarding.feature2Title', { tutor: tutorName(userData) }), desc: t('onboarding.feature2Desc') },
+                  { glyph: 'award', tint: 'var(--mm-orange)', ink: 'var(--mm-orange-t)',  title: t('onboarding.feature3Title'), desc: t('onboarding.feature3Desc') },
+                  { glyph: 'users', tint: 'var(--mm-teal)',   ink: 'var(--mm-teal-t)',    title: t('onboarding.feature4Title'), desc: t('onboarding.feature4Desc') },
                 ].map((item) => (
                   <div key={item.title} className="flex items-start gap-3 p-3 rounded-xl bg-[color:var(--fill-1)]">
-                    <span className="text-xl flex-shrink-0">{item.emoji}</span>
+                    <span
+                      className="w-9 h-9 rounded-m grid place-items-center flex-shrink-0"
+                      style={{ background: `color-mix(in srgb, ${item.tint} 14%, transparent)` }}
+                    >
+                      <Icon name={item.glyph as IconName} size={18} color={item.ink} strokeWidth={2.2} />
+                    </span>
                     <div>
                       <p className="font-semibold text-ink text-sm">{item.title}</p>
                       <p className="text-xs text-ink-2">{item.desc}</p>
@@ -227,11 +244,14 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               </div>
 
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(0)} icon={<Icon name="back" size={16} />}>
+                {/* `outline` n'est pas un ton du système ; le retour secondaire est `quiet`. */}
+                <Button tone="quiet" onClick={() => setStep(0)}>
+                  <Icon name="back" size={16} />
                   {t('onboarding.back')}
                 </Button>
-                <Button className="flex-1" onClick={() => setStep(2)} icon={<Icon name="forward" size={16} />}>
+                <Button tone="forme" fullWidth onClick={() => setStep(2)} className="flex-1">
                   {t('onboarding.continue')}
+                  <Icon name="forward" size={16} />
                 </Button>
               </div>
             </div>
@@ -241,7 +261,15 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           {step === 2 && (
             <div className="space-y-5">
               <div className="text-center mb-6">
-                <div className="text-5xl mb-4">🚀</div>
+                {/* La fusée était le cinquième emoji. Le système donne à ce moment-là une
+                    forme qu'il pratique déjà partout : le disque de territoire de 70 px,
+                    celui des écrans d'issue de paiement et du certificat. */}
+                <div
+                  className="w-[70px] h-[70px] rounded-[22px] grid place-items-center mx-auto mb-4"
+                  style={{ background: 'var(--action-forme)', boxShadow: 'var(--sh-bleu)' }}
+                >
+                  <Icon name="check" size={30} color="var(--text-invert)" strokeWidth={3.4} />
+                </div>
                 <h2 className="text-2xl font-black text-ink mb-1">
                   {t('onboarding.readyTitle')}
                 </h2>
@@ -261,7 +289,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
               <div className="flex flex-col gap-3">
                 <LocalizedLink to="/formations" onClick={handleComplete}>
-                  <Button className="w-full" icon={<Icon name="book" size={16} />}>
+                  <Button tone="forme" fullWidth>
+                    <Icon name="book" size={16} />
                     {t('onboarding.exploreFormations')}
                   </Button>
                 </LocalizedLink>

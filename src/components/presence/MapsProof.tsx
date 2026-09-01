@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Field, GlassPanel } from '@ds';
-import { SiteDisplay, SiteEyebrow } from '../site';
+import { SiteEyebrow } from '../site';
 
 /**
  * LA PREUVE PAR LA RECHERCHE — la seule démonstration de la page, et elle est vraie.
@@ -13,8 +13,21 @@ import { SiteDisplay, SiteEyebrow } from '../site';
  * avant lui. La démonstration se passe hors du site, dans un outil qui n'est pas le nôtre
  * — c'est ce qui la rend impossible à truquer.
  *
- * D'où sa place : APRÈS les prix. Elle ne sert pas à convaincre d'entrer, mais à expliquer
- * ce qu'on achète à quelqu'un qui regarde déjà les montants.
+ * ── POURQUOI IL A QUITTÉ LE CINQUIÈME ÉCRAN ──────────────────────────────────────────
+ * Il vivait après la grille de prix, et ce commentaire défendait ce placement : « elle ne
+ * sert pas à convaincre d'entrer, mais à expliquer ce qu'on achète à quelqu'un qui regarde
+ * déjà les montants ». C'est vrai d'un module de réassurance. Celui-ci n'en est pas un.
+ *
+ * Le héros AFFIRME : « Aujourd'hui, ils trouvent tes concurrents. » Cet encart le PROUVE.
+ * Les séparer de quatre écrans laissait l'affirmation sans appui au moment exact où elle
+ * est faite, et faisait traverser cinq montants à un commerçant dont l'enjeu n'avait pas
+ * encore été établi. Il est donc devenu l'aside du premier écran : une interaction qui ne
+ * demande aucune donnée personnelle, et qui se termine chez Google.
+ *
+ * Il n'a plus de titre de section (`<h2>`) : il ne fait plus concurrence au titre de la
+ * page, il l'appuie. Sa structure est celle de l'encart qu'il remplace — sourcil, phrase
+ * forte, corps, filet, note de bas de bloc.
+ * ─────────────────────────────────────────────────────────────────────────────────────
  */
 export default function MapsProof() {
   const { t } = useTranslation('presence');
@@ -35,12 +48,18 @@ export default function MapsProof() {
   };
 
   return (
-    <GlassPanel level="flat" padding={26}>
-      <SiteEyebrow style={{ margin: 0 }}>{t('proof.note')}</SiteEyebrow>
-      <SiteDisplay as="h2" lines={[t('proof.title')]} size={26} style={{ marginTop: '8px' }} />
-      <p className="mm-prose mt-3 text-meta leading-[1.6] text-ink-2">{t('proof.text')}</p>
+    <GlassPanel level="hero" padding={26}>
+      <SiteEyebrow style={{ margin: 0, color: 'var(--mm-teal-t)' }}>
+        {t('proof.eyebrow')}
+      </SiteEyebrow>
+      <p className="m-0 mt-[9px] text-[17px] font-bold leading-[1.32]">{t('proof.title')}</p>
+      <p className="m-0 mt-3 text-meta leading-[1.6] text-ink-2">{t('proof.text')}</p>
 
-      <form onSubmit={openMaps} className="mt-4 grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
+      {/*
+        Les deux champs sont EMPILÉS, pas côte à côte. L'encart occupe désormais la colonne
+        étroite du héros : la rangée de trois cellules du kit y écrasait les deux libellés.
+      */}
+      <form onSubmit={openMaps} className="mt-4 grid gap-3">
         <Field
           id="maps-trade"
           label={t('proof.tradeLabel')}
@@ -59,10 +78,17 @@ export default function MapsProof() {
           autoComplete="off"
           style={{ marginTop: 0 }}
         />
+        {/*
+          Le bouton disait « Voir ». Un bouton doit dire ce qui va se passer, et ce qui va
+          se passer n'est pas une recherche : c'est un constat.
+        */}
         <Button type="submit" tone="digitalise" fullWidth={false} disabled={!canSearch}>
           {t('proof.cta')}
         </Button>
       </form>
+
+      <div className="my-[18px] h-px bg-[color:var(--border-hair)]" />
+      <p className="m-0 text-meta-2 text-ink-2">{t('proof.note')}</p>
     </GlassPanel>
   );
 }

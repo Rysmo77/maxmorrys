@@ -71,11 +71,32 @@ describe('CGV — le contrat annonce le prix réellement débité', () => {
   }
 });
 
+/** Toutes les chaînes d'un objet, à plat, avec leur chemin. */
+function flatten(node: unknown, path = ''): [string, string][] {
+  if (typeof node === 'string') return [[path, node]];
+  if (node && typeof node === 'object') {
+    return Object.entries(node as Record<string, unknown>)
+      .flatMap(([k, v]) => flatten(v, path ? `${path}.${k}` : k));
+  }
+  return [];
+}
+
 describe("interface — le prix n'est jamais recopié", () => {
+  /*
+   * LE BALAYAGE REMPLACE LA LISTE DE TROIS CLÉS.
+   *
+   * Le test nommait `tagline`, `activateSubtitle` et `joinCta`. Deux défauts en découlaient :
+   * une clé nouvelle qui recopiait un montant n'était couverte par rien, et la suppression
+   * d'une clé de la liste faisait échouer le test sur `undefined` plutôt que sur un vrai
+   * constat — ce qui vient d'arriver à `activateSubtitle`, retirée parce qu'elle promettait
+   * un « renouvellement automatique » que `worker/apps/api/src/lib/renewal.ts` contredit.
+   *
+   * Le mur d'abonnement est maintenant balayé en entier : c'est l'écran où l'on clique pour
+   * payer, aucune de ses chaînes n'a le droit de porter un montant en dur.
+   */
   for (const lang of ['fr', 'en'] as const) {
-    for (const key of ['tagline', 'activateSubtitle', 'joinCta'] as const) {
+    for (const [key, value] of flatten(club[lang].subscriptionGate)) {
       it(`subscriptionGate.${key} (${lang}) n'écrit jamais un montant`, () => {
-        const value: string = club[lang].subscriptionGate[key];
 
         /*
          * LA RÈGLE EST « JAMAIS DE MONTANT EN DUR », PAS « TOUJOURS {{price}} ».
@@ -90,8 +111,21 @@ describe("interface — le prix n'est jamais recopié", () => {
          * en dur rendrait l'interpolation décorative. Une clé qui interpole doit interpoler
          * la vraie valeur ; une clé qui ne parle pas d'argent n'a rien à prouver.
          */
+        // Un montant groupé écrit en dur : « 19 900 », « 16,915 ». Toujours interdit.
         expect(value).not.toMatch(/\d[\d  ,]{3,}/);
-        if (/\d/.test(value.replace(/\{\{[^}]*\}\}/g, ''))) {
+
+        /*
+         * Un nombre COLLÉ À UNE DEVISE doit interpoler la vraie valeur, sinon l'interpolation
+         * est décorative et les deux chiffres divergent au premier changement de prix.
+         *
+         * La condition portait sur « contient un chiffre », ce qui était juste tant que le
+         * test ne regardait que trois clés de prix. Balayé sur tout le mur d'abonnement, ce
+         * prédicat compte comme des prix « un e-mail 15 jours avant », « +3 requêtes par
+         * jour » ou « 5 questions » — des nombres qui ne sont pas des montants et n'ont rien
+         * à synchroniser.
+         */
+        const sansInterpolation = value.replace(/\{\{[^}]*\}\}/g, '');
+        if (/\d[\d  ,.]*\s*(FCFA|XOF|F\b)/i.test(sansInterpolation)) {
           expect(value).toContain('{{price}}');
         }
       });

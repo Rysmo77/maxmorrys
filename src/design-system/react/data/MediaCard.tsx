@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { NumSource } from '../types';
 import { Num } from './Num';
@@ -20,6 +21,21 @@ const MM_ONDE = [16, 30, 44, 24, 38, 14, 33, 44, 20, 36, 26, 42, 18, 30, 40, 22]
  * verre `--surface-card-flat` est visuellement quasi identique sur un maillage et gratuit à
  * faire défiler.
  *
+ * ⚠️ AD-24 · LA PHOTO ENTRE, LA SILHOUETTE RESTE. Le kit écrivait « Aucune photographie » sur
+ * `gradient`, et l'argument tenait : sur un téléphone tenu à bout de bras, une étiquette
+ * « Podcast » se perd là où une forme ne se perd pas. Mais le produit POSSÈDE les images et ne
+ * les montrait pas : `Video.thumbnailUrl` et `Podcast.coverImage` sont des champs OBLIGATOIRES,
+ * remplis automatiquement par l'import YouTube et l'import Spotify, et la fiche vidéo affiche
+ * déjà sa miniature une page plus loin. La carte était le seul endroit qui les jetait.
+ *
+ * L'écart ne rembourse donc pas l'argument du kit, il le garde : la photo remplit la vignette,
+ * et l'onde comme le cadre 16:9 sont redessinés PAR-DESSUS, sur un voile sombre qui les rend
+ * lisibles quelle que soit l'image. Le format se lit toujours à la silhouette ; l'image est ce
+ * qui donne envie d'ouvrir.
+ *
+ * LE DÉGRADÉ DEVIENT UN REPLI, pas un rebut. Il reste le fond de la zone : pochette absente,
+ * URL cassée, image encore en vol — c'est lui qu'on voit, jamais un trou ni un carton blanc.
+ *
  * ⚠️ CE QUE LE KIT SE CONTREDIT À LUI-MÊME. Les conventions déclarent le bouton de lecture
  * comme l'une des « trois exceptions assumées, sur des surfaces colorées QUI NE CHANGENT PAS
  * DE MODE » — un disque blanc, un glyphe sombre, dans les deux thèmes. Mais le dégradé de
@@ -34,8 +50,23 @@ const MM_ONDE = [16, 30, 44, 24, 38, 14, 33, 44, 20, 36, 26, 42, 18, 30, 40, 22]
 export interface MediaCardProps {
   /** @default "audio" */
   format?: 'audio' | 'video';
-  /** Dégradé de la vignette. Par défaut celui du format. Aucune photographie. */
+  /**
+   * Dégradé de la vignette. Par défaut celui du format. C'est le FOND de la zone, et donc le
+   * repli de `image` : il reste seul tant qu'aucune photo n'est fournie, ou si elle échoue.
+   */
   gradient?: string;
+  /**
+   * Miniature ou pochette — `Video.thumbnailUrl`, `Podcast.coverImage`. Elle recouvre le
+   * dégradé sans le remplacer (AD-24), et la silhouette du format se redessine par-dessus.
+   * Si elle casse, on retombe sur le dégradé : jamais d'icône de lien brisé.
+   */
+  image?: string;
+  /**
+   * Décorative par défaut : le titre de la carte est l'étiquette de la même cible, et le
+   * redire à voix haute ne fait que doubler l'annonce. Ne l'écrire que si l'image PORTE une
+   * information que le titre ne porte pas.
+   */
+  imageAlt?: string;
   /** Sourcil monospace — il passe par `.mm-eyebrow`, qui porte la face, la casse et l'espacement. */
   eyebrow?: ReactNode;
   title?: ReactNode;
@@ -50,8 +81,13 @@ export interface MediaCardProps {
   cost?: { prefix?: ReactNode; value: number | string; unit?: string; source: NumSource; asOf: Date }[];
   /** Étiquette en bas de vignette — « Vidéo · 16:9 », une durée. */
   badge?: string;
-  /** @default 150 */
+  /** @default 150 — ignorée dès que `artRatio` est fourni. */
   artHeight?: number;
+  /**
+   * Rapport de la vignette — « 16 / 9 », « 1 / 1 ». Il PREND LE PAS sur `artHeight` : une
+   * hauteur figée dans une grille fluide recadre l'image différemment à chaque largeur.
+   */
+  artRatio?: string;
   /** @default 17 */
   titleSize?: number;
   actions?: ReactNode;
@@ -65,9 +101,13 @@ export interface MediaCardProps {
 }
 
 export function MediaCard({
-  format = 'audio', gradient, eyebrow, title, body, cost = [], badge,
-  artHeight = 150, titleSize = 17, actions, playHref, onPlay, playLabel, style,
+  format = 'audio', gradient, image, imageAlt = '', eyebrow, title, body, cost = [], badge,
+  artHeight = 150, artRatio, titleSize = 17, actions, playHref, onPlay, playLabel, style,
 }: MediaCardProps) {
+  /* Voir `onError` plus bas : on retient l'URL cassée, pas un simple « c'est cassé ». */
+  const [broken, setBroken] = useState<string | null>(null);
+  const shown = !!image && broken !== image;
+
   const grad = gradient || (format === 'audio'
     ? 'linear-gradient(140deg,var(--mm-violet),var(--mm-bleu) 62%,var(--mm-teal))'
     : 'linear-gradient(140deg,var(--mm-bleu),var(--mm-violet))');
@@ -108,26 +148,70 @@ export function MediaCard({
     >
       <div
         style={{
-          height: `${artHeight}px`, background: grad, position: 'relative', display: 'flex',
-          alignItems: 'center', justifyContent: format === 'audio' ? 'space-between' : 'center', padding: '18px',
+          // Le rapport prime sur la hauteur : dans une grille fluide, une hauteur figée
+          // recadre l'image autrement à chaque largeur de colonne.
+          ...(artRatio ? { aspectRatio: artRatio } : { height: `${artHeight}px` }),
+          background: grad, position: 'relative', overflow: 'hidden',
         }}
       >
-        {format === 'audio' && (
-          <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: '3px', height: '46px' }}>
-            {MM_ONDE.map((h, i) => (
-              <i key={i} style={{ width: '3px', height: `${h}px`, borderRadius: '2px', background: 'rgba(255,255,255,.72)' }} />
-            ))}
-          </span>
+        {shown && (
+          <img
+            src={image}
+            alt={imageAlt}
+            aria-hidden={imageAlt ? undefined : true}
+            loading="lazy"
+            decoding="async"
+            // Le repli est PORTÉ PAR LA SOURCE, pas par un simple booléen : mémoriser « cassée »
+            // sans mémoriser LAQUELLE laisserait la carte suivante au dégradé alors que sa
+            // propre image est bonne — le filtre de la liste réordonne sans démonter.
+            onError={() => setBroken(image ?? null)}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         )}
+
+        {/* LE VOILE. Une photo est imprévisible : sans lui, l'onde, le cadre et le badge se
+            posent sur ce que la miniature leur donne — parfois du blanc. Il ne monte qu'à
+            38 % de la hauteur, assez pour tenir la rangée du bas sans assombrir le sujet.
+            Aucun flou : la carte vit en grille, et c'est la règle 1. */}
+        {shown && (
+          <span
+            aria-hidden="true"
+            style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(0,0,0,.62),rgba(0,0,0,0) 38%)' }}
+          />
+        )}
+
+        {/* LA SILHOUETTE SURVIT À LA PHOTO — c'est la condition d'AD-24. Le cadre 16:9 de la
+            vidéo garde sa place en réserve d'image ; l'onde de l'audio descend sur le voile,
+            où elle reste lisible sur n'importe quel fond. */}
         {format === 'video' && (
           <span aria-hidden="true" style={{ position: 'absolute', inset: '14px', border: '2px solid rgba(255,255,255,.28)', borderRadius: '14px' }} />
         )}
-        {play}
-        {badge && (
-          <span style={{ position: 'absolute', left: '14px', bottom: '14px', display: 'inline-flex', alignItems: 'center', height: '25px', padding: '0 10px', borderRadius: 'var(--r-pill)', fontSize: '10.5px', fontWeight: 600, background: 'rgba(0,0,0,.5)', color: 'var(--text-invert)' }}>
-            {badge}
-          </span>
-        )}
+
+        <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>{play}</span>
+
+        <span
+          style={{
+            position: 'absolute', left: '14px', right: '14px', bottom: '14px', display: 'flex',
+            alignItems: 'flex-end', justifyContent: 'space-between', gap: '10px', pointerEvents: 'none',
+          }}
+        >
+          {format === 'audio' ? (
+            // `align-items:flex-end` est la recette du kit (`.wave`) : les barres reposent sur
+            // la même ligne, comme un vumètre. Les seize valeurs restent celles du relevé.
+            <span aria-hidden="true" style={{ display: 'flex', alignItems: 'flex-end', gap: '3px' }}>
+              {MM_ONDE.map((h, i) => (
+                <i key={i} style={{ width: '3px', height: `${h}px`, borderRadius: '2px', background: shown ? 'rgba(255,255,255,.88)' : 'rgba(255,255,255,.72)' }} />
+              ))}
+            </span>
+          ) : (
+            <span />
+          )}
+          {badge && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', height: '25px', padding: '0 10px', borderRadius: 'var(--r-pill)', fontSize: '10.5px', fontWeight: 600, background: 'rgba(0,0,0,.5)', color: 'var(--text-invert)', whiteSpace: 'nowrap' }}>
+              {badge}
+            </span>
+          )}
+        </span>
       </div>
 
       <div style={{ padding: '18px' }}>

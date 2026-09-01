@@ -91,6 +91,9 @@ export default {
           flat: t('surface-card-flat'),
           hero: t('surface-hero'),
           night: t('surface-night'),
+          /* AD-22 — la surface OPAQUE qui bascule seule. `bg-paper` ne bascule pas : c'est le
+             blanc de référence, et sous `.dk` il donne 1,06:1 avec l'encre. */
+          sheet: t('surface-sheet'),
           quiet: t('surface-quiet'),
         },
       },

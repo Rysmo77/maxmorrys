@@ -3,8 +3,9 @@ import type { ComponentType } from 'react';
 import LocalizedLink from '../shared/LocalizedLink';
 import { FacebookIcon, InstagramIcon, LinkedInIcon, TikTokIcon, XIcon, YouTubeIcon } from '../shared/SocialIcons';
 import { SOCIAL_LINKS } from '../seo/seo-config';
-import { contact, corporateUrl, legalName } from '../../lib/brand';
-import { Button, Wordmark } from '../../design-system';
+import { useFormat } from '../../hooks/useFormat';
+import { contact, corporateUrl, legalEntity, legalName } from '../../lib/brand';
+import { Num, Wordmark } from '../../design-system';
 import { Icon } from '@ds';
 
 /**
@@ -70,6 +71,13 @@ const footerLinks = {
      * cherche ce genre d'outil.
      */
     { labelKey: 'links.verify', path: '/verifier' },
+    /*
+     * « Flux RSS » est une entrée de la colonne « Utile » dans le kit (`reference/site-shell.jsx:16`).
+     * Il vivait dans une bande pleine largeur de `py-16` en haut du pied de page, avec un
+     * titre en Fraunces 41 px — pour un lien. C'est la seule des deux façons de suivre qui
+     * ne demande rien à personne : elle a sa place ici, pas au-dessus de tout le reste.
+     */
+    { labelKey: 'rss', path: '/rss.xml', external: true },
   ],
   legal: [
     // L'AGENCE EST ICI, ET PAS DANS « PLATEFORME ». Elle vit hors des quatre verbes : autre
@@ -90,13 +98,25 @@ const COL_LINK =
 
 export default function Footer() {
   const { t } = useTranslation('footer');
+  const { formatDate } = useFormat();
 
-  const column = (titleKey: string, links: { labelKey: string; path: string; accent?: boolean }[]) => (
+  const column = (
+    titleKey: string,
+    links: { labelKey: string; path: string; accent?: boolean; external?: boolean }[],
+  ) => (
     <>
       <h3 className="mm-eyebrow mb-5">{t(titleKey)}</h3>
       <ul className="space-y-3">
         {links.map((link) => (
           <li key={link.labelKey}>
+            {/* Le flux n'est pas une route de l'application : c'est un fichier servi par
+                l'hébergement. `LocalizedLink` le préfixerait de `/en` et donnerait un 404. */}
+            {link.external ? (
+              <a href={link.path} className={COL_LINK}>
+                {t(link.labelKey)}
+                <Icon name="arrow-up-right" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity duration-ui" strokeWidth={2.2} />
+              </a>
+            ) : (
             <LocalizedLink
               to={link.path}
               // `--mm-corail` fait 2,70:1 sur blanc et 7,17:1 sur l'encre : sous `.dk`, la
@@ -106,6 +126,7 @@ export default function Footer() {
               {t(link.labelKey)}
               <Icon name="arrow-up-right" size={12} className="opacity-0 group-hover:opacity-100 transition-opacity duration-ui" strokeWidth={2.2} />
             </LocalizedLink>
+            )}
           </li>
         ))}
       </ul>
@@ -117,57 +138,121 @@ export default function Footer() {
     // pose dessus. `dk` : voir l'en-tête — la dalle sombre est une portée, pas une couleur.
     <footer className="dk relative z-[1] bg-night text-[color:var(--text-body)]">
 
-      {/* ── Lettre d'information ──────────────────────────────────────────────── */}
-      <div className="border-b border-[color:var(--border-hair)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="mx-auto text-center">
-            <p className="mm-eyebrow">{t('newsletterEyebrow')}</p>
-            {/* Fraunces 900, jamais sous 22 px. `text-dsp-sm` vaut 30 px, `text-dsp` 41. */}
-            <h2 className="font-display text-dsp-sm stack:text-dsp mt-4 mb-4 text-ink">
-              {t('followTitle')}
-            </h2>
-            {/* AD-14 : la colonne de lecture ne s'élargit jamais — 68 caractères, à 1400 px
-                comme à 390. L'espace gagné va à la marge. */}
-            <p className="max-w-prose mx-auto text-lede text-ink-2 mb-8">
-              {t('followText')}
-            </p>
-            {/*
-              LE FORMULAIRE DE LETTRE D'INFORMATION A ÉTÉ RETIRÉ.
+      {/*
+        ── LA BANDE DE SUIVI A ÉTÉ SUPPRIMÉE ────────────────────────────────────────
+        Elle occupait `py-16` pleine largeur, avec un titre en `text-dsp` : le pied de page
+        faisait à lui seul trois fois la hauteur de celui du kit, sur les vingt routes.
 
-              Le produit n'a AUCUN canal d'envoi d'e-mail. Un champ qui collecte une adresse
-              pour un envoi qui n'existe pas est une promesse qu'on ne peut pas tenir — et le
-              système l'interdit nommément : « ne jamais promettre un e-mail ».
+        Le kit n'en dessine aucune (`reference/site-shell.jsx:40-67`) : un seul bloc de 40 px de gouttière,
+        quatre colonnes, un filet, une ligne de copyright. « Flux RSS » y est simplement une
+        entrée de la colonne « Utile ».
 
-              Ce qui le remplace n'est pas un vide : ce sont les deux canaux qui EXISTENT,
-              plus la phrase qui dit pourquoi le troisième n'est pas là.
-            */}
-            <div className="mx-auto max-w-md">
-              <div className="flex items-center justify-between gap-3 border-b border-[color:var(--border-hair)] py-[11px]">
-                <b className="text-[14px]">{t('rss')}</b>
-                <Button href="/rss.xml" tone="quiet" size="sm" fullWidth={false}>{t('rssAction')}</Button>
-              </div>
-              <div className="flex items-center justify-between gap-3 py-[11px]">
-                <b className="text-[14px]">{t('alert')}</b>
-                <Button href="/inscription" tone="quiet" size="sm" fullWidth={false}>{t('alertAction')}</Button>
-              </div>
-              <p className="mt-2 mb-0 text-small leading-[1.5] text-ink-2">{t('noEmail')}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+        RIEN N'EST PERDU. Le flux redescend dans la colonne, et la phrase qui explique
+        l'absence de lettre d'information — le produit n'a AUCUN canal d'envoi — passe sous le
+        copyright, où elle tient sur une ligne au lieu d'une bande.
+      */}
       {/* ── Colonnes ──────────────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-14 grid grid-cols-1 stack:grid-cols-2 wide:grid-cols-4 gap-12">
+      {/*
+        ── LA GOUTTIÈRE DU PIED DE PAGE EST CELLE DU CORPS ─────────────────────────
+        Il portait `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8` : une largeur maximale de 1280 px
+        centrée, avec un rembourrage de 16 → 32 px. Le corps des pages, lui, n'a pas de largeur
+        maximale et prend 18 px sur mobile, 40 en desktop (`--site-pad`).
+
+        Les deux systèmes ne coïncidaient à AUCUNE largeur. Sur un écran de 1440, le contenu de
+        la page commençait à 40 px du bord et celui du pied à 112 : soixante-douze pixels de
+        décalage entre la première colonne du pied et le titre au-dessus, sur les vingt routes.
+
+        Le kit ne se pose pas la question — son pied de page est un bloc de `padding: 40px`
+        dans le même cadre que la page (`reference/site-shell.jsx:84`). C'est ce qu'on reprend : mêmes
+        gouttières, donc mêmes bords.
+      */}
+      {/*
+        ⚠️ ET LA MESURE REVIENT — celle-là même qui a été retirée d'ici.
+
+        Le commentaire ci-dessus raconte le retrait de `max-w-7xl mx-auto` : 1280 px centrés,
+        exactement le chiffre de la planche du kit. Le diagnostic était juste — le pied et le
+        corps « ne coïncidaient à AUCUNE largeur », 72 px de décalage sur les vingt routes —
+        mais la conclusion était inversée. Ce n'était pas la mesure du pied qui était fausse,
+        c'était son ABSENCE dans le corps.
+
+        Le corps l'a désormais, en jeton (`--site-measure`, voir `index.css`), et `PageSite`
+        la sert. Le pied la reprend depuis la MÊME source, avec la même gouttière : les deux
+        bords tombent au pixel, à toutes les largeurs, ce que ni l'un ni l'autre des deux
+        états précédents ne savait faire.
+      */}
+      <div
+        className="px-[18px] stack:px-10"
+        style={{
+          maxWidth: 'calc(var(--site-measure, 1200px) + 2 * var(--site-gutter, 40px))',
+          marginInline: 'auto',
+        }}
+      >
+        {/* Les proportions du kit : `1.15fr .95fr .95fr .95fr`, gouttière 26, et 40 px
+            de rembourrage vertical — `reference/site-shell.jsx:45-46`. */}
+        <div className="py-10 grid grid-cols-1 gap-[26px] stack:grid-cols-2 wide:grid-cols-[1.15fr_.95fr_.95fr_.95fr]">
 
           {/* Marque */}
           <div>
             <LocalizedLink to="/" className="inline-block mb-5">
               <Wordmark brand="hello" size={26} />
             </LocalizedLink>
-            <p className="max-w-prose text-meta text-ink-2 leading-relaxed mb-6">
+            <p className="max-w-prose text-meta text-ink-2 leading-relaxed mb-4">
               {t('brandTagline')}
             </p>
+            {/*
+              L'IDENTITÉ LÉGALE MANQUAIT AU PIED DE PAGE.
+
+              Le kit la pose dans la cellule de marque, sous le mot-symbole : « MY ONOMA SARL /
+              Dakar, Senegal / Immatriculée le 11/04/2022 » (`reference/site-shell.jsx:47-49`), la date en
+              monospace. Elle avait été remplacée par la seule phrase de positionnement.
+
+              Ce n'est pas une ligne décorative : c'est la mention qui dit QUI encaisse. Sur un
+              site qui vend en francs CFA et affiche des CGV, l'opérateur doit être nommé
+              ailleurs que dans une page qu'il faut aller ouvrir.
+
+              La date passe par `<Num>` — elle vient des pièces de la société, pas d'une
+              estimation, et c'est exactement ce que la monospace déclare.
+            */}
+            <p className="mb-6 text-small leading-[1.6] text-ink-2">
+              <b className="block font-semibold text-ink">{legalName}</b>
+              <span className="block">{legalEntity.city}, {legalEntity.country}</span>
+              <span className="block">
+                {t('registeredOn')}{' '}
+                <Num
+                  value={formatDate(legalEntity.registeredAt)}
+                  /* Le RCCM est la pièce qui porte la date. Il est typé nullable — si la
+                     référence venait à manquer, la citation retombe sur la raison sociale
+                     plutôt que de disparaître : une date en monospace SANS source citée
+                     est exactement ce que la règle 6 interdit. */
+                  source={{ cite: legalEntity.rccm ?? legalName }}
+                  asOf={new Date(legalEntity.registeredAt)}
+                  showAsOf={false}
+                />
+              </span>
+            </p>
+            {/*
+              LES MOYENS DE JOINDRE, SOUS L'IDENTITÉ QU'ILS PROLONGENT.
+
+              La ville n'est PAS reprise ici : `contact.city` et `legalEntity.city` valent
+              tous deux « Dakar », et le pied de page écrivait donc « Dakar, Sénégal » deux
+              fois, à quatre-vingts pixels d'intervalle. Une adresse répétée n'ajoute rien —
+              elle fait douter qu'il s'agisse du même endroit.
+            */}
+            <ul className="mb-6 space-y-2 text-meta text-ink-2">
+              <li className="flex items-start gap-3">
+                <Icon name="mail" size={16} className="mt-0.5 shrink-0" strokeWidth={2.2} />
+                <a href={`mailto:${contact.email}`} className="hover:text-ink transition-colors duration-ui">
+                  {contact.email}
+                </a>
+              </li>
+              <li className="flex items-start gap-3">
+                <Icon name="phone" size={16} className="mt-0.5 shrink-0" strokeWidth={2.2} />
+                {/* `tel:` veut le E.164 ; l'affichage garde sa mise en forme lisible. */}
+                <a href={`tel:${contact.phoneE164}`} className="hover:text-ink transition-colors duration-ui">
+                  {contact.phoneDisplay}
+                </a>
+              </li>
+            </ul>
             <div className="flex flex-wrap gap-3">
               {SOCIAL_LINKS.map(({ name, url }) => {
                 const Icon = socialIcons[name];
@@ -189,38 +274,27 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Plateforme */}
+          {/*
+            ── TROIS COLONNES DE LIENS, UNE PAR CELLULE ─────────────────────────────────
+            La troisième cellule en portait DEUX, « À propos » puis « Légal » empilées sous
+            un `mt-8`. Onze liens à la verticale : mesurée à 478 px, elle étirait les quatre
+            cellules à sa hauteur — c'est une grille — et le pied de page atteignait 650 px
+            là où celui du kit en fait 271. Rien ne l'imposait : la grille a quatre pistes,
+            et « Contact » n'occupait la sienne que pour trois lignes qui ne sont pas des
+            liens. Les moyens de joindre remontent donc dans la cellule de marque, avec
+            l'identité légale qu'ils prolongent, et « Légal » prend la piste libérée.
+          */}
           <div>{column('columns.platform', footerLinks.plateforme)}</div>
-
-          {/* À propos, puis Légal */}
-          <div>
-            {column('columns.about', footerLinks.apropos)}
-            <div className="mt-8">{column('columns.legal', footerLinks.legal)}</div>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h3 className="mm-eyebrow mb-5">{t('columns.contact')}</h3>
-            <ul className="space-y-4 text-meta text-ink-2">
-              <li className="flex items-start gap-3">
-                <Icon name="mail" size={16} className="mt-0.5 shrink-0" strokeWidth={2.2} />
-                <span>{contact.email}</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Icon name="phone" size={16} className="mt-0.5 shrink-0" strokeWidth={2.2} />
-                <span>{contact.phoneDisplay}</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Icon name="pin" size={16} className="mt-0.5 shrink-0" strokeWidth={2.2} />
-                <span>{contact.city}, {contact.country}</span>
-              </li>
-            </ul>
-          </div>
+          <div>{column('columns.about', footerLinks.apropos)}</div>
+          <div>{column('columns.legal', footerLinks.legal)}</div>
         </div>
 
         {/* ── Mentions ────────────────────────────────────────────────────────── */}
-        <div className="py-6 border-t border-[color:var(--border-hair)] flex flex-col stack:flex-row justify-between items-center gap-4">
-          <p className="text-small text-ink-2">{t('copyright', { year: new Date().getFullYear() })}</p>
+        {/* Le filet, puis la ligne de copyright en monospace — `reference/site-shell.jsx:63-64`. */}
+        <div className="py-4 border-t border-[color:var(--border-hair)] flex flex-col stack:flex-row justify-between items-center gap-3">
+          <p className="mm-num m-0 text-small text-ink-2">
+            {t('copyright', { year: new Date().getFullYear() })}
+          </p>
           <p className="text-small text-ink-2">
             {t('operatedByPrefix')}{' '}
             <a
@@ -233,6 +307,11 @@ export default function Footer() {
             </a>
           </p>
         </div>
+
+        {/* La phrase qui remplaçait le formulaire de lettre d'information. Elle tenait dans
+            une bande de `py-16` ; elle tient sur une ligne. Le produit n'a aucun canal
+            d'envoi, et c'est ce qu'elle dit — plutôt qu'un champ qui ne sert à rien. */}
+        <p className="pb-6 m-0 text-small leading-[1.5] text-ink-2">{t('noEmail')}</p>
       </div>
     </footer>
   );

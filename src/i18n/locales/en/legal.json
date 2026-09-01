@@ -2,7 +2,9 @@
   "common": {
     "backToHome": "Back to home",
     "lastUpdatedApril": "Last updated: April 2026",
-    "lastUpdatedMay": "Last updated: May 2026"
+    "lastUpdatedMay": "Last updated: May 2026",
+    "versionNote": "Version of <1>{{version}}</1>. Every change is dated, and the previous version stays available.",
+    "navLabel": "Contractual documents"
   },
   "mentions": {
     "seoTitle": "Legal notice",

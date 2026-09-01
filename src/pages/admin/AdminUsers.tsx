@@ -108,7 +108,7 @@ export default function AdminUsers() {
           label={t('users.pipelineLabel')}
         />
 
-        <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2 wide:grid-cols-4">
           {stages.map((s) => (
             <StatTile
               key={s}

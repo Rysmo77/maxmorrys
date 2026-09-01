@@ -98,6 +98,12 @@ qui la portait.
 Il n'existe donc plus qu'une seule affirmation publique sur la propriété de STEPS, et elle est
 alignée sur le dépôt corporate qui fait autorité.
 
+**Mis à jour le 1ᵉʳ septembre 2026.** STEPS est désormais *visible* sur `/agence`, avec NAYO et
+DOVEN, dans un bloc « Products built inside MY ONOMA » distinct des réalisations clients et
+porté par `VentureCard` — mention « A MY ONOMA Venture », jamais « Client product ». La
+décision ci-dessus n'est pas rouverte : l'affirmation publique reste unique, elle est
+seulement affichée au lieu de dormir dans `ventures.ts`.
+
 ### Règle appliquée dans le code
 
 `src/lib/brand/clients.ts` porte un avertissement explicite interdisant d'y ajouter STEPS :
@@ -214,11 +220,12 @@ donnée contractuelle. Aucune information non accessible publiquement.
 ### À confirmer avant publication
 
 ⚠️ **Le périmètre s'est élargi une seconde fois le 13 août 2026.** Onze dépôts git ont été
-fournis, portant à **douze** le nombre d'organisations nommées publiquement sur `/agence`.
+fournis, portant à douze le nombre d'organisations nommées publiquement sur `/agence`.
+**Jubilé de Grâce a été retiré le 1ᵉʳ septembre 2026** : elles sont **onze**.
 
-1. **Accord écrit pour l'usage du nom, de l'aperçu et la publication**, pour chacune des douze :
+1. **Accord écrit pour l'usage du nom, de l'aperçu et la publication**, pour chacune des onze :
    Amour Divin, Khanouss, Loma, HolyCash, English Lab, Klio Pro, ResHo Konnexion, Je Témoigne,
-   LauraVerse, Dunamis Holydays, Jubilé de Grâce, IN Sénégal 2026.
+   LauraVerse, Dunamis Holydays, IN Sénégal 2026.
    Le dépôt My-onoma porte le même point ouvert pour Amour Divin
    (`LEGAL-ALIGNMENT-TODO.md §6`).
 

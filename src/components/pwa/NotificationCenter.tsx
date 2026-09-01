@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Button, EmptyState, Icon, Skeleton, type IconName } from '@ds';
+import { useTranslation } from 'react-i18next';
+import { Button, EmptyState, GlassPanel, Icon, Skeleton, type IconName } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
 import { markAllNotificationsRead, markNotificationRead, subscribeNotifications } from '../../lib/firestore';
 import type { AppNotification, NotificationType } from '../../types';
@@ -44,6 +45,7 @@ const TONE: Record<NotificationType, string> = {
 };
 
 export default function NotificationCenter() {
+  const { t } = useTranslation('shared');
   const { user } = useAuth();
   const [items, setItems] = useState<AppNotification[] | null>(null);
 
@@ -58,7 +60,7 @@ export default function NotificationCenter() {
   if (items === null) {
     return (
       <div style={{ display: 'grid', gap: 'var(--sp-10)' }}>
-        {[0, 1, 2].map((i) => <Skeleton key={i} height={70} radius="var(--r-m)" label="Chargement de tes notifications" />)}
+        {[0, 1, 2].map((i) => <Skeleton key={i} height={70} radius="var(--r-m)" label={t('pwa.notifications.loading')} />)}
       </div>
     );
   }
@@ -67,10 +69,10 @@ export default function NotificationCenter() {
     return (
       <EmptyState
         glyph={<Icon name="bell" size={26} />}
-        title="Rien de neuf."
+        title={t('pwa.notifications.empty')}
         // Un état vide INVITE, il ne s'excuse pas. Et il dit la contrainte plutôt que de la
         // masquer : tout passe par ici, donc revenir ici est le geste utile.
-        body="Tes inscriptions, tes certificats, les nouveaux contenus et les annonces du Club arrivent ici. C'est le seul endroit où je te préviens — je n'envoie pas d'e-mail."
+        body={t('pwa.notifications.emptyBody')}
       />
     );
   }
@@ -81,11 +83,11 @@ export default function NotificationCenter() {
     <section>
       <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 'var(--sp-12)', marginBottom: 'var(--sp-14)' }}>
         <p className="mm-eyebrow" style={{ margin: 0 }}>
-          {unread > 0 ? `${unread} non lue${unread > 1 ? 's' : ''}` : 'Tout est lu'}
+          {unread > 0 ? t('pwa.notifications.unread', { count: unread }) : t('pwa.notifications.allRead')}
         </p>
         {unread > 0 && user?.uid && (
           <Button tone="quiet" size="sm" onClick={() => void markAllNotificationsRead(user.uid)}>
-            Tout marquer comme lu
+            {t('pwa.notifications.markAll')}
           </Button>
         )}
       </header>
@@ -128,6 +130,23 @@ export default function NotificationCenter() {
           );
         })}
       </ul>
+
+      {/*
+        L'AVEU RESTE À L'ÉCRAN QUAND LA BOÎTE SE REMPLIT.
+
+        Il ne vivait que dans l'état vide : dès la première notification, la phrase qui dit
+        « aucun e-mail ne part » disparaissait — c'est-à-dire exactement au moment où
+        quelqu'un commence à recevoir des choses ici et pourrait croire qu'il en reçoit
+        ailleurs. La maquette (`screens-pwa.jsx` § PwaNotifications) le pose en permanence,
+        sous la liste, et c'est le sens de l'écran : « une relance qui n'arrive pas ici
+        n'arrive nulle part ».
+      */}
+      <GlassPanel level="truth" style={{ marginTop: 'var(--sp-18)' }}>
+        <p className="mm-eyebrow" style={{ margin: '0 0 6px' }}>{t('pwa.notifications.truthTitle')}</p>
+        <p style={{ margin: 0, fontSize: 'var(--fs-meta-2)', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          {t('pwa.notifications.truthBody')}
+        </p>
+      </GlassPanel>
     </section>
   );
 }

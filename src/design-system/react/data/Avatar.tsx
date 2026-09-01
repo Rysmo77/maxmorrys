@@ -1,8 +1,15 @@
 import type { CSSProperties } from 'react';
 
 /**
- * La pastille d'initiales. AUCUNE PHOTOGRAPHIE N'EXISTE AU DÉPÔT : les initiales sont l'état
- * LIVRÉ, pas un fond d'attente en train de patienter qu'on lui trouve une image.
+ * La pastille d'initiales. Elles sont l'état LIVRÉ, pas un fond d'attente en train de
+ * patienter qu'on lui trouve une image — et elles le restent pour les membres du Club, dont
+ * aucune photographie n'existe au dépôt.
+ *
+ * ⚠️ CE COMPOSANT NE REND PAS D'IMAGE, ET C'EST VOULU. Là où une photo existe — le
+ * `photoURL` d'un membre connecté, le portrait de la maison dans `src/lib/author.ts` —
+ * l'écran pose un `<img … className="rounded-full object-cover">` et garde `Avatar` en
+ * repli du ternaire. Ajouter ici une prop `src` ferait porter à la pastille la décision de
+ * QUI est sur la photo : c'est une décision de page, jamais de primitive.
  *
  * LE DÉGRADÉ NE PEUT PAS ÊTRE `var(--mm-violet)` → `var(--mm-bleu)`, ET C'EST LE PIÈGE ENTIER
  * DU MODE SOMBRE. Ces deux jetons prennent leur variante nuit sous `.dk` — #B98CFF et

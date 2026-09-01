@@ -53,7 +53,7 @@
     "relatedTitle": "Articles similaires",
     "crossEyebrow": "DÉCOUVREZ AUSSI",
     "crossTitle": "Je te forme",
-    "crossDescription": "Des formations pratiques pour aller plus loin et transformer vos connaissances en compétences réelles.",
+    "crossDescription": "Des formations pratiques pour aller plus loin et transformer ce que tu sais en compétences réelles.",
     "crossCta": "Voir les formations",
     "loading": "Chargement de l'article"
   },
@@ -63,7 +63,7 @@
     "countLine_one": "{{count}} article.",
     "countLine_other": "{{count}} articles.",
     "lede": "Des méthodes, pas des opinions. Ce qui marche pour un commerce à Dakar, écrit pour être appliqué le soir même.",
-    "searchLabel": "Chercher un sujet",
+    "searchLabel": "Cherche ",
     "searchHint": "un sujet",
     "filterAll": "Tout",
     "read": "Lire",
@@ -78,7 +78,17 @@
     "alert": "Alerte dans ton espace",
     "alertAction": "Créer un compte",
     "noEmail": "Il n'y a pas encore de lettre par e-mail. Je ne te fais pas remplir un champ qui ne sert à rien.",
-    "empty": "Aucun article ne correspond. Retire un filtre, ou vide la recherche."
+    "empty": "Aucun article ne correspond. Retire un filtre, ou vide la recherche.",
+    "featuredMarker": "À la une",
+    "tagFilter": "Sujet : {{tag}}",
+    "clearFilter": "Retirer le filtre",
+    "more": "Voir plus d’articles",
+    "moreCount_one": "Voir {{count}} article de plus",
+    "moreCount_other": "Voir {{count}} articles de plus",
+    "errorTitle": "Les articles ne sont pas arrivés",
+    "emptyTitle": "Rien sous ce filtre",
+    "emptyAction": "Tout afficher",
+    "shown": "{{shown}} sur {{total}}"
   },
   "article": {
     "share": "Partager",
@@ -92,6 +102,11 @@
     "nextTitle": [
       "À lire ensuite"
     ],
-    "translatedOriginal": "Lire l'original"
+    "translatedOriginal": "Lire l'original",
+    "crumbBlog": "Blog",
+    "gateEyebrow": "La méthode complète",
+    "gateLessons_one": "leçon, dont le premier module en accès libre.",
+    "gateLessons_other": "leçons, dont le premier module en accès libre.",
+    "tagsTitle": "Sujets abordés"
   }
 }

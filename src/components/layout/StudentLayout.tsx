@@ -136,12 +136,41 @@ export default function StudentLayout() {
         // remplacer le mot partout. Une clé i18n figerait « Rysmo » pour tout le monde.
         '/mon-espace/repetiteur':      tutorName(userData),
         '/mon-espace/notes':           t('titles.notes'),
+        '/mon-espace/paiements':       t('titles.payments'),
         '/mon-espace/succes':          t('titles.achievements'),
         '/mon-espace/messages':        t('titles.messages'),
         '/mon-espace/temoignages':     t('titles.testimonials'),
         '/mon-espace/club':            t('titles.club'),
         '/mon-espace/profil':          t('titles.profile'),
         '/mon-espace/parametres':      t('titles.settings'),
+      }}
+      /*
+       * LES TERRITOIRES DE L'ESPACE APPRENANT, relevés écran par écran sur le kit.
+       *
+       * `ScreensSpace.js` : accueil (`:15`), répétiteur (`:83`) et Club (`:117`) sur
+       * « transforme » ; lecteur de leçon (`:53`) sur « forme ». `ScreensNotes.js:14` :
+       * notes sur « forme ». `ScreensCompte.js:115`, `:160` : préférences et suppression
+       * sur « transforme ».
+       *
+       * La règle qui s'en dégage, et qui couvre les écrans que le kit ne dessine pas :
+       * ce qui relève de L'ÉTUDE prend « forme » (bleu), ce qui relève de la COMMUNAUTÉ et
+       * du compte prend « transforme » (violet). Succès et certificats suivent l'étude ;
+       * messages, témoignages et profil suivent le compte.
+       */
+      territoryMap={{
+        '/mon-espace': 'transforme',
+        '/mon-espace/tableau-de-bord': 'transforme',
+        '/mon-espace/cours': 'forme',
+        '/mon-espace/notes': 'forme',
+        // Le chemin de l'argent relève de ce qu'on a ACHETÉ, donc de l'étude.
+        '/mon-espace/paiements': 'forme',
+        '/mon-espace/succes': 'forme',
+        '/mon-espace/repetiteur': 'transforme',
+        '/mon-espace/club': 'transforme',
+        '/mon-espace/messages': 'transforme',
+        '/mon-espace/temoignages': 'transforme',
+        '/mon-espace/profil': 'transforme',
+        '/mon-espace/parametres': 'transforme',
       }}
       sidebarSections={[
         {
@@ -151,6 +180,7 @@ export default function StudentLayout() {
             { to: '/mon-espace/cours',           label: t('nav.courses'),   icon: 'book' },
             { to: '/mon-espace/repetiteur',      label: tutorName(userData), icon: 'bot' },
             { to: '/mon-espace/notes',           label: t('nav.notes'),     icon: 'bookmark' },
+            { to: '/mon-espace/paiements',       label: t('nav.payments'),  icon: 'card' },
             { to: '/mon-espace/succes',          label: t('nav.achievements'), icon: 'award' },
             { to: '/mon-espace/messages',        label: t('nav.messages'),  icon: 'inbox' },
             { to: '/mon-espace/temoignages',     label: t('nav.testimonials'), icon: 'quote' },
@@ -175,12 +205,27 @@ export default function StudentLayout() {
           ],
         },
       ]}
+      /*
+       * LES CINQ ONGLETS DU KIT, DANS SON ORDRE — `ScreensSpace.js:3-9`, repris à l'identique
+       * par `ScreensNotes.js` :
+       *
+       *     Espace · Cours · {nom du répétiteur} · Club · Profil
+       *
+       * L'ENTRÉE DU RÉPÉTITEUR MANQUAIT. C'est la seule entrée de barre que le kit fait lire
+       * dans le PROFIL plutôt que dans une clé de traduction — et sous 700 px, cette barre est
+       * la seule navigation : le répétiteur n'était plus atteignable que par la carte du
+       * tableau de bord. « Messages » occupait sa place, sous le libellé « Inbox », seul mot
+       * anglais au milieu de quatre libellés français.
+       *
+       * Messages ne disparaît pas : il reste dans la barre latérale au-delà de 700 px, et dans
+       * la liste « Dans ton espace » du tableau de bord, qui est le chemin que le kit lui donne.
+       */
       bottomNavItems={[
-        { to: '/mon-espace/tableau-de-bord', label: t('nav.bottomHome'),     icon: 'home' },
-        { to: '/mon-espace/cours',           label: t('nav.bottomCourses'),  icon: 'book' },
-        { to: '/mon-espace/club',            label: t('nav.bottomClub'),     icon: 'crown' },
-        { to: '/mon-espace/messages',        label: t('nav.bottomMessages'), icon: 'inbox' },
-        { to: '/mon-espace/profil',          label: t('nav.bottomProfile'),  icon: 'user' },
+        { to: '/mon-espace/tableau-de-bord', label: t('nav.bottomHome'),    icon: 'home' },
+        { to: '/mon-espace/cours',           label: t('nav.bottomCourses'), icon: 'book' },
+        { to: '/mon-espace/repetiteur',      label: tutorName(userData),    icon: 'bot' },
+        { to: '/mon-espace/club',            label: t('nav.bottomClub'),    icon: 'crown' },
+        { to: '/mon-espace/profil',          label: t('nav.bottomProfile'), icon: 'user' },
       ]}
       contentClassName="p-4 sm:p-6 max-w-6xl mx-auto w-full"
       outletContext={context}

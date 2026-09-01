@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Body, Display, Eyebrow, Icon, Mesh, Surface, TUTOR_DEFAUT, tutorNom, useScheme, useToken } from '../../ds';
+import { Link } from 'expo-router';
+import { Body, Display, Eyebrow, Icon, LessonRow, Mesh, Surface, TUTOR_DEFAUT, useScheme, useToken, useTutorNom } from '../../ds';
 
 /**
  * LE PROFIL — et le seul réglage que cet écran sait déjà tenir.
@@ -16,11 +16,22 @@ import { Body, Display, Eyebrow, Icon, Mesh, Surface, TUTOR_DEFAUT, tutorNom, us
  * l'endroit où on le cherche — et parce que la barre d'onglets l'affiche : quelqu'un qui
  * voit « Répétiteur » en bas de son écran doit pouvoir trouver où le changer.
  */
+/** Les écrans de compte, dans l'ordre où on les cherche. */
+const COMPTE = [
+  { href: '/preferences', glyphe: 'settings' as const, titre: 'Préférences', sous: 'le nom de ton tuteur, ce que je t\'envoie' },
+  { href: '/connexion', glyphe: 'login' as const, titre: 'Connexion', sous: 'sur le site, avec la même session' },
+  { href: '/mot-de-passe', glyphe: 'lock' as const, titre: 'Mot de passe oublié', sous: 'un lien de réinitialisation' },
+  { href: '/suppression', glyphe: 'trash' as const, titre: 'Supprimer mon compte', sous: 'définitif, sans passer par le support' },
+] as const;
+
 export default function Profil() {
   const t = useToken();
   const scheme = useScheme();
   const insets = useSafeAreaInsets();
-  const [nom] = useState(tutorNom());
+  /* `useTutorNom()` : le profil est l'endroit d'où on renomme, il doit voir le nouveau
+     nom sans attendre un remontage. `useState(tutorNom())` figeait la valeur du premier
+     rendu — donc l'ancien nom, juste après l'avoir changé. */
+  const nom = useTutorNom();
 
   return (
     <View style={{ flex: 1 }}>
@@ -59,11 +70,30 @@ export default function Profil() {
         <Surface level="truth" style={{ marginTop: 14, padding: 18 }}>
           <Eyebrow>Ce que cet écran ne fait pas encore</Eyebrow>
           <Body muted style={{ marginTop: 6 }}>
-            Ni connexion, ni changement de mot de passe, ni suppression de compte. Ce port
-            natif rend la mise en page ; le compte reste celui du site, et c'est là qu'il se
-            gère pour l'instant. Aucun de ces boutons n'est affiché en attendant — un bouton
-            qui ne fait rien est pire que son absence.
+            Le compte lui-même reste celui du site : la connexion et la suppression y sont
+            traitées, parce que ce port n'embarque pas encore le SDK d'authentification. Les
+            écrans ci-dessous rendent le geste et ouvrent le site au bon endroit — ils ne
+            font pas semblant de le tenir ici.
           </Body>
+        </Surface>
+
+        {/*
+          LES QUATRE ÉCRANS DE COMPTE. Ils existent, et sans cette liste ils n'auraient aucun
+          point d'entrée : une route qu'aucun écran n'ouvre est du code mort, et sur un
+          routeur par fichiers elle ne se voit pas manquer.
+        */}
+        <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 18 }}>
+          {COMPTE.map((entree, i) => (
+            <Link key={entree.href} href={entree.href as never} asChild>
+              <LessonRow
+                icon={<Icon name={entree.glyphe} size={14} color={t('ink2')} />}
+                title={entree.titre}
+                meta={entree.sous}
+                trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+                last={i === COMPTE.length - 1}
+              />
+            </Link>
+          ))}
         </Surface>
       </ScrollView>
     </View>

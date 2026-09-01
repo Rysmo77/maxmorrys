@@ -52,7 +52,7 @@
     "greeting": "Hi {{name}}",
     "resumeWhere": "Pick up where you left off:",
     "resume": "Resume",
-    "startAdventure": "Start your journey by exploring our courses.",
+    "startAdventure": "Start with a course — that's what they're there for.",
     "continueLearningHint": "Continue learning right where you left off.",
     "explore": "Explore courses",
     "statFormations": "Courses",
@@ -61,7 +61,7 @@
     "statCertificates": "Certificates",
     "continueLearning": "Continue learning",
     "readyTitle": "Ready to learn?",
-    "readyText": "Explore our courses in digital marketing, SEO and AI. Each one is built to be practical and actionable.",
+    "readyText": "Explore the courses on digital marketing, SEO and AI. Each one is built to be applied, not just read.",
     "discover": "Discover the courses",
     "formationFallback": "Course",
     "continue": "Continue",
@@ -86,7 +86,9 @@
     "linkAchievementsMeta": "issued when a course is finished",
     "linkMessages": "My messages",
     "linkMessagesMeta": "replies land in your notifications",
-    "loadingLabel": "Loading your courses"
+    "loadingLabel": "Loading your courses",
+    "linkPayments": "My payments",
+    "linkPaymentsMeta": "receipts and references"
   },
   "messages": {
     "newMessage": "New message",
@@ -145,6 +147,25 @@
     "contentLabel": "Note content",
     "screenTitle": "My notes"
   },
+  "payments": {
+    "countLabel_one": "payment",
+    "countLabel_other": "payments",
+    "countUnread": "payments not read",
+    "receiptTag": "Your receipt stays here",
+    "loadingLabel": "Loading your payments",
+    "statusCompleted": "Paid",
+    "statusPending": "Pending",
+    "statusFailed": "Failed",
+    "statusRefunded": "Refunded",
+    "emptyTitle": "No payment yet",
+    "emptyText": "As soon as you pay for a course, its reference, amount and date show up here — and stay there once the course is over.",
+    "emptyAction": "Browse the courses",
+    "errorTitle": "I couldn't read your payments",
+    "errorBody": "The read stopped before it came back: network down, or database unreachable. Your payments are still recorded, it's the display that's missing. Run the read again.",
+    "errorRetry": "Read my payments again",
+    "truthTitle": "What this screen doesn't do",
+    "truthBody": "A refund isn't triggered here: it goes through the payment provider that took the money. And the amount that counts is the one recomputed server-side at the time of the charge, not the one shown on the row."
+  },
   "profile": {
     "photoTitle": "Profile photo",
     "photoHint": "JPG, PNG or GIF · Max 2 MB",
@@ -174,7 +195,7 @@
     "youtubePlaceholder": "Channel URL",
     "handlePlaceholder": "URL or @handle",
     "bio": "Bio",
-    "bioPlaceholder": "Tell us about yourself in a few lines...",
+    "bioPlaceholder": "Tell me about yourself in a few lines...",
     "saving": "Saving...",
     "saveProfile": "Save profile",
     "communityTitle": "Join the community",
@@ -247,7 +268,7 @@
     "toastResetSuccess": "Memory wiped. It starts from scratch.",
     "toastResetError": "Something went wrong while resetting.",
     "clearTitle": "What wiping does",
-    "clearBody": "Wiping is immediate and does not go through support. The memory then rebuilds from the following conversations only.",
+    "clearBody": "Clearing is immediate and doesn't go through support. The memory rebuilds from your later exchanges only.",
     "tagPrivate": "Readable by you alone",
     "tagErasable": "Erasable without deleting the account",
     "renameNote": "The name changes for you only, and it changes everywhere — tab, header, first bubble. “{{app}}” stays the name of the application.",
@@ -266,7 +287,8 @@
     "renameErrorEmpty": "Give it a name, or go back to the default one.",
     "renameErrorTooLong": "{{max}} characters at most — beyond that the name no longer fits in the tab bar.",
     "toastRenamed": "It is now called {{tutor}}.",
-    "toastRenameError": "The name could not be saved. Try again."
+    "toastRenameError": "The name could not be saved. Try again.",
+    "clearWhyAll": "There's no line-by-line removal, and that's a constraint rather than an oversight: the summary is regenerated on the server from your exchanges. Removing one line would bring it back at the next summary — a button that promises to forget without forgetting is worth less than no button. Clearing everything also deletes the exchanges, so the line doesn't return."
   },
   "rysmoStore": {
     "loadingQuota": "Loading your quota…",
@@ -290,7 +312,7 @@
     "packs": {
       "discovery": {
         "label": "Discovery",
-        "description": "To try Rysmo on a specific topic"
+        "description": "To try your {{tutor}} on one specific topic"
       },
       "regular": {
         "label": "Regular",
@@ -353,7 +375,7 @@
     "deleteConfirmLabel": "Delete permanently",
     "deleteIrreversible": "This action is <0>irreversible</0>. Your data will be deleted:",
     "deleteItem1": "Your profile and authentication account",
-    "deleteItem2": "Your course enrollments and certificates",
+    "deleteItem2": "Your course enrolments and their progress",
     "deleteItem3": "Your notes, messages and notifications",
     "deleteItem4": "Your transaction history",
     "deleteConfirmPrompt": "To confirm, type <0>DELETE</0>",
@@ -375,7 +397,10 @@
     "deleteConfirmMismatch": "The text does not match yet.",
     "exportNote": "Everything about you, in one file.",
     "deleteNote": "Permanent, without going through support.",
-    "signOutNote": "Your work is saved as you go."
+    "signOutNote": "Your work is saved as you go.",
+    "deleteKeptTitle": "What stays",
+    "deleteKeptBody": "Certificates already issued stay verifiable by their code — that's what a certificate is for. The public mirror carries neither your account id nor your address.",
+    "deleteExportFirst": "Export my data first"
   },
   "testimonials": {
     "shareTitle": "Share a review",

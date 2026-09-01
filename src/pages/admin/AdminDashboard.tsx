@@ -209,14 +209,14 @@ export default function AdminDashboard() {
         </div>
 
         {loading ? (
-          <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-2.5 grid gap-2.5 stack:grid-cols-2 wide:grid-cols-3">
             {[0, 1, 2, 3, 4, 5].map((i) => (
               <Skeleton key={i} height={92} radius="var(--r-l)" label={t('users.loading')} />
             ))}
           </div>
         ) : (
           <>
-            <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-2.5 grid gap-2.5 stack:grid-cols-2 wide:grid-cols-3">
               {tiles.map((tile) => (
                 <StatTile
                   key={tile.key}
@@ -267,7 +267,7 @@ export default function AdminDashboard() {
                     {t('dashboard.agencySeeAll')}
                   </Button>
                 </div>
-                <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-2.5 stack:grid-cols-2 wide:grid-cols-4">
                   <StatTile
                     label={t('dashboard.agencyPipelineValue')}
                     value={formatPrice(agencyStats.pipelineWeighted)}

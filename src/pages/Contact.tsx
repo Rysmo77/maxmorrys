@@ -124,7 +124,7 @@ export default function Contact() {
       }} />
 
       <PageSite>
-        <div className="grid items-start gap-11 lg:grid-cols-[.95fr_1.05fr]">
+        <div className="grid items-start gap-11 wide:grid-cols-[.95fr_1.05fr]">
 
           {/* ── LE TRI ─────────────────────────────────────────────────────── */}
           <div>
@@ -201,6 +201,17 @@ export default function Contact() {
           </div>
 
           {/* ── LE FORMULAIRE ──────────────────────────────────────────────── */}
+          {/*
+            LA COLONNE DE DROITE EST UNE COLONNE, PLUS UN PANNEAU NU.
+
+            Le panneau héros était lui-même l'enfant de grille : impossible de lui adjoindre
+            quoi que ce soit sans qu'un troisième enfant retombe en colonne 1 de la rangée
+            suivante. C'est exactement ce qui arrivait à l'encart de vérité ci-dessous, qui
+            explique le FORMULAIRE et se retrouvait orphelin sous les deux colonnes, ferré à
+            gauche, à la hauteur du panneau « Me joindre autrement » avec lequel il n'a rien
+            à voir. L'enveloppe le remet où il se lit.
+          */}
+          <div>
           <GlassPanel level="hero" padding={28} className="rv" style={rv(6)}>
             {message.account && (
               /* Panneau plat IMBRIQUÉ dans le panneau héros — c'est la composition du kit, et
@@ -291,20 +302,30 @@ export default function Contact() {
               {t('page.form.note')}
             </p>
           </GlassPanel>
-        </div>
 
-        <GlassPanel level="truth" className="mt-[22px] max-w-[76ch]">
-          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('page.truth.title')}</SiteEyebrow>
-          <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('page.truth.body')}</p>
-        </GlassPanel>
+            {/* `rv` et son rang : il était le seul bloc de la page hors de la scène
+                d'entrée — il apparaissait d'un coup pendant que tout le reste montait. */}
+            <GlassPanel level="truth" className="rv mt-[14px]" style={rv(7)}>
+              <SiteEyebrow style={{ marginBottom: '6px' }}>{t('page.truth.title')}</SiteEyebrow>
+              <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('page.truth.body')}</p>
+            </GlassPanel>
+          </div>
+        </div>
       </PageSite>
 
       <SiteBand>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 stack:grid-cols-3">
           {facts.map((fact, i) => (
             <GlassPanel level="flat" key={fact.key} padding={22} className="rv" style={rv(i)}>
               <SiteEyebrow style={{ margin: 0 }}>{fact.label}</SiteEyebrow>
-              <p className="m-0 mt-[5px] text-[20px] font-bold text-ink">{fact.value}</p>
+              {/* LA PREMIÈRE CASE DOMINE — 26 px contre 20, comme dans le kit
+                  (`PagesUtiles.js:96`). Les trois étaient uniformisées, et la bande n'avait
+                  plus de point d'accroche : le délai de réponse est ce que la personne vient
+                  chercher avant d'écrire. C'est la TAILLE du kit qui est reprise, pas sa
+                  monospace — voir le bloc au-dessus de `facts`. */}
+              <p className={`m-0 mt-[5px] font-bold text-ink ${i === 0 ? 'text-[26px]' : 'text-[20px]'}`}>
+                {fact.value}
+              </p>
               <p className="m-0 mt-1 text-[13px] text-ink-2">{fact.note}</p>
             </GlassPanel>
           ))}

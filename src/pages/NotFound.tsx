@@ -50,7 +50,7 @@ export default function NotFound() {
           <p className="m-0 text-meta-2 text-ink-2 leading-[1.55]">{t('notFound.truthBody')}</p>
         </GlassPanel>
 
-        <div className="mt-5 flex flex-col sm:flex-row gap-3">
+        <div className="mt-5 flex flex-col stack:flex-row gap-3">
           <Button href={path('/blog')} tone="informe" size="sm" fullWidth={false}>
             {t('notFound.blog')}
           </Button>

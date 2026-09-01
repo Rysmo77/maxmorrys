@@ -1,7 +1,4 @@
 {
-  "newsletterEyebrow": "NEWSLETTER",
-  "newsletterTitle": "Deviens un Insider maintenant",
-  "newsletterText": "Écoute, chaque semaine je partage mes meilleures découvertes, mes stratégies qui marchent et mes petits secrets. Et le meilleur ? C'est totalement gratuit !",
   "brandTagline": "Formateur, consultant et créateur de contenu digital. J'aide les entrepreneurs à maîtriser le marketing digital et accélérer leur croissance.",
   "columns": {
     "platform": "Plateforme",
@@ -37,5 +34,6 @@
   "rssAction": "Copier le lien",
   "alert": "Alerte dans ton espace",
   "alertAction": "Créer un compte",
-  "noEmail": "Il n'y a pas encore de lettre par e-mail. Je ne te fais pas remplir un champ qui ne sert à rien."
+  "noEmail": "Il n'y a pas encore de lettre par e-mail. Je ne te fais pas remplir un champ qui ne sert à rien.",
+  "registeredOn": "Immatriculée le"
 }

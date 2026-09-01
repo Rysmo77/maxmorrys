@@ -49,9 +49,21 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>() {
           observer.unobserve(entry.target);
         }
       },
-      // 12 % suffit : la scène doit avoir commencé quand on arrive dessus, pas quand on l'a
-      // dépassée. `rootMargin` négatif en bas évite qu'elle parte pour un pixel visible.
-      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+      /*
+       * `threshold: 0` — PAS 0,12, ET LA RAISON N'EST PAS ESTHÉTIQUE.
+       *
+       * `intersectionRatio` est un rapport à la surface de la CIBLE. Sur une cible plus
+       * haute que la fenêtre — un article long, une page de vente — il plafonne à
+       * `hauteur de fenêtre / hauteur de cible` : 10 % pour 8 000 px de contenu dans une
+       * fenêtre de 800. Un seuil de 12 % n'est alors jamais franchi.
+       *
+       * La première observation remonte quand même `isIntersecting: true`, donc la scène
+       * jouait bel et bien — ce n'était pas un défaut ouvert. Mais la marge tenait à ce
+       * détail d'implémentation, sur les pages précisément les plus longues, et le prix
+       * d'un échec serait une page entière restée à `opacity: 0`. Le seuil ne rapporte
+       * rien ici : `rootMargin` suffit à empêcher un départ pour un pixel visible.
+       */
+      { threshold: 0, rootMargin: '0px 0px -8% 0px' },
     );
 
     observer.observe(el);

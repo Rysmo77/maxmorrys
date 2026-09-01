@@ -18,6 +18,15 @@ const sizeMap = {
   xl: 'max-w-4xl',
 };
 
+/**
+ * ⚠️ RENDU SOUS LA PORTÉE `.dk` DE LA CONSOLE — voir le bloc identique dans `ui/Card.tsx`.
+ *
+ * `bg-paper` seul donnait `#ECF0F5` sur `#FFFFFF`, soit **1,06:1**, sur les neuf feuilles
+ * d'édition que sept écrans de console ouvrent encore par ici. `--paper` est le blanc FIXE du
+ * système et ne bascule pas ; `--ink`, si. `ConsoleSheet` existe pour ces écrans et dit déjà
+ * pourquoi (`pages/admin/components/ConsoleSheet.tsx:18-22`) ; le pendant `dark:` ci-dessous
+ * ne fait que rendre lisibles les appels qui n'y sont pas encore passés.
+ */
 export default function Modal({ open, onClose, children, title, size = 'md' }: ModalProps) {
   const { t } = useTranslation('ui');
   const modalRef = useRef<HTMLDivElement>(null);
@@ -77,7 +86,7 @@ export default function Modal({ open, onClose, children, title, size = 'md' }: M
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={cn('relative bg-paper rounded-2xl shadow-xl w-full mm-drop max-h-[90vh] overflow-y-auto focus:outline-none', sizeMap[size])}
+        className={cn('relative bg-surface-sheet rounded-2xl shadow-xl w-full mm-drop max-h-[90vh] overflow-y-auto focus:outline-none', sizeMap[size])}
       >
         {title && (
           <div className="flex items-center justify-between p-6 border-b border-[color:var(--line)]">

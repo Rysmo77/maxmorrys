@@ -89,13 +89,14 @@
     }
   },
   "work": {
-    "eyebrow": "Selected work",
+    "eyebrow": "Work",
     "titlePart1": "What we've ",
     "titleAccent": "built",
     "titlePart2": ".",
-    "clientsTitle": "Client work",
-    "clientsDesc": "Products built for third parties. They belong to their clients; we state only the role we held.",
+    "clientsTitle": "Client projects",
+    "clientsDesc": "Built for others. They belong to them; I only state the role I held.",
     "venturesTitle": "Products built inside MY ONOMA",
+    "venturesTitleLines": ["Products built", "inside MY ONOMA"],
     "venturesDesc": "Products the studio designs, owns and operates. Each one is a brand in its own right.",
     "roleLabel": "Our role",
     "stackLabel": "Stack",
@@ -139,9 +140,6 @@
       "dunamis-holydays": {
         "description": "Event site: presentation, programme and registrations."
       },
-      "jubile-de-grace": {
-        "description": "Anniversary event site — programme, highlights and participation."
-      },
       "in-senegal": {
         "description": "Institutional site for a national event — presentation, programme and contact."
       }
@@ -160,7 +158,13 @@
     "resultCount_one": "{{count}} project",
     "resultCount_other": "{{count}} projects",
     "selectProject": "Choose a project to display",
-    "listAria": "Client project list"
+    "listAria": "Client project list",
+    "titleLines": [
+      "What I've built,",
+      "and who for."
+    ],
+    "lede": "These products belong to their clients. I only state the role I held, and the link to go and look — that's what separates a reference from a logo dropped on a page.",
+    "resultCount": "{{count}} project"
   },
   "howWeWork": {
     "eyebrow": "How we work",
@@ -329,7 +333,7 @@
     "truthTitle": "Why there is no price on this page",
     "truthStart": "Because none of these projects sells off a shelf. If you want a public rate card and a posted price, ",
     "truthStrong": "Présence Digitale",
-    "truthEnd": " is what you're after — a different offer, a different team, and it is built for exactly that."
+    "truthEnd": " you're looking for — a different offer, with a public price list, built for exactly that."
   },
   "panel": {
     "eyebrow": "Let's talk",
@@ -421,10 +425,6 @@
         "body": "You see something that works at every step. No grand reveal at the end."
       }
     ]
-  },
-  "note": {
-    "lead": "Section removed on purpose.",
-    "body": "The page in production names twelve organisations publicly, and the repository itself notes that written consent has not been obtained. Until FR-105 is done, this page does without references."
   },
   "sent": {
     "titleLines": [

@@ -14,5 +14,8 @@ export { LegalPage, LEGAL_DOCS } from './LegalPage';
 export type { LegalPageProps, LegalDoc } from './LegalPage';
 export { TerritoryRow, useTerritoryLayout } from './TerritoryRow';
 export type { TerritoryLayout } from './TerritoryRow';
+export { CoverImage } from './CoverImage';
+export type { CoverImageProps } from './CoverImage';
 export { useReadingProgress } from './useReadingProgress';
+export { useActiveHeading } from './useActiveHeading';
 export { useReveal } from './useReveal';

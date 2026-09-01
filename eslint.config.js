@@ -27,9 +27,14 @@ export default tseslint.config(
        * `reference/` porte 26 prototypes en JSX compilé au navigateur. Son propre readme le
        * dit — « Ce n'est pas du code de production à copier » — et ses 28 erreurs de parsage
        * rouvraient exactement le trou que l'entrée ci-dessus avait refermé.
+       *
+       * LES DEUX ENTRÉES PRÉCÉDENTES NE DÉSIGNAIENT PLUS RIEN. Le kit a été relivré sous
+       * `Max-Morrys_DS_Platform/`, qui ABSORBE les deux anciens dossiers — l'ancien transfert
+       * y vit désormais comme sous-arbre `design_handoff_maxmorrys/`. Ignorer la racine les
+       * couvre tous les deux ; laisser les anciens noms ne couvrait plus personne, et les
+       * 56 erreurs de parsage étaient revenues à l'identique.
        */
-      'Design_System_Max-Morrys',
-      'design_handoff_maxmorrys',
+      'Max-Morrys_DS_Platform',
     ],
   },
   {

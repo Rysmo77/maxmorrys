@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import LocalizedLink from '../shared/LocalizedLink';
 import TranslatedText from '../shared/TranslatedText';
 import PopupHeading from './PopupHeading';
-import { formatPrice } from '../../lib/utils';
+import { useFormat } from '../../hooks/useFormat';
 import { CTA_BRAND, DISMISS, BODY, ACTIONS } from './popupStyles';
 import type { Formation } from '../../types';
 import { Icon } from '@ds';
@@ -31,6 +31,9 @@ export default function CartRecoveryPopup({
   formation, checkoutPath, onAccept, onDismiss,
 }: CartRecoveryPopupProps) {
   const { t } = useTranslation('shared');
+  /* Séparateur de milliers selon la langue : espace insécable en français, virgule en
+     anglais. `formatPrice` sans locale retombait sur `fr-FR` des deux côtés. */
+  const { formatPrice } = useFormat();
   const price = formation ? formation.promoPrice ?? formation.price : null;
 
   return (
@@ -45,7 +48,7 @@ export default function CartRecoveryPopup({
       <p className={BODY}>{t('popups.cartRecovery.text')}</p>
 
       {formation && (
-        <div className="mt-3 lg:mt-6 flex items-start gap-3 lg:gap-4 lg:p-4 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-paper/[0.03]">
+        <div className="mt-3 lg:mt-6 flex items-start gap-3 lg:gap-4 lg:p-4 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-surface-sheet/[0.03]">
           <span className="block shrink-0 overflow-hidden rounded-xl w-14 h-14 lg:w-20 lg:h-20">
             <img
               src={formation.coverImage}

@@ -48,12 +48,27 @@ export interface PipelineProps {
 
 export function Pipeline({ stages, active, onSelect, label, className = '', style }: PipelineProps) {
   return (
-    // La rangée fait 44 px de haut pour que la cible étendue de `.mm-touch-extend` y tienne :
-    // sinon `overflow: hidden` la rognerait, et une cible rognée est une cible absente.
+    /*
+      La rangée fait 44 px de haut pour que la cible étendue de `.mm-touch-extend` y tienne :
+      sinon le débordement masqué la rognerait, et une cible rognée est une cible absente.
+
+      ── POURQUOI ELLE DÉFILE MAINTENANT ────────────────────────────────────────────────
+      Le kit pose `overflow: hidden` (`_components.jsx` § Pipeline), et c'est sans
+      conséquence chez lui : il ne dessine jamais plus de CINQ étapes dans un cadre de
+      390 px. La console en pose NEUF sur le Club et six sur Prospects, libellés et
+      compteurs compris. Au-delà d'une certaine largeur, les dernières étaient donc rognées
+      SANS aucun moyen de les atteindre : la zone 1 du motif — « la file, et combien
+      d'éléments y attendent » — devenait partiellement inaccessible sur tablette et sur
+      mobile.
+
+      `overflowY` est écrit explicitement : poser `overflow-x: auto` seul fait passer
+      l'autre axe en `auto` par calcul, et une barre verticale apparaîtrait sur une rangée
+      de 44 px. C'est le même piège que celui noté dans `Header.tsx`.
+    */
     <ol
       aria-label={label}
       className={className || undefined}
-      style={{ display: 'flex', alignItems: 'center', gap: '5px', minHeight: 'var(--touch-aa)', overflow: 'hidden', listStyle: 'none', margin: 0, padding: 0, ...style }}
+      style={{ display: 'flex', alignItems: 'center', gap: '5px', minHeight: 'var(--touch-aa)', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', listStyle: 'none', margin: 0, padding: 0, ...style }}
     >
       {stages.map((s) => {
         const on = s === active;

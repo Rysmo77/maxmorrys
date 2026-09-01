@@ -15,11 +15,14 @@ import type { CSSProperties } from 'react';
  * AUCUNE PROP DE THÈME (AD-3). Le kit en portait une (`night`) — ce que sa propre règle
  * interdit : « elle doit être passée à la main partout, personne ne le fait, et le composant
  * retombe silencieusement sur sa valeur claire ». Les variantes en lettres lisent --mm-bleu
- * et consorts, qui basculent seuls ; le dégradé de « Hello ! » est devenu le jeton
- * --wordmark-hello, qui bascule sous `.dk` comme les autres.
+ * et consorts, qui basculent seuls.
  *
- * Sur `hello`, `color` est déclaré AVANT `WebkitTextFillColor` : là où le remplissage
- * transparent n'est pas compris, le texte reste lisible en bleu au lieu de disparaître.
+ * `hello` NE PEINT PLUS RIEN EN LIGNE, et c'est la condition d'AD-23. Le mot-symbole est
+ * devenu une cible — `--ink-2` au repos comme les autres commandes de la barre, l'arc des
+ * cinq teintes qui se remplit de la gauche vers la droite au survol. Un style en ligne bat
+ * toute classe : tant que le dégradé était écrit ici, aucun `:hover` ne pouvait le
+ * reprendre sans `!important`. Ce composant ne pose donc plus que la TYPOGRAPHIE, et
+ * `.mm-hello` (`overrides/ad-23-hello-arc.css`) porte la peinture, le survol et le repli.
  */
 export interface WordmarkProps {
   brand?: 'hello' | 'rysmo' | 'signature';
@@ -43,20 +46,7 @@ export function Wordmark({ brand = 'hello', size = 22, tail, short, style }: Wor
   const s: CSSProperties = { ...base, fontSize: `${size}px`, ...style };
 
   if (brand === 'hello') {
-    return (
-      <span
-        style={{
-          ...s,
-          background: 'var(--wordmark-hello)',
-          color: 'var(--wordmark-hello-flat)',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-        }}
-      >
-        Hello&nbsp;!
-      </span>
-    );
+    return <span className="mm-hello" style={s}>Hello&nbsp;!</span>;
   }
 
   // Le R reprend le bleu, le o final le teal : la marque garde ses bornes de couleur.

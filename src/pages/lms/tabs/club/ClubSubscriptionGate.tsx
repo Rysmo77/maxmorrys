@@ -100,7 +100,7 @@ export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubS
       </GlassPanel>
 
       {/* ── Ce que l'abonnement ouvre ───────────────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 stack:grid-cols-2 wide:grid-cols-3">
         {FEATURES.map((feat) => (
           <GlassPanel key={feat.titleKey} level="flat" padding={18}>
             <span
@@ -128,7 +128,7 @@ export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubS
       </GlassPanel>
 
       {/* ── Garanti / En construction — écran `ClubGaranti` du kit ──────────── */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 stack:grid-cols-2">
         <GlassPanel level="flat" padding={20}>
           <Tag tone="ok">{t('subscriptionGate.guaranteed.tag')}</Tag>
           <p className="mt-3 font-display text-[19px] font-black leading-tight tracking-[-.03em] text-ink">

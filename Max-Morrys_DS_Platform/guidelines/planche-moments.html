@@ -1,0 +1,114 @@
+<!-- @dsCard group="Mouvement" viewport="1180x760" name="Les deux moments scénarisés" subtitle="L'attente de paiement et l'émission du certificat — et rien d'autre" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — les deux moments scénarisés</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:28px 26px 46px}
+*{box-sizing:border-box}
+.wrap{max-width:1180px;margin:0 auto}
+.eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+h1{font-family:var(--f-display);font-weight:900;font-size:44px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+h2{font-family:var(--f-display);font-weight:900;font-size:26px;letter-spacing:-.03em;line-height:1;margin:0 0 10px;color:#fff}
+p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+p.k b{color:#fff;font-weight:600}
+.sec{padding:34px 0;border-top:1px solid #171D24}
+.mono{font-family:var(--f-mono)}
+.seq{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.fr{background:#0F151B;border:1px solid #222932;border-radius:var(--r-l);overflow:hidden}
+.fr .stage{height:210px;position:relative;overflow:hidden;background:#FBFCFE;display:grid;place-items:center}
+.fr .meta{padding:12px 14px;border-top:1px solid #1B222A}
+.fr .meta b{display:block;color:#fff;font-size:12.5px;margin-bottom:3px}
+.fr .meta span{font-family:var(--f-mono);font-size:10.5px;color:#8B95A3;line-height:1.5;display:block}
+.tt{position:absolute;top:10px;left:10px;z-index:6;font-family:var(--f-mono);font-size:10px;color:#0E1116;background:rgba(255,255,255,.86);padding:3px 6px;border-radius:5px}
+.note{border-left:2px solid var(--mm-orange);padding:2px 0 2px 15px;color:#C3CDD9;max-width:76ch;margin:18px 0;font-size:13.5px;line-height:1.6}
+.note b{color:#FFC46B}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{text-align:left;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6D7987;font-weight:400;padding:0 12px 8px 0}
+td{padding:9px 12px 9px 0;border-top:1px solid #1B222A;color:#B6C0CC;vertical-align:top}
+td b{color:#fff}
+</style></head><body><div class="wrap">
+<p class="eb">Mouvement · mise en scène</p>
+<h1>Deux moments.<br>La retenue est le sujet.</h1>
+<p class="k">Le reste du produit est discret : un enfoncement au toucher, un état qui bascule, une entrée en cascade. <b>Deux endroits seulement méritent une vraie mise en scène</b>, parce que le mouvement y porte du sens plutôt que du décor. Il n'y en aura pas un troisième.</p>
+
+<section class="sec">
+<h2>Moment nº1 — l'attente de paiement</h2>
+<p class="k">Deux anneaux concentriques se propagent en boucle vers l'extérieur depuis le carré du prestataire : <span class="mono">scale</span> de <b>1 à 1,85</b>, opacité de <b>0,5 à 0</b>, sur <b>2,6 s</b>, le second décalé de <b>1,3 s</b>.</p>
+<p class="k">Ce n'est pas un ornement. C'est la seule chose qui dit « la transaction est vivante » à quelqu'un qui a quitté l'application, validé dans Wave, et revient trente secondes plus tard sans savoir si ça a marché. <b>C'est le point du parcours où se perd le plus de monde.</b></p>
+<div class="seq">
+  <div class="fr"><div class="stage"><span class="tt">t = 0 s</span><span style="position:relative;width:70px;height:70px;border-radius:22px;background:linear-gradient(135deg,#3FD8FF,#009FE3);display:grid;place-items:center;box-shadow:0 12px 32px rgba(0,159,227,.4)">
+  <span style="font-family:var(--f-display);font-weight:900;font-size:28px;color:#fff">W</span><span style="position:absolute;inset:0;border-radius:22px;border:2px solid #009FE3;transform:scale(1);opacity:0.5"></span><span style="position:absolute;inset:0;border-radius:22px;border:2px solid #009FE3;transform:scale(1.42);opacity:0.16"></span></span></div>
+    <div class="meta"><b>Départ du premier anneau</b><span>anneau A : scale 1 · opacité .5</span><span>anneau B : à mi-course, scale 1,42</span></div></div>
+  <div class="fr"><div class="stage"><span class="tt">t = 1,3 s</span><span style="position:relative;width:70px;height:70px;border-radius:22px;background:linear-gradient(135deg,#3FD8FF,#009FE3);display:grid;place-items:center;box-shadow:0 12px 32px rgba(0,159,227,.4)">
+  <span style="font-family:var(--f-display);font-weight:900;font-size:28px;color:#fff">W</span><span style="position:absolute;inset:0;border-radius:22px;border:2px solid #009FE3;transform:scale(1.42);opacity:0.16"></span><span style="position:absolute;inset:0;border-radius:22px;border:2px solid #009FE3;transform:scale(1);opacity:0.5"></span></span></div>
+    <div class="meta"><b>Le second part, le premier s'éteint</b><span>anneau A : scale 1,42 · opacité .16</span><span>anneau B : scale 1 · opacité .5</span></div></div>
+  <div class="fr"><div class="stage"><span class="tt">t = 2,1 s</span><span style="position:relative;width:70px;height:70px;border-radius:22px;background:linear-gradient(135deg,#3FD8FF,#009FE3);display:grid;place-items:center;box-shadow:0 12px 32px rgba(0,159,227,.4)">
+  <span style="font-family:var(--f-display);font-weight:900;font-size:28px;color:#fff">W</span><span style="position:absolute;inset:0;border-radius:22px;border:2px solid #009FE3;transform:scale(1.85);opacity:0"></span><span style="position:absolute;inset:0;border-radius:22px;border:2px solid #009FE3;transform:scale(1.6);opacity:0.08"></span></span></div>
+    <div class="meta"><b>Extinction, puis reprise</b><span>anneau A : scale 1,85 · opacité 0</span><span>boucle infinie, sans à-coup</span></div></div>
+</div>
+<div class="demo" style="margin-top:18px;background:#FBFCFE;border-radius:var(--r-l);padding:26px;display:grid;place-items:center">
+  <div class="play" style="display:grid;place-items:center">
+    <span class="pulse" style="position:relative;width:70px;height:70px;border-radius:22px;background:linear-gradient(135deg,#3FD8FF,#009FE3);display:grid;place-items:center;color:#009FE3;box-shadow:0 12px 32px rgba(0,159,227,.4)">
+      <span style="font-family:var(--f-display);font-weight:900;font-size:28px;color:#fff">W</span>
+    </span>
+    <p class="mono" style="font-size:11px;color:#5A6472;margin-top:16px">en boucle · 2,6 s · décalage 1,3 s</p>
+  </div>
+</div>
+<div class="note"><b>Ce qu'il ne faut pas en faire.</b> Pas de compte à rebours — la durée réelle dépend de Wave, pas de nous, et un compteur qui se termine sans réponse est pire que pas de compteur. Pas de barre de progression : il n'y a rien à mesurer. L'anneau ne dit qu'une chose, et c'est la bonne : <b>ça vit encore</b>.</div>
+</section>
+
+<section class="sec">
+<h2>Moment nº2 — l'émission du certificat</h2>
+<p class="k">Une brillance en diagonale — gradient blanc à <b>85 %</b> sur <b>12 % de largeur</b>, incliné à <b>102°</b> — balaie la carte de gauche à droite, <b>deux fois</b>, puis s'arrête définitivement. Départ à <b>0,9 s</b> après l'entrée de l'écran, <b>2,4 s</b> par passage.</p>
+<p class="k">C'est le seul moment de récompense du produit : <b>47 leçons pour y arriver</b>. Il n'est pas rejouable, et il ne se déclenche jamais ailleurs.</p>
+<div class="seq">
+  <div class="fr"><div class="stage" style="padding:14px"><span class="tt">t = 0,9 s</span><span style="position:relative;overflow:hidden;width:280px;border-radius:var(--r-xl);padding:18px;background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 18px 44px rgba(14,17,22,.14);color:var(--ink)">
+  <span style="display:flex;justify-content:space-between;align-items:flex-start">
+    <span style="font-family:var(--f-display);font-weight:900;font-size:26px;letter-spacing:-.045em"><span style="color:#0057BC">M</span><span style="color:#F38B0A">a</span><span style="color:#02AC9C">x</span></span>
+    <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:10.5px;font-weight:600;background:rgba(15,123,82,.13);color:var(--ok)">Vérifié</span>
+  </span>
+  <span style="display:block;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin-top:16px">Certificat de fin de formation</span>
+  <span style="display:block;font-family:var(--f-display);font-weight:900;font-size:18px;letter-spacing:-.035em;line-height:1.05;margin-top:5px">Référencement local pour ton commerce</span>
+  <span style="display:block;font-size:12px;color:var(--ink-2);margin-top:9px">Délivré à <b style="color:var(--ink)">Aïssatou Ndiaye</b></span>
+  <span style="display:block;font-family:var(--f-mono);font-weight:700;font-size:14px;letter-spacing:.06em;margin-top:12px">MM-C7K4-9RTX-2081</span>
+  <span style="position:absolute;inset:-40%;pointer-events:none;background:linear-gradient(102deg,transparent 38%,rgba(255,255,255,.85) 50%,transparent 62%);transform:translateX(-130%)"></span>
+</span></div>
+    <div class="meta"><b>Hors cadre, à gauche</b><span>translateX(−130 %)</span><span>la carte est déjà lisible : la brillance n'introduit rien</span></div></div>
+  <div class="fr"><div class="stage" style="padding:14px"><span class="tt">t = 1,6 s</span><span style="position:relative;overflow:hidden;width:280px;border-radius:var(--r-xl);padding:18px;background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 18px 44px rgba(14,17,22,.14);color:var(--ink)">
+  <span style="display:flex;justify-content:space-between;align-items:flex-start">
+    <span style="font-family:var(--f-display);font-weight:900;font-size:26px;letter-spacing:-.045em"><span style="color:#0057BC">M</span><span style="color:#F38B0A">a</span><span style="color:#02AC9C">x</span></span>
+    <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:10.5px;font-weight:600;background:rgba(15,123,82,.13);color:var(--ok)">Vérifié</span>
+  </span>
+  <span style="display:block;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin-top:16px">Certificat de fin de formation</span>
+  <span style="display:block;font-family:var(--f-display);font-weight:900;font-size:18px;letter-spacing:-.035em;line-height:1.05;margin-top:5px">Référencement local pour ton commerce</span>
+  <span style="display:block;font-size:12px;color:var(--ink-2);margin-top:9px">Délivré à <b style="color:var(--ink)">Aïssatou Ndiaye</b></span>
+  <span style="display:block;font-family:var(--f-mono);font-weight:700;font-size:14px;letter-spacing:.06em;margin-top:12px">MM-C7K4-9RTX-2081</span>
+  <span style="position:absolute;inset:-40%;pointer-events:none;background:linear-gradient(102deg,transparent 38%,rgba(255,255,255,.85) 50%,transparent 62%);transform:translateX(0%)"></span>
+</span></div>
+    <div class="meta"><b>Passage au centre</b><span>translateX(0)</span><span>le code de vérification reste lisible pendant le passage</span></div></div>
+  <div class="fr"><div class="stage" style="padding:14px"><span class="tt">t = 3,3 s</span><span style="position:relative;overflow:hidden;width:280px;border-radius:var(--r-xl);padding:18px;background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 18px 44px rgba(14,17,22,.14);color:var(--ink)">
+  <span style="display:flex;justify-content:space-between;align-items:flex-start">
+    <span style="font-family:var(--f-display);font-weight:900;font-size:26px;letter-spacing:-.045em"><span style="color:#0057BC">M</span><span style="color:#F38B0A">a</span><span style="color:#02AC9C">x</span></span>
+    <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:10.5px;font-weight:600;background:rgba(15,123,82,.13);color:var(--ok)">Vérifié</span>
+  </span>
+  <span style="display:block;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin-top:16px">Certificat de fin de formation</span>
+  <span style="display:block;font-family:var(--f-display);font-weight:900;font-size:18px;letter-spacing:-.035em;line-height:1.05;margin-top:5px">Référencement local pour ton commerce</span>
+  <span style="display:block;font-size:12px;color:var(--ink-2);margin-top:9px">Délivré à <b style="color:var(--ink)">Aïssatou Ndiaye</b></span>
+  <span style="display:block;font-family:var(--f-mono);font-weight:700;font-size:14px;letter-spacing:.06em;margin-top:12px">MM-C7K4-9RTX-2081</span>
+  <span style="position:absolute;inset:-40%;pointer-events:none;background:linear-gradient(102deg,transparent 38%,rgba(255,255,255,.85) 50%,transparent 62%);transform:translateX(130%)"></span>
+</span></div>
+    <div class="meta"><b>Sortie, puis un second passage — et fin</b><span>translateX(+130 %)</span><span>deux passages, puis plus jamais</span></div></div>
+</div>
+<div class="note"><b>Pourquoi deux passages et pas un.</b> Un seul passage se rate : la personne regarde son nom, pas la carte. Trois passages transforment la récompense en animation de chargement. Deux, puis l'arrêt définitif — et l'écran redevient un document.</div>
+</section>
+
+<section class="sec">
+<h2>Et aucun troisième</h2>
+<table>
+<tr><td style="width:30%"><b>Réussite de paiement</b></td><td>Aucune mise en scène. Un glyphe, un titre, et le bouton qui ouvre la première leçon : ce qui compte est la leçon, pas la célébration.</td></tr>
+<tr><td><b>Série quotidienne</b></td><td>Une seule pulsation du compteur. Pas de confettis : une mécanique de série qui célèbre trop fabrique de la culpabilité quand elle casse.</td></tr>
+<tr><td><b>Montée de niveau</b></td><td>La barre se remplit, le chiffre change. Rien d'autre.</td></tr>
+<tr><td><b>Fin de formation</b></td><td>Elle mène au certificat — c'est <i>lui</i> qui porte le moment. Deux mises en scène pour un même instant en annuleraient une.</td></tr>
+</table>
+</section>
+</div></body></html>

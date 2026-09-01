@@ -1,9 +1,9 @@
 {
   "seoTitle": "I Digitalize Your Business — Website, Google Maps, WhatsApp | Max-Morrys",
-  "seoDescription": "Websites, product catalogues, Google listing, analytics, SEO and content automation for local businesses in Senegal. Packs from 295,000 FCFA.",
-  "eyebrow": "For local businesses",
-  "heroTitle1": "Your customers are",
-  "heroTitle2": "looking for you online.",
+  "seoDescription": "Websites, product catalogues, Google listing, analytics, SEO and content automation for local businesses in Senegal. Packs from 250,000 FCFA.",
+  "eyebrow": "I'll get you online",
+  "heroTitle1": "Your shop,",
+  "heroTitle2": "findable",
   "heroSubtitle": "Right now they're finding your competitors. I set up everything you need to be found, to be contacted, and to finally know what it brings you.",
   "heroCta": "Find your pack in 3 questions",
   "heroSecondary": "Talk about it on WhatsApp",
@@ -15,8 +15,9 @@
     "tradePlaceholder": "Restaurant, hair salon, pharmacy...",
     "areaLabel": "Your neighbourhood",
     "areaPlaceholder": "Point E, Dakar",
-    "cta": "See",
-    "note": "That's exactly the first thing I fix."
+    "cta": "See who ranks above you",
+    "note": "That's exactly the first thing I fix.",
+    "eyebrow": "Proof, right now"
   },
   "whatsapp": {
     "greeting": "Hi Max-Morrys 👋",
@@ -57,7 +58,6 @@
   "selector": {
     "title": "Find your pack in 3 questions",
     "subtitle": "Thirty seconds, and you'll know exactly where to start.",
-    "progress": "{{answered}} of {{total}} questions",
     "resultEyebrow": "What you need",
     "accept": "Request this quote",
     "reset": "Start over",
@@ -95,14 +95,19 @@
       "outdated": "An outdated site does more harm than no site at all. We start again with a credible storefront and your catalogue.",
       "starting": "You're starting from nothing: what matters is existing on Google Maps and getting your first WhatsApp enquiries. We'll think bigger later."
     },
-    "privacy": "No personal details are asked for before you've seen the recommendation. “I'm not sure” is a valid answer: it leads to a recommendation too.",
+    "privacy": "No personal details are asked before you've seen the recommendation. You can go back to any answer — the recommendation updates.",
     "titleLines": [
       "Find your pack",
       "in 3 questions"
-    ]
+    ],
+    "step": "Question {{current}} of {{total}}",
+    "next": "Next",
+    "back": "Back",
+    "answersTitle": "Your answers",
+    "change": "change"
   },
   "packs": {
-    "title": "The setup",
+    "title": "Three packs. The prices are shown.",
     "subtitle": "A one-off payment to install everything. Excluding advertising, domain name and third-party subscriptions.",
     "priceLabel": "Setup",
     "promoLabel": "Launch price: {{price}}",
@@ -322,7 +327,10 @@
       "commerce": "Hardware, building supplies, car parts",
       "education": "School, training centre",
       "autre": "Something else"
-    }
+    },
+    "moreToggle": "Add details",
+    "moreHint": "Email, sector, pack, support plan, message, referral.",
+    "knownLabel": "What I already know"
   },
   "validation": {
     "businessNameRequired": "Enter your business name",
@@ -357,9 +365,9 @@
     "expired": "This summary has passed its validity date. Write to me and I'll refresh it.",
     "forBusiness": "For",
     "setupSection": "Setup",
-    "planSection": "Monthly support",
+    "planSection": "Monthly support — a separate decision",
     "monthly": "per month",
-    "upfrontTotal": "Total due at setup",
+    "upfrontTotal": "Due at signing · setup",
     "deposit": "60% on order",
     "balance": "40% before going live",
     "commitmentTotal": "That is {{total}} over {{months}} months",
@@ -394,7 +402,8 @@
     "truthTitle": "What this document contains, and what it does not",
     "truthBody": "No personal data: not your phone, not your email. The link can be forwarded as is. The amounts, however, are read back from the current price list every time this page opens — if the list moves, this document moves with it. I'd rather write that here than let you find out at signing.",
     "loading": "Loading the quote",
-    "commitmentLine": "{{months}}-month commitment"
+    "commitmentLine": "{{months}}-month commitment",
+    "planNote": "It isn't decided now: you take it after go-live, once you can see what it does. These amounts are not part of what's due at signing."
   },
   "agencyBridge": {
     "title": "Is your project bigger than a storefront?",
@@ -414,7 +423,22 @@
     "cta": "See both plans"
   },
   "truth": {
-    "title": "What this page does not show",
-    "body": "No star ratings, no client counts, no testimonials. None of those numbers is something you could verify from this page. The only numbers written here are the catalogue prices and whatever you type into the Google search above."
+    "title": "What I don't show",
+    "provenTitle": "What I can prove to you",
+    "proven": [
+      "The price list above, as of 2 August 2026. Every amount comes from the catalogue, not from a sentence.",
+      "The Google Maps search on the first screen: you ran it yourself, in a tool that isn't mine.",
+      "Your summary re-reads that same price list every time it opens. If the list moves, it moves with it."
+    ],
+    "withheld": [
+      "No star rating, no client count, no testimonial: none of them is something you could verify from this page.",
+      "No guaranteed number of clients. It also depends on your offer and your prices, which aren't mine to set."
+    ],
+    "sectionTitle": "Why there are no star ratings here"
+  },
+  "heroTitle3": "on Google.",
+  "details": {
+    "title": "The details",
+    "subtitle": "What the packs don't cover, and the terms. Nothing here you need to read before asking for a quote."
   }
 }

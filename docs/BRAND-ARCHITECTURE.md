@@ -205,7 +205,6 @@ Produits réalisés **pour des tiers**. Ils appartiennent à leurs clients.
 | **Je Témoigne** | temoignage.vasesdhonneursenegal.com | Client | Communauté |
 | **LauraVerse** | lauraverse.blog | Client | Média |
 | **Dunamis Holydays** | holydays.vasesdhonneursenegal.com | Client | Événementiel |
-| **Jubilé de Grâce** | jubile-de-grace.com | Client | Événementiel |
 | **IN Sénégal 2026** | insenegal.web.app | Client | Événementiel |
 
 `stack` et `capabilities` sont établies **depuis les dépôts git** des projets, jamais supposées.

@@ -389,9 +389,16 @@ Trois familles, chargées depuis Google Fonts par `tokens/fonts.css` : **Fraunce
 
 ## 12 · Fichiers de référence
 
-`reference/` — 26 fichiers HTML, avec les modules JS et le bundle qu'ils chargent. Ouvrez-les
-directement dans un navigateur : ils sont autonomes, hormis les CDN React et Babel.
-Le CSS y pointe sur `../css/styles.css`, donc les jetons du paquet.
+`reference/` — 26 fichiers HTML **autonomes**. Ouvre-les directement dans un navigateur : aucun
+serveur, aucun build. Le CSS pointe sur `../css/styles.css`, donc les jetons du paquet.
+
+**Commence par `MAQUETTES.md`** : il dit quelle planche porte quel écran, quels modules charger,
+et quelles couches ont été retirées du paquet. Sans lui, il faut ouvrir treize fichiers pour
+recréer un écran ; avec lui, trois suffisent.
+
+Les composants ne sont plus livrés en bundle compilé mais en **un seul fichier lisible**,
+`reference/_components.jsx` — 37 fonctions React ordinaires, 39 Ko. Le bundle d'origine faisait
+1 Mo de code minifié dans lequel il était impossible de voir ce qu'un composant rendait.
 
 **Écrans du produit**
 

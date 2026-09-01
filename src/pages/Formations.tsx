@@ -109,7 +109,7 @@ export default function Formations() {
         </p>
 
         {isLoading ? (
-          <div className="mt-[22px] grid gap-4 md:grid-cols-2">
+          <div className="mt-[22px] grid gap-4 stack:grid-cols-2">
             {[0, 1].map((i) => <Skeleton key={i} height={220} radius="var(--r-l)" />)}
           </div>
         ) : formations.length === 0 ? (
@@ -148,7 +148,7 @@ export default function Formations() {
               <span className="text-small text-ink-2">{t('index.sortNote')}</span>
             </div>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className="mt-5 grid gap-4 stack:grid-cols-2">
               {listed.map((formation, i) => (
                 <div key={formation.id} className="rv" style={{ ['--i' as string]: 6 + i }}>
                   <TerritoryCard
@@ -158,6 +158,23 @@ export default function Formations() {
                     territory={i % 2 === 0 ? 'forme' : 'transforme'}
                     href={path(`/formations/${formation.slug}`)}
                     padding={24}
+                    /*
+                     * LA MÉTA ÉTAIT ABSENTE. Le kit ouvre chaque carte par « SEO · 6 modules ·
+                     * 47 leçons · débutant » (`PagesFormations.js:17`) : c'est ce qui permet
+                     * de comparer deux formations sans ouvrir les deux fiches, et c'est la
+                     * seule ligne de la carte qui donne une taille.
+                     *
+                     * Les quatre valeurs viennent de la base — catégorie, modules, leçons
+                     * recomptées, niveau. Aucune n'est estimée, aucune n'est arrondie.
+                     */
+                    meta={[
+                      formation.category,
+                      t('index.cardModules', { count: formation.modules?.length ?? 0 }),
+                      t('index.cardLessons', {
+                        count: (formation.modules ?? []).reduce((n, m) => n + (m.lessons?.length ?? 0), 0),
+                      }),
+                      levelLabel[formation.level],
+                    ].filter(Boolean).join(' · ')}
                     title={formation.title}
                   >
                     <p className="mt-[10px] mb-0 text-[14px] leading-[1.5]" style={{ color: 'var(--card-ink-2)' }}>
@@ -182,7 +199,8 @@ export default function Formations() {
       </PageSite>
 
       <SiteBand>
-        <div className="grid items-center gap-9 lg:grid-cols-2">
+        {/* Gouttière 34, pas 36 — `PagesFormations.js:36`. */}
+        <div className="grid items-center gap-[34px] wide:grid-cols-2">
           <div>
             <SiteDisplay as="h2" lines={t('index.whyTitle', { returnObjects: true }) as string[]} size={34} />
             <p className="rv mt-3 max-w-[44ch] text-[15.5px] leading-[1.6] text-ink-2" style={{ ['--i' as string]: 1 }}>
@@ -190,9 +208,15 @@ export default function Formations() {
             </p>
           </div>
           <GlassPanel level="flat" padding={24} className="rv" style={{ ['--i' as string]: 2 }}>
-            {(['c1', 'c2', 'c3', 'c4'] as const).map((key) => (
-              <CheckLine key={key} tone="ok">{t(`index.${key}`)}</CheckLine>
-            ))}
+            {/* Le sourcil manquait : quatre lignes à coche nues, sans ce qui les qualifie.
+                Le kit ouvre ce panneau par « Ce que comprend chaque formation »
+                (`pages-formations.jsx`), et c'est cette ligne qui dit de quoi la liste parle. */}
+            <SiteEyebrow style={{ margin: 0 }}>{t('index.includesTitle')}</SiteEyebrow>
+            <div className="mt-3">
+              {(['c1', 'c2', 'c3', 'c4'] as const).map((key) => (
+                <CheckLine key={key} tone="ok">{t(`index.${key}`)}</CheckLine>
+              ))}
+            </div>
           </GlassPanel>
         </div>
       </SiteBand>

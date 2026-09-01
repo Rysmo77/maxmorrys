@@ -215,7 +215,7 @@ export default function ClubMembers({ data }: { data: ClubData }) {
       <div className="space-y-4">
         <Skeleton height={210} radius="var(--r-l)" label={t('members.myProfile')} />
         <Skeleton height={46} radius="var(--r-pill)" label={t('members.searchPlaceholder')} />
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 stack:grid-cols-2 wide:grid-cols-3">
           <Skeleton height={132} radius="var(--r-l)" label={t('members.myProfile')} />
           <Skeleton height={132} radius="var(--r-l)" label={t('members.myProfile')} />
           <Skeleton height={132} radius="var(--r-l)" label={t('members.myProfile')} />
@@ -287,19 +287,19 @@ export default function ClubMembers({ data }: { data: ClubData }) {
           <div className="mt-2">
             <Field label={t('members.headlineLabel')} value={form.headline} onChange={(v) => setForm((p) => ({ ...p, headline: v }))} placeholder={t('members.headlinePlaceholder')} />
             <Field label={t('members.skillsLabel')} value={form.skills} onChange={(v) => setForm((p) => ({ ...p, skills: v }))} placeholder={t('members.skillsPlaceholder')} hint={t('members.skillsHint')} />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 stack:grid-cols-2">
               <Field label={t('members.cityLabel')} value={form.city} onChange={(v) => setForm((p) => ({ ...p, city: v }))} placeholder={t('members.cityPlaceholder')} autoComplete="address-level2" />
               <Field label={t('members.whatsappLabel')} value={form.whatsapp} onChange={(v) => setForm((p) => ({ ...p, whatsapp: v }))} placeholder={t('members.whatsappPlaceholder')} type="tel" inputMode="tel" autoComplete="tel" />
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 stack:grid-cols-2">
               <Field label="LinkedIn" value={form.linkedin} onChange={(v) => setForm((p) => ({ ...p, linkedin: v }))} placeholder={t('members.linkedinPlaceholder')} inputMode="url" />
               <Field label={t('members.websiteLabel')} value={form.website} onChange={(v) => setForm((p) => ({ ...p, website: v }))} placeholder={t('members.websitePlaceholder')} inputMode="url" />
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 stack:grid-cols-2">
               <Field label="Facebook" value={form.facebook} onChange={(v) => setForm((p) => ({ ...p, facebook: v }))} placeholder={t('members.facebookPlaceholder')} />
               <Field label="Instagram" value={form.instagram} onChange={(v) => setForm((p) => ({ ...p, instagram: v }))} placeholder={t('members.instagramPlaceholder')} />
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 stack:grid-cols-3">
               <Field label="X" value={form.twitter} onChange={(v) => setForm((p) => ({ ...p, twitter: v }))} placeholder={t('members.twitterPlaceholder')} />
               <Field label="TikTok" value={form.tiktok} onChange={(v) => setForm((p) => ({ ...p, tiktok: v }))} placeholder={t('members.tiktokPlaceholder')} />
               <Field label="YouTube" value={form.youtube} onChange={(v) => setForm((p) => ({ ...p, youtube: v }))} placeholder={t('members.youtubePlaceholder')} />
@@ -351,7 +351,7 @@ export default function ClubMembers({ data }: { data: ClubData }) {
       {filtered.length === 0 ? (
         <ClubEmptyState icon="users" title={t('members.emptyTitle')} subtitle={t('members.emptySubtitle')} />
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 stack:grid-cols-2 wide:grid-cols-3">
           {filtered.map((p) => (
             <motion.button
               key={p.id}
@@ -401,7 +401,7 @@ export default function ClubMembers({ data }: { data: ClubData }) {
             aria-modal="true"
             tabIndex={-1}
             aria-label={selectedMember.displayName}
-            className="max-h-[92vh] w-full overflow-y-auto rounded-t-xl bg-paper shadow-card sm:max-w-md sm:rounded-xl"
+            className="max-h-[92vh] w-full overflow-y-auto rounded-t-xl bg-surface-sheet shadow-card sm:max-w-md sm:rounded-xl"
           >
             <div className="flex justify-center pt-2.5 sm:hidden">
               <span aria-hidden="true" className="h-1.5 w-10 rounded-pill bg-[color:var(--fill-4)]" />

@@ -426,6 +426,26 @@ export default function RysmoMemoryTab({ enrolledFormations }: RysmoMemoryTabPro
           <p className="m-0 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
             {t('rysmoMemory.clearBody')}
           </p>
+          {/*
+            POURQUOI L'EFFACEMENT EST GLOBAL, ET PAS LIGNE À LIGNE.
+
+            La maquette (`screens-rysmo.jsx` § RysmoMemoire) pose un bouton « Oublier » sur
+            chaque ligne et annonce « tu peux en retirer une, ou tout effacer ». Ce n'est pas
+            implémentable honnêtement ici, et la raison est dans le modèle :
+
+            `rysmoProfiles/{uid}` est en écriture SERVEUR SEULE (`firestore.rules`), et il est
+            RÉGÉNÉRÉ par `persistAndSummarize` à partir du transcript de `rysmoConversations`
+            dès que le seuil de résumé est franchi. Retirer un sujet du profil sans retirer les
+            messages qui l'ont produit le ferait donc revenir au résumé suivant — et on ne sait
+            pas remonter d'un sujet résumé aux messages qui l'ont nourri.
+
+            L'effacement global, lui, supprime les DEUX documents : le sujet ne revient pas.
+            C'est pour ça qu'il est le seul geste offert, et l'écran le dit plutôt que de poser
+            un bouton qui promettrait d'oublier sans oublier.
+          */}
+          <p className="m-0 mt-[10px] text-meta-2 text-ink-2 leading-[1.5]">
+            {t('rysmoMemory.clearWhyAll')}
+          </p>
         </GlassPanel>
         <div className="mt-[12px] flex flex-wrap gap-[6px]">
           <Tag>{t('rysmoMemory.tagPrivate')}</Tag>

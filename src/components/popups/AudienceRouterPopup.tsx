@@ -30,7 +30,7 @@ interface AudienceRouterPopupProps {
   onContinue: () => void;
 }
 
-const doorCls = 'group flex items-center gap-4 w-full text-left p-4 rounded-2xl border border-white/10 bg-paper/[0.03] hover:bg-paper/[0.07] hover:border-[color-mix(in_srgb,var(--mm-teal)_50%,transparent)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition duration-300 focus:outline-none focus-visible:ring-2';
+const doorCls = 'group flex items-center gap-4 w-full text-left p-4 rounded-2xl border border-white/10 bg-surface-sheet/[0.03] hover:bg-surface-sheet/[0.07] hover:border-[color-mix(in_srgb,var(--mm-teal)_50%,transparent)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] transition duration-300 focus:outline-none focus-visible:ring-2';
 const iconBoxCls = 'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3';
 const labelCls = 'block text-sm font-bold text-white leading-snug';
 const descCls = 'block mt-0.5 text-xs text-white/50 leading-relaxed';

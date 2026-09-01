@@ -44,6 +44,26 @@ export interface AppShellProps {
    * les deux modes — c'est un territoire, pas un thème.
    */
   territory?: Territory | 'nuit';
+  /**
+   * LE MAILLAGE CHANGE AVEC L'ÉCRAN, PAS AVEC L'APPLICATION.
+   *
+   * `territory` seul figeait tout l'espace apprenant sur un maillage unique — `forme`, la
+   * valeur par défaut, parce que `StudentLayout` ne passait rien. Or le kit en change à
+   * chaque écran : `ScreensSpace.js` monte l'accueil, le répétiteur et le Club sur
+   * « transforme », le lecteur et les notes sur « forme », et `ScreensCompte.js` fait pareil
+   * pour les préférences.
+   *
+   * Ce n'est pas une variation décorative. Le maillage est LE SEUL repère de territoire
+   * continu du produit — la planche des transitions lui consacre son point 3 : « le maillage
+   * fond d'une teinte à l'autre pendant que le contenu glisse. C'est le seul repère de
+   * territoire du produit, et il doit se voir. » Un maillage unique le supprime purement et
+   * simplement : la personne ne sait plus, au fond de l'écran, si elle est dans son cours ou
+   * dans le Club.
+   *
+   * Même forme que `titleMap` : une table par chemin canonique, pour que ce soit la couche
+   * qui CONNAÎT les routes qui décide, et non la coquille.
+   */
+  territoryMap?: Record<string, Territory | 'nuit'>;
   /** Le mot-symbole de la colonne — `rysmo` pour l'application, `signature` pour la console. */
   wordmark?: WordmarkProps['brand'];
   sidebarSections: AppSidebarSection[];
@@ -59,7 +79,7 @@ export interface AppShellProps {
 }
 
 export default function AppShell({
-  brand, territory = 'forme', wordmark = 'rysmo', sidebarSections, bottomNavItems,
+  brand, territory = 'forme', territoryMap, wordmark = 'rysmo', sidebarSections, bottomNavItems,
   titleMap, beforeOutlet, outletContext, contentClassName,
 }: AppShellProps) {
   const { t } = useTranslation('lms');
@@ -91,6 +111,18 @@ export default function AppShell({
 
   const canonicalPath = toCanonicalPath(location.pathname);
   const pageTitle = titleMap?.[canonicalPath] ?? deriveTitleFromPath(canonicalPath);
+  /*
+   * La correspondance est PAR PRÉFIXE, pas exacte. `/mon-espace/cours/:slug` (le lecteur) et
+   * `/mon-espace/club/fil` doivent hériter du maillage de leur section : une table de chemins
+   * exacts obligerait à réénumérer chaque sous-route, et la première oubliée retomberait en
+   * silence sur le territoire par défaut — exactement le défaut qu'on corrige ici.
+   * Le préfixe le plus long gagne, pour qu'une entrée plus précise puisse trancher.
+   */
+  const meshTerritory = territoryMap
+    ? (Object.entries(territoryMap)
+        .filter(([prefix]) => canonicalPath === prefix || canonicalPath.startsWith(`${prefix}/`))
+        .sort((a, b) => b[0].length - a[0].length)[0]?.[1] ?? territory)
+    : territory;
 
   const hasBottomNav = bottomNavItems && bottomNavItems.length > 0;
 
@@ -99,7 +131,7 @@ export default function AppShell({
       {/* Le fond du produit : trois lobes flous en dérive, animés en `transform` seulement,
           fixés à la fenêtre pour que le voile de lisibilité garde la géométrie sur laquelle
           AD-18 a été mesuré. Poids : 0 octet. */}
-      <Mesh territory={territory} style={{ position: 'fixed', zIndex: 0 }} />
+      <Mesh territory={meshTerritory} style={{ position: 'fixed', zIndex: 0 }} />
 
       {/* Colonne latérale — 250 px, à partir de 700 px */}
       <aside

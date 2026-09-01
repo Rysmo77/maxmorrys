@@ -145,6 +145,27 @@ export async function updateTransactionStatus(id: string, status: Transaction['s
   return updateDocById('transactions', id, { status });
 }
 
+/**
+ * Les transactions D'UNE SEULE personne, les siennes, de la plus récente à la plus ancienne.
+ *
+ * Elle vit à côté de `getAllTransactions` et non dans un module « apprenant » : les deux
+ * lectures visent la même collection, et c'est la seule façon de voir d'un coup d'œil que
+ * l'une est bornée à `userId` et l'autre pas. Une lecture de transactions écrite ailleurs
+ * serait la prochaine à oublier le `where`.
+ *
+ * `firestore.rules` autorise déjà `isOwner(resource.data.userId)` en lecture sur
+ * `transactions` (règle en place, ligne 417) : le `where` n'est donc pas une politesse, il
+ * est ce qui rend la requête admissible — une requête non bornée serait refusée en bloc.
+ * L'index composite `userId ASC, createdAt DESC` existe dans `firestore.indexes.json`.
+ */
+export async function getUserTransactions(userId: string): Promise<Transaction[]> {
+  return getCollection<Transaction>(
+    'transactions',
+    where('userId', '==', userId),
+    orderBy('createdAt', 'desc'),
+  );
+}
+
 // ── Coupons ───────────────────────────────────────────────────────────────────
 
 export async function getAllCoupons(): Promise<Coupon[]> {

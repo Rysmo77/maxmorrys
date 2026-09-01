@@ -83,20 +83,49 @@ export default function Login() {
       titleLines={t('login.titleLines', { returnObjects: true }) as string[]}
       seoTitle={t('login.title')}
       footer={
-        <>
+        <p className="mt-4 text-center text-meta text-ink-2">
+          {t('login.noAccount')}{' '}
+          <a href={path('/inscription')} className="font-bold text-forme">
+            {t('login.createAccount')}
+          </a>
+        </p>
+      }
+      /*
+        ── LA SECONDE COLONNE DU KIT ────────────────────────────────────────────────
+        `PagesUtiles.js:169-186` : la remise en selle vit À CÔTÉ du formulaire, pas derrière
+        un lien. Quelqu'un qui ne se souvient plus de son mot de passe voit la sortie sans
+        quitter l'écran — et l'encart qui explique pourquoi la réponse restera évasive.
+
+        UNE DIFFÉRENCE ASSUMÉE AVEC LE KIT : le kit met ici le formulaire complet. La
+        production garde une seule implémentation de l'envoi, sur `/mot-de-passe-oublie`, et
+        pose ici l'invitation. Deux formulaires d'envoi sur deux écrans, c'est deux fois la
+        gestion d'erreur, la limitation de débit et le message de succès — et le jour où l'un
+        des deux change, personne ne sait que l'autre existe.
+      */
+      aside={
+        <div>
+          <GlassPanel level="flat" padding={26} className="rv" style={{ ['--i' as string]: 1 }}>
+            <SiteEyebrow style={{ margin: 0 }}>{t('reset.title')}</SiteEyebrow>
+            <p className="m-0 mt-2 font-display text-[19px] font-black tracking-[-.03em] text-ink">
+              {(t('reset.titleLines', { returnObjects: true }) as string[]).join(' ')}
+            </p>
+            <p className="mt-2 mb-4 text-[13px] leading-[1.5] text-ink-2">{t('reset.subtitleDefault')}</p>
+            <Button href={path('/mot-de-passe-oublie')} tone="primary" fullWidth={false}>
+              {t('reset.submit')}
+            </Button>
+
+            <GlassPanel level="truth" className="mt-4">
+              <SiteEyebrow style={{ marginBottom: '6px' }}>{t('reset.truthTitle')}</SiteEyebrow>
+              <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('reset.truthBody')}</p>
+            </GlassPanel>
+          </GlassPanel>
+
           {/* Faux verre : cet encart défile avec la page. */}
-          <GlassPanel level="truth" className="rv mt-[14px]" style={{ ['--i' as string]: 6 }}>
+          <GlassPanel level="truth" className="rv mt-[14px]" style={{ ['--i' as string]: 2 }}>
             <SiteEyebrow style={{ marginBottom: '6px' }}>{t('login.truthTitle')}</SiteEyebrow>
             <p className="m-0 text-meta-2 text-ink-2 leading-[1.5]">{t('login.truthBody')}</p>
           </GlassPanel>
-
-          <p className="mt-4 text-center text-meta text-ink-2">
-            {t('login.noAccount')}{' '}
-            <a href={path('/inscription')} className="font-bold text-forme">
-              {t('login.createAccount')}
-            </a>
-          </p>
-        </>
+        </div>
       }
     >
       {/*

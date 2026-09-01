@@ -24,7 +24,7 @@
     },
     "sub": "Console · Club",
     "sectionLabel": "Club section",
-    "scope": "This screen administers the Club; it does not collect its money. Setting a subscription to active triggers no payment, and removing it cancels none: the charge lives with the provider, outside this console. The revenue shown is the sum of the amounts recorded on active subscriptions — not audited revenue, which is read from the transactions confirmed by the webhook. Four sections — challenges, member profiles, opportunities, reports — load when their tab opens: their own status queue lives inside, and while the tab is closed this screen does not know what is waiting there. No renewal reminder: a subscription awaiting payment stays that way until someone opens it."
+    "scope": "This screen administers the Club; it doesn't collect for it. Setting a subscription to active triggers no payment, and removing it cancels none: the charge lives with the provider, outside this console. The revenue shown is the sum of the amounts recorded on active subscriptions — not audited revenue, which is read from webhook-confirmed transactions. SIX sections carry a status queue: subscriptions, events, live sessions, challenges, member profiles, reports. The other THREE carry none, and not by omission — posts, exclusive updates and opportunities hold no state in the database: they are live the second they are written, with no review, no queue and no expiry. The Club's only moderation happens after the fact, and the Reports section is where it lives. Four sections — challenges, member profiles, opportunities, reports — load when their tab is opened: while it is closed, this screen knows nothing of what is waiting there, an open report included. No renewal reminder: a subscription awaiting payment stays that way until someone opens it."
   },
   "common": {
     "save": "Save",
@@ -32,7 +32,9 @@
     "cancel": "Cancel",
     "uploading": "Uploading...",
     "deleteError": "Deletion failed.",
-    "genericError": "Something went wrong."
+    "genericError": "Something went wrong.",
+    "close": "Close",
+    "sectionScopeTitle": "What this section does not cover"
   },
   "subscriptions": {
     "empty": "No subscriptions yet.",
@@ -55,7 +57,19 @@
       "manual": "None"
     },
     "activate": "Activate",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "stages": {
+      "all": "all"
+    },
+    "pipelineLabel": "Subscription status",
+    "listLabel": "Club subscriptions",
+    "emptyAll": "No subscription has been recorded yet. The first will come through the payment flow, or from a manual grant on a user's record.",
+    "emptyStage": "Nothing in this queue. The other statuses are one tap away, in the filter above.",
+    "metaExpires": "expires {{date}}",
+    "cancelAccess": "Revoke access",
+    "amountLabel": "Recorded amount",
+    "sheetNotice": "Activating opens access for the period written on this document; revoking closes it immediately. Neither gesture touches the payment: no charge, no refund, no notice to the member.",
+    "scope": "This list knows nothing about the payment itself: the amount shown is the one written on the subscription document, which the Firestore rules do not validate, and the document is overwritten on renewal — so there is no multi-year history. An expired subscription does not recompute itself: nothing compares the expiry date to today, the status written in the database is what counts. And no reminder is ever sent to anyone."
   },
   "posts": {
     "publishAsAdmin": "Post as Admin",
@@ -72,7 +86,20 @@
     "deleteAria": "Delete",
     "noComments": "No comments.",
     "deleteCommentAria": "Delete comment",
-    "editLabel": "Edit post"
+    "editLabel": "Edit post",
+    "listLabel": "Feed posts",
+    "emptyBody": "The Club feed is empty. A team post opens it; members write afterwards without coming through here.",
+    "likesWord": "likes",
+    "commentsWord": "comments",
+    "memberPost": "Member post",
+    "deletePost": "Delete post",
+    "dateLabel": "Posted on",
+    "likesLabel": "Likes",
+    "commentsLabel": "Comments",
+    "showComments": "Show comments",
+    "hideComments": "Hide comments",
+    "composerNotice": "A team post appears in the Club feed immediately, signed with your account and marked “Admin”. No notification is sent: nobody is told until they open the feed.",
+    "scope": "The feed has no moderation queue, and that is not a missing screen: a post holds no state in the database, it is visible as soon as it is written and nothing holds it back. The Club moderates after the fact — through the Reports section, which does have a queue. Deleting a post here does not tell its author and leaves no record anyone can consult. Only the last hundred posts are loaded; beyond that, this screen sees nothing."
   },
   "events": {
     "new": "New event",
@@ -97,7 +124,21 @@
     "empty": "No events created.",
     "registrations": "Registrations",
     "noRegistrations": "No registrations.",
-    "link": "Link"
+    "link": "Link",
+    "stages": {
+      "all": "all",
+      "upcoming": "upcoming",
+      "past": "past"
+    },
+    "pipelineLabel": "Event status",
+    "listLabel": "Club events",
+    "emptyBody": "Nothing in this queue. The filter above gives access to the other statuses.",
+    "delete": "Delete event",
+    "removeImage": "Remove image",
+    "showRegistrations": "Show registrations",
+    "hideRegistrations": "Hide registrations",
+    "regsNotLoaded": "not measured",
+    "scope": "The upcoming/past status is written by hand: nothing flips it when the date passes, and an event from six months ago stays “upcoming” until somebody corrects it. Registrations load on demand, one event at a time, and can neither be exported nor notified from here: no reminder reaches the people who signed up, before or after. Deleting an event does not delete its registrations."
   },
   "sessions": {
     "new": "New session",
@@ -120,7 +161,21 @@
     "badgePast": "Past",
     "connectionLink": "Join link",
     "registrations": "Registrations",
-    "noRegistrations": "No registrations."
+    "noRegistrations": "No registrations.",
+    "stages": {
+      "all": "all",
+      "upcoming": "upcoming",
+      "past": "past"
+    },
+    "pipelineLabel": "Session status",
+    "listLabel": "Club live sessions",
+    "emptyBody": "Nothing in this queue. The filter above gives access to the other statuses.",
+    "delete": "Delete session",
+    "removeImage": "Remove image",
+    "showRegistrations": "Show registrations",
+    "hideRegistrations": "Hide registrations",
+    "regsNotLoaded": "not measured",
+    "scope": "As with events, the status is set by hand: the scheduled time flips nothing on its own. The joining link is neither generated nor checked here — it is a text field, and a session whose link has expired looks exactly like a valid one. No reminder is sent to the people who signed up, and nothing records who actually joined."
   },
   "infos": {
     "new": "New update",
@@ -137,7 +192,20 @@
     "contentPlaceholder": "Content of the exclusive update...",
     "linkLabel": "External link (optional)",
     "empty": "No exclusive updates created.",
-    "link": "Link"
+    "link": "Link",
+    "types": {
+      "announcement": "Announcement",
+      "article": "Article",
+      "resource": "Resource"
+    },
+    "listLabel": "Exclusive updates",
+    "emptyBody": "No exclusive update published. The first will appear in the members' area as soon as it is saved.",
+    "delete": "Delete update",
+    "likesWord": "likes",
+    "likesLabel": "Likes",
+    "openLink": "Open link",
+    "publishedAtHint": "Date shown to members. It schedules nothing.",
+    "scope": "There is no status queue here, and that is a fact about the product: an exclusive update holds no state in the database. The publication date is a DISPLAY — the members' read does not filter on it, so a future date hides nothing and the update is visible the moment it is saved. No notification goes out on publication, and the content is not translated: it shows exactly as written, to French and English readers alike."
   },
   "challenges": {
     "new": "New challenge",
@@ -158,7 +226,18 @@
     "updated": "Challenge updated.",
     "created": "Challenge created.",
     "saveError": "Could not save.",
-    "deleted": "Challenge deleted."
+    "deleted": "Challenge deleted.",
+    "stages": {
+      "all": "all",
+      "open": "open",
+      "closed": "closed"
+    },
+    "pipelineLabel": "Challenge status",
+    "listLabel": "Club challenges",
+    "emptyBody": "Nothing in this queue. The filter above gives access to closed challenges.",
+    "delete": "Delete challenge",
+    "activeHint": "An open challenge shows to members. Closed, it leaves their screen without being deleted.",
+    "scope": "The start and end dates are decorative: nothing closes a challenge when its end date passes, the switch alone decides what members see. No entry is recorded, no winner is picked, no reward is granted — the “reward” field is displayed text, not an object handed over. Tracking who took part happens entirely outside this console."
   },
   "members": {
     "empty": "No member profiles.",
@@ -181,7 +260,23 @@
     "confirmLabel": "Delete",
     "headlineLabel": "Headline",
     "skillsLabel": "Skills",
-    "cityLabel": "City"
+    "cityLabel": "City",
+    "stages": {
+      "all": "all",
+      "visible": "visible",
+      "hidden": "hidden"
+    },
+    "pipelineLabel": "Profile visibility",
+    "listLabel": "Member profiles",
+    "emptyBody": "Nothing in this queue. A profile is created from the member's own area, never from here.",
+    "emptyBodyAll": "No member has filled in a directory profile yet.",
+    "delete": "Delete profile",
+    "visibilityLabel": "Visible in the directory",
+    "visibilityHint": "Hiding removes the profile from the Club directory without erasing what the member wrote.",
+    "availableLabel": "Open to work",
+    "notAvailable": "Not declared",
+    "noSkills": "No skills listed",
+    "scope": "This screen edits the DIRECTORY RECORD, not the account: hiding or deleting a profile does not suspend Club access, does not touch the subscription, and does not stop the member from posting in the feed. There is no edit history: a headline corrected here overwrites the one the member wrote, without a trace and without telling them. The “open to work” flag is declared by the member and cannot be set from here."
   },
   "opportunities": {
     "empty": "No opportunities published.",
@@ -196,7 +291,17 @@
     "deleteConfirm": "Delete the opportunity “{{title}}”?",
     "deleted": "Opportunity deleted.",
     "deleteTitle": "Delete",
-    "confirmLabel": "Delete"
+    "confirmLabel": "Delete",
+    "listLabel": "Published opportunities",
+    "emptyBody": "No opportunity published. Members write them from their own area; this screen only reads them back.",
+    "delete": "Delete opportunity",
+    "authorLabel": "Posted by",
+    "dateLabel": "Posted on",
+    "typeLabel": "Type",
+    "budgetLabel": "Stated budget",
+    "contactLabel": "Contact",
+    "sheetNotice": "Deleting removes the listing from the members' area immediately. Its author is not told, and nothing keeps a record of it.",
+    "scope": "No status queue: an opportunity holds no state in the database — it is published as soon as a member writes it, it is neither approved before nor closed after, and it carries no expiry. A listing filled six months ago therefore stays at the top until somebody deletes it. Nothing verifies the stated contact, and this screen has no idea whether an introduction ever happened."
   },
   "reports": {
     "empty": "No reports.",
@@ -214,7 +319,19 @@
     "messageDeleted": "Message deleted and report resolved.",
     "messageDeleteError": "Could not delete the message.",
     "confirmTitle": "Confirm",
-    "confirmLabel": "Confirm"
+    "confirmLabel": "Confirm",
+    "stages": {
+      "all": "all"
+    },
+    "pipelineLabel": "Report status",
+    "listLabel": "Reported messages",
+    "emptyOpen": "Nothing is waiting. The filter above gives access to reports already handled.",
+    "emptyAll": "No member has reported a private message.",
+    "sheetTitle": "Reported message",
+    "dateLabel": "Reported on",
+    "conversationLabel": "Conversation",
+    "sheetNotice": "Three different gestures, and two of them cannot be undone. “Delete message” removes the content from both members' conversation and closes the report. “Delete report” throws away the complaint and LEAVES the message in place. “Mark resolved” touches nothing: it files.",
+    "scope": "This screen only ever sees the reported message, never the conversation around it: there is no way to read what came before, so no way to tell one isolated sentence from a pattern. No sanction exists — you cannot warn, suspend or block a member from here, and one author reported ten times shows up as ten unrelated rows. The person who reported is never told what came of it."
   },
   "userEdit": {
     "title": "Manage user",

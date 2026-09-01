@@ -194,7 +194,7 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[color:var(--line)] bg-paper text-ink-2 text-sm font-semibold hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[color:var(--line)] bg-surface-sheet text-ink-2 text-sm font-semibold hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors"
           >
             <Icon name="upload" size={16} /> {t('mediaRecorder.importFile')}
           </button>

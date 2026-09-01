@@ -1,0 +1,51 @@
+<!-- @dsCard group="Plateforme · apprenant" viewport="390x844" name="Espace apprenant" subtitle="Le chemin de l'argent, cliquable — accueil, catalogue, achat, lecteur, certificat" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — Plateforme, espace apprenant</title>
+<link rel="stylesheet" href="../css/styles.css">
+<style>html,body{margin:0;height:100%}body{background:#0A0D11;font-family:var(--f-body);overflow:hidden}#root{width:390px;height:844px;margin:0 auto;position:relative;overflow:hidden}::-webkit-scrollbar{display:none}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="./_bundle.js"></script>
+<script src="./_guard.js"></script>
+<script type="text/babel" src="app-shell.js"></script>
+<script type="text/babel" src="ScreensPublic.js"></script>
+<script type="text/babel" src="ScreensPay.js"></script>
+<script type="text/babel" src="ScreensPayEnd.js"></script>
+<script type="text/babel" src="screens-space.js"></script>
+<script type="text/babel" src="screens-rysmo.js"></script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const ORDRE = ['accueil','catalogue','fiche','paiement','attente','succes','echec','certificat','espace','lecteur','rysmo','memoire','club'];
+
+function App(){
+  const [ecran,setEcran] = React.useState('accueil');
+  const [liste,setListe] = React.useState(false);
+  const go = (n)=>{ setEcran(n); setListe(false); };
+  React.useEffect(()=>{
+    const k = (e)=>{
+      const i = ORDRE.indexOf(ecran);
+      if (e.key==='ArrowRight') go(ORDRE[Math.min(i+1,ORDRE.length-1)]);
+      if (e.key==='ArrowLeft') go(ORDRE[Math.max(i-1,0)]);
+    };
+    window.addEventListener('keydown',k);
+    return ()=>window.removeEventListener('keydown',k);
+  },[ecran]);
+  const V = {accueil:Accueil,catalogue:Catalogue,fiche:Fiche,paiement:Paiement,attente:Attente,succes:Succes,echec:Echec,certificat:Certificat,espace:Espace,lecteur:Lecteur,rysmo:Rysmo,memoire:RysmoMemoire,club:Club}[ecran];
+  return (
+    <React.Fragment>
+      <MMBoundary key={'b'+ecran}>{V ? <V key={ecran} go={go} /> : null}</MMBoundary>
+      <span onClick={()=>setListe(!liste)} title="Liste des écrans" style={{position:'absolute',top:0,left:0,width:'110px',height:'50px',zIndex:30,cursor:'pointer'}} />
+      {liste && (
+        <div onClick={()=>setListe(false)} style={{position:'absolute',inset:0,zIndex:20,background:'rgba(10,13,17,.72)',backdropFilter:'blur(10px)',padding:'70px 24px',display:'flex',flexDirection:'column',gap:'6px'}}>
+          {ORDRE.map(n=>(
+            <button key={n} onClick={(e)=>{e.stopPropagation();go(n);}} style={{textAlign:'left',border:0,cursor:'pointer',borderRadius:'12px',padding:'12px 14px',
+              fontFamily:'var(--f-body)',fontSize:'14px',fontWeight:600,background:n===ecran?'#fff':'rgba(255,255,255,.12)',color:n===ecran?'#0E1116':'#fff'}}>{n}</button>
+          ))}
+          <p style={{color:'#8D98A6',fontSize:'11.5px',fontFamily:'var(--f-mono)',marginTop:'8px'}}>Flèches ← → pour parcourir · appuie sur l'heure pour rouvrir cette liste</p>
+        </div>
+      )}
+    </React.Fragment>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

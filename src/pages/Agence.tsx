@@ -5,11 +5,13 @@ import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, buildCanonical } from '../components/seo/seo-config';
 import DsNavHost from '../components/layout/DsNavHost';
+import ClientWorkIndex from '../components/agency/ClientWorkIndex';
+import VentureCard from '../components/agency/VentureCard';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { trackEvent } from '../lib/tracking';
 import { agencyLeadConfig } from '../lib/agency/engagement';
-import { practices, corporateUrl, legalName, legalEntity } from '../lib/brand';
+import { practices, corporateUrl, legalName, legalEntity, ventures } from '../lib/brand';
 import { DESCRIPTION_MAX, useAgencyEngagement } from './agence/useAgencyEngagement';
 
 /**
@@ -26,12 +28,16 @@ import { DESCRIPTION_MAX, useAgencyEngagement } from './agence/useAgencyEngageme
  * ─────────────────────────────────────────────────────────────────────────────
  * CE QUE CETTE PAGE A CESSÉ DE FAIRE — 856 lignes, neuf sections, contre trois ici.
  *
- * 1. ELLE NE PUBLIE PLUS DE RÉFÉRENCES CLIENTS. `ClientWorkIndex` nommait publiquement douze
- *    organisations, et le dépôt note lui-même que l'accord écrit n'est pas obtenu (FR-105).
- *    Nommer un client sans son accord n'est pas une imprécision, c'est un risque juridique
- *    porté par le client. La section ne se remplace pas par un contenu de substitution :
- *    la NOTE DE DETTE, en bas de page, dit qu'elle a été retirée et pourquoi. Une absence
- *    expliquée se répare ; une absence muette se relit comme un vide.
+ * 1. LES RÉFÉRENCES CLIENTS SONT REVENUES. Elles avaient été retirées parce que la page
+ *    nommait publiquement des organisations sans accord écrit (FR-105) — nommer un client
+ *    sans son accord n'est pas une imprécision, c'est un risque juridique porté par le
+ *    client. Une NOTE DE DETTE disait l'absence et sa raison, plutôt que de la maquiller :
+ *    c'est ce qui lui a donné une date de fin. Les accords sont obtenus, la note a disparu
+ *    avec son objet, et `ClientWorkIndex` a repris sa place.
+ *
+ *    CE QUE LE FEU VERT NE CHANGE PAS : ces produits appartiennent à leurs clients. La page
+ *    nomme le rôle tenu et donne un lien qu'on peut ouvrir. Aucun résultat, aucun chiffre de
+ *    croissance, aucun témoignage — les interdits du § 13 ne dépendaient pas de l'accord.
  *
  * 2. ELLE NE VOUVOIE PLUS, et ne dit plus « nous ». « Comment nous travaillons », « nous
  *    répondons sous deux jours », « nous vous orientons » : quatre sections écrites à la
@@ -242,7 +248,7 @@ export default function Agence() {
 
       <PageSite>
         {/* ── LE HÉROS — 1fr 1fr, gouttière 44, aligné au centre ────────────── */}
-        <div className="grid items-center gap-11 lg:grid-cols-2">
+        <div className="grid items-center gap-11 pb-[14px] wide:grid-cols-2">
           <div>
             {/* La seule marque de couleur de la page, et sa version TEXTE. Le kit écrit ici
                 `#B4231F` — qui est `--stop`, la couleur d'un échec, pas celle de l'agence. */}
@@ -362,7 +368,7 @@ export default function Agence() {
 
               <SiteEyebrow style={{ margin: '18px 0 0' }}>{t('panel.replyEyebrow')}</SiteEyebrow>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 stack:grid-cols-2">
                 <Field
                   label={t('panel.nameLabel')}
                   value={lead.form.name}
@@ -416,7 +422,7 @@ export default function Agence() {
       <SiteBand>
         <SiteDisplay as="h2" lines={t('band.titleLines', { returnObjects: true }) as string[]} size={34} />
 
-        <div className="mt-[22px] grid gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-[22px] grid gap-[14px] stack:grid-cols-2 wide:grid-cols-4">
           {types.map((type, i) => (
             <GlassPanel level="flat" key={type.title} padding={20} className="rv" style={rv(i + 1)}>
               <p className="m-0 font-display text-[17px] font-black tracking-[-.03em] text-ink">
@@ -455,13 +461,13 @@ export default function Agence() {
       </SiteBand>
 
       {/* ── LE PROCESSUS, puis la note de dette ───────────────────────────── */}
-      <PageSite style={{ paddingTop: 'var(--sp-44, 44px)' }}>
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
         <SiteDisplay as="h2" lines={t('process.titleLines', { returnObjects: true }) as string[]} size={34} />
 
         {/* Une liste ORDONNÉE : l'ordre des étapes est porté par le balisage, ce qui laisse
             le grand numéro être ce qu'il est — un ornement, sur `--fill-5`, retiré de
             l'arbre d'accessibilité. Un lecteur d'écran annonce « 1 sur 3 », pas « zéro un ». */}
-        <ol className="mt-[22px] grid list-none gap-4 p-0 md:grid-cols-3">
+        <ol className="mt-[22px] grid list-none gap-4 p-0 stack:grid-cols-3">
           {steps.map((step, i) => (
             <li key={step.n}>
               <GlassPanel level="flat" padding={24} className="rv" style={rv(i + 1)}>
@@ -481,17 +487,66 @@ export default function Agence() {
           ))}
         </ol>
 
-        {/*
-          LA NOTE DE DETTE. Ce n'est pas une note de bas de page : c'est ce qui reste d'une
-          section entière — « avec qui nous travaillons », douze organisations nommées sans
-          accord écrit. Le système préfère une absence QUI SE DIT à une absence qu'on
-          maquille, parce que la première a une date de fin (FR-105) et la seconde non.
-        */}
-        <div
-          className="rv mt-6 max-w-[76ch] pl-[15px] text-[13.5px] leading-[1.6] text-ink-2"
-          style={{ ...rv(4), borderLeft: '2px solid var(--mm-corail-t)' }}
-        >
-          <b className="text-corail-txt">{t('note.lead')}</b> {t('note.body')}
+      </PageSite>
+
+      {/*
+        ── LES RÉFÉRENCES, RÉTABLIES ──────────────────────────────────────────────────────
+        Cette section avait été retirée et remplacée par une note de dette : la page nommait
+        publiquement des organisations sans accord écrit (FR-105). Les accords sont obtenus,
+        la note n'a plus d'objet, et `ClientWorkIndex` — qui existait, complet, monté nulle
+        part — reprend sa place.
+
+        LA FORME EST CELLE QUE LE COMPOSANT IMPOSE, et elle est juste : une liste numérotée à
+        gauche, UN SEUL aperçu ancré à droite. À quatorze projets, une grille de cartes
+        hautes serait illisible — et surtout elle déclencherait quatorze captures externes en
+        parallèle, sur un produit dont le budget de première vue est de 900 Ko.
+
+        CE QUI RESTE VRAI MALGRÉ LE FEU VERT : ces produits appartiennent à leurs clients. La
+        page n'annonce donc ni résultat, ni chiffre de croissance — elle nomme le rôle tenu et
+        donne le lien. Un lien qu'on peut ouvrir vaut mieux qu'un chiffre qu'on doit croire.
+      */}
+      <SiteBand>
+        <SiteEyebrow>{t('work.eyebrow')}</SiteEyebrow>
+        <SiteDisplay as="h2" lines={t('work.titleLines', { returnObjects: true }) as string[]} size={34} />
+        <p className="rv mt-3 max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
+          {t('work.lede')}
+        </p>
+        <div className="mt-7">
+          <ClientWorkIndex />
+        </div>
+      </SiteBand>
+
+      {/*
+        ── LES PRODUITS DU STUDIO, ENFIN MONTÉS ──────────────────────────────────────────
+        `VentureCard` existait, complet, rendu nulle part ; `work.venturesTitle` et
+        `venturesDesc` étaient écrites en FR et en EN sans consommateur. Les trois ventures
+        étaient donc dans le code et invisibles sur le site.
+
+        POURQUOI PAS DANS L'INDEX AU-DESSUS. `clients.ts` interdit nommément d'y faire entrer
+        STEPS : il porterait « Client product » alors que `docs/CONTENT-TODO.md §3` a tranché
+        que STEPS est une venture MY ONOMA, et rien d'autre. Deux listes, deux grilles, deux
+        relations — jamais mélangées.
+
+        POURQUOI UN `PageSite` ET NON UNE SECONDE `SiteBand`. Deux bandes collées partagent le
+        même `--surface-band` : elles fondraient en un seul aplat, et la séparation que la
+        règle exige ne serait plus lisible. Le fond de page la rend, sans une ligne de CSS.
+
+        LE TITRE A SES COUPURES ÉCRITES (AD-13). « Products built inside MY ONOMA » en une
+        seule ligne `nowrap` réclame plus que la colonne d'un écran de 390 : c'est exactement
+        le débordement corrigé ailleurs sur cette page.
+      */}
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
+        <SiteDisplay as="h2" lines={t('work.venturesTitleLines', { returnObjects: true }) as string[]} size={34} />
+        <p className="rv mt-3 max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2" style={rv(1)}>
+          {t('work.venturesDesc')}
+        </p>
+
+        <div className="mt-7 grid gap-6 stack:grid-cols-2 wide:grid-cols-3">
+          {ventures.map((venture, i) => (
+            <div key={venture.slug} className="rv" style={rv(i + 2)}>
+              <VentureCard venture={venture} />
+            </div>
+          ))}
         </div>
       </PageSite>
     </DsNavHost>

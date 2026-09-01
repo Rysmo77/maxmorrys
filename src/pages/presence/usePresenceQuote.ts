@@ -43,6 +43,14 @@ export function usePresenceQuote() {
   const { formatPrice, language } = useFormat();
   const { addToast } = useToast();
   const formRef = useRef<HTMLDivElement>(null);
+  /**
+   * Le SÉLECTEUR, qui n'avait aucune ancre et n'était donc atteignable par aucun lien.
+   * Le bouton du héros s'appelle « Trouve ton pack en 3 questions » et menait au formulaire
+   * de devis — neuf champs. La maquette écrit, dans la section que ce bouton devrait ouvrir :
+   * « Pas de formulaire de dix champs. Trois questions sur ton commerce. » Le libellé tenu
+   * par la traduction et l'action tenue par le code disaient deux choses différentes.
+   */
+  const selectorRef = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -62,6 +70,13 @@ export function usePresenceQuote() {
     setForm((prev) => ({ ...prev, ...patch }));
     setSubmitted(false);
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  /** Fait défiler jusqu'aux TROIS QUESTIONS. Ne touche pas au formulaire : on n'a encore
+   *  rien choisi, et la maquette insiste — aucune donnée personnelle n'est demandée avant
+   *  d'avoir vu la recommandation. */
+  const jumpToSelector = useCallback(() => {
+    selectorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
   /**
@@ -179,7 +194,7 @@ export function usePresenceQuote() {
       // La valeur du lead alimente les conversions GA4 et Meta : sans elle, toutes les
       // demandes pèsent pareil, qu'il s'agisse d'un pack d'entrée ou d'un Commerce 360.
       const totals = computeTotals(form.pack, form.plan);
-      trackGenerateLead('agency_quote_form', totals.upfront || undefined);
+      trackGenerateLead('agency_quote_form', totals.pipelineValue || undefined);
 
       setQuoteRef(ref ?? '');
       setSubmittedData(form);
@@ -208,8 +223,8 @@ export function usePresenceQuote() {
   };
 
   return {
-    form, errors, loading, submitted, quoteRef, quoteUrl, copied, reco, resetSignal, formRef,
+    form, errors, loading, submitted, quoteRef, quoteUrl, copied, reco, resetSignal, formRef, selectorRef,
     handoffMessage, quickMessage,
-    update, handleSubmit, copyQuoteLink, jumpToForm, handleRecommend, acceptReco, resetSelection,
+    update, handleSubmit, copyQuoteLink, jumpToForm, jumpToSelector, handleRecommend, acceptReco, resetSelection,
   };
 }

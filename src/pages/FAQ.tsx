@@ -91,16 +91,23 @@ export default function FAQPage() {
       )}
 
       <PageSite>
-        <SiteEyebrow>{t('index.eyebrow')}</SiteEyebrow>
-        <SiteDisplay lines={t('index.titleLines', { returnObjects: true }) as string[]} size={50} from={1} />
+        {/* NI SOURCIL, NI TITRE SUR DEUX LIGNES. Le kit ouvre cette page par un seul mot
+            d'affichage à 50 px — « Questions fréquentes » (`PagesUtiles.js:22`) — sans sourcil
+            de territoire au-dessus. C'est aussi le libellé du pied de page : la page et le lien
+            qui y mène disaient deux choses différentes. */}
+        <SiteDisplay lines={t('index.titleLines', { returnObjects: true }) as string[]} size={50} />
         <p className="rv mt-[14px] max-w-[54ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 4 }}>
           {t('index.lede')}
         </p>
 
         <div className="rv mt-[22px] max-w-[520px]" style={{ ['--i' as string]: 5 }}>
+          {/* LE LIBELLÉ REDEVIENT VISIBLE. Le kit le rend en deux temps DANS la pilule —
+              « Cherche » en gras, « une question » en gris (`PagesUtiles.js:24`) : c'est ce qui
+              donne au champ sa silhouette et dit ce qu'on remplit avant d'y toucher. `labelHidden`
+              le réservait au lecteur d'écran, et il ne restait qu'un placeholder — qui disparaît,
+              lui, à la première frappe. */}
           <SearchPill
             label={t('index.searchLabel')}
-            labelHidden
             hint={t('index.searchHint')}
             icon={<Icon name="search" size={16} strokeWidth={2.4} />}
             value={search}
@@ -126,8 +133,17 @@ export default function FAQPage() {
         ) : filtered.length === 0 ? (
           <p className="mt-6 max-w-prose text-lede text-ink-2">{t('index.empty')}</p>
         ) : (
-          <div className="mt-[10px] grid gap-5 lg:grid-cols-2">
-            {grouped.map(([name, items], g) => (
+          /*
+            DEUX COLONNES EXPLICITES, ET LE PANNEAU DE CONTACT AU PIED DE LA DROITE.
+            Le kit répartit les blocs entre deux colonnes et ferme la seconde par « Pose-la-moi
+            directement » (`PagesUtiles.js:28-40`) : les deux colonnes se terminent alors à la
+            même hauteur. En flux libre, les groupes se répartissaient tout seuls et le panneau
+            passait pleine largeur sous la grille — la colonne de droite s'arrêtait court.
+          */
+          <div className="mt-[10px] grid gap-5 wide:grid-cols-2 wide:items-start">
+            {[grouped.slice(0, Math.ceil(grouped.length / 2)), grouped.slice(Math.ceil(grouped.length / 2))].map((colonne, ci) => (
+              <div key={ci}>
+                {colonne.map(([name, items], g) => (
               <div key={name}>
                 <SiteEyebrow style={{ marginTop: '22px' }}>{name}</SiteEyebrow>
                 {/* `"6px 22px"` — le contenant canonique d'une liste de `LessonRow`. */}
@@ -144,19 +160,33 @@ export default function FAQPage() {
                   ))}
                 </GlassPanel>
               </div>
+                ))}
+
+                {/*
+                  Le panneau ferme la SECONDE colonne.
+
+                  LES DEUX TEXTES ÉTAIENT AUSSI INTERVERTIS. Le chapô de la page portait « Si la
+                  question revient, elle finit ici » — qui est, dans le kit, le CORPS de ce
+                  panneau (`PagesUtiles.js:36`) — pendant que le panneau affichait en gros titre
+                  « Tu ne trouves pas ? », qui en est le SOURCIL. L'argument de la page, lui, ne
+                  s'affichait nulle part.
+                */}
+                {ci === 1 && (
+                  <GlassPanel level="hero" padding={24} className="rv mt-[22px]" style={{ ['--i' as string]: 8 }}>
+                    <SiteEyebrow style={{ margin: 0 }}>{t('index.contactEyebrow')}</SiteEyebrow>
+                    <p className="m-0 mt-[7px] font-display text-[19px] font-black tracking-[-.03em] text-ink">
+                      {t('index.contactTitle')}
+                    </p>
+                    <p className="mt-2 mb-4 max-w-[52ch] text-meta leading-[1.55] text-ink-2">{t('index.contactBody')}</p>
+                    <Button href={path('/contact')} tone="primary" size="sm" fullWidth={false}>
+                      {t('index.contactCta')}
+                    </Button>
+                  </GlassPanel>
+                )}
+              </div>
             ))}
           </div>
         )}
-
-        <GlassPanel level="hero" padding={24} className="rv mt-[22px]" style={{ ['--i' as string]: 8 }}>
-          <p className="m-0 font-display text-[19px] font-black tracking-[-.03em] text-ink">
-            {t('index.contactTitle')}
-          </p>
-          <p className="mt-2 mb-4 max-w-[52ch] text-meta leading-[1.55] text-ink-2">{t('index.contactBody')}</p>
-          <Button href={path('/contact')} tone="primary" size="sm" fullWidth={false}>
-            {t('index.contactCta')}
-          </Button>
-        </GlassPanel>
 
         <GlassPanel level="truth" className="mt-[22px] max-w-[76ch]">
           <SiteEyebrow style={{ marginBottom: '6px' }}>{t('index.truthTitle')}</SiteEyebrow>

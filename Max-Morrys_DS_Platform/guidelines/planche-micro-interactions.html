@@ -1,0 +1,177 @@
+<!-- @dsCard group="Mouvement" viewport="1180x1500" name="Micro-interactions" subtitle="Huit micro-interactions, en avant / pendant / après — chacune avec sa raison d'exister" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — micro-interactions</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:28px 26px 46px}
+*{box-sizing:border-box}
+.wrap{max-width:1180px;margin:0 auto}
+.eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+h1{font-family:var(--f-display);font-weight:900;font-size:44px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+h2{font-family:var(--f-display);font-weight:900;font-size:23px;letter-spacing:-.03em;line-height:1;margin:0;color:#fff}
+p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+p.k b{color:#fff;font-weight:600}
+.mi{padding:30px 0;border-top:1px solid #171D24}
+.mi .tete{display:flex;align-items:baseline;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:6px}
+.mi .duree{font-family:var(--f-mono);font-size:11px;color:#8FD8FF;white-space:nowrap}
+.mi .pourquoi{color:#C3CDD9;font-size:13.5px;line-height:1.6;max-width:76ch;margin:8px 0 0;border-left:2px solid var(--mm-violet);padding-left:14px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.st{background:#FBFCFE;border-radius:var(--r-l);padding:18px;color:var(--ink);position:relative;min-height:118px;display:flex;flex-direction:column;justify-content:center}
+.st .lab{position:absolute;top:10px;left:12px;font-family:var(--f-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.st .n{font-family:var(--f-mono);font-size:10px;color:var(--ink-3);margin-top:10px;display:block}
+.pastille{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto}
+.ring{width:26px;height:26px;border-radius:50%;border:2.5px solid rgba(14,17,22,.12);flex:0 0 auto}
+.ligne{display:flex;align-items:center;gap:12px}
+.ligne b{font-size:14px;font-weight:600}
+.prog{height:8px;border-radius:5px;background:rgba(14,17,22,.09);overflow:hidden;margin-top:14px}
+.prog i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#0057BC,#6C23DD,#F38B0A,#02AC9C)}
+.qb{display:flex;gap:3px;align-items:center}
+.qb i{width:15px;height:5px;border-radius:3px;background:rgba(14,17,22,.12)}
+.qb i.f{background:var(--mm-violet)}
+.num{font-family:var(--f-mono);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:999px;font-weight:700;font-size:14px;border:0}
+.pay{display:flex;align-items:center;gap:12px;padding:13px;border-radius:var(--r-m);min-height:64px;background:rgba(255,255,255,.7)}
+.chip{height:36px;display:inline-flex;align-items:center;padding:0 15px;border-radius:999px;background:rgba(14,17,22,.05);border:1px solid var(--line);color:var(--ink-2);font-size:12.5px;font-weight:500}
+.chip.on{background:var(--ink);color:#fff;font-weight:600;border-color:var(--ink)}
+.inp{display:flex;align-items:center;min-height:48px;padding:0 14px;border-radius:var(--r-m);background:#fff;border:1.5px solid rgba(14,17,22,.13);font-size:14px;color:var(--ink-3)}
+.sw{width:48px;height:29px;border-radius:16px;background:rgba(14,17,22,.16);position:relative;display:inline-block}
+.sw b{position:absolute;left:3px;top:3px;width:23px;height:23px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(14,17,22,.24)}
+.tg{display:inline-flex;align-items:center;height:27px;padding:0 11px;border-radius:999px;font-size:11px;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{text-align:left;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6D7987;font-weight:400;padding:0 12px 8px 0}
+td{padding:9px 12px 9px 0;border-top:1px solid #1B222A;color:#B6C0CC;vertical-align:top}
+td b{color:#fff}
+</style></head><body><div class="wrap">
+<p class="eb">Mouvement · micro-interactions</p>
+<h1>Huit micro-interactions.<br>Chacune a une raison.</h1>
+<p class="k">Une micro-interaction sans raison d'exister est un tic. Chacune de celles-ci répond à une question que la personne se pose au moment du geste : <b>est-ce que ça a marché, et qu'est-ce que ça a produit ?</b> Si je ne trouve pas la question, je ne fais pas l'animation.</p>
+
+<!-- 1 -->
+<section class="mi">
+<div class="tete"><h2>Cocher une leçon</h2><span class="duree">pastille 220 ms · barre 380 ms</span></div>
+<p class="pourquoi">Les deux sont <b style="color:#fff">liées</b> : la pastille dit « c'est enregistré », la barre dit « voilà ce que ça change ». Sans la seconde, la personne ne voit pas ce que son geste a produit sur l'ensemble du programme.</p>
+<div class="trio">
+  <div class="st"><span class="lab">Avant</span>
+    <div class="ligne"><span class="ring"></span><b>Les mots que tapent tes clients</b></div>
+    <div class="prog"><i style="width:30%"></i></div><span class="n">15 / 47 · 30 %</span></div>
+  <div class="st"><span class="lab">Pendant · 110 ms</span>
+    <div class="ligne"><span class="pastille" style="background:rgba(15,123,82,.08)"><img src="../assets/icons/check.svg" width="13" height="13" alt="" style="opacity:.45"></span><b>Les mots que tapent tes clients</b></div>
+    <div class="prog"><i style="width:32%"></i></div><span class="n">la barre rattrape · aucune secousse</span></div>
+  <div class="st"><span class="lab">Après</span>
+    <div class="ligne"><span class="pastille" style="background:rgba(15,123,82,.16)"><img src="../assets/icons/check.svg" width="13" height="13" alt=""></span><b>Les mots que tapent tes clients</b></div>
+    <div class="prog"><i style="width:34%"></i></div><span class="n">16 / 47 · 34 %</span></div>
+</div>
+</section>
+
+<!-- 2 -->
+<section class="mi">
+<div class="tete"><h2>Consommer une question Rysmo</h2><span class="duree">220 ms · à l'envoi</span></div>
+<p class="pourquoi">Le segment passe au violet <b style="color:#fff">au moment de l'envoi, pas de la réponse</b> : c'est le geste qui consomme le quota, et l'attribuer à la réponse laisserait croire qu'une question sans réponse est gratuite.</p>
+<div class="trio">
+  <div class="st"><span class="lab">Avant</span>
+    <div class="qb"><i class="f"></i><i class="f"></i><i></i><i></i><i></i><span class="num" style="font-size:11.5px;color:var(--ink-2);margin-left:6px">2 / 5</span></div><span class="n">deux questions posées aujourd'hui</span></div>
+  <div class="st"><span class="lab">Pendant · envoi</span>
+    <div class="qb"><i class="f"></i><i class="f"></i><i style="background:rgba(108,35,221,.45)"></i><i></i><i></i><span class="num" style="font-size:11.5px;color:var(--ink-2);margin-left:6px">3 / 5</span></div><span class="n">le troisième segment se remplit</span></div>
+  <div class="st"><span class="lab">Après</span>
+    <div class="qb"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><span class="num" style="font-size:11.5px;color:var(--ink-2);margin-left:6px">3 / 5</span></div><span class="n">« Il te reste 2 questions aujourd'hui »</span></div>
+</div>
+</section>
+
+<!-- 3 -->
+<section class="mi">
+<div class="tete"><h2>Série quotidienne maintenue</h2><span class="duree">une pulsation · 220 ms</span></div>
+<p class="pourquoi">Le compteur incrémente, <b style="color:#fff">une seule pulsation, pas de confettis</b>. Une mécanique de série qui célèbre trop fabrique de la culpabilité quand elle casse — et elle casse toujours.</p>
+<div class="trio">
+  <div class="st"><span class="lab">Avant</span><span class="eb" style="color:var(--ink-2);margin:0">Série</span><span class="num" style="font-size:27px">3 j</span><span class="n">record : 7 j</span></div>
+  <div class="st"><span class="lab">Pendant · 110 ms</span><span class="eb" style="color:var(--ink-2);margin:0">Série</span><span class="num" style="font-size:27px;transform:scale(1.08);transform-origin:left center;display:inline-block">4 j</span><span class="n">une pulsation, et c'est tout</span></div>
+  <div class="st"><span class="lab">Après</span><span class="eb" style="color:var(--ink-2);margin:0">Série</span><span class="num" style="font-size:27px">4 j</span><span class="n">record : 7 j</span></div>
+</div>
+</section>
+
+<!-- 4 -->
+<section class="mi">
+<div class="tete"><h2>Copier un code</h2><span class="duree">bascule 220 ms · retour à 1,4 s</span></div>
+<p class="pourquoi">Le bouton devient « Copié » puis revient. <b style="color:#fff">Aucune notification flottante</b> : la confirmation appartient à l'endroit où le geste a eu lieu, pas à un coin de l'écran que la personne ne regarde pas.</p>
+<div class="trio">
+  <div class="st"><span class="lab">Avant</span><span class="btn" style="background:var(--action-transforme);color:#fff;box-shadow:var(--sh-violet);align-self:flex-start">Copier le code</span><span class="n">MOUSSA15</span></div>
+  <div class="st"><span class="lab">Pendant · 120 ms</span><span class="btn" style="background:var(--action-transforme);color:#fff;box-shadow:var(--sh-violet);align-self:flex-start;transform:scale(.975)">Copier le code</span><span class="n">enfoncement, puis bascule sur place</span></div>
+  <div class="st"><span class="lab">Après · 1,4 s</span><span class="btn" style="background:rgba(15,123,82,.13);color:var(--ok);align-self:flex-start"><img src="../assets/icons/check.svg" width="15" height="15" alt="">Copié</span><span class="n">puis retour au libellé d'origine</span></div>
+</div>
+</section>
+
+<!-- 5 -->
+<section class="mi">
+<div class="tete"><h2>Sélectionner un moyen de paiement</h2><span class="duree">220 ms · simultanés</span></div>
+<p class="pourquoi">La bordure s'épaissit <b style="color:#fff">et</b> le radio se remplit, en même temps. Deux confirmations décalées font douter du clic ; simultanées, elles n'en font qu'une.</p>
+<div class="trio">
+  <div class="st"><span class="lab">Avant</span>
+    <div class="pay" style="border:1.5px solid rgba(255,255,255,.65)">
+      <span style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#FFA030,#FF5A00);display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:14px;color:#fff">OM</span>
+      <span style="flex:1"><b style="display:block;font-size:14px">Orange Money</b><span style="font-size:11.5px;color:var(--ink-3)">Code par SMS</span></span>
+      <span style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(14,17,22,.18)"></span></div></div>
+  <div class="st"><span class="lab">Pendant · 110 ms</span>
+    <div class="pay" style="border:1.5px solid rgba(14,17,22,.45);box-shadow:0 0 0 2px rgba(14,17,22,.04)">
+      <span style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#FFA030,#FF5A00);display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:14px;color:#fff">OM</span>
+      <span style="flex:1"><b style="display:block;font-size:14px">Orange Money</b><span style="font-size:11.5px;color:var(--ink-3)">Code par SMS</span></span>
+      <span style="width:22px;height:22px;border-radius:50%;border:4px solid rgba(14,17,22,.6)"></span></div></div>
+  <div class="st"><span class="lab">Après</span>
+    <div class="pay" style="border:1.5px solid rgba(14,17,22,.85);box-shadow:0 0 0 3px rgba(14,17,22,.07)">
+      <span style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#FFA030,#FF5A00);display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:14px;color:#fff">OM</span>
+      <span style="flex:1"><b style="display:block;font-size:14px">Orange Money</b><span style="font-size:11.5px;color:var(--ink-3)">Code par SMS</span></span>
+      <span style="width:22px;height:22px;border-radius:50%;border:7px solid var(--ink)"></span></div></div>
+</div>
+</section>
+
+<!-- 6 -->
+<section class="mi">
+<div class="tete"><h2>Changer de filtre</h2><span class="duree">pilule 220 ms · liste 180 ms</span></div>
+<p class="pourquoi">La pilule active glisse vers sa nouvelle position ; <b style="color:#fff">la liste, elle, fait un fondu</b>. Faire glisser la liste latéralement laisserait croire qu'on a changé de page, alors qu'on a filtré la même.</p>
+<div class="trio">
+  <div class="st"><span class="lab">Avant</span>
+    <div style="display:flex;gap:7px"><span class="chip on">Tout</span><span class="chip">SEO</span><span class="chip">IA</span></div>
+    <div style="display:grid;gap:6px;margin-top:12px"><span style="height:14px;border-radius:6px;background:rgba(14,17,22,.08)"></span><span style="height:14px;border-radius:6px;background:rgba(14,17,22,.08);width:84%"></span></div></div>
+  <div class="st"><span class="lab">Pendant · 90 ms</span>
+    <div style="display:flex;gap:7px"><span class="chip" style="background:rgba(14,17,22,.5);color:#fff;border-color:transparent">Tout</span><span class="chip" style="background:rgba(14,17,22,.5);color:#fff;border-color:transparent">SEO</span><span class="chip">IA</span></div>
+    <div style="display:grid;gap:6px;margin-top:12px;opacity:.4"><span style="height:14px;border-radius:6px;background:rgba(14,17,22,.08)"></span><span style="height:14px;border-radius:6px;background:rgba(14,17,22,.08);width:84%"></span></div></div>
+  <div class="st"><span class="lab">Après</span>
+    <div style="display:flex;gap:7px"><span class="chip">Tout</span><span class="chip on">SEO</span><span class="chip">IA</span></div>
+    <div style="display:grid;gap:6px;margin-top:12px"><span style="height:14px;border-radius:6px;background:rgba(14,17,22,.08);width:72%"></span><span style="height:14px;border-radius:6px;background:rgba(14,17,22,.08)"></span></div></div>
+</div>
+</section>
+
+<!-- 7 -->
+<section class="mi">
+<div class="tete"><h2>Champ en erreur</h2><span class="duree">220 ms · pas de secousse</span></div>
+<p class="pourquoi">Bordure rouge et message <b style="color:#fff">sous le champ</b>, en fondu. <b style="color:#fff">Pas de secousse</b> : une secousse ajoute du stress à un moment déjà raté, et elle ne dit pas ce qui est faux.</p>
+<div class="trio">
+  <div class="st"><span class="lab">Avant</span><span class="eb" style="color:var(--ink-2);margin:0 0 6px">Écris SUPPRIMER pour confirmer</span><span class="inp">SUPPRIME</span></div>
+  <div class="st"><span class="lab">Pendant · 110 ms</span><span class="eb" style="color:var(--ink-2);margin:0 0 6px">Écris SUPPRIMER pour confirmer</span><span class="inp" style="border-color:rgba(180,35,31,.6);box-shadow:0 0 0 3px rgba(180,35,31,.07)">SUPPRIME</span><span class="n" style="color:rgba(180,35,31,.5)">Le texte ne correspond pas encore.</span></div>
+  <div class="st"><span class="lab">Après</span><span class="eb" style="color:var(--ink-2);margin:0 0 6px">Écris SUPPRIMER pour confirmer</span><span class="inp" style="border-color:var(--stop);box-shadow:var(--error-ring)">SUPPRIME</span><span class="n" style="color:var(--stop)">Le texte ne correspond pas encore.</span></div>
+</div>
+</section>
+
+<!-- 8 -->
+<section class="mi">
+<div class="tete"><h2>Interrupteur</h2><span class="duree">220 ms · désactivé : aucun retour</span></div>
+<p class="pourquoi">Le curseur glisse et le fond passe au dégradé. <b style="color:#fff">L'interrupteur désactivé — le canal e-mail — ne bouge pas et n'a aucun retour au toucher</b> : un retour tactile sur un réglage qui ne fait rien est un mensonge de plus.</p>
+<div class="trio">
+  <div class="st"><span class="lab">Avant</span><span class="sw"><b></b></span><span class="n">Digest du Club · inactif</span></div>
+  <div class="st"><span class="lab">Pendant · 110 ms</span><span class="sw" style="background:rgba(80,60,180,.5)"><b style="transform:translateX(10px)"></b></span><span class="n">le curseur glisse, le fond bascule</span></div>
+  <div class="st"><span class="lab">Après</span><span class="sw" style="background:var(--action-forme)"><b style="transform:translateX(19px)"></b></span><span class="n">Digest du Club · actif dans l'application</span>
+    <div style="margin-top:14px;display:flex;align-items:center;gap:10px;opacity:.4"><span class="sw"><b></b></span><span class="n" style="margin:0">Par e-mail · pas encore disponible</span></div></div>
+</div>
+</section>
+
+<section class="mi">
+<h2>Ce que je n'ai pas fait, et pourquoi</h2>
+<table>
+<tr><th>Micro-interaction courante</th><th>Pourquoi elle n'existe pas ici</th></tr>
+<tr><td><b>Confettis à la fin d'une formation</b></td><td>Le certificat porte déjà le moment. Deux célébrations pour un même instant en annulent une.</td></tr>
+<tr><td><b>Secousse sur un champ invalide</b></td><td>Elle ajoute du stress et ne dit pas ce qui est faux. Le message sous le champ le dit.</td></tr>
+<tr><td><b>Notification flottante de confirmation</b></td><td>Elle apparaît là où la personne ne regarde pas. La confirmation reste sur le bouton.</td></tr>
+<tr><td><b>Chargement en rond qui tourne</b></td><td>Remplacé par un squelette qui a la forme du contenu : quand le contenu arrive, rien ne saute.</td></tr>
+<tr><td><b>Compteur qui défile chiffre par chiffre</b></td><td>Un nombre vérifié s'affiche, il ne se met pas en scène. La règle du monospace l'interdit implicitement.</td></tr>
+<tr><td><b>Effet de survol porteur d'information</b></td><td>Sur mobile, le survol n'existe pas. Il ne fait que confirmer une cible, sur pointeur fin.</td></tr>
+</table>
+</section>
+</div></body></html>

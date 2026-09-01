@@ -131,11 +131,13 @@ export default function AchievementsTab({
 
   return (
     <div className="mx-auto max-w-4xl px-[18px] py-6">
-      <h1 className="m-0 font-display text-dsp-xs text-ink">{t('achievements.screenTitle')}</h1>
-
+      {/* Le titre de l'écran est celui de la barre haute de `AppShell`, alimentée par
+          `titleMap` — donc pour chaque route sans exception. En rendre un second ici donnait
+          DEUX <h1> par écran et le même mot écrit deux fois à quinze centimètres d'intervalle.
+          C'est la décision déjà prise pour les dix-neuf écrans de console (`ConsolePage`). */}
       {/* ── Quatre relevés. Sans profil de jeu lu, ils disent « non relevé ». ────── */}
       <p className="mm-eyebrow mt-[18px]">{t('achievements.gamificationEyebrow')}</p>
-      <div className="mt-[10px] grid grid-cols-2 gap-[10px] sm:grid-cols-4">
+      <div className="mt-[10px] grid grid-cols-2 gap-[10px] stack:grid-cols-4">
         <StatTile
           label={t('achievements.xpLabel')}
           value={gamification ? gamification.xp : null}

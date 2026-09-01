@@ -1,19 +1,39 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Card from '../../../components/ui/Card';
-import Badge from '../../../components/ui/Badge';
-import Button from '../../../components/ui/Button';
+import { Button, EmptyState, Field, Icon, LessonRow, Switch, Tag } from '@ds';
+import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
+import ConsoleSheet from './ConsoleSheet';
 import { useToast } from '../../../components/ui/Toast';
 import { useFormat } from '../../../hooks/useFormat';
 import { getClubChallenges, saveClubChallenge, deleteClubChallenge } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';
 import type { ClubDigitosChallenge } from '../../../types';
-import { Field, Icon } from '@ds';
 import ConsoleListSkeleton from './ConsoleListSkeleton';
 
+/**
+ * ── DÉFIS — le seul des neuf onglets dont le kit dicte la file ──────────────────────
+ *
+ * `PipelinesRestants` l'écrit en toutes lettres : `Défis : tout · en cours · clos`. Elle
+ * n'existait pas. `active` est pourtant un booléen écrit en base et lu par l'écran public du
+ * Club : un défi « inactif » n'y apparaît plus. Autrement dit, l'état qui décide de ce que
+ * voient les membres n'était pas filtrable par celui qui le règle.
+ *
+ * « CLOS » ET NON « INACTIF ». Le mot vient du kit, et il est plus juste : un défi a un début
+ * et une fin, il se termine, il ne se « désactive » pas. Le libellé de l'interrupteur, lui,
+ * reste « défi en cours » — c'est ce qu'on règle, pas ce qu'on lit.
+ *
+ * ZONE 2 · Deux `<button>` nus par ligne — modifier, supprimer — deviennent une ligne qui
+ * ouvre sa fiche. Le formulaire ET la suppression y vivent, avec la consigne du défi et sa
+ * récompense sous les yeux.
+ * ────────────────────────────────────────────────────────────────────────────────────
+ */
 const EMPTY: Omit<ClubDigitosChallenge, 'id'> = {
   title: '', description: '', reward: '', startsAt: '', endsAt: '', active: true,
 };
+
+type Stage = 'all' | 'open' | 'closed';
+
+const STAGES: Stage[] = ['all', 'open', 'closed'];
 
 export default function ClubChallengesTab() {
   const { t } = useTranslation('adminClub');
@@ -21,6 +41,7 @@ export default function ClubChallengesTab() {
   const { addToast } = useToast();
   const [challenges, setChallenges] = useState<ClubDigitosChallenge[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stage, setStage] = useState<Stage>('all');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ClubDigitosChallenge | null>(null);
   const [form, setForm] = useState<Omit<ClubDigitosChallenge, 'id'>>(EMPTY);
@@ -63,76 +84,123 @@ export default function ClubChallengesTab() {
     try {
       await deleteClubChallenge(id);
       setChallenges((prev) => prev.filter((c) => c.id !== id));
+      setShowForm(false);
       addToast('success', t('challenges.deleted'));
     } catch {
       addToast('error', t('common.deleteError'));
     }
   };
 
-  if (loading) return <ConsoleListSkeleton />;
+  const bar = useMemo(() => STAGES.map((s) => {
+    const label = t(`challenges.stages.${s}`);
+    const n = s === 'all' ? challenges.length : challenges.filter((c) => (s === 'open' ? c.active : !c.active)).length;
+    return { key: s, text: `${label} ${n}` };
+  }), [challenges, t]);
+
+  const filtered = useMemo(
+    () => challenges.filter((c) => stage === 'all' || (stage === 'open' ? c.active : !c.active)),
+    [challenges, stage],
+  );
+
+  if (loading) return <ConsoleListSkeleton label={t('challenges.listLabel')} />;
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => openForm()} icon={<Icon name="plus" size={16} />}>{t('challenges.new')}</Button>
+    <div>
+      <ConsoleFilter
+        stages={bar.map((s) => s.text)}
+        active={bar.find((s) => s.key === stage)?.text}
+        onSelect={(text) => {
+          const hit = bar.find((s) => s.text === text);
+          if (hit) setStage(hit.key);
+        }}
+        label={t('challenges.pipelineLabel')}
+      />
+
+      <div className="mt-4 flex justify-end">
+        <Button size="sm" onClick={() => openForm()}>
+          <Icon name="plus" size={15} /> {t('challenges.new')}
+        </Button>
       </div>
 
-      {showForm && (
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-ink">{editing ? t('challenges.editTitle') : t('challenges.newTitle')}</h3>
-            <button onClick={() => setShowForm(false)} className="p-1 rounded-lg text-ink-2 hover:text-ink-2 transition-colors"><Icon name="close" size={16} /></button>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <Field size="sm" label={t('challenges.titleLabel')} value={form.title} onChange={(v) => setForm((p) => ({ ...p, title: v }))} placeholder={t('challenges.titlePlaceholder')} />
-            </div>
-            <div className="sm:col-span-2">
-              <Field size="sm" label={t('challenges.descriptionLabel')} as="textarea" value={form.description} onChange={(v) => setForm((p) => ({ ...p, description: v }))} rows={3} placeholder={t('challenges.descriptionPlaceholder')} />
-            </div>
-            <Field size="sm" label={t('challenges.rewardLabel')} value={form.reward ?? ''} onChange={(v) => setForm((p) => ({ ...p, reward: v }))} placeholder={t('challenges.rewardPlaceholder')} />
-            <div className="flex items-center gap-2 pt-6">
-              <input type="checkbox" id="ch-active" checked={form.active} onChange={(e) => setForm((p) => ({ ...p, active: e.target.checked }))} className="rounded" />
-              <label htmlFor="ch-active" className="text-sm text-ink-2">{t('challenges.activeLabel')}</label>
-            </div>
-            <Field size="sm" label={t('challenges.startLabel')} type="date" value={form.startsAt} onChange={(v) => setForm((p) => ({ ...p, startsAt: v }))} />
-            <Field size="sm" label={t('challenges.endLabel')} type="date" value={form.endsAt} onChange={(v) => setForm((p) => ({ ...p, endsAt: v }))} />
-          </div>
-          <div className="flex justify-end gap-3 mt-5">
-            <Button variant="outline" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleSave} disabled={saving || !form.title.trim() || !form.description.trim()} loading={saving} icon={<Icon name="save" size={16} />}>
+      <div className="mt-3">
+        {filtered.length === 0 ? (
+          <EmptyState
+            glyph={<Icon name="trophy" size={26} color="var(--mm-violet)" />}
+            glyphBackground="color-mix(in srgb, var(--mm-violet) 20%, transparent)"
+            title={t('challenges.empty')}
+            body={t('challenges.emptyBody')}
+            action={<Button size="sm" onClick={() => openForm()}>{t('challenges.new')}</Button>}
+          />
+        ) : (
+          <ConsoleList label={t('challenges.listLabel')}>
+            {filtered.map((c, i) => (
+              <li key={c.id}>
+                <LessonRow
+                  onClick={() => openForm(c)}
+                  icon={<Icon name="trophy" size={14} color={`var(${c.active ? '--ok' : '--ink-2'})`} />}
+                  iconBackground={`color-mix(in srgb, var(${c.active ? '--ok' : '--ink-2'}) 20%, transparent)`}
+                  title={c.title}
+                  meta={[
+                    c.startsAt && c.endsAt ? `${formatDate(c.startsAt)} → ${formatDate(c.endsAt)}` : null,
+                    c.reward || null,
+                  ].filter(Boolean).join(' · ')}
+                  trailing={(
+                    <Tag tone={c.active ? 'ok' : 'neutral'}>
+                      {t(`challenges.stages.${c.active ? 'open' : 'closed'}`)}
+                    </Tag>
+                  )}
+                  last={i === filtered.length - 1}
+                />
+              </li>
+            ))}
+          </ConsoleList>
+        )}
+      </div>
+
+      <ConsoleScope title={t('common.sectionScopeTitle')}>{t('challenges.scope')}</ConsoleScope>
+
+      <ConsoleSheet
+        open={showForm}
+        onClose={() => setShowForm(false)}
+        closeLabel={t('common.close')}
+        eyebrow={t('page.tabs.challenges')}
+        title={editing ? t('challenges.editTitle') : t('challenges.newTitle')}
+        footer={(
+          <>
+            {editing && (
+              <Button size="sm" tone="quiet" onClick={() => { void handleDelete(editing.id); }} style={{ marginRight: 'auto' }}>
+                {t('challenges.delete')}
+              </Button>
+            )}
+            <Button size="sm" tone="quiet" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
+            <Button
+              size="sm"
+              onClick={() => { void handleSave(); }}
+              loading={saving}
+              disabled={!form.title.trim() || !form.description.trim()}
+            >
               {saving ? t('common.saving') : t('common.save')}
             </Button>
-          </div>
-        </Card>
-      )}
-
-      {challenges.length === 0 && !showForm ? (
-        <Card><p className="text-center text-ink-2 py-8">{t('challenges.empty')}</p></Card>
-      ) : (
-        <div className="space-y-3">
-          {challenges.map((c) => (
-            <Card key={c.id} hover>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <Icon name="trophy" size={16} className="text-transforme" />
-                    <Badge variant={c.active ? 'success' : 'default'} size="sm">{c.active ? t('challenges.badgeActive') : t('challenges.badgeInactive')}</Badge>
-                    {c.startsAt && c.endsAt && <span className="text-xs text-ink-2">{formatDate(c.startsAt)} → {formatDate(c.endsAt)}</span>}
-                  </div>
-                  <p className="font-bold text-ink mb-1">{c.title}</p>
-                  <p className="text-sm text-ink-2 line-clamp-2">{c.description}</p>
-                  {c.reward && <p className="text-xs text-transforme mt-1 font-semibold">🏆 {c.reward}</p>}
-                </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => openForm(c)} className="p-1.5 rounded-lg text-ink-2 hover:text-forme hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors"><Icon name="pencil" size={16} /></button>
-                  <button onClick={() => handleDelete(c.id)} className="p-1.5 rounded-lg text-ink-2 hover:text-stop hover:bg-[color:var(--fill-2)] dark:hover:bg-[color:var(--night-3)] transition-colors"><Icon name="trash" size={16} /></button>
-                </div>
-              </div>
-            </Card>
-          ))}
+          </>
+        )}
+      >
+        <Field size="sm" label={t('challenges.titleLabel')} value={form.title} onChange={(v) => setForm((p) => ({ ...p, title: v }))} placeholder={t('challenges.titlePlaceholder')} />
+        <Field size="sm" as="textarea" rows={3} label={t('challenges.descriptionLabel')} value={form.description} onChange={(v) => setForm((p) => ({ ...p, description: v }))} placeholder={t('challenges.descriptionPlaceholder')} />
+        <Field size="sm" label={t('challenges.rewardLabel')} value={form.reward ?? ''} onChange={(v) => setForm((p) => ({ ...p, reward: v }))} placeholder={t('challenges.rewardPlaceholder')} />
+        <div className="grid grid-cols-2 gap-4">
+          <Field size="sm" label={t('challenges.startLabel')} type="date" value={form.startsAt} onChange={(v) => setForm((p) => ({ ...p, startsAt: v }))} />
+          <Field size="sm" label={t('challenges.endLabel')} type="date" value={form.endsAt} onChange={(v) => setForm((p) => ({ ...p, endsAt: v }))} />
         </div>
-      )}
+        {/* La case à cocher nue et son `<label htmlFor>` deviennent l'interrupteur du système :
+            même contrat d'accessibilité, mais l'état se lit à distance et la cible fait 44 px. */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="m-0 text-meta font-semibold text-ink">{t('challenges.activeLabel')}</p>
+            <p className="m-0 mt-1 text-meta-2 text-ink-2">{t('challenges.activeHint')}</p>
+          </div>
+          <Switch on={form.active} label={t('challenges.activeLabel')} onChange={(on) => setForm((p) => ({ ...p, active: on }))} />
+        </div>
+      </ConsoleSheet>
     </div>
   );
 }

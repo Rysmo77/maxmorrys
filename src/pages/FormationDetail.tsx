@@ -1,10 +1,11 @@
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
-import { Breadcrumb, Button, CheckLine, GlassPanel, Icon, LessonRow, PriceBlock, Skeleton, Tag } from '@ds';
+import { Breadcrumb, Button, CheckLine, GlassPanel, Icon, LessonRow, PriceBlock, Skeleton, Tag, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLanguage, useLocalizedPath } from '../contexts/LanguageContext';
+import { useFormat } from '../hooks/useFormat';
 import { useTranslatedContent, useTranslatedText } from '../hooks/useTranslatedContent';
 import { useAuth } from '../contexts/AuthContext';
 import { getFormationBySlug } from '../lib/firestore';
@@ -23,6 +24,7 @@ export default function FormationDetail() {
   const { t } = useTranslation('formations');
   const { slug } = useParams();
   const { language } = useLanguage();
+  const { formatDate } = useFormat();
   const { user } = useAuth();
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [formation, setFormation] = useState<Formation | null | undefined>(undefined);
@@ -61,7 +63,7 @@ export default function FormationDetail() {
   if (formation === undefined) {
     return (
       <PageSite>
-        <div className="grid items-start gap-11 lg:grid-cols-[1.1fr_.9fr]">
+        <div className="grid items-start gap-11 wide:grid-cols-[1.1fr_.9fr]">
           <div className="grid gap-4">
             <Skeleton width={180} height={12} />
             <Skeleton height={40} width="80%" />
@@ -92,6 +94,8 @@ export default function FormationDetail() {
    * ou d'une source citée ».
    */
   const modules = formation.modules ?? [];
+  /** Une leçon marquée gratuite existe-t-elle ? C'est ce qui autorise à parler d'aperçu. */
+  const hasFreeLesson = modules.some((m) => (m.lessons ?? []).some((l) => l.isFree));
   const lessons = modules.reduce((n, m) => n + (m.lessons?.length ?? 0), 0);
   const price = formation.promoPrice ?? formation.price;
   const asOf = new Date();
@@ -132,7 +136,7 @@ export default function FormationDetail() {
           ]}
         />
 
-        <div className="mt-4 grid items-start gap-11 lg:grid-cols-[1.1fr_.9fr]">
+        <div className="mt-4 grid items-start gap-11 wide:grid-cols-[1.1fr_.9fr]">
           <div>
             <SiteDisplay wrap lines={[tFormation?.title || formation.title]} size={48} style={{ maxWidth: '18ch' }} />
             <p className="rv mt-4 max-w-[48ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 3 }}>
@@ -156,6 +160,29 @@ export default function FormationDetail() {
               </Tag>
             </div>
 
+            {/*
+              LE BANDEAU EST OBLIGATOIRE SUR TOUT CORPS TRADUIT À LA MACHINE.
+
+              `longDescription` passe par `useTranslatedText()` — donc par une traduction
+              générée au pré-rendu ET MISE EN CACHE, sans invalidation manuelle : une
+              correction du français n'atteint cette page qu'à l'expiration du cache.
+              L'article, le podcast et la vidéo le disent ; la fiche formation était la
+              seule surface à servir un corps traduit sans l'annoncer. La date est celle de
+              la dernière révision de la fiche — la seule que le modèle porte.
+            */}
+            {/* `updatedAt ?? publishedAt` : les deux seules dates que le modèle porte. Sans
+                ni l'une ni l'autre, PAS de bandeau — un bandeau daté d'aujourd'hui serait le
+                nombre inventé que la règle 6 refuse, exactement le raisonnement que
+                `FAQQuestion` tient pour ne pas en poser du tout. */}
+            {language === 'en' && formation.longDescription && (formation.updatedAt ?? formation.publishedAt) && (
+              <TranslationNotice
+                date={formatDate((formation.updatedAt ?? formation.publishedAt) as string)}
+                href={`/formations/${formation.slug}`}
+                originalLabel={t('sheet.translatedOriginal')}
+                style={{ marginTop: '18px', maxWidth: 'var(--measure-prose)' }}
+              />
+            )}
+
             {formation.longDescription && (
               /* La description longue, en prose bornée à 68 caractères. Elle portait le
                  détail de la promesse ; la perdre aurait vidé la page de son argument. */
@@ -169,25 +196,41 @@ export default function FormationDetail() {
             <GlassPanel level="flat" padding="6px 22px">
               {modules.map((module, mi) => {
                 const open = expandedModules.includes(module.id);
-                const firstFree = mi === 0;
+                /*
+                  LA GRATUITÉ EST UNE DONNÉE, PAS UN RANG.
+
+                  C'était `mi === 0` : le premier module portait l'étiquette « Gratuit » et
+                  le glyphe de lecture SANS que rien ne soit consulté. `Lesson.isFree` existe
+                  pourtant au modèle. Une promesse d'avant-achat — « le module d'ouverture est
+                  en accès libre, tu juges avant de payer » — était donc affichée pour toutes
+                  les formations, y compris celles dont aucune leçon n'est marquée gratuite.
+                  C'est la donnée factice de la maquette reprise telle quelle, que
+                  `MAQUETTES.md` demande explicitement de ne pas rejouer.
+                */
+                const moduleFree = (module.lessons ?? []).some((l) => l.isFree);
                 return (
                   <div key={module.id}>
                     <LessonRow
                       state="plain"
                       title={<b className="font-semibold">{module.title}</b>}
-                      meta={`${module.lessons?.length ?? 0} · ${t('sheet.program')}`}
+                      /* Il rendait « 11 · Le programme » : le nombre de leçons collé au TITRE
+                         DE SECTION, faute d'une clé qui compte. Le kit écrit « 11 leçons ·
+                         1 h 08 » (`PagesFormations.js:62`) ; la durée n'est pas reprise parce
+                         que `Lesson.duration` est une chaîne libre — l'additionner produirait
+                         un nombre que personne ne pourrait sourcer, ce que la règle 6 interdit. */
+                      meta={t('sheet.moduleMeta', { count: module.lessons?.length ?? 0 })}
                       onClick={() =>
                         setExpandedModules((prev) =>
                           prev.includes(module.id) ? prev.filter((id) => id !== module.id) : [...prev, module.id],
                         )
                       }
                       icon={
-                        firstFree
+                        moduleFree
                           ? <Icon name="play" size={13} color="var(--paper-fixed)" />
                           : <Icon name="lock" size={14} color="var(--ink-2)" strokeWidth={2.4} />
                       }
-                      iconBackground={firstFree ? 'var(--action-forme)' : 'var(--fill-2)'}
-                      trailing={firstFree ? <Tag tone="ok">{t('sheet.free')}</Tag> : undefined}
+                      iconBackground={moduleFree ? 'var(--action-forme)' : 'var(--fill-2)'}
+                      trailing={moduleFree ? <Tag tone="ok">{t('sheet.free')}</Tag> : undefined}
                       last={mi === modules.length - 1 && !open}
                     />
                     {open && (
@@ -207,7 +250,7 @@ export default function FormationDetail() {
           </div>
 
           {/* LA CARTE DE PRIX, COLLANTE — le seul `hero` de la page. */}
-          <aside className="grid gap-[14px] lg:sticky lg:top-[calc(var(--header-h)+1rem)]">
+          <aside className="grid gap-[14px] wide:sticky wide:top-[calc(var(--header-h)+1rem)]">
             <GlassPanel level="hero" padding={26} className="rv" style={{ ['--i' as string]: 4 }}>
               <PriceBlock
                 size={36}
@@ -224,9 +267,21 @@ export default function FormationDetail() {
               >
                 {t('sheet.enroll')}
               </Button>
-              <Button href={path('/formations')} tone="quiet" style={{ marginTop: '10px' }}>
-                {t('sheet.startFree')}
-              </Button>
+              {/*
+                « Commencer le module gratuit » MENAIT AU CATALOGUE — c'est-à-dire à la page
+                d'où l'on vient. Le geste promis ne se produisait pas : la personne revenait
+                en arrière en croyant avancer.
+
+                Il ouvre maintenant le lecteur, qui sert l'aperçu des leçons marquées
+                gratuites (voir `CoursePlayer`). Et il ne s'affiche QUE si une telle leçon
+                existe : proposer d'ouvrir un module gratuit sur une formation qui n'en a
+                aucun serait la même promesse creuse, un cran plus loin.
+              */}
+              {hasFreeLesson && (
+                <Button href={path(`/cours/${formation.slug}`)} tone="quiet" style={{ marginTop: '10px' }}>
+                  {t('sheet.startFree')}
+                </Button>
+              )}
 
               <div className="my-5 h-px bg-[color:var(--border-hair)]" />
               {(['c1', 'c2', 'c3'] as const).map((key, i) => (
@@ -252,7 +307,8 @@ export default function FormationDetail() {
 
       <SiteBand>
         <SiteDisplay as="h2" lines={t('sheet.forWhoTitle', { returnObjects: true }) as string[]} size={34} />
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {/* Marge 22, pas 24 — `PagesFormations.js:109`. */}
+        <div className="mt-[22px] grid gap-4 stack:grid-cols-2">
           <GlassPanel level="flat" padding={24}>
             <p className="m-0 mb-3 font-display text-[19px] font-black tracking-[-.03em] text-ink">{t('sheet.forYes')}</p>
             {(['y1', 'y2', 'y3'] as const).map((k) => <CheckLine key={k} tone="ok">{t(`sheet.${k}`)}</CheckLine>)}

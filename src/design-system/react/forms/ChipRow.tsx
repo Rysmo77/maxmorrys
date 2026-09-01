@@ -42,6 +42,20 @@ export function ChipRow({ options, value, onChange, height = 40, label, classNam
         display: 'flex',
         gap: 'var(--sp-8)',
         overflowX: 'auto',
+        /*
+         * `overflow-x: auto` NE DÉFILE QUE SI LA LARGEUR EST CONTRAINTE.
+         *
+         * Posé seul, il ne promet rien : un élément de grille ou de flex garde
+         * `min-width: auto`, donc il s'élargit à son contenu au lieu de déborder de
+         * lui-même — et c'est LA PAGE qui défile de côté. Mesuré sur `/en/faq` à 375 px :
+         * la rangée de catégories s'étalait sur 1 162 px et le document sur 419.
+         *
+         * Les deux lignes ci-dessous rendent la promesse exécutable, et elles vivent dans
+         * la primitive plutôt que chez ses appelants : c'est elle qui annonce un
+         * défilement réel, c'est à elle de le garantir partout où elle est montée.
+         */
+        minWidth: 0,
+        maxWidth: '100%',
         padding: '2px 0',
         scrollbarWidth: 'none',
         ...style,

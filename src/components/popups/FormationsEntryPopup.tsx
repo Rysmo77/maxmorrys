@@ -3,8 +3,8 @@ import { motion, useReducedMotion } from 'framer-motion';
 import LocalizedLink from '../shared/LocalizedLink';
 import TranslatedText from '../shared/TranslatedText';
 import { contentPath } from '../../lib/contentPath';
-import { formatPrice } from '../../lib/utils';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useFormat } from '../../hooks/useFormat';
 import { staggerContainer, staggerItem } from '../../lib/animations';
 import type { Formation } from '../../types';
 import { Icon } from '@ds';
@@ -42,6 +42,10 @@ const dismissCls = 'text-xs font-semibold text-white/40 hover:text-white/80 tran
 export default function FormationsEntryPopup({ formation, onAccept, onDismiss }: FormationsEntryPopupProps) {
   const { t } = useTranslation('shared');
   const { language } = useLanguage();
+  /* Le prix passe par le formateur LOCALISÉ. `formatPrice` de `lib/utils` retombe sur
+     `fr-FR` quand on ne lui donne pas de locale : sur /en, cette carte rendait « 95 000 F CFA »
+     — groupement français et nom de devise français — là où le système écrit « 95,000 F ». */
+  const { formatPrice } = useFormat();
   const reduced = useReducedMotion();
 
   const containerProps = reduced
@@ -98,7 +102,7 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
       */}
       <motion.div
         {...itemProps}
-        className="mt-3 lg:mt-6 flex items-start gap-3 lg:gap-4 lg:p-4 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-paper/[0.03]"
+        className="mt-3 lg:mt-6 flex items-start gap-3 lg:gap-4 lg:p-4 lg:rounded-2xl lg:border lg:border-white/10 lg:bg-surface-sheet/[0.03]"
       >
         <LocalizedLink
           to={contentPath('formations', formation, language)}
@@ -120,19 +124,21 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
             as="p"
             className="text-sm lg:text-base font-bold text-white leading-snug line-clamp-2"
           />
+          {/*
+            LA NOTE ET LE NOMBRE D'INSCRITS ONT ÉTÉ RETIRÉS D'ICI.
+
+            Ils y étaient rendus ensemble — une étoile suivie de `formation.rating`, puis
+            `formation.students`. Ce sont deux des interdits ABSOLUS du système, listés côte à
+            côte : « note en étoiles, nombre d'avis, nombre d'élèves ou d'inscrits, taux de
+            réussite, témoignage, logo client » (REGLES-DE-REVUE.md § 6, README § 13). Ce
+            n'est pas une préférence de ton — ces chiffres se vérifient en trente secondes, et
+            un visiteur qui les prend en défaut ne revient pas. Le catalogue et la fiche les
+            avaient déjà perdus ; ils survivaient sur le déclencheur le plus large du registre
+            de pop-ups, c'est-à-dire là où le plus de monde les voyait.
+
+            Reste ce qui se prouve : le prix, et le prix barré quand il y a une promotion.
+          */}
           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
-            {formation.rating > 0 && (
-              <span className="inline-flex items-center gap-1">
-                <Icon name="star" size={14} className="text-informe-txt" />
-                {formation.rating.toFixed(1)}
-              </span>
-            )}
-            {formation.students > 0 && (
-              <span className="inline-flex items-center gap-1">
-                <Icon name="users" size={14} />
-                {t('popups.formationsEntry.students', { count: formation.students })}
-              </span>
-            )}
             <span className="font-bold text-white">{formatPrice(price)}</span>
             {hasPromo && (
               <span className="line-through text-white/30">{formatPrice(formation.price)}</span>

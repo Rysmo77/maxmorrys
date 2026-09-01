@@ -41,7 +41,10 @@ export default function OfflineBanner() {
     >
       <Icon name="alert" size={16} strokeWidth={2.6} />
       <span className="text-meta font-bold">{t('offline.title')}</span>
-      <a href={path('/hors-connexion')} className="text-meta underline underline-offset-2">
+      {/* `/mon-espace/hors-connexion`, et non `/hors-connexion` : la seconde n'est déclarée
+          nulle part (`App.tsx`), donc la SEULE sortie de l'état hors connexion tombait sur la
+          404 — au moment précis où la personne n'a plus de réseau pour se rattraper. */}
+      <a href={path('/mon-espace/hors-connexion')} className="text-meta underline underline-offset-2">
         {t('offline.link')}
       </a>
     </div>

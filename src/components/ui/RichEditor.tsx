@@ -128,14 +128,14 @@ export default function RichEditor({ value, onChange, label, placeholder, minHei
             <button
               type="button"
               onClick={() => setPreview(false)}
-              className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors', !preview ? 'bg-paper text-ink shadow-sm' : 'text-ink-2 hover:text-ink')}
+              className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors', !preview ? 'bg-surface-sheet text-ink shadow-sm' : 'text-ink-2 hover:text-ink')}
             >
               <Icon name="pencil" size={12} /> {t('richEditor.edit')}
             </button>
             <button
               type="button"
               onClick={() => setPreview(true)}
-              className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors', preview ? 'bg-paper text-ink shadow-sm' : 'text-ink-2 hover:text-ink')}
+              className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors', preview ? 'bg-surface-sheet text-ink shadow-sm' : 'text-ink-2 hover:text-ink')}
             >
               <Icon name="eye" size={12} /> {t('richEditor.preview')}
             </button>
@@ -144,7 +144,7 @@ export default function RichEditor({ value, onChange, label, placeholder, minHei
 
         {preview ? (
           <div
-            className="p-6 bg-paper overflow-auto prose prose-sm dark:prose-invert max-w-none prose-headings:font-display prose-img:rounded-xl"
+            className="p-6 bg-surface-sheet overflow-auto prose prose-sm dark:prose-invert max-w-none prose-headings:font-display prose-img:rounded-xl"
             style={{ minHeight }}
             dangerouslySetInnerHTML={{ __html: markdownToHtml(value) || `<p class="text-ink-2 italic">${resolvedPlaceholder}</p>` }}
           />
@@ -155,7 +155,7 @@ export default function RichEditor({ value, onChange, label, placeholder, minHei
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={resolvedPlaceholder}
-            className="w-full p-4 text-sm text-ink bg-paper focus:outline-none font-mono resize-y"
+            className="w-full p-4 text-sm text-ink bg-surface-sheet focus:outline-none font-mono resize-y"
             style={{ minHeight }}
           />
         )}

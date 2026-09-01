@@ -1,0 +1,56 @@
+<!-- @dsCard group="Composants" viewport="700x400" name="Données" subtitle="Étiquettes, progression, lignes, prix, quota, bulles, relevés" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Données</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>html,body{margin:0}body{font-family:var(--f-body);color:var(--ink);background:#FBFCFE;padding:18px}*{box-sizing:border-box}.lbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}.g{display:grid;grid-template-columns:1fr 1fr;gap:20px}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+</head><body><div id="root"></div><script type="text/babel">
+const { Tag, ProgressBar, LessonRow, PriceBlock, QuotaMeter, Avatar, ChatBubble, DocLine, StatTile, GlassPanel, Icon } = window.DesignSystem_b7a7ca;
+function Card(){return (<div className="g play">
+  <div>
+    <p className="lbl">Étiquettes d'état</p>
+    <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}><Tag tone="ok">Vérifié</Tag><Tag tone="warn">En attente</Tag><Tag tone="stop">Bloquant</Tag><Tag>Wave · Orange Money</Tag></div>
+    <p className="lbl" style={{marginTop:'18px'}}>Progression · 34 %</p>
+    <ProgressBar value={34} />
+    <p className="lbl" style={{marginTop:'18px'}}>Lignes de liste — dans un faux verre</p>
+    <GlassPanel level="flat" padding="6px 18px">
+      <LessonRow state="done" title="Choisir tes mots-clés" meta="06:12" />
+      <LessonRow state="current" title="Les mots que tapent tes clients" meta="08:24 · en cours" />
+      <LessonRow state="todo" title="Écrire une fiche qui remonte" meta="07:03" />
+      <LessonRow icon={<Icon name="doc" size={14} />} title="Mes paiements" meta="1 transaction" trailing={<Icon name="forward" size={16} color="#98A1AE" />} last />
+    </GlassPanel>
+    <p className="lbl" style={{marginTop:'18px'}}>Prix</p>
+    <PriceBlock amount="95 000" note="Une fois, accès à vie · ou 3 × 31 700 sans frais" />
+    <PriceBlock amount="250 000" strike="295 000" note="Une fois · lancement" size={23} style={{marginTop:'10px'}} />
+  </div>
+  <div>
+    <p className="lbl">Quota Rysmo</p>
+    <QuotaMeter used={2} total={5} />
+    <p className="lbl" style={{marginTop:'18px'}}>Membres</p>
+    <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+      <Avatar initials="A" /><Avatar initials="SK" size={34} /><Avatar initials="AT" size={34} background="linear-gradient(135deg,#F38B0A,#B4231F)" /><Avatar initials="NF" size={34} background="linear-gradient(135deg,#02AC9C,#0057BC)" />
+    </div>
+    <p className="lbl" style={{marginTop:'18px'}}>Conversation Rysmo</p>
+    <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+      <ChatBubble>Tu t'es arrêtée à la leçon 5 du module 3. On la reprend ?</ChatBubble>
+      <ChatBubble from="me">Comment je choisis mes mots-clés ?</ChatBubble>
+      <ChatBubble typing />
+    </div>
+    <p className="lbl" style={{marginTop:'18px'}}>Lignes de document</p>
+    <GlassPanel padding={16}>
+      <DocLine label="Immatriculée" value="11/04/2022" />
+      <DocLine label="Siège" value="Dakar, Sénégal" />
+      <DocLine label="Piliers" value="BUILD · GROW · OWN" last />
+    </GlassPanel>
+    <p className="lbl" style={{marginTop:'18px'}}>Relevés de console</p>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',background:'#0A0D11',padding:'12px',borderRadius:'var(--r-m)'}}>
+      <StatTile dark label="Encaissé" value="0 F" foot="1 transaction en attente" />
+      <StatTile dark label="Comptes" value="5" foot="dernier : 10 mars" />
+    </div>
+  </div>
+</div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<MMBoundary><Card /></MMBoundary>);
+</script></body></html>

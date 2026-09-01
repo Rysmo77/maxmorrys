@@ -60,7 +60,7 @@ export default function ClubInfos({ data }: ClubInfosProps) {
 
   return (
     <motion.div className="space-y-4" variants={staggerContainer} initial="hidden" animate="visible">
-      <div className="grid items-start gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 wide:grid-cols-2">
         {clubInfos.map((info) => {
           const likes = info.likes ?? [];
           const infoLiked = user ? likes.includes(user.uid) : false;

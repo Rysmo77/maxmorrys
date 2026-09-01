@@ -27,14 +27,15 @@
     "backToSite": "Retour au site",
     "agencyLeads": "Prospects agence",
     "missions": "Projets",
-    "redirects": "Redirections"
+    "redirects": "Redirections",
+    "notifications": "Notifications"
   },
   "placeholder": {
     "description": "Cette section est en cours de développement et sera disponible prochainement."
   },
   "dashboard": {
     "title": "Tableau de bord",
-    "subtitle": "Vue d'ensemble de votre plateforme",
+    "subtitle": "Vue d'ensemble de ta plateforme",
     "refresh": "Actualiser",
     "toastLoadError": "Erreur lors du chargement du tableau de bord.",
     "metricUsers": "Utilisateurs",
@@ -368,7 +369,7 @@
     "emptyState": "Aucun article trouvé.",
     "readTime_one": "{{count}} min",
     "readTime_other": "{{count}} min",
-    "featuredSuffix": " · ⭐ À la une",
+    "featuredSuffix": " · À la une",
     "statusPublished": "Publié",
     "statusDraft": "Brouillon",
     "actionEdit": "Modifier",
@@ -383,7 +384,7 @@
     "fieldExcerptLabel": "Extrait *",
     "fieldExcerptPlaceholder": "Résumé court affiché dans les listings (160 car. max)",
     "fieldContentLabel": "Contenu",
-    "fieldContentPlaceholder": "Rédigez votre article en markdown...",
+    "fieldContentPlaceholder": "Rédige ton article en markdown...",
     "fieldCategoryLabel": "Catégorie",
     "fieldTagsLabel": "Tags (séparés par virgule)",
     "fieldPublishDateLabel": "Date de publication",
@@ -431,7 +432,7 @@
     "count_other": "{{count}} formations",
     "newFormation": "Nouvelle formation",
     "searchPlaceholder": "Rechercher...",
-    "emptyState": "Aucune formation. Créez-en une !",
+    "emptyState": "Aucune formation. Crée-en une.",
     "statusPublished": "Publiée",
     "statusDraft": "Brouillon",
     "cardModulesLessons": "{{modules}} mod · {{lessons}} leçons",
@@ -465,7 +466,7 @@
     "levelAvance": "Avancé",
     "modulesLessonsSummary": "{{modules}} modules · {{lessons}} leçons",
     "addModule": "Ajouter un module",
-    "noModules": "Aucun module. Commencez par en créer un.",
+    "noModules": "Aucun module. Commence par en créer un.",
     "createModule": "Créer un module",
     "newModuleTitle": "Nouveau module",
     "moduleTitlePlaceholder": "Titre du module",
@@ -665,7 +666,7 @@
     "newAnnouncement": "Nouvelle annonce",
     "activeCount_one": "{{count}} active sur {{total}}",
     "activeCount_other": "{{count}} actives sur {{total}}",
-    "empty": "Aucune annonce. Créez la première.",
+    "empty": "Aucune annonce. Crée la première.",
     "badgeActive": "● Active",
     "dateFrom": "Du {{date}}",
     "dateTo": "au {{date}}",
@@ -733,7 +734,7 @@
     "count_other": "{{count}} questions",
     "newQuestion": "Nouvelle question",
     "filterAll": "Toutes",
-    "empty": "Aucune question. Ajoutez-en une.",
+    "empty": "Aucune question. Ajoute-en une.",
     "modal": {
       "newTitle": "Nouvelle question",
       "editTitle": "Modifier la question",
@@ -741,7 +742,7 @@
     },
     "form": {
       "questionLabel": "Question *",
-      "questionPlaceholder": "Quelle est votre question ?",
+      "questionPlaceholder": "Quelle est la question ?",
       "answerLabel": "Réponse *",
       "answerPlaceholder": "Réponse complète...",
       "categoryLabel": "Catégorie",
@@ -1113,7 +1114,7 @@
     "contactPhoneLabel": "Téléphone",
     "addressLabel": "Adresse",
     "socialTitle": "Réseaux sociaux",
-    "socialSubtitle": "Liens vers vos profils",
+    "socialSubtitle": "Liens vers tes profils",
     "announcementTitle": "Bannière d'annonce",
     "announcementSubtitle": "Afficher un message en haut du site",
     "announcementTextLabel": "Texte de l'annonce",
@@ -1160,7 +1161,7 @@
     "save": "Enregistrer les paramètres",
     "toastLoadError": "Erreur lors du chargement des paramètres.",
     "toastSaveSuccess": "Paramètres enregistrés avec succès.",
-    "toastSaveError": "Erreur lors de l'enregistrement. Veuillez réessayer.",
+    "toastSaveError": "Erreur lors de l'enregistrement. Réessaie.",
     "sub": "Console · réglages",
     "sectionLabel": "Section des réglages",
     "section": {
@@ -1364,12 +1365,87 @@
     "confirmDeleteTitle": "Supprimer",
     "scope": "Aucune relance n'est automatique : chaque suivi est un geste manuel, et rien ici n'écrit au prospect — le bouton ouvre son propre logiciel de messagerie. Le filtre range les six statuts du cycle agence en deux files ; le statut fin se choisit sur la fiche. Aucun taux de conversion n'est affiché : celui que calcule la couche données compte comme « décidées » des demandes encore ouvertes, il ne mesure donc rien de stable. Enfin, une demande gagnée n'est pas un encaissement — aucun rail de prélèvement ne passe par cet écran."
   },
+  "notifications": {
+    "title": "Notifications",
+    "consoleSub": "Console · canal sortant",
+    "readingEyebrow": "Relevé",
+    "refresh": "Relire",
+    "loading": "Chargement des notifications",
+    "stagesLabel": "Statut des notifications",
+    "stages": {
+      "all": "tout",
+      "sent": "envoyées",
+      "scheduled": "planifiées"
+    },
+    "tiles": {
+      "sent": "Envoyées",
+      "sentFoot": "lecture bornée aux {{limit}} dernières",
+      "unread": "Non lues",
+      "unreadFoot": "sur ce compte",
+      "scheduled": "Planifiées",
+      "scheduledFoot": "aucune file d'attente n'existe",
+      "scheduledCite": "Aucune file de planification en base"
+    },
+    "datedNote": "Chaque case porte sa date de relevé. « Tout » et « envoyées » comptent la même chose : une notification écrite en base est déjà partie, il n'existe aucun autre état.",
+    "listLabel": "Notifications reçues sur ce compte",
+    "readFailedTitle": "Lecture non aboutie",
+    "readFailedBody": "Aucun relevé n'a pu être pris. Les cases resteraient sans date, elles ne s'affichent donc pas : une estimation ne remplace pas une mesure. Relance la lecture.",
+    "empty": {
+      "inboxTitle": "Aucune notification",
+      "inboxBody": "Rien n'a encore été écrit sur ce compte. Les notifications arrivent des fonctions serveur, jamais de cette console.",
+      "scheduledTitle": "Aucune planification",
+      "scheduledBody": "Cette étape ne peut rien contenir : rien, dans le produit, n'écrit de notification à envoyer plus tard. Le zéro est structurel, pas provisoire."
+    },
+    "types": {
+      "enrollment": "Inscription",
+      "certificate": "Certificat",
+      "content": "Contenu",
+      "club": "Club",
+      "system": "Système"
+    },
+    "tags": {
+      "read": "lue"
+    },
+    "actions": {
+      "markRead": "Marquer lue"
+    },
+    "toastMarkError": "La notification n'a pas pu être marquée lue.",
+    "paths": {
+      "title": "Par où les notifications partent réellement",
+      "enrollment": {
+        "label": "Inscription confirmée",
+        "value": "onEnrollmentCreated — création dans enrollments/"
+      },
+      "certificate": {
+        "label": "Certificat disponible",
+        "value": "onCertificateCreated — création dans certificates/"
+      },
+      "completion": {
+        "label": "Formation terminée",
+        "value": "rysmoCoachNudge — progression franchissant 100 %"
+      },
+      "streak": {
+        "label": "Série en danger",
+        "value": "streakReminder — planifiée, chaque jour à 20:00 UTC"
+      },
+      "course": {
+        "label": "Cours laissé de côté",
+        "value": "courseReminder — planifiée, chaque jour à 10:00 UTC"
+      },
+      "digest": {
+        "label": "Digest du Club",
+        "value": "weeklyClubDigest — planifiée, le lundi à 09:00 UTC"
+      },
+      "note": "Ces six fonctions sont les seules à écrire dans notifications/{userId}/items. Aucune n'écrit le type « contenu » : publier un article, une vidéo ou une formation ne notifie personne."
+    },
+    "scope": "Cette console n'envoie rien et ne programme rien : aucun écran du produit n'écrit de notification, et l'étape « planifiées » restera à zéro tant qu'aucune file d'envoi différé n'existera en base. Tout part des fonctions serveur — onEnrollmentCreated à la création d'une inscription, onCertificateCreated à l'émission d'un certificat, rysmoCoachNudge au franchissement de 100 % de progression — puis de trois tâches planifiées côté serveur et hors d'atteinte d'ici : streakReminder chaque jour à 20:00 UTC, courseReminder chaque jour à 10:00 UTC, weeklyClubDigest le lundi à 09:00 UTC. Publier un contenu ne notifie personne : aucune fonction n'écrit le type « contenu ». Le seul envoi déclenchable à la main, weeklyClubDigestManual, n'est branché sur aucun écran. Enfin, cet écran ne lit QUE la boîte du compte connecté : les règles Firestore réservent la lecture au destinataire, aucune vue inter-comptes n'est possible, et rien ne part par e-mail ni par SMS — une notification n'atteint la personne que si elle ouvre l'application."
+  },
   "redirects": {
     "title": "Redirections",
     "count_one": "{{count}} redirection",
     "count_other": "{{count}} redirections",
     "new": "Nouvelle redirection",
-    "empty": "Aucune redirection. Créez le premier lien d'attribution.",
+    "empty": "Aucune redirection. Crée le premier lien d'attribution.",
     "propagationNotice": "Le Worker met la table en cache une minute : une création ou une modification est servie en moins de 60 secondes, pas instantanément.",
     "hits_one": "{{count}} clic",
     "hits_other": "{{count}} clics",
@@ -1433,7 +1509,7 @@
       "duplicate": "{{source}} est déjà déclarée.",
       "saveError": "Erreur lors de la sauvegarde.",
       "deleteError": "Erreur lors de la suppression.",
-      "copyError": "Copie impossible. Sélectionnez le texte manuellement."
+      "copyError": "Copie impossible. Sélectionne le texte à la main."
     },
     "consoleSub": "Console · référencement",
     "stagesLabel": "Statut des redirections",

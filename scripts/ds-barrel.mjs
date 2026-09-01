@@ -26,6 +26,42 @@ const GROUPS = [
 const uniq = (a) => [...new Set(a)].sort();
 const matchAll = (src, re) => uniq([...src.matchAll(re)].map((m) => m[1]));
 
+/**
+ * LES RÉ-EXPORTS EN LISTE ÉTAIENT INVISIBLES, ET LE BARREL ÉTAIT RÉPARÉ À LA MAIN.
+ *
+ * Le générateur ne reconnaissait que la forme DÉCLARATIVE — `export function X`,
+ * `export type X`. Or `Icon.tsx` republie deux noms qui vivent dans `icons.ts` :
+ *
+ *     export type { IconName };
+ *     export { iconNames } from '../../icons';
+ *
+ * Aucune des deux n'est une déclaration, donc aucune n'atteignait `index.ts`. Quelqu'un a
+ * recollé les deux lignes à la main dans le fichier généré — et c'est précisément le mode de
+ * panne que l'en-tête de ce script annonce vouloir empêcher : au `ds:barrel` suivant, la
+ * réparation disparaît sans bruit et `import type { IconName } from '@ds'` cesse de résoudre.
+ *
+ * Le défaut n'était pas dans le barrel, il était dans le lecteur. On lit donc aussi la forme
+ * en liste, avec ou sans `from`, en dépliant les alias (`X as Y` publie Y).
+ */
+const reexported = (src, wantTypes) => {
+  const noms = [];
+  // `export type { A, B };` / `export { C, D } from '…';` / `export { type E, F } from '…';`
+  for (const m of src.matchAll(/^export\s+(type\s+)?\{([^}]*)\}(?:\s*from\s*['"][^'"]+['"])?\s*;/gm)) {
+    const blocType = Boolean(m[1]);
+    for (let piece of m[2].split(',')) {
+      piece = piece.trim();
+      if (!piece) continue;
+      const estType = blocType || /^type\s+/.test(piece);
+      if (estType !== wantTypes) continue;
+      piece = piece.replace(/^type\s+/, '');
+      // Un alias publie le nom de DROITE : `X as Y` expose Y.
+      const nom = piece.split(/\s+as\s+/).pop().trim();
+      if (/^\w+$/.test(nom) && nom !== 'default') noms.push(nom);
+    }
+  }
+  return noms;
+};
+
 const out = [
   `/**
  * LE POINT D'ENTRÉE UNIQUE DU DESIGN SYSTEM.
@@ -52,8 +88,8 @@ for (const [dir, label] of GROUPS) {
   out.push(`\n/* ── ${label} ─────────────────────────────────────────────────────────── */`);
   for (const f of files) {
     const src = readFileSync(join(path, `${f}.tsx`), 'utf8');
-    const values = matchAll(src, /^export (?:function|const) (\w+)/gm);
-    const types = matchAll(src, /^export (?:interface|type) (\w+)/gm);
+    const values = uniq([...matchAll(src, /^export (?:function|const) (\w+)/gm), ...reexported(src, false)]);
+    const types = uniq([...matchAll(src, /^export (?:interface|type) (\w+)/gm), ...reexported(src, true)]);
     if (values.length) out.push(`export { ${values.join(', ')} } from './react/${dir}/${f}';`);
     if (types.length) out.push(`export type { ${types.join(', ')} } from './react/${dir}/${f}';`);
     n += values.length;

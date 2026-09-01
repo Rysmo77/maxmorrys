@@ -27,7 +27,8 @@
     "backToSite": "Back to site",
     "agencyLeads": "Agency leads",
     "missions": "Projects",
-    "redirects": "Redirects"
+    "redirects": "Redirects",
+    "notifications": "Notifications"
   },
   "placeholder": {
     "description": "This section is under development and will be available soon."
@@ -368,7 +369,7 @@
     "emptyState": "No articles found.",
     "readTime_one": "{{count}} min",
     "readTime_other": "{{count}} min",
-    "featuredSuffix": " · ⭐ Featured",
+    "featuredSuffix": " · Featured",
     "statusPublished": "Published",
     "statusDraft": "Draft",
     "actionEdit": "Edit",
@@ -1363,6 +1364,81 @@
     "notesDirty": "Note not saved yet — it is written when the field loses focus.",
     "confirmDeleteTitle": "Delete",
     "scope": "No follow-up is automatic: every touch is a manual gesture, and nothing here writes to the prospect — the button opens their own mail client. The filter sorts the six statuses of the agency cycle into two queues; the precise status is chosen on the record. No conversion rate is shown: the one the data layer computes counts still-open requests as “decided”, so it measures nothing stable. And a won request is not money received — no collection rail runs through this screen."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "consoleSub": "Console · outbound channel",
+    "readingEyebrow": "Reading",
+    "refresh": "Read again",
+    "loading": "Loading notifications",
+    "stagesLabel": "Notification status",
+    "stages": {
+      "all": "all",
+      "sent": "sent",
+      "scheduled": "scheduled"
+    },
+    "tiles": {
+      "sent": "Sent",
+      "sentFoot": "read capped at the last {{limit}}",
+      "unread": "Unread",
+      "unreadFoot": "on this account",
+      "scheduled": "Scheduled",
+      "scheduledFoot": "no queue exists",
+      "scheduledCite": "No scheduling queue in the database"
+    },
+    "datedNote": "Every tile carries the date it was read. “All” and “sent” count the same thing: a notification written to the database has already gone out, and there is no other state.",
+    "listLabel": "Notifications received on this account",
+    "readFailedTitle": "Reading did not complete",
+    "readFailedBody": "No reading could be taken. The tiles would carry no date, so they are not shown: an estimate is not a measurement. Read again.",
+    "empty": {
+      "inboxTitle": "No notification",
+      "inboxBody": "Nothing has been written to this account yet. Notifications come from the server functions, never from this console.",
+      "scheduledTitle": "Nothing scheduled",
+      "scheduledBody": "This stage cannot hold anything: nothing in the product writes a notification to be sent later. The zero is structural, not temporary."
+    },
+    "types": {
+      "enrollment": "Enrollment",
+      "certificate": "Certificate",
+      "content": "Content",
+      "club": "Club",
+      "system": "System"
+    },
+    "tags": {
+      "read": "read"
+    },
+    "actions": {
+      "markRead": "Mark as read"
+    },
+    "toastMarkError": "The notification could not be marked as read.",
+    "paths": {
+      "title": "Where notifications actually come from",
+      "enrollment": {
+        "label": "Enrollment confirmed",
+        "value": "onEnrollmentCreated — document created in enrollments/"
+      },
+      "certificate": {
+        "label": "Certificate available",
+        "value": "onCertificateCreated — document created in certificates/"
+      },
+      "completion": {
+        "label": "Course completed",
+        "value": "rysmoCoachNudge — progress crossing 100%"
+      },
+      "streak": {
+        "label": "Streak at risk",
+        "value": "streakReminder — scheduled, daily at 20:00 UTC"
+      },
+      "course": {
+        "label": "Course left aside",
+        "value": "courseReminder — scheduled, daily at 10:00 UTC"
+      },
+      "digest": {
+        "label": "Club digest",
+        "value": "weeklyClubDigest — scheduled, Mondays at 09:00 UTC"
+      },
+      "note": "These six functions are the only writers of notifications/{userId}/items. None of them writes the “content” type: publishing an article, a video or a course notifies nobody."
+    },
+    "scope": "This console sends nothing and schedules nothing: no screen in the product writes a notification, and the “scheduled” stage will stay at zero for as long as no deferred-send queue exists in the database. Everything comes from the server functions — onEnrollmentCreated when an enrollment is created, onCertificateCreated when a certificate is issued, rysmoCoachNudge when progress crosses 100% — then from three server-side scheduled jobs that cannot be reached from here: streakReminder daily at 20:00 UTC, courseReminder daily at 10:00 UTC, weeklyClubDigest on Mondays at 09:00 UTC. Publishing content notifies nobody: no function writes the “content” type. The only send that can be triggered by hand, weeklyClubDigestManual, is wired to no screen. Finally, this screen reads ONLY the inbox of the signed-in account: the Firestore rules reserve reads for the recipient, no cross-account view is possible, and nothing goes out by email or SMS — a notification reaches a person only if they open the app."
   },
   "redirects": {
     "title": "Redirects",

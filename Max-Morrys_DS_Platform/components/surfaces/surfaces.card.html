@@ -1,0 +1,51 @@
+<!-- @dsCard group="Composants" viewport="700x400" name="Surfaces" subtitle="Maillage, cinq niveaux de verre, empilement en M, vide, squelette" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Surfaces</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>html,body{margin:0}body{font-family:var(--f-body);color:var(--ink);background:#FBFCFE;padding:18px}*{box-sizing:border-box}.lbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}body{padding:0}.stage{position:relative;min-height:400px;overflow:hidden}.in{position:relative;z-index:3;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+</head><body><div id="root"></div><script type="text/babel">
+const { Mesh, GlassPanel, TerritoryCard, EmptyState, Skeleton, Button, Icon } = window.DesignSystem_b7a7ca;
+function Card(){return (
+  <div className="stage play">
+    <Mesh territory="forme" />
+    <div className="in">
+      <div>
+        <p className="lbl">Empilement en M · chevauchement −14 px</p>
+        <TerritoryCard first territory="forme" meta="6 modules · 47 leçons" title="Je te forme" big="1" bigLabel="formation" />
+        <TerritoryCard territory="informe" meta="Blog · podcast · vidéo" title="Je t'informe" big="46" bigLabel="gratuits" />
+        <TerritoryCard territory="transforme" meta="19 900 F/an ≈ 1 658 F/mois" title="Je te transforme" big="8" bigLabel="onglets" />
+      </div>
+      <div>
+        <p className="lbl">Verre — héros, chrome, faux verre, vérité</p>
+        <GlassPanel level="hero" padding={18} style={{marginBottom:'10px'}}>
+          <p style={{margin:0,fontWeight:700}}>Héros — prix, formulaire principal</p>
+          <p style={{margin:'4px 0 0',fontSize:'12.5px',color:'var(--ink-2)'}}>Aucun flou : il défile. Les valeurs sont dans la fiche « Niveaux de verre », qui les sonde.</p>
+        </GlassPanel>
+        <GlassPanel padding={16} style={{marginBottom:'10px'}}>
+          <p style={{margin:0,fontSize:'12.5px'}}>Chrome — la <b>seule</b> surface qui porte un flou, et seulement si elle ne défile pas.</p>
+        </GlassPanel>
+        <GlassPanel level="flat" padding={16} style={{marginBottom:'10px'}}>
+          <p style={{margin:0,fontSize:'12.5px'}}>Faux verre — listes, fils, grilles. Le défaut sur mobile, pas l'exception.</p>
+        </GlassPanel>
+        <GlassPanel level="truth" style={{marginBottom:'10px'}}>
+          <p className="lbl" style={{margin:'0 0 5px'}}>Ce que je peux te prouver</p>
+          <p style={{margin:0,fontSize:'12.5px',color:'var(--ink-2)'}}>47 leçons, 6 modules, un certificat vérifiable sans compte.</p>
+        </GlassPanel>
+        <p className="lbl">Vide et chargement</p>
+        <GlassPanel level="flat" padding={4}>
+          <EmptyState glyph={<Icon name="book" size={26} color="#8A4B00" />} glyphBackground="linear-gradient(135deg,#FFDCA8,#FFC9CE)"
+            title="Rien à afficher ici." body="Un écran vide est une invitation à agir, pas une excuse."
+            action={<Button tone="primary" size="sm">Publier une formation</Button>} />
+        </GlassPanel>
+        <div style={{display:'grid',gap:'8px',marginTop:'10px'}}>
+          <Skeleton height={26} width="72%" /><Skeleton height={14} /><Skeleton height={14} width="86%" />
+        </div>
+      </div>
+    </div>
+  </div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<MMBoundary><Card /></MMBoundary>);
+</script></body></html>

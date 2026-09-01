@@ -168,13 +168,18 @@
     "whyBody": "I'd rather have two courses I keep up to date than a catalogue that makes up numbers. The opening module of each is free: you judge before you pay.",
     "c1": "Once paid, access is for life",
     "c2": "The opening module is free",
-    "c3": "You pay with Wave or Orange Money",
+    "c3": "You pay with Wave, Orange Money or a card",
     "c4": "Certificate verifiable by its code, without an account",
     "emptyTitle": "The catalogue opens soon.",
     "emptyBody": "No course is online yet. I'd rather tell you than have you click into the void. Create your account: I'll alert you in your space the day it goes live.",
     "emptyCta": "Create your account",
     "emptyNote": "No « email me when it's ready »: the product has no sending channel. The alert arrives in your space.",
-    "lifetime": "Once, lifetime access"
+    "lifetime": "Once, lifetime access",
+    "cardModules_one": "{{count}} module",
+    "cardModules_other": "{{count}} modules",
+    "cardLessons_one": "{{count}} lesson",
+    "cardLessons_other": "{{count}} lessons",
+    "includesTitle": "What each course includes"
   },
   "sheet": {
     "eyebrow": "I'll train you",
@@ -208,6 +213,9 @@
     "q2": "How long do I have access?",
     "a2": "For life. A reworked course stays accessible in its corrected version, without paying again.",
     "q3": "Can I pay in instalments?",
-    "a3": "Write to me before paying. The amount charged is the one recomputed server-side, never the one your browser displays."
+    "a3": "Write to me before paying. The amount charged is the one recomputed server-side, never the one your browser displays.",
+    "moduleMeta_one": "{{count}} lesson",
+    "moduleMeta_other": "{{count}} lessons",
+    "translatedOriginal": "Read the original"
   }
 }

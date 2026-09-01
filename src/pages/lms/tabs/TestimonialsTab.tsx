@@ -212,7 +212,7 @@ export default function TestimonialsTab({
         {/* La cible. La ligne « une formation » reste désactivée tant qu'aucune inscription
             n'existe — et elle le DIT, plutôt que de disparaître sans explication. */}
         <SiteEyebrow style={{ marginTop: '18px' }}>{t('testimonials.aboutLabel')}</SiteEyebrow>
-        <div role="group" aria-label={t('testimonials.targetGroupLabel')} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div role="group" aria-label={t('testimonials.targetGroupLabel')} className="grid grid-cols-1 stack:grid-cols-3 gap-2">
           {TARGETS.map((target) => {
             const disabled = target.id === 'formation' && enrolledWithFormation.length === 0;
             const on = targetKind === target.id;

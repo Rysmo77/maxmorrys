@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Icon, px, tutorNom, useToken } from '../../ds';
+import { Icon, px, useToken, useTutorNom } from '../../ds';
 
 /**
  * ── LA BARRE D'ONGLETS ────────────────────────────────────────────────────────────────
@@ -27,6 +27,11 @@ import { Icon, px, tutorNom, useToken } from '../../ds';
  */
 export default function TabsLayout() {
   const t = useToken();
+  /* `useTutorNom()` et non `tutorNom()` : la barre doit se redessiner quand quelqu'un
+     renomme son tuteur depuis l'écran de mémoire. Avec l'accesseur simple, elle gardait
+     l'ancien nom jusqu'au prochain rendu — et affichait donc « Répétiteur » sous un écran
+     qui venait d'afficher « Coach ». */
+  const tuteur = useTutorNom();
   const insets = useSafeAreaInsets();
   const height = px(t('tabbarH'));
 
@@ -56,7 +61,7 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="repetiteur"
-        options={{ title: tutorNom(), tabBarIcon: ({ color }) => <Icon name="chat" size={21} color={color} /> }}
+        options={{ title: tuteur, tabBarIcon: ({ color }) => <Icon name="chat" size={21} color={color} /> }}
       />
       <Tabs.Screen
         name="club"

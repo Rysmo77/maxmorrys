@@ -1,0 +1,39 @@
+<!-- @dsCard group="Marque" viewport="700x210" name="Niveaux de verre" subtitle="Une seule recette porte un flou : le chrome qui ne défile pas. Valeurs sondées dans le CSS appliqué." -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>html,body{margin:0}body{font-family:var(--f-body);color:var(--ink);background:#FBFCFE}*{box-sizing:border-box}.st{position:relative;height:210px;overflow:hidden}.in{position:relative;z-index:3;padding:18px;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.p{padding:12px;font-size:11.5px;font-weight:600}.p span{display:block;font-family:var(--f-mono);font-size:9.5px;font-weight:400;opacity:.78;margin-top:5px;line-height:1.5}.p em{font-style:normal;color:var(--ok);font-weight:700}</style></head><body>
+<div class="st"><div class="mesh m-transforme"><b></b><b></b><b></b></div>
+<div class="in">
+<div class="glass p">Chrome<span data-sonde=".glass"></span></div>
+<div class="glass-hero p">Héros<span data-sonde=".glass-hero"></span></div>
+<div class="glass-flat p">Faux verre<span data-sonde=".glass-flat"></span></div>
+<div class="glass-d p dk" style="color:#ECF0F5">Nuit<span data-sonde=".glass-d"></span></div>
+<div class="truth p">Vérité<span data-sonde=".truth"></span></div>
+</div></div>
+<script>
+/* Les valeurs sont LUES dans la feuille de styles appliquée, jamais recopiées.
+   Six fichiers redisaient cette recette en chiffres écrits à la main, et quatre ont dérivé du
+   CSS réel au fil des corrections. Une fiche qui se sonde elle-même ne peut plus mentir. */
+(function(){
+  var alpha = function(c){ var m = c.match(/rgba?\(([^)]+)\)/); if (!m) return '—';
+    var p = m[1].split(',').map(function(x){return x.trim();});
+    return p[3] ? String(Number(p[3])).replace(/^0\./,'.') : '1'; };
+  var flou = function(f){ if (!f || f === 'none') return null;
+    var m = f.match(/blur\(([\d.]+)px\)/); return m ? m[1] : '?'; };
+
+  [].forEach.call(document.querySelectorAll('[data-sonde]'), function(n){
+    var sel = n.getAttribute('data-sonde');
+    var d = document.createElement('div');
+    d.className = sel.slice(1);
+    d.style.cssText = 'position:absolute;left:-9999px;width:40px;height:40px';
+    document.body.appendChild(d);
+    var lire = function(){ var s = getComputedStyle(d);
+      return {a: alpha(s.backgroundColor), b: flou(s.backdropFilter || s.webkitBackdropFilter)}; };
+    var normal = lire();
+    document.documentElement.classList.add('lowfi');
+    var bas = lire();
+    document.documentElement.classList.remove('lowfi');
+    d.remove();
+    n.innerHTML = 'α ' + normal.a + ' · ' + (normal.b ? 'blur ' + normal.b : '<em>aucun flou</em>')
+      + '<br>.lowfi α ' + bas.a + (normal.a === bas.a ? ' <em>intact</em>' : '');
+  });
+})();
+</script></body></html>

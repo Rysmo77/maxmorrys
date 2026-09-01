@@ -145,7 +145,7 @@ export default function ClubDigitos() {
         />
 
         {/* ── 1 · Le héros, et ce que l'abonnement contient exactement ─────────── */}
-        <div className="mt-[26px] grid items-center gap-12 lg:grid-cols-[1.08fr_.92fr]">
+        <div className="mt-[26px] grid items-center gap-12 wide:grid-cols-[1.08fr_.92fr]">
           <div>
             <SiteEyebrow>{t('publicPage.eyebrow')}</SiteEyebrow>
             <SiteDisplay lines={t('publicPage.titleLines', { returnObjects: true }) as string[]} size={58} from={1} />
@@ -208,10 +208,10 @@ export default function ClubDigitos() {
         </div>
 
         {/* ── 2 · Garanti / En construction ────────────────────────────────────── */}
-        <div className="mt-[54px]">
+        <div className="mm-section">
           <SiteDisplay as="h2" lines={t('publicPage.guaranteeTitle', { returnObjects: true }) as string[]} size={34} />
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="mt-6 grid gap-4 stack:grid-cols-2">
             {/*
               Les deux panneaux sont ceux du mur d'abonnement, mot pour mot. Le kit les dessine
               une fois (`ClubGaranti`) et le produit les montre deux fois — avant l'achat et
@@ -244,9 +244,9 @@ export default function ClubDigitos() {
         </div>
 
         {/* ── 3 · Les huit onglets ─────────────────────────────────────────────── */}
-        <div className="mt-[54px]">
+        <div className="mm-section">
           <SiteDisplay as="h2" lines={t('publicPage.tabsTitle', { returnObjects: true }) as string[]} size={34} />
-          <div className="mt-6 grid gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid gap-[14px] stack:grid-cols-2 wide:grid-cols-4">
             {TABS.map((tab, i) => (
               <GlassPanel key={tab.key} level="flat" padding={18} className="rv" style={{ ['--i' as string]: (i % 4) + 1 }}>
                 <span aria-hidden="true" className="grid h-[34px] w-[34px] place-items-center rounded-[11px]" style={well(tab.tint)}>
@@ -260,7 +260,7 @@ export default function ClubDigitos() {
         </div>
 
         {/* ── 4 · Un prix, dit des deux façons ─────────────────────────────────── */}
-        <div className="mt-[54px] grid items-center gap-10 lg:grid-cols-2">
+        <div className="mm-section grid items-center gap-10 wide:grid-cols-2">
           <div>
             <SiteDisplay as="h2" lines={t('publicPage.priceTitle', { returnObjects: true }) as string[]} size={34} />
             <p className="rv mt-[14px] max-w-[44ch] text-[15.5px] leading-[1.6] text-ink-2" style={{ ['--i' as string]: 4 }}>
@@ -324,9 +324,9 @@ export default function ClubDigitos() {
         </div>
 
         {/* ── 5 · Et si ce n'est pas pour toi ──────────────────────────────────── */}
-        <div className="mt-[54px]">
+        <div className="mm-section">
           <SiteDisplay as="h2" lines={t('publicPage.fitTitle', { returnObjects: true }) as string[]} size={34} />
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="mt-6 grid gap-4 stack:grid-cols-2">
             <GlassPanel level="flat" padding={24} className="rv" style={{ ['--i' as string]: 1 }}>
               <p className="m-0 font-display text-[19px] font-black tracking-[-.03em] text-ink">
                 {t('publicPage.fitYesTitle')}
@@ -364,7 +364,7 @@ export default function ClubDigitos() {
         </div>
 
         {/* ── 6 · Les questions qu'on me pose ──────────────────────────────────── */}
-        <div className="mt-[54px]">
+        <div className="mm-section">
           <SiteDisplay as="h2" lines={t('publicPage.faqTitle', { returnObjects: true }) as string[]} size={34} />
           <GlassPanel level="flat" padding="8px 26px" className="rv mt-[22px]" style={{ ['--i' as string]: 4 }}>
             {faq.map((item, i) => (
@@ -377,13 +377,13 @@ export default function ClubDigitos() {
         </div>
 
         {/* ── 7 · Avant de payer, écoute-les ───────────────────────────────────── */}
-        <div className="mt-[54px]">
+        <div className="mm-section">
           <SiteDisplay as="h2" lines={t('publicPage.listenTitle', { returnObjects: true }) as string[]} size={34} />
           <p className="rv mt-[14px] max-w-[62ch] text-[15.5px] leading-[1.6] text-ink-2" style={{ ['--i' as string]: 4 }}>
             {t('publicPage.listenLede')}
           </p>
 
-          <div className="mt-6 grid items-center gap-4 lg:grid-cols-[1.1fr_.9fr]">
+          <div className="mt-6 grid items-center gap-4 wide:grid-cols-[1.1fr_.9fr]">
             {firstEpisode ? (
               <div className="rv" style={{ ['--i' as string]: 5 }}>
                 <MediaCard
@@ -430,8 +430,8 @@ export default function ClubDigitos() {
           jetons basculent d'un coup — l'encre, le verre, le violet qui prend sa variante nuit
           lisible — et aucune couleur n'est écrite dans ce fichier.
         */}
-        <div className="dk rv-s mt-[54px] rounded-xl bg-night p-[34px] text-[color:var(--text-body)]">
-          <div className="grid items-center gap-10 lg:grid-cols-[1.2fr_.8fr]">
+        <div className="dk rv-s mm-section rounded-xl bg-night p-[34px] text-[color:var(--text-body)]">
+          <div className="grid items-center gap-10 wide:grid-cols-[1.2fr_.8fr]">
             <div>
               <h2 className="m-0 font-display text-[34px] font-black leading-[1.05] tracking-[-.03em] text-ink">
                 {t('publicPage.finalPre')}{' '}

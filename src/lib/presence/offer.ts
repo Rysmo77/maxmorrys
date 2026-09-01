@@ -127,6 +127,26 @@ export function findPlan(key: AgencyPlan | undefined): PlanDefinition | undefine
   return PLANS.find((p) => p.key === key);
 }
 
+/**
+ * LE PRIX RÉELLEMENT PRATIQUÉ — l'unique chemin vers le montant d'un pack.
+ *
+ * Un pack porte DEUX montants : `price`, le prix de liste, et `promoPrice`, la promotion de
+ * lancement quand elle existe. `docs/OFFRE_AGENCE_TPE.md` ligne 258 tranche lequel est
+ * encaissé : « Présence Locale 295 000 / 225 000 (promo lancement 250 000) ». C'est
+ * `promoPrice` qu'on facture, `price` qui se fait barrer.
+ *
+ * La page de l'offre l'avait compris et affichait 250 000 ; `computeTotals()` lisait `price`
+ * et en annonçait 295 000 sur le devis ouvert derrière le même bouton. Le commerçant cliquait
+ * sur un prix et recevait l'autre — sur la page dont la promesse tient en quatre mots : « les
+ * prix sont affichés ». Les deux lectures passent désormais ici.
+ *
+ * Le barré reste une affaire d'affichage : il lit `promoPrice` et `price` séparément, parce
+ * que montrer d'où vient la remise n'est pas la même chose que la facturer.
+ */
+export function packEffectivePrice(pack: PackDefinition): number {
+  return pack.promoPrice ?? pack.price;
+}
+
 // ── Sélecteur « Trouvez votre pack en 3 questions » ───────────────────────────
 
 /** Réponses possibles à chaque question. L'ordre définit l'ordre d'affichage. */
@@ -210,6 +230,30 @@ export function isValidQuoteRef(ref: string): boolean {
   return /^DV-[0-9A-F]{12}$/.test(ref);
 }
 
+/**
+ * ── LES DEUX MONTANTS NE S'ADDITIONNENT PAS À LA SIGNATURE ────────────────────────────────
+ *
+ * Le champ `upfront` valait `packPrice + planSetup` et portait le libellé « Total à la mise
+ * en place », avec l'échéancier 60/40 calculé dessus. Cas réel produit par le sélecteur :
+ * pack Boutique 895 000 + mise en place Commerce 360 750 000 = **1 645 000 F annoncés à la
+ * signature**, avant 225 000/mois sur six mois d'engagement.
+ *
+ * Cela contredit les deux sources qui font autorité, et qui disent la même chose :
+ *
+ *   • `docs/OFFRE_AGENCE_TPE.md` ligne 4 — « Modèle : **setup-first** — mise en place vendue
+ *     seule, accompagnement mensuel vendu ensuite », et ligne 149 : « Le moment décisif est
+ *     **J+30**, à la fin du support inclus : c'est là que se joue la conversion vers
+ *     l'accompagnement. » Le « 60 % à la commande / 40 % avant mise en ligne » porte sur la
+ *     MISE EN PLACE, pas sur une facture qui contiendrait déjà l'abonnement.
+ *   • La maquette `GrilleComplete` (`reference/screens-tpe.jsx`) — « Un pack se paie une
+ *     fois. Un accompagnement se décide après la mise en ligne, jamais dans le même
+ *     mouvement : additionner les deux au moment de la vente, c'est annoncer une facture de
+ *     première année que la plupart des commerces ne peuvent pas financer. »
+ *
+ * D'où trois champs distincts au lieu d'un. Le total combiné n'a pas disparu — il sert au
+ * pipeline commercial, où il est juste — mais il ne s'appelle plus « dû à la signature » et
+ * n'est plus montré à un prospect.
+ */
 export interface QuoteTotals {
   /** Mise en place du pack retenu (0 si aucun pack) */
   packPrice: number;
@@ -217,8 +261,17 @@ export interface QuoteTotals {
   planSetup: number;
   /** Abonnement mensuel (0 si aucun) */
   planMonthly: number;
-  /** Total dû à la signature : mise en place pack + mise en place accompagnement */
-  upfront: number;
+  /**
+   * DÛ À LA SIGNATURE — la mise en place du pack, et elle seule. C'est le montant sur lequel
+   * porte l'échéancier 60/40, et le seul qu'un prospect voie annoncé comme exigible.
+   */
+  setupDue: number;
+  /**
+   * Valeur commerciale de l'affaire si l'accompagnement est pris : mise en place du pack +
+   * mise en place de l'accompagnement. **Usage interne — pipeline et prévision.** Ne jamais
+   * l'afficher à un prospect ni le passer à `depositAmount()` : ce n'est pas une échéance.
+   */
+  pipelineValue: number;
   /** Engagement en mois, si la formule en impose un */
   commitmentMonths?: number;
   /** Coût total sur la durée d'engagement, quand elle existe */
@@ -230,26 +283,34 @@ export function computeTotals(pack: AgencyPack, plan: AgencyPlan): QuoteTotals {
   const p = findPack(pack);
   const a = findPlan(plan);
 
-  const packPrice = p?.price ?? 0;
+  // `packEffectivePrice` et non `p.price` : le devis, le message WhatsApp, la fiche prospect
+  // et l'acompte 60/40 doivent tous porter le montant que la page a annoncé.
+  const packPrice = p ? packEffectivePrice(p) : 0;
   const planSetup = a?.setupPrice ?? 0;
   const planMonthly = a?.monthlyPrice ?? 0;
-  const upfront = packPrice + planSetup;
+
+  const setupDue = packPrice;
+  const pipelineValue = packPrice + planSetup;
 
   const commitmentMonths = a?.commitmentMonths;
   const commitmentTotal = commitmentMonths
     ? planSetup + planMonthly * commitmentMonths
     : undefined;
 
-  return { packPrice, planSetup, planMonthly, upfront, commitmentMonths, commitmentTotal };
+  return { packPrice, planSetup, planMonthly, setupDue, pipelineValue, commitmentMonths, commitmentTotal };
 }
 
-/** Échéancier du kit : 60% à la commande, 40% avant mise en ligne. */
+/**
+ * Échéancier du kit : 60 % à la commande, 40 % avant mise en ligne.
+ * Il porte sur `setupDue` — la mise en place du pack — et sur rien d'autre. Lui passer
+ * `pipelineValue` remettrait l'abonnement dans l'acompte.
+ */
 export const DEPOSIT_RATE = 0.6;
 
-export function depositAmount(upfront: number): number {
-  return Math.round(upfront * DEPOSIT_RATE);
+export function depositAmount(setupDue: number): number {
+  return Math.round(setupDue * DEPOSIT_RATE);
 }
 
-export function balanceAmount(upfront: number): number {
-  return upfront - depositAmount(upfront);
+export function balanceAmount(setupDue: number): number {
+  return setupDue - depositAmount(setupDue);
 }

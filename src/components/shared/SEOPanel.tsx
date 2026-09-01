@@ -130,8 +130,8 @@ function useChecks(props: SEOPanelProps): { checks: CheckResult[]; score: number
 }
 
 function ScoreRing({ score, t }: { score: number; t: TFunction }) {
-  const color = score >= 71 ? 'text-green-500' : score >= 40 ? 'text-amber-500' : 'text-stop';
-  const bg = score >= 71 ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : score >= 40 ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-[color-mix(in_srgb,var(--stop)_4%,transparent)] border-[color-mix(in_srgb,var(--stop)_18%,transparent)]';
+  const color = score >= 71 ? 'text-ok' : score >= 40 ? 'text-warn' : 'text-stop';
+  const bg = score >= 71 ? 'bg-[color-mix(in_srgb,var(--ok)_4%,transparent)] border-[color-mix(in_srgb,var(--ok)_18%,transparent)]' : score >= 40 ? 'bg-[color-mix(in_srgb,var(--warn)_4%,transparent)] border-[color-mix(in_srgb,var(--warn)_18%,transparent)]' : 'bg-[color-mix(in_srgb,var(--stop)_4%,transparent)] border-[color-mix(in_srgb,var(--stop)_18%,transparent)]';
   const label = score >= 71 ? t('seo.scoreGood') : score >= 40 ? t('seo.scoreFair') : t('seo.scorePoor');
   return (
     <div className={cn('inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-bold', bg, color)}>
@@ -146,7 +146,7 @@ function CheckItem({ check, t }: { check: CheckResult; t: TFunction }) {
   if (check.pass) {
     return (
       <li className="flex items-start gap-2 text-sm text-ink-2">
-        <Icon name="check-circle" size={16} className="text-green-500 flex-shrink-0 mt-0.5" />
+        <Icon name="check-circle" size={16} className="text-ok flex-shrink-0 mt-0.5" />
         {t(check.labelKey)}
       </li>
     );
@@ -161,7 +161,7 @@ function CheckItem({ check, t }: { check: CheckResult; t: TFunction }) {
   }
   return (
     <li className="flex items-start gap-2 text-sm text-ink-2">
-      <Icon name="alert-circle" size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+      <Icon name="alert-circle" size={16} className="text-warn flex-shrink-0 mt-0.5" />
       {t(check.labelKey)}
     </li>
   );
@@ -170,9 +170,9 @@ function CheckItem({ check, t }: { check: CheckResult; t: TFunction }) {
 function CounterBadge({ value, min, max }: { value: number; min: number; max: number }) {
   const color =
     value >= min && value <= max
-      ? 'text-green-600 dark:text-green-400'
+      ? 'text-ok'
       : value >= min - 10 && value <= max + 10
-      ? 'text-amber-600 dark:text-amber-400'
+      ? 'text-warn'
       : 'text-stop';
   return (
     <span className={cn('text-xs font-medium tabular-nums', color)}>
@@ -184,7 +184,7 @@ function CounterBadge({ value, min, max }: { value: number; min: number; max: nu
 function MetaDescProgress({ value, max }: { value: number; max: number }) {
   const pct = Math.min((value / max) * 100, 100);
   const color =
-    value >= 120 && value <= 160 ? 'bg-green-500' : value >= 100 ? 'bg-amber-500' : 'bg-[color:var(--stop)]';
+    value >= 120 && value <= 160 ? 'bg-[color:var(--ok)]' : value >= 100 ? 'bg-[color:var(--warn)]' : 'bg-[color:var(--stop)]';
   return (
     <div className="h-1 w-full rounded-full bg-[color:var(--fill-3)] overflow-hidden mt-1">
       <div className={cn('h-full rounded-full prog-fill transition-[width] duration-200', color)} style={{ width: `${pct}%` }} />
@@ -231,7 +231,7 @@ export default function SEOPanel(props: SEOPanelProps) {
     <div className="space-y-5">
 
       {/* ── A — Keyphrase cible ── */}
-      <div className="rounded-2xl border border-[color:var(--line)] bg-paper p-5">
+      <div className="rounded-2xl border border-[color:var(--line)] bg-surface-sheet p-5">
         <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2 mb-3">{t('seo.keyphraseSection')}</p>
         <div className="space-y-1.5">
           <label htmlFor="seo-focus-keyword" className="block text-sm font-medium text-ink-2">
@@ -245,7 +245,7 @@ export default function SEOPanel(props: SEOPanelProps) {
               value={focusKeyword}
               onChange={(e) => onChange('focusKeyword', e.target.value)}
               placeholder={t('seo.focusKeywordPlaceholder')}
-              className="w-full rounded-xl border border-[color:var(--line)] bg-paper pl-10 pr-4 py-2.5 text-sm text-ink transition-colors focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
+              className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet pl-10 pr-4 py-2.5 text-sm text-ink transition-colors focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
             />
           </div>
           <p className="text-xs text-ink-2">{t('seo.focusKeywordHelp')}</p>
@@ -253,7 +253,7 @@ export default function SEOPanel(props: SEOPanelProps) {
       </div>
 
       {/* ── B — Score SEO ── */}
-      <div className="rounded-2xl border border-[color:var(--line)] bg-paper p-5">
+      <div className="rounded-2xl border border-[color:var(--line)] bg-surface-sheet p-5">
         <div className="flex items-center justify-between mb-4">
           <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2">{t('seo.analysisSection')}</p>
           <ScoreRing score={score} t={t} />
@@ -264,7 +264,7 @@ export default function SEOPanel(props: SEOPanelProps) {
       </div>
 
       {/* ── C — Champs Meta ── */}
-      <div className="rounded-2xl border border-[color:var(--line)] bg-paper p-5 space-y-4">
+      <div className="rounded-2xl border border-[color:var(--line)] bg-surface-sheet p-5 space-y-4">
         <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2">{t('seo.metaSection')}</p>
 
         {/* SEO Title */}
@@ -281,7 +281,7 @@ export default function SEOPanel(props: SEOPanelProps) {
             value={metaTitle}
             onChange={(e) => onChange('metaTitle', e.target.value)}
             placeholder={title || t('seo.seoTitlePlaceholder')}
-            className="w-full rounded-xl border border-[color:var(--line)] bg-paper px-4 py-2.5 text-sm text-ink transition-colors focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
+            className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
           />
           {!metaTitle.trim() && (
             <p className="text-xs text-ink-2 italic">{t('seo.useTitleFallback')}</p>
@@ -302,14 +302,14 @@ export default function SEOPanel(props: SEOPanelProps) {
             onChange={(e) => onChange('metaDescription', e.target.value)}
             placeholder={excerpt || t('seo.metaDescPlaceholder')}
             rows={3}
-            className="w-full rounded-xl border border-[color:var(--line)] bg-paper px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
+            className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
           />
           <MetaDescProgress value={(metaDescription.trim() || excerpt || '').length} max={160} />
         </div>
       </div>
 
       {/* ── D — Aperçu SERP ── */}
-      <div className="rounded-2xl border border-[color:var(--line)] bg-paper p-5">
+      <div className="rounded-2xl border border-[color:var(--line)] bg-surface-sheet p-5">
         <div className="flex items-center justify-between mb-4">
           <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2">{t('seo.googlePreview')}</p>
           <div className="flex gap-1">
@@ -332,11 +332,11 @@ export default function SEOPanel(props: SEOPanelProps) {
           </div>
         </div>
 
-        <div className={cn('bg-paper dark:bg-[color:var(--night-3)] rounded-xl border border-[color:var(--border-hair)] p-4', serpTab === 'mobile' && 'max-w-[340px] mx-auto')}>
+        <div className={cn('bg-surface-sheet rounded-xl border border-[color:var(--border-hair)] p-4', serpTab === 'mobile' && 'max-w-[340px] mx-auto')}>
           {/* URL */}
           <div className="flex items-center gap-1.5 mb-1">
             <Icon name="globe" size={14} className="text-ink-2 flex-shrink-0" />
-            <p className="text-xs text-[#006621] dark:text-green-500 truncate">{displayUrl}</p>  // ok-ds — bleu et vert officiels d'un résultat Google — aperçu SERP
+            <p className="text-xs text-[#006621] dark:text-green-500 truncate">{displayUrl}</p>  {/* ok-ds — bleu et vert officiels d'un résultat Google — aperçu SERP */}
           </div>
           {/* Title */}
           <p
@@ -346,14 +346,14 @@ export default function SEOPanel(props: SEOPanelProps) {
             {displayTitle || t('seo.previewTitleFallback')}
           </p>
           {/* Description */}
-          <p className="text-sm leading-relaxed" style={{ color: '#545454', fontSize: '14px' }}>  // ok-ds — bleu et vert officiels d'un résultat Google — aperçu SERP
+          <p className="text-sm leading-relaxed" style={{ color: '#545454', fontSize: '14px' }}>  {/* ok-ds — bleu et vert officiels d'un résultat Google — aperçu SERP */}
             {displayDesc || t('seo.previewDescFallback')}
           </p>
         </div>
       </div>
 
       {/* ── E — Réseaux sociaux ── */}
-      <div className="rounded-2xl border border-[color:var(--line)] bg-paper p-5">
+      <div className="rounded-2xl border border-[color:var(--line)] bg-surface-sheet p-5">
         <div className="flex items-center justify-between mb-4">
           <p className="text-xs font-bold tracking-[0.2em] uppercase text-ink-2">{t('seo.socialSection')}</p>
           <div className="flex gap-1">
@@ -424,7 +424,7 @@ export default function SEOPanel(props: SEOPanelProps) {
                 onChange={(e) => onChange('ogDescription', e.target.value)}
                 placeholder={excerpt || t('seo.ogDescPlaceholder')}
                 rows={2}
-                className="w-full rounded-xl border border-[color:var(--line)] bg-paper px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
+                className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
               />
             </div>
             <Input
@@ -472,7 +472,7 @@ export default function SEOPanel(props: SEOPanelProps) {
                 onChange={(e) => onChange('twitterDescription', e.target.value)}
                 placeholder={ogDisplayDesc || t('seo.twitterDescPlaceholder')}
                 rows={2}
-                className="w-full rounded-xl border border-[color:var(--line)] bg-paper px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
+                className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
               />
             </div>
             <Input
@@ -486,7 +486,7 @@ export default function SEOPanel(props: SEOPanelProps) {
       </div>
 
       {/* ── F — Avancé (collapsible) ── */}
-      <div className="rounded-2xl border border-[color:var(--line)] bg-paper overflow-hidden">
+      <div className="rounded-2xl border border-[color:var(--line)] bg-surface-sheet overflow-hidden">
         <button
           type="button"
           onClick={() => setAdvancedOpen((o) => !o)}
@@ -532,7 +532,7 @@ export default function SEOPanel(props: SEOPanelProps) {
                 >
                   <span
                     className={cn(
-                      'pointer-events-none inline-block h-5 w-5 rounded-full bg-paper shadow transform transition-transform duration-200',
+                      'pointer-events-none inline-block h-5 w-5 rounded-full bg-surface-sheet shadow transform transition-transform duration-200',
                       noIndex ? 'translate-x-5' : 'translate-x-0'
                     )}
                   />

@@ -66,40 +66,118 @@ celui recalculé côté serveur, jamais celui transmis par le client.
 
 ## Ce que ce dossier contient aujourd'hui
 
-Le socle et le chemin principal. Il **ne duplique pas** les 42 000 lignes du web : la logique
-métier — Firestore, paiement, i18n — reste côté web, et l'application native consomme les
-mêmes données par le SDK Firebase JavaScript.
+Le socle **et les écrans**. Il ne duplique toujours pas les 42 000 lignes du web : la logique
+métier — Firestore, paiement, i18n — reste côté web, et l'application native consomme les mêmes
+données par le SDK Firebase JavaScript, qui n'est pas encore branché.
 
 ```
 mobile/
-  ds/          port natif des primitives — jetons, maillage, verre, typographie
-  app/         écrans, routés par expo-router
+  ds/          24 primitives — jetons, maillage, verre, typographie, contrôles, données
+  app/         34 routes, routées par expo-router
 ```
+
+### Les 24 primitives
+
+| Famille | Primitives |
+|---|---|
+| Fond et surfaces | `Mesh` `Surface` `Skeleton` `EmptyState` `TerritoryCard` |
+| Typographie et nombres | `Display` `Body` `Eyebrow` `Num` |
+| Actions | `Button` `Icon` |
+| Formulaires | `Field` `Switch` `Segmented` `ChipRow` `PayOption` `StepDots` |
+| Données | `Tag` `LessonRow` `ProgressBar` `QuotaMeter` `Avatar` `ChatBubble` `CheckLine` `DocLine` `PriceBlock` `StatTile` |
+
+**Un écran importe depuis `../ds`, jamais d'un chemin profond** : le jour où une primitive
+change de fichier, c'est l'écran qui casse sans que rien ne l'ait annoncé.
+
+**Aucune couleur n'est écrite dans un écran.** `useToken()` est la seule source, et `veil()`
+dérive un fond translucide de son encre plutôt que d'en figer les canaux — un `rgba` écrit à la
+main garderait le vert du mode clair alors que `--ok` change en nuit. Ces trois règles sont
+vérifiées par `tests/unit/mobile-ds.test.ts`, depuis la suite de la racine : ce dossier n'a pas
+de lanceur de tests à lui, et n'en aura pas.
+
+### Les deux moments scénarisés sont ici
+
+Le système n'accorde une mise en scène qu'à deux endroits du produit, et les deux sont portés :
+
+- **L'attente de paiement** (`app/attente.tsx`) — deux anneaux, `scale` 1 → 1,85, opacité .5 → 0,
+  2,6 s, le second décalé de 1,3 s, en boucle. `useNativeDriver: true` : `scale` et `opacity`
+  sont les deux propriétés que le pilote natif accepte, et exactement les deux que la règle 3
+  autorise. **Pas de compte à rebours** — la durée dépend de Wave.
+- **L'émission du certificat** (`app/certificat.tsx`) — brillance diagonale, deux passages, puis
+  arrêt définitif. Non rejouable.
+
+Les deux respectent `AccessibilityInfo.isReduceMotionEnabled()`, et n'y répondent pas en
+ramenant les durées à 1 ms — ce qui ferait tourner une boucle à plein régime pour un résultat
+immobile — mais en **ne lançant aucune animation**.
+
+### Aucun écran ne simule de données
+
+C'est la règle qui a le plus gouverné ces écrans. Aucune liste de démonstration : chaque écran
+lit ses valeurs par `useLocalSearchParams()` ou **dit précisément ce qui n'est pas branché, et
+le dommage qu'une simulation causerait**. Un cours inventé est un cours qu'on croit avoir ; un
+message inventé dans le fil du Club porte le nom de quelqu'un qui ne l'a jamais écrit ; un
+budget inventé fixe une attente de revenu.
+
+Corollaire : **un nombre n'existe que s'il arrive avec sa date de relevé.** Sans elle, `<Num>`
+écrit « non relevé ». Un zéro DATÉ, lui, s'affiche — c'est une information.
+
+### Ce qui n'est pas encore branché
+
+Le SDK Firebase, donc : l'authentification, la lecture des inscriptions, l'écriture d'une note,
+le quota du répétiteur, les échanges. Là où le geste existe déjà sur le web, l'écran ouvre le
+site dans le navigateur système avec la même session (`openAuthSessionAsync`), pour la même
+raison qu'AD-11 : ne pas faire semblant d'avoir ce qu'on n'a pas.
+
+`setTutorNom()` ne persiste pas, et **ne doit pas** persister localement : le nom du tuteur vit
+dans le profil (`users/<uid>.tutorName`), comme au web. Un magasin local créerait une seconde
+source de vérité à réconcilier. Ce module est un cache de session, à alimenter depuis le profil
+au démarrage quand Firebase sera là.
 
 ## Les écrans, et lesquels portent la barre
 
 Le kit désigne cinq onglets, et le troisième n'a pas de nom fixe
-(`ui_kits/plateforme/ScreensSpace.js`, `mmTabItems`) :
+(`reference/screens-space.jsx`, `mmTabItems`) :
 
 | Onglet | Fichier | Territoire |
 |---|---|---|
 | Espace | `app/(tabs)/index.tsx` | forme |
 | Cours | `app/(tabs)/cours.tsx` | forme |
-| **`tutorNom()`** — « Répétiteur » par défaut | `app/(tabs)/repetiteur.tsx` | transforme |
+| **`useTutorNom()`** — « Répétiteur » par défaut | `app/(tabs)/repetiteur.tsx` | transforme |
 | Club | `app/(tabs)/club.tsx` | transforme |
 | Profil | `app/(tabs)/profil.tsx` | informe |
 
-Hors de la barre, en écrans de pile : `app/lecon.tsx` (le lecteur) et `app/paiement.tsx`.
+**Le troisième onglet porte le nom que la personne a donné à son tuteur.** « Rysmo » est le nom
+de CETTE APPLICATION ; « Répétiteur » est le nom par défaut du tuteur qu'elle contient. Les
+confondre dans un libellé rendrait le renommage inintelligible — quelqu'un aurait renommé son
+tuteur et lirait encore le nom du produit.
 
-**Le troisième onglet porte le nom que la personne a donné à son tuteur.** « Rysmo » est le
-nom de CETTE APPLICATION ; « Répétiteur » est le nom par défaut du tuteur qu'elle contient.
-Les confondre dans un libellé rendrait le renommage par personne inintelligible — quelqu'un
-aurait renommé son tuteur et lirait encore le nom du produit. D'où `mobile/ds/tutor.ts`, lu
-par la barre **et** par l'écran, jamais recopié.
+⚠️ **La barre lit `useTutorNom()`, pas `tutorNom()`.** L'accesseur simple ne redemande aucun
+rendu : renommer depuis l'écran de mémoire changeait la valeur et laissait la barre sur
+l'ancien nom, jusqu'au prochain rendu. C'est le défaut exact trouvé au web, où la barre haute
+et le corps du même écran affichaient deux noms. `useTutorNom()` abonne au magasin ; le test
+`mobile-ds` refuse qu'un composant affiche le nom autrement.
 
-**Aucun écran ne simule de données.** Les quatre nouveaux disent explicitement ce qui n'est
-pas encore branché plutôt que d'afficher une liste de démonstration : un cours inventé est un
-cours qu'on croit avoir, un message inventé dans le fil du Club est attribué à quelqu'un.
+Hors de la barre, **vingt-neuf routes de pile**, groupées par parcours :
+
+| Parcours | Routes |
+|---|---|
+| Le chemin de l'argent | `catalogue` `formation` `paiement` `attente` `succes` `echec` |
+| Apprentissage | `lecon` `notes` `certificat` |
+| Le répétiteur | `memoire` — la conversation est l'onglet |
+| Le Club | `club/` — `fil` `discussions` `agenda` `membre` `classement` `opportunites` `parrainage` `infos` |
+| Compte | `connexion` `creation` `mot-de-passe` `preferences` `suppression` |
+| États | `hors-connexion` `erreur` `interdit` `+not-found` |
+| Média | `media` `episode` `video` |
+
+`erreur` et `interdit` n'ont volontairement aucune entrée de menu : ce sont des DESTINATIONS,
+atteintes par le code — comme `/403` au web. `+not-found` y renvoie tout lien profond périmé,
+avec un motif réel plutôt qu'un « une erreur est survenue ».
+
+**Le retour de paiement est routé.** Le tunnel ouvre le web puis revient sur `rysmo://paiement/retour` ;
+ce retour n'avait aucun destinataire, et quelqu'un qui venait de valider dans Wave retombait sur
+l'écran de paiement sans savoir si sa transaction était passée. Les trois issues sont désormais
+traitées, et aucune n'est devinée : le verdict est LU dans l'URL de retour, et un navigateur
+fermé mène à l'attente — la seule chose qu'on sache alors.
 
 ## Le jeu d'icônes est partagé, pas recopié (même raisonnement qu'AD-8)
 

@@ -102,7 +102,7 @@ export default function Forbidden403() {
           <p className="m-0 text-meta-2 text-ink-2 leading-[1.55]">{t('forbidden.truthBody')}</p>
         </GlassPanel>
 
-        <div className="mt-5 flex flex-col sm:flex-row gap-3">
+        <div className="mt-5 flex flex-col stack:flex-row gap-3">
           <Button href={path('/mon-espace')} tone="primary" size="sm" fullWidth={false}>
             {t('forbidden.space')}
           </Button>

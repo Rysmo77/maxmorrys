@@ -3,7 +3,7 @@ import {
   PACKS, PLANS,
   recommend, computeTotals, depositAmount, balanceAmount,
   isValidQuoteRef, generateQuoteRef,
-  findPack, findPlan,
+  findPack, findPlan, packEffectivePrice,
 } from '../../src/lib/presence/offer';
 import { buildWhatsAppMessage, whatsappUrl } from '../../src/lib/presence/whatsapp';
 import { localizeSegments, canonicalizeSegments } from '../../src/i18n/segments';
@@ -25,8 +25,29 @@ describe('grille tarifaire', () => {
   it('garde chaque plancher strictement sous son prix affiché', () => {
     for (const pack of PACKS) {
       expect(pack.floorPrice).toBeLessThan(pack.price);
-      expect(pack.promoPrice ?? pack.price).toBeGreaterThanOrEqual(pack.floorPrice);
+      expect(packEffectivePrice(pack)).toBeGreaterThanOrEqual(pack.floorPrice);
     }
+  });
+
+  /**
+   * LE PRIX AFFICHÉ EST LE PRIX DEVISÉ — la seule chose que cette page promet vraiment.
+   *
+   * La page lisait `promoPrice ?? price` de son côté, `computeTotals()` lisait `price` du
+   * sien : Présence Locale s'affichait à 250 000 et le devis ouvert derrière le même bouton
+   * en annonçait 295 000. Ce test tient les deux lectures ensemble, pour tous les packs et
+   * pas seulement pour celui qui portait une promo le jour où le défaut a été trouvé.
+   */
+  it('devise chaque pack au montant que la page affiche', () => {
+    for (const pack of PACKS) {
+      expect(computeTotals(pack.key, 'aucun').packPrice).toBe(packEffectivePrice(pack));
+      expect(computeTotals(pack.key, 'aucun').setupDue).toBe(packEffectivePrice(pack));
+    }
+  });
+
+  it('encaisse la promo quand elle existe, le prix de liste sinon', () => {
+    expect(packEffectivePrice(findPack('presence')!)).toBe(250_000);
+    expect(packEffectivePrice(findPack('visible')!)).toBe(495_000);
+    expect(packEffectivePrice(findPack('boutique')!)).toBe(895_000);
   });
 });
 
@@ -78,12 +99,38 @@ describe('recommend', () => {
 });
 
 describe('computeTotals', () => {
-  it('additionne mise en place du pack et de l’accompagnement', () => {
+  /**
+   * SETUP-FIRST : LES DEUX MISES EN PLACE NE S'ADDITIONNENT PAS À LA SIGNATURE.
+   *
+   * `upfront` valait `packPrice + planSetup` et portait le libellé « Total à la mise en
+   * place », avec l'échéancier 60/40 calculé dessus. Un prospect orienté vers Boutique +
+   * Commerce 360 lisait donc 1 645 000 F exigibles à la signature, avant six mois à
+   * 225 000 — la facture de première année que `docs/OFFRE_AGENCE_TPE.md` (§ 4, setup-first ;
+   * § 149, conversion à J+30) et la maquette `GrilleComplete` interdisent tous deux
+   * d'annoncer.
+   *
+   * Le total combiné n'a pas disparu : il vit dans `pipelineValue`, où il est juste, et sert
+   * au pipeline commercial. Il ne doit jamais atteindre un écran de prospect ni
+   * `depositAmount()`.
+   */
+  it('ne demande à la signature que la mise en place du pack', () => {
     const t = computeTotals('visible', 'croissance');
     expect(t.packPrice).toBe(495_000);
     expect(t.planSetup).toBe(375_000);
     expect(t.planMonthly).toBe(175_000);
-    expect(t.upfront).toBe(870_000);
+    expect(t.setupDue).toBe(495_000);
+  });
+
+  it('garde la valeur d’affaire combinée pour le pipeline, à part', () => {
+    const t = computeTotals('visible', 'croissance');
+    expect(t.pipelineValue).toBe(870_000);
+    expect(t.pipelineValue).toBe(t.packPrice + t.planSetup);
+  });
+
+  it('le cas le plus cher ne fait jamais porter l’accompagnement à l’acompte', () => {
+    const t = computeTotals('boutique', 'commerce360');
+    expect(t.setupDue).toBe(895_000);                 // et non 1 645 000
+    expect(depositAmount(t.setupDue)).toBe(537_000);  // 60 % de la seule mise en place
   });
 
   it('calcule le total d’engagement de Commerce 360 sur 6 mois', () => {
@@ -98,9 +145,14 @@ describe('computeTotals', () => {
   });
 
   it('tolère un devis sans pack ou sans accompagnement', () => {
-    expect(computeTotals('undecided', 'aucun').upfront).toBe(0);
-    expect(computeTotals('presence', 'aucun').upfront).toBe(295_000);
-    expect(computeTotals('undecided', 'croissance').upfront).toBe(375_000);
+    expect(computeTotals('undecided', 'aucun').setupDue).toBe(0);
+    // 250 000 et non 295 000 : c'est la PROMO qui est due, celle que la page affiche.
+    // Cette ligne attendait le prix de liste et scellait l'écart page/devis.
+    expect(computeTotals('presence', 'aucun').setupDue).toBe(250_000);
+    // Un accompagnement SANS pack ne crée aucune échéance de mise en place : sa propre mise
+    // en place se décide plus tard, elle ne devient pas l'acompte d'aujourd'hui.
+    expect(computeTotals('undecided', 'croissance').setupDue).toBe(0);
+    expect(computeTotals('undecided', 'croissance').pipelineValue).toBe(375_000);
   });
 });
 
@@ -179,9 +231,14 @@ describe('buildWhatsAppMessage', () => {
     });
     expect(msg).toContain('Commerce Visible — 495 000 FCFA');
     expect(msg).toContain('Croissance Automatisée — 375 000 FCFA');
-    // 495 000 + 375 000 = 870 000, dont 60% = 522 000
-    expect(msg).toContain('870 000 FCFA');
-    expect(msg).toContain('522 000 FCFA');
+    /* Le message part AU PROSPECT : il annonce la mise en place du pack — 495 000, dont 60 %
+       = 297 000 — et rien de plus. L'accompagnement est déjà sur sa propre ligne, avec sa
+       mise en place et son mensuel ; l'additionner ici remettrait l'abonnement dans l'acompte
+       et annoncerait 870 000 exigibles tout de suite. Setup-first : la mise en place se signe
+       seule, l'accompagnement se décide à J+30. */
+    expect(msg).toContain('495 000 FCFA');
+    expect(msg).toContain('297 000 FCFA');
+    expect(msg).not.toContain('870 000');
   });
 
   it('omet proprement les blocs absents, sans « undefined » ni ligne vide', () => {

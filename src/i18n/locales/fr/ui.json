@@ -18,7 +18,7 @@
     "linkPlaceholder": "texte du lien",
     "imageTitle": "Image",
     "imagePlaceholder": "description",
-    "defaultPlaceholder": "Rédigez votre contenu en markdown...",
+    "defaultPlaceholder": "Rédige ton contenu en markdown...",
     "edit": "Éditer",
     "preview": "Aperçu",
     "markdownHint": "Supporte le **Markdown** : `**gras**`, `*italique*`, `## Titre`, `- liste`"
@@ -27,7 +27,7 @@
     "onlyImages": "Seules les images sont acceptées.",
     "tooLarge": "Fichier trop lourd (max 10 Mo).",
     "uploadFailed": "Échec du téléversement. Réessayez.",
-    "importTitle": "Importer une image depuis votre appareil",
+    "importTitle": "Importer une image depuis ton appareil",
     "import": "Importer",
     "remove": "Supprimer"
   },

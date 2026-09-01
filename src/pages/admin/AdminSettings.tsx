@@ -204,7 +204,7 @@ export default function AdminSettings() {
             <div className="space-y-4">
               <Field label={t('settings.siteNameLabel')} value={settings.siteName} onChange={(v) => set('siteName', v)} />
               <Field label={t('settings.siteDescriptionLabel')} value={settings.siteDescription} onChange={(v) => set('siteDescription', v)} />
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 stack:grid-cols-2">
                 <Field label={t('settings.contactEmailLabel')} type="email" value={settings.contactEmail} onChange={(v) => set('contactEmail', v)} />
                 <Field label={t('settings.contactPhoneLabel')} type="tel" value={settings.contactPhone} onChange={(v) => set('contactPhone', v)} />
               </div>
@@ -214,7 +214,7 @@ export default function AdminSettings() {
 
           <GlassPanel level="night" padding={18}>
             <SiteEyebrow style={{ marginBottom: '12px' }}>{t('settings.socialTitle')}</SiteEyebrow>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 stack:grid-cols-2">
               <Field label="Facebook" type="url" placeholder="https://facebook.com/..." value={settings.facebook} onChange={(v) => set('facebook', v)} />
               <Field label="Instagram" type="url" placeholder="https://instagram.com/..." value={settings.instagram} onChange={(v) => set('instagram', v)} />
               <Field label="YouTube" type="url" placeholder="https://youtube.com/..." value={settings.youtube} onChange={(v) => set('youtube', v)} />

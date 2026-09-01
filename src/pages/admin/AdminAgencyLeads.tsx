@@ -167,7 +167,7 @@ export default function AdminAgencyLeads() {
         t(`agencyLeads.sectors.${l.sector}`, { defaultValue: l.sector }),
         t(`agencyLeads.packs.${l.pack}`, { defaultValue: l.pack }),
         t(`agencyLeads.plans.${l.plan}`, { defaultValue: l.plan }),
-        totals.upfront, totals.planMonthly,
+        totals.pipelineValue, totals.planMonthly,
         t(`agencyLeads.status.${l.status}`),
         l.referralCode ?? '', l.quoteRef ?? '',
         l.message ?? '', l.notes ?? '',
@@ -200,7 +200,7 @@ export default function AdminAgencyLeads() {
           label={t('agencyLeads.pipelineLabel')}
         />
 
-        <div className="mt-3.5 grid gap-2.5 sm:grid-cols-3">
+        <div className="mt-3.5 grid gap-2.5 stack:grid-cols-3">
           <StatTile
             label={t('agencyLeads.tileToQualify')}
             value={loading ? null : counts.new}
@@ -272,7 +272,7 @@ export default function AdminAgencyLeads() {
                   `computeTotals` est la source, <Num> la dit. */}
               <DocLine
                 label={t('agencyLeads.docUpfront')}
-                value={<Num value={formatPrice(sheetTotals.upfront)} source="db" asOf={asOf} />}
+                value={<Num value={formatPrice(sheetTotals.pipelineValue)} source="db" asOf={asOf} />}
               />
               <DocLine
                 label={t('agencyLeads.docMonthly')}

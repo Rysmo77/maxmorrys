@@ -50,9 +50,22 @@ export default function LanguageSuggestionBanner() {
     setSuggested(null);
   };
 
+  /*
+   * ── CENTRÉ PAR LES MARGES, PAS PAR UNE TRANSFORMATION ──────────────────────────────
+   *
+   * Le centrage passait par `left-1/2 -translate-x-1/2`. Or `mm-drop` est une animation
+   * d'entrée qui finit sur `transform: none`, en `animation-fill-mode: both` : la valeur
+   * finale RESTE appliquée, et elle efface le `-translate-x-1/2`. Le bandeau posait donc son
+   * bord gauche au milieu de l'écran — décentré de la moitié de sa largeur, PARTOUT, pas
+   * seulement sur mobile. À 375 px il sortait de la fenêtre et faisait défiler la page de
+   * côté (document mesuré à 419 px).
+   *
+   * `left-0 right-0 mx-auto` centre sans toucher à `transform`, donc l'animation reste libre
+   * de la sienne. Les deux mécanismes cessent de se disputer la même propriété.
+   */
   return (
-    <div className="fixed top-[calc(var(--header-h)+0.75rem)] left-1/2 -translate-x-1/2 z-[45] px-4 w-full max-w-md mm-drop">
-      <div className="flex items-center gap-3 bg-paper rounded-2xl shadow-xl border border-[color:var(--line)] px-4 py-3">
+    <div className="fixed top-[calc(var(--header-h)+0.75rem)] left-0 right-0 mx-auto z-[45] px-4 w-full max-w-md mm-drop">
+      <div className="flex items-center gap-3 bg-surface-sheet rounded-2xl shadow-xl border border-[color:var(--line)] px-4 py-3">
         <div className="p-1.5 bg-[color-mix(in_srgb,var(--mm-bleu)_4%,transparent)] rounded-lg flex-shrink-0">
           <Icon name="languages" size={16} className="text-forme" />
         </div>

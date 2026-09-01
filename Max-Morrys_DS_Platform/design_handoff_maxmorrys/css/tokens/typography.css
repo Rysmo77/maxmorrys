@@ -1,0 +1,25 @@
+:root{
+  /* Échelle d'affichage — Fraunces 900, interlettrage négatif serré */
+  --fs-dsp-xxl:74px; --lh-dsp-xxl:.92; /* @kind other */ --ls-dsp-xxl:-.035em; /* @kind other */
+  --fs-dsp-xl:64px; --lh-dsp-xl:.9; /* @kind other */ --ls-dsp-xl:-.038em; /* @kind other */
+  --fs-dsp:41px; --lh-dsp:.9; /* @kind other */ --ls-dsp:-.038em; /* @kind other */
+  --fs-dsp-sm:30px; --lh-dsp-sm:.95; /* @kind other */ --ls-dsp-sm:-.038em; /* @kind other */
+  --fs-dsp-xs:23px; --lh-dsp-xs:1.02; /* @kind other */ --ls-dsp-xs:-.028em; /* @kind other */
+  --fs-ttl:26px; --ls-ttl:-.032em; /* @kind other */  /* titre de carte territoire */
+
+  /* Corps — Schibsted Grotesk */
+  --fs-body:15px; --lh-body:1.45; /* @kind other */
+  --fs-lede:14px; --lh-lede:1.5; /* @kind other */
+  --fs-prose:15.5px; --lh-prose:1.68; /* @kind other */
+  --fs-meta:13px; --fs-meta-2:12.5px; --fs-small:11.5px;
+
+  /* Sourcil monospace */
+  --fs-eyebrow:10.5px; --ls-eyebrow:.14em; /* @kind other */
+  /* Nombre vérifié — toujours en monospace, tabulaire */
+  --ls-num:-.02em; /* @kind other */
+
+  /* Mesures */
+  --measure-prose:68ch; /* @kind other */   /* jamais dépassée, quelle que soit la largeur d'écran */
+  --measure-doc:76ch; /* @kind other */
+  --weight-body:400; /* @kind other */ --weight-med:500; /* @kind other */ --weight-semi:600; /* @kind other */ --weight-bold:700; /* @kind other */ --weight-black:900; /* @kind other */
+}

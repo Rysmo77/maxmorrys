@@ -215,17 +215,6 @@ export const clientProjects: readonly ClientProject[] = [
     stack: ['HTML', 'CSS', 'JavaScript', 'Firebase Hosting'],
   },
   {
-    slug: 'jubile-de-grace',
-    name: 'Jubilé de Grâce',
-    category: 'Événementiel',
-    owner: 'client',
-    website: 'https://jubile-de-grace.com/',
-    domain: 'jubile-de-grace.com',
-    descriptionKey: 'jubile-de-grace',
-    capabilities: ['engineering'],
-    stack: ['React', 'Vite', 'TypeScript', 'Tailwind CSS'],
-  },
-  {
     slug: 'in-senegal',
     name: 'IN Sénégal 2026',
     category: 'Événementiel',

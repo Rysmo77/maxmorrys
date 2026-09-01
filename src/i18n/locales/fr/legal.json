@@ -2,7 +2,9 @@
   "common": {
     "backToHome": "Retour à l'accueil",
     "lastUpdatedApril": "Dernière mise à jour : Avril 2026",
-    "lastUpdatedMay": "Dernière mise à jour : Mai 2026"
+    "lastUpdatedMay": "Dernière mise à jour : Mai 2026",
+    "versionNote": "Version du <1>{{version}}</1>. Chaque modification est datée, et l'ancienne version reste consultable.",
+    "navLabel": "Documents contractuels"
   },
   "mentions": {
     "seoTitle": "Mentions légales",
@@ -25,7 +27,7 @@
     },
     "personalData": {
       "heading": "Données personnelles",
-      "body": "Conformément à la loi sénégalaise n°2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel, et au Règlement Général sur la Protection des Données (RGPD) pour les visiteurs de l'Union Européenne, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles.",
+      "body": "Conformément à la loi sénégalaise n°2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel, et au Règlement Général sur la Protection des Données (RGPD) si tu résides dans l'Union européenne, tu disposes d'un droit d'accès, de rectification et de suppression de tes données personnelles.",
       "more": "Pour plus d'informations, consultez notre <1>politique de confidentialité</1>."
     },
     "cookies": {
@@ -47,7 +49,7 @@
     "title": "Politique de confidentialité",
     "intro": {
       "heading": "Introduction",
-      "p1": "La présente politique de confidentialité décrit comment <1>MY ONOMA SARL</1>, opératrice de la marque Max-Morrys, collecte, utilise et protège vos données personnelles lorsque vous utilisez notre site web et nos services.",
+      "p1": "Cette politique de confidentialité décrit comment <1>MY ONOMA SARL</1>, opératrice de la marque Max-Morrys, collecte, utilise et protège tes données personnelles quand tu utilises le site et ses services.",
       "p2": "Nous nous engageons à respecter la loi sénégalaise n°2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel, ainsi que le RGPD pour les utilisateurs européens."
     },
     "collected": {
@@ -63,27 +65,27 @@
     },
     "purposes": {
       "heading": "Finalités du traitement",
-      "item1": "Gestion de votre compte utilisateur",
-      "item2": "Accès et suivi de vos formations",
+      "item1": "Gestion de ton compte",
+      "item2": "Accès et suivi de tes formations",
       "item3": "Traitement des paiements",
-      "item4": "Envoi de newsletters (avec votre consentement)",
+      "item4": "Envoi de lettres d'information (avec ton consentement)",
       "item5": "Amélioration de nos services et de l'expérience utilisateur",
-      "item6": "Réponse à vos demandes de contact",
-      "item7": "Personnalisation pédagogique de l'assistant IA Rysmo (base légale : intérêt légitime, avec contrôle de votre part — désactivation et effacement à tout moment)"
+      "item6": "Réponse à tes demandes de contact",
+      "item7": "Personnalisation pédagogique du répétiteur IA (base légale : intérêt légitime, sous ton contrôle — désactivation et effacement à tout moment)"
     },
     "retention": {
       "heading": "Durée de conservation",
-      "intro": "Vos données sont conservées pendant la durée nécessaire à la réalisation des finalités pour lesquelles elles ont été collectées :",
-      "item1": "Données de compte : pendant la durée de votre inscription + 3 ans",
+      "intro": "Tes données sont conservées le temps nécessaire aux finalités pour lesquelles elles ont été collectées :",
+      "item1": "Données de compte : pendant la durée de ton inscription + 3 ans",
       "item2": "Données de transaction : 10 ans (obligation légale)",
-      "item3": "Données de newsletter : jusqu'à votre désinscription",
-      "item4": "Mémoire de l'assistant Rysmo : conservée tant que la mémoire est active ; effaçable à tout moment depuis votre espace",
+      "item3": "Données de lettre d'information : jusqu'à ta désinscription",
+      "item4": "Mémoire du répétiteur : conservée tant que la mémoire est active ; effaçable à tout moment depuis ton espace",
       "item5": "Cookies : 13 mois maximum"
     },
     "rights": {
-      "heading": "Vos droits",
-      "intro": "Conformément à la législation en vigueur, vous disposez des droits suivants :",
-      "item1": "Droit d'accès à vos données",
+      "heading": "Tes droits",
+      "intro": "Conformément à la législation en vigueur, tu disposes des droits suivants :",
+      "item1": "Droit d'accès à tes données",
       "item2": "Droit de rectification",
       "item3": "Droit de suppression",
       "item4": "Droit d'opposition",
@@ -247,32 +249,32 @@
     "title": "Politique de cookies",
     "what": {
       "heading": "Qu'est-ce qu'un cookie ?",
-      "p1": "Un cookie est un petit fichier texte déposé sur votre terminal (ordinateur, tablette, smartphone) lors de la visite d'un site web. Il permet au site de reconnaître votre navigateur et de stocker certaines informations.",
-      "p2": "Le site Max-Morrys, opéré par <1>MY ONOMA SARL</1>, utilise des cookies et technologies similaires (stockage local du navigateur) pour assurer le fonctionnement du service et améliorer votre expérience."
+      "p1": "Un cookie est un petit fichier texte déposé sur ton appareil (ordinateur, tablette, téléphone) quand tu visites un site. Il permet au site de reconnaître ton navigateur et d'y garder certaines informations.",
+      "p2": "Le site Max-Morrys, opéré par <1>MY ONOMA SARL</1>, utilise des cookies et des technologies proches (stockage local du navigateur) pour faire fonctionner le service et améliorer ce que tu y vis."
     },
     "types": {
       "heading": "Types de cookies utilisés",
       "essentialHeading": "Cookies essentiels",
-      "essentialBody": "Nécessaires au fonctionnement du site. Ils permettent la navigation, l'authentification et la sécurité. Ils ne nécessitent pas votre consentement.",
+      "essentialBody": "Nécessaires au fonctionnement du site. Ils permettent la navigation, l'authentification et la sécurité. Ils ne demandent pas ton consentement.",
       "essentialItem1": "Session utilisateur (Firebase Authentication)",
       "essentialItem2": "Préférences de thème (mode sombre / clair)",
       "essentialItem3": "Préférences de langue",
       "essentialItem4": "Consentement cookies",
       "analyticsHeading": "Cookies analytiques",
-      "analyticsBody": "Utilisés pour comprendre comment les visiteurs interagissent avec le site. Ces cookies ne sont activés qu'après votre consentement.",
+      "analyticsBody": "Utilisés pour comprendre comment les visiteurs se servent du site. Ces cookies ne s'activent qu'après ton consentement.",
       "analyticsItem1": "Google Analytics (GA4) — analyse du trafic",
       "analyticsItem2": "Suivi de progression dans les formations",
       "marketingHeading": "Cookies marketing",
-      "marketingBody": "Utilisés pour afficher du contenu pertinent. Activés uniquement avec votre consentement."
+      "marketingBody": "Utilisés pour afficher du contenu pertinent. Activés uniquement avec ton consentement."
     },
     "preferences": {
-      "heading": "Gestion de vos préférences",
-      "p1": "Lors de votre première visite, un bandeau vous permet de choisir les catégories de cookies que vous acceptez. Vous pouvez modifier vos préférences à tout moment en cliquant sur le lien « Gérer les cookies » en bas de page.",
-      "p2": "Vous pouvez également configurer votre navigateur pour refuser les cookies. Notez que certaines fonctionnalités du site pourraient ne plus fonctionner correctement."
+      "heading": "Gérer tes préférences",
+      "p1": "À ta première visite, un bandeau te laisse choisir les catégories de cookies que tu acceptes. Tu peux changer d'avis à tout moment par le lien « Gérer les cookies » en bas de page.",
+      "p2": "Tu peux aussi régler ton navigateur pour refuser les cookies. Sache que certaines fonctions du site pourraient alors ne plus marcher."
     },
     "retention": {
       "heading": "Durée de conservation",
-      "body": "Les cookies sont conservés pour une durée maximale de 13 mois. Au-delà, votre consentement sera à nouveau demandé."
+      "body": "Les cookies sont conservés treize mois au maximum. Au-delà, ton consentement est redemandé."
     },
     "legal": {
       "heading": "Cadre juridique",

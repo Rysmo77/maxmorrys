@@ -46,7 +46,7 @@
   "toast": {
     "messageSuccess": "Message envoyé avec succès ! Je te répondrai rapidement.",
     "messageError": "Erreur lors de l'envoi. Essaie à nouveau s'il te plaît.",
-    "appointmentError": "Erreur lors de la prise de rendez-vous. Veuillez réessayer."
+    "appointmentError": "Erreur lors de la prise de rendez-vous. Réessaie."
   },
   "booking": {
     "cardTitle": "Prendre rendez-vous",

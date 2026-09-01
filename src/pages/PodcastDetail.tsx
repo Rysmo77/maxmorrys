@@ -126,59 +126,98 @@ export default function PodcastDetail() {
           ]}
         />
 
-        <div className="mt-4 grid items-start gap-12 lg:grid-cols-[1fr_300px]">
+        <div className="mt-4 grid items-start gap-12 wide:grid-cols-[1fr_300px]">
           <article>
-            <SiteEyebrow>{t('detail.listen')}</SiteEyebrow>
-            <SiteDisplay wrap lines={[tTitle || podcast.title]} size={40} from={1} style={{ maxWidth: '22ch' }} />
-
-            <p className="mm-num rv mt-3 text-meta text-ink-2" style={{ ['--i' as string]: 3 }}>
-              {formatDate(podcast.publishedAt)} · {podcast.duration}
-            </p>
-
             {/*
-              LE BANDEAU DE TRADUCTION, EN TÊTE DE CORPS.
+              ── LA POCHETTE ENTRE DANS LA PAGE ──────────────────────────────────────────
+              `coverImage` est un champ OBLIGATOIRE du type `Podcast`, rempli par l'import
+              Spotify. Il ne servait qu'à `ogImage` : la pochette existait pour les réseaux
+              sociaux et pour personne d'autre — la fiche elle-même n'avait AUCUNE image.
 
-              Le titre, la catégorie et la description passent par `useTranslatedText` : cette
-              page sert donc bien du texte traduit à la machine, au même titre qu'un article.
-              La traduction est générée au pré-rendu ET MISE EN CACHE — une correction du
-              français n'atteint la version anglaise qu'à l'expiration du cache, et il n'y a
-              pas d'invalidation manuelle. Le dire coûte moins cher que de faire semblant.
-
-              Jamais en pied : après le contenu, un avertissement n'avertit plus.
+              Carrée, parce que c'est le format natif d'une pochette : l'étaler en bandeau
+              obligerait à recadrer, et un recadrage automatique coupe les visages.
             */}
-            {language === 'en' && (
-              <TranslationNotice
-                date={formatDate(podcast.publishedAt)}
-                href={`/podcasts/${podcast.slug}`}
-                originalLabel={t('detail.translatedOriginal')}
-                style={{ marginTop: '18px', maxWidth: 'var(--measure-prose)' }}
-              />
-            )}
+            <div className="grid items-start gap-[26px] stack:grid-cols-[220px_1fr]">
+              <div
+                className="rv aspect-square w-full overflow-hidden rounded-media"
+                style={{
+                  /* Le dégradé audio est le FOND, donc le repli : pochette absente ou URL
+                     cassée, c'est lui qu'on voit — jamais une icône de lien brisé. */
+                  background: 'linear-gradient(140deg,var(--mm-violet),var(--mm-bleu) 62%,var(--mm-teal))',
+                  border: '1px solid var(--border-glass)',
+                  ['--i' as string]: 2,
+                }}
+              >
+                {podcast.coverImage && (
+                  <img
+                    /* `key` SUR LA SOURCE : sans lui, React réutilise le même élément d'un
+                       épisode à l'autre, et le `display:none` posé par l'échec de la pochette
+                       précédente survit — la pochette suivante, bonne, resterait cachée. */
+                    key={podcast.coverImage}
+                    src={podcast.coverImage}
+                    alt={t('detail.coverAlt')}
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    className="h-full w-full object-cover"
+                  />
+                )}
+              </div>
 
-            {/*
-              LE LECTEUR. Il ne se charge que si on le lance — `preload="none"` : sur un
-              forfait compté, un audio préchargé est de l'argent dépensé pour rien.
-            */}
-            <div className="rv mt-5 overflow-hidden rounded-media" style={{ ['--i' as string]: 4 }}>
-              {embed?.type === 'iframe' ? (
-                <iframe
-                  src={embed.src}
-                  title={podcast.title}
-                  loading="lazy"
-                  className="h-[180px] w-full border-0"
-                  allow="encrypted-media"
-                />
-              ) : (
-                <audio
-                  controls
-                  preload="none"
-                  src={podcast.audioUrl}
-                  className="w-full"
-                  onPlay={() => trackPodcastPlay(podcast.id, podcast.title)}
-                >
-                  <track kind="captions" />
-                </audio>
-              )}
+              <div className="min-w-0">
+                <SiteEyebrow>{t('detail.listen')}</SiteEyebrow>
+                <SiteDisplay wrap lines={[tTitle || podcast.title]} size={40} from={1} style={{ maxWidth: '22ch' }} />
+
+                <p className="mm-num rv mt-3 text-meta text-ink-2" style={{ ['--i' as string]: 3 }}>
+                  {formatDate(podcast.publishedAt)} · {podcast.duration}
+                </p>
+
+                {/*
+                  LE BANDEAU DE TRADUCTION, EN TÊTE DE CORPS.
+
+                  Le titre, la catégorie et la description passent par `useTranslatedText` : cette
+                  page sert donc bien du texte traduit à la machine, au même titre qu'un article.
+                  La traduction est générée au pré-rendu ET MISE EN CACHE — une correction du
+                  français n'atteint la version anglaise qu'à l'expiration du cache, et il n'y a
+                  pas d'invalidation manuelle. Le dire coûte moins cher que de faire semblant.
+
+                  Jamais en pied : après le contenu, un avertissement n'avertit plus.
+                */}
+                {language === 'en' && (
+                  <TranslationNotice
+                    date={formatDate(podcast.publishedAt)}
+                    href={`/podcasts/${podcast.slug}`}
+                    originalLabel={t('detail.translatedOriginal')}
+                    style={{ marginTop: '18px', maxWidth: 'var(--measure-prose)' }}
+                  />
+                )}
+
+                {/*
+                  LE LECTEUR. Il ne se charge que si on le lance — `preload="none"` : sur un
+                  forfait compté, un audio préchargé est de l'argent dépensé pour rien.
+                */}
+                <div className="rv mt-5 overflow-hidden rounded-media" style={{ ['--i' as string]: 4 }}>
+                  {embed?.type === 'iframe' ? (
+                    <iframe
+                      src={embed.src}
+                      title={podcast.title}
+                      loading="lazy"
+                      className="h-[180px] w-full border-0"
+                      allow="encrypted-media"
+                    />
+                  ) : (
+                    <audio
+                      controls
+                      preload="none"
+                      src={podcast.audioUrl}
+                      className="w-full"
+                      onPlay={() => trackPodcastPlay(podcast.id, podcast.title)}
+                    >
+                      <track kind="captions" />
+                    </audio>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* L'aveu du poids manquant — la règle 6 appliquée à ce qu'on n'a pas. */}
@@ -194,7 +233,7 @@ export default function PodcastDetail() {
             />
           </article>
 
-          <aside className="grid gap-[14px] lg:sticky lg:top-[calc(var(--header-h)+1rem)]">
+          <aside className="grid gap-[14px] wide:sticky wide:top-[calc(var(--header-h)+1rem)]">
             <GlassPanel level="hero" padding={22}>
               <SiteEyebrow style={{ marginBottom: '8px' }}>{t('detail.transcript')}</SiteEyebrow>
               {podcast.transcript ? (
@@ -218,16 +257,17 @@ export default function PodcastDetail() {
       {others.length > 0 && (
         <SiteBand>
           <SiteDisplay as="h2" lines={t('detail.nextTitle', { returnObjects: true }) as string[]} size={34} />
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="mt-5 grid gap-4 stack:grid-cols-3">
             {others.slice(0, 3).map((other, i) => (
               <div key={other.id} className="rv" style={{ ['--i' as string]: i + 1 }}>
                 <MediaCard
                   format="audio"
+                  image={other.coverImage}
+                  artRatio="16 / 9"
                   playHref={path(`/podcasts/${other.slug}`)}
                   playLabel={`${t('detail.listen')} — ${other.title}`}
                   title={other.title}
                   eyebrow={other.duration}
-                  artHeight={130}
                   titleSize={17}
                 />
               </div>

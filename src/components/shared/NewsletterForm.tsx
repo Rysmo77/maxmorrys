@@ -15,6 +15,24 @@ interface NewsletterFormProps {
 /**
  * Inscription à la newsletter.
  *
+ * ⚠️⚠️ **CE COMPOSANT N'EST MONTÉ NULLE PART, ET C'EST DÉLIBÉRÉ.**
+ *
+ * Il n'existe AUCUN expéditeur d'e-mail dans le produit — ni nodemailer, ni SendGrid, ni
+ * Mailgun, ni MailChannels, ni Resend ; le seul e-mail qui parte est celui de
+ * réinitialisation de Firebase Auth. Un formulaire qui recueille une adresse pour une lettre
+ * qui ne peut pas partir demande un geste contre rien, et R-13 est explicite : « Ne jamais
+ * promettre un e-mail. » La page blog l'écrit d'ailleurs elle-même — « Je ne te fais pas
+ * remplir un champ qui ne sert à rien. »
+ *
+ * Il était servi par `BlogEndPopup`, à 90 % de lecture d'un article, sous l'étiquette
+ * « 1 email / semaine ». Cette fenêtre propose désormais les deux canaux qui existent : le
+ * flux RSS et l'alerte dans l'espace personnel.
+ *
+ * Le fichier et la collection Firestore `newsletter` sont CONSERVÉS : les adresses déjà
+ * recueillies restent, et il suffira de remonter ce composant le jour où un canal d'envoi
+ * existe. Les chaînes `newsletter.*` ont été réécrites pour ne plus rien promettre, afin
+ * qu'un remontage par erreur ne remette pas la promesse en ligne.
+ *
  * ⚠️ Le consentement est explicite et **jamais pré-coché** : `consent` démarre à `false`,
  * et la soumission est refusée tant qu'il n'est pas donné. Le champ `consentAt` horodate
  * le recueil.
@@ -118,7 +136,10 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
               type="submit"
               disabled={loading}
               aria-label={loading ? t('newsletter.submittingAria') : t('newsletter.submitAria')}
-              className="px-4 py-2.5 bg-paper text-forme rounded-xl font-semibold text-sm hover:bg-[color-mix(in_srgb,var(--mm-bleu)_8%,transparent)] transition-colors disabled:opacity-50"
+              /* Papier FIXE : ce bouton est posé sur un dégradé coloré, il doit rester blanc dans
+                 les deux modes. `--paper-fixed` existe exactement pour ça — la pastille du logo
+                 et le curseur d'interrupteur le lisent déjà. */
+              className="px-4 py-2.5 bg-[color:var(--paper-fixed)] text-forme rounded-xl font-semibold text-sm hover:bg-[color-mix(in_srgb,var(--mm-bleu)_8%,transparent)] transition-colors disabled:opacity-50"
             >
               {loading ? t('newsletter.loading') : t('newsletter.submit')}
             </button>

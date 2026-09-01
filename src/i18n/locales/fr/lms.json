@@ -19,8 +19,8 @@
     "bottomHome": "Accueil",
     "bottomCourses": "Cours",
     "bottomClub": "Club",
-    "bottomMessages": "Inbox",
-    "bottomProfile": "Profil"
+    "bottomProfile": "Profil",
+    "payments": "Paiements"
   },
   "titles": {
     "dashboard": "Tableau de bord",
@@ -32,7 +32,8 @@
     "testimonials": "Mon avis",
     "club": "Club des Digitos",
     "profile": "Mon profil",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "payments": "Mes paiements"
   },
   "shell": {
     "expandSidebar": "Étendre la barre latérale",
@@ -67,7 +68,7 @@
     "notFoundText": "Le code de certificat fourni n'existe pas ou a expiré.",
     "backHome": "Retour à l'accueil",
     "seoTitle": "Certificat — {{title}}",
-    "seoDescription": "Certificat de réussite de la formation « {{title}} » délivré par Max-Morrys Academy.",
+    "seoDescription": "Certificat de réussite de la formation « {{title}} », délivré par Max-Morrys, MY ONOMA SARL, Dakar.",
     "badge": "Certificat de réussite",
     "academy": "Max-Morrys Academy",
     "attests": "Ce certificat atteste que",
@@ -77,7 +78,7 @@
     "issuedDate": "Date d'obtention",
     "verificationCode": "Code de vérification",
     "shareText": "J'ai obtenu mon certificat « {{title}} » sur Max-Morrys.",
-    "backToSite": "← Retour sur maxmorrys.me",
+    "backToSite": "Retour sur maxmorrys.me",
     "doneLine": "C'EST FAIT.",
     "issuedOn": "Émis le {{date}}",
     "verified": "Vérifié",
@@ -98,7 +99,7 @@
   "checkout": {
     "notFoundTitle": "Formation introuvable",
     "backToFormations": "Retour aux formations",
-    "errorPayment": "Erreur lors du paiement. Réessaie ou contacte-nous.",
+    "errorPayment": "Erreur lors du paiement. Réessaie, ou écris-moi si ça recommence.",
     "successTitle": "Inscription confirmée !",
     "successText": "Tu es maintenant inscrit à \"{{title}}\". Tu peux commencer ton apprentissage dès maintenant.",
     "startCourse": "Commencer le cours",
@@ -108,7 +109,7 @@
     "freeSubtitle": "Cette formation est gratuite. Confirme ton inscription.",
     "paidSubtitle": "Clique sur le bouton ci-dessous pour procéder au paiement sécurisé.",
     "securePayment": "Paiement sécurisé",
-    "securePaymentText": "Tu seras redirigé vers notre partenaire de paiement Bictorys pour finaliser ta transaction en toute sécurité. Wave, Orange Money et carte bancaire sont acceptés.",
+    "securePaymentText": "Tu seras redirigé vers Bictorys, mon prestataire de paiement, pour finaliser la transaction. Wave, Orange Money et carte bancaire sont acceptés.",
     "amountToPay": "Montant à payer :",
     "couponLabel": "Code promo (optionnel)",
     "processing": "Traitement...",
@@ -166,11 +167,11 @@
     "startCourse": "Commencer le cours",
     "goToSpace": "Aller à mon espace",
     "pendingTitle": "Paiement en cours de vérification",
-    "pendingText": "Ton paiement est en cours de traitement. Tu recevras une confirmation dès qu'il sera validé. Tu peux fermer cette page.",
+    "pendingText": "Ton paiement est en cours. Cette page se met à jour toute seule — tu peux aussi la fermer et revenir plus tard, ta commande reste ouverte.",
     "failedTitle": "Paiement échoué",
-    "failedText": "Le paiement n'a pas abouti. Tu peux réessayer ou nous contacter si le problème persiste.",
+    "failedText": "Le paiement n'a pas abouti. Tu peux réessayer, ou m'écrire si ça recommence.",
     "backToFormations": "Retour aux formations",
-    "contactUs": "Nous contacter",
+    "contactUs": "Écris-moi",
     "verifyingTitleLines": [
       "On vérifie",
       "ton paiement."
@@ -197,7 +198,8 @@
     "pendingFoot": "Rien n'est débité deux fois : chaque paiement porte une référence unique.",
     "failedFoot": "Rien n'a été débité. Ta commande reste ouverte, tu peux reprendre où tu en étais.",
     "retry": "Réessayer le paiement",
-    "waitingAria": "Paiement en attente de confirmation"
+    "waitingAria": "Paiement en attente de confirmation",
+    "backToFormation": "Revenir à la formation"
   },
   "onboarding": {
     "stepWelcomeSubtitle": "Personnalise ton profil",
@@ -208,7 +210,7 @@
     "errorUpload": "Erreur lors du téléchargement.",
     "errorSave": "Erreur lors de la sauvegarde.",
     "errorComplete": "Impossible d'enregistrer. Reessaie.",
-    "welcomeTitle": "Bienvenue sur Max-Morrys !",
+    "welcomeTitle": "Bienvenue sur Rysmo !",
     "welcomeText": "Personnalise ton profil pour que la communauté te connaisse.",
     "nameLabel": "Ton nom d'affichage",
     "namePlaceholder": "Comment veux-tu qu'on t'appelle ?",
@@ -222,7 +224,7 @@
     "exploreText": "Voici ce qui t'attend sur la plateforme.",
     "feature1Title": "Formations pratiques",
     "feature1Desc": "Des cours concrets en marketing digital, SEO et IA",
-    "feature2Title": "Rysmo, ton répétiteur IA",
+    "feature2Title": "Ton {{tutor}}, un répétiteur IA",
     "feature2Desc": "Pose tes questions à tout moment pendant tes cours",
     "feature3Title": "Certificats",
     "feature3Desc": "Obtiens un certificat à chaque formation terminée",
@@ -232,7 +234,7 @@
     "readyTitle": "Tu es prêt !",
     "readyText": "Ton espace étudiant est configuré. Commence par explorer les formations ou lance-toi directement.",
     "proTipTitle": "Conseil de pro",
-    "proTipText": "Les étudiants qui commencent une formation dans les 24h ont 3x plus de chances de la terminer.",
+    "proTipText": "Ouvre la première leçon tout de suite, même cinq minutes : c'est le moment où tu décides vraiment si la formation te convient.",
     "exploreFormations": "Explorer les formations",
     "goToDashboard": "Aller à mon tableau de bord"
   },
@@ -265,8 +267,8 @@
     "lessonContentSoon": "Contenu de la leçon à venir...",
     "lessonDone": "Terminée",
     "markLessonCompleted": "Marquer comme terminée",
-    "selectLessonTitle": "Sélectionnez une leçon",
-    "selectLessonText": "Choisissez une leçon dans le menu pour commencer.",
+    "selectLessonTitle": "Choisis une leçon",
+    "selectLessonText": "Prends une leçon dans le menu pour commencer.",
     "courseOutline": "Plan du cours",
     "toastFormationCompleted": "Félicitations ! Tu as terminé cette formation !",
     "toastCertificateIssued": "Ton certificat a ete emis !",
@@ -294,7 +296,10 @@
       "Choisis",
       "une leçon."
     ],
-    "durationSource": "Durée déclarée dans la fiche de la leçon"
+    "durationSource": "Durée déclarée dans la fiche de la leçon",
+    "previewEyebrow": "Aperçu gratuit",
+    "previewBody": "Tu lis le module d'ouverture, en entier. Le reste du programme est verrouillé, et ta progression n'est pas enregistrée tant que tu n'es pas inscrit.",
+    "previewCta": "Voir la formation"
   },
   "rysmoPage": {
     "tabTokens": "Tokens & abonnements",

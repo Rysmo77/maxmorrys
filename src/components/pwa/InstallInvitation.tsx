@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Button } from '../../design-system/react/actions/Button';
-import { Icon } from '../../design-system/react/brand/Icon';
-import { IconButton } from '../../design-system/react/actions/IconButton';
+import { useTranslation } from 'react-i18next';
+/* AD-9 — une surface importe depuis `@ds`, jamais depuis un chemin profond de `react/`.
+   Ces trois-là étaient les seuls du dépôt à sauter l'étage : le jour où une primitive change
+   de fichier, c'est ce fichier-ci, et lui seul, qui casse sans que rien ne l'ait annoncé. */
+import { Button, Icon, IconButton } from '@ds';
 
 /**
  * L'INVITATION À INSTALLER — et tout ce qu'elle refuse de faire.  (AD-17)
@@ -46,6 +48,9 @@ export function countVisit(): void {
 }
 
 export default function InstallInvitation() {
+  /* Les cinq chaînes étaient écrites en français, en dur : la bannière serait sortie en
+     français sur /en le jour où elle aurait été montée. */
+  const { t } = useTranslation('shared');
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
 
@@ -95,7 +100,7 @@ export default function InstallInvitation() {
   return (
     <div
       role="region"
-      aria-label="Installer l'application"
+      aria-label={t('pwa.install.regionLabel')}
       className="glass-flat"
       style={{
         position: 'fixed',
@@ -118,21 +123,20 @@ export default function InstallInvitation() {
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ margin: 0, fontWeight: 700, fontSize: 'var(--fs-body)' }}>
-          Garde tes leçons hors connexion.
+          {t('pwa.install.title')}
         </p>
         {/* --text-muted, jamais --text-faint (AD-18). */}
         <p style={{ margin: 0, marginTop: '4px', fontSize: 'var(--fs-meta)', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-          Une fois installée, tes leçons téléchargées se relisent sans réseau et sans
-          consommer ton forfait.
+          {t('pwa.install.body')}
         </p>
         <div style={{ marginTop: 'var(--sp-14)' }}>
           <Button tone="forme" size="sm" onClick={install}>
-            Installer
+            {t('pwa.install.cta')}
           </Button>
         </div>
       </div>
 
-      <IconButton label="Fermer, ne plus proposer" onClick={() => close(true)}>
+      <IconButton label={t('pwa.install.close')} onClick={() => close(true)}>
         <Icon name="close" size={17} />
       </IconButton>
     </div>

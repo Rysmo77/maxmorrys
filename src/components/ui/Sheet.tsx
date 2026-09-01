@@ -67,7 +67,7 @@ export default function Sheet({ open, onClose, title, children }: SheetProps) {
       {/* Sheet */}
       <div
         ref={sheetRef}
-        className="absolute bottom-0 left-0 right-0 bg-paper dark:bg-[color:var(--night-3)] rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col mm-drop transition-transform"
+        className="absolute bottom-0 left-0 right-0 bg-surface-sheet rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col mm-drop transition-transform"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

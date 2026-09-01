@@ -1,47 +1,6 @@
 {
-  "stats": {
-    "trafficGrowth": "Croissance de trafic en 1 an",
-    "studentsTrained": "Étudiants formés",
-    "successRate": "Taux de réussite",
-    "coursesCreated": "Cours créés"
-  },
-  "services": {
-    "train": {
-      "title": "Je te forme",
-      "desc": "Des formations pratiques et actionnables pour maîtriser le digital."
-    },
-    "inform": {
-      "title": "Je t'informe",
-      "desc": "Articles, podcasts et vidéos pour rester à la pointe."
-    },
-    "transform": {
-      "title": "Je te transforme",
-      "desc": "Coaching et consulting pour accélérer ta croissance."
-    }
-  },
-  "trustBadges": {
-    "certificate": {
-      "title": "Certificat inclus",
-      "desc": "Chaque formation délivre un certificat vérifiable."
-    },
-    "lifetime": {
-      "title": "Accès à vie",
-      "desc": "Tes formations restent accessibles sans limite."
-    },
-    "guarantee": {
-      "title": "Garantie satisfait",
-      "desc": "Remboursement sous 7 jours si insatisfaction."
-    }
-  },
-  "testimonialAria": "Témoignage {{number}}",
   "hero": {
-    "titlePart1": "Maîtrise le ",
-    "titleDigital": "digital",
-    "titlePart2": ", accélère ta ",
-    "titleGrowth": "croissance",
-    "titleEnd": ".",
-    "subtitle": "Formations, articles, podcast et vidéos pour transformer ton activité — SEO, IA et marketing digital, sans blabla.",
-    "cta": "Explorer les formations",
+    "eyebrow": "Bonjour, moi c'est Max-Morrys",
     "titleLines": [
       "JE TE FORME",
       "AU DIGITAL.",
@@ -50,133 +9,74 @@
     "lede": "SEO, marketing et intelligence artificielle, expliqués pour le marché ouest-africain. Tu paies en Wave ou en Orange Money, en francs CFA.",
     "ctaCourses": "Voir les formations",
     "ctaBlog": "Lire le blog",
+    "ctaBlogCount_one": "Lire le blog — {{count}} article",
+    "ctaBlogCount_other": "Lire le blog — {{count}} articles",
     "truthTitle": "Ce que je n'affiche pas",
     "truthBody": "Ni note, ni nombre d'élèves, ni taux de réussite, ni chiffre d'affaires. La plateforme vient d'ouvrir. Ce que je peux prouver est sur chaque fiche."
   },
-  "manifesto": {
-    "eyebrow": "Bonjour, moi c'est Max-Morrys",
-    "headingHelp": "J'aide les ",
-    "headingEntrepreneurs": "entrepreneurs",
-    "headingTo": " à ",
-    "headingTransform": "transformer",
-    "headingIdeas": " leurs idées en ",
-    "headingBusiness": "business rentables",
-    "headingEnd": ".",
-    "intro": "Formateur et consultant en marketing digital, SEO et intelligence artificielle. Pas besoin d'une audience énorme ni d'y passer tes nuits : il te faut un plan clair et la prochaine étape. Voici ce que je fais pour toi.",
-    "ctaNew": "Voir les nouveautés",
-    "badgeText": "Ravi de te rencontrer",
-    "statValue": "50+",
-    "statLabel": "étudiants formés",
-    "imageAlt": "Max-Morrys"
-  },
-  "stats2": {
-    "eyebrow": "Les chiffres parlent"
-  },
-  "catalog": {
-    "eyebrow": "Le catalogue",
-    "heading": "Range tes compétences dans le bon dossier.",
-    "cta": "Découvrir toutes les formations"
-  },
-  "presence": {
-    "eyebrow": "Tu as un commerce ?",
-    "heading": "Je le digitalise pour toi",
-    "desc": "Tu n'as pas le temps d'apprendre tout ça ? Je m'en charge. Site web, fiche Google, catalogue WhatsApp, mesure des résultats et publications régulières — je les installe et je les pilote pour ton commerce.",
-    "cta": "Voir les packs et les tarifs",
-    "points": {
-      "found": {
-        "title": "Être trouvé",
-        "text": "Sur Google Maps, quand on cherche ton métier dans ton quartier."
-      },
-      "present": {
-        "title": "Présenter",
-        "text": "Ton site et tes produits commandables sur WhatsApp."
-      },
-      "convert": {
-        "title": "Convertir",
-        "text": "Des boutons qui transforment un visiteur en message."
-      },
-      "measure": {
-        "title": "Mesurer",
-        "text": "Savoir enfin ce que ta présence en ligne te rapporte."
-      }
-    }
-  },
-  "agency": {
-    "eyebrow": "Max-Morrys Agency",
-    "heading": "Un produit à construire ?",
-    "desc": "Max-Morrys Agency conçoit des produits numériques, des systèmes IA et des plateformes pour les fondateurs, les PME et les institutions. C'est la practice Product, AI, Technology & Brand de MY ONOMA.",
-    "disciplines": "Product · AI · Technology · Brand",
-    "cta": "Découvrir l'agence"
-  },
-  "quiz": {
-    "eyebrow": "Passe au niveau supérieur",
-    "headingReady": "Prêt à ",
-    "headingAccelerate": "accélérer",
-    "headingEnd": " ?",
-    "desc": "Pas un jeu vidéo, mais ton activité IRL. Choisis le bon point de départ et passe à l'action avec une formation taillée pour ton objectif.",
-    "cta": "Trouve ta formation",
-    "imageAlt": "Passer au niveau supérieur"
-  },
-  "podcast": {
-    "eyebrow": "Contenu 100% gratuit",
-    "headingThe": "Le ",
-    "headingPodcast": "Podcast",
-    "headingChannel": " & la chaîne ",
-    "headingYoutube": "YouTube",
-    "headingEnd": ".",
-    "desc": "Des conseils actionnables en marketing digital, SEO et IA — dans tes oreilles ou sur ton écran.",
-    "popularEpisodes": "Épisodes populaires",
-    "listen": "Écouter le podcast",
-    "watch": "Voir les vidéos"
-  },
-  "blog": {
-    "eyebrow": "Le journal",
-    "headingNot": "Pas ton ",
-    "headingBlogBusiness": "blog business",
-    "headingUsual": " habituel.",
-    "readTime": "{{count}} min",
-    "readAll": "Lire tous les articles"
-  },
-  "offer": {
-    "eyebrow": "La méthode complète",
-    "heading": "Tout ce qu'il te faut pour réussir en ligne.",
-    "desc": "Des formations structurées, du concret et un accompagnement clair — de la première vidéo à ton activité qui tourne.",
-    "cta": "Commencer maintenant",
-    "imageAlt": "La méthode Max-Morrys"
-  },
-  "testimonials": {
-    "eyebrow": "La communauté",
-    "headingPart1": "Ils en parlent mieux ",
-    "headingPart2": "que moi",
-    "headingEnd": "."
-  },
-  "newsletter": {
-    "eyebrow": "La newsletter",
-    "headingThe": "Du ",
-    "headingConcrete": "concret",
-    "headingMailbox": " dans ta boîte mail.",
-    "desc": "Chaque semaine : mes meilleures découvertes, mes stratégies qui marchent et des défis pour faire avancer ton activité. Gratuit, sans spam."
-  },
-  "finalCta": {
-    "heading": "Prêt à transformer ton business ?",
-    "desc": "Que tu sois entrepreneur, marketeur ou en reconversion, il y a une formation faite pour toi.",
-    "ctaFormations": "Voir les formations",
-    "ctaContact": "Prendre contact"
-  },
   "territories": {
-    "formeMeta": "Formations · accès à vie",
+    "formeMeta": "SEO, marketing, IA",
     "formeLabel": "publiée",
     "informeMeta": "Blog gratuit",
     "informeLabel": "articles",
     "transformeMeta": "Podcast, vidéos, Club",
     "transformeLabel": "médias",
     "digitaliseMeta": "Commerces de proximité",
-    "digitaliseLabel": "packs"
+    "digitaliseLabel": "packs",
+    "footForme_one": "formation",
+    "footForme_other": "formations",
+    "footInforme_one": "article publié",
+    "footInforme_other": "articles publiés",
+    "footTransforme_one": "média",
+    "footTransforme_other": "médias",
+    "footDigitalise_one": "pack",
+    "footDigitalise_other": "packs",
+    "footFrom": "dès",
+    "footPerMonth": "F/mois",
+    "digitaliseCite": "catalogue de l'offre"
+  },
+  "me": {
+    "eyebrow": "Formateur · consultant · Dakar",
+    "titleLines": [
+      "Je suis Max-Morrys.",
+      "Une seule personne."
+    ],
+    "lede": "Formateur, consultant et créateur de contenu digital, basé à Dakar. J'écris les articles, je monte les formations, j'anime le Club, et je réponds aux messages.",
+    "alone": "Il n'y a personne d'autre derrière cette plateforme.",
+    "portraitAlt": "Max-Morrys",
+    "c1Title": "Je forme",
+    "c1Body": "Des formations sur le référencement local et l'IA appliquée à la prospection. Écrites, filmées et corrigées par moi.",
+    "c2Title": "Je publie",
+    "c2Body": "Un blog, un podcast, des vidéos. En français, avec des exemples pris ici et pas ailleurs.",
+    "c3Title": "J'accompagne",
+    "c3Body": "Des commerces de proximité que je rends trouvables en ligne, et des projets sur mesure côté Agency.",
+    "cta": "Mon parcours en entier"
+  },
+  "all": {
+    "titleLines": [
+      "Tout ce que tu peux",
+      "faire ici."
+    ],
+    "lede": "Six portes, du gratuit au sur-mesure. Chacune annonce son prix avant que tu cliques.",
+    "formationsTitle": "Les formations",
+    "formationsMeta": "SEO, marketing, IA — accès à vie",
+    "blogTitle": "Le blog",
+    "blogMeta": "Ce que j'écris chaque semaine",
+    "mediaTitle": "Podcast & vidéos",
+    "mediaMeta": "Des gens d'ici racontent ce qu'ils ont fait",
+    "clubTitle": "Le Club des Digitos",
+    "clubMeta": "Une année, en groupe fermé",
+    "presenceTitle": "Présence Digitale",
+    "presenceMeta": "Pour les commerces de proximité",
+    "agencyTitle": "Max-Morrys Agency",
+    "agencyMeta": "Product · AI · Technology · Brand",
+    "agencyFoot": "Sur cadrage écrit, sans grille publique",
+    "footFree": "gratuit, sans compte",
+    "footOnce": "paiement unique"
   },
   "why": {
     "title": [
-      "Pourquoi ici,",
-      "et pas ailleurs."
+      "Pourquoi ici, et pas ailleurs."
     ],
     "r1Title": "Tu paies comme tu paies déjà",
     "r1Body": "Wave, Orange Money, en francs CFA. Pas de carte obligatoire, pas de conversion, pas de compte à l'étranger.",
@@ -184,6 +84,28 @@
     "r2Body": "« Cosmétique Almadies », pas « organic skincare Brooklyn ». Ce que tapent tes clients, dans les mots qu'ils emploient.",
     "r3Title": "Pensé pour un forfait compté",
     "r3Body": "Le poids de chaque vidéo est annoncé avant que tu la lances. Toutes les leçons ont une transcription qui ne coûte rien."
+  },
+  "presence": {
+    "eyebrow": "Tu as un commerce ?",
+    "titleLines": [
+      "Je le digitalise",
+      "pour toi."
+    ],
+    "desc": "Tu n'as pas le temps d'apprendre tout ça ? Je m'en charge. Site, fiche Google, catalogue WhatsApp, mesure des résultats — je les installe et je les pilote pour ton commerce.",
+    "cta": "Voir les packs et les tarifs",
+    "from": "dès",
+    "once": "paiement unique, à l'installation",
+    "cite": "catalogue de l'offre",
+    "points": {
+      "foundTitle": "Être trouvé",
+      "foundBody": "Sur Google Maps, quand on cherche ton métier dans ton quartier.",
+      "presentTitle": "Présenter",
+      "presentBody": "Ton site et tes produits commandables sur WhatsApp.",
+      "convertTitle": "Convertir",
+      "convertBody": "Des boutons qui transforment un visiteur en message.",
+      "measureTitle": "Mesurer",
+      "measureBody": "Savoir enfin ce que ta présence en ligne te rapporte."
+    }
   },
   "free": {
     "title": [
@@ -194,5 +116,14 @@
     "metaArticle": "Article · gratuit",
     "metaPodcast": "Podcast · gratuit",
     "metaCourse": "Module d'ouverture · gratuit"
+  },
+  "end": {
+    "titleLines": [
+      "Par où tu commences,",
+      "c'est toi qui vois."
+    ],
+    "lede": "Le blog est ouvert, sans compte et sans rien à payer. Pour tout le reste, écris-moi : c'est moi qui réponds.",
+    "ctaCourses": "Voir les formations",
+    "ctaContact": "Écris-moi"
   }
 }

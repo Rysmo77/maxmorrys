@@ -164,15 +164,13 @@
     "title": "Club des Digitos",
     "tagline": "Exclusive community · {{price}} FCFA/year",
     "intro": "Get access to the community, Live sessions, the forum, exclusive info and events organized by Max-Morrys.",
-    "joinMembers_one": "Join {{count}} active member",
-    "joinMembers_other": "Join {{count}} active members",
     "features": {
       "feedTitle": "News feed",
       "feedDesc": "Real-time posts from Max-Morrys and members.",
       "forumTitle": "Forum & discussions",
       "forumDesc": "Exchange, ask your questions, interact with the community.",
       "liveTitle": "Live sessions",
-      "liveDesc": "Join live sessions with Max-Morrys.",
+      "liveDesc": "Join the live sessions, with me.",
       "infosTitle": "Exclusive info",
       "infosDesc": "Member-only analyses, resources and content.",
       "eventsTitle": "Events",
@@ -180,7 +178,7 @@
       "rysmoTitle": "Boosted Rysmo",
       "rysmoDesc": "+3 requests per day with your AI tutor Rysmo, included with the Club.",
       "communityTitle": "Community",
-      "communityDesc": "A network of passionate digital professionals."
+      "communityDesc": "The other members, reachable directly. What they make of it doesn't depend on me — which is why it isn't in what I guarantee you."
     },
     "trendingTitle": "What's being shared right now",
     "theyTalk": "What they say",
@@ -189,9 +187,8 @@
     "seeFormations": "See the courses",
     "pendingTitle": "Payment being processed",
     "pendingText": "Your payment is awaiting confirmation. Your access will be activated automatically once received. If you run into an issue, ",
-    "contactUs": "contact us",
+    "contactUs": "write to me",
     "activateTitle": "Activate the Club des Digitos",
-    "activateSubtitle": "{{price}} FCFA / year · Automatic or manual renewal as you prefer.",
     "autoRenewLabel": "Remind me before it ends ",
     "autoRenewHint": "(an email 15 days ahead — nothing gets charged)",
     "processing": "Processing...",
@@ -229,7 +226,7 @@
     "profileTop": "Profile looking great!",
     "completion": {
       "photoLabel": "Profile photo",
-      "photoBenefit": "A photo builds trust — profiles with a photo get contacted far more.",
+      "photoBenefit": "A photo is what makes people recognise you at a workshop.",
       "headlineLabel": "Professional headline",
       "headlineBenefit": "Describe your expertise in one line to be identified at a glance.",
       "skillsLabel": "Skills",
@@ -237,7 +234,7 @@
       "cityLabel": "City",
       "cityBenefit": "Adding your city lists you locally and makes you visible for opportunities near you.",
       "availableLabel": "Availability",
-      "availableBenefit": "Turn on \"Available for gigs\" to appear first to Club recruiters.",
+      "availableBenefit": "Turn on « Available for work » so it shows on your profile when someone is looking for someone.",
       "contactLabel": "A way to be reached",
       "contactBenefit": "Add at least one network (LinkedIn, WhatsApp, website…) so members can reach you."
     },
@@ -390,11 +387,11 @@
       "Here's what they're for."
     ],
     "tabs": {
-      "feed": "What's happening this week, and what your subscription has brought you since day one.",
-      "discussions": "By category: help, tools, clients. The dumb question gets asked here.",
-      "members": "Who does what, and where. Private message, and a report if someone steps out of line.",
+      "feed": "What's happening this week, and your renewal date, always in view.",
+      "discussions": "Write to someone directly, without going through the feed. A message can be reported if it goes wrong.",
+      "members": "Who does what, where. Direct messages, and profiles kept by their authors.",
       "agenda": "Online sessions and workshops in Dakar. Sign up in one move, no double booking.",
-      "leaderboard": "By joining wave, never absolute. You measure up against people who started when you did.",
+      "leaderboard": "The Club ranking, by experience earned. It doesn't compare revenue, and it's good for nothing but placing yourself.",
       "opportunities": "Gigs, calls for tender, hiring. With the budget stated whenever it is.",
       "infos": "The weekly digest, written here and in your notifications. Not by email.",
       "referral": "Your code gets the person you bring in 15 % off. You get nothing — and I'm telling you so."
@@ -434,11 +431,11 @@
     "faq": [
       {
         "q": "Can I pay in instalments?",
-        "a": "Not on the Club — it's yearly and doesn't split. Instalments exist on the courses, in three or four payments depending on the amount."
+        "a": "No. The Club is annual and can't be split, and neither can the courses today: the checkout only takes a single payment. If the amount is the problem, write to me before you pay."
       },
       {
         "q": "What if I never show up?",
-        "a": "You'll have paid for nothing, and I can't stop you. That's why the recap of what your subscription has brought you sits in the feed permanently, and not only when it runs out."
+        "a": "You'll have paid for nothing, and I can't stop that. That's why your renewal date sits in the Club permanently, with its reminder — not just on the last day."
       },
       {
         "q": "Do I get a refund if I change my mind?",

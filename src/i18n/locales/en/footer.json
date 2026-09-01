@@ -1,7 +1,4 @@
 {
-  "newsletterEyebrow": "NEWSLETTER",
-  "newsletterTitle": "Become an Insider now",
-  "newsletterText": "Listen, every week I share my best finds, the strategies that actually work and a few of my little secrets. And the best part? It's completely free!",
   "brandTagline": "Trainer, consultant and digital content creator. I help entrepreneurs master digital marketing and accelerate their growth.",
   "columns": {
     "platform": "Platform",
@@ -15,16 +12,16 @@
     "blog": "I'll keep you posted",
     "podcasts": "The Marketing Podcast",
     "videos": "Marketing in Practice",
-    "faq": "FAQ",
+    "faq": "Frequently asked questions",
     "about": "I'm Max-Morrys",
-    "contact": "Contact",
+    "contact": "Talk to me",
     "booking": "Book a call",
     "legalNotice": "Legal notice",
     "privacy": "Privacy",
     "cgu": "Terms of Use",
     "cgv": "Terms of Sale",
     "cookies": "Cookies",
-    "presence": "Digital Presence",
+    "presence": "I'll get you online",
     "pole": "I'll push you further",
     "club": "The Digitos Club",
     "verify": "Verify a certificate"
@@ -37,5 +34,6 @@
   "rssAction": "Copy the link",
   "alert": "Alert in your space",
   "alertAction": "Create an account",
-  "noEmail": "There's no email newsletter yet. I won't make you fill a field that does nothing."
+  "noEmail": "There's no email newsletter yet. I won't make you fill a field that does nothing.",
+  "registeredOn": "Registered on"
 }

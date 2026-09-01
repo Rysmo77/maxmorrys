@@ -179,7 +179,7 @@ export default function AdminAnalytics() {
           </div>
 
           {stats && (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-3 grid gap-3 stack:grid-cols-2 wide:grid-cols-3">
               <StatTile label={t('analytics.statUsers')} value={stats.users} source="db" asOf={stamp} />
               <StatTile
                 label={t('analytics.statFormations')}
@@ -237,7 +237,7 @@ export default function AdminAnalytics() {
             <GlassPanel level="night" padding={18} className="mt-3">
               <SiteEyebrow style={{ marginBottom: '14px' }}>{t('analytics.agencyTitle')}</SiteEyebrow>
 
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 stack:grid-cols-3">
                 <StatTile label={t('analytics.agencyWeighted')} value={agency.pipelineWeighted} unit="FCFA" source="db" asOf={stamp} />
                 <StatTile label={t('analytics.agencySignedValue')} value={agency.signedValue} unit="FCFA" source="db" asOf={stamp} />
                 <StatTile label={t('analytics.agencyConversion')} value={Math.round(agency.conversionRate * 100)} unit="%" source={ratioSource} asOf={stamp} />
@@ -255,7 +255,7 @@ export default function AdminAnalytics() {
                 ))}
               </div>
 
-              <div className="mt-5 grid gap-x-8 gap-y-5 sm:grid-cols-2">
+              <div className="mt-5 grid gap-x-8 gap-y-5 stack:grid-cols-2">
                 <Distribution title={t('analytics.agencyByPack')} entries={agency.byPack} asOf={stamp} />
                 <Distribution title={t('analytics.agencyByPlan')} entries={agency.byPlan} asOf={stamp} />
                 <Distribution title={t('analytics.agencyBySector')} entries={agency.bySector} asOf={stamp} />

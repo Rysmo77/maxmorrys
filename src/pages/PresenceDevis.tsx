@@ -214,6 +214,22 @@ export default function PresenceDevis() {
                     last
                   />
                 )}
+                {/*
+                  CE QUI SÉPARE LES DEUX BLOCS N'EST PAS DÉCORATIF.
+
+                  Ce document additionnait la mise en place du pack et celle de l'accompagnement
+                  sous un « Total à la mise en place » unique, puis découpait ce total en 60/40.
+                  Un prospect qui prenait Boutique + Commerce 360 lisait 1 645 000 F exigibles à
+                  la signature, avant six mois à 225 000. Le modèle vendu est l'inverse —
+                  setup-first : la mise en place se signe seule, l'accompagnement se décide à
+                  J+30, une fois la boutique en ligne. La maquette `GrilleComplete` le dit
+                  aussi : « additionner les deux au moment de la vente, c'est annoncer une
+                  facture de première année que la plupart des commerces ne peuvent pas
+                  financer. »
+                */}
+                <p className="mt-[10px] mb-0 text-[11.5px] leading-[1.5] text-ink-2">
+                  {t('quote.planNote')}
+                </p>
               </>
             )}
 
@@ -223,7 +239,7 @@ export default function PresenceDevis() {
             <div className="flex flex-wrap items-end justify-between gap-3">
               <PriceBlock
                 size={29}
-                amount={{ value: totals.upfront, source: grid.source, asOf: grid.asOf }}
+                amount={{ value: totals.setupDue, source: grid.source, asOf: grid.asOf }}
                 note={t('quote.upfrontTotal')}
               />
               <Tag tone={expired ? 'warn' : 'ok'}>
@@ -241,15 +257,15 @@ export default function PresenceDevis() {
               </Tag>
             </div>
 
-            {totals.upfront > 0 && (
+            {totals.setupDue > 0 && (
               <div className="mt-[14px]">
                 <DocLine
                   label={t('quote.deposit')}
-                  value={<Num value={depositAmount(totals.upfront)} source="server" asOf={grid.asOf} unit="FCFA" />}
+                  value={<Num value={depositAmount(totals.setupDue)} source="server" asOf={grid.asOf} unit="FCFA" />}
                 />
                 <DocLine
                   label={t('quote.balance')}
-                  value={<Num value={balanceAmount(totals.upfront)} source="server" asOf={grid.asOf} unit="FCFA" />}
+                  value={<Num value={balanceAmount(totals.setupDue)} source="server" asOf={grid.asOf} unit="FCFA" />}
                   last
                 />
               </div>

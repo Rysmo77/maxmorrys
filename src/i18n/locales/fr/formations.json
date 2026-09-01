@@ -65,18 +65,18 @@
   },
   "business": {
     "eyebrow": "Offre entreprises",
-    "title": "Formez vos équipes avec Max-Morrys Business",
-    "description": "Montez en compétences à l'échelle de votre organisation : licences d'équipe, ateliers sur mesure et accompagnement de vos talents.",
-    "cta": "Discutons de votre projet",
+    "title": "Forme tes équipes avec Max-Morrys Business",
+    "description": "Monte en compétences à l'échelle de ton organisation : licences d'équipe, ateliers sur mesure et accompagnement de tes talents.",
+    "cta": "Parlons de ton projet",
     "offers": {
       "licensesTitle": "Licences équipe",
-      "licensesDesc": "Formez l'ensemble de votre organisation",
+      "licensesDesc": "Forme l'ensemble de ton organisation",
       "licensesNote": "Prix par siège",
       "workshopsTitle": "Ateliers corporate",
       "workshopsDesc": "Sessions intensives sur mesure",
       "workshopsNote": "Programme sur-mesure",
       "coachingTitle": "Accompagnement",
-      "coachingDesc": "Suivi & coaching de vos talents",
+      "coachingDesc": "Suivi et coaching de tes talents",
       "coachingNote": "Sur devis"
     }
   },
@@ -86,7 +86,7 @@
     "studentsOther": "{{formattedCount}} étudiants"
   },
   "crossBlog": {
-    "eyebrow": "Découvrez aussi",
+    "eyebrow": "À lire aussi",
     "title": "Je t'informe",
     "description": "Articles, analyses et conseils pratiques pour maîtriser le marketing digital, le SEO et l'IA.",
     "cta": "Lire le blog"
@@ -121,9 +121,9 @@
     "reviewsTitle": "Avis des étudiants",
     "ratingSummary": "Note moyenne attribuée par <strong>{{count}} étudiants</strong> inscrits à cette formation.",
     "guaranteeBanner": "Garantie satisfait ou remboursé pendant 14 jours — sans condition.",
-    "crossEyebrow": "Découvrez aussi",
+    "crossEyebrow": "À lire aussi",
     "crossTitle": "Je t'informe",
-    "crossDescription": "Articles, analyses et conseils gratuits pour approfondir vos connaissances en marketing digital.",
+    "crossDescription": "Articles, analyses et conseils gratuits pour approfondir ce que tu sais en marketing digital.",
     "crossCta": "Lire le blog"
   },
   "card": {
@@ -168,13 +168,18 @@
     "whyBody": "Je préfère deux formations que je tiens à jour à un catalogue qui fait nombre. Le module d'ouverture de chacune est en accès libre : tu juges avant de payer.",
     "c1": "Une fois payée, l'accès est à vie",
     "c2": "Le module d'ouverture est gratuit",
-    "c3": "Tu paies en Wave ou en Orange Money",
+    "c3": "Tu paies en Wave, en Orange Money ou par carte",
     "c4": "Certificat vérifiable par son code, sans compte",
     "emptyTitle": "Le catalogue ouvre bientôt.",
     "emptyBody": "Aucune formation n'est encore en ligne. Je préfère te le dire que te faire cliquer dans le vide. Crée ton compte : je t'alerte dans ton espace le jour de la mise en ligne.",
     "emptyCta": "Crée ton compte",
     "emptyNote": "Pas de « préviens-moi par e-mail » : le produit n'a aucun canal d'envoi. L'alerte arrive dans ton espace.",
-    "lifetime": "Une fois, accès à vie"
+    "lifetime": "Une fois, accès à vie",
+    "cardModules_one": "{{count}} module",
+    "cardModules_other": "{{count}} modules",
+    "cardLessons_one": "{{count}} leçon",
+    "cardLessons_other": "{{count}} leçons",
+    "includesTitle": "Ce que comprend chaque formation"
   },
   "sheet": {
     "eyebrow": "Je te forme",
@@ -208,6 +213,9 @@
     "q2": "Combien de temps j'ai accès ?",
     "a2": "À vie. Une formation retravaillée reste accessible dans sa version corrigée, sans repayer.",
     "q3": "Je peux payer en plusieurs fois ?",
-    "a3": "Écris-moi avant de payer. Le montant débité est celui recalculé côté serveur, jamais celui affiché par ton navigateur."
+    "a3": "Écris-moi avant de payer. Le montant débité est celui recalculé côté serveur, jamais celui affiché par ton navigateur.",
+    "moduleMeta_one": "{{count}} leçon",
+    "moduleMeta_other": "{{count}} leçons",
+    "translatedOriginal": "Lire l'original"
   }
 }

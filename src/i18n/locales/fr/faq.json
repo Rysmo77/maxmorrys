@@ -21,19 +21,19 @@
   "index": {
     "eyebrow": "Je t'informe",
     "titleLines": [
-      "Les questions",
-      "qu'on me pose."
+      "Questions fréquentes"
     ],
-    "lede": "Si la question revient, elle finit ici. C'est comme ça que cette page s'écrit.",
-    "searchLabel": "Chercher une question",
+    "lede": "Chaque question a sa propre page : tu peux en envoyer une seule à quelqu'un, et elle ressort en recherche.",
+    "searchLabel": "Cherche ",
     "searchHint": "une question",
     "filterAll": "Tout",
-    "contactTitle": "Tu ne trouves pas ?",
-    "contactBody": "Écris-moi. C'est moi qui lis, et c'est moi qui réponds — compte deux jours ouvrés.",
+    "contactTitle": "Pose-la-moi directement.",
+    "contactBody": "Si la question revient, elle finit ici. C'est comme ça que cette page s'écrit — et c'est moi qui lis, comme c'est moi qui réponds. Compte deux jours ouvrés.",
     "contactCta": "Contacte-moi",
     "truthTitle": "Une question mérite d'être lue en entier",
     "truthBody": "« Combien de membres y a-t-il dans le Club ? » a sa réponse ici, et elle commence par : « Je ne te le dirai pas, parce que le chiffre serait faux. » Une FAQ qui esquive ses questions gênantes ne sert à personne.",
-    "empty": "Aucune question ne correspond. Retire un filtre, ou vide la recherche."
+    "empty": "Aucune question ne correspond. Retire un filtre, ou vide la recherche.",
+    "contactEyebrow": "Tu ne trouves pas ?"
   },
   "question": {
     "breadcrumbRoot": "FAQ",

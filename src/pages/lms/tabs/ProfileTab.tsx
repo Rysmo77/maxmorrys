@@ -205,11 +205,11 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
       {/* ── Les informations ───────────────────────────────────────────────── */}
       <SiteEyebrow style={{ marginTop: '22px' }}>{t('profile.personalInfo')}</SiteEyebrow>
       <GlassPanel level="flat" padding={18} as="section" aria-label={t('profile.formLabel')}>
-        <div className="grid sm:grid-cols-2 gap-x-4">
+        <div className="grid stack:grid-cols-2 gap-x-4">
           <Field label={t('profile.firstName')} value={profileForm.firstName} onChange={set('firstName')} placeholder={t('profile.firstNamePlaceholder')} autoComplete="given-name" style={{ marginTop: 0 }} />
           <Field label={t('profile.lastName')} value={profileForm.lastName} onChange={set('lastName')} placeholder={t('profile.lastNamePlaceholder')} autoComplete="family-name" style={{ marginTop: 0 }} />
 
-          <div className="sm:col-span-2">
+          <div className="stack:col-span-2">
             <Field
               label={t('profile.displayName')}
               hint={t('profile.displayNameHint')}
@@ -220,7 +220,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
             />
           </div>
 
-          <div className="sm:col-span-2">
+          <div className="stack:col-span-2">
             {/* L'adresse ne se modifie pas ici : c'est l'identifiant d'authentification. */}
             <Field label={t('profile.email')} type="email" value={user?.email || ''} readOnly disabled />
           </div>
@@ -245,10 +245,10 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
           <Field label={t('profile.twitter')} value={profileForm.twitter} onChange={set('twitter')} placeholder={t('profile.handlePlaceholder')} />
           <Field label={t('profile.tiktok')} value={profileForm.tiktok} onChange={set('tiktok')} placeholder={t('profile.handlePlaceholder')} />
 
-          <div className="sm:col-span-2">
+          <div className="stack:col-span-2">
             <Field label={t('profile.youtube')} type="url" inputMode="url" value={profileForm.youtube} onChange={set('youtube')} placeholder={t('profile.youtubePlaceholder')} />
           </div>
-          <div className="sm:col-span-2">
+          <div className="stack:col-span-2">
             <Field as="textarea" rows={3} maxLength={600} label={t('profile.bio')} value={profileForm.bio} onChange={set('bio')} placeholder={t('profile.bioPlaceholder')} />
           </div>
         </div>

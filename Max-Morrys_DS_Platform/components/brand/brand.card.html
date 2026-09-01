@@ -1,0 +1,23 @@
+<!-- @dsCard group="Composants" viewport="700x220" name="Marque" subtitle="Logotype typographique, icône fournie, jeu de 27 glyphes" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Marque</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>html,body{margin:0}body{font-family:var(--f-body);color:var(--ink);background:#FBFCFE;padding:18px}*{box-sizing:border-box}.lbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}.row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.k{background:#fff;border:1px solid var(--line);border-radius:var(--r-m);padding:14px 16px}.ico{display:flex;flex-wrap:wrap;gap:8px}.ico span{width:36px;height:36px;border-radius:11px;background:#fff;border:1px solid var(--line);display:grid;place-items:center}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+</head><body><div id="root"></div><script type="text/babel">
+const { Wordmark, LogoMark, Icon, iconNames } = window.DesignSystem_b7a7ca;
+function Card(){return (<div>
+  <div className="row">
+    <div className="k"><LogoMark size={64} src="../../assets/logo-mm-icon.png" /></div>
+    <div className="k"><Wordmark size={28} /><p className="lbl" style={{margin:'8px 0 0'}}>Logotype typographique</p></div>
+    <div className="k" style={{background:'#0B0E13',borderColor:'#232B34'}}><Wordmark size={28} night tail="#fff" /><p className="lbl" style={{margin:'8px 0 0',color:'#77828F'}}>Teintes nuit</p></div>
+    <div className="k"><Wordmark size={28} short /><p className="lbl" style={{margin:'8px 0 0'}}>Signature de certificat</p></div>
+  </div>
+  <p className="lbl">Glyphes — trait 2,2 px, boîte de 24</p>
+  <div className="ico">{iconNames.map(n=><span key={n}><Icon name={n} size={19} /></span>)}</div>
+</div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<MMBoundary><Card /></MMBoundary>);
+</script></body></html>

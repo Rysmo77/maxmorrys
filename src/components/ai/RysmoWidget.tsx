@@ -262,13 +262,13 @@ export default function RysmoWidget() {
       if (err && typeof err === 'object' && 'code' in err) {
         const code = (err as { code: string }).code;
         if (code === 'functions/unauthenticated') {
-          errorMessage = t('errors.unauthenticated');
+          errorMessage = t('errors.unauthenticated', { tutor: tutorName(userData) });
         } else if (code === 'functions/resource-exhausted') {
           const message = (err as { message?: string }).message;
           errorMessage = message || t('errors.limitReached');
           isLimit = true;
         } else if (code === 'functions/not-found') {
-          errorMessage = t('errors.notFound');
+          errorMessage = t('errors.notFound', { tutor: tutorName(userData) });
         }
       }
 
@@ -386,7 +386,7 @@ export default function RysmoWidget() {
       {/* ── Panneau de chat ── */}
       {open && (
         <div
-          className="fixed z-50 flex flex-col overflow-hidden bg-paper dark:bg-[color:var(--night-3)] mm-drop inset-0 rounded-none border-0 shadow-none sm:inset-auto sm:bottom-24 sm:right-6 sm:w-96 sm:h-[600px] sm:max-h-[calc(100dvh-8rem)] sm:rounded-2xl sm:border sm:border-[color:var(--line)] sm:dark:border-[color:var(--border-hair)] sm:shadow-2xl"
+          className="fixed z-50 flex flex-col overflow-hidden bg-surface-sheet mm-drop inset-0 rounded-none border-0 shadow-none sm:inset-auto sm:bottom-24 sm:right-6 sm:w-96 sm:h-[600px] sm:max-h-[calc(100dvh-8rem)] sm:rounded-2xl sm:border sm:border-[color:var(--line)] sm:dark:border-[color:var(--border-hair)] sm:shadow-2xl"
         >
 
           {/* Header */}
@@ -445,7 +445,7 @@ export default function RysmoWidget() {
               <button
                 onClick={() => setOpen(false)}
                 className="p-2 rounded-full hover:bg-[color-mix(in_srgb,var(--paper)_20%,transparent)] transition-colors"
-                aria-label={t('closeRysmo')}
+                aria-label={t('closeRysmo', { tutor: tutorName(userData) })}
               >
                 <Icon name="close" size={16} />
               </button>
@@ -523,7 +523,13 @@ export default function RysmoWidget() {
                 to="/mon-espace/repetiteur?tab=tokens"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold shadow-sm hover:from-amber-600 hover:to-orange-600 transition"
+                /* `from-amber-500 to-orange-500` : deux couleurs de la palette PAR DÉFAUT de
+                   Tailwind, étrangères aux quatre teintes du système. Elles génèrent du CSS
+                   valide — donc aucune porte ne les voyait — mais ne basculent pas sous `.dk`
+                   et ne sont dans aucun jeton. `--action-informe` est le dégradé orange de
+                   « Je t'informe », et son encre est `--ink-fixed` : le dégradé est clair, un
+                   `text-white` y donnerait du blanc sur orange pâle. */
+                className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl bg-[image:var(--action-informe)] text-[color:var(--ink-fixed)] text-xs font-semibold shadow-sm transition-opacity duration-ui hover:opacity-90"
               >
                 <Icon name="sparkles" size={16} className="flex-shrink-0" />
                 <span className="flex-1">{t('upsellBanner')}</span>
@@ -568,7 +574,7 @@ export default function RysmoWidget() {
             </div>
             <div className="flex items-center justify-between mt-2 gap-2">
               <p className="text-[10px] text-ink-2">
-                {t('disclaimer')}
+                {t('disclaimer', { tutor: tutorName(userData) })}
               </p>
               {quota && (
                 <LocalizedLink
@@ -584,7 +590,12 @@ export default function RysmoWidget() {
                   <span>
                     {t('quotaToday', { remaining: quota.dayRemaining, limit: quota.dailyLimit })}
                   </span>
-                  {quota.hasClubBonus && <span className="text-amber-500" title={t('clubBonusTooltip')}>★</span>}
+                  {/* `★` était un caractère unicode servant d'icône, en ambre hors palette :
+                      le système n'admet qu'un jeu de glyphes, et `star` en fait partie — c'est
+                      l'un de ses deux seuls glyphes pleins. Le bonus vient du Club, donc violet. */}
+                  {quota.hasClubBonus && (
+                    <Icon name="star" size={12} color="var(--mm-violet-t)" title={t('clubBonusTooltip')} />
+                  )}
                 </LocalizedLink>
               )}
             </div>
@@ -602,17 +613,19 @@ export default function RysmoWidget() {
           open ? 'hidden sm:flex bg-[color:var(--night-3)] rotate-12 scale-90' : 'flex bg-digitalise hover:bg-digitalise hover:scale-105'
         }`}
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
-        aria-label={open ? t('closeRysmo') : t('openRysmo')}
+        aria-label={open ? t('closeRysmo', { tutor: tutorName(userData) }) : t('openRysmo', { tutor: tutorName(userData) })}
       >
         {open ? (
           <Icon name="close" size={20} className="text-white" />
         ) : (
           <Icon name="bot" size={24} className="text-white" />
         )}
-        {/* Pulse quand fermé */}
-        {!open && (
-          <span className="absolute inset-0 rounded-full bg-[color:var(--mm-teal)] animate-ping opacity-20" />
-        )}
+        {/* LA PULSATION A ÉTÉ RETIRÉE. Le système ne scénarise QUE deux moments — l'attente de
+            paiement et l'émission du certificat — et dit pourquoi : « il n'y en aura pas un
+            troisième ». Un anneau qui bat en permanence dans un coin d'écran ne répond à
+            aucune question que la personne se pose ; la planche des micro-interactions en fait
+            sa règle d'admission : « une micro-interaction sans raison d'exister est un tic ».
+            Le bouton reste repérable par sa taille, sa couleur et son ombre. */}
       </button>
     </>
   );

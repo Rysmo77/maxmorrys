@@ -83,6 +83,7 @@ const SEGMENTS: Record<string, { fr: string; en: string }> = {
   temoignages: { fr: 'temoignages', en: 'testimonials' },
   checkout: { fr: 'checkout', en: 'checkout' },
   paiement: { fr: 'paiement', en: 'payment' },
+  paiements: { fr: 'paiements', en: 'payments' },
   retour: { fr: 'retour', en: 'return' },
   certificat: { fr: 'certificat', en: 'certificate' },
   // Le contrôle d'un code, sans compte. Segment anglais de la table du design system.

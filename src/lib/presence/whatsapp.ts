@@ -93,11 +93,15 @@ export function buildWhatsAppMessage(input: WhatsAppMessageInput): string {
     lines.push(`🔁 ${labels.planName} — ${formatPrice(totals.planSetup)}${monthly}`);
   }
 
-  // Montants — seulement s'il y a quelque chose à payer
-  if (totals.upfront > 0) {
+  /* Montants — seulement s'il y a quelque chose à payer, et JAMAIS la somme des deux.
+     Ce message part au prospect : il annonce la mise en place, qui est ce qui se signe
+     maintenant. L'accompagnement est déjà listé au-dessus avec sa propre mise en place et son
+     mensuel ; l'additionner ici annoncerait une facture de première année que le modèle
+     setup-first ne demande pas (`docs/OFFRE_AGENCE_TPE.md` § 4 et § 149). */
+  if (totals.setupDue > 0) {
     lines.push(
-      `💰 ${labels.upfrontLabel} : ${formatPrice(totals.upfront)} ` +
-      `(${labels.depositLabel} : ${formatPrice(depositAmount(totals.upfront))})`,
+      `💰 ${labels.upfrontLabel} : ${formatPrice(totals.setupDue)} ` +
+      `(${labels.depositLabel} : ${formatPrice(depositAmount(totals.setupDue))})`,
     );
   }
   if (findPack(pack) || findPlan(plan)) lines.push('');

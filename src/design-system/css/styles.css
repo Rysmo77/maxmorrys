@@ -31,3 +31,5 @@
 @import url("./overrides/ad-06-etats.css");
 @import url("./overrides/ad-20-corail-texte.css");
 @import url("./overrides/ad-21-radio-epaisseur.css");
+@import url("./overrides/ad-22-surface-feuille.css");  /* surface opaque qui bascule */
+@import url("./overrides/ad-23-hello-arc.css");        /* le mot-symbole devient une cible */

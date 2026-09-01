@@ -125,11 +125,11 @@ export default function SitePreview({ url, domain, name }: SitePreviewProps) {
             {/* Chrome navigateur */}
             <div className="flex items-center gap-2.5 px-4 py-2.5 bg-[color:var(--fill-2)] border-b border-[color-mix(in_srgb,var(--line)_80%,transparent)]">
               <span className="flex gap-1.5 shrink-0" aria-hidden="true">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />  // ok-ds — couleurs officielles des boutons de fenêtre macOS — maquette de navigateur
-                <span className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />  // ok-ds — couleurs officielles des boutons de fenêtre macOS — maquette de navigateur
-                <span className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />  // ok-ds — couleurs officielles des boutons de fenêtre macOS — maquette de navigateur
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />  {/* ok-ds — couleurs officielles des boutons de fenêtre macOS — maquette de navigateur */}
+                <span className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />  {/* ok-ds — couleurs officielles des boutons de fenêtre macOS — maquette de navigateur */}
+                <span className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />  {/* ok-ds — couleurs officielles des boutons de fenêtre macOS — maquette de navigateur */}
               </span>
-              <span className="flex-1 truncate text-center text-[11px] font-semibold text-ink-2 bg-paper dark:bg-[color:var(--night-3)] rounded-md px-3 py-1 mx-2">
+              <span className="flex-1 truncate text-center text-[11px] font-semibold text-ink-2 bg-surface-sheet rounded-md px-3 py-1 mx-2">
                 {domain}
               </span>
               <span className="w-9 shrink-0" aria-hidden="true" />

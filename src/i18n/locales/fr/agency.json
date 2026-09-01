@@ -8,7 +8,7 @@
     "titlePart2": " qui font avancer les entreprises.",
     "subtitle": "Stratégie produit, ingénierie, systèmes IA et expériences de marque. Nous intervenons sur les projets où le produit, la technologie et le business doivent fonctionner ensemble.",
     "disciplines": "Product · AI · Technology · Brand",
-    "cta": "Parlons de votre projet",
+    "cta": "Parlons de ton projet",
     "ctaSecondary": "Voir nos réalisations"
   },
   "whoWeHelp": {
@@ -36,7 +36,7 @@
       }
     },
     "notForTitle": "Ce que nous ne faisons pas",
-    "notFor": "Nous ne sommes ni une agence web au forfait, ni une agence de communication, ni une agence 360°. Si votre besoin porte d'abord sur la croissance, l'acquisition ou les revenus, nous vous orientons vers la practice qui le porte."
+    "notFor": "Je ne suis ni une agence web au forfait, ni une agence de communication, ni une agence 360°. Si ton besoin porte d'abord sur la croissance, l'acquisition ou les revenus, je t'oriente vers la practice qui le porte."
   },
   "capabilities": {
     "eyebrow": "Nos expertises",
@@ -94,8 +94,9 @@
     "titleAccent": "construit",
     "titlePart2": ".",
     "clientsTitle": "Projets clients",
-    "clientsDesc": "Produits construits pour des tiers. Ils appartiennent à leurs clients ; nous indiquons uniquement le rôle que nous avons tenu.",
+    "clientsDesc": "Construits pour des tiers. Ils leur appartiennent ; j'indique uniquement le rôle que j'ai tenu.",
     "venturesTitle": "Products built inside MY ONOMA",
+    "venturesTitleLines": ["Products built", "inside MY ONOMA"],
     "venturesDesc": "Produits que le studio conçoit, détient et opère. Chacun est une marque autonome.",
     "roleLabel": "Notre rôle",
     "stackLabel": "Stack",
@@ -139,9 +140,6 @@
       "dunamis-holydays": {
         "description": "Site d'événement : présentation, programme et inscriptions."
       },
-      "jubile-de-grace": {
-        "description": "Site d'événement anniversaire — programme, temps forts et participation."
-      },
       "in-senegal": {
         "description": "Site institutionnel d'un événement national — présentation, programme et contact."
       }
@@ -160,7 +158,13 @@
     "resultCount_one": "{{count}} projet",
     "resultCount_other": "{{count}} projets",
     "selectProject": "Choisir un projet à afficher",
-    "listAria": "Liste des projets clients"
+    "listAria": "Liste des projets clients",
+    "titleLines": [
+      "Ce que j'ai construit,",
+      "et pour qui."
+    ],
+    "lede": "Ces produits appartiennent à leurs clients. Je n'indique que le rôle que j'ai tenu, et le lien pour aller voir — c'est ce qui distingue une référence d'un logo posé sur une page.",
+    "resultCount": "{{count}} projet"
   },
   "howWeWork": {
     "eyebrow": "Notre méthode",
@@ -178,7 +182,7 @@
       },
       "build": {
         "title": "Construire",
-        "desc": "Livraisons régulières et vérifiables. Vous voyez le produit avancer plutôt qu'un rapport d'avancement."
+        "desc": "Livraisons régulières et vérifiables. Tu vois le produit avancer, plutôt qu'un rapport d'avancement."
       },
       "run": {
         "title": "Exploiter",
@@ -199,7 +203,7 @@
     },
     "carriedBy": "Porté par",
     "cta": "Découvrir MY ONOMA",
-    "growTitle": "Votre besoin porte sur la croissance ?",
+    "growTitle": "Ton besoin porte sur la croissance ?",
     "growBody": "Pour les missions de Growth, Revenue & Operations, nous intervenons au sein de MY ONOMA avec Cléa Growth Office. C'est une practice sœur, pas un sous-traitant.",
     "growDistinction": "Max-Morrys Agency construit les systèmes. Cléa Growth Office construit et opère la machine de croissance.",
     "growCta": "Voir Cléa Growth Office"
@@ -215,23 +219,23 @@
         "a": "Présence Digitale est une offre productisée pour les commerces de proximité : site, fiche Google, catalogue WhatsApp, publication régulière, à tarifs publics. Max-Morrys Agency intervient sur des projets sur mesure où produit, technologie et business sont liés. Ce sont deux offres distinctes, avec deux tunnels distincts."
       },
       {
-        "q": "Publiez-vous vos tarifs ?",
-        "a": "Non. Chaque mission est cadrée à partir d'un problème, d'un périmètre et d'un calendrier. Nous travaillons au projet, en accompagnement récurrent ou en advisory. Le formulaire comporte une fourchette budgétaire : elle sert à vérifier que nous sommes alignés avant de vous faire perdre du temps."
+        "q": "Tes tarifs sont-ils publics ?",
+        "a": "Non. Chaque mission est cadrée à partir d'un problème, d'un périmètre et d'un calendrier. Je travaille au projet, en accompagnement récurrent ou en advisory. Le formulaire comporte une fourchette budgétaire : elle sert à vérifier qu'on est alignés avant de te faire perdre du temps."
       },
       {
         "q": "Qui contracte avec nous ?",
         "a": "Max-Morrys Agency est une marque commerciale. Les prestations contractualisées sous MY ONOMA sont réalisées par MY ONOMA SARL, société de droit sénégalais basée à Dakar."
       },
       {
-        "q": "Travaillez-vous en dehors du Sénégal ?",
-        "a": "Oui. Le studio est basé à Dakar et travaille à distance. Le produit et l'ingénierie ne dépendent pas d'une présence sur site ; nous calons les rythmes de travail sur votre fuseau."
+        "q": "Travailles-tu en dehors du Sénégal ?",
+        "a": "Oui. Le studio est basé à Dakar et travaille à distance. Le produit et l'ingénierie ne dépendent pas d'une présence sur site ; je cale les rythmes de travail sur ton fuseau."
       },
       {
-        "q": "Utilisez-vous l'IA pour construire ?",
+        "q": "Utilises-tu l'IA pour construire ?",
         "a": "Oui, en ingénierie assistée par IA — sur la production de code, les tests et l'outillage. Cela accélère la livraison. Cela ne remplace ni les arbitrages d'architecture, ni la revue, ni la responsabilité de ce qui part en production."
       },
       {
-        "q": "À qui appartient ce que vous construisez ?",
+        "q": "À qui appartient ce que tu construis ?",
         "a": "Les livrables produits pour un client lui appartiennent, dans les termes de son contrat. Nos méthodes, nos composants génériques et notre outillage interne restent les nôtres. Cette frontière est explicite et figure dans nos contrats."
       }
     ]
@@ -239,22 +243,22 @@
   "form": {
     "eyebrow": "Démarrer",
     "titlePart1": "Parlons de ",
-    "titleAccent": "votre projet",
+    "titleAccent": "ton projet",
     "titlePart2": ".",
-    "subtitle": "Quelques questions pour comprendre votre besoin. Nous répondons sous deux jours ouvrés, et nous le disons franchement si nous ne sommes pas les bons interlocuteurs.",
-    "nameLabel": "Votre nom",
+    "subtitle": "Quelques questions pour comprendre ton besoin. Je réponds sous deux jours ouvrés, et je te le dis franchement si je ne suis pas le bon interlocuteur.",
+    "nameLabel": "Ton nom",
     "namePlaceholder": "Awa Ndiaye",
     "companyLabel": "Entreprise ou organisation",
-    "companyPlaceholder": "Nom de votre structure",
+    "companyPlaceholder": "Nom de ta structure",
     "emailLabel": "Email professionnel",
-    "emailPlaceholder": "vous@entreprise.com",
+    "emailPlaceholder": "toi@entreprise.com",
     "websiteLabel": "Site web (facultatif)",
     "websitePlaceholder": "https://",
     "projectTypeLabel": "Type de projet",
     "budgetLabel": "Budget envisagé",
     "timelineLabel": "Échéance souhaitée",
-    "descriptionLabel": "Décrivez votre projet",
-    "descriptionPlaceholder": "Le problème que vous cherchez à résoudre, ce qui existe déjà, et ce qui vous bloque aujourd'hui.",
+    "descriptionLabel": "Décris ton projet",
+    "descriptionPlaceholder": "Le problème que tu cherches à résoudre, ce qui existe déjà, et ce qui te bloque aujourd'hui.",
     "submit": "Envoyer ma demande",
     "submitting": "Envoi en cours…",
     "required": "Champ obligatoire",
@@ -287,12 +291,12 @@
     },
     "success": {
       "title": "Demande envoyée",
-      "body": "Merci. Nous revenons vers vous sous deux jours ouvrés à l'adresse indiquée.",
+      "body": "Merci. Je reviens vers toi sous deux jours ouvrés, à l'adresse indiquée.",
       "backCta": "Revenir à la page"
     },
     "growNotice": {
       "title": "Ce besoin relève de Cléa Growth Office",
-      "body": "Croissance, go-to-market, revenus et opérations sont portés par Cléa Growth Office, la practice sœur au sein de MY ONOMA. Votre demande est bien enregistrée et transmise au bon interlocuteur.",
+      "body": "Croissance, go-to-market, revenus et opérations sont portés par Cléa Growth Office, la practice sœur au sein de MY ONOMA. Ta demande est bien enregistrée et transmise au bon interlocuteur.",
       "cta": "En savoir plus"
     }
   },
@@ -300,10 +304,10 @@
     "titlePart1": "Un projet où le produit et la ",
     "titleAccent": "technologie",
     "titlePart2": " doivent avancer ensemble ?",
-    "subtitle": "Décrivez-le. Nous vous dirons honnêtement si nous sommes les bons interlocuteurs.",
-    "cta": "Parlons de votre projet",
-    "presenceTitle": "Vous tenez un commerce de proximité ?",
-    "presenceBody": "L'offre Présence Digitale installe et pilote votre présence en ligne : site, fiche Google, catalogue WhatsApp et publication régulière. Tarifs publics.",
+    "subtitle": "Décris-le. Je te dirai honnêtement si je suis le bon interlocuteur.",
+    "cta": "Parlons de ton projet",
+    "presenceTitle": "Tu tiens un commerce de proximité ?",
+    "presenceBody": "L'offre Présence Digitale installe et pilote ta présence en ligne : site, fiche Google, catalogue WhatsApp et publication régulière. Tarifs publics.",
     "presenceCta": "Voir l'offre Présence Digitale"
   },
   "preview": {
@@ -329,7 +333,7 @@
     "truthTitle": "Pourquoi il n'y a aucun tarif sur cette page",
     "truthStart": "Parce qu'aucun de ces projets ne se vend au catalogue. Si tu cherches une grille publique et un prix affiché, c'est ",
     "truthStrong": "Présence Digitale",
-    "truthEnd": " qu'il te faut — c'est une autre offre, une autre équipe, et elle est faite pour ça."
+    "truthEnd": " qu'il te faut — c'est une autre offre, avec sa grille publique, et elle est faite pour ça."
   },
   "panel": {
     "eyebrow": "Parlons-en",
@@ -421,10 +425,6 @@
         "body": "Tu vois quelque chose de fonctionnel à chaque étape. Pas de grande révélation à la fin."
       }
     ]
-  },
-  "note": {
-    "lead": "Section retirée volontairement.",
-    "body": "La page en production nomme publiquement douze organisations, et le dépôt note lui-même que l'accord écrit n'est pas obtenu. Tant que FR-105 n'est pas fait, la page se passe de références."
   },
   "sent": {
     "titleLines": [

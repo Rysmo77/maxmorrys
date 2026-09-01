@@ -19,8 +19,8 @@
     "bottomHome": "Home",
     "bottomCourses": "Courses",
     "bottomClub": "Club",
-    "bottomMessages": "Inbox",
-    "bottomProfile": "Profile"
+    "bottomProfile": "Profile",
+    "payments": "Payments"
   },
   "titles": {
     "dashboard": "Dashboard",
@@ -32,7 +32,8 @@
     "testimonials": "My review",
     "club": "Digitos Club",
     "profile": "My profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "payments": "My payments"
   },
   "shell": {
     "expandSidebar": "Expand sidebar",
@@ -67,7 +68,7 @@
     "notFoundText": "The certificate code provided doesn't exist or has expired.",
     "backHome": "Back to home",
     "seoTitle": "Certificate — {{title}}",
-    "seoDescription": "Certificate of completion for the course \"{{title}}\" issued by Max-Morrys Academy.",
+    "seoDescription": "Certificate of completion for the course \"{{title}}\", issued by Max-Morrys, MY ONOMA SARL, Dakar.",
     "badge": "Certificate of completion",
     "academy": "Max-Morrys Academy",
     "attests": "This certificate confirms that",
@@ -77,7 +78,7 @@
     "issuedDate": "Date issued",
     "verificationCode": "Verification code",
     "shareText": "I earned my \"{{title}}\" certificate on Max-Morrys.",
-    "backToSite": "← Back to maxmorrys.me",
+    "backToSite": "Back to maxmorrys.me",
     "doneLine": "IT'S DONE.",
     "issuedOn": "Issued on {{date}}",
     "verified": "Verified",
@@ -98,7 +99,7 @@
   "checkout": {
     "notFoundTitle": "Course not found",
     "backToFormations": "Back to courses",
-    "errorPayment": "Payment error. Try again or contact us.",
+    "errorPayment": "Payment error. Try again, or write to me if it keeps happening.",
     "successTitle": "Enrollment confirmed!",
     "successText": "You're now enrolled in \"{{title}}\". You can start learning right away.",
     "startCourse": "Start the course",
@@ -108,7 +109,7 @@
     "freeSubtitle": "This course is free. Confirm your enrollment.",
     "paidSubtitle": "Click the button below to proceed to secure payment.",
     "securePayment": "Secure payment",
-    "securePaymentText": "You'll be redirected to our payment partner Bictorys to securely complete your transaction. Wave, Orange Money and credit cards are accepted.",
+    "securePaymentText": "You'll be redirected to Bictorys, my payment provider, to complete the transaction. Wave, Orange Money and bank cards are accepted.",
     "amountToPay": "Amount due:",
     "couponLabel": "Promo code (optional)",
     "processing": "Processing...",
@@ -166,11 +167,11 @@
     "startCourse": "Start the course",
     "goToSpace": "Go to my space",
     "pendingTitle": "Payment being verified",
-    "pendingText": "Your payment is being processed. You'll get a confirmation as soon as it's validated. You can close this page.",
+    "pendingText": "Your payment is under way. This page updates on its own — you can close it and come back later, your order stays open.",
     "failedTitle": "Payment failed",
-    "failedText": "The payment didn't go through. You can try again or contact us if the problem persists.",
+    "failedText": "The payment didn't go through. You can try again, or write to me if it keeps happening.",
     "backToFormations": "Back to courses",
-    "contactUs": "Talk to me",
+    "contactUs": "Write to me",
     "verifyingTitleLines": [
       "Checking",
       "your payment."
@@ -197,7 +198,8 @@
     "pendingFoot": "Nothing is charged twice: every payment carries a unique reference.",
     "failedFoot": "Nothing was charged. Your order stays open, you can pick it up where you left it.",
     "retry": "Try the payment again",
-    "waitingAria": "Payment awaiting confirmation"
+    "waitingAria": "Payment awaiting confirmation",
+    "backToFormation": "Back to the course"
   },
   "onboarding": {
     "stepWelcomeSubtitle": "Personalize your profile",
@@ -208,7 +210,7 @@
     "errorUpload": "Upload error.",
     "errorSave": "Error while saving.",
     "errorComplete": "Couldn't save. Try again.",
-    "welcomeTitle": "Welcome to Max-Morrys!",
+    "welcomeTitle": "Welcome to Rysmo!",
     "welcomeText": "Personalize your profile so the community gets to know you.",
     "nameLabel": "Your display name",
     "namePlaceholder": "What should we call you?",
@@ -222,7 +224,7 @@
     "exploreText": "Here's what's waiting for you on the platform.",
     "feature1Title": "Hands-on courses",
     "feature1Desc": "Practical courses in digital marketing, SEO and AI",
-    "feature2Title": "Rysmo, your AI tutor",
+    "feature2Title": "Your {{tutor}}, an AI tutor",
     "feature2Desc": "Ask your questions any time during your courses",
     "feature3Title": "Certificates",
     "feature3Desc": "Earn a certificate for every course you complete",
@@ -232,7 +234,7 @@
     "readyTitle": "You're all set!",
     "readyText": "Your student space is set up. Start by exploring the courses or dive right in.",
     "proTipTitle": "Pro tip",
-    "proTipText": "Students who start a course within 24 hours are 3x more likely to finish it.",
+    "proTipText": "Open the first lesson right away, even for five minutes: that's when you really decide whether the course is for you.",
     "exploreFormations": "Explore the courses",
     "goToDashboard": "Go to my dashboard"
   },
@@ -294,7 +296,10 @@
       "Pick",
       "a lesson."
     ],
-    "durationSource": "Length declared on the lesson record"
+    "durationSource": "Length declared on the lesson record",
+    "previewEyebrow": "Free preview",
+    "previewBody": "You're reading the opening module, in full. The rest of the programme is locked, and your progress isn't saved until you enrol.",
+    "previewCta": "See the course"
   },
   "rysmoPage": {
     "tabTokens": "Tokens & subscriptions",

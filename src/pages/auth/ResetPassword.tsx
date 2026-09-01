@@ -39,7 +39,27 @@ export default function ResetPassword() {
       setSent(true);
       addToast('success', t('reset.successToast'));
     } catch (error: unknown) {
-      addToast('error', localizeAuthError(error, t));
+      /*
+       * `auth/user-not-found` EST UNE RÉUSSITE SUR CET ÉCRAN.
+       *
+       * L'encart de vérité juste en dessous s'intitule « Pourquoi ce "si" » et promet : « Je
+       * ne te dirai jamais si une adresse a un compte ou non. » Le chemin d'erreur faisait
+       * exactement l'inverse : Firebase levait `auth/user-not-found` et l'écran affichait
+       * « Aucun compte ne correspond à cet email » en toast. Autrement dit, l'énumération de
+       * comptes que la page jure d'empêcher était servie par la page elle-même — il suffisait
+       * d'essayer des adresses une par une.
+       *
+       * On rend donc la MÊME réponse dans les deux cas. Les autres erreurs (réseau, trop de
+       * tentatives, adresse malformée) restent dites : elles ne révèlent rien sur qui est
+       * inscrit, et les taire empêcherait de corriger une faute de frappe.
+       */
+      const code = (error as { code?: string } | null)?.code;
+      if (code === 'auth/user-not-found') {
+        setSent(true);
+        addToast('success', t('reset.successToast'));
+      } else {
+        addToast('error', localizeAuthError(error, t));
+      }
     }
     setLoading(false);
   };

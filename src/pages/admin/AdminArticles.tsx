@@ -198,7 +198,7 @@ export default function AdminArticles() {
                 placeholder={t('articles.fieldContentPlaceholder')}
               />
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 stack:grid-cols-2">
               <Field
                 as="select"
                 label={t('articles.fieldCategoryLabel')}
@@ -284,7 +284,7 @@ export default function AdminArticles() {
           </div>
         )}
 
-        <div className="mt-6 flex flex-col gap-3 border-t border-[color:var(--line)] pt-6 sm:flex-row sm:justify-end">
+        <div className="mt-6 flex flex-col gap-3 border-t border-[color:var(--line)] pt-6 stack:flex-row stack:justify-end">
           {a.editingId && (
             <>
               <Button size="sm" tone="ghost" onClick={a.deleteEditing}>

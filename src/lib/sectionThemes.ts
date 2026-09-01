@@ -230,8 +230,28 @@ export function universeFromPath(rawPath: string): Universe {
   // Canonicalise (retire /en et remappe les segments anglais) pour comparer aux chemins FR.
   const path = toCanonicalPath(rawPath);
   if (path.startsWith('/blog') || path.startsWith('/faq')) return 'blog';
-  if (path.startsWith('/podcasts')) return 'podcasts';
+  /*
+   * ⚠️ LA ROUTE A ÉTÉ RENOMMÉE, CETTE TABLE NE L'A PAS SUIVIE.
+   *
+   * Le pôle média vit sur `/podcast-et-videos` depuis la fusion des deux formats
+   * (`i18n/segments.ts`). Ce test ne connaissait que `/podcasts` et `/videos`, devenus de
+   * simples redirections : la vraie route ne correspondait donc à AUCUNE règle et tombait sur
+   * le défaut `formations` — un maillage BLEU sur la page d'ENTRÉE du territoire violet, que
+   * le kit rend en `territory="transforme"` (`ui_kits/site-public/Pages.js:211`).
+   *
+   * Le maillage est le seul repère de territoire continu du produit. Sur la page qui ouvre
+   * « Je te transforme », il annonçait « Je te forme ». Les deux anciens segments restent
+   * testés : leurs redirections sont montées, et un rendu d'une image sur la mauvaise teinte
+   * se verrait.
+   */
+  if (path.startsWith('/podcast-et-videos') || path.startsWith('/podcasts')) return 'podcasts';
   if (path.startsWith('/videos')) return 'videos';
+  /*
+   * Contact tombait lui aussi sur le défaut, donc en bleu. Le kit le rend en
+   * `territory="informe"` — l'orange (`ui_kits/site-public/PagesUtiles.js:55`) : écrire à
+   * quelqu'un relève de « Je t'informe », pas du catalogue de formations.
+   */
+  if (path.startsWith('/contact')) return 'blog';
   if (path.startsWith('/club')) return 'club';
   if (path.startsWith('/a-propos')) return 'about';
   // Deux offres, deux univers — voir le point 4 de l'en-tête. Elles partageaient le turquoise

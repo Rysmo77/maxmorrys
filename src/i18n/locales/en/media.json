@@ -152,7 +152,30 @@
     "clubCta": "See the Digitos Club",
     "empty": "Nothing's online here yet. The blog is open though — and everything on it is free.",
     "subnavFree": "Listen & watch",
-    "subnavClub": "The Digitos Club"
+    "subnavClub": "The Digitos Club",
+    "elsewhereTitle": [
+      "Listen wherever you want."
+    ],
+    "elsewhereBody": "The videos are on YouTube too, and everything I publish goes out in the feed. If you're already subscribed there, keep your habits — I won't make you come back here to listen.",
+    "elsewhereNote": "Play counts are synced server-side, never called from your browser. They aren't shown here: on a single episode, a counter tells you nothing useful.",
+    "elsewhereYoutube": "YouTube",
+    "elsewhereYoutubeCta": "Subscribe",
+    "elsewhereRss": "RSS feed",
+    "elsewhereRssCta": "Open",
+    "elsewhereMissing": "No Spotify page to give you yet: the podcast isn't published there under a feed of mine. The day it is, it shows up here.",
+    "clubEyebrow": "The floor above",
+    "clubCtaPriced": "See the Club —",
+    "clubBilled": "Billed",
+    "clubBilledSuffix": "once a year.",
+    "gridTitle": [
+      "Everything there is,",
+      "for now."
+    ],
+    "featuredRead": "Read the transcript",
+    "featuredPlay": "Listen",
+    "featuredWatch": "Watch",
+    "emptyListen": "Nothing to listen to yet — the podcast has no episode online. Drop the filter to see the videos.",
+    "emptyWatch": "Nothing to watch yet — no video is online. Drop the filter to see the episodes."
   },
   "detail": {
     "breadcrumbRoot": "I'll push you further",
@@ -163,6 +186,13 @@
     "about": "The episode",
     "weightTitle": "What I don't show yet",
     "weightBody": "The file's weight should be written here — it's what lets you decide when your data plan is metered. It isn't measured at upload, and I'd rather tell you than announce a made-up number.",
+    "weightBodyVideo": "The file's weight should be written here — it's what lets you decide when your data plan is metered. It isn't measured at upload, and I'd rather tell you than announce a made-up number. What I can promise meanwhile: nothing loads until you ask for it.",
+    "gateEyebrow": "Before you start",
+    "gateBody": "Nothing downloads until you start it. Quality isn't set here, though — the player matches it to your connection.",
+    "gateBodyFile": "Nothing downloads until you start it. There's only one version of this file, so there's no quality to pick.",
+    "gatePlay": "Play here",
+    "gateOpenYoutube": "Open on YouTube",
+    "gateOpenSource": "Open at the host",
     "transcriptMissing": "The transcript isn't produced for this episode yet. When it is, it'll read without loading the audio — which is often all you're after.",
     "nextTitle": [
       "Listen next"
@@ -172,6 +202,11 @@
     ],
     "notFound": "Episode not found",
     "loading": "Loading the episode",
-    "translatedOriginal": "Read the original"
+    "translatedOriginal": "Read the original",
+    "facts": "The details",
+    "factsPublished": "Published",
+    "factsCategory": "Category",
+    "factsDuration": "Length",
+    "coverAlt": "Episode cover art"
   }
 }

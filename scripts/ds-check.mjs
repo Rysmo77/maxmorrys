@@ -24,7 +24,7 @@ const SUMMARY = process.argv.includes('--summary');
 const findings = [];
 const add = (rule, ad, file, line, detail) => findings.push({ rule, ad, file, line, detail });
 
-const SKIP = new Set(['node_modules', 'dist', '.git', 'Design_System_Max-Morrys', '_bmad-output', '_bmad', 'coverage', '.firebase']);
+const SKIP = new Set(['node_modules', 'dist', '.git', 'Max-Morrys_DS_Platform', '_bmad-output', '_bmad', 'coverage', '.firebase']);
 function walk(dir, exts, out = []) {
   for (const name of readdirSync(dir)) {
     if (SKIP.has(name)) continue;
@@ -89,7 +89,10 @@ const MOBILE = existsSync(join(root, 'mobile')) ? walk(join(root, 'mobile'), ['.
 
 /* ── AD-1 · les copies sont littérales ─────────────────────────────────────── */
 {
-  const DS = join(root, 'Design_System_Max-Morrys');
+  const DS = join(root, 'Max-Morrys_DS_Platform/design_handoff_maxmorrys/css');
+  // Voir l'en-tête de ds-sync.mjs : c'est le seul sous-arbre qui publie les 17 feuilles.
+  if (!existsSync(DS)) add('1 · copie littérale', 'AD-1', relative(root, DS), 0, 'kit de design absent du dépôt — AD-1 n\'est plus prouvable');
+  else
   for (const d of ['tokens', 'brand']) {
     for (const src of walk(join(DS, d), ['.css'])) {
       const r = relative(DS, src);
@@ -387,6 +390,38 @@ const MOBILE = existsSync(join(root, 'mobile')) ? walk(join(root, 'mobile'), ['.
       if (doubled)
         add('classe inerte', 'AD-2', rel(f), i + 1,
           `« ${doubled[0] }» : suffixe de jeton appliqué deux fois — la classe n'existe pas`);
+    });
+  }
+}
+
+/* ── Garde-fou · la palette PAR DÉFAUT de Tailwind n'est pas la palette du système ──
+   Troisième contrôle né d'un défaut commis. `bg-gradient-to-r from-amber-500 to-orange-500`
+   vivait dans le répétiteur, et AUCUNE porte ne le voyait : ce n'est pas un hexadécimal (AD-2
+   ne cherche que `#…`), ce n'est pas une classe inerte (elle génère du CSS parfaitement
+   valide), et le typecheck n'a rien à en dire.
+
+   C'est pourtant la faute que le système redoute le plus : une couleur qui n'est dans aucun
+   jeton ne bascule pas sous `.dk`, n'a pas de variante nuit, et n'a jamais été mesurée en
+   contraste. `tailwind.config.js` avait déjà annulé `neutral` et `teal` pour cette raison
+   exacte — mais seulement ces deux-là, parce qu'ils entraient en collision de NOM avec le
+   système. Les vingt autres familles par défaut, elles, sont restées disponibles en silence.
+
+   Le raisonnement est celui déjà écrit plus haut pour `backdrop-blur` : une règle qui ne
+   regarde qu'une des deux façons d'écrire la même chose ne fait pas respecter la règle, elle
+   fait respecter une orthographe. `#F59E0B` et `amber-500` sont la même couleur. */
+{
+  const FAMILLES = 'slate|gray|zinc|stone|red|orange|amber|yellow|lime|green|emerald|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose';
+  const PREFIXES = 'bg|text|border|ring|fill|stroke|divide|outline|from|via|to|placeholder|caret|accent|decoration|shadow';
+  const HORS = new RegExp(`\\b(?:${PREFIXES})-(?:${FAMILLES})-\\d{2,3}\\b`);
+  for (const f of [...TSX, ...MOBILE]) {
+    const raw = rawLines(f);
+    lines(f).forEach((l, i) => {
+      const m = l.match(HORS);
+      // L'échappatoire se lit sur la ligne BRUTE — voir rawLines(). Elle sert aux marques
+      // tierces, qui ne se recolorent jamais (logo Google, sigles Wave et Orange Money).
+      if (m && !OK_DS.test(raw[i] ?? ''))
+        add('2 · hors palette', 'AD-2', rel(f), i + 1,
+          `« ${m[0]} » vient de la palette par défaut de Tailwind : aucun jeton, aucune variante nuit, aucun contraste mesuré — passer par une teinte de territoire ou un jeton d'état`);
     });
   }
 }

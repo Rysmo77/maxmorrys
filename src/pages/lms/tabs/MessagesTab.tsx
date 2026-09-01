@@ -94,10 +94,13 @@ export default function MessagesTab({
 
   return (
     <div className="mx-auto max-w-4xl px-[18px] py-6">
+      {/* Le titre de l'écran est celui de la barre haute de `AppShell`, alimentée par
+          `titleMap` — donc pour chaque route sans exception. En rendre un second ici donnait
+          DEUX <h1> par écran et le même mot écrit deux fois à quinze centimètres d'intervalle.
+          C'est la décision déjà prise pour les dix-neuf écrans de console (`ConsolePage`). */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="m-0 font-display text-dsp-xs text-ink">{t('messages.screenTitle')}</h1>
-          <p className="m-0 mt-[2px] text-meta-2" style={{ color: 'var(--text-muted)' }}>
+          <p className="m-0 text-meta-2" style={{ color: 'var(--text-muted)' }}>
             <Num value={sentMessages.length} source="db" asOf={asOf} /> {t('messages.countLabel')}
           </p>
         </div>

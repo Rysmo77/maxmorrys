@@ -1,0 +1,38 @@
+/* Les quatre teintes viennent du logo. Chacune porte un territoire de marque. */
+:root{
+  --mm-bleu:#0057BC;     /* Je te forme */
+  --mm-orange:#F38B0A;   /* Je t'informe */
+  --mm-violet:#6C23DD;   /* Je te transforme */
+  --mm-teal:#02AC9C;     /* Je te digitalise */
+  --mm-corail:#FF6E7F;   /* cinquième teinte, réservée aux maillages et aux cartes rose */
+
+  /* Pastels — fonds de cartes territoire, jamais du texte */
+  --mm-bleu-c:#C7E1FF; --mm-teal-c:#A8EEE4; --mm-orange-c:#FFDCA8;
+  --mm-violet-c:#DFD0FF; --mm-rose-c:#FFC9CE;
+
+  /* Versions texte des teintes trop claires sur blanc */
+  --mm-teal-t:#00695E; --mm-orange-t:#8A4B00;
+  /* Violet foncé : prix et coches du Club sur verre clair */
+  --mm-violet-t:#5A17BE;
+
+  /* Versions nuit des teintes illisibles sur fond noir
+     (#0057BC tombe à 2,84:1, #6C23DD à 2,69:1) */
+  --mm-bleu-n:#6FB1FF; --mm-violet-n:#B98CFF; --mm-orange-n:#FFB24D; --mm-teal-n:#3FD9C6;
+
+  /* Encre et papier */
+  --ink:#0E1116; --ink-2:#5A6472; --ink-3:#98A1AE;
+  --paper:#FFFFFF; --paper-2:#F5F7F9; --paper-3:#EDF0F4; --line:#E2E7EC;
+
+  /* Sémantique d'état */
+  --ok:#0F7B52; --warn:#8A4B00; --stop:#B4231F;
+
+  /* Nuit du document : fond de la console d'administration et du mode sombre */
+  --night:#0A0D11; --night-2:#0B0E13; --night-3:#0F151B;
+
+  /* Couples de dégradé des cartes territoire */
+  --g-forme-1:#D6E8FF; --g-forme-2:#E4D8FF;
+  --g-informe-1:#FFE6BC; --g-informe-2:#FFD2D6;
+  --g-transforme-1:#E5D8FF; --g-transforme-2:#D2E4FF;
+  --g-digitalise-1:#BEF2EA; --g-digitalise-2:#D8ECFF;
+  --g-rose-1:#FFD5D9; --g-rose-2:#FFE7C7;
+}

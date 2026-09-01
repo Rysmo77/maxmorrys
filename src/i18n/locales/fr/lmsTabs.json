@@ -52,7 +52,7 @@
     "greeting": "Bonjour, {{name}}",
     "resumeWhere": "Reprends où tu t'es arrêté :",
     "resume": "Reprendre",
-    "startAdventure": "Commence ton aventure en explorant nos formations.",
+    "startAdventure": "Commence par une formation — elles sont là pour ça.",
     "continueLearningHint": "Continue ton apprentissage là où tu t'es arrêté.",
     "explore": "Explorer les formations",
     "statFormations": "Formations",
@@ -61,7 +61,7 @@
     "statCertificates": "Certificats",
     "continueLearning": "Continuer l'apprentissage",
     "readyTitle": "Prêt à apprendre ?",
-    "readyText": "Explore nos formations en marketing digital, SEO et IA. Chacune est conçue pour être pratique et actionnable.",
+    "readyText": "Explore les formations en marketing digital, SEO et IA. Chacune est faite pour être appliquée, pas seulement lue.",
     "discover": "Découvrir les formations",
     "formationFallback": "Formation",
     "continue": "Continuer",
@@ -86,7 +86,9 @@
     "linkAchievementsMeta": "émis à la fin d'une formation",
     "linkMessages": "Mes messages",
     "linkMessagesMeta": "les réponses arrivent dans tes notifications",
-    "loadingLabel": "Chargement de tes formations"
+    "loadingLabel": "Chargement de tes formations",
+    "linkPayments": "Mes paiements",
+    "linkPaymentsMeta": "reçus et références"
   },
   "messages": {
     "newMessage": "Nouveau message",
@@ -106,7 +108,7 @@
     "statusRead": "Lu",
     "statusReplied": "Répondu",
     "toastSuccess": "Message envoyé avec succès !",
-    "toastError": "Erreur lors de l'envoi. Veuillez réessayer.",
+    "toastError": "Erreur lors de l'envoi. Réessaie.",
     "truthTitle": "Comment la réponse te revient",
     "truthBody": "Elle arrive dans tes notifications, dans l'application. Le produit n'envoie aucun e-mail : c'est le seul canal, et il est ici.",
     "countLabel": "messages envoyés",
@@ -145,6 +147,25 @@
     "contentLabel": "Contenu de la note",
     "screenTitle": "Mes notes"
   },
+  "payments": {
+    "countLabel_one": "paiement",
+    "countLabel_other": "paiements",
+    "countUnread": "paiements non relevés",
+    "receiptTag": "Ton reçu reste ici",
+    "loadingLabel": "Chargement de tes paiements",
+    "statusCompleted": "Payée",
+    "statusPending": "En attente",
+    "statusFailed": "Échouée",
+    "statusRefunded": "Remboursée",
+    "emptyTitle": "Aucun paiement pour l'instant",
+    "emptyText": "Dès que tu paies une formation, sa référence, son montant et sa date apparaissent ici — et y restent une fois le cours terminé.",
+    "emptyAction": "Voir les formations",
+    "errorTitle": "Je n'ai pas pu lire tes paiements",
+    "errorBody": "La lecture s'est arrêtée avant de revenir : réseau coupé, ou base injoignable. Tes paiements restent enregistrés, c'est leur affichage qui manque. Relance la lecture.",
+    "errorRetry": "Relire mes paiements",
+    "truthTitle": "Ce que cet écran ne fait pas",
+    "truthBody": "Un remboursement ne se déclenche pas ici : il passe par le prestataire de paiement qui a encaissé. Et le montant qui fait foi est celui recalculé côté serveur au moment du débit, pas celui affiché sur la ligne."
+  },
   "profile": {
     "photoTitle": "Photo de profil",
     "photoHint": "JPG, PNG ou GIF · Max 2 Mo",
@@ -174,7 +195,7 @@
     "youtubePlaceholder": "URL de la chaîne",
     "handlePlaceholder": "URL ou @pseudo",
     "bio": "Biographie",
-    "bioPlaceholder": "Parle-nous de toi en quelques lignes...",
+    "bioPlaceholder": "Parle de toi en quelques lignes...",
     "saving": "Enregistrement...",
     "saveProfile": "Enregistrer le profil",
     "communityTitle": "Rejoins la communauté",
@@ -266,7 +287,8 @@
     "renameErrorEmpty": "Donne-lui un nom, ou reviens au nom par défaut.",
     "renameErrorTooLong": "{{max}} caractères au maximum — au-delà, le nom ne tient plus dans la barre d'onglets.",
     "toastRenamed": "Il s'appelle maintenant {{tutor}}.",
-    "toastRenameError": "Le nom n'a pas pu être enregistré. Réessaie."
+    "toastRenameError": "Le nom n'a pas pu être enregistré. Réessaie.",
+    "clearWhyAll": "Il n'y a pas de retrait ligne à ligne, et c'est une contrainte, pas un oubli : le résumé est régénéré côté serveur à partir de vos échanges. Retirer une ligne la ferait revenir au résumé suivant — un bouton qui promet d'oublier sans oublier vaut moins que pas de bouton. Tout effacer supprime aussi les échanges, donc la ligne ne revient pas."
   },
   "rysmoStore": {
     "loadingQuota": "Chargement de ton quota…",
@@ -290,7 +312,7 @@
     "packs": {
       "discovery": {
         "label": "Découverte",
-        "description": "Pour tester Rysmo sur un sujet précis"
+        "description": "Pour tester ton {{tutor}} sur un sujet précis"
       },
       "regular": {
         "label": "Régulier",
@@ -353,7 +375,7 @@
     "deleteConfirmLabel": "Supprimer définitivement",
     "deleteIrreversible": "Cette action est <0>irréversible</0>. Tes données seront supprimées :",
     "deleteItem1": "Ton profil et ton compte d'authentification",
-    "deleteItem2": "Tes inscriptions aux formations et tes certificats",
+    "deleteItem2": "Tes inscriptions aux formations et leur progression",
     "deleteItem3": "Tes notes, messages et notifications",
     "deleteItem4": "Ton historique de transactions",
     "deleteConfirmPrompt": "Pour confirmer, tape <0>SUPPRIMER</0>",
@@ -375,7 +397,10 @@
     "deleteConfirmMismatch": "Le texte ne correspond pas encore.",
     "exportNote": "Tout ce qui te concerne, en un fichier.",
     "deleteNote": "Définitif, sans passer par le support.",
-    "signOutNote": "Ton travail est enregistré au fur et à mesure."
+    "signOutNote": "Ton travail est enregistré au fur et à mesure.",
+    "deleteKeptTitle": "Ce qui reste",
+    "deleteKeptBody": "Tes certificats déjà émis restent vérifiables par leur code — c'est le principe même d'un certificat. Le miroir public ne porte ni ton identifiant de compte, ni ton adresse.",
+    "deleteExportFirst": "J'exporte d'abord mes données"
   },
   "testimonials": {
     "shareTitle": "Partager un avis",

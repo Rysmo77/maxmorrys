@@ -60,7 +60,7 @@ export type { TranslationNoticeProps } from './react/data/TranslationNotice';
 export { ChipRow } from './react/forms/ChipRow';
 export type { ChipRowProps } from './react/forms/ChipRow';
 export { Field } from './react/forms/Field';
-export type { FieldAs, FieldOption, FieldProps } from './react/forms/Field';
+export type { FieldAs, FieldOption, FieldProps, FieldSize } from './react/forms/Field';
 export { PayOption } from './react/forms/PayOption';
 export type { PayOptionProps } from './react/forms/PayOption';
 export { Segmented } from './react/forms/Segmented';

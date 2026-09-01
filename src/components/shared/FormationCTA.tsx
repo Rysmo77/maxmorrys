@@ -57,7 +57,7 @@ export default function FormationCTA({ category, tags = [] }: FormationCTAProps)
 
   return (
     <div className="bg-[color-mix(in_srgb,var(--mm-bleu)_12%,transparent)] border border-[color-mix(in_srgb,var(--mm-bleu)_7%,transparent)] rounded-2xl p-6 sm:p-8">
-      <div className="grid sm:grid-cols-2 gap-6 items-center">
+      <div className="grid stack:grid-cols-2 gap-6 items-center">
         <div>
           <p className={`text-xs font-bold tracking-[0.3em] uppercase ${theme.eyebrow} mb-3`}>
             {t('formationCta.eyebrow')}

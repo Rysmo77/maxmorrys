@@ -48,13 +48,28 @@ export interface TerritoryCardProps {
   /** Rend la carte cliquable, comme un vrai lien. */
   href?: string;
   padding?: number | string;
+  /**
+   * LA CARTE REMPLIT SA PISTE, ET SON PIED SE POSE EN BAS.
+   *
+   * À réserver aux grilles COMPARATIVES — trois formules côte à côte, une par piste. Sans
+   * elle, chaque carte prend sa hauteur naturelle : le prix et le bouton d'un pack à six
+   * arguments montent de trente pixels par rapport à celui qui en a huit, et l'œil ne peut
+   * plus comparer deux montants qui ne sont pas sur la même ligne. C'est un défaut de
+   * lecture avant d'être un défaut de dessin, et il vit sur la page qui vend.
+   *
+   * Ce que la prop fait, et rien d'autre : la carte devient une colonne flexible de hauteur
+   * pleine, et son contenu aussi. Il reste à l'appelant de désigner l'élément ÉLASTIQUE —
+   * la liste d'arguments — avec un `flex-1` ; c'est lui qui sait lequel doit s'étirer, pas
+   * la primitive.
+   */
+  fill?: boolean;
   children?: ReactNode;
   style?: CSSProperties;
 }
 
 export function TerritoryCard({
   territory = 'forme', layout = 'stack', meta, title, titleSize, big, bigLabel,
-  trailing, first, href, padding, children, style,
+  trailing, first, href, padding, fill, children, style,
 }: TerritoryCardProps) {
   const grad = `linear-gradient(150deg,var(--g-${territory}-1) 0%,var(--g-${territory}-2) 100%)`;
   const L = LAYOUT[layout];
@@ -65,7 +80,9 @@ export function TerritoryCard({
       {...(href ? { href, className: 'mm-press mm-on-color' } : {})}
       style={{
         position: 'relative',
-        display: 'block',
+        ...(fill
+          ? { display: 'flex', flexDirection: 'column' as const, height: '100%' }
+          : { display: 'block' }),
         textDecoration: 'none',
         borderRadius: 'var(--r-l)',
         padding: padding !== undefined ? (typeof padding === 'number' ? `${padding}px` : padding) : L.pad,
@@ -131,7 +148,18 @@ export function TerritoryCard({
         {trailing}
       </div>
 
-      {children && <div style={{ position: 'relative' }}>{children}</div>}
+      {children && (
+        <div
+          style={{
+            position: 'relative',
+            // Sous `fill`, l'enveloppe prend la hauteur restante et redevient une colonne :
+            // c'est elle qui porte le `flex-1` que l'appelant pose sur sa liste.
+            ...(fill ? { flex: 1, display: 'flex', flexDirection: 'column' as const } : {}),
+          }}
+        >
+          {children}
+        </div>
+      )}
     </Tag>
   );
 }

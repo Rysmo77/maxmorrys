@@ -93,9 +93,22 @@ const RysmoWidget = lazyWithReload(() => import('./components/ai/RysmoWidget'), 
 /* Version installable. Chargés paresseusement comme le reste : quelqu'un qui n'installe pas
    l'application ne doit pas payer leur poids en données. */
 const OfflinePage = lazy(() => import('./components/pwa/OfflineLibrary'));
+const InstallInvitation = lazy(() => import('./components/pwa/InstallInvitation'));
 
 /* Le pôle média — une page pour les deux formats, sous « Je te transforme ». */
-const MediaPole = lazy(() => import('./pages/MediaPole'));
+/*
+  ── POURQUOI CETTE ROUTE PORTE SON NAMESPACE, ET PAS `lazy` BRUT ──────────────────────────
+  `MediaPole` était la seule page chargée par `lazy` nu, donc SANS préchargement de son
+  namespace `media`. Avec `useSuspense: false`, une lecture de `pole.titleLines` en
+  `returnObjects` rend alors la CLÉ — une chaîne — et le `.join(' ')` qui la suit lève
+  « t(...).join is not a function ». Ce n'est pas un texte manquant : c'est la page entière
+  qui tombe sur la frontière d'erreur, avec « Unexpected Application Error » à la place de
+  tout le territoire « Je te transforme ».
+
+  Ses deux voisines, `PodcastDetail` et `VideoDetail`, déclaraient bien `['media']`.
+  Verrouillé par `tests/unit/route-namespaces.test.ts`.
+*/
+const MediaPole = lazyWithReload(() => import('./pages/MediaPole'), ['media']);
 /* L'autre étage du même territoire : la page publique du Club, payante et fermée. */
 const ClubDigitos = lazyWithReload(() => import('./pages/ClubDigitos'), ['club']);
 const NotificationsPage = lazy(() => import('./components/pwa/NotificationCenter'));
@@ -112,6 +125,9 @@ const MessagesPage = lazyWithReload(() => import('./pages/lms/routes/MessagesPag
 const AchievementsPage = lazyWithReload(() => import('./pages/lms/routes/AchievementsPage'), ['lms', 'lmsTabs']);
 const ProfilePage = lazyWithReload(() => import('./pages/lms/routes/ProfilePage'), ['lms', 'lmsTabs']);
 const SettingsPage = lazyWithReload(() => import('./pages/lms/routes/SettingsPage'), ['lmsTabs']);
+/* « Mes paiements » — l'écran que le pied de l'écran de succès désigne depuis toujours
+   (« Le reçu est dans ton espace ») et que la liste « Dans ton espace » du kit ouvre. */
+const PaymentsPage = lazyWithReload(() => import('./pages/lms/routes/PaymentsPage'), ['lms', 'lmsTabs']);
 const ClubPage = lazyWithReload(() => import('./pages/lms/routes/ClubPage'), ['club', 'lms']);
 const RysmoPage = lazyWithReload(() => import('./pages/lms/routes/RysmoPage'), ['lms', 'lmsTabs']);
 const TestimonialsPage = lazyWithReload(() => import('./pages/lms/routes/TestimonialsPage'), ['lms', 'lmsTabs']);
@@ -138,6 +154,10 @@ const AdminClubDigitos = lazyWithReload(() => import('./pages/admin/AdminClubDig
 const AdminAgencyLeads = lazyWithReload(() => import('./pages/admin/AdminAgencyLeads'), ['admin']);
 const AdminMissions = lazyWithReload(() => import('./pages/admin/AdminMissions'), ['admin']);
 const AdminRedirects = lazyWithReload(() => import('./pages/admin/AdminRedirects'), ['admin']);
+/* Le dix-neuvième écran du kit — `screens-motif.jsx` § PipelinesRestants lui donne son
+   pipeline : tout · envoyées · planifiées. C'était le seul écart de pipeline que rien
+   n'argumentait. */
+const AdminNotifications = lazyWithReload(() => import('./pages/admin/AdminNotifications'), ['admin']);
 const CertificatePage = lazyWithReload(() => import('./pages/lms/Certificate'), ['lms']);
 /*
  * La vérification d'un code. Elle n'est PAS le certificat : `/certificat/:code` affiche un
@@ -215,6 +235,21 @@ function PublicLayout() {
         composant qui ne rend rien la plupart du temps.
       */}
       <PopupManager />
+      {/*
+        L'INVITATION À INSTALLER — elle était écrite, correcte, et MONTÉE NULLE PART.
+
+        `main.tsx` appelle pourtant `countVisit()` au démarrage, expressément pour alimenter
+        sa règle « pas avant la deuxième visite » : le compteur tournait, l'écran n'existait
+        pas. Le kit lui consacre une des quarante-deux planches (`PwaInvitation`), et c'est
+        le seul argument d'installation qui vaille sur ce marché — le forfait, pas la vitesse.
+
+        Elle ne rend rien tant que le navigateur n'a pas émis `beforeinstallprompt`, que la
+        deuxième visite n'est pas atteinte, ou qu'un refus a déjà été enregistré : la monter
+        ici ne coûte donc rien aux autres pages.
+      */}
+      <Suspense fallback={null}>
+        <InstallInvitation />
+      </Suspense>
       <ScrollRestoration />
     </>
   );
@@ -359,6 +394,21 @@ function appChildren() {
         { path: 'legal/cgv', element: <Suspense fallback={<PageLoader />}><CGV /></Suspense> },
         { path: 'legal/cgu', element: <Suspense fallback={<PageLoader />}><CGU /></Suspense> },
         { path: 'legal/cookies', element: <Suspense fallback={<PageLoader />}><CookiesPage /></Suspense> },
+        /*
+         * LES TROIS ÉCRANS DE COMPTE VIVENT DANS LE CADRE DU SITE.
+         *
+         * Ils étaient montés sous `AuthLayout`, qui ne rend ni barre haute, ni pied de page,
+         * ni maillage : trois pages centrées dans une colonne de 440 px, sans chrome. Le kit
+         * les dessine DANS le site (`PagesUtiles.js:148` — `<Page territory="forme">`), avec
+         * sa navigation et son pied. C'est ce qui permet de repartir sans revenir en arrière,
+         * et de retrouver les mentions légales depuis un écran où l'on confie un mot de passe.
+         *
+         * `AuthLayout` garde ce qui n'a effectivement pas de chrome : le certificat public, la
+         * vérification, le /403 et le 404.
+         */
+        { path: 'connexion', element: <Suspense fallback={<PageLoader />}><Login /></Suspense> },
+        { path: 'inscription', element: <Suspense fallback={<PageLoader />}><Register /></Suspense> },
+        { path: 'mot-de-passe-oublie', element: <Suspense fallback={<PageLoader />}><ResetPassword /></Suspense> },
       ],
     },
     {
@@ -378,6 +428,7 @@ function appChildren() {
             { path: 'tableau-de-bord', element: <Suspense fallback={<PageLoader />}><DashboardPage /></Suspense> },
             { path: 'cours',           element: <Suspense fallback={<PageLoader />}><CoursesPage /></Suspense> },
             { path: 'notes',           element: <Suspense fallback={<PageLoader />}><NotesPage /></Suspense> },
+            { path: 'paiements',       element: <Suspense fallback={<PageLoader />}><PaymentsPage /></Suspense> },
             { path: 'messages',        element: <Suspense fallback={<PageLoader />}><MessagesPage /></Suspense> },
             { path: 'succes',          element: <Suspense fallback={<PageLoader />}><AchievementsPage /></Suspense> },
             { path: 'profil',          element: <Suspense fallback={<PageLoader />}><ProfilePage /></Suspense> },
@@ -425,9 +476,6 @@ function appChildren() {
     {
       element: <AuthLayout />,
       children: [
-        { path: 'connexion', element: <Suspense fallback={<PageLoader />}><Login /></Suspense> },
-        { path: 'inscription', element: <Suspense fallback={<PageLoader />}><Register /></Suspense> },
-        { path: 'mot-de-passe-oublie', element: <Suspense fallback={<PageLoader />}><ResetPassword /></Suspense> },
         { path: 'certificat/:code', element: <Suspense fallback={<PageLoader />}><CertificatePage /></Suspense> },
         { path: 'verifier', element: <Suspense fallback={<PageLoader />}><VerifyCertificate /></Suspense> },
         { path: '403', element: <Forbidden403 /> },
@@ -463,6 +511,7 @@ function appChildren() {
         { path: 'prospects-agence', element: <Suspense fallback={<PageLoader />}><AdminAgencyLeads /></Suspense> },
         { path: 'projets', element: <Suspense fallback={<PageLoader />}><AdminMissions /></Suspense> },
         { path: 'redirections', element: <Suspense fallback={<PageLoader />}><AdminRedirects /></Suspense> },
+        { path: 'notifications', element: <Suspense fallback={<PageLoader />}><AdminNotifications /></Suspense> },
       ],
     },
   ];

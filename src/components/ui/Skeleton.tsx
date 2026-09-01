@@ -21,7 +21,7 @@ export default function Skeleton({ className, variant = 'rect' }: SkeletonProps)
 
 export function CardSkeleton() {
   return (
-    <div className="bg-paper rounded-2xl border border-[color:var(--line)] overflow-hidden">
+    <div className="bg-surface-sheet rounded-2xl border border-[color:var(--line)] overflow-hidden">
       <Skeleton className="h-48 rounded-none" />
       <div className="p-6 space-y-3">
         <Skeleton variant="text" className="w-1/4 h-3" />

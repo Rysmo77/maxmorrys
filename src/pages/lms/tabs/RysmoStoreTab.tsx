@@ -4,6 +4,7 @@ import { httpsCallable } from 'firebase/functions';
 import { Button, CheckLine, GlassPanel, Icon, Num, PriceBlock, QuotaMeter, Skeleton, StatTile, Tag } from '@ds';
 import { functions } from '../../../config/firebase';
 import { useAuth } from '../../../contexts/AuthContext';
+import { tutorName } from '../../../lib/naming';
 import { useToast } from '../../../components/ui/Toast';
 import { captureError } from '../../../lib/sentry';
 
@@ -74,7 +75,10 @@ const TARIFF_SOURCE = { cite: 'grille des packs et abonnements, côté serveur' 
 
 export default function RysmoStoreTab() {
   const { t } = useTranslation('lmsTabs');
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
+  /* AD-12 — le nom du répétiteur est un réglage lu dans le profil, jamais une constante :
+     la description du pack d'essai écrivait « Rysmo », qui est le nom de l'APPLICATION. */
+  const tutor = tutorName(userData);
   const { addToast } = useToast();
   const [quota, setQuota] = useState<QuotaSnapshot | null>(null);
   /* La date du relevé du quota : l'instant de la RÉPONSE, pas celui du rendu. */
@@ -202,7 +206,7 @@ export default function RysmoStoreTab() {
         <p className="m-0 mt-[4px] text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
           {t('rysmoStore.packsSubtitle')}
         </p>
-        <div className="mt-[12px] grid gap-[10px] sm:grid-cols-3">
+        <div className="mt-[12px] grid gap-[10px] stack:grid-cols-3">
           {PACKS.map((pack) => (
             <GlassPanel key={pack.id} level="flat" padding={18} className="flex flex-col">
               <div className="flex items-start justify-between gap-2">
@@ -221,7 +225,7 @@ export default function RysmoStoreTab() {
                 style={{ marginTop: '12px' }}
               />
               <p className="m-0 mt-[8px] flex-1 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
-                {t(`rysmoStore.packs.${pack.id}.description`)}
+                {t(`rysmoStore.packs.${pack.id}.description`, { tutor: tutor.toLowerCase() })}
               </p>
               <Button
                 tone="transforme"
@@ -245,7 +249,7 @@ export default function RysmoStoreTab() {
         <p className="m-0 mt-[4px] text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
           {t('rysmoStore.subscriptionSubtitle')}
         </p>
-        <div className="mt-[12px] grid gap-[10px] sm:grid-cols-2">
+        <div className="mt-[12px] grid gap-[10px] stack:grid-cols-2">
           {PLANS.map((plan) => {
             const planLabel = t(`rysmoStore.plans.${plan.id}.label`);
             const current = quota?.hasActiveSubscription && quota.plan === plan.id;

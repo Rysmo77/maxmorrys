@@ -167,7 +167,7 @@ export default function AdminPodcasts() {
           placeholder="english-slug"
           hint={t('podcasts.console.slugEnHint')}
         />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 stack:grid-cols-2">
           <Field
             label={t('podcasts.fieldCategory')}
             value={p.form.category}
@@ -181,7 +181,7 @@ export default function AdminPodcasts() {
             placeholder={t('podcasts.fieldDurationPlaceholder')}
           />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 stack:grid-cols-2">
           <Field
             label={t('podcasts.fieldPublishedAt')}
             type="date"
@@ -231,7 +231,7 @@ export default function AdminPodcasts() {
           placeholder={t('podcasts.fieldTranscriptPlaceholder')}
         />
 
-        <div className="mt-6 flex flex-col gap-3 border-t border-[color:var(--line)] pt-6 sm:flex-row sm:justify-end">
+        <div className="mt-6 flex flex-col gap-3 border-t border-[color:var(--line)] pt-6 stack:flex-row stack:justify-end">
           {p.editing && (
             <Button size="sm" tone="ghost" onClick={p.deleteEditing}>
               {t('podcasts.confirmDeleteLabel')}

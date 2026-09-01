@@ -447,13 +447,59 @@ export default function Header({ onSearchOpen }: HeaderProps) {
         */}
         <AnnouncementBanner />
 
+        {/*
+          ── LA PILULE SUIT LA MESURE DU SITE ──────────────────────────────────────────
+          Sa gouttière de 22 px est un CHOIX du kit, expliqué dans `index.css` : la barre
+          est délibérément 18 px plus large que la colonne de texte de chaque côté, et c'est
+          ce débord qui la fait lire comme du chrome flottant AU-DESSUS de la page plutôt
+          que comme l'en-tête d'une colonne.
+
+          Or un débord ne se mesure que contre quelque chose. Sans plafond, la pilule
+          suivait la fenêtre : à 2560 px elle faisait plus du double de la colonne qu'elle
+          est censée dépasser de 18 px, et la relation que le kit dessine — celle qui porte
+          tout l'effet — n'existait plus qu'à 1280 px exactement.
+
+          Le plafond est le même jeton que celui du corps et du pied. À 1280 la pilule
+          retombe donc sur 1236 px, soit très exactement la colonne plus ses deux débords.
+
+          ⚠️ IL NE COIFFE QUE LA PILULE, pas la bannière d'annonce au-dessus : une bannière
+          qui ne touche pas les deux bords se lit comme une carte oubliée en haut de page.
+        */}
+        <div
+          style={{
+            maxWidth: 'calc(var(--site-measure, 1200px) + 2 * var(--site-gutter, 40px))',
+            marginInline: 'auto',
+          }}
+        >
         <DsNavHost>
           <TopBar
             className="mm-topbar"
             /* « Hello ! » — le mot-symbole des PAGES WEB, en type pur, pour 0 octet. Le PNG du
                logo pèse 273 Ko en 1254 × 1254 pour un rendu à 42 px ; il ne survit que sur
-               pastille blanche. Le dégradé est le jeton `--wordmark-hello`, qui bascule seul. */
-            brand={<Wordmark brand="hello" size={22} style={{ marginRight: '10px' }} />}
+               pastille blanche.
+
+               IL EST DÉSORMAIS UNE CIBLE (AD-23). Il portait son dégradé en permanence et
+               n'était cliquable nulle part : la seule marque du site qui ne ramenait pas à
+               l'accueil, alors que celle du pied de page le faisait déjà. Il a maintenant la
+               couleur des autres commandes de la barre — `--ink-2` au repos — et rend l'arc
+               des cinq teintes, qui se remplit de la gauche vers la droite, au survol.
+
+               UN `<a href>` NU, PAS UN `LocalizedLink` : c'est ce que rendent les six verbes
+               de la même barre (AD-6), et `DsNavHost` ci-dessus confie le clic au routeur.
+               ⌘-clic, clic milieu et la barre d'état au survol gardent leur comportement.
+
+               `aria-label` plutôt que le texte du lien : « Hello ! » est un nom de marque et
+               ne dit pas la destination. */
+            brand={
+              <a
+                href={localize('/')}
+                aria-label={t('home')}
+                aria-current={path === '/' ? 'page' : undefined}
+                className="mm-touch-extend inline-flex items-center h-9 mr-2.5 rounded-pill"
+              >
+                <Wordmark brand="hello" size={22} />
+              </a>
+            }
             items={navItems}
             active={activeLabel}
             label={t('menu')}
@@ -493,6 +539,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
             }
           />
         </DsNavHost>
+        </div>
 
         {/*
           LA SOUS-NAVIGATION DU TERRITOIRE — et elle existe pour une raison commerciale précise.

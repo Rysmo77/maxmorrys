@@ -128,7 +128,7 @@ export default function ClubOpportunities({ data }: { data: ClubData }) {
             placeholder={t('opportunities.descriptionPlaceholder')}
             required
           />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 stack:grid-cols-2">
             <Field
               as="select"
               label={t('opportunities.typeLabel')}

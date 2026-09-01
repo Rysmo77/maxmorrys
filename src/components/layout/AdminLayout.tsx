@@ -20,6 +20,7 @@ const ALL_NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/messages',       labelKey: 'nav.messages',     titleKey: 'nav.messages',     icon: 'comment' },
   { to: '/admin/coupons',        labelKey: 'nav.coupons',      titleKey: 'nav.coupons',      icon: 'tag' },
   { to: '/admin/annonces',       labelKey: 'nav.announcements',titleKey: 'nav.announcements',icon: 'megaphone' },
+  { to: '/admin/notifications',  labelKey: 'nav.notifications', titleKey: 'nav.notifications', icon: 'bell' },
   { to: '/admin/faq',            labelKey: 'nav.faq',          titleKey: 'nav.faq',          icon: 'help' },
   { to: '/admin/temoignages',    labelKey: 'nav.testimonials', titleKey: 'nav.testimonials', icon: 'star' },
   { to: '/admin/rendez-vous',    labelKey: 'nav.appointments', titleKey: 'nav.appointments', icon: 'calendar' },

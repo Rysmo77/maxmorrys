@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { GlassPanel } from '@ds';
 import LocalizedLink from '../shared/LocalizedLink';
 import SEOHead from '../seo/SEOHead';
@@ -57,17 +58,26 @@ export interface LegalPageProps {
 export function LegalPage({
   current, eyebrow, titleLines, seoTitle, seoDescription, version, children,
 }: LegalPageProps) {
+  const { t } = useTranslation('legal');
+
   return (
     <PageSite>
       <SEOHead title={seoTitle} description={seoDescription} />
 
-      <div className="grid gap-11 items-start lg:grid-cols-[250px_1fr]">
+      {/*
+        `min-w-0` SUR LES DEUX ENFANTS. Sous `wide`, la grille retombe à une colonne, et un
+        élément de grille garde `min-width: auto` : il refuse de descendre sous la largeur
+        minimale de son contenu. Un document juridique en contient forcément — une raison
+        sociale, un numéro de registre, une adresse électronique ne se coupent pas. Mesuré à
+        375 px : `/legal/cgu` élargissait le document à 611 px, `/legal/cgv` à 463.
+      */}
+      <div className="grid gap-11 items-start wide:grid-cols-[250px_1fr] [&>*]:min-w-0">
         {/* ── La colonne de navigation, collante ────────────────────────────
-            `lg:sticky` seulement : sur mobile elle passe au-dessus, en flux, et
+            `wide:sticky` seulement : sur mobile elle passe au-dessus, en flux, et
             coller une liste de cinq entrées sur un écran de 844 px mangerait le
             tiers du champ de lecture. */}
-        <aside className="lg:sticky lg:top-[calc(var(--header-h)+1rem)]">
-          <GlassPanel level="flat" padding={20} as="nav" aria-label="Documents contractuels">
+        <aside className="wide:sticky wide:top-[calc(var(--header-h)+1rem)]">
+          <GlassPanel level="flat" padding={20} as="nav" aria-label={t('common.navLabel')}>
             <ul className="list-none m-0 p-0 grid gap-[9px]">
               {LEGAL_DOCS.map((doc) => {
                 const active = doc.key === current;
@@ -88,10 +98,24 @@ export function LegalPage({
             </ul>
           </GlassPanel>
 
-          {/* --text-muted, jamais --text-faint : l'encre tertiaire ne porte pas de texte. */}
+          {/*
+            CETTE PHRASE ÉTAIT ÉCRITE EN FRANÇAIS, EN DUR, DANS LE JSX.
+
+            Elle s'affichait telle quelle sur les CINQ pages `/en/legal/*` — CGU, CGV,
+            confidentialité, mentions, cookies — au-dessus d'un corps par ailleurs entièrement
+            traduit. Et parce qu'elle ne passait par aucune clé, aucun test ne pouvait la
+            voir : `i18n-keys.test.ts` compare les catalogues entre eux, il ne sait rien d'un
+            littéral. C'est le défaut qu'un `defaultValue` écrit en français produit, en pire.
+
+            --text-muted, jamais --text-faint : l'encre tertiaire ne porte pas de texte.
+          */}
           <p className="mt-3 text-small text-ink-2 leading-[1.5]">
-            Version du <span className="mm-num">{version}</span>. Chaque modification est datée,
-            et l'ancienne version reste consultable.
+            <Trans
+              ns="legal"
+              i18nKey="common.versionNote"
+              values={{ version }}
+              components={[<span key="v" className="mm-num" />]}
+            />
           </p>
         </aside>
 
@@ -100,7 +124,10 @@ export function LegalPage({
           <SiteDisplay lines={titleLines} size={44} from={eyebrow ? 1 : 0} />
 
           {/* `.mm-prose` porte la mesure de 68 caractères. Ne pas la redéclarer. */}
-          <div className="rv mm-prose mt-[18px] legal-prose" style={{ ['--i' as string]: 2 }}>
+          {/* `break-words` : le seul recours pour un jeton qu'aucune langue ne coupe — une
+              URL, une adresse électronique, un numéro de registre. Il vaut mieux le couper
+              que le laisser pousser la page. */}
+          <div className="rv mm-prose mt-[18px] legal-prose break-words" style={{ ['--i' as string]: 2 }}>
             {children}
           </div>
         </div>

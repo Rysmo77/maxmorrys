@@ -247,7 +247,7 @@ export default function AdminFormations() {
                 minHeight="280px"
               />
             </div>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 stack:grid-cols-3">
               <Field
                 label={t('formations.fieldCategory')}
                 value={f.form.category}
@@ -271,7 +271,7 @@ export default function AdminFormations() {
                 placeholder={t('formations.fieldPromoPricePlaceholder')}
               />
             </div>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 stack:grid-cols-3">
               <Field
                 as="select"
                 label={t('formations.fieldLevel')}
@@ -554,7 +554,7 @@ export default function AdminFormations() {
         )}
 
         <div className="mt-6 border-t border-[color:var(--line)] pt-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <div className="flex flex-col gap-3 stack:flex-row stack:justify-end">
             {f.editingId && (
               <>
                 <Button size="sm" tone="ghost" onClick={f.deleteEditing}>
@@ -614,7 +614,7 @@ export default function AdminFormations() {
             onChange={(v) => f.patchLesson({ title: v })}
             placeholder={t('formations.lessonTitlePlaceholder')}
           />
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 stack:grid-cols-2">
             <Field
               as="select"
               label={t('formations.lessonTypeLabel')}

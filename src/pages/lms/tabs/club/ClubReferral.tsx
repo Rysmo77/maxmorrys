@@ -152,7 +152,7 @@ export default function ClubReferral({ data }: { data: ClubData }) {
       </GlassPanel>
 
       {/* Deux cases — et la seconde n'est pas un compteur, parce qu'il n'y a rien à compter. */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 stack:grid-cols-2">
         <GlassPanel level="flat" padding={16}>
           <p className="mm-eyebrow m-0">{t('referral.convertedTitle')}</p>
           <p className="mt-1 text-[27px]">

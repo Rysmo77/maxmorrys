@@ -1,0 +1,438 @@
+<!-- Référence de conception — Max-Morrys. group="Planche" viewport="390x900" name="Planche du système" subtitle="Jetons et bibliothèque de composants, mode clair, colonne de 390 px" 
+     Copie de la maquette du système ; ce n'est pas du code de production. -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — planche du système</title>
+<link rel="stylesheet" href="../css/styles.css">
+<style>
+html,body{margin:0}
+body{background:#E9EDF2;font-family:var(--f-body);color:var(--ink);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+#root{width:390px;margin:0 auto;background:#FBFCFE;min-height:100vh}
+.sec{padding:24px 18px 26px;border-top:1px solid var(--line)}
+.sec:first-child{border-top:0}
+.eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin:0 0 4px}
+.h{font-family:var(--f-display);font-weight:900;font-size:26px;letter-spacing:-.032em;line-height:1;margin:0 0 14px}
+.note{font-size:12px;line-height:1.5;color:var(--ink-2);margin:12px 0 0}
+.note b{color:var(--ink)}
+.lb{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:18px 0 7px}
+.lb:first-child{margin-top:0}
+.hx{font-family:var(--f-mono);font-size:10px;color:var(--ink-2)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stage{position:relative;border-radius:var(--r-l);overflow:hidden;isolation:isolate}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="./_bundle.js"></script>
+<script src="./_guard.js"></script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const { Button, IconButton, PillButton, Field, Switch, Segmented, ChipRow, PayOption, StepDots,
+  Mesh, GlassPanel, TerritoryCard, Skeleton, EmptyState, Tag, ProgressBar, LessonRow, PriceBlock,
+  QuotaMeter, Avatar, ChatBubble, DocLine, StatTile, TabBar, SideNav, SearchPill, Breadcrumb,
+  Pipeline, ReadingBar, Wordmark, LogoMark, Icon } = window.DesignSystem_b7a7ca;
+
+function Sec({eb,h,children}){
+  return <section className="sec"><p className="eb">{eb}</p><h2 className="h">{h}</h2>{children}</section>;
+}
+function Lb({children}){return <p className="lb">{children}</p>;}
+
+/* Lit une recette de verre directement dans la feuille de styles appliquée : opacité réelle,
+   flou réel, et la valeur sous `.lowfi`. Aucun chiffre n'est écrit à la main ici — c'est ce
+   qui empêche la fiche de dériver du CSS, comme elle l'a fait trois fois. */
+function Mesure({sel,dark,note}){
+  const [v,setV] = React.useState(null);
+  React.useEffect(()=>{
+    const sonde = document.createElement('div');
+    sonde.className = sel.slice(1);
+    sonde.style.cssText = 'position:absolute;left:-9999px;width:40px;height:40px';
+    const hote = dark ? document.createElement('div') : document.body;
+    if (dark){ hote.className = 'dk'; hote.appendChild(sonde); document.body.appendChild(hote); }
+    else document.body.appendChild(sonde);
+    const lire = ()=>{ const s = getComputedStyle(sonde); return {bg:s.backgroundColor, bf:s.backdropFilter || s.webkitBackdropFilter}; };
+    const normal = lire();
+    document.documentElement.classList.add('lowfi');
+    const bas = lire();
+    document.documentElement.classList.remove('lowfi');
+    (dark ? hote : sonde).remove();
+    const alpha = (c)=>{ const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return '—'; const p = m[1].split(',').map(x=>x.trim()); return p[3] ? String(Number(p[3])).replace('0.','.') : '1'; };
+    const flou = (f)=>{ if (!f || f === 'none') return null; const m = f.match(/blur\(([\d.]+)px\)/); return m ? m[1] : '?'; };
+    setV({a:alpha(normal.bg), blur:flou(normal.bf), aBas:alpha(bas.bg), blurBas:flou(bas.bf)});
+  },[sel,dark]);
+  if (!v) return <p className="hx">…</p>;
+  return (
+    <p className="hx" style={dark?{color:'#A2ADBB'}:undefined}>
+      α {v.a} · {v.blur ? 'blur '+v.blur : <b style={{color:'var(--ok)'}}>aucun flou</b>}
+      {' · .lowfi '}{v.blurBas ? 'blur '+v.blurBas : 'sans flou'} α {v.aBas}
+      {v.a === v.aBas && <b style={{color:'var(--ok)'}}> (voile intact)</b>}
+      <br />{note}
+    </p>
+  );
+}
+function Swatch({bg,name,hex,ratio,ok,w=1}){
+  return (
+    <div style={{flex:w,minWidth:0,borderRadius:'var(--r-m)',overflow:'hidden',border:'1px solid var(--line)',background:'#fff'}}>
+      <div style={{height:'46px',background:bg}} />
+      <div style={{padding:'7px 9px'}}>
+        <b style={{display:'block',fontSize:'11.5px',letterSpacing:'-.01em'}}>{name}</b>
+        <span className="hx">{hex}{ratio?' · ':''}{ratio && <b style={{color:ok?'var(--ok)':'var(--stop)'}}>{ratio}</b>}</span>
+      </div>
+    </div>
+  );
+}
+const TABS = [
+  {label:'Espace',icon:<Icon name="home" size={21} />},
+  {label:'Cours',icon:<Icon name="book" size={21} />},
+  {label:'Rysmo',icon:<Icon name="chat" size={21} />},
+  {label:'Club',icon:<Icon name="users" size={21} />},
+  {label:'Profil',icon:<Icon name="user" size={21} />}
+];
+
+function Planche(){
+  const [chip,setChip] = React.useState('SEO');
+  const [seg,setSeg] = React.useState('Français');
+  const [sw,setSw] = React.useState(true);
+  const [pay,setPay] = React.useState('Wave');
+
+  return (
+    <div className="play">
+
+      {/* ── EN-TÊTE ── */}
+      <section className="sec" style={{paddingTop:'28px'}}>
+        <div className="row" style={{justifyContent:'space-between'}}>
+          <Wordmark size={27} />
+          <LogoMark size={44} src="../assets/logo-mm-icon.png" />
+        </div>
+        <h1 className="h" style={{fontSize:'34px',marginTop:'18px'}}>La couleur devient l'espace. Le contenu flotte dessus.</h1>
+        <p className="note">Planche du système — mode clair, colonne de <b>390 px</b>. Jetons, puis les dix-neuf composants de la bibliothèque. Aucun écran de produit.</p>
+      </section>
+
+      {/* ── COULEUR ── */}
+      <Sec eb="01 — Couleur" h="Quatre teintes, quatre territoires">
+        <div className="row" style={{gap:'8px'}}>
+          <Swatch bg="var(--mm-bleu)" name="Je te forme" hex="#0057BC" ratio="6,8:1" ok />
+          <Swatch bg="var(--mm-orange)" name="Je t'informe" hex="#F38B0A" ratio="2,47:1" />
+        </div>
+        <div className="row" style={{gap:'8px',marginTop:'8px'}}>
+          <Swatch bg="var(--mm-violet)" name="Je te transforme" hex="#6C23DD" ratio="7,19:1" ok />
+          <Swatch bg="var(--mm-teal)" name="Je te digitalise" hex="#02AC9C" ratio="2,84:1" />
+        </div>
+        <div className="row" style={{gap:'8px',marginTop:'8px'}}>
+          <Swatch bg="var(--mm-rose-c)" name="Rose · accent" hex="#FFC9CE" />
+          <Swatch bg="var(--mm-corail)" name="Corail · maillage" hex="#FF6E7F" />
+        </div>
+
+        <Lb>Interdits de texte, et leurs versions texte</Lb>
+        <GlassPanel level="flat" padding="12px 14px">
+          <p style={{margin:0,fontSize:'17px',fontWeight:700,color:'var(--mm-orange)'}}>250 000 F la première année</p>
+          <p className="hx" style={{color:'var(--stop)'}}>#F38B0A · 2,47:1 · interdit en texte</p>
+          <p style={{margin:'10px 0 0',fontSize:'17px',fontWeight:700,color:'var(--mm-orange-t)'}}>250 000 F la première année</p>
+          <p className="hx" style={{color:'var(--ok)'}}>#8A4B00 · 6,8:1</p>
+          <p style={{margin:'14px 0 0',fontSize:'17px',fontWeight:700,color:'var(--mm-teal-t)'}}>Ta boutique, trouvable</p>
+          <p className="hx" style={{color:'var(--ok)'}}>#00695E · 6,6:1 — remplace #02AC9C (2,84:1)</p>
+        </GlassPanel>
+
+        <Lb>Encre et texte</Lb>
+        <div className="row" style={{gap:'8px'}}>
+          <Swatch bg="var(--ink)" name="Encre" hex="#0E1116 · 18,91:1" />
+          <Swatch bg="var(--ink-2)" name="Secondaire" hex="#5A6472 · 6:1" />
+          <Swatch bg="var(--ink-3)" name="Tertiaire" hex="#98A1AE" />
+        </div>
+
+        <Lb>Mode sombre — la règle s'inverse</Lb>
+        <div style={{background:'#0B0E13',borderRadius:'var(--r-m)',padding:'14px'}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
+            {[['#6FB1FF','#0057BC','8,66:1'],['#B98CFF','#6C23DD','7,60:1'],['#FFB24D','#F38B0A','10,79:1'],['#3FD9C6','#02AC9C','11:1']].map(([n,o,r])=>(
+              <div key={n}>
+                <p style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'22px',letterSpacing:'-.04em',color:n,margin:0,lineHeight:1}}>Aa</p>
+                <p className="hx" style={{color:'#A2ADBB'}}>{n} · <b style={{color:'#4ADE9B'}}>{r}</b></p>
+                <p className="hx" style={{color:'#77828F'}}>remplace {o}</p>
+              </div>
+            ))}
+          </div>
+          <p style={{fontSize:'11.5px',color:'#A2ADBB',margin:'12px 0 0',lineHeight:1.5}}>Texte : <b style={{color:'#ECF0F5'}}>#ECF0F5</b> · #A2ADBB · #77828F. Le bleu et le violet du logo tombent à 2,84:1 et 2,69:1 sur ce fond : interdits tels quels.</p>
+        </div>
+      </Sec>
+
+      {/* ── TYPO ── */}
+      <Sec eb="02 — Typographie" h="Trois familles, un seul rôle chacune">
+        <Lb>Fraunces 900 · display · jamais sous 22 px</Lb>
+        <p style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'41px',letterSpacing:'-.035em',lineHeight:.9,margin:0}}>JE TE FORME<br />AU DIGITAL.</p>
+        <p className="hx">41 px · ls −.035em · lh .9</p>
+        <p style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'30px',letterSpacing:'-.038em',lineHeight:.95,margin:'12px 0 0'}}>Le catalogue ouvre bientôt.</p>
+        <p className="hx">30 px — titre secondaire</p>
+        <p style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'23px',letterSpacing:'-.028em',lineHeight:1.02,margin:'12px 0 0'}}>Comment tu paies ?</p>
+        <p className="hx">23 px — question de tunnel</p>
+
+        <Lb>Schibsted Grotesk · texte</Lb>
+        <p style={{fontSize:'15px',lineHeight:1.45,margin:0}}>SEO, marketing et IA, expliqués pour le marché d'ici. Tu paies en Wave ou en Orange Money.</p>
+        <p className="hx">15 px / 1,45 · 400 · corps d'écran</p>
+        <p style={{fontSize:'14px',lineHeight:1.5,color:'var(--ink-2)',margin:'10px 0 0'}}>Je préfère te le dire que te faire cliquer dans le vide.</p>
+        <p className="hx">14 px / 1,5 · chapô, en #5A6472</p>
+        <p style={{fontSize:'15.5px',lineHeight:1.68,margin:'10px 0 0',maxWidth:'var(--measure-prose)'}}>La colonne de lecture ne dépasse jamais 68 caractères, quelle que soit la largeur d'écran.</p>
+        <p className="hx">15,5 px / 1,68 · prose · 68 ch au maximum</p>
+
+        <Lb>JetBrains Mono · données</Lb>
+        <p className="mm-num" style={{fontSize:'31px',margin:0}}>95 000 <span style={{fontFamily:'var(--f-body)',fontSize:'14px',fontWeight:600}}>FCFA</span></p>
+        <p className="mm-num" style={{fontSize:'19px',letterSpacing:'.06em',margin:'8px 0 0'}}>MM-C7K4-9RTX-2081</p>
+        <p className="mm-num" style={{fontSize:'27px',margin:'8px 0 0'}}>0 certificat</p>
+        <GlassPanel level="truth" style={{marginTop:'14px'}}>
+          <p className="eb" style={{margin:'0 0 6px'}}>La règle du monospace</p>
+          <p style={{fontSize:'12.5px',color:'var(--ink-2)',lineHeight:1.5,margin:0}}>Un nombre dans cette fonte vient de la base ou d'une source citée. <b style={{color:'var(--ink)'}}>Un nombre qui ne peut pas prendre cette fonte ne s'affiche pas.</b> Un zéro daté est une valeur ; un tiret n'en est pas une.</p>
+        </GlassPanel>
+      </Sec>
+
+      {/* ── ESPACEMENT / RAYONS ── */}
+      <Sec eb="03 — Espacement et rayons" h="Huit pas, cinq rayons">
+        <Lb>Échelle canonique</Lb>
+        <div style={{display:'flex',gap:'8px',alignItems:'flex-end'}}>
+          {[4,8,12,16,20,24,32,40].map(v=>(
+            <div key={v} style={{textAlign:'center'}}>
+              <i style={{display:'block',width:v+'px',height:'22px',background:'var(--mm-bleu)',opacity:.85,borderRadius:'3px'}} />
+              <span className="hx">{v}</span>
+            </div>
+          ))}
+        </div>
+        <p className="note">Marge latérale d'écran <b>18</b> · panneau <b>20</b> · héros <b>22</b> · chevauchement du M <b>−14</b>. Ces valeurs intermédiaires viennent du kit et ne s'arrondissent pas.</p>
+
+        <Lb>Cibles tactiles</Lb>
+        <div className="row">
+          <div style={{width:'44px',height:'44px',borderRadius:'50%',border:'1px dashed var(--mm-bleu)',display:'grid',placeItems:'center'}}><span style={{width:'42px',height:'42px',borderRadius:'50%',background:'rgba(14,17,22,.08)',border:'1px solid var(--line)'}} /></div>
+          <div style={{width:'8px',height:'44px',background:'rgba(0,87,188,.12)'}} />
+          <div style={{height:'54px',flex:1,borderRadius:'999px',background:'var(--ink)'}} />
+        </div>
+        <p className="note"><b>42 px</b> de chrome rond dans le kit, <b>44 px</b> exigés au plancher, <b>8 px</b> d'écart minimal, <b>54 px</b> pour un bouton pleine largeur. L'écart de 2 px est le seul point où le kit et le plancher ne coïncident pas — <b>à trancher</b>.</p>
+
+        <Lb>Rayons</Lb>
+        <div style={{display:'flex',gap:'8px'}}>
+          {[['var(--r-s)','10'],['var(--r-m)','16'],['var(--r-l)','24'],['var(--r-xl)','30'],['var(--r-pill)','999']].map(([r,l])=>(
+            <div key={l} style={{flex:1,height:'56px',borderRadius:r,background:'linear-gradient(150deg,var(--g-forme-1),var(--g-forme-2))',border:'1px solid rgba(255,255,255,.6)',display:'grid',placeItems:'center'}}><span className="hx">{l}</span></div>
+          ))}
+        </div>
+      </Sec>
+
+      {/* ── MAILLAGES ── */}
+      <Sec eb="04 — Fond" h="Quatre maillages, un par territoire">
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}}>
+          {[['forme','bleu → violet → teal'],['informe','orange → corail → bleu'],['transforme','violet → bleu → orange'],['digitalise','teal → bleu → orange']].map(([t,d])=>(
+            <div key={t} className="stage" style={{height:'96px',border:'1px solid var(--line)'}}>
+              <Mesh territory={t} />
+              <span style={{position:'absolute',left:'9px',bottom:'9px',zIndex:2,fontFamily:'var(--f-mono)',fontSize:'9.5px',background:'rgba(255,255,255,.82)',padding:'4px 6px',borderRadius:'6px'}}>{t} · {d}</span>
+            </div>
+          ))}
+        </div>
+        <div className="stage" style={{height:'96px',marginTop:'8px',border:'1px solid #232B34'}}>
+          <Mesh territory="nuit" />
+          <span style={{position:'absolute',left:'9px',bottom:'9px',zIndex:2,fontFamily:'var(--f-mono)',fontSize:'9.5px',background:'rgba(14,17,22,.82)',color:'#fff',padding:'4px 6px',borderRadius:'6px'}}>nuit · bleu → violet → orange sur #0B0E13</span>
+        </div>
+        <p className="note">Trois lobes, <b>blur 52 px</b>, dérive désynchronisée sur <b>25 à 38 s</b>, animée en <b>transform</b> uniquement. Voile de lisibilité : blanc <b>42 %</b> en haut, <b>90 %</b> en bas. Poids : <b>0 octet</b> — c'est ce qui remplace la vidéo de fond.</p>
+      </Sec>
+
+      {/* ── VERRE ──
+          Les valeurs sont LUES depuis le DOM, jamais recopiées en prose. Trois fois de suite,
+          la spécification affichée avait dérivé du CSS réel parce qu'elle le redisait à la
+          main : une fiche qui se décrit elle-même ne peut plus mentir. */}
+      <Sec eb="05 — Surfaces" h="Quatre niveaux, un seul flou">
+        <div className="stage" style={{border:'1px solid var(--line)'}}>
+          <Mesh territory="transforme" />
+          <div style={{position:'relative',zIndex:3,padding:'14px',display:'grid',gap:'10px'}}>
+            <GlassPanel padding={13}><b style={{fontSize:'12.5px'}}>Chrome fixe — la seule surface floutée</b><Mesure sel=".glass" note="barre haute, barre d'onglets" /></GlassPanel>
+            <GlassPanel level="hero" padding={13}><b style={{fontSize:'12.5px'}}>Héros — prix, formulaire principal</b><Mesure sel=".glass-hero" note="il défile, donc aucun flou" /></GlassPanel>
+            <GlassPanel level="flat" padding={13}><b style={{fontSize:'12.5px'}}>Faux verre — listes, fils, grilles</b><Mesure sel=".glass-flat" note="le défaut, pas l'exception" /></GlassPanel>
+            <GlassPanel level="night" padding={13}><b style={{fontSize:'12.5px'}}>Nuit</b><Mesure sel=".glass-d" dark note="contenu seulement, jamais du chrome" /></GlassPanel>
+          </div>
+        </div>
+        <p className="note">Ce qui fait qu'un verre a l'air d'un verre n'est pas le flou : c'est le liseré de lumière de 1 px en haut, la bordure blanche à 55 % et <b>saturate(170%)</b> — sans elle, le flou délave le maillage et tout devient gris. C'est pour ça que trois niveaux sur quatre s'en passent sans rien perdre.</p>
+        <GlassPanel level="truth" style={{marginTop:'12px'}}>
+          <p className="eb" style={{margin:'0 0 6px'}}>Budget de verre</p>
+          <p style={{fontSize:'12.5px',color:'var(--ink-2)',lineHeight:1.55,margin:0}}><b>Le flou n'a droit qu'à une surface qui ne défile pas avec le contenu</b> — <b>fixed</b> ou <b>sticky</b> en production, <b>absolute</b> dans une maquette à cadre. Partout ailleurs c'est un défaut : aucun quota à compter. Repli sur trois conditions — <b>@supports</b>, <b>prefers-reduced-transparency</b>, appareil modeste (<b>deviceMemory ≤ 2</b> ou <b>≤ 4 cœurs</b>) : flou coupé, maillage figé, et le repli connaît le thème. <b>Un repli ne compense que ce qui se perd</b> : les trois niveaux sans flou gardent leur voile de conception, même sur appareil modeste.</p>
+        </GlassPanel>
+      </Sec>
+
+      {/* ── MOUVEMENT ── */}
+      <Sec eb="06 — Mouvement" h="Quatre durées, deux courbes">
+        <GlassPanel level="flat" padding="4px 14px">
+          <LessonRow state="plain" title="120 ms · « j'ai senti ton doigt »" meta="scale(.975) — boutons, pilules, options" />
+          <LessonRow state="plain" title="220 ms · « l'état a changé »" meta="filtre, radio, quota" />
+          <LessonRow state="plain" title="380 ms · « ceci vient d'arriver »" meta="cascade, 70 ms entre voisines" />
+          <LessonRow state="plain" title="700 ms · « la page se met en place »" meta="titre sous masque, barre qui se remplit" last />
+        </GlassPanel>
+        <p className="note mm-num" style={{fontSize:'11px'}}>cubic-bezier(.2,.7,.2,1) · état — cubic-bezier(.16,1,.3,1) · entrée</p>
+        <p className="note">Interdits : animer <b>width</b>, <b>height</b>, <b>top</b>, <b>left</b> ; détourner le défilement ; faire porter une information au survol seul. <b>prefers-reduced-motion</b> ramène tout à 1 ms, dérive des maillages comprise.</p>
+        <Lb>Les deux seuls moments scénarisés</Lb>
+        <div className="row" style={{gap:'12px',alignItems:'stretch'}}>
+          <GlassPanel padding={13} style={{flex:1}}>
+            <div className="pulse" style={{width:'44px',height:'44px',borderRadius:'14px',background:'linear-gradient(135deg,#3FD8FF,#009FE3)',display:'grid',placeItems:'center',color:'#009FE3',fontFamily:'var(--f-display)',fontWeight:900,fontSize:'18px'}}><span style={{color:'#fff'}}>W</span></div>
+            <p style={{fontSize:'12px',fontWeight:700,margin:'10px 0 0'}}>Attente de paiement</p>
+            <p className="hx" style={{lineHeight:1.4}}>« la transaction est vivante »</p>
+          </GlassPanel>
+          <GlassPanel level="hero" padding={13} className="sheen" style={{flex:1}}>
+            <Wordmark size={20} short />
+            <p style={{fontSize:'12px',fontWeight:700,margin:'10px 0 0'}}>Émission du certificat</p>
+            <p className="hx" style={{lineHeight:1.4}}>deux passages, puis plus jamais</p>
+          </GlassPanel>
+        </div>
+      </Sec>
+
+      {/* ── COMPOSANTS ── */}
+      <Sec eb="07 — Bibliothèque" h="Dix-neuf composants">
+        <Lb>Carte territoire à chevron · empilement en M</Lb>
+        <div className="stage" style={{border:'1px solid var(--line)'}}>
+          <Mesh territory="forme" />
+          <div style={{position:'relative',zIndex:3,padding:'14px'}}>
+            <TerritoryCard first territory="forme" meta="6 modules · 47 leçons" title="Je te forme" big="1" bigLabel="formation" />
+            <TerritoryCard territory="informe" meta="Blog · podcast · vidéo" title="Je t'informe" big="46" bigLabel="gratuits" />
+            <TerritoryCard territory="transforme" meta="19 900 F/an ≈ 1 658 F/mois" title="Je te transforme" big="8" bigLabel="onglets" />
+          </div>
+        </div>
+        <p className="note">Chevauchement <b>−14 px</b>, poignée blanche de 34 × 4 px, dégradé à deux arrêts. Au-delà de <b>700 px</b> : grille 2 × 2, chevron conservé, chevauchement supprimé. Au-delà de <b>1080 px</b> : rangée de quatre.</p>
+
+        <Lb>Encart de vérité</Lb>
+        <GlassPanel level="truth">
+          <p className="eb" style={{margin:'0 0 6px'}}>Ce que je peux te prouver</p>
+          <p style={{fontSize:'12.5px',color:'var(--ink-2)',lineHeight:1.5,margin:0}}><b className="mm-num" style={{color:'var(--ink)'}}>47</b> leçons, <b className="mm-num" style={{color:'var(--ink)'}}>6</b> modules, le module d'ouverture en accès libre, un certificat dont le code se vérifie sans compte, <b className="mm-num" style={{color:'var(--ink)'}}>14</b> jours pour changer d'avis. Ni note, ni nombre d'inscrits : la plateforme vient d'ouvrir.</p>
+        </GlassPanel>
+
+        <Lb>Bloc de prix · barre de quota</Lb>
+        <GlassPanel padding={16}>
+          <PriceBlock amount="95 000" note={<>Une fois, accès à vie · ou <b className="mm-num">3 × 31 700</b> sans frais</>} />
+          <div style={{height:'1px',background:'var(--border-hair)',margin:'14px 0'}} />
+          <PriceBlock amount="1 658" currency="FCFA / mois" size={27} note={<>Facturé <b className="mm-num">19 900 FCFA</b> une fois par an.</>} />
+          <QuotaMeter used={2} total={5} style={{marginTop:'14px'}} />
+        </GlassPanel>
+
+        <Lb>Pilule de filtre</Lb>
+        <ChipRow options={['Tout','SEO','IA','Marketing']} value={chip} onChange={setChip} />
+
+        <Lb>Bouton · cinq variantes</Lb>
+        <div style={{display:'grid',gap:'8px'}}>
+          <Button tone="primary">Encre — Crée ton compte</Button>
+          <Button tone="forme">Forme — Je m'inscris</Button>
+          <Button tone="transforme">Transforme — Je rejoins le Club</Button>
+          <Button tone="ghost">Verre — Copier le lien</Button>
+          <Button tone="quiet">Discret — Changer de moyen</Button>
+        </div>
+        <div className="row" style={{marginTop:'10px'}}>
+          <Button tone="digitalise" size="sm">Mon devis</Button>
+          <Button size="sm" disabled>Désactivé</Button>
+          <IconButton label="Retour"><Icon name="back" strokeWidth={2.4} /></IconButton>
+          <IconButton label="Notifications" badge><Icon name="bell" strokeWidth={2} /></IconButton>
+          <PillButton>Menu</PillButton>
+        </div>
+
+        <Lb>Champ de formulaire · trois états</Lb>
+        <GlassPanel padding={16}>
+          <Field label="Ton e-mail" placeholder="aissatou@exemple.sn" style={{marginTop:0}} />
+          <Field label="Ton mot de passe" value="••••••••••" state="focus" trailing={<Icon name="eye" size={18} color="#5A6472" />} />
+          <Field label="Écris SUPPRIMER pour confirmer" placeholder="SUPPRIMER" state="error" hint="Le texte ne correspond pas encore." />
+          <Field label="Ton message" placeholder="Dis-moi tout." multiline />
+        </GlassPanel>
+
+        <Lb>Interrupteur · contrôle segmenté</Lb>
+        <GlassPanel level="flat" padding="4px 14px">
+          <LessonRow state="plain" title="Reprise de cours" meta="quand tu t'arrêtes plus de 5 jours" trailing={<Switch on={sw} onClick={()=>setSw(!sw)} />} />
+          <LessonRow state="plain" title="Par e-mail" meta="pas encore disponible" trailing={<Switch disabled />} last />
+        </GlassPanel>
+        <Segmented options={['Français','English']} value={seg} onChange={setSeg} style={{marginTop:'10px'}} />
+        <Segmented options={['Clair','Sombre','Système']} style={{marginTop:'8px'}} />
+
+        <Lb>Ligne de leçon · barre de progression</Lb>
+        <ProgressBar value={34} />
+        <GlassPanel level="flat" padding="4px 18px" style={{marginTop:'10px'}}>
+          <LessonRow state="done" title="Choisir tes mots-clés" meta="06:12" />
+          <LessonRow state="current" icon={<Icon name="play" size={13} color="#fff" />} iconBackground="linear-gradient(135deg,#0057BC,#6C23DD)" title="Les mots que tapent tes clients" meta="08:24 · en cours" />
+          <LessonRow state="todo" title="Écrire une fiche qui remonte" meta="07:03" last />
+        </GlassPanel>
+
+        <Lb>Étiquette de statut</Lb>
+        <div className="row"><Tag tone="ok">Vérifié</Tag><Tag tone="warn">En attente</Tag><Tag tone="stop">Bloquant</Tag><Tag>Wave · Orange Money</Tag></div>
+
+        <Lb>Moyen de paiement · étapes</Lb>
+        <StepDots total={3} current={2} />
+        <div style={{display:'grid',gap:'10px',marginTop:'12px'}}>
+          <PayOption on={pay==='Wave'} onClick={()=>setPay('Wave')} logo="W" logoBackground="linear-gradient(135deg,#3FD8FF,#009FE3)" title="Wave" note="Tu valides dans l'app Wave" />
+          <PayOption on={pay==='OM'} onClick={()=>setPay('OM')} logo="OM" logoBackground="linear-gradient(135deg,#FFA030,#FF5A00)" title="Orange Money" note="Code de confirmation par SMS" />
+          <PayOption on={pay==='Carte'} onClick={()=>setPay('Carte')} logo={<Icon name="card" size={20} color="#fff" />} logoBackground="linear-gradient(135deg,#3A4450,#0E1116)" title="Carte bancaire" note="Visa, Mastercard" />
+        </div>
+
+        <Lb>Bulle de conversation</Lb>
+        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+          <ChatBubble>Tu t'es arrêtée à la leçon 5 du module 3. On la reprend ?</ChatBubble>
+          <ChatBubble from="me">Comment je choisis mes mots-clés ?</ChatBubble>
+          <ChatBubble typing />
+        </div>
+
+        <Lb>Recherche · fil d'Ariane · avatars</Lb>
+        <SearchPill icon={<Icon name="search" size={17} strokeWidth={2.4} />} label="TROUVE CE " hint="QU'IL TE FAUT" />
+        <Breadcrumb items={["Je t'informe",'Blog','SEO local']} style={{marginTop:'12px'}} />
+        <div className="row" style={{marginTop:'10px'}}><Avatar initials="A" /><Avatar initials="SK" size={34} /><Avatar initials="AT" size={34} background="linear-gradient(135deg,#F38B0A,#B4231F)" /></div>
+
+        <Lb>Barre d'onglets basse · 80 px, verre fixe</Lb>
+        <div className="stage" style={{height:'96px',border:'1px solid var(--line)'}}>
+          <Mesh territory="transforme" />
+          <TabBar items={TABS} active="Espace" />
+        </div>
+
+        <Lb>Barre de navigation latérale · 250 px</Lb>
+        <div className="stage" style={{height:'240px',border:'1px solid var(--line)'}}>
+          <Mesh territory="forme" />
+          <div style={{position:'relative',zIndex:3,width:'250px'}}>
+            <SideNav active="Je te forme" style={{height:'240px'}}
+              items={[{label:'Je te forme',color:'#0057BC'},{label:"Je t'informe",color:'#F38B0A'},{label:'Je te transforme',color:'#6C23DD'},{label:'Je te digitalise',color:'#02AC9C'}]}
+              footer={<GlassPanel padding={12}><p className="eb" style={{margin:0}}>Ton espace</p><p style={{fontSize:'12.5px',fontWeight:600,margin:'4px 0 0'}}>Leçon 5 · 34 %</p><ProgressBar value={34} style={{marginTop:'8px'}} /></GlassPanel>} />
+          </div>
+        </div>
+
+        <Lb>Ligne de liste d'administration · verre nuit</Lb>
+        <div className="dk" style={{background:'#0A0D11',borderRadius:'var(--r-l)',padding:'12px'}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
+            <StatTile dark label="Encaissé" value="0 F" foot="relevé du 30/08" />
+            <StatTile dark label="Certificats" value="0" foot="depuis l'origine" />
+          </div>
+          <Pipeline active="nouveau" stages={['nouveau','qualifié','devisé','signé','perdu']} style={{marginTop:'12px'}} />
+          <GlassPanel level="night" padding="4px 16px" style={{marginTop:'12px'}}>
+            <LessonRow icon={<Icon name="doc" size={14} color="#F38B0A" />} iconBackground="rgba(243,139,10,.2)" title="1 prospect TPE non qualifié" meta="« nouveau » depuis le 6 août" trailing={<Icon name="forward" size={15} color="#7C8896" strokeWidth={2.4} />} />
+            <LessonRow icon={<Icon name="alert" size={14} color="#FF8A80" />} iconBackground="rgba(180,35,31,.28)" title="7 chiffres non sourcés en façade" meta="contredits par la base" trailing={<Tag tone="stop">dette</Tag>} last />
+          </GlassPanel>
+        </div>
+
+        <Lb>État vide · squelette de chargement</Lb>
+        <GlassPanel level="flat" padding={4}>
+          <EmptyState glyph={<Icon name="book" size={26} color="#8A4B00" />} glyphBackground="linear-gradient(135deg,#FFDCA8,#FFC9CE)"
+            title="Aucune formation n'est encore en ligne."
+            body="Je préfère te le dire que te faire cliquer dans le vide. Crée ton compte : je t'alerte dans ton espace."
+            action={<Button tone="primary">Crée ton compte</Button>} />
+        </GlassPanel>
+        <div style={{display:'grid',gap:'8px',marginTop:'12px'}}>
+          <Skeleton height={30} width="72%" /><Skeleton height={14} /><Skeleton height={14} width="86%" /><Skeleton height={96} radius={24} />
+        </div>
+
+        <Lb>Barre de lecture · 3 px, en tête d'écran</Lb>
+        <div className="stage" style={{height:'40px',border:'1px solid var(--line)',background:'#fff'}}><ReadingBar value={46} /></div>
+      </Sec>
+
+      {/* ── VOIX ── */}
+      <Sec eb="08 — Voix" h="Je te…">
+        <GlassPanel level="flat" padding="4px 16px">
+          <LessonRow state="plain" title="Je suis Max-Morrys" meta="I'm Max-Morrys" />
+          <LessonRow state="plain" title="Je te forme" meta="I'll train you" />
+          <LessonRow state="plain" title="Je t'informe" meta="I'll keep you posted" />
+          <LessonRow state="plain" title="Je te transforme" meta="I'll push you further" />
+          <LessonRow state="plain" title="Je te digitalise" meta="I'll get you online" />
+          <LessonRow state="plain" title="Contacte-moi" meta="Talk to me" last />
+        </GlassPanel>
+        <p className="note">L'anglais n'a pas de tutoiement : la familiarité passe par la <b>contraction</b> et le <b>verbe à particule</b>. Les titres d'affichage ne sont pas traduits, ils sont <b>écrits par langue</b>, avec leurs propres coupures de ligne.</p>
+        <GlassPanel level="truth" style={{marginTop:'12px'}}>
+          <p className="eb" style={{margin:'0 0 6px'}}>Interdictions absolues</p>
+          <p style={{fontSize:'12.5px',color:'var(--ink-2)',lineHeight:1.55,margin:0}}>Aucune note en étoiles, aucun nombre d'avis, d'élèves ou de taux de réussite. Aucun témoignage, aucun logo client, aucun « rejoint par 1 200 personnes ». Aucun faux chiffre, <b style={{color:'var(--ink)'}}>même en placeholder</b>. Les zéros s'affichent, datés.</p>
+        </GlassPanel>
+      </Sec>
+
+      <footer className="sec" style={{paddingBottom:'40px'}}>
+        <Wordmark size={22} />
+        <p className="note" style={{marginTop:'8px'}}>Système dérivé du kit v2 et des lots 3 et 4, et du PRD révision 4 du 30 août 2026. MY ONOMA SARL, Dakar.</p>
+      </footer>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<MMBoundary><Planche /></MMBoundary>);
+</script></body></html>

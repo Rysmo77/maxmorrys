@@ -1,10 +1,37 @@
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Card from '../../../components/ui/Card';
-import Badge from '../../../components/ui/Badge';
-import Button from '../../../components/ui/Button';
+import { Button, DocLine, EmptyState, Field, Icon, LessonRow, Num, Tag } from '@ds';
+import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
+import ConsoleSheet from './ConsoleSheet';
 import { useFormat } from '../../../hooks/useFormat';
 import type { ClubDigitosEvent, ClubEventRegistration } from '../../../types';
-import { Field, Icon } from '@ds';
+
+/**
+ * ── ÉVÉNEMENTS — motif de console ───────────────────────────────────────────────────
+ *
+ * ZONE 1 · LA FILE VIENT DU KIT, MOT POUR MOT : `Événements : tout · à venir · passés`
+ * (`PipelinesRestants`). `status: 'upcoming' | 'past'` existait déjà en base et pilotait
+ * déjà l'affichage public ; il n'était simplement pas filtrable ici. Sur une grille de
+ * cartes à deux colonnes, un événement d'il y a huit mois occupait la même place qu'un
+ * événement de samedi.
+ *
+ * ZONE 2 · TROIS ACTIONS PAR LIGNE DEVIENNENT UNE. Le crayon, la poubelle et « voir les
+ * inscriptions » vivaient tous les trois sur la carte, les deux premiers en `<button>` nus
+ * de quatorze pixels et sans libellé accessible. La ligne ouvre maintenant sa fiche ; la
+ * fiche porte le formulaire, la liste des inscrits et la suppression.
+ *
+ * LES DEUX ÉMOJIS SONT PARTIS. La date et le lieu étaient introduits par 📅 et 📍 — « aucun
+ * emoji, nulle part », et le système livre un jeu de glyphes à trait pour exactement cet
+ * usage. Ici, ils ne sont même plus nécessaires : `DocLine` nomme ses champs.
+ *
+ * LE COMPTE D'INSCRITS PASSE PAR `<Num>`, avec SA PROPRE date de relevé — les inscriptions
+ * se chargent à la demande, longtemps après la page, et les dater du chargement de l'écran
+ * serait faux.
+ * ────────────────────────────────────────────────────────────────────────────────────
+ */
+type Stage = 'all' | ClubDigitosEvent['status'];
+
+const STAGES: Stage[] = ['all', 'upcoming', 'past'];
 
 interface ClubEventsTabProps {
   events: ClubDigitosEvent[];
@@ -24,6 +51,8 @@ interface ClubEventsTabProps {
   handleSaveEvent: () => Promise<void>;
   handleDeleteEvent: (id: string) => Promise<void>;
   eventRegs: Record<string, ClubEventRegistration[]>;
+  /** Date de relevé PROPRE à chaque liste d'inscriptions — voir `useAdminClub`. */
+  eventRegsAt: Record<string, Date>;
   openEventRegs: string | null;
   loadingRegs: string | null;
   handleLoadEventRegs: (eventId: string) => Promise<void>;
@@ -34,143 +63,212 @@ export default function ClubEventsTab({
   savingEvent, uploadingEventImage, eventImagePreview, setEventImagePreview,
   setEventImageFile, eventImageInputRef,
   openEventForm, handleEventImageSelect, handleSaveEvent, handleDeleteEvent,
-  eventRegs, openEventRegs, loadingRegs, handleLoadEventRegs,
+  eventRegs, eventRegsAt, openEventRegs, loadingRegs, handleLoadEventRegs,
 }: ClubEventsTabProps) {
   const { t } = useTranslation('adminClub');
-  const { locale } = useFormat();
+  const { formatDate } = useFormat();
+  const [stage, setStage] = useState<Stage>('all');
+
+  const bar = useMemo(() => STAGES.map((s) => {
+    const label = t(`events.stages.${s}`);
+    const n = s === 'all' ? events.length : events.filter((e) => e.status === s).length;
+    return { key: s, text: `${label} ${n}` };
+  }), [events, t]);
+
+  const filtered = useMemo(
+    () => events.filter((e) => stage === 'all' || e.status === stage),
+    [events, stage],
+  );
+
+  const regs = editEvent ? (eventRegs[editEvent.id] ?? null) : null;
+  const regsAt = editEvent ? eventRegsAt[editEvent.id] : undefined;
+
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => openEventForm()} icon={<Icon name="plus" size={16} />}>{t('events.new')}</Button>
+    <div>
+      <ConsoleFilter
+        stages={bar.map((s) => s.text)}
+        active={bar.find((s) => s.key === stage)?.text}
+        onSelect={(text) => {
+          const hit = bar.find((s) => s.text === text);
+          if (hit) setStage(hit.key);
+        }}
+        label={t('events.pipelineLabel')}
+      />
+
+      <div className="mt-4 flex justify-end">
+        <Button size="sm" onClick={() => openEventForm()}>
+          <Icon name="plus" size={15} /> {t('events.new')}
+        </Button>
       </div>
 
-      {showEventForm && (
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-ink">{editEvent ? t('events.editTitle') : t('events.newTitle')}</h3>
-            <button onClick={() => setShowEventForm(false)} className="p-1 rounded-lg text-ink-2 hover:text-ink-2 transition-colors"><Icon name="close" size={16} /></button>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <Field size="sm" label={t('events.titleLabel')} value={eventForm.title} onChange={(v) => setEventForm((p) => ({ ...p, title: v }))} placeholder={t('events.titlePlaceholder')} />
-            </div>
-            <div className="sm:col-span-2">
-              <Field size="sm" label={t('events.descriptionLabel')} as="textarea" value={eventForm.description} onChange={(v) => setEventForm((p) => ({ ...p, description: v }))} rows={3} />
-            </div>
-            <Field size="sm" label={t('events.dateLabel')} type="date" value={eventForm.date} onChange={(v) => setEventForm((p) => ({ ...p, date: v }))} />
-            <Field size="sm" label={t('events.timeLabel')} type="time" value={eventForm.time} onChange={(v) => setEventForm((p) => ({ ...p, time: v }))} />
-            <Field size="sm" label={t('events.locationLabel')} value={eventForm.location} onChange={(v) => setEventForm((p) => ({ ...p, location: v }))} placeholder={t('events.locationPlaceholder')} />
-            <Field
+      <div className="mt-3">
+        {filtered.length === 0 ? (
+          <EmptyState
+            glyph={<Icon name="calendar" size={26} color="var(--mm-bleu)" />}
+            glyphBackground="color-mix(in srgb, var(--mm-bleu) 20%, transparent)"
+            title={t('events.empty')}
+            body={t('events.emptyBody')}
+            action={<Button size="sm" onClick={() => openEventForm()}>{t('events.new')}</Button>}
+          />
+        ) : (
+          <ConsoleList label={t('events.listLabel')}>
+            {filtered.map((event, i) => (
+              <li key={event.id}>
+                <LessonRow
+                  onClick={() => openEventForm(event)}
+                  icon={<Icon name="calendar" size={14} color={`var(${event.status === 'upcoming' ? '--ok' : '--ink-2'})`} />}
+                  iconBackground={`color-mix(in srgb, var(${event.status === 'upcoming' ? '--ok' : '--ink-2'}) 20%, transparent)`}
+                  title={event.title}
+                  meta={[
+                    event.type === 'online' ? t('events.typeOnline') : t('events.typePhysical'),
+                    event.time ? `${formatDate(event.date)} · ${event.time}` : formatDate(event.date),
+                    event.location || null,
+                  ].filter(Boolean).join(' · ')}
+                  trailing={(
+                    <Tag tone={event.status === 'upcoming' ? 'ok' : 'neutral'}>
+                      {event.status === 'upcoming' ? t('events.statusUpcoming') : t('events.statusPast')}
+                    </Tag>
+                  )}
+                  last={i === filtered.length - 1}
+                />
+              </li>
+            ))}
+          </ConsoleList>
+        )}
+      </div>
+
+      <ConsoleScope title={t('common.sectionScopeTitle')}>{t('events.scope')}</ConsoleScope>
+
+      <ConsoleSheet
+        open={showEventForm}
+        onClose={() => setShowEventForm(false)}
+        closeLabel={t('common.close')}
+        eyebrow={t('page.tabs.events')}
+        title={editEvent ? t('events.editTitle') : t('events.newTitle')}
+        footer={(
+          <>
+            {editEvent && (
+              <Button size="sm" tone="quiet" onClick={() => { void handleDeleteEvent(editEvent.id).then(() => setShowEventForm(false)); }} style={{ marginRight: 'auto' }}>
+                {t('events.delete')}
+              </Button>
+            )}
+            <Button size="sm" tone="quiet" onClick={() => setShowEventForm(false)}>{t('common.cancel')}</Button>
+            <Button
               size="sm"
-              as="select"
-              label={t('events.typeLabel')}
-              value={eventForm.type}
-              onChange={(v) => setEventForm((p) => ({ ...p, type: v as 'online' | 'physical' }))}
-              options={[
-                { value: 'online', label: t('events.typeOnline') },
-                { value: 'physical', label: t('events.typePhysical') },
-              ]}
-            />
-            <Field
-              size="sm"
-              as="select"
-              label={t('events.statusLabel')}
-              value={eventForm.status}
-              onChange={(v) => setEventForm((p) => ({ ...p, status: v as 'upcoming' | 'past' }))}
-              options={[
-                { value: 'upcoming', label: t('events.statusUpcoming') },
-                { value: 'past', label: t('events.statusPast') },
-              ]}
-            />
-            <Field size="sm" label={t('events.linkLabel')} type="url" value={eventForm.link} onChange={(v) => setEventForm((p) => ({ ...p, link: v }))} placeholder="https://..." />
-            {/* Un GROUPE, pas un champ : l'`<input type="file">` est masqué et déclenché par
-                le bouton, l'aperçu et le retrait vivent à côté. Un `<label>` n'a donc aucun
-                contrôle unique à cibler — c'est `role="group"` + `aria-labelledby` qui nomme
-                l'ensemble, et le libellé reste un `<span>`. */}
-            <div className="sm:col-span-2 space-y-2" role="group" aria-labelledby="event-image-label">
-              <span id="event-image-label" className="block text-xs font-semibold text-ink-2">{t('events.imageLabel')}</span>
-              <input type="file" accept="image/*" ref={eventImageInputRef} onChange={handleEventImageSelect} className="hidden" />
-              {eventImagePreview ? (
-                <div className="relative w-full max-w-xs">
-                  <img src={eventImagePreview} alt="flyer preview" className="rounded-xl w-full object-cover max-h-48" />
-                  <button type="button" onClick={() => { setEventImageFile(null); setEventImagePreview(''); setEventForm((p) => ({ ...p, imageUrl: '' })); }} className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-white hover:bg-black/80 transition-colors"><Icon name="close" size={12} /></button>
-                </div>
-              ) : (
-                <button type="button" onClick={() => eventImageInputRef.current?.click()} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-[color:var(--line)] text-sm text-ink-2 hover:border-forme hover:text-forme transition-colors">
-                  <Icon name="image" size={16} /> {t('events.importImage')}
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="flex justify-end gap-3 mt-5">
-            <Button variant="outline" onClick={() => setShowEventForm(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleSaveEvent} disabled={savingEvent || uploadingEventImage || !eventForm.title.trim() || !eventForm.date} loading={savingEvent || uploadingEventImage} icon={<Icon name="save" size={16} />}>
+              onClick={() => { void handleSaveEvent(); }}
+              loading={savingEvent || uploadingEventImage}
+              disabled={!eventForm.title.trim() || !eventForm.date}
+            >
               {uploadingEventImage ? t('common.uploading') : savingEvent ? t('common.saving') : t('common.save')}
             </Button>
-          </div>
-        </Card>
-      )}
-
-      {events.length === 0 && !showEventForm ? (
-        <Card><p className="text-center text-ink-2 py-8">{t('events.empty')}</p></Card>
-      ) : (
-        <div className="grid sm:grid-cols-2 gap-4">
-          {events.map((event) => (
-            <Card key={event.id} hover padding="none">
-              {event.imageUrl && <img src={event.imageUrl} alt={event.title} className="w-full h-40 object-cover rounded-t-2xl" />}
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={event.status === 'upcoming' ? 'success' : 'default'} size="sm">
-                      {event.status === 'upcoming' ? t('events.statusUpcoming') : t('events.statusPast')}
-                    </Badge>
-                    <Badge variant={event.type === 'online' ? 'brand' : 'warning'} size="sm">
-                      {event.type === 'online' ? t('events.typeOnline') : t('events.typePhysical')}
-                    </Badge>
-                  </div>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <button onClick={() => openEventForm(event)} className="p-1.5 rounded-lg text-ink-2 hover:text-forme hover:bg-[color-mix(in_srgb,var(--mm-bleu)_8%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--mm-bleu)_20%,transparent)] transition-colors"><Icon name="pencil" size={14} /></button>
-                    <button onClick={() => handleDeleteEvent(event.id)} className="p-1.5 rounded-lg text-ink-2 hover:text-stop hover:bg-[color-mix(in_srgb,var(--stop)_8%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--stop)_20%,transparent)] transition-colors"><Icon name="trash" size={14} /></button>
-                  </div>
-                </div>
-                <p className="font-bold text-ink mb-1">{event.title}</p>
-                <p className="text-xs text-ink-2 mb-2 line-clamp-2">{event.description}</p>
-                <div className="text-xs text-ink-2 space-y-0.5 mb-3">
-                  <p>📅 {new Date(event.date).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}{event.time && ` à ${event.time}`}</p>
-                  <p>📍 {event.location}</p>
-                  {event.link && <a href={event.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-forme hover:underline"><Icon name="external" size={12} /> {t('events.link')}</a>}
-                </div>
-                {/* Le chargement des inscriptions porte `.mm-loading` — un liseré qui balaie le
-                    bouton — au lieu d'échanger le glyphe contre un rond. Le libellé et le
-                    compte RESTENT lisibles : c'est ce qu'on est venu chercher. */}
-                <button
-                  onClick={() => handleLoadEventRegs(event.id)}
-                  aria-busy={loadingRegs === event.id || undefined}
-                  className={`flex items-center gap-1.5 text-xs text-forme hover:underline${loadingRegs === event.id ? ' mm-loading' : ''}`}
-                >
-                  <Icon name="users" size={12} />
-                  {t('events.registrations')} {eventRegs[event.id] ? `(${eventRegs[event.id].length})` : ''}
-                </button>
-                {openEventRegs === event.id && (
-                  <div className="mt-2 space-y-1">
-                    {(eventRegs[event.id] ?? []).length === 0 ? (
-                      <p className="text-xs text-ink-2">{t('events.noRegistrations')}</p>
-                    ) : (
-                      (eventRegs[event.id] ?? []).map((r) => (
-                        <div key={r.userId} className="flex items-center gap-2 text-xs text-ink-2 bg-[color:var(--fill-1)] dark:bg-[color-mix(in_srgb,var(--night-3)_50%,transparent)] rounded-lg px-2 py-1">
-                          <Icon name="check-circle" size={12} className="text-ok flex-shrink-0" />
-                          <span>{r.userName}</span>
-                          {r.userEmail && <span className="text-ink-2">· {r.userEmail}</span>}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-            </Card>
-          ))}
+          </>
+        )}
+      >
+        <Field size="sm" label={t('events.titleLabel')} value={eventForm.title} onChange={(v) => setEventForm((p) => ({ ...p, title: v }))} placeholder={t('events.titlePlaceholder')} />
+        <Field size="sm" as="textarea" rows={3} label={t('events.descriptionLabel')} value={eventForm.description} onChange={(v) => setEventForm((p) => ({ ...p, description: v }))} />
+        <div className="grid grid-cols-2 gap-4">
+          <Field size="sm" label={t('events.dateLabel')} type="date" value={eventForm.date} onChange={(v) => setEventForm((p) => ({ ...p, date: v }))} />
+          <Field size="sm" label={t('events.timeLabel')} type="time" value={eventForm.time} onChange={(v) => setEventForm((p) => ({ ...p, time: v }))} />
         </div>
-      )}
+        <Field size="sm" label={t('events.locationLabel')} value={eventForm.location} onChange={(v) => setEventForm((p) => ({ ...p, location: v }))} placeholder={t('events.locationPlaceholder')} />
+        <div className="grid grid-cols-2 gap-4">
+          <Field
+            size="sm"
+            as="select"
+            label={t('events.typeLabel')}
+            value={eventForm.type}
+            onChange={(v) => setEventForm((p) => ({ ...p, type: v as 'online' | 'physical' }))}
+            options={[
+              { value: 'online', label: t('events.typeOnline') },
+              { value: 'physical', label: t('events.typePhysical') },
+            ]}
+          />
+          <Field
+            size="sm"
+            as="select"
+            label={t('events.statusLabel')}
+            value={eventForm.status}
+            onChange={(v) => setEventForm((p) => ({ ...p, status: v as 'upcoming' | 'past' }))}
+            options={[
+              { value: 'upcoming', label: t('events.statusUpcoming') },
+              { value: 'past', label: t('events.statusPast') },
+            ]}
+          />
+        </div>
+        <Field size="sm" label={t('events.linkLabel')} type="url" value={eventForm.link} onChange={(v) => setEventForm((p) => ({ ...p, link: v }))} placeholder="https://..." />
+
+        {/* Un GROUPE, pas un champ : l'`<input type="file">` est masqué et déclenché par
+            le bouton, l'aperçu et le retrait vivent à côté. Un `<label>` n'a donc aucun
+            contrôle unique à cibler — c'est `role="group"` + `aria-labelledby` qui nomme
+            l'ensemble, et le libellé reste un `<span>`. */}
+        <div className="space-y-2" role="group" aria-labelledby="event-image-label">
+          <span id="event-image-label" className="block text-meta-2 font-semibold text-ink-2">{t('events.imageLabel')}</span>
+          <input type="file" accept="image/*" ref={eventImageInputRef} onChange={handleEventImageSelect} className="hidden" />
+          {eventImagePreview ? (
+            <div className="w-full max-w-xs">
+              <img src={eventImagePreview} alt="" className="max-h-48 w-full rounded-m object-cover" />
+              <div className="mt-2">
+                <Button
+                  size="sm"
+                  tone="quiet"
+                  onClick={() => { setEventImageFile(null); setEventImagePreview(''); setEventForm((p) => ({ ...p, imageUrl: '' })); }}
+                >
+                  {t('events.removeImage')}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button size="sm" tone="quiet" onClick={() => eventImageInputRef.current?.click()}>
+              <Icon name="image" size={15} /> {t('events.importImage')}
+            </Button>
+          )}
+        </div>
+
+        {editEvent && (
+          <div>
+            <DocLine
+              label={t('events.registrations')}
+              value={(
+                /* Un zéro DATÉ est une valeur ; un compte jamais relevé n'en est pas une —
+                   `<Num>` rend alors « non relevé », jamais un zéro fabriqué. */
+                <Num
+                  value={regs ? regs.length : null}
+                  source="db"
+                  asOf={regsAt ?? new Date()}
+                  fallback={t('events.regsNotLoaded')}
+                />
+              )}
+              last
+            />
+            <div className="mt-2">
+              <Button
+                size="sm"
+                tone="quiet"
+                onClick={() => { void handleLoadEventRegs(editEvent.id); }}
+                loading={loadingRegs === editEvent.id}
+              >
+                <Icon name="users" size={15} />
+                {openEventRegs === editEvent.id ? t('events.hideRegistrations') : t('events.showRegistrations')}
+              </Button>
+            </div>
+            {openEventRegs === editEvent.id && (
+              <ul className="m-0 mt-3 list-none space-y-1 p-0" aria-label={t('events.registrations')}>
+                {(regs ?? []).length === 0 ? (
+                  <li className="text-meta-2 text-ink-2">{t('events.noRegistrations')}</li>
+                ) : (
+                  (regs ?? []).map((r) => (
+                    <li key={r.userId} className="flex items-center gap-2 rounded-m bg-[color:var(--fill-1)] px-2 py-1 text-meta-2 text-ink-2">
+                      <Icon name="check-circle" size={12} className="shrink-0 text-ok" />
+                      <span>{r.userName}</span>
+                      {r.userEmail && <span>· {r.userEmail}</span>}
+                    </li>
+                  ))
+                )}
+              </ul>
+            )}
+          </div>
+        )}
+      </ConsoleSheet>
     </div>
   );
 }

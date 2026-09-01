@@ -11,7 +11,10 @@ const typeConfig: Record<NotificationType, { icon: IconName; color: string; bg: 
   enrollment: { icon: 'book', color: 'text-forme', bg: 'bg-[color-mix(in_srgb,var(--mm-bleu)_4%,transparent)]' },
   certificate: { icon: 'award', color: 'text-warn', bg: 'bg-[color-mix(in_srgb,var(--warn)_4%,transparent)]' },
   content: { icon: 'rss', color: 'text-informe-txt', bg: 'bg-[color-mix(in_srgb,var(--mm-orange)_4%,transparent)]' },
-  club: { icon: 'crown', color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
+  // Le Club vit sous « Je te transforme » : sa couleur est le violet du territoire, pas
+  // le doré générique d'une couronne. `--mm-violet-t` est la version TEXTE (le violet
+  // plein tombe à 2,69:1 sous `.dk`), et elle pointe seule sur la variante nuit.
+  club: { icon: 'crown', color: 'text-transforme-txt', bg: 'bg-[color-mix(in_srgb,var(--mm-violet)_4%,transparent)]' },
   system: { icon: 'info', color: 'text-ink-2', bg: 'bg-[color:var(--fill-2)]' },
 };
 
@@ -80,7 +83,7 @@ export default function NotificationDropdown() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 sm:max-w-none bg-paper border border-[color:var(--line)] rounded-2xl shadow-xl z-50 overflow-hidden mm-drop">
+        <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 sm:max-w-none bg-surface-sheet border border-[color:var(--line)] rounded-2xl shadow-xl z-50 overflow-hidden mm-drop">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-[color:var(--border-hair)]">
             <h3 className="font-bold text-ink text-sm">{t('notifications.title')}</h3>

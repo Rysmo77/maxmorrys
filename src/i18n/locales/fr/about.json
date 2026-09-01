@@ -403,13 +403,28 @@
     "closingAfter": "articles. Ou écris-moi directement — c'est moi qui lis.",
     "closingBlog": "Lire le blog",
     "closingContact": "Contacte-moi",
-    "slotPortraitTitle": "Portrait à fournir · FR-084",
-    "slotPortraitBody": "Une photographie réelle, en 4:5, prise à Dakar. Le portrait actuel est généré par IA — sur la seule page dont le métier est d'inspirer confiance, c'est le pire endroit possible pour une image synthétique.",
-    "slotPathTitle": "Jalons · une réalisation vérifiable manque",
-    "slotPathBody": "Les dates, les établissements et les employeurs ci-dessus sont déclarés par moi. Ce qui manque encore, pour chacun : un lien qu'on peut ouvrir. Les deux chiffres qui les décoraient — croissance de trafic, nombre d'abonnés — sont partis : ils n'ont aucune source publique.",
-    "slotPathStrong": "Je ne les invente pas, et je ne les reprends pas d'un annuaire tiers.",
+    "portraitAlt": "Max-Morrys Eyoum, portrait en buste : lunettes rondes, chemise verte, bras croisés, dans un intérieur clair.",
+    "slotPathTitle": "Jalons · ce qui manque encore",
+    "slotPathBody": "Les jalons marqués « déclaré » n'ont pas de lien qu'on puisse ouvrir. Les deux chiffres qui les décoraient — croissance de trafic, nombre d'abonnés — sont partis : ils n'ont aucune source publique. Je ne les invente pas, et je ne les reprends pas d'un annuaire tiers.",
+    "slotPathStrong": "Une preuve, ici, c'est un lien qu'un inconnu peut ouvrir sans me croire.",
     "slotFindTitle": "Liens à confirmer",
     "slotFindBody": "Les profils ci-contre sont déclarés et vérifiés un par un. Ce qui manque : la plateforme d'écoute du podcast, qui n'est déclarée nulle part.",
-    "slotFindStrong": "Je préfère laisser vide plutôt que de deviner une adresse — et aucun compte n'affiche son nombre d'abonnés."
+    "slotFindStrong": "Je préfère laisser vide plutôt que de deviner une adresse — et aucun compte n'affiche son nombre d'abonnés.",
+    "pathProofLabel": "Vérifier",
+    "pathDeclared": "déclaré"
+  },
+  "chapters": {
+    "learn": {
+      "title": "Se former",
+      "range": "2014 → 2020"
+    },
+    "pivot": {
+      "title": "Basculer",
+      "range": "2021 → 2023"
+    },
+    "build": {
+      "title": "Construire",
+      "range": "2024 → aujourd'hui"
+    }
   }
 }

@@ -56,7 +56,7 @@ export default function ClientWorkIndex() {
         resultCount={filtered.length}
       />
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-14">
+      <div className="mt-10 grid gap-10 wide:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-14">
         {/* ── Index ─────────────────────────────────────────────────────────── */}
         <motion.ul
           // `key` composite : rejoue le stagger à chaque changement de filtre.
@@ -65,7 +65,19 @@ export default function ClientWorkIndex() {
           initial="hidden"
           animate="visible"
           aria-label={t('work.listAria')}
-          className="divide-y divide-[color:var(--fill-3)] dark:divide-[color:var(--line)] border-y border-[color:var(--line)]"
+          /*
+            `min-w-0` N'EST PAS DÉCORATIF ICI.
+
+            Sous `wide`, la grille retombe à une colonne — et un élément de grille garde
+            `min-width: auto`, donc il refuse de descendre sous la largeur minimale de son
+            contenu. Le détail replié sous la ligne sélectionnée (l'aperçu du site et sa
+            fiche) en réclame plus que l'écran : la liste s'élargissait à 491 px dans une
+            fenêtre de 375, et toute la page défilait latéralement — mesuré à 509 px de
+            largeur de document. Les pistes `minmax(0, …)` déclarées plus haut règlent le
+            même problème au-dessus de 1080 px ; en dessous, il n'y a plus de piste, donc
+            plus de `minmax`, et il faut le dire sur l'élément.
+          */
+          className="min-w-0 divide-y divide-[color:var(--fill-3)] dark:divide-[color:var(--line)] border-y border-[color:var(--line)]"
         >
           {filtered.map((project, index) => {
             const isSelected = project.slug === selected?.slug;
@@ -123,7 +135,7 @@ export default function ClientWorkIndex() {
 
         {/* ── Aperçu ancré — desktop uniquement ─────────────────────────────── */}
         {selected && isDesktop && (
-          <div>
+          <div className="min-w-0">
             <div className="sticky top-[calc(var(--header-h)+2rem)]">
               {/*
                 `key={slug}` force le remontage : sans lui, `SitePreview` garderait ses états

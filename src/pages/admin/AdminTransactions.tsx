@@ -146,7 +146,7 @@ export default function AdminTransactions() {
           label={t('transactions.pipelineLabel')}
         />
 
-        <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2">
+        <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
           <StatTile
             label={t('transactions.statRevenue')}
             value={loading ? null : formatPrice(totalRevenue)}

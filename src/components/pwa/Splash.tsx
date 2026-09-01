@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Wordmark } from '@ds';
 
 /**
@@ -20,10 +21,11 @@ import { Wordmark } from '@ds';
  * que l'écran ne dise déjà, et il coûte une animation au moment le plus chargé.
  */
 export default function Splash() {
+  const { t } = useTranslation('shared');
   return (
     <div
       role="status"
-      aria-label="Ouverture de l'application"
+      aria-label={t('pwa.splash.label')}
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
         display: 'grid', placeItems: 'center',

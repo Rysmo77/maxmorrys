@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initSentry } from './lib/sentry';
 import { initWebVitals } from './lib/web-vitals';
-import { applyLowFiIfModestDevice } from './design-system/lowfi';
+import { applyLowFiIfModestDevice } from '@ds';
 import { registerServiceWorker } from './lib/pwa/offline';
 import { countVisit } from './components/pwa/InstallInvitation';
 import App from './App.tsx';

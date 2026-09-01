@@ -10,7 +10,8 @@
    Ne restent que quatre choses, chacune pour une raison nommée :
      · ce que le kit dessine pour une MAQUETTE et que le port rend autrement (l'erreur) ;
      · ce que le kit ne dessine pas du tout (le saut au contenu, le texte indicatif) ;
-     · deux jeux de jetons qu'aucun fichier du kit ne déclare (AD-2, AD-3) ;
+     · un jeu de jetons qu'aucun fichier du kit ne déclare (AD-2 — ceux d'AD-3 sont partis
+       dans `ad-23-hello-arc.css` avec la peinture du mot-symbole) ;
      · une valeur mesurée meilleure que celle du kit, et pourquoi (la cible tactile).
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -56,20 +57,16 @@
 }
 .mm-skip:focus-visible{transform:none}
 
-/* ── AD-3 · le dégradé du mot-symbole bascule seul ────────────────────────────
-   Le `Wordmark` du kit prend une prop `night` — ce que la propre règle du système interdit :
-   « une prop dark est un piège : elle doit être passée à la main partout, personne ne le
-   fait, et le composant retombe silencieusement sur sa valeur claire ». Les variantes en
-   lettres n'en avaient pas besoin (elles lisent --mm-bleu, qui bascule seul) ; seul le
-   dégradé de « Hello ! » était écrit en dur. Il devient un jeton, et la prop disparaît. */
-:root{
-  --wordmark-hello:linear-gradient(96deg,#0057BC 0%,#F38B0A 52%,#02AC9C 100%);
-  --wordmark-hello-flat:#0057BC;
-}
-.dk{
-  --wordmark-hello:linear-gradient(96deg,#6FB1FF 0%,#FFB24D 52%,#3FD9C6 100%);
-  --wordmark-hello-flat:#6FB1FF;
-}
+/* ── AD-3 · le dégradé du mot-symbole — PARTI DANS `ad-23-hello-arc.css` ──────
+   Ce fichier a porté `--wordmark-hello` et `--wordmark-hello-flat`, qui réparaient la prop
+   `night` du `Wordmark` du kit : « une prop dark est un piège — elle doit être passée à la
+   main partout, personne ne le fait, et le composant retombe silencieusement sur sa valeur
+   claire ». La réparation TIENT TOUJOURS, elle a simplement changé d'adresse.
+
+   AD-23 fait du mot-symbole une CIBLE : `--ink-2` au repos comme les autres commandes de la
+   barre, l'arc des cinq teintes qui se remplit au survol. Le dégradé de trois teintes n'a
+   plus de lecteur, et deux jetons que plus rien ne lit sont un mensonge sur ce qui, dans le
+   rendu, ne vient pas du kit. Ils sont supprimés ; `--wordmark-hello-arc` les remplace. */
 
 /* ── AD-2 · les deux valeurs qui ne doivent PAS basculer ──────────────────────
    Trois exceptions assumées au « aucune couleur en dur » vivent sur des surfaces COLORÉES,

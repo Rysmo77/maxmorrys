@@ -100,7 +100,7 @@ export default function VerifyCertificate() {
       <SEOHead title={t('verify.seoTitle')} description={t('verify.seoDescription')} />
 
       <PageSite>
-        <div className="grid items-center gap-11 lg:grid-cols-[.95fr_1.05fr]">
+        <div className="grid items-center gap-11 wide:grid-cols-[.95fr_1.05fr]">
           {/* ── La colonne de gauche : le code, et ce que la page ne fait pas ──── */}
           <div>
             <SiteDisplay lines={t('verify.titleLines', { returnObjects: true }) as string[]} size={50} />
@@ -114,24 +114,45 @@ export default function VerifyCertificate() {
               c'est le geste de quelqu'un qui vient de coller un code, et le seul geste qu'il
               fera sur cette page.
             */}
-            <GlassPanel level="flat" padding={22} className="rv mt-[22px]" style={{ ['--i' as string]: 4 }}>
-              <form onSubmit={onSubmit} noValidate>
+            {/*
+              ── UNE SEULE LIGNE DE 62 PX, comme le kit (`PagesUtiles.js:115`) ─────────────
+              Le kit dessine ici une barre : `padding="0 18px"`, hauteur 62, le code en
+              monospace à gauche et le bouton collé à droite. La production empilait un champ
+              étiqueté, son indice, puis un bouton pleine largeur — un bloc environ trois fois
+              plus haut, pour le seul geste que quelqu'un fera sur cette page : coller un code.
+
+              LE LIBELLÉ N'EST PAS SUPPRIMÉ, il est masqué à l'œil (`hideLabel`) : le contrôle
+              garde son `<label for>` pour un lecteur d'écran. L'indice et l'erreur descendent
+              SOUS la barre — ils ne peuvent pas tenir dans une ligne de 62 px sans la faire
+              grandir, et c'est la hauteur fixe qui fait la silhouette.
+            */}
+            <form onSubmit={onSubmit} noValidate>
+              <GlassPanel
+                level="flat"
+                padding="0 18px"
+                className="rv mt-[22px] flex items-center gap-3"
+                style={{ ['--i' as string]: 4, height: '62px' }}
+              >
                 <Field
                   label={t('verify.codeLabel')}
+                  hideLabel
                   value={code}
                   onChange={(value) => { setCode(value); if (error) setError(undefined); }}
                   placeholder={t('verify.codePlaceholder')}
-                  hint={t('verify.codeHint')}
-                  error={error}
                   autoComplete="off"
+                  className="min-w-0 flex-1"
                   style={{ marginTop: 0 }}
-                  trailing={<Icon name="search" size={17} color="var(--ink-2)" strokeWidth={2.4} />}
                 />
-                <Button type="submit" tone="primary" loading={result.kind === 'searching'} style={{ marginTop: '14px' }}>
+                <Button type="submit" tone="primary" size="sm" fullWidth={false} loading={result.kind === 'searching'}>
                   {t('verify.submit')}
                 </Button>
-              </form>
-            </GlassPanel>
+              </GlassPanel>
+
+              <p className="mt-2 mb-0 text-small leading-[1.5] text-ink-2">{t('verify.codeHint')}</p>
+              {error && (
+                <p className="mt-1 mb-0 text-small leading-[1.5] text-stop" role="alert">{error}</p>
+              )}
+            </form>
 
             <GlassPanel level="truth" className="rv mt-5 max-w-[46ch]" style={{ ['--i' as string]: 5 }}>
               <SiteEyebrow style={{ margin: '0 0 6px' }}>{t('verify.truthTitle')}</SiteEyebrow>

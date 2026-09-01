@@ -1,9 +1,9 @@
 {
   "seoTitle": "Je digitalise ton commerce — Site, Google Maps, WhatsApp | Max-Morrys",
-  "seoDescription": "Sites web, catalogues produits, fiche Google, analytics, SEO et automatisation de contenu pour les commerces du Sénégal. Packs à partir de 295 000 FCFA.",
-  "eyebrow": "Pour les commerces",
-  "heroTitle1": "Tes clients te",
-  "heroTitle2": "cherchent en ligne.",
+  "seoDescription": "Sites web, catalogues produits, fiche Google, analytics, SEO et automatisation de contenu pour les commerces du Sénégal. Packs à partir de 250 000 FCFA.",
+  "eyebrow": "Je te digitalise",
+  "heroTitle1": "Ta boutique,",
+  "heroTitle2": "trouvable",
   "heroSubtitle": "Aujourd'hui, ils trouvent tes concurrents. Je mets en place tout ce qu'il faut pour qu'on te trouve, qu'on te contacte, et que tu saches enfin ce que ça te rapporte.",
   "heroCta": "Trouve ton pack en 3 questions",
   "heroSecondary": "En parler sur WhatsApp",
@@ -15,8 +15,9 @@
     "tradePlaceholder": "Restaurant, salon de coiffure, pharmacie...",
     "areaLabel": "Ton quartier",
     "areaPlaceholder": "Point E, Dakar",
-    "cta": "Voir",
-    "note": "C'est exactement le problème que je règle en premier."
+    "cta": "Voir qui sort avant toi",
+    "note": "C'est exactement le problème que je règle en premier.",
+    "eyebrow": "La preuve, tout de suite"
   },
   "whatsapp": {
     "greeting": "Bonjour Max-Morrys 👋",
@@ -57,7 +58,6 @@
   "selector": {
     "title": "Trouve ton pack en 3 questions",
     "subtitle": "Trente secondes, et tu sais exactement par où commencer.",
-    "progress": "{{answered}} question(s) sur {{total}}",
     "resultEyebrow": "Ce qu'il te faut",
     "accept": "Demander ce devis",
     "reset": "Recommencer",
@@ -95,14 +95,19 @@
       "outdated": "Un site dépassé fait plus de mal que pas de site du tout. On repart sur une vitrine crédible avec ton catalogue.",
       "starting": "Tu pars de zéro : l'essentiel est d'exister sur Google Maps et de recevoir tes premières demandes WhatsApp. On verra plus grand ensuite."
     },
-    "privacy": "Aucune donnée personnelle n'est demandée avant que tu aies vu la recommandation. « Je ne sais pas » est une réponse valable : elle mène aussi à une recommandation.",
+    "privacy": "Aucune donnée personnelle n'est demandée avant que tu aies vu la recommandation. Tu peux revenir sur n'importe quelle réponse — la recommandation se met à jour.",
     "titleLines": [
       "Trouve ton pack",
       "en 3 questions"
-    ]
+    ],
+    "step": "Question {{current}} sur {{total}}",
+    "next": "Suivant",
+    "back": "Retour",
+    "answersTitle": "Tes réponses",
+    "change": "modifier"
   },
   "packs": {
-    "title": "La mise en place",
+    "title": "Trois packs. Les prix sont affichés.",
     "subtitle": "Un paiement unique pour tout installer. Hors publicité, nom de domaine et abonnements tiers.",
     "priceLabel": "Mise en place",
     "promoLabel": "Prix de lancement : {{price}}",
@@ -322,7 +327,10 @@
       "commerce": "Quincaillerie, matériaux, pièces auto",
       "education": "École, centre de formation",
       "autre": "Autre activité"
-    }
+    },
+    "moreToggle": "Ajouter des précisions",
+    "moreHint": "E-mail, activité, pack, accompagnement, message, parrainage.",
+    "knownLabel": "Ce que je sais déjà"
   },
   "validation": {
     "businessNameRequired": "Indique le nom de ton commerce",
@@ -357,9 +365,9 @@
     "expired": "Ce récapitulatif a dépassé sa date de validité. Écris-moi, je le remets à jour.",
     "forBusiness": "Pour",
     "setupSection": "Mise en place",
-    "planSection": "Accompagnement mensuel",
+    "planSection": "Accompagnement mensuel — décision séparée",
     "monthly": "par mois",
-    "upfrontTotal": "Total à la mise en place",
+    "upfrontTotal": "Dû à la signature · mise en place",
     "deposit": "60% à la commande",
     "balance": "40% avant la mise en ligne",
     "commitmentTotal": "Soit {{total}} sur {{months}} mois",
@@ -394,7 +402,8 @@
     "truthTitle": "Ce que ce document contient, et ne contient pas",
     "truthBody": "Aucune donnée personnelle : ni ton téléphone, ni ton e-mail. Le lien peut être transféré tel quel. En revanche les montants sont relus dans la grille courante à chaque ouverture — si la grille bouge, ce document bouge avec elle. Je préfère l'écrire ici plutôt que te le faire découvrir à la signature.",
     "loading": "Chargement du devis",
-    "commitmentLine": "Engagement {{months}} mois"
+    "commitmentLine": "Engagement {{months}} mois",
+    "planNote": "Il ne se décide pas maintenant : tu le prends après la mise en ligne, une fois que tu vois ce que ça donne. Ces montants ne sont pas compris dans ce qui est dû à la signature."
   },
   "agencyBridge": {
     "title": "Ton projet dépasse la vitrine ?",
@@ -414,7 +423,22 @@
     "cta": "Voir les deux formules"
   },
   "truth": {
-    "title": "Ce que cette page n'affiche pas",
-    "body": "Ni note en étoiles, ni nombre de clients, ni témoignage. Aucun de ces chiffres n'est vérifiable par toi depuis cette page. Les seuls nombres écrits ici sont les prix du catalogue et ce que tu tapes toi-même dans la recherche Google plus haut."
+    "title": "Ce que je n'affiche pas",
+    "provenTitle": "Ce que je peux te prouver",
+    "proven": [
+      "La grille de prix ci-dessus, relevée au 2 août 2026. Chaque montant vient du catalogue, pas d'une phrase.",
+      "La recherche Google Maps du premier écran : tu l'as lancée toi-même, dans un outil qui n'est pas le mien.",
+      "Ton récapitulatif relit cette même grille à chaque ouverture. Si elle bouge, il bouge avec elle."
+    ],
+    "withheld": [
+      "Ni note en étoiles, ni nombre de clients, ni témoignage : aucun n'est vérifiable par toi depuis cette page.",
+      "Aucun nombre de clients garanti. Il dépend aussi de ton offre et de tes prix, sur lesquels je n'ai pas la main."
+    ],
+    "sectionTitle": "Pourquoi il n'y a pas d'étoiles ici"
+  },
+  "heroTitle3": "sur Google.",
+  "details": {
+    "title": "Le détail",
+    "subtitle": "Ce qui n'est pas dans les packs, et les conditions. Rien d'obligatoire à lire avant de demander un devis."
   }
 }

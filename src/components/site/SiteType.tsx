@@ -48,13 +48,41 @@ export interface SiteDisplayProps {
 }
 
 export function SiteDisplay({ lines, size = 64, as: Tag = 'h1', from = 0, wrap = false, id, style }: SiteDisplayProps) {
+  /*
+   * ── LA TAILLE EST FLUIDE, PARCE QUE LA COUPURE EST ÉCRITE ────────────────────────────
+   *
+   * `size` était servi tel quel, à toutes les largeurs. Sur un écran de 375, le héros de
+   * l'accueil restait à 60 px et « DEPUIS DAKAR. » réclamait 477 px dans une colonne de 333.
+   * Comme chaque ligne est en `nowrap` — c'est AD-13, et c'est ce qui protège les coupures
+   * écrites —, elle ne se replie pas : elle déborde. Mesuré au navigateur, le document
+   * s'élargissait à 495 px sur `/`, 509 sur `/agence`, 526 sur `/podcast-et-videos` et 564
+   * sur `/presence-digitale` : SIX routes publiques sur huit défilaient latéralement.
+   *
+   * La règle et le débordement sont donc la même décision vue des deux côtés. `nowrap` est
+   * juste — un titre calé sur trois lignes doit rester sur trois lignes. Ce qui manquait,
+   * c'est que LA TAILLE suive la largeur, pour que la coupure écrite tienne toujours.
+   *
+   * ── LE CALCUL, ET D'OÙ VIENNENT SES DEUX NOMBRES ─────────────────────────────────────
+   *
+   * • `size / 10.8` en `vw` : à 1080 px — le point de rupture `wide` — cette expression vaut
+   *   exactement `size`. Au-delà, la borne haute reprend la main : les grands écrans rendent
+   *   le titre à la taille écrite, sans interpolation.
+   * • Le plancher à 62 % : la pire ligne du site réclame 1,49 fois sa colonne
+   *   (« Pourquoi il n'y a pas d'étoiles ici », `/presence-digitale`), soit un facteur
+   *   maximal admissible de 0,671. 0,62 laisse la marge, et le `Math.max(22, …)` tient la
+   *   limite que ce fichier posait déjà : sous 22 px, Fraunces 900 n'est plus lisible.
+   *
+   * Aucune valeur n'est devinée : les deux bornes viennent d'un relevé sur les onze routes
+   * publiques, à 375 px, et `tests/unit/display-fit.test.ts` refuse qu'on les desserre.
+   */
+  const plancher = Math.max(22, Math.round(size * 0.62 * 10) / 10);
   return (
     <Tag
       id={id}
       style={{
         fontFamily: 'var(--f-display)',
         fontWeight: 900,
-        fontSize: `${size}px`,
+        fontSize: `clamp(${plancher}px, ${(size / 10.8).toFixed(2)}vw, ${size}px)`,
         letterSpacing: '-.038em',
         lineHeight: 0.9,
         margin: 0,
@@ -68,7 +96,16 @@ export function SiteDisplay({ lines, size = 64, as: Tag = 'h1', from = 0, wrap =
           style={{
             '--i': from + i + 1,
             display: 'block',
-            whiteSpace: wrap ? 'normal' : 'nowrap',
+            /*
+             * `--dsp-wrap` vaut `nowrap` partout, SAUF sous 360 px (voir `index.css`). En
+             * dessous, même le plancher de 22 px ne fait pas tenir la plus longue ligne du
+             * site, et il n'y a pas d'étage plus bas : le fichier pose 22 px comme limite de
+             * lisibilité de Fraunces 900. Il reste alors deux issues, et une seule est bonne
+             * — la coupure écrite se replie sur deux lignes visuelles, ou la page entière
+             * défile latéralement. AD-13 protège les coupures VOULUES ; il ne demande pas
+             * qu'on préfère un défilement horizontal à un repli.
+             */
+            whiteSpace: wrap ? 'normal' : 'var(--dsp-wrap, nowrap)',
             // Un mot plus long que la colonne — une URL, un nom composé — déborde même en
             // repli. `balance` répartit les lignes d'un titre court, ce que le kit obtient
             // à la main en écrivant ses coupures.

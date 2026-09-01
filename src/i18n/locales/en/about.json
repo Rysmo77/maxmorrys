@@ -403,13 +403,28 @@
     "closingAfter": "articles. Or write to me directly: I'm the one who reads.",
     "closingBlog": "Read the blog",
     "closingContact": "Talk to me",
-    "slotPortraitTitle": "Portrait to supply · FR-084",
-    "slotPortraitBody": "A real photograph, 4:5, taken in Dakar. The current portrait is AI-generated — on the one page whose job is to earn trust, that is the worst possible place for a synthetic image.",
-    "slotPathTitle": "Milestones · a verifiable result is missing",
-    "slotPathBody": "The dates, schools and employers above are declared by me. What is still missing, for each of them: a link you can open. The two figures that used to dress them up — traffic growth, follower count — are gone: they have no public source.",
-    "slotPathStrong": "I don't invent them, and I don't lift them from a third-party directory.",
+    "portraitAlt": "Max-Morrys Eyoum, waist-up portrait: round glasses, green shirt, arms folded, in a bright interior.",
+    "slotPathTitle": "Milestones · what's still missing",
+    "slotPathBody": "The milestones marked « stated » have no link you can open. The two figures that used to decorate them — traffic growth, follower count — are gone: they have no public source. I don't invent them, and I don't lift them from a third-party directory.",
+    "slotPathStrong": "Here, proof means a link a stranger can open without taking my word.",
     "slotFindTitle": "Links to confirm",
     "slotFindBody": "The profiles opposite are declared and verified one by one. What is missing: the listening platform for the podcast, which is declared nowhere.",
-    "slotFindStrong": "I'd rather leave it empty than guess an address — and no account shows its follower count."
+    "slotFindStrong": "I'd rather leave it empty than guess an address — and no account shows its follower count.",
+    "pathProofLabel": "Check",
+    "pathDeclared": "stated"
+  },
+  "chapters": {
+    "learn": {
+      "title": "Learning",
+      "range": "2014 → 2020"
+    },
+    "pivot": {
+      "title": "Turning",
+      "range": "2021 → 2023"
+    },
+    "build": {
+      "title": "Building",
+      "range": "2024 → today"
+    }
   }
 }

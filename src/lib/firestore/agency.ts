@@ -155,11 +155,15 @@ export async function getAgencyStats(leads?: AgencyLead[]): Promise<AgencyStats>
     byStatus[lead.status] = (byStatus[lead.status] ?? 0) + 1;
 
     const totals = computeTotals(lead.pack, lead.plan);
-    pipelineGross += totals.upfront;
-    pipelineWeighted += totals.upfront * (PIPELINE_WEIGHTS[lead.status] ?? 0);
+    /* `pipelineValue` et non `setupDue` : ici on pèse la VALEUR D'UNE AFFAIRE, pas ce qui est
+       exigible à la signature. Une affaire qui comprend un accompagnement vaut sa mise en
+       place plus celle de l'accompagnement, et c'est le seul endroit où les deux s'additionnent
+       légitimement — un tableau de prévision que personne ne montre à un prospect. */
+    pipelineGross += totals.pipelineValue;
+    pipelineWeighted += totals.pipelineValue * (PIPELINE_WEIGHTS[lead.status] ?? 0);
 
     if (lead.status === 'signed') {
-      signedValue += totals.upfront;
+      signedValue += totals.pipelineValue;
       signedMonthly += totals.planMonthly;
     }
   }

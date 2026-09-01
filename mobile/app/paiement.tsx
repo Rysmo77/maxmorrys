@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { Body, Button, Display, Eyebrow, Mesh, Num, Surface, useToken } from '../ds';
 
@@ -27,6 +27,9 @@ import { Body, Button, Display, Eyebrow, Mesh, Num, Surface, useToken } from '..
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 const PAY_ORIGIN = 'https://maxmorrys.me';
+/* L'URL de retour du navigateur. Elle DOIT correspondre au `scheme` d'`app.json` —
+   sinon la session ne se referme jamais et l'écran reste bloqué sur le navigateur. */
+const RETOUR = 'rysmo://paiement/retour';
 
 export default function Paiement() {
   const t = useToken();
@@ -44,7 +47,34 @@ export default function Paiement() {
     try {
       // `openAuthSessionAsync` et non `openBrowserAsync` : la session partage les cookies du
       // site, donc quelqu'un déjà connecté sur le web ne se reconnecte pas pour payer.
-      await WebBrowser.openAuthSessionAsync(`${PAY_ORIGIN}/checkout/${slug}?from=app`, 'rysmo://paiement/retour');
+      const issue = await WebBrowser.openAuthSessionAsync(`${PAY_ORIGIN}/checkout/${slug}?from=app`, RETOUR);
+
+      /*
+        ── LE RETOUR N'AVAIT AUCUN DESTINATAIRE ─────────────────────────────────────────
+        Le tunnel ouvrait le navigateur avec `rysmo://paiement/retour` comme URL de retour,
+        et personne ne rattrapait ce retour : `/paiement/retour` n'est pas une route de ce
+        routeur, et le résultat de la session était jeté. Quelqu'un qui venait de valider
+        dans Wave revenait donc sur l'écran de paiement — le même —, sans savoir si sa
+        transaction était passée. C'est le point du parcours où se perd le plus de monde.
+
+        LES TROIS ISSUES SONT TRAITÉES, ET AUCUNE N'EST DEVINÉE :
+        · `success` — le web renvoie son verdict dans l'URL. On le LIT ; un statut absent ou
+          inconnu mène à l'attente, jamais au succès.
+        · `dismiss` / `cancel` — la personne a fermé le navigateur. On ne sait RIEN de la
+          transaction : c'est exactement l'attente, et la maquette l'écrit — « tu peux aussi
+          fermer et revenir plus tard, ta commande reste ouverte ».
+
+        Le montant qui fait foi reste celui recalculé côté serveur. Rien ici ne le décide.
+      */
+      if (issue.type === 'success') {
+        const params = new URL(issue.url).searchParams;
+        const statut = params.get('status');
+        const reference = params.get('transactionId') ?? params.get('reference') ?? undefined;
+        const route = statut === 'completed' ? '/succes' : statut === 'failed' ? '/echec' : '/attente';
+        router.replace({ pathname: route, params: { reference, titre, montant: prix, slug } });
+      } else {
+        router.replace({ pathname: '/attente', params: { titre, montant: prix, slug } });
+      }
     } catch {
       // Le motif réel, la conséquence, la sortie — dans cet ordre. Jamais d'excuse.
       Alert.alert(

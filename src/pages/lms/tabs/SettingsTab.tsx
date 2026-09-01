@@ -233,6 +233,19 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
             phrase. `Field` lie le libellé au contrôle par un `id` généré et pose
             `aria-invalid` + `aria-describedby` quand le texte ne correspond pas encore.
           */}
+          {/*
+            « CE QUI RESTE » — la maquette le pose face à la liste des pertes, et elle a
+            raison : la liste seule fait croire que tout disparaît, y compris ce qui ne
+            disparaît pas. `functions/src/gdpr.ts` supprime bien `certificates`, mais PAS
+            `certificate_lookups` — le miroir public indexé par le code, qui ne porte ni UID
+            ni adresse. Un certificat déjà émis reste donc vérifiable, ce qui est le principe
+            même d'un certificat. La copie disait l'inverse.
+          */}
+          <div className="rounded-m border border-[color:color-mix(in_srgb,var(--ok)_28%,transparent)] p-3">
+            <p className="m-0 text-meta font-bold text-ok">{t('settings.deleteKeptTitle')}</p>
+            <p className="m-0 mt-1 text-small text-ink-2 leading-[1.5]">{t('settings.deleteKeptBody')}</p>
+          </div>
+
           <Field
             label={t('settings.deleteConfirmField')}
             value={confirmText}
@@ -242,6 +255,13 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
             autoComplete="off"
             style={{ marginTop: 0 }}
           />
+
+          {/* La sortie douce est là où la décision se prend, pas sur une autre ligne de la
+              page : la maquette place « J'exporte d'abord mes données » sous le bouton de
+              suppression, dans le même écran. */}
+          <Button tone="quiet" fullWidth onClick={() => void handleExport()} disabled={exporting}>
+            {exporting ? t('settings.exporting') : t('settings.deleteExportFirst')}
+          </Button>
         </div>
       </ConfirmDialog>
     </div>

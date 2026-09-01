@@ -3,6 +3,23 @@ import { useTranslation } from 'react-i18next';
 import { GlassPanel, Pipeline } from '@ds';
 import { SiteEyebrow } from '../site';
 
+/**
+ * ── LES DEUX SEULES RUPTURES DU SYSTÈME : 700 ET 1080 ───────────────────────────────
+ *
+ * Le kit responsive n'en déclare que deux (`ui_kits/responsive/index.html:36-38`), et
+ * `tailwind.config.js` les expose sous les noms `stack:` et `wide:` — les jetons de
+ * `brand/breakpoints.css` étant, eux, une copie littérale.
+ *
+ * Les dix-neuf écrans de console comptaient pourtant **cinquante et une** classes en `sm:`
+ * (640 px), `lg:` (1024) et `xl:` (1280) : trois ruptures que le système ne connaît pas, et
+ * aucune des deux qu'il déclare. Concrètement, les grilles de cases de relevé passaient à deux
+ * colonnes soixante pixels trop tôt et à quatre deux cents pixels trop tard — sur la seule
+ * largeur qui compte vraiment ici, la tablette en portrait.
+ *
+ * Le défaut est de la même famille que le maillage figé ou le repli sans thème : il rend
+ * correctement sur l'écran de qui l'écrit. Il ne se manifeste que sur une largeur qu'on n'a
+ * pas ouverte.
+ */
 export interface ConsolePageProps {
   /**
    * Ce que l'écran administre.

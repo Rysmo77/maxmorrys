@@ -47,7 +47,7 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
 
   if (loadingEnrollments) {
     return (
-      <div className="mx-auto grid max-w-4xl gap-4 px-[18px] py-6 md:grid-cols-2">
+      <div className="mx-auto grid max-w-4xl gap-4 px-[18px] py-6 stack:grid-cols-2">
         {[0, 1].map((i) => <Skeleton key={i} height={200} radius="var(--r-l)" label={t('courses.loadingLabel')} />)}
       </div>
     );
@@ -73,7 +73,7 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
     <div className="mx-auto max-w-4xl px-[18px] py-6">
       <p className="mm-eyebrow m-0">{t('courses.countEyebrow')}</p>
 
-      <div className="mt-[14px] grid gap-4 md:grid-cols-2">
+      <div className="mt-[14px] grid gap-4 stack:grid-cols-2">
         {enrolledFormations.map(({ enrollment, formation }, i) => {
           if (!formation) {
             return (

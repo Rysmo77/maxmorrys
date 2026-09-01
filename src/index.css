@@ -52,20 +52,131 @@
    * d'une ligne de leçon courante ou de la ligne « Toi » d'un classement.
    */
   :root {
+    /*
+     * ── LA MESURE DU SITE ────────────────────────────────────────────────────────────
+     *
+     * LE KIT DESSINE CE SITE À 1280 PX, CENTRÉ, ET L'ÉCRIT DEUX FOIS :
+     * `reference/site-public.html` porte `viewport="1280x700"` sur sa carte et
+     * `#root{width:1280px;margin:0 auto}` sur sa planche. Gouttière de 40 px de chaque
+     * côté, donc une colonne de contenu de 1200.
+     *
+     * La production ne posait AUCUNE largeur maximale — ni `main`, ni `PageSite`, ni
+     * `SiteBand`, ni le pied de page. Au-delà de 1280 px, la page n'était donc pas « plus
+     * grande » : elle était étirée dans une largeur que personne n'a dessinée. Toutes les
+     * proportions du produit ont été choisies contre cette toile — `1.04fr/.96fr` au héros
+     * d'À propos, `1.15fr .95fr .95fr .95fr` au pied de page, les grilles à trois colonnes,
+     * les gouttières de 26 et 46. Étirées, elles ne veulent plus rien dire : la prose garde
+     * ses 68 caractères et flotte, les cartes s'écartent jusqu'à ne plus se lire comme un
+     * jeu, et la pilule de la barre haute — délibérément 18 px plus large que la colonne —
+     * finit deux fois plus large qu'elle.
+     *
+     * ⚠️ LE PIED DE PAGE PORTAIT DÉJÀ CETTE VALEUR, ET ELLE A ÉTÉ RETIRÉE. Il avait
+     * `max-w-7xl mx-auto` — 1280 px, exactement ce chiffre — et le commentaire de
+     * `Footer.tsx` explique pourquoi il est parti : le corps, lui, n'en avait pas, et les
+     * deux systèmes « ne coïncidaient à AUCUNE largeur ». Le diagnostic était juste, la
+     * conclusion inverse : ce n'est pas la mesure du pied qui était fausse, c'est son
+     * absence dans le corps. Elle vit maintenant ici, une fois, pour les deux.
+     *
+     * DEUX JETONS PARCE QU'IL Y A DEUX BOÎTES. `--site-measure` est la colonne NUE, pour
+     * ce qui vit déjà à l'intérieur d'une gouttière — le contenu d'une bande pleine
+     * largeur. `--site-gutter` permet d'en déduire la mesure hors-tout de ce qui porte sa
+     * propre gouttière, et c'est le MÊME nombre que le rembourrage latéral de `--site-pad`
+     * juste en dessous : les deux ne peuvent pas diverger.
+     */
+    --site-measure: 1200px;
+    --site-gutter: 18px;
+
     --site-pad: 26px 18px 40px;
     --site-band-bleed: -18px;
     --site-band-pad: 34px 18px;
+    /*
+     * L'ÉCART ENTRE DEUX SECTIONS D'UNE MÊME PAGE — une valeur, deux ruptures.
+     *
+     * Il était réinventé page par page : `mt-11` ici, `mt-[54px]` là, `paddingTop: 44px`
+     * ailleurs — et FIGÉ, donc identique sur un écran de 390 px et sur un de 1400. Un écart
+     * de 54 px entre deux sections coûte un sixième de la hauteur utile d'un téléphone, sur
+     * un produit dont le premier argument est le forfait compté.
+     *
+     * Les deux valeurs viennent du kit : 44 px est ce qu'écrit `pages-core.jsx` entre ses
+     * sections de premier niveau, et le mobile suit la même proportion que la gouttière
+     * (40 → 18 latéral, 44 → 32 vertical).
+     */
+    --site-section-gap: 32px;
   }
 
   /* `--bp-stack` du système : au-delà, la page passe en gouttière desktop. */
   @media (min-width: 700px) {
     :root {
+      --site-gutter: 40px;
       --site-pad: 34px 40px 56px;
       --site-band-bleed: -40px;
       --site-band-pad: 44px 40px;
+      --site-section-gap: 44px;
     }
   }
 
+  /** L'écart de section, à poser sur le bloc qui OUVRE une section, jamais sur ses enfants. */
+  .mm-section {
+    margin-top: var(--site-section-gap);
+  }
+
+
+  /**
+   * ── LE CORPS DESCEND SOUS LE CHROME ──────────────────────────────────────────────────
+   *
+   * La barre haute est `fixed top-0` : elle sort du flux, donc elle ne pousse rien. Le
+   * `<main>` commençait à y = 0, c'est-à-dire DERRIÈRE la pilule. Sur toutes les pages
+   * publiques, la première ligne du titre d'affichage passait sous la barre — coupée en
+   * deux sur l'accueil, où le héros ouvre haut.
+   *
+   * `--header-h` existait déjà et comptait les marges de la pilule ; sept sticky et deux
+   * bandeaux la lisaient. Personne ne l'appliquait à ce qui en avait le plus besoin.
+   *
+   * Elle est posée ici plutôt que sur une classe de page : le chrome est monté une fois
+   * pour les vingt routes, sa compensation doit l'être aussi. Une page qui ajouterait la
+   * sienne la compterait deux fois.
+   */
+  /**
+   * SOUS 375 PX, LA COUPURE ÉCRITE SE REPLIE PLUTÔT QUE DE POUSSER LA PAGE.
+   *
+   * `SiteDisplay` fait descendre la taille jusqu'à 22 px — la limite que le système pose
+   * lui-même pour Fraunces 900. À 320 px de fenêtre, il reste 284 px utiles, et la plus
+   * longue ligne écrite du site (« Pourquoi il n'y a pas d'étoiles ici ») en réclame encore
+   * 321. Il n'y a pas d'étage en dessous : c'est ici que la règle et la largeur ne peuvent
+   * plus être satisfaites ensemble. La borne est posée à 374 px parce que 375 est la
+   * largeur du plus petit écran courant, et que le relevé montre les douze routes publiques
+   * au propre à partir de là : au-dessus, la règle tient sans aide ; en dessous, non.
+   *
+   * Le repli est le moindre mal, et de loin. Les lignes restent SÉPARÉES — chacune est son
+   * propre bloc, la coupure de l'auteur est intacte ; seule une ligne trop longue pour
+   * l'écran occupe deux lignes visuelles. L'autre issue, c'était une page qui défile de
+   * côté : la mise en page voulue serait tout aussi perdue, et la lecture avec.
+   */
+  @media (max-width: 374px) {
+    :root {
+      --dsp-wrap: normal;
+    }
+  }
+
+  #main-content {
+    padding-top: var(--header-h);
+    /*
+     * ET L'AIR AVANT LA DALLE, qui manquait de l'autre côté.
+     *
+     * Le pied de page est une région d'encre pleine largeur. Sans rembourrage bas, la
+     * dernière ligne du corps la touche : mesuré à 0 px sur `/` et `/presence-digitale`,
+     * et NÉGATIF sur `/a-propos`, `/agence`, `/blog` et `/podcast-et-videos`, où un élément
+     * décoratif dépassait déjà dans le noir.
+     *
+     * Le kit ne laisse pas ce choix au hasard : le corps de sa page porte
+     * `padding: 34px 40px 56px` (`reference/site-shell.jsx:84`) — cinquante-six pixels
+     * sous le contenu, AVANT que la dalle commence. C'est cette valeur-là qu'on reprend.
+     *
+     * Elle vit ici pour la même raison que la compensation du haut : le pied de page est
+     * monté une fois dans `PublicLayout`, sa respiration doit l'être aussi.
+     */
+    padding-bottom: 56px;
+  }
 
   /**
    * La sous-navigation d'un territoire ajoute une rangée au chrome fixe — 50 px, sur les
@@ -74,7 +185,7 @@
    * sur trois routes, donc jamais sur la machine de qui l'écrit.
    */
   :root[data-header-sub] #main-content {
-    padding-top: 3.375rem;
+    padding-top: calc(var(--header-h) + 3.375rem);
   }
 
   /**
@@ -179,6 +290,33 @@
     margin: 12px 18px !important;
   }
 
+  /*
+     LA GOUTTIÈRE HORIZONTALE DE LA PILULE SUIT CELLE DU KIT AU-DELÀ DE 700 px.
+
+     Le kit la pose à 22 px (`brand/breakpoints.css:87`, et le style en ligne de `TopBar`).
+     La surcharge ci-dessus la ramenait à 18 à TOUTES les largeurs — ce qui est juste sous
+     700 px, où 18 est la gouttière de tout le produit mobile et où la pilule s'aligne alors
+     exactement sur le corps de la page, mais faux au-dessus : le kit y veut 22.
+
+     Ce qui se joue : la pilule est DÉLIBÉRÉMENT plus large que la colonne de texte, qui prend
+     40 px de gouttière. C'est ce décalage qui la fait lire comme du chrome flottant au-dessus
+     de la page plutôt que comme l'en-tête d'une colonne. Le régler à 18 l'élargissait de 4 px
+     de chaque côté par rapport à la maquette.
+
+     SEUL L'HORIZONTAL CHANGE. La marge verticale reste 12/6 : `--header-h` la compte
+     (36 px de contrôles + 2 × 10 de rembourrage + 2 × 12 de marge = 80), et le bandeau de
+     langue comme la sous-navigation d'À propos se calent dessus.
+  */
+  @media (min-width: 700px) {
+    .mm-topbar {
+      margin: 12px 22px !important;
+    }
+
+    :root[data-header-compact] .mm-topbar {
+      margin: 6px 22px !important;
+    }
+  }
+
   /* À l'état compact, la pilule se rapproche du bord. La marge n'est PAS animée : AD-16 ne
      transitionne ni marge ni hauteur, et une barre qui grandit à chaque défilement coûte un
      reflow par image sur un appareil à 2 Go. */
@@ -233,10 +371,271 @@
     }
   }
 
+  /*
+   * ═══════════════════════════════════════════════════════════════════════════════
+   * LA PROSE D'ARTICLE — la recette du kit, écrite une fois.
+   *
+   * CE QUE CE BLOC CORRIGE. `.prose-article` ne portait QUE les correctifs responsive
+   * qui suivent : pas une taille, pas une marge, pas un marqueur de liste. Et le
+   * preflight Tailwind avait déjà remis `h1…h6` à `font-size: inherit; font-weight:
+   * inherit`, vidé les marges de `p` et retiré puces et retrait de `ul`/`ol`. Un `<h2>`
+   * d'article s'affichait donc EXACTEMENT comme un paragraphe, dans un texte sans
+   * respiration, listes sans puce et citations sans filet.
+   *
+   * Le défaut ne se voit sur aucune capture d'une page vide, et il était masqué par le
+   * pire des témoins : l'aperçu de l'éditeur admin applique `prose` de Tailwind
+   * Typography (`ui/RichEditor.tsx`) et rend donc correctement. On écrivait juste, et
+   * on publiait un mur de texte.
+   *
+   * POURQUOI PAS `prose`, JUSTEMENT. Le plugin apporte sa propre échelle typographique
+   * et sa propre palette de gris, concurrentes de celles du kit — c'est la seconde
+   * source de vérité qu'AD-2 interdit, et le dépôt a passé une migration entière à
+   * retirer les échelles doubles. Les valeurs ci-dessous sont relevées sur
+   * `ui_kits/site-public/PagesCore.js:156-163` (écran Article) : le kit gagne.
+   *
+   * LES ENCRES SONT DES JETONS, PAS LES LITTÉRAUX DE LA MAQUETTE. Le kit écrit `#21272F`
+   * pour le corps et `#3A2E1C` pour la citation : deux valeurs de mode clair, qui
+   * feraient de l'article une dalle illisible sous `.dk`. `--ink`, `--ink-2` et un
+   * `color-mix` sur `--mm-orange` basculent seuls (AD-3), sans une classe `dark:`.
+   *
+   * LA MESURE N'EST PAS ICI : elle vient de `.mm-prose`, qui pose 68 caractères. Une
+   * seconde déclaration en ferait une seconde vérité — c'est ainsi qu'une règle « non
+   * négociable » se met à valoir deux valeurs selon la page.
+   * ═══════════════════════════════════════════════════════════════════════════════
+   */
+  .prose-article {
+    color: var(--ink);
+  }
+
+  /* Le premier bloc ne pousse pas : la marge d'en-tête est posée par la page. */
+  .prose-article > :first-child {
+    margin-top: 0;
+  }
+
+  .prose-article p {
+    margin: 0 0 15px;
+  }
+
+  .prose-article h1,
+  .prose-article h2,
+  .prose-article h3,
+  .prose-article h4,
+  .prose-article h5,
+  .prose-article h6 {
+    font-family: var(--f-display);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+
+  /* Un `<h1>` dans le corps redit le titre de la page — `markdownToHtml` retire celui
+     de tête. La taille reste posée pour ceux qui vivent plus bas dans un article. */
+  .prose-article h1 { font-size: 26px; letter-spacing: -0.032em; margin: 28px 0 10px; }
+  .prose-article h2 { font-size: 22px; margin: 26px 0 8px; }
+  .prose-article h3 { font-size: 18px; margin: 20px 0 6px; }
+  .prose-article h4,
+  .prose-article h5,
+  .prose-article h6 { font-size: 16px; margin: 18px 0 6px; }
+
+  /*
+   * LE LIEN DOIT ÊTRE RÉÉCRIT ICI, ET NULLE PART AILLEURS.
+   *
+   * Le design system pose `a{color:var(--text-link);text-decoration:none}`
+   * (`brand/base.css:12`), mais son `@import` est en tête d'`index.css`, AVANT
+   * `@tailwind base`. À spécificité égale, c'est `a{color:inherit;text-decoration:
+   * inherit}` du preflight qui gagne — et tout lien inséré dans un article perdait
+   * couleur ET soulignement, donc toute apparence de lien. Une classe suffit à
+   * repasser devant, et le soulignement est ici volontaire : dans un corps de texte,
+   * la couleur seule ne suffit pas à distinguer un lien.
+   */
+  .prose-article a {
+    color: var(--text-link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+  }
+
+  .prose-article a:hover {
+    color: var(--text-link-hover);
+  }
+
+  .prose-article strong,
+  .prose-article b {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .prose-article em,
+  .prose-article i {
+    font-style: italic;
+  }
+
+  /* La citation du kit : filet orange à gauche, fond de la même teinte à 9 %, coins
+     droits arrondis. `color-mix` et non le `rgba(243,139,10,.09)` de la maquette —
+     l'orange bascule sous `.dk`, le littéral non. */
+  .prose-article blockquote {
+    margin: 20px 0;
+    padding: 14px 16px;
+    border-left: 3px solid var(--mm-orange);
+    background: color-mix(in srgb, var(--mm-orange) 9%, transparent);
+    border-radius: 0 14px 14px 0;
+    font-size: 15px;
+    color: var(--ink);
+  }
+
+  .prose-article blockquote > :last-child {
+    margin-bottom: 0;
+  }
+
+  /*
+   * LES PUCES SONT DESSINÉES, PAS NATIVES : un marqueur `list-disc` ne prend pas la
+   * teinte du territoire. Et elles sont POSÉES EN ABSOLU, pas alignées par un flex —
+   * c'est la leçon écrite plus bas sur `.legal-prose li` : `display:flex` transforme
+   * chaque enfant en ligne en élément de flex, et un article contenant du gras ou un
+   * lien devenait une RANGÉE qui sortait de l'écran. Même mécanique ici ; seule la
+   * teinte diffère, et c'est elle qui dit le territoire (orange = « Je t'informe »).
+   */
+  .prose-article ul,
+  .prose-article ol {
+    list-style: none;
+    margin: 14px 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .prose-article li {
+    position: relative;
+    padding-left: 15px;
+    min-width: 0;
+  }
+
+  .prose-article ul > li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--mm-orange);
+  }
+
+  /* Le numéro PORTE DU TEXTE : c'est `--mm-orange-t` qui s'écrit, jamais l'orange
+     plein (2,47:1 sur blanc — voir AD-18). */
+  .prose-article ol {
+    counter-reset: mm-prose-ol;
+  }
+
+  .prose-article ol > li {
+    counter-increment: mm-prose-ol;
+    padding-left: 26px;
+  }
+
+  .prose-article ol > li::before {
+    content: counter(mm-prose-ol) '.';
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    line-height: var(--lh-prose);
+    color: var(--mm-orange-t);
+  }
+
+  .prose-article li > :last-child {
+    margin-bottom: 0;
+  }
+
+  .prose-article li ul,
+  .prose-article li ol {
+    margin: 8px 0 0;
+  }
+
+  .prose-article code {
+    font-family: var(--f-mono);
+    font-size: 0.92em;
+    background: var(--fill-2);
+    border-radius: var(--r-s);
+    padding: 1px 5px;
+  }
+
+  .prose-article pre {
+    background: var(--fill-1);
+    border: 1px solid var(--border-hair);
+    border-radius: var(--r-m);
+    padding: 14px 16px;
+    margin: 18px 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .prose-article pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  .prose-article hr {
+    border: 0;
+    border-top: 1px solid var(--border-hair);
+    margin: 26px 0;
+  }
+
+  .prose-article figure {
+    margin: 20px 0;
+  }
+
+  .prose-article figcaption {
+    font-size: 12.5px;
+    color: var(--ink-2);
+    margin-top: 8px;
+  }
+
+  .prose-article img {
+    border-radius: var(--r-m);
+  }
+
+  .prose-article table {
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 18px 0;
+  }
+
+  .prose-article th,
+  .prose-article td {
+    border: 1px solid var(--border-hair);
+    padding: 8px 12px;
+    text-align: left;
+  }
+
+  .prose-article th {
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--fill-1);
+  }
+
   /* ── Prose responsive mobile fixes ─────────────────────────── */
   .prose-article {
     overflow-wrap: break-word;
     word-break: break-word;
+  }
+
+  /*
+   * Une ancre de sommaire doit s'arrêter SOUS le chrome, pas dessous.
+   *
+   * `withArticleToc` pose une ancre sur chaque <h2> et chaque <h3> du corps ; sans marge de
+   * défilement, le
+   * navigateur cale le titre en haut de la fenêtre — c'est-à-dire DERRIÈRE la pilule flottante
+   * de la barre haute, qui est en position fixe. La personne clique sur une entrée du sommaire
+   * et arrive sur un titre qu'elle ne voit pas.
+   *
+   * `--header-h` est la source unique de la hauteur du chrome, marges comprises.
+   */
+  .prose-article h2,
+  .prose-article h3 {
+    scroll-margin-top: calc(var(--header-h) + 1rem);
   }
 
   /* Tables : scroll horizontal au lieu de déborder */
@@ -276,29 +675,35 @@
     aspect-ratio: 16 / 9;
   }
 
-  /* Blockquotes : padding réduit sur mobile */
-  @media (max-width: 639px) {
+  /*
+   * L'ÉCHELLE MOBILE — coupée à `stack` (700 px), la rupture du kit.
+   *
+   * Elle coupait à 639 px, une rupture Tailwind par défaut qui n'existe nulle part
+   * dans le système : entre 640 et 700 px, la prose était déjà en taille bureau alors
+   * que toute la page était encore en composition mobile.
+   *
+   * Le `padding-left` qui était posé ici sur `ul`/`ol` a disparu : le retrait vit
+   * désormais sur le `li`, avec la puce qu'il porte. En laisser un second sur la liste
+   * décalait la puce ET le texte de 16 px de plus, au seul point de rupture où la
+   * largeur manque.
+   */
+  @media (max-width: 699.98px) {
     .prose-article blockquote {
-      padding-left: 0.75rem;
+      padding: 12px 14px;
       margin-left: 0;
       margin-right: 0;
     }
 
     .prose-article h1 {
-      font-size: 1.5rem;
+      font-size: 23px;
     }
 
     .prose-article h2 {
-      font-size: 1.25rem;
+      font-size: 20px;
     }
 
     .prose-article h3 {
-      font-size: 1.125rem;
-    }
-
-    .prose-article ul,
-    .prose-article ol {
-      padding-left: 1rem;
+      font-size: 17px;
     }
   }
   /*
@@ -339,20 +744,42 @@
     gap: 7px;
   }
 
+  /*
+   * ── LA PUCE EST POSÉE, PAS ALIGNÉE PAR UN FLEX ─────────────────────────────────────
+   *
+   * L'article était `display: flex` avec la puce en premier élément. Ça tient tant que le
+   * texte est nu — mais `display: flex` transforme CHAQUE enfant en ligne en élément de
+   * flex, et les éléments de flex ne se replient pas (`flex-wrap: nowrap` par défaut). Un
+   * article qui contient un `**gras**` ou un lien devenait donc une RANGÉE : « texte »,
+   * « fournies à titre indicatif », « et peuvent comporter… », côte à côte, sur une seule
+   * ligne, jusqu'à sortir de l'écran.
+   *
+   * Les deux documents touchés sont ceux que le site doit servir à n'importe qui, et qui
+   * mettent en gras leurs clauses importantes : les CGU qu'on accepte à l'inscription
+   * (document élargi à 611 px dans une fenêtre de 375) et les CGV qu'on accepte en payant
+   * (463). Les deux pages les plus cassées du site sur téléphone étaient les deux qui
+   * engagent.
+   *
+   * La puce en position absolue rend l'article à un bloc ordinaire : tout le contenu en
+   * ligne redevient du texte qui coule et se replie. Le rendu voulu ne change pas — 15 px
+   * de retrait, c'est la puce de 6 plus l'espace de 9 qu'écrivait le `gap`, et le `top` de
+   * 9 px reprend l'alignement sur la première ligne que faisait `margin-top`.
+   */
   .legal-prose li {
-    display: flex;
-    gap: 9px;
-    align-items: flex-start;
+    position: relative;
+    padding-left: 15px;
+    min-width: 0;
   }
 
   .legal-prose li::before {
     content: '';
-    flex: 0 0 auto;
+    position: absolute;
+    left: 0;
+    top: 9px;
     width: 6px;
     height: 6px;
     border-radius: 50%;
     background: var(--mm-bleu);
-    margin-top: 9px;
   }
 
   .legal-prose strong {

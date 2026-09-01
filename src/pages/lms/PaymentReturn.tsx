@@ -170,12 +170,32 @@ export default function PaymentReturn() {
       </>
     );
   } else if (status === 'failed') {
+    /*
+      ── LE CHEMIN DE REPRISE, QUI AVAIT DISPARU DE L'ÉCRAN D'ÉCHEC ────────────────────────
+      La maquette (`screens-pay-end.jsx` § Echec) donne comme action PRIMAIRE « Réessayer »,
+      et en secondaire « Revenir à la formation ». Ici, le primaire renvoyait au CATALOGUE et
+      le secondaire au formulaire de contact : quelqu'un dont le paiement vient d'échouer
+      devait retrouver seul sa formation, puis refaire tout le tunnel. La clé
+      `paymentReturn.retry` existait, et n'était appelée nulle part.
+
+      Le pied de l'écran dit « ta commande reste ouverte 24 h » — encore faut-il une porte
+      pour y revenir. Elle mène au tunnel de la formation concernée quand on la connaît ; à
+      défaut seulement, au catalogue.
+    */
+    const retryHref = transaction?.formationSlug
+      ? path(`/checkout/${transaction.formationSlug}`)
+      : path('/formations');
     actions = (
       <>
-        <Button tone="forme" href={path('/formations')} className="rv" style={{ ['--i' as string]: 6, marginTop: '20px' }}>
-          {t('paymentReturn.backToFormations')}
+        <Button tone="forme" href={retryHref} className="rv" style={{ ['--i' as string]: 6, marginTop: '20px' }}>
+          {transaction?.formationSlug ? t('paymentReturn.retry') : t('paymentReturn.backToFormations')}
         </Button>
-        <Button tone="quiet" fullWidth href={path('/contact')} className="rv" style={{ ['--i' as string]: 7, marginTop: '10px' }}>
+        {transaction?.formationSlug && (
+          <Button tone="quiet" fullWidth href={path(`/formations/${transaction.formationSlug}`)} className="rv" style={{ ['--i' as string]: 7, marginTop: '10px' }}>
+            {t('paymentReturn.backToFormation')}
+          </Button>
+        )}
+        <Button tone="quiet" fullWidth href={path('/contact')} className="rv" style={{ ['--i' as string]: 8, marginTop: '10px' }}>
           {t('paymentReturn.contactUs')}
         </Button>
       </>
@@ -196,16 +216,28 @@ export default function PaymentReturn() {
         <div ref={reveal}>
           {/*
             Le glyphe du kit : 70 px, rayon 22, et les deux anneaux quand on attend.
-            `currentColor` porte l'anneau — `.pulse::before` le dessine en `2px solid
-            currentColor` —, d'où l'encre blanche fixe sur une surface colorée qui, elle, ne
-            bascule pas de thème.
+
+            ⚠️ L'ANNEAU N'EST PAS SUR LA TUILE — IL EN SORT. `.pulse::before` le dessine en
+            `2px solid currentColor` et l'anime jusqu'à `scale(1.85)` : à mi-course il a déjà
+            quitté les 70 px et se propage sur LE FOND DE PAGE. `color: var(--text-invert)`
+            le peignait donc en blanc sur `--surface-page`, qui est blanc — le premier des
+            deux moments scénarisés du produit ne se voyait pas en thème clair.
+
+            Le kit pose `color:'#009FE3'` sur ce même conteneur (`ScreensPay.js:31`) : le bleu
+            de l'opérateur, choisi précisément parce qu'il se lit HORS de la tuile. On prend
+            `--mm-bleu`, la teinte du territoire de la tuile, et le seul bleu du système qui
+            bascule seul — `#0057BC` en clair (5,7:1), `#6FB1FF` en nuit (8,66:1). Une valeur
+            fixe échouerait dans l'un des deux modes, comme celle-ci échouait dans l'autre.
+
+            Le glyphe, lui, garde son encre blanche : elle est portée par le `<Icon>`, sur la
+            surface colorée qui ne bascule pas.
           */}
           <div
             className={`${issue.pulse ? 'pulse ' : ''}rv-s`}
             aria-hidden="true"
             style={{
               width: '70px', height: '70px', borderRadius: '22px', background: issue.bg,
-              display: 'grid', placeItems: 'center', color: 'var(--text-invert)',
+              display: 'grid', placeItems: 'center', color: 'var(--mm-bleu)',
               boxShadow: 'var(--sh-bleu)',
             }}
           >

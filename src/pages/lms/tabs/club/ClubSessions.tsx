@@ -39,7 +39,7 @@ export default function ClubSessions({ data }: ClubSessionsProps) {
 
   return (
     <motion.div
-      className="grid gap-4 sm:grid-cols-2"
+      className="grid gap-4 stack:grid-cols-2"
       variants={staggerContainer}
       initial="hidden"
       animate="visible"

@@ -55,6 +55,7 @@ const LESSON_GLYPH: Record<string, IconName> = {
 
 function CourseOutline({
   formation, expandedModules, toggleModule, completedLessons, activeLesson, setActiveLesson, readAt,
+  preview = false,
 }: {
   formation: Formation;
   expandedModules: string[];
@@ -63,6 +64,8 @@ function CourseOutline({
   activeLesson: Lesson | null;
   setActiveLesson: (lesson: Lesson) => void;
   readAt: Date;
+  /** Aperçu sans inscription : seules les leçons marquées gratuites s'ouvrent. */
+  preview?: boolean;
 }) {
   const { t } = useTranslation('lms');
 
@@ -91,15 +94,22 @@ function CourseOutline({
             {isExpanded && module.lessons.map((lesson, li) => {
               const isComplete = completedLessons.includes(lesson.id);
               const isActive = activeLesson?.id === lesson.id;
+              /* En aperçu, tout ce qui n'est pas marqué gratuit se voit et ne s'ouvre pas :
+                 la personne mesure ce qu'elle achète au lieu de deviner. */
+              const locked = preview && !lesson.isFree;
               return (
                 <LessonRow
                   key={lesson.id}
                   state={isComplete ? 'done' : isActive ? 'current' : 'todo'}
-                  icon={isActive ? <Icon name={LESSON_GLYPH[lesson.type] ?? 'doc'} size={13} color="var(--paper-fixed)" /> : undefined}
-                  iconBackground={isActive ? 'var(--action-forme)' : undefined}
+                  icon={
+                    locked ? <Icon name="lock" size={13} color="var(--ink-2)" strokeWidth={2.4} />
+                      : isActive ? <Icon name={LESSON_GLYPH[lesson.type] ?? 'doc'} size={13} color="var(--paper-fixed)" />
+                      : undefined
+                  }
+                  iconBackground={locked ? 'var(--fill-2)' : isActive ? 'var(--action-forme)' : undefined}
                   title={lesson.title}
                   meta={isActive ? `${lesson.duration} · ${t('player.lessonCurrent')}` : lesson.duration}
-                  onClick={() => setActiveLesson(lesson)}
+                  onClick={locked ? undefined : () => setActiveLesson(lesson)}
                   last={lastModule && li === module.lessons.length - 1}
                 />
               );
@@ -331,7 +341,23 @@ export default function CoursePlayer() {
     );
   }
 
-  if (!enrollment) {
+  /*
+    ── L'APERÇU GRATUIT, QUI N'EXISTAIT PAS ────────────────────────────────────────────────
+    Trois surfaces le promettent — le chapô du catalogue (« le module d'ouverture de chacune
+    est en accès libre : tu juges avant de payer »), l'étiquette « Gratuit » du programme et
+    le bouton « Commencer le module gratuit » de la carte de prix. Le lecteur, lui, exigeait
+    une inscription et renvoyait tout le monde au mur, y compris sur une formation dont des
+    leçons portent `isFree: true`. Le champ existait au modèle et n'était lu NULLE PART.
+
+    Il n'y a rien à ouvrir côté sécurité : `firestore.rules` autorise déjà la lecture d'une
+    formation publiée par n'importe qui. C'était donc un mur d'interface, pas un cloisonnement.
+
+    Sans inscription et sans leçon gratuite, le mur reste — il est alors la vérité.
+  */
+  const freeLessons = (formation.modules ?? []).flatMap((m) => m.lessons ?? []).filter((l) => l.isFree);
+  const preview = !enrollment && freeLessons.length > 0;
+
+  if (!enrollment && !preview) {
     return (
       <Frame back={{ href: path(`/formations/${formation.slug}`), label: t('player.seeFormation') }}>
         <SiteDisplay lines={t('player.lockedLines', { returnObjects: true }) as string[]} size={30} />
@@ -377,6 +403,7 @@ export default function CoursePlayer() {
       activeLesson={activeLesson}
       setActiveLesson={setActiveLesson}
       readAt={readAt}
+      preview={preview}
     />
   );
 
@@ -388,8 +415,26 @@ export default function CoursePlayer() {
         className="mb-3"
       />
 
-      <div ref={reveal} className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+      <div ref={reveal} className="grid wide:grid-cols-[1fr_340px] gap-6 items-start">
         <div className="min-w-0">
+          {/* L'aperçu dit ce qu'il est, et ce qu'il n'est pas — dont le fait que la
+              progression ne s'enregistre pas : la découvrir après coup serait pire. */}
+          {preview && (
+            <GlassPanel level="truth" className="mb-4">
+              <p className="mm-eyebrow m-0 mb-[6px]">{t('player.previewEyebrow')}</p>
+              <p className="m-0 text-meta-2 text-ink-2 leading-[1.5]">{t('player.previewBody')}</p>
+              <Button
+                href={path(`/formations/${formation.slug}`)}
+                tone="forme"
+                size="sm"
+                fullWidth={false}
+                className="mt-3"
+              >
+                {t('player.previewCta')}
+              </Button>
+            </GlassPanel>
+          )}
+
           {position && (
             <SiteEyebrow>
               {t('player.moduleLesson', { module: position.moduleIndex + 1, lesson: position.lessonIndex + 1 })}
@@ -515,7 +560,7 @@ export default function CoursePlayer() {
           <div className="lg:hidden mt-3.5">{outline}</div>
         </div>
 
-        <aside className="hidden lg:block lg:sticky lg:top-6">{outline}</aside>
+        <aside className="hidden lg:block wide:sticky lg:top-6">{outline}</aside>
       </div>
 
       {/* Déclencheur de la feuille, petit écran seulement. */}

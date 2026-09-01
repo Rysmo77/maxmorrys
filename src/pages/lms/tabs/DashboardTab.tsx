@@ -60,6 +60,10 @@ const SPACE_LINKS: { to: string; glyph: IconName; title: string; meta: string }[
   { to: '/mon-espace/notes', glyph: 'comment', title: 'linkNotes', meta: 'linkNotesMeta' },
   { to: '/mon-espace/succes', glyph: 'star', title: 'linkAchievements', meta: 'linkAchievementsMeta' },
   { to: '/mon-espace/messages', glyph: 'send', title: 'linkMessages', meta: 'linkMessagesMeta' },
+  /* « Mes paiements » — la première entrée que le kit met dans cette liste
+     (`screens-space.jsx` § Espace). Elle manquait, et deux pieds d'écran la
+     désignaient pourtant : « Le reçu est dans ton espace ». */
+  { to: '/mon-espace/paiements', glyph: 'card', title: 'linkPayments', meta: 'linkPaymentsMeta' },
 ];
 
 export default function DashboardTab({
@@ -102,7 +106,10 @@ export default function DashboardTab({
   return (
     <div className="mx-auto max-w-4xl px-[18px] py-6">
       <p className="mm-eyebrow m-0">{t('dashboard.eyebrow')}</p>
-      <h1 className="mt-[6px] font-display text-dsp-xs text-ink">{t('dashboard.greeting', { name: firstName })}</h1>
+      {/* La salutation n'est PAS le titre de la page — celui-ci est « Tableau de bord », rendu
+          en <h1> par la barre haute de `AppShell`. Le kit la pose d'ailleurs dans la barre, pas
+          dans le corps (`ScreensSpace.js:17`). Elle garde son dessin, elle perd son rang. */}
+      <p className="m-0 mt-[6px] font-display text-dsp-xs text-ink">{t('dashboard.greeting', { name: firstName })}</p>
 
       {/* ── La carte de reprise ──────────────────────────────────────────────── */}
       {loadingEnrollments ? (
@@ -203,7 +210,7 @@ export default function DashboardTab({
       )}
 
       {/* ── Trois relevés du parcours ────────────────────────────────────────── */}
-      <div className="mt-[12px] grid grid-cols-2 gap-[10px] sm:grid-cols-3">
+      <div className="mt-[12px] grid grid-cols-2 gap-[10px] stack:grid-cols-3">
         <StatTile label={t('dashboard.statFormations')} value={enrolledFormations.length} source="db" asOf={asOf} showAsOf={false} />
         <StatTile label={t('dashboard.statCompleted')} value={completedCount} source="db" asOf={asOf} showAsOf={false} />
         <StatTile

@@ -2,15 +2,15 @@
   "newsletter": {
     "emailLabel": "Email address",
     "emailPlaceholder": "your@email.com",
-    "cardTitle": "Stay in the loop",
-    "cardText": "Every week, get the best tips on digital marketing, SEO and AI delivered straight to your inbox.",
+    "cardTitle": "The day I have a newsletter",
+    "cardText": "No email goes out yet: the product has no sending channel. In the meantime, the RSS feed and the alert in your space both work.",
     "submit": "Subscribe",
     "submitAria": "Subscribe to the newsletter",
     "submittingAria": "Subscribing…",
     "loading": "Loading…",
-    "successToast": "You're in! Welcome to the community.",
+    "successToast": "Noted. Nothing will go out until a sending channel exists.",
     "errorToast": "Something went wrong. Please try again.",
-    "consentLabel": "I agree to receive the newsletter and I have read the",
+    "consentLabel": "I agree to be told the day a newsletter exists, and I've read the",
     "consentPolicyLink": "privacy policy",
     "consentRequired": "Please confirm your consent before subscribing."
   },
@@ -77,7 +77,6 @@
       "title": "You're in the right place to learn",
       "text": "Digital marketing, SEO, artificial intelligence: hands-on courses built to be applied the very next day.",
       "eyebrow": "Most popular course",
-      "students": "{{count}} learners",
       "cta": "Browse the courses",
       "ctaWithFormation": "Explore this course",
       "dismiss": "Later"
@@ -104,9 +103,14 @@
     "blogEnd": {
       "title": "You read it all the way through",
       "eyebrow": "Was it useful?",
-      "sticker": "1 email / week",
-      "text": "Get one practical tip a week on digital marketing, SEO and AI. No filler, no spam.",
-      "dismiss": "No thanks"
+      "sticker": "No email",
+      "text": "There's no email newsletter yet — I have no sending channel, and I'm not asking you to fill in a field that does nothing. Here are the two ways to keep up.",
+      "dismiss": "No thanks",
+      "rss": "RSS feed",
+      "rssAction": "Open",
+      "alert": "Alert in your space",
+      "alertAction": "Create an account",
+      "noEmail": "The alert lands in your space, not in your inbox."
     },
     "cartRecovery": {
       "title": "You didn't finish",
@@ -185,5 +189,64 @@
     "noindexWarning": "This page won't be indexed by Google. Only enable this option if you don't want organic traffic on this content.",
     "robotsTagLabel": "Generated robots tag"
   },
-  "breadcrumbs": "Breadcrumb"
+  "breadcrumbs": "Breadcrumb",
+  "pwa": {
+    "install": {
+      "regionLabel": "Install the app",
+      "title": "Keep your lessons offline.",
+      "body": "Once installed, the lessons you downloaded read back with no network and no data.",
+      "cta": "Install",
+      "close": "Close, don't ask again"
+    },
+    "splash": {
+      "label": "Opening the app"
+    },
+    "offline": {
+      "unsupported": "Your browser can't keep things offline.",
+      "empty": "Nothing kept yet.",
+      "kept": "Kept on this device",
+      "unsupportedBody": "This needs a recent browser, and it doesn't work in private browsing. Your lessons stay available online, as usual.",
+      "loading": "Loading the lessons you kept",
+      "emptyBody": "On a lesson, « Keep offline » downloads it once. You can then read it back with no network and no data.",
+      "keptBody": "Readable with no network and no data.",
+      "keptSource": "measured on the cached responses",
+      "itemSource": "measured on the response",
+      "keptOn": "kept on",
+      "forget": "Forget",
+      "unavailable": "Not available without network",
+      "unavailableTutor": "Your {{tutor}}",
+      "unavailablePayment": "Payment",
+      "needsNetwork": "needs the network",
+      "wifiOnly": "Download on Wi-Fi only",
+      "wifiOnlyBody": "So it doesn't eat into your data.",
+      "wifiOnlyBlind": "This browser won't tell me which network you're on, so I can't hold anything back here: as long as you start the download yourself, you're the one deciding. On Android the setting holds.",
+      "wifiOnlyHolding": "You're on mobile data: I'm downloading nothing while this is on.",
+      "wifiOnlyPassing": "You're on Wi-Fi: downloads go through.",
+      "queue": "Waiting to be sent",
+      "queueUnit_one": "action waiting",
+      "queueUnit_other": "actions waiting",
+      "queueSource": "counted in this device's queue",
+      "queued": "queued",
+      "queueEmptyBody": "Nothing is waiting to go out. What you do without network is written here, and it stays through a reload.",
+      "queueBody": "The queue goes out when the network comes back, without asking you anything. A run broken off and picked up days later is still a valid run.",
+      "queueBodyLocal": "These are written on this device and survive a reload. I don't send them back on my own yet: when the network returns, do them again — the list is here so you know which ones, and nothing clears until you have.",
+      "ago": "%s ago",
+      "unitMinutes": "min",
+      "unitHours": "h",
+      "unitDays": "d",
+      "ageSource": "measured from the moment it was queued",
+      "wifiOnlySpending": "You're on mobile data and the setting is off: what you download comes out of your data."
+    },
+    "notifications": {
+      "empty": "Nothing new.",
+      "loading": "Loading your notifications",
+      "emptyBody": "Your enrolments, your certificates, new content and Club announcements land here. It's the only place I reach you — I don't send email.",
+      "unread_one": "{{count}} unread",
+      "unread_other": "{{count}} unread",
+      "allRead": "All read",
+      "markAll": "Mark all as read",
+      "truthTitle": "Why this screen matters so much",
+      "truthBody": "It's the only outbound channel the product has: no email goes out yet. A nudge that doesn't arrive here arrives nowhere."
+    }
+  }
 }

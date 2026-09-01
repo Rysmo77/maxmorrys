@@ -124,7 +124,7 @@ export default function CookieBanner() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6 mm-drop">
-      <div className="max-w-3xl mx-auto bg-paper rounded-2xl shadow-xl border border-[color:var(--line)] p-6">
+      <div className="max-w-3xl mx-auto bg-surface-sheet rounded-2xl shadow-xl border border-[color:var(--line)] p-6">
         <div className="flex items-start gap-4">
           <div className="p-2 bg-[color-mix(in_srgb,var(--mm-orange)_4%,transparent)] rounded-xl flex-shrink-0">
             <Icon name="cookie" size={20} className="text-informe-txt" />

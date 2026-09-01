@@ -32,7 +32,10 @@ export default function AnnouncementBanner() {
 
   return (
     <div className={`${bg} ${text} relative z-50`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4">
+      {/* Même gouttière que le corps des pages et que le pied — voir le bloc de `Footer.tsx`.
+          Un bandeau qui commence soixante-douze pixels plus loin que le titre qu'il surplombe
+          se lit comme une pièce rapportée. */}
+      <div className="px-[18px] stack:px-10 py-2.5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
           <Icon name={glyph} size={16} className="shrink-0 opacity-90" />
           <p className="text-sm font-medium truncate">

@@ -1,5 +1,5 @@
 {
-  "subtitle": "AI Tutor · Max-Morrys",
+  "subtitle": "AI tutor",
   "greeting": "Hey {{name}}! I'm **{{tutor}}**, your AI tutor. I'm here to help you understand your courses, create quizzes, and recommend resources. How can I help you today?",
   "defaultName": "Student",
   "quickActions": {
@@ -10,9 +10,9 @@
   },
   "errors": {
     "generic": "Sorry, something went wrong. Try again in a few moments.",
-    "unauthenticated": "You need to be signed in to use Rysmo.",
-    "limitReached": "You've explored Rysmo to the fullest today! Keep going with a pack starting at 500 XOF.",
-    "notFound": "The Rysmo service is unavailable right now."
+    "unauthenticated": "You need to be signed in to talk to your {{tutor}}.",
+    "limitReached": "You've used all your questions for today. Keep going with a pack from 500 XOF.",
+    "notFound": "Your {{tutor}} isn't available right now."
   },
   "voice": {
     "notSupported": "Voice dictation isn't supported by this browser. Use Chrome or Edge.",
@@ -26,15 +26,15 @@
   "muteVoice": "Mute voice",
   "enableVoice": "Enable voice",
   "clearConversation": "Clear conversation",
-  "closeRysmo": "Close Rysmo",
-  "openRysmo": "Open Rysmo, AI tutor",
+  "closeRysmo": "Close {{tutor}}",
+  "openRysmo": "Open {{tutor}}, your AI tutor",
   "upsellBanner": "Keep going now — pack from 500 XOF",
-  "inputPlaceholder": "Ask Rysmo your question...",
+  "inputPlaceholder": "Write your question…",
   "stopDictation": "Stop dictation",
   "startDictation": "Dictate a message",
   "send": "Send",
-  "disclaimer": "AI voice · Rysmo can make mistakes",
-  "quotaTooltip": "View my Rysmo quotas and packs",
+  "disclaimer": "AI voice · {{tutor}} can get things wrong",
+  "quotaTooltip": "See my quota and packs",
   "quotaPack": "{{balance}} pack",
   "quotaToday": "{{remaining}}/{{limit}} today",
   "clubBonusTooltip": "Club Digitos bonus",

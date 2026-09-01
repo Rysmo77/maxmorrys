@@ -1,5 +1,5 @@
 {
-  "subtitle": "Répétiteur IA · Max-Morrys",
+  "subtitle": "Répétiteur IA",
   "greeting": "Salut {{name}} ! Je suis **{{tutor}}**, ton répétiteur IA. Je suis là pour t'aider à comprendre tes cours, créer des quiz, et recommander des ressources. Comment puis-je t'aider aujourd'hui ?",
   "defaultName": "Étudiant",
   "quickActions": {
@@ -10,9 +10,9 @@
   },
   "errors": {
     "generic": "Désolé, une erreur s'est produite. Réessaie dans quelques instants.",
-    "unauthenticated": "Tu dois être connecté pour utiliser Rysmo.",
-    "limitReached": "Tu as exploré Rysmo à fond aujourd'hui ! Continue avec un pack à partir de 500 XOF.",
-    "notFound": "Le service Rysmo n'est pas disponible pour le moment."
+    "unauthenticated": "Tu dois être connecté pour parler à ton {{tutor}}.",
+    "limitReached": "Tu as posé toutes tes questions pour aujourd'hui. Continue avec un pack à partir de 500 XOF.",
+    "notFound": "Ton {{tutor}} n'est pas disponible pour le moment."
   },
   "voice": {
     "notSupported": "La dictée vocale n'est pas supportée par ce navigateur. Utilise Chrome ou Edge.",
@@ -26,15 +26,15 @@
   "muteVoice": "Couper la voix",
   "enableVoice": "Activer la voix",
   "clearConversation": "Effacer la conversation",
-  "closeRysmo": "Fermer Rysmo",
-  "openRysmo": "Ouvrir Rysmo, répétiteur IA",
+  "closeRysmo": "Fermer {{tutor}}",
+  "openRysmo": "Ouvrir {{tutor}}, ton répétiteur IA",
   "upsellBanner": "Continuer maintenant — pack dès 500 XOF",
-  "inputPlaceholder": "Pose ta question à Rysmo...",
+  "inputPlaceholder": "Écris ta question…",
   "stopDictation": "Arrêter la dictée",
   "startDictation": "Dicter un message",
   "send": "Envoyer",
-  "disclaimer": "Voix IA · Rysmo peut faire des erreurs",
-  "quotaTooltip": "Voir mes quotas et packs Rysmo",
+  "disclaimer": "Voix IA · {{tutor}} peut se tromper",
+  "quotaTooltip": "Voir mes quotas et mes packs",
   "quotaPack": "{{balance}} pack",
   "quotaToday": "{{remaining}}/{{limit}} aujourd'hui",
   "clubBonusTooltip": "Bonus Club Digitos",

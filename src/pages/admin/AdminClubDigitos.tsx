@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, GlassPanel, Icon, Skeleton, StatTile } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleScope } from '../../components/console';
@@ -31,6 +30,19 @@ import ClubReportsAdminTab from './components/ClubReportsAdminTab';
  * portent leur nombre ; les quatre autres chargent à l'ouverture de leur onglet et n'en
  * portent AUCUN. Écrire « défis 0 » sur une collection jamais lue serait un zéro fabriqué —
  * exactement ce que la règle 6 interdit.
+ *
+ * CE QUI A CHANGÉ AVEC LA MISE AU MOTIF DES NEUF SECTIONS. Six d'entre elles portent
+ * désormais LEUR file par statut — abonnements, événements, sessions, défis, profils,
+ * signalements — et trois n'en portent pas parce que leur donnée n'a pas d'état :
+ * publications, infos exclusives, opportunités. Le pied de cet écran disait « AUCUNE ne
+ * porte de filtre par statut » ; il a été réécrit, parce qu'un pied qui décrit une file
+ * inexistante — ou qui nie une file existante — fait exactement ce que le motif cherche à
+ * empêcher.
+ *
+ * LA DATE DE RELEVÉ VIENT DU CROCHET. Elle était posée ici par un effet sur la bascule de
+ * `loading` : c'était donc la date du RE-RENDU, et elle se remettait à jour même après un
+ * chargement en échec. `useAdminClub` l'écrit maintenant au retour de la requête, avec les
+ * données qu'elle date.
  * ────────────────────────────────────────────────────────────────────────────────────
  */
 export default function AdminClubDigitos() {
@@ -38,15 +50,11 @@ export default function AdminClubDigitos() {
   const club = useAdminClub();
 
   /*
-    La date de relevé des trois cases. Elle n'est pas décorative : tant qu'aucun chargement
-    n'a abouti, il n'y a pas de relevé — les cases affichent « non relevé » plutôt qu'un zéro
-    qui se ferait passer pour une mesure.
+    La date de relevé des trois cases : tant qu'aucun chargement n'a abouti, il n'y a pas de
+    relevé — les cases affichent « non relevé » plutôt qu'un zéro qui se ferait passer pour
+    une mesure. Elle vient du crochet, où elle est écrite au RETOUR de la requête.
   */
-  const [asOf, setAsOf] = useState<Date | null>(null);
-  const loading = club.loading;
-  useEffect(() => {
-    if (!loading) setAsOf(new Date());
-  }, [loading]);
+  const asOf = club.loadedAt;
 
   const sections: { id: AdminClubTab; label: string; count?: number }[] = [
     { id: 'subscriptions', label: t('page.tabs.subscriptions'), count: club.subscriptions.length },
@@ -76,7 +84,7 @@ export default function AdminClubDigitos() {
         label={t('page.sectionLabel')}
       />
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid gap-3 stack:grid-cols-3">
         <StatTile
           label={t('page.stats.activeMembers')}
           value={asOf ? club.activeCount : null}
@@ -116,7 +124,11 @@ export default function AdminClubDigitos() {
 
       <div className="mt-4">
       {!club.loading && club.tab === 'subscriptions' && (
-        <ClubSubscriptionsTab subscriptions={club.subscriptions} handleSubStatus={club.handleSubStatus} />
+        <ClubSubscriptionsTab
+          subscriptions={club.subscriptions}
+          handleSubStatus={club.handleSubStatus}
+          loadedAt={club.loadedAt}
+        />
       )}
 
       {!club.loading && club.tab === 'posts' && (
@@ -130,6 +142,7 @@ export default function AdminClubDigitos() {
           savingPostEdit={club.savingPostEdit} openEditPost={club.openEditPost} handleSavePostEdit={club.handleSavePostEdit}
           openComments={club.openComments} postComments={club.postComments} loadingComments={club.loadingComments}
           handleToggleComments={club.handleToggleComments} handleDeleteComment={club.handleDeleteComment}
+          loadedAt={club.loadedAt}
         />
       )}
 
@@ -143,7 +156,8 @@ export default function AdminClubDigitos() {
           setEventImageFile={club.setEventImageFile} eventImageInputRef={club.eventImageInputRef}
           openEventForm={club.openEventForm} handleEventImageSelect={club.handleEventImageSelect}
           handleSaveEvent={club.handleSaveEvent} handleDeleteEvent={club.handleDeleteEvent}
-          eventRegs={club.eventRegs} openEventRegs={club.openEventRegs} loadingRegs={club.loadingRegs}
+          eventRegs={club.eventRegs} eventRegsAt={club.eventRegsAt}
+          openEventRegs={club.openEventRegs} loadingRegs={club.loadingRegs}
           handleLoadEventRegs={club.handleLoadEventRegs}
         />
       )}
@@ -158,7 +172,8 @@ export default function AdminClubDigitos() {
           setSessionImageFile={club.setSessionImageFile} sessionImageInputRef={club.sessionImageInputRef}
           openSessionForm={club.openSessionForm} handleSessionImageSelect={club.handleSessionImageSelect}
           handleSaveSession={club.handleSaveSession} handleDeleteSession={club.handleDeleteSession}
-          sessionRegs={club.sessionRegs} openSessionRegs={club.openSessionRegs} loadingRegs={club.loadingRegs}
+          sessionRegs={club.sessionRegs} sessionRegsAt={club.sessionRegsAt}
+          openSessionRegs={club.openSessionRegs} loadingRegs={club.loadingRegs}
           handleLoadSessionRegs={club.handleLoadSessionRegs}
         />
       )}
@@ -170,6 +185,7 @@ export default function AdminClubDigitos() {
           editInfo={club.editInfo} infoForm={club.infoForm} setInfoForm={club.setInfoForm}
           savingInfo={club.savingInfo}
           openInfoForm={club.openInfoForm} handleSaveInfo={club.handleSaveInfo} handleDeleteInfo={club.handleDeleteInfo}
+          loadedAt={club.loadedAt}
         />
       )}
 

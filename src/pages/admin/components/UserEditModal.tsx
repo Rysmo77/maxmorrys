@@ -96,11 +96,11 @@ export function UserEditModal({
                 onClick={() => handleEditTabChange(tab.id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                   editTab === tab.id
-                    ? 'bg-paper text-ink shadow-sm'
+                    ? 'bg-surface-sheet text-ink shadow-sm'
                     : 'text-ink-2 hover:text-ink dark:hover:text-ink-2'
                 }`}
               >
-                {'icon' in tab && <Icon name={tab.icon} size={14} className="text-yellow-500" />}
+                {'icon' in tab && <Icon name={tab.icon} size={14} className="text-transforme-txt" />}
                 {tab.label}
               </button>
             ))}
@@ -223,7 +223,7 @@ export function UserEditModal({
                   {/* Status card */}
                   <div className={`rounded-2xl p-5 border ${
                     clubSub?.status === 'active'
-                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                      ? 'bg-[color-mix(in_srgb,var(--mm-violet)_6%,transparent)] border-[color-mix(in_srgb,var(--mm-violet)_22%,transparent)]'
                       : clubSub?.status === 'pending'
                       ? 'bg-[color-mix(in_srgb,var(--warn)_4%,transparent)] border-[color-mix(in_srgb,var(--warn)_18%,transparent)]'
                       : 'bg-[color:var(--fill-1)] border-[color:var(--line)]'
@@ -231,15 +231,15 @@ export function UserEditModal({
                     <div className="flex items-center gap-3 mb-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                         clubSub?.status === 'active'
-                          ? 'bg-yellow-200 dark:bg-yellow-800/50'
+                          ? 'bg-[color-mix(in_srgb,var(--mm-violet)_18%,transparent)]'
                           : 'bg-[color:var(--fill-3)]'
                       }`}>
-                        <Icon name="crown" className={`w-5 h-5 ${clubSub?.status === 'active' ? 'text-yellow-600 dark:text-yellow-400' : 'text-ink-2'}`} />
+                        <Icon name="crown" className={`w-5 h-5 ${clubSub?.status === 'active' ? 'text-transforme-txt' : 'text-ink-2'}`} />
                       </div>
                       <div>
                         <p className="font-bold text-ink text-sm">{t('userEdit.club.title')}</p>
                         <p className={`text-xs font-semibold ${
-                          clubSub?.status === 'active' ? 'text-yellow-600 dark:text-yellow-400' :
+                          clubSub?.status === 'active' ? 'text-transforme-txt' :
                           clubSub?.status === 'pending' ? 'text-warn' :
                           'text-ink-2'
                         }`}>

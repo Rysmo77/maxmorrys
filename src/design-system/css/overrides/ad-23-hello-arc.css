@@ -1,0 +1,114 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-23 · « HELLO ! » EST UNE CIBLE, ET SA COULEUR LE DIT
+
+   Le mot-symbole de la barre haute portait son dégradé EN PERMANENCE et n'était cliquable
+   nulle part — la seule marque du site qui ne ramenait pas à l'accueil, alors que celle du
+   pied de page le faisait déjà. Deux défauts d'un seul tenant : il avait l'air d'un logo
+   décoratif parce qu'il en avait la couleur, et il se comportait comme tel.
+
+   Il devient donc ce que les autres commandes de la barre sont : `--ink-2` au repos, comme
+   les utilitaires recherche / EN / thème / compte, et une RÉPONSE au survol. La réponse est
+   l'arc des cinq teintes du système, qui se remplit de la gauche vers la droite.
+
+   CE QUE CE FICHIER REMPLACE. `--wordmark-hello` et `--wordmark-hello-flat` vivaient dans
+   `ad-06-etats.css` sous AD-3 : trois teintes, peintes en style EN LIGNE par `Wordmark.tsx`.
+   Un style en ligne bat toute classe — tant qu'il était là, aucun `:hover` ne pouvait
+   reprendre la peinture sans `!important`. Elle a donc quitté le TSX pour ici, et les deux
+   jetons d'avant sont supprimés plutôt que gardés : plus rien ne les lit.
+
+   POURQUOI DEUX COUCHES ET PAS UN PSEUDO-ÉLÉMENT. La façon habituelle de remplir du texte
+   est un `::after` en `content:attr(...)` que l'on découpe. Elle DUPLIQUE le texte dans le
+   DOM, et ce doublon est annoncé par une partie des lecteurs d'écran. Deux couches de
+   dégradé sur un seul élément donnent le même rendu sans second texte : l'arc est peint
+   AU-DESSUS de l'aplat, à largeur nulle au repos, et grandit depuis le bord gauche au
+   survol.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── L'ARC DES CINQ TEINTES ───────────────────────────────────────────────────
+   AD-3 : le thème est une portée CSS, jamais une prop. Le jeton bascule sous `.dk` comme
+   son prédécesseur, et le composant hérite du réglage sans le savoir.
+
+   L'ORDRE EST CELUI DU SYSTÈME, pas un arc-en-ciel spectral : bleu (Je te forme), violet
+   (Je te transforme), corail (la cinquième teinte), orange (Je t'informe), teal (Je te
+   digitalise). Un vrai spectre aurait introduit du rouge et du jaune, qui n'existent nulle
+   part ailleurs dans la palette.
+
+   ⚠️ DEUX STOPS DU DÉGRADÉ CLAIR SONT SOUS 3:1 SUR BLANC — `#F38B0A` et `#FF6E7F`
+   (2,70:1, mesuré en AD-20). C'est ASSUMÉ, et c'était déjà vrai : le `--wordmark-hello`
+   d'avant portait `#F38B0A` au même endroit. WCAG 1.4.3 exempte explicitement les
+   LOGOTYPES — « un texte qui fait partie d'un logo ou d'un nom de marque n'a pas
+   d'exigence de contraste ». Ce mot-symbole n'est pas du texte courant, et la couleur qui
+   PORTE l'information — celle du repos, celle qu'on lit — est `--ink-2`, qui tient 4,5:1.
+
+   Les valeurs nuit sont les `-n` de `tokens/colors.css`. Le corail nuit est celui d'AD-20,
+   où la teinte pleine suffit : 7,17:1 sur `#0B0E13`. */
+:root{
+  --wordmark-hello-arc:linear-gradient(96deg,
+    #0057BC 0%, #6C23DD 24%, #FF6E7F 48%, #F38B0A 72%, #02AC9C 100%);
+}
+.dk{
+  --wordmark-hello-arc:linear-gradient(96deg,
+    #6FB1FF 0%, #B98CFF 24%, #FF6E7F 48%, #FFB24D 72%, #3FD9C6 100%);
+}
+
+/* ── LE MOT-SYMBOLE ───────────────────────────────────────────────────────────
+   `Wordmark` ne pose plus que la typographie en ligne. Toute la peinture est ici, sinon le
+   survol ne peut pas la reprendre.
+
+   La PREMIÈRE couche d'un `background-image` est peinte AU-DESSUS des suivantes : l'arc
+   couvre l'aplat. C'est sa LARGEUR qui est animée — `0%` au repos, donc rien de peint et
+   l'aplat seul se voit ; `100%` au survol, l'arc grandit depuis le bord gauche.
+
+   ⚠️ CE N'EST PAS `background-position`, ET LA PREMIÈRE VERSION S'Y EST CASSÉE.
+   Un `background-position` en POURCENTAGE ne se résout pas contre la zone, mais contre
+   `(taille de la zone − taille de l'image)`. Avec `background-size:100% 100%`, cette
+   différence vaut ZÉRO : `-101%` et `0%` calculent tous les deux `0px`, la couche ne bouge
+   jamais, et l'arc couvre le mot en permanence. Aucune erreur nulle part — la transition
+   part d'une valeur calculée vers la même.
+
+   Les keyframes `shim` du système animent bien `background-position`, mais elles posent
+   `background-size:280% 100%` : il leur FAUT une image plus large que la zone pour que le
+   pourcentage ait une amplitude. Ici l'arc doit rester à la largeur du mot — sinon le
+   dégradé se retrouve à moitié hors cadre et deux des cinq teintes ne se voient jamais.
+   C'est donc la largeur qui s'anime, pas le décalage.
+
+   Le dégradé s'ÉTIRE pendant le remplissage plutôt que de se dévoiler figé. La seule façon
+   de l'ancrer serait un `::after` en `content:attr(...)` découpé au `clip-path`, qui
+   duplique le texte dans le DOM — et ce doublon est annoncé par une partie des lecteurs
+   d'écran. L'étirement est le prix, et il ne se voit qu'à l'arrêt sur image.
+
+   `background-repeat:no-repeat` n'est pas décoratif : sans lui, la couche se répète sur
+   toute la largeur dès qu'elle a une taille.
+
+   `color` est déclaré AVANT `-webkit-text-fill-color` — le contrat que portait
+   `Wordmark.tsx`, déplacé avec la peinture : là où le remplissage transparent n'est pas
+   compris, le texte reste lisible en `--ink-2` au lieu de disparaître.
+
+   RIEN À ÉCRIRE POUR LE MOUVEMENT RÉDUIT. `brand/fallback.css` ramène toutes les durées à
+   1 ms à la racine, une seule fois (règle 4 / AD-7) : au survol, l'arc s'affiche alors d'un
+   coup, sans balayage. Une seconde déclaration ici gagnerait par ordre de chargement et
+   rétablirait ce que la personne a refusé. */
+.mm-hello{
+  background-image:var(--wordmark-hello-arc),linear-gradient(var(--ink-2),var(--ink-2));
+  background-size:0% 100%,100% 100%;
+  background-position:0 0,0 0;
+  background-repeat:no-repeat;
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:var(--ink-2);
+  -webkit-text-fill-color:transparent;
+  /* `background-size` dimensionne une PEINTURE, pas une boîte : rien à remettre en page,
+     aucun reflow. AD-16 vise `width`/`height` et consorts, qui déplacent le voisinage — ce
+     n'est pas le cas ici. 380 ms — `--t-scene` traînerait sur du chrome. */
+  transition:background-size var(--t-enter) var(--ease-out);
+}
+
+/* Le survol se déclenche depuis LE LIEN, pas seulement depuis les lettres : le mot-symbole
+   vit dans une pilule de 44 px de cible, et le remplissage doit répondre partout où le
+   curseur fait déjà réagir le lien. `:focus-visible` donne la même réponse au clavier —
+   sans quoi la seule chose que verrait qui navigue au clavier serait l'anneau de focus. */
+.mm-hello:hover,
+a:hover > .mm-hello,
+a:focus-visible > .mm-hello{
+  background-size:100% 100%,100% 100%;
+}

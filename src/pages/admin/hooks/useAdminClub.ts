@@ -21,7 +21,13 @@ import type {
 
 export type AdminClubTab = 'subscriptions' | 'posts' | 'events' | 'sessions' | 'infos' | 'challenges' | 'members' | 'opportunities' | 'reports';
 
-export const inputCls = 'w-full px-3 py-2 rounded-xl border border-[color:var(--line)] bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:border-forme transition-colors';
+/*
+ * `inputCls` VIVAIT ICI, ET IL EST PARTI AVEC LE DERNIER `<input>` MAISON.
+ *
+ * Il posait `bg-paper` — le blanc FIXE du système, jamais redéclaré sous `.dk`. Sous la
+ * portée nuit de la console, un champ qui le portait rendait de l'encre #ECF0F5 sur du blanc.
+ * Les neuf sections passent désormais par `Field`, qui lit `--surface-*` et bascule seul.
+ */
 
 const EMPTY_EVENT: Omit<ClubDigitosEvent, 'id' | 'createdAt'> = {
   title: '', description: '', date: '', time: '', location: '', type: 'online', link: '', imageUrl: '', status: 'upcoming',
@@ -39,6 +45,17 @@ export function useAdminClub() {
   const { user } = useAuth();
   const [tab, setTab] = useState<AdminClubTab>('subscriptions');
   const [loading, setLoading] = useState(false);
+  /*
+   * L'INSTANT OÙ LA LECTURE A RÉPONDU — pas celui du rendu (règle 6).
+   *
+   * Il vivait dans `AdminClubDigitos`, posé par un effet sur la bascule de `loading` : la
+   * date était donc celle du RE-RENDU qui suit la réponse, et elle se remettait à jour à
+   * chaque bascule, y compris après un chargement en échec. Ici, elle est écrite sur la
+   * même ligne que les données qu'elle date, et seulement quand elles arrivent. Tant
+   * qu'elle vaut `null`, aucun compteur de cet écran ne s'affiche : `<Num>` rend
+   * « non relevé », ce qui est vrai, plutôt qu'un zéro qui se ferait passer pour une mesure.
+   */
+  const [loadedAt, setLoadedAt] = useState<Date | null>(null);
 
   const [subscriptions, setSubscriptions] = useState<ClubDigitosSubscription[]>([]);
   const [posts, setPosts] = useState<ClubDigitosPost[]>([]);
@@ -91,6 +108,14 @@ export function useAdminClub() {
   const [openEventRegs, setOpenEventRegs] = useState<string | null>(null);
   const [openSessionRegs, setOpenSessionRegs] = useState<string | null>(null);
   const [loadingRegs, setLoadingRegs] = useState<string | null>(null);
+  /*
+   * Le relevé des inscriptions est DISTINCT de celui de la page : elles se chargent à la
+   * demande, événement par événement, souvent plusieurs minutes après l'ouverture de
+   * l'écran. Dater leur compte avec `loadedAt` prétendrait qu'il a été relevé au chargement
+   * de la console, ce qui est faux — et c'est exactement le mensonge que la règle 6 vise.
+   */
+  const [eventRegsAt, setEventRegsAt] = useState<Record<string, Date>>({});
+  const [sessionRegsAt, setSessionRegsAt] = useState<Record<string, Date>>({});
 
   const load = async () => {
     setLoading(true);
@@ -107,6 +132,7 @@ export function useAdminClub() {
       setEvents(evts);
       setSessions(sess);
       setInfos(inf);
+      setLoadedAt(new Date());
     } catch {
       addToast('error', t('clubHook.loadError'));
     } finally {
@@ -187,6 +213,7 @@ export function useAdminClub() {
     setLoadingRegs(eventId);
     const regs = await getEventRegistrations(eventId).catch(() => []);
     setEventRegs((prev) => ({ ...prev, [eventId]: regs }));
+    setEventRegsAt((prev) => ({ ...prev, [eventId]: new Date() }));
     setOpenEventRegs(eventId);
     setLoadingRegs(null);
   };
@@ -196,6 +223,7 @@ export function useAdminClub() {
     setLoadingRegs(sessionId);
     const regs = await getSessionRegistrations(sessionId).catch(() => []);
     setSessionRegs((prev) => ({ ...prev, [sessionId]: regs }));
+    setSessionRegsAt((prev) => ({ ...prev, [sessionId]: new Date() }));
     setOpenSessionRegs(sessionId);
     setLoadingRegs(null);
   };
@@ -409,7 +437,7 @@ export function useAdminClub() {
   return {
     // Tab
     tab, setTab,
-    loading, load,
+    loading, load, loadedAt,
 
     // Data
     subscriptions, posts, events, sessions, infos,
@@ -433,7 +461,7 @@ export function useAdminClub() {
     eventImageFile, setEventImageFile,
     eventImageInputRef,
     openEventForm, handleEventImageSelect, handleSaveEvent, handleDeleteEvent,
-    eventRegs, openEventRegs, loadingRegs,
+    eventRegs, eventRegsAt, openEventRegs, loadingRegs,
     handleLoadEventRegs,
 
     // Sessions
@@ -444,7 +472,7 @@ export function useAdminClub() {
     sessionImageFile, setSessionImageFile,
     sessionImageInputRef,
     openSessionForm, handleSessionImageSelect, handleSaveSession, handleDeleteSession,
-    sessionRegs, openSessionRegs,
+    sessionRegs, sessionRegsAt, openSessionRegs,
     handleLoadSessionRegs,
 
     // Infos

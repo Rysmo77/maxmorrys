@@ -1,0 +1,81 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-22 · UNE SURFACE OPAQUE QUI CONNAÎT LE THÈME
+
+   Le système déclare deux surfaces opaques, et aucune des deux ne convient à une carte :
+
+       --paper        #FFFFFF   le papier. FIXE : `tokens/dark.css` ne le redéclare pas,
+                                volontairement — c'est le blanc de référence.
+       --surface-page #0B0E13   le fond de page, lui, redéclaré sous `.dk`.
+
+   Toutes les autres surfaces du kit sont TRANSLUCIDES : `--surface-card`, `--surface-hero`,
+   `--surface-card-flat` sont des voiles de blanc, portés par `GlassPanel`. C'est le bon
+   défaut, et il couvre l'immense majorité des écrans.
+
+   CE QUI MANQUE : la surface qui doit être OPAQUE. Une boîte de dialogue posée sur un voile
+   sombre, une liste déroulante de notifications, un éditeur riche, un bandeau flottant — tout
+   ce qui doit masquer ce qu'il recouvre. Ces surfaces prenaient `bg-paper`, faute de mieux.
+
+   LE DÉFAUT, MESURÉ. Sous `.dk`, `--ink` devient #ECF0F5 et `--paper` reste #FFFFFF :
+
+       #ECF0F5 sur #FFFFFF  →  **1,06:1**
+
+   Le texte disparaît. Ce n'est pas une nuance de contraste, c'est une surface illisible — et
+   elle rendait correctement sur la machine de qui l'écrivait, puisqu'en clair `--paper` est
+   juste. C'est exactement le mode de panne qu'AD-3 décrit : « le composant retombe
+   silencieusement sur sa valeur claire ».
+
+   LA CORRECTION EST CELLE DU SYSTÈME, pas une prop de thème : une surface lit un jeton qui
+   bascule seul, comme `--chrome-bg`, `--tabbar-bg`, `--field-bg` ou `--ctl-off-bg` le font
+   déjà pour le chrome et les contrôles.
+
+       clair  →  --paper    #FFFFFF
+       nuit   →  --night-3  #0F151B   (11,9:1 avec #ECF0F5)
+
+   #0F151B et non #0B0E13 : une feuille doit se détacher du fond de page, pas s'y fondre.
+   C'est la valeur que le dépôt employait déjà à la main pour les survols de la console.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --surface-sheet: var(--paper);
+}
+
+.dk {
+  --surface-sheet: var(--night-3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA BANDE DE SECTION — même famille, même panne.
+
+   `--paper-2` (#F5F7F9) est le papier de RYTHME : c'est lui que `SiteBand` pose pour
+   alterner les fonds d'une page publique, et c'est ce qui donne au site sa respiration sans
+   introduire un troisième fond de territoire.
+
+   Il souffre exactement du défaut d'AD-22 : `tokens/dark.css` ne le redéclare pas — le kit
+   livré non plus, vérifié — donc sous `.dk` une bande reste un aplat quasi blanc posé sur un
+   fond #0B0E13. Ce n'est pas une nuance : c'est une dalle blanche en pleine page, et le texte
+   qui la traverse est en encre nuit.
+
+   Le défaut était déjà là avec une seule bande par page ; il devient impossible à manquer dès
+   qu'une page en alterne trois. Comme pour la feuille, la correction est un JETON QUI BASCULE,
+   jamais une prop de thème.
+
+       clair  →  --paper-2  #F5F7F9   un cran PLUS SOMBRE que le fond de page (#FFFFFF)
+       nuit   →  --night    #0A0D11   un cran PLUS SOMBRE que le fond de page (#0B0E13)
+
+   LA BANDE RECULE, ELLE N'AVANCE PAS — et c'est vrai dans les deux modes, ce qui est
+   précisément ce qui la rend lisible comme un même geste. En clair, `--paper-2` est déjà un
+   cran sous le blanc ; en nuit, `--night` est un cran sous le fond de page.
+
+   Pas `--night-2` : il VAUT `--surface-page` sous `.dk` (#0B0E13), donc la bande serait
+   invisible. Pas `--night-3` non plus : c'est la FEUILLE (#0F151B), une surface qui doit
+   masquer ce qu'elle recouvre — une bande qui prendrait sa valeur se lirait comme une carte
+   géante posée sur la page, et non comme un changement de papier.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --surface-band: var(--paper-2);
+}
+
+.dk {
+  --surface-band: var(--night);
+}

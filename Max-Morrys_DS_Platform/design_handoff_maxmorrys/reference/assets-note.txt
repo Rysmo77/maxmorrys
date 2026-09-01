@@ -1,0 +1,3 @@
+Le composant LogoMark référence ../../assets/logo-mm-icon.png.
+Ce PNG (273 Ko, 1254x1254) est volontairement EXCLU du paquet : voir README section 8.
+Utilisez le composant Wordmark, qui rend la marque en type pur pour 0 octet, ou un SVG.
