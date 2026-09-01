@@ -34,7 +34,8 @@
   "pagination": {
     "label": "Pagination",
     "previous": "Page précédente",
-    "next": "Page suivante"
+    "next": "Page suivante",
+    "page": "Page {{page}}"
   },
   "confirmDialog": {
     "title": "Confirmation",

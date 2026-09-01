@@ -559,14 +559,17 @@ export default function App() {
   /* `ui` fait partie des espaces de noms de base (`CORE_NAMESPACES`), donc chargé avec
      le bundle : `t` répond ici sans attendre. Le design system, lui, ne connaît pas
      i18next — c'est la coquille qui lui passe ses libellés. */
-  const { t } = useTranslation('ui');
+  /* Alias explicite : `PageLoader`, plus bas dans ce fichier, tient déjà `t` pour
+     l'espace `common`. Deux `const { t }` dans le même fichier, c'est une clé attribuée
+     au mauvais espace de noms — et `tests/unit/i18n-keys.test.ts` l'a dit tout de suite. */
+  const { t: tUi } = useTranslation('ui');
   return (
     <ErrorBoundary>
       <HelmetProvider>
         <ThemeProvider>
           <AuthProvider>
             <QueryClientProvider client={queryClient}>
-              <ToastProvider closeLabel={t('toast.close')}>
+              <ToastProvider closeLabel={tUi('toast.close')}>
                 <RouterProvider router={router} />
               </ToastProvider>
             </QueryClientProvider>

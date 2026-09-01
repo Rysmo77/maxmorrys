@@ -71,7 +71,7 @@ export function Pagination(props: Omit<DsPaginationProps, 'label' | 'previousLab
       label={t('pagination.label')}
       previousLabel={t('pagination.previous')}
       nextLabel={t('pagination.next')}
-      pageLabel={(page) => t('pagination.page', { page, defaultValue: `Page ${page}` })}
+      pageLabel={(page) => t('pagination.page', { page })}
     />
   );
 }

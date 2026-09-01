@@ -51,7 +51,10 @@ describe('points de rupture', () => {
     const offenders: string[] = [];
     /* Le préfixe doit être suivi d'un UTILITAIRE : `sm:` seul, dans un commentaire ou
        une clé d'objet, n'est pas une classe. `md:` suivi d'une lettre l'est. */
-    const re = new RegExp(`(?:^|["'\`\s])(${LEGACY.join('|')}):[a-z][a-z0-9-]*`, 'g');
+    /* Chaîne simple et non littéral gabarit : le motif doit contenir un BACKTICK,
+       qui dans un gabarit termine la chaîne, et un `\\s`, qui dans un gabarit ne vaut
+       que « s ». Deux pièges d'échappement pour zéro gain de lisibilité. */
+    const re = new RegExp('(?:^|["\'`]|\\s)(' + LEGACY.join('|') + '):[a-z][a-z0-9-]*', 'g');
     for (const file of walk(SRC)) {
       for (const hit of stripComments(readFileSync(file, 'utf8')).match(re) ?? []) {
         offenders.push(`${relative(SRC, file)} → ${hit.trim()}`);
