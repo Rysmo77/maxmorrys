@@ -549,7 +549,7 @@ export default function RysmoWidget() {
                 onKeyDown={handleKeyDown}
                 placeholder={t('inputPlaceholder')}
                 rows={1}
-                className="flex-1 resize-none bg-[color:var(--fill-1)] border border-[color:var(--line)] rounded-xl px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:border-digitalise dark:focus:border-digitalise transition-colors max-h-24 overflow-y-auto"
+                className="flex-1 resize-none bg-[color:var(--fill-1)] border border-[color:var(--line)] rounded-xl px-3 py-2 text-sm text-ink focus:outline-none focus:border-digitalise dark:focus:border-digitalise transition-colors max-h-24 overflow-y-auto"
                 style={{ height: 'auto' }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;

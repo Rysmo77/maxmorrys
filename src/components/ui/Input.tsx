@@ -25,7 +25,7 @@ export default function Input({ label, error, icon, className, id, ...props }: I
           aria-describedby={errorId}
           className={cn(
             'w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors',
-            'focus:border-forme focus:ring-2 focus:outline-none',
+            'focus:border-forme focus:outline-none',
             'dark:border-[color:var(--border-hair)] dark:focus:border-forme',
             !!icon && 'pl-10',
             error && 'border-stop focus:border-stop',
@@ -60,7 +60,7 @@ export function Textarea({ label, error, className, id, ...props }: TextareaProp
         aria-describedby={errorId}
         className={cn(
           'w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y min-h-[100px]',
-          'focus:border-forme focus:ring-2 focus:outline-none',
+          'focus:border-forme focus:outline-none',
           'dark:border-[color:var(--border-hair)] dark:focus:border-forme',
           error && 'border-stop focus:border-stop',
           className

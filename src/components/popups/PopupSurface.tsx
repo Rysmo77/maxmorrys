@@ -39,7 +39,7 @@ interface PopupSurfaceProps {
   mobileSurface?: 'modal' | 'sheet';
 }
 
-const closeBtnCls = 'absolute top-4 right-4 z-20 p-2 rounded-full text-white/60 hover:text-white hover:bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] transition-colors focus:outline-none focus-visible:ring-2';
+const closeBtnCls = 'absolute top-4 right-4 z-20 p-2 rounded-full text-white/60 hover:text-white hover:bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] transition-colors focus:outline-none';
 
 export default function PopupSurface({
   open,
@@ -76,7 +76,12 @@ export default function PopupSurface({
         animate={reduced ? undefined : { y: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         className={cn(
-          'fixed bottom-0 inset-x-0 z-50 max-h-[30vh] overflow-y-auto focus:outline-none',
+          /* `mm-on-color` porte l'anneau de focus CLAIR du kit à tout ce que le popup
+             contient (`:where(.mm-on-color) :focus-visible`). Les deux surfaces sont en
+             `--night-2` dans les deux thèmes : l'anneau bleu du système s'y perdrait.
+             Posé ICI et nulle part ailleurs — `PopupManager` fait passer les six popups
+             par ce composant, donc chaque bouton et chaque lien en hérite. */
+          'fixed bottom-0 inset-x-0 z-50 max-h-[30vh] overflow-y-auto focus:outline-none mm-on-color',
           'bg-[color:var(--night-2)] text-white border-t border-white/10',
           'shadow-[0_-8px_40px_rgba(0,0,0,0.6)]',
           'pb-[env(safe-area-inset-bottom)]',
@@ -110,7 +115,7 @@ export default function PopupSurface({
         animate={reduced ? undefined : { opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
-          'relative w-full max-w-5xl max-h-[92vh] overflow-y-auto focus:outline-none',
+          'relative w-full max-w-5xl max-h-[92vh] overflow-y-auto focus:outline-none mm-on-color',
           'bg-[color:var(--night-2)] text-white sm:rounded-3xl',
           'shadow-[0_40px_120px_-20px_rgba(0,0,0,0.9)] ring-1 ring-white/10',
         )}

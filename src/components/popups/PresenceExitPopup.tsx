@@ -54,7 +54,7 @@ export default function PresenceExitPopup({ onAccept, onSecondary, onDismiss }: 
         <LocalizedLink
           to="/presence-digitale#packs"
           onClick={onSecondary}
-          className="text-xs font-semibold text-digitalise-txt hover:text-digitalise-txt transition-colors focus:outline-none focus-visible:ring-2 rounded"
+          className="text-xs font-semibold text-digitalise-txt hover:text-digitalise-txt transition-colors focus:outline-none rounded"
         >
           {t('popups.presenceExit.secondary')}
         </LocalizedLink>

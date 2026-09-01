@@ -77,7 +77,13 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
 
   /** Case de consentement + renvoi vers la politique de confidentialité. */
   const consentField = (tone: 'light' | 'dark') => (
-    <div className="flex items-start gap-2.5">
+    /*
+      `mm-on-color` sur le PARENT, et pas sur le champ : le kit écrit son anneau clair
+      en `:where(.mm-on-color) :focus-visible` — un descendant — et ne vise l'élément
+      lui-même que pour `button` et `a` (`brand/states.css`). Sur une case à cocher, la
+      classe posée directement ne matcherait rien.
+    */
+    <div className={`flex items-start gap-2.5${tone === 'dark' ? ' mm-on-color' : ''}`}>
       <input
         id={consentId}
         type="checkbox"
@@ -85,7 +91,7 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
         onChange={(e) => setConsent(e.target.checked)}
         className={`mt-0.5 h-4 w-4 shrink-0 rounded border ${
           tone === 'dark'
-            ? 'border-white/40 bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] text-forme focus:ring-white/40'
+            ? 'border-white/40 bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] text-forme'
             : 'border-[color:var(--line)] text-forme'
         }`}
       />
@@ -120,7 +126,9 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
         <p className="text-[color:var(--paper-fixed)] text-sm mb-6 leading-relaxed">
           {t('newsletter.cardText')}
         </p>
-        <form onSubmit={handleSubmit} className="space-y-3">
+        {/* Carte sombre : l'anneau bleu du système s'y perd. `mm-on-color` le passe en
+            blanc doublé d'encre — c'est la variante que le kit prévoit pour ce cas. */}
+        <form onSubmit={handleSubmit} className="space-y-3 mm-on-color">
           <div className="flex gap-2">
             <label htmlFor="newsletter-card-email" className="sr-only">{t('newsletter.emailLabel')}</label>
             <input
@@ -130,7 +138,7 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t('newsletter.emailPlaceholder')}
               required
-              className="flex-1 px-4 py-2.5 rounded-xl bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-[color-mix(in_srgb,var(--paper)_10%,transparent)] border border-white/20 text-white text-sm focus:outline-none"
             />
             <button
               type="submit"
@@ -167,7 +175,7 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
                blanc fixe, réservé aux pastilles), alors que `--ink` devient #ECF0F5. Dans le
                pied de page, qui porte la portée sombre, le couple donnait du blanc sur blanc.
                Le jeton de champ, lui, s'inverse — 72 % de blanc en clair, 7 % en nuit. */
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[color:var(--line)] bg-[color:var(--field-bg)] text-sm text-ink focus:outline-none focus:ring-2 focus:border-forme"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[color:var(--line)] bg-[color:var(--field-bg)] text-sm text-ink focus:outline-none focus:border-forme"
           />
         </div>
         <button

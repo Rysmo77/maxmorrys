@@ -54,13 +54,14 @@ Score 1–5. Les notes basses sont adossées à une mesure, jamais à une impres
 | Densité | 4 | 4 | 3 | 4 | — |
 | Cohérence | 4 | 4 | 3 | 3 | **17 usages de rayon rendent une valeur qui n'est pas celle écrite** (§4.1) |
 | Feedback | 3 | 4 | 4 | 3 | Le DS n'a **pas de Toast** : 30 fichiers dépendent du composant hérité |
-| **Accessibilité** | **2** | **2** | **2** | 3 | **13 `focus-visible` contre 74 `focus:`** ; 14 fichiers neutralisent l'`outline` sans rien remettre (§5) |
+| **Accessibilité** | 3 | 3 | 3 | 3 | Anneau de focus du système rétabli partout (§4.2) ; restent 4 `<div onClick>` et 3 `<img>` sans `alt` |
 | Motion | 4 | 4 | 4 | 3 | `prefers-reduced-motion` référencé 33 fois — sérieux |
 | Delight | 4 | 4 | 3 | 4 | — |
 
-**La colonne qui décide de la refonte est l'accessibilité.** C'est le seul critère sous 3
-sur trois surfaces sur quatre, et le handoff le déclare lui-même : « presque rien n'est
-atteignable au clavier ». Ce n'est pas un défaut de goût, c'est un défaut de fonction.
+**L'accessibilité était la colonne décisive, et elle est traitée.** Le handoff déclarait
+« presque rien n'est atteignable au clavier » ; la mesure a montré autre chose — l'anneau
+existait, trente classes l'écrasaient. Voir §4.2. Ce qui reste (`<div onClick>`, `alt`
+manquants) est ponctuel, plus systémique.
 
 ---
 
@@ -127,24 +128,52 @@ Les primitives du DS ne sont pas touchées (elles lisent `var()` en style calcul
 défaut vit **uniquement dans les surfaces greffées à côté**, ce qui est exactement le motif
 relevé lors de l'audit de fidélité du 31 août.
 
-### 4.2 ⚠ Élevé — l'accessibilité au clavier n'est pas outillée
+### 4.2 ✅ CORRIGÉ — l'anneau de focus existait, il était écrasé
 
-| Mesure | Valeur |
-|---|---|
-| `focus-visible:` | **13** |
-| `focus:` (sans `-visible`) | **74** |
-| Fichiers posant `outline-none` **sans** aucun `focus-visible` | **14** |
-| `<div onClick>` (cible non atteignable au clavier) | 4 |
-| `<img>` sans `alt` | 3 |
+> ⚠️ **Ce constat était faux, et corrigé le 01/09 en l'instruisant.** Il annonçait
+> « 13 `focus-visible` contre 74 `focus:` » et « 14 fichiers posent `outline-none` sans
+> rien remettre — régression nette par rapport au défaut du navigateur ». Les deux
+> lectures étaient mauvaises.
 
-Le rapport 13 contre 74 dit le fond : l'état de focus est traité comme un effet de survol,
-pas comme un repère de navigation. Et 14 fichiers **retirent** l'anneau du navigateur sans
-en fournir un autre — c'est une régression nette par rapport au défaut du navigateur.
+**Le système a un anneau, et il est en production.** `brand/states.css` le déclare une
+fois pour tout le produit, et le CSS bâti le confirme :
 
-À l'inverse, la sémantique ARIA est sérieuse et ne demande qu'à être complétée :
+```css
+:where(a,button,input,textarea,select,summary,[tabindex]):focus-visible{
+  outline:none; box-shadow:0 0 0 2px var(--surface-page),0 0 0 4px var(--mm-bleu)}
+```
+
+Double anneau — un clair, un de marque — avec sa variante nuit et une variante
+`.mm-on-color` pour les fonds colorés. **`outline-none` ne le tue donc pas** : l'anneau
+est un `box-shadow`, et la règle pose elle-même `outline:none`.
+
+**Le défaut réel était ailleurs, et il était plus grave.** Le sélecteur est en `:where()`,
+donc à **spécificité zéro** : n'importe quelle classe le bat. **Trente sites** posaient un
+`focus:ring-*`, remplaçant l'anneau du système par celui de Tailwind —
+`rgb(59 130 246 / .5)`, une couleur absente de tout jeton qui ne bascule pas sous `.dk`.
+**Seize d'entre eux sur `:focus` et non `:focus-visible`**, donc visibles aussi au clic
+souris, ce que le système évite exprès.
+
+Quatre de ces trente vivaient dans des fichiers **`.ts`** — que la mesure initiale, qui ne
+scannait que `.tsx`, n'avait pas vus.
+
+**Corrigé** : les trente sites sont retirés ; les surfaces sombres permanentes (les six
+popups, la carte newsletter) passent par `mm-on-color`, posé **une seule fois** sur
+`PopupSurface`, que `PopupManager` fait traverser à tous les popups. Le bundle ne contient
+plus **aucun** anneau Tailwind.
+
+**Une trouvaille au passage** : `ProfileTab.tsx:21` citait `focus:ring-2` **dans un
+commentaire** expliquant son retrait — et le scanner de Tailwind, qui ne lit pas les
+commentaires, **régénérait la règle dans le bundle**. Une classe documentée comme retirée
+y survivait, morte mais présente.
+
+`tests/unit/focus-ring.test.ts` interdit désormais toute troisième voie et vérifie que la
+recette du kit est intacte.
+
+**Ce qui reste vrai du constat initial** : la sémantique ARIA est sérieuse —
 116 fichiers portent des attributs `aria-*` (101 `aria-label`, 111 `aria-hidden`,
-23 `aria-current`, 9 `aria-live`), et les rôles sont posés (`dialog` 7, `alert` 6,
-`status` 8, `switch` 4, `progressbar` 3).
+23 `aria-current`, 9 `aria-live`), rôles posés (`dialog` 7, `alert` 6, `status` 8).
+Restent **4 `<div onClick>`** et **3 `<img>` sans `alt`**, non traités dans ce lot.
 
 ### 4.3 ⚠ Élevé — la première vue charge 156 Ko dont un visiteur anonyme n'a pas besoin
 
@@ -273,7 +302,7 @@ Cet audit est un audit de code. Trois chiffres ne s'en déduisent pas et manquen
 | # | Chantier | Gravité | Effort | Pourquoi ce rang |
 |---|---|---|---|---|
 | 1 | Fermer la collision `rounded-s` / `rounded-l` | ⛔ | Faible | 17 écrans rendent faux, en silence, dans la coque de l'app |
-| 2 | Anneau de focus systématique | ⚠ | Moyen | Seul critère sous 3 sur 3 surfaces ; bloque WCAG AA |
+| 2 | ~~Anneau de focus systématique~~ ✅ fait le 01/09 | ⚠ | — | 30 anneaux concurrents retirés, garde posée |
 | 3 | Sortir Firebase et Motion de la première vue | ⚠ | Moyen | 156 Ko rendus à un visiteur qui ne s'en sert pas |
 | 4 | Retirer Inter, dé-sérialiser les fontes | ⚠ | Faible | Requête bloquante pour zéro pixel |
 | 5 | Combler les 6 trous du DS (§ `design-system-audit.md`) | ◐ | Élevé | Débloque 72 des 81 imports hérités |

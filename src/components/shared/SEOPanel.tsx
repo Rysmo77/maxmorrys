@@ -245,7 +245,7 @@ export default function SEOPanel(props: SEOPanelProps) {
               value={focusKeyword}
               onChange={(e) => onChange('focusKeyword', e.target.value)}
               placeholder={t('seo.focusKeywordPlaceholder')}
-              className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet pl-10 pr-4 py-2.5 text-sm text-ink transition-colors focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
+              className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet pl-10 pr-4 py-2.5 text-sm text-ink transition-colors focus:border-forme focus:outline-none dark:focus:border-forme"
             />
           </div>
           <p className="text-xs text-ink-2">{t('seo.focusKeywordHelp')}</p>
@@ -281,7 +281,7 @@ export default function SEOPanel(props: SEOPanelProps) {
             value={metaTitle}
             onChange={(e) => onChange('metaTitle', e.target.value)}
             placeholder={title || t('seo.seoTitlePlaceholder')}
-            className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
+            className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors focus:border-forme focus:outline-none dark:focus:border-forme"
           />
           {!metaTitle.trim() && (
             <p className="text-xs text-ink-2 italic">{t('seo.useTitleFallback')}</p>
@@ -302,7 +302,7 @@ export default function SEOPanel(props: SEOPanelProps) {
             onChange={(e) => onChange('metaDescription', e.target.value)}
             placeholder={excerpt || t('seo.metaDescPlaceholder')}
             rows={3}
-            className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
+            className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:outline-none dark:focus:border-forme"
           />
           <MetaDescProgress value={(metaDescription.trim() || excerpt || '').length} max={160} />
         </div>
@@ -424,7 +424,7 @@ export default function SEOPanel(props: SEOPanelProps) {
                 onChange={(e) => onChange('ogDescription', e.target.value)}
                 placeholder={excerpt || t('seo.ogDescPlaceholder')}
                 rows={2}
-                className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
+                className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:outline-none dark:focus:border-forme"
               />
             </div>
             <Input
@@ -472,7 +472,7 @@ export default function SEOPanel(props: SEOPanelProps) {
                 onChange={(e) => onChange('twitterDescription', e.target.value)}
                 placeholder={ogDisplayDesc || t('seo.twitterDescPlaceholder')}
                 rows={2}
-                className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:ring-2 focus:outline-none dark:focus:border-forme"
+                className="w-full rounded-xl border border-[color:var(--line)] bg-surface-sheet px-4 py-2.5 text-sm text-ink transition-colors resize-y focus:border-forme focus:outline-none dark:focus:border-forme"
               />
             </div>
             <Input

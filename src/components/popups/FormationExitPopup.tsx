@@ -53,7 +53,7 @@ export default function FormationExitPopup({
       <LocalizedLink
         to="/mon-espace/club"
         onClick={onClub}
-        className="group mt-5 lg:mt-7 hidden lg:flex items-center gap-3 p-4 rounded-2xl border border-white/10 bg-surface-sheet/[0.03] hover:bg-surface-sheet/[0.07] hover:border-[color-mix(in_srgb,var(--mm-violet)_50%,transparent)] transition duration-300 focus:outline-none focus-visible:ring-2"
+        className="group mt-5 lg:mt-7 hidden lg:flex items-center gap-3 p-4 rounded-2xl border border-white/10 bg-surface-sheet/[0.03] hover:bg-surface-sheet/[0.07] hover:border-[color-mix(in_srgb,var(--mm-violet)_50%,transparent)] transition duration-300 focus:outline-none"
       >
         <span className="w-10 h-10 rounded-xl bg-[color-mix(in_srgb,var(--mm-violet)_15%,transparent)] text-transforme flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110">
           <Icon name="sparkles" size={20} />

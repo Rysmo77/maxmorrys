@@ -37,7 +37,7 @@ interface FormationsEntryPopupProps {
 
 /** CTA « blob » : coins très arrondis et aplat de marque, dans l'esprit du bouton de référence. */
 const ctaCls = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[color:var(--mm-bleu)] hover:bg-[color:var(--mm-bleu)] text-ink font-black text-sm uppercase tracking-wide transition duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-forme focus:outline-none';
-const dismissCls = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none focus-visible:ring-2 rounded';
+const dismissCls = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none rounded';
 
 export default function FormationsEntryPopup({ formation, onAccept, onDismiss }: FormationsEntryPopupProps) {
   const { t } = useTranslation('shared');
@@ -107,7 +107,7 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
         <LocalizedLink
           to={contentPath('formations', formation, language)}
           onClick={onAccept}
-          className="group block shrink-0 overflow-hidden rounded-xl w-14 h-14 lg:w-20 lg:h-20 focus:outline-none focus-visible:ring-2"
+          className="group block shrink-0 overflow-hidden rounded-xl w-14 h-14 lg:w-20 lg:h-20 focus:outline-none"
         >
           <img
             src={formation.coverImage}

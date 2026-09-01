@@ -108,7 +108,12 @@ export default function RichEditor({ value, onChange, label, placeholder, minHei
           {label}
         </label>
       )}
-      <div className="border border-[color:var(--line)] rounded-xl overflow-hidden focus-within:ring-2 focus-within: focus-within:border-forme transition-colors">
+      {/* L'anneau du groupe est retiré : la zone d'édition à l'intérieur porte déjà celui du
+          système (`brand/states.css`), et deux anneaux concentriques au même moment ne
+          disent rien de plus. Le changement de bordure suffit à marquer le groupe actif.
+          Au passage, un `focus-within:` ORPHELIN traînait ici — un préfixe sans utilitaire,
+          que Tailwind ignore : la classe qu'il devait porter avait disparu sans lui. */}
+      <div className="border border-[color:var(--line)] rounded-xl overflow-hidden focus-within:border-forme transition-colors">
         {/* Toolbar */}
         <div className="flex items-center gap-1 px-2 py-1.5 bg-[color:var(--fill-1)] border-b border-[color:var(--line)] flex-wrap">
           {tools.map((t) => (

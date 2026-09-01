@@ -102,7 +102,7 @@ export const SHARE_PLATFORMS = [
   { id: 'copy', label: 'Copier le texte', color: 'bg-[color:var(--fill-1)]', emoji: '📋', icon: 'copy' },
 ] as const satisfies readonly { id: string; label: string; color: string; emoji: string; icon: IconName }[];
 
-export const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-[color:var(--line)] bg-[color:var(--fill-1)] dark:bg-[color:var(--night-3)] text-ink text-sm focus:outline-none focus:ring-2 focus:border-forme transition-colors';
+export const inputCls = 'w-full px-4 py-2.5 rounded-xl border border-[color:var(--line)] bg-[color:var(--fill-1)] dark:bg-[color:var(--night-3)] text-ink text-sm focus:outline-none focus:border-forme transition-colors';
 
 export function useClubData() {
   const { t } = useTranslation('club');

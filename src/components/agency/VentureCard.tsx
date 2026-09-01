@@ -44,7 +44,7 @@ export default function VentureCard({ venture }: VentureCardProps) {
           href={venture.website}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-digitalise-txt hover:gap-3 transition focus:outline-none focus-visible:ring-2 rounded self-start"
+          className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-digitalise-txt hover:gap-3 transition focus:outline-none rounded self-start"
         >
           {venture.domain}
           <Icon name="arrow-up-right" size={16} />

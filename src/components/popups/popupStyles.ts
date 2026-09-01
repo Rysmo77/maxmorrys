@@ -14,7 +14,7 @@ export const CTA_LAGOON = 'group inline-flex items-center gap-2 px-6 py-3 rounde
 export const CTA_BRAND = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[color:var(--mm-bleu)] hover:bg-[color:var(--mm-bleu)] text-ink font-black text-sm uppercase tracking-wide transition duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-forme focus:outline-none';
 
 /** Action secondaire, discrète mais atteignable au clavier. */
-export const DISMISS = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded';
+export const DISMISS = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none rounded';
 
 /** Paragraphe de corps. */
 export const BODY = 'mt-2 lg:mt-4 text-sm text-white/60 leading-relaxed max-w-md';

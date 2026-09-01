@@ -13,7 +13,7 @@ interface ImageInputProps {
 }
 
 const inputBase =
-  'w-full px-3 py-2 rounded-xl border border-[color:var(--line)] bg-paper dark:bg-[color:var(--night-3)] text-sm text-ink focus:outline-none focus:ring-2 focus:border-forme transition-colors';
+  'w-full px-3 py-2 rounded-xl border border-[color:var(--line)] bg-paper dark:bg-[color:var(--night-3)] text-sm text-ink focus:outline-none focus:border-forme transition-colors';
 
 export default function ImageInput({
   label,

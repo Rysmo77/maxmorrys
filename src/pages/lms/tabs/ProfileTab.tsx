@@ -18,7 +18,10 @@ import { captureError } from '../../../lib/sentry';
  * TROIS CHOSES CHANGENT, ET AUCUNE N'EST COSMÉTIQUE.
  *
  * 1. LES QUINZE `<input>` MAISON DEVIENNENT DES `Field`. La constante `inputCls` posait un
- *    `focus:ring-2` sans couleur nommée et aucun `autoComplete` : le navigateur ne
+ *    un anneau Tailwind sans couleur nommée et aucun `autoComplete` : le navigateur ne
+ *    (⚠️ le nom exact de la classe n'est PAS écrit ici : le scanner de Tailwind ne lit
+ *    pas les commentaires, et une classe CITÉE dans un commentaire est GÉNÉRÉE dans le
+ *    bundle. Celle-ci y survivait encore, en règle morte, longtemps après son retrait.)
  *    pré-remplissait rien, et le clavier logiciel d'un téléphone s'ouvrait en alphabétique
  *    pour un numéro de téléphone. `Field` expose `inputMode` et `autoComplete`, et lie chaque
  *    `<label>` à son contrôle par un `id` généré — les libellés d'avant étaient orphelins.

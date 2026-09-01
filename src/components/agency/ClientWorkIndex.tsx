@@ -92,7 +92,7 @@ export default function ClientWorkIndex() {
                   aria-expanded={isSelected}
                   className={cn(
                     'w-full flex items-center gap-4 py-4 text-left transition-colors group',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset rounded',
+                    'focus:outline-none rounded',
                     isSelected
                       ? 'text-ink'
                       : 'text-ink-2 hover:text-ink dark:hover:text-white',

@@ -284,7 +284,7 @@ export default function PhoneInput({ id, value, onChange, placeholder = '77 123 
         aria-label={t('phoneInput.countryLabel')}
         value={dial}
         onChange={(e) => handleDialChange(e.target.value)}
-        className="flex-shrink-0 w-[120px] px-2 py-2.5 rounded-l-xl border border-r-0 border-[color:var(--line)] bg-[color:var(--fill-2)] text-ink text-sm focus:outline-none focus:ring-2 focus:border-forme transition-colors appearance-none cursor-pointer"
+        className="flex-shrink-0 w-[120px] px-2 py-2.5 rounded-l-xl border border-r-0 border-[color:var(--line)] bg-[color:var(--fill-2)] text-ink text-sm focus:outline-none focus:border-forme transition-colors appearance-none cursor-pointer"
         style={{ backgroundImage: 'none' }}
       >
         {COUNTRY_CODES.map((c) => (
@@ -301,7 +301,7 @@ export default function PhoneInput({ id, value, onChange, placeholder = '77 123 
         value={number}
         onChange={(e) => handleNumberChange(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-[color:var(--line)] bg-[color:var(--fill-1)] dark:bg-[color:var(--night-3)] text-ink text-sm focus:outline-none focus:ring-2 focus:border-forme transition-colors"
+        className="flex-1 min-w-0 px-4 py-2.5 rounded-r-xl border border-[color:var(--line)] bg-[color:var(--fill-1)] dark:bg-[color:var(--night-3)] text-ink text-sm focus:outline-none focus:border-forme transition-colors"
       />
     </div>
   );
