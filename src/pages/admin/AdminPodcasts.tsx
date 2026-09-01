@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, Tag } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
-import Modal from '../../components/ui/Modal';
+import { Modal } from '@/components/dialogs';
 import ImageInput from '../../components/ui/ImageInput';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import Pagination from '../../components/ui/Pagination';
+import { ConfirmDialog } from '@/components/dialogs';
+import { Pagination } from '@/components/dialogs';
 import { slugify } from '../../lib/utils';
 import { useFormat } from '../../hooks/useFormat';
 import { usePodcasts, isImported, type PodcastStage } from './podcasts/usePodcasts';

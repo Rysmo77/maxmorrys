@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '../../../components/ui/Toast';
+import { useToast } from '@ds';
 import { getAllFormations, saveFormation, deleteFormation } from '../../../lib/firestore';
 import { slugify } from '../../../lib/utils';
 import { generateSlugEn } from '../../../lib/slugEn';

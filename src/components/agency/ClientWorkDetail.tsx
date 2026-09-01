@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import Badge from '../ui/Badge';
 import { CLIENT_RELATION, categoryKey } from '../../lib/brand';
 import type { ClientProject } from '../../lib/brand';
-import { Icon } from '@ds';
+import { Icon, Tag } from '@ds';
 
 interface ClientWorkDetailProps {
   project: ClientProject;
@@ -37,7 +36,7 @@ export default function ClientWorkDetail({ project }: ClientWorkDetailProps) {
             {t(`work.categories.${categoryKey(project.category)}`)}
           </p>
         </div>
-        <Badge variant="neutralOutline" className="shrink-0">{CLIENT_RELATION}</Badge>
+        <Tag tone="neutral">{CLIENT_RELATION}</Tag>
       </div>
 
       {project.descriptionKey && (

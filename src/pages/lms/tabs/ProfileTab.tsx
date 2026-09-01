@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { updateProfile } from 'firebase/auth';
-import { Avatar, Button, Field, GlassPanel, Icon, IconButton, LessonRow, Num } from '@ds';
+import { Avatar, Button, Field, GlassPanel, Icon, IconButton, LessonRow, Num, useToast } from '@ds';
 import PhoneInput from '../../../components/ui/PhoneInput';
 import { SiteEyebrow, useReveal } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useToast } from '../../../components/ui/Toast';
 import { updateUserProfile, syncSocialsToClubProfile } from '../../../lib/firestore';
 import { uploadMedia } from '../../../lib/storage';
 import type { EnrolledFormation } from '../hooks/useStudentData';

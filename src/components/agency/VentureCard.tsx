@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import Badge from '../ui/Badge';
 import SitePreview from './SitePreview';
 import { VENTURE_RELATION } from '../../lib/brand';
 import type { Venture } from '../../lib/brand';
-import { Icon } from '@ds';
+import { Icon, Tag } from '@ds';
 
 interface VentureCardProps {
   venture: Venture;
@@ -37,7 +36,7 @@ export default function VentureCard({ venture }: VentureCardProps) {
             </h4>
             <p className="mt-1 text-sm text-ink-2">{venture.category}</p>
           </div>
-          <Badge variant="lagoon" className="shrink-0">{VENTURE_RELATION}</Badge>
+          <Tag tone="neutral">{VENTURE_RELATION}</Tag>
         </div>
 
         <a

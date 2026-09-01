@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag } from '@ds';
 import type { TagTone } from '@ds';
+import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import Pagination from '../../components/ui/Pagination';
-import { useToast } from '../../components/ui/Toast';
+import { ConfirmDialog } from '@/components/dialogs';
+import { Pagination } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
 import { getAllTransactions, updateTransactionStatus } from '../../lib/firestore';

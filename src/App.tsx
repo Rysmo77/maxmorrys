@@ -45,7 +45,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { localizeSegments } from './i18n/segments';
 import { localizedPath } from './i18n/routing';
-import { ToastProvider } from './components/ui/Toast';
+import { ToastProvider } from '@ds';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageMesh from './components/layout/PageMesh';
@@ -556,13 +556,17 @@ const router = createBrowserRouter([
 ]);
 
 export default function App() {
+  /* `ui` fait partie des espaces de noms de base (`CORE_NAMESPACES`), donc chargé avec
+     le bundle : `t` répond ici sans attendre. Le design system, lui, ne connaît pas
+     i18next — c'est la coquille qui lui passe ses libellés. */
+  const { t } = useTranslation('ui');
   return (
     <ErrorBoundary>
       <HelmetProvider>
         <ThemeProvider>
           <AuthProvider>
             <QueryClientProvider client={queryClient}>
-              <ToastProvider>
+              <ToastProvider closeLabel={t('toast.close')}>
                 <RouterProvider router={router} />
               </ToastProvider>
             </QueryClientProvider>

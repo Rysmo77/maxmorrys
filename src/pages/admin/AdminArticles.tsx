@@ -3,11 +3,11 @@ import {
   Button, Field, GlassPanel, Icon, LessonRow, Num, Segmented, Skeleton, Switch, Tag,
 } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
-import Modal from '../../components/ui/Modal';
+import { Modal } from '@/components/dialogs';
 import ImageInput from '../../components/ui/ImageInput';
 import RichEditor from '../../components/ui/RichEditor';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import Pagination from '../../components/ui/Pagination';
+import { ConfirmDialog } from '@/components/dialogs';
+import { Pagination } from '@/components/dialogs';
 import SEOPanel from '../../components/shared/SEOPanel';
 import { slugify } from '../../lib/utils';
 import { BLOG_POLES } from '../../lib/blogCategories';

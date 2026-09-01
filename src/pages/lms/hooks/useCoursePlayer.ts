@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '../../../components/ui/Toast';
+import { useToast } from '@ds';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getFormationBySlug, getUserEnrollments, updateEnrollmentProgress, issueCertificate } from '../../../lib/firestore';
 import { updateDocById } from '../../../lib/firestore/helpers';

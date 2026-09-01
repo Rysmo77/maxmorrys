@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, EmptyState, GlassPanel, Icon, LessonRow, Num, Tag } from '@ds';
+import { Button, DocLine, EmptyState, GlassPanel, Icon, LessonRow, Num, Tag, useToast } from '@ds';
 import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
-import ConfirmDialog from '../../../components/ui/ConfirmDialog';
-import { useToast } from '../../../components/ui/Toast';
+import { ConfirmDialog } from '@/components/dialogs';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { getDmReports, updateDmReportStatus, deleteDmReport, deleteDmMessage } from '../../../lib/firestore';
 import { useFormat } from '../../../hooks/useFormat';

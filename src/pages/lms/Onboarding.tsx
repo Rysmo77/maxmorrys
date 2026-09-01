@@ -1,19 +1,18 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { Button, Field, Icon, type IconName, useToast } from '@ds';
 import LocalizedLink from '../../components/shared/LocalizedLink';
 /* `ui/Button` est le bouton de la CONSOLE. Il vivait ici à côté du `Field` et de l'`Icon`
    du système : deux familles de boutons sur un même écran, dont une qui ne connaît ni les
    sept tons de territoire ni l'appui à `scale(.975)`. */
 import { useAuth } from '../../contexts/AuthContext';
 import { tutorName } from '../../lib/naming';
-import { useToast } from '../../components/ui/Toast';
 import { updateUserProfile } from '../../lib/firestore';
 import { updateProfile } from 'firebase/auth';
 import { uploadMedia } from '../../lib/storage';
 import { captureError } from '../../lib/sentry';
 import { trackEvent } from '../../lib/tracking';
-import { Button, Field, Icon, type IconName } from '@ds';
 
 interface OnboardingProps {
   onComplete: () => void;

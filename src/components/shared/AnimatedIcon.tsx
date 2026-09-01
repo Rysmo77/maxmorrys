@@ -1,7 +1,7 @@
-import { Icon, type IconName } from '@ds';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { Transition, TargetAndTransition } from 'framer-motion';
 
+import { Icon, type IconName } from '@ds';
 type AnimationKind = 'float' | 'pulse' | 'spin';
 
 interface AnimatedIconProps {

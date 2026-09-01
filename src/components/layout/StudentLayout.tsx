@@ -5,7 +5,7 @@ import { toCanonicalPath } from '../../i18n/routing';
 import AppShell from './AppShell';
 import { useAuth } from '../../contexts/AuthContext';
 import { tutorName } from '../../lib/naming';
-import { useToast } from '../ui/Toast';
+import { useToast } from '@ds';
 import { useStudentData, type EnrolledFormation } from '../../pages/lms/hooks/useStudentData';
 import { useNotes } from '../../pages/lms/hooks/useNotes';
 import {

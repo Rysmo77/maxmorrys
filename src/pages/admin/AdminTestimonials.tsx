@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, Switch } from '@ds';
+import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, Switch, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
-import Modal from '../../components/ui/Modal';
-import Pagination from '../../components/ui/Pagination';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { Modal } from '@/components/dialogs';
+import { Pagination } from '@/components/dialogs';
+import { ConfirmDialog } from '@/components/dialogs';
 import ImageInput from '../../components/ui/ImageInput';
-import { useToast } from '../../components/ui/Toast';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
 import { getAllTestimonials, saveTestimonial, deleteTestimonial } from '../../lib/firestore';

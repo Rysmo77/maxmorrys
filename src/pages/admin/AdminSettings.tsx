@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, Field, GlassPanel, Icon, Segmented, Skeleton, Switch } from '@ds';
+import { Button, DocLine, Field, GlassPanel, Icon, Segmented, Skeleton, Switch, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleScope } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
-import { useToast } from '../../components/ui/Toast';
 import { getSiteSettings, saveSiteSettings } from '../../lib/firestore';
 import { captureError } from '../../lib/sentry';
 

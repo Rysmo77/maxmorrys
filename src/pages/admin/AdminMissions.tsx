@@ -6,7 +6,7 @@ import {
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { useReveal } from '../../components/site/useReveal';
 import ConsoleSheet from './components/ConsoleSheet';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@/components/dialogs';
 import { useFormat } from '../../hooks/useFormat';
 import { MISSION_STAGES } from '../../lib/firestore';
 import { exportToCsv } from '../../lib/utils';

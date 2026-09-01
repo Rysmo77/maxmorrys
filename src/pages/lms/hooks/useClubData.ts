@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useToast } from '../../../components/ui/Toast';
+import { useToast } from '@ds';
 import {
   getClubSubscription,
   getClubPosts, createClubPost, likeClubPost, deleteClubPost, repostClubPost, voteClubPoll,

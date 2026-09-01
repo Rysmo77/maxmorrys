@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import Modal from '../../../components/ui/Modal';
+import { Modal } from '@/components/dialogs';
 import Button from '../../../components/ui/Button';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useFormat } from '../../../hooks/useFormat';

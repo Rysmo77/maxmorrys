@@ -1,11 +1,10 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { collection, addDoc } from 'firebase/firestore';
+import { Icon, useToast } from '@ds';
 import { db } from '../../config/db';
 import { trackSubscribeNewsletter } from '../../lib/tracking';
-import { useToast } from '../ui/Toast';
 import LocalizedLink from './LocalizedLink';
-import { Icon } from '@ds';
 
 interface NewsletterFormProps {
   variant?: 'inline' | 'card';

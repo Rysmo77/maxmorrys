@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DocLine, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, StatTile, Tag } from '@ds';
 import type { TagTone } from '@ds';
+import { Button, DocLine, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, StatTile, Tag, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
-import { useToast } from '../../components/ui/Toast';
 import { getAllAppointments, updateAppointmentStatus } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import type { Appointment } from '../../types';

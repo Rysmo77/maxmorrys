@@ -184,9 +184,13 @@ export default {
        * rendait 0 constat. C'est exactement le défaut que le bloc `neutral: undefined`
        * ci-dessus existe pour empêcher côté couleur, appliqué au mauvais espace de noms.
        *
-       * D'où `xs` plutôt que `s`. `m`, `xl`, `media` et `pill` ne sont réservés par rien.
-       * `l` reste hors de cette table pour la même raison — `rounded-l-xl` (le côté
-       * gauche au rayon `xl`) est un usage légitime qu'un jeton `l` casserait.
+       * D'où `xs` plutôt que `s`, et `card` plutôt que `l`. `m`, `xl`, `media` et `pill`
+       * ne sont réservés par rien.
+       *
+       * `card` porte `--r-l`, le rayon que le kit destine aux « cartes et panneaux de
+       * verre ». Le jeton n'est pas perdu, seulement renommé : sous la clé `l`, il
+       * entrait en collision avec l'utilitaire de CÔTÉ GAUCHE, et cassait au passage
+       * `rounded-l-xl` — un usage parfaitement légitime.
        *
        * `tests/unit/tailwind-radius-collision.test.ts` compile la configuration et
        * échoue si un jeton reprend un suffixe réservé. C'est la porte qui manquait.
@@ -194,6 +198,7 @@ export default {
       borderRadius: {
         xs: t('r-s'),
         m: t('r-m'),
+        card: t('r-l'),
         xl: t('r-xl'),
         media: t('r-media'),
         pill: t('r-pill'),

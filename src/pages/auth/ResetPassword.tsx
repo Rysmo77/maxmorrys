@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Field, GlassPanel, Icon } from '@ds';
+import { Button, Field, GlassPanel, Icon, useToast } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../components/ui/Toast';
 import { localizeAuthError } from '../../lib/auth-errors';
 import { AuthPage, SiteEyebrow } from '../../components/site';
 import { useLocalizedPath } from '../../contexts/LanguageContext';

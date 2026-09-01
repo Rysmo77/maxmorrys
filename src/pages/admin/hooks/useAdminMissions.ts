@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '../../../components/ui/Toast';
+import { useToast } from '@ds';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import {
   getEngagementLeads, updateEngagementLeadStatus, updateEngagementLeadNotes,

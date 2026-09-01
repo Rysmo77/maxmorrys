@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, Icon, LessonRow, Switch, Tag } from '@ds';
+import { Button, EmptyState, Field, Icon, LessonRow, Switch, Tag, useToast } from '@ds';
 import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
-import { useToast } from '../../../components/ui/Toast';
 import { useFormat } from '../../../hooks/useFormat';
 import { getClubChallenges, saveClubChallenge, deleteClubChallenge } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '../../components/ui/Toast';
+import { useToast } from '@ds';
 import { saveAppointment } from '../../lib/firestore';
 import { captureError } from '../../lib/sentry';
 import { trackGenerateLead } from '../../lib/tracking';

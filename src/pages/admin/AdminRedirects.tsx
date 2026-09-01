@@ -7,8 +7,8 @@ import {
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { useReveal } from '../../components/site/useReveal';
 import ConsoleSheet from './components/ConsoleSheet';
-import Pagination from '../../components/ui/Pagination';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { Pagination } from '@/components/dialogs';
+import { ConfirmDialog } from '@/components/dialogs';
 import { usePagination } from '../../hooks/usePagination';
 import { useAdminRedirects, isFormValid } from './hooks/useAdminRedirects';
 import {

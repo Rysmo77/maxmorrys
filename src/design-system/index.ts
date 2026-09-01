@@ -73,6 +73,8 @@ export type { SwitchProps } from './react/forms/Switch';
 /* ── Navigation ─────────────────────────────────────────────────────────── */
 export { Breadcrumb } from './react/navigation/Breadcrumb';
 export type { BreadcrumbItem, BreadcrumbProps } from './react/navigation/Breadcrumb';
+export { Pagination } from './react/navigation/Pagination';
+export type { PaginationProps } from './react/navigation/Pagination';
 export { Pipeline } from './react/navigation/Pipeline';
 export type { PipelineProps } from './react/navigation/Pipeline';
 export { ReadingBar } from './react/navigation/ReadingBar';
@@ -89,16 +91,22 @@ export { TopBar } from './react/navigation/TopBar';
 export type { TopBarItem, TopBarProps } from './react/navigation/TopBar';
 
 /* ── Surfaces ─────────────────────────────────────────────────────────── */
+export { ConfirmDialog } from './react/surfaces/ConfirmDialog';
+export type { ConfirmDialogProps } from './react/surfaces/ConfirmDialog';
 export { EmptyState } from './react/surfaces/EmptyState';
 export type { EmptyStateProps } from './react/surfaces/EmptyState';
 export { GlassPanel } from './react/surfaces/GlassPanel';
 export type { GlassPanelProps } from './react/surfaces/GlassPanel';
 export { Mesh } from './react/surfaces/Mesh';
 export type { MeshProps } from './react/surfaces/Mesh';
+export { Modal } from './react/surfaces/Modal';
+export type { ModalProps } from './react/surfaces/Modal';
 export { Skeleton } from './react/surfaces/Skeleton';
 export type { SkeletonProps } from './react/surfaces/Skeleton';
 export { TerritoryCard } from './react/surfaces/TerritoryCard';
 export type { TerritoryCardProps } from './react/surfaces/TerritoryCard';
+export { ToastProvider, useToast } from './react/surfaces/Toast';
+export type { ToastProviderProps, ToastTone } from './react/surfaces/Toast';
 export { TruthPanel } from './react/surfaces/TruthPanel';
 export type { TruthPanelProps } from './react/surfaces/TruthPanel';
 

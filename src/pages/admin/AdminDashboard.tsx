@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Button, EmptyState, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag } from '@ds';
+import { Button, EmptyState, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
-import { useToast } from '../../components/ui/Toast';
 import { getPlatformStats, subscribeMessages, getAllAgencyLeads, getAgencyStats, updateAgencyLeadStatus } from '../../lib/firestore';
 import type { AgencyStats } from '../../lib/firestore';
 import { invalidateConsoleCounts } from '../../lib/admin/consoleCounts';

@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useEffect, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../ui/Toast';
+import { useToast } from '@ds';
 import { getLangFromPath, localizedPath } from '../../i18n/routing';
 import { isSupportAllowedPath } from '../../lib/adminAccess';
 

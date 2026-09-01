@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
-import { useToast } from '../../../components/ui/Toast';
+import { useToast } from '@ds';
 import { getAllVideos, saveVideo, deleteVideo } from '../../../lib/firestore';
 import { slugify, extractYoutubeVideoId, parseISODuration } from '../../../lib/utils';
 import { generateSlugEn } from '../../../lib/slugEn';

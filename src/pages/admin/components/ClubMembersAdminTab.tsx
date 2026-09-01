@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Button, DocLine, EmptyState, Field, Icon, LessonRow, Switch, Tag } from '@ds';
+import { Avatar, Button, DocLine, EmptyState, Field, Icon, LessonRow, Switch, Tag, useToast } from '@ds';
 import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
-import { useToast } from '../../../components/ui/Toast';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
-import ConfirmDialog from '../../../components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@/components/dialogs';
 import { getAllClubProfiles, adminUpdateClubProfile, deleteClubProfile } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';
 import type { ClubMemberProfile } from '../../../types';

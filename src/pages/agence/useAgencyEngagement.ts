@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useToast } from '../../components/ui/Toast';
+import { useToast } from '@ds';
 import { captureError } from '../../lib/sentry';
 import { trackEvent, trackGenerateLead } from '../../lib/tracking';
 import { markSuppressed } from '../../lib/popups/rules';

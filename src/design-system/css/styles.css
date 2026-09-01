@@ -33,3 +33,4 @@
 @import url("./overrides/ad-21-radio-epaisseur.css");
 @import url("./overrides/ad-22-surface-feuille.css");  /* surface opaque qui bascule */
 @import url("./overrides/ad-23-hello-arc.css");        /* le mot-symbole devient une cible */
+@import url("./overrides/ad-24-action-stop.css");      /* le ton d'action destructive, absent du kit */

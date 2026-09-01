@@ -1,0 +1,41 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-24 · LE SYSTÈME N'A PAS DE TON D'ACTION DESTRUCTIVE
+
+   Le kit déclare cinq fonds d'action — `--action-primary` et les quatre territoires.
+   Aucun ne dit « ce bouton supprime ». Or `ConfirmDialog`, qui est exactement le
+   composant de la confirmation destructive, est monté par SEIZE écrans.
+
+   Ce qui existait à la place : un `className` posé à la main sur le bouton,
+   `bg-stop hover:bg-stop text-white border-stop`. Deux défauts.
+
+   1 · `--stop` EST UNE TEINTE DE TEXTE, PAS DE FOND. Elle bascule en `#FF8A80` sous
+       `.dk` — une valeur claire, choisie pour porter du texte SUR le fond nuit. Du
+       blanc dessus donne **2,28:1**. Le bouton le plus dangereux du produit devenait
+       le moins lisible, et seulement en mode sombre : invisible à qui teste en clair.
+
+   2 · Le survol ne changeait rien (`hover:bg-stop` = la même couleur).
+
+   LES DEUX MODES N'INVERSENT PAS LA MÊME CHOSE. En clair, fond soutenu et encre
+   blanche ; en nuit, fond clair et encre sombre — exactement ce que le kit fait déjà
+   pour l'orange, dont l'encre est `--ink-fixed` et jamais `--ink`.
+
+   MESURÉ, pas estimé :
+
+       jour  blanc sur #B4231F ......... 6,56:1   (texte ≥ 4,5)
+             #B4231F sur papier ........ 6,56:1   (composant ≥ 3)
+       nuit  #0E1116 sur #FF8A80 ....... 8,28:1
+             #FF8A80 sur #0B0E13 ....... 8,47:1
+
+   Les deux fonds sont les teintes d'état du kit, reprises telles quelles : cet écart
+   n'invente aucune couleur, il déclare le RÔLE qui manquait.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --action-stop: #B4231F;
+  --on-action-stop: #FFFFFF;
+}
+
+.dk {
+  --action-stop: #FF8A80;
+  --on-action-stop: #0E1116;
+}

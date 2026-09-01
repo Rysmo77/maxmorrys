@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { httpsCallable } from 'firebase/functions';
-import { Button, CheckLine, GlassPanel, Icon, Num, PriceBlock, QuotaMeter, Skeleton, StatTile, Tag } from '@ds';
+import { Button, CheckLine, GlassPanel, Icon, Num, PriceBlock, QuotaMeter, Skeleton, StatTile, Tag, useToast } from '@ds';
 import { functions } from '../../../config/firebase';
 import { useAuth } from '../../../contexts/AuthContext';
 import { tutorName } from '../../../lib/naming';
-import { useToast } from '../../../components/ui/Toast';
 import { captureError } from '../../../lib/sentry';
 
 /**

@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Button, DocLine, EmptyState, GlassPanel, Icon, LessonRow, Skeleton, StatTile, Tag,
-  type IconName,
-} from '@ds';
+import { Button, DocLine, EmptyState, GlassPanel, Icon, type IconName, LessonRow, Skeleton, StatTile, Tag, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
-import Pagination from '../../components/ui/Pagination';
-import { useToast } from '../../components/ui/Toast';
+import { Pagination } from '@/components/dialogs';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFormat } from '../../hooks/useFormat';
 import { usePagination } from '../../hooks/usePagination';

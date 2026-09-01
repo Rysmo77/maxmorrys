@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '../../components/ui/Toast';
+import { useToast } from '@ds';
 import { saveAgencyLead } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import { captureError } from '../../lib/sentry';

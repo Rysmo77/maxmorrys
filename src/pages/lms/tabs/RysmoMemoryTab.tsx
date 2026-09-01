@@ -2,12 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { doc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { Button, ChipRow, Field, GlassPanel, Icon, LessonRow, Num, ProgressBar, Skeleton, Switch, Tag } from '@ds';
+import { Button, ChipRow, Field, GlassPanel, Icon, LessonRow, Num, ProgressBar, Skeleton, Switch, Tag, useToast } from '@ds';
 import { functions } from '../../../config/firebase';
 import { db } from '../../../config/db';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useFormat } from '../../../hooks/useFormat';
-import { useToast } from '../../../components/ui/Toast';
 import { updateUserProfile } from '../../../lib/firestore';
 import {
   APP_NAME, TUTOR_DEFAULT_NAME, TUTOR_NAME_MAX, TUTOR_NAME_SUGGESTIONS, tutorName, validateTutorName,

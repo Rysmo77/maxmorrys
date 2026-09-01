@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, GlassPanel, Icon, Mesh, Num, Skeleton, Tag, Wordmark } from '@ds';
+import { Button, EmptyState, GlassPanel, Icon, Mesh, Num, Skeleton, Tag, useToast, Wordmark } from '@ds';
 import { getCertificateByCode } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
-import { useToast } from '../../components/ui/Toast';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 import { SiteDisplay, SiteEyebrow, useReveal } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';

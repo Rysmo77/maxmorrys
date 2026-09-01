@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Button, Field, GlassPanel, Icon, IconButton, useToast } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../components/ui/Toast';
 import { localizeAuthError } from '../../lib/auth-errors';
-import { Button, Field, GlassPanel, Icon, IconButton } from '@ds';
 import GoogleIcon from '../../components/auth/GoogleIcon';
 import { AuthPage, SiteEyebrow } from '../../components/site';
 import { useLocalizedPath } from '../../contexts/LanguageContext';

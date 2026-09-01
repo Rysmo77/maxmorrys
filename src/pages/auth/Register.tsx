@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Button, Field, GlassPanel, Icon, IconButton, useToast } from '@ds';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { localizedPath } from '../../i18n/routing';
-import { useToast } from '../../components/ui/Toast';
 import { localizeAuthError } from '../../lib/auth-errors';
 import { updateUserProfile, getUserById } from '../../lib/firestore';
 import { auth } from '../../config/firebase';
-import { Button, Field, GlassPanel, Icon, IconButton } from '@ds';
 import GoogleIcon from '../../components/auth/GoogleIcon';
 import { AuthPage, SiteEyebrow } from '../../components/site';
 import { useLocalizedPath } from '../../contexts/LanguageContext';

@@ -5,11 +5,11 @@ import {
 } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
-import Modal from '../../components/ui/Modal';
+import { Modal } from '@/components/dialogs';
 import ImageInput from '../../components/ui/ImageInput';
 import RichEditor from '../../components/ui/RichEditor';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import Pagination from '../../components/ui/Pagination';
+import { ConfirmDialog } from '@/components/dialogs';
+import { Pagination } from '@/components/dialogs';
 import SEOPanel from '../../components/shared/SEOPanel';
 import { formatPrice, slugify } from '../../lib/utils';
 import {

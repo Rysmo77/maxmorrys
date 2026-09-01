@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { forwardRef } from 'react';
 
 /**
- * Cinq tons, un par territoire, plus deux tons neutres.
+ * Cinq tons, un par territoire, deux tons neutres, et un ton destructif (AD-24).
  *
  * AUCUN FLOU. Un bouton est petit : le flou n'y apporte presque rien, mais il coûte une
  * couche de composition PAR bouton. Trois boutons « fantôme » suffisaient à dépasser le
@@ -21,10 +21,15 @@ const TONE: Record<string, CSSProperties> = {
   digitalise: { background: 'var(--action-digitalise)', color: 'var(--paper-fixed)', boxShadow: 'var(--sh-teal)' },
   ghost: { background: 'var(--btn-ghost-bg)', color: 'var(--ink)', border: 'var(--btn-ghost-brd)' },
   quiet: { background: 'var(--surface-quiet)', border: 'var(--btn-quiet-brd)', color: 'var(--ink)' },
+  /* Le ton destructif. `--action-stop` et son encre viennent de `overrides/ad-24` :
+     le kit déclare cinq fonds d'action et aucun ne dit « ce bouton supprime ».
+     ⚠️ Ne PAS écrire `background: var(--stop)` — c'est une teinte de TEXTE, qui passe
+     au rouge clair sous `.dk` et donnerait du blanc à 2,28:1. */
+  stop: { background: 'var(--action-stop)', color: 'var(--on-action-stop)', boxShadow: 'var(--sh-ink)' },
   disabled: { background: 'var(--btn-off-bg)', color: 'var(--ink-3)' },
 };
 
-export type ButtonTone = 'primary' | 'forme' | 'informe' | 'transforme' | 'digitalise' | 'ghost' | 'quiet';
+export type ButtonTone = 'primary' | 'forme' | 'informe' | 'transforme' | 'digitalise' | 'ghost' | 'quiet' | 'stop';
 
 export interface ButtonProps {
   tone?: ButtonTone;

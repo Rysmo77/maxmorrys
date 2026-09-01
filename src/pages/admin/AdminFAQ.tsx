@@ -1,14 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Button, ChipRow, EmptyState, Field, Icon, LessonRow, Num, Skeleton, StatTile, Tag,
-} from '@ds';
+import { Button, ChipRow, EmptyState, Field, Icon, LessonRow, Num, Skeleton, StatTile, Tag, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { useReveal } from '../../components/site/useReveal';
 import ConsoleSheet from './components/ConsoleSheet';
-import Pagination from '../../components/ui/Pagination';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import { useToast } from '../../components/ui/Toast';
+import { Pagination } from '@/components/dialogs';
+import { ConfirmDialog } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
 import { getAllFAQ, saveFAQItem, deleteFAQItem } from '../../lib/firestore';
