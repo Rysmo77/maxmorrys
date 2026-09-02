@@ -63,8 +63,38 @@ export function isCheckoutPath(path: string): boolean {
   return CHECKOUT_PATHS.some((root) => isUnder(path, root));
 }
 
-/** Contextes d'arrivée qui justifient de présenter l'offre de formation à un inconnu. */
-const DISCOVERY_SOURCES: readonly EntrySource[] = ['search', 'clientFooter'];
+/**
+ * Devis nominatifs. Ce ne sont pas des tunnels de paiement, mais ils s'en protègent pareil.
+ *
+ * ⚠️ Corrigé le 2026-09-02. `cartRecovery` n'excluait que `isCheckoutPath()` : un commerçant
+ * qui avait un jour abandonné un panier FORMATION recevait, en ouvrant son DEVIS agence, une
+ * fenêtre lui parlant d'une formation en marketing digital. Deux territoires et deux offres sur
+ * le même écran — exactement la faute de couleur que `PresenceDevis.tsx` documente avoir
+ * corrigée dans sa mise en page, et qui repassait par la fenêtre.
+ *
+ * Un devis est un document contractuel qu'on lit sur WhatsApp. Rien ne s'y superpose.
+ */
+const QUOTE_PATHS: readonly string[] = ['/presence-digitale/devis', '/agence/devis'];
+
+export function isQuotePath(path: string): boolean {
+  return QUOTE_PATHS.some((root) => isUnder(path, root));
+}
+
+/**
+ * Contextes d'arrivée qui justifient de présenter l'offre de formation à un inconnu.
+ *
+ * ⚠️ `social` a été AJOUTÉ le 2026-09-02, et son absence était un angle mort, pas une décision.
+ * `entrySource.ts` entretient une liste `SOCIAL_HOSTS` à la main pour détecter les arrivées
+ * depuis YouTube, Instagram et TikTok — c'est-à-dire le canal de publication principal — et
+ * aucune règle de ce registre ne s'en servait. Le seul segment que la seule règle pilotée par
+ * la source excluait était donc l'audience la plus chaude du site : des gens qui arrivent
+ * parce qu'ils connaissent déjà l'auteur.
+ *
+ * Ce que `social` ne recouvre PAS : un partage de lien entre deux personnes sur WhatsApp est
+ * classé `direct` faute de référent, et reste donc hors découverte. C'est voulu — on ne sait
+ * rien de son intention.
+ */
+const DISCOVERY_SOURCES: readonly EntrySource[] = ['search', 'clientFooter', 'social'];
 
 /**
  * Pages où « Je te forme » ne doit pas s'inviter : le visiteur y est déjà, ou il est dans un
@@ -85,7 +115,7 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
     id: 'cartRecovery',
     trigger: 'return',
     mobileSurface: 'sheet',
-    eligible: (c) => c.hasPendingCart && !isCheckoutPath(c.path),
+    eligible: (c) => c.hasPendingCart && !isCheckoutPath(c.path) && !isQuotePath(c.path),
   },
 
   /*
@@ -97,6 +127,27 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
     trigger: 'exitIntent',
     mobileSurface: 'modal',
     eligible: (c) => isUnder(c.path, '/formations') && c.path !== '/formations',
+  },
+
+  /*
+    Club des Digitos. Ajoutée le 2026-09-02, et c'est la seule pop-up du registre adossée à une
+    offre RÉELLEMENT achetable aujourd'hui : au relevé du 30 août 2026 la base porte 0 formation
+    publiée, tandis que l'abonnement — sessions en direct, ateliers, quota de tuteur — ne dépend
+    pas du catalogue.
+
+    ⚠️ Elle ne redit PAS le prix, ni ce que contient l'abonnement : la page les affiche déjà
+    trois fois. Son seul objet est de nommer l'étape que la page CACHE — le bouton « Je rejoins
+    le Club » pointe vers `/mon-espace/club`, qui est gardé. Un visiteur déconnecté y rencontre
+    un mur de connexion sans avoir été prévenu, et c'est là qu'il se perd.
+
+    Modale assumée à toutes les tailles : le visiteur a cliqué pour venir sur cette page, la
+    fenêtre ne s'invite pas dans une arrivée organique.
+  */
+  {
+    id: 'clubExit',
+    trigger: 'exitIntent',
+    mobileSurface: 'modal',
+    eligible: (c) => c.path === '/club-des-digitos' && !c.isSignedIn,
   },
 
   /*
@@ -133,6 +184,29 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
     trigger: 'scroll',
     mobileSurface: 'sheet',
     eligible: (c) => isUnder(c.path, '/blog') && c.path !== '/blog' && !c.isSignedIn,
+  },
+
+  /*
+    Fin d'un podcast ou d'une vidéo. Ces deux fiches sont des CULS-DE-SAC : contrairement à
+    l'article de blog, qui porte `FormationCTA` en bas, `VideoDetail` et `PodcastDetail` ne
+    proposent AUCUNE suite — leur seul bouton renvoie vers le pôle média d'où l'on vient.
+
+    ⚠️ Elle envoie vers la page publique du Club, jamais vers l'abonnement. Quelqu'un qui vient
+    de regarder une vidéo gratuite n'est pas à un clic d'un engagement de douze mois.
+
+    ⚠️ `sheet` sous `lg`, et déclencheur `scroll` : ces fiches reçoivent du trafic social et de
+    recherche, et `MediaPole` pose une règle que cette fenêtre respecte — « le Club EN BAS,
+    jamais devant ». À 90 % de lecture, on est en bas.
+  */
+  {
+    id: 'mediaEnd',
+    trigger: 'scroll',
+    mobileSurface: 'sheet',
+    eligible: (c) =>
+      !c.isSignedIn
+      && (isUnder(c.path, '/podcasts') || isUnder(c.path, '/videos'))
+      && c.path !== '/podcasts'
+      && c.path !== '/videos',
   },
 
   /*

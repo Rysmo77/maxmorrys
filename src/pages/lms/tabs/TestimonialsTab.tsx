@@ -192,8 +192,22 @@ export default function TestimonialsTab({
    * invisible, y compris pour qui a demandé moins de mouvement (le repli ramène les durées à
    * 1 ms, il ne rend pas `.rv` visible — c'est `useReveal` qui pose `.play` d'emblée).
    */
+  /*
+    ── DEUX COLONNES DE TRAVAIL, PAS UN PANNEAU ─────────────────────────────────────
+    Même arbitrage que `ProfilDesktop` dans `handoff_tableaux_de_bord` : cet écran n'a
+    aucun « contexte permanent » à afficher à côté — ce qu'on écrit et ce qu'on a déjà
+    envoyé sont deux moitiés du MÊME travail, pas un travail et son cadre. Un panneau de
+    340 px rempli pour ne pas rester vide est exactement ce que le README interdit.
+
+    Ce que la largeur achète : voir ce qu'on a déjà envoyé PENDANT qu'on en écrit un
+    autre. C'était impossible en une colonne — la liste vivait sous un formulaire de six
+    hauteurs d'écran, donc on écrivait sans savoir si on se répétait.
+
+    La colonne de saisie garde `max-w-2xl` : la règle d'élargissement ne s'étire pas.
+  */
   return (
-    <div ref={reveal} className="max-w-2xl">
+    <div ref={reveal} className="wide:grid wide:grid-cols-2 wide:items-start wide:gap-6">
+      <div className="min-w-0 max-w-2xl">
       {/* ── Ce que tu écris ────────────────────────────────────────────────── */}
       <SiteEyebrow>{t('testimonials.shareTitle')}</SiteEyebrow>
       <GlassPanel level="flat" padding={18}>
@@ -295,8 +309,13 @@ export default function TestimonialsTab({
       {/* Ce qui arrive au texte après l'envoi, dit avant qu'on le demande. */}
       <p className="text-small text-ink-2 mt-2">{t('testimonials.publishNote')}</p>
 
+      </div>
+
+      {/* La marge haute vit sur la COLONNE : `SiteEyebrow` réserve son `className` à la
+          couleur, et son `style` en ligne battrait une classe responsive. */}
+      <div className="mt-[22px] min-w-0 max-w-2xl wide:mt-0">
       {/* ── Ce que tu as envoyé ────────────────────────────────────────────── */}
-      <SiteEyebrow style={{ marginTop: '22px' }}>{t('testimonials.myReviews')}</SiteEyebrow>
+      <SiteEyebrow>{t('testimonials.myReviews')}</SiteEyebrow>
 
       {loadingTestimonials ? (
         <GlassPanel level="flat" padding={18}>
@@ -345,6 +364,7 @@ export default function TestimonialsTab({
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

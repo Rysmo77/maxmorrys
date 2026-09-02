@@ -43,11 +43,37 @@ export interface SiteDisplayProps {
    * chaîne passée à `lines`.
    */
   wrap?: boolean;
+  /**
+   * UN FRAGMENT DU TITRE SE REMPLIT DE L'ARC, à l'entrée puis au survol (AD-23).
+   *
+   * Le fragment est marqué DANS LA CHAÎNE, entre crochets — « AU [DIGITAL]. ». C'est le seul
+   * endroit où il peut vivre : AD-13 pose que les titres ne sont pas traduits mais ÉCRITS par
+   * langue, avec leurs propres coupures. La mise en valeur est une décision de rédaction au
+   * même titre que la coupure, et elle change de place d'une langue à l'autre — « LE CLUB DES
+   * / [DIGITOS.] » en français, « THE [DIGITOS] / CLUB. » en anglais. La sortir de la chaîne
+   * aurait obligé à la maintenir en double, dans un tableau d'index que rien ne relie au texte.
+   *
+   * C'EST UN OPT-IN, ET PAS PAR PRUDENCE DE PRINCIPE. `lines` reçoit aussi des titres venus de
+   * Firestore — un article, une formation, un épisode. Analyser toutes les lignes ferait
+   * disparaître les crochets d'un titre qui en contient légitimement, sans que personne
+   * l'écrive nulle part. Le défaut ne touche donc à rien, et les neuf héros du site le
+   * demandent.
+   */
+  arc?: boolean;
   id?: string;
   style?: CSSProperties;
 }
 
-export function SiteDisplay({ lines, size = 64, as: Tag = 'h1', from = 0, wrap = false, id, style }: SiteDisplayProps) {
+/**
+ * Découpe une ligne sur ses crochets. Les segments d'index impair sont ceux qui étaient
+ * entre crochets — `split` sur un groupe capturant les intercale, et une ligne commence
+ * toujours par un segment nu, fût-il vide.
+ */
+function segments(line: string) {
+  return line.split(/\[([^\]]*)\]/g);
+}
+
+export function SiteDisplay({ lines, size = 64, as: Tag = 'h1', from = 0, wrap = false, arc = false, id, style }: SiteDisplayProps) {
   /*
    * ── LA TAILLE EST FLUIDE, PARCE QUE LA COUPURE EST ÉCRITE ────────────────────────────
    *
@@ -112,7 +138,14 @@ export function SiteDisplay({ lines, size = 64, as: Tag = 'h1', from = 0, wrap =
             ...(wrap ? { overflowWrap: 'break-word', textWrap: 'balance' } : null),
           } as CSSProperties}
         >
-          {line}
+          {arc
+            ? segments(line).map((part, j) =>
+                // Impair = entre crochets. `.mm-arc` hérite du `--i` de la ligne : le
+                // remplissage part quand sa ligne part, et dure aussi longtemps qu'elle.
+                j % 2 === 1
+                  ? <span key={j} className="mm-arc">{part}</span>
+                  : part)
+            : line}
         </span>
       ))}
     </Tag>

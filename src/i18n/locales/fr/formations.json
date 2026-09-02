@@ -151,7 +151,7 @@
   },
   "index": {
     "eyebrow": "Je te forme",
-    "lifetimeLine": "Accès à vie.",
+    "lifetimeLine": "[Accès à vie.]",
     "countLine_one": "{{count}} formation.",
     "countLine_other": "{{count}} formations.",
     "lede": "Chaque formation est retravaillée quand le sujet bouge, et tu gardes l'accès à la version corrigée sans repayer.",

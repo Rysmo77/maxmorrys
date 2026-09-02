@@ -344,6 +344,7 @@ export default function Home() {
             {/* 60 px, et les réglages portés par `SiteDisplay` — les valeurs du kit.
                 `from={1}` décale la cascade d'un cran : le sourcil occupe le premier. */}
             <SiteDisplay
+              arc
               lines={t('hero.titleLines', { returnObjects: true }) as string[]}
               size={60}
               from={1}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, GlassPanel, Icon, LessonRow, Num, Skeleton, Tag } from '@ds';
+import SpaceSplit from '../components/SpaceSplit';
 import type { TagTone } from '@ds';
 import { useLocalizedPath } from '../../../contexts/LanguageContext';
 import { useFormat } from '../../../hooks/useFormat';
@@ -126,7 +127,36 @@ export default function PaymentsTab({ userId }: PaymentsTabProps) {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-[18px] py-6">
+    <div className="mx-auto max-w-4xl px-[18px] py-6 wide:max-w-none wide:px-pane">
+      {/*
+        ── L'ENCART DE VÉRITÉ DEVIENT LE PANNEAU PERMANENT ─────────────────────────
+        `handoff_tableaux_de_bord` ne dessine pas cet écran. Il donne en revanche la règle
+        qui décide ce qu'un panneau de 340 px a le droit de porter : « une page sans panneau
+        n'affiche pas un panneau vide », et le seul gain réel de la largeur est de faire
+        d'une chose qu'on OUVRE une chose qu'on VOIT.
+
+        L'encart de vérité était en bas, après la liste. Il se lisait donc une fois, le
+        premier jour, puis jamais — c'est-à-dire qu'il disparaissait à mesure que la liste
+        grandissait, exactement au moment où sa mise en garde commence à servir. C'est
+        l'argument que `NotificationCenter` écrit déjà pour son propre aveu : « il ne vivait
+        que dans l'état vide ; dès la première notification, la phrase qui dit "aucun e-mail
+        ne part" disparaissait ».
+
+        En colonne, il reste. Et il ne coûte rien : c'est du texte traduit, pas une lecture.
+        En dessous de 1080 px, `SpaceSplit` le remet là où il était — sous la liste.
+      */}
+      <SpaceSplit
+        asideLabel={t('payments.truthTitle')}
+        aside={(
+          <GlassPanel level="truth">
+            <p className="mm-eyebrow m-0 mb-[6px]">{t('payments.truthTitle')}</p>
+            <p className="m-0 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
+              {t('payments.truthBody')}
+            </p>
+          </GlassPanel>
+        )}
+      >
+
       {/* ── Le compte, daté ──────────────────────────────────────────────────
           Il n'est pas décoratif : « 0 paiement · relevé du 01/09 » est une information,
           un tiret n'en est pas une. Il ne s'affiche donc pas tant qu'il n'est pas relevé —
@@ -218,14 +248,7 @@ export default function PaymentsTab({ userId }: PaymentsTabProps) {
           ))}
         </GlassPanel>
       )}
-
-      {/* L'encart de vérité : ce que cet écran NE fait PAS. Un sourcil, un paragraphe. */}
-      <GlassPanel level="truth" className="mt-[16px]">
-        <p className="mm-eyebrow m-0 mb-[6px]">{t('payments.truthTitle')}</p>
-        <p className="m-0 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
-          {t('payments.truthBody')}
-        </p>
-      </GlassPanel>
+      </SpaceSplit>
     </div>
   );
 }

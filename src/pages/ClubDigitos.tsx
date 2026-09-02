@@ -148,7 +148,7 @@ export default function ClubDigitos() {
         <div className="mt-[26px] grid items-center gap-12 wide:grid-cols-[1.08fr_.92fr]">
           <div>
             <SiteEyebrow>{t('publicPage.eyebrow')}</SiteEyebrow>
-            <SiteDisplay lines={t('publicPage.titleLines', { returnObjects: true }) as string[]} size={58} from={1} />
+            <SiteDisplay arc lines={t('publicPage.titleLines', { returnObjects: true }) as string[]} size={58} from={1} />
 
             <p className="rv mt-[18px] max-w-[44ch] text-[17px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 4 }}>
               {t('publicPage.lede')}

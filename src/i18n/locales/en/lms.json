@@ -304,7 +304,8 @@
   "rysmoPage": {
     "tabTokens": "Tokens & subscriptions",
     "tabMemory": "Memory",
-    "subtitle": "Your AI tutor: tokens, subscriptions and memory."
+    "subtitle": "Your AI tutor: tokens, subscriptions and memory.",
+    "tabsLabel": "What you are setting for {{tutor}}"
   },
   "mediaRecorder": {
     "fileTooLarge": "File too large (max 100 MB).",

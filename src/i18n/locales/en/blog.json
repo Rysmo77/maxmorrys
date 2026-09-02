@@ -59,7 +59,7 @@
   },
   "index": {
     "eyebrow": "I'll keep you posted",
-    "freeLine": "All free.",
+    "freeLine": "[All free.]",
     "countLine_one": "{{count}} article.",
     "countLine_other": "{{count}} articles.",
     "lede": "Methods, not opinions. What works for a shop in Dakar, written to be applied the same evening.",

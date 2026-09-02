@@ -49,6 +49,7 @@ import { ToastProvider } from '@ds';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import PageMesh from './components/layout/PageMesh';
+import { universeFromPath, universeThemes } from './lib/sectionThemes';
 import { OfflineBanner, PageSkeleton } from './components/states';
 import CookieBanner from './components/shared/CookieBanner';
 import LanguageSuggestionBanner from './components/shared/LanguageSuggestionBanner';
@@ -201,6 +202,20 @@ function PageTransition({ children }: { children: ReactNode }) {
 
 function PublicLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
+  /*
+    LA ROTATION DE L'ARC (AD-23) VIENT DE LA MÊME TABLE QUE LE MAILLAGE.
+
+    Le fragment mis en valeur dans chaque titre démarre sur la teinte de sa page — sinon le
+    titre ouvrirait sur du bleu au milieu d'une page orange, et le maillage cesserait d'être
+    le repère de territoire continu qu'il est. `universeFromPath` décide déjà du fond ; lui
+    faire décider aussi de l'arc garde UNE seule source, au lieu d'une prop à passer sur neuf
+    pages et à oublier sur la dixième.
+
+    L'agence n'a pas de maillage — elle vit hors des quatre verbes — mais elle a une teinte
+    déclarée, le corail, qu'elle porte déjà dans la barre haute et ses sourcils (AD-20).
+  */
+  const { pathname } = useLocation();
+  const arc = universeThemes[universeFromPath(pathname)].mesh ?? 'agence';
   return (
     <>
       <MetaPixelTracker />
@@ -223,7 +238,7 @@ function PublicLayout() {
       )}
       {/* `relative z-[1]` : le maillage est fixé à la fenêtre en `z-0`, le contenu se pose
           dessus. Sans ça, une couche positionnée peindrait par-dessus le texte. */}
-      <main id="main-content" className="relative z-[1] min-h-screen">
+      <main id="main-content" data-arc={arc} className="relative z-[1] min-h-screen">
         <PageTransition>
           <Outlet />
         </PageTransition>

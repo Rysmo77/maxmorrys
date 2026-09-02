@@ -237,7 +237,11 @@
     "emptyBody": "Nothing in this queue. The filter above gives access to closed challenges.",
     "delete": "Delete challenge",
     "activeHint": "An open challenge shows to members. Closed, it leaves their screen without being deleted.",
-    "scope": "The start and end dates are decorative: nothing closes a challenge when its end date passes, the switch alone decides what members see. No entry is recorded, no winner is picked, no reward is granted — the “reward” field is displayed text, not an object handed over. Tracking who took part happens entirely outside this console."
+    "scope": "The start and end dates are decorative: nothing closes a challenge when its end date passes, the switch alone decides what members see. No entry is recorded, no winner is picked, no reward is granted — the “reward” field is displayed text, not an object handed over. Tracking who took part happens entirely outside this console.",
+    "futureTitle": "What a challenge will be able to do, once there is one",
+    "futureXp": "Award experience on the first completion, not the following ones",
+    "futureClose": "Close on a date set in advance, never “when enough people have played”",
+    "futureNoMoney": "No cash or discount reward — that would be a prize draw, with its legal obligations"
   },
   "members": {
     "empty": "No member profiles.",
@@ -418,5 +422,24 @@
     "cancel": "Cancel",
     "create": "Create user",
     "creating": "Creating..."
+  },
+  "panel": {
+    "eyebrow": "The next deadline",
+    "loading": "Reading the agenda…",
+    "empty": "Nothing scheduled. The agenda is published a month ahead: that is a commitment made on the Club's public page, and an empty agenda is visible to members.",
+    "kindOnline": "online",
+    "kindInPerson": "in person",
+    "kindSession": "live session",
+    "docDate": "Date",
+    "docTime": "Time",
+    "docFormat": "Format",
+    "docWhere": "Location",
+    "docDuration": "Duration",
+    "upcomingCount_one": "upcoming deadline in total",
+    "upcomingCount_other": "upcoming deadlines in total",
+    "commitmentTitle": "The commitment kept",
+    "commitmentBody": "The session takes place even if there are four of us. It is one of the lines sold on the Club's public page: cancelling for lack of attendance would make it false.",
+    "reminderTitle": "What will not go out",
+    "reminderBody": "No automatic reminder before a session: the email channel does not exist, and in-app notifications cannot be scheduled. A registered member who does not reopen the app will not be warned."
   }
 }

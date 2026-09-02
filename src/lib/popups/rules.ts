@@ -28,7 +28,9 @@ export type PopupId =
   | 'formationExit'
   | 'presenceExit'
   | 'blogEnd'
-  | 'cartRecovery';
+  | 'cartRecovery'
+  | 'clubExit'
+  | 'mediaEnd';
 
 /** Motif de blocage, ou `null` si la pop-up peut s'afficher. Consommé par le diagnostic. */
 export type PopupBlocker = 'sessionCap' | 'cooldown' | 'suppressed' | 'noStorage';

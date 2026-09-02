@@ -119,6 +119,25 @@
       "text": "Your course is still waiting. Only the payment is left to complete.",
       "cta": "Complete my enrolment",
       "dismiss": "Later"
+    },
+    "clubExit": {
+      "title": "There's one step first",
+      "eyebrow": "Before you close this",
+      "sticker": "Free account",
+      "text": "The “Join the Club” button leads to your space, and your space needs an account. The account is free and takes a minute. The subscription itself comes right after, from the Club tab.",
+      "cta": "Create my account",
+      "secondary": "I already have an account",
+      "dismiss": "Later",
+      "note": "No payment starts here: the amount is recalculated in your space."
+    },
+    "mediaEnd": {
+      "title": "The rest happens live",
+      "eyebrow": "You made it to the end",
+      "sticker": "The hub stays free",
+      "text": "Podcasts and videos stay free to access, this one included. What isn't: the live sessions, the workshops and the Club missions — where you practise instead of listen.",
+      "cta": "See what the Club includes",
+      "secondary": "Keep listening",
+      "dismiss": "No thanks"
     }
   },
   "articleCard": {

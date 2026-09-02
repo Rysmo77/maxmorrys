@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, Tag } from '@ds';
+import { Button, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { Modal } from '@/components/dialogs';
 import ImageInput from '@/components/forms/ImageInput';
@@ -38,6 +38,14 @@ export default function AdminVideos() {
     draft: `${t('videos.console.stageDrafts')} ${v.counts.draft}`,
   };
 
+  /* Le cumul des vues vient des documents, donc de la dernière synchronisation. Il DATE
+     entre deux passages, et c'est ce que sa date de relevé dit — le pied de l'écran le
+     répète pour qui lirait le nombre sans la date. */
+  const totalViews = v.videos.reduce((n, item) => n + (item.views ?? 0), 0);
+  /* Une vidéo PUBLIÉE sans `slug_en` n'a pas d'URL anglaise distincte : le slug s'écrit à
+     l'enregistrement, donc son absence veut dire « jamais repassée par cette console ». */
+  const missingEn = v.videos.filter((item) => item.status === 'published' && !item.slug_en).length;
+
   const rowState = (item: Video) => (item.status === 'published'
     ? { tone: 'ok' as const, label: t('videos.statusPublished'), ink: 'var(--ok)' }
     : { tone: 'warn' as const, label: t('videos.statusDraft'), ink: 'var(--warn)' });
@@ -73,6 +81,38 @@ export default function AdminVideos() {
         }}
         label={t('videos.console.filterLabel')}
       />
+
+      {/*
+        ── LE RELEVÉ DATÉ — `handoff_tableaux_de_bord` § VideosDesktop ──────────────────
+        La maquette pose « Vidéos · Avec 480p · Poids HD moyen », et son pied en fait la
+        règle de l'écran : « les deux qualités sont obligatoires avant publication ».
+
+        AUCUNE DES DEUX QUALITÉS N'EST MESURABLE ICI. `Video` ne porte ni liste de rendus,
+        ni poids : les vidéos sont hébergées chez YouTube, cet écran n'en tient que la fiche,
+        et le pied de l'écran le dit déjà — « aucune vidéo n'est hébergée ici ». Deux cases
+        inventées, datées, dans une bande de relevés, seraient exactement le mensonge que la
+        règle 6 nomme.
+
+        CE QUI EST MESURÉ L'EST : le cumul des vues, tel que la dernière synchronisation l'a
+        écrit. Sa case porte cette date — et sa fraîcheur est justement la question, puisque
+        le nombre ne bouge qu'au passage de la synchronisation.
+      */}
+      <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
+        <StatTile
+          label={t('videos.console.tileViews')}
+          value={v.loading ? null : totalViews}
+          source="db"
+          asOf={v.loadedAt ?? new Date()}
+          foot={t('videos.console.tileViewsFoot')}
+        />
+        <StatTile
+          label={t('videos.console.tileNoEn')}
+          value={v.loading ? null : missingEn}
+          source="db"
+          asOf={v.loadedAt ?? new Date()}
+          foot={t('videos.console.tileNoEnFoot')}
+        />
+      </div>
 
       <Field
         type="search"

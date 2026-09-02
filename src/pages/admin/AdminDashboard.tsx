@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { getPlatformStats, subscribeMessages, getAllAgencyLeads, getAgencyStats, updateAgencyLeadStatus } from '../../lib/firestore';
 import type { AgencyStats } from '../../lib/firestore';
@@ -223,22 +223,22 @@ export default function AdminDashboard() {
     <div className="play">
       <ConsolePage title={t('dashboard.title')} sub={t('dashboard.sub')}>
         {/*
-          ── LA TROISIÈME COLONNE, ET SEULEMENT À PARTIR DE 1080 ─────────────────────
-          `handoff_tableaux_de_bord` compose la console en 1440 : navigation 230 · liste
-          fluide · détail 380. La première colonne existe déjà — `AppShell` la pose et la
-          décale de 250 px. Cet écran n'ajoute donc que la troisième.
-
-          `wide:` (1080 px) est la seule rupture du système au-dessus de la tablette ; en
-          dessous, la grille ne s'arme pas et le panneau redevient un bloc empilé sous la
-          file. C'est la même valeur que les cases de relevé prennent déjà, et ça évite
-          d'introduire une quatrième rupture que le kit ne déclare pas.
-
-          Le panneau est COLLANT, pas fixe : « la file reste visible pendant qu'on traite »
-          suppose qu'on puisse défiler la file sans perdre le détail — et l'inverse, qu'un
-          détail plus haut que la fenêtre reste lisible, d'où son propre défilement.
+          LA TROISIÈME COLONNE. Le motif — 1080 px, panneau collant, pas de colonne sans
+          contenu — vit dans `ConsoleSplit`, écrit une fois pour les dix-neuf écrans.
         */}
-        <div className="wide:grid wide:grid-cols-[minmax(0,1fr)_380px] wide:items-start wide:gap-5">
-          <div className="min-w-0">
+        <ConsoleSplit
+          detailLabel={t('dashboard.panelEyebrow')}
+          detail={
+            <LeadPanel
+              lead={selectedLead}
+              loading={loading}
+              onAdvance={handleAdvance}
+              onOpenFull={() => navigate('/admin/prospects-agence')}
+              updating={updatingLead}
+              asOf={asOf}
+            />
+          }
+        >
         {shopClosed && stats && (
           <GlassPanel
             level="night"
@@ -441,22 +441,7 @@ export default function AdminDashboard() {
         )}
 
         <ConsoleScope>{t('dashboard.scope')}</ConsoleScope>
-          </div>
-
-          <aside
-            className="mt-4 wide:mt-0 wide:sticky wide:top-2 wide:max-h-[calc(100vh-5rem)] wide:overflow-y-auto"
-            aria-label={t('dashboard.panelEyebrow')}
-          >
-            <LeadPanel
-              lead={selectedLead}
-              loading={loading}
-              onAdvance={handleAdvance}
-              onOpenFull={() => navigate('/admin/prospects-agence')}
-              updating={updatingLead}
-              asOf={asOf}
-            />
-          </aside>
-        </div>
+        </ConsoleSplit>
       </ConsolePage>
     </div>
   );

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import LocalizedLink from '../shared/LocalizedLink';
 import PopupHeading from './PopupHeading';
 import { whatsappUrl } from '../../lib/presence/whatsapp';
-import { CTA_LAGOON, DISMISS, BODY, ACTIONS } from './popupStyles';
+import { CTA_LAGOON, DISMISS, BODY, ACTIONS, LINK_LAGOON } from './popupStyles';
 import { Icon } from '@ds';
 
 /**
@@ -54,7 +54,7 @@ export default function PresenceExitPopup({ onAccept, onSecondary, onDismiss }: 
         <LocalizedLink
           to="/presence-digitale#packs"
           onClick={onSecondary}
-          className="text-xs font-semibold text-digitalise-txt hover:text-digitalise-txt transition-colors focus:outline-none rounded"
+          className={LINK_LAGOON}
         >
           {t('popups.presenceExit.secondary')}
         </LocalizedLink>

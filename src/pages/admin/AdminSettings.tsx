@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, DocLine, Field, GlassPanel, Icon, Segmented, Skeleton, Switch, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleScope } from '../../components/console';
+import { ConsolePage, ConsoleFilter, ConsoleScope, ConsoleSplit } from '../../components/console';
+import RolesPanel from './components/RolesPanel';
 import { SiteEyebrow } from '../../components/site';
 import { getSiteSettings, saveSiteSettings } from '../../lib/firestore';
 import { captureError } from '../../lib/sentry';
@@ -53,6 +54,8 @@ interface Settings {
   popup_presenceExit: boolean;
   popup_blogEnd: boolean;
   popup_cartRecovery: boolean;
+  popup_clubExit: boolean;
+  popup_mediaEnd: boolean;
   /*
     Part du trafic exposée aux pop-ups ; le reste sert de groupe témoin et n'en voit aucune.
     ⚠️ La descendre à 1 supprime le témoin — et avec lui toute possibilité de savoir si les
@@ -85,6 +88,8 @@ const DEFAULT: Settings = {
   popup_presenceExit: true,
   popup_blogEnd: true,
   popup_cartRecovery: true,
+  popup_clubExit: true,
+  popup_mediaEnd: true,
   popupTreatmentShare: 0.5,
 };
 
@@ -144,7 +149,9 @@ export default function AdminSettings() {
     { key: 'popup_formationExit', label: t('settings.popupFormationExitLabel'), desc: t('settings.popupFormationExitDesc') },
     { key: 'popup_presenceExit', label: t('settings.popupPresenceExitLabel'), desc: t('settings.popupPresenceExitDesc') },
     { key: 'popup_cartRecovery', label: t('settings.popupCartRecoveryLabel'), desc: t('settings.popupCartRecoveryDesc') },
+    { key: 'popup_clubExit', label: t('settings.popupClubExitLabel'), desc: t('settings.popupClubExitDesc') },
     { key: 'popup_blogEnd', label: t('settings.popupBlogEndLabel'), desc: t('settings.popupBlogEndDesc') },
+    { key: 'popup_mediaEnd', label: t('settings.popupMediaEndLabel'), desc: t('settings.popupMediaEndDesc') },
     { key: 'popup_formationsEntry', label: t('settings.popupFormationsEntryLabel'), desc: t('settings.popupFormationsEntryDesc') },
   ];
 
@@ -178,6 +185,13 @@ export default function AdminSettings() {
 
   return (
     <ConsolePage title={t('settings.pageTitle')} sub={t('settings.sub')}>
+      {/* ── LA TROISIÈME COLONNE — `handoff_tableaux_de_bord` § ParametresDesktop ────────
+          La maquette y met « Rôles et portée » et « Ce qu'un garde de route ne fait pas ».
+          C'est le seul écran où le panneau ne dépend d'AUCUNE sélection : il dit une
+          propriété du produit, pas l'état d'une ligne. Il reste donc identique quelle que
+          soit la section ouverte — et c'est ce qui le rend lisible pendant qu'on règle un
+          prix ou un interrupteur, c'est-à-dire au moment où l'on croit décider seul. */}
+      <ConsoleSplit detailLabel={t('settings.panelRolesEyebrow')} detail={<RolesPanel />}>
       <ConsoleFilter
         stages={sections.map((s) => s.label)}
         active={sections.find((s) => s.key === section)?.label}
@@ -321,6 +335,7 @@ export default function AdminSettings() {
       )}
 
       <ConsoleScope>{t('settings.scope')}</ConsoleScope>
+      </ConsoleSplit>
     </ConsolePage>
   );
 }

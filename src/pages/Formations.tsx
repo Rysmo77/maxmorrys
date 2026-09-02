@@ -100,6 +100,7 @@ export default function Formations() {
       <PageSite>
         <SiteEyebrow>{t('index.eyebrow')}</SiteEyebrow>
         <SiteDisplay
+          arc
           lines={[t('index.countLine', { count: formations.length }), t('index.lifetimeLine')]}
           size={52}
           from={1}

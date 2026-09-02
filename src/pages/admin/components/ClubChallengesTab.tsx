@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, Icon, LessonRow, Switch, Tag, useToast } from '@ds';
+import { Button, CheckLine, EmptyState, Field, GlassPanel, Icon, LessonRow, Switch, Tag, useToast } from '@ds';
 import { ConsoleFilter, ConsoleList, ConsoleScope } from '../../../components/console';
 import ConsoleSheet from './ConsoleSheet';
+import { SiteEyebrow } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
 import { getClubChallenges, saveClubChallenge, deleteClubChallenge } from '../../../lib/firestore';
 import { captureError } from '../../../lib/sentry';
@@ -123,13 +124,31 @@ export default function ClubChallengesTab() {
 
       <div className="mt-3">
         {filtered.length === 0 ? (
-          <EmptyState
-            glyph={<Icon name="trophy" size={26} color="var(--mm-violet)" />}
-            glyphBackground="color-mix(in srgb, var(--mm-violet) 20%, transparent)"
-            title={t('challenges.empty')}
-            body={t('challenges.emptyBody')}
-            action={<Button size="sm" onClick={() => openForm()}>{t('challenges.new')}</Button>}
-          />
+          <>
+            <EmptyState
+              glyph={<Icon name="trophy" size={26} color="var(--mm-violet)" />}
+              glyphBackground="color-mix(in srgb, var(--mm-violet) 20%, transparent)"
+              title={t('challenges.empty')}
+              body={t('challenges.emptyBody')}
+              action={<Button size="sm" onClick={() => openForm()}>{t('challenges.new')}</Button>}
+            />
+            {/*
+              ── CE QU'UN DÉFI POURRA FAIRE, QUAND IL Y EN AURA ──────────────────────
+              `handoff_tableaux_de_bord` § DefisDesktop. Le handoff dessine ses cinq écrans
+              à zéro plutôt que de les laisser vides, et dit pourquoi : « un écran vide qu'on
+              ne dessine pas finit par afficher des données d'exemple le jour où il se
+              remplit ». Ces trois lignes sont les RÈGLES du dispositif, pas sa publicité :
+              elles sont écrites avant le premier défi, donc avant qu'un cas particulier ne
+              vienne les négocier. La troisième est une contrainte légale, pas un arbitrage
+              de produit — une récompense en argent ou en remise ferait un concours.
+            */}
+            <GlassPanel level="night" padding={18} className="rv mt-3.5" style={{ ['--i' as string]: 4 }}>
+              <SiteEyebrow style={{ marginBottom: '8px' }}>{t('challenges.futureTitle')}</SiteEyebrow>
+              <CheckLine tone="ok">{t('challenges.futureXp')}</CheckLine>
+              <CheckLine tone="ok">{t('challenges.futureClose')}</CheckLine>
+              <CheckLine tone="neutre" dash>{t('challenges.futureNoMoney')}</CheckLine>
+            </GlassPanel>
+          </>
         ) : (
           <ConsoleList label={t('challenges.listLabel')}>
             {filtered.map((c, i) => (

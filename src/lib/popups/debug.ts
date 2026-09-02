@@ -30,6 +30,8 @@ const KNOWN_IDS: readonly PopupId[] = [
   'presenceExit',
   'blogEnd',
   'cartRecovery',
+  'clubExit',
+  'mediaEnd',
 ];
 
 function isPopupId(value: string): value is PopupId {

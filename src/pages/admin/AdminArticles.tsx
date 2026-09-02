@@ -1,7 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import {
-  Button, Field, GlassPanel, Icon, LessonRow, Num, Segmented, Skeleton, Switch, Tag,
-} from '@ds';
+import { Button, Field, GlassPanel, Icon, LessonRow, Num, Segmented, Skeleton, StatTile, Switch, Tag } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { Modal } from '@/components/dialogs';
 import ImageInput from '@/components/forms/ImageInput';
@@ -64,6 +62,11 @@ export default function AdminArticles() {
     return { tone: 'ok' as const, label: t('articles.statusPublished'), ink: 'var(--ok)' };
   };
 
+  /* Un article PUBLIÉ sans `slug_en` n'a pas d'URL anglaise distincte. Le compte porte sur
+     les publiés seuls : un brouillon sans slug anglais n'est pas un défaut, c'est un
+     brouillon — le slug s'écrit à l'enregistrement. */
+  const missingEn = a.posts.filter((x) => x.status === 'published' && !x.slug_en).length;
+
   const tabs = [t('articles.tabContent'), t('articles.tabSeo')];
   const activeTabLabel = a.activeTab === 'content' ? tabs[0] : tabs[1];
 
@@ -93,6 +96,36 @@ export default function AdminArticles() {
         }}
         label={t('articles.console.filterLabel')}
       />
+
+      {/*
+        ── LE RELEVÉ DATÉ — `handoff_tableaux_de_bord` § ArticlesDesktop ──────────────────
+        La maquette met une bande de cases sur chaque écran de console, et elle dit pourquoi :
+        « chaque case porte sa date de relevé ; une case sans date affiche non relevé, jamais
+        une estimation ».
+
+        LA TROISIÈME CASE EST LA SEULE QUI APPRENNE QUELQUE CHOSE. Publiés et brouillons sont
+        déjà lisibles sur le filtre juste au-dessus ; les répéter ne serait que du décor.
+        « Sans URL anglaise » ne l'est nulle part, et c'est un défaut réel : `slug_en` est
+        rempli automatiquement à l'enregistrement, donc un article publié qui n'en a pas est un
+        article qui n'est jamais repassé par cette console — il n'existe qu'en français, et
+        c'est autant de positions de recherche perdues.
+      */}
+      <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
+        <StatTile
+          label={t('articles.console.tilePublished')}
+          value={a.loading ? null : a.counts.published}
+          source="db"
+          asOf={a.loadedAt ?? new Date()}
+          foot={t('articles.console.tilePublishedFoot', { count: a.counts.draft })}
+        />
+        <StatTile
+          label={t('articles.console.tileNoEn')}
+          value={a.loading ? null : missingEn}
+          source="db"
+          asOf={a.loadedAt ?? new Date()}
+          foot={t('articles.console.tileNoEnFoot')}
+        />
+      </div>
 
       <Field
         type="search"

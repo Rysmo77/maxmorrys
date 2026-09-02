@@ -96,7 +96,10 @@
     "clientsTitle": "Client projects",
     "clientsDesc": "Built for others. They belong to them; I only state the role I held.",
     "venturesTitle": "Products built inside MY ONOMA",
-    "venturesTitleLines": ["Products built", "inside MY ONOMA"],
+    "venturesTitleLines": [
+      "Products built",
+      "inside MY ONOMA"
+    ],
     "venturesDesc": "Products the studio designs, owns and operates. Each one is a brand in its own right.",
     "roleLabel": "Our role",
     "stackLabel": "Stack",
@@ -326,7 +329,7 @@
     "eyebrow": "{{brand}} · {{pillar}} practice",
     "titleLines": [
       "Few projects.",
-      "Run together.",
+      "[Run together.]",
       "End to end."
     ],
     "lede": "Rebuilds, platforms, automation, applied AI. Few projects at a time, framed before they are priced. If it doesn't fit, I'll tell you in one conversation rather than three quotes.",

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, Tag } from '@ds';
+import { Button, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { Modal } from '@/components/dialogs';
 import ImageInput from '@/components/forms/ImageInput';
@@ -39,6 +39,10 @@ export default function AdminPodcasts() {
     published: `${t('podcasts.console.stagePublished')} ${p.counts.published}`,
     imported: `${t('podcasts.console.stageImported')} ${p.counts.imported}`,
   };
+
+  /* La transcription est un champ du document, pas une estimation : un épisode compte comme
+     transcrit quand `transcript` porte du texte, jamais quand la clé existe à vide. */
+  const transcribed = p.podcasts.filter((ep) => (ep.transcript ?? '').trim().length > 0).length;
 
   const rowState = (ep: Podcast) => (ep.status === 'published'
     ? { tone: 'ok' as const, label: t('podcasts.statusPublished'), ink: 'var(--ok)' }
@@ -80,6 +84,36 @@ export default function AdminPodcasts() {
         }}
         label={t('podcasts.console.filterLabel')}
       />
+
+      {/*
+        ── LE RELEVÉ DATÉ — `handoff_tableaux_de_bord` § PodcastsDesktop ─────────────────
+        La maquette pose trois cases : épisodes, transcrits, poids moyen.
+
+        DEUX SONT REPRISES, LA TROISIÈME NON. « Poids moyen · 31 Mo · audio seul » n'a aucune
+        source : `Podcast` ne porte pas de taille de fichier, l'hébergement audio est externe,
+        et rien dans le dépôt ne la mesure. Une case inventée dans une bande de cases DATÉES
+        est pire qu'une case absente — la date lui donnerait l'air d'un relevé.
+
+        « Transcrits » l'est, elle : `transcript` est un champ du document. Et c'est le seul
+        vrai indicateur de complétude d'un épisode — un épisode sans transcription n'est ni
+        cherchable, ni lisible par quelqu'un qui ne peut pas écouter.
+      */}
+      <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
+        <StatTile
+          label={t('podcasts.console.tileTranscribed')}
+          value={p.loading ? null : transcribed}
+          source="db"
+          asOf={p.loadedAt ?? new Date()}
+          foot={t('podcasts.console.tileTranscribedFoot', { count: p.counts.all })}
+        />
+        <StatTile
+          label={t('podcasts.console.tileNoTranscript')}
+          value={p.loading ? null : p.counts.all - transcribed}
+          source="db"
+          asOf={p.loadedAt ?? new Date()}
+          foot={t('podcasts.console.tileNoTranscriptFoot')}
+        />
+      </div>
 
       <Field
         type="search"

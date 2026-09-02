@@ -160,6 +160,7 @@ export default function PresenceDigitale() {
               /* TROIS lignes, comme le kit (`PagesCore.js:207`) : « Ta boutique, / trouvable /
                  sur Google. » Le titre en faisait deux, et le bloc perdait la masse que trois
                  lignes courtes lui donnent — c'est la règle des titres écrits par langue. */
+              arc
               lines={[t('heroTitle1'), t('heroTitle2'), t('heroTitle3')]}
               size={56}
               style={{ marginTop: '9px' }}

@@ -128,7 +128,7 @@ export default function Contact() {
 
           {/* ── LE TRI ─────────────────────────────────────────────────────── */}
           <div>
-            <SiteDisplay lines={t('page.titleLines', { returnObjects: true }) as string[]} size={52} />
+            <SiteDisplay arc lines={t('page.titleLines', { returnObjects: true }) as string[]} size={52} />
 
             {/* 40ch, valeur du kit : le chapô se lit d'un regard, il ne se parcourt pas. */}
             <p className="rv mt-[14px] max-w-[40ch] text-[16px] leading-[1.55] text-ink-2" style={rv(3)}>

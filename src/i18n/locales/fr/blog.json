@@ -59,7 +59,7 @@
   },
   "index": {
     "eyebrow": "Je t'informe",
-    "freeLine": "Tous gratuits.",
+    "freeLine": "[Tous gratuits.]",
     "countLine_one": "{{count}} article.",
     "countLine_other": "{{count}} articles.",
     "lede": "Des méthodes, pas des opinions. Ce qui marche pour un commerce à Dakar, écrit pour être appliqué le soir même.",

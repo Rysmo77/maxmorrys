@@ -4,34 +4,17 @@ import { useAuth } from '../../contexts/AuthContext';
 import type { AppSidebarItem } from './AppSidebar';
 import { isSupportAllowedPath } from '../../lib/adminAccess';
 import { useConsoleCounts } from '../../lib/admin/consoleCounts';
+import { ADMIN_NAV, ADMIN_SECTIONS } from '../../lib/admin/consoleNav';
 
-interface AdminNavItem extends Omit<AppSidebarItem, 'label'> {
-  labelKey: string;
-  titleKey: string;
-}
+/*
+  LA TABLE DES ÉCRANS ET LEURS CINQ FAMILLES VIVENT DANS `lib/admin/consoleNav.ts`.
 
-const ALL_NAV_ITEMS: AdminNavItem[] = [
-  { to: '/admin',                labelKey: 'nav.dashboard',     titleKey: 'nav.dashboardTitle', icon: 'dashboard', end: true },
-  { to: '/admin/articles',       labelKey: 'nav.articles',     titleKey: 'nav.articles',     icon: 'doc' },
-  { to: '/admin/formations',     labelKey: 'nav.formations',   titleKey: 'nav.formations',   icon: 'graduation' },
-  { to: '/admin/podcasts',       labelKey: 'nav.podcasts',     titleKey: 'nav.podcasts',     icon: 'mic' },
-  { to: '/admin/videos',         labelKey: 'nav.videos',       titleKey: 'nav.videos',       icon: 'video' },
-  { to: '/admin/utilisateurs',   labelKey: 'nav.users',        titleKey: 'nav.users',        icon: 'users' },
-  { to: '/admin/transactions',   labelKey: 'nav.transactions', titleKey: 'nav.transactions', icon: 'card' },
-  { to: '/admin/messages',       labelKey: 'nav.messages',     titleKey: 'nav.messages',     icon: 'comment' },
-  { to: '/admin/coupons',        labelKey: 'nav.coupons',      titleKey: 'nav.coupons',      icon: 'tag' },
-  { to: '/admin/annonces',       labelKey: 'nav.announcements',titleKey: 'nav.announcements',icon: 'megaphone' },
-  { to: '/admin/notifications',  labelKey: 'nav.notifications', titleKey: 'nav.notifications', icon: 'bell' },
-  { to: '/admin/faq',            labelKey: 'nav.faq',          titleKey: 'nav.faq',          icon: 'help' },
-  { to: '/admin/temoignages',    labelKey: 'nav.testimonials', titleKey: 'nav.testimonials', icon: 'star' },
-  { to: '/admin/rendez-vous',    labelKey: 'nav.appointments', titleKey: 'nav.appointments', icon: 'calendar' },
-  { to: '/admin/club-digitos',   labelKey: 'nav.club',         titleKey: 'nav.club',         icon: 'crown', tone: 'club' },
-  { to: '/admin/prospects-agence', labelKey: 'nav.agencyLeads', titleKey: 'nav.agencyLeads', icon: 'case' },
-  { to: '/admin/projets',        labelKey: 'nav.missions',     titleKey: 'nav.missions',     icon: 'boxes' },
-  { to: '/admin/analytics',      labelKey: 'nav.analytics',    titleKey: 'nav.analytics',    icon: 'bars' },
-  { to: '/admin/redirections',   labelKey: 'nav.redirects',    titleKey: 'nav.redirects',    icon: 'route' },
-  { to: '/admin/parametres',     labelKey: 'nav.settings',     titleKey: 'nav.settings',     icon: 'settings' },
-];
+  Elles étaient déclarées ici, et l'écran des réglages a besoin exactement de la même
+  chose — `handoff_tableaux_de_bord` § ParametresDesktop lui demande un panneau
+  « Rôles et portée » qui compte les écrans qu'un rôle atteint. Deux déclarations, c'est
+  deux occasions de mentir à la personne sur ce qu'elle a le droit de faire ;
+  `lib/adminAccess.ts` écrit déjà cette phrase pour la moitié support de la question.
+*/
 
 export default function AdminLayout() {
   const { t } = useTranslation('admin');
@@ -41,7 +24,7 @@ export default function AdminLayout() {
   const panelLabel = isSupport ? t('nav.panelSupport') : t('nav.panelAdmin');
 
   const ADMIN_TITLES: Record<string, string> = Object.fromEntries(
-    ALL_NAV_ITEMS.map((item) => [item.to, t(item.titleKey)]),
+    ADMIN_NAV.map((item) => [item.to, t(item.titleKey)]),
   );
 
   // Le menu et le garde de route (`AdminRoute`) lisent la MÊME table — `lib/adminAccess`.
@@ -79,10 +62,10 @@ export default function AdminLayout() {
       }
     : {};
 
-  const items: AppSidebarItem[] = ALL_NAV_ITEMS
+  const items: AppSidebarItem[] = ADMIN_NAV
     .filter((item) => isAdmin || isSupportAllowedPath(item.to))
-    .map(({ to, labelKey, icon, end, tone, badge, locked }) => ({
-      to, label: t(labelKey), icon, end, tone, badge: badges[to] ?? badge, locked,
+    .map(({ to, labelKey, icon, end, tone }) => ({
+      to, label: t(labelKey), icon, end, tone, badge: badges[to] ?? null,
     }));
 
   return (
@@ -124,11 +107,11 @@ export default function AdminLayout() {
       wordmark="signature"
       titleMap={ADMIN_TITLES}
       sidebarSections={[
-        { title: t('nav.sectionPilotage'), items: items.filter((i) => ['/admin', '/admin/analytics', '/admin/redirections', '/admin/parametres'].includes(i.to)) },
-        { title: t('nav.sectionContent'),  items: items.filter((i) => ['/admin/articles', '/admin/formations', '/admin/podcasts', '/admin/videos', '/admin/faq', '/admin/temoignages', '/admin/annonces'].includes(i.to)) },
-        { title: t('nav.sectionCommunity'),items: items.filter((i) => ['/admin/utilisateurs', '/admin/messages', '/admin/rendez-vous', '/admin/club-digitos'].includes(i.to)) },
-        { title: t('nav.sectionCommerce'), items: items.filter((i) => ['/admin/transactions', '/admin/coupons', '/admin/projets', '/admin/prospects-agence'].includes(i.to)) },
-        { title: t('nav.sectionSite'),     items: [{ to: '/', label: t('nav.backToSite'), icon: 'home', end: true }] },
+        ...ADMIN_SECTIONS.map((s) => ({
+          title: t(s.titleKey),
+          items: items.filter((i) => s.paths.includes(i.to)),
+        })),
+        { title: t('nav.sectionSite'), items: [{ to: '/', label: t('nav.backToSite'), icon: 'home' as const, end: true }] },
       ].filter((section) => section.items.length > 0)}
     />
   );

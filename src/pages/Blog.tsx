@@ -188,6 +188,7 @@ export default function Blog() {
           seule. Elle est composée, puis rendue insécable.
         */}
         <SiteDisplay
+          arc
           lines={[t('index.countLine', { count: posts.length }), t('index.freeLine')]}
           size={52}
           from={1}

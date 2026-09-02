@@ -35,6 +35,27 @@ import { captureError } from '../../../lib/sentry';
  *    viennent de la base, ils portent maintenant leur source et leur date de relevé. Ce ne
  *    sont PAS des nombres d'inscrits au sens de l'interdit du système : personne d'autre ne
  *    les lit, ils ne servent à convaincre personne.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * DEUX COLONNES DE TRAVAIL, ET AUCUN PANNEAU — `handoff_tableaux_de_bord` § ProfilDesktop
+ *
+ * C'est la SEULE des cinq pages de l'espace apprenant que la maquette dessine sans troisième
+ * colonne, et elle dit pourquoi : « les réglages n'ont pas de contexte permanent à afficher à
+ * côté ». Un panneau de 340 px rempli pour ne pas rester vide est exactement ce que le README
+ * du handoff interdit — « une page sans panneau n'affiche pas un panneau vide ».
+ *
+ * Ce que la largeur achète ici, c'est donc de faire tenir le formulaire ET ce qui l'entoure
+ * dans une seule vue, au lieu de six hauteurs d'écran. La colonne de gauche porte ce qu'on
+ * MODIFIE — identité, informations. Celle de droite porte ce qu'on CONSULTE — les liens de la
+ * communauté, le parcours. La règle d'élargissement tient : `max-w-2xl` reste la borne de la
+ * colonne de saisie, aucun champ ne s'étire.
+ *
+ * ⚠️ LE RESTE DE `ProfilDesktop` VIT SUR `/mon-espace/parametres`. La maquette met dans sa
+ * colonne de droite les interrupteurs de notification, l'export de données et la suppression
+ * de compte. Ce sont trois écrans de réglages dans ce produit, sous une route distincte, avec
+ * son entrée de navigation. Les rapatrier ici pour coller au dessin supprimerait une route
+ * déclarée et une entrée de menu — beaucoup plus qu'une mise en page. `SettingsTab` applique
+ * la même disposition à deux colonnes, ce qui rend les deux écrans cohérents sans les fondre.
  */
 
 const SOCIAL_LINKS = [
@@ -174,7 +195,8 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
    * 1 ms, il ne rend pas `.rv` visible — c'est `useReveal` qui pose `.play` d'emblée).
    */
   return (
-    <div ref={reveal} className="max-w-2xl">
+    <div ref={reveal} className="wide:grid wide:grid-cols-2 wide:items-start wide:gap-6">
+      <div className="min-w-0 max-w-2xl">
       {/* ── L'identité ─────────────────────────────────────────────────────── */}
       <GlassPanel level="flat" padding={18}>
         <div className="flex items-center gap-3.5">
@@ -262,8 +284,13 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
         </div>
       </GlassPanel>
 
+      </div>
+
+      {/* La marge haute vit sur la COLONNE, pas sur le sourcil : `SiteEyebrow` réserve son
+          `className` à la couleur, et un `style` en ligne battrait la classe responsive. */}
+      <div className="mt-[22px] min-w-0 max-w-2xl wide:mt-0">
       {/* ── La communauté ──────────────────────────────────────────────────── */}
-      <SiteEyebrow style={{ marginTop: '22px' }}>{t('profile.communityTitle')}</SiteEyebrow>
+      <SiteEyebrow>{t('profile.communityTitle')}</SiteEyebrow>
       <p className="text-small text-ink-2 mb-2.5">{t('profile.communitySubtitle')}</p>
       <GlassPanel level="flat" padding="6px 18px" as="nav" aria-label={t('profile.socialsLabel')}>
         {SOCIAL_LINKS.map((link, i) => (
@@ -302,6 +329,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
           last
         />
       </GlassPanel>
+      </div>
     </div>
   );
 }

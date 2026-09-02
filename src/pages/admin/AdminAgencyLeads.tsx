@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TagTone } from '@ds';
 import { Button, DocLine, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { getAllAgencyLeads, updateAgencyLeadStatus, updateAgencyLeadNotes, deleteAgencyLead } from '../../lib/firestore';
 import { computeTotals, PIPELINE_STAGES } from '../../lib/presence/offer';
@@ -175,8 +175,141 @@ export default function AdminAgencyLeads() {
     exportToCsv(t('agencyLeads.csv.filename'), headers, rows);
   };
 
-  const sheet = leads.find((l) => l.id === openLead) ?? null;
+  /* La sélection suit la liste FILTRÉE. Sans ce repli, arriver sur l'écran laissait la
+     troisième colonne vide alors qu'il y avait une file à traiter — et le motif dit
+     l'inverse : la console s'ouvre sur ce qui bloque. */
+  const sheet = filtered.find((l) => l.id === openLead) ?? filtered[0] ?? null;
   const sheetTotals = sheet ? computeTotals(sheet.pack, sheet.plan) : null;
+
+  /*
+    ── LA FICHE DEVIENT LA TROISIÈME COLONNE ───────────────────────────────────
+    `handoff_tableaux_de_bord` § ProspectsDesktop : « le détail cesse d'être un écran
+    séparé. La file reste visible pendant qu'on traite. »
+
+    Le contenu ne change pas — c'est la même fiche, avec les mêmes champs et les mêmes
+    actions. Ce qui change, c'est OÙ elle se rend : elle s'intercalait entre la
+    recherche et la liste, donc elle repoussait la file de six cents pixels vers le bas
+    à chaque ouverture. Un opérateur qui qualifie dix prospects perdait la file dix fois.
+
+    ⚠️ SANS PROSPECT SÉLECTIONNÉ, LE PANNEAU DIT « AUCUN » PLUTÔT QUE DE DISPARAÎTRE.
+    `ConsoleSplit` supprime la colonne quand `detail` est nul — c'est le bon comportement
+    pour un écran qui n'a PAS de détail, pas pour un écran dont le détail est vide.
+    Une colonne qui s'escamote sous le doigt au moment où l'on désélectionne fait sauter
+    toute la mise en page.
+  */
+  const leadPanel = sheet && sheetTotals ? (
+    <>
+        <GlassPanel level="night" padding={18} className="rv">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <SiteEyebrow style={{ marginBottom: '4px' }}>{t('agencyLeads.sheetEyebrow')}</SiteEyebrow>
+              <p className="m-0 text-[15px] font-bold text-ink">{sheet.businessName}</p>
+              <p className="m-0 mt-1 text-meta-2 text-ink-2">
+                {t('agencyLeads.receivedOn', { date: formatDate(sheet.createdAt) })}
+              </p>
+            </div>
+            {/* LE BOUTON « FERMER » A DISPARU AVEC LA MODALE. Une colonne permanente ne se
+                ferme pas : elle change de sujet quand on sélectionne une autre ligne. Un
+                bouton qui la vide ne ferait que laisser un trou de 380 px. La place revient
+                à l'ÉTAT, qui manquait — la fiche affichait le statut au fond d'un menu. */}
+            <Tag tone={STATUS_TONE[sheet.status]}>{t(`agencyLeads.status.${sheet.status}`)}</Tag>
+          </div>
+
+          <div className="mt-3.5">
+            <DocLine label={t('agencyLeads.docContact')} value={`${sheet.contactName} · ${sheet.phone}`} />
+            <DocLine label={t('agencyLeads.docCity')} value={sheet.city} />
+            <DocLine
+              label={t('agencyLeads.docSector')}
+              value={t(`agencyLeads.sectors.${sheet.sector}`, { defaultValue: sheet.sector })}
+            />
+            <DocLine
+              label={t('agencyLeads.docPack')}
+              value={t(`agencyLeads.packs.${sheet.pack}`, { defaultValue: sheet.pack })}
+            />
+            <DocLine
+              label={t('agencyLeads.docPlan')}
+              value={t(`agencyLeads.plans.${sheet.plan}`, { defaultValue: sheet.plan })}
+            />
+            {/* Les montants sortent de la grille tarifaire, jamais d'un calcul local :
+                `computeTotals` est la source, <Num> la dit. */}
+            <DocLine
+              label={t('agencyLeads.docUpfront')}
+              value={<Num value={formatPrice(sheetTotals.pipelineValue)} source="db" asOf={asOf} />}
+            />
+            <DocLine
+              label={t('agencyLeads.docMonthly')}
+              value={<Num value={formatPrice(sheetTotals.planMonthly)} source="db" asOf={asOf} />}
+            />
+            {sheet.referralCode && (
+              <DocLine label={t('agencyLeads.docReferral')} value={sheet.referralCode} />
+            )}
+            {sheet.quoteRef && (
+              <DocLine
+                label={t('agencyLeads.docQuote')}
+                value={
+                  <a
+                    href={`/agence/devis/${sheet.quoteRef}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-digitalise-txt hover:underline"
+                  >
+                    {t('agencyLeads.quoteRef', { ref: sheet.quoteRef })}
+                  </a>
+                }
+              />
+            )}
+            <DocLine label={t('agencyLeads.docMessage')} value={sheet.message || '—'} last />
+          </div>
+
+          {/* Le statut est l'ÉTAT de la fiche, pas une action : il se règle par un champ. */}
+          <div className="mt-3.5 max-w-xs">
+            <Field
+              as="select"
+              label={t('agencyLeads.changeStatus')}
+              value={sheet.status}
+              onChange={(v) => handleStatus(sheet.id, v as AgencyLeadStatus)}
+              disabled={updating === sheet.id}
+              options={PIPELINE_STAGES.map((s) => ({ value: s, label: t(`agencyLeads.status.${s}`) }))}
+            />
+          </div>
+
+          {/* Notes internes — jamais visibles du prospect (cf. firestore.rules) */}
+          <div className="mt-3.5">
+            <Field
+              as="textarea"
+              rows={3}
+              label={sheet.notes ? t('agencyLeads.notesEdit') : t('agencyLeads.notesAdd')}
+              value={noteDrafts[sheet.id] ?? sheet.notes ?? ''}
+              onChange={(v) => setNoteDrafts((p) => ({ ...p, [sheet.id]: v }))}
+              onBlur={() => handleSaveNote(sheet.id)}
+              placeholder={t('agencyLeads.notesPlaceholder')}
+              hint={savingNote === sheet.id ? t('agencyLeads.notesSaving') : t('agencyLeads.notesHint')}
+            />
+          </div>
+
+          <div className="mt-3.5 flex flex-wrap gap-2">
+            <Button size="sm" tone="digitalise" href={waLink(sheet.phone)} target="_blank">
+              {t('agencyLeads.whatsapp')}
+            </Button>
+            <Button
+              size="sm"
+              tone="quiet"
+              onClick={() => handleDelete(sheet.id)}
+              loading={updating === sheet.id}
+            >
+              {t('agencyLeads.delete')}
+            </Button>
+          </div>
+      </GlassPanel>
+    </>
+  ) : (
+    <GlassPanel level="night" padding={18}>
+      <SiteEyebrow style={{ marginBottom: '6px' }}>{t('agencyLeads.sheetEyebrow')}</SiteEyebrow>
+      <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">
+        {loading ? t('agencyLeads.panelLoading') : t('agencyLeads.panelNone')}
+      </p>
+    </GlassPanel>
+  );
 
   return (
     // `.play` en dur : voir AdminDashboard.
@@ -191,6 +324,7 @@ export default function AdminAgencyLeads() {
           </Button>
         </div>
 
+        <ConsoleSplit detailLabel={t('agencyLeads.sheetEyebrow')} detail={leadPanel}>
         <ConsoleFilter
           className="rv"
           stages={stages.map(stageLabel)}
@@ -199,7 +333,9 @@ export default function AdminAgencyLeads() {
           label={t('agencyLeads.pipelineLabel')}
         />
 
-        <div className="mt-3.5 grid gap-2.5 stack:grid-cols-3">
+        {/* Deux cases de front dès la tablette, jamais trois : à 1080 la troisième colonne
+            prend 380 px, et trois cases y tomberaient sous la largeur de leur libellé. */}
+        <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
           <StatTile
             label={t('agencyLeads.tileToQualify')}
             value={loading ? null : counts.new}
@@ -236,110 +372,6 @@ export default function AdminAgencyLeads() {
           />
         </div>
 
-        {/* ── La fiche d'édition — tout ce que la ligne ne porte pas ────────────── */}
-        {sheet && sheetTotals && (
-          <GlassPanel level="night" padding={18} className="rv mt-3.5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <SiteEyebrow style={{ marginBottom: '4px' }}>{t('agencyLeads.sheetEyebrow')}</SiteEyebrow>
-                <p className="m-0 text-[15px] font-bold text-ink">{sheet.businessName}</p>
-                <p className="m-0 mt-1 text-meta-2 text-ink-2">
-                  {t('agencyLeads.receivedOn', { date: formatDate(sheet.createdAt) })}
-                </p>
-              </div>
-              <Button size="sm" tone="quiet" onClick={() => setOpenLead(null)}>
-                {t('agencyLeads.closeSheet')}
-              </Button>
-            </div>
-
-            <div className="mt-3.5">
-              <DocLine label={t('agencyLeads.docContact')} value={`${sheet.contactName} · ${sheet.phone}`} />
-              <DocLine label={t('agencyLeads.docCity')} value={sheet.city} />
-              <DocLine
-                label={t('agencyLeads.docSector')}
-                value={t(`agencyLeads.sectors.${sheet.sector}`, { defaultValue: sheet.sector })}
-              />
-              <DocLine
-                label={t('agencyLeads.docPack')}
-                value={t(`agencyLeads.packs.${sheet.pack}`, { defaultValue: sheet.pack })}
-              />
-              <DocLine
-                label={t('agencyLeads.docPlan')}
-                value={t(`agencyLeads.plans.${sheet.plan}`, { defaultValue: sheet.plan })}
-              />
-              {/* Les montants sortent de la grille tarifaire, jamais d'un calcul local :
-                  `computeTotals` est la source, <Num> la dit. */}
-              <DocLine
-                label={t('agencyLeads.docUpfront')}
-                value={<Num value={formatPrice(sheetTotals.pipelineValue)} source="db" asOf={asOf} />}
-              />
-              <DocLine
-                label={t('agencyLeads.docMonthly')}
-                value={<Num value={formatPrice(sheetTotals.planMonthly)} source="db" asOf={asOf} />}
-              />
-              {sheet.referralCode && (
-                <DocLine label={t('agencyLeads.docReferral')} value={sheet.referralCode} />
-              )}
-              {sheet.quoteRef && (
-                <DocLine
-                  label={t('agencyLeads.docQuote')}
-                  value={
-                    <a
-                      href={`/agence/devis/${sheet.quoteRef}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-digitalise-txt hover:underline"
-                    >
-                      {t('agencyLeads.quoteRef', { ref: sheet.quoteRef })}
-                    </a>
-                  }
-                />
-              )}
-              <DocLine label={t('agencyLeads.docMessage')} value={sheet.message || '—'} last />
-            </div>
-
-            {/* Le statut est l'ÉTAT de la fiche, pas une action : il se règle par un champ. */}
-            <div className="mt-3.5 max-w-xs">
-              <Field
-                as="select"
-                label={t('agencyLeads.changeStatus')}
-                value={sheet.status}
-                onChange={(v) => handleStatus(sheet.id, v as AgencyLeadStatus)}
-                disabled={updating === sheet.id}
-                options={PIPELINE_STAGES.map((s) => ({ value: s, label: t(`agencyLeads.status.${s}`) }))}
-              />
-            </div>
-
-            {/* Notes internes — jamais visibles du prospect (cf. firestore.rules) */}
-            <div className="mt-3.5">
-              <Field
-                as="textarea"
-                rows={3}
-                label={sheet.notes ? t('agencyLeads.notesEdit') : t('agencyLeads.notesAdd')}
-                value={noteDrafts[sheet.id] ?? sheet.notes ?? ''}
-                onChange={(v) => setNoteDrafts((p) => ({ ...p, [sheet.id]: v }))}
-                onBlur={() => handleSaveNote(sheet.id)}
-                placeholder={t('agencyLeads.notesPlaceholder')}
-                hint={savingNote === sheet.id ? t('agencyLeads.notesSaving') : t('agencyLeads.notesHint')}
-              />
-            </div>
-
-            <div className="mt-3.5 flex flex-wrap gap-2">
-              <Button size="sm" tone="digitalise" href={waLink(sheet.phone)} target="_blank">
-                {t('agencyLeads.whatsapp')}
-              </Button>
-              <Button
-                size="sm"
-                tone="quiet"
-                onClick={() => handleDelete(sheet.id)}
-                loading={updating === sheet.id}
-              >
-                {t('agencyLeads.delete')}
-              </Button>
-            </div>
-          </GlassPanel>
-        )}
-
         <SiteEyebrow style={{ marginTop: '22px', marginBottom: '10px' }}>
           {stageLabel(stage)}
         </SiteEyebrow>
@@ -366,18 +398,10 @@ export default function AdminAgencyLeads() {
                   iconBackground={`color-mix(in srgb, var(${STATUS_TINT[lead.status]}) 22%, transparent)`}
                   title={lead.businessName}
                   meta={`${lead.city} · ${t(`agencyLeads.sectors.${lead.sector}`, { defaultValue: lead.sector })} · ${formatDate(lead.createdAt)}`}
-                  trailing={
-                    <span className="flex items-center gap-2">
-                      <Tag tone={STATUS_TONE[lead.status]}>{t(`agencyLeads.status.${lead.status}`)}</Tag>
-                      <Button
-                        size="sm"
-                        tone="quiet"
-                        onClick={() => setOpenLead(openLead === lead.id ? null : lead.id)}
-                      >
-                        {t('agencyLeads.open')}
-                      </Button>
-                    </span>
-                  }
+                  /* UNE action par ligne : sélectionner. Ouvrir la fiche N'EST PLUS une
+                     seconde action — la fiche est la colonne d'à côté, et elle suit. */
+                  trailing={<Tag tone={STATUS_TONE[lead.status]}>{t(`agencyLeads.status.${lead.status}`)}</Tag>}
+                  onClick={() => setOpenLead(lead.id)}
                   last={i === filtered.length - 1}
                 />
               </li>
@@ -386,6 +410,7 @@ export default function AdminAgencyLeads() {
         )}
 
         <ConsoleScope>{t('agencyLeads.scope')}</ConsoleScope>
+        </ConsoleSplit>
       </ConsolePage>
     </div>
   );

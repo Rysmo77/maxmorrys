@@ -257,7 +257,9 @@
     "docReceivedAt": "Reçue le",
     "emptyTitle": "Aucune demande à cette étape.",
     "emptyBody": "Les compteurs portent sur la collection entière ; l'étape et la recherche ne filtrent que l'affichage.",
-    "scope": "Confirmer ou annuler écrit un statut en base et n'envoie rien : ni e-mail, ni SMS, ni invitation d'agenda. La personne qui a demandé le créneau ne saura ta réponse que si tu la lui écris toi-même, et aucun calendrier n'est tenu à jour ailleurs. Le créneau n'est pas vérifié non plus : deux demandes peuvent être confirmées sur la même heure. Le kit range cet écran en « à venir / passés » ; le motif interdit de filtrer par date, donc l'étape reste le statut."
+    "scope": "Confirmer ou annuler écrit un statut en base et n'envoie rien : ni e-mail, ni SMS, ni invitation d'agenda. La personne qui a demandé le créneau ne saura ta réponse que si tu la lui écris toi-même, et aucun calendrier n'est tenu à jour ailleurs. Le créneau n'est pas vérifié non plus : deux demandes peuvent être confirmées sur la même heure. Le kit range cet écran en « à venir / passés » ; le motif interdit de filtrer par date, donc l'étape reste le statut.",
+    "panelLoading": "Lecture des demandes…",
+    "panelNone": "Aucune demande à ouvrir. Un zéro daté est une information sur le haut de l'entonnoir, pas sur cet écran."
   },
   "agencyLeads": {
     "title": "Prospects agence",
@@ -362,7 +364,9 @@
     "changeStatus": "Étape du cycle",
     "emptyTitle": "Aucun prospect à cette étape.",
     "emptyBody": "Les compteurs portent sur la collection entière ; l'étape et la recherche ne filtrent que l'affichage.",
-    "scope": "Aucune relance automatique : chaque suivi est un geste manuel, et rien ne rappelle un prospect oublié. Le kit prévoit deux cycles de vente côte à côte — Présence Digitale et Max-Morrys Agency ; la base n'en stocke qu'un, `agency_leads`, alimenté par /presence-digitale, donc le second n'est pas affiché. L'accompagnement mensuel n'a pas de rail de prélèvement au Sénégal : un contrat signé ici n'est pas un revenu encaissé, et aucun montant de cet écran ne se retrouve dans Transactions."
+    "scope": "Aucune relance automatique : chaque suivi est un geste manuel, et rien ne rappelle un prospect oublié. Le kit prévoit deux cycles de vente côte à côte — Présence Digitale et Max-Morrys Agency ; la base n'en stocke qu'un, `agency_leads`, alimenté par /presence-digitale, donc le second n'est pas affiché. L'accompagnement mensuel n'a pas de rail de prélèvement au Sénégal : un contrat signé ici n'est pas un revenu encaissé, et aucun montant de cet écran ne se retrouve dans Transactions.",
+    "panelLoading": "Lecture de la file…",
+    "panelNone": "Aucun prospect à ouvrir. La file est vide, ce n'est pas le panneau qui manque."
   },
   "articles": {
     "title": "Articles",
@@ -435,7 +439,12 @@
       "featuredShort": "à la une",
       "tabsLabel": "Sections de l'éditeur d'article",
       "slugEnHint": "Laissé vide, il est généré à l'enregistrement. Sans lui, l'URL anglaise porte le slug français.",
-      "scope": "Aucune planification de publication, aucune file éditoriale : un brouillon reste un brouillon jusqu'à un geste manuel. Cet écran ne dit rien de l'audience — le compteur de vues d'un article vit sur le document, il n'est pas relevé ici. Et corriger le texte français ne propage rien tant que le cache de traduction du pré-rendu n'a pas expiré."
+      "scope": "Aucune planification de publication, aucune file éditoriale : un brouillon reste un brouillon jusqu'à un geste manuel. Cet écran ne dit rien de l'audience — le compteur de vues d'un article vit sur le document, il n'est pas relevé ici. Et corriger le texte français ne propage rien tant que le cache de traduction du pré-rendu n'a pas expiré.",
+      "tilePublished": "Publiés",
+      "tilePublishedFoot_one": "{{count}} brouillon en attente",
+      "tilePublishedFoot_other": "{{count}} brouillons en attente",
+      "tileNoEn": "Sans URL anglaise",
+      "tileNoEnFoot": "publiés en français seul"
     }
   },
   "formations": {
@@ -595,7 +604,23 @@
           "ok": "la fiche a son visuel",
           "ko": "sans elle, le catalogue Meta et la carte sociale prennent le visuel générique du site"
         }
-      }
+      },
+      "panelEyebrow": "Conditions de publication",
+      "panelLoading": "Lecture du catalogue…",
+      "panelNone": "Aucune formation à ouvrir. Le catalogue est vide, ce n'est pas le panneau qui manque.",
+      "panelProgressLabel": "Conditions de publication remplies",
+      "panelProgressSuffix_one": "condition remplie",
+      "panelProgressSuffix_other": "conditions remplies",
+      "checkReady": "prêt",
+      "checkTodo": "à régler",
+      "panelOpenFull": "Ouvrir la fiche",
+      "panelBlockedNote": "Tant qu'une ligne est orange, publier reste refusé à l'enregistrement. La liste n'est pas un conseil : c'est la condition.",
+      "panelPublishedNote": "Cette formation est publiée. Les conditions restent affichées : une modification peut en casser une, et c'est ici que ça se voit.",
+      "panelGuardTitle": "Où cette garde ne tient pas",
+      "panelGuardBody": "C'est une garde de SAISIE, pas de sécurité. Les règles Firestore laissent un administrateur écrire « publiée » sur un document vide, et aucune Cloud Function ne réagit. Elle empêche la faute d'inattention, jamais l'acte délibéré — le dire est la moitié du travail.",
+      "shopClosedTitle": "Ta boutique est fermée.",
+      "shopClosedBody_one": "{{count}} formation en base, aucune publiée — un visiteur ne peut rien acheter.",
+      "shopClosedBody_other": "{{count}} formations en base, aucune publiée — un visiteur ne peut rien acheter."
     }
   },
   "coupons": {
@@ -672,7 +697,9 @@
       "expired": "expiré",
       "off": "arrêté"
     },
-    "scope": "Cet écran ne refuse aucun code : c'est le serveur de paiement qui écarte un coupon éteint, expiré ou épuisé, et lui seul. Il ne dit pas non plus ce qu'une remise a coûté — le rapprochement avec les paiements se fait dans Transactions. Un coupon éteint à la main n'a pas d'étape à lui : il n'apparaît que dans « tout »."
+    "scope": "Cet écran ne refuse aucun code : c'est le serveur de paiement qui écarte un coupon éteint, expiré ou épuisé, et lui seul. Il ne dit pas non plus ce qu'une remise a coûté — le rapprochement avec les paiements se fait dans Transactions. Un coupon éteint à la main n'a pas d'étape à lui : il n'apparaît que dans « tout ».",
+    "deadCodeTitle": "Pourquoi un code mort reste affiché",
+    "deadCodeBody": "Un coupon épuisé ou expiré reste visible plutôt que supprimé : c'est ce qui permet de répondre à « pourquoi mon code ne marche plus ». Le supprimer un jour de rangement rendrait la question sans réponse, et la remise, elle, est de toute façon recalculée côté serveur au moment du paiement."
   },
   "announcements": {
     "title": "Annonces",
@@ -847,7 +874,9 @@
       "waiting": "en attente",
       "closed": "clos"
     },
-    "scope": "Aucune réponse ne part d'ici : « Répondre par e-mail » ouvre le client de messagerie de l'appareil, et rien de ce qui s'y écrit ne revient dans la fiche. « Clos » ne dit donc pas qu'une réponse est partie — il dit que quelqu'un l'a déclaré. Pas de fil, pas de pièce jointe, pas de relance, et aucun écran côté visiteur : celui qui a écrit ne saura où en est son message qu'en recevant une réponse."
+    "scope": "Aucune réponse ne part d'ici : « Répondre par e-mail » ouvre le client de messagerie de l'appareil, et rien de ce qui s'y écrit ne revient dans la fiche. « Clos » ne dit donc pas qu'une réponse est partie — il dit que quelqu'un l'a déclaré. Pas de fil, pas de pièce jointe, pas de relance, et aucun écran côté visiteur : celui qui a écrit ne saura où en est son message qu'en recevant une réponse.",
+    "panelEyebrow": "Message sélectionné",
+    "panelNone": "Choisis un message dans la file. Rien n'est ouvert tant que tu ne l'ouvres pas — et ouvrir un message le marque comme lu, donc le sort de « à traiter »."
   },
   "podcasts": {
     "title": "Podcasts",
@@ -922,7 +951,12 @@
       "fromSpotify": "importé de Spotify",
       "fetchingMeta": "Récupération des informations Spotify…",
       "slugEnHint": "Laissé vide, il est généré à l'enregistrement. Sans lui, l'URL anglaise porte le slug français.",
-      "scope": "« Importés » est une PROVENANCE, pas un statut : un brouillon saisi à la main n'a donc pas d'étape à lui et n'apparaît que sous « tout ». L'import ne met jamais à jour un épisode déjà rapatrié — il ne crée que les manquants. Et rien ne repart d'ici vers Spotify : le flux ne va que dans un sens, et aucune notification n'annonce un épisode."
+      "scope": "« Importés » est une PROVENANCE, pas un statut : un brouillon saisi à la main n'a donc pas d'étape à lui et n'apparaît que sous « tout ». L'import ne met jamais à jour un épisode déjà rapatrié — il ne crée que les manquants. Et rien ne repart d'ici vers Spotify : le flux ne va que dans un sens, et aucune notification n'annonce un épisode.",
+      "tileTranscribed": "Transcrits",
+      "tileTranscribedFoot_one": "sur {{count}} épisode",
+      "tileTranscribedFoot_other": "sur {{count}} épisodes",
+      "tileNoTranscript": "Sans transcription",
+      "tileNoTranscriptFoot": "ni cherchables, ni lisibles sans écouter"
     }
   },
   "videos": {
@@ -993,7 +1027,11 @@
       "viewsNote": "Recopié depuis YouTube par la synchronisation quotidienne (03:00 UTC) ou par le bouton de cet écran. Entre deux passages, ce nombre date.",
       "fetchingMeta": "Récupération des informations YouTube…",
       "slugEnHint": "Laissé vide, il est généré à l'enregistrement. Sans lui, l'URL anglaise porte le slug français.",
-      "scope": "Le nombre de vues ne bouge qu'au passage de la synchronisation : entre deux, il date. Cet écran ne publie rien vers YouTube et ne lit ni les commentaires, ni la durée de visionnage, ni l'abonnement. Aucune vidéo n'est hébergée ici : supprimer une fiche laisse la vidéo en ligne sur YouTube."
+      "scope": "Le nombre de vues ne bouge qu'au passage de la synchronisation : entre deux, il date. Cet écran ne publie rien vers YouTube et ne lit ni les commentaires, ni la durée de visionnage, ni l'abonnement. Aucune vidéo n'est hébergée ici : supprimer une fiche laisse la vidéo en ligne sur YouTube.",
+      "tileViews": "Vues cumulées",
+      "tileViewsFoot": "à la dernière synchronisation",
+      "tileNoEn": "Sans URL anglaise",
+      "tileNoEnFoot": "publiées en français seul"
     }
   },
   "testimonials": {
@@ -1067,7 +1105,14 @@
       "approved": "approuvés",
       "rejected": "rejetés"
     },
-    "scope": "Cet écran modère ; il ne recueille rien. Aucune vérification d'identité, aucun consentement tracé, aucune date de recueil : un témoignage vaut ce que vaut la personne qui l'a saisi. « Approuver » le met à la une, et la page d'abonnement au Club l'affiche alors en preuve sociale — c'est le seul écran qui l'y met, et le seul qui puisse l'en retirer. Le bouton d'import écrit six témoignages de démonstration, signés de noms de personnes, dans cette même collection : rien ne les en distingue ensuite. Les notes en étoiles ne sont plus dessinées ici ; le champ reste en base."
+    "scope": "Cet écran modère ; il ne recueille rien. Aucune vérification d'identité, aucun consentement tracé, aucune date de recueil : un témoignage vaut ce que vaut la personne qui l'a saisi. « Approuver » le met à la une, et la page d'abonnement au Club l'affiche alors en preuve sociale — c'est le seul écran qui l'y met, et le seul qui puisse l'en retirer. Le bouton d'import écrit six témoignages de démonstration, signés de noms de personnes, dans cette même collection : rien ne les en distingue ensuite. Les notes en étoiles ne sont plus dessinées ici ; le champ reste en base.",
+    "tilePending": "En attente",
+    "tilePendingFoot": "personne d'autre ne les voit",
+    "tileFeatured": "Mis en avant",
+    "tileFeaturedFoot_one": "sur {{count}} approuvé — approuver ne publie pas",
+    "tileFeaturedFoot_other": "sur {{count}} approuvés — approuver ne publie pas",
+    "ruleTitle": "La règle qui tient même quand la boîte se remplira",
+    "ruleBody": "Aucune note en étoiles, aucun nombre d'avis, aucun taux de réussite, aucun logo client. Un témoignage approuvé reste un texte signé d'une personne, jamais un chiffre agrégé — et surtout jamais un chiffre inventé en attendant les vrais."
   },
   "transactions": {
     "title": "Transactions",
@@ -1114,7 +1159,25 @@
     "refundExplainBody": "Le bouton écrit le statut « remboursée » sur la transaction, et rien d'autre. Aucun mouvement d'argent n'en découle : le remboursement se fait chez le prestataire de paiement, et cet écran ne fait que l'enregistrer après coup. L'inscription déjà accordée n'est pas retirée.",
     "emptyTitle": "Aucune transaction à cette étape.",
     "emptyBody": "Les compteurs au-dessus portent sur la table entière ; l'étape et la recherche ne filtrent que l'affichage.",
-    "scope": "Cet écran ne fait que RÉCONCILIER : il lit ce que le webhook de paiement a écrit et n'a aucun moyen de le rejouer, ni de forcer une inscription qu'une transaction complétée n'aurait pas déclenchée. Aucun remboursement ne part d'ici — il se fait chez le prestataire, et le bouton ne fait qu'en enregistrer la trace. Côté acheteur, il n'existe aucun écran d'historique : quelqu'un qui veut savoir où en est son paiement doit écrire, et personne ne le saura avant."
+    "scope": "Cet écran ne fait que RÉCONCILIER : il lit ce que le webhook de paiement a écrit et n'a aucun moyen de le rejouer, ni de forcer une inscription qu'une transaction complétée n'aurait pas déclenchée. Aucun remboursement ne part d'ici — il se fait chez le prestataire, et le bouton ne fait qu'en enregistrer la trace. Côté acheteur, il n'existe aucun écran d'historique : quelqu'un qui veut savoir où en est son paiement doit écrire, et personne ne le saura avant.",
+    "statFailure": "Échec",
+    "footAttempts_one": "tentative",
+    "footAttempts_other": "tentatives",
+    "panelEyebrow": "Transaction sélectionnée",
+    "panelLoading": "Lecture de la table…",
+    "panelNone": "Aucune transaction à ouvrir. La file est vide, ce n'est pas le panneau qui manque.",
+    "panelPipelineLabel": "Cycle de la transaction",
+    "docMethod": "Moyen",
+    "docAmount": "Montant",
+    "docItem": "Article",
+    "docItemUnknown": "formation non retrouvée",
+    "docBuyer": "Acheteur",
+    "docCoupon": "Parrainage",
+    "docCouponNone": "aucun",
+    "docCreated": "Créée le",
+    "docCharge": "Identifiant de charge",
+    "replayTitle": "Pourquoi rejouer serait sans risque",
+    "replayBody": "Le webhook dédoublonne par identifiant de charge : le rejouer ne peut ni créer une double inscription, ni débiter une seconde fois. Les effets sont appliqués avant que la transaction soit marquée terminée, jamais l'inverse. Le rejeu lui-même n'existe pas encore comme action ici — il se déclenche chez le prestataire."
   },
   "settings": {
     "pageTitle": "Paramètres",
@@ -1161,7 +1224,7 @@
     "popupCartRecoveryLabel": "Rappel de panier abandonné",
     "popupCartRecoveryDesc": "Au retour d'un visiteur ayant quitté le paiement sans finaliser",
     "popupBlogEndLabel": "Fin d'article",
-    "popupBlogEndDesc": "À 90 % de lecture : inscription à la newsletter",
+    "popupBlogEndDesc": "À 90 % de lecture : flux RSS et alerte dans l'espace — aucun e-mail n'est promis",
     "popupTreatmentLabel": "Part du trafic exposée : {{percent}} %",
     "popupTreatmentDesc": "Le reste forme le groupe témoin, qui ne voit aucune pop-up. C'est ce qui permet de savoir si elles aident vraiment, et non seulement si elles sont cliquées. À 100 %, il n'y a plus de témoin et plus de comparaison possible.",
     "popupsCacheNote": "Une pop-up au maximum par session, et sept jours avant de reproposer la même. Les réglages sont mis en cache le temps de la session du visiteur : une coupure devient visible à sa prochaine visite.",
@@ -1184,7 +1247,23 @@
       "security": "sécurité"
     },
     "securityReadOnlyNote": "Ces trois lignes sont écrites dans le code de l'écran : elles décrivent la configuration attendue, elles ne l'interrogent pas.",
-    "scope": "Ni le paiement, ni le référencement, ni les rôles ne se règlent ici. Les clés du prestataire de paiement vivent dans les secrets des Cloud Functions ; les redirections et le plan de site sont produits ailleurs — écran « Redirections » et pré-rendu du Worker ; le rôle d'un compte se change dans « Utilisateurs ». Enregistrer écrit un seul document Firestore depuis le navigateur : l'opération n'est pas journalisée, et rien ne dira plus tard qui a coupé quelle pop-up, ni quand. Les réglages de pop-ups sont mis en cache le temps de la session d'un visiteur — une coupure ne devient visible qu'à sa visite suivante."
+    "scope": "Ni le paiement, ni le référencement, ni les rôles ne se règlent ici. Les clés du prestataire de paiement vivent dans les secrets des Cloud Functions ; les redirections et le plan de site sont produits ailleurs — écran « Redirections » et pré-rendu du Worker ; le rôle d'un compte se change dans « Utilisateurs ». Enregistrer écrit un seul document Firestore depuis le navigateur : l'opération n'est pas journalisée, et rien ne dira plus tard qui a coupé quelle pop-up, ni quand. Les réglages de pop-ups sont mis en cache le temps de la session d'un visiteur — une coupure ne devient visible qu'à sa visite suivante.",
+    "panelRolesEyebrow": "Rôles et portée",
+    "roleAdmin": "administrateur",
+    "roleSupport": "support",
+    "roleStudent": "apprenant",
+    "roleScreens_one": "écran",
+    "roleScreens_other": "écrans",
+    "roleNone": "aucun",
+    "panelSupportScopeTitle": "Ce que le rôle support atteint",
+    "panelGuardTitle": "Ce qu'un garde de route ne fait pas",
+    "panelGuardBody": "Un garde de route est du code client : il cache, il n'interdit pas. Le vrai cloisonnement est dans les règles de la base, qui distinguent administrateur et support. La page /403 dit simplement ce qu'elles ont déjà refusé.",
+    "panelMirrorTitle": "Ces réglages sont des miroirs",
+    "panelMirrorBody": "Les valeurs affichées ici reflètent le document de configuration. Les modifier ne suffit pas si la règle serveur ne suit pas : un prix, un rôle ou une permission ne devient effectif que là où il est relu au moment d'agir.",
+    "popupClubExitLabel": "Retenue sur le Club des Digitos",
+    "popupClubExitDesc": "À la sortie : nomme la marche cachée — l'abonnement se crée depuis l'espace, qui demande un compte",
+    "popupMediaEndLabel": "Fin d'un podcast ou d'une vidéo",
+    "popupMediaEndDesc": "À 90 % de lecture : passage vers le Club, seule suite proposée sur ces deux fiches"
   },
   "users": {
     "title": "Utilisateurs",
@@ -1219,7 +1298,22 @@
     "noName": "Compte sans nom",
     "emptyTitle": "Aucun compte ne correspond.",
     "emptyBody": "Change d'étape ou vide la recherche : les quatre étapes se comptent sur la base entière, la recherche filtre ce qui reste.",
-    "scope": "Aucune suspension ici : le modèle de données ne porte pas d'état « suspendu », donc l'étape du kit qui l'affiche n'a pas de source et n'est pas montrée. Couper l'accès à quelqu'un se fait dans la console Firebase, et ce geste ne laisse aucune trace dans l'application. La suppression d'un compte, la réinitialisation d'un mot de passe et la révocation des sessions ouvertes n'existent pas non plus sur cet écran."
+    "scope": "Aucune suspension ici : le modèle de données ne porte pas d'état « suspendu », donc l'étape du kit qui l'affiche n'a pas de source et n'est pas montrée. Couper l'accès à quelqu'un se fait dans la console Firebase, et ce geste ne laisse aucune trace dans l'application. La suppression d'un compte, la réinitialisation d'un mot de passe et la révocation des sessions ouvertes n'existent pas non plus sur cet écran.",
+    "panelEyebrow": "Compte sélectionné",
+    "panelLoading": "Lecture des comptes…",
+    "panelNone": "Aucun compte à ouvrir. La liste est vide, ce n'est pas le panneau qui manque.",
+    "docRole": "Rôle",
+    "docCreated": "Inscrit le",
+    "docCity": "Ville",
+    "docTutor": "Nom du répétiteur",
+    "docOnboarding": "Prise en main",
+    "onboardingDone": "terminée",
+    "onboardingPending": "jamais terminée",
+    "panelOpenFull": "Ouvrir la fiche complète",
+    "panelDeferredTitle": "Ce qui se lit dans la fiche, pas ici",
+    "panelDeferredBody": "Les inscriptions et leur progression, l'abonnement au Club, les certificats et le quota du répétiteur vivent dans quatre collections distinctes. Les relever ici ferait quatre lectures à chaque changement de sélection, dans un écran fait pour faire défiler la file. La fiche complète les charge — c'est le moment où on les consulte.",
+    "panelBlindTitle": "Ce que la console ne voit pas",
+    "panelBlindBody": "Ni ses notes, ni la mémoire de son répétiteur, ni le contenu de ses messages privés. Ces trois-là lui appartiennent, et aucun rôle d'administration n'y donne accès."
   },
   "clubHook": {
     "loadError": "Erreur lors du chargement.",
@@ -1559,7 +1653,9 @@
       "chain": "La cible est elle-même la source d'une autre redirection active. Le visiteur fait deux sauts, les moteurs escomptent la chaîne, et un aller-retour A→B→A boucle. Pointer directement sur la destination finale.",
       "unserved": "Le Worker écarte cette entrée sans un mot : une source réduite à « / » ou une cible qui n'est pas un chemin interne ne sont jamais servies."
     },
-    "scope": "Cet écran écrit la table ; il ne l'essaie pas. Le Worker la met en cache une minute, et l'étape « en conflit » lit la table, jamais le trafic réel. Le comptage des clics ne vaut que pour les liens d'attribution : un 301 de référencement n'est jamais compté, parce que ce sont surtout des robots qui le suivent. Et une redirection saisie ici ne remplace pas les renvois écrits dans l'application : /podcasts et /videos partent aujourd'hui vers /podcast-et-videos en JavaScript, ce qui ne transmet aucun référencement — les deux entrées 301 restent à saisir."
+    "scope": "Cet écran écrit la table ; il ne l'essaie pas. Le Worker la met en cache une minute, et l'étape « en conflit » lit la table, jamais le trafic réel. Le comptage des clics ne vaut que pour les liens d'attribution : un 301 de référencement n'est jamais compté, parce que ce sont surtout des robots qui le suivent. Et une redirection saisie ici ne remplace pas les renvois écrits dans l'application : /podcasts et /videos partent aujourd'hui vers /podcast-et-videos en JavaScript, ce qui ne transmet aucun référencement — les deux entrées 301 restent à saisir.",
+    "langTitle": "Pourquoi les segments d'URL sont traduits, pas redirigés",
+    "langBody": "/formations et /en/courses sont deux URL distinctes, pas une URL et sa traduction : chacune se positionne dans sa langue. Une redirection qui traverse les langues détruit le référencement de la cible au lieu de le reporter — elle est presque toujours une erreur."
   },
   "motif": {
     "scopeTitle": "Ce que cet écran ne couvre pas"

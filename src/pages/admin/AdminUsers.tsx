@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { Button, EmptyState, Field, Icon, LessonRow, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
+import UserPanel from './components/UserPanel';
 import { SiteEyebrow } from '../../components/site';
 import { Pagination } from '@/components/dialogs';
 import { usePagination } from '../../hooks/usePagination';
@@ -25,6 +27,18 @@ import type { User } from '../../types';
  * L'étape est donc remplacée par `support`, qui, elle, se compte — et le rôle support est
  * précisément celui dont dépend le garde de cette console (`lib/adminAccess`). Ce que la
  * quatrième étape du kit promettait est écrit noir sur blanc dans le pied de l'écran.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * LA TROISIÈME COLONNE — `handoff_tableaux_de_bord` § UtilisateursDesktop
+ *
+ * · LA FICHE SE LIT SANS OUVRIR DE MODALE. Voir `UserPanel`. Il ne montre QUE ce que le
+ *   document utilisateur porte déjà : aucune lecture de plus à chaque changement de
+ *   sélection, dans un écran fait pour faire défiler la file.
+ *
+ * · ET LA LIGNE REDEVIENT CONFORME. Elle portait une étiquette de rôle ET un bouton
+ *   « Gérer » — deux contrôles pour une ligne, ce que le motif interdit, et un bouton dans
+ *   le `trailing` d'un `LessonRow` qu'on rend maintenant cliquable serait un bouton
+ *   imbriqué. « Gérer » part dans le panneau ; la ligne ne fait plus que sélectionner.
  */
 
 type Stage = 'all' | User['role'];
@@ -50,6 +64,22 @@ export default function AdminUsers() {
 
   /** Zone 1 — les quatre étapes du kit, dont la quatrième est celle qui a une source. */
   const [stage, setStage] = useState<Stage>('all');
+  /** Le compte ouvert dans le panneau. `null` = aucun, ce que le panneau sait dire. */
+  const [selectedUid, setSelectedUid] = useState<string | null>(null);
+  /*
+    ── LE TÉLÉPHONE GARDE EXACTEMENT L'ÉCRAN QU'IL AVAIT ────────────────────────────
+    `ConsoleSplit` n'arme sa grille qu'à partir de 1080 px ; en dessous, le panneau
+    redevient un bloc EMPILÉ SOUS la liste. Pour un panneau informatif c'est sans
+    conséquence — c'est le cas du tableau de bord depuis le premier lot. Pour un panneau
+    qui porte la seule ACTION de l'écran, ça l'est : toucher une ligne pousserait ce
+    qu'on vient chercher hors de l'écran, derrière toute la longueur de la file.
+
+    Le panneau n'est donc monté qu'au-delà de 1080 px, et sous cette largeur la ligne
+    refait exactement ce qu'elle faisait avant. Un seul contenu, deux véhicules — c'est
+    la même règle que `TutorPanel` applique côté espace apprenant, pour une raison
+    voisine : ce qui coûte quelque chose ne se cache pas en CSS, il ne se monte pas.
+  */
+  const isWide = useMediaQuery('(min-width: 1080px)');
   const stageLabels: Record<Stage, string> = {
     all: t('users.stageAll'),
     student: t('users.stageStudents'),
@@ -85,6 +115,11 @@ export default function AdminUsers() {
 
   const { paged, page, totalPages, setPage } = usePagination(shown);
 
+  /* La sélection suit la liste VISIBLE : un filtre qui masque la ligne ouverte laisserait un
+     panneau qui parle d'un compte devenu invisible. Le repli est la première ligne de la
+     page courante — jamais rien tant qu'il y a quelqu'un à montrer. */
+  const selected = shown.find((u) => u.uid === selectedUid) ?? paged[0] ?? null;
+
   return (
     // `.play` en dur : voir AdminDashboard — sans lui, `.rv` reste à `opacity: 0` et le
     // pied obligatoire du motif ne s'affiche pas du tout.
@@ -99,6 +134,17 @@ export default function AdminUsers() {
           </Button>
         </div>
 
+        <ConsoleSplit
+          detailLabel={t('users.panelEyebrow')}
+          detail={!isWide ? null : (
+            <UserPanel
+              user={selected}
+              loading={loading}
+              asOf={asOf}
+              onOpenFull={() => selected && openEditUser(selected)}
+            />
+          )}
+        >
         <ConsoleFilter
           className="rv"
           stages={stages.map((s) => stageLabels[s])}
@@ -107,7 +153,10 @@ export default function AdminUsers() {
           label={t('users.pipelineLabel')}
         />
 
-        <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2 wide:grid-cols-4">
+        {/* Deux cases de front à partir de la tablette. Elles passaient à QUATRE en `wide:`,
+            au moment précis où la troisième colonne prend 380 px : chaque case tombait sous
+            120 px de large et son libellé se coupait. */}
+        <div className="mt-3.5 grid gap-2.5 stack:grid-cols-2">
           {stages.map((s) => (
             <StatTile
               key={s}
@@ -153,9 +202,10 @@ export default function AdminUsers() {
           <ConsoleList label={t('users.listLabel')} className="rv">
             {paged.map((u, i) => (
               <li key={u.uid}>
-                {/* UN ÉTAT ET UNE ACTION PAR LIGNE : le rôle est l'état, « Gérer » est
-                    l'action. La ligne elle-même n'est pas cliquable — sinon le bouton
-                    de fin deviendrait un bouton dans un bouton, inatteignable au clavier. */}
+                {/* UN ÉTAT ET UNE ACTION PAR LIGNE : le rôle est l'état, sélectionner est
+                    l'action. « Gérer » vit dans le panneau — un bouton dans le `trailing`
+                    d'une ligne elle-même cliquable serait un bouton imbriqué, donc
+                    inatteignable au clavier. */}
                 <LessonRow
                   icon={<Icon name="user" size={14} color="var(--mm-bleu)" />}
                   iconBackground="color-mix(in srgb, var(--mm-bleu) 22%, transparent)"
@@ -165,15 +215,11 @@ export default function AdminUsers() {
                     : undefined}
                   meta={u.email}
                   trailing={
-                    <span className="flex items-center gap-2">
-                      <Tag tone={u.role === 'admin' ? 'stop' : u.role === 'support' ? 'warn' : 'neutral'}>
-                        {roleLabels[u.role]}
-                      </Tag>
-                      <Button size="sm" tone="quiet" onClick={() => openEditUser(u)}>
-                        {t('users.manage')}
-                      </Button>
-                    </span>
+                    <Tag tone={u.role === 'admin' ? 'stop' : u.role === 'support' ? 'warn' : 'neutral'}>
+                      {roleLabels[u.role]}
+                    </Tag>
                   }
+                  onClick={isWide ? () => setSelectedUid(u.uid) : () => openEditUser(u)}
                   last={i === paged.length - 1}
                 />
               </li>
@@ -186,6 +232,7 @@ export default function AdminUsers() {
         </div>
 
         <ConsoleScope>{t('users.scope')}</ConsoleScope>
+        </ConsoleSplit>
       </ConsolePage>
 
       {/* ── Fiche d'édition ── */}

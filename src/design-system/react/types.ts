@@ -43,7 +43,7 @@ export type NumSource =
   | { cite: string };
 
 /** Les niveaux de verre. Un seul porte encore un flou — voir GlassPanel. */
-export type GlassLevel = 'panel' | 'hero' | 'flat' | 'night' | 'truth';
+export type GlassLevel = 'panel' | 'hero' | 'flat' | 'night' | 'ink' | 'truth';
 
 /**
  * L'encre de chaque territoire : le filet sous une entrée de barre haute, la pastille d'une

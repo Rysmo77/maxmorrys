@@ -358,7 +358,7 @@
     "eyebrow": "Je te transforme · payant, fermé",
     "titleLines": [
       "LE CLUB DES",
-      "DIGITOS."
+      "[DIGITOS.]"
     ],
     "lede": "Une année avec moi, et avec ceux qui font la même chose que toi. Des sessions en direct, des missions qui circulent, et quelqu'un à qui poser la question que tu ne poses à personne.",
     "cta": "Je rejoins le Club",
@@ -462,5 +462,11 @@
     "finalCtaSecondary": "Écris-moi d'abord",
     "sessionsCite": "engagement du Club, annoncé",
     "truthProvenTitle": "Ce que je peux te prouver"
+  },
+  "panel": {
+    "upcomingEyebrow": "À venir",
+    "upcomingEmpty": "Rien de programmé pour l'instant. L'agenda est publié un mois à l'avance — c'est un engagement de la page publique, pas une habitude.",
+    "upcomingNote": "Te réinscrire ne crée pas de doublon, et personne ne peut t'inscrire à ta place.",
+    "registered": "Tu es inscrit·e"
   }
 }

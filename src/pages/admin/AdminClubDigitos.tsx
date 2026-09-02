@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button, GlassPanel, Icon, Skeleton, StatTile } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleScope } from '../../components/console';
+import { ConsolePage, ConsoleFilter, ConsoleScope, ConsoleSplit } from '../../components/console';
+import ClubAgendaPanel from './components/ClubAgendaPanel';
 import { useAdminClub } from './hooks/useAdminClub';
 import type { AdminClubTab } from './hooks/useAdminClub';
 import ClubSubscriptionsTab from './components/ClubSubscriptionsTab';
@@ -74,6 +75,14 @@ export default function AdminClubDigitos() {
 
   return (
     <ConsolePage title={t('page.title')} sub={t('page.sub')}>
+      {/* ── LA TROISIÈME COLONNE — `handoff_tableaux_de_bord` § EvenementsDesktop ───────
+          Elle porte la prochaine échéance et l'engagement qui la gouverne. Le pourquoi
+          de cet écart de structure — la maquette a un écran « Événements » dédié, ce
+          dépôt a un concentrateur à neuf sections — est argumenté dans `ClubAgendaPanel`. */}
+      <ConsoleSplit
+        detailLabel={t('panel.eyebrow')}
+        detail={<ClubAgendaPanel events={club.events} sessions={club.sessions} loadedAt={club.loadedAt} />}
+      >
       <ConsoleFilter
         stages={bar.map((s) => s.text)}
         active={bar.find((s) => s.id === club.tab)?.text}
@@ -84,7 +93,7 @@ export default function AdminClubDigitos() {
         label={t('page.sectionLabel')}
       />
 
-      <div className="mt-4 grid gap-3 stack:grid-cols-3">
+      <div className="mt-4 grid gap-3 stack:grid-cols-2">
         <StatTile
           label={t('page.stats.activeMembers')}
           value={asOf ? club.activeCount : null}
@@ -196,6 +205,7 @@ export default function AdminClubDigitos() {
       </div>
 
       <ConsoleScope>{t('page.scope')}</ConsoleScope>
+      </ConsoleSplit>
     </ConsolePage>
   );
 }

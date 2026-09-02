@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { ChipRow, GlassPanel, Icon, IconButton, Skeleton, Tag, type IconName } from '@ds';
+import SpaceSplit from '../components/SpaceSplit';
+import ClubAgendaPanel from './club/ClubAgendaPanel';
 import { useFormat } from '../../../hooks/useFormat';
 import { slideUp } from '../../../lib/animations';
 import { useClubData } from '../hooks/useClubData';
@@ -61,6 +63,25 @@ const NAV: NavItem[] = [
  * n'a aucun équivalent en base — rien ne compte les sessions suivies ni les missions
  * décrochées. Il n'est pas maquetté avec des zéros : trois compteurs à zéro qui ne bougeront
  * jamais disent quelque chose de faux sur le produit, pas sur l'abonnement.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUE `ClubDesktop` APPORTE, ET LA SEULE CHOSE QUI CHANGE DE COULEUR
+ *
+ * · UNE TROISIÈME COLONNE : l'agenda. « C'est la seule chose du Club qui a une échéance. »
+ *   Voir `ClubAgendaPanel` — aucune lecture de plus, `useClubData` charge déjà tout.
+ *
+ * · LA CARTE D'ABONNEMENT PASSE EN `level="ink"`. C'est la troisième règle du README du
+ *   handoff, et elle est mesurée : « une carte sombre sur une page claire doit être opaque ».
+ *   `level="night"` est un voile à 72 % — sur cette page, qui est CLAIRE, il compose avec
+ *   elle et remonte à `rgb(80,81,86)`, un gris moyen où aucun texte nuit ne tient. `ink` est
+ *   opaque ET ouvre sa propre portée `.dk`, donc les jetons de texte basculent seuls : il n'y
+ *   a plus un seul gris écrit à la main dans cette carte.
+ *
+ *   POURQUOI CETTE CARTE-LÀ ET PAS UNE AUTRE. Le bilan d'abonnement est le seul objet de
+ *   l'écran qui parle d'ARGENT et d'ÉCHÉANCE. La maquette le met en tête et le rend
+ *   permanent — « un abonnement annuel ne supprime pas le renoncement, il le concentre sur
+ *   un instant ». Une surface qui se distingue du reste de la page est exactement ce qui
+ *   l'empêche de se fondre dans le fil.
  */
 export default function ClubTab({ enrolledFormations }: ClubTabProps) {
   const { t } = useTranslation('club');
@@ -88,67 +109,71 @@ export default function ClubTab({ enrolledFormations }: ClubTabProps) {
   const expiresAt = new Date(clubSubscription!.expiresAt);
 
   return (
-    <motion.div className="space-y-5" variants={slideUp} initial="hidden" animate="visible">
-      {/* ── L'état de l'abonnement ─────────────────────────────────────────── */}
-      <GlassPanel level="flat" padding={18}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="grid h-10 w-10 flex-none place-items-center rounded-m bg-[image:var(--action-transforme)]"
-            >
-              <Icon name="crown" size={19} color="var(--paper-fixed)" />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate font-bold text-ink">{t('tab.memberActive')}</p>
-              <p className="truncate text-meta-2 text-ink-2">
-                {t('tab.expiresOn', {
-                  date: expiresAt.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
-                })}
-                {clubSubscription!.autoRenew ? t('tab.autoRenew') : t('tab.manual')}
-              </p>
+    <motion.div variants={slideUp} initial="hidden" animate="visible">
+      <SpaceSplit asideLabel={t('panel.upcomingEyebrow')} aside={<ClubAgendaPanel data={data} />}>
+        <div className="space-y-5">
+          {/* ── L'état de l'abonnement — carte d'encre, opaque sur une page claire ── */}
+          <GlassPanel level="ink" padding={18}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span
+                  aria-hidden="true"
+                  className="grid h-10 w-10 flex-none place-items-center rounded-m bg-[image:var(--action-transforme)]"
+                >
+                  <Icon name="crown" size={19} color="var(--paper-fixed)" />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate font-bold text-ink">{t('tab.memberActive')}</p>
+                  <p className="truncate text-meta-2 text-ink-2">
+                    {t('tab.expiresOn', {
+                      date: expiresAt.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+                    })}
+                    {clubSubscription!.autoRenew ? t('tab.autoRenew') : t('tab.manual')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-none items-center gap-2">
+                <Tag tone="ok">{t('tab.statusActive')}</Tag>
+                <IconButton label={t('tab.refresh')} onClick={handleRefresh}>
+                  <Icon name="repeat" size={17} />
+                </IconButton>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-none items-center gap-2">
-            <Tag tone="ok">{t('tab.statusActive')}</Tag>
-            <IconButton label={t('tab.refresh')} onClick={handleRefresh}>
-              <Icon name="repeat" size={17} />
-            </IconButton>
-          </div>
-        </div>
-      </GlassPanel>
+          </GlassPanel>
 
-      {/* ── Les huit onglets, tous atteignables ────────────────────────────── */}
-      <ChipRow
-        label={t('tab.navLabel')}
-        options={labels}
-        value={labels[activeIndex]}
-        onChange={(option) => {
-          const idx = labels.indexOf(option);
-          if (idx >= 0) setClubTab(NAV[idx].id);
-        }}
-      />
+          {/* ── Les huit onglets, tous atteignables ────────────────────────────── */}
+          <ChipRow
+            label={t('tab.navLabel')}
+            options={labels}
+            value={labels[activeIndex]}
+            onChange={(option) => {
+              const idx = labels.indexOf(option);
+              if (idx >= 0) setClubTab(NAV[idx].id);
+            }}
+          />
 
-      {/* ── Le contenu ─────────────────────────────────────────────────────── */}
-      {clubTab === 'feed' && <ClubFeed data={data} />}
-      {clubTab === 'members' && <ClubMembers data={data} />}
-      {clubTab === 'discussions' && <ClubDiscussions data={data} />}
-      {clubTab === 'agenda' && (
-        <div className="space-y-8">
-          <div>
-            <ClubSectionHeader icon="calendar" title={t('tab.upcomingEvents')} />
-            <ClubEvents data={data} />
-          </div>
-          <div>
-            <ClubSectionHeader icon="video" title={t('tab.liveSessions')} />
-            <ClubSessions data={data} />
-          </div>
+          {/* ── Le contenu ─────────────────────────────────────────────────────── */}
+          {clubTab === 'feed' && <ClubFeed data={data} />}
+          {clubTab === 'members' && <ClubMembers data={data} />}
+          {clubTab === 'discussions' && <ClubDiscussions data={data} />}
+          {clubTab === 'agenda' && (
+            <div className="space-y-8">
+              <div>
+                <ClubSectionHeader icon="calendar" title={t('tab.upcomingEvents')} />
+                <ClubEvents data={data} />
+              </div>
+              <div>
+                <ClubSectionHeader icon="video" title={t('tab.liveSessions')} />
+                <ClubSessions data={data} />
+              </div>
+            </div>
+          )}
+          {clubTab === 'leaderboard' && <ClubLeaderboard data={data} />}
+          {clubTab === 'opportunities' && <ClubOpportunities data={data} />}
+          {clubTab === 'infos' && <ClubInfos data={data} />}
+          {clubTab === 'referral' && <ClubReferral data={data} />}
         </div>
-      )}
-      {clubTab === 'leaderboard' && <ClubLeaderboard data={data} />}
-      {clubTab === 'opportunities' && <ClubOpportunities data={data} />}
-      {clubTab === 'infos' && <ClubInfos data={data} />}
-      {clubTab === 'referral' && <ClubReferral data={data} />}
+      </SpaceSplit>
     </motion.div>
   );
 }

@@ -36,6 +36,7 @@ const CACHE_KEY = 'mm-popup-settings';
 
 const ALL_IDS: readonly PopupId[] = [
   'agencyExit', 'formationsEntry', 'formationExit', 'presenceExit', 'blogEnd', 'cartRecovery',
+  'clubExit', 'mediaEnd',
 ];
 
 /** Réglages appliqués quand Firestore est illisible : on n'affiche rien plutôt qu'à tort. */

@@ -357,7 +357,7 @@
     "subnavClub": "The Digitos Club",
     "eyebrow": "I'll push you further · paid, closed",
     "titleLines": [
-      "THE DIGITOS",
+      "THE [DIGITOS]",
       "CLUB."
     ],
     "lede": "A year with me, and with people doing the same thing you are. Live sessions, gigs that circulate, and someone to ask the question you ask no one else.",
@@ -462,5 +462,11 @@
     "finalCtaSecondary": "Talk to me first",
     "sessionsCite": "the Club's stated commitment",
     "truthProvenTitle": "What I can prove to you"
+  },
+  "panel": {
+    "upcomingEyebrow": "Coming up",
+    "upcomingEmpty": "Nothing scheduled yet. The agenda is published a month ahead — that is a commitment made on the public page, not a habit.",
+    "upcomingNote": "Signing up again does not create a duplicate, and nobody can sign you up in your place.",
+    "registered": "You are signed up"
   }
 }

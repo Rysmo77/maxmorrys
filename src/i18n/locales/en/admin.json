@@ -257,7 +257,9 @@
     "docReceivedAt": "Received on",
     "emptyTitle": "No request at this stage.",
     "emptyBody": "The tiles count the whole collection; the stage and the search only filter the display.",
-    "scope": "Confirming or cancelling writes a status to the database and sends nothing: no e-mail, no SMS, no calendar invite. The person who asked for the slot will only know your answer if you write to them yourself, and no calendar is kept up to date anywhere else. The slot is not checked either: two requests can be confirmed on the same hour. The kit files this screen under “upcoming / past”; the pattern forbids filtering by date, so the stage stays the status."
+    "scope": "Confirming or cancelling writes a status to the database and sends nothing: no e-mail, no SMS, no calendar invite. The person who asked for the slot will only know your answer if you write to them yourself, and no calendar is kept up to date anywhere else. The slot is not checked either: two requests can be confirmed on the same hour. The kit files this screen under “upcoming / past”; the pattern forbids filtering by date, so the stage stays the status.",
+    "panelLoading": "Reading requests…",
+    "panelNone": "No request to open. A dated zero is information about the top of the funnel, not about this screen."
   },
   "agencyLeads": {
     "title": "Agency leads",
@@ -362,7 +364,9 @@
     "changeStatus": "Cycle stage",
     "emptyTitle": "No lead at this stage.",
     "emptyBody": "The tiles count the whole collection; the stage and the search only filter the display.",
-    "scope": "No automatic follow-up: every chase is a manual gesture, and nothing reminds you of a forgotten lead. The kit plans two sales cycles side by side — Présence Digitale and Max-Morrys Agency; the database stores only one, `agency_leads`, fed by /presence-digitale, so the second is not displayed. The monthly plan has no direct-debit rail in Senegal: a contract signed here is not revenue collected, and no amount on this screen ever reaches Transactions."
+    "scope": "No automatic follow-up: every chase is a manual gesture, and nothing reminds you of a forgotten lead. The kit plans two sales cycles side by side — Présence Digitale and Max-Morrys Agency; the database stores only one, `agency_leads`, fed by /presence-digitale, so the second is not displayed. The monthly plan has no direct-debit rail in Senegal: a contract signed here is not revenue collected, and no amount on this screen ever reaches Transactions.",
+    "panelLoading": "Reading the queue…",
+    "panelNone": "No lead to open. The queue is empty — the panel is not what is missing."
   },
   "articles": {
     "title": "Articles",
@@ -435,7 +439,12 @@
       "featuredShort": "featured",
       "tabsLabel": "Article editor sections",
       "slugEnHint": "Left empty, it is generated on save. Without it, the English URL carries the French slug.",
-      "scope": "No scheduled publishing and no editorial queue: a draft stays a draft until someone acts. This screen says nothing about audience — an article’s view counter lives on the document, it is not read here. And fixing the French text propagates nothing until the prerender translation cache expires."
+      "scope": "No scheduled publishing and no editorial queue: a draft stays a draft until someone acts. This screen says nothing about audience — an article’s view counter lives on the document, it is not read here. And fixing the French text propagates nothing until the prerender translation cache expires.",
+      "tilePublished": "Published",
+      "tilePublishedFoot_one": "{{count}} draft waiting",
+      "tilePublishedFoot_other": "{{count}} drafts waiting",
+      "tileNoEn": "No English URL",
+      "tileNoEnFoot": "published in French only"
     }
   },
   "formations": {
@@ -595,7 +604,23 @@
           "ok": "the record has its visual",
           "ko": "without it, the Meta catalogue and the social card fall back to the site’s generic visual"
         }
-      }
+      },
+      "panelEyebrow": "Publishing conditions",
+      "panelLoading": "Reading the catalogue…",
+      "panelNone": "No course to open. The catalogue is empty — the panel is not what is missing.",
+      "panelProgressLabel": "Publishing conditions met",
+      "panelProgressSuffix_one": "condition met",
+      "panelProgressSuffix_other": "conditions met",
+      "checkReady": "ready",
+      "checkTodo": "to fix",
+      "panelOpenFull": "Open the record",
+      "panelBlockedNote": "While one line is orange, publishing is refused on save. The list is not advice: it is the condition.",
+      "panelPublishedNote": "This course is published. The conditions stay on screen: an edit can break one, and this is where you see it.",
+      "panelGuardTitle": "Where this guard does not hold",
+      "panelGuardBody": "It is an INPUT guard, not a security one. Firestore rules let an administrator write “published” on an empty document, and no Cloud Function reacts. It prevents the careless mistake, never the deliberate act — saying so is half the work.",
+      "shopClosedTitle": "Your shop is closed.",
+      "shopClosedBody_one": "{{count}} course in the database, none published — a visitor cannot buy anything.",
+      "shopClosedBody_other": "{{count}} courses in the database, none published — a visitor cannot buy anything."
     }
   },
   "coupons": {
@@ -672,7 +697,9 @@
       "expired": "expired",
       "off": "stopped"
     },
-    "scope": "This screen refuses nothing: the payment server alone turns down a stopped, expired or used-up coupon. Nor does it say what a discount cost — reconciliation with payments happens in Transactions. A coupon switched off by hand has no stage of its own: it only shows under “all”."
+    "scope": "This screen refuses nothing: the payment server alone turns down a stopped, expired or used-up coupon. Nor does it say what a discount cost — reconciliation with payments happens in Transactions. A coupon switched off by hand has no stage of its own: it only shows under “all”.",
+    "deadCodeTitle": "Why a dead code stays on screen",
+    "deadCodeBody": "An exhausted or expired coupon stays visible rather than being deleted: that is what lets you answer “why does my code no longer work?”. Deleting it on a tidy-up day would leave the question unanswerable — and the discount is recomputed server-side at payment time anyway."
   },
   "announcements": {
     "title": "Announcements",
@@ -847,7 +874,9 @@
       "waiting": "waiting",
       "closed": "closed"
     },
-    "scope": "No reply leaves this screen: “Reply by email” opens the device's mail client, and nothing written there comes back to the record. “Closed” therefore does not mean a reply went out — it means someone said so. No thread, no attachment, no follow-up, and no screen on the visitor's side: whoever wrote will only learn where their message stands by receiving an answer."
+    "scope": "No reply leaves this screen: “Reply by email” opens the device's mail client, and nothing written there comes back to the record. “Closed” therefore does not mean a reply went out — it means someone said so. No thread, no attachment, no follow-up, and no screen on the visitor's side: whoever wrote will only learn where their message stands by receiving an answer.",
+    "panelEyebrow": "Selected message",
+    "panelNone": "Pick a message from the queue. Nothing opens on its own — and opening a message marks it read, which takes it out of “to handle”."
   },
   "podcasts": {
     "title": "Podcasts",
@@ -922,7 +951,12 @@
       "fromSpotify": "imported from Spotify",
       "fetchingMeta": "Fetching Spotify details…",
       "slugEnHint": "Left empty, it is generated on save. Without it, the English URL carries the French slug.",
-      "scope": "“Imported” is a PROVENANCE, not a status: a hand-written draft therefore has no stage of its own and shows only under “all”. The import never updates an episode already pulled in — it only creates the missing ones. And nothing goes back out to Spotify: the flow is one-way, and no notification announces an episode."
+      "scope": "“Imported” is a PROVENANCE, not a status: a hand-written draft therefore has no stage of its own and shows only under “all”. The import never updates an episode already pulled in — it only creates the missing ones. And nothing goes back out to Spotify: the flow is one-way, and no notification announces an episode.",
+      "tileTranscribed": "Transcribed",
+      "tileTranscribedFoot_one": "of {{count}} episode",
+      "tileTranscribedFoot_other": "of {{count}} episodes",
+      "tileNoTranscript": "No transcript",
+      "tileNoTranscriptFoot": "neither searchable nor readable without listening"
     }
   },
   "videos": {
@@ -993,7 +1027,11 @@
       "viewsNote": "Copied from YouTube by the daily sync (03:00 UTC) or by this screen’s button. Between two runs, this number is stale.",
       "fetchingMeta": "Fetching YouTube details…",
       "slugEnHint": "Left empty, it is generated on save. Without it, the English URL carries the French slug.",
-      "scope": "The view count only moves when the sync runs: in between, it is stale. This screen publishes nothing to YouTube and reads neither comments, nor watch time, nor subscriptions. No video is hosted here: deleting a record leaves the video online on YouTube."
+      "scope": "The view count only moves when the sync runs: in between, it is stale. This screen publishes nothing to YouTube and reads neither comments, nor watch time, nor subscriptions. No video is hosted here: deleting a record leaves the video online on YouTube.",
+      "tileViews": "Total views",
+      "tileViewsFoot": "as of the last sync",
+      "tileNoEn": "No English URL",
+      "tileNoEnFoot": "published in French only"
     }
   },
   "testimonials": {
@@ -1067,7 +1105,14 @@
       "approved": "approved",
       "rejected": "rejected"
     },
-    "scope": "This screen moderates; it collects nothing. No identity check, no recorded consent, no collection date: a testimonial is worth exactly what the person who typed it is worth. “Approve” features it, and the Club subscription page then shows it as social proof — this is the only screen that puts it there, and the only one that can take it back. The import button writes six demo testimonials, signed with people's names, into that same collection: nothing tells them apart afterwards. Star ratings are no longer drawn here; the field stays in the database."
+    "scope": "This screen moderates; it collects nothing. No identity check, no recorded consent, no collection date: a testimonial is worth exactly what the person who typed it is worth. “Approve” features it, and the Club subscription page then shows it as social proof — this is the only screen that puts it there, and the only one that can take it back. The import button writes six demo testimonials, signed with people's names, into that same collection: nothing tells them apart afterwards. Star ratings are no longer drawn here; the field stays in the database.",
+    "tilePending": "Pending",
+    "tilePendingFoot": "nobody else sees them",
+    "tileFeatured": "Featured",
+    "tileFeaturedFoot_one": "of {{count}} approved — approving does not publish",
+    "tileFeaturedFoot_other": "of {{count}} approved — approving does not publish",
+    "ruleTitle": "The rule that holds once the inbox fills up",
+    "ruleBody": "No star ratings, no review counts, no success rate, no client logos. An approved testimonial stays a text signed by a person, never an aggregated figure — and above all never an invented one while waiting for the real ones."
   },
   "transactions": {
     "title": "Transactions",
@@ -1114,7 +1159,25 @@
     "refundExplainBody": "The button writes the “refunded” status onto the transaction, and nothing else. No money moves as a result: the refund happens at the payment provider, and this screen only records it afterwards. The enrolment already granted is not withdrawn.",
     "emptyTitle": "No transaction at this stage.",
     "emptyBody": "The tiles above count the whole table; the stage and the search only filter the display.",
-    "scope": "This screen only RECONCILES: it reads what the payment webhook wrote and has no way to replay it, nor to force an enrolment that a completed transaction failed to trigger. No refund starts here — it happens at the provider, and the button only records the trace. On the buyer side there is no history screen at all: anyone wanting to know where their payment stands has to write in, and nobody will know before that."
+    "scope": "This screen only RECONCILES: it reads what the payment webhook wrote and has no way to replay it, nor to force an enrolment that a completed transaction failed to trigger. No refund starts here — it happens at the provider, and the button only records the trace. On the buyer side there is no history screen at all: anyone wanting to know where their payment stands has to write in, and nobody will know before that.",
+    "statFailure": "Failure",
+    "footAttempts_one": "attempt",
+    "footAttempts_other": "attempts",
+    "panelEyebrow": "Selected transaction",
+    "panelLoading": "Reading the table…",
+    "panelNone": "No transaction to open. The queue is empty — the panel is not what is missing.",
+    "panelPipelineLabel": "Transaction cycle",
+    "docMethod": "Method",
+    "docAmount": "Amount",
+    "docItem": "Item",
+    "docItemUnknown": "course not found",
+    "docBuyer": "Buyer",
+    "docCoupon": "Referral",
+    "docCouponNone": "none",
+    "docCreated": "Created on",
+    "docCharge": "Charge identifier",
+    "replayTitle": "Why replaying would be safe",
+    "replayBody": "The webhook deduplicates by charge identifier: replaying it can neither create a duplicate enrolment nor charge a second time. Effects are applied before the transaction is marked complete, never the other way round. The replay itself does not exist as an action here yet — it is triggered at the payment provider."
   },
   "settings": {
     "pageTitle": "Settings",
@@ -1161,7 +1224,7 @@
     "popupCartRecoveryLabel": "Abandoned cart reminder",
     "popupCartRecoveryDesc": "When a visitor returns after leaving checkout unfinished",
     "popupBlogEndLabel": "End of article",
-    "popupBlogEndDesc": "At 90% read: newsletter sign-up",
+    "popupBlogEndDesc": "At 90% scroll: RSS feed and in-app alert — no email is ever promised",
     "popupTreatmentLabel": "Share of traffic exposed: {{percent}}%",
     "popupTreatmentDesc": "The rest forms the control group, which sees no pop-ups at all. That is what tells you whether they genuinely help, not merely whether they get clicked. At 100% there is no control group and no comparison left.",
     "popupsCacheNote": "At most one pop-up per session, and seven days before the same one is offered again. Settings are cached for the visitor's session: turning one off takes effect on their next visit.",
@@ -1184,7 +1247,23 @@
       "security": "security"
     },
     "securityReadOnlyNote": "These three lines are written in the screen’s own code: they describe the expected configuration, they do not query it.",
-    "scope": "Neither payment, nor search, nor roles are configured here. The payment provider's keys live in Cloud Functions secrets; redirects and the sitemap are produced elsewhere — the “Redirects” screen and the Worker's prerender; an account's role is changed under “Users”. Saving writes a single Firestore document straight from the browser: the operation is not logged, and nothing will later say who switched off which pop-up, or when. Pop-up settings are cached for the length of a visitor's session — switching one off only becomes visible on their next visit."
+    "scope": "Neither payment, nor search, nor roles are configured here. The payment provider's keys live in Cloud Functions secrets; redirects and the sitemap are produced elsewhere — the “Redirects” screen and the Worker's prerender; an account's role is changed under “Users”. Saving writes a single Firestore document straight from the browser: the operation is not logged, and nothing will later say who switched off which pop-up, or when. Pop-up settings are cached for the length of a visitor's session — switching one off only becomes visible on their next visit.",
+    "panelRolesEyebrow": "Roles and scope",
+    "roleAdmin": "administrator",
+    "roleSupport": "support",
+    "roleStudent": "learner",
+    "roleScreens_one": "screen",
+    "roleScreens_other": "screens",
+    "roleNone": "none",
+    "panelSupportScopeTitle": "What the support role reaches",
+    "panelGuardBody": "A route guard is client code: it hides, it does not forbid. Real partitioning lives in the database rules, which tell administrator and support apart. The /403 page merely states what they have already refused.",
+    "panelGuardTitle": "What a route guard does not do",
+    "panelMirrorTitle": "These settings are mirrors",
+    "panelMirrorBody": "The values shown here reflect the configuration document. Changing them is not enough if the server rule does not follow: a price, a role or a permission only takes effect where it is re-read at the moment of acting.",
+    "popupClubExitLabel": "Club des Digitos exit prompt",
+    "popupClubExitDesc": "On exit: names the hidden step — the subscription is created from the learner space, which needs an account",
+    "popupMediaEndLabel": "End of a podcast or video",
+    "popupMediaEndDesc": "At 90% scroll: a route to the Club, the only next step these two pages offer"
   },
   "users": {
     "title": "Users",
@@ -1219,7 +1298,22 @@
     "noName": "Unnamed account",
     "emptyTitle": "No account matches.",
     "emptyBody": "Change stage or clear the search: the four stages count the whole database, the search only filters what is left.",
-    "scope": "No suspension here: the data model carries no “suspended” state, so the kit stage that shows it has no source and is not displayed. Cutting someone off happens in the Firebase console, and that gesture leaves no trace in the application. Deleting an account, resetting a password and revoking open sessions do not exist on this screen either."
+    "scope": "No suspension here: the data model carries no “suspended” state, so the kit stage that shows it has no source and is not displayed. Cutting someone off happens in the Firebase console, and that gesture leaves no trace in the application. Deleting an account, resetting a password and revoking open sessions do not exist on this screen either.",
+    "panelEyebrow": "Selected account",
+    "panelLoading": "Reading accounts…",
+    "panelNone": "No account to open. The list is empty — the panel is not what is missing.",
+    "docRole": "Role",
+    "docCreated": "Joined on",
+    "docCity": "City",
+    "docTutor": "Tutor name",
+    "docOnboarding": "Onboarding",
+    "onboardingDone": "completed",
+    "onboardingPending": "never completed",
+    "panelOpenFull": "Open the full record",
+    "panelDeferredTitle": "What the record shows, and this panel does not",
+    "panelDeferredBody": "Enrolments and their progress, the Club subscription, certificates and the tutor quota live in four separate collections. Reading them here would mean four queries on every change of selection, on a screen built for scrolling the queue. The full record loads them — that is when you actually consult them.",
+    "panelBlindTitle": "What the console cannot see",
+    "panelBlindBody": "Neither their notes, nor their tutor's memory, nor the content of their private messages. Those three belong to them, and no administration role grants access to them."
   },
   "clubHook": {
     "loadError": "Error while loading.",
@@ -1559,7 +1653,9 @@
       "chain": "The target is itself the source of another active redirect. Visitors take two hops, search engines discount the chain, and an A→B→A round trip loops. Point straight at the final destination.",
       "unserved": "The Worker drops this entry silently: a source reduced to “/”, or a target that is not an internal path, is never served."
     },
-    "scope": "This screen writes the table; it does not try it. The Worker caches it for one minute, and the “in conflict” stage reads the table, never real traffic. Click counts exist for attribution links only: an SEO 301 is never counted, because bots follow most of them. And a redirect typed here does not replace the in-app hops: /podcasts and /videos currently reach /podcast-et-videos in JavaScript, which passes no ranking on — the two 301 entries are still to be typed in."
+    "scope": "This screen writes the table; it does not try it. The Worker caches it for one minute, and the “in conflict” stage reads the table, never real traffic. Click counts exist for attribution links only: an SEO 301 is never counted, because bots follow most of them. And a redirect typed here does not replace the in-app hops: /podcasts and /videos currently reach /podcast-et-videos in JavaScript, which passes no ranking on — the two 301 entries are still to be typed in.",
+    "langTitle": "Why URL segments are translated, not redirected",
+    "langBody": "/formations and /en/courses are two distinct URLs, not one URL and its translation: each ranks in its own language. A redirect that crosses languages destroys the target's ranking instead of carrying it over — it is almost always a mistake."
   },
   "motif": {
     "scopeTitle": "What this screen does not cover"

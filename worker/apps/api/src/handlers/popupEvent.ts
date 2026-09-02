@@ -30,6 +30,7 @@ type PopupEventType = (typeof EVENTS)[number];
 /** Identifiants de pop-up connus — liste fermée, pour que le document ne puisse pas enfler. */
 const POPUP_IDS = [
   'agencyExit', 'formationsEntry', 'formationExit', 'presenceExit', 'blogEnd', 'cartRecovery',
+  'clubExit', 'mediaEnd',
 ] as const;
 
 const VARIANTS = ['treatment', 'control'] as const;

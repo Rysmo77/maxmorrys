@@ -19,19 +19,40 @@ interface PopupHeadingProps {
   title: string;
   /** Pastille pivotée. Omise si absente — elle ne doit jamais afficher une chaîne vide. */
   sticker?: string;
-  /** Teinte d'accent. `lagoon` pour l'agence et le commerce, `brand` pour l'apprentissage. */
-  tone?: 'lagoon' | 'brand';
+  /**
+   * Teinte d'accent. `lagoon` pour l'agence et le commerce, `brand` pour l'apprentissage,
+   * `transforme` pour le Club — le seul territoire à abonnement.
+   */
+  tone?: 'lagoon' | 'brand' | 'transforme';
 }
 
-/** Chaînes littérales : Tailwind purge tout nom de classe construit par concaténation. */
+/**
+ * Chaînes littérales : Tailwind purge tout nom de classe construit par concaténation.
+ *
+ * ⚠️ SUR-TITRES ET PASTILLES CORRIGÉS LE 2026-09-02. Ils lisaient `text-forme` (#0057BC) et
+ * `text-digitalise-txt` (#00695E) sur `--night-2`, et posaient `text-ink` sur un aplat de
+ * marque. Ces jetons basculent sous `.dk`, que `ThemeContext` met sur `<html>` — mais cette
+ * surface est nuit dans LES DEUX thèmes. Le sur-titre tombait donc à 2,84:1 en thème clair,
+ * et la pastille à 2,78:1.
+ *
+ * Les `--mm-*-n` sont la réponse du kit à ce cas précis ; son propre commentaire les présente
+ * ainsi : « Versions nuit des teintes illisibles sur fond noir ». Elles vivent au `:root` et
+ * ne basculent pas, ce qui est exactement la propriété qu'il faut sur une surface qui, elle,
+ * ne bascule pas non plus. Les pastilles passent au dégradé `--action-*` + `--paper-fixed`,
+ * le couple que `Button` applique déjà à ses tons de territoire.
+ */
 const TONES = {
   lagoon: {
-    eyebrow: 'text-digitalise-txt',
-    sticker: 'bg-[color:var(--mm-teal)] text-ink shadow-digitalise',
+    eyebrow: 'text-[color:var(--mm-teal-n)]',
+    sticker: 'bg-[image:var(--action-digitalise)] text-[color:var(--paper-fixed)] shadow-digitalise',
   },
   brand: {
-    eyebrow: 'text-forme',
-    sticker: 'bg-[color:var(--mm-bleu)] text-ink shadow-forme',
+    eyebrow: 'text-[color:var(--mm-bleu-n)]',
+    sticker: 'bg-[image:var(--action-forme)] text-[color:var(--paper-fixed)] shadow-forme',
+  },
+  transforme: {
+    eyebrow: 'text-[color:var(--mm-violet-n)]',
+    sticker: 'bg-[image:var(--action-transforme)] text-[color:var(--paper-fixed)] shadow-transforme',
   },
 } as const;
 

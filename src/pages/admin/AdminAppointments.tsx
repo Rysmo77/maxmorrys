@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TagTone } from '@ds';
 import { Button, DocLine, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, StatTile, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
 import { SiteEyebrow } from '../../components/site';
 import { getAllAppointments, updateAppointmentStatus } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
@@ -107,7 +107,84 @@ export default function AdminAppointments() {
   const pendingCount = appointments.filter((a) => a.status === 'pending').length;
   const confirmedCount = appointments.filter((a) => a.status === 'confirmed').length;
 
-  const sheet = appointments.find((a) => a.id === openId) ?? null;
+  /* La sélection suit la liste FILTRÉE, avec repli sur sa première ligne : arriver sur
+     l'écran avec une colonne vide alors qu'il y a une file à traiter contredirait le motif —
+     la console s'ouvre sur ce qui attend. Un filtre qui masque la ligne ouverte ne laisse
+     donc jamais un panneau qui parle d'une demande devenue invisible. */
+  const sheet = filtered.find((a) => a.id === openId) ?? filtered[0] ?? null;
+
+  /*
+    ── LA FICHE DEVIENT LA TROISIÈME COLONNE ───────────────────────────────────
+    `handoff_tableaux_de_bord` ne dessine pas d'écran de rendez-vous avec panneau — sa
+    page `RendezVousDesktop` est à zéro. Mais le motif qu'il applique aux autres files
+    entrantes vaut ici mot pour mot : « le détail cesse d'être un écran séparé, la file
+    reste visible pendant qu'on traite ».
+
+    La fiche s'intercalait entre la recherche et la liste : chaque ouverture repoussait
+    la file vers le bas, sur un écran dont tout le travail est d'accepter ou de refuser
+    des créneaux à la suite.
+
+    ⚠️ SANS SÉLECTION, LE PANNEAU DIT « AUCUN » PLUTÔT QUE DE DISPARAÎTRE. Rendre `null`
+    ferait s'escamoter la colonne sous le doigt à chaque désélection.
+  */
+  const appointmentPanel = sheet ? (
+    <>
+        <GlassPanel level="night" padding={18} className="rv">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <SiteEyebrow style={{ marginBottom: '4px' }}>{t('appointments.sheetEyebrow')}</SiteEyebrow>
+              <p className="m-0 text-[15px] font-bold text-ink">{sheet.name}</p>
+              <p className="m-0 mt-1 text-meta-2 text-ink-2">{sheet.subject}</p>
+            </div>
+            {/* LE BOUTON « FERMER » A DISPARU AVEC LA MODALE : une colonne permanente ne
+                se ferme pas, elle change de sujet. La place revient à l'ÉTAT. */}
+            <Tag tone={STATUS_TONE[sheet.status]}>{STATUS_LABELS[sheet.status]}</Tag>
+          </div>
+
+          <div className="mt-3.5">
+            <DocLine
+              label={t('appointments.docWhen')}
+              value={t('appointments.dateAtTime', { date: sheet.date, time: sheet.time })}
+            />
+            <DocLine label={t('appointments.docEmail')} value={sheet.email} />
+            {sheet.phone && <DocLine label={t('appointments.docPhone')} value={sheet.phone} />}
+            <DocLine label={t('appointments.docSubject')} value={sheet.subject} />
+            <DocLine label={t('appointments.docReceivedAt')} value={formatDate(sheet.createdAt)} />
+            <DocLine label={t('appointments.docMessage')} value={sheet.message || '—'} last />
+          </div>
+
+          <div className="mt-3.5 flex flex-wrap gap-2">
+            {sheet.status !== 'confirmed' && (
+              <Button
+                size="sm"
+                tone="forme"
+                onClick={() => handleStatus(sheet.id, 'confirmed')}
+                loading={updating === sheet.id}
+              >
+                {t('appointments.confirm')}
+              </Button>
+            )}
+            {sheet.status !== 'cancelled' && (
+              <Button
+                size="sm"
+                tone="quiet"
+                onClick={() => handleStatus(sheet.id, 'cancelled')}
+                loading={updating === sheet.id}
+              >
+                {sheet.status === 'pending' ? t('appointments.refuse') : t('appointments.cancel')}
+              </Button>
+            )}
+          </div>
+      </GlassPanel>
+    </>
+  ) : (
+    <GlassPanel level="night" padding={18}>
+      <SiteEyebrow style={{ marginBottom: '6px' }}>{t('appointments.sheetEyebrow')}</SiteEyebrow>
+      <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">
+        {loading ? t('appointments.panelLoading') : t('appointments.panelNone')}
+      </p>
+    </GlassPanel>
+  );
 
   return (
     // `.play` en dur : voir AdminDashboard.
@@ -119,6 +196,7 @@ export default function AdminAppointments() {
           </Button>
         </div>
 
+        <ConsoleSplit detailLabel={t('appointments.sheetEyebrow')} detail={appointmentPanel}>
         <ConsoleFilter
           className="rv"
           stages={stages.map((s) => stageLabels[s])}
@@ -164,57 +242,6 @@ export default function AdminAppointments() {
           />
         </div>
 
-        {/* ── La fiche : on lit la demande, puis on décide ──────────────────────── */}
-        {sheet && (
-          <GlassPanel level="night" padding={18} className="rv mt-3.5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <SiteEyebrow style={{ marginBottom: '4px' }}>{t('appointments.sheetEyebrow')}</SiteEyebrow>
-                <p className="m-0 text-[15px] font-bold text-ink">{sheet.name}</p>
-                <p className="m-0 mt-1 text-meta-2 text-ink-2">{sheet.subject}</p>
-              </div>
-              <Button size="sm" tone="quiet" onClick={() => setOpenId(null)}>
-                {t('appointments.closeSheet')}
-              </Button>
-            </div>
-
-            <div className="mt-3.5">
-              <DocLine
-                label={t('appointments.docWhen')}
-                value={t('appointments.dateAtTime', { date: sheet.date, time: sheet.time })}
-              />
-              <DocLine label={t('appointments.docEmail')} value={sheet.email} />
-              {sheet.phone && <DocLine label={t('appointments.docPhone')} value={sheet.phone} />}
-              <DocLine label={t('appointments.docSubject')} value={sheet.subject} />
-              <DocLine label={t('appointments.docReceivedAt')} value={formatDate(sheet.createdAt)} />
-              <DocLine label={t('appointments.docMessage')} value={sheet.message || '—'} last />
-            </div>
-
-            <div className="mt-3.5 flex flex-wrap gap-2">
-              {sheet.status !== 'confirmed' && (
-                <Button
-                  size="sm"
-                  tone="forme"
-                  onClick={() => handleStatus(sheet.id, 'confirmed')}
-                  loading={updating === sheet.id}
-                >
-                  {t('appointments.confirm')}
-                </Button>
-              )}
-              {sheet.status !== 'cancelled' && (
-                <Button
-                  size="sm"
-                  tone="quiet"
-                  onClick={() => handleStatus(sheet.id, 'cancelled')}
-                  loading={updating === sheet.id}
-                >
-                  {sheet.status === 'pending' ? t('appointments.refuse') : t('appointments.cancel')}
-                </Button>
-              )}
-            </div>
-          </GlassPanel>
-        )}
-
         <SiteEyebrow style={{ marginTop: '22px', marginBottom: '10px' }}>
           {stageLabels[stage]}
         </SiteEyebrow>
@@ -241,18 +268,10 @@ export default function AdminAppointments() {
                   iconBackground={`color-mix(in srgb, var(${STATUS_TINT[a.status]}) 22%, transparent)`}
                   title={a.name}
                   meta={`${t('appointments.dateAtTime', { date: a.date, time: a.time })} · ${a.subject}`}
-                  trailing={
-                    <span className="flex items-center gap-2">
-                      <Tag tone={STATUS_TONE[a.status]}>{STATUS_LABELS[a.status]}</Tag>
-                      <Button
-                        size="sm"
-                        tone="quiet"
-                        onClick={() => setOpenId(openId === a.id ? null : a.id)}
-                      >
-                        {t('appointments.open')}
-                      </Button>
-                    </span>
-                  }
+                  /* UNE action par ligne : sélectionner. La fiche est la colonne d'à
+                     côté et elle suit — ouvrir n'est plus une seconde action. */
+                  trailing={<Tag tone={STATUS_TONE[a.status]}>{STATUS_LABELS[a.status]}</Tag>}
+                  onClick={() => setOpenId(a.id)}
                   last={i === filtered.length - 1}
                 />
               </li>
@@ -261,6 +280,7 @@ export default function AdminAppointments() {
         )}
 
         <ConsoleScope>{t('appointments.scope')}</ConsoleScope>
+        </ConsoleSplit>
       </ConsolePage>
     </div>
   );

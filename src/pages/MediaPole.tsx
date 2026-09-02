@@ -181,7 +181,7 @@ export default function MediaPole() {
           <div>
             {/* Garde-fou 2 : « gratuit » est dans le premier écran, dans le sourcil. */}
             <SiteEyebrow>{t('pole.eyebrow')}</SiteEyebrow>
-            <SiteDisplay lines={t('pole.titleLines', { returnObjects: true }) as string[]} size={52} from={1} />
+            <SiteDisplay arc lines={t('pole.titleLines', { returnObjects: true }) as string[]} size={52} from={1} />
 
             <p className="rv mt-4 max-w-[42ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 5 }}>
               {t('pole.lede')}

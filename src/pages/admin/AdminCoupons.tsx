@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, Icon, LessonRow, Num, SearchPill, Skeleton, StatTile, Switch, Tag, useToast } from '@ds';
+import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Num, SearchPill, Skeleton, StatTile, Switch, Tag, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { useReveal } from '../../components/site/useReveal';
+import { SiteEyebrow } from '../../components/site';
 import ConsoleSheet from './components/ConsoleSheet';
 import { Pagination } from '@/components/dialogs';
 import { ConfirmDialog } from '@/components/dialogs';
@@ -240,6 +241,20 @@ export default function AdminCoupons() {
             L'observateur est posé sur le PIED lui-même et non sur la page : au seuil de 12 %,
             un écran plus haut que huit fois la fenêtre ne l'atteindrait jamais. */}
         <div ref={reveal}>
+          {/*
+            ── POURQUOI UN CODE MORT RESTE À L'ÉCRAN ────────────────────────────────
+            `handoff_tableaux_de_bord` § CouponsDesktop : « un coupon épuisé reste visible
+            plutôt que supprimé : c'est ce qui permet de répondre à "pourquoi mon code ne
+            marche plus" ». Ce n'est pas une remarque d'interface — c'est la raison pour
+            laquelle les étapes « épuisés » et « expirés » existent dans le filtre au lieu
+            que ces coupons disparaissent de la liste. Sans elle, quelqu'un les nettoie un
+            jour de rangement, et la question devient sans réponse.
+          */}
+          <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
+            <SiteEyebrow style={{ marginBottom: '6px' }}>{t('coupons.deadCodeTitle')}</SiteEyebrow>
+            <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('coupons.deadCodeBody')}</p>
+          </GlassPanel>
+
           <ConsoleScope>{t('coupons.scope')}</ConsoleScope>
         </div>
       </ConsolePage>

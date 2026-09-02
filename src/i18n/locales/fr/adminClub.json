@@ -237,7 +237,11 @@
     "emptyBody": "Aucun défi dans cette file. Le filtre au-dessus donne accès aux défis clos.",
     "delete": "Supprimer le défi",
     "activeHint": "Un défi en cours apparaît aux membres. Clos, il disparaît de leur écran sans être supprimé.",
-    "scope": "Les dates de début et de fin sont décoratives : rien ne clôt un défi quand sa date de fin est passée, c'est l'interrupteur qui décide seul de ce que voient les membres. Aucune participation n'est enregistrée, aucun gagnant n'est désigné, aucune récompense n'est attribuée — le champ « récompense » est un texte affiché, pas un objet remis. Le suivi des participations se fait entièrement hors de cette console."
+    "scope": "Les dates de début et de fin sont décoratives : rien ne clôt un défi quand sa date de fin est passée, c'est l'interrupteur qui décide seul de ce que voient les membres. Aucune participation n'est enregistrée, aucun gagnant n'est désigné, aucune récompense n'est attribuée — le champ « récompense » est un texte affiché, pas un objet remis. Le suivi des participations se fait entièrement hors de cette console.",
+    "futureTitle": "Ce qu'un défi pourra faire, quand il y en aura",
+    "futureXp": "Attribuer de l'expérience à la première réalisation, pas aux suivantes",
+    "futureClose": "Se clore à une date fixée d'avance, jamais « quand assez de monde a joué »",
+    "futureNoMoney": "Aucune récompense en argent ni en remise — ce serait un concours, avec ses obligations légales"
   },
   "members": {
     "empty": "Aucun profil membre.",
@@ -418,5 +422,24 @@
     "cancel": "Annuler",
     "create": "Créer l'utilisateur",
     "creating": "Création..."
+  },
+  "panel": {
+    "eyebrow": "La prochaine échéance",
+    "loading": "Lecture de l'agenda…",
+    "empty": "Rien de programmé. L'agenda est publié un mois à l'avance : c'est un engagement de la page publique du Club, et un agenda vide se voit du côté des membres.",
+    "kindOnline": "en ligne",
+    "kindInPerson": "présentiel",
+    "kindSession": "session en direct",
+    "docDate": "Date",
+    "docTime": "Heure",
+    "docFormat": "Format",
+    "docWhere": "Lieu",
+    "docDuration": "Durée",
+    "upcomingCount_one": "échéance à venir en tout",
+    "upcomingCount_other": "échéances à venir en tout",
+    "commitmentTitle": "L'engagement tenu",
+    "commitmentBody": "La session a lieu même si nous sommes quatre. C'est une des lignes vendues sur la page publique du Club : annuler faute de monde la rendrait fausse.",
+    "reminderTitle": "Ce qui ne partira pas",
+    "reminderBody": "Aucun rappel automatique avant une session : le canal d'e-mail n'existe pas, et la notification applicative n'est pas planifiable. Un membre inscrit qui ne rouvre pas l'application ne sera pas prévenu."
   }
 }

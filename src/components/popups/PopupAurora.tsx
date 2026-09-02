@@ -14,7 +14,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 
 interface PopupAuroraProps {
   /** Teinte dominante. `lagoon` pour l'agence, `brand` pour les formations. */
-  tone?: 'lagoon' | 'brand';
+  tone?: 'lagoon' | 'brand' | 'transforme';
 }
 
 /** Halos écrits en littéral : Tailwind purge tout nom de classe construit par concaténation. */
@@ -28,6 +28,11 @@ const TONES = {
     glow: 'bg-[color-mix(in_srgb,var(--mm-bleu)_30%,transparent)]',
     halo: 'bg-[color-mix(in_srgb,var(--mm-bleu)_20%,transparent)]',
     ring: 'border-[color-mix(in_srgb,var(--mm-bleu)_25%,transparent)]',
+  },
+  transforme: {
+    glow: 'bg-[color-mix(in_srgb,var(--mm-violet)_30%,transparent)]',
+    halo: 'bg-[color-mix(in_srgb,var(--mm-violet)_20%,transparent)]',
+    ring: 'border-[color-mix(in_srgb,var(--mm-violet)_25%,transparent)]',
   },
 } as const;
 

@@ -304,7 +304,8 @@
   "rysmoPage": {
     "tabTokens": "Tokens & abonnements",
     "tabMemory": "Mémoire",
-    "subtitle": "Ton répétiteur IA : tokens, abonnements et mémoire."
+    "subtitle": "Ton répétiteur IA : tokens, abonnements et mémoire.",
+    "tabsLabel": "Ce que tu règles pour {{tutor}}"
   },
   "mediaRecorder": {
     "fileTooLarge": "Fichier trop lourd (max 100 Mo).",

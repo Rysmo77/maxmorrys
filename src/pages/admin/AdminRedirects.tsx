@@ -6,6 +6,7 @@ import {
 } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
 import { useReveal } from '../../components/site/useReveal';
+import { SiteEyebrow } from '../../components/site';
 import ConsoleSheet from './components/ConsoleSheet';
 import { Pagination } from '@/components/dialogs';
 import { ConfirmDialog } from '@/components/dialogs';
@@ -207,6 +208,20 @@ export default function AdminRedirects() {
             L'observateur est posé sur le PIED lui-même et non sur la page : au seuil de 12 %,
             un écran plus haut que huit fois la fenêtre ne l'atteindrait jamais. */}
         <div ref={reveal}>
+          {/*
+            ── LA CONFUSION QUE CET ENCART EXISTE POUR EMPÊCHER ────────────────────
+            `handoff_tableaux_de_bord` § RedirectionsDesktop. Deux URL de langues
+            différentes ne sont pas « une URL et sa traduction » : ce sont deux adresses
+            distinctes, chacune positionnée dans SA langue. Une redirection qui traverse
+            les langues détruit donc le référencement de la cible au lieu de le reporter —
+            et c'est l'erreur que quelqu'un fait naturellement en voyant deux adresses qui
+            « disent la même chose » dans une table de redirections.
+          */}
+          <GlassPanel level="night" padding={16} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
+            <SiteEyebrow style={{ marginBottom: '6px' }}>{t('redirects.langTitle')}</SiteEyebrow>
+            <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('redirects.langBody')}</p>
+          </GlassPanel>
+
           <ConsoleScope>{t('redirects.scope')}</ConsoleScope>
         </div>
       </ConsolePage>

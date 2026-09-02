@@ -32,6 +32,8 @@ const FormationExitPopup = lazy(() => import('./FormationExitPopup'));
 const PresenceExitPopup = lazy(() => import('./PresenceExitPopup'));
 const BlogEndPopup = lazy(() => import('./BlogEndPopup'));
 const CartRecoveryPopup = lazy(() => import('./CartRecoveryPopup'));
+const ClubExitPopup = lazy(() => import('./ClubExitPopup'));
+const MediaEndPopup = lazy(() => import('./MediaEndPopup'));
 
 /**
  * Arbitre UNIQUE des pop-ups contextuelles du site public.
@@ -82,6 +84,11 @@ export default function PopupManager() {
   const [active, setActive] = useState<ActivePopup | null>(null);
   const [featured, setFeatured] = useState<Formation | null>(null);
   const [cartFormation, setCartFormation] = useState<Formation | null>(null);
+  /*
+    Le catalogue est-il vide ? `null` tant qu'on ne l'a pas lu. Voir la garde plus bas :
+    c'est la seule pop-up dont la pertinence dépend d'un état de la BASE et non du chemin.
+  */
+  const [catalogueEmpty, setCatalogueEmpty] = useState<boolean | null>(null);
 
   const path = normalizePath(pathname);
   const activeTrigger = active?.trigger ?? null;
@@ -143,7 +150,26 @@ export default function PopupManager() {
   */
   const variant: PopupVariant | null = settings ? getVariant(settings.treatmentShare) : null;
 
-  const enabled = candidate !== null && settings?.enabled[candidate.id] === true;
+  /*
+    ⚠️ LA BOUTIQUE FERMÉE. `formationsEntry` est le déclencheur le PLUS LARGE du registre — toute
+    arrivée organique d'un inconnu, sur presque toute page — et son texte promet « des formations
+    pratiques » avec un bouton « Voir les formations ». Au relevé du 30 août 2026, la base porte
+    0 formation publiée : elle conduisait donc le trafic de recherche vers un catalogue qui lui
+    répond qu'il n'y a rien, et elle le faisait à l'endroit où le plus de monde la voyait.
+
+    C'est la même faute que celle corrigée sur `BlogEndPopup` — promettre ce que le produit ne
+    peut pas tenir — appliquée cette fois à une page plutôt qu'à un e-mail. La garde se lève
+    d'elle-même dès la première publication : rien à réactiver.
+  */
+  /*
+    ⚠️ Deux conditions et NON une. `settingAllows` dit « l'administration laisse passer » ;
+    `enabled` ajoute la garde. Les fondre en une seule créerait un interblocage : la lecture du
+    catalogue est gardée par la première, et si elle portait déjà la garde, elle ne tournerait
+    jamais — `catalogueEmpty` resterait `null`, donc `shopClosed` resterait vrai, pour toujours.
+  */
+  const settingAllows = candidate !== null && settings?.enabled[candidate.id] === true;
+  const shopClosed = candidate?.id === 'formationsEntry' && catalogueEmpty !== false;
+  const enabled = settingAllows && !shopClosed;
   const armed = enabled && variant === 'treatment' && active === null;
 
   // ── Données nécessaires, préchargées AVANT l'ouverture ───────────────────────────────────────
@@ -153,7 +179,7 @@ export default function PopupManager() {
     l'ouverture, ce qui annulerait le chargement au pire moment.
   */
   useEffect(() => {
-    if (!enabled || candidate?.id !== 'formationsEntry' || featured) return;
+    if (!settingAllows || candidate?.id !== 'formationsEntry' || catalogueEmpty !== null) return;
     let alive = true;
     // `fetchQuery` et non un appel direct : la page d'accueil, la recherche et
     // les fiches de contenu lisent la même liste sous cette clé — une seule
@@ -167,14 +193,23 @@ export default function PopupManager() {
         queryFn: async () => (await import('../../lib/firestore/formations')).getPublishedFormations(),
       })
       .then((list) => {
-        if (!alive || list.length === 0) return;
+        if (!alive) return;
+        setCatalogueEmpty(list.length === 0);
+        if (list.length === 0) return;
         setFeatured(list.find((f) => f.featured) ?? list[0]);
       })
       .catch(() => {
-        // Catalogue illisible : repli textuel, la fenêtre s'affiche quand même.
+        /*
+          ⚠️ ON NE MONTRE PLUS RIEN, et c'est un renversement assumé. Le repli était « la fenêtre
+          s'affiche quand même », au motif qu'elle ne doit pas dépendre du réseau pour exister.
+          Mais son texte promet des formations : l'afficher sans avoir pu vérifier qu'il y en a,
+          c'est risquer d'envoyer quelqu'un vers une boutique fermée. `settings.ts` tranche déjà
+          ce dilemme dans le même sens — « on n'affiche rien plutôt qu'à tort ».
+        */
+        if (alive) setCatalogueEmpty(true);
       });
     return () => { alive = false; };
-  }, [enabled, candidate, featured]);
+  }, [settingAllows, candidate, catalogueEmpty]);
 
   useEffect(() => {
     if (!enabled || candidate?.id !== 'cartRecovery' || !pendingCartSlug || cartFormation) return;
@@ -420,6 +455,26 @@ export default function PopupManager() {
           onAccept={() => close('presenceExit', 'whatsapp', false)}
           onSecondary={() => close('presenceExit', 'packs', false)}
           onDismiss={() => close('presenceExit', 'close')}
+        />,
+      );
+
+    case 'clubExit':
+      return surface(
+        <PopupAurora tone="transforme" />,
+        <ClubExitPopup
+          onAccept={() => close('clubExit', 'register', false)}
+          onSecondary={() => close('clubExit', 'clubTab', false)}
+          onDismiss={() => close('clubExit', 'close')}
+        />,
+      );
+
+    case 'mediaEnd':
+      return surface(
+        <PopupAurora tone="transforme" />,
+        <MediaEndPopup
+          onAccept={() => close('mediaEnd', 'club', false)}
+          onSecondary={() => close('mediaEnd', 'pole', false)}
+          onDismiss={() => close('mediaEnd', 'close')}
         />,
       );
 

@@ -257,6 +257,7 @@ export default function Agence() {
             </SiteEyebrow>
 
             <SiteDisplay
+              arc
               lines={t('page.titleLines', { returnObjects: true }) as string[]}
               size={56}
               from={1}

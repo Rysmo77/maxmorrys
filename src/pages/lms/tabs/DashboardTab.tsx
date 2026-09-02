@@ -8,6 +8,7 @@ import {
 import { useLocalizedPath } from '../../../contexts/LanguageContext';
 import { useMediaQuery } from '../../../hooks/useMediaQuery';
 import TutorPanel from '../components/TutorPanel';
+import SpaceSplit from '../components/SpaceSplit';
 import { useAuth } from '../../../contexts/AuthContext';
 import { tutorName } from '../../../lib/naming';
 import { getGamificationProfile, updateStreak, addXP } from '../../../lib/gamification';
@@ -154,8 +155,11 @@ export default function DashboardTab({
       lignes de leçon deviendraient illisibles à 1440.
     */
     <div className="mx-auto max-w-4xl px-[18px] py-6 wide:max-w-none wide:px-pane">
-      <div className="wide:grid wide:grid-cols-[minmax(0,1fr)_340px] wide:items-start wide:gap-6">
-        <div className="min-w-0 wide:max-w-[46rem]">
+      {/* ── Le répétiteur en panneau permanent — le seul gain réel du desktop ──
+          Monté seulement au-delà de 1080 px : il relève le quota au montage, et une
+          classe `hidden` aurait laissé partir l'appel sur téléphone. La mise en page,
+          elle, vit dans `SpaceSplit`, écrit une fois pour les cinq écrans. */}
+      <SpaceSplit asideLabel={tutor} aside={isWide ? <TutorPanel /> : null}>
       <p className="mm-eyebrow m-0">{t('dashboard.eyebrow')}</p>
       {/* La salutation n'est PAS le titre de la page — celui-ci est « Tableau de bord », rendu
           en <h1> par la barre haute de `AppShell`. Le kit la pose d'ailleurs dans la barre, pas
@@ -345,20 +349,7 @@ export default function DashboardTab({
           />
         ))}
       </GlassPanel>
-        </div>
-
-        {/* ── Le répétiteur en panneau permanent — le seul gain réel du desktop ──
-            Monté seulement au-delà de 1080 px : il relève le quota au montage, et une
-            classe `hidden` aurait laissé partir l'appel sur téléphone. */}
-        {isWide && (
-          <aside
-            className="wide:sticky wide:top-2 wide:max-h-[calc(100vh-5rem)] wide:overflow-y-auto"
-            aria-label={tutor}
-          >
-            <TutorPanel />
-          </aside>
-        )}
-      </div>
+      </SpaceSplit>
     </div>
   );
 }

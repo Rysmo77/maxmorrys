@@ -22,7 +22,8 @@ import type { CSSProperties } from 'react';
  * cinq teintes qui se remplit de la gauche vers la droite au survol. Un style en ligne bat
  * toute classe : tant que le dégradé était écrit ici, aucun `:hover` ne pouvait le
  * reprendre sans `!important`. Ce composant ne pose donc plus que la TYPOGRAPHIE, et
- * `.mm-hello` (`overrides/ad-23-hello-arc.css`) porte la peinture, le survol et le repli.
+ * `.mm-arc` (`overrides/ad-23-arc.css`) porte la peinture et le survol ; `.mm-hello` n'ajoute
+ * que l'aplat de repos, qui est aussi le repli.
  */
 export interface WordmarkProps {
   brand?: 'hello' | 'rysmo' | 'signature';
@@ -46,7 +47,7 @@ export function Wordmark({ brand = 'hello', size = 22, tail, short, style }: Wor
   const s: CSSProperties = { ...base, fontSize: `${size}px`, ...style };
 
   if (brand === 'hello') {
-    return <span className="mm-hello" style={s}>Hello&nbsp;!</span>;
+    return <span className="mm-arc mm-hello" style={s}>Hello&nbsp;!</span>;
   }
 
   // Le R reprend le bleu, le o final le teal : la marque garde ses bornes de couleur.

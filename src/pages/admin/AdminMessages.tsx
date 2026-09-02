@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import type { TagTone } from '@ds';
 import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, Tag, useToast } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
-import { Modal } from '@/components/dialogs';
-import { ConfirmDialog } from '@/components/dialogs';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
+import { SiteEyebrow } from '../../components/site';
+import { ConfirmDialog, Modal } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { subscribeMessages, updateMessageStatus, deleteMessage } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
@@ -23,6 +24,20 @@ import type { ContactMessage } from '../../types';
  * la fiche, pas dans la liste — « deux actions par ligne, c'est une hésitation par ligne ».
  * C'est aussi ce qu'impose `LessonRow` : une ligne qui agit EST un bouton, et un bouton dans
  * un bouton n'est pas un document valide.
+ *
+ * ── LA FICHE PASSE EN TROISIÈME COLONNE ────────────────────────────────────────────
+ *
+ * `handoff_tableaux_de_bord` ne dessine PAS cet écran : il n'est modélisé nulle part dans
+ * les vingt-quatre pages. Il suit donc le motif des écrans qui le sont, et en particulier
+ * `ProspectsDesktop`, dont il est le jumeau — une file de demandes entrantes qu'une seule
+ * personne qualifie. « Le détail cesse d'être un écran séparé. La file reste visible pendant
+ * qu'on traite. »
+ *
+ * ⚠️ ET UNE MODALE NE DEVIENT PAS UN PANNEAU SANS PRÉCAUTION, POUR CET ÉCRAN-CI.
+ * `openMessage` marque le message COMME LU à l'ouverture. Un panneau qui se remplirait tout
+ * seul avec la première ligne — le repli que les autres écrans appliquent — marquerait donc
+ * un message lu que personne n'a ouvert, et le ferait disparaître de la file « à traiter ».
+ * La sélection reste ici explicite : tant qu'on n'a rien choisi, le panneau le dit.
  * ────────────────────────────────────────────────────────────────────────────────────
  */
 
@@ -55,6 +70,19 @@ export default function AdminMessages() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<Stage>('all');
   const [selected, setSelected] = useState<ContactMessage | null>(null);
+
+  /*
+    ── UN SEUL CONTENU, DEUX VÉHICULES ─────────────────────────────────────────────
+    `ConsoleSplit` n'arme sa grille qu'à partir de 1080 px : en dessous, le panneau
+    s'empilerait SOUS la file, donc toucher un message pousserait le message lui-même
+    hors de l'écran, derrière toute la liste. Sur un écran dont le travail est
+    précisément de lire, c'est le pire endroit possible.
+
+    Le même `messagePanel` est donc rendu dans la colonne au-delà de 1080 px, et dans un
+    dialogue en dessous. Ce n'est pas une duplication : c'est une seule définition, posée
+    dans deux contenants — et le téléphone garde exactement l'écran qu'il avait.
+  */
+  const isWide = useMediaQuery('(min-width: 1080px)');
 
   useEffect(() => {
     const unsub = subscribeMessages((msgs) => {
@@ -108,8 +136,75 @@ export default function AdminMessages() {
     ]).map((s) => ({ ...s, text: `${s.label} ${s.n}` }));
   }, [messages, t]);
 
+  /*
+    LE PANNEAU. Sans sélection il n'est PAS nul : `ConsoleSplit` supprimerait la colonne, et
+    la mise en page sauterait au premier clic hors d'une ligne. Il dit « rien de sélectionné ».
+  */
+  const messagePanel = selected ? (
+    <>
+      <div className="flex items-center gap-3">
+        <span
+          aria-hidden="true"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--mm-bleu)_16%,transparent)] text-meta-2 font-bold text-forme"
+        >
+          {selected.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="m-0 truncate font-medium text-ink">{selected.name}</p>
+          {/* L'adresse reste un `mailto:` : c'est le seul canal de réponse du produit, et
+              il vit hors de l'application. Le pied de l'écran le dit déjà. */}
+          <a href={`mailto:${selected.email}`} className="truncate text-meta-2 text-forme hover:underline">
+            {selected.email}
+          </a>
+        </div>
+        <Tag tone={TONE[selected.status]}>{statusLabels[selected.status]}</Tag>
+      </div>
+
+      <GlassPanel level="night" padding={18} className="rv mt-4" style={{ ['--i' as string]: 1 }}>
+        <SiteEyebrow style={{ marginBottom: '6px' }}>{selected.subject}</SiteEyebrow>
+        <p className="m-0 text-meta-2 text-ink-3">{new Date(selected.sentAt).toLocaleString(locale)}</p>
+        <p className="m-0 mt-3 whitespace-pre-wrap text-meta leading-relaxed text-ink-2">{selected.message}</p>
+      </GlassPanel>
+
+      <Button
+        size="sm"
+        fullWidth
+        href={`mailto:${selected.email}?subject=Re: ${encodeURIComponent(selected.subject)}`}
+        style={{ marginTop: '14px' }}
+      >
+        {t('messages.actions.replyByEmail')}
+      </Button>
+      {selected.status !== 'replied' && (
+        <Button
+          size="sm"
+          tone="quiet"
+          fullWidth
+          onClick={() => { void markReplied(selected.id); }}
+          style={{ marginTop: '8px' }}
+        >
+          {t('messages.actions.markReplied')}
+        </Button>
+      )}
+      <Button
+        size="sm"
+        tone="ghost"
+        fullWidth
+        onClick={() => handleDelete(selected.id)}
+        style={{ marginTop: '8px' }}
+      >
+        {t('messages.actions.delete')}
+      </Button>
+    </>
+  ) : (
+    <GlassPanel level="night" padding={18}>
+      <SiteEyebrow style={{ marginBottom: '6px' }}>{t('messages.panelEyebrow')}</SiteEyebrow>
+      <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('messages.panelNone')}</p>
+    </GlassPanel>
+  );
+
   return (
     <ConsolePage title={t('messages.title')} sub={t('messages.sub')}>
+      <ConsoleSplit detailLabel={t('messages.panelEyebrow')} detail={isWide ? messagePanel : null}>
       <ConsoleFilter
         stages={bar.map((s) => s.text)}
         active={bar.find((s) => s.key === filterStatus)?.text}
@@ -169,46 +264,17 @@ export default function AdminMessages() {
       )}
 
       <ConsoleScope>{t('messages.scope')}</ConsoleScope>
+      </ConsoleSplit>
 
-      <Modal open={!!selected} onClose={() => setSelected(null)} title={selected?.subject || ''} size="lg">
-        {selected && (
-          <div>
-            <div className="mb-4 flex items-center gap-3 border-b border-[color:var(--line)] pb-4">
-              <span
-                aria-hidden="true"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--mm-bleu)_16%,transparent)] text-xs font-bold text-forme"
-              >
-                {selected.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-ink">{selected.name}</p>
-                <a href={`mailto:${selected.email}`} className="text-sm text-forme hover:underline">{selected.email}</a>
-              </div>
-              <span className="shrink-0 text-xs text-ink-2">{new Date(selected.sentAt).toLocaleString(locale)}</span>
-            </div>
-
-            <p className="mb-6 whitespace-pre-wrap leading-relaxed text-ink-2">{selected.message}</p>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--line)] pt-4">
-              <Button tone="ghost" size="sm" onClick={() => handleDelete(selected.id)}>
-                <Icon name="trash" size={15} /> {t('messages.actions.delete')}
-              </Button>
-              <div className="flex gap-2">
-                {selected.status !== 'replied' && (
-                  <Button tone="quiet" size="sm" onClick={() => { void markReplied(selected.id); }}>
-                    <Icon name="check" size={15} /> {t('messages.actions.markReplied')}
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  href={`mailto:${selected.email}?subject=Re: ${encodeURIComponent(selected.subject)}`}
-                >
-                  <Icon name="send" size={15} /> {t('messages.actions.replyByEmail')}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+      {/* Le même panneau, en dialogue, sous 1080 px. `Modal` piège le focus et ferme à
+          Échap — ce qu'une colonne n'a pas à faire, puisqu'elle ne recouvre rien. */}
+      <Modal
+        open={!isWide && !!selected}
+        onClose={() => setSelected(null)}
+        title={selected?.subject || t('messages.panelEyebrow')}
+        size="lg"
+      >
+        {messagePanel}
       </Modal>
 
       <ConfirmDialog

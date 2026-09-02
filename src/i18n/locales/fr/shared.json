@@ -119,6 +119,25 @@
       "text": "Ta formation t'attend encore. Il ne reste que le paiement à finaliser.",
       "cta": "Finaliser mon inscription",
       "dismiss": "Plus tard"
+    },
+    "clubExit": {
+      "title": "Il y a une marche",
+      "eyebrow": "Avant de refermer",
+      "sticker": "Compte gratuit",
+      "text": "Le bouton « Je rejoins le Club » mène à ton espace, et ton espace demande un compte. Le compte est gratuit et se crée en une minute. L'abonnement, lui, se souscrit juste après, depuis l'onglet Club.",
+      "cta": "Créer mon compte",
+      "secondary": "J'ai déjà un compte",
+      "dismiss": "Plus tard",
+      "note": "Aucun paiement ne part d'ici : le montant se recalcule dans ton espace."
+    },
+    "mediaEnd": {
+      "title": "La suite se passe en direct",
+      "eyebrow": "Tu as suivi jusqu'au bout",
+      "sticker": "Le pôle reste libre",
+      "text": "Les podcasts et les vidéos restent en accès libre, celui-ci comme les autres. Ce qui n'y est pas : les sessions en direct, les ateliers et les missions du Club — là où ça se pratique au lieu de s'écouter.",
+      "cta": "Voir ce que contient le Club",
+      "secondary": "Continuer à écouter",
+      "dismiss": "Non merci"
     }
   },
   "articleCard": {

@@ -14,7 +14,7 @@ ne vient pas du kit ? » — la réponse est ce dossier, et rien d'autre.
 | `ad-22-surface-feuille.css` | AD-22 | `--paper` est le blanc de RÉFÉRENCE et ne bascule pas sous `.dk` ; l'encre, si. Toute surface opaque qui le lisait donnait **1,06:1** en mode sombre. `--surface-sheet` bascule. Mesuré. |
 | `ad-20-corail-texte.css` | AD-20 | Le DS donne au corail un rôle de **texte** (l'entrée « agence » de la barre haute) mais aucune version lisible : `#FF6E7F` fait 2,70:1 sur blanc. Mesuré. |
 | `ad-21-radio-epaisseur.css` | AD-21 | `brand/states.css` transitionne `border-width` sur `.mm-radio` — une propriété de mise en page, ce qu'AD-16 interdit. La copie littérale (AD-1) ne peut pas être corrigée sur place : l'écart la neutralise par une transition de couleur. |
-| `ad-23-hello-arc.css` | AD-23 | Le mot-symbole « Hello ! » portait son dégradé en permanence et n'était cliquable nulle part. Il devient une **cible** : `--ink-2` au repos comme les autres commandes de la barre, l'arc des cinq teintes qui se remplit de la gauche vers la droite au survol. Remplace les jetons AD-3 d'`ad-06-etats.css`. |
+| `ad-23-arc.css` | AD-23 | Un remplissage de gauche à droite sur du texte, et ses **deux** usages. Le mot-symbole « Hello ! » devient une cible (`--ink-2` au repos, l'arc au survol) ; un fragment de chaque titre de page se remplit **à l'entrée**, dans la cascade `.rv-l` — un `h1` n'est pas une cible, et un effet qui ne répond qu'au survol n'existe pas sur mobile. L'arc tourne pour démarrer sur la teinte de la page. Remplace les jetons AD-3 d'`ad-06-etats.css`. |
 
 ## Un écart qui ne vit pas dans ce dossier — AD-24
 

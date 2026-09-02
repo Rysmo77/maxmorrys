@@ -39,6 +39,32 @@ import { updateUserProfile } from '../../../lib/firestore';
  * LE KIT A TROIS APPARENCES — Clair, Sombre, Système. `ThemeContext` n'en expose que deux.
  * On n'en dessine donc que deux : un troisième segment qui ne ferait rien serait exactement
  * le réglage grisé sans explication que le contrat de `Switch` interdit.
+ *
+ * ═════════════════════════════════════════════════════════════════════════════
+ * DEUX COLONNES DE TRAVAIL — `handoff_tableaux_de_bord` § ProfilDesktop
+ *
+ * La maquette range les réglages en DEUX colonnes et n'ouvre aucun panneau de contexte :
+ * « les réglages n'ont pas de contexte permanent à afficher à côté ». Ce qu'on MODIFIE à
+ * gauche — langue, apparence, répétiteur ; ce qui touche au COMPTE à droite — ce qui
+ * m'arrive, mes données, la sortie. `ProfileTab` applique la même règle, et pour la même
+ * raison : ces deux écrans sont les deux moitiés du `ProfilDesktop` de la maquette, séparés
+ * ici par une route, pas par une intention.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * « CE QUE JE T'ENVOIE » : LE BLOC EXISTE, LES QUATRE INTERRUPTEURS N'EXISTENT PAS.
+ *
+ * La maquette dessine quatre réglages de notification — reprise de cours, série quotidienne,
+ * digest du Club, par e-mail. `UserPreferences` n'en porte AUCUN : il n'a que `theme`,
+ * `language`, `newsletter` et `aiMemoryConsent`. Quatre interrupteurs qui n'écrivent nulle
+ * part seraient quatre réglages qui redeviennent silencieusement vrais au rechargement —
+ * pire qu'absents, parce qu'on croit avoir décidé.
+ *
+ * Ce qui EST vrai, et que la maquette dit dans le même bloc, c'est le canal : « aucun e-mail
+ * ne part encore ». Le produit a un centre de notifications applicatif, et un seul.
+ * Cet écran renvoie donc vers lui, et rend le canal e-mail comme ce qu'il est — un
+ * interrupteur désactivé QUI DIT SA RAISON, ce que `Switch` prend en charge par
+ * `disabledReason` et annonce en `aria-describedby`. C'est la seule des cinq lignes de la
+ * maquette qui puisse être rendue sans mentir.
  */
 
 const exportUserData = httpsCallable<Record<string, never>, { downloadUrl: string; expiresInHours: number }>(
@@ -143,7 +169,8 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
    * 1 ms, il ne rend pas `.rv` visible — c'est `useReveal` qui pose `.play` d'emblée).
    */
   return (
-    <div ref={reveal} className="max-w-lg">
+    <div ref={reveal} className="wide:grid wide:grid-cols-2 wide:items-start wide:gap-6">
+      <div className="min-w-0 max-w-lg">
       {/* ── Langue ─────────────────────────────────────────────────────────── */}
       <SiteEyebrow>{t('settings.languageTitle')}</SiteEyebrow>
       <Segmented
@@ -181,6 +208,42 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
         />
       </GlassPanel>
 
+      </div>
+
+      {/* La marge haute vit sur la COLONNE : `SiteEyebrow` réserve son `className` à la
+          couleur, et son `style` en ligne battrait une classe responsive. */}
+      <div className="mt-[22px] min-w-0 max-w-lg wide:mt-0">
+      {/* ── Ce que je t'envoie ─────────────────────────────────────────────── */}
+      <SiteEyebrow>{t('settings.sendTitle')}</SiteEyebrow>
+      <GlassPanel level="flat" padding="6px 18px">
+        <LessonRow
+          state="plain"
+          icon={<Icon name="bell" size={14} />}
+          title={t('settings.sendCenter')}
+          meta={t('settings.sendCenterNote')}
+          onClick={() => navigate('/mon-espace/notifications')}
+          trailing={<Icon name="forward" size={16} color="var(--text-muted)" strokeWidth={2.4} />}
+        />
+        <LessonRow
+          state="plain"
+          icon={<Icon name="send" size={14} />}
+          title={<span style={{ color: 'var(--text-faint)' }}>{t('settings.sendEmail')}</span>}
+          meta={t('settings.sendEmailNote')}
+          trailing={
+            <Switch
+              disabled
+              label={t('settings.sendEmail')}
+              disabledReason={t('settings.sendEmailNote')}
+            />
+          }
+          last
+        />
+      </GlassPanel>
+      <GlassPanel level="truth" style={{ marginTop: '12px' }}>
+        <p className="mm-eyebrow m-0 mb-1.5">{t('settings.sendTruthTitle')}</p>
+        <p className="m-0 text-meta leading-[1.55] text-ink-2">{t('settings.sendTruthBody')}</p>
+      </GlassPanel>
+
       {/* ── Tes données ────────────────────────────────────────────────────── */}
       <SiteEyebrow style={{ marginTop: '22px' }}>{t('settings.myData')}</SiteEyebrow>
       <p className="text-small text-ink-2 mb-2.5">{t('settings.myDataDesc')}</p>
@@ -207,6 +270,7 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
       <SiteEyebrow style={{ marginTop: '22px' }}>{t('settings.account')}</SiteEyebrow>
       <Button tone="quiet" fullWidth onClick={onSignOut}>{t('settings.signOut')}</Button>
       <p className="text-small text-ink-2 text-center mt-2">{t('settings.signOutNote')}</p>
+      </div>
 
       <ConfirmDialog
         open={showDeleteConfirm}

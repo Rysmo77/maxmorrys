@@ -96,7 +96,10 @@
     "clientsTitle": "Projets clients",
     "clientsDesc": "Construits pour des tiers. Ils leur appartiennent ; j'indique uniquement le rôle que j'ai tenu.",
     "venturesTitle": "Products built inside MY ONOMA",
-    "venturesTitleLines": ["Products built", "inside MY ONOMA"],
+    "venturesTitleLines": [
+      "Products built",
+      "inside MY ONOMA"
+    ],
     "venturesDesc": "Produits que le studio conçoit, détient et opère. Chacun est une marque autonome.",
     "roleLabel": "Notre rôle",
     "stackLabel": "Stack",
@@ -326,8 +329,8 @@
     "eyebrow": "{{brand}} · practice {{pillar}}",
     "titleLines": [
       "Des projets",
-      "qu'on mène",
-      "à deux."
+      "[qu'on mène]",
+      "[à deux.]"
     ],
     "lede": "Refonte, plateforme, automatisation, intelligence artificielle. Peu de projets à la fois, cadrés avant d'être chiffrés. Si ça ne colle pas, je te le dis en une conversation plutôt qu'en trois devis.",
     "truthTitle": "Pourquoi il n'y a aucun tarif sur cette page",

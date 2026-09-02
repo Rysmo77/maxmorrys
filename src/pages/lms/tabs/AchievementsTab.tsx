@@ -5,6 +5,7 @@ import {
   Button, EmptyState, GlassPanel, Icon, LessonRow, Num, ProgressBar, Skeleton, StatTile, Tag,
   type IconName,
 } from '@ds';
+import SpaceSplit from '../components/SpaceSplit';
 import { useLocalizedPath } from '../../../contexts/LanguageContext';
 import { useFormat } from '../../../hooks/useFormat';
 import { issueCertificate, getUserCertificates } from '../../../lib/firestore';
@@ -129,15 +130,27 @@ export default function AchievementsTab({
     (ef) => ef.enrollment.progress === 100 && !certificates.some((c) => c.formationId === ef.enrollment.formationId),
   );
 
-  return (
-    <div className="mx-auto max-w-4xl px-[18px] py-6">
-      {/* Le titre de l'écran est celui de la barre haute de `AppShell`, alimentée par
-          `titleMap` — donc pour chaque route sans exception. En rendre un second ici donnait
-          DEUX <h1> par écran et le même mot écrit deux fois à quinze centimètres d'intervalle.
-          C'est la décision déjà prise pour les dix-neuf écrans de console (`ConsolePage`). */}
+  /*
+    ── LE RELEVÉ DEVIENT LE PANNEAU PERMANENT ───────────────────────────────────────
+    `handoff_tableaux_de_bord` ne dessine pas cet écran, mais il tranche exactement ce
+    qu'un panneau de 340 px a le droit de porter : ce qui reste vrai pendant qu'on
+    travaille dans la colonne d'à côté. Ici c'est le CLASSEMENT de la personne — son
+    expérience, son niveau, sa série, ses certificats — et rien d'autre.
+
+    Les quatre cases étaient en tête de la colonne de travail, donc au-dessus des badges
+    et des certificats : dès qu'on faisait défiler pour lire un badge, on perdait de vue
+    ce que ce badge allait faire monter. C'est le même défaut que le quota du répétiteur
+    corrigeait côté espace — « le quota est affiché AVANT l'usage » — et la même réponse :
+    une carte qu'on quitte devient un panneau qui reste.
+
+    Les cases passent à UNE colonne dans le panneau : elles y sont empilées, pas réduites.
+    En dessous de 1080 px, `SpaceSplit` les remet en tête, sur deux colonnes, comme avant.
+  */
+  const standing = (
+    <>
       {/* ── Quatre relevés. Sans profil de jeu lu, ils disent « non relevé ». ────── */}
-      <p className="mm-eyebrow mt-[18px]">{t('achievements.gamificationEyebrow')}</p>
-      <div className="mt-[10px] grid grid-cols-2 gap-[10px] stack:grid-cols-4">
+      <p className="mm-eyebrow m-0">{t('achievements.gamificationEyebrow')}</p>
+      <div className="mt-[10px] grid grid-cols-2 gap-[10px] wide:grid-cols-1">
         <StatTile
           label={t('achievements.xpLabel')}
           value={gamification ? gamification.xp : null}
@@ -180,9 +193,19 @@ export default function AchievementsTab({
           style={{ marginTop: '10px' }}
         />
       )}
+    </>
+  );
+
+  return (
+    <div className="mx-auto max-w-4xl px-[18px] py-6 wide:max-w-none wide:px-pane">
+      {/* Le titre de l'écran est celui de la barre haute de `AppShell`, alimentée par
+          `titleMap` — donc pour chaque route sans exception. En rendre un second ici donnait
+          DEUX <h1> par écran et le même mot écrit deux fois à quinze centimètres d'intervalle.
+          C'est la décision déjà prise pour les dix-neuf écrans de console (`ConsolePage`). */}
+      <SpaceSplit asideLabel={t('achievements.gamificationEyebrow')} aside={standing}>
 
       {/* ── Les badges. Combien sur combien, puis la liste. ──────────────────────── */}
-      <div className="mt-[24px] flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <p className="mm-eyebrow m-0">{t('achievements.badgesTitle')}</p>
         <p className="m-0 text-meta-2" style={{ color: 'var(--text-muted)' }}>
           {t('achievements.badgesUnlockedLabel')} :{' '}
@@ -302,6 +325,7 @@ export default function AchievementsTab({
           </div>
         </>
       )}
+      </SpaceSplit>
     </div>
   );
 }

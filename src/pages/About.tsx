@@ -244,6 +244,7 @@ export default function About() {
             <SiteEyebrow>{t('page.eyebrow')}</SiteEyebrow>
             {/* Écrit ligne par ligne, jamais replié (AD-13). */}
             <SiteDisplay
+              arc
               lines={t('page.titleLines', { returnObjects: true }) as string[]}
               size={60}
               from={1}

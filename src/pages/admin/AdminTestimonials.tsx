@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, Switch, useToast } from '@ds';
+import { Button, EmptyState, Field, GlassPanel, Icon, LessonRow, Skeleton, StatTile, Switch, useToast } from '@ds';
 import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { SiteEyebrow } from '../../components/site';
 import { Modal } from '@/components/dialogs';
 import { Pagination } from '@/components/dialogs';
 import { ConfirmDialog } from '@/components/dialogs';
@@ -68,9 +69,15 @@ export default function AdminTestimonials() {
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState<Filter>('all');
 
+  /** La date de la MESURE, posée quand la lecture revient — pas au rendu. Tant qu'aucun
+   *  chargement n'a abouti, il n'y a pas de relevé et les cases disent « non relevé ». */
+  const [loadedAt, setLoadedAt] = useState<Date | null>(null);
+
   const load = () => {
     setLoading(true);
-    getAllTestimonials().then((data) => { setTestimonials(data); setLoading(false); }).catch(() => setLoading(false));
+    getAllTestimonials()
+      .then((data) => { setTestimonials(data); setLoadedAt(new Date()); setLoading(false); })
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
@@ -176,6 +183,19 @@ export default function AdminTestimonials() {
     ]).map((s) => ({ ...s, text: `${s.label} ${s.n}` }));
   }, [testimonials, tr]);
 
+  /*
+    LES DEUX COMPTES DE LA BANDE DE RELEVÉ. `featured` est le seul qui sorte un témoignage
+    de la console : c'est lui, et pas `approved`, que la page d'abonnement au Club lit en
+    preuve sociale. Les confondre ferait croire qu'approuver publie.
+  */
+  const counts = useMemo(() => ({
+    pending: testimonials.filter((t) => (t.status || 'approved') === 'pending').length,
+    approved: testimonials.filter((t) => (t.status || 'approved') === 'approved').length,
+    featured: testimonials.filter((t) => t.featured).length,
+  }), [testimonials]);
+
+  const asOf = loadedAt ?? new Date();
+
   const emptyBody = filter === 'all' ? tr('testimonials.emptyAll')
     : filter === 'pending' ? tr('testimonials.emptyPending')
     : filter === 'approved' ? tr('testimonials.emptyApproved')
@@ -207,6 +227,32 @@ export default function AdminTestimonials() {
         }}
         label={tr('testimonials.pipelineLabel')}
       />
+
+      {/*
+        ── LE RELEVÉ DATÉ — `handoff_tableaux_de_bord` § TemoignagesDesktop ──────────────
+        Trois cases, dont deux disent l'état de la file et la troisième dit la RÈGLE : un
+        témoignage approuvé n'est pas un témoignage publié. Le compte « en avant » est celui
+        des `featured`, les seuls que la page d'abonnement au Club affiche en preuve sociale.
+
+        C'est la case qui manquait le plus : approuver et mettre en avant sont deux gestes
+        distincts, et seul le second sort le témoignage de la console.
+      */}
+      <div className="mt-4 grid gap-2.5 stack:grid-cols-2">
+        <StatTile
+          label={tr('testimonials.tilePending')}
+          value={loadedAt ? counts.pending : null}
+          source="db"
+          asOf={asOf}
+          foot={tr('testimonials.tilePendingFoot')}
+        />
+        <StatTile
+          label={tr('testimonials.tileFeatured')}
+          value={loadedAt ? counts.featured : null}
+          source="db"
+          asOf={asOf}
+          foot={tr('testimonials.tileFeaturedFoot', { count: counts.approved })}
+        />
+      </div>
 
       <div className="mt-4">
         <Button size="sm" onClick={openNew}>
@@ -273,6 +319,23 @@ export default function AdminTestimonials() {
 
         `src/data/testimonials.ts` est supprimé avec lui : c'était son unique lecteur.
       */}
+
+      {/*
+        ── LA RÈGLE QUI TIENT MÊME QUAND LA BOÎTE SE REMPLIRA ──────────────────────────
+        `handoff_tableaux_de_bord` § TemoignagesDesktop la pose sous l'état vide, et c'est
+        exactement le bon endroit : une règle écrite seulement dans un état vide disparaît
+        au premier élément — c'est-à-dire au moment où elle commence à servir. Elle reste
+        donc affichée dans les deux cas.
+      */}
+      <GlassPanel
+        level="night"
+        padding={18}
+        className="rv mt-4"
+        style={{ ['--i' as string]: 8, borderColor: 'color-mix(in srgb, var(--stop) 34%, transparent)' }}
+      >
+        <SiteEyebrow style={{ marginBottom: '6px' }}>{tr('testimonials.ruleTitle')}</SiteEyebrow>
+        <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{tr('testimonials.ruleBody')}</p>
+      </GlassPanel>
 
       <ConsoleScope>{tr('testimonials.scope')}</ConsoleScope>
 

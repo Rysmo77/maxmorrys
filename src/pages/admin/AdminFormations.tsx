@@ -1,9 +1,12 @@
+import { useState } from 'react';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import {
   Button, DocLine, Field, GlassPanel, Icon, IconButton, LessonRow, Num, ProgressBar,
   Segmented, Skeleton, Switch, Tag, type IconName,
 } from '@ds';
-import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope } from '../../components/console';
+import { ConsolePage, ConsoleFilter, ConsoleList, ConsoleScope, ConsoleSplit } from '../../components/console';
+import PublishPanel from './components/PublishPanel';
 import { SiteEyebrow } from '../../components/site';
 import { Modal } from '@/components/dialogs';
 import ImageInput from '@/components/forms/ImageInput';
@@ -47,6 +50,19 @@ import type { Formation, Lesson } from '../../types';
  *     une action — ouvrir la fiche.
  *   • LES DEUX FAMILLES D'ICÔNES. `lucide-react` a quitté cet écran : le jeu du design system
  *     couvre tout ce qu'il faisait ici.
+ *
+ * ─── LA TROISIÈME COLONNE — `handoff_tableaux_de_bord` § FormationsDesktop ─────────────
+ *
+ * La checklist quitte le quatrième onglet d'une modale pour vivre EN FACE de la liste. Le
+ * défaut qu'elle corrige est de séquence : pour savoir pourquoi un brouillon ne peut pas
+ * être publié, il fallait l'ouvrir, aller à l'onglet « Publier », lire, fermer — puis
+ * recommencer sur le suivant. C'est le geste le plus fréquent de l'écran. Elle reste aussi
+ * dans l'éditeur, où elle sert au moment d'agir. Voir `PublishPanel`.
+ *
+ * L'ALERTE « TA BOUTIQUE EST FERMÉE » entre également, telle que la maquette la pose :
+ * en tête de la colonne de travail, et SEULEMENT si la condition est vraie dans les données —
+ * au moins une formation en base, aucune publiée. Les deux nombres viennent des compteurs
+ * déjà calculés par `useFormations`, aucun n'est écrit à la main.
  * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 
@@ -57,6 +73,22 @@ const LESSON_ICONS: Record<Lesson['type'], IconName> = {
 export default function AdminFormations() {
   const { t } = useTranslation('admin');
   const f = useFormations();
+  /** La formation ouverte dans le panneau des conditions. */
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  /*
+    ── LE TÉLÉPHONE GARDE EXACTEMENT L'ÉCRAN QU'IL AVAIT ────────────────────────────
+    `ConsoleSplit` n'arme sa grille qu'à partir de 1080 px ; en dessous, le panneau
+    redevient un bloc EMPILÉ SOUS la liste. Pour un panneau informatif c'est sans
+    conséquence — c'est le cas du tableau de bord depuis le premier lot. Pour un panneau
+    qui porte la seule ACTION de l'écran, ça l'est : toucher une ligne pousserait ce
+    qu'on vient chercher hors de l'écran, derrière toute la longueur de la file.
+
+    Le panneau n'est donc monté qu'au-delà de 1080 px, et sous cette largeur la ligne
+    refait exactement ce qu'elle faisait avant. Un seul contenu, deux véhicules — c'est
+    la même règle que `TutorPanel` applique côté espace apprenant, pour une raison
+    voisine : ce qui coûte quelque chose ne se cache pas en CSS, il ne se monte pas.
+  */
+  const isWide = useMediaQuery('(min-width: 1080px)');
 
   const levelLabels: Record<string, string> = {
     debutant: t('formations.levelDebutant'),
@@ -103,6 +135,16 @@ export default function AdminFormations() {
     counts: { modules: number; lessons: number; emptyModules: number; emptyLessons: number },
   ) => t(`formations.console.check.${id}.${ok ? 'ok' : 'ko'}`, counts);
 
+  /* La sélection suit la liste FILTRÉE : un filtre qui masque la ligne ouverte laisserait
+     un panneau qui parle d'une formation devenue invisible. Le repli est la première ligne
+     de la page courante — la console s'ouvre sur ce qui bloque, pas sur une colonne vide. */
+  const selected = f.filtered.find((x) => x.id === selectedId) ?? f.paged[0] ?? null;
+
+  /* LA BOUTIQUE EST FERMÉE : au moins une formation en base, aucune publiée. La condition
+     est lue dans les compteurs, jamais supposée — le kit écrit « 2 formations, 0 publiée »
+     en quatre endroits qui se contredisent, et aucun de ces nombres n'est repris. */
+  const shopClosed = !f.loading && f.counts.all > 0 && f.counts.published === 0;
+
   return (
     <ConsolePage title={t('formations.pageTitle')} sub={t('formations.console.sub')}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -118,6 +160,41 @@ export default function AdminFormations() {
         </p>
         <Button size="sm" onClick={f.openNew}>{t('formations.newFormation')}</Button>
       </div>
+
+      <ConsoleSplit
+        detailLabel={t('formations.console.panelEyebrow')}
+        detail={!isWide ? null : (
+          <PublishPanel
+            formation={selected}
+            loading={f.loading}
+            onOpenFull={() => selected && f.openEdit(selected)}
+          />
+        )}
+      >
+
+      {/* ── L'alerte, en tête, et seulement si elle est VRAIE dans les données ─────────── */}
+      {shopClosed && (
+        <GlassPanel
+          level="night"
+          padding={18}
+          className="rv mb-3.5"
+          style={{ borderColor: 'color-mix(in srgb, var(--mm-orange) 40%, transparent)' }}
+        >
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="grid h-[34px] w-[34px] flex-none place-items-center rounded-[11px]"
+              style={{ background: 'color-mix(in srgb, var(--mm-orange) 22%, transparent)' }}
+            >
+              <Icon name="alert" size={18} color="var(--warn)" strokeWidth={2.6} />
+            </span>
+            <p className="m-0 flex-1 text-meta text-ink-2">
+              <b className="text-warn">{t('formations.console.shopClosedTitle')}</b>{' '}
+              {t('formations.console.shopClosedBody', { count: f.counts.all })}
+            </p>
+          </div>
+        </GlassPanel>
+      )}
 
       {/* ── ZONE 1 · le filtre par statut ─────────────────────────────────────────────── */}
       <ConsoleFilter
@@ -191,7 +268,10 @@ export default function AdminFormations() {
                         </>
                       )}
                       trailing={<Tag tone={st.tone}>{st.label}</Tag>}
-                      onClick={() => f.openEdit(item)}
+                      /* La ligne SÉLECTIONNE, elle n'ouvre plus l'éditeur : les conditions
+                         de publication s'affichent en face, et c'est ce qu'on vient lire.
+                         L'éditeur s'ouvre depuis le panneau, une fois la raison connue. */
+                      onClick={isWide ? () => setSelectedId(item.id) : () => f.openEdit(item)}
                       last={i === f.paged.length - 1}
                     />
                   </li>
@@ -207,6 +287,7 @@ export default function AdminFormations() {
 
       {/* ── ZONE 3 · ce que l'écran ne couvre pas ─────────────────────────────────────── */}
       <ConsoleScope>{t('formations.console.scope')}</ConsoleScope>
+      </ConsoleSplit>
 
       {/* ── L'éditeur ─────────────────────────────────────────────────────────────────── */}
       <Modal
