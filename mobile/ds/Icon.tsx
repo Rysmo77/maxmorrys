@@ -1,6 +1,6 @@
 import type { ColorValue } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { MM_ICONS, type IconName } from '../../src/design-system/icons';
+import { MM_ICONS, type IconName } from './icons.generated';
 import { useToken } from './theme';
 
 export type { IconName };

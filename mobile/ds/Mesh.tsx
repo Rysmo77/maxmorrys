@@ -1,7 +1,7 @@
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop, LinearGradient } from 'react-native-svg';
 import { useToken } from './theme';
-import type { TokenName } from '../../src/design-system/tokens.generated';
+import type { TokenName } from './tokens.generated';
 
 /**
  * LE MAILLAGE, en équivalent natif — FIGÉ, et c'est délibéré (AD-10).

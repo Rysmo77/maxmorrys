@@ -1,6 +1,18 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
-import { tokens, type Scheme, type TokenName } from '../../src/design-system/tokens.generated';
+/*
+ * `./tokens.generated` — DANS le projet natif, pas au-dessus.
+ *
+ * Ce fichier lisait `../../src/design-system/tokens.generated`, un chemin qui sort de
+ * `mobile/`. TypeScript le suivait, donc le typecheck natif passait ; Metro ne résout rien
+ * hors de la racine du projet, donc l'application ne se bundlait PAS. Le défaut est resté
+ * invisible tant qu'on n'a pas demandé un bundle : c'est exactement l'écart entre une porte
+ * verte et une application qui tourne.
+ *
+ * `npm run ds:tokens` écrit désormais la même sortie aux deux endroits. La source de vérité
+ * ne bouge pas — c'est le CSS du système (AD-8) — et le dossier natif reste autonome (AD-9).
+ */
+import { tokens, type Scheme, type TokenName } from './tokens.generated';
 
 /**
  * LE PONT DE JETONS. C'est le seul endroit du natif qui connaît une valeur de couleur.

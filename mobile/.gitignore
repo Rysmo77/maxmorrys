@@ -2,3 +2,9 @@ node_modules/
 .expo/
 dist/
 *.log
+
+# Projets natifs générés par `npx expo prebuild` — jamais commités.
+# Ils se régénèrent depuis `app.json` : les suivre figerait des fichiers que la
+# configuration produit déjà, et toute divergence deviendrait invisible.
+/ios/
+/android/

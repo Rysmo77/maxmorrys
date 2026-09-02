@@ -187,6 +187,57 @@ module de DONNÉES que le composant DOM du web lit aussi. Les tracés vivaient a
 était alors de les retaper ici, et c'est ainsi qu'un jeu d'icônes dérive. Ajouter un glyphe le
 fait désormais apparaître des deux côtés.
 
+## Construire un binaire : où on en est exactement
+
+Le projet **passe `npx expo-doctor` sur 21 vérifications sur 21**, **génère ses projets natifs**
+(`npx expo prebuild` écrit `ios/` et `android/`, tous deux ignorés par git — ils se régénèrent)
+et **se bundle pour les deux plateformes** :
+
+```
+npx expo export --platform ios --platform android
+  › ios bundles      entry.hbc   2,8 Mo
+  › android bundles  entry.hbc   3,1 Mo
+```
+
+⚠️ **AUCUN BINAIRE N'A ÉTÉ PRODUIT, et il ne peut pas l'être sur cette machine.**
+`xcodebuild` pointe sur les Command Line Tools et non sur Xcode ; Java est en 8 quand React
+Native 0.86 réclame 17 ou plus ; aucun SDK Android n'est installé. `eas.json` est écrit et
+`eas` est là — la construction passera par le nuage, ou par un poste outillé.
+
+Il manque alors deux choses qui ne sont pas du code : un **compte Apple Developer** (99 $/an)
+avec son identifiant d'application enregistré, et un **compte Google Play** (25 $ une fois).
+Et la question ouverte plus haut sur la règle 3.1.1 se pose au moment de la soumission, pas
+avant.
+
+### Le défaut qui rendait tout cela impossible, et que rien ne voyait
+
+Trois fichiers de `ds/` importaient **au-dessus** de `mobile/` — `../../src/design-system/…`
+pour les jetons et les tracés d'icônes. TypeScript résout ces chemins, donc le typecheck natif
+était vert depuis le début. **Metro n'en résout aucun** : il ne sort pas de la racine du projet.
+
+```
+Error: Unable to resolve module ../../src/design-system/tokens.generated
+```
+
+L'application ne pouvait ni se bundler, ni tourner, ni se construire — et la seule porte qui
+existait disait le contraire. L'intention était juste (une seule source de vérité, AD-8) ; le
+mécanisme ne l'était pas. `npm run ds:tokens` écrit désormais les jetons **et** les tracés dans
+`mobile/ds/*.generated.ts`. La source reste le CSS du système ; le dossier natif reste autonome
+(AD-9). `tests/unit/mobile-ds.test.ts` refuse tout nouveau franchissement.
+
+### L'icône est PROVISOIRE, et c'est une décision de marque
+
+Le kit ne dessine aucune icône d'application. Celle-ci ne l'invente pas : elle reprend la seule
+forme que le système nomme — « quatre chevrons en rangée, la silhouette du M, lue
+horizontalement » (`reference/responsive.jsx:136`) — une couleur par territoire, dans l'ordre
+des verbes. Aucune valeur hors système.
+
+C'est une proposition, pas un choix arrêté. Une icône d'application se décide, elle ne se
+déduit pas d'une planche : **à trancher avant toute soumission.**
+
+L'écran de lancement, lui, est celui d'Expo par défaut : `expo-splash-screen` n'est pas
+installé, et déclarer son greffon sans son paquet fait échouer le `prebuild`.
+
 ## ⚠️ Ce dossier n'avait jamais pu s'installer
 
 `npm install` échouait en `ERESOLVE` : `react-native@0.87.1` exige `react@^19.2.3`, et le

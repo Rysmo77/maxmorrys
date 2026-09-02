@@ -23,6 +23,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e0d19bd8-2658-4749-b149-0f09173dac30"
+      }
+    },
+    "owner": "my-onoma"
   }
 }

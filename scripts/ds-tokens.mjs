@@ -33,6 +33,22 @@ const OVERRIDES = join(root, 'src/design-system/css/overrides');
 const OUT = join(root, 'src/design-system/tokens.generated.ts');
 
 /**
+ * ── ET LA COPIE NATIVE, DANS LE PROJET NATIF ──────────────────────────────────────────
+ *
+ * `mobile/ds/theme.tsx` lisait `../../src/design-system/tokens.generated` — un chemin qui
+ * SORT du dossier `mobile/`. TypeScript le suit sans broncher, et le typecheck natif était
+ * vert. Metro, lui, ne résout rien hors de la racine du projet : `npx expo export` échouait
+ * sur « Unable to resolve module ». L'application ne pouvait donc pas se bundler — ni tourner,
+ * ni se construire — pendant que sa porte de vérification passait.
+ *
+ * Le dossier natif est AUTONOME (AD-9) : il n'a pas de `workspaces` qui le relierait à la
+ * racine, et lui en donner un pour un seul fichier serait payer très cher. La bonne réponse
+ * est celle qu'AD-8 dicte déjà : les jetons sont GÉNÉRÉS depuis le CSS, donc on les génère
+ * aux DEUX endroits qui les consomment. La source de vérité reste unique — c'est le CSS.
+ */
+const OUT_NATIF = join(root, 'mobile/ds/tokens.generated.ts');
+
+/**
  * Extrait les déclarations `--nom: valeur` d'un bloc de sélecteur donné.
  *
  * Le bloc se ferme sur la PREMIÈRE accolade fermante, pas sur une accolade en début de ligne.
@@ -107,7 +123,7 @@ const D = resolve({ ...light, ...dark });
 const lit = (o) =>
   '{\n' + Object.entries(o).map(([k, v]) => `  ${k}: ${JSON.stringify(v)},`).join('\n') + '\n}';
 
-writeFileSync(OUT, `/**
+const CONTENU = `/**
  * GÉNÉRÉ PAR \`npm run ds:tokens\` — NE PAS ÉDITER.
  * Source : src/design-system/css/tokens/*.css (elles-mêmes copies littérales du DS, AD-1).
  *
@@ -132,6 +148,33 @@ export function token(name: TokenName, scheme: Scheme = 'light'): string {
 /** Les quatre territoires, et seulement les quatre. L'agence est hors territoire. */
 export const TERRITORIES = ['forme', 'informe', 'transforme', 'digitalise'] as const;
 export type Territory = (typeof TERRITORIES)[number];
-`);
+`;
 
-console.log(`ds:tokens — ${Object.keys(L).length} jetons clairs, ${Object.keys(D).length} jetons sombres -> tokens.generated.ts`);
+writeFileSync(OUT, CONTENU);
+writeFileSync(OUT_NATIF, CONTENU);
+
+/*
+ * ── LES TRACÉS D'ICÔNES SUIVENT LE MÊME CHEMIN ────────────────────────────────────────
+ *
+ * `src/design-system/icons.ts` est écrit à la main et ne dépend de rien — ni React, ni DOM,
+ * ni React Native. C'est ce qui permet au web et au natif de lire LES MÊMES tracés, et
+ * d'éviter la dérive glyphe par glyphe que ce fichier explique en tête.
+ *
+ * Mais `mobile/ds/Icon.tsx` l'atteignait par `../../src/design-system/icons`, hors de la
+ * racine du projet natif : même panne que pour les jetons, Metro ne résout pas. On le RECOPIE
+ * donc, au lieu de le pointer — la copie est générée, jamais éditée, et la source reste
+ * unique. Recopier une source unique n'est pas dupliquer : c'est ce que fait déjà `ds:sync`
+ * pour le CSS du kit.
+ */
+const ICONES_SRC = join(root, 'src/design-system/icons.ts');
+const ICONES_NATIF = join(root, 'mobile/ds/icons.generated.ts');
+writeFileSync(
+  ICONES_NATIF,
+  `/* GÉNÉRÉ PAR \`npm run ds:tokens\` DEPUIS src/design-system/icons.ts — NE PAS ÉDITER. */\n` +
+    readFileSync(ICONES_SRC, 'utf8'),
+);
+
+console.log(
+  `ds:tokens — ${Object.keys(L).length} jetons clairs, ${Object.keys(D).length} jetons sombres ` +
+  `-> src/design-system/tokens.generated.ts + mobile/ds/tokens.generated.ts`,
+);
