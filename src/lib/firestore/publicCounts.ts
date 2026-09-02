@@ -33,8 +33,29 @@ export interface PublicCounts {
   asOf: Date;
 }
 
+/**
+ * ⚠️ LE FILTRE EST `status == 'published'`, PAS `published == true`.
+ *
+ * Ce module a compté ZÉRO fois depuis sa création, et rien ne le disait. Il interrogeait
+ * un champ `published` booléen que les documents ne portent PAS : les quatre collections
+ * déclarent `status: 'published' | 'draft'` (`types/index.ts`), et les règles Firestore
+ * gardent exactement là-dessus — `allow read: if resource.data.status == 'published'`.
+ *
+ * Firestore refuse une requête dont les contraintes ne GARANTISSENT pas la règle. Le
+ * filtre sur un champ inexistant ne garantissait rien, donc chaque comptage revenait en
+ * `permission-denied`, le `catch` rendait `null`, et l'accueil n'affichait simplement
+ * aucun chiffre.
+ *
+ * Le défaut était invisible partout : le typecheck ne connaît pas les champs Firestore,
+ * les suites ne parlent pas au serveur, et l'échec est SILENCIEUX par conception — c'est
+ * ce module lui-même qui décide qu'un comptage raté ne s'affiche pas. Il a fallu ouvrir
+ * la page dans un navigateur pour voir les quatre `RunAggregationQuery` refusées.
+ *
+ * Ironie de la chose : ce module existe pour remplacer quatre nombres INVENTÉS par des
+ * nombres vrais. Il n'en affichait aucun.
+ */
 async function countPublished(name: string): Promise<number> {
-  const snap = await getCountFromServer(query(collection(db, name), where('published', '==', true)));
+  const snap = await getCountFromServer(query(collection(db, name), where('status', '==', 'published')));
   return snap.data().count;
 }
 

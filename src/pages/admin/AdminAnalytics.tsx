@@ -276,15 +276,20 @@ export default function AdminAnalytics() {
             {popups.length === 0 ? (
               <p className="m-0 text-meta-2 leading-relaxed text-ink-2">{t('analytics.popupsEmpty')}</p>
             ) : (
+              /* Le débordement horizontal reste DANS son conteneur — c'est la règle du
+                 système pour tout contenu large, et elle vaut aussi pour un tableau. */
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                {/* Un tableau a besoin d'un NOM et d'en-têtes PORTÉES. Sans `scope`, un
+                    lecteur d'écran lit cinq nombres de suite sans dire de quelle colonne
+                    ils viennent — et un tableau de mesures ne se lit que par ses colonnes. */}
+                <table className="w-full text-sm" aria-label={t('analytics.popupsSubtitle')}>
                   <thead>
                     <tr className="border-b border-[color:var(--line)] text-left text-small uppercase tracking-wider text-ink-2">
-                      <th className="px-3 py-2 font-semibold">{t('analytics.popupsColPopup')}</th>
-                      <th className="px-3 py-2 text-right font-semibold">{t('analytics.popupsColImpressions')}</th>
-                      <th className="px-3 py-2 text-right font-semibold">{t('analytics.popupsColClicks')}</th>
-                      <th className="px-3 py-2 text-right font-semibold">{t('analytics.popupsColCtr')}</th>
-                      <th className="px-3 py-2 text-right font-semibold">{t('analytics.popupsColControl')}</th>
+                      <th scope="col" className="px-3 py-2 font-semibold">{t('analytics.popupsColPopup')}</th>
+                      <th scope="col" className="px-3 py-2 text-right font-semibold">{t('analytics.popupsColImpressions')}</th>
+                      <th scope="col" className="px-3 py-2 text-right font-semibold">{t('analytics.popupsColClicks')}</th>
+                      <th scope="col" className="px-3 py-2 text-right font-semibold">{t('analytics.popupsColCtr')}</th>
+                      <th scope="col" className="px-3 py-2 text-right font-semibold">{t('analytics.popupsColControl')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[color:var(--line)]">
