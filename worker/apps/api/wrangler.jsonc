@@ -12,8 +12,30 @@
     "ALLOWED_ORIGINS": "https://maxmorrys.me,https://www.maxmorrys.me,http://localhost:5173",
 
     // Callables servies localement. Tout nom absent est relayé vers Cloud
-    // Functions : c'est l'interrupteur de bascule, et son rollback.
-    "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,exportUserData,deleteUserAccount,mediaToken,popupEvent",
+    // Functions : c'était l'interrupteur de bascule, et son rollback.
+    //
+    // ⚠️ CE RELAIS N'A PLUS DE CIBLE, ET TROIS NOMS Y TOMBAIENT ENCORE.
+    //
+    // Depuis le passage au plan Spark (13/08/2026, `billingEnabled: false`), il ne reste
+    // AUCUNE Cloud Function : les v2 exigent Blaze. `FUNCTIONS_ORIGIN` répond donc 404 sur
+    // tout. Un nom absent de cette liste n'est plus « relayé » — il est mort.
+    //
+    // `createBictorysCharge`, `createRysmoPackCharge`, `createRysmoSubscriptionCharge` et
+    // `bictorysWebhook` étaient absents, alors que leurs gestionnaires existent et sont
+    // enregistrés dans `registry.ts`, et alors que l'environnement `preview` ci-dessous les
+    // déclare, lui. Relevé en production le 02/09/2026 :
+    //
+    //     popupEvent            → 200   (migré, sans authentification)
+    //     getRysmoQuota         → 401   (migré, authentification requise)
+    //     mediaToken            → 401   (migré, authentification requise)
+    //     createBictorysCharge  → 404
+    //     createRysmoPackCharge → 404
+    //     bictorysWebhook       → 404
+    //
+    // Autrement dit : le Worker va bien, et TOUT LE CHEMIN DE L'ARGENT était injoignable —
+    // aucune formation, aucun pack Rysmo, aucun abonnement Club ne pouvait être payé, et le
+    // webhook de confirmation n'aurait de toute façon pas répondu.
+    "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,exportUserData,deleteUserAccount,mediaToken,popupEvent,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,bictorysWebhook,replyToMessage,notifyOnPublish,quoteCheckout",
 
     "FUNCTIONS_ORIGIN": "https://us-central1-max-morrys.cloudfunctions.net",
     "BICTORYS_API_URL": "https://api.bictorys.com/pay/v1/charges",
@@ -65,7 +87,7 @@
       "vars": {
         "FIREBASE_PROJECT_ID": "max-morrys",
         "ALLOWED_ORIGINS": "https://maxmorrys.me,https://www.maxmorrys.me,http://localhost:5173",
-        "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,bictorysWebhook,exportUserData,deleteUserAccount,mediaToken,popupEvent",
+        "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,bictorysWebhook,exportUserData,deleteUserAccount,mediaToken,popupEvent,replyToMessage,notifyOnPublish,quoteCheckout",
         "FUNCTIONS_ORIGIN": "https://us-central1-max-morrys.cloudfunctions.net",
     "BICTORYS_API_URL": "https://api.bictorys.com/pay/v1/charges",
     "APP_BASE_URL": "https://maxmorrys.me",

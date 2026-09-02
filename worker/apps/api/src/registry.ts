@@ -6,6 +6,7 @@ import { deleteUserAccount, exportUserData } from './handlers/gdpr';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { issueCertificate } from './handlers/issueCertificate';
 import { mediaToken } from './handlers/mediaToken';
+import { notifyOnPublish } from './handlers/notifyOnPublish';
 import { parseCv } from './handlers/parseCv';
 import { popupEvent } from './handlers/popupEvent';
 import {
@@ -14,7 +15,9 @@ import {
   createRysmoPackCharge,
   createRysmoSubscriptionCharge,
 } from './handlers/payments';
+import { quoteCheckout } from './handlers/quoteCheckout';
 import { reindexSearch } from './handlers/reindexSearch';
+import { replyToMessage } from './handlers/replyToMessage';
 import { rysmo } from './handlers/rysmo';
 import { spotifyProxy } from './handlers/spotifyProxy';
 import { weeklyClubDigestManual } from './handlers/weeklyClubDigestManual';
@@ -50,8 +53,14 @@ export const HANDLERS: Record<string, CallHandler> = {
   reindexSearch,
   backfillSlugEn,
   weeklyClubDigestManual,
+  // Répond à un message de contact : écrit la réponse, notifie, envoie l'e-mail.
+  replyToMessage,
+  // Prévient à la publication ceux qui l'ont demandé dans leurs réglages.
+  notifyOnPublish,
   // Paiement — implémenté, mais volontairement hors de MIGRATED tant que la
   // fenêtre de dual-run avec Bictorys n'est pas calée.
+  // Devis : le MÊME calcul que la charge, pour que l'écran et le débit ne divergent pas.
+  quoteCheckout,
   createBictorysCharge,
   createClubCharge,
   createRysmoPackCharge,
