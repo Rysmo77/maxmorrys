@@ -279,15 +279,64 @@ const MOBILE = existsSync(join(root, 'mobile')) ? walk(join(root, 'mobile'), ['.
   }
 }
 
-/* ── AD-18 · l'encre tertiaire ne porte pas de texte ───────────────────────── */
+/* ── AD-25 · le cran faible de l'encre reste AU PLANCHER ───────────────────────
+   Cette règle en REMPLACE une : AD-18 interdisait à `--ink-3` de porter du texte, parce
+   qu'il valait #98A1AE — 2,61:1 sur blanc, et « aucun voile ne le sauve ». La livraison
+   des tableaux de bord a remonté le jeton à #68727F, soit **4,88:1**. L'interdiction
+   n'avait plus d'objet, et elle bloquait l'usage même que le kit lui destine : méta de
+   leçon, poids de fichier, pieds de relevé.
+
+   Ce qu'on garde, c'est la RAISON derrière l'interdiction — le cran faible ne doit
+   jamais repasser sous le plancher. On vérifie donc la VALEUR, pas l'usage. Le premier
+   volet d'AD-18 (le voile de maillage à .60, qui traite `--ink-2`) est intact. */
 {
-  for (const f of [...CSS, ...TSX, ...MOBILE]) {
-    if (rel(f).startsWith('src/design-system/css/tokens')) continue;
-    if (rel(f) === 'src/design-system/css/overrides/ad-06-etats.css') continue;
-    lines(f).forEach((l, i) => {
-      if (/\bcolor\s*:\s*var\(--(ink-3|text-faint)\)/.test(l) && !/:disabled|\[disabled\]|aria-disabled/.test(l))
-        add('18 · encre tertiaire', 'AD-18', rel(f), i + 1, '--ink-3 porte du texte — 2,61:1 sur blanc pur, aucun voile ne le sauve ; il reste aux filets et à l\'état désactivé');
+  const FLOOR = { '--ink-3': '#68727F', '--surface-ink': '#0E1116' };
+
+  /* ── L'ORDRE DE LECTURE EST CELUI DE LA CASCADE, PAS CELUI DU DISQUE ──────────
+     Cette règle lisait `CSS`, c'est-à-dire la sortie de `walk()` — donc l'ordre du
+     système de fichiers : `brand/`, `overrides/`, `tokens/`. `tokens/colors.css`
+     était lu EN DERNIER et gagnait, alors que la cascade réelle l'écrase :
+     `styles.css` importe les jetons d'abord et les overrides à la fin.
+
+     Le résultat était un constat FAUX — « --ink-3 vaut #98A1AE » — sur un dépôt où
+     le navigateur rend bien #68727F. Un constat faux sur une barrière de CI coûte
+     plus cher qu'une règle absente : il apprend à passer outre.
+
+     On lit donc l'ordre depuis `styles.css` lui-même, qui est la seule source de
+     vérité de la cascade. Les feuilles qu'il n'importe pas ne sont pas dans la
+     cascade et n'ont donc pas à être pesées. */
+  const ENTRY = join(root, 'src/design-system/css/styles.css');
+  const order = existsSync(ENTRY)
+    ? lines(ENTRY)
+        .map((l) => l.match(/@import\s+url\(["']\.\/(.+?)["']\)/))
+        .filter(Boolean)
+        .map((m) => join(root, 'src/design-system/css', m[1]))
+        .filter((f) => existsSync(f))
+    : CSS;
+
+  const declared = new Map();
+  for (const f of order) {
+    /* On suit les BLOCS, pas les lignes : `tokens/dark.css` déclare `--ink-3` à sa
+       valeur nuit à l'intérieur d'un `.dk{…}`, sur une ligne qui ne porte pas le
+       sélecteur. Comparer sans cette distinction faisait échouer la règle sur la
+       valeur nuit, qui est parfaitement correcte (#77828F, 4,95:1 sur nuit). */
+    let night = false;
+    lines(f).forEach((l) => {
+      if (/^\s*(\.dk|:root:not\(\[data-theme)/.test(l)) night = true;
+      for (const name of Object.keys(FLOOR)) {
+        const m = l.match(new RegExp(`${name}\\s*:\\s*(#[0-9A-Fa-f]{6})`));
+        // La cascade : la dernière déclaration de la portée CLAIRE gagne, et les
+        // overrides sont importés après les jetons.
+        if (m && !night) declared.set(name, { hex: m[1].toUpperCase(), file: rel(f) });
+      }
+      if (night && /^\s*\}/.test(l)) night = false;
     });
+  }
+  for (const [name, want] of Object.entries(FLOOR)) {
+    const got = declared.get(name);
+    if (!got) add('25 · plancher d\'encre', 'AD-25', 'src/design-system/css', 0, `${name} n'est déclaré nulle part`);
+    else if (got.hex !== want.toUpperCase())
+      add('25 · plancher d\'encre', 'AD-25', got.file, 0, `${name} vaut ${got.hex} au lieu de ${want} — le cran faible EST le plancher (4,88:1 sur blanc), ne pas l'éclaircir`);
   }
 }
 

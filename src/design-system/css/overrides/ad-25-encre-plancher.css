@@ -1,0 +1,55 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-25 · LE CRAN FAIBLE DE L'ENCRE CLAIRE EST REMONTÉ AU PLANCHER
+
+   Source : `handoff_tableaux_de_bord/css` (livraison des 24 tableaux de bord), qui
+   révise trois valeurs du kit. Il n'est PAS repointé comme source de `ds:sync` : c'est
+   une livraison PARTIELLE — il ne contient ni `brand/states.css` (l'anneau de focus)
+   ni `brand/breakpoints.css`, et son `styles.css` ne les importe pas. Y basculer
+   supprimerait les deux. Les trois apports passent donc par cet écart délibéré.
+
+   ── 1 · `--ink-3` : #98A1AE → #68727F ────────────────────────────────────────
+   Les deux échelles d'encre comptent trois crans, et elles étaient ASYMÉTRIQUES au seul
+   endroit qui compte — le cran faible, celui qui porte le plus de texte :
+
+       nuit   #ECF0F5 16,9:1   #A2ADBB 8,5:1   #77828F **4,95:1**   ✓ plancher tenu
+       clair  #0E1116 18,9:1   #5A6472 6,0:1   #98A1AE **2,61:1**   ✗ sous le plancher
+
+   Tout ce que le mode clair rend en `--text-faint` passait donc sous 4,5:1 : méta de
+   leçon, poids de fichier, pieds de relevé, textes d'exemple. MESURÉ : #68727F donne
+   **4,88:1** sur blanc et 4,59:1 sur le verre clair — l'exact symétrique de la nuit.
+
+   ⚠️ NE JAMAIS L'ÉCLAIRCIR. Ce cran EST le plancher. S'il faut plus discret que
+   `--text-faint`, c'est que la ligne est de trop, pas qu'elle doit être plus pâle.
+
+   ⚠️ AD-18 EN DEVIENT CADUC SUR SON SECOND VOLET. Il retirait `--ink-3` du texte parce
+   qu'« aucun voile ne le sauve » — vrai à 2,61:1, faux à 4,88:1. Le premier volet
+   d'AD-18, le voile de maillage remonté à .60, reste entier : il traite `--ink-2`.
+
+   ── 2 · `--surface-ink`, invariant par construction ──────────────────────────
+   Une carte sombre posée sur une page CLAIRE ouvre sa propre portée `.dk` pour que ses
+   TEXTES prennent l'encre nuit. Si son FOND lisait `--ink`, ce jeton basculerait avec
+   eux et la carte se peindrait en blanc cassé — titre à 1,00:1. D'où un jeton déclaré
+   à l'IDENTIQUE dans les deux portées. Ne jamais l'aliaser sur `--ink`.
+
+   ── 3 · `.ink-card` ──────────────────────────────────────────────────────────
+   Le recours opaque. `GlassPanel level="night"` est un voile à 72 % : sur une page
+   claire il compose avec elle et remonte à `rgb(80,81,86)`, un gris moyen où aucun
+   texte nuit ne tient. `.ink-card` est opaque ET ouvre sa portée : plus de gris à choisir.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --ink-3: #68727F;
+  --surface-ink: #0E1116;
+}
+
+/* Identique à la portée claire, à dessein — c'est tout l'intérêt du jeton. */
+.dk {
+  --surface-ink: #0E1116;
+}
+
+.ink-card {
+  background: var(--surface-ink);
+  border: 1px solid rgba(255, 255, 255, .1);
+  box-shadow: 0 16px 40px rgba(14, 17, 22, .28);
+  border-radius: var(--r-l);
+}

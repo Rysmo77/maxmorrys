@@ -31,6 +31,105 @@ const VERBES_APP = [
   {label:'Mon profil',color:'#98A1AE'}
 ];
 
+/* ── Coques partagées ──
+   Les 24 pages de tableau de bord tiennent dans DEUX coques. C'est le point : une page
+   qui aurait besoin d'une troisième coque est une page qui sort du motif, et il faut
+   alors se demander si elle a sa place ici. */
+
+function CEyebrow({children,style}){
+  return <p style={{fontFamily:'var(--f-mono)',fontSize:'10.5px',letterSpacing:'.14em',textTransform:'uppercase',color:'var(--text-muted)',margin:0,...style}}>{children}</p>;
+}
+function NEyebrow({children,style}){
+  return <p style={{fontFamily:'var(--f-mono)',fontSize:'10.5px',letterSpacing:'.14em',textTransform:'uppercase',color:'#7C8896',margin:0,...style}}>{children}</p>;
+}
+
+/** Coque de l'espace apprenant : navigation 250 px · travail · panneau optionnel 340 px.
+ *  Sans `aside`, la colonne de travail prend la place — une page qui n'a rien à mettre
+ *  dans le panneau ne doit pas en afficher un vide. */
+function AppFrame({active,sourcil,titre,aside,children}){
+  return (
+    <Fenetre territory="transforme">
+      <div style={{position:'relative',zIndex:3,display:'grid',gridTemplateColumns:aside?'250px 1fr 340px':'250px 1fr',height:'100%'}}>
+        <SideNav brand={<Wordmark brand="rysmo" size={22} />} items={VERBES_APP} active={active} style={{height:'900px'}}
+          footer={<GlassPanel level="flat" padding={14}>
+            <CEyebrow style={{fontSize:'10px'}}>Ta progression</CEyebrow>
+            <p style={{fontSize:'12.5px',fontWeight:600,margin:'4px 0 0'}}>Leçon 5 · 34 %</p>
+            <ProgressBar value={34} style={{marginTop:'8px'}} />
+          </GlassPanel>} />
+        <div style={{padding:'26px 30px',overflowY:'auto'}}>
+          <div className="rv" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'20px'}}>
+            <div>
+              <CEyebrow>{sourcil}</CEyebrow>
+              <h1 style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'34px',letterSpacing:'-.035em',lineHeight:1,margin:'6px 0 0'}}>{titre}</h1>
+            </div>
+            <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
+              <IconButton label="Notifications" badge><Icon name="bell" strokeWidth={2} /></IconButton>
+              <Avatar initials="A" size={40} />
+            </div>
+          </div>
+          {children}
+        </div>
+        {aside && <div style={{borderLeft:'1px solid var(--nav-brd)',padding:'26px 22px',display:'flex',flexDirection:'column',overflowY:'auto'}}>{aside}</div>}
+      </div>
+    </Fenetre>
+  );
+}
+
+/** Coque de la console : les 19 écrans (230 px) · liste dense · détail optionnel (380 px).
+ *  `pied` est OBLIGATOIRE — c'est la zone 3 du motif, celle qui dit ce que l'écran ne
+ *  couvre pas. Un écran d'administration sans cette zone finit en manœuvre manuelle
+ *  non tracée. */
+function ConsoleFrame({actif,sourcil,titre,releve,detail,pied,children}){
+  return (
+    <Fenetre dark>
+      <div style={{position:'relative',zIndex:3,display:'grid',gridTemplateColumns:detail?'230px 1fr 380px':'230px 1fr',height:'100%'}}>
+        <ConsoleNav actif={actif} />
+        <div style={{padding:'24px 26px',overflowY:'auto'}}>
+          <div className="rv" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'20px'}}>
+            <div>
+              <NEyebrow>{sourcil}</NEyebrow>
+              <h1 style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'30px',letterSpacing:'-.035em',lineHeight:1,margin:'6px 0 0',color:'#fff'}}>{titre}</h1>
+            </div>
+            {releve && <span className="mm-num" style={{fontSize:'11px',color:'var(--text-faint)'}}>{releve}</span>}
+          </div>
+          {children}
+          <GlassPanel level="night" padding={16} className="rv" style={{'--i':9,marginTop:'18px',borderColor:'rgba(255,255,255,.09)'}}>
+            <NEyebrow style={{fontSize:'10px',marginBottom:'6px'}}>Ce que cet écran ne couvre pas</NEyebrow>
+            <p style={{fontSize:'12.5px',color:'#A2ADBB',lineHeight:1.55,margin:0}}>{pied}</p>
+          </GlassPanel>
+        </div>
+        {detail && <div style={{borderLeft:'1px solid rgba(255,255,255,.1)',padding:'24px 20px',overflowY:'auto'}}>{detail}</div>}
+      </div>
+    </Fenetre>
+  );
+}
+
+function ConsoleNav({actif}){
+  return (
+    <div style={{borderRight:'1px solid rgba(255,255,255,.1)',padding:'22px 16px',overflowY:'auto'}}>
+      <div style={{display:'flex',alignItems:'center',gap:'9px',padding:'0 6px 18px'}}>
+        <Wordmark brand="rysmo" size={19} night tail="#fff" />
+        <span style={{fontFamily:'var(--f-mono)',fontSize:'9px',letterSpacing:'.14em',textTransform:'uppercase',color:'var(--text-faint)'}}>console</span>
+      </div>
+      {CONSOLE_NAV.map(([groupe,items])=>(
+        <div key={groupe} style={{marginBottom:'16px'}}>
+          <p style={{fontFamily:'var(--f-mono)',fontSize:'9px',letterSpacing:'.16em',textTransform:'uppercase',color:'var(--text-faint)',margin:'0 0 6px 6px'}}>{groupe}</p>
+          {items.map(([nom,badge])=>{
+            const on = nom === actif;
+            return (
+              <div key={nom} className="mm-press-sm" style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 10px',borderRadius:'10px',cursor:'pointer',
+                background:on?'rgba(255,255,255,.1)':'transparent'}}>
+                <span style={{flex:1,fontSize:'13px',fontWeight:on?600:400,color:on?'#ECF0F5':'#A2ADBB'}}>{nom}</span>
+                {badge && <span className="mm-num" style={{fontSize:'10px',color:'#7C8896'}}>{badge}</span>}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ══ 1 · ESPACE APPRENANT · 1440 × 900 ══
    Trois colonnes : navigation 250 px · travail (fluide) · répétiteur 340 px.
 
@@ -40,28 +139,28 @@ const VERBES_APP = [
    C'est le seul gain réel du desktop ici. */
 function EspaceDesktop(){
   return (
-    <Fenetre territory="transforme">
-      <div style={{position:'relative',zIndex:3,display:'grid',gridTemplateColumns:'250px 1fr 340px',height:'100%'}}>
-
-        <SideNav brand={<Wordmark brand="rysmo" size={22} />} items={VERBES_APP} active="Mon espace" style={{height:'900px'}}
-          footer={<GlassPanel level="flat" padding={14}>
-            <p style={{fontFamily:'var(--f-mono)',fontSize:'10px',letterSpacing:'.14em',textTransform:'uppercase',color:'var(--text-muted)',margin:0}}>Ta progression</p>
-            <p style={{fontSize:'12.5px',fontWeight:600,margin:'4px 0 0'}}>Leçon 5 · 34 %</p>
-            <ProgressBar value={34} style={{marginTop:'8px'}} />
-          </GlassPanel>} />
-
-        {/* ── Colonne de travail ── */}
-        <div style={{padding:'26px 30px',overflowY:'auto'}}>
-          <div className="rv" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'20px'}}>
-            <div>
-              <p style={{fontFamily:'var(--f-mono)',fontSize:'10.5px',letterSpacing:'.14em',textTransform:'uppercase',color:'var(--text-muted)',margin:0}}>Vendredi 4 septembre</p>
-              <h1 style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'34px',letterSpacing:'-.035em',lineHeight:1,margin:'6px 0 0'}}>Bonsoir Aïssatou</h1>
-            </div>
-            <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
-              <IconButton label="Notifications" badge><Icon name="bell" strokeWidth={2} /></IconButton>
-              <Avatar initials="A" size={40} />
-            </div>
-          </div>
+    <AppFrame active="Mon espace" sourcil="Vendredi 4 septembre" titre="Bonsoir Aïssatou"
+      aside={<React.Fragment>
+        <div className="rv" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
+          <p style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'19px',letterSpacing:'-.035em',margin:0}}>Répétiteur</p>
+          <IconButton label="Mémoire de profil"><Icon name="dots" size={17} strokeWidth={2} /></IconButton>
+        </div>
+        <QuotaMeter used={3} total={5} label="3 / 5" style={{marginTop:'8px'}} />
+        <div style={{display:'flex',flexDirection:'column',gap:'10px',marginTop:'20px',flex:1}}>
+          <div className="rv" style={{'--i':1}}><ChatBubble>Tu t'es arrêtée à la leçon 5 du module 3. On la reprend ?</ChatBubble></div>
+          <div className="rv" style={{'--i':2,display:'flex',justifyContent:'flex-end'}}><ChatBubble from="me">Comment je choisis mes mots-clés ?</ChatBubble></div>
+          <div className="rv" style={{'--i':3}}><ChatBubble>Trois points : ce que tes clientes disent à voix haute, le nom de ton quartier, et ce que tapent celles qui ne te connaissent pas encore.</ChatBubble></div>
+        </div>
+        <GlassPanel level="flat" padding={14} className="rv" style={{'--i':4,marginTop:'16px'}}>
+          <p style={{fontSize:'12.5px',color:'var(--text-muted)',lineHeight:1.5,margin:0}}>Il te reste <b className="mm-num" style={{color:'var(--ink)'}}>2</b> questions aujourd'hui. Remis à zéro à minuit.</p>
+        </GlassPanel>
+        <div style={{display:'flex',alignItems:'center',gap:'10px',marginTop:'12px'}}>
+          <div style={{flex:1}}><Field placeholder="Pose ta question" style={{marginTop:0}} /></div>
+          <span className="mm-press-sm" style={{width:'46px',height:'46px',borderRadius:'50%',background:'var(--action-transforme)',display:'grid',placeItems:'center',cursor:'pointer',flex:'0 0 auto'}}>
+            <Icon name="send" size={18} color="#fff" strokeWidth={2.6} />
+          </span>
+        </div>
+      </React.Fragment>}>
 
           {/* La reprise, premier objet — inchangé depuis le 390 px */}
           <div className="rv" style={{'--i':1,marginTop:'20px'}}>
@@ -113,32 +212,7 @@ function EspaceDesktop(){
               <p className="mm-num" style={{fontSize:'12px',color:'var(--text-muted)',margin:'3px 0 0'}}>14 notes · 6 leçons</p>
             </GlassPanel>
           </div>
-        </div>
-
-        {/* ── Le répétiteur en panneau permanent : le seul gain réel du desktop ── */}
-        <div style={{borderLeft:'1px solid var(--nav-brd)',padding:'26px 22px',display:'flex',flexDirection:'column',overflowY:'auto'}}>
-          <div className="rv" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
-            <p style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'19px',letterSpacing:'-.035em',margin:0}}>Répétiteur</p>
-            <IconButton label="Mémoire de profil"><Icon name="dots" size={17} strokeWidth={2} /></IconButton>
-          </div>
-          <QuotaMeter used={3} total={5} label="3 / 5" style={{marginTop:'8px'}} />
-          <div style={{display:'flex',flexDirection:'column',gap:'10px',marginTop:'20px',flex:1}}>
-            <div className="rv" style={{'--i':1}}><ChatBubble>Tu t'es arrêtée à la leçon 5 du module 3. On la reprend ?</ChatBubble></div>
-            <div className="rv" style={{'--i':2,display:'flex',justifyContent:'flex-end'}}><ChatBubble from="me">Comment je choisis mes mots-clés ?</ChatBubble></div>
-            <div className="rv" style={{'--i':3}}><ChatBubble>Trois points : ce que tes clientes disent à voix haute, le nom de ton quartier, et ce que tapent celles qui ne te connaissent pas encore.</ChatBubble></div>
-          </div>
-          <GlassPanel level="flat" padding={14} className="rv" style={{'--i':4,marginTop:'16px'}}>
-            <p style={{fontSize:'12.5px',color:'var(--text-muted)',lineHeight:1.5,margin:0}}>Il te reste <b className="mm-num" style={{color:'var(--ink)'}}>2</b> questions aujourd'hui. Remis à zéro à minuit.</p>
-          </GlassPanel>
-          <div style={{display:'flex',alignItems:'center',gap:'10px',marginTop:'12px'}}>
-            <div style={{flex:1}}><Field placeholder="Pose ta question" style={{marginTop:0}} /></div>
-            <span className="mm-press-sm" style={{width:'46px',height:'46px',borderRadius:'50%',background:'var(--action-transforme)',display:'grid',placeItems:'center',cursor:'pointer',flex:'0 0 auto'}}>
-              <Icon name="send" size={18} color="#fff" strokeWidth={2.6} />
-            </span>
-          </div>
-        </div>
-      </div>
-    </Fenetre>
+    </AppFrame>
   );
 }
 
@@ -150,7 +224,7 @@ function EspaceDesktop(){
    détail cesse d'être un écran séparé et devient un panneau. Un opérateur unique
    qualifie sans jamais perdre la file de vue. */
 const CONSOLE_NAV = [
-  ['Pilotage',[['Tableau de bord',null,true],['Transactions','1 en attente'],['Utilisateurs','5']]],
+  ['Pilotage',[['Tableau de bord',null],['Transactions','1 en attente'],['Utilisateurs','5']]],
   ['Commerce',[['Prospects','1'],['Projets','0'],['Coupons','1 actif']]],
   ['Contenu',[['Formations','2 · 0 publiée'],['Articles','47 brouillons'],['Podcasts','1'],['Vidéos','2'],['FAQ','12']]],
   ['Club',[['Événements','2'],['Défis','0'],['Témoignages','0']]],
@@ -159,38 +233,35 @@ const CONSOLE_NAV = [
 
 function ConsoleDesktop(){
   return (
-    <Fenetre dark>
-      <div style={{position:'relative',zIndex:3,display:'grid',gridTemplateColumns:'230px 1fr 380px',height:'100%'}}>
-
-        {/* ── Les 19 écrans, groupés. En 390 px il fallait un menu ; ici tout est visible. ── */}
-        <div style={{borderRight:'1px solid rgba(255,255,255,.1)',padding:'22px 16px',overflowY:'auto'}}>
-          <div style={{display:'flex',alignItems:'center',gap:'9px',padding:'0 6px 18px'}}>
-            <Wordmark brand="rysmo" size={19} night tail="#fff" />
-            <span style={{fontFamily:'var(--f-mono)',fontSize:'9px',letterSpacing:'.14em',textTransform:'uppercase',color:'#6D7987'}}>console</span>
+    <ConsoleFrame actif="Tableau de bord" sourcil="Console · pilotage" titre="Dimanche 30 août" releve="relevé du 30/08 · 09:12"
+      pied={<>Ni analyse d'audience, ni cohortes, ni graphiques : il ne répond qu'à « qu'est-ce qui bloque aujourd'hui ». Le coût d'exploitation — infrastructure, IA, paiement — n'y figure pas encore.</>}
+      detail={<React.Fragment>
+        <div className="rv" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px'}}>
+          <div>
+            <NEyebrow style={{fontSize:'10px'}}>Prospect sélectionné</NEyebrow>
+            <p style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'19px',letterSpacing:'-.03em',margin:'5px 0 0',color:'#fff'}}>Boutique de cosmétiques</p>
           </div>
-          {CONSOLE_NAV.map(([groupe,items])=>(
-            <div key={groupe} style={{marginBottom:'16px'}}>
-              <p style={{fontFamily:'var(--f-mono)',fontSize:'9px',letterSpacing:'.16em',textTransform:'uppercase',color:'#5D6874',margin:'0 0 6px 6px'}}>{groupe}</p>
-              {items.map(([nom,badge,actif])=>(
-                <div key={nom} className="mm-press-sm" style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 10px',borderRadius:'10px',cursor:'pointer',
-                  background:actif?'rgba(255,255,255,.1)':'transparent'}}>
-                  <span style={{flex:1,fontSize:'13px',fontWeight:actif?600:400,color:actif?'#ECF0F5':'#A2ADBB'}}>{nom}</span>
-                  {badge && <span className="mm-num" style={{fontSize:'10px',color:'#7C8896'}}>{badge}</span>}
-                </div>
-              ))}
-            </div>
-          ))}
+          <Tag tone="warn">nouveau</Tag>
         </div>
-
-        {/* ── Zone 1 et 2 du motif : filtre par statut, puis liste dense ── */}
-        <div style={{padding:'24px 26px',overflowY:'auto'}}>
-          <div className="rv" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'20px'}}>
-            <div>
-              <p style={{fontFamily:'var(--f-mono)',fontSize:'10.5px',letterSpacing:'.14em',textTransform:'uppercase',color:'#7C8896',margin:0}}>Console · pilotage</p>
-              <h1 style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'30px',letterSpacing:'-.035em',lineHeight:1,margin:'6px 0 0',color:'#fff'}}>Dimanche 30 août</h1>
-            </div>
-            <span className="mm-num" style={{fontSize:'11px',color:'#5D6874'}}>relevé du 30/08 · 09:12</span>
-          </div>
+        <div className="rv" style={{'--i':1,marginTop:'16px'}}>
+          <Pipeline active="nouveau" stages={['nouveau','qualifié','devisé','signé','perdu']} />
+        </div>
+        <GlassPanel level="night" padding={18} className="rv" style={{'--i':2,marginTop:'14px'}}>
+          <DocLine label="Reçu le" value="06/08/2026" />
+          <DocLine label="Lieu" value="Almadies, Dakar" />
+          <DocLine label="Trouvée par" value="bouche-à-oreille" />
+          <DocLine label="Vend déjà sur" value="WhatsApp · Facebook" />
+          <DocLine label="Recommandation" value="Pack Visible" />
+          <DocLine label="Montant du devis" value="250 000 F" last />
+        </GlassPanel>
+        <Button size="sm" tone="quiet" style={{marginTop:'14px'}}>Qualifier ce prospect</Button>
+        <Button size="sm" tone="quiet" fullWidth style={{marginTop:'8px'}}>Émettre le devis</Button>
+        <GlassPanel level="night" padding={16} className="rv" style={{'--i':3,marginTop:'16px'}}>
+          <NEyebrow style={{fontSize:'10px',marginBottom:'5px'}}>Coût opérationnel</NEyebrow>
+          <p className="mm-num" style={{fontSize:'23px',margin:'0 0 4px',color:'#fff'}}>≈ 12 min</p>
+          <p style={{fontSize:'12.5px',color:'#A2ADBB',lineHeight:1.55,margin:0}}>par prospect qualifié — lecture, appel, devis, relance à J+3. À trente par semaine, c'est une demi-journée qui n'existe pas.</p>
+        </GlassPanel>
+      </React.Fragment>}>
 
           <GlassPanel level="night" padding={18} className="rv" style={{'--i':1,marginTop:'18px',borderColor:'rgba(243,139,10,.4)'}}>
             <div style={{display:'flex',alignItems:'center',gap:'13px'}}>
@@ -211,7 +282,7 @@ function ConsoleDesktop(){
             <div className="rv" style={{'--i':4}}><StatTile dark label="Inscriptions" value="2" foot="progression 0 %" /></div>
             <div className="rv" style={{'--i':5}}><StatTile dark label="Certificats" value="0" foot="depuis l'origine" /></div>
           </div>
-          <p className="rv" style={{'--i':6,fontSize:'11.5px',color:'#5D6874',lineHeight:1.5,marginTop:'10px'}}>Chaque case porte sa date de relevé. Une case sans date affiche « non relevé », jamais une estimation.</p>
+          <p className="rv" style={{'--i':6,fontSize:'11.5px',color:'var(--text-faint)',lineHeight:1.5,marginTop:'10px'}}>Chaque case porte sa date de relevé. Une case sans date affiche « non relevé », jamais une estimation.</p>
 
           <p className="rv" style={{'--i':7,fontFamily:'var(--f-mono)',fontSize:'10.5px',letterSpacing:'.14em',textTransform:'uppercase',color:'#7C8896',margin:'24px 0 10px'}}>À traiter</p>
           <div className="rv" style={{'--i':7}}><Pipeline active="à traiter 3" stages={['tout 12','à traiter 3','en attente 1','clos 8']} /></div>
@@ -226,47 +297,10 @@ function ConsoleDesktop(){
               title="7 chiffres non sourcés en façade" meta="contredits par la base"
               trailing={<Button size="sm" tone="quiet">Retirer</Button>} last />
           </GlassPanel>
-
-          {/* Zone 3 du motif : ce que l'écran ne couvre pas */}
-          <GlassPanel level="night" padding={16} className="rv" style={{'--i':9,marginTop:'18px',borderColor:'rgba(255,255,255,.09)'}}>
-            <p style={{fontFamily:'var(--f-mono)',fontSize:'10px',letterSpacing:'.14em',textTransform:'uppercase',color:'#7C8896',margin:'0 0 6px'}}>Ce que cet écran ne couvre pas</p>
-            <p style={{fontSize:'12.5px',color:'#A2ADBB',lineHeight:1.55,margin:0}}>Ni analyse d'audience, ni cohortes, ni graphiques : il ne répond qu'à « qu'est-ce qui bloque aujourd'hui ». Le coût d'exploitation — infrastructure, IA, paiement — n'y figure pas encore.</p>
-          </GlassPanel>
-        </div>
-
-        {/* ── Le détail en panneau : la file reste visible pendant qu'on traite ── */}
-        <div style={{borderLeft:'1px solid rgba(255,255,255,.1)',padding:'24px 20px',overflowY:'auto'}}>
-          <div className="rv" style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px'}}>
-            <div>
-              <p style={{fontFamily:'var(--f-mono)',fontSize:'10px',letterSpacing:'.14em',textTransform:'uppercase',color:'#7C8896',margin:0}}>Prospect sélectionné</p>
-              <p style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'19px',letterSpacing:'-.03em',margin:'5px 0 0',color:'#fff'}}>Boutique de cosmétiques</p>
-            </div>
-            <Tag tone="warn">nouveau</Tag>
-          </div>
-          <div className="rv" style={{'--i':1,marginTop:'16px'}}>
-            <Pipeline active="nouveau" stages={['nouveau','qualifié','devisé','signé','perdu']} />
-          </div>
-          <GlassPanel level="night" padding={18} className="rv" style={{'--i':2,marginTop:'14px'}}>
-            <DocLine label="Reçu le" value="06/08/2026" />
-            <DocLine label="Lieu" value="Almadies, Dakar" />
-            <DocLine label="Trouvée par" value="bouche-à-oreille" />
-            <DocLine label="Vend déjà sur" value="WhatsApp · Facebook" />
-            <DocLine label="Recommandation" value="Pack Visible" />
-            <DocLine label="Montant du devis" value="250 000 F" last />
-          </GlassPanel>
-          <Button size="sm" tone="quiet" style={{marginTop:'14px'}}>Qualifier ce prospect</Button>
-          <Button size="sm" tone="quiet" fullWidth style={{marginTop:'8px'}}>Émettre le devis</Button>
-          <GlassPanel level="night" padding={16} className="rv" style={{'--i':3,marginTop:'16px'}}>
-            <p style={{fontFamily:'var(--f-mono)',fontSize:'10px',letterSpacing:'.14em',textTransform:'uppercase',color:'#7C8896',margin:'0 0 5px'}}>Coût opérationnel</p>
-            <p className="mm-num" style={{fontSize:'23px',margin:'0 0 4px',color:'#fff'}}>≈ 12 min</p>
-            <p style={{fontSize:'12.5px',color:'#A2ADBB',lineHeight:1.55,margin:0}}>par prospect qualifié — lecture, appel, devis, relance à J+3. À trente par semaine, c'est une demi-journée qui n'existe pas.</p>
-          </GlassPanel>
-        </div>
-      </div>
-    </Fenetre>
+    </ConsoleFrame>
   );
 }
 
-const MM_EXPORT = {Fenetre,EspaceDesktop,ConsoleDesktop};
+const MM_EXPORT = {Fenetre,AppFrame,ConsoleFrame,ConsoleNav,CEyebrow,NEyebrow,VERBES_APP,CONSOLE_NAV,EspaceDesktop,ConsoleDesktop};
 Object.assign(window, MM_EXPORT);
 window.MMDASH = Object.assign(window.MMDASH||{}, MM_EXPORT);

@@ -1,16 +1,13 @@
-/* ══════════════════════════════════════════════════════════════════════════════
-   LES 25 COMPOSANTS QUE CES DEUX TABLEAUX DE BORD UTILISENT.
-
+/* Les 30 composants que ces 24 pages assemblent, en clair.
    Fonctions React ordinaires, styles en ligne lisant les variables CSS de css/.
    Aucune dépendance npm : React seul.
 
-   AUCUN mot-clé de module ici, volontairement : Babel Standalone bascule en CommonJS dès
-   qu'il en voit un seul, et le navigateur échoue alors sur « exports is not defined ».
-   En production, remets de vrais exports et supprime le window.DS de fin de fichier.
-   ══════════════════════════════════════════════════════════════════════════════ */
+   AUCUN mot-clé de module ici, volontairement : Babel Standalone bascule en CommonJS dès qu'il
+   en voit un seul, et le navigateur échoue alors sur « exports is not defined » — la page rend
+   son cadre et rien d'autre. En production, remets de vrais exports et supprime window.DS. */
 
 
-/* ───────────  BRAND  ─────────── */
+/* ───────  BRAND  ─────── */
 
 const MM_ICONS = {"back":{"p":["M15 19l-7-7 7-7"]},"forward":{"p":["M9 5l7 7-7 7"]},"close":{"p":["M18 6L6 18M6 6l12 12"]},"bell":{"p":["M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9","M13.7 21a2 2 0 01-3.4 0"]},"search":{"p":["M20 20l-3.5-3.5"],"c":[[11,11,7]],"w":2.4},"lock":{"p":["M8 11V8a4 4 0 018 0v3"],"r":[[5,11,14,10,2]],"w":2.4},"share":{"p":["M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8","M16 6l-4-4-4 4","M12 2v14"]},"chat":{"p":["M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"]},"home":{"p":["M3 10l9-7 9 7v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"]},"book":{"p":["M4 5a2 2 0 012-2h12a2 2 0 012 2v16l-8-4-8 4z"]},"users":{"p":["M2 20a7 7 0 0114 0"],"c":[[9,8,3.4]]},"user":{"p":["M4 21a8 8 0 0116 0"],"c":[[12,8,3.6]]},"star":{"p":["M12 2l3 6 6 .8-4.5 4.3 1.2 6.4L12 16.5 6.3 19.5l1.2-6.4L3 8.8 9 8z"]},"check":{"p":["M4 12.5l5.5 5.5L20 7"],"w":3.4},"alert":{"p":["M12 8v5","M10.3 3.5L2.6 17a2 2 0 001.7 3h15.4a2 2 0 001.7-3L13.7 3.5a2 2 0 00-3.4 0z"],"c":[[12,17,0.7]],"w":2.6},"card":{"p":["M2 10h20"],"r":[[2,5,20,14,2]]},"eye":{"p":["M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"],"c":[[12,12,2.6]]},"download":{"p":["M12 3v12M7 11l5 5 5-5M4 20h16"]},"trash":{"p":["M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"]},"doc":{"p":["M4 5h16v14H4z","M4 9h16"]},"send":{"p":["M5 12h14M13 6l6 6-6 6"],"w":2.6},"bookmark":{"p":["M6 3h12v18l-6-4.5L6 21z"]},"comment":{"p":["M4 4h16v13H8l-4 4z"]},"dots":{"c":[[12,12,2.2],[12,5,1.4],[12,19,1.4]]},"play":{"fill":"M7 4 L20 12 L7 20 Z","solid":true},"bars":{"p":["M4 18v-6M10 18V6M16 18v-9M22 18V3"]},"globe":{"p":["M12 2a9 9 0 100 18 9 9 0 000-18zM3 12h18","M12 2a14 14 0 010 18 14 14 0 010-18z"]},"chevron":{"p":["M6 9l6 6 6-6"]},"list":{"p":["M4 6h16M4 12h16M4 18h10"]},"calendar":{"p":["M3 10h18M8 3v4M16 3v4"],"r":[[3,5,18,16,2]]},"case":{"p":["M4 7h16v13H4zM9 7V4h6v3"]},"info":{"p":["M12 11v6M12 7.5v.5"],"c":[[12,12,9]]},"plus":{"p":["M12 3v18M3 12h18"]},"heart":{"p":["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"],"w":2},"repeat":{"p":["m2 9 3-3 3 3","M13 18H7a2 2 0 0 1-2-2V6","m22 15-3 3-3-3","M11 6h6a2 2 0 0 1 2 2v10"],"w":2}};
 
@@ -90,13 +87,29 @@ function Wordmark({brand='hello',size=22,tail,night,short,style}){
 }
 
 
-/* ───────────  SURFACES  ─────────── */
+/* ───────  SURFACES  ─────── */
 
-const mmGlassClass = {panel:'glass',hero:'glass-hero',flat:'glass-flat',night:'glass-d',truth:'truth'};
+function EmptyState({glyph,glyphBackground='var(--fill-1)',title,body,action,style}){
+  return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',textAlign:'center',padding:'34px 20px',...style}}>
+      {glyph!==undefined && <span style={{width:'64px',height:'64px',borderRadius:'22px',display:'grid',placeItems:'center',marginBottom:'16px',background:glyphBackground}}>{glyph}</span>}
+      {title && <p style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'22px',letterSpacing:'-.03em',lineHeight:1.1,margin:0}}>{title}</p>}
+      {body && <p style={{fontSize:'13.5px',color:'var(--text-muted)',lineHeight:1.5,marginTop:'9px',maxWidth:'34ch'}}>{body}</p>}
+      {action && <div style={{marginTop:'18px',width:'100%'}}>{action}</div>}
+    </div>
+  );
+}
+
+const mmGlassClass = {panel:'glass',hero:'glass-hero',flat:'glass-flat',night:'glass-d',ink:'ink-card',truth:'truth'};
 
 function GlassPanel({level='panel',padding,children,style,className=''}){
+  /* `ink` ouvre sa propre portée de thème : posée sur une page claire, la carte est sombre,
+     donc les jetons d'encre qu'elle contient doivent être ceux du mode nuit. Sans ça, chaque
+     texte à l'intérieur serait un gris écrit à la main — et c'est exactement l'erreur que ce
+     niveau existe pour empêcher. */
+  const portee = level === 'ink' ? ' dk' : '';
   return (
-    <div className={(mmGlassClass[level]||'glass')+(className?' '+className:'')}
+    <div className={(mmGlassClass[level]||'glass')+portee+(className?' '+className:'')}
       style={{padding:typeof padding==='number'?padding+'px':padding,...style}}>{children}</div>
   );
 }
@@ -108,6 +121,15 @@ function Mesh({territory='forme',size,lobes,style}){
       {[0,1,2].map(i=><b key={i} style={{...s,...(lobes&&lobes[i])}} />)}
     </div>
   );
+}
+
+function Skeleton({width='100%',height=16,radius='var(--r-s)',style}){
+  return <div className="skel" style={{
+    width:typeof width==='number'?width+'px':width,
+    height:typeof height==='number'?height+'px':height,
+    borderRadius:typeof radius==='number'?radius+'px':radius,
+    background:'linear-gradient(100deg,var(--fill-1) 30%,var(--fill-3) 48%,var(--fill-1) 62%)',
+    backgroundSize:'280% 100%',animation:'shim 1.5s infinite linear',...style}} />;
 }
 
 const mmLayout = {
@@ -147,7 +169,7 @@ function TerritoryCard({territory='forme',meta,title,titleSize,big,bigLabel,trai
 }
 
 
-/* ───────────  ACTIONS  ─────────── */
+/* ───────  ACTIONS  ─────── */
 
 const mmButtonTone = {
   primary:{background:'var(--action-primary)',color:'var(--text-on-primary)',boxShadow:'var(--sh-ink)'},
@@ -205,7 +227,7 @@ function PillButton({children,style,className='',...rest}){
 }
 
 
-/* ───────────  FORMS  ─────────── */
+/* ───────  FORMS  ─────── */
 
 function ChipRow({options=[],value,onChange,height=40,style}){
   return (
@@ -265,8 +287,31 @@ function Segmented({options=[],value,onChange,style}){
   );
 }
 
+function StepDots({total=3,current=1,style}){
+  return (
+    <div style={{display:'flex',gap:'5px',...style}}>
+      {Array.from({length:total}).map((_,i)=>(
+        <i key={i} style={{flex:1,height:'4px',borderRadius:'3px',background:i<current?'var(--ink)':'var(--fill-3)'}} />
+      ))}
+    </div>
+  );
+}
 
-/* ───────────  DATA  ─────────── */
+function Switch({on,disabled,onClick,style}){
+  return (
+    <span role="switch" aria-checked={!!on} aria-disabled={disabled||undefined} onClick={disabled?undefined:onClick} style={{
+      width:'48px',height:'29px',borderRadius:'16px',position:'relative',flex:'0 0 auto',cursor:disabled?'default':'pointer',
+      background:on?'var(--action-forme)':'var(--fill-4)',opacity:disabled?.4:1,
+      transition:'background var(--t-ui) var(--ease),opacity var(--t-ui) var(--ease)',...style}}>
+      <b style={{position:'absolute',left:'3px',top:'3px',width:'23px',height:'23px',borderRadius:'50%',background:'#fff',
+        boxShadow:'0 2px 6px rgba(14,17,22,.24)',transform:on?'translateX(19px)':'none',
+        transition:'transform var(--t-ui) var(--ease)'}} />
+    </span>
+  );
+}
+
+
+/* ───────  DATA  ─────── */
 
 function Avatar({initials='',size=42,background='linear-gradient(135deg,var(--mm-violet),var(--mm-bleu))',style}){
   return <span style={{width:size+'px',height:size+'px',borderRadius:'50%',background,display:'grid',placeItems:'center',
@@ -352,6 +397,47 @@ function LessonRow({state='todo',icon,iconBackground,title,meta,trailing,last,on
   );
 }
 
+const MM_ONDE = [16,30,44,24,38,14,33,44,20,36,26,42,18,30,40,22];
+
+function MediaCard({format='audio',gradient,eyebrow,title,body,cost=[],badge,artHeight=150,titleSize=17,actions,style}){
+  const grad = gradient || (format==='audio'
+    ? 'linear-gradient(140deg,#6C23DD,#0057BC 62%,#02AC9C)'
+    : 'linear-gradient(140deg,#0057BC,#6C23DD)');
+  /* Faux verre, aucun flou : une carte de média vit toujours en grille, et une grille
+     floutée coûte un recompositing par carte et par image. */
+  return (
+    <div style={{borderRadius:'var(--r-l)',overflow:'hidden',background:'var(--surface-card-flat)',
+      border:'1px solid var(--glass-brd)',boxShadow:'var(--glass-hl),var(--glass-sh-flat)',...style}}>
+      <div style={{height:artHeight+'px',background:grad,position:'relative',display:'flex',alignItems:'center',
+        justifyContent:format==='audio'?'space-between':'center',padding:'18px'}}>
+        {format==='audio' && (
+          <span style={{display:'flex',alignItems:'center',gap:'3px',height:'46px'}}>
+            {MM_ONDE.map((h,i)=><i key={i} style={{width:'3px',height:h+'px',borderRadius:'2px',background:'rgba(255,255,255,.72)'}} />)}
+          </span>
+        )}
+        {format==='video' && <span style={{position:'absolute',inset:'14px',border:'2px solid rgba(255,255,255,.28)',borderRadius:'14px'}} />}
+        <span style={{width:'56px',height:'56px',borderRadius:'50%',background:'rgba(255,255,255,.92)',display:'grid',placeItems:'center',flex:'0 0 auto',
+          boxShadow:'0 8px 22px rgba(14,17,22,.24)'}}>
+          <svg width="19" height="19" viewBox="0 0 24 24"><polygon points="7 4 20 12 7 20" fill="#0E1116" /></svg>
+        </span>
+        {badge && <span style={{position:'absolute',left:'14px',bottom:'14px',display:'inline-flex',alignItems:'center',height:'25px',padding:'0 10px',
+          borderRadius:'var(--r-pill)',fontSize:'10.5px',fontWeight:600,background:'rgba(0,0,0,.5)',color:'#fff'}}>{badge}</span>}
+      </div>
+      <div style={{padding:'18px'}}>
+        {eyebrow && <p style={{fontFamily:'var(--f-mono)',fontSize:'10.5px',letterSpacing:'.14em',textTransform:'uppercase',color:'var(--text-muted)',margin:0}}>{eyebrow}</p>}
+        {title && <b style={{display:'block',fontFamily:'var(--f-display)',fontWeight:900,fontSize:titleSize+'px',letterSpacing:'-.032em',lineHeight:1.05,marginTop:'7px'}}>{title}</b>}
+        {body && <p style={{fontSize:'13.5px',color:'var(--text-muted)',lineHeight:1.5,margin:'9px 0 0'}}>{body}</p>}
+        {cost.length > 0 && (
+          <div style={{display:'flex',gap:'12px',flexWrap:'wrap',marginTop:'13px',fontFamily:'var(--f-mono)',fontSize:'11px',color:'var(--text-muted)'}}>
+            {cost.map(c=><span key={c}>{c}</span>)}
+          </div>
+        )}
+        {actions && <div style={{display:'flex',gap:'9px',marginTop:'16px'}}>{actions}</div>}
+      </div>
+    </div>
+  );
+}
+
 function PriceBlock({amount,currency='FCFA',strike,note,size=31,style}){
   return (
     <div style={style}>
@@ -420,7 +506,7 @@ function Tag({tone='neutral',children,style}){
 }
 
 
-/* ───────────  NAVIGATION  ─────────── */
+/* ───────  NAVIGATION  ─────── */
 
 function Pipeline({stages=[],active,onSelect,style}){
   return (
@@ -477,7 +563,7 @@ function TopBar({brand,items=[],active,onSelect,trailing,style}){
 }
 
 
-window.DS = {Icon, LogoMark, Wordmark, GlassPanel, Mesh, TerritoryCard, Button, IconButton, PillButton, ChipRow, Field, Segmented, Avatar, ChatBubble, CheckLine, DocLine, LessonRow, PriceBlock, ProgressBar, QuotaMeter, StatTile, Tag, Pipeline, SideNav, TopBar};
+window.DS = {Icon, LogoMark, Wordmark, EmptyState, GlassPanel, Mesh, Skeleton, TerritoryCard, Button, IconButton, PillButton, ChipRow, Field, Segmented, StepDots, Switch, Avatar, ChatBubble, CheckLine, DocLine, LessonRow, MediaCard, PriceBlock, ProgressBar, QuotaMeter, StatTile, Tag, Pipeline, SideNav, TopBar};
 
 /* Frontière d'erreur : un écran qui casse affiche pourquoi au lieu de vider la page. */
 window.MMBoundary = class MMBoundary extends React.Component {

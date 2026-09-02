@@ -1,8 +1,8 @@
 # Contrats de props
 
-Les 25 composants que ces deux tableaux de bord assemblent. **Lis ces contrats : ils portent
-les raisons, pas seulement les types.** Plusieurs props existent pour une décision précise que
-le nom seul ne dit pas — la prop `level` de `GlassPanel`, par exemple, encode le budget de flou.
+Les 30 composants que ces 24 pages assemblent. **Lis ces contrats : ils portent les raisons,
+pas seulement les types.** Plusieurs props encodent une décision que le nom seul ne dit pas —
+la prop `level` de `GlassPanel` porte le budget de flou et la distinction voile / opaque.
 
 Les implémentations sont dans `components.jsx`.
 
@@ -134,6 +134,39 @@ export function Wordmark(props: WordmarkProps): JSX.Element;
 
 ## surfaces
 
+### `EmptyState`
+
+État vide, erreur, hors connexion, 403.
+
+```jsx
+<EmptyState glyphBackground="linear-gradient(135deg,#FFDCA8,#FFC9CE)"
+  title="Aucune formation n'est encore en ligne."
+  body="Je préfère te le dire que te faire cliquer dans le vide."
+  action={<Button tone="primary">Crée ton compte</Button>} />
+```
+
+Ne jamais écrire « oups », ne jamais s'excuser : dire quoi, et quoi faire.
+
+```ts
+import * as React from 'react';
+
+/**
+ * État vide. Règle du produit : un écran vide est une invitation à agir, pas une excuse.
+ * Il dit ce qui manque, pourquoi, et la seule chose à faire ensuite.
+ */
+export interface EmptyStateProps {
+  /** Carré de glyphe, 64 px. */
+  glyph?: React.ReactNode;
+  /** Fond du carré de glyphe. */
+  glyphBackground?: string;
+  title?: string;
+  body?: string;
+  action?: React.ReactNode;
+  style?: React.CSSProperties;
+}
+export function EmptyState(props: EmptyStateProps): JSX.Element;
+```
+
 ### `GlassPanel`
 
 Surface porteuse de tout le contenu. Le niveau se choisit par une seule question : est-ce que ça défile ?
@@ -172,11 +205,15 @@ export interface GlassPanelProps {
    * `panel` — chrome et panneau générique, le seul niveau qui peut porter un flou.
    * `hero` — prix, formulaire principal : la surface la plus importante de l'écran.
    * `flat` — listes, fils, grilles : le défaut sur mobile, pas l'exception.
-   * `night` — contenu en portée sombre. Jamais du chrome.
+   * `night` — contenu dans une page DÉJÀ sombre. C'est un **voile** : posé sur une page claire
+   *   il compose avec elle et remonte à un gris moyen où aucun texte ne tient. Jamais du chrome.
+   * `ink` — carte sombre posée sur une page **claire**. Opaque, et elle ouvre sa propre portée
+   *   `.dk` : les jetons d'encre à l'intérieur basculent seuls, donc on n'y écrit jamais un
+   *   gris à la main.
    * `truth` — l'encart de vérité, avec son sourcil.
    * @default "panel"
    */
-  level?: 'panel' | 'hero' | 'flat' | 'night' | 'truth';
+  level?: 'panel' | 'hero' | 'flat' | 'night' | 'ink' | 'truth';
   padding?: number | string;
   children?: React.ReactNode;
   style?: React.CSSProperties;
@@ -217,6 +254,29 @@ export interface MeshProps {
   style?: React.CSSProperties;
 }
 export function Mesh(props: MeshProps): JSX.Element;
+```
+
+### `Skeleton`
+
+Bloc de chargement. Reproduisez la géométrie de l'écran final, pas un bloc générique.
+
+```jsx
+<Skeleton height={30} width="70%" />
+<Skeleton height={96} radius={24} style={{marginTop:12}} />
+```
+
+```ts
+/**
+ * Squelette de chargement : la forme du contenu avant le contenu, jamais un rond qui tourne.
+ * Le miroitement ne démarre que sous un parent `.play`.
+ */
+export interface SkeletonProps {
+  width?: number | string;
+  height?: number | string;
+  radius?: number | string;
+  style?: React.CSSProperties;
+}
+export function Skeleton(props: SkeletonProps): JSX.Element;
 ```
 
 ### `TerritoryCard`
@@ -414,6 +474,39 @@ export interface FieldProps {
 export function Field(props: FieldProps): JSX.Element;
 ```
 
+### `PayOption`
+
+Choix exclusif au tunnel de paiement (Wave, Orange Money, carte) et dans le sélecteur de pack.
+
+```jsx
+<PayOption on logo="W" logoBackground="linear-gradient(135deg,#3FD8FF,#009FE3)"
+  title="Wave" note="Tu valides dans l'app Wave" />
+<PayOption title="Je ne sais pas trop" />
+```
+
+« Free Money » figure aux CGV mais n'est pas offert au tunnel (FR-098) : ne pas l'ajouter sans décision.
+
+```ts
+import * as React from 'react';
+
+/**
+ * Ligne de choix exclusif à radio, 68 px de haut : moyens de paiement au tunnel,
+ * réponses du sélecteur de pack TPE. Sans `logo`, c'est une simple option de réponse.
+ */
+export interface PayOptionProps {
+  /** Sigle du prestataire — « W », « OM » — ou une icône. */
+  logo?: React.ReactNode;
+  /** Fond du carré de logo (dégradé de la marque du prestataire). */
+  logoBackground?: string;
+  title?: string;
+  note?: string;
+  on?: boolean;
+  onClick?: () => void;
+  style?: React.CSSProperties;
+}
+export function PayOption(props: PayOptionProps): JSX.Element;
+```
+
 ### `Segmented`
 
 Segments pour un choix exclusif court.
@@ -436,6 +529,54 @@ export interface SegmentedProps {
   style?: React.CSSProperties;
 }
 export function Segmented(props: SegmentedProps): JSX.Element;
+```
+
+### `StepDots`
+
+Barres d'étape du tunnel d'achat et du sélecteur TPE.
+
+```jsx
+<StepDots total={3} current={2} />
+```
+
+```ts
+/**
+ * Avancement d'un tunnel court — trois barres pleine largeur, jamais un numéro seul.
+ * Le libellé « Étape 2 sur 3 » vit dans la barre haute, pas ici.
+ */
+export interface StepDotsProps {
+  /** @default 3 */
+  total?: number;
+  /** Nombre d'étapes franchies. @default 1 */
+  current?: number;
+  style?: React.CSSProperties;
+}
+export function StepDots(props: StepDotsProps): JSX.Element;
+```
+
+### `Switch`
+
+Interrupteur de préférence. Le seul composant dont l'état désactivé porte du sens : il déclare une promesse non tenue plutôt que de la cacher.
+
+```jsx
+<Switch on />
+<Switch disabled />   {/* « pas encore disponible » */}
+```
+
+```ts
+/**
+ * Interrupteur, 48 × 29. Actif : dégradé bleu→violet.
+ * L'état désactivé est un usage à part entière du produit — il sert à dire
+ * « ce réglage existe mais ne fait rien encore » (canal e-mail absent, R-14)
+ * au lieu de laisser croire le contraire.
+ */
+export interface SwitchProps {
+  on?: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
+  style?: React.CSSProperties;
+}
+export function Switch(props: SwitchProps): JSX.Element;
 ```
 
 ## data
@@ -591,6 +732,53 @@ export interface LessonRowProps {
   style?: React.CSSProperties;
 }
 export function LessonRow(props: LessonRowProps): JSX.Element;
+```
+
+### `MediaCard`
+
+Carte de podcast ou de vidéo. La forme dit le format, et le poids est toujours affiché.
+
+```jsx
+<MediaCard format="audio" artHeight={190} titleSize={25}
+  eyebrow="Podcast · épisode 1 · 6 août" title="Vendre sans budget pub, avec Fatou D."
+  body="Gérante d'une boutique de cosmétiques aux Almadies."
+  cost={['34:20','31 Mo','Transcription · 0 Mo']}
+  actions={<><Button tone="transforme" size="sm">Écouter</Button><Button tone="quiet" size="sm">Lire la transcription</Button></>} />
+
+<MediaCard format="video" badge="Vidéo · 16:9" eyebrow="Vidéo · 12 juillet"
+  title="Trois heures avec un commerçant du marché Sandaga"
+  cost={['18:04','96 Mo en HD','24 Mo en 480p']} />
+```
+
+Ne retirez jamais le poids de `cost` : c'est la seule information qui permet à quelqu'un dont le forfait est compté de décider. Pour une vidéo, donnez les deux qualités.
+
+```ts
+import * as React from 'react';
+
+/**
+ * Carte de média du pôle « écouter & regarder ». **La silhouette dit le format** :
+ * une onde pour l'audio, un cadre 16:9 pour la vidéo — une étiquette « Podcast » ou
+ * « Vidéo » se perd sur téléphone, une forme non.
+ * `cost` porte toujours le poids en mégaoctets : le forfait est compté (NFR-04).
+ */
+export interface MediaCardProps {
+  /** @default "audio" */
+  format?: 'audio' | 'video';
+  /** Dégradé de la vignette. Par défaut celui du format. Aucune photographie. */
+  gradient?: string;
+  eyebrow?: string;
+  title?: React.ReactNode;
+  body?: React.ReactNode;
+  /** Durée, poids, et le coût de l'alternative texte : ["34:20","31 Mo","Transcription · 0 Mo"]. */
+  cost?: string[];
+  /** Étiquette en bas de vignette — « Vidéo · 16:9 », une durée. */
+  badge?: string;
+  artHeight?: number;
+  titleSize?: number;
+  actions?: React.ReactNode;
+  style?: React.CSSProperties;
+}
+export function MediaCard(props: MediaCardProps): JSX.Element;
 ```
 
 ### `PriceBlock`

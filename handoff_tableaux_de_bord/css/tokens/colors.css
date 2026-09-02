@@ -19,8 +19,13 @@
      (#0057BC tombe à 2,84:1, #6C23DD à 2,69:1) */
   --mm-bleu-n:#6FB1FF; --mm-violet-n:#B98CFF; --mm-orange-n:#FFB24D; --mm-teal-n:#3FD9C6;
 
-  /* Encre et papier */
-  --ink:#0E1116; --ink-2:#5A6472; --ink-3:#98A1AE;
+  /* Encre et papier.
+     --ink-3 est le cran FAIBLE, et il doit rester au-dessus de 4,5:1 comme son homologue nuit
+     (#77828F, 4,95:1). #98A1AE ne tenait que 2,61:1 : les deux échelles étaient asymétriques au
+     seul cran où ça compte, et tout ce que le mode clair rend en --text-faint passait dessous —
+     méta de leçon, poids de fichier, pieds de relevé, textes d'exemple. #68727F mesure 4,88:1
+     sur blanc et 4,59:1 sur le verre clair. Ne jamais l'éclaircir : ce cran EST le plancher. */
+  --ink:#0E1116; --ink-2:#5A6472; --ink-3:#68727F;
   --paper:#FFFFFF; --paper-2:#F5F7F9; --paper-3:#EDF0F4; --line:#E2E7EC;
 
   /* Sémantique d'état */

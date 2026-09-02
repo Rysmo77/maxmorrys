@@ -1,28 +1,21 @@
-<!-- Maquette de référence — Max-Morrys, tableaux de bord desktop.
+<!-- Maquette de référence — Max-Morrys, les 24 pages de tableau de bord.
      Ouvre ce fichier dans un navigateur : rien à installer, rien à servir. -->
-<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — tableaux de bord desktop</title>
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — les 24 pages de tableau de bord</title>
 <link rel="stylesheet" href="css/styles.css">
 <style>
 html,body{margin:0}
-body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:26px 24px 44px}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:22px 20px 96px}
 *{box-sizing:border-box}
 .wrap{max-width:1440px;margin:0 auto}
-/* Tous les sélecteurs d'élément ci-dessous sont PORTÉS par .wrap. Un sélecteur nu comme
-   h1{color:#fff} atteint aussi les <h1> des maquettes montées dans #d1 et #d2, écrase
-   l'héritage de Fenetre, et met un titre blanc sur un fond clair — 1,32:1. */
-.eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
-.wrap > h1{font-family:var(--f-display);font-weight:900;font-size:40px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
-.wrap > .bloc > p.k, .wrap > p.k{color:#A7B2BF;max-width:78ch;margin:0 0 14px;font-size:14px;line-height:1.6}
-.wrap p.k b{color:#fff;font-weight:600}
-.bloc{margin-top:34px;padding-top:30px;border-top:1px solid #171D24}
-.cap{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 12px}
-.cap b{display:block;margin-top:3px;font-family:var(--f-body);font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:#fff}
-.cap i{font-style:normal;color:#FFC46B}
-.wrap > .bloc > table, .wrap > table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
-.wrap th{text-align:left;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6D7987;font-weight:400;padding:0 12px 8px 0}
-.wrap td{padding:9px 12px 9px 0;border-top:1px solid #1B222A;color:#B6C0CC;vertical-align:top}
-.wrap td b{color:#fff}
-.mono{font-family:var(--f-mono)}
+.wrap > .cap{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 12px}
+.wrap > .cap b{display:block;margin-top:4px;font-family:var(--f-display);font-size:22px;font-weight:900;letter-spacing:-.03em;text-transform:none;color:#fff}
+.wrap > .cap i{font-style:normal;color:#FFC46B}
+.pager{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:40;display:flex;flex-wrap:wrap;justify-content:center;
+  max-width:1400px;gap:4px;background:rgba(10,13,17,.9);backdrop-filter:blur(14px);padding:7px;border-radius:20px;border:1px solid rgba(255,255,255,.1)}
+.pager button{border:0;cursor:pointer;border-radius:999px;padding:7px 11px;font-family:var(--f-body);font-size:11.5px;font-weight:600;
+  background:rgba(255,255,255,.1);color:#C3CDD9}
+.pager button.on{background:#fff;color:#0E1116}
+.pager u{align-self:center;font-family:var(--f-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);text-decoration:none;padding:0 6px 0 10px}
 ::-webkit-scrollbar{display:none}
 </style>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -30,40 +23,74 @@ body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:26px 24p
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <script type="text/babel" src="components.jsx"></script>
 <script type="text/babel" src="dashboards.jsx"></script>
-</head><body><div class="wrap">
-<p class="eb">Points de rupture · au-delà de 1080 px</p>
-<h1>Deux tableaux de bord,<br>trois colonnes chacun.</h1>
-<p class="k">L'espace apprenant et la console n'existaient qu'en 390 px. Pour une application web c'est un défaut de fond sur la console : <b>un opérateur qui qualifie des prospects et réconcilie des paiements travaille à un bureau</b>, pas au pouce.</p>
-<p class="k">La règle d'élargissement ne change pas — <b>l'espace gagné va à la marge et à la navigation, jamais à la longueur de ligne</b>. Ces deux vues ajoutent des colonnes, elles n'étirent aucun bloc.</p>
-<table>
-<tr><th>Vue</th><th>Colonne 1</th><th>Colonne 2</th><th>Colonne 3</th><th>Ce que la largeur apporte</th></tr>
-<tr><td><b>Espace apprenant</b></td><td class="mono">250 px<br>navigation</td><td>travail<br><span class="mono">fluide</span></td><td class="mono">340 px<br>répétiteur</td><td>Le répétiteur passe d'une carte qu'on ouvre à un <b>panneau permanent</b></td></tr>
-<tr><td><b>Console admin</b></td><td class="mono">230 px<br>les 19 écrans</td><td>liste dense<br><span class="mono">fluide</span></td><td class="mono">380 px<br>détail</td><td>Le détail cesse d'être un écran séparé : <b>la file reste visible pendant qu'on traite</b></td></tr>
-</table>
-
-<div class="bloc">
-  <p class="cap">Rôle apprenant<b>Mon espace · 1440 × 900</b> · <i>la reprise reste le premier objet</i></p>
-  <div id="d1"></div>
-  <p class="k" style="margin-top:14px">Ce qui ne bouge pas depuis le 390 px : <b>la carte de reprise est le premier objet de l'écran</b>. Le produit n'a aucun canal d'e-mail, donc la relance ne peut venir que de l'écran lui-même — l'élargir ne change pas ça.</p>
-</div>
-
-<div class="bloc">
-  <p class="cap">Rôle administrateur<b>Console · 1440 × 900</b> · <i>les trois zones du motif, en colonnes</i></p>
-  <div id="d2"></div>
-  <p class="k" style="margin-top:14px">Le motif des trois zones est conservé : <b>filtre par statut</b> (jamais par date), <b>liste dense à une action par ligne</b>, et un <b>pied qui dit ce que l'écran ne couvre pas</b>. Les 19 écrans deviennent visibles d'un coup au lieu de vivre dans un menu.</p>
-</div>
-
-<div class="bloc">
-  <p class="cap">Ce que je n'ai pas créé, et pourquoi</p>
-  <table>
-  <tr><td style="width:26%"><b>Tableau de bord formateur</b></td><td>Max-Morrys opère seul : il <i>est</i> l'administrateur. Un troisième rôle serait une invention que personne ne reconnaîtrait.</td></tr>
-  <tr><td><b>Espace client TPE</b></td><td>Le devis est consultable par URL, sans compte, et ne contient aucune donnée personnelle. Lui donner un espace obligerait à créer des comptes pour des gens qui n'en veulent pas.</td></tr>
-  <tr><td><b>Graphiques et cohortes</b></td><td>La console répond à « qu'est-ce qui bloque aujourd'hui », pas à « comment ça évolue ». Avec 5 comptes et 0 certificat, une courbe serait du décor.</td></tr>
-  </table>
-</div>
-</div>
+<script type="text/babel" src="dashboards-app.jsx"></script>
+<script type="text/babel" src="dashboards-console.jsx"></script>
+<script type="text/babel" src="dashboards-console-2.jsx"></script>
+</head><body><div class="wrap"><p class="cap" id="legende"></p><div id="vue"></div></div><div class="pager" id="pager"></div>
 <script type="text/babel">
-const D = window.MMDASH;
-ReactDOM.createRoot(document.getElementById('d1')).render(<MMBoundary><D.EspaceDesktop /></MMBoundary>);
-ReactDOM.createRoot(document.getElementById('d2')).render(<MMBoundary><D.ConsoleDesktop /></MMBoundary>);
+/* Les 24 pages : 5 pour l'espace apprenant, 19 pour la console.
+   L'ordre du sélecteur suit celui des deux navigations, pas un ordre de création. */
+const PAGES = [
+  ['app','Espace apprenant'],
+  ['EspaceDesktop','Mon espace','Rôle apprenant','la reprise reste le premier objet'],
+  ['CoursDesktop','Mes cours','Rôle apprenant','ce qu\'elle possède, pas ce qu\'elle pourrait acheter'],
+  ['RepetiteurDesktop','Mon répétiteur','Rôle apprenant','mémoire et renommage visibles pendant la conversation'],
+  ['ClubDesktop','Le Club','Rôle apprenant','le bilan d\'abonnement est permanent, pas terminal'],
+  ['ProfilDesktop','Mon profil','Rôle apprenant','deux colonnes de travail, aucun panneau de contexte'],
+  ['sep','Console · pilotage'],
+  ['ConsoleDesktop','Tableau de bord','Rôle administrateur','s\'ouvre sur ce qui bloque'],
+  ['TransactionsDesktop','Transactions','Rôle administrateur','rejouer un webhook est sans risque, et l\'écran le dit'],
+  ['UtilisateursDesktop','Utilisateurs','Rôle administrateur','5 comptes, dernier le 10 mars'],
+  ['sep','Commerce'],
+  ['ProspectsDesktop','Prospects','Rôle support','avec son coût en minutes'],
+  ['ProjetsDesktop','Projets','Rôle administrateur','zéro projet suit de zéro demande'],
+  ['CouponsDesktop','Coupons','Rôle administrateur','un code épuisé reste visible'],
+  ['sep','Contenu'],
+  ['FormationsDesktop','Formations','Rôle administrateur','la checklist EST la définition de publiable'],
+  ['ArticlesDesktop','Articles','Rôle administrateur','47 brouillons, 1 sans version anglaise'],
+  ['PodcastsDesktop','Podcasts','Rôle administrateur','un épisode, transcrit'],
+  ['VideosDesktop','Vidéos','Rôle administrateur','deux qualités obligatoires avant publication'],
+  ['FaqDesktop','FAQ','Rôle administrateur','12 questions, aucune URL propre'],
+  ['sep','Club'],
+  ['EvenementsDesktop','Événements','Rôle administrateur','la session a lieu même à quatre'],
+  ['DefisDesktop','Défis','Rôle administrateur','zéro, et la raison du zéro'],
+  ['TemoignagesDesktop','Témoignages','Rôle administrateur','approuver ne publie nulle part'],
+  ['sep','Réglages'],
+  ['RedirectionsDesktop','Redirections','Rôle administrateur','les segments d\'URL sont traduits, pas redirigés'],
+  ['PopupsDesktop','Pop-ups','Rôle administrateur','deux arrêtées, avec leur motif'],
+  ['NotificationsDesktop','Notifications','Rôle administrateur','aucun canal d\'envoi n\'existe'],
+  ['RendezVousDesktop','Rendez-vous','Rôle administrateur','le coût que ce zéro cache'],
+  ['ParametresDesktop','Paramètres','Rôle administrateur','les prix sont des miroirs de la base']
+];
+
+/* Un seul état, tenu hors de React : le sélecteur vit en DOM direct pour qu'un changement
+   de vue ne le remonte pas. Vingt-quatre boutons remontés à chaque clic, ce serait
+   vingt-quatre nœuds recréés pour un attribut de classe. */
+let courant = 'EspaceDesktop';
+const racine = ReactDOM.createRoot(document.getElementById('vue'));
+function monter(){
+  const D = window.MMDASH || {};
+  const item = PAGES.find(p=>p[0]===courant);
+  const V = D[courant];
+  const l = document.getElementById('legende');
+  l.textContent = item[2];
+  const b = document.createElement('b'); b.textContent = item[1]+' · 1440 × 900';
+  const i = document.createElement('i'); i.textContent = ' · '+item[3];
+  l.appendChild(b); l.appendChild(i);
+  racine.render(React.createElement(window.MMBoundary,{key:courant}, V ? React.createElement(V) : null));
+  [].forEach.call(document.querySelectorAll('.pager button'), function(n){
+    n.className = n.dataset.k === courant ? 'on' : '';
+  });
+}
+const pager = document.getElementById('pager');
+PAGES.forEach(function(p){
+  if (p[0]==='sep' || p[0]==='app'){
+    const u = document.createElement('u'); u.textContent = p[1]; pager.appendChild(u); return;
+  }
+  const b = document.createElement('button');
+  b.textContent = p[1]; b.dataset.k = p[0];
+  b.onclick = function(){ courant = p[0]; monter(); };
+  pager.appendChild(b);
+});
+monter();
 </script></body></html>

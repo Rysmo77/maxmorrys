@@ -64,6 +64,9 @@
   --seg-on-bg:rgba(255,255,255,.16);
   --seg-on-sh:0 2px 8px rgba(0,0,0,.34); /* @kind shadow */
 
+  /* Identique à la portée claire, à dessein : voir tokens/semantic.css. */
+  --surface-ink:#0E1116;
+
   --field-bg:rgba(255,255,255,.07);
   --field-hl:none; /* @kind shadow */
   --pill-bg:rgba(255,255,255,.13);

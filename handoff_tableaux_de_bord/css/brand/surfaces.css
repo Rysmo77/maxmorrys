@@ -9,6 +9,12 @@
 /* Aucun flou : le verre nuit ne porte que du contenu, empilé à trois ou six par écran
    dans un corps qui défile. Voile relevé de .62 à .72 pour compenser. */
 .glass-d{background:rgba(14,17,22,var(--glass-d-a));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 14px 38px rgba(0,0,0,.4);border-radius:var(--r-l)}
+/* Carte d'encre : opaque, pour une surface sombre posée sur une page CLAIRE. Un voile
+   composerait avec le fond clair et remonterait à rgb(80,81,86) — 2,61:1 sous un gris nuit.
+   Le composant lui applique aussi la portée .dk, pour que ses TEXTES prennent l'encre nuit.
+   D'où --surface-ink et non --ink : le fond et la portée sont sur le même élément, donc un
+   jeton thématique lu ici basculerait avec les textes et peindrait la carte en blanc cassé. */
+.ink-card{background:var(--surface-ink);border:1px solid rgba(255,255,255,.1);box-shadow:0 16px 40px rgba(14,17,22,.28);border-radius:var(--r-l)}
 /* Faux verre : aucun flou. À blur(10px) il ne gagnait rien et coûtait une surface floutée
    sur chaque écran. Opacité relevée de .5 à .72 pour tenir le contraste sans le flou. */
 .truth{border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.72);border-radius:var(--r-m);padding:15px}

@@ -12,9 +12,14 @@
      voile .60 → --ink-2 #5A6472  4,51:1   ✓
      voile .60 → --ink    #0E1116 14,21:1  ✓
 
-   --ink-3 #98A1AE n'est PAS traité ici : il fait 2,61:1 sur blanc pur, donc il échouait avant
-   que le maillage existe, et il plafonne à 2,51:1 même sous un voile à 94 %. Aucun voile ne le
-   sauve. Le second volet d'AD-18 le retire du texte — voir ad-06-etats.css et ds:check.
+   --ink-3 n'était PAS traité ici : à #98A1AE il faisait 2,61:1 sur blanc pur, donc il échouait
+   avant que le maillage existe, et il plafonnait à 2,51:1 même sous un voile à 94 %. Aucun voile
+   ne le sauvait, et le second volet d'AD-18 le retirait du texte.
+
+   ✅ CE SECOND VOLET EST CADUC DEPUIS AD-25. Le jeton lui-même a été remonté à #68727F —
+   4,88:1 sur blanc — et porte donc du texte comme son homologue nuit. Ce qui restait à
+   corriger n'était pas l'usage, c'était la valeur. Le PREMIER volet, le voile à .60 pour
+   `--ink-2`, est entier et c'est lui que ce fichier applique.
 
    En sombre, le voile seul ne suffit pas non plus pour --ink-2 #A2ADBB (2,15:1 à .42, encore
    3,89:1 à .70). Ce qui résout : le voile est un DÉGRADÉ. Le .42 d'origine ne valait qu'en haut

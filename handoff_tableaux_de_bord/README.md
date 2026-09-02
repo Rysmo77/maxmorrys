@@ -1,14 +1,17 @@
 # Tableaux de bord — espace apprenant et console admin
 
-Deux vues desktop **1440 × 900**, à trois colonnes chacune. Ce dossier est autonome : rien à
+**24 pages** desktop **1440 × 900** : 5 pour l'espace apprenant, 19 pour la console. Ce dossier est autonome : rien à
 installer, rien à servir. Ouvre `apercu.html` dans un navigateur.
 
 ```
-apercu.html       la maquette, telle qu'elle doit rendre
-dashboards.jsx    les deux vues — c'est le fichier à lire
-components.jsx    les 25 composants utilisés, en clair
+apercu.html       les 24 pages, avec un sélecteur en bas
+dashboards.jsx            les 2 coques + Mon espace + Tableau de bord
+dashboards-app.jsx        les 4 autres pages de l'espace apprenant
+dashboards-console.jsx    10 écrans de console (pilotage, commerce, contenu)
+dashboards-console-2.jsx  8 écrans de console (Club, réglages)
+components.jsx    les 30 composants utilisés, en clair
 COMPOSANTS.md     leurs contrats de props, avec les raisons
-css/              styles.css + 15 fichiers de jetons et de recettes
+css/              styles.css + 20 fichiers de jetons et de recettes
 ```
 
 ---
@@ -30,6 +33,20 @@ ne nomme pas le coupable. C'est pour ça que `components.jsx` n'en contient aucu
 remets de vrais exports de module et supprime le `window.DS` de fin de fichier.
 
 ---
+
+## Deux coques, pas vingt-quatre mises en page
+
+`AppFrame` et `ConsoleFrame` portent les 24 pages. Une page qui aurait besoin d'une troisième
+coque est une page qui sort du motif — c'est le signal qu'il faut se demander si elle a sa place.
+
+`ConsoleFrame` rend le **pied obligatoire** : c'est la zone 3 du motif, celle qui dit ce que
+l'écran ne couvre pas. Un écran d'administration sans elle finit en manœuvre manuelle non tracée.
+Le panneau de droite, lui, est **optionnel** : sans contenu réel à y mettre, la colonne de travail
+prend la place plutôt que d'afficher un panneau vide.
+
+**Cinq écrans de console sont à zéro** — projets, défis, témoignages, notifications, rendez-vous.
+Ils sont dessinés quand même : un écran vide qu'on ne dessine pas finit par afficher des données
+d'exemple le jour où il se remplit. Chacun porte un zéro daté et **la raison** du zéro.
 
 ## 1 · Espace apprenant — `EspaceDesktop`
 
@@ -89,6 +106,25 @@ Partout ailleurs c'est un défaut : aucun quota à compter. Ici, l'espace appren
 surface floutée et la console **zéro**. Tout le reste utilise `GlassPanel level="flat"`, un voile
 plus couvrant sans `backdrop-filter`. Un flou n'est jamais coûteux là où on l'écrit — il le
 devient là où le composant est répété.
+
+**Un fond ne peut pas lire un jeton que sa propre portée retourne.** `level="ink"` applique
+`.dk` sur l'élément qu'il peint : si son fond lisait `--ink`, ce jeton basculerait à sa valeur
+nuit et la carte se peindrait en blanc cassé pendant que ses textes deviennent clairs eux aussi —
+titre à **1,00:1**. D'où `--surface-ink`, déclaré **à l'identique** dans `:root` et dans `.dk`.
+Toute surface qui ouvre sa propre portée de thème a besoin d'un jeton invariant pour son fond.
+
+**Une carte sombre sur une page claire doit être opaque.** `GlassPanel level="night"` est un
+voile à 72 % : sur une page sombre il reste sombre, sur une page claire il compose avec elle et
+remonte à `rgb(80,81,86)` — un gris moyen où aucun texte nuit ne tient. Utilisez
+`level="ink"` : la carte est opaque **et** ouvre sa propre portée `.dk`, donc les jetons de
+texte basculent seuls et il n'y a plus de gris à choisir.
+
+**Les deux échelles d'encre comptent trois crans, et le plus faible est le plancher — clair
+comme nuit.** En nuit : `#ECF0F5` (16,9:1), `#A2ADBB` (8,5:1), `#77828F` (**4,95:1**). En clair :
+`#0E1116` (18,9:1), `#5A6472` (6,0:1), `#68727F` (**4,88:1**). Un quatrième gris plus sombre écrit à la main tombe sous 4,5:1 — et c'est
+précisément ce gris-là qui attire la copie explicative, celle qui justifie chaque décision
+d'écran. Si une note de bas d'écran a besoin d'être plus discrète que `--text-faint`, c'est
+qu'elle est de trop, pas qu'elle doit être plus pâle.
 
 **Un nombre en monospace vient de la base ou d'une source citée.** La classe `.mm-num` est un
 engagement, pas une décoration. Un nombre qui ne peut pas prendre cette fonte ne s'affiche pas.

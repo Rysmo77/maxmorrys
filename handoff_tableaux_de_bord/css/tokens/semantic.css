@@ -53,6 +53,12 @@
   --seg-on-bg:#FFFFFF;
   --seg-on-sh:0 2px 8px rgba(14,17,22,.10); /* @kind shadow */
 
+  /* Surface d'encre — INVARIANTE par construction. Une carte sombre posée sur une page claire
+     ouvre sa propre portée .dk pour que ses textes prennent l'encre nuit ; si son FOND lisait
+     --ink, il basculerait avec eux et la carte se peindrait en blanc cassé. Ce jeton est donc
+     déclaré à l'identique dans :root et dans .dk. Ne jamais l'aliaser sur --ink. */
+  --surface-ink:#0E1116;
+
   --field-bg:rgba(255,255,255,.72);
   --field-hl:inset 0 1px 0 rgba(255,255,255,.75); /* @kind shadow */
   --pill-bg:rgba(14,17,22,.9);

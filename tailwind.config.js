@@ -54,8 +54,12 @@ export default {
         // ── Encre et papier ──────────────────────────────────────────────────────────
         ink: t('ink'),
         'ink-2': t('ink-2'),
-        // `ink-3` NE PORTE PAS DE TEXTE (AD-18) : 2,61:1 sur blanc pur, et aucun voile ne le
-        // sauve. Il reste exposé pour les filets, les puits d'icônes et l'état désactivé.
+        /* `ink-3` PORTE DÉSORMAIS DU TEXTE (AD-25). Il valait #98A1AE — 2,61:1 sur blanc,
+           et « aucun voile ne le sauve », d'où l'interdiction d'AD-18. La livraison des
+           tableaux de bord l'a remonté à #68727F, soit **4,88:1**, le symétrique exact de
+           son homologue nuit (#77828F, 4,95:1). Les deux échelles étaient asymétriques au
+           seul cran qui compte.
+           ⚠️ Ce cran EST le plancher : ne jamais l'éclaircir. `ds:check` le vérifie. */
         'ink-3': t('ink-3'),
         paper: t('paper'),
         'paper-2': t('paper-2'),
