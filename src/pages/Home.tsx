@@ -373,7 +373,7 @@ export default function Home() {
                 s'allonge a plus besoin de nommer ce qu'elle n'affiche pas, pas moins. */}
             <GlassPanel level="truth" className="rv mt-6 max-w-[52ch]" style={{ ['--i' as string]: 8 }}>
               <p className="mm-eyebrow m-0 mb-[6px]">{t('hero.truthTitle')}</p>
-              <p className="m-0 text-[13px] leading-[1.55] text-ink-2">{t('hero.truthBody')}</p>
+              <p className="m-0 text-meta leading-[1.55] text-ink-2">{t('hero.truthBody')}</p>
             </GlassPanel>
           </div>
 
@@ -589,7 +589,7 @@ export default function Home() {
             </p>
 
             {prixTpe !== null && (
-              <p className="mm-num rv mt-4 mb-0 text-[13px] text-ink-2" style={{ ['--i' as string]: 5 }}>
+              <p className="mm-num rv mt-4 mb-0 text-meta text-ink-2" style={{ ['--i' as string]: 5 }}>
                 {t('presence.from')}{' '}
                 <Num value={prixTpe} unit="F" source={{ cite: t('presence.cite') }} asOf={asOf} showAsOf={false} />
                 {' · '}{t('presence.once')}
@@ -618,7 +618,7 @@ export default function Home() {
                 <p className="mt-[11px] mb-0 font-display text-[16px] font-black tracking-[-.03em] text-ink">
                   {t(`presence.points.${point.key}Title`)}
                 </p>
-                <p className="mt-1.5 mb-0 text-[13px] leading-[1.55] text-ink-2">
+                <p className="mt-1.5 mb-0 text-meta leading-[1.55] text-ink-2">
                   {t(`presence.points.${point.key}Body`)}
                 </p>
               </GlassPanel>

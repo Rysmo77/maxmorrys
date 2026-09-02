@@ -326,7 +326,7 @@ export default function Contact() {
               <p className={`m-0 mt-[5px] font-bold text-ink ${i === 0 ? 'text-[26px]' : 'text-[20px]'}`}>
                 {fact.value}
               </p>
-              <p className="m-0 mt-1 text-[13px] text-ink-2">{fact.note}</p>
+              <p className="m-0 mt-1 text-meta text-ink-2">{fact.note}</p>
             </GlassPanel>
           ))}
         </div>

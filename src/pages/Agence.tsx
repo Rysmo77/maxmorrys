@@ -428,7 +428,7 @@ export default function Agence() {
               <p className="m-0 font-display text-[17px] font-black tracking-[-.03em] text-ink">
                 {type.title}
               </p>
-              <p className="mt-[7px] mb-0 text-[13px] leading-[1.5] text-ink-2">{type.body}</p>
+              <p className="mt-[7px] mb-0 text-meta leading-[1.5] text-ink-2">{type.body}</p>
             </GlassPanel>
           ))}
         </div>

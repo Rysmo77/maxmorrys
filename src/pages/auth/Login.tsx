@@ -108,7 +108,7 @@ export default function Login() {
             <p className="m-0 mt-2 font-display text-[19px] font-black tracking-[-.03em] text-ink">
               {(t('reset.titleLines', { returnObjects: true }) as string[]).join(' ')}
             </p>
-            <p className="mt-2 mb-4 text-[13px] leading-[1.5] text-ink-2">{t('reset.subtitleDefault')}</p>
+            <p className="mt-2 mb-4 text-meta leading-[1.5] text-ink-2">{t('reset.subtitleDefault')}</p>
             <Button href={path('/mot-de-passe-oublie')} tone="primary" fullWidth={false}>
               {t('reset.submit')}
             </Button>

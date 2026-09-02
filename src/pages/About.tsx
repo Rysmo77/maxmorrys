@@ -154,7 +154,7 @@ function SiteSlot({
         <Icon name="info" size={11} color="var(--mm-orange-t)" strokeWidth={2.6} />
         {title}
       </p>
-      <p className="mm-prose m-0 mt-[7px] max-w-[58ch] text-[13px] leading-[1.55] text-ink-2">{children}</p>
+      <p className="mm-prose m-0 mt-[7px] max-w-[58ch] text-meta leading-[1.55] text-ink-2">{children}</p>
     </div>
   );
 }
@@ -412,7 +412,7 @@ export default function About() {
                 ))}
               </div>
               <div className="my-[18px] h-px bg-[color:var(--border-hair)]" />
-              <p className="mm-prose m-0 max-w-[46ch] text-[13px] leading-[1.55] text-ink-2">
+              <p className="mm-prose m-0 max-w-[46ch] text-meta leading-[1.55] text-ink-2">
                 {t('page.producedBody')} <b className="text-ink">{t('page.producedStrong')}</b>
               </p>
             </GlassPanel>
@@ -479,7 +479,7 @@ export default function About() {
                         <b className="mt-[3px] block text-[15px] font-bold text-ink">
                           {t(`milestones.${key}.title`)}
                         </b>
-                        <p className="mm-prose mt-[5px] mb-0 max-w-[52ch] text-[13px] leading-[1.5] text-ink-2">
+                        <p className="mm-prose mt-[5px] mb-0 max-w-[52ch] text-meta leading-[1.5] text-ink-2">
                           {t(`milestones.${key}.desc`)}
                         </p>
                         {/*

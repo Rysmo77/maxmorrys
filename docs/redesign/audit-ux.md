@@ -302,14 +302,51 @@ oubli **se voie à l'écran**. Le reste de la palette par défaut n'a pas été 
 > `black`, `transparent`, `current` et `inherit` exceptés. Un oubli rend désormais
 > *visiblement rien*, ce qui était l'intention d'AD-2 depuis le début.
 
-### 4.7 ◐ Moyen — 68 valeurs de pixel arbitraires, dont il faut trier le légitime
+### 4.7 ◐ Le tri des valeurs arbitraires — fait, et il renverse le constat
 
-`[18px]` × 79, `[14px]` × 75, `[10px]` × 49, `[22px]` × 37… **68 valeurs distinctes.**
+> ⚠️ **Le cadrage initial était trompeur.** Il annonçait « 68 valeurs distinctes » sans
+> les séparer par usage — or une taille de police ne se juge pas contre l'échelle
+> d'espacement. Tri fait le 02/09, par famille d'utilitaire.
 
-**Attention au faux positif.** Le handoff est explicite : « si le kit dit 5 px, c'est 5 px,
-pas 4. Ne les arrondissez pas sur une grille de 4 ou 8. » Une part de ces valeurs est donc
-de la **fidélité voulue**, pas de la dérive. Le tri reste à faire, valeur par valeur, contre
-`css/tokens/spacing.css`. C'est un chantier de vérification, pas de normalisation.
+| Famille | Usages | Sur l'échelle du kit | Hors échelle |
+|---|---|---|---|
+| **Espacement** (`p*`, `m*`, `gap`, `inset`…) | 370 | **288 — 78 %** | 82 |
+| **Typographie** (`text-*`) | 118 | 59 | **59** |
+| **Dimensions** (`w`, `h`, `max-w`…) | 84 | 16 | 68 |
+| Autres | 18 | 12 | 6 |
+
+**L'espacement est discipliné.** 78 % des valeurs tombent sur les dix-sept pas que le kit
+déclare (4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 30, 32, 36, 40, 44). Le handoff
+demande précisément qu'on ne les arrondisse pas sur une grille de 4 ou 8 : c'est de la
+fidélité tenue, pas de la dérive.
+
+**Les dimensions sont légitimement arbitraires** : 520 px est le lobe du maillage, 440 et
+760 des largeurs de composition. Une largeur de bloc n'a pas de raison d'être un pas
+d'échelle.
+
+**Le vrai défaut est typographique** : **118 tailles de police en pixels bruts**, alors que
+le kit déclare treize pas nommés. Une taille figée en dur ne suivra jamais une révision de
+l'échelle.
+
+#### Le tri, valeur par valeur
+
+**Trente-sept ont un pas nommé exact** — mais la substitution n'est PAS mécanique, et
+c'est le point qu'il fallait vérifier avant d'agir :
+
+| Pas | Ce qu'il pose | Substituable à rendu identique ? |
+|---|---|---|
+| `text-meta`, `text-meta-2`, `text-small` | taille seule | ✅ **oui** |
+| `text-body`, `text-lede`, `text-prose` | taille **+ hauteur de ligne** | ⚠️ seulement si un `leading-*` est déjà posé |
+| `text-ttl`, `text-eyebrow` | taille + interlettrage (+ graisse 900) | ❌ non |
+| `text-dsp-*` | taille + hauteur + interlettrage + **graisse 900** | ❌ non |
+
+**Appliqué** : les 9 `text-[13px]` → `text-meta` des fichiers non touchés par le travail
+concurrent. Rendu strictement identique.
+
+**Reste, et demande une décision visuelle, pas un script** : 15 sites en `text-[14px]`/
+`[15px]` qui portent déjà un `leading-*` (substitution sûre mais à confirmer à l'œil),
+10 qui n'en portent pas (la hauteur de ligne changerait), et 81 tailles sans pas nommé —
+18, 16, 19, 17, 10, 11, 12 px — qui sont de vraies déviations à trancher.
 
 ### 4.8 ○ Faible — trois primitives héritées sont mortes
 
@@ -379,5 +416,5 @@ Cet audit est un audit de code. Trois chiffres ne s'en déduisent pas et manquen
 | 6 | ~~Unifier les points de rupture~~ ✅ fait le 01/09 | ◐ | — | 116 classes migrées, 4 échelles annulées, garde posée |
 | 7 | Annuler le reste de la palette par défaut | ◐ | Faible | Ferme AD-2 pour de bon |
 | 8 | ~~Page 500 + `ErrorBoundary` par surface~~ ✅ fait le 01/09 | ◐ | — | un `errorElement` par route, 404 distingué du 500 |
-| 9 | Trier les 68 valeurs arbitraires | ○ | Élevé | Vérification, pas normalisation |
+| 9 | ~~Trier les 68 valeurs arbitraires~~ ✅ trié le 02/09 | ○ | — | L'espacement est à 78 % conforme ; le défaut est typographique |
 | 10 | Supprimer les 3 primitives mortes | ○ | Trivial | — |
