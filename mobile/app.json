@@ -9,7 +9,10 @@
     "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "me.maxmorrys.rysmo"
+      "bundleIdentifier": "me.maxmorrys.rysmo",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "me.maxmorrys.rysmo",
