@@ -8,11 +8,11 @@ import {
   requireApiKey,
   RYSMO_PACKS,
   RYSMO_SUBSCRIPTIONS,
-  validateCoupon,
   type BictorysChargeResult,
   type ChargeCustomer,
 } from '../lib/bictorys';
-import { asText, toDate, toNumber } from '../lib/values';
+import { asText, toDate } from '../lib/values';
+import { resolveCheckoutTotal } from '../lib/checkout';
 
 /** Port des quatre callables de paiement de `functions/src/payment.ts`. */
 
@@ -108,33 +108,14 @@ export async function createBictorysCharge(data: unknown, context: CallContext):
     throw new HttpsError('invalid-argument', 'formationId et formationSlug sont obligatoires.');
   }
 
-  // Le prix fait autorité côté serveur : il est relu en base, jamais reçu du client.
-  const formationDoc = await context.db.get(`formations/${formationId}`);
-  if (!formationDoc) throw new HttpsError('not-found', 'Formation introuvable.');
-  const formation = formationDoc.data;
-
-  let finalPrice = toNumber(formation.promoPrice) || toNumber(formation.price);
-  if (finalPrice <= 0) {
-    throw new HttpsError('invalid-argument', 'Cette formation est gratuite, pas besoin de paiement.');
-  }
-
-  let couponId: string | undefined;
-  let couponDiscount = 0;
-  if (couponCode?.trim()) {
-    const coupon = await validateCoupon(context.db, couponCode, finalPrice);
-    if (!coupon) {
-      throw new HttpsError('invalid-argument', 'Code promo invalide, expiré ou déjà utilisé.');
-    }
-    couponId = coupon.couponId;
-    couponDiscount = coupon.discount;
-    finalPrice -= couponDiscount;
-    if (finalPrice <= 0) {
-      throw new HttpsError(
-        'invalid-argument',
-        "Ce coupon rend la formation gratuite. Utilise l'inscription gratuite.",
-      );
-    }
-  }
+  /*
+   * Le prix fait autorité côté serveur : relu en base, jamais reçu du client. Et il est
+   * calculé par la MÊME fonction que le devis affiché à l'écran (`quoteCheckout`) — c'est
+   * ce qui empêche le montant lu et le montant débité de diverger, comme ils divergeaient
+   * quand le navigateur calculait le sien de son côté.
+   */
+  const total = await resolveCheckoutTotal(context.db, formationId, couponCode);
+  const { finalPrice, couponId, couponDiscount, formationTitle } = total;
 
   const identity = await identify(context, uid);
 
@@ -152,11 +133,9 @@ export async function createBictorysCharge(data: unknown, context: CallContext):
     ...transactionBase(identity, txn.id, result),
     formationId,
     formationSlug,
-    formationTitle: asText(formation.title) ?? '',
+    formationTitle,
     amount: finalPrice,
-    ...(couponId
-      ? { couponId, couponCode: couponCode!.trim().toUpperCase(), couponDiscount }
-      : {}),
+    ...(couponId ? { couponId, couponCode: total.couponCode, couponDiscount } : {}),
     ...(metaEventId ? { metaEventId } : {}),
     createdAt: new Date().toISOString(),
   });
