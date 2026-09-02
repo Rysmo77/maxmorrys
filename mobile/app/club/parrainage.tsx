@@ -1,138 +1,106 @@
-import { useState } from 'react';
 import { Share, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
 import {
-  Body, Button, DocLine, Display, EmptyState, Eyebrow, Icon, Num, StatTile, Surface, useToken,
+  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, Surface, Tag, useToken, veil,
 } from '../../ds';
-import { ClubScreen, dateReleve, mesure, texte } from './_layout';
+import { ClubScreen } from './_layout';
+import { CLUB, PARRAINAGE, RELEVE, SOURCE } from '../../contenu/reference';
 
 /**
- * ── 8 · PARRAINAGE ────────────────────────────────────────────────────────────────────
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * ── CLUB · LE PARRAINAGE ── **LA REMISE VA AU FILLEUL, PAS À TOI.**
  *
- * LE PARRAINAGE NE RAPPORTE RIEN AU PARRAIN, et c'est le quatrième engagement du Club.
- * « Rien en argent, et je ne vais pas te faire croire le contraire. La remise va au
- * filleul. » Un écran de parrainage est précisément l'endroit où un produit invente une
- * contrepartie ; celui-ci dit ce qu'il en est avant qu'on partage, pas après.
+ * C'est l'inverse de ce que fait tout le monde, et c'est un choix, pas une économie :
  *
- * ET LA REMISE EST CALCULÉE CÔTÉ SERVEUR. Ce n'est pas une note d'implémentation : c'est ce
- * qui fait qu'elle ne dépend pas du lien sur lequel on a cliqué, ni de ce que l'application
- * a en mémoire. D'où le taux lu par la route et jamais écrit ici en dur — l'application ne
- * fixe pas le prix qu'elle affiche.
+ *   · UN PARRAINAGE QUI PAIE LE PARRAIN EN ARGENT transforme les membres en apporteurs
+ *     d'affaires. On se met à recruter des gens qu'on sait mal placés pour en tirer profit,
+ *     et le Club se remplit de personnes venues pour quelqu'un d'autre.
+ *   · UNE REMISE QUI VA AU FILLEUL ne récompense que la recommandation SINCÈRE — celle qu'on
+ *     fait parce qu'on pense que ça va aider la personne.
  *
- * ⚠️ AUCUN COMPTEUR DE PARTAGES, contrairement à la maquette qui en pose un à côté des
- * filleuls. Le site tranche déjà : « un lien copié ne laisse aucune trace, et un chiffre à
- * cet endroit serait inventé ». Il n'y a donc qu'une case ici, celle des inscriptions
- * abouties — et un zéro DATÉ y est une information, contrairement à un tiret.
- * ─────────────────────────────────────────────────────────────────────────────────────
+ * Ce que le parrain gagne est du TEMPS, pas de l'argent : un mois offert par filleul qui reste
+ * quatre-vingt-dix jours. Le délai n'est pas une astuce anti-fraude, c'est la définition d'une
+ * bonne recommandation : quelqu'un qui reste trois mois est quelqu'un pour qui c'était utile.
+ * ══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function ClubParrainage() {
   const t = useToken();
-  const p = useLocalSearchParams<{
-    code?: string; taux?: string; filleuls?: string; releve?: string; lien?: string;
-  }>();
-  const [partage, setPartage] = useState<string | null>(null);
-
-  const asOf = dateReleve(p.releve);
-  const code = texte(p.code);
-  const lien = texte(p.lien);
-  const taux = mesure(p.taux, asOf);
-  const filleuls = mesure(p.filleuls, asOf);
 
   async function partager() {
-    if (code === null) return;
-    try {
-      await Share.share({
-        message: lien === null
-          ? `Rejoins le Club des Digitos avec mon code ${code} : la remise est pour toi.`
-          : `Rejoins le Club des Digitos avec mon code ${code} : la remise est pour toi. ${lien}`,
-      });
-      setPartage(null);
-    } catch {
-      // Le motif, la conséquence, la sortie. Jamais d'excuse, et jamais un faux succès.
-      setPartage("Le partage ne s'est pas ouvert. Ton code reste affiché au-dessus : tu peux le recopier à la main.");
-    }
+    await Share.share({
+      message: `Le Club des Digitos, avec mon code : ${PARRAINAGE.code}\n${PARRAINAGE.lien}`,
+      url: PARRAINAGE.lien,
+    });
   }
 
   return (
     <ClubScreen titre="Parrainage">
-      <Display size="sm" lines={['FAIS-LUI', 'GAGNER LA', 'REMISE.']} />
+      <Eyebrow>Ton code</Eyebrow>
+      <Surface level="hero" style={{ marginTop: 10, padding: 20 }}>
+        <Num value={PARRAINAGE.code} source={SOURCE} asOf={RELEVE} style={{ fontSize: 26, letterSpacing: 1.4 }} />
+        <Body muted style={{ fontSize: 12.5, lineHeight: 19, marginTop: 8 }}>
+          Qui l'utilise paie{' '}
+          <Num value={PARRAINAGE.prixParraine} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
+          {' '}au lieu de{' '}
+          <Num value={CLUB.prixAn} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
+          {' '}— soit{' '}
+          <Num value={PARRAINAGE.remiseFilleul} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
+          {' '}de moins, pour lui.
+        </Body>
+        <Button tone="transforme" label="Partager mon code" icon="share" style={{ marginTop: 16 }} onPress={() => void partager()} />
+      </Surface>
 
-      <Body muted style={{ marginTop: 12 }}>
-        Ton code fait baisser le prix du Club pour la personne que tu parraines. La remise est
-        calculée côté serveur, au moment où elle paie : elle ne dépend ni du lien sur lequel
-        elle a cliqué, ni de ce que cette application a en mémoire.
-      </Body>
+      <View style={{ marginTop: 20 }}>
+        <Display size={22}>La remise va au filleul.</Display>
+        <Body muted style={{ marginTop: 10, lineHeight: 22 }}>
+          Pas à toi, et c'est voulu. Un parrainage qui paie le parrain en argent transforme les
+          membres en apporteurs d'affaires — on se met à recruter des gens qu'on sait mal
+          placés. Une remise qui va au filleul ne récompense que la recommandation sincère.
+        </Body>
+      </View>
 
-      {code === null ? (
-        <Surface level="flat" style={{ marginTop: 18, paddingVertical: 6 }}>
-          <EmptyState
-            glyph={<Icon name="gift" size={24} color={t('mmVioletT')} />}
-            title="Ton code n'est pas encore chargé"
-            body="Les codes de parrainage sont créés côté serveur et rattachés à ton compte. Cet écran n'en devine pas un : un code inventé serait un code qui n'applique aucune remise, découvert par ton filleul au moment de payer."
-          />
-        </Surface>
-      ) : (
-        <Surface level="hero" style={{ marginTop: 18, padding: 22 }}>
-          <Eyebrow>Ton code</Eyebrow>
-          <Num
-            value={code}
-            source="server"
-            asOf={asOf ?? new Date(0)}
-            style={{ fontSize: 31, letterSpacing: 3, marginTop: 6 }}
-          />
-          <Button
-            tone="transforme"
-            label="Partager"
-            onPress={partager}
-            style={{ marginTop: 16 }}
-          />
-          {partage === null ? null : (
-            <Body style={{ marginTop: 10, fontSize: 12.5, color: t('stop') }}>{partage}</Body>
-          )}
-        </Surface>
-      )}
-
-      <Surface level="flat" style={{ marginTop: 12, padding: 18 }}>
-        <DocLine
-          label="Taux de la remise, pour ton filleul"
-          value={
-            <Num
-              value={taux.value === null ? null : `${taux.value} %`}
-              source="server"
-              asOf={taux.asOf}
-              fallback="non relevé"
-            />
-          }
-          last
-        />
-        <Body muted style={{ marginTop: 8, fontSize: 12.5 }}>
-          Le taux affiché est celui que le serveur applique. Tant qu'il n'est pas lu, cet
-          écran ne l'annonce pas — un pourcentage écrit en dur ici finirait par mentir le jour
-          où la grille bouge.
+      <Eyebrow style={{ marginTop: 22 }}>Ce que toi tu gagnes</Eyebrow>
+      <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
+        <CheckLine style={{ marginTop: 0 }}>
+          Un mois offert par filleul qui reste 90 jours
+        </CheckLine>
+        <CheckLine tone="neutre" dash>
+          Aucune commission, aucun paiement — le temps, pas l'argent
+        </CheckLine>
+        <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
+          Les quatre-vingt-dix jours ne sont pas une astuce anti-fraude : quelqu'un qui reste
+          trois mois est quelqu'un pour qui c'était utile. C'est ça qu'on récompense.
         </Body>
       </Surface>
 
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-        <StatTile
-          label="Filleuls inscrits"
-          value={filleuls.value}
-          source="db"
-          asOf={asOf}
-          foot="inscriptions abouties"
-          style={{ flex: 1 }}
+      <Eyebrow style={{ marginTop: 22 }}>Tes filleuls</Eyebrow>
+      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
+        <LessonRow
+          icon={<Icon name="users" size={14} color={t('mmVioletT')} />}
+          iconBackground={veil(t('mmViolet'), 0.12)}
+          title="Ont utilisé ton code"
+          trailing={<Num value={PARRAINAGE.filleuls} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
         />
+        <LessonRow
+          icon={<Icon name="gift" size={14} color={t('ok')} />}
+          iconBackground={veil(t('ok'), 0.14)}
+          title="Mois offerts, acquis"
+          meta="après 90 jours de présence"
+          trailing={<Num value={0} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
+          last
+        />
+      </Surface>
+
+      <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
+        <Tag tone="ok">Aucun démarchage</Tag>
+        <Tag>Le filleul décide seul</Tag>
       </View>
 
-      <Surface level="truth" style={{ marginTop: 18, padding: 18 }}>
-        <Eyebrow>Ce que tu gagnes, toi</Eyebrow>
-        <Body muted style={{ marginTop: 6, fontSize: 12.5 }}>
-          Rien en argent, et je ne vais pas te faire croire le contraire. La remise va au
-          filleul. Ce que tu gagnes, c'est quelqu'un de plus dans le Club avec qui avancer.
-        </Body>
-        <Body muted style={{ marginTop: 8, fontSize: 12.5 }}>
-          Et il n'y a pas de compteur de partages : un lien copié ne laisse aucune trace, donc
-          un chiffre à cet endroit serait inventé. La case ci-dessus ne compte que les
-          inscriptions abouties.
+      <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
+        <Eyebrow>Ce que ton code ne fait pas</Eyebrow>
+        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
+          Il ne t'envoie aucune liste de contacts à relancer, et il ne dit à personne que tu as
+          partagé. La personne qui l'utilise décide seule, et elle voit le prix normal à côté du
+          prix remisé.
         </Body>
       </Surface>
     </ClubScreen>

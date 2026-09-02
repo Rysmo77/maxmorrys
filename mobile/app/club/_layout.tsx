@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Body, Display, Eyebrow, Icon, Mesh, Num, Surface, useScheme, useToken } from '../../ds';
+import { Body, Display, Eyebrow, Num, Screen, Surface, useToken } from '../../ds';
+import { CLUB, RELEVE as REFERENCE_ASOF, SOURCE as REFERENCE_SOURCE } from '../../contenu/reference';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -27,9 +27,6 @@ import { Body, Display, Eyebrow, Icon, Mesh, Num, Surface, useScheme, useToken }
 export default function ClubLayout() {
   return <Stack screenOptions={{ headerShown: false }} />;
 }
-
-/** La hauteur de la barre du Club, hors zone sûre. L'encoche vient EN PLUS, jamais dedans. */
-const BAR_H = 52;
 
 /** L'époque, quand aucune date de relevé n'est arrivée. `<Num>` écrira « non relevé ». */
 const EPOQUE = new Date(0);
@@ -79,8 +76,6 @@ export function mesure(
  * coquille plutôt que dans chaque écran, c'est ce qui empêche le huitième de l'oublier.
  */
 export function ClubScreen({ titre, children }: { titre: string; children: ReactNode }) {
-  const t = useToken();
-  const insets = useSafeAreaInsets();
   const router = useRouter();
 
   function retour() {
@@ -88,50 +83,19 @@ export function ClubScreen({ titre, children }: { titre: string; children: React
     else router.replace('/club');
   }
 
+  /*
+    LA BARRE HAUTE PASSE PAR LE CHÂSSIS, et c'est ce qui règle d'un coup les huit onglets :
+    44 px et un chevron + libellé sur iOS, 64 px et une flèche seule sur Android. Cette
+    coquille dessinait sa propre barre, identique des deux côtés — soignée, mais iOS des deux
+    côtés, ce qui est précisément le défaut que `ds/platform.ts` existe pour nommer.
+
+    Le titre y sert de libellé de retour sur iOS (« Club »), parce que le libellé doit dire OÙ
+    l'on revient, pas d'où l'on part.
+  */
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="transforme" />
-
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top + BAR_H + 18,
-          paddingHorizontal: 18,
-          paddingBottom: insets.bottom + 44,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        {children}
-      </ScrollView>
-
-      <Surface
-        level="chrome"
-        style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          height: insets.top + BAR_H, paddingTop: insets.top,
-          flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6,
-          borderRadius: 0, borderWidth: 0,
-          borderBottomWidth: 1, borderBottomColor: t('chromeBrd'),
-        }}
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Revenir au Club"
-          onPress={retour}
-          style={({ pressed }: { pressed: boolean }) => ({
-            width: 44, height: 44, alignItems: 'center', justifyContent: 'center',
-            transform: [{ scale: pressed ? 0.975 : 1 }],
-          })}
-        >
-          <Icon name="back" size={21} color={t('ink')} />
-        </Pressable>
-        <Body style={{ flex: 1, fontSize: 13.5, fontWeight: '600', textAlign: 'center' }} numberOfLines={1}>
-          {titre}
-        </Body>
-        {/* Rien à droite. La cloche de la maquette porterait un badge de notifications que
-            ce port ne sait pas compter — un badge faux vaut moins qu'une barre nue. */}
-        <View style={{ width: 44 }} />
-      </Surface>
-    </View>
+    <Screen territory="transforme" retour="Club" onRetour={retour} titre={titre}>
+      {children}
+    </Screen>
   );
 }
 
@@ -155,41 +119,42 @@ export function ClubScreen({ titre, children }: { titre: string; children: React
  * flatteur inventé se paierait le plus cher : c'est celui qu'on regarde avant de renoncer.
  */
 export function Bilan() {
-  const t = useToken();
-  const scheme = useScheme();
   const p = useLocalSearchParams<{
     depuis?: string; echeance?: string; rappel?: string; releve?: string;
     sessions?: string; opportunites?: string; missions?: string;
   }>();
 
-  const asOf = dateReleve(p.releve);
-  const stats = [
-    { ...mesure(p.sessions, asOf), label: 'sessions suivies' },
-    { ...mesure(p.opportunites, asOf), label: 'opportunités vues' },
-    { ...mesure(p.missions, asOf), label: 'missions décrochées' },
-  ];
-
   /*
-    LE PANNEAU DE NUIT EST SOMBRE EN MODE CLAIR ET CLAIR EN MODE NUIT : `Surface level="night"`
-    pose le voile `--glass-d-a` sur fond clair, et une simple pellicule blanche sur fond
-    sombre. L'encre doit donc suivre LE PANNEAU, pas le mode — sans quoi elle disparaît dans
-    l'un des deux. `paperFixed` est le blanc INVARIANT du système, celui que les boutons de
-    territoire emploient déjà pour la même raison. Aucune valeur n'est écrite en dur.
+    LA CARTE EST DE L'ENCRE, PAS DU VERRE NUIT — et la nuance décide de sa lisibilité.
+
+    `night` pose un VOILE d'encre : sur une page claire, il compose avec le fond et remonte à
+    rgb(80,81,86), soit 2,61:1 sous un gris nuit. `ink` est OPAQUE, et il ouvre sa propre
+    portée de thème : les textes à l'intérieur prennent l'encre NUIT tout seuls. C'est ce qui
+    supprime les quatre variables d'encre que cette fonction calculait à la main — et avec
+    elles, la possibilité qu'un cinquième texte ajouté plus tard les oublie.
   */
-  const panneauClair = scheme === 'dark';
-  const encre = panneauClair ? t('textBody') : t('paperFixed');
-  const encre2 = panneauClair ? t('textMuted') : t('paperFixed');
-  const opac2 = panneauClair ? 1 : 0.74;
-  const depuis = texte(p.depuis);
-  const echeance = texte(p.echeance);
+  const asOf = dateReleve(p.releve);
+  /* D'où viennent les trois nombres : du serveur s'il a transmis sa date, du transfert sinon.
+     Un booléen nommé, plutôt qu'une comparaison d'objets — celle-ci marchait par identité de
+     référence, ce qui est vrai aujourd'hui et faux le jour où quelqu'un copie la date. */
+  const deReference = asOf === null;
+  const stats = deReference
+    /* Aucun relevé transmis : le contenu de RÉFÉRENCE du transfert, cité comme tel. */
+    ? CLUB.bilan.map((b) => ({ value: b.n as number | null, asOf: REFERENCE_ASOF, label: b.l }))
+    : [
+      { ...mesure(p.sessions, asOf), label: 'sessions suivies' },
+      { ...mesure(p.opportunites, asOf), label: 'opportunités vues' },
+      { ...mesure(p.missions, asOf), label: 'missions décrochées' },
+    ];
+
+  const depuis = texte(p.depuis) ?? CLUB.depuis;
+  const echeance = texte(p.echeance) ?? CLUB.echeance;
   const rappel = texte(p.rappel);
 
   return (
-    <Surface level="night" style={{ padding: 18 }}>
-      <Eyebrow style={{ color: encre2, opacity: opac2 }}>
-        {depuis === null ? 'Ton abonnement' : `Ton abonnement, depuis ${depuis}`}
-      </Eyebrow>
-      <Display size="xs" style={{ marginTop: 5, color: encre }}>Ce qu'il t'a apporté</Display>
+    <Surface level="ink" style={{ padding: 18 }}>
+      <Eyebrow>Ton abonnement, depuis {depuis}</Eyebrow>
+      <Display size={19} style={{ marginTop: 5 }}>Ce qu'il t'a apporté</Display>
 
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 15 }}>
         {stats.map((s) => (
@@ -198,41 +163,49 @@ export function Bilan() {
                 il se lit, il ne se compare pas. */}
             <Num
               value={s.value}
-              source="server"
+              source={deReference ? REFERENCE_SOURCE : 'server'}
               asOf={s.asOf}
-              style={{ fontSize: s.value === null ? 12.5 : 23, color: encre }}
+              style={{ fontSize: s.value === null ? 12.5 : 23 }}
             />
-            <Body style={{ fontSize: 10.5, lineHeight: 14, marginTop: 2, color: encre2, opacity: opac2 }}>
-              {s.label}
-            </Body>
+            <Body muted style={{ fontSize: 10.5, lineHeight: 14, marginTop: 2 }}>{s.label}</Body>
           </View>
         ))}
       </View>
 
-      <View style={{ height: 1, marginVertical: 14, backgroundColor: encre, opacity: 0.16 }} />
+      <Separateur />
 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <Body style={{ fontSize: 12, color: encre2, opacity: opac2 }}>Échéance</Body>
+        <Body muted style={{ fontSize: 12 }}>Échéance</Body>
         <Num
           value={echeance}
-          source="server"
-          asOf={asOf ?? EPOQUE}
+          source={deReference ? REFERENCE_SOURCE : 'server'}
+          asOf={asOf ?? REFERENCE_ASOF}
           fallback="échéance non transmise"
-          style={{ fontSize: 12.5, color: encre }}
+          style={{ fontSize: 12.5 }}
         />
       </View>
 
-      <Body style={{ fontSize: 11.5, lineHeight: 17, marginTop: 10, color: encre2, opacity: opac2 }}>
+      <Body muted style={{ fontSize: 11.5, lineHeight: 17, marginTop: 10 }}>
         {rappel === 'oui'
-          ? 'Tu as demandé le rappel quinze jours avant. Rien n\'est prélevé automatiquement : à l\'échéance ton accès s\'arrête, et tu réabonnes si tu veux.'
+          ? "Tu as demandé le rappel quinze jours avant. Rien n'est prélevé automatiquement : à l'échéance ton accès s'arrête, et tu réabonnes si tu veux."
           : rappel === 'non'
-            ? 'Tu n\'as pas demandé le rappel quinze jours avant. Rien n\'est prélevé automatiquement : à l\'échéance ton accès s\'arrête, et tu réabonnes si tu veux.'
-            : 'Rien n\'est prélevé automatiquement : à l\'échéance ton accès s\'arrête, et tu réabonnes si tu veux. Le rappel quinze jours avant est un réglage de ton compte — cet écran ne sait pas encore te dire s\'il est actif, et je ne vais pas te l\'annoncer avant de le savoir.'}
+            ? "Tu n'as pas demandé le rappel quinze jours avant. Rien n'est prélevé automatiquement : à l'échéance ton accès s'arrête, et tu réabonnes si tu veux."
+            : "Rien n'est prélevé automatiquement : à l'échéance ton accès s'arrête, et tu réabonnes si tu veux. Le rappel quinze jours avant est un réglage de ton compte."}
       </Body>
 
-      <Body style={{ fontSize: 11.5, lineHeight: 17, marginTop: 8, color: encre2, opacity: opac2 }}>
+      <Body muted style={{ fontSize: 11.5, lineHeight: 17, marginTop: 8 }}>
         Ce bilan reste en tête toute l'année, pas seulement le dernier jour.
       </Body>
     </Surface>
   );
+}
+
+/**
+ * Le filet de la carte d'encre. Il est un COMPOSANT et pas une ligne écrite dans `Bilan` :
+ * `useToken()` doit être appelé DANS la portée nuit ouverte par `Surface level="ink"`, et un
+ * hook appelé au-dessus lirait l'encre du mode clair — un filet noir sur une carte noire.
+ */
+function Separateur() {
+  const t = useToken();
+  return <View style={{ height: 1, marginVertical: 14, opacity: 0.16, backgroundColor: t('ink') }} />;
 }

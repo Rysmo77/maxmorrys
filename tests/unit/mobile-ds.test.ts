@@ -77,6 +77,19 @@ describe('port natif — les jetons sont la seule source de couleur', () => {
      * sens — et elle n'est pas éditée à la main, donc elle ne peut pas dériver toute seule.
      */
     'mobile/ds/tokens.generated.ts',
+    /*
+     * LES MARQUES TIERCES, et c'est la raison EXACTEMENT INVERSE des deux précédentes.
+     *
+     * Cette règle existe parce qu'une valeur figée NE BASCULE PAS en mode sombre. Or une
+     * marque tierce ne DOIT pas basculer : Google impose ses quatre couleurs et interdit de
+     * recolorer son logo, Apple impose son noir et son asset. Les faire suivre notre thème
+     * serait une infraction à leurs directives — et un motif de rejet en revue, sur l'écran
+     * de connexion, c'est-à-dire au seul endroit où ces marques apparaissent.
+     *
+     * Le fichier ne contient QUE ces marques. Y ajouter autre chose rouvrirait la brèche que
+     * ce test ferme partout ailleurs.
+     */
+    'mobile/ds/BrandMarks.tsx',
   ]);
 
   it("aucun écran n'écrit une couleur hexadécimale", () => {

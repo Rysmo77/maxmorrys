@@ -1,7 +1,8 @@
-import { ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Body, Button, Display, Icon, Mesh, Num, Surface, Tag, useToken } from '../ds';
+import {
+  Body, Button, Display, Icon, Num, Screen, Surface, Tag, useToken,
+} from '../ds';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -35,7 +36,6 @@ const RAYON = 22;
 
 export default function Echec() {
   const t = useToken();
-  const insets = useSafeAreaInsets();
   const { motif, moyen, reference, slug, titre, prix, asOf } = useLocalSearchParams<{
     motif?: string; moyen?: string; reference?: string; slug?: string;
     titre?: string; prix?: string; asOf?: string;
@@ -52,18 +52,7 @@ export default function Echec() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="forme" />
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: 'center',
-          paddingTop: insets.top + 24,
-          paddingHorizontal: 18,
-          paddingBottom: insets.bottom + 60,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
+    <Screen territory="forme" center>
         <View style={{
           width: CARRE, height: CARRE, borderRadius: RAYON,
           alignItems: 'center', justifyContent: 'center',
@@ -139,7 +128,6 @@ export default function Echec() {
             ? "Rien n'est débité deux fois : chaque paiement porte une référence unique."
             : "Chaque paiement porte sa propre référence : une nouvelle tentative n'écrase pas la précédente."}
         </Body>
-      </ScrollView>
-    </View>
+    </Screen>
   );
 }

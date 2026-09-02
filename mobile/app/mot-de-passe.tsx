@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Body, Button, Display, Eyebrow, Field, Icon, Mesh, Surface, useToken } from '../ds';
+import { View } from 'react-native';
+import {
+  Body, Button, Display, Eyebrow, Field, Icon, Screen, Surface, isIOS, useToken, veil,
+} from '../ds';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -29,7 +30,6 @@ import { Body, Button, Display, Eyebrow, Field, Icon, Mesh, Surface, useToken } 
  */
 export default function MotDePasse() {
   const t = useToken();
-  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [accuse, setAccuse] = useState(false);
 
@@ -50,12 +50,7 @@ export default function MotDePasse() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="forme" />
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 28, paddingHorizontal: 18, paddingBottom: insets.bottom + 40 }}
-        showsVerticalScrollIndicator={false}
-      >
+    <Screen territory="forme" retour="Connexion" titre={isIOS ? undefined : 'Mot de passe oublié'}>
         <Eyebrow>Ton compte</Eyebrow>
         <View style={{ marginTop: 10 }}>
           <Display size="sm" lines={['On te remet', 'dedans.']} />
@@ -91,9 +86,12 @@ export default function MotDePasse() {
             <View style={{ flexDirection: 'row', gap: 11 }}>
               <View style={{
                 width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center',
-                backgroundColor: t('ok'),
+                /* Un VOILE de l'encre verte, pas l'encre pleine : en nuit `ok` devient
+                   #4ADE9B, et une coche blanche dessus tombe à 1,6:1. Le voile suit son
+                   encre, la coche garde la sienne — c'est le motif de `LessonRow`. */
+                backgroundColor: veil(t('ok'), 0.16),
               }}>
-                <Icon name="check" size={15} color={t('paperFixed')} strokeWidth={3.2} />
+                <Icon name="check" size={15} color={t('ok')} strokeWidth={3.2} />
               </View>
               <View style={{ flex: 1 }}>
                 <Body style={{ fontWeight: '700', fontSize: 14.5, color: t('ok') }}>C'est parti</Body>
@@ -128,7 +126,6 @@ export default function MotDePasse() {
             la tienne.
           </Body>
         </Surface>
-      </ScrollView>
-    </View>
+    </Screen>
   );
 }

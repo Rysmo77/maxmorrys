@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Alert, Image, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Alert, Image, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Icon, Mesh, Num, PayOption, Surface, Tag, useToken,
+  Body, Button, Display, Eyebrow, Icon, Num, PayOption, Screen, Surface, Tag, isIOS, useToken,
 } from '../ds';
 
 /**
@@ -40,7 +39,6 @@ type Choix = 'apercu' | 'lecture';
 
 export default function Video() {
   const t = useToken();
-  const insets = useSafeAreaInsets();
   const { titre, date, duree, video, apercu, octets, releve } = useLocalSearchParams<{
     titre?: string;
     date?: string;
@@ -80,12 +78,7 @@ export default function Video() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="transforme" />
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 28, paddingHorizontal: 18, paddingBottom: insets.bottom + 40 }}
-        showsVerticalScrollIndicator={false}
-      >
+    <Screen territory="transforme" retour="Écouter" titre={isIOS ? undefined : 'Vidéo'}>
         <Eyebrow>Je te transforme · Vidéo</Eyebrow>
         <View style={{ marginTop: 8 }}>
           <Display size="sm">{titre ?? 'Cette vidéo'}</Display>
@@ -200,7 +193,6 @@ export default function Video() {
             chercher un passage qui n'y est pas.
           </Body>
         </Surface>
-      </ScrollView>
-    </View>
+    </Screen>
   );
 }

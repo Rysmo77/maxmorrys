@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Alert, Animated, Easing, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AccessibilityInfo, Alert, Animated, Easing, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { Body, Button, Display, Icon, Mesh, Num, Surface, Tag, useToken } from '../ds';
+import {
+  Body, Button, Display, Icon, Num, Screen, Surface, Tag, useToken,
+} from '../ds';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -71,7 +72,6 @@ const PAY_ORIGIN = 'https://maxmorrys.me';
 
 export default function Attente() {
   const t = useToken();
-  const insets = useSafeAreaInsets();
   const { moyen, montant, reference, suivi, asOf } = useLocalSearchParams<{
     moyen?: string; montant?: string; reference?: string; suivi?: string; asOf?: string;
   }>();
@@ -173,18 +173,7 @@ export default function Attente() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="forme" />
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: 'center',
-          paddingTop: insets.top + 24,
-          paddingHorizontal: 18,
-          paddingBottom: insets.bottom + 60,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
+    <Screen territory="forme" center>
         {/* ── LE MOMENT ─────────────────────────────────────────────────────────────── */}
         <View
           accessible
@@ -284,7 +273,6 @@ export default function Attente() {
           pas de moi, et un compteur qui se termine sans réponse ne t'apprend rien.
           {reference ? ' Rien n\'est débité deux fois : chaque paiement porte une référence unique.' : ''}
         </Body>
-      </ScrollView>
-    </View>
+    </Screen>
   );
 }

@@ -9,9 +9,14 @@ export {
   edgeSwipeBack, translucentTabBar, ripple, navBarElevation,
 } from './platform';
 
+/* Le châssis natif — un corps, deux plateformes. C'est lui qui porte la différence. */
+export { Screen, type ScreenTerritory } from './Screen';
+export { NavBar, NAVBAR_H } from './NavBar';
+
 /* Surfaces et fond */
 export { Mesh } from './Mesh';
 export { Surface } from './Surface';
+export { Gradient, useActionGradient } from './Gradient';
 export { Skeleton } from './Skeleton';
 export { EmptyState } from './EmptyState';
 export { TerritoryCard, type Territory, type CardLayout } from './TerritoryCard';
@@ -22,7 +27,12 @@ export { Num, type NumProps, type NumSource } from './Num';
 
 /* Actions */
 export { Button } from './Button';
+export { IconButton } from './IconButton';
+export { Fab } from './Fab';
 export { Icon, type IconName, type IconProps } from './Icon';
+export { Wordmark } from './Wordmark';
+/* Les marques TIERCES — elles gardent leurs couleurs, et c'est la règle : voir le fichier. */
+export { GoogleMark, AppleMark } from './BrandMarks';
 
 /* Formulaires et contrôles */
 export { Field } from './Field';
@@ -43,6 +53,12 @@ export { CheckLine } from './CheckLine';
 export { DocLine } from './DocLine';
 export { PriceBlock } from './PriceBlock';
 export { StatTile } from './StatTile';
+export { MediaCard } from './MediaCard';
+
+/* Navigation secondaire et lecture persistante */
+export { SubNav } from './SubNav';
+export { Pipeline } from './Pipeline';
+export { MiniPlayer } from './MiniPlayer';
 
 /* Le nom du répétiteur — un réglage, jamais une constante recopiée. */
 export { tutorNom, useTutorNom, setTutorNom, TUTOR_DEFAUT } from './tutor';

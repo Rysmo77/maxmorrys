@@ -66,25 +66,71 @@ celui recalculé côté serveur, jamais celui transmis par le client.
 
 ## Ce que ce dossier contient aujourd'hui
 
-Le socle **et les écrans**. Il ne duplique toujours pas les 42 000 lignes du web : la logique
-métier — Firestore, paiement, i18n — reste côté web, et l'application native consomme les mêmes
-données par le SDK Firebase JavaScript, qui n'est pas encore branché.
+Le socle **et les 52 écrans** — les 36 du transfert `handoff_natif/`, plus les écrans que ce
+transfert déclare volontairement absents (les cinq onglets de liste du Club, les cinq écrans du
+rôle support) et le tunnel de paiement que le web transmet. Il ne duplique toujours pas les
+42 000 lignes du web : la logique métier — Firestore, paiement, i18n — reste côté web.
 
 ```
 mobile/
-  ds/          24 primitives — jetons, maillage, verre, typographie, contrôles, données
-  app/         34 routes, routées par expo-router
+  ds/          36 primitives — châssis, jetons, maillage, verre, typographie, contrôles, données
+  app/         52 routes, routées par expo-router
+  contenu/     le contenu de RÉFÉRENCE du transfert, cité et daté — une seule porte
 ```
 
-### Les 24 primitives
+### Les 36 primitives
 
 | Famille | Primitives |
 |---|---|
-| Fond et surfaces | `Mesh` `Surface` `Skeleton` `EmptyState` `TerritoryCard` |
+| **Châssis natif** | `Screen` `NavBar` |
+| Fond et surfaces | `Mesh` `Surface` `Gradient` `Skeleton` `EmptyState` `TerritoryCard` |
 | Typographie et nombres | `Display` `Body` `Eyebrow` `Num` |
-| Actions | `Button` `Icon` |
+| Actions | `Button` `Icon` `IconButton` `Fab` |
+| Marque | `Wordmark` `GoogleMark` `AppleMark` |
 | Formulaires | `Field` `Switch` `Segmented` `ChipRow` `PayOption` `StepDots` |
-| Données | `Tag` `LessonRow` `ProgressBar` `QuotaMeter` `Avatar` `ChatBubble` `CheckLine` `DocLine` `PriceBlock` `StatTile` |
+| Données | `Tag` `LessonRow` `ProgressBar` `QuotaMeter` `Avatar` `ChatBubble` `CheckLine` `DocLine` `PriceBlock` `StatTile` `MediaCard` |
+| Navigation et lecture | `SubNav` `Pipeline` `MiniPlayer` |
+
+### 4 · Le châssis porte la différence, et lui seul (AD-12)
+
+`Screen` est la transposition de `NativeScreen` du transfert, et c'est la pièce qui fait tenir
+sa thèse : **le corps d'un écran est écrit UNE fois.** Ce qui diffère d'une plateforme à
+l'autre est court, et il est tout entier dans `Screen` et `NavBar` :
+
+| | iOS | Android |
+|---|---|---|
+| Barre de navigation | `44 px`, titre centré | `64 px`, titre à gauche |
+| Retour | chevron **+ libellé** (il dit OÙ l'on revient) | flèche seule |
+| Barre d'onglets | translucide et floutée | opaque, détachée par son élévation |
+| Transition | `slide_from_right`, 260 ms | `fade_from_bottom`, 200 ms |
+| Bouton flottant | rond | arrondi carré |
+| Zones sûres | **demandées au système**, jamais écrites | idem |
+
+Le transfert code `47 / 34` et `24 / 24` parce qu'il simule deux appareils dans un cadre fixe.
+En vrai, la zone sûre se DEMANDE : recopier 47 px creuserait un trou sur un Pixel 4a.
+
+**Deux écrans divergent par leur CONTENU, et les deux à cause d'une règle de magasin** — la
+connexion et la création : « Se connecter avec Apple » est obligatoire dès qu'on offre Google
+(App Store 4.8), donc l'encart compte « trois moyens » d'un côté et « deux » de l'autre.
+
+### 5 · Le contenu de référence est une DONNÉE, pas trente écrans qui inventent
+
+Le transfert code ses valeurs en dur, et le dit : « ce sont des maquettes de référence, pas du
+code de production […] reprends la structure, les valeurs de style et l'ordre des éléments.
+Pas l'architecture. » Recopier ces valeurs DANS les écrans reproduirait exactement
+l'architecture qu'on nous dit de ne pas reprendre.
+
+`contenu/reference.ts` les porte donc **une fois**, avec sa source citée et sa date de relevé :
+
+```ts
+export const SOURCE: NumSource = { cite: 'handoff_natif — kit de référence' };
+export const RELEVE = new Date('2026-09-02T00:00:00Z');
+```
+
+La règle 6 n'est pas contournée — `<Num>` exige toujours une source et une date, et il écrit
+« non relevé » sans elles. Brancher Firestore, c'est remplacer ce module ; les écrans ne
+changent pas. Un paramètre de route prime toujours sur la référence : le jour où le catalogue
+arrive du serveur, il transmet ses valeurs et rien d'autre ne bouge.
 
 **Un écran importe depuis `../ds`, jamais d'un chemin profond** : le jour où une primitive
 change de fichier, c'est l'écran qui casse sans que rien ne l'ait annoncé.
@@ -94,6 +140,16 @@ dérive un fond translucide de son encre plutôt que d'en figer les canaux — u
 main garderait le vert du mode clair alors que `--ok` change en nuit. Ces trois règles sont
 vérifiées par `tests/unit/mobile-ds.test.ts`, depuis la suite de la racine : ce dossier n'a pas
 de lanceur de tests à lui, et n'en aura pas.
+
+**Trois fichiers font exception, et chacun pour une raison écrite** : `ds/theme.tsx` (le pont
+de jetons), `ds/Surface.tsx` (il convertit les voiles du système en couleurs opaques) et
+`ds/BrandMarks.tsx` — les marques tierces. Ce dernier renverse la règle : Google impose ses
+quatre couleurs et Apple son noir, et les faire suivre notre thème serait une infraction à
+leurs directives, sur l'écran de connexion. Une valeur figée y est la bonne réponse.
+
+⚠️ **La pomme d'Apple est un EMPLACEMENT RÉSERVÉ.** Son usage impose l'asset officiel qu'Apple
+fournit ; le glyphe actuel tient la place, la taille et l'alignement. **À remplacer avant toute
+soumission** — c'est l'un des trois points que le transfert liste comme à trancher.
 
 ### Les deux moments scénarisés sont ici
 
@@ -123,10 +179,24 @@ Corollaire : **un nombre n'existe que s'il arrive avec sa date de relevé.** San
 
 ### Ce qui n'est pas encore branché
 
-Le SDK Firebase, donc : l'authentification, la lecture des inscriptions, l'écriture d'une note,
-le quota du répétiteur, les échanges. Là où le geste existe déjà sur le web, l'écran ouvre le
-site dans le navigateur système avec la même session (`openAuthSessionAsync`), pour la même
-raison qu'AD-11 : ne pas faire semblant d'avoir ce qu'on n'a pas.
+**Chaque écran concerné le DIT chez lui**, en nommant le paquet manquant et ce que brancher
+changerait. Aucun n'est un bouton mort : ils rendent le geste, et disent où il s'arrête.
+
+| Ce qui manque | Le paquet | Les écrans concernés |
+|---|---|---|
+| La lecture audio en fond | `expo-audio` + `UIBackgroundModes` / service de premier plan | `media` `episode` `verrouille` — c'est le chantier n° 1, et l'argument même du virage natif |
+| La notification poussée | `expo-notifications` + un serveur qui envoie | `permissions` `profil` |
+| L'écriture dans l'agenda | `expo-calendar` | `club/agenda` — l'écran propose le `.ics` en attendant |
+| La biométrie | `expo-local-authentication` | `biometrie` `profil` |
+| L'orientation paysage | `expo-screen-orientation` | `plein-ecran` — il TIENT en portrait en attendant |
+| L'état du réseau | `expo-network` | `hors-connexion`, aujourd'hui une destination |
+| Les trois fontes | `expo-font` + les binaires | partout — on retombe sur la police système, lisible, sans casser une mise en page |
+| Le widget d'accueil | WidgetKit / Glance, hors React Native | `widget` en est l'écran d'INSTALLATION, pas une imitation |
+
+Et le SDK Firebase : l'authentification, la lecture des inscriptions, l'écriture d'une note, le
+quota du répétiteur, les échanges. Là où le geste existe déjà sur le web, l'écran ouvre le site
+dans le navigateur système avec la même session (`openAuthSessionAsync`), pour la même raison
+qu'AD-11 : ne pas faire semblant d'avoir ce qu'on n'a pas.
 
 `setTutorNom()` ne persiste pas, et **ne doit pas** persister localement : le nom du tuteur vit
 dans le profil (`users/<uid>.tutorName`), comme au web. Un magasin local créerait une seconde
@@ -157,17 +227,31 @@ l'ancien nom, jusqu'au prochain rendu. C'est le défaut exact trouvé au web, o�
 et le corps du même écran affichaient deux noms. `useTutorNom()` abonne au magasin ; le test
 `mobile-ds` refuse qu'un composant affiche le nom autrement.
 
-Hors de la barre, **vingt-neuf routes de pile**, groupées par parcours :
+Hors de la barre, **quarante-sept routes de pile**, groupées comme le transfert les groupe :
 
 | Parcours | Routes |
 |---|---|
-| Le chemin de l'argent | `catalogue` `formation` `paiement` `attente` `succes` `echec` |
-| Apprentissage | `lecon` `notes` `certificat` |
+| Propres au natif | `lancement` `onboarding` `permissions` `biometrie` `telechargements` `plein-ecran` `widget` `partage` |
+| Le chemin de l'argent | `formation` (le mur) `paiement` `attente` `succes` `echec` |
+| Apprentissage | `lecon` `notes` `certificat` `certificats` |
 | Le répétiteur | `memoire` — la conversation est l'onglet |
 | Le Club | `club/` — `fil` `discussions` `agenda` `membre` `classement` `opportunites` `parrainage` `infos` |
-| Compte | `connexion` `creation` `mot-de-passe` `preferences` `suppression` |
-| États | `hors-connexion` `erreur` `interdit` `+not-found` |
-| Média | `media` `episode` `video` |
+| Compte | `connexion` `creation` `mot-de-passe` `suppression` — les préférences SONT l'onglet Profil |
+| États | `chargement` `hors-connexion` `erreur` `interdit` `+not-found` |
+| Média | `media` `episode` `video` `verrouille` |
+| TPE et console | `presence` `devis` `console/` — `messages` `temoignages` `rendez-vous` `prospects` `projets` |
+| La planche | `apercu` — les 52 écrans, dans l'ordre du transfert |
+
+**`apercu` n'est pas un écran de démonstration : c'est ce qui referme la carte de navigation.**
+Sept écrans du kit sont des ÉTATS ou des surfaces système — le chargement, l'erreur, le /403, le
+widget, l'écran verrouillé, le plein écran, le partage. Aucun n'a de place dans un menu : on y
+arrive par le code. Sans cette planche, ce sont sept routes qu'aucun lien n'ouvre — et sur un
+routeur par fichiers, une route morte ne se voit pas manquer.
+
+**`/catalogue` a disparu, absorbé par l'onglet `cours`.** Il rendait un SECOND catalogue, avec
+sa propre liste et son propre état vide : deux écrans pour la même chose, dont un que plus rien
+n'ouvrait une fois l'onglet en place. L'onglet a repris ses trois états — liste transmise, zéro
+daté, rien de transmis — parce que c'est cette distinction-là qui valait d'être gardée.
 
 `erreur` et `interdit` n'ont volontairement aucune entrée de menu : ce sont des DESTINATIONS,
 atteintes par le code — comme `/403` au web. `+not-found` y renvoie tout lien profond périmé,

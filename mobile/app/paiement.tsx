@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Alert, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { Body, Button, Display, Eyebrow, Mesh, Num, Surface, useToken } from '../ds';
+import {
+  Body, Button, Display, Eyebrow, Num, Screen, Surface, isIOS, useToken,
+} from '../ds';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -33,7 +34,6 @@ const RETOUR = 'rysmo://paiement/retour';
 
 export default function Paiement() {
   const t = useToken();
-  const insets = useSafeAreaInsets();
   const { slug, titre, prix } = useLocalSearchParams<{ slug?: string; titre?: string; prix?: string }>();
   const [opening, setOpening] = useState(false);
 
@@ -87,9 +87,7 @@ export default function Paiement() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="forme" />
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 24, paddingHorizontal: 18, paddingBottom: insets.bottom + 40 }}>
+    <Screen territory="forme" retour="Formation" titre={isIOS ? undefined : 'Paiement'}>
         <Eyebrow>Paiement</Eyebrow>
         <View style={{ marginTop: 10, marginBottom: 22 }}>
           <Display size="sm">{titre ?? 'Ta formation'}</Display>
@@ -139,7 +137,6 @@ export default function Paiement() {
             Wave et en Orange Money. Tu reviens ici tout de suite après.
           </Body>
         </View>
-      </ScrollView>
-    </View>
+    </Screen>
   );
 }

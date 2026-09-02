@@ -1,247 +1,122 @@
 import { useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
+import { router } from 'expo-router';
 import {
-  Body, Button, Display, EmptyState, Eyebrow, Icon, Mesh, Num, Skeleton, Surface, Tag, useToken,
+  Body, Button, Display, Eyebrow, Icon, IconButton, MediaCard, MiniPlayer, Screen, SubNav,
+  Surface, Tag, useToken,
 } from '../ds';
+import { EPISODE, VIDEO } from '../contenu/reference';
+import { View } from 'react-native';
 
 /**
- * ═══════════════════════════════════════════════════════════════════════════════════════
- * LE PÔLE MÉDIA — RANGÉ SOUS « JE TE TRANSFORME », ET GRATUIT DÈS LA PREMIÈRE LIGNE.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * ══ 1 · LE PÔLE MÉDIA ══ — ET LE GAIN QUI N'A RIEN À VOIR AVEC L'APPARENCE.
  *
- * Le blog donne une méthode, le podcast donne une voix : ce territoire-ci abritait du payant
- * fermé, d'où le mot « gratuit » dans le premier sourcil et le Club jamais devant.
+ * **DANS UN NAVIGATEUR, UN PODCAST S'ARRÊTE QUAND ON VERROUILLE LE TÉLÉPHONE.** En natif il
+ * continue. Pour un contenu de 34 minutes écouté dans un taxi, ce n'est pas une amélioration :
+ * c'est la différence entre utilisable et inutilisable.
  *
- * TROIS ÉTATS, ET AUCUN N'EST DÉCORATIF — c'est l'écran de liste de ce lot, donc c'est ici
- * que les règles d'état se rencontrent pour de bon :
+ * Deux surfaces en découlent, qui n'existent nulle part côté web :
+ *   · LE MINI-LECTEUR persistant, qui suit d'un écran à l'autre (`ds/MiniPlayer.tsx`) ;
+ *   · L'ÉCRAN VERROUILLÉ, où un navigateur ne peut pas écrire (`/verrouille`).
  *
- *   • CHARGEMENT — la route n'a rien apporté. Un SQUELETTE à la forme exacte d'une fiche,
- *     jamais un rond qui tourne : un rond ne dit ni ce qui arrive, ni combien, ni où, et il
- *     laisse la mise en page se recomposer sous les yeux au remplissage. Il est accompagné
- *     d'une sortie, pour que ce ne soit jamais une attente sans issue.
- *   • VIDE — le relevé est arrivé et il vaut zéro. Un ZÉRO DATÉ est une information ; un
- *     tiret n'en est pas une. Avec une invitation à agir.
- *   • REMPLI — ce que la route a transmis, et rien de plus.
+ * ── LE POIDS EST UNE DONNÉE DE PREMIER RANG ──────────────────────────────────────────────
+ * Chaque carte porte sa durée ET son poids, et compare l'audio à sa transcription — « 31 Mo »
+ * contre « 0 Mo ». Sur le marché visé, c'est ce chiffre-là qui décide d'écouter maintenant ou
+ * d'attendre le Wi-Fi ; le cacher, c'est décider à la place de quelqu'un.
  *
- * AUCUN COMPTEUR D'ÉCOUTE N'EST AFFICHÉ. À un épisode, un compteur ne dit rien d'utile — et
- * `Video.views` existe bien dans `src/types/index.ts`, ce qui rend le silence délibéré plutôt
- * que subi.
- * ═══════════════════════════════════════════════════════════════════════════════════════
+ * ⚠️ LA LECTURE AUDIO N'EST PAS BRANCHÉE : elle demande `expo-audio` et un mode de fond
+ * déclaré (`UIBackgroundModes: audio` côté iOS, un service de premier plan côté Android). Le
+ * mini-lecteur est donc rendu dans son état de repos, et il dit ce qu'il fera. C'est le
+ * chantier n° 1 de ce pôle, et il est nommé dans le README.
+ * ══════════════════════════════════════════════════════════════════════════════════════
  */
-const POLE = 'https://maxmorrys.me/podcast-et-videos';
-
-type Fiche = {
-  slug: string;
-  titre: string;
-  genre: 'audio' | 'video';
-  resume?: string;
-  date?: string;
-  duree?: string;
-};
-
 export default function Media() {
   const t = useToken();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { fiches, releve } = useLocalSearchParams<{ fiches?: string; releve?: string }>();
-
-  const [ouverture, setOuverture] = useState(false);
-
-  const brut = releve ? new Date(releve) : null;
-  const date = brut !== null && !Number.isNaN(brut.getTime()) ? brut : null;
-
-  const liste: Fiche[] = (() => {
-    if (!fiches) return [];
-    try {
-      const v: unknown = JSON.parse(fiches);
-      return Array.isArray(v) ? (v as Fiche[]) : [];
-    } catch {
-      return [];
-    }
-  })();
-
-  async function ouvrirLePole() {
-    setOuverture(true);
-    try {
-      await WebBrowser.openBrowserAsync(POLE);
-    } catch {
-      Alert.alert("Le navigateur n'a pas pu s'ouvrir", `Ouvre ${POLE} depuis ton navigateur.`);
-    } finally {
-      setOuverture(false);
-    }
-  }
+  const [enLecture, setEnLecture] = useState(false);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="transforme" />
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 28, paddingHorizontal: 18, paddingBottom: insets.bottom + 40 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <Eyebrow>Je te transforme · gratuit</Eyebrow>
-        <View style={{ marginTop: 8 }}>
-          <Display size="sm" lines={["DES GENS D'ICI", 'QUI RACONTENT', "CE QU'ILS ONT FAIT."]} />
-        </View>
-        <Body muted style={{ marginTop: 12 }}>
-          Pas de méthode, pas de tutoriel — ça, c'est le blog. Ici, des gens qui vendent
-          vraiment quelque chose à Dakar et à Abidjan racontent ce qui a marché, et ce qui leur
-          a coûté cher.
-        </Body>
+    <Screen
+      territory="transforme"
+      retour="Profil"
+      droite={
+        <IconButton label="Chercher un épisode">
+          <Icon name="search" size={17} color={t('textBody')} strokeWidth={2.4} />
+        </IconButton>
+      }
+      overlay={(
+        <MiniPlayer
+          titre={EPISODE.titreCourt}
+          position={EPISODE.position}
+          duree={EPISODE.duree}
+          enLecture={enLecture}
+          tabbar={false}
+          onToggle={() => setEnLecture(!enLecture)}
+          onPress={() => router.push('/episode')}
+        />
+      )}
+    >
+      <SubNav
+        items={[{ label: 'Écouter & regarder' }, { label: 'Le Club', color: t('mmViolet') }]}
+        active="Écouter & regarder"
+        onSelect={(l) => { if (l === 'Le Club') router.push('/(tabs)/club'); }}
+      />
 
-        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
-          <Tag tone="ok">Écoute gratuite, sans compte</Tag>
-          <Tag>Transcription lisible sans audio</Tag>
-        </View>
+      <Eyebrow style={{ marginTop: 18 }}>Je te transforme · gratuit</Eyebrow>
+      <Display size={27} lines={["DES GENS D'ICI", 'QUI RACONTENT']} style={{ marginTop: 8 }} />
+      <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
+        Pas de méthode, pas de tutoriel — ça, c'est le blog. Ici, des gens qui vendent vraiment
+        quelque chose racontent ce qui a marché.
+      </Body>
 
-        <Eyebrow style={{ marginTop: 24 }}>Écouter &amp; regarder</Eyebrow>
+      <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
+        <Tag tone="ok">Écoute gratuite, sans compte</Tag>
+        <Tag tone="ok">Continue écran verrouillé</Tag>
+      </View>
 
-        {!fiches ? (
-          /* ── CHARGEMENT ─────────────────────────────────────────────────────────────
-             La forme EXACTE d'une fiche : sourcil, titre sur deux lignes, résumé sur trois,
-             la ligne de coût, deux boutons. Quand le contenu arrive, rien ne saute. */
-          <View style={{ marginTop: 10, gap: 12 }}>
-            {[0, 1].map((i) => (
-              <Surface key={i} level="flat" style={{ padding: 18 }}>
-                <Skeleton width={132} height={11} label="Chargement de la fiche" />
-                <View style={{ marginTop: 12, gap: 8 }}>
-                  <Skeleton height={22} width="88%" />
-                  <Skeleton height={22} width="56%" />
-                </View>
-                <View style={{ marginTop: 14, gap: 7 }}>
-                  <Skeleton height={12} width="100%" />
-                  <Skeleton height={12} width="94%" />
-                  <Skeleton height={12} width="61%" />
-                </View>
-                <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
-                  <Skeleton width={62} height={25} radius={999} />
-                  <Skeleton width={78} height={25} radius={999} />
-                </View>
-                <View style={{ flexDirection: 'row', gap: 9, marginTop: 16 }}>
-                  <Skeleton width={104} height={44} radius={999} />
-                  <Skeleton width={150} height={44} radius={999} />
-                </View>
-              </Surface>
-            ))}
-
-            <Surface level="truth" style={{ padding: 18 }}>
-              <Eyebrow>Ce que tu regardes</Eyebrow>
-              <Body muted style={{ marginTop: 6, fontSize: 12.5 }}>
-                La forme des fiches, pas les fiches : le catalogue arrive avec la route, et
-                celle-ci ne l'a pas apporté. Rien ne sautera quand il arrivera — c'est tout
-                l'intérêt d'un squelette plutôt que d'un rond qui tourne. En attendant, le pôle
-                complet est lisible sur le site.
-              </Body>
-              <Button
-                tone="quiet"
-                label={ouverture ? 'Ouverture…' : 'Ouvrir le pôle sur le site'}
-                disabled={ouverture}
-                onPress={() => void ouvrirLePole()}
-                style={{ marginTop: 14 }}
-              />
-            </Surface>
-          </View>
-        ) : liste.length === 0 ? (
-          /* ── VIDE ─────────────────────────────────────────────────────────────────── */
-          <Surface level="flat" style={{ marginTop: 10, padding: 6 }}>
-            <EmptyState
-              glyph={<Icon name="mic" size={26} color={t('mmVioletT')} />}
-              title="Rien à écouter pour l'instant."
-              body={
-                <Body muted style={{ fontSize: 13.5, textAlign: 'center' }}>
-                  <Num
-                    value={date !== null ? 0 : null}
-                    source="db"
-                    asOf={date ?? new Date(0)}
-                    unit="épisode publié"
-                    fallback="relevé non transmis"
-                    style={{ fontSize: 13.5 }}
-                  />
-                  {date !== null
-                    ? " au relevé de cette route. Le pôle fonctionne — il n'y a simplement rien encore, et je préfère te le dire que remplir une grille."
-                    : " avec cette route : la liste est bien vide, mais sans date de relevé je ne peux pas te dire de quand."}
-                </Body>
-              }
-              action={
-                <Button
-                  tone="transforme"
-                  label={ouverture ? 'Ouverture…' : 'Ouvrir le pôle sur le site'}
-                  disabled={ouverture}
-                  onPress={() => void ouvrirLePole()}
-                />
-              }
-            />
-          </Surface>
-        ) : (
-          /* ── REMPLI ───────────────────────────────────────────────────────────────── */
-          <View style={{ marginTop: 10, gap: 12 }}>
-            {liste.map((f) => (
-              <Surface key={f.slug} level="flat" style={{ padding: 18 }}>
-                <Eyebrow>
-                  {f.genre === 'audio' ? 'Podcast' : 'Vidéo'}
-                  {f.date ? ` · ${f.date}` : ''}
-                </Eyebrow>
-                <View style={{ marginTop: 8 }}>
-                  <Display size="xs">{f.titre}</Display>
-                </View>
-                {f.resume ? <Body muted style={{ marginTop: 8, fontSize: 13.5 }}>{f.resume}</Body> : null}
-
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 }}>
-                  <Icon name="clock" size={14} color={t('textMuted')} />
-                  <Num
-                    value={f.duree ?? null}
-                    source="db"
-                    asOf={date ?? new Date(0)}
-                    fallback="durée non transmise"
-                    style={{ fontSize: 12.5, fontWeight: '400' }}
-                  />
-                </View>
-
-                <View style={{ flexDirection: 'row', gap: 9, marginTop: 16, flexWrap: 'wrap' }}>
-                  <Button
-                    tone="transforme"
-                    label={f.genre === 'audio' ? 'Lire la transcription' : 'Voir la fiche'}
-                    onPress={() => router.push({
-                      pathname: f.genre === 'audio' ? '/episode' : '/video',
-                      params: {
-                        slug: f.slug,
-                        titre: f.titre,
-                        date: f.date ?? '',
-                        duree: f.duree ?? '',
-                        releve: date ? date.toISOString() : '',
-                      },
-                    })}
-                  />
-                </View>
-              </Surface>
-            ))}
-
-            <Surface level="truth" style={{ padding: 18 }}>
-              <Eyebrow>Pourquoi il y en a si peu</Eyebrow>
-              <Body muted style={{ marginTop: 6, fontSize: 12.5 }}>
-                <Num
-                  value={date !== null ? liste.length : null}
-                  source="db"
-                  asOf={date ?? new Date(0)}
-                  unit="fiches"
-                  fallback="relevé non transmis"
-                  style={{ fontSize: 12.5 }}
-                />
-                {' '}au relevé de cette route. C'est tout, et je préfère te le montrer comme
-                ça plutôt que de remplir une grille. Un épisode par mois, quand j'ai quelqu'un qui
-                vaut la peine d'être écouté.
-              </Body>
-            </Surface>
-          </View>
+      <MediaCard
+        format="audio"
+        artHeight={150}
+        titleSize={20}
+        eyebrow={EPISODE.eyebrow}
+        title={EPISODE.titre}
+        body={EPISODE.chapo}
+        cost={EPISODE.cout}
+        style={{ marginTop: 18 }}
+        actions={(
+          <>
+            <Button tone="transforme" size="sm" label="Écouter" onPress={() => router.push('/episode')} />
+            <Button tone="quiet" size="sm" label="Transcription" onPress={() => router.push('/episode')} />
+          </>
         )}
+      />
 
-        <Body muted style={{ marginTop: 16, fontSize: 12 }}>
-          Aucun compteur d'écoute n'est affiché ici. À un épisode, un compteur ne dit rien
-          d'utile — et le nombre existe pourtant dans la fiche vidéo : ne pas le montrer est
-          une décision, pas un oubli.
+      <MediaCard
+        format="video"
+        badge={VIDEO.badge}
+        artHeight={126}
+        eyebrow={VIDEO.eyebrow}
+        title={VIDEO.titre}
+        cost={VIDEO.cout}
+        style={{ marginTop: 12 }}
+        actions={<Button tone="quiet" size="sm" label="Regarder" onPress={() => router.push('/video')} />}
+      />
+
+      <Surface level="truth" style={{ marginTop: 16, marginBottom: 70, padding: 15 }}>
+        <Eyebrow>Ce que l'app change ici</Eyebrow>
+        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
+          Sur le site, un épisode{' '}
+          <Body style={{ fontWeight: '700', fontSize: 12.5 }}>s'arrête quand tu verrouilles ton téléphone</Body>.
+          {' '}Ici il continue, et les commandes restent sur l'écran verrouillé. Pour 34 minutes
+          écoutées dans un taxi, c'est la seule chose qui compte.
         </Body>
-      </ScrollView>
-    </View>
+        <Button
+          tone="quiet"
+          size="sm"
+          label="Voir l'écran verrouillé"
+          style={{ marginTop: 12 }}
+          onPress={() => router.push('/verrouille')}
+        />
+      </Surface>
+    </Screen>
   );
 }

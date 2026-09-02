@@ -1,0 +1,123 @@
+import { Alert, Share, View } from 'react-native';
+import { router } from 'expo-router';
+import { openBrowserAsync } from 'expo-web-browser';
+import {
+  Body, Button, Display, Eyebrow, Gradient, Icon, LessonRow, Num, Screen, Surface,
+  useToken, veil,
+} from '../ds';
+import { CERTIFICAT, RELEVE, SOURCE } from '../contenu/reference';
+
+/**
+ * ══ 8 · PARTAGE SYSTÈME ══
+ *
+ * CE QUI PART EST LE LIEN DE VÉRIFICATION, PAS UNE IMAGE. Une capture d'écran ne se vérifie
+ * pas : elle se retouche en trente secondes. La page de vérification, elle, répond à un code,
+ * sans compte, et ne remonte à aucun profil — c'est ce qui fait qu'un employeur peut la
+ * contrôler lui-même.
+ *
+ * ── POURQUOI CET ÉCRAN EXISTE, ALORS QUE L'OS A DÉJÀ UNE FEUILLE ──────────────────────────
+ * Le transfert dessine la feuille système au complet : LinkedIn, WhatsApp, e-mail. Ces cibles
+ * sont celles du TÉLÉPHONE — l'OS les compose, et les redessiner reviendrait à afficher une
+ * liste d'applications que la personne n'a peut-être pas installées.
+ *
+ * Ce que la feuille système NE SAIT PAS dire, en revanche, c'est ce qui part et pourquoi. Cet
+ * écran porte donc les deux choses qui nous appartiennent — l'objet partagé, nommé, et la
+ * raison — puis passe la main à la vraie feuille. « Copier » n'y est pas dupliqué : c'est une
+ * cible de la feuille système, sur les deux plateformes.
+ */
+export default function Partage() {
+  const t = useToken();
+
+  async function ouvrirLaFeuille() {
+    try {
+      await Share.share({
+        message: `Mon certificat — ${CERTIFICAT.formation}\n${CERTIFICAT.lien}`,
+        url: CERTIFICAT.lien,
+        title: 'Certificat de fin de formation',
+      });
+    } catch {
+      /* Le motif, la conséquence, la sortie — dans cet ordre, et jamais d'excuse. */
+      Alert.alert(
+        "Le partage n'a pas pu s'ouvrir",
+        `Ton certificat n'est pas touché. Son lien de vérification est ${CERTIFICAT.lien} — il s'ouvre depuis n'importe quel navigateur, sans compte.`,
+      );
+    }
+  }
+
+  return (
+    <Screen territory="forme" retour="Certificat" titre="Partager">
+      <Eyebrow style={{ marginTop: 6 }}>Ce qui va partir</Eyebrow>
+      <Display size={27} lines={['UN LIEN,', 'PAS UNE IMAGE.']} style={{ marginTop: 8 }} />
+
+      <Surface level="hero" style={{ marginTop: 18, padding: 18 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Gradient
+            colors={[t('mmBleu'), t('mmTeal')]}
+            radius={12}
+            style={{ width: 46, height: 46, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Icon name="doc" size={20} color={t('paperFixed')} />
+          </Gradient>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Body style={{ fontSize: 14, fontWeight: '600' }}>
+              Certificat · {CERTIFICAT.formation}
+            </Body>
+            <Num
+              value={CERTIFICAT.lien.replace('https://', '')}
+              source={SOURCE}
+              asOf={RELEVE}
+              style={{ fontSize: 11, color: t('textMuted') }}
+            />
+          </View>
+        </View>
+
+        <View style={{ height: 1, backgroundColor: t('borderHair'), marginVertical: 16 }} />
+
+        <Button
+          tone="forme"
+          label="Ouvrir le partage"
+          icon="share"
+          onPress={() => void ouvrirLaFeuille()}
+        />
+        <Body muted style={{ fontSize: 11.5, textAlign: 'center', marginTop: 10, color: t('textFaint') }}>
+          La liste des applications est celle de ton téléphone. « Copier le lien » y figure.
+        </Body>
+      </Surface>
+
+      <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
+        <LessonRow
+          icon={<Icon name="download" size={15} color={t('ink2')} />}
+          title="Enregistrer le PDF"
+          meta="il se fabrique sur le site, à la demande"
+          trailing={<Icon name="external" size={16} color={t('ink3')} strokeWidth={2.4} />}
+          onPress={() => { void openBrowserAsync(`${CERTIFICAT.lien}.pdf`); }}
+        />
+        <LessonRow
+          icon={<Icon name="eye" size={15} color={t('ink2')} />}
+          iconBackground={veil(t('mmBleu'), 0.12)}
+          title="Voir ce que verra la personne"
+          meta="la page publique, sans compte"
+          trailing={<Icon name="external" size={16} color={t('ink3')} strokeWidth={2.4} />}
+          onPress={() => { void openBrowserAsync(CERTIFICAT.lien); }}
+          last
+        />
+      </Surface>
+
+      <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
+        <Eyebrow>Pourquoi un lien et pas une image</Eyebrow>
+        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
+          Une capture d'écran ne se vérifie pas. La page répond à un code, sans compte, et ne
+          remonte à aucun profil : c'est ce qui permet à quelqu'un de contrôler ton certificat
+          sans rien te demander — et à toi de le montrer sans ouvrir ton compte.
+        </Body>
+      </Surface>
+
+      <Button
+        tone="quiet"
+        label="Revenir au certificat"
+        style={{ marginTop: 14 }}
+        onPress={() => router.back()}
+      />
+    </Screen>
+  );
+}

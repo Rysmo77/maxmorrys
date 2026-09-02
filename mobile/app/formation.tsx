@@ -1,248 +1,172 @@
-import { ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { openAuthSessionAsync } from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Icon, LessonRow, Mesh, Num, PriceBlock, Surface, Tag, useToken,
+  Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, PriceBlock,
+  Screen, Surface, Tag, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
+import { FORMATION, MODULES_MUR, RELEVE, SITE, SOURCE } from '../contenu/reference';
 
 /**
- * ═══════════════════════════════════════════════════════════════════════════════
- * LA FICHE DE FORMATION — l'écran qui doit convaincre SANS preuve sociale.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * ══ 4 · LE MUR DE PAIEMENT ══ — L'APP NE VEND RIEN, ET ELLE LE DIT DANS SA VOIX.
  *
- * Le kit est explicite et la production le suit : ni note, ni nombre d'inscrits, ni
- * témoignage. La plateforme vient d'ouvrir ; il n'y a rien d'honnête à en dire. Ce qui prend
- * leur place n'est pas un vide, c'est **l'encart de vérité** — il dit ce qui est vérifiable
- * (le nombre de leçons, le code du certificat) ET pourquoi le reste manque. Un vide que le
- * visiteur interprète lui-même est plus coûteux qu'un manque expliqué.
+ * Wave et Orange Money en direct dans l'application, c'est un REJET EN REVUE : les deux
+ * magasins imposent leur propre achat intégré pour du contenu numérique consommé dans
+ * l'application (App Store 3.1.1, Play Payments). Or leur système ne connaît ni Wave ni
+ * Orange Money — c'est-à-dire précisément le seul avantage réel du produit sur ce marché —
+ * et il prélève 15 à 30 % : sur une formation à 95 000 F, entre 14 250 et 28 500 F par vente.
  *
- * TOUT CE QUI EST CHIFFRÉ ICI ARRIVE PAR LA ROUTE. Cet écran ne calcule rien et n'invente
- * rien ; ce qu'il ne reçoit pas, il le dit :
+ * L'application n'encaisse donc rien. **Elle OUVRE ce qui est déjà payé**, et le web reste la
+ * boutique. Trois choses rendent ce mur supportable, et aucune n'est décorative :
  *
- *   ?slug=referencement-local        l'identifiant, seul à ouvrir le paiement
- *   &titre=Référencement local…      le titre affiché
- *   &categorie=SEO                   le sourcil
- *   &prix=95000                      le montant AFFICHÉ — celui débité est recalculé serveur
- *   &apercu=4                        les minutes d'aperçu réellement libres
- *   &lecons=47&modules=6             ce que l'encart de vérité peut prouver
- *   &asOf=2026-09-01T10:00:00Z       la date de ces relevés (règle 6)
- *   &programme=titre|leçons|min|1    une occurrence PAR module ; « 1 » = module libre
+ *   1 · LE MODULE 1 SE REGARDE SANS PAYER, DANS L'APP. On juge avant de sortir de
+ *       l'application — c'est ce qui distingue ce mur d'une porte fermée.
+ *   2 · LE PRIX EST ÉCRIT ICI, entier, avec l'échelonnement. Un renvoi vers le site sans prix
+ *       est un piège : on découvre le montant après avoir changé d'application.
+ *   3 · LA RAISON EST DITE. « Même prix, tes moyens de paiement » — pas un bouton grisé, pas
+ *       un « indisponible sur cette plateforme » qui donnerait tort au produit.
  *
- * ⚠️ « 14 jours pour changer d'avis » n'est PAS repris de la maquette. La production a retiré
- *    cette garantie des surfaces de vente parce que l'article 6 des CGV la refuse dès que le
- *    contenu a été ouvert. Tant que la décision commerciale n'est pas prise, l'afficher
- *    reviendrait à promettre un remboursement que le contrat refuse.
- * ═══════════════════════════════════════════════════════════════════════════════
+ * ⚠️ HYPOTHÈSE NON LEVÉE, et elle se tranche avant soumission : ceci suppose que la revue
+ * accepte le renvoi au titre de 3.1.1. Le texte NOMME le magasin, ce que certaines revues
+ * refusent ; iOS propose un droit d'accès *External Purchase Link* qui autorise un lien
+ * déclaré. Le repli connu : retirer tout renvoi et cantonner l'application à la consultation.
+ * ══════════════════════════════════════════════════════════════════════════════════════
  */
-
-type Module = { titre: string; lecons: number | null; minutes: number | null; libre: boolean };
-
-function nombre(brut: string | undefined): number | null {
-  if (!brut) return null;
-  const n = Number(brut);
-  return Number.isFinite(n) ? n : null;
-}
-
-function lireProgramme(brut: string | string[] | undefined): Module[] {
-  const entrees = brut === undefined ? [] : Array.isArray(brut) ? brut : [brut];
-  return entrees.flatMap((entree) => {
-    const [titre, lecons, minutes, libre] = entree.split('|');
-    if (!titre) return [];
-    return [{ titre, lecons: nombre(lecons), minutes: nombre(minutes), libre: libre === '1' }];
-  });
+/**
+ * UN TITRE D'AFFICHAGE NE SE REPLIE PAS TOUT SEUL — c'est la règle de `Display`, et elle
+ * existe parce qu'un titre laissé libre passe à quatre lignes en français et perd sa masse.
+ * Mais un titre qui vient de la BASE n'a pas de coupe écrite à la main : on l'équilibre donc
+ * sur deux lignes au mot le plus proche du milieu, ce qui est exactement ce qu'un typographe
+ * ferait, et ce qui garde les deux lignes de longueur comparable.
+ */
+function deuxLignes(titre: string): string[] {
+  const mots = titre.split(' ');
+  if (mots.length < 3) return [titre];
+  let meilleur = 1;
+  let ecart = Number.POSITIVE_INFINITY;
+  for (let i = 1; i < mots.length; i += 1) {
+    const gauche = mots.slice(0, i).join(' ').length;
+    const droite = mots.slice(i).join(' ').length;
+    if (Math.abs(gauche - droite) < ecart) { ecart = Math.abs(gauche - droite); meilleur = i; }
+  }
+  return [mots.slice(0, meilleur).join(' '), mots.slice(meilleur).join(' ')];
 }
 
 export default function Formation() {
   const t = useToken();
-  const insets = useSafeAreaInsets();
-  const { slug, titre, categorie, prix, apercu, lecons, modules, programme, asOf } =
-    useLocalSearchParams<{
-      slug?: string; titre?: string; categorie?: string; prix?: string; apercu?: string;
-      lecons?: string; modules?: string; programme?: string | string[]; asOf?: string;
-    }>();
+  const g = useActionGradient();
 
-  const propose = asOf ? new Date(asOf) : null;
-  const releve = propose && !Number.isNaN(propose.getTime()) ? propose : new Date();
+  /* Les paramètres priment sur le contenu de référence : le jour où le catalogue arrive de
+     Firestore, il transmet ses valeurs et cet écran n'a pas à changer d'une ligne. */
+  const { slug, titre, prix } = useLocalSearchParams<{ slug?: string; titre?: string; prix?: string }>();
+  const nom = titre ?? FORMATION.titre;
+  const montant = prix ? Number(prix) : FORMATION.prix;
+  const cible = slug ?? FORMATION.slug;
 
-  const montant = nombre(prix);
-  const minutesLibres = nombre(apercu);
-  const plan = lireProgramme(programme);
+  async function ouvrirLaBoutique() {
+    /* `openAuthSessionAsync` et non `openBrowserAsync` : la session partage les cookies du
+       site, donc quelqu'un déjà connecté ne se reconnecte pas pour payer. */
+    await openAuthSessionAsync(`${SITE}/formations/${cible}`, 'rysmo://paiement/retour');
+  }
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="forme" />
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top + 28, paddingHorizontal: 18, paddingBottom: insets.bottom + 40,
+    <Screen
+      territory="forme"
+      retour="Cours"
+      titre={isIOS ? undefined : (titre ?? FORMATION.titreCourt)}
+      droite={
+        <IconButton label="Partager cette formation" onPress={() => router.push('/partage')}>
+          <Icon name="share" size={17} color={t('textBody')} strokeWidth={2} />
+        </IconButton>
+      }
+    >
+      <Gradient
+        colors={g.lecon}
+        angle={140}
+        radius={26}
+        style={{
+          height: 150, marginTop: 8, padding: 14, justifyContent: 'flex-end',
+          shadowColor: t('mmBleu'), shadowOpacity: 0.24, shadowRadius: 17,
+          shadowOffset: { width: 0, height: 14 }, elevation: 6,
         }}
-        showsVerticalScrollIndicator={false}
       >
-        <Eyebrow>{categorie ? `Formation · ${categorie}` : 'Formation'}</Eyebrow>
+        <Tag tone="art">Aperçu · 4 min gratuit</Tag>
+      </Gradient>
 
-        {/*
-          Le titre passe par `children` et non par `lines` : les lignes d'un titre d'affichage
-          se DÉCIDENT à l'écriture, langue par langue, et celui-ci arrive du serveur. On ne
-          peut donc pas les écrire — on laisse le repli naturel, comme `paiement.tsx`.
-        */}
-        <View style={{ marginTop: 6 }}>
-          <Display size="sm">{titre ?? 'Cette formation'}</Display>
+      <Eyebrow style={{ marginTop: 20 }}>{FORMATION.meta}</Eyebrow>
+      <Display size={26} lines={deuxLignes(nom)} style={{ marginTop: 8 }} />
+
+      {/* ── LE MUR ─────────────────────────────────────────────────────────────────────── */}
+      <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
+        <Display size={19}>Je ne peux pas te faire payer ici.</Display>
+        <Body muted style={{ marginTop: 9, fontSize: 13.5, lineHeight: 21 }}>
+          {isIOS ? 'L’App Store' : 'Google Play'} exige que tout achat fait dans une
+          application passe par son propre système de paiement, qui ne connaît ni Wave ni
+          Orange Money. Plutôt que de te faire payer en carte avec une commission, je te
+          renvoie au site — <Body style={{ fontWeight: '700' }}>même prix, tes moyens de paiement</Body>.
+        </Body>
+
+        <View style={{ height: 1, backgroundColor: t('borderHair'), marginVertical: 16 }} />
+
+        <PriceBlock
+          amount={montant}
+          source={SOURCE}
+          asOf={RELEVE}
+          size={29}
+          note={`Une fois, accès à vie · ou ${FORMATION.echelonnement}`}
+        />
+        <Button
+          tone="forme"
+          label="Ouvrir sur maxmorrys.me"
+          trailing="forward"
+          style={{ marginTop: 15 }}
+          onPress={() => { void ouvrirLaBoutique(); }}
+        />
+        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginTop: 13 }}>
+          <Tag tone="ok">Wave</Tag>
+          <Tag tone="ok">Orange Money</Tag>
+          <Tag tone="ok">Carte</Tag>
         </View>
+      </Surface>
 
-        {/* L'APERÇU. Le bloc est là, la vidéo n'y est pas, et il le dit lui-même. */}
-        <Surface
-          level="hero"
-          style={{ marginTop: 16, paddingVertical: 30, paddingHorizontal: 20, alignItems: 'center' }}
-        >
-          <Icon name="play" size={28} color={t('mmBleu')} />
-          {minutesLibres !== null ? (
-            // `alignSelf` est forcé : `Tag` se cale à gauche par défaut, ce qui le décrocherait
-            // du bloc centré. Le style de l'appelant passe après la base du composant.
-            <Tag style={{ marginTop: 12, alignSelf: 'center' }}>
-              Aperçu ·{' '}
-              <Num
-                value={minutesLibres}
-                source="server"
-                asOf={releve}
-                unit="min gratuites"
-                style={{ fontSize: 11 }}
-              />
-            </Tag>
-          ) : null}
-          <Body muted style={{ marginTop: 12, fontSize: 12.5, textAlign: 'center' }}>
-            La vidéo vient du même stockage que sur le site. Ce port rend le bloc, pas encore
-            la lecture — et je préfère te le dire qu'afficher une vignette qui ne s'ouvre pas.
-          </Body>
-        </Surface>
+      <Surface level="flat" style={{ marginTop: 12, padding: 18 }}>
+        <Eyebrow>Après le paiement</Eyebrow>
+        <Body muted style={{ marginTop: 8, fontSize: 13.5, lineHeight: 21 }}>
+          Tu reviens dans l'app et la formation est ouverte — même compte, rien à saisir.
+          Si elle ne l'est pas, tire la liste vers le bas.
+        </Body>
+      </Surface>
 
-        {/* LA CARTE DE PRIX. */}
-        <Surface level="hero" style={{ marginTop: 16, padding: 20 }}>
-          {montant !== null ? (
-            <PriceBlock
-              amount={montant}
-              source="server"
-              asOf={releve}
-              note="Une fois, accès à vie."
-            />
-          ) : (
-            <>
-              <Num
-                value={null}
-                source="server"
-                asOf={releve}
-                fallback="prix non transmis"
-                style={{ fontSize: 22 }}
-              />
-              <Body muted style={{ marginTop: 6, fontSize: 12.5 }}>
-                Je ne l'affiche pas tant qu'il ne m'est pas transmis. Un montant approché sur un
-                écran d'achat coûte plus cher qu'un montant absent.
-              </Body>
-            </>
-          )}
-
-          <Button
-            tone="forme"
-            label="Je m'inscris"
-            disabled={!slug}
-            style={{ marginTop: 15 }}
-            onPress={() => router.push({
-              pathname: '/paiement',
-              params: {
-                ...(slug ? { slug } : {}),
-                ...(titre ? { titre } : {}),
-                ...(montant !== null ? { prix: String(montant) } : {}),
-              },
-            })}
+      {/* ── CE QU'ON PEUT VOIR SANS PAYER, ET CE QUI ATTEND ────────────────────────────── */}
+      <Surface level="flat" style={{ marginTop: 12, paddingHorizontal: 16 }}>
+        {MODULES_MUR.map((m, i) => (
+          <LessonRow
+            key={m.titre}
+            state={m.ouvert ? 'current' : 'todo'}
+            icon={
+              m.ouvert
+                ? <Icon name="play" size={13} color={t('paperFixed')} />
+                : <Icon name="lock" size={13} color={t('ink3')} strokeWidth={2.4} />
+            }
+            iconBackground={m.ouvert ? t('mmBleu') : veil(t('ink'), 0.06)}
+            title={m.titre}
+            meta={m.meta}
+            last={i === MODULES_MUR.length - 1}
+            onPress={m.ouvert ? () => router.push('/lecon') : undefined}
           />
-          {!slug ? (
-            <Body muted style={{ marginTop: 10, fontSize: 12.5 }}>
-              L'identifiant de la formation ne m'a pas été transmis : sans lui je ne sais pas
-              quoi te faire payer, donc je ne t'ouvre pas le paiement.
-            </Body>
-          ) : null}
+        ))}
+      </Surface>
 
-          <View style={{ marginTop: 13, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-            <Tag tone="ok">Certificat vérifiable par son code</Tag>
-            <Tag>Wave · Orange Money</Tag>
-          </View>
-        </Surface>
+      <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
+        Le module 1 se regarde sans payer, dans l'app, maintenant. C'est ce qui rend ce mur
+        supportable : tu juges avant de sortir de l'application.
+      </Body>
 
-        {/* L'ENCART DE VÉRITÉ — ce qui remplace la preuve sociale, et l'explique. */}
-        <Surface level="truth" style={{ marginTop: 15, padding: 16 }}>
-          <Eyebrow>Ce que je peux te prouver</Eyebrow>
-          <Body muted style={{ marginTop: 6, fontSize: 12.5 }}>
-            <Num
-              value={nombre(lecons)}
-              source="server"
-              asOf={releve}
-              unit="leçons"
-              fallback="nombre de leçons non relevé"
-              style={{ fontSize: 12.5 }}
-            />
-            {', '}
-            <Num
-              value={nombre(modules)}
-              source="server"
-              asOf={releve}
-              unit="modules"
-              fallback="nombre de modules non relevé"
-              style={{ fontSize: 12.5 }}
-            />
-            , un certificat dont le code se vérifie sans compte. Je n'affiche ni note ni nombre
-            d'inscrits : la plateforme vient d'ouvrir, je n'ai rien d'honnête à en dire.
-          </Body>
-        </Surface>
-
-        {/* LE PROGRAMME. */}
-        <Eyebrow style={{ marginTop: 22 }}>Le programme</Eyebrow>
-        <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 18, paddingVertical: 6 }}>
-          {plan.length > 0 ? (
-            plan.map((module, i) => (
-              <LessonRow
-                key={`${module.titre}-${i}`}
-                icon={(
-                  <Icon
-                    name={module.libre ? 'play' : 'lock'}
-                    size={14}
-                    color={module.libre ? t('paperFixed') : t('ink2')}
-                  />
-                )}
-                iconBackground={module.libre ? t('mmBleu') : undefined}
-                title={module.titre}
-                meta={(
-                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10 }}>
-                    <Num
-                      value={module.lecons}
-                      source="server"
-                      asOf={releve}
-                      unit="leçons"
-                      fallback="leçons non relevées"
-                      style={{ fontSize: 12 }}
-                    />
-                    <Num
-                      value={module.minutes}
-                      source="server"
-                      asOf={releve}
-                      unit="min"
-                      fallback="durée non relevée"
-                      style={{ fontSize: 12 }}
-                    />
-                  </View>
-                )}
-                trailing={module.libre ? <Tag tone="ok">Gratuit</Tag> : undefined}
-                last={i === plan.length - 1}
-              />
-            ))
-          ) : (
-            <View style={{ paddingVertical: 14 }}>
-              <Body style={{ fontWeight: '700' }}>Le programme ne m'a pas été transmis.</Body>
-              <Body muted style={{ marginTop: 8, fontSize: 13 }}>
-                Il vient du catalogue, module par module, et ce port ne l'interroge pas encore.
-                Je ne te dresse pas une liste de modules en attendant : tu jugerais de ce que tu
-                achètes sur une table des matières que j'aurais écrite pour faire joli.
-              </Body>
-            </View>
-          )}
-        </Surface>
-      </ScrollView>
-    </View>
+      <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 10, color: t('textFaint') }}>
+        Le montant débité reste celui que le serveur recalcule, jamais celui que cet écran
+        affiche : un prix transmis par un client ne décide de rien.
+      </Body>
+    </Screen>
   );
 }

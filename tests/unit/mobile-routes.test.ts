@@ -93,7 +93,10 @@ describe('port natif — la carte de navigation se referme', () => {
 
   it("l'arborescence est bien lue", () => {
     expect(connues.size).toBeGreaterThan(25);
-    expect(connues.has('/catalogue')).toBe(true);
+    /* Garde-fou du test, pas une assertion de produit : `/cours` est l'onglet du catalogue.
+       Il a remplacé `/catalogue`, qui rendait un SECOND catalogue — deux écrans pour la même
+       liste, dont un que rien n'ouvrait plus une fois l'onglet en place. */
+    expect(connues.has('/cours')).toBe(true);
   });
 
   it('aucun écran ne pointe sur une route inexistante', () => {

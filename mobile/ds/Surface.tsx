@@ -1,6 +1,6 @@
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { useScheme, useToken, px } from './theme';
+import { ThemeScope, useScheme, useToken, px } from './theme';
 import type { ReactNode } from 'react';
 
 /**
@@ -19,9 +19,9 @@ import type { ReactNode } from 'react';
  * système après le retrait du flou, pas les valeurs d'origine. Le flou adoucissait le
  * maillage ; sans lui, il remonte, et il faut un voile plus couvrant pour le même contraste.
  */
-type Level = 'chrome' | 'hero' | 'flat' | 'night' | 'truth';
+type Level = 'chrome' | 'hero' | 'flat' | 'night' | 'truth' | 'ink';
 
-const VEIL: Record<Exclude<Level, 'chrome'>, 'glassAHero' | 'glassAFlat' | 'glassDA'> = {
+const VEIL: Record<Exclude<Level, 'chrome' | 'ink'>, 'glassAHero' | 'glassAFlat' | 'glassDA'> = {
   hero: 'glassAHero',
   flat: 'glassAFlat',
   truth: 'glassAFlat',
@@ -39,6 +39,31 @@ export function Surface({
     borderWidth: 1,
     borderColor: t('borderGlass'),
   };
+
+  /*
+   * ── LA CARTE D'ENCRE : OPAQUE, ET QUI OUVRE SA PROPRE PORTÉE ────────────────────────────
+   *
+   * C'est une surface SOMBRE posée sur une page CLAIRE — le bilan d'abonnement du Club. Deux
+   * choses la distinguent d'un simple fond foncé, et le système consacre un paragraphe à
+   * chacune :
+   *
+   *   · ELLE EST OPAQUE. Un voile composerait avec le fond clair et remonterait à
+   *     rgb(80,81,86) : 2,61:1 sous un gris nuit. D'où `surfaceInk`, un jeton déclaré à
+   *     l'IDENTIQUE dans les deux modes — s'il lisait `ink`, il basculerait avec les textes
+   *     et peindrait la carte en blanc cassé.
+   *   · ELLE OUVRE UNE PORTÉE NUIT. Sans elle, chaque texte à l'intérieur serait un gris
+   *     écrit à la main — et c'est précisément l'erreur que ce niveau existe pour empêcher.
+   */
+  if (level === 'ink') {
+    /* Le corps est un composant SÉPARÉ, et ce n'est pas de la coquetterie : un `useToken()`
+       appelé dans le composant qui POSE le fournisseur ne le voit pas. Écrit ici, le liseré
+       aurait pris l'encre du mode clair — un filet noir sur une carte nuit. */
+    return (
+      <ThemeScope scheme="dark">
+        <CarteEncre base={base} style={style}>{children}</CarteEncre>
+      </ThemeScope>
+    );
+  }
 
   if (level === 'chrome') {
     /* La seule surface floutée. `intensity` reprend les 24–26 px du système : expo-blur
@@ -62,4 +87,15 @@ export function Surface({
       : `rgba(255,255,255,${alpha})`;
 
   return <View style={[base, { backgroundColor: surface }, style]}>{children}</View>;
+}
+
+function CarteEncre({
+  base, style, children,
+}: { base: ViewStyle; style?: StyleProp<ViewStyle>; children?: ReactNode }) {
+  const t = useToken();
+  return (
+    <View style={[base, { backgroundColor: t('surfaceInk'), borderColor: t('borderHair') }, style]}>
+      {children}
+    </View>
+  );
 }

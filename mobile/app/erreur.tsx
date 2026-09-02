@@ -1,136 +1,114 @@
-import { ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Icon, Mesh, Num, Surface, useScheme, useToken,
+  Body, Button, Display, Eyebrow, Gradient, Icon, Num, Screen, Surface, useToken,
 } from '../ds';
+import { RELEVE, SOURCE } from '../contenu/reference';
 
 /**
- * ═══════════════════════════════════════════════════════════════════════════════════════
- * L'ERREUR — MOTIF, CONSÉQUENCE, SORTIE. DANS CET ORDRE, ET JAMAIS D'EXCUSE.
+ * ══ 5 · L'ERREUR ══ — MOTIF, CONSÉQUENCE, SORTIE. DANS CET ORDRE, ET JAMAIS D'EXCUSE.
  *
- * L'ordre n'est pas une préférence de rédaction. Quelqu'un devant un écran cassé se demande
- * trois choses, dans cet ordre exact : qu'est-ce qui s'est passé, qu'est-ce que ça me coûte,
- * qu'est-ce que je fais maintenant. Un « Oups, quelque chose s'est mal passé » ne répond à
- * aucune des trois, et il en ajoute une quatrième : est-ce que quelqu'un sait, au moins ?
+ * L'ordre n'est pas rhétorique, il suit ce que la personne se demande :
  *
- * PAS DE SECOUSSE, PAS DE REBOND. Le système l'écrit pour les champs en erreur — « elle
- * ajoute du stress et ne dit pas ce qui est faux » — et la raison vaut d'autant plus sur un
- * écran entier. Rien n'est animé ici.
+ *   1 · LE MOTIF        « pourquoi ça n'a pas marché » — un fait, pas « une erreur est survenue ».
+ *   2 · LA CONSÉQUENCE  « qu'est-ce que j'ai perdu » — presque toujours : rien, et il faut le dire.
+ *   3 · LA SORTIE       « qu'est-ce que je fais maintenant » — deux, dont une qui marche hors réseau.
  *
- * ⚠️ ET L'ÉCRAN N'INVENTE PAS SON MOTIF. Un motif est une information que seul l'appelant
- * détient : sans lui, l'écran dit qu'il ne l'a pas reçu, ce qui est déjà un motif — celui
- * d'aller corriger l'appel. Écrire « une erreur est survenue » à la place remplirait le trou
- * en le rendant invisible.
+ * « Désolé » n'apporte rien : ça occupe la ligne où devrait être le motif.
  *
- * LA RÉFÉRENCE D'INCIDENT NE S'AFFICHE QUE SI ELLE EXISTE. Une référence inventée pour faire
- * sérieux est pire qu'aucune : quelqu'un la dicte au support, et le support ne trouve rien.
- * ═══════════════════════════════════════════════════════════════════════════════════════
+ * ── LA SORTIE DE SECOURS DU NATIF EST MEILLEURE QUE CELLE DU WEB ─────────────────────────
+ * La transcription est DÉJÀ sur l'appareil : 0 Mo à charger, sur l'écran même où le réseau
+ * vient de lâcher. C'est le genre de repli qu'un site ne peut pas proposer.
+ *
+ * ── LA RÉFÉRENCE D'INCIDENT ──────────────────────────────────────────────────────────────
+ * Elle est là pour que le support n'ait pas à demander « il s'est passé quoi exactement ? ».
+ * Elle vient du serveur ; sans elle, l'écran ne l'invente pas — il n'affiche rien.
  */
 export default function Erreur() {
   const t = useToken();
-  const scheme = useScheme();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-
-  const { titre, motif, consequence, sortie, libelle, incident, survenu } = useLocalSearchParams<{
-    titre?: string;
-    motif?: string;
-    consequence?: string;
-    /** La route à rejouer. Absente, la sortie est le retour — jamais un bouton inerte. */
-    sortie?: string;
-    libelle?: string;
-    incident?: string;
-    survenu?: string;
+  /*
+   * L'ÉCRAN EST PARAMÉTRABLE, parce qu'il est une DESTINATION : `+not-found` y renvoie tout
+   * lien profond périmé, et il apporte alors SON motif — « l'adresse ne mène à aucun écran »
+   * — qui n'est pas celui d'une vidéo qui n'a pas répondu. Un écran d'erreur qui affiche
+   * toujours le même motif est un écran qui n'en donne aucun.
+   */
+  const { titre, motif, consequence, reference, libelle, sortie } = useLocalSearchParams<{
+    titre?: string; motif?: string; consequence?: string;
+    reference?: string; libelle?: string; sortie?: string;
   }>();
 
-  const brut = survenu ? new Date(survenu) : null;
-  const quand = brut !== null && !Number.isNaN(brut.getTime()) ? brut : null;
-
-  /*
-    L'ENCRE DE LA PASTILLE SUIT LE MODE, comme le ton orange du bouton suit `inkFixed`.
-    `stop` vaut #B4231F en clair et #FF8A80 en nuit : du blanc dessus passe en clair et tombe
-    à 2,2:1 en nuit. On prend donc le fond de nuit comme encre là où la teinte s'éclaircit.
-  */
-  const encre = scheme === 'dark' ? t('night') : t('paperFixed');
+  /* Un titre d'affichage ne se replie jamais tout seul : celui qui arrive par la route est
+     donc coupé au mot le plus proche du milieu, pas laissé libre. */
+  const lignes = titre
+    ? (() => {
+      const mots = titre.split(' ');
+      const mi = Math.ceil(mots.length / 2);
+      return [mots.slice(0, mi).join(' '), mots.slice(mi).join(' ')];
+    })()
+    : ["La leçon ne s'est", 'pas chargée.'];
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="forme" />
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top + 28, paddingHorizontal: 18, paddingBottom: insets.bottom + 40,
-          flexGrow: 1, justifyContent: 'center',
+    <Screen territory="forme" retour="Cours" center>
+      <Gradient
+        colors={[t('mmCorail'), t('stop')]}
+        radius={21}
+        style={{
+          width: 66, height: 66, alignItems: 'center', justifyContent: 'center',
+          shadowColor: t('stop'), shadowOpacity: 0.3, shadowRadius: 15,
+          shadowOffset: { width: 0, height: 12 }, elevation: 8,
         }}
-        showsVerticalScrollIndicator={false}
       >
-        <View style={{
-          width: 70, height: 70, borderRadius: 22,
-          alignItems: 'center', justifyContent: 'center',
-          backgroundColor: t('stop'),
-        }}>
-          <Icon name="alert" size={30} color={encre} strokeWidth={2.4} />
-        </View>
+        <Icon name="alert" size={28} color={t('paperFixed')} strokeWidth={2.4} />
+      </Gradient>
 
-        <View style={{ marginTop: 24 }}>
-          <Display size="sm">{titre ?? "Ça n'a pas chargé."}</Display>
-        </View>
+      <Display size={28} lines={lignes} style={{ marginTop: 22 }} />
 
-        <Surface level="flat" style={{ marginTop: 18, padding: 18 }}>
-          <Eyebrow>Le motif</Eyebrow>
-          <Body style={{ marginTop: 8, fontSize: 13.5 }}>
-            {motif ?? "L'écran qui t'a amené ici n'a pas transmis de motif. C'en est un : la route d'erreur a été ouverte sans dire ce qui a échoué, et c'est cet appel-là qu'il faut corriger."}
+      <Surface level="flat" style={{ marginTop: 18, padding: 18 }}>
+        <Eyebrow>Le motif</Eyebrow>
+        <Body style={{ marginTop: 7, fontSize: 13.5, lineHeight: 20 }}>
+          {motif ?? 'La vidéo a mis plus de 30 secondes à répondre. Le réseau a coupé pendant le transfert.'}
+        </Body>
+        <View style={{ height: 1, marginVertical: 14, backgroundColor: t('borderHair') }} />
+        <Eyebrow>La conséquence</Eyebrow>
+        <Body style={{ marginTop: 7, fontSize: 13.5, lineHeight: 20 }}>
+          {consequence ?? "Ta progression est intacte : elle est enregistrée sur ton inscription, pas sur le téléphone. Rien n'est perdu."}
+        </Body>
+      </Surface>
+
+      <Button
+        tone="forme"
+        label={libelle ?? 'Réessayer'}
+        style={{ marginTop: 18 }}
+        onPress={() => (sortie ? router.replace(sortie as never) : router.back())}
+      />
+
+      {/* LA SORTIE DE SECOURS DU NATIF EST MEILLEURE QUE CELLE DU WEB — mais elle n'a de sens
+          que sur une leçon. Un lien mort n'a pas de transcription à proposer. */}
+      {sortie ? null : (
+        <>
+          <Button
+            tone="quiet"
+            label="Lire la transcription à la place"
+            style={{ marginTop: 9 }}
+            onPress={() => router.replace('/lecon')}
+          />
+          <Body muted style={{ fontSize: 11.5, textAlign: 'center', lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
+            La transcription est déjà sur ton téléphone :{' '}
+            <Num value="0 Mo" source={SOURCE} asOf={RELEVE} style={{ fontSize: 11.5, color: t('textMuted') }} />
+            {' '}à charger.
           </Body>
+        </>
+      )}
 
-          <View style={{ height: 1, backgroundColor: t('borderHair'), marginVertical: 14 }} />
-
-          <Eyebrow>La conséquence</Eyebrow>
-          <Body style={{ marginTop: 8, fontSize: 13.5 }}>
-            {consequence ?? "Rien n'a été écrit. Cet écran n'enregistre pas et ne supprime pas : ce qui était fait avant reste fait, et ce que tu venais de tenter n'a pas eu lieu."}
-          </Body>
-        </Surface>
-
-        {/* ── LA SORTIE ───────────────────────────────────────────────────────────────── */}
-        <Button
-          tone="forme"
-          label={libelle ?? 'Réessayer'}
-          onPress={() => {
-            // Réessayer, c'est REJOUER quelque chose. Sans route à rejouer, le bouton
-            // ramènerait sur cet écran — donc il ramène là d'où l'on vient, ce qui est la
-            // seule action que cet écran peut garantir.
-            if (sortie) router.replace(sortie);
-            else router.back();
-          }}
-          style={{ marginTop: 18 }}
+      {/* La référence ne s'invente pas : sans elle, la ligne n'existe pas. */}
+      {reference ? (
+        <Num
+          value={`Référence de l'incident : ${reference}`}
+          source="server"
+          asOf={new Date()}
+          style={{ fontSize: 11, textAlign: 'center', marginTop: 10, color: t('textFaint') }}
         />
-        <Button
-          tone="quiet"
-          label="Revenir en arrière"
-          onPress={() => router.back()}
-          style={{ marginTop: 10 }}
-        />
-
-        {incident ? (
-          <View style={{ marginTop: 14, alignItems: 'center' }}>
-            <Num
-              value={incident}
-              source={{ cite: "référence émise par le serveur au moment de l'incident" }}
-              asOf={quand ?? new Date(0)}
-              style={{ fontSize: 11, fontWeight: '400', color: t('textMuted') }}
-            />
-            {quand !== null && (
-              <Body muted style={{ marginTop: 4, fontSize: 11 }}>
-                Dicte-la au support : elle retrouve cette panne-ci, pas une autre.
-              </Body>
-            )}
-          </View>
-        ) : (
-          <Body muted style={{ marginTop: 14, fontSize: 11, textAlign: 'center' }}>
-            Aucune référence d'incident n'a été émise pour cette panne. Il n'y en a donc pas à
-            donner au support.
-          </Body>
-        )}
-      </ScrollView>
-    </View>
+      ) : null}
+    </Screen>
   );
 }

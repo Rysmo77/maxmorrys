@@ -1,95 +1,167 @@
+import { Pressable, View } from 'react-native';
+import { router } from 'expo-router';
+import {
+  Body, ChipRow, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, ProgressBar,
+  Screen, Surface, isIOS, useActionGradient, useToken, veil,
+} from '../ds';
+import { FORMATION, PROGRAMME, RELEVE, SOURCE } from '../contenu/reference';
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
-import { Body, Button, Display, Eyebrow, Mesh, Num, Surface, useToken } from '../ds';
 
 /**
- * LE LECTEUR DE LEÇON — et le geste qui justifie l'application entière.
+ * ══ 4 · LE LECTEUR DE LEÇON ══
  *
- * « Garde hors connexion » n'est pas une commodité. Sur ce marché, le panier de données 2 Go
- * coûte en médiane 4,2 % du revenu national brut par habitant : une leçon relue trois fois se
- * paie trois fois. C'est le SEUL argument d'installation qui vaille ici — pas la vitesse, pas
- * les notifications.
+ * FAUX VERRE PARTOUT, PARCE QUE TOUT DÉFILE. C'est la règle 1 dans sa forme la plus simple :
+ * la seule surface qui a droit au flou est celle qui NE BOUGE PAS avec le contenu, et il n'y
+ * en a aucune ici — la barre d'onglets, qui est du chrome fixe, est rendue par le routeur.
  *
- * TROIS RÈGLES SE CROISENT SUR CET ÉCRAN, et aucune n'est cosmétique :
+ * LE POIDS DE CHAQUE LEÇON EST AFFICHÉ, en monospace, dans sa méta. Ce n'est pas un détail
+ * d'ingénieur : sur le marché visé, le forfait est compté, et « 12 Mo » décide de regarder
+ * maintenant ou d'attendre le Wi-Fi. Le téléchargement se fait donc en Wi-Fi par défaut, et
+ * l'écran le dit plutôt que de le supposer.
  *
- *   • Le poids s'affiche AVANT le téléchargement, en monospace, parce que quelqu'un décide
- *     s'il peut se le permettre. Un « environ 4 Mo » ne se décide pas ; un nombre mesuré, si.
- *   • « Oublier » est toujours en face de « garder ». Remplir l'espace de quelqu'un sans
- *     offrir de le libérer, c'est décider à sa place.
- *   • La colonne de lecture ne s'élargit JAMAIS au-delà de 68 caractères. C'est la seule
- *     règle de mise en page que le système déclare non négociable, et elle vaut sur un
- *     téléphone comme sur une tablette : l'espace gagné va à la marge.
+ * LE BOUTON PLEIN ÉCRAN EST L'ENTRÉE DU SEUL ÉCRAN PAYSAGE DU PRODUIT.
  */
-const MEASURE_CH = 68;
-/* 68 caractères à la taille de prose du système. Le rapport 0,5 em par caractère est la
-   largeur moyenne d'un glyphe de Schibsted Grotesk — mesurée, pas supposée. */
-const MEASURE_PX = Math.round(MEASURE_CH * 15.5 * 0.5);
+const VUES = ['Vidéo', 'Transcription', 'Mes notes', 'Ressources'] as const;
 
 export default function Lecon() {
   const t = useToken();
-  const insets = useSafeAreaInsets();
-  const { titre, poids } = useLocalSearchParams<{ titre?: string; poids?: string }>();
-  const [kept, setKept] = useState(false);
+  const g = useActionGradient();
+  const [vue, setVue] = useState<string>('Vidéo');
 
-  // Le poids vient du serveur qui a listé la leçon. Absent, il vaut `null` : <Num> dira
-  // « non relevé » plutôt qu'un zéro qui laisserait croire que c'est gratuit.
-  const bytes = poids ? Number(poids) : null;
+  function ouvrirLaVue(v: string) {
+    /* « Mes notes » est un ÉCRAN, pas un panneau : les notes survivent à la leçon et se
+       cherchent d'un cours à l'autre. Les trois autres vues restent ici. */
+    if (v === 'Mes notes') { router.push('/notes'); return; }
+    setVue(v);
+  }
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="forme" />
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 24, paddingHorizontal: 18, paddingBottom: insets.bottom + 40 }}
+    <Screen
+      territory="forme"
+      tabbar
+      retour="Cours"
+      titre={isIOS ? undefined : FORMATION.moduleEnCours}
+      droite={
+        <IconButton label="Télécharger cette leçon">
+          <Icon name="download" size={17} color={t('textBody')} strokeWidth={2.2} />
+        </IconButton>
+      }
+    >
+      <Eyebrow style={{ marginTop: 6 }}>{FORMATION.moduleEnCours}</Eyebrow>
+      <Display size={26} lines={['Les mots que', 'tapent tes clients']} style={{ marginTop: 8 }} />
+
+      {/* ── LE LECTEUR ─────────────────────────────────────────────────────────────────── */}
+      <Gradient
+        colors={g.lecon}
+        angle={140}
+        radius={26}
+        style={{
+          marginTop: 16, height: 178, alignItems: 'center', justifyContent: 'center',
+          shadowColor: t('mmBleu'), shadowOpacity: 0.24, shadowRadius: 17,
+          shadowOffset: { width: 0, height: 14 }, elevation: 6,
+        }}
       >
-        <Eyebrow>Leçon</Eyebrow>
-        <View style={{ marginTop: 10, marginBottom: 20 }}>
-          <Display size="sm">{titre ?? 'Ta leçon'}</Display>
-        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Lire la leçon"
+          style={({ pressed }: { pressed: boolean }) => ({
+            width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center',
+            backgroundColor: t('paperFixed'),
+            transform: [{ scale: pressed ? 0.94 : 1 }],
+          })}
+        >
+          <Icon name="play" size={21} color={t('inkFixed')} />
+        </Pressable>
 
-        <Surface level="flat" style={{ padding: 20, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <View style={{ flex: 1 }}>
-            <Body style={{ fontWeight: '700' }}>
-              {kept ? 'Gardée sur cet appareil.' : 'Garde-la hors connexion.'}
-            </Body>
-            <Body muted style={{ marginTop: 4, fontSize: 13 }}>
-              {kept
-                ? 'Tu peux la relire sans réseau, et sans consommer ton forfait.'
-                : 'Un téléchargement, puis relisible sans réseau.'}
-            </Body>
-            <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'baseline' }}>
-              <Num
-                value={bytes !== null ? `${(bytes / (1024 * 1024)).toFixed(1).replace('.', ',')} Mo` : null}
-                source="server"
-                asOf={new Date()}
-                style={{ fontSize: 15 }}
-                fallback="poids non transmis"
-              />
-            </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Passer en plein écran"
+          onPress={() => router.push('/plein-ecran')}
+          style={{
+            position: 'absolute', right: 12, top: 12,
+            width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center',
+            backgroundColor: t('surfaceNight'),
+          }}
+        >
+          <Icon name="forward" size={16} color={t('paperFixed')} strokeWidth={2.4} />
+        </Pressable>
+
+        <View style={{
+          position: 'absolute', left: 14, right: 14, bottom: 13,
+          flexDirection: 'row', alignItems: 'center', gap: 9,
+        }}>
+          <Num value="03:12" source={SOURCE} asOf={RELEVE} style={{ fontSize: 10.5, color: t('paperFixed') }} />
+          {/* La piste est un VOILE DE BLANC, pas `fill4` : sur un aplat de marque, l'échelle
+              de remplissage neutre est une encre SOMBRE en mode clair — elle disparaîtrait. */}
+          <View style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: veil(t('paperFixed'), 0.34) }}>
+            <View style={{ width: '38%', height: '100%', borderRadius: 2, backgroundColor: t('paperFixed') }} />
           </View>
+          <Num value="08:24" source={SOURCE} asOf={RELEVE} style={{ fontSize: 10.5, color: t('paperFixed') }} />
+        </View>
+      </Gradient>
 
-          {/* « Oublier » existe toujours en face de « garder ». */}
-          <Button
-            tone={kept ? 'quiet' : 'forme'}
-            label={kept ? 'Oublier' : 'Garder'}
-            onPress={() => setKept((k) => !k)}
+      <ChipRow options={VUES} value={vue} onChange={ouvrirLaVue} height={36} style={{ marginTop: 16 }} />
+
+      {vue === 'Transcription' ? (
+        <Surface level="flat" style={{ marginTop: 16, padding: 18 }}>
+          <Eyebrow>La transcription</Eyebrow>
+          <Body muted style={{ marginTop: 8, lineHeight: 24 }}>
+            Elle est déjà sur ton téléphone : elle se lit sans charger la vidéo, et elle reste
+            lisible quand le réseau lâche au milieu. C'est elle qui rend une coupure supportable.
+          </Body>
+          <Num value="0 Mo à charger" source={SOURCE} asOf={RELEVE} style={{ fontSize: 13, marginTop: 12 }} />
+        </Surface>
+      ) : null}
+
+      {vue === 'Ressources' ? (
+        <Surface level="flat" style={{ marginTop: 16, paddingHorizontal: 16 }}>
+          <LessonRow
+            icon={<Icon name="doc" size={14} color={t('ink2')} />}
+            title="Exercice : ta liste de 20 mots"
+            meta="PDF · 180 Ko"
+            trailing={<Icon name="download" size={16} color={t('ink3')} strokeWidth={2.2} />}
+            last
           />
         </Surface>
+      ) : null}
 
-        {/*
-          LA COLONNE DE LECTURE NE S'ÉLARGIT JAMAIS. `maxWidth` et non `width` : sur un écran
-          étroit elle prend ce qu'il y a, sur un écran large elle s'arrête et le reste va à la
-          marge. À 390 px comme à 1024, la ligne fait 68 caractères.
-        */}
-        <View style={{ marginTop: 26, maxWidth: MEASURE_PX, alignSelf: 'center' }}>
-          <Body style={{ fontSize: 15.5, lineHeight: 15.5 * 1.68, color: t('textBody') }}>
-            Le contenu de la leçon se rend ici, à la mesure de prose du système. Il vient de
-            Firestore, comme au web : l'application native ne duplique pas la logique métier,
-            elle lit les mêmes données.
-          </Body>
-        </View>
-      </ScrollView>
-    </View>
+      {/* ── LE PROGRAMME ───────────────────────────────────────────────────────────────── */}
+      <View style={{
+        flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between',
+        gap: 12, marginTop: 22,
+      }}>
+        <Eyebrow>Le programme</Eyebrow>
+        <Num
+          value={`${FORMATION.progression} %`}
+          source={SOURCE}
+          asOf={RELEVE}
+          style={{ fontSize: 12.5, color: t('textMuted') }}
+        />
+      </View>
+      <ProgressBar value={FORMATION.progression} style={{ marginTop: 8 }} />
+
+      <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
+        {PROGRAMME.map((l, i) => (
+          <LessonRow
+            key={l.titre}
+            state={l.etat}
+            icon={
+              l.etat === 'current' ? <Icon name="play" size={13} color={t('paperFixed')} />
+                : 'doc' in l && l.doc ? <Icon name="doc" size={13} color={t('ink2')} />
+                  : undefined
+            }
+            iconBackground={l.etat === 'current' ? t('mmBleu') : undefined}
+            title={l.titre}
+            meta={l.meta}
+            last={i === PROGRAMME.length - 1}
+          />
+        ))}
+      </Surface>
+
+      <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
+        Chaque poids est affiché parce que le forfait est compté. Le téléchargement se fait en
+        Wi-Fi par défaut.
+      </Body>
+    </Screen>
   );
 }

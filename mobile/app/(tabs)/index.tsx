@@ -1,135 +1,207 @@
-import { Pressable, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Link } from 'expo-router';
-import { openBrowserAsync } from 'expo-web-browser';
-import { Body, Display, Eyebrow, Icon, LessonRow, Mesh, Surface, useToken } from '../../ds';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { router } from 'expo-router';
+import {
+  Avatar, Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num,
+  ProgressBar, QuotaMeter, Screen, Surface, TerritoryCard, useActionGradient, useToken,
+  useTutorNom,
+} from '../../ds';
+import { FORMATION, MOI, QUOTA, RELEVE, SOURCE, STOCKAGE } from '../../contenu/reference';
 
 /**
- * L'ACCUEIL. Les quatre territoires, empilés.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * ══ 3 · MON ESPACE ══ — LA REPRISE EST LE PREMIER OBJET, ET ÇA NE SE NÉGOCIE PAS.
  *
- * Au web, quatre cartes s'emboîtent par un chevron et reconstruisent la silhouette du M du
- * logo en défilant — chevauchement de −14 px. Le natif garde l'empilement et le chevauchement ;
- * le chevron découpé demande un `clip-path`, qui n'existe pas ici, et se rendrait en SVG. Il
- * est laissé de côté pour l'instant plutôt que rendu à moitié.
+ * Elle l'est parce que, au web, **la relance ne pouvait venir que de l'écran** : la plateforme
+ * n'a aucun canal d'envoi. Toute la conception s'est pliée à cette contrainte — si la personne
+ * ne revient pas d'elle-même, rien ne la ramène.
  *
- * AUCUN CHIFFRE SUR CET ÉCRAN. Ni nombre d'inscrits, ni note, ni taux de réussite — ce sont
- * des interdits absolus, et la base de production les contredirait de toute façon. Ce qui les
- * remplace vit sur les écrans de vente : l'encart de vérité.
+ * CE QUI CHANGE EN NATIF TIENT DANS UNE CARTE. La notification donne enfin ce canal, donc
+ * l'écran propose de l'activer — **une fois, pas à chaque ouverture**. Une carte qui redemande
+ * à chaque lancement est une publicité pour soi-même, et elle se ferme sans être lue.
+ *
+ * ── CE QUE CET ÉCRAN N'AFFICHE PAS ────────────────────────────────────────────────────────
+ * Aucun classement, aucun « tu es meilleur que 62 % des membres », aucune série qui menace de
+ * se rompre en gros. La série est là, sans compte à rebours et avec son record à côté : c'est
+ * un fait, pas un levier.
+ * ══════════════════════════════════════════════════════════════════════════════════════
  */
+const JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+/** « Vendredi 4 septembre ». Écrit à la main : `Intl` n'est pas garanti sur tous les moteurs. */
+function dateDuJour(d: Date): string {
+  const jour = JOURS[d.getDay()];
+  return `${jour.charAt(0).toUpperCase()}${jour.slice(1)} ${d.getDate()} ${MOIS[d.getMonth()]}`;
+}
+
 /**
- * ── LES QUATRE TERRITOIRES, ET OÙ ILS MÈNENT VRAIMENT ───────────────────────────────────
- *
- * Trois des quatre cartes pointaient sur des routes qui N'EXISTENT PAS dans ce port :
- * `/formations`, `/blog` et `/presence`. Un lien profond vers une route absente ne rend pas
- * une page vide — expo-router ne trouve rien et l'écran d'accueil devient un cul-de-sac.
- * C'est le premier écran de l'application.
- *
- * Deux territoires ont un écran natif — le catalogue et le Club. Les deux autres n'en ont
- * pas, et n'en auront pas tant que le blog et l'offre TPE ne seront pas portés : ils ouvrent
- * donc le WEB dans le navigateur système, ce qui est déjà le motif retenu partout ailleurs
- * ici pour un parcours non porté (AD-11 le pose pour le paiement, pour la même raison — ne
- * pas faire semblant d'avoir ce qu'on n'a pas).
- *
- * La carte le DIT : « sur le site » plutôt qu'un libellé identique aux deux autres. Une
- * sortie hors de l'application n'a pas à se déguiser en navigation interne.
+ * LA SALUTATION SUIT L'HEURE DU TÉLÉPHONE, pas une valeur figée. Le transfert écrit
+ * « Bonsoir » parce que sa personne-témoin travaille après 21 h — c'est une donnée de SA
+ * mémoire de profil, pas une constante du produit. Figer « Bonsoir » ici dirait bonsoir à
+ * 8 h du matin.
  */
-const SITE = 'https://maxmorrys.me';
+function salutation(d: Date): string {
+  const h = d.getHours();
+  if (h < 6) return 'Bonne nuit';
+  if (h < 18) return 'Bonjour';
+  return 'Bonsoir';
+}
 
-const TERRITORIES = [
-  { key: 'forme', verb: 'Je te forme', line: 'Des formations pratiques, une fois payées, à vie.', href: '/catalogue', web: null },
-  { key: 'informe', verb: "Je t'informe", line: 'Des articles que j\'écris et que je relis moi-même.', href: null, web: `${SITE}/blog` },
-  { key: 'transforme', verb: 'Je te transforme', line: 'Le podcast, les vidéos, et le Club des Digitos.', href: '/media', web: null },
-  { key: 'digitalise', verb: 'Je te digitalise', line: 'Ton commerce en ligne, monté et livré.', href: null, web: `${SITE}/presence-digitale` },
-] as const;
-
-/** Les entrées de « Dans ton espace ». Le kit en pose deux ; le port en a trois à offrir. */
 const ESPACE = [
-  { href: '/notes', glyphe: 'comment' as const, titre: 'Mes notes', sous: 'toi seule les lis' },
-  { href: '/certificat', glyphe: 'star' as const, titre: 'Mon certificat', sous: 'vérifiable par son code' },
-  { href: '/hors-connexion', glyphe: 'download' as const, titre: 'Gardé hors connexion', sous: 'et le poids de chaque leçon' },
+  { href: '/paiement', glyphe: 'card' as const, titre: 'Mes paiements', meta: '1 transaction' },
+  { href: '/certificats', glyphe: 'doc' as const, titre: 'Mes certificats', meta: '0 émis' },
+  { href: '/telechargements', glyphe: 'download' as const, titre: 'Téléchargements', meta: `3 leçons · ${STOCKAGE.occupeCourt}` },
 ] as const;
 
-export default function Home() {
+export default function Espace() {
   const t = useToken();
-  const insets = useSafeAreaInsets();
+  const g = useActionGradient();
+  const tuteur = useTutorNom();
+  const maintenant = new Date();
+
+  /*
+   * ⚠️ CE CHOIX NE SURVIT PAS À LA SESSION, ET C'EST DÉLIBÉRÉ tant que Firebase n'est pas là.
+   * Il vit dans le PROFIL (`users/<uid>.pushAsked`), comme le nom du tuteur : un magasin local
+   * créerait une seconde source de vérité à réconcilier, et la carte reviendrait sur un autre
+   * appareil alors que la question a déjà été posée.
+   */
+  const [proposeRelance, setProposeRelance] = useState(true);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="forme" />
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 28, paddingHorizontal: 18, paddingBottom: insets.bottom + 96 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <Eyebrow>Depuis Dakar</Eyebrow>
+    <Screen
+      territory="transforme"
+      tabbar
+      droite={
+        <>
+          <IconButton label="Notifications" badge>
+            <Icon name="bell" size={17} color={t('textBody')} strokeWidth={2} />
+          </IconButton>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ton profil"
+            onPress={() => router.push('/(tabs)/profil')}
+          >
+            <Avatar initials={MOI.initiale} size={38} />
+          </Pressable>
+        </>
+      }
+    >
+      <Eyebrow style={{ marginTop: 6 }}>{dateDuJour(maintenant)}</Eyebrow>
+      <Display size={31} lines={[salutation(maintenant), MOI.prenom]} style={{ marginTop: 8 }} />
 
-        {/*
-          Le titre est ÉCRIT ligne par ligne, jamais replié tout seul. Le français court
-          environ 18 % plus long : laissé libre, il passe à quatre lignes et perd sa masse.
-        */}
-        <View style={{ marginTop: 10, marginBottom: 26 }}>
-          <Display size="md" lines={['JE TE FORME', 'AU DIGITAL.', 'DEPUIS DAKAR.']} />
-        </View>
+      {/* ── PREMIER OBJET. La reprise, avant tout le reste. ─────────────────────────────── */}
+      <View style={{ marginTop: 20 }}>
+        <TerritoryCard
+          first
+          territory="forme"
+          meta={FORMATION.arret}
+          title={`Leçon 5 · ${FORMATION.leconEnCours}`}
+          titleSize={21}
+          onPress={() => router.push('/lecon')}
+        >
+          <ProgressBar value={FORMATION.progression} style={{ marginTop: 14 }} />
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+            gap: 12, marginTop: 12,
+          }}>
+            <Num
+              value={`${FORMATION.leconsFaites} / ${FORMATION.lecons} leçons · ${FORMATION.progression} %`}
+              source={SOURCE}
+              asOf={RELEVE}
+              style={{ fontSize: 12.5, color: t('textMuted') }}
+            />
+            <Button tone="primary" size="sm" label="Reprendre" onPress={() => router.push('/lecon')} />
+          </View>
+        </TerritoryCard>
+      </View>
 
-        <Body muted style={{ maxWidth: 320, marginBottom: 30 }}>
-          Tu paies en Wave ou en Orange Money. Une fois, et tu gardes l'accès.
-        </Body>
-
-        {TERRITORIES.map((territory, i) => {
-          const carte = (
-            <Surface
-              level="flat"
-              style={{
-                padding: 20,
-                // Le chevauchement de l'empilement en M : −14 px, la valeur du kit.
-                marginTop: i === 0 ? 0 : -14,
-                borderLeftWidth: 3,
-                borderLeftColor: t(`mm${territory.key === 'forme' ? 'Bleu' : territory.key === 'informe' ? 'Orange' : territory.key === 'transforme' ? 'Violet' : 'Teal'}` as never),
-              }}
+      {/* ── CE QUE LE WEB NE POUVAIT PAS OFFRIR ─────────────────────────────────────────── */}
+      {proposeRelance ? (
+        <Surface level="flat" style={{ marginTop: 14, padding: 17 }}>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <Gradient
+              colors={[t('mmVioletN'), t('mmViolet')]}
+              radius={12}
+              style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}
             >
-              <Display size="xs">{territory.verb}</Display>
-              <Body muted style={{ marginTop: 6 }}>{territory.line}</Body>
-              {territory.web ? (
-                <Eyebrow style={{ marginTop: 10 }}>Sur le site</Eyebrow>
-              ) : null}
-            </Surface>
-          );
-
-          if (territory.href) {
-            return (
-              <Link key={territory.key} href={territory.href as never} asChild>
-                {carte}
-              </Link>
-            );
-          }
-          return (
-            <Pressable key={territory.key} onPress={() => { void openBrowserAsync(territory.web); }}>
-              {carte}
-            </Pressable>
-          );
-        })}
-
-        {/*
-          « DANS TON ESPACE » — la liste que le kit pose sous les territoires
-          (`screens-space.jsx` § Espace). Sans elle, trois écrans natifs existants n'ont
-          aucun point d'entrée : les notes, le certificat, et la bibliothèque hors connexion.
-          Une route qu'aucun écran n'ouvre est du code mort, et sur un routeur par fichiers
-          elle ne se voit pas manquer.
-        */}
-        <Eyebrow style={{ marginTop: 28 }}>Dans ton espace</Eyebrow>
-        <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 18 }}>
-          {ESPACE.map((entree, i) => (
-            <Link key={entree.href} href={entree.href as never} asChild>
-              <LessonRow
-                icon={<Icon name={entree.glyphe} size={14} color={t('ink2')} />}
-                title={entree.titre}
-                meta={entree.sous}
-                trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
-                last={i === ESPACE.length - 1}
-              />
-            </Link>
-          ))}
+              <Icon name="bell" size={17} color={t('paperFixed')} strokeWidth={2.2} />
+            </Gradient>
+            <View style={{ flex: 1 }}>
+              <Body style={{ fontWeight: '700' }}>Je te préviens la prochaine fois ?</Body>
+              <Body muted style={{ fontSize: 12.5, lineHeight: 19, marginTop: 4 }}>
+                Huit jours, c'est le moment où on décroche. Une notification, et tu reprends.
+              </Body>
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+                <Button
+                  tone="transforme"
+                  size="sm"
+                  label="Activer"
+                  onPress={() => { setProposeRelance(false); router.push('/permissions'); }}
+                />
+                <Button tone="quiet" size="sm" label="Non" onPress={() => setProposeRelance(false)} />
+              </View>
+            </View>
+          </View>
         </Surface>
-      </ScrollView>
-    </View>
+      ) : null}
+
+      {/* ── DEUX FAITS, SANS LEVIER ─────────────────────────────────────────────────────── */}
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+        <Surface level="flat" style={{ flex: 1, padding: 16 }}>
+          <Eyebrow style={{ fontSize: 10 }}>Série</Eyebrow>
+          <Num value="3 j" source={SOURCE} asOf={RELEVE} style={{ fontSize: 25, marginTop: 4 }} />
+          <Body muted style={{ fontSize: 11.5, color: t('textFaint') }}>record 7 j</Body>
+        </Surface>
+        <Surface level="flat" style={{ flex: 1, padding: 16 }}>
+          <Eyebrow style={{ fontSize: 10 }}>Niveau</Eyebrow>
+          <Num value={4} source={SOURCE} asOf={RELEVE} style={{ fontSize: 25, marginTop: 4 }} />
+          <ProgressBar value={60} height={5} territory="transforme" style={{ marginTop: 7 }} />
+        </Surface>
+      </View>
+
+      {/* ── LE RÉPÉTITEUR, ET SON QUOTA ANNONCÉ D'AVANCE ────────────────────────────────── */}
+      <Surface level="flat" style={{ marginTop: 14, padding: 17 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View style={{ flex: 1 }}>
+            <Body style={{ fontWeight: '700' }}>Demande à ton {tuteur.toLowerCase()}</Body>
+            <Body muted style={{ fontSize: 12.5, marginTop: 2 }}>Il sait où tu t'es arrêtée.</Body>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Ouvrir ${tuteur}`}
+            onPress={() => router.push('/(tabs)/repetiteur')}
+            style={({ pressed }: { pressed: boolean }) => ({ transform: [{ scale: pressed ? 0.94 : 1 }] })}
+          >
+            <Gradient
+              colors={g.transforme}
+              radius={23}
+              style={{ width: 46, height: 46, alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Icon name="chat" size={19} color={t('paperFixed')} strokeWidth={2.2} />
+            </Gradient>
+          </Pressable>
+        </View>
+        {/* Le quota est ANNONCÉ avant d'être atteint : un refus au plafond est vécu comme une
+            panne s'il n'a pas été dit. */}
+        <QuotaMeter used={QUOTA.utilise - 1} total={QUOTA.total} style={{ marginTop: 13 }} />
+      </Surface>
+
+      <Eyebrow style={{ marginTop: 22 }}>Dans ton espace</Eyebrow>
+      <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
+        {ESPACE.map((e, i) => (
+          <LessonRow
+            key={e.href}
+            icon={<Icon name={e.glyphe} size={14} color={t('ink2')} />}
+            title={e.titre}
+            meta={e.meta}
+            trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+            onPress={() => router.push(e.href)}
+            last={i === ESPACE.length - 1}
+          />
+        ))}
+      </Surface>
+    </Screen>
   );
 }

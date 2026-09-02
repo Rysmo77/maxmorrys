@@ -1,136 +1,140 @@
 import { useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import { Body, Button, Display, Eyebrow, Field, Mesh, Surface, useToken } from '../ds';
+import { View } from 'react-native';
+import { router } from 'expo-router';
+import { openAuthSessionAsync } from 'expo-web-browser';
+import {
+  AppleMark, Body, Button, Display, Eyebrow, Field, GoogleMark, Icon, IconButton, Screen,
+  Surface, Wordmark, isIOS, useToken,
+} from '../ds';
+import { MOI, SITE } from '../contenu/reference';
 
 /**
- * ═══════════════════════════════════════════════════════════════════════════════════════
- * LA CONNEXION — ET LE CHAMP QUI N'EST PAS ICI.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * ══ 1 · LA CONNEXION ══ — ET LA RÈGLE DE MAGASIN QUI DESSINE UN BOUTON.
  *
- * Ce dossier n'embarque pas de SDK d'authentification : `mobile/package.json` ne dépend pas
- * de `firebase`. Aucun mot de passe tapé sur cet écran ne pourrait donc être vérifié. Deux
- * façons de traiter ce fait, et une seule est tenable :
+ * **APP STORE 4.8 : « Se connecter avec Apple » est OBLIGATOIRE dès qu'on propose une
+ * connexion tierce.** Offrir Google sans Apple fait rejeter l'application. Le bouton n'existe
+ * donc que dans le châssis iOS — et c'est, avec l'écran de création, l'UN DES DEUX SEULS
+ * ENDROITS DU KIT où le CONTENU diffère d'une plateforme à l'autre, et pas seulement le cadre.
  *
- *   • Poser le champ quand même, l'envoyer nulle part, et laisser croire. C'est exactement
- *     ce que `app/(tabs)/profil.tsx` refuse — « un bouton qui ne fait rien est pire que son
- *     absence » — et sur un mot de passe le prix de ce mensonge n'est pas le même que sur un
- *     réglage : quelqu'un aurait tapé son secret dans un écran qui n'en fait rien.
- *   • Ne pas le demander, et DIRE pourquoi.
+ * La conséquence descend jusqu'à l'encart : « trois moyens » d'un côté, « deux » de l'autre.
+ * Écrire « trois » sur Android serait faux, et c'est le genre de faux qu'on ne voit jamais
+ * parce qu'on relit toujours sur la même plateforme.
  *
- * D'où l'écran tel qu'il est : l'adresse se tape ici — elle sert à préremplir — et la
- * vérification se fait sur le site, dans une session de navigateur qui partage les cookies
- * du web. C'est le même geste qu'`app/paiement.tsx` fait pour le paiement, et pour une
- * raison de même nature : ce que ce port ne sait pas tenir, il le passe à qui le tient.
+ * ⚠️ L'ASSET D'APPLE EST UN EMPLACEMENT RÉSERVÉ (voir `ds/BrandMarks.tsx`). Apple fournit sa
+ * marque et impose son usage ; elle ne se redessine pas. À remplacer avant soumission.
  *
- * L'ENCART DE VÉRITÉ DE LA MAQUETTE EST GARDÉ TEL QUEL. « Que tu passes par Google ou par
- * ton e-mail, tu retrouves les mêmes cours » : c'est la question que quelqu'un se pose
- * vraiment devant deux boutons, et la réponse ne dépend pas de la plateforme.
- * ═══════════════════════════════════════════════════════════════════════════════════════
+ * ── LE MOT DE PASSE, LUI, N'EST PAS ENCORE TENU ICI ──────────────────────────────────────
+ * Le SDK d'authentification n'est pas branché. Les champs sont RÉELS — un vrai `TextInput`,
+ * le bon clavier, le bon `textContentType`, donc le trousseau propose le mot de passe — mais
+ * la validation ouvre la session web, avec les mêmes cookies. Ne pas faire semblant d'avoir ce
+ * qu'on n'a pas (AD-11, même raisonnement que pour le paiement).
+ * ══════════════════════════════════════════════════════════════════════════════════════
  */
-const SITE = 'https://maxmorrys.me';
-
 export default function Connexion() {
   const t = useToken();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
-  const [ouverture, setOuverture] = useState(false);
+  const [motDePasse, setMotDePasse] = useState('');
+  const [visible, setVisible] = useState(false);
 
-  async function ouvrirLaSession() {
-    setOuverture(true);
-    try {
-      /*
-        `openAuthSessionAsync` et non `openBrowserAsync` : la session partage les cookies du
-        site, donc quelqu'un déjà connecté sur le web ne se reconnecte pas.
-
-        L'adresse part en paramètre pour préremplir le formulaire. LE MOT DE PASSE, LUI, NE
-        TRAVERSE RIEN : il n'est pas saisi ici, donc il n'y a rien à transmettre — ni dans
-        une URL, ni ailleurs.
-      */
-      const q = email.trim() ? `?from=app&email=${encodeURIComponent(email.trim())}` : '?from=app';
-      await WebBrowser.openAuthSessionAsync(`${SITE}/connexion${q}`, 'rysmo://connexion/retour');
-    } catch {
-      // Le motif, la conséquence, la sortie — dans cet ordre. Jamais d'excuse.
-      Alert.alert(
-        "Le navigateur n'a pas pu s'ouvrir",
-        `Ta session n'a pas été ouverte, et rien n'a changé sur ton compte. Ouvre ${SITE}/connexion depuis ton navigateur pour te connecter.`,
-      );
-    } finally {
-      setOuverture(false);
-    }
+  async function ouvrirLaSession(chemin: string) {
+    await openAuthSessionAsync(`${SITE}${chemin}`, 'rysmo://connexion/retour');
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <Mesh territory="forme" />
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 28, paddingHorizontal: 18, paddingBottom: insets.bottom + 40 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <Eyebrow>Ton compte</Eyebrow>
-        <View style={{ marginTop: 10 }}>
-          <Display size="sm" lines={['CONTENT DE', 'TE REVOIR.']} />
-        </View>
+    <Screen
+      territory="forme"
+      center
+      droite={
+        <IconButton label="Fermer" onPress={() => router.back()}>
+          <Icon name="close" size={17} color={t('textBody')} strokeWidth={2.4} />
+        </IconButton>
+      }
+    >
+      <Wordmark brand="rysmo" size={30} />
+      <Display size={29} lines={['CONTENT DE', 'TE REVOIR.']} style={{ marginTop: 18 }} />
 
-        <Surface level="hero" style={{ marginTop: 20, padding: 22 }}>
-          <Field
-            label="Ton e-mail"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="aissatou@exemple.sn"
-            keyboardType="email-address"
-            textContentType="emailAddress"
-            hint="Elle sert à préremplir le formulaire du site. Rien d'autre ne part d'ici."
-            style={{ marginTop: 0 }}
-          />
-
+      <Surface level="hero" style={{ marginTop: 20, padding: 20 }}>
+        {/* iOS SEULEMENT — App Store 4.8. Le bouton est en tête : c'est la position
+            qu'Apple attend quand plusieurs connexions tierces sont proposées. */}
+        {isIOS ? (
           <Button
-            tone="forme"
-            label={ouverture ? 'Ouverture…' : 'Je me connecte'}
-            disabled={ouverture}
-            onPress={() => void ouvrirLaSession()}
-            style={{ marginTop: 18 }}
+            tone="ink"
+            label="Continuer avec Apple"
+            leading={<AppleMark />}
+            style={{ marginBottom: 9 }}
+            onPress={() => { void ouvrirLaSession('/connexion?fournisseur=apple'); }}
           />
-
-          {/* On DIT ce qui va se passer AVANT que ça se passe : un navigateur qui s'ouvre
-              sans prévenir se lit comme une sortie d'application non voulue. */}
-          <Body muted style={{ marginTop: 12, fontSize: 13 }}>
-            La connexion s'ouvre dans ton navigateur, sur ta session du site. Tu reviens ici
-            tout de suite après. Google et l'e-mail y sont tous les deux.
-          </Body>
-
-          <View style={{ marginTop: 16, paddingTop: 14, borderTopWidth: 1, borderTopColor: t('borderHair') }}>
-            <Body muted style={{ fontSize: 12.5 }}>
-              Je ne te demande pas ton mot de passe sur cet écran : ce port n'embarque pas de
-              quoi le vérifier, et un mot de passe tapé dans un écran qui n'en fait rien est
-              un mot de passe de trop.
-            </Body>
-          </View>
-        </Surface>
-
-        <Surface level="truth" style={{ marginTop: 16, padding: 18 }}>
-          <Eyebrow>Les deux moyens mènent au même endroit</Eyebrow>
-          <Body muted style={{ marginTop: 6, fontSize: 12.5 }}>
-            Que tu passes par Google ou par ton e-mail, tu retrouves les mêmes cours, la même
-            progression, les mêmes certificats. Ce n'est pas deux comptes.
-          </Body>
-        </Surface>
+        ) : null}
 
         <Button
-          tone="quiet"
-          label="Pas encore de compte ? Crée-le, c'est gratuit"
-          onPress={() => router.push('/creation')}
-          style={{ marginTop: 20 }}
+          tone="ghost"
+          label="Continuer avec Google"
+          leading={<GoogleMark />}
+          onPress={() => { void ouvrirLaSession('/connexion?fournisseur=google'); }}
+        />
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 18 }}>
+          <View style={{ flex: 1, height: 1, backgroundColor: t('borderHair') }} />
+          <Eyebrow>ou</Eyebrow>
+          <View style={{ flex: 1, height: 1, backgroundColor: t('borderHair') }} />
+        </View>
+
+        <Field
+          label="Ton e-mail"
+          value={email}
+          onChangeText={setEmail}
+          placeholder={MOI.email}
+          keyboardType="email-address"
+          textContentType="emailAddress"
+          style={{ marginTop: 0 }}
+        />
+        <Field
+          label="Ton mot de passe"
+          value={motDePasse}
+          onChangeText={setMotDePasse}
+          secureTextEntry={!visible}
+          textContentType="password"
+          trailing={
+            <IconButton
+              label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              onPress={() => setVisible(!visible)}
+              style={{ backgroundColor: 'transparent', borderWidth: 0 }}
+            >
+              <Icon name="eye" size={18} color={t('ink2')} />
+            </IconButton>
+          }
+        />
+
+        <Button
+          tone="forme"
+          label="Je me connecte"
+          style={{ marginTop: 17 }}
+          onPress={() => { void ouvrirLaSession('/connexion'); }}
         />
         <Button
           tone="quiet"
           label="Mot de passe oublié ?"
-          onPress={() => router.push('/mot-de-passe')}
           style={{ marginTop: 10 }}
+          onPress={() => router.push('/mot-de-passe')}
         />
-      </ScrollView>
-    </View>
+      </Surface>
+
+      <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
+        <Eyebrow>{isIOS ? 'Trois moyens, un seul compte' : 'Deux moyens, un seul compte'}</Eyebrow>
+        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
+          {isIOS
+            ? 'Apple, Google ou ton e-mail : tu retrouves les mêmes cours, la même progression, les mêmes certificats. Ce n’est pas trois comptes.'
+            : 'Google ou ton e-mail : tu retrouves les mêmes cours, la même progression, les mêmes certificats. Ce n’est pas deux comptes.'}
+        </Body>
+      </Surface>
+
+      <Button
+        tone="quiet"
+        label="Créer un compte, c'est gratuit"
+        style={{ marginTop: 18 }}
+        onPress={() => router.push('/creation')}
+      />
+    </Screen>
   );
 }

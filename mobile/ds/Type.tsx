@@ -19,20 +19,33 @@ type Props = { children: ReactNode; style?: StyleProp<TextStyle>; numberOfLines?
    L'union le rend impossible à confondre, plutôt que de rendre `children` optionnel partout. */
 type DisplayProps =
   | { children: ReactNode; lines?: never; size?: DisplaySize; style?: StyleProp<TextStyle> }
-  | { children?: never; lines: string[]; size?: DisplaySize; style?: StyleProp<TextStyle> };
-type DisplaySize = 'xxl' | 'xl' | 'md' | 'sm' | 'xs';
+  | { children?: never; lines: readonly string[]; size?: DisplaySize; style?: StyleProp<TextStyle> };
+/**
+ * Les cinq crans de l'échelle, OU une taille en pixels.
+ *
+ * Le cran nommé reste la forme normale — c'est lui qui garde l'échelle du système. Mais les
+ * titres du châssis natif vivent entre 26 et 31 px, c'est-à-dire ENTRE `sm` (30) et `xs` (23) :
+ * le transfert les écrit ainsi parce qu'un titre de trois lignes dans 390 px n'a pas la même
+ * respiration qu'un titre de page web. Le nombre est donc admis ici, et l'interligne suit,
+ * plutôt que chaque écran ne recalcule un `lineHeight` à la main — ce qu'il ferait de travers
+ * une fois sur trois.
+ */
+type DisplaySize = 'xxl' | 'xl' | 'md' | 'sm' | 'xs' | number;
 
 /** Titre d'affichage. `lines` rend chaque ligne séparément — voir la note plus bas. */
 export function Display({ children, size = 'md', lines, style }: DisplayProps) {
   const t = useToken();
   const key = { xxl: 'fsDspXxl', xl: 'fsDspXl', md: 'fsDsp', sm: 'fsDspSm', xs: 'fsDspXs' } as const;
+  const taille = typeof size === 'number' ? size : px(t(key[size]));
   const base: TextStyle = {
     fontFamily: 'Fraunces',
     fontWeight: '900',
     color: t('textBody'),
-    fontSize: px(t(key[size])),
-    letterSpacing: -1.2,
-    lineHeight: px(t(key[size])) * 0.94,
+    fontSize: taille,
+    // L'interlettrage du système est relatif à la taille (−.035em), pas une valeur fixe :
+    // −1,2 px sur un titre de 74 px ne serre rien, et sur un titre de 23 px il écrase.
+    letterSpacing: -taille * 0.035,
+    lineHeight: taille * 0.98,
   };
 
   /*

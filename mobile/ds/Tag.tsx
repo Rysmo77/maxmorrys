@@ -16,16 +16,23 @@ import { useToken, px, veil } from './theme';
  * LE FOND EST DÉRIVÉ DE L'ENCRE, à 13–18 % — pas un second jeton. C'est ce qui garantit que
  * la pastille suit son encre quand le mode bascule, au lieu de dériver en silence.
  */
-export type TagTone = 'ok' | 'warn' | 'stop' | 'neutral';
+/**
+ * `art` est le ton des étiquettes POSÉES SUR UN APLAT DE MARQUE — le « Aperçu · 4 min
+ * gratuit » sur la vignette d'une formation. Sa surface ne suit pas le mode : un aplat de
+ * territoire est saturé dans les deux, donc son étiquette doit rester papier blanc sur encre
+ * fixe. Sans ce ton, `neutral` y écrivait du gris clair sur du blanc en mode sombre — 2,2:1,
+ * sur le seul texte de la vignette.
+ */
+export type TagTone = 'ok' | 'warn' | 'stop' | 'neutral' | 'art';
 
-const VEIL: Record<TagTone, number> = { ok: 0.13, warn: 0.18, stop: 0.13, neutral: 1 };
+const VEIL: Record<TagTone, number> = { ok: 0.13, warn: 0.18, stop: 0.13, neutral: 1, art: 1 };
 
 export function Tag({
   tone = 'neutral', children, style,
 }: { tone?: TagTone; children: ReactNode; style?: StyleProp<ViewStyle> }) {
   const t = useToken();
-  const ink = tone === 'neutral' ? t('textMuted') : t(tone);
-  const bg = tone === 'neutral' ? t('fillTag') : veil(ink, VEIL[tone]);
+  const ink = tone === 'art' ? t('inkFixed') : tone === 'neutral' ? t('textMuted') : t(tone);
+  const bg = tone === 'art' ? t('paperFixed') : tone === 'neutral' ? t('fillTag') : veil(ink, VEIL[tone]);
 
   return (
     <View
