@@ -5,8 +5,12 @@
  * Sécurité : DRY-RUN par défaut (n'écrit rien). Ajouter `--apply` pour écrire.
  *
  * Prérequis :
- *   - firebase-admin disponible (lancer depuis le dossier `functions/` qui l'a déjà,
- *     ou `npm i firebase-admin` à la racine).
+ *   - firebase-admin résolvable DEPUIS CE FICHIER.
+ *     ⚠️ « Lancer depuis le dossier `functions/` » NE MARCHE PAS : la résolution ESM part
+ *     du dossier du MODULE, jamais du répertoire courant. Un script de `scripts/` cherche
+ *     dans `scripts/node_modules` puis à la racine, et ne verra jamais
+ *     `functions/node_modules`. Faire `npm i --no-save firebase-admin` À LA RACINE, ou
+ *     exécuter une copie du script placée dans `functions/`.
  *   - Credentials : variable GOOGLE_APPLICATION_CREDENTIALS pointant vers une clé de
  *     compte de service, OU `gcloud auth application-default login`.
  *

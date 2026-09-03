@@ -27,13 +27,25 @@
  * DRY-RUN par défaut : n'écrit rien, affiche ce qu'il ferait. `--apply` pour écrire.
  *
  * Prérequis :
- *   - firebase-admin (lancer depuis `functions/`, qui l'a déjà, ou l'installer à la racine)
  *   - GOOGLE_APPLICATION_CREDENTIALS vers une clé de compte de service,
  *     OU `gcloud auth application-default login`
+ *   - firebase-admin résolvable DEPUIS CE FICHIER.
  *
- * Exemples :
- *   node scripts/backfill-mail-pending.mjs           # aperçu
- *   node scripts/backfill-mail-pending.mjs --apply   # écrit
+ * ⚠️ « Lancer depuis `functions/`, qui l'a déjà » NE MARCHE PAS, et c'est ce que
+ * `rewrite-firestore-urls.mjs` conseille pourtant depuis le début. La résolution ESM part
+ * du dossier du MODULE, jamais du répertoire courant : un script placé dans `scripts/`
+ * cherche dans `scripts/node_modules` puis à la racine, et ne verra jamais
+ * `functions/node_modules`. Changer de `cwd` n'y change rien.
+ *
+ * Deux façons qui marchent réellement :
+ *   npm i --no-save firebase-admin        # à la RACINE, puis :
+ *   node scripts/backfill-mail-pending.mjs
+ *
+ *   # ou, sans rien installer, en exécutant une copie depuis functions/ :
+ *   cp scripts/backfill-mail-pending.mjs functions/.tmp.mjs \
+ *     && (cd functions && node .tmp.mjs) ; rm -f functions/.tmp.mjs
+ *
+ * Ajouter `--apply` à la commande pour écrire.
  */
 import { initializeApp, applicationDefault } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';

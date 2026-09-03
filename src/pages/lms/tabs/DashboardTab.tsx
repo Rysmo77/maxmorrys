@@ -11,7 +11,7 @@ import TutorPanel from '../components/TutorPanel';
 import SpaceSplit from '../components/SpaceSplit';
 import { useAuth } from '../../../contexts/AuthContext';
 import { tutorName } from '../../../lib/naming';
-import { getGamificationProfile, updateStreak, addXP } from '../../../lib/gamification';
+import { getGamificationProfile, updateStreak, addXP, syncBadges } from '../../../lib/gamification';
 import { getLevelFromXP, getXPForNextLevel, XP_REWARDS } from '../../../types/gamification';
 import type { GamificationProfile } from '../../../types/gamification';
 import type { EnrolledFormation } from '../hooks/useStudentData';
@@ -103,10 +103,35 @@ export default function DashboardTab({
       if (isNew && currentStreak > 0) {
         await addXP(userId, XP_REWARDS.dailyStreak);
       }
+
+      /*
+        LES BADGES SE DÉCROCHENT ICI, et c'est le seul endroit qui le permette.
+
+        Huit des dix n'avaient aucun attributeur : ils s'affichaient verrouillés à vie sur
+        `/mon-espace/succes`. Leurs conditions portent sur quatre compteurs — leçons achevées,
+        série, certificats, formations suivies — et cet écran est le seul à les connaître tous
+        en même temps, puisqu'il reçoit les inscriptions complètes.
+
+        Conséquence assumée : un badge se décroche à la PROCHAINE ouverture du tableau de bord,
+        pas à l'instant de l'acte. C'est déjà le fonctionnement de la série, juste au-dessus.
+        Attribuer à la source supposerait quatre points d'écriture au lieu d'un, et c'est
+        précisément la dispersion qui a laissé huit badges sans attributeur.
+      */
+      const stats = enrolledFormations.reduce(
+        (acc, { enrollment }) => ({
+          lessons: acc.lessons + (enrollment.completedLessons?.length ?? 0),
+          certificates: acc.certificates + (enrollment.certificateIssued ? 1 : 0),
+          formations: acc.formations + 1,
+          streak: acc.streak,
+        }),
+        { lessons: 0, certificates: 0, formations: 0, streak: currentStreak },
+      );
+      await syncBadges(userId, stats);
+
       const profile = await getGamificationProfile(userId);
       setGamification(profile);
     })().catch(() => null);
-  }, [userId]);
+  }, [userId, enrolledFormations]);
 
   /* Un relevé porte sa date. Celle-ci est l'instant du rendu, donc de la lecture Firestore. */
   const asOf = new Date();

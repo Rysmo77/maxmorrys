@@ -1,7 +1,8 @@
 import { doc, getDoc, setDoc, runTransaction, collection, query, orderBy, limit, getDocs, type DocumentSnapshot } from 'firebase/firestore';
 import { db } from '../config/db';
 import type { GamificationProfile } from '../types/gamification';
-import { getLevelFromXP } from '../types/gamification';
+import { BADGES, getLevelFromXP } from '../types/gamification';
+import type { Badge } from '../types/gamification';
 
 const GAMIFICATION_COL = 'gamification';
 
@@ -97,6 +98,91 @@ export async function awardBadge(userId: string, badgeId: string): Promise<boole
     transaction.update(ref, { badges: [...data.badges, badgeId] });
     return true;
   });
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * L'ATTRIBUTION DES BADGES — huit sur dix ne se décrochaient jamais.
+ *
+ * `BADGES` en déclare dix, et `/mon-espace/succes` les affiche tous, verrouillés ou non.
+ * Deux seulement avaient un attributeur : `contributeur` (dans `useClubData`) et
+ * `ambassadeur` (dans une Cloud Function, donc morte depuis le plan Spark — désormais
+ * reversée par le webhook de paiement).
+ *
+ * Les huit autres étaient des cases qui ne se décocheraient jamais, montrées à chaque
+ * visite sur un écran dédié. Un catalogue de récompenses inatteignables coûte plus de
+ * crédibilité qu'il n'apporte de motivation : c'est le contraire de ce qu'on attend d'un
+ * dispositif de gamification.
+ *
+ * ⚠️ PILOTÉ PAR LES DONNÉES, PAS PAR UNE LISTE DE `if`. La règle de chaque badge est déjà
+ * écrite dans `BADGES` — `requirementType` et `requirement`. Cette fonction les lit :
+ * ajouter un badge au catalogue suffit donc à le rendre attribuable, sans toucher ici.
+ * C'est ce qui empêche la situation de se reproduire.
+ *
+ * ⚠️ `posts` N'EST PAS TRAITÉ ICI, délibérément : `contributeur` et `ambassadeur` sont
+ * attribués à la source, au moment de l'acte, là où le compteur est juste. Les compter
+ * depuis le tableau de bord supposerait de relire tout le fil du Club à chaque ouverture.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+export interface BadgeStats {
+  /** Leçons distinctes achevées, toutes formations confondues. */
+  lessons: number;
+  /** Série en cours, en jours. */
+  streak: number;
+  certificates: number;
+  /** Formations auxquelles la personne est inscrite. */
+  formations: number;
+}
+
+/** Ce que chaque `requirementType` va chercher dans le relevé. `posts` est traité à la source. */
+const COMPTEUR: Record<string, (s: BadgeStats) => number> = {
+  lessons: (s) => s.lessons,
+  days: (s) => s.streak,
+  certificates: (s) => s.certificates,
+  formations: (s) => s.formations,
+};
+
+/**
+ * Les badges dont les conditions sont remplies — partie PURE, testable sans Firestore.
+ *
+ * C'est elle qui porte la promesse « ajouter un badge au catalogue suffit à le rendre
+ * attribuable » : elle ne connaît aucun identifiant, seulement `requirementType` et
+ * `requirement`. Un badge dont le type n'a pas de compteur est simplement ignoré.
+ */
+export function badgesMerites(stats: BadgeStats): Badge[] {
+  return BADGES.filter((badge) => {
+    const compteur = COMPTEUR[badge.requirementType];
+    return compteur !== undefined && compteur(stats) >= badge.requirement;
+  });
+}
+
+/**
+ * Décerne tous les badges désormais mérités — UN PAR ÉCRITURE.
+ *
+ * ⚠️ LA BORNE VIENT DES RÈGLES, PAS D'UNE PRÉFÉRENCE. `firestore.rules` impose
+ * `badges.size() <= resource.data.badges.size() + 1` sur `gamification/{userId}` : c'est
+ * ce qui empêche un client de s'auto-décerner le catalogue entier, puisque ces badges
+ * alimentent le classement et les récompenses. Une écriture groupée de plusieurs badges
+ * serait donc REFUSÉE — silencieusement du point de vue de l'écran, qui n'affiche rien de
+ * plus qu'avant. C'est exactement le piège qu'une première version de cette fonction avait
+ * tendu.
+ *
+ * On boucle donc sur `awardBadge`, qui n'en pose qu'un et respecte la borne par
+ * construction. Quelqu'un qui remplit cinq conditions d'un coup reçoit cinq écritures —
+ * rare, et le prix de la règle qui protège le reste.
+ *
+ * Retourne les identifiants NOUVELLEMENT décernés, pour que l'appelant puisse le dire.
+ */
+export async function syncBadges(userId: string, stats: BadgeStats): Promise<string[]> {
+  const merites = badgesMerites(stats);
+
+  const nouveaux: string[] = [];
+  for (const badge of merites) {
+    // Séquentiel et non `Promise.all` : deux transactions concurrentes sur le même
+    // document se relanceraient mutuellement, et la borne des règles est par écriture.
+    if (await awardBadge(userId, badge.id)) nouveaux.push(badge.id);
+  }
+  return nouveaux;
 }
 
 export async function getLeaderboard(limitCount = 20): Promise<{ userId: string; xp: number; level: number }[]> {

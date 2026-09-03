@@ -5,6 +5,7 @@ import { saveAgencyLead } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import { captureError } from '../../lib/sentry';
 import { trackGenerateLead } from '../../lib/tracking';
+import { markQuoteStarted, clearQuoteStarted } from '../../lib/popups/quote';
 import { SITE_URL } from '../../components/seo/seo-config';
 import {
   SECTOR_KEYS, findPack, findPlan, computeTotals, type Recommendation,
@@ -170,6 +171,9 @@ export function usePresenceQuote() {
   const update = (field: keyof PresenceForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
+    /* La première frappe suffit : quelqu'un qui décrit son commerce s'est engagé. Le marqueur
+       ne se repousse pas ensuite — voir `markQuoteStarted`. */
+    markQuoteStarted();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -196,6 +200,8 @@ export function usePresenceQuote() {
       const totals = computeTotals(form.pack, form.plan);
       trackGenerateLead('agency_quote_form', totals.pipelineValue || undefined);
 
+      // Le devis est parti : il n'y a plus d'abandon à rappeler.
+      clearQuoteStarted();
       setQuoteRef(ref ?? '');
       setSubmittedData(form);
       setSubmitted(true);
