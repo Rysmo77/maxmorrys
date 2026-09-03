@@ -66,3 +66,27 @@ export interface VueClub {
   depuis: string | null;
   bilan: ReadonlyArray<{ n: number | null; l: string }>;
 }
+
+export interface VueNote {
+  id: string;
+  texte: string;
+  date: string | null;
+}
+
+export interface VueNotes {
+  total: { notes: number; lecons: number };
+  notes: VueNote[];
+}
+
+export interface VueLeconLigne {
+  id: string;
+  titre: string;
+  meta: string | null;
+  etat: 'done' | 'current' | 'todo';
+  doc: boolean;
+}
+
+export interface VueLecon {
+  moduleTitre: string | null;
+  programme: VueLeconLigne[];
+}

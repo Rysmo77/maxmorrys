@@ -1,10 +1,9 @@
 import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, ChipRow, Display, Eyebrow, Fab, Icon, IconButton, LessonRow, Num, Screen, Surface, Tag,
-  isIOS, useToken,
+  Body, ChipRow, Display, Eyebrow, Fab, Icon, IconButton, LessonRow, Num, SansDonnees, Screen, Surface, Tag, isIOS, useToken,
 } from '../ds';
-import { FORMATION, NOTES, NOTES_TOTAL, RELEVE, SOURCE } from '../contenu/demo';
+import { provenance, useEspace, useNotes } from '../donnees';
 
 /**
  * ══ 5 · MES NOTES ══
@@ -23,6 +22,9 @@ import { FORMATION, NOTES, NOTES_TOTAL, RELEVE, SOURCE } from '../contenu/demo';
  */
 export default function Notes() {
   const t = useToken();
+  const notes = useNotes();
+  const espace = useEspace();
+  const liste = notes.valeur?.notes ?? [];
 
   /*
    * ⚠️ L'ÉCRITURE N'EST PAS BRANCHÉE : une note se range sur l'inscription, côté Firestore, et
@@ -59,7 +61,7 @@ export default function Notes() {
         </Fab>
       )}
     >
-      <Eyebrow style={{ marginTop: 6 }}>{FORMATION?.moduleEnCours ?? 'Tes notes'}</Eyebrow>
+      <Eyebrow style={{ marginTop: 6 }}>{espace.valeur?.moduleEnCours ?? 'Tes notes'}</Eyebrow>
       <Display size={27} lines={['Mes notes']} style={{ marginTop: 8 }} />
 
       <View style={{
@@ -68,9 +70,8 @@ export default function Notes() {
       }}>
         {/* Le compte, ou rien. « 0 notes » sans relevé se lirait comme une perte. */}
         <Num
-          value={NOTES_TOTAL ? `${NOTES_TOTAL.notes} notes · ${NOTES_TOTAL.lecons} leçons` : null}
-          source={SOURCE}
-          asOf={RELEVE}
+          value={notes.valeur ? `${notes.valeur.total.notes} notes · ${notes.valeur.total.lecons} leçons` : null}
+          {...provenance(notes)}
           fallback="compte non relevé"
           style={{ fontSize: 12, color: t('textMuted') }}
         />
@@ -85,18 +86,30 @@ export default function Notes() {
         style={{ marginTop: 16 }}
       />
 
-      <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
-        {NOTES.map((n, i) => (
-          <LessonRow
-            key={n.texte}
-            icon={<Icon name="comment" size={14} color={t('ink2')} />}
-            title={n.texte}
-            meta={n.date}
-            trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
-            last={i === NOTES.length - 1}
-          />
-        ))}
-      </Surface>
+      {/* La liste ne se distingue plus d'un vide par sa longueur mais par sa PHASE : une
+          liste jamais lue et une liste vraiment vide n'ont pas la même chose à dire. */}
+      {liste.length === 0 ? (
+        <SansDonnees
+          quoi="tes notes"
+          degat="Une note inventée met une phrase dans ta bouche. C'est le seul contenu du produit que personne d'autre que toi n'a écrit."
+          etat={notes}
+          hauteur={3}
+          style={{ marginTop: 14 }}
+        />
+      ) : (
+        <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
+          {liste.map((n, i) => (
+            <LessonRow
+              key={n.id}
+              icon={<Icon name="comment" size={14} color={t('ink2')} />}
+              title={n.texte}
+              meta={n.date ?? undefined}
+              trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+              last={i === liste.length - 1}
+            />
+          ))}
+        </Surface>
+      )}
 
       <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
         <Eyebrow>Ce qu'elles deviennent</Eyebrow>

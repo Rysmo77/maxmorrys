@@ -13,10 +13,10 @@
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 import type { Etat } from '../ds';
-import { CLUB, FORMATION, FORMATION_2, MOI } from '../contenu/demo';
+import { CLUB, FORMATION, FORMATION_2, MOI, NOTES, NOTES_TOTAL, PROGRAMME } from '../contenu/demo';
 import { composer, composerListe } from './etat';
 export { provenance } from './etat';
-import type { VueCertificats, VueClub, VueCours, VueEspace, VueMoi } from './types';
+import type { VueCertificats, VueClub, VueCours, VueEspace, VueLecon, VueMoi, VueNotes } from './types';
 import { useVue } from './vue';
 
 export { SessionProvider, useSession, useUid } from './session';
@@ -24,7 +24,10 @@ export { connexionEmail, creationEmail, deconnexion, reinitialiser, ErreurIdenti
 export { exporterMesDonnees } from './rgpd';
 export { appeler, ErreurAppel } from './appel';
 export { viderLesVues } from './vue';
-export type { VueCertificat, VueCertificats, VueClub, VueCours, VueEspace, VueMoi } from './types';
+export type {
+  VueCertificat, VueCertificats, VueClub, VueCours, VueEspace, VueLecon, VueLeconLigne,
+  VueMoi, VueNote, VueNotes,
+} from './types';
 
 /** Qui regarde : prénom, initiale, date d'ouverture du compte. */
 export function useMoi(): Etat<VueMoi> {
@@ -105,5 +108,29 @@ export function useClub(): Etat<VueClub> {
     echeance: CLUB.echeance,
     depuis: CLUB.depuis,
     bilan: CLUB.bilan.map((b) => ({ n: b.n as number | null, l: b.l })),
+  });
+}
+
+/** Les notes, et les deux nombres qui les résument. */
+export function useNotes(): Etat<VueNotes> {
+  const brut = useVue<VueNotes>('appNotes');
+  return composer(brut, NOTES_TOTAL === null ? null : {
+    total: { notes: NOTES_TOTAL.notes, lecons: NOTES_TOTAL.lecons },
+    notes: NOTES.map((n, i) => ({ id: String(i), texte: n.texte, date: n.date })),
+  });
+}
+
+/** Le programme du module en cours, avec l'état de chaque leçon. */
+export function useLecon(formationId?: string): Etat<VueLecon> {
+  const brut = useVue<VueLecon>('appLecon', formationId ? { formationId } : {});
+  return composer(brut, PROGRAMME.length === 0 ? null : {
+    moduleTitre: FORMATION?.moduleEnCours ?? null,
+    programme: PROGRAMME.map((l, i) => ({
+      id: String(i),
+      titre: l.titre,
+      meta: l.meta,
+      etat: l.etat as 'done' | 'current' | 'todo',
+      doc: 'doc' in l ? Boolean(l.doc) : false,
+    })),
   });
 }

@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import {
   Body, ChipRow, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, ProgressBar, SansDonnees, Screen, Surface, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
-import { FORMATION, PROGRAMME, RELEVE, SOURCE } from '../contenu/demo';
+import { provenance, useEspace, useLecon } from '../donnees';
 import { useState } from 'react';
 
 /**
@@ -25,6 +25,9 @@ const VUES = ['Vidéo', 'Transcription', 'Mes notes', 'Ressources'] as const;
 export default function Lecon() {
   const t = useToken();
   const g = useActionGradient();
+  const lecon = useLecon();
+  const espace = useEspace();
+  const programme = lecon.valeur?.programme ?? [];
   const [vue, setVue] = useState<string>('Vidéo');
 
   function ouvrirLaVue(v: string) {
@@ -39,14 +42,14 @@ export default function Lecon() {
       territory="forme"
       tabbar
       retour="Cours"
-      titre={isIOS ? undefined : (FORMATION?.moduleEnCours ?? 'Leçon')}
+      titre={isIOS ? undefined : (lecon.valeur?.moduleTitre ?? 'Leçon')}
       droite={
         <IconButton label="Télécharger cette leçon">
           <Icon name="download" size={17} color={t('textBody')} strokeWidth={2.2} />
         </IconButton>
       }
     >
-      <Eyebrow style={{ marginTop: 6 }}>{FORMATION?.moduleEnCours ?? 'Ta leçon'}</Eyebrow>
+      <Eyebrow style={{ marginTop: 6 }}>{lecon.valeur?.moduleTitre ?? 'Ta leçon'}</Eyebrow>
       <Display size={26} lines={['Les mots que', 'tapent tes clients']} style={{ marginTop: 8 }} />
 
       {/* ── LE LECTEUR ─────────────────────────────────────────────────────────────────── */}
@@ -89,13 +92,17 @@ export default function Lecon() {
           position: 'absolute', left: 14, right: 14, bottom: 13,
           flexDirection: 'row', alignItems: 'center', gap: 9,
         }}>
-          <Num value="03:12" source={SOURCE} asOf={RELEVE} style={{ fontSize: 10.5, color: t('paperFixed') }} />
+          {/* ⚠️ LE LECTEUR N'EST PAS BRANCHÉ, et ces deux horodatages sont des repères de
+              maquette. Ils passaient par `<Num>` avec une source citée — c'est-à-dire qu'ils
+              se présentaient comme des valeurs relevées. `<Num>` existe précisément pour
+              interdire ça. Du texte reste du texte tant qu'`expo-audio` n'est pas là. */}
+          <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10.5, color: t('paperFixed') }}>03:12</Body>
           {/* La piste est un VOILE DE BLANC, pas `fill4` : sur un aplat de marque, l'échelle
               de remplissage neutre est une encre SOMBRE en mode clair — elle disparaîtrait. */}
           <View style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: veil(t('paperFixed'), 0.34) }}>
             <View style={{ width: '38%', height: '100%', borderRadius: 2, backgroundColor: t('paperFixed') }} />
           </View>
-          <Num value="08:24" source={SOURCE} asOf={RELEVE} style={{ fontSize: 10.5, color: t('paperFixed') }} />
+          <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10.5, color: t('paperFixed') }}>08:24</Body>
         </View>
       </Gradient>
 
@@ -108,7 +115,9 @@ export default function Lecon() {
             Elle est déjà sur ton téléphone : elle se lit sans charger la vidéo, et elle reste
             lisible quand le réseau lâche au milieu. C'est elle qui rend une coupure supportable.
           </Body>
-          <Num value="0 Mo à charger" source={SOURCE} asOf={RELEVE} style={{ fontSize: 13, marginTop: 12 }} />
+          {/* « 0 Mo » est une PROPRIÉTÉ de la transcription, pas une mesure : elle est déjà
+              sur l'appareil, donc il n'y a rien à charger. Aucune date n'a de sens ici. */}
+          <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 13, marginTop: 12 }}>0 Mo à charger</Body>
         </Surface>
       ) : null}
 
@@ -131,45 +140,50 @@ export default function Lecon() {
       }}>
         <Eyebrow>Le programme</Eyebrow>
         <Num
-          value={FORMATION ? `${FORMATION.progression} %` : null}
-          source={SOURCE}
-          asOf={RELEVE}
+          value={espace.valeur ? `${espace.valeur.progression} %` : null}
+          {...provenance(espace)}
           fallback="non relevée"
           style={{ fontSize: 12.5, color: t('textMuted') }}
         />
       </View>
       {/* Une barre à zéro qu'on n'a pas mesurée se lit comme une progression perdue. */}
-      {FORMATION ? <ProgressBar value={FORMATION.progression} style={{ marginTop: 8 }} /> : null}
+      {espace.valeur ? <ProgressBar value={espace.valeur.progression} style={{ marginTop: 8 }} /> : null}
 
-      {PROGRAMME.length === 0 ? (
+      {programme.length === 0 ? (
         <SansDonnees
           quoi="le programme de ce module"
           degat="Une leçon inventée est une leçon qu'on croit avoir à regarder — et son poids en mégaoctets déciderait de charger ou pas."
+          etat={lecon}
+          hauteur={5}
           style={{ marginTop: 14 }}
         />
       ) : (
       <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
-        {PROGRAMME.map((l, i) => (
+        {programme.map((l, i) => (
           <LessonRow
-            key={l.titre}
+            key={l.id}
             state={l.etat}
             icon={
               l.etat === 'current' ? <Icon name="play" size={13} color={t('paperFixed')} />
-                : 'doc' in l && l.doc ? <Icon name="doc" size={13} color={t('ink2')} />
+                : l.doc ? <Icon name="doc" size={13} color={t('ink2')} />
                   : undefined
             }
             iconBackground={l.etat === 'current' ? t('mmBleu') : undefined}
             title={l.titre}
-            meta={l.meta}
-            last={i === PROGRAMME.length - 1}
+            meta={l.meta ?? undefined}
+            last={i === programme.length - 1}
           />
         ))}
       </Surface>
       )}
 
+      {/* ⚠️ CETTE PHRASE PROMETTAIT « CHAQUE POIDS ». Le serveur ne renvoie la taille que
+          lorsqu'il la connaît — un poids inventé déciderait à la place de quelqu'un de
+          charger maintenant ou d'attendre le Wi-Fi, sur un forfait compté. La promesse est
+          donc devenue conditionnelle, comme les données. */}
       <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
-        Chaque poids est affiché parce que le forfait est compté. Le téléchargement se fait en
-        Wi-Fi par défaut.
+        Les poids sont affichés quand ils sont connus, parce que le forfait est compté. Le
+        téléchargement se fait en Wi-Fi par défaut.
       </Body>
     </Screen>
   );

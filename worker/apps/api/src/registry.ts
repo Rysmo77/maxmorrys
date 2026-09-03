@@ -3,6 +3,8 @@ import { acknowledgeAppointment } from './handlers/acknowledgeAppointment';
 import { resendTransactionMail } from './handlers/resendTransactionMail';
 import { appClub } from './handlers/app/club';
 import { appCertificats } from './handlers/app/certificats';
+import { appLecon } from './handlers/app/lecon';
+import { appNotes } from './handlers/app/notes';
 import { appCours } from './handlers/app/cours';
 import { appEspace } from './handlers/app/espace';
 import { appMoi } from './handlers/app/moi';
@@ -68,6 +70,8 @@ export const HANDLERS: Record<string, CallHandler> = {
   appCertificats,
   appClub,
   appCours,
+  appLecon,
+  appNotes,
   appEspace,
   appMoi,
   adminManageRysmoQuota,
