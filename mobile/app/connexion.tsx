@@ -130,6 +130,16 @@ export default function Connexion() {
         style={{ marginTop: 18 }}
         onPress={() => router.push('/creation')}
       />
+
+      {/* Les textes sont atteignables SANS compte : quelqu'un doit pouvoir lire ce à quoi il
+          s'engage avant de s'engager, pas après. */}
+      <Button
+        tone="quiet"
+        size="sm"
+        label="Confidentialité et conditions"
+        style={{ marginTop: 8 }}
+        onPress={() => router.push('/legal')}
+      />
     </Screen>
   );
 }

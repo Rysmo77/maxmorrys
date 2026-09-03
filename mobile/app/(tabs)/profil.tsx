@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   Avatar, Body, Button, Eyebrow, Field, Icon, LessonRow, SansDonnees, Screen, Segmented,
   Surface, Switch, TUTOR_DEFAUT, isIOS, setTutorNom, useScheme, useToken, useTutorNom, veil,
 } from '../../ds';
 import { MOI, STOCKAGE } from '../../contenu/demo';
+import { ErreurAppel } from '../../donnees/appel';
+import { deconnexion } from '../../donnees/identite';
+import { useSession } from '../../donnees/session';
+import { exporterMesDonnees } from '../../donnees/rgpd';
 
 /**
  * ══ 3 · LE PROFIL ══ — LA SECTION NOTIFICATIONS DEVIENT RÉELLE.
@@ -30,7 +34,7 @@ import { MOI, STOCKAGE } from '../../contenu/demo';
  * persisté dans le profil, pas avant.
  */
 const COMPTE = [
-  { href: '/connexion', glyphe: 'login' as const, titre: 'Connexion', meta: 'sur le site, avec la même session' },
+  { href: '/connexion', glyphe: 'login' as const, titre: 'Connexion', meta: 'ton e-mail et ton mot de passe' },
   { href: '/mot-de-passe', glyphe: 'lock' as const, titre: 'Mot de passe oublié', meta: 'un lien de réinitialisation' },
   { href: '/biometrie', glyphe: 'shield' as const, titre: 'Entrer sans mot de passe', meta: 'un raccourci, pas un remplacement' },
 ] as const;
@@ -38,6 +42,7 @@ const COMPTE = [
 const AILLEURS = [
   { href: '/media', glyphe: 'mic' as const, titre: 'Écouter & regarder', meta: 'le podcast, les vidéos' },
   { href: '/presence', glyphe: 'store' as const, titre: 'Présence Digitale', meta: 'pour ta boutique, hors application' },
+  { href: '/legal', glyphe: 'doc' as const, titre: 'Textes légaux', meta: 'confidentialité, conditions, mentions' },
   { href: '/console', glyphe: 'dashboard' as const, titre: 'Console support', meta: '5 écrans sur 19' },
   { href: '/apercu', glyphe: 'layers' as const, titre: 'Tous les écrans', meta: 'la planche de référence du kit' },
 ] as const;
@@ -47,6 +52,28 @@ export default function Profil() {
   const scheme = useScheme();
   const tuteur = useTutorNom();
   const [reprise, setReprise] = useState(true);
+  const [exportEnCours, setExportEnCours] = useState(false);
+  const session = useSession();
+
+  async function quitter() {
+    await deconnexion();
+    router.replace('/connexion');
+  }
+
+  async function exporter() {
+    if (exportEnCours) return;
+    setExportEnCours(true);
+    try {
+      await exporterMesDonnees();
+    } catch (erreur: unknown) {
+      Alert.alert(
+        "L'export n'a pas abouti",
+        erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
+      );
+    } finally {
+      setExportEnCours(false);
+    }
+  }
   const [serie, setSerie] = useState(true);
   const [club, setClub] = useState(true);
   const [bio, setBio] = useState(true);
@@ -186,11 +213,16 @@ export default function Profil() {
       {/* ── LES DONNÉES ────────────────────────────────────────────────────────────────── */}
       <Eyebrow style={{ marginTop: 22 }}>Tes données</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
+        {/* ⚠️ CETTE LIGNE N'AVAIT AUCUN `onPress`. Elle avait l'apparence complète d'un
+            contrôle — glyphe, titre, chevron de tête de ligne — et ne faisait rien. Sur
+            l'écran des données, c'est le pire endroit pour un bouton mort : quelqu'un qui
+            veut ses données avant de partir repart en croyant que l'export n'existe pas. */}
         <LessonRow
           icon={<Icon name="download" size={14} color={t('ink2')} />}
           title="Exporter mes données"
-          meta="tout ce qui te concerne, en un fichier"
+          meta={exportEnCours ? 'préparation du fichier…' : 'tout ce qui te concerne, en un fichier'}
           trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+          onPress={() => { void exporter(); }}
         />
         <LessonRow
           icon={<Icon name="trash" size={14} color={t('stop')} />}
@@ -219,9 +251,31 @@ export default function Profil() {
             meta={e.meta}
             trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
             onPress={() => router.push(e.href)}
-            last={i === COMPTE.length - 1}
+            last={i === COMPTE.length - 1 && session.phase !== 'connectee'}
           />
         ))}
+
+        {/* ⚠️ IL N'Y AVAIT AUCUNE SORTIE. On pouvait entrer dans un compte et pas en sortir
+            — un défaut qui ne se voit qu'une fois l'authentification branchée, parce qu'avant
+            il n'y avait pas de session à quitter. La ligne n'existe que si quelqu'un est
+            connecté : proposer de se déconnecter à un visiteur anonyme est une action qui ne
+            veut rien dire. */}
+        {session.phase === 'connectee' ? (
+          <LessonRow
+            icon={<Icon name="logout" size={14} color={t('ink2')} />}
+            title="Me déconnecter"
+            meta={session.email ?? 'de ce téléphone'}
+            onPress={() => Alert.alert(
+              'Te déconnecter ?',
+              "Tes téléchargements restent sur ce téléphone tant que l'application est installée.",
+              [
+                { text: 'Annuler', style: 'cancel' },
+                { text: 'Me déconnecter', style: 'destructive', onPress: () => { void quitter(); } },
+              ],
+            )}
+            last
+          />
+        ) : null}
       </Surface>
 
       {/*

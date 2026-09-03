@@ -104,13 +104,22 @@ export async function exportUserData(_data: unknown, context: CallContext): Prom
 
 /* ───────────────────────── Suppression de compte ─────────────────────── */
 
-/** Supprime tous les documents d'une requête, par pages bornées. */
-async function deleteByQuery(context: CallContext, collection: string, uid: string): Promise<void> {
+/**
+ * Supprime tous les documents d'une collection dont `champ` vaut l'uid, par pages bornées.
+ *
+ * Le champ est un paramètre parce que toutes les collections ne nomment pas leur
+ * propriétaire pareil : `referrals` porte `referrerId` ET `refereeId`, et ne balayer que
+ * `userId` y laisserait tout en place sans que rien ne le signale.
+ */
+async function deleteByQuery(
+  context: CallContext, collection: string, uid: string, champ = 'userId',
+): Promise<void> {
   const pages = context.db.queryPaged(
-    { collection, where: [{ field: 'userId', op: '==', value: uid }] },
+    { collection, where: [{ field: champ, op: '==', value: uid }] },
     200,
   );
   for await (const page of pages) {
+    if (page.length === 0) continue;
     await context.db.commit(page.map((doc) => ({ delete: context.db.fullName(doc.path) })));
   }
 }
@@ -147,11 +156,30 @@ export async function deleteUserAccount(data: unknown, context: CallContext): Pr
     throw new HttpsError('failed-precondition', 'Confirmation incorrecte.');
   }
 
-  await Promise.all(
-    ['enrollments', 'certificates', 'transactions', 'testimonials', 'messages'].map((collection) =>
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════════
+   * CE QUI PART, ET POURQUOI LA LISTE A DÛ S'ALLONGER.
+   *
+   * L'écran `mobile/app/suppression.tsx` ÉNUMÈRE ce qui disparaît. Tant que le balayage
+   * était plus court que cette liste, l'écran promettait ce que le serveur ne faisait pas
+   * — et le cas le plus visible n'était pas un chiffre mais un NOM : `club_posts` porte
+   * `userName` en clair. Une personne supprimée gardait ses messages signés sur le mur du
+   * Club, à côté de gens qui pouvaient encore la citer.
+   *
+   * Les collections ci-dessous portent toutes une trace nominative ou nominative-adjacente.
+   * `referrals` est le cas particulier : deux champs désignent des personnes, et celui qui
+   * est PARRAINÉ compte autant que celui qui parraine.
+   * ══════════════════════════════════════════════════════════════════════════════════
+   */
+  await Promise.all([
+    ...['enrollments', 'certificates', 'transactions', 'testimonials', 'messages',
+      'club_posts', 'club_profiles', 'conversations'].map((collection) =>
       deleteByQuery(context, collection, uid),
     ),
-  );
+    // Les deux bouts d'un parrainage. Omettre le second laisse le nom du filleul.
+    deleteByQuery(context, 'referrals', uid, 'referrerId'),
+    deleteByQuery(context, 'referrals', uid, 'refereeId'),
+  ]);
 
   await deleteSubcollection(context, `users/${uid}/notes`);
   await deleteSubcollection(context, `notifications/${uid}/items`);
