@@ -151,7 +151,7 @@ function Corps({ episode }: { episode: NonNullable<typeof EPISODE> }) {
             borderWidth: 1, borderColor: veil(blanc, 0.14),
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 12 }}>
-              <Wordmark brand="rysmo" size={13} night tail={blanc} />
+              <Wordmark brand="rysmo" size={13} night tail={blanc} /> {/* ok-ds — posé sur un voile sombre, pas en mode sombre */}
               <Body style={{ fontSize: 11.5, color: blanc2 }}>· maintenant</Body>
             </View>
             <View style={{ flexDirection: 'row', gap: 13, alignItems: 'center' }}>

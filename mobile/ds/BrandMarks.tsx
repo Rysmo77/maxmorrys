@@ -26,14 +26,21 @@ import { useToken } from './theme';
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 
-/** Le « G » officiel, tracé pour tracé depuis `assets/icons/google.svg` du transfert. */
+/**
+ * Le « G » officiel, tracé pour tracé depuis `assets/icons/google.svg` du transfert.
+ *
+ * Les quatre codes ci-dessous portent `ok-ds` et le garderont : ce sont les couleurs de
+ * marque de Google, imposées par ses directives d'identité. Les remplacer par des jetons de
+ * NOTRE palette ne rendrait pas le composant plus cohérent — il rendrait le « G » faux, et
+ * son usage non conforme. AD-2 protège l'encre du produit, pas les marques de tiers.
+ */
 export function GoogleMark({ size = 19 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.6a4.8 4.8 0 01-2.1 3.1v2.6h3.4c2-1.8 3.1-4.5 3.1-7.6z" />
-      <Path fill="#34A853" d="M12 22c2.8 0 5.2-.9 6.9-2.5l-3.4-2.6c-.9.6-2.1 1-3.5 1a6.1 6.1 0 01-5.7-4.2H2.8v2.6A10 10 0 0012 22z" />
-      <Path fill="#FBBC05" d="M6.3 13.7a6 6 0 010-3.8V7.3H2.8a10 10 0 000 9l3.5-2.6z" />
-      <Path fill="#EA4335" d="M12 5.9c1.5 0 2.9.5 4 1.6l3-3A10 10 0 002.8 7.3l3.5 2.6A6.1 6.1 0 0112 5.9z" />
+      <Path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.6a4.8 4.8 0 01-2.1 3.1v2.6h3.4c2-1.8 3.1-4.5 3.1-7.6z" /> {/* ok-ds */}
+      <Path fill="#34A853" d="M12 22c2.8 0 5.2-.9 6.9-2.5l-3.4-2.6c-.9.6-2.1 1-3.5 1a6.1 6.1 0 01-5.7-4.2H2.8v2.6A10 10 0 0012 22z" /> {/* ok-ds */}
+      <Path fill="#FBBC05" d="M6.3 13.7a6 6 0 010-3.8V7.3H2.8a10 10 0 000 9l3.5-2.6z" /> {/* ok-ds */}
+      <Path fill="#EA4335" d="M12 5.9c1.5 0 2.9.5 4 1.6l3-3A10 10 0 002.8 7.3l3.5 2.6A6.1 6.1 0 0112 5.9z" /> {/* ok-ds */}
     </Svg>
   );
 }

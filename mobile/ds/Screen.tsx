@@ -54,7 +54,7 @@ export function Screen({
 }: {
   territory?: ScreenTerritory;
   /** Écran nuit — console, /403. Ouvre une portée de thème, pas une prop passée aux enfants. */
-  dark?: boolean;
+  dark?: boolean; // ok-ds — OUVRE la portée de thème de l'écran, l'équivalent RN de `.dk` ; rien n'est passé aux enfants
   /** Libellé de retour. Affiché sur iOS, dit à voix haute sur Android. */
   retour?: string;
   /** Par défaut `router.back()`. Le préciser sert quand le retour saute une étape. */

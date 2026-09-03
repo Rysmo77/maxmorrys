@@ -72,7 +72,7 @@ export default function Widget() {
           backgroundColor: verre, borderWidth: 1, borderColor: liseré,
         }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-            <Wordmark brand="rysmo" size={15} night tail={surFond} />
+            <Wordmark brand="rysmo" size={15} night tail={surFond} /> {/* ok-ds — posé sur le verre du widget, pas en mode sombre */}
             <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10, color: surFond2 }}>il y a 8 jours</Body>
           </View>
           <Body style={{ fontSize: 15, fontWeight: '600', color: surFond, lineHeight: 20, marginTop: 10 }}>
@@ -122,7 +122,7 @@ export default function Widget() {
               radius={isIOS ? 15 : 29}
               style={{ width: 58, height: 58, alignItems: 'center', justifyContent: 'center' }}
             >
-              <Wordmark brand="rysmo" size={13} night tail={surFond} />
+              <Wordmark brand="rysmo" size={13} night tail={surFond} /> {/* ok-ds — posé sur un aplat de marque, pas en mode sombre */}
             </Gradient>
             {(['chat', 'search', 'calendar'] as const).map((n) => (
               <View

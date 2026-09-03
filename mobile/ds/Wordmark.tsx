@@ -23,7 +23,7 @@ export function Wordmark({
   /** Encre du corps du mot. Par défaut l'encre courante — blanc sur un aplat de marque. */
   tail?: string;
   /** Sur fond sombre POSÉ (un aplat de marque), pas en mode sombre : les teintes nuit. */
-  night?: boolean;
+  night?: boolean; // ok-ds — « sur fond sombre POSÉ », pas le mode sombre : la valeur ne dépend pas du thème
   /** « Max » seul, sans « -Morrys ». */
   short?: boolean;
   style?: StyleProp<TextStyle>;

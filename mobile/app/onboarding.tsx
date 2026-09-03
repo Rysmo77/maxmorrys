@@ -70,7 +70,7 @@ export default function Onboarding() {
         radius={30}
         style={{ height: 220, marginTop: 10, alignItems: 'center', justifyContent: 'center' }}
       >
-        <Wordmark brand="rysmo" size={34} night tail={t('paperFixed')} />
+        <Wordmark brand="rysmo" size={34} night tail={t('paperFixed')} /> {/* ok-ds — posé sur un aplat de marque, pas en mode sombre */}
       </Gradient>
 
       <Eyebrow style={{ marginTop: 26 }}>{courant.eyebrow}</Eyebrow>

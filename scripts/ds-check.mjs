@@ -358,8 +358,19 @@ const MOBILE = existsSync(join(root, 'mobile')) ? walk(join(root, 'mobile'), ['.
 /* ── AD-3 · aucune prop de thème ───────────────────────────────────────────── */
 {
   for (const f of [...TSX, ...MOBILE]) {
+    /*
+     * L'échappatoire `ok-ds` se lit sur la ligne BRUTE, exactement comme AD-2 le fait déjà.
+     *
+     * Elle manquait ici, et c'est ce qui a bloqué la barrière : la règle énonce sa propre
+     * raison en CSS — « le thème est une portée .dk » — et React Native n'a pas de CSS. Sur
+     * `mobile/` elle n'a donc rien à mesurer, mais y renoncer LIGNE PAR LIGNE, avec un motif
+     * écrit à côté, vaut mieux qu'exempter le dossier : le jour où du vrai passage de thème
+     * y sera écrit, la règle le verra encore.
+     */
+    const raw = rawLines(f);
     lines(f).forEach((l, i) => {
-      if (/\b(dark|night)\s*[?:]?\s*:\s*boolean|<[A-Z]\w*[^>]*\s(dark|night)(\s|=\{true\}|>)/.test(l))
+      if (/\b(dark|night)\s*[?:]?\s*:\s*boolean|<[A-Z]\w*[^>]*\s(dark|night)(\s|=\{true\}|>)/.test(l)
+          && !OK_DS.test(raw[i] ?? ''))
         add('3 · prop de thème', 'AD-3', rel(f), i + 1, 'prop de thème — le thème est une portée CSS (.dk), jamais une prop : sinon le composant retombe silencieusement sur sa valeur claire');
     });
   }
