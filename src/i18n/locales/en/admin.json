@@ -261,7 +261,8 @@
     "emptyBody": "The tiles count the whole collection; the stage and the search only filter the display.",
     "scope": "Confirming or cancelling writes a status to the database and sends nothing: no e-mail, no SMS, no calendar invite. The person who asked for the slot will only know your answer if you write to them yourself, and no calendar is kept up to date anywhere else. The slot is not checked either: two requests can be confirmed on the same hour. The kit files this screen under “upcoming / past”; the pattern forbids filtering by date, so the stage stays the status.",
     "panelLoading": "Reading requests…",
-    "panelNone": "No request to open. A dated zero is information about the top of the funnel, not about this screen."
+    "panelNone": "No request to open. A dated zero is information about the top of the funnel, not about this screen.",
+    "mailStuckTag": "Ack stuck"
   },
   "agencyLeads": {
     "title": "Agency leads",
@@ -893,7 +894,8 @@
     "replyPlaceholder": "Write your reply. It goes out by email and shows up in their space.",
     "replySent": "Reply sent",
     "replyNoteAccount": "The reply will arrive by email and in their space.",
-    "replyNoteGuest": "This message came from a visitor without an account: the reply will go out by email only."
+    "replyNoteGuest": "This message came from a visitor without an account: the reply will go out by email only.",
+    "mailStuckTag": "Email stuck"
   },
   "podcasts": {
     "title": "Podcasts",

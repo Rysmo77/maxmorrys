@@ -37,7 +37,7 @@ export default function AdminLayout() {
     est une seule personne : un menu muet l'oblige à ouvrir les dix-neuf écrans pour
     savoir lequel attend quelque chose.
 
-    ON N'EN POSE QUE CINQ, ET C'EST DÉLIBÉRÉ. `getPlatformStats()` relève onze
+    ON N'EN POSE QUE SEPT, ET C'EST DÉLIBÉRÉ. `getPlatformStats()` relève onze
     nombres ; les autres entrées n'en ont aucun. Un badge absent dit « non relevé ».
     Inventer « 0 » pour les entrées sans compte serait affirmer un relevé qu'on n'a
     pas fait — exactement ce que la règle 6 interdit, et ce que le handoff redit :
@@ -57,12 +57,28 @@ export default function AdminLayout() {
         '/admin/utilisateurs': String(counts.users),
         '/admin/articles': drafts > 0 ? t('nav.badgeDrafts', { count: drafts }) : null,
         '/admin/formations': unpublished > 0 ? t('nav.badgeUnpublished', { count: unpublished }) : null,
-        '/admin/messages': counts.newMessages > 0 ? t('nav.badgeNew', { count: counts.newMessages }) : null,
+        /*
+          UNE PANNE PASSE DEVANT UNE FILE D'ATTENTE.
+
+          Cette entrée peut porter deux comptes — des messages nouveaux, et des réponses
+          dont l'e-mail n'est jamais parti — et le badge n'en affiche qu'un. L'arbitrage
+          n'est pas arbitraire : un message non lu attend, une réponse non partie a déjà
+          menti. Le message porte l'étiquette « Répondu », le destinataire n'a rien reçu.
+          C'est le seul des deux états qui empire tout seul.
+        */
+        '/admin/messages': counts.messagesMailPending > 0
+          ? t('nav.badgeMailPending', { count: counts.messagesMailPending })
+          : counts.newMessages > 0 ? t('nav.badgeNew', { count: counts.newMessages }) : null,
+        '/admin/rendez-vous': counts.appointmentsMailPending > 0
+          ? t('nav.badgeMailPending', { count: counts.appointmentsMailPending })
+          : null,
         '/admin/prospects-agence': counts.newAgencyLeads > 0 ? t('nav.badgeToQualify', { count: counts.newAgencyLeads }) : null,
         /*
-          LE SIXIÈME BADGE — et le seul qui signale une PANNE plutôt qu'une file d'attente.
+          LE BADGE DE PANNE, troisième et dernier de sa famille.
 
-          Les cinq autres comptent du travail à faire ; celui-ci compte des clients qui ont
+          Les quatre badges de file d'attente comptent du travail à faire. Les trois badges
+          de courrier — messages, rendez-vous, et celui-ci — comptent des gens à qui le
+          système a déjà répondu sans que rien ne parte. Ici, des clients qui ont
           payé et n'ont rien reçu. L'article 4 des CGV promet la facture « automatiquement,
           dès validation du paiement » : quand l'envoi échoue, la promesse est rompue et
           personne ne le sait — l'échec ne laissait qu'un `console.error` dans les journaux

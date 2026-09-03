@@ -261,7 +261,8 @@
     "emptyBody": "Les compteurs portent sur la collection entière ; l'étape et la recherche ne filtrent que l'affichage.",
     "scope": "Confirmer ou annuler écrit un statut en base et n'envoie rien : ni e-mail, ni SMS, ni invitation d'agenda. La personne qui a demandé le créneau ne saura ta réponse que si tu la lui écris toi-même, et aucun calendrier n'est tenu à jour ailleurs. Le créneau n'est pas vérifié non plus : deux demandes peuvent être confirmées sur la même heure. Le kit range cet écran en « à venir / passés » ; le motif interdit de filtrer par date, donc l'étape reste le statut.",
     "panelLoading": "Lecture des demandes…",
-    "panelNone": "Aucune demande à ouvrir. Un zéro daté est une information sur le haut de l'entonnoir, pas sur cet écran."
+    "panelNone": "Aucune demande à ouvrir. Un zéro daté est une information sur le haut de l'entonnoir, pas sur cet écran.",
+    "mailStuckTag": "Accusé bloqué"
   },
   "agencyLeads": {
     "title": "Prospects agence",
@@ -893,7 +894,8 @@
     "replyPlaceholder": "Écris ta réponse. Elle part par e-mail et s’affiche dans son espace.",
     "replySent": "Réponse envoyée",
     "replyNoteAccount": "La réponse arrivera par e-mail et dans son espace.",
-    "replyNoteGuest": "Ce message vient d’un visiteur sans compte : la réponse partira uniquement par e-mail."
+    "replyNoteGuest": "Ce message vient d’un visiteur sans compte : la réponse partira uniquement par e-mail.",
+    "mailStuckTag": "Courrier bloqué"
   },
   "podcasts": {
     "title": "Podcasts",

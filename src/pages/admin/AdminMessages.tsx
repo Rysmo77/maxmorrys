@@ -202,6 +202,7 @@ export default function AdminMessages() {
             {selected.email}
           </a>
         </div>
+        {selected.mailPending && <Tag tone="warn">{t('messages.mailStuckTag')}</Tag>}
         <Tag tone={TONE[selected.status]}>{statusLabels[selected.status]}</Tag>
       </div>
 
@@ -317,7 +318,15 @@ export default function AdminMessages() {
                 iconBackground={`color-mix(in srgb, var(${GLYPH[msg.status].token}) 20%, transparent)`}
                 title={msg.subject}
                 meta={`${msg.name} · ${new Date(msg.sentAt).toLocaleDateString(locale)}`}
-                trailing={<Tag tone={TONE[msg.status]}>{statusLabels[msg.status]}</Tag>}
+                trailing={(
+                  <span className="flex items-center gap-2">
+                    {/* Une réponse dont l'e-mail n'est pas parti a DÉJÀ menti : le message
+                        porte « Répondu », le destinataire n'a rien reçu. L'étiquette passe
+                        donc devant celle du statut, qui affirme le contraire. */}
+                    {msg.mailPending && <Tag tone="warn">{t('messages.mailStuckTag')}</Tag>}
+                    <Tag tone={TONE[msg.status]}>{statusLabels[msg.status]}</Tag>
+                  </span>
+                )}
                 onClick={() => { void openMessage(msg); }}
                 last={i === filtered.length - 1}
               />

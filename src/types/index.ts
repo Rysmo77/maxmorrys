@@ -305,6 +305,11 @@ export interface Appointment {
   message?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   createdAt: string;
+  /** Accusé de réception envoyé. Absent = jamais parti. */
+  acknowledgedAt?: string;
+  /** L'accusé a-t-il échoué ? Booléen explicite : Firestore ne requête pas l'absence. */
+  mailPending?: boolean;
+  mailError?: string | null;
 }
 
 /** Offre agence « Digital Commerce Local » — grille dans src/lib/presence/offer.ts (page /presence-digitale) */
@@ -520,6 +525,13 @@ export interface ContactMessage {
   repliedAt?: string;
   /** UID de l'administrateur qui a répondu. Traçabilité, jamais affichée. */
   repliedBy?: string;
+  /* ── Le courrier de réponse ─────────────────────────────────────────────────
+     `emailSent` remontait à la console sans être persisté : refermer l'onglet
+     effaçait l'information, et le message restait « répondu » alors que le
+     destinataire n'avait rien reçu. */
+  replyEmailSentAt?: string | null;
+  replyEmailError?: string | null;
+  mailPending?: boolean;
 }
 
 export interface Coupon {

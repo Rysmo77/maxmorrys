@@ -138,6 +138,7 @@ export default function AdminAppointments() {
             </div>
             {/* LE BOUTON « FERMER » A DISPARU AVEC LA MODALE : une colonne permanente ne
                 se ferme pas, elle change de sujet. La place revient à l'ÉTAT. */}
+            {sheet.mailPending && <Tag tone="warn">{t('appointments.mailStuckTag')}</Tag>}
             <Tag tone={STATUS_TONE[sheet.status]}>{STATUS_LABELS[sheet.status]}</Tag>
           </div>
 
@@ -270,7 +271,12 @@ export default function AdminAppointments() {
                   meta={`${t('appointments.dateAtTime', { date: a.date, time: a.time })} · ${a.subject}`}
                   /* UNE action par ligne : sélectionner. La fiche est la colonne d'à
                      côté et elle suit — ouvrir n'est plus une seconde action. */
-                  trailing={<Tag tone={STATUS_TONE[a.status]}>{STATUS_LABELS[a.status]}</Tag>}
+                  trailing={(
+                    <span className="flex items-center gap-2">
+                      {a.mailPending && <Tag tone="warn">{t('appointments.mailStuckTag')}</Tag>}
+                      <Tag tone={STATUS_TONE[a.status]}>{STATUS_LABELS[a.status]}</Tag>
+                    </span>
+                  )}
                   onClick={() => setOpenId(a.id)}
                   last={i === filtered.length - 1}
                 />

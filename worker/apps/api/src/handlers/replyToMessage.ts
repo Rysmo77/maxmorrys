@@ -115,6 +115,24 @@ export async function replyToMessage(data: unknown, context: CallContext): Promi
       })
     : { sent: false, error: 'destinataire absent' };
 
+  /*
+    L'ÉCHEC SE PERSISTE, IL NE SE CONTENTE PAS D'ÊTRE RENDU.
+
+    `emailSent: false` remontait bien à la console, mais nulle part ailleurs : refermer
+    l'onglet effaçait l'information. Le message restait « répondu » — étiquette verte —
+    alors que le destinataire n'avait rien reçu. C'est le pire état, celui où le système
+    affirme avoir fait ce qu'il n'a pas fait.
+
+    `mailPending` est écrit dans les DEUX sens, pour la même raison que sur les
+    transactions : un drapeau qu'on ne baisse jamais finit par ne plus rien signaler. Et
+    c'est un booléen explicite parce que Firestore ne sait pas requêter un champ absent.
+  */
+  await context.db.update(chemin, {
+    mailPending: !envoi.sent,
+    replyEmailSentAt: envoi.sent ? maintenant : null,
+    replyEmailError: envoi.sent ? null : (envoi.error ?? 'inconnue'),
+  });
+
   if (!envoi.sent) {
     console.error('Réponse enregistrée mais e-mail non envoyé pour', chemin, '—', envoi.error);
   }

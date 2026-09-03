@@ -109,6 +109,7 @@ export async function getPlatformStats() {
     usersSnap, formationsSnap, blogSnap, messagesSnap, enrollmentsSnap, newsletterSnap,
     publishedFormationsSnap, publishedPostsSnap, newMessagesSnap,
     agencyLeadsSnap, newAgencyLeadsSnap, mailPendingSnap,
+    messagesMailPendingSnap, appointmentsMailPendingSnap,
   ] = await Promise.all([
     getCountFromServer(collection(db, 'users')),
     getCountFromServer(collection(db, 'formations')),
@@ -134,6 +135,11 @@ export async function getPlatformStats() {
      * transactions, colonne par colonne, pas dans ce compteur.
      */
     getCountFromServer(query(collection(db, 'transactions'), where('mailPending', '==', true))),
+    /* Même marqueur, mêmes raisons, sur les deux autres surfaces qui envoient du courrier.
+       Les prospects agence n'en ont pas : aucun courrier ne part encore pour eux, et un
+       compteur à zéro y affirmerait un canal qui n'existe pas. */
+    getCountFromServer(query(collection(db, 'messages'), where('mailPending', '==', true))),
+    getCountFromServer(query(collection(db, 'appointments'), where('mailPending', '==', true))),
   ]);
   return {
     users: usersSnap.data().count,
@@ -148,6 +154,8 @@ export async function getPlatformStats() {
     agencyLeads: agencyLeadsSnap.data().count,
     newAgencyLeads: newAgencyLeadsSnap.data().count,
     mailPending: mailPendingSnap.data().count,
+    messagesMailPending: messagesMailPendingSnap.data().count,
+    appointmentsMailPending: appointmentsMailPendingSnap.data().count,
   };
 }
 
