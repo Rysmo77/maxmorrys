@@ -37,6 +37,8 @@ export interface PopupContext {
   isSignedIn: boolean;
   /** Une formation a été laissée dans un tunnel de paiement non abouti. */
   hasPendingCart: boolean;
+  /** Le simulateur de devis a été engagé sans être envoyé. */
+  hasStartedQuote: boolean;
 }
 
 export interface PopupDefinition {
@@ -159,6 +161,26 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
     trigger: 'exitIntent',
     mobileSurface: 'modal',
     eligible: (c) => c.path === '/agence',
+  },
+
+  /*
+    Devis commencé, jamais envoyé. C'est la reprise de panier, transposée à la seule offre
+    high-ticket que le produit sache encaisser aujourd'hui : quelqu'un qui a nommé son commerce
+    et choisi un pack est très loin devant un visiteur qui passe.
+
+    ⚠️ Elle passe AVANT `presenceExit`, et c'est tout l'intérêt. Les deux visent la même page et
+    le même déclencheur, mais celle-ci s'adresse à un sous-segment beaucoup plus chaud et peut
+    donc lui parler autrement — reprendre là où il s'est arrêté, plutôt que présenter l'offre.
+    Sans cette priorité, la fenêtre générique gagnerait toujours la course.
+
+    ⚠️ Modale, comme sa voisine, et pour la même raison : `StickyWhatsApp` occupe déjà le bas
+    de l'écran sous `lg` sur cette page. Un bandeau entrerait en collision avec lui.
+  */
+  {
+    id: 'quoteAbandon',
+    trigger: 'exitIntent',
+    mobileSurface: 'modal',
+    eligible: (c) => c.path === '/presence-digitale' && c.hasStartedQuote,
   },
 
   /*

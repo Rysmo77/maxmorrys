@@ -17,6 +17,7 @@ import { findEligible, getDefinition, type PopupContext, type PopupTrigger } fro
 import { getVariant, type PopupVariant } from '../../lib/popups/variant';
 import { sendPopupEvent } from '../../lib/popups/beacon';
 import { getPendingCart, clearCartPending } from '../../lib/popups/cart';
+import { hasQuoteStarted, clearQuoteStarted } from '../../lib/popups/quote';
 import { useExitIntent } from '../../hooks/useExitIntent';
 /*
   L'arbitre reste en import direct (cf. son montage dans `App.tsx`), mais les
@@ -34,6 +35,7 @@ const BlogEndPopup = lazy(() => import('./BlogEndPopup'));
 const CartRecoveryPopup = lazy(() => import('./CartRecoveryPopup'));
 const ClubExitPopup = lazy(() => import('./ClubExitPopup'));
 const MediaEndPopup = lazy(() => import('./MediaEndPopup'));
+const QuoteAbandonPopup = lazy(() => import('./QuoteAbandonPopup'));
 
 /**
  * Arbitre UNIQUE des pop-ups contextuelles du site public.
@@ -110,6 +112,9 @@ export default function PopupManager() {
   // LIBÈRE LE CRÉNEAU pour la règle suivante du registre.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const pendingCartSlug = useMemo(() => getPendingCart(), [path, active, cartGone]);
+  // Même idiome que le marqueur de panier : relu aux moments où il a pu changer.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const quoteStarted = useMemo(() => hasQuoteStarted(), [path, active]);
 
   useEffect(() => {
     setSource(captureEntrySource());
@@ -131,7 +136,8 @@ export default function PopupManager() {
     entrySource: source,
     isSignedIn: !authLoading && !!user,
     hasPendingCart: pendingCartSlug !== null,
-  }), [path, source, authLoading, user, pendingCartSlug]);
+    hasStartedQuote: quoteStarted,
+  }), [path, source, authLoading, user, pendingCartSlug, quoteStarted]);
 
   /*
     Tant que l'authentification n'est pas résolue, on ne décide rien : traiter une session non
@@ -484,6 +490,22 @@ export default function PopupManager() {
           onAccept={() => close('formationExit', 'formation', false)}
           onClub={() => close('formationExit', 'club', false)}
           onDismiss={() => close('formationExit', 'close')}
+        />,
+      );
+
+    case 'quoteAbandon':
+      return surface(
+        <PopupAurora tone="lagoon" />,
+        <QuoteAbandonPopup
+          onResume={() => close('quoteAbandon', 'resume', false)}
+          onWhatsapp={() => {
+            clearQuoteStarted(); // il passe sur WhatsApp : le rappel a fait son office
+            close('quoteAbandon', 'whatsapp', false);
+          }}
+          onDismiss={() => {
+            markSuppressed('quoteAbandon'); // refus explicite : ne pas reproposer pendant 30 jours
+            close('quoteAbandon', 'close');
+          }}
         />,
       );
 

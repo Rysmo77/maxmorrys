@@ -138,6 +138,15 @@
       "cta": "Voir ce que contient le Club",
       "secondary": "Continuer à écouter",
       "dismiss": "Non merci"
+    },
+    "quoteAbandon": {
+      "title": "Tu y étais presque",
+      "eyebrow": "Ton devis t'attend",
+      "sticker": "Rien de perdu",
+      "text": "Tu as commencé à décrire ton commerce et tu t'es arrêté. Ce que tu as saisi est toujours là — il reste quelques champs, et je te renvoie une proposition chiffrée.",
+      "cta": "Reprendre mon devis",
+      "secondary": "Ou en parler sur WhatsApp",
+      "dismiss": "Plus tard"
     }
   },
   "articleCard": {

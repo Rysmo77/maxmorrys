@@ -7,6 +7,7 @@ const base: PopupContext = {
   entrySource: 'direct',
   isSignedIn: false,
   hasPendingCart: false,
+  hasStartedQuote: false,
 };
 const ctx = (over: Partial<PopupContext>): PopupContext => ({ ...base, ...over });
 
@@ -71,6 +72,38 @@ describe('règles par page', () => {
       const found = findEligible(ctx({ path, entrySource: 'search' }));
       expect(found?.id).not.toBe('formationsEntry');
     }
+  });
+});
+
+describe('devis commencé — la priorité sur la retenue générique', () => {
+  it('l’emporte sur `presenceExit`, qui vise la même page', () => {
+    /*
+      Les deux se déclenchent à la sortie de /presence-digitale. Sans cette priorité, la
+      fenêtre générique gagnerait toujours et parlerait à quelqu'un qui a déjà rempli la
+      moitié du formulaire comme au premier venu.
+    */
+    const engage = ctx({ path: '/presence-digitale', hasStartedQuote: true });
+    expect(findEligible(engage)?.id).toBe('quoteAbandon');
+  });
+
+  it('laisse la place à `presenceExit` quand le simulateur n’a pas été touché', () => {
+    expect(findEligible(ctx({ path: '/presence-digitale' }))?.id).toBe('presenceExit');
+  });
+
+  it('ne suit pas le visiteur ailleurs', () => {
+    // Le marqueur est global au navigateur ; la fenêtre, elle, ne vit que sur sa page.
+    expect(findEligible(ctx({ path: '/agence', hasStartedQuote: true }))?.id).toBe('agencyExit');
+    expect(findEligible(ctx({ path: '/blog/un-article', hasStartedQuote: true }))?.id).toBe('blogEnd');
+  });
+
+  it('reste en modale — collision avec le bouton WhatsApp collant de la page', () => {
+    expect(POPUP_REGISTRY.find((d) => d.id === 'quoteAbandon')?.mobileSurface).toBe('modal');
+  });
+
+  it('ne passe jamais devant une reprise de panier', () => {
+    // Un paiement laissé en route reste ce qui approche le plus de l'achat.
+    const deux = ctx({ path: '/presence-digitale', hasStartedQuote: true, hasPendingCart: true });
+    expect(findEligible(deux)?.id).toBe('cartRecovery');
   });
 });
 

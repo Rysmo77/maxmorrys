@@ -1292,7 +1292,9 @@
     "popupClubExitLabel": "Club des Digitos exit prompt",
     "popupClubExitDesc": "On exit: names the hidden step — the subscription is created from the learner space, which needs an account",
     "popupMediaEndLabel": "End of a podcast or video",
-    "popupMediaEndDesc": "At 90% scroll: a route to the Club, the only next step these two pages offer"
+    "popupMediaEndDesc": "At 90% scroll: a route to the Club, the only next step these two pages offer",
+    "popupQuoteAbandonLabel": "Quote started, never sent",
+    "popupQuoteAbandonDesc": "On exit, for someone who engaged the simulator without sending it — takes priority over the generic prompt"
   },
   "users": {
     "title": "Users",

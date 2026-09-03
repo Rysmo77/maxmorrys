@@ -30,7 +30,8 @@ export type PopupId =
   | 'blogEnd'
   | 'cartRecovery'
   | 'clubExit'
-  | 'mediaEnd';
+  | 'mediaEnd'
+  | 'quoteAbandon';
 
 /** Motif de blocage, ou `null` si la pop-up peut s'afficher. Consommé par le diagnostic. */
 export type PopupBlocker = 'sessionCap' | 'cooldown' | 'suppressed' | 'noStorage';

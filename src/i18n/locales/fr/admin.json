@@ -1292,7 +1292,9 @@
     "popupClubExitLabel": "Retenue sur le Club des Digitos",
     "popupClubExitDesc": "À la sortie : nomme la marche cachée — l'abonnement se crée depuis l'espace, qui demande un compte",
     "popupMediaEndLabel": "Fin d'un podcast ou d'une vidéo",
-    "popupMediaEndDesc": "À 90 % de lecture : passage vers le Club, seule suite proposée sur ces deux fiches"
+    "popupMediaEndDesc": "À 90 % de lecture : passage vers le Club, seule suite proposée sur ces deux fiches",
+    "popupQuoteAbandonLabel": "Devis commencé, jamais envoyé",
+    "popupQuoteAbandonDesc": "À la sortie, pour qui a engagé le simulateur sans l'envoyer — passe avant la retenue générique"
   },
   "users": {
     "title": "Utilisateurs",
