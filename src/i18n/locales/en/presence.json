@@ -6,7 +6,6 @@
   "heroTitle2": "[findable]",
   "heroSubtitle": "Right now they're finding your competitors. I set up everything you need to be found, to be contacted, and to finally know what it brings you.",
   "heroCta": "Find your pack in 3 questions",
-  "heroSecondary": "Talk about it on WhatsApp",
   "stickyCta": "Ask my question on WhatsApp",
   "proof": {
     "title": "Try it right now",
@@ -17,7 +16,8 @@
     "areaPlaceholder": "Point E, Dakar",
     "cta": "See who ranks above you",
     "note": "That's exactly the first thing I fix.",
-    "eyebrow": "Proof, right now"
+    "eyebrow": "Proof, right now",
+    "ctaHint": "Enter your trade to run the test. The neighbourhood is optional — it sharpens the result."
   },
   "whatsapp": {
     "greeting": "Hi Max-Morrys 👋",
@@ -111,7 +111,7 @@
     "subtitle": "A one-off payment to install everything. Excluding advertising, domain name and third-party subscriptions.",
     "priceLabel": "Setup",
     "promoLabel": "Launch price: {{price}}",
-    "featured": "Most chosen",
+    "featured": "If you already sell",
     "recommended": "Recommended for you",
     "cta": "Request this pack",
     "supportIncluded": "{{days}} days of support included",

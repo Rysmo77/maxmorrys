@@ -243,7 +243,15 @@ service cloud.firestore {
         && request.resource.data.email.size() <= 254
         && request.resource.data.message is string
         && request.resource.data.message.size() >= 10
-        && request.resource.data.message.size() <= 5000;
+        && request.resource.data.message.size() <= 5000
+        // `userId` VIENT D'ÊTRE OUVERT À L'ÉCRITURE PAR LE FORMULAIRE PUBLIC, et c'est lui
+        // qui décide de la lecture juste au-dessus (`isOwner(resource.data.userId)`). Sans
+        // cette borne, n'importe qui pourrait déposer un message dans la boîte d'un tiers en
+        // recopiant son UID. Un visiteur déconnecté écrit `null` ; une personne connectée ne
+        // peut écrire que le sien.
+        && (!request.resource.data.keys().hasAny(['userId'])
+            || request.resource.data.userId == null
+            || request.resource.data.userId == request.auth.uid);
 
       // Only admins and support can update (to mark as read/replied)
       allow update: if isAdminOrSupport();

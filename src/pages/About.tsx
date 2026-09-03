@@ -239,7 +239,7 @@ export default function About() {
           `1fr` : une piste `fr` garde `min-width:auto` et refuse de descendre sous son contenu
           — c'est le même défaut que celui déjà corrigé au panneau des profils, plus bas.
         */}
-        <div className="grid items-center gap-[46px] pb-[14px] wide:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="mm-arc-host grid items-center gap-[46px] pb-[14px] wide:grid-cols-[minmax(0,1fr)_380px]">
           <div>
             <SiteEyebrow>{t('page.eyebrow')}</SiteEyebrow>
             {/* Écrit ligne par ligne, jamais replié (AD-13). */}

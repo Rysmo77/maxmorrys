@@ -75,9 +75,9 @@
     "followTitle": "Follow what I publish",
     "rss": "RSS feed",
     "rssAction": "Copy",
-    "alert": "Alert in your space",
+    "alert": "Your account, ready for opening day",
     "alertAction": "Create an account",
-    "noEmail": "There's no email newsletter yet. I won't make you fill a field that does nothing.",
+    "noEmail": "There's no email newsletter yet, and no alert when I publish: the feed is the only way to follow. I'd rather tell you than have you open an account for nothing.",
     "empty": "No article matches. Drop a filter, or clear the search.",
     "featuredMarker": "Featured",
     "tagFilter": "Topic: {{tag}}",
@@ -88,7 +88,8 @@
     "errorTitle": "The articles did not arrive",
     "emptyTitle": "Nothing under this filter",
     "emptyAction": "Show everything",
-    "shown": "{{shown}} of {{total}}"
+    "shown": "{{shown}} of {{total}}",
+    "loadingLine": "The blog."
   },
   "article": {
     "share": "Share",

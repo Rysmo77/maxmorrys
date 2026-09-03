@@ -75,9 +75,9 @@
     "followTitle": "Suivre les publications",
     "rss": "Flux RSS",
     "rssAction": "Copier",
-    "alert": "Alerte dans ton espace",
+    "alert": "Ton compte, prêt pour l'ouverture",
     "alertAction": "Créer un compte",
-    "noEmail": "Il n'y a pas encore de lettre par e-mail. Je ne te fais pas remplir un champ qui ne sert à rien.",
+    "noEmail": "Il n'y a pas encore de lettre par e-mail, ni d'alerte à la publication : le flux est le seul moyen de suivre. Je préfère te le dire que te faire créer un compte pour rien.",
     "empty": "Aucun article ne correspond. Retire un filtre, ou vide la recherche.",
     "featuredMarker": "À la une",
     "tagFilter": "Sujet : {{tag}}",
@@ -88,7 +88,8 @@
     "errorTitle": "Les articles ne sont pas arrivés",
     "emptyTitle": "Rien sous ce filtre",
     "emptyAction": "Tout afficher",
-    "shown": "{{shown}} sur {{total}}"
+    "shown": "{{shown}} sur {{total}}",
+    "loadingLine": "Le blog."
   },
   "article": {
     "share": "Partager",

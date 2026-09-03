@@ -124,7 +124,7 @@ export default function Contact() {
       }} />
 
       <PageSite>
-        <div className="grid items-start gap-11 wide:grid-cols-[.95fr_1.05fr]">
+        <div className="mm-arc-host grid items-start gap-11 wide:grid-cols-[.95fr_1.05fr]">
 
           {/* ── LE TRI ─────────────────────────────────────────────────────── */}
           <div>

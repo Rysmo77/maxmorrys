@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Breadcrumb, Button, GlassPanel, MediaCard, Num, Skeleton, TranslationNotice } from '@ds';
+import { Breadcrumb, Button, GlassPanel, MediaCard, Num, Skeleton, SubNav, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
@@ -154,6 +154,27 @@ export default function VideoDetail() {
       }} />
 
       <PageSite>
+        {/*
+          ── LES DEUX ÉTAGES DU TERRITOIRE, DANS LA PAGE ────────────────────────────────
+          Même correction que sur la fiche d'épisode, et pour les mêmes deux mesures : dans
+          le chrome fixe, la rangée ouvrait à x=18 quand la colonne de la page ouvre à
+          x=120, et le corps de l'article lui passait au travers au premier défilement,
+          faute de la moindre surface derrière elle.
+
+          `SubNav` est une primitive de PAGE — « elle est en tête de page, elle défile avec
+          elle », dit son en-tête. Dans `PageSite`, elle hérite de la gouttière du contenu,
+          défile, et se pose exactement là où `MediaPole` et `ClubDigitos` la posent déjà.
+        */}
+        <SubNav
+          className="mb-[18px]"
+          label={t('pole.eyebrow')}
+          active={t('pole.subnavFree')}
+          items={[
+            { label: t('pole.subnavFree'), href: path('/podcast-et-videos'), territory: 'transforme' },
+            { label: t('pole.subnavClub'), href: path('/club-des-digitos'), territory: 'transforme' },
+          ]}
+        />
+
         <Breadcrumb
           label={t('detail.breadcrumbRoot')}
           items={[

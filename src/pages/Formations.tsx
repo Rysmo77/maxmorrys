@@ -49,6 +49,24 @@ export default function Formations() {
     queryFn: () => getPublishedFormations(),
   });
 
+  /*
+   * Les trois articles proposés à la place du vide. Trois précautions :
+   *
+   *  · `enabled` — la lecture ne part QUE si le catalogue est mesuré vide. Une page qui
+   *    liste des formations ne paie pas une requête blog qu'elle n'affichera pas ; le
+   *    forfait est compté, ici.
+   *  · `queryKeys.homeRecentPosts` — la MÊME clé que l'accueil, et la même limite de 5.
+   *    Quelqu'un qui arrive par le premier bouton de l'accueil a déjà cette liste en
+   *    cache : la page vide ne coûte alors aucune lecture de plus.
+   *  · import dynamique — `lib/firestore/blog` n'entre pas dans le graphe de la page pour
+   *    une branche qui ne s'ouvrira plus le jour de la publication.
+   */
+  const { data: posts = [] } = useQuery({
+    queryKey: queryKeys.homeRecentPosts,
+    queryFn: async () => (await import('../lib/firestore/blog')).getPublishedPosts(5),
+    enabled: !isLoading && formations.length === 0,
+  });
+
   const levelLabel: Record<Level, string> = {
     debutant: t('index.levelBeginner'),
     intermediaire: t('index.levelIntermediate'),
@@ -74,6 +92,16 @@ export default function Formations() {
     [formations, level],
   );
 
+  /**
+   * Le catalogue est-il vide, MESURÉ ? Pendant le chargement, `formations` vaut `[]` sans
+   * que rien n'ait encore été lu : `isLoading` exclut ce cas, sinon toute la page passerait
+   * une fraction de seconde dans sa version « avant ouverture » avant de se réécrire.
+   *
+   * C'est la même distinction que celle du titre juste au-dessus — « je ne sais pas encore »
+   * n'est pas « il n'y en a pas ».
+   */
+  const vide = !isLoading && formations.length === 0;
+
   /* Le prix vient de la base, et le PROMOTIONNEL PRIME — dans l'affichage comme au débit. */
   const asOf = new Date();
 
@@ -98,16 +126,45 @@ export default function Formations() {
       )}
 
       <PageSite>
-        <SiteEyebrow>{t('index.eyebrow')}</SiteEyebrow>
-        <SiteDisplay
-          arc
-          lines={[t('index.countLine', { count: formations.length }), t('index.lifetimeLine')]}
-          size={52}
-          from={1}
-        />
-        <p className="rv mt-[14px] max-w-[56ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 4 }}>
-          {t('index.lede')}
-        </p>
+        {/*
+          LE HÉROS A BESOIN D'UNE FRONTIÈRE, ET IL N'EN AVAIT PAS.
+
+          Sourcil, titre et chapô étaient des enfants DIRECTS de `PageSite`, comme la liste
+          qui suit : rien dans le DOM ne disait où le héros s'arrête. Le remplissage de l'arc
+          (AD-23) répond au survol du héros — posé sur `PageSite`, il aurait fait de la page
+          ENTIÈRE la cible, et le fragment serait resté peint en permanence.
+
+          Ce conteneur est neutre à la mise en page : `PageSite` ne déclare aucun `display`,
+          c'est donc un bloc, et trois blocs enveloppés dans un bloc tombent au même endroit.
+        */}
+        <div className="mm-arc-host">
+          <SiteEyebrow>{t('index.eyebrow')}</SiteEyebrow>
+          {/*
+            ⚠️ LE TITRE N'ANNONCE PAS « 0 » TANT QUE LA BASE N'A PAS RÉPONDU.
+
+            Ici le zéro finit par être VRAI. Mais il était produit par le même mécanisme que
+            sur `/blog`, où la base publie 46 articles et où le titre affirmait quand même
+            « 0 article » pendant tout le chargement, au-dessus de ses propres squelettes. Un
+            zéro juste par accident reste un nombre affiché sans avoir été mesuré, et c'est
+            exactement ce que la règle 6 refuse — le zéro DATÉ est une valeur, le zéro d'un
+            chargement n'en est pas une.
+
+            Le repli ne porte donc pas de compte, et la seconde ligne ne bouge pas : quand la
+            vraie ligne prend sa place, rien ne saute.
+          */}
+          <SiteDisplay
+            arc
+            lines={[
+              isLoading ? t('index.loadingLine') : t('index.countLine', { count: formations.length }),
+              t('index.lifetimeLine'),
+            ]}
+            size={52}
+            from={1}
+          />
+          <p className="rv mt-[14px] max-w-[56ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 4 }}>
+            {t('index.lede')}
+          </p>
+        </div>
 
         {isLoading ? (
           <div className="mt-[22px] grid gap-4 stack:grid-cols-2">
@@ -131,6 +188,42 @@ export default function Formations() {
               />
             </GlassPanel>
             <p className="mt-4 text-center text-small leading-[1.5] text-ink-2">{t('index.emptyNote')}</p>
+
+            {/*
+              ── CE QUI EXISTE, PROPOSÉ LÀ OÙ IL N'Y A RIEN ────────────────────────────────
+              L'état vide s'arrêtait ici et laissait environ trois cents pixels de rien avant
+              le pied de page. C'est pourtant l'endroit du site où la question « et
+              maintenant ? » se pose le plus fort : la personne a suivi le premier appel de
+              l'accueil et elle est arrivée dans une pièce vide.
+
+              La seule action offerte était « crée ton compte » — c'est-à-dire un formulaire,
+              pour quelqu'un qui venait chercher à LIRE. Le blog paraît chaque semaine et
+              publie quarante-six articles : c'est la réponse, et elle est gratuite.
+
+              Trois seulement, et jamais de titre inventé : `posts` sort de la base, et si la
+              lecture ne rend rien, tout ce bloc disparaît plutôt que de laisser une grille
+              vide sous une invitation à lire.
+            */}
+            {posts.length > 0 && (
+              <div className="mt-10">
+                <SiteEyebrow>{t('index.emptyReadTitle')}</SiteEyebrow>
+                <div className="mt-3 grid gap-4 stack:grid-cols-3">
+                  {posts.slice(0, 3).map((post, i) => (
+                    <div key={post.id} className="rv" style={{ ['--i' as string]: 6 + i }}>
+                      <TerritoryCard
+                        layout="plain"
+                        territory="informe"
+                        href={path(`/blog/${post.slug}`)}
+                        padding={20}
+                        meta={post.category}
+                        title={post.title}
+                        titleSize={17}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -203,9 +296,32 @@ export default function Formations() {
         {/* Gouttière 34, pas 36 — `PagesFormations.js:36`. */}
         <div className="grid items-center gap-[34px] wide:grid-cols-2">
           <div>
-            <SiteDisplay as="h2" lines={t('index.whyTitle', { returnObjects: true }) as string[]} size={34} />
+            {/*
+              ⚠️ CETTE BANDE DISAIT « DEUX » PENDANT QUE L'ÉTAT VIDE DISAIT « AUCUNE ».
+
+              Elle était écrite pour le catalogue plein et rendue dans les DEUX états :
+              « Pourquoi il n'y a que deux titres » et « le module d'ouverture de chacune est
+              en accès libre » s'affichaient à quatre cents pixels sous « Aucune formation
+              n'est encore en ligne ». Sur la page qui vient d'invoquer l'honnêteté comme
+              argument — « je préfère te le dire que te faire cliquer dans le vide » —, la
+              section suivante décrivait un catalogue absent. On n'en conclut pas qu'il y a
+              un bug : on en conclut que ces textes sont du décor.
+
+              La bande ne disparaît pas, parce que c'est elle qui porte l'argument éditorial,
+              et il vaut avant l'ouverture autant qu'après. Elle passe au FUTUR, ce qui la
+              rend vraie dans l'état où elle est lue aujourd'hui.
+
+              `vide` est mesuré, pas supposé : pendant le chargement `isLoading` est vrai et
+              la branche pleine reste servie — on ne réécrit pas une section sur une lecture
+              qui n'a pas abouti.
+            */}
+            <SiteDisplay
+              as="h2"
+              lines={t(vide ? 'index.whyTitleEmpty' : 'index.whyTitle', { returnObjects: true }) as string[]}
+              size={34}
+            />
             <p className="rv mt-3 max-w-[44ch] text-[15.5px] leading-[1.6] text-ink-2" style={{ ['--i' as string]: 1 }}>
-              {t('index.whyBody')}
+              {t(vide ? 'index.whyBodyEmpty' : 'index.whyBody')}
             </p>
           </div>
           <GlassPanel level="flat" padding={24} className="rv" style={{ ['--i' as string]: 2 }}>

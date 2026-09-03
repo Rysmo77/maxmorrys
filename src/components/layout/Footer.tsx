@@ -3,9 +3,8 @@ import type { ComponentType } from 'react';
 import LocalizedLink from '../shared/LocalizedLink';
 import { FacebookIcon, InstagramIcon, LinkedInIcon, TikTokIcon, XIcon, YouTubeIcon } from '../shared/SocialIcons';
 import { SOCIAL_LINKS } from '../seo/seo-config';
-import { useFormat } from '../../hooks/useFormat';
-import { contact, corporateUrl, legalEntity, legalName } from '../../lib/brand';
-import { Num, Wordmark } from '../../design-system';
+import { contact, corporateUrl, legalName } from '../../lib/brand';
+import { Wordmark } from '../../design-system';
 import { Icon } from '@ds';
 
 /**
@@ -98,7 +97,6 @@ const COL_LINK =
 
 export default function Footer() {
   const { t } = useTranslation('footer');
-  const { formatDate } = useFormat();
 
   const column = (
     titleKey: string,
@@ -200,43 +198,10 @@ export default function Footer() {
               {t('brandTagline')}
             </p>
             {/*
-              L'IDENTITÉ LÉGALE MANQUAIT AU PIED DE PAGE.
+              LES MOYENS DE JOINDRE.
 
-              Le kit la pose dans la cellule de marque, sous le mot-symbole : « MY ONOMA SARL /
-              Dakar, Senegal / Immatriculée le 11/04/2022 » (`reference/site-shell.jsx:47-49`), la date en
-              monospace. Elle avait été remplacée par la seule phrase de positionnement.
-
-              Ce n'est pas une ligne décorative : c'est la mention qui dit QUI encaisse. Sur un
-              site qui vend en francs CFA et affiche des CGV, l'opérateur doit être nommé
-              ailleurs que dans une page qu'il faut aller ouvrir.
-
-              La date passe par `<Num>` — elle vient des pièces de la société, pas d'une
-              estimation, et c'est exactement ce que la monospace déclare.
-            */}
-            <p className="mb-6 text-small leading-[1.6] text-ink-2">
-              <b className="block font-semibold text-ink">{legalName}</b>
-              <span className="block">{legalEntity.city}, {legalEntity.country}</span>
-              <span className="block">
-                {t('registeredOn')}{' '}
-                <Num
-                  value={formatDate(legalEntity.registeredAt)}
-                  /* Le RCCM est la pièce qui porte la date. Il est typé nullable — si la
-                     référence venait à manquer, la citation retombe sur la raison sociale
-                     plutôt que de disparaître : une date en monospace SANS source citée
-                     est exactement ce que la règle 6 interdit. */
-                  source={{ cite: legalEntity.rccm ?? legalName }}
-                  asOf={new Date(legalEntity.registeredAt)}
-                  showAsOf={false}
-                />
-              </span>
-            </p>
-            {/*
-              LES MOYENS DE JOINDRE, SOUS L'IDENTITÉ QU'ILS PROLONGENT.
-
-              La ville n'est PAS reprise ici : `contact.city` et `legalEntity.city` valent
-              tous deux « Dakar », et le pied de page écrivait donc « Dakar, Sénégal » deux
-              fois, à quatre-vingts pixels d'intervalle. Une adresse répétée n'ajoute rien —
-              elle fait douter qu'il s'agisse du même endroit.
+              Pas d'adresse postale ici : rien ne se retire ni ne se signe sur place, et
+              l'identité de l'opérateur est portée par les mentions légales.
             */}
             <ul className="mb-6 space-y-2 text-meta text-ink-2">
               <li className="flex items-start gap-3">

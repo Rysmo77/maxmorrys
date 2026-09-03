@@ -138,6 +138,22 @@ export function useContactMessage() {
         message: form.message,
         sentAt: new Date().toISOString(),
         status: 'new',
+        /*
+         * ⚠️ L'IDENTIFIANT MANQUAIT, ET IL FAISAIT DISPARAÎTRE LE MESSAGE POUR SON AUTEUR.
+         *
+         * `getUserMessages()` (`lib/firestore/certificates.ts:42`) interroge
+         * `where('userId','==',uid)` : sans ce champ, un message écrit ici n'apparaissait
+         * JAMAIS dans « Mes messages » — pas même celui d'une personne connectée dont le
+         * formulaire venait d'être pré-rempli avec son propre nom et sa propre adresse,
+         * deux lignes plus haut. Le seul formulaire qui écrivait l'identifiant était celui
+         * de l'espace apprenant, si bien que la même demande était suivie ou perdue selon
+         * la page d'où elle partait.
+         *
+         * `null` et non `undefined` pour un visiteur déconnecté : Firestore refuse
+         * `undefined`, et le champ doit exister pour que la requête d'administration
+         * puisse distinguer « écrit sans compte » de « champ jamais posé ».
+         */
+        userId: user?.uid ?? null,
       });
       trackGenerateLead('contact_form');
       addToast('success', t('toast.messageSuccess'));

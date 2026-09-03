@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Button, GlassPanel, Icon, Num, TERRITORY_VERB, TerritoryCard, type IconName } from '@ds';
+import { Button, GlassPanel, Icon, Num, Skeleton, TERRITORY_VERB, TerritoryCard, type IconName } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SOCIAL_URLS } from '../components/seo/seo-config';
@@ -189,6 +189,34 @@ export default function Home() {
   const asOf = counts?.asOf ?? new Date();
 
   /*
+   * Le catalogue est-il vide, MESURÉ ? Pas « pas encore chargé » : `counts` vaut `undefined`
+   * tant que la lecture n'a pas abouti, et un héros ne se réordonne pas sur une mesure qu'on
+   * n'a pas. C'est ce booléen qui décide du ton des deux boutons du premier écran.
+   */
+  const catalogueVide = counts ? counts.publishedFormations === 0 : false;
+
+  /*
+   * ── « NON RELEVÉ » N'EST PAS UN ÉTAT DE CHARGEMENT ────────────────────────────────────
+   *
+   * `<Num value={null}>` rend son repli — « non relevé », en italique. C'est juste quand la
+   * lecture a ÉCHOUÉ, et c'est tout l'objet du composant : ne jamais laisser croire à un
+   * zéro. Mais les quatre pieds de carte passaient `null` pendant le CHARGEMENT, si bien que
+   * le premier contenu lu de l'accueil était « non relevé formation · non relevé article
+   * publié · non relevé média » — trois verdicts en italique là où l'état réel est « je n'ai
+   * pas encore reçu la réponse ». Sur une connexion lente, c'est-à-dire le cas nominal du
+   * marché visé, cet état dure le temps d'un premier jugement.
+   *
+   * Le repli est en outre PLUS LONG qu'un nombre : la ligne se recomposait à l'arrivée de la
+   * donnée. Un squelette à la place réserve la largeur, ce que le système exige partout
+   * ailleurs — « quand le contenu arrive, rien ne saute ».
+   *
+   * `showAsOf={false}` : ces pieds ne portent pas leur date, elle n'apprend rien sur un prix.
+   */
+  const chargement = counts === undefined;
+  const compte = (value: number | null) =>
+    chargement ? <Skeleton width={22} height={11} radius="var(--r-xs)" /> : <Num value={value} source="db" asOf={asOf} showAsOf={false} />;
+
+  /*
    * ── LES QUATRE CARTES VIVENT DANS LA COLONNE DE DROITE ─────────────────────────────────
    *
    * C'est la composition du kit site (`pages-core.jsx` § Accueil, `pages-en.jsx` § AccueilEN) :
@@ -219,7 +247,7 @@ export default function Home() {
   const pied: Record<string, ReactNode> = {
     forme: (
       <>
-        <Num value={nombres.forme} source="db" asOf={asOf} showAsOf={false} />{' '}
+        {compte(nombres.forme)}{' '}
         {t('territories.footForme', { count: nombres.forme ?? 0 })}
         {prixFormation !== null && (
           <> · <Num value={prixFormation} unit="F" source="db" asOf={asOf} showAsOf={false} /></>
@@ -228,13 +256,13 @@ export default function Home() {
     ),
     informe: (
       <>
-        <Num value={nombres.informe} source="db" asOf={asOf} showAsOf={false} />{' '}
+        {compte(nombres.informe)}{' '}
         {t('territories.footInforme', { count: nombres.informe ?? 0 })}
       </>
     ),
     transforme: (
       <>
-        <Num value={nombres.transforme} source="db" asOf={asOf} showAsOf={false} />{' '}
+        {compte(nombres.transforme)}{' '}
         {t('territories.footTransforme', { count: nombres.transforme ?? 0 })}
         {' · '}
         <Num value={clubMensuel} unit={t('territories.footPerMonth')} source="server" asOf={asOf} showAsOf={false} />
@@ -266,7 +294,7 @@ export default function Home() {
   const offerFoot: Record<string, ReactNode> = {
     formations: (
       <>
-        <Num value={nombres.forme} source="db" asOf={asOf} showAsOf={false} />{' '}
+        {compte(nombres.forme)}{' '}
         {t('territories.footForme', { count: nombres.forme ?? 0 })}
         {prixFormation !== null && (
           <>
@@ -278,13 +306,13 @@ export default function Home() {
     ),
     blog: (
       <>
-        <Num value={nombres.informe} source="db" asOf={asOf} showAsOf={false} />{' '}
+        {compte(nombres.informe)}{' '}
         {t('territories.footInforme', { count: nombres.informe ?? 0 })} · {t('all.footFree')}
       </>
     ),
     media: (
       <>
-        <Num value={nombres.transforme} source="db" asOf={asOf} showAsOf={false} />{' '}
+        {compte(nombres.transforme)}{' '}
         {t('territories.footTransforme', { count: nombres.transforme ?? 0 })} · {t('all.footFree')}
       </>
     ),
@@ -327,7 +355,7 @@ export default function Home() {
           sont des enfants de la même grille. Monter deux compositions et en cacher une
           paierait deux fois le rendu — ce que `TerritoryRow` refuse pour la même raison.
         */}
-        <div className="grid items-center gap-[44px] pb-4 wide:grid-cols-[1.06fr_.94fr]">
+        <div className="mm-arc-host grid items-center gap-[44px] pb-4 wide:grid-cols-[1.06fr_.94fr]">
           <div className="min-w-0">
             {/*
               LE SOURCIL NOMME LA PERSONNE AVANT LE VERBE. Le titre dit ce que je fais ; il ne
@@ -358,13 +386,32 @@ export default function Home() {
               {t('hero.lede')}
             </p>
 
+            {/*
+              ── LE BOUTON PLEIN OUVRE LA PIÈCE LA PLUS PLEINE ──────────────────────────
+              L'ordre de lecture ne bouge pas — « Je te forme » reste le premier verbe, et
+              c'est la promesse de la marque. Ce qui bouge, c'est le TON : tant que le
+              catalogue est vide, le bouton plein serait le seul appel du premier écran à
+              mener sur un rayon sans article, pendant que les 46 articles publiés
+              attendraient derrière un bouton fantôme.
+
+              La carte territoire « Je te forme » écrit déjà « 0 formation » à trois pas de
+              là, et la grille des six portes le répète : la page annonce son stock nul et
+              met le bouton le plus lourd dessus. C'est la seule contradiction du premier
+              écran, et elle se résout sans rien écrire de faux dans l'autre sens.
+
+              `catalogueVide` est dérivé de la MÊME lecture que les pieds de carte, jamais
+              d'une constante — l'échange se défait donc tout seul le jour de la première
+              publication, sans qu'on ait à y revenir. Tant que la base n'a pas répondu,
+              `counts` vaut `undefined` et l'ordre du kit reste celui par défaut : on ne
+              réordonne pas un héros sur une mesure qu'on n'a pas encore.
+            */}
             <div className="rv mt-6 flex flex-wrap gap-3" style={{ ['--i' as string]: 7 }}>
-              <Button href={path('/formations')} tone="forme" fullWidth={false}>
+              <Button href={path('/formations')} tone={catalogueVide ? 'ghost' : 'forme'} fullWidth={false}>
                 {t('hero.ctaCourses')}
               </Button>
               {/* Le kit porte le compte SUR le bouton — c'est ce qui fait cliquer. Tant que la
                   base n'a pas répondu, le libellé reste nu : un zéro n'est pas une mesure. */}
-              <Button href={path('/blog')} tone="ghost" fullWidth={false}>
+              <Button href={path('/blog')} tone={catalogueVide ? 'informe' : 'ghost'} fullWidth={false}>
                 {counts ? t('hero.ctaBlogCount', { count: counts.publishedArticles }) : t('hero.ctaBlog')}
               </Button>
             </div>

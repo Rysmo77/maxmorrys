@@ -142,12 +142,13 @@
     "toastSuccess": "Message sent successfully!",
     "toastError": "Something went wrong while sending. Please try again.",
     "truthTitle": "How the reply reaches you",
-    "truthBody": "It lands in your notifications, inside the app. The product sends no email: this is the only channel, and it is right here.",
+    "truthBody": "It arrives by email, at your account address, and shows up here under your message. I write it myself — nothing is automated.",
     "countLabel": "messages sent",
     "loadingLabel": "Loading your messages",
     "subjectLabel": "Message subject",
     "messageLabel": "Your message",
-    "screenTitle": "My messages"
+    "screenTitle": "My messages",
+    "replyFrom": "Reply from Max-Morrys"
   },
   "notes": {
     "editTitle": "Edit note",
@@ -437,9 +438,13 @@
     "sendCenter": "Notification centre",
     "sendCenterNote": "Everything addressed to you arrives there, and only there.",
     "sendEmail": "By email",
-    "sendEmailNote": "Not available yet: no email sending channel exists.",
+    "sendEmailNote": "Nothing to set: only necessary emails go out — receipt, renewal notice, reply to a message. No newsletter, no follow-ups.",
     "sendTruthTitle": "What this setting does today",
-    "sendTruthBody": "What I send arrives in your notification centre, inside the app — and only if you reopen it. No email goes out yet: the greyed-out line says so instead of letting you assume otherwise."
+    "sendTruthBody": "What I send arrives in your notification centre, inside the app — and only if you reopen it. No email goes out yet: the greyed-out line says so instead of letting you assume otherwise.",
+    "publishAlert": "Tell me when something new is out",
+    "publishAlertNote": "A notification here when a course or an article goes live. Nothing by email.",
+    "toastPublishOn": "Turned on. You'll hear about the next publication right here.",
+    "toastPublishOff": "Turned off. No more publication notifications."
   },
   "testimonials": {
     "shareTitle": "Share a review",

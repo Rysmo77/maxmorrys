@@ -179,16 +179,6 @@
   }
 
   /**
-   * La sous-navigation d'un territoire ajoute une rangée au chrome fixe — 50 px, sur les
-   * seules routes de « Je te transforme ». `data-header-sub` est posé sur <html> par le
-   * Header, et le contenu descend d'autant : sans ça, le haut du héros passe SOUS la barre,
-   * sur trois routes, donc jamais sur la machine de qui l'écrit.
-   */
-  :root[data-header-sub] #main-content {
-    padding-top: calc(var(--header-h) + 3.375rem);
-  }
-
-  /**
    * LES LOBES DU MAILLAGE — 340 px sur mobile, 460 puis 520 sur écran large.
    *
    * Ce sont les valeurs que le kit pratique ; la primitive les expose par sa prop `size`,

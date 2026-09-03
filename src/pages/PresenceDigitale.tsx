@@ -153,7 +153,7 @@ export default function PresenceDigitale() {
 
             L'encart de prix, lui, désamorce une objection TARIFAIRE : il est descendu
             là où les tarifs sont. */}
-        <div className="grid items-center gap-11 pb-[14px] wide:grid-cols-[1.05fr_.95fr]">
+        <div className="mm-arc-host grid items-center gap-11 pb-[14px] wide:grid-cols-[1.05fr_.95fr]">
           <div>
             <SiteEyebrow>{t('eyebrow')}</SiteEyebrow>
             <SiteDisplay
@@ -180,14 +180,24 @@ export default function PresenceDigitale() {
               >
                 {t('heroCta')}
               </Button>
-              <Button
-                href={whatsappUrl(q.quickMessage)}
-                target="_blank"
-                tone="quiet"
-                fullWidth={false}
-              >
-                {t('heroSecondary')}
-              </Button>
+              {/*
+                ── « EN PARLER SUR WHATSAPP » A QUITTÉ LE HÉROS ─────────────────────────────
+                Le premier écran offrait TROIS premiers gestes concurrents : ce bouton, celui
+                des trois questions, et le module de test à droite avec le sien. Trois
+                chemins, trois engagements différents, aucun ordre — sur l'écran où
+                l'intention est la plus forte et où le persona est le moins à l'aise avec le
+                numérique. C'est la loi de Hick au plus mauvais endroit de l'entonnoir.
+
+                Le canal n'est pas perdu, et c'est ce qui rend le retrait gratuit :
+                `StickyWhatsApp` est monté en bas de cette même page (voir la fin du
+                fichier), il suit le défilement et porte exactement le même
+                `q.quickMessage`. Le doubler ici ne gagnait aucune joignabilité — il
+                divisait l'attention et rien d'autre.
+
+                Le module de test reste le second geste possible, et c'est le bon : il est la
+                meilleure preuve que cette page puisse offrir, et il ne coûte aucune donnée
+                personnelle.
+              */}
             </div>
           </div>
 
@@ -212,7 +222,21 @@ export default function PresenceDigitale() {
           <p className="rv mt-3 mm-prose text-meta leading-[1.6] text-ink-2" style={{ ['--i' as string]: 2 }}>
             {t('journey.subtitle')}
           </p>
-          <ul className="mt-6 grid list-none gap-4 p-0 stack:grid-cols-5">
+          {/*
+            ⚠️ CINQ COLONNES D'UN COUP ÉTAIENT TROP ÉTROITES POUR ÊTRE PARCOURUES.
+
+            L'intention — parcourir plutôt que lire — est la bonne, et elle est conservée.
+            Mais à 1280 px, cinq pistes plus quatre gouttières laissaient environ 160 px par
+            carte, et le corps de chacune retombait sur trois lignes de moins de vingt
+            caractères. C'est le passage qui DÉFINIT l'offre pour un persona peu à l'aise
+            avec le numérique, et c'était le plus dense de la page : la mesure y travaillait
+            contre le survol qu'elle cherchait à produire.
+
+            Palier intermédiaire à trois, cinq seulement au-delà de `wide`, là où la piste
+            reprend sa largeur. Le nombre de promesses ne bouge pas : c'est leur place qui
+            change.
+          */}
+          <ul className="mt-6 grid list-none gap-4 p-0 stack:grid-cols-3 wide:grid-cols-5">
             {JOURNEY_STEPS.map((step, i) => (
               <li key={step} className="rv" style={{ ['--i' as string]: i + 3 }}>
                 <GlassPanel level="flat" padding={18} style={{ height: '100%' }}>

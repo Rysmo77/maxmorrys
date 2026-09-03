@@ -142,12 +142,13 @@
     "toastSuccess": "Message envoyé avec succès !",
     "toastError": "Erreur lors de l'envoi. Réessaie.",
     "truthTitle": "Comment la réponse te revient",
-    "truthBody": "Elle arrive dans tes notifications, dans l'application. Le produit n'envoie aucun e-mail : c'est le seul canal, et il est ici.",
+    "truthBody": "Elle arrive par e-mail, à l'adresse de ton compte, et elle s'affiche ici sous ton message. C'est moi qui l'écris, pas un envoi automatique.",
     "countLabel": "messages envoyés",
     "loadingLabel": "Chargement de tes messages",
     "subjectLabel": "Sujet du message",
     "messageLabel": "Ton message",
-    "screenTitle": "Mes messages"
+    "screenTitle": "Mes messages",
+    "replyFrom": "Réponse de Max-Morrys"
   },
   "notes": {
     "editTitle": "Modifier la note",
@@ -437,9 +438,13 @@
     "sendCenter": "Centre de notifications",
     "sendCenterNote": "Tout ce qui t'est adressé arrive là, et seulement là.",
     "sendEmail": "Par e-mail",
-    "sendEmailNote": "Pas encore disponible : aucun canal d'envoi d'e-mail n'existe.",
+    "sendEmailNote": "Rien à régler : seuls les e-mails nécessaires partent — reçu, rappel d'échéance, réponse à un message. Aucune lettre, aucune relance.",
     "sendTruthTitle": "Ce que ce réglage fait aujourd'hui",
-    "sendTruthBody": "Ce qui part de moi arrive dans ton centre de notifications, dans l'application — et seulement si tu la rouvres. Aucun e-mail ne part encore : la ligne grisée le dit au lieu de le laisser croire."
+    "sendTruthBody": "Ce qui part de moi arrive dans ton centre de notifications, dans l'application — et seulement si tu la rouvres. Aucun e-mail ne part encore : la ligne grisée le dit au lieu de le laisser croire.",
+    "publishAlert": "Me prévenir à la publication",
+    "publishAlertNote": "Une notification ici quand une formation ou un article paraît. Rien par e-mail.",
+    "toastPublishOn": "C'est activé. Tu seras prévenu ici à la prochaine publication.",
+    "toastPublishOff": "C'est désactivé. Plus aucune notification de publication."
   },
   "testimonials": {
     "shareTitle": "Partager un avis",

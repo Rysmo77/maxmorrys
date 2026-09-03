@@ -171,15 +171,22 @@
     "c3": "You pay with Wave, Orange Money or a card",
     "c4": "Certificate verifiable by its code, without an account",
     "emptyTitle": "The catalogue opens soon.",
-    "emptyBody": "No course is online yet. I'd rather tell you than have you click into the void. Create your account: I'll alert you in your space the day it goes live.",
+    "emptyBody": "No course is online yet. I'd rather tell you than have you click into the void. Create your account now: it will be ready on opening day, and you will have nothing to fill in then.",
     "emptyCta": "Create your account",
-    "emptyNote": "No « email me when it's ready »: the product has no sending channel. The alert arrives in your space.",
+    "emptyNote": "No « email me when it's ready »: there's no newsletter yet, and I won't make you fill a field that does nothing. Meanwhile, the blog comes out every week.",
     "lifetime": "Once, lifetime access",
     "cardModules_one": "{{count}} module",
     "cardModules_other": "{{count}} modules",
     "cardLessons_one": "{{count}} lesson",
     "cardLessons_other": "{{count}} lessons",
-    "includesTitle": "What each course includes"
+    "includesTitle": "What each course includes",
+    "loadingLine": "The courses.",
+    "whyTitleEmpty": [
+      "Why there will",
+      "only be two."
+    ],
+    "whyBodyEmpty": "I'd rather have two courses I keep up to date than a catalogue that makes up numbers. The opening module of each will be free: you'll judge before you pay.",
+    "emptyReadTitle": "In the meantime, to read"
   },
   "sheet": {
     "eyebrow": "I'll train you",

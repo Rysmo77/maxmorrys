@@ -1,6 +1,5 @@
 {
   "nav": {
-    "sectionSpace": "Space",
     "sectionCommunity": "Community",
     "sectionAccount": "Account",
     "dashboard": "Dashboard",
@@ -20,7 +19,8 @@
     "bottomCourses": "Courses",
     "bottomClub": "Club",
     "bottomProfile": "Profile",
-    "payments": "Payments"
+    "payments": "Payments",
+    "sectionLearn": "Learn"
   },
   "titles": {
     "dashboard": "Dashboard",
@@ -134,7 +134,7 @@
     "step1": "Pick the course",
     "step2": "Check the amount",
     "step3": "Confirm with the operator",
-    "serverComputed": "Amount computed and charged server-side.",
+    "serverComputed": "The amount shown is the amount you will be charged: it is computed server-side.",
     "methodsTitle": "Accepted payment methods",
     "methodsNote": "You pick one on the operator's secure page, not here.",
     "methodWave": "Wave",
@@ -145,7 +145,7 @@
     "methodCardNote": "Visa, Mastercard",
     "leaveNote": "You leave the site to confirm, then you come back here.",
     "couponPlaceholder": "Your code",
-    "couponHint": "The code is checked at payment time. The discount shows on the operator's page, not on this total.",
+    "couponHint": "Optional. The total updates once the code is checked.",
     "durationLabel": "Length",
     "summaryLabel": "Order summary",
     "notFoundLines": [
@@ -157,7 +157,11 @@
     ],
     "priceSource": "Catalogue price",
     "payLabel": "Pay",
-    "lessonsLabel": "Lessons"
+    "lessonsLabel": "Lessons",
+    "couponApply": "Check the code",
+    "couponChecking": "Checking…",
+    "couponApplied": "Code applied, discount of",
+    "couponInvalid": "Promo code invalid, expired or already used."
   },
   "paymentReturn": {
     "verifyingTitle": "Verifying payment...",
@@ -236,7 +240,9 @@
     "proTipTitle": "Pro tip",
     "proTipText": "Open the first lesson right away, even for five minutes: that's when you really decide whether the course is for you.",
     "exploreFormations": "Explore the courses",
-    "goToDashboard": "Go to my dashboard"
+    "goToDashboard": "Go to my dashboard",
+    "dialogLabel": "Welcome — setting up your space",
+    "skipAll": "Later — everything is in Profile too"
   },
   "player": {
     "courseContent": "Course content",

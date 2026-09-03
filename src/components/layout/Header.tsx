@@ -11,8 +11,8 @@ import AnnouncementBanner from '../shared/AnnouncementBanner';
 import DsNavHost from './DsNavHost';
 import { Icon } from '@ds';
 import {
-  Button, SideNav, SubNav, TopBar, Wordmark,
-  type SideNavItem, type SubNavItem, type Territory, type TopBarItem,
+  Button, SideNav, TopBar, Wordmark,
+  type SideNavItem, type Territory, type TopBarItem,
 } from '../../design-system';
 
 /**
@@ -83,35 +83,20 @@ const SITE_NAV: NavEntry[] = [
 ];
 
 /**
- * LES DEUX ÉTAGES DE « JE TE TRANSFORME ». L'ORDRE N'EST PAS NÉGOCIABLE : le gratuit d'abord.
- * Sans cette séparation visible, un visiteur croit le podcast derrière le mur et ne clique
- * pas — et le haut de l'entonnoir perd sa fonction.
+ * Les routes qui appartiennent au territoire « Je te transforme » — c'est ce qui allume
+ * « Je te transforme » dans la barre haute, y compris sur une fiche d'épisode.
  *
- * ⚠️ CETTE LISTE A CHANGÉ DE NATURE, ET C'EST LA CORRECTION D'UN DÉFAUT SILENCIEUX.
- * Elle portait `podcast` et `videos`, c'est-à-dire DEUX PORTES DU MÊME ÉTAGE — celui du
- * gratuit — depuis leur fusion en un pôle unique. Les deux entrées menaient qui plus est à
- * des routes qui redirigent désormais, donc la sous-navigation du territoire proposait deux
- * redirections vers la même page et ne nommait jamais le Club. Ce sont bien les deux ÉTAGES
- * qui s'y montrent : le pôle média (gratuit, ouvert) et le Club (payant, fermé).
+ * ⚠️ LA SOUS-NAVIGATION DES DEUX ÉTAGES N'EST PLUS ICI, et ce n'est pas un oubli.
+ * Le chrome en posait une rangée sur les fiches de détail. Elle y était fausse deux fois :
+ * `px-[18px]` sur toute la fenêtre la faisait ouvrir à x=18 quand la colonne de la page
+ * ouvre à x=120, et, n'ayant aucune surface derrière elle dans un en-tête `fixed`, elle
+ * laissait le corps de l'article lui passer au travers au premier défilement.
+ *
+ * `SubNav` est une primitive de PAGE — « elle est en tête de page, elle défile avec elle »,
+ * dit son propre en-tête. Les quatre routes du territoire la posent donc toutes au même
+ * endroit, dans leur `PageSite` : `MediaPole`, `ClubDigitos`, `PodcastDetail`, `VideoDetail`.
  */
-const TRANSFORME_SUB: { key: string; path: string }[] = [
-  { key: 'transformFree', path: '/podcast-et-videos' },
-  { key: 'transformClub', path: '/club-des-digitos' },
-];
-
-/** Les routes qui appartiennent au territoire « Je te transforme ». */
 const TRANSFORME_PATHS = ['/podcast-et-videos', '/podcasts', '/videos', '/club-des-digitos'];
-
-/**
- * Les pages du territoire QUI PORTENT DÉJÀ LEUR PROPRE SOUS-NAVIGATION, en tête de contenu,
- * là où le kit la dessine (`MediaPole`, `ClubDigitos`). Le chrome n'en pose pas une seconde :
- * deux barres identiques empilées ne disent pas deux fois la même chose, elles font douter
- * de laquelle est active.
- *
- * Les FICHES de détail — un épisode, une vidéo — n'en ont pas : c'est là que celle du chrome
- * sert, et c'est le seul endroit.
- */
-const TRANSFORME_OWN_SUBNAV = ['/podcast-et-videos', '/club-des-digitos'];
 
 /** Sélecteur des éléments focusables, pour le piège de focus du tiroir. */
 const FOCUSABLE =
@@ -176,20 +161,6 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   }, [scrolled]);
 
   const isTransforme = TRANSFORME_PATHS.some((p) => path === p || path.startsWith(p + '/'));
-  /* La sous-navigation du chrome ne sert que là où la page n'en porte pas déjà une. */
-  const showTerritorySub = isTransforme && !TRANSFORME_OWN_SUBNAV.includes(path);
-
-  /**
-   * Publie la présence de la sous-navigation : elle ajoute une rangée au chrome fixe, et le
-   * contenu doit descendre d'autant. Sans ça, la première carte du héros passe SOUS la barre —
-   * un défaut qui ne se voit que sur trois routes, donc jamais sur la machine de qui l'écrit.
-   */
-  useEffect(() => {
-    const root = document.documentElement;
-    if (showTerritorySub) root.setAttribute('data-header-sub', '');
-    else root.removeAttribute('data-header-sub');
-    return () => root.removeAttribute('data-header-sub');
-  }, [showTerritorySub]);
 
   useEffect(() => {
     setDrawerOpen(false);
@@ -292,13 +263,6 @@ export default function Header({ onSearchOpen }: HeaderProps) {
     href: localize(entry.path),
     territory: entry.territory,
   }));
-
-  const subItems: SubNavItem[] = TRANSFORME_SUB.map((entry) => ({
-    label: t(entry.key),
-    href: localize(entry.path),
-    territory: 'transforme',
-  }));
-  const activeSub = TRANSFORME_SUB.find((entry) => path.startsWith(entry.path));
 
   const userInitials = user?.displayName
     ? user.displayName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
@@ -540,25 +504,6 @@ export default function Header({ onSearchOpen }: HeaderProps) {
           />
         </DsNavHost>
         </div>
-
-        {/*
-          LA SOUS-NAVIGATION DU TERRITOIRE — et elle existe pour une raison commerciale précise.
-          « Je te transforme » abrite du contenu gratuit et ouvert et du contenu payant et
-          fermé. Sans cette séparation visible, un visiteur croit le podcast derrière le mur.
-          Faux verre, aucun flou : elle est en tête de page et l'état actif se lit au voile.
-        */}
-        {/* `pt-1` n'est pas décoratif : `.mm-touch-extend` porte la cible à 44 px sur un
-            dessin de 42, et sans ces 4 px le débordement d'un pixel réveillerait une barre de
-            défilement verticale — `overflow-x: auto` fait passer l'autre axe en `auto`. */}
-        {showTerritorySub && (
-          <DsNavHost className="px-[18px] pt-1 pb-2 overflow-x-auto">
-            <SubNav
-              items={subItems}
-              active={activeSub ? t(activeSub.key) : undefined}
-              label={t('transformAria')}
-            />
-          </DsNavHost>
-        )}
 
         {/*
           LE TIROIR — 250 px de faux verre entre 700 et 1080 px, pleine largeur en dessous.

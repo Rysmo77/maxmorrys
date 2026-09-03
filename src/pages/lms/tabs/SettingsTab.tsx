@@ -100,6 +100,32 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
   const [confirmText, setConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
 
+  /**
+   * PRÉVENIR À LA PUBLICATION — l'adhésion, et elle est explicite.
+   *
+   * Trois surfaces du site promettaient cette alerte sans qu'aucun producteur n'existe.
+   * Le producteur existe maintenant, et il ne s'adresse qu'aux comptes qui ont coché ici.
+   *
+   * ⚠️ Le défaut est NON, et il le restera. Notifier tous les comptes existants parce
+   * qu'ils n'ont rien refusé serait le spam que ce réglage existe pour empêcher : personne
+   * ne peut consentir à une case qui n'existait pas quand il s'est inscrit.
+   */
+  const handleTogglePublishAlert = async (checked: boolean) => {
+    if (!user || !userData) return;
+    setSavingConsent(true);
+    try {
+      await updateUserProfile(user.uid, {
+        preferences: { ...userData.preferences, notifyOnPublish: checked },
+      });
+      await refreshUserData();
+      addToast('success', checked ? t('settings.toastPublishOn') : t('settings.toastPublishOff'));
+    } catch {
+      addToast('error', t('settings.toastUpdateError'));
+    } finally {
+      setSavingConsent(false);
+    }
+  };
+
   const handleToggleAiMemory = async (checked: boolean) => {
     if (!user || !userData) return;
     setSavingConsent(true);
@@ -223,6 +249,23 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
           meta={t('settings.sendCenterNote')}
           onClick={() => navigate('/mon-espace/notifications')}
           trailing={<Icon name="forward" size={16} color="var(--text-muted)" strokeWidth={2.4} />}
+        />
+        {/*
+          LE SEUL RÉGLAGE DE CE BLOC QUI AGIT — et il est placé avant celui qui n'agit pas.
+          Un interrupteur vivant sous un interrupteur grisé se lit comme grisé lui aussi.
+        */}
+        <LessonRow
+          state="plain"
+          icon={<Icon name="bell" size={14} />}
+          title={t('settings.publishAlert')}
+          meta={savingConsent ? t('settings.updating') : t('settings.publishAlertNote')}
+          trailing={
+            <Switch
+              on={userData?.preferences?.notifyOnPublish === true}
+              onChange={(on) => void handleTogglePublishAlert(on)}
+              label={t('settings.publishAlert')}
+            />
+          }
         />
         <LessonRow
           state="plain"

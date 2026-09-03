@@ -1,0 +1,44 @@
+/* Quatre maillages de territoire, plus un maillage nuit. Trois lobes flous par maillage,
+   en dérive désynchronisée sur 25 à 38 secondes, animés en transform uniquement. Poids : 0 octet.
+   Chaque lobe porte sa propre image-clé : aucune propriété personnalisée n'est déclarée hors
+   des portées de jetons. */
+.mesh{position:absolute;inset:0;overflow:hidden;z-index:0;contain:paint;background:#FBFCFE}
+.mesh b{position:absolute;display:block;width:340px;height:340px;border-radius:50%;filter:blur(52px);opacity:.9;will-change:transform}
+@keyframes drift-forme-1{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(34px,26px,0) scale(1.16)}100%{transform:translate3d(-23.8px,-28.6px,0) scale(.92)}}
+.m-forme b:nth-child(1){background:#0057BC;top:-120px;left:-110px;animation:drift-forme-1 26s 0s infinite alternate ease-in-out}
+@keyframes drift-forme-2{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-30px,34px,0) scale(1.16)}100%{transform:translate3d(21px,-37.4px,0) scale(.92)}}
+.m-forme b:nth-child(2){background:#6C23DD;top:-160px;right:-120px;left:auto;opacity:0.65;animation:drift-forme-2 31s -6s infinite alternate ease-in-out}
+@keyframes drift-forme-3{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-22px,-30px,0) scale(1.16)}100%{transform:translate3d(15.4px,33px,0) scale(.92)}}
+.m-forme b:nth-child(3){background:#02AC9C;top:120px;right:-160px;left:auto;opacity:0.5;animation:drift-forme-3 35s -12s infinite alternate ease-in-out}
+@keyframes drift-informe-1{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(30px,28px,0) scale(1.16)}100%{transform:translate3d(-21px,-30.8px,0) scale(.92)}}
+.m-informe b:nth-child(1){background:#F38B0A;top:-130px;left:-90px;animation:drift-informe-1 27s 0s infinite alternate ease-in-out}
+@keyframes drift-informe-2{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-34px,26px,0) scale(1.16)}100%{transform:translate3d(23.8px,-28.6px,0) scale(.92)}}
+.m-informe b:nth-child(2){background:#FF6E7F;top:-150px;right:-130px;left:auto;opacity:0.6;animation:drift-informe-2 33s -8s infinite alternate ease-in-out}
+@keyframes drift-informe-3{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-20px,-34px,0) scale(1.16)}100%{transform:translate3d(14px,37.4px,0) scale(.92)}}
+.m-informe b:nth-child(3){background:#0057BC;top:150px;right:-170px;left:auto;opacity:0.34;animation:drift-informe-3 36s -14s infinite alternate ease-in-out}
+@keyframes drift-transforme-1{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(32px,24px,0) scale(1.16)}100%{transform:translate3d(-22.4px,-26.4px,0) scale(.92)}}
+.m-transforme b:nth-child(1){background:#6C23DD;top:-120px;left:-120px;animation:drift-transforme-1 25s 0s infinite alternate ease-in-out}
+@keyframes drift-transforme-2{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-28px,32px,0) scale(1.16)}100%{transform:translate3d(19.6px,-35.2px,0) scale(.92)}}
+.m-transforme b:nth-child(2){background:#0057BC;top:-150px;right:-110px;left:auto;opacity:0.7;animation:drift-transforme-2 32s -7s infinite alternate ease-in-out}
+@keyframes drift-transforme-3{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-24px,-28px,0) scale(1.16)}100%{transform:translate3d(16.8px,30.8px,0) scale(.92)}}
+.m-transforme b:nth-child(3){background:#F38B0A;top:140px;right:-180px;left:auto;opacity:0.42;animation:drift-transforme-3 34s -15s infinite alternate ease-in-out}
+@keyframes drift-digitalise-1{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(30px,26px,0) scale(1.16)}100%{transform:translate3d(-21px,-28.6px,0) scale(.92)}}
+.m-digitalise b:nth-child(1){background:#02AC9C;top:-120px;left:-110px;animation:drift-digitalise-1 26s 0s infinite alternate ease-in-out}
+@keyframes drift-digitalise-2{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-32px,30px,0) scale(1.16)}100%{transform:translate3d(22.4px,-33px,0) scale(.92)}}
+.m-digitalise b:nth-child(2){background:#0057BC;top:-160px;right:-120px;left:auto;opacity:0.6;animation:drift-digitalise-2 30s -9s infinite alternate ease-in-out}
+@keyframes drift-digitalise-3{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-20px,-32px,0) scale(1.16)}100%{transform:translate3d(14px,35.2px,0) scale(.92)}}
+.m-digitalise b:nth-child(3){background:#F38B0A;top:160px;right:-170px;left:auto;opacity:0.4;animation:drift-digitalise-3 37s -16s infinite alternate ease-in-out}
+.m-nuit{background:#0A0D11}
+@keyframes drift-nuit-1{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(30px,24px,0) scale(1.16)}100%{transform:translate3d(-21px,-26.4px,0) scale(.92)}}
+.m-nuit b:nth-child(1){background:#0057BC;top:-140px;left:-130px;opacity:0.55;animation:drift-nuit-1 29s 0s infinite alternate ease-in-out}
+@keyframes drift-nuit-2{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-28px,30px,0) scale(1.16)}100%{transform:translate3d(19.6px,-33px,0) scale(.92)}}
+.m-nuit b:nth-child(2){background:#6C23DD;top:-170px;right:-120px;left:auto;opacity:0.45;animation:drift-nuit-2 34s -10s infinite alternate ease-in-out}
+@keyframes drift-nuit-3{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-22px,-28px,0) scale(1.16)}100%{transform:translate3d(15.4px,30.8px,0) scale(.92)}}
+.m-nuit b:nth-child(3){background:#F38B0A;bottom:-180px;right:-160px;top:auto;left:auto;opacity:0.3;animation:drift-nuit-3 38s -18s infinite alternate ease-in-out}
+
+/* Voile de lisibilité : sans lui, le maillage remonte sous le texte.
+   42 % en haut, 90 % en bas — la couleur reste là où il n'y a que des titres. */
+.mesh::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.72) 46%,rgba(255,255,255,.9) 100%)}
+.m-nuit::after{background:linear-gradient(180deg,rgba(10,13,17,.5) 0%,rgba(10,13,17,.78) 48%,rgba(10,13,17,.92) 100%)}
+.dk .mesh{background:#0B0E13}
+.dk .mesh::after{background:linear-gradient(180deg,rgba(11,14,19,.42) 0%,rgba(11,14,19,.8) 48%,rgba(11,14,19,.94) 100%)}

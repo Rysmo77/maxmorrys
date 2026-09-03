@@ -9,6 +9,8 @@ import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { usePagination } from '../../../hooks/usePagination';
 import { buildPublishChecklist } from './publishChecklist';
 import type { Formation, Module, Lesson } from '../../../types';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../../config/firebase';
 
 /**
  * L'ÉTAT DE L'ÉCRAN FORMATIONS, SORTI DU RENDU.
@@ -79,6 +81,22 @@ export function formationChecklist(f: Formation) {
     modules: f.modules ?? [],
   });
 }
+
+/**
+ * PRÉVENIR À LA PUBLICATION — appelée juste après un enregistrement en `published`.
+ *
+ * Elle ne s'adresse QU'aux comptes ayant coché « me prévenir à la publication » dans leurs
+ * réglages, et elle est idempotente : un second enregistrement de la même formation ne
+ * renvoie rien (marqueur `publishNotifiedAt` posé côté serveur).
+ *
+ * ⚠️ Elle NE PEUT PAS être un déclencheur Firestore : Workers ne sait pas s'abonner aux
+ * événements de la base, et il ne reste plus de Cloud Function. C'est donc l'action qui
+ * publie qui appelle l'endpoint — la forme de tout le reste du Worker.
+ */
+const notifyOnPublish = httpsCallable<
+  { kind: 'formation' | 'article'; id: string },
+  { ok: boolean; notified: number; alreadyNotified: boolean }
+>(functions, 'notifyOnPublish');
 
 export function useFormations() {
   const { t } = useTranslation('admin');
@@ -199,8 +217,29 @@ export function useFormations() {
         students: existing?.students ?? 0,
         rating: existing?.rating ?? 0,
       } as Omit<Formation, 'id'>;
-      await saveFormation(data, editingId ?? undefined);
+      const savedId = await saveFormation(data, editingId ?? undefined);
       addToast('success', editingId ? t('formations.toastUpdated') : t('formations.toastCreated'));
+
+      /*
+       * L'ALERTE PART APRÈS L'ENREGISTREMENT, ET SON ÉCHEC NE LE DÉFAIT PAS.
+       *
+       * La formation est publiée : c'est le fait qui compte, et il est acquis. Si l'envoi
+       * échoue, on le DIT — sans transformer une publication réussie en erreur, ni laisser
+       * croire que des gens ont été prévenus. Le marqueur `publishNotifiedAt` n'étant alors
+       * pas posé, un second enregistrement rejouera l'envoi.
+       */
+      if (status === 'published' && savedId) {
+        try {
+          const { data: envoi } = await notifyOnPublish({ kind: 'formation', id: savedId });
+          if (envoi.notified > 0) {
+            addToast('success', t('formations.toastNotified', { count: envoi.notified }));
+          }
+        } catch (error: unknown) {
+          captureError(error, { context: 'Notify on formation publish failed' });
+          addToast('error', t('formations.toastNotifyError'));
+        }
+      }
+
       setShowModal(false);
       load();
     } catch (error: unknown) {

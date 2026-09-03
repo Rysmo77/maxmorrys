@@ -1,6 +1,5 @@
 {
   "nav": {
-    "sectionSpace": "Espace",
     "sectionCommunity": "Communauté",
     "sectionAccount": "Compte",
     "dashboard": "Tableau de bord",
@@ -20,7 +19,8 @@
     "bottomCourses": "Cours",
     "bottomClub": "Club",
     "bottomProfile": "Profil",
-    "payments": "Paiements"
+    "payments": "Paiements",
+    "sectionLearn": "Apprendre"
   },
   "titles": {
     "dashboard": "Tableau de bord",
@@ -134,7 +134,7 @@
     "step1": "Choisir la formation",
     "step2": "Vérifier le montant",
     "step3": "Valider chez l'opérateur",
-    "serverComputed": "Montant calculé et débité côté serveur.",
+    "serverComputed": "Le montant affiché est celui qui sera débité : il est calculé côté serveur.",
     "methodsTitle": "Moyens de paiement acceptés",
     "methodsNote": "Le choix se fait sur la page sécurisée de l'opérateur, pas ici.",
     "methodWave": "Wave",
@@ -145,7 +145,7 @@
     "methodCardNote": "Visa, Mastercard",
     "leaveNote": "Tu quittes le site pour valider, puis tu reviens ici.",
     "couponPlaceholder": "Ton code",
-    "couponHint": "Le code est vérifié au moment du paiement. La remise apparaît sur la page de l'opérateur, pas sur ce total.",
+    "couponHint": "Facultatif. Le total se met à jour après vérification.",
     "durationLabel": "Durée",
     "summaryLabel": "Récapitulatif de la commande",
     "notFoundLines": [
@@ -157,7 +157,11 @@
     ],
     "priceSource": "Prix du catalogue",
     "payLabel": "Payer",
-    "lessonsLabel": "Leçons"
+    "lessonsLabel": "Leçons",
+    "couponApply": "Vérifier le code",
+    "couponChecking": "Vérification…",
+    "couponApplied": "Code appliqué, remise de",
+    "couponInvalid": "Code promo invalide, expiré ou déjà utilisé."
   },
   "paymentReturn": {
     "verifyingTitle": "Vérification du paiement...",
@@ -236,7 +240,9 @@
     "proTipTitle": "Conseil de pro",
     "proTipText": "Ouvre la première leçon tout de suite, même cinq minutes : c'est le moment où tu décides vraiment si la formation te convient.",
     "exploreFormations": "Explorer les formations",
-    "goToDashboard": "Aller à mon tableau de bord"
+    "goToDashboard": "Aller à mon tableau de bord",
+    "dialogLabel": "Bienvenue — mise en route de ton espace",
+    "skipAll": "Plus tard — tout se règle aussi dans Profil"
   },
   "player": {
     "courseContent": "Contenu du cours",
