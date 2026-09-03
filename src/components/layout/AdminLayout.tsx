@@ -59,6 +59,19 @@ export default function AdminLayout() {
         '/admin/formations': unpublished > 0 ? t('nav.badgeUnpublished', { count: unpublished }) : null,
         '/admin/messages': counts.newMessages > 0 ? t('nav.badgeNew', { count: counts.newMessages }) : null,
         '/admin/prospects-agence': counts.newAgencyLeads > 0 ? t('nav.badgeToQualify', { count: counts.newAgencyLeads }) : null,
+        /*
+          LE SIXIÈME BADGE — et le seul qui signale une PANNE plutôt qu'une file d'attente.
+
+          Les cinq autres comptent du travail à faire ; celui-ci compte des clients qui ont
+          payé et n'ont rien reçu. L'article 4 des CGV promet la facture « automatiquement,
+          dès validation du paiement » : quand l'envoi échoue, la promesse est rompue et
+          personne ne le sait — l'échec ne laissait qu'un `console.error` dans les journaux
+          du Worker.
+
+          D'où le ton `warn` sur l'entrée : c'est la seule chose de ce menu qui ne peut pas
+          attendre demain.
+        */
+        '/admin/transactions': counts.mailPending > 0 ? t('nav.badgeMailPending', { count: counts.mailPending }) : null,
       }
     : {};
 

@@ -2,7 +2,9 @@ import {
   collection, doc, getDoc, setDoc, query, where, orderBy,
   getCountFromServer,
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import { getCollection, createDoc, setDocById, deleteDocById, updateDocById, db } from './helpers';
+import { functions } from '../../config/firebase';
 import type { Transaction, Coupon, Announcement } from '../../types';
 
 // ── Site Settings ─────────────────────────────────────────────────────────────
@@ -106,7 +108,7 @@ export async function getPlatformStats() {
   const [
     usersSnap, formationsSnap, blogSnap, messagesSnap, enrollmentsSnap, newsletterSnap,
     publishedFormationsSnap, publishedPostsSnap, newMessagesSnap,
-    agencyLeadsSnap, newAgencyLeadsSnap,
+    agencyLeadsSnap, newAgencyLeadsSnap, mailPendingSnap,
   ] = await Promise.all([
     getCountFromServer(collection(db, 'users')),
     getCountFromServer(collection(db, 'formations')),
@@ -119,6 +121,19 @@ export async function getPlatformStats() {
     getCountFromServer(query(collection(db, 'messages'), where('status', '==', 'new'))),
     getCountFromServer(collection(db, 'agency_leads')),
     getCountFromServer(query(collection(db, 'agency_leads'), where('status', '==', 'new'))),
+    /*
+     * LES COURRIERS QUI NE SONT PAS PARTIS.
+     *
+     * `mailPending` est écrit explicitement par le Worker, dans les deux sens — voir
+     * `transaction-mail.ts`. Un booléen, et pas l'absence de `invoiceSentAt`, parce que
+     * Firestore ne sait pas requêter un champ ABSENT : `where('invoiceSentAt', '==', null)`
+     * ne remonte que les documents où le champ vaut littéralement `null`.
+     *
+     * ⚠️ Ne compte que les transactions passées par le Worker DEPUIS l'introduction du
+     * marqueur. Un échec antérieur n'est pas rattrapé ici — il se voit à l'écran des
+     * transactions, colonne par colonne, pas dans ce compteur.
+     */
+    getCountFromServer(query(collection(db, 'transactions'), where('mailPending', '==', true))),
   ]);
   return {
     users: usersSnap.data().count,
@@ -132,6 +147,7 @@ export async function getPlatformStats() {
     subscribers: newsletterSnap.data().count,
     agencyLeads: agencyLeadsSnap.data().count,
     newAgencyLeads: newAgencyLeadsSnap.data().count,
+    mailPending: mailPendingSnap.data().count,
   };
 }
 
@@ -211,4 +227,36 @@ export async function saveAnnouncement(data: Omit<Announcement, 'id'> & { id?: s
 
 export async function deleteAnnouncement(id: string): Promise<void> {
   return deleteDocById('announcements', id);
+}
+
+
+/** L'issue d'un des deux courriers, telle que la rend le Worker. */
+export type IssueCourrier = 'envoye' | 'deja' | 'echec' | 'sansDestinataire';
+
+export interface BilanCourriers {
+  confirmation: IssueCourrier;
+  facture: IssueCourrier;
+  numero: string | null;
+  enAttente: boolean;
+  erreur: string | null;
+}
+
+const resendCallable = httpsCallable<{ transactionId: string }, BilanCourriers>(
+  functions,
+  'resendTransactionMail',
+);
+
+/**
+ * RELANCE LES COURRIERS D'UNE TRANSACTION ENCAISSÉE.
+ *
+ * Sans danger à répéter : le serveur relit `purchaseNoticeSentAt`, `invoiceSentAt` et le
+ * numéro de facture avant d'agir. Une transaction déjà servie ne reçoit rien et le dit —
+ * ce qui compte, parce qu'un opérateur qui doute qu'un bouton ait marché clique deux fois.
+ *
+ * ⚠️ Le solde de jetons n'est PAS reconstitué à la relance : il a bougé depuis
+ * l'encaissement. La confirmation Rysmo omet alors le chiffre plutôt que d'en inventer un.
+ */
+export async function resendTransactionMail(transactionId: string): Promise<BilanCourriers> {
+  const res = await resendCallable({ transactionId });
+  return res.data;
 }

@@ -36,7 +36,9 @@
     "badgeNew_one": "{{count}} nouveau",
     "badgeNew_other": "{{count}} nouveaux",
     "badgeToQualify_one": "{{count}} à qualifier",
-    "badgeToQualify_other": "{{count}} à qualifier"
+    "badgeToQualify_other": "{{count}} à qualifier",
+    "badgeMailPending_one": "{{count}} courrier bloqué",
+    "badgeMailPending_other": "{{count}} courriers bloqués"
   },
   "placeholder": {
     "description": "Cette section est en cours de développement et sera disponible prochainement."
@@ -1192,7 +1194,17 @@
     "docCreated": "Créée le",
     "docCharge": "Identifiant de charge",
     "replayTitle": "Pourquoi rejouer serait sans risque",
-    "replayBody": "Le webhook dédoublonne par identifiant de charge : le rejouer ne peut ni créer une double inscription, ni débiter une seconde fois. Les effets sont appliqués avant que la transaction soit marquée terminée, jamais l'inverse. Le rejeu lui-même n'existe pas encore comme action ici — il se déclenche chez le prestataire."
+    "replayBody": "Le webhook dédoublonne par identifiant de charge : le rejouer ne peut ni créer une double inscription, ni débiter une seconde fois. Les effets sont appliqués avant que la transaction soit marquée terminée, jamais l'inverse. Le rejeu lui-même n'existe pas encore comme action ici — il se déclenche chez le prestataire.",
+    "mailTitle": "Courriers",
+    "mailConfirmation": "Confirmation d'achat",
+    "mailInvoice": "Facture",
+    "mailNumber": "Numéro de facture",
+    "mailNotSent": "Non partie",
+    "mailStuckTag": "Courrier bloqué",
+    "mailResend": "Relancer les courriers",
+    "mailResendSuccess": "Courriers relancés.",
+    "mailResendNothing": "Rien à relancer : les deux courriers sont déjà partis.",
+    "mailResendError": "Relance impossible. {{error}}"
   },
   "settings": {
     "pageTitle": "Paramètres",

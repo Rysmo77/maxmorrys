@@ -61,9 +61,12 @@ interface TransactionPanelProps {
   /** Rembourse. Rendu par le parent, qui porte la liste et la confirmation. */
   onRefund: (id: string) => void;
   refunding: boolean;
+  /** Relance les courriers. Même partage que le remboursement : le parent appelle. */
+  onResend: (id: string) => void;
+  resending: boolean;
 }
 
-export default function TransactionPanel({ tx, loading, asOf, onRefund, refunding }: TransactionPanelProps) {
+export default function TransactionPanel({ tx, loading, asOf, onRefund, refunding, onResend, resending }: TransactionPanelProps) {
   const { t } = useTranslation('admin');
   const { formatDate } = useFormat();
 
@@ -151,6 +154,54 @@ export default function TransactionPanel({ tx, loading, asOf, onRefund, refundin
           last
         />
       </GlassPanel>
+
+      {/*
+        LES COURRIERS — visibles ici parce qu'ils ne l'étaient nulle part.
+
+        Un envoi qui échoue ne laissait qu'un `console.error` dans les journaux du Worker.
+        Le client, lui, avait payé et n'avait rien reçu — alors que l'article 4 des CGV
+        promet la facture « automatiquement, dès validation du paiement ».
+
+        La section ne s'affiche que sur une transaction encaissée : avant l'encaissement,
+        aucun courrier n'est dû, et deux lignes « non partie » sur un paiement en attente
+        se liraient comme une panne.
+      */}
+      {tx.status === 'completed' && (
+        <GlassPanel padding={16} className="rv mt-4" style={{ ['--i' as string]: 2 }}>
+          <SiteEyebrow style={{ marginBottom: '8px' }}>{t('transactions.mailTitle')}</SiteEyebrow>
+          <DocLine
+            label={t('transactions.mailConfirmation')}
+            value={tx.purchaseNoticeSentAt
+              ? <Num value={formatDate(tx.purchaseNoticeSentAt)} source="db" asOf={asOf} />
+              : <Tag tone="warn">{t('transactions.mailNotSent')}</Tag>}
+          />
+          <DocLine
+            label={t('transactions.mailInvoice')}
+            value={tx.invoiceSentAt
+              ? <Num value={formatDate(tx.invoiceSentAt)} source="db" asOf={asOf} />
+              : <Tag tone="warn">{t('transactions.mailNotSent')}</Tag>}
+          />
+          {/* Le numéro s'affiche même quand l'envoi a échoué : la facture EXISTE, seul son
+              acheminement a manqué. Le taire laisserait croire qu'elle reste à émettre. */}
+          <DocLine
+            label={t('transactions.mailNumber')}
+            value={<Num value={tx.invoiceNumber ?? null} source="db" asOf={asOf} />}
+            last={Boolean(tx.purchaseNoticeSentAt && tx.invoiceSentAt)}
+          />
+          {(!tx.purchaseNoticeSentAt || !tx.invoiceSentAt) && (
+            <Button
+              size="sm"
+              tone="quiet"
+              fullWidth
+              loading={resending}
+              onClick={() => onResend(tx.id)}
+              style={{ marginTop: '12px' }}
+            >
+              {t('transactions.mailResend')}
+            </Button>
+          )}
+        </GlassPanel>
+      )}
 
       {/* UNE action, et seulement quand elle est possible. Un bouton grisé en permanence
           sur les quatre autres statuts n'apprendrait rien qu'on ne lise déjà à l'étiquette. */}

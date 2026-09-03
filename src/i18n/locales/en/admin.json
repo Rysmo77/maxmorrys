@@ -36,7 +36,9 @@
     "badgeNew_one": "{{count}} new",
     "badgeNew_other": "{{count}} new",
     "badgeToQualify_one": "{{count}} to qualify",
-    "badgeToQualify_other": "{{count}} to qualify"
+    "badgeToQualify_other": "{{count}} to qualify",
+    "badgeMailPending_one": "{{count}} email stuck",
+    "badgeMailPending_other": "{{count}} emails stuck"
   },
   "placeholder": {
     "description": "This section is under development and will be available soon."
@@ -1192,7 +1194,17 @@
     "docCreated": "Created on",
     "docCharge": "Charge identifier",
     "replayTitle": "Why replaying would be safe",
-    "replayBody": "The webhook deduplicates by charge identifier: replaying it can neither create a duplicate enrolment nor charge a second time. Effects are applied before the transaction is marked complete, never the other way round. The replay itself does not exist as an action here yet — it is triggered at the payment provider."
+    "replayBody": "The webhook deduplicates by charge identifier: replaying it can neither create a duplicate enrolment nor charge a second time. Effects are applied before the transaction is marked complete, never the other way round. The replay itself does not exist as an action here yet — it is triggered at the payment provider.",
+    "mailTitle": "Emails",
+    "mailConfirmation": "Purchase confirmation",
+    "mailInvoice": "Invoice",
+    "mailNumber": "Invoice number",
+    "mailNotSent": "Not sent",
+    "mailStuckTag": "Email stuck",
+    "mailResend": "Resend the emails",
+    "mailResendSuccess": "Emails sent.",
+    "mailResendNothing": "Nothing to resend — both emails already went out.",
+    "mailResendError": "Couldn't resend. {{error}}"
   },
   "settings": {
     "pageTitle": "Settings",

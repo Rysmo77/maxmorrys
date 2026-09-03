@@ -10,7 +10,8 @@ import { ConfirmDialog } from '@/components/dialogs';
 import { Pagination } from '@/components/dialogs';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { usePagination } from '../../hooks/usePagination';
-import { getAllTransactions, updateTransactionStatus } from '../../lib/firestore';
+import { getAllTransactions, resendTransactionMail, updateTransactionStatus } from '../../lib/firestore';
+import { invalidateConsoleCounts } from '../../lib/admin/consoleCounts';
 import { useFormat } from '../../hooks/useFormat';
 import type { Transaction } from '../../types';
 
@@ -90,6 +91,7 @@ export default function AdminTransactions() {
   const [search, setSearch] = useState('');
   const [stage, setStage] = useState<Stage>('all');
   const [refunding, setRefunding] = useState<string | null>(null);
+  const [resending, setResending] = useState<string | null>(null);
   /** La transaction ouverte dans le panneau. `null` = aucune, ce que le panneau sait dire. */
   const [selectedId, setSelectedId] = useState<string | null>(null);
   /** Date de la MESURE, posée quand la lecture revient — pas au rendu. */
@@ -117,6 +119,46 @@ export default function AdminTransactions() {
   };
 
   useEffect(() => { load(); }, []);
+
+  /*
+    LA RELANCE DES COURRIERS.
+
+    Pas de confirmation préalable, contrairement au remboursement : l'opération est
+    idempotente côté serveur — il relit `purchaseNoticeSentAt`, `invoiceSentAt` et le
+    numéro de facture avant d'agir. Demander « êtes-vous sûr ? » devant une action sans
+    conséquence apprend à l'opérateur à cliquer « oui » sans lire, ce qui coûte cher le
+    jour où la question compte vraiment.
+
+    L'état local est remis à jour depuis le bilan rendu par le serveur, et non deviné :
+    un envoi peut réussir pour la confirmation et échouer pour la facture.
+  */
+  const handleResend = async (id: string) => {
+    setResending(id);
+    try {
+      const bilan = await resendTransactionMail(id);
+      const maintenant = new Date().toISOString();
+      setTransactions((prev) => prev.map((tx) => tx.id !== id ? tx : {
+        ...tx,
+        invoiceNumber: bilan.numero ?? tx.invoiceNumber,
+        purchaseNoticeSentAt: bilan.confirmation === 'envoye' ? maintenant : tx.purchaseNoticeSentAt,
+        invoiceSentAt: bilan.facture === 'envoye' ? maintenant : tx.invoiceSentAt,
+        mailPending: bilan.enAttente,
+      }));
+      if (bilan.enAttente) {
+        // On rend le motif : « ça n'a pas marché » sans dire pourquoi n'aide personne.
+        addToast('error', t('transactions.mailResendError', { error: bilan.erreur ?? '' }));
+      } else if (bilan.confirmation === 'deja' && bilan.facture === 'deja') {
+        addToast('info', t('transactions.mailResendNothing'));
+      } else {
+        addToast('success', t('transactions.mailResendSuccess'));
+        invalidateConsoleCounts();
+      }
+    } catch {
+      addToast('error', t('transactions.mailResendError', { error: '' }));
+    } finally {
+      setResending(null);
+    }
+  };
 
   const handleRefund = (id: string) => {
     confirm.requestConfirm(t('transactions.refundConfirmMessage'), async () => {
@@ -194,6 +236,8 @@ export default function AdminTransactions() {
               asOf={asOf}
               onRefund={handleRefund}
               refunding={refunding === selected?.id}
+              onResend={handleResend}
+              resending={resending === selected?.id}
             />
           )}
         >
@@ -292,6 +336,10 @@ export default function AdminTransactions() {
                      serait un bouton imbriqué, donc inatteignable au clavier. */
                   trailing={(
                     <span className="flex items-center gap-2">
+                      {/* Un SIGNAL, pas une action : la relance vit dans la fiche, comme le
+                          remboursement. Sur la ligne, il ne s'agit que de savoir laquelle
+                          ouvrir — sans quoi il faudrait les ouvrir toutes pour trouver. */}
+                      {tx.mailPending && <Tag tone="warn">{t('transactions.mailStuckTag')}</Tag>}
                       <Tag tone={STATUS_TONE[tx.status]}>{STATUS_LABELS[tx.status]}</Tag>
                       {/* Sous 1080 px il n'y a pas de panneau : le remboursement reprend sa
                           place sur la ligne, comme avant. Au-delà, il vit dans la fiche et

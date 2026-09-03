@@ -3,12 +3,9 @@ import { verifyHmacSha256 } from '@mm/shared';
 
 import { getFirestore } from '../context';
 import type { Env } from '../env';
-import { sendEmail } from '../lib/email';
-import { allocateInvoiceNumber, buildInvoice, type Langue } from '../lib/invoice';
 import { sendConversionEvent } from '../lib/meta-capi';
-import { buildPurchaseNotice, urlDeDestination, type AchatKind } from '../lib/purchase';
 import { recompenserParrain } from '../lib/referral';
-import type { FamilleFiscale } from '../lib/tax';
+import { envoyerCourriersTransaction } from '../lib/transaction-mail';
 import { asText, toNumber } from '../lib/values';
 
 /**
@@ -223,102 +220,32 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
      * ferait rejouer le chemin de l'argent. `sendEmail` ne lève pas ; on journalise.
      */
     try {
-      const destinataire = asText(txn.userEmail) ?? '';
-      if (destinataire) {
-        // La langue du destinataire, pas celle du serveur. À défaut, le français : c'est la
-        // langue que j'écris et celle que je tiens à jour.
-        const profil = userId ? await db.get(`users/${userId}`) : null;
-        const prefs = profil?.data.preferences as { language?: string } | undefined;
-        const langue: Langue = prefs?.language === 'en' ? 'en' : 'fr';
-
-        /*
-         * ── CE QUI A ÉTÉ ACHETÉ, EN UN SEUL ENDROIT ──
-         *
-         * Le webhook branchait déjà sur ces quatre cas plus haut pour appliquer l'effet. On
-         * refait la lecture ici plutôt que de la faire remonter : les deux endroits lisent la
-         * MÊME transaction et ne peuvent pas diverger, alors qu'une variable portée sur
-         * quarante lignes se serait fait réaffecter au premier ajout de branche.
-         *
-         * La famille fiscale sort de la même lecture. Elle décide du taux appliqué à la
-         * facture — voir `tax.ts`. Aujourd'hui les trois familles autres qu'`agence` sont en
-         * régime non tranché : aucune ne porte de TVA, et c'est délibéré.
-         */
-        const kind: AchatKind =
-          txn.formationId === 'club_digitos' ? 'club'
-          : txn.rysmoKind === 'pack' ? 'rysmoPack'
-          : txn.rysmoKind === 'subscription' ? 'rysmoSubscription'
-          : 'formation';
-        const famille: FamilleFiscale =
-          kind === 'club' ? 'club'
-          : kind === 'rysmoPack' || kind === 'rysmoSubscription' ? 'rysmo'
-          : 'formation';
-
-        /*
-         * LA CONFIRMATION D'ACHAT, AVANT LA FACTURE.
-         *
-         * L'ordre compte dans la boîte de réception : la confirmation dit ce qu'on vient
-         * d'obtenir, la facture est la pièce comptable. Reçues dans l'autre sens, la première
-         * chose qu'on lit après avoir payé est un document administratif.
-         *
-         * `purchaseNoticeSentAt` porte l'idempotence, exactement comme `invoiceSentAt` :
-         * Bictorys relivre, et une deuxième confirmation du même achat ferait douter d'un
-         * double débit.
-         */
-        if (!txn.purchaseNoticeSentAt) {
-          const avis = buildPurchaseNotice({
-            kind,
-            langue,
-            userName: asText(txn.userName),
-            designation: asText(txn.formationTitle),
-            jetonsCredites,
-            soldeTotal: soldeRysmo,
-            url: urlDeDestination(kind, langue, env.APP_BASE_URL),
-          });
-          const envoiAvis = await sendEmail(env, { to: destinataire, ...avis });
-          if (envoiAvis.sent) {
-            await db.update(transaction.path, { purchaseNoticeSentAt: new Date().toISOString() });
-            console.log('Webhook Bictorys : confirmation', kind, 'envoyée pour', chargeId);
-          } else {
-            console.error('Webhook Bictorys : confirmation non envoyée —', envoiAvis.error);
-          }
-        }
-
-        // Attribué une seule fois et relu ensuite : une relivraison ne consomme pas un rang
-        // et n'envoie pas une seconde facture sous un autre numéro.
-        const numero = await allocateInvoiceNumber(db, transaction.path);
-
-        const facture = buildInvoice(
-          {
-            amount: toNumber(txn.amount),
-            currency: asText(txn.currency) || 'XOF',
-            designation: asText(txn.formationTitle),
-            userEmail: destinataire,
-            userName: asText(txn.userName),
-            chargeId,
-            paidAt: completedAt,
-            famille,
-          },
-          numero,
-          langue,
-          env.INVOICE_TAX_NOTICE || undefined,
-        );
-
-        const envoi = await sendEmail(env, {
-          to: destinataire,
-          subject: facture.subject,
-          html: facture.html,
-          text: facture.text,
-        });
-        if (envoi.sent) {
-          await db.update(transaction.path, { invoiceSentAt: new Date().toISOString() });
-          console.log('Webhook Bictorys : facture', numero, 'envoyée pour', chargeId);
-        } else {
-          // Le numéro reste attribué et écrit sur la transaction : la facture existe, seul
-          // son acheminement a échoué. `invoiceSentAt` absent est le marqueur à relancer.
-          console.error('Webhook Bictorys : facture', numero, 'non envoyée —', envoi.error);
-        }
-      } else {
+      /*
+       * Les deux courriers sont produits par `transaction-mail.ts`, et non plus ici.
+       *
+       * La raison est la RELANCE : la console doit pouvoir renvoyer une facture dont
+       * l'acheminement a échoué, et elle doit renvoyer EXACTEMENT la même — même numéro,
+       * même contenu. Deux rédactions du même document sous le même numéro, c'est la
+       * divergence garantie à la première évolution.
+       *
+       * `completedAt` est joint à la transaction lue : il vient d'être écrit en base
+       * juste au-dessus, mais l'objet en mémoire ne le porte pas encore, et c'est lui
+       * qui date la facture.
+       */
+      const bilan = await envoyerCourriersTransaction(
+        db,
+        env,
+        transaction.path,
+        { ...txn, completedAt },
+        { jetonsCredites, soldeTotal: soldeRysmo },
+      );
+      if (bilan.confirmation === 'sansDestinataire') {
         console.error('Webhook Bictorys : aucune adresse sur la transaction', chargeId);
+      } else {
+        console.log(
+          `Webhook Bictorys : courriers ${chargeId} — confirmation ${bilan.confirmation}, ` +
+            `facture ${bilan.facture}${bilan.numero ? ` (${bilan.numero})` : ''}`,
+        );
       }
     } catch (error: unknown) {
       console.error('Webhook Bictorys : échec de facturation pour', chargeId, error);

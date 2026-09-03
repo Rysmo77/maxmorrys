@@ -553,6 +553,20 @@ export interface Transaction {
   chargeId?: string;
   opToken?: string;
   metaEventId?: string;
+
+  /* ── Les courriers de la transaction ────────────────────────────────────────
+     Écrits par le Worker (`transaction-mail.ts`). `mailPending` est un booléen
+     EXPLICITE et non l'absence des deux horodatages : Firestore ne sait pas
+     requêter un champ absent, et c'est lui qui alimente le badge de la console. */
+  /** Numéro attribué. Il l'est même si l'envoi échoue — la facture existe. */
+  invoiceNumber?: string;
+  /** Horodatage d'envoi de la facture. Absent = jamais partie. */
+  invoiceSentAt?: string;
+  /** Horodatage d'envoi de la confirmation d'achat. */
+  purchaseNoticeSentAt?: string;
+  /** Reste-t-il un courrier à envoyer ? Absent sur les transactions antérieures
+   *  au marqueur — l'absence ne vaut donc pas « tout est parti ». */
+  mailPending?: boolean;
 }
 
 export interface SiteStats {

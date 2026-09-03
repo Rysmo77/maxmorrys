@@ -35,7 +35,7 @@
     // Autrement dit : le Worker va bien, et TOUT LE CHEMIN DE L'ARGENT était injoignable —
     // aucune formation, aucun pack Rysmo, aucun abonnement Club ne pouvait être payé, et le
     // webhook de confirmation n'aurait de toute façon pas répondu.
-    "MIGRATED": "acknowledgeAppointment,getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,exportUserData,deleteUserAccount,mediaToken,popupEvent,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,createClubCharge,bictorysWebhook,replyToMessage,notifyOnPublish,quoteCheckout,importSpotifyEpisodesManual,syncMediaStatsManual",
+    "MIGRATED": "acknowledgeAppointment,resendTransactionMail,getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,exportUserData,deleteUserAccount,mediaToken,popupEvent,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,createClubCharge,bictorysWebhook,replyToMessage,notifyOnPublish,quoteCheckout,importSpotifyEpisodesManual,syncMediaStatsManual",
 
     "FUNCTIONS_ORIGIN": "https://us-central1-max-morrys.cloudfunctions.net",
     "BICTORYS_API_URL": "https://api.bictorys.com/pay/v1/charges",
@@ -93,7 +93,7 @@
       "vars": {
         "FIREBASE_PROJECT_ID": "max-morrys",
         "ALLOWED_ORIGINS": "https://maxmorrys.me,https://www.maxmorrys.me,http://localhost:5173",
-        "MIGRATED": "acknowledgeAppointment,getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,createClubCharge,bictorysWebhook,exportUserData,deleteUserAccount,mediaToken,popupEvent,replyToMessage,notifyOnPublish,quoteCheckout,importSpotifyEpisodesManual,syncMediaStatsManual",
+        "MIGRATED": "acknowledgeAppointment,resendTransactionMail,getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,createClubCharge,bictorysWebhook,exportUserData,deleteUserAccount,mediaToken,popupEvent,replyToMessage,notifyOnPublish,quoteCheckout,importSpotifyEpisodesManual,syncMediaStatsManual",
         "FUNCTIONS_ORIGIN": "https://us-central1-max-morrys.cloudfunctions.net",
     "BICTORYS_API_URL": "https://api.bictorys.com/pay/v1/charges",
     "APP_BASE_URL": "https://maxmorrys.me",
