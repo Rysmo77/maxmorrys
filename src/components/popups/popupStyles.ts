@@ -47,6 +47,23 @@ export const CTA_BRAND = 'group inline-flex items-center gap-2 px-6 py-3 rounded
 /** CTA principal, teinte transforme — le Club, seul territoire à abonnement. */
 export const CTA_TRANSFORME = 'group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[image:var(--action-transforme)] text-[color:var(--paper-fixed)] font-black text-sm uppercase tracking-wide transition duration-300 hover:-translate-y-0.5 active:scale-[0.97] shadow-transforme focus:outline-none';
 
+/**
+ * Bouton discret sur la surface nuit — remplace `Button tone="quiet"` du kit, inutilisable ici.
+ *
+ * ⚠️ TROUVÉ PAR UNE CAPTURE, PAS PAR UNE RELECTURE (2026-09-03). Le ton `quiet` compose
+ * `background: var(--surface-quiet)` et `color: var(--ink)`, et les DEUX basculent sous `.dk`
+ * alors que cette surface est nuit dans les deux thèmes. Valeurs effectives en thème clair :
+ * fond `rgba(14,17,22,.065)` sur `--night-2`, encre `#0E1116`. Soit du noir sur du noir — les
+ * deux seules actions de la fin d'article (« Ouvrir » le flux, « Créer un compte ») étaient
+ * illisibles sur la surface au trafic organique le plus fort du site. Le ton `ghost` porte le
+ * même défaut : n'employer dans une pop-up que les tons dont l'encre est `--paper-fixed`.
+ *
+ * Pourquoi ce n'est pas corrigé dans le kit : `Button` pose ses tons en style EN LIGNE, qu'aucune
+ * feuille d'override ne peut battre sans `!important`. Les valeurs ci-dessous sont en blanc
+ * translucide — donc identiques dans les deux thèmes, ce qui est la propriété qui manquait.
+ */
+export const BTN_NIGHT = 'inline-flex shrink-0 items-center gap-1.5 mm-press-sm rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-white/20 focus:outline-none';
+
 /** Action secondaire, discrète mais atteignable au clavier. */
 export const DISMISS = 'text-xs font-semibold text-white/40 hover:text-white/80 transition-colors focus:outline-none rounded';
 

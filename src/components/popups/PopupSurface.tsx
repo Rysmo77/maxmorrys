@@ -81,7 +81,30 @@ export default function PopupSurface({
              `--night-2` dans les deux thèmes : l'anneau bleu du système s'y perdrait.
              Posé ICI et nulle part ailleurs — `PopupManager` fait passer les six popups
              par ce composant, donc chaque bouton et chaque lien en hérite. */
-          'fixed bottom-0 inset-x-0 z-50 max-h-[30vh] overflow-y-auto focus:outline-none mm-on-color',
+          /*
+            ⚠️ PLAFOND RELEVÉ LE 2026-09-03, APRÈS MESURE AU NAVIGATEUR. Il valait `30vh`, et
+            ce chiffre tronquait le contenu sur tous les téléphones courants :
+
+                écran   blogEnd  mediaEnd  formationsEntry  cartRecovery   plafond 30vh
+                640px    355px     282px        239px          214px          192px
+                667px    354px     262px        216px          194px          200px
+                844px    355px     239px        192px          194px          253px
+
+            Conséquence observée sur un iPhone SE : `blogEnd` masquait ENTIÈREMENT son action
+            principale (« Créer un compte ») et sa sortie — seule la croix restait. Sur la
+            surface au trafic organique le plus fort du site.
+
+            Pourquoi relever le plafond ne réveille pas la pénalité « interstitiel intrusif » :
+            celle-ci vise ce qui masque le contenu À L'ARRIVÉE depuis la recherche. Or les deux
+            bandeaux du blog et du pôle média se déclenchent à 90 % de lecture (`END_SCROLL`), et
+            la découverte à 25 s ou 40 % — jamais au débarquement. Le risque que `30vh` couvrait
+            n'existait pas pour ces déclencheurs ; le contenu coupé, lui, était réel et mesuré.
+
+            `min()` et non une valeur simple : 380 px suffit au plus long des quatre contenus,
+            et le garde-fou en `vh` évite qu'un téléphone en paysage reçoive un bandeau plus
+            haut que son écran.
+          */
+          'fixed bottom-0 inset-x-0 z-50 max-h-[min(64vh,380px)] overflow-y-auto focus:outline-none mm-on-color',
           'bg-[color:var(--night-2)] text-white border-t border-white/10',
           'shadow-[0_-8px_40px_rgba(0,0,0,0.6)]',
           'pb-[env(safe-area-inset-bottom)]',

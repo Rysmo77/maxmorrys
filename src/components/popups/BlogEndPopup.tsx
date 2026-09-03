@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { Button } from '@ds';
 import PopupHeading from './PopupHeading';
 import { SITE_URL } from '../seo/seo-config';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
-import { DISMISS, BODY } from './popupStyles';
+import { DISMISS, BODY, BTN_NIGHT } from './popupStyles';
 
 /**
  * Fin d'article : ce qu'on peut suivre.
@@ -54,9 +53,8 @@ function Canal({ label, action, href, last }: { label: string; action: string; h
       }`}
     >
       <b className="text-[14px] text-white/90">{label}</b>
-      <Button href={href} tone="quiet" size="sm" fullWidth={false}>
-        {action}
-      </Button>
+      {/* Voir `BTN_NIGHT` : le ton `quiet` du kit rendait ces deux actions invisibles. */}
+      <a href={href} className={BTN_NIGHT}>{action}</a>
     </div>
   );
 }
