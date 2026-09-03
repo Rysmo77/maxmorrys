@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Stack, router } from 'expo-router';
+import { Redirect, Stack, router } from 'expo-router';
 import { Body, Display, Eyebrow, Icon, IconButton, Screen, Surface, isIOS, useToken } from '../../ds';
 
 /**
@@ -24,9 +24,21 @@ import { Body, Display, Eyebrow, Icon, IconButton, Screen, Surface, isIOS, useTo
  * ── ET L'ÉCRAN EST NUIT SUR UN TÉLÉPHONE EN MODE CLAIR ──────────────────────────────────
  * `dark` ouvre une portée de thème, l'équivalent natif du `.dk` du web. La console est un
  * outil de travail : elle porte la nuit du document, pas le mode du téléphone.
+ *
+ * ── ⚠️ IL N'Y AVAIT AUCUNE GARDE ICI ────────────────────────────────────────────────────
+ * Ce fichier retournait un `<Stack>` nu, et les six écrans d'administration partaient à TOUT
+ * LE MONDE. Le profil affirmait pourtant, en commentaire, que « le garde de route la cache ».
+ * Il n'existait pas. Une console de support sans données se lit en revue comme une
+ * application inachevée (2.1) ou comme une zone interne laissée ouverte (5.1.1).
+ *
+ * La garde ci-dessous est celle de l'atelier — un interrupteur de CONSTRUCTION. Elle sera
+ * remplacée par une vraie vérification de rôle quand les données seront branchées ; d'ici là,
+ * elle a le mérite d'être infranchissable en production plutôt que d'être promise.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
+const ATELIER = process.env.EXPO_PUBLIC_CONTENU_DEMO === '1' || __DEV__;
 export default function ConsoleLayout() {
+  if (!ATELIER) return <Redirect href="/" />;
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 

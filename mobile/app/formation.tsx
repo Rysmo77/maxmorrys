@@ -1,35 +1,32 @@
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { openAuthSessionAsync } from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, PriceBlock, SansDonnees, Screen, Surface, Tag, isIOS, useActionGradient, useToken, veil,
+  Body, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, SansDonnees, Screen,
+  Surface, Tag, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
-import { FORMATION, MODULES_MUR, RELEVE, SITE, SOURCE } from '../contenu/demo';
+import { FORMATION, MODULES_MUR } from '../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
- * ══ 4 · LE MUR DE PAIEMENT ══ — L'APP NE VEND RIEN, ET ELLE LE DIT DANS SA VOIX.
+ * ══ 4 · LA FICHE DE FORMATION ══ — L'APPLICATION NE VEND RIEN, ET N'EN PARLE PLUS.
  *
- * Wave et Orange Money en direct dans l'application, c'est un REJET EN REVUE : les deux
- * magasins imposent leur propre achat intégré pour du contenu numérique consommé dans
- * l'application (App Store 3.1.1, Play Payments). Or leur système ne connaît ni Wave ni
- * Orange Money — c'est-à-dire précisément le seul avantage réel du produit sur ce marché —
- * et il prélève 15 à 30 % : sur une formation à 95 000 F, entre 14 250 et 28 500 F par vente.
+ * ── L'HYPOTHÈSE A ÉTÉ TRANCHÉE, ET C'EST LE REPLI QUI A ÉTÉ CHOISI ────────────────────
+ * Cet écran était un MUR DE PAIEMENT : il affichait le prix, expliquait pourquoi les magasins
+ * refusent Wave et Orange Money, et ouvrait la boutique du site. Il pariait sur une lecture
+ * favorable de l'App Store 3.1.1 — un pari que ce fichier documentait lui-même comme non levé.
  *
- * L'application n'encaisse donc rien. **Elle OUVRE ce qui est déjà payé**, et le web reste la
- * boutique. Trois choses rendent ce mur supportable, et aucune n'est décorative :
+ * Le pari n'a pas été tenu. **L'application est devenue consultation seule** : elle ouvre ce
+ * qui est déjà acquis, et ne propose plus rien à l'achat. Ni prix, ni bouton, ni lien vers une
+ * page de vente. C'est le repli que ce fichier nommait, appliqué.
  *
- *   1 · LE MODULE 1 SE REGARDE SANS PAYER, DANS L'APP. On juge avant de sortir de
- *       l'application — c'est ce qui distingue ce mur d'une porte fermée.
- *   2 · LE PRIX EST ÉCRIT ICI, entier, avec l'échelonnement. Un renvoi vers le site sans prix
- *       est un piège : on découvre le montant après avoir changé d'application.
- *   3 · LA RAISON EST DITE. « Même prix, tes moyens de paiement » — pas un bouton grisé, pas
- *       un « indisponible sur cette plateforme » qui donnerait tort au produit.
+ * ⚠️ ET LE TEXTE COMPTE AUTANT QUE LES CONTRÔLES. Ce qui a disparu n'est pas seulement le
+ * bouton : c'est aussi le paragraphe qui NOMMAIT LE MAGASIN — « L'App Store exige… ». Une
+ * revue lit les chaînes ; citer la règle qu'on contourne est un signal aussi net qu'un lien
+ * d'achat, et parfois le seul qui reste après un retrait bâclé.
  *
- * ⚠️ HYPOTHÈSE NON LEVÉE, et elle se tranche avant soumission : ceci suppose que la revue
- * accepte le renvoi au titre de 3.1.1. Le texte NOMME le magasin, ce que certaines revues
- * refusent ; iOS propose un droit d'accès *External Purchase Link* qui autorise un lien
- * déclaré. Le repli connu : retirer tout renvoi et cantonner l'application à la consultation.
+ * Ce qui SURVIT, et qui suffit à faire une fiche utile : le sujet, la durée, le programme, et
+ * le module d'ouverture qui se regarde ici, sans compte. On décide si ça intéresse ; on décide
+ * d'acheter ailleurs.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 /**
@@ -58,16 +55,12 @@ export default function Formation() {
 
   /* Les paramètres priment sur le contenu de référence : le jour où le catalogue arrive de
      Firestore, il transmet ses valeurs et cet écran n'a pas à changer d'une ligne. */
-  const { slug, titre, prix } = useLocalSearchParams<{ slug?: string; titre?: string; prix?: string }>();
+  /* ⚠️ `prix` N'EST PLUS LU, et ce n'est pas un oubli. Le paramètre peut encore arriver
+     d'un appelant — un lien profond, une ancienne version — mais cet écran ne l'affiche
+     plus : une fiche qui montre un montant est une fiche qui vend, quel que soit le nombre
+     de boutons qu'on lui retire. */
+  const { titre } = useLocalSearchParams<{ slug?: string; titre?: string; prix?: string }>();
   const nom = titre ?? FORMATION?.titre ?? null;
-  const montant = prix ? Number(prix) : FORMATION?.prix ?? null;
-  const cible = slug ?? FORMATION?.slug ?? null;
-
-  async function ouvrirLaBoutique() {
-    /* `openAuthSessionAsync` et non `openBrowserAsync` : la session partage les cookies du
-       site, donc quelqu'un déjà connecté ne se reconnecte pas pour payer. */
-    await openAuthSessionAsync(cible === null ? `${SITE}/formations` : `${SITE}/formations/${cible}`, 'rysmo://paiement/retour');
-  }
 
   return (
     <Screen
@@ -100,50 +93,33 @@ export default function Formation() {
         style={{ marginTop: 8 }}
       />
 
-      {/* ── LE MUR ─────────────────────────────────────────────────────────────────────── */}
+      {/* ── LE PROGRAMME ───────────────────────────────────────────────────────────────
+          Ce bloc était LE MUR : un prix, un bouton « Ouvrir sur maxmorrys.me », et trois
+          étiquettes de moyens de paiement. Il vendait, donc il partait — mais il faut
+          comprendre ce qui est retiré, parce que ce n'est pas seulement le bouton.
+
+          Le texte NOMMAIT LE MAGASIN — « L'App Store exige… », « Google Play exige… ». Une
+          revue lit les chaînes autant que les contrôles : citer la règle qu'on contourne
+          est un signal aussi net qu'un lien d'achat. Ce paragraphe part avec le reste.
+
+          Ce qui le remplace ne parle pas d'argent du tout. Une fiche de formation a un
+          sujet, une durée, un programme, et un premier module qu'on peut regarder. C'est
+          suffisant pour décider si ça t'intéresse — et décider d'acheter se fait ailleurs. */}
       <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
-        <Display size={19}>Je ne peux pas te faire payer ici.</Display>
+        <Display size={19}>Ce que tu vas apprendre.</Display>
         <Body muted style={{ marginTop: 9, fontSize: 13.5, lineHeight: 21 }}>
-          {isIOS ? 'L’App Store' : 'Google Play'} exige que tout achat fait dans une
-          application passe par son propre système de paiement, qui ne connaît ni Wave ni
-          Orange Money. Plutôt que de te faire payer en carte avec une commission, je te
-          renvoie au site — <Body style={{ fontWeight: '700' }}>même prix, tes moyens de paiement</Body>.
+          {FORMATION
+            ? `${FORMATION.lecons} leçons réparties en modules, à ton rythme. Le module d'ouverture se regarde ici, tout de suite, sans compte.`
+            : "Le module d'ouverture se regarde ici, tout de suite, sans compte."}
         </Body>
 
         <View style={{ height: 1, backgroundColor: t('borderHair'), marginVertical: 16 }} />
 
-        {/* Le prix, ou rien. Un montant approximatif sur un mur de paiement est la pire
-            place possible pour un chiffre faux : on sort de l'app en croyant le connaître. */}
-        {montant === null ? (
-          <Num value={null} source="server" asOf={RELEVE} fallback="prix non transmis" style={{ fontSize: 15 }} />
-        ) : (
-          <PriceBlock
-            amount={montant}
-            source={SOURCE}
-            asOf={RELEVE}
-            size={29}
-            note={FORMATION ? `Une fois, accès à vie · ou ${FORMATION.echelonnement}` : 'Une fois, accès à vie'}
-          />
-        )}
-        <Button
-          tone="forme"
-          label="Ouvrir sur maxmorrys.me"
-          trailing="forward"
-          style={{ marginTop: 15 }}
-          onPress={() => { void ouvrirLaBoutique(); }}
-        />
-        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginTop: 13 }}>
-          <Tag tone="ok">Wave</Tag>
-          <Tag tone="ok">Orange Money</Tag>
-          <Tag tone="ok">Carte</Tag>
-        </View>
-      </Surface>
-
-      <Surface level="flat" style={{ marginTop: 12, padding: 18 }}>
-        <Eyebrow>Après le paiement</Eyebrow>
-        <Body muted style={{ marginTop: 8, fontSize: 13.5, lineHeight: 21 }}>
-          Tu reviens dans l'app et la formation est ouverte — même compte, rien à saisir.
-          Si elle ne l'est pas, tire la liste vers le bas.
+        <Eyebrow>Ce que tu gardes</Eyebrow>
+        <Body muted style={{ marginTop: 7, fontSize: 13, lineHeight: 20 }}>
+          L'accès est <Body style={{ fontWeight: '700', fontSize: 13 }}>à vie</Body> : une fois
+          la formation ouverte sur ton compte, elle le reste, ici comme sur le site. Tes notes
+          et ta progression te suivent d'un appareil à l'autre.
         </Body>
       </Surface>
 
@@ -151,7 +127,7 @@ export default function Formation() {
       {MODULES_MUR.length === 0 ? (
         <SansDonnees
           quoi="le programme"
-          degat="Un module inventé promet un contenu qu'on croit acheter. C'est ce que le module 1 gratuit sert justement à éviter : juger sur pièce."
+          degat="Un module inventé promet un contenu qui n'existe pas. C'est ce que le module d'ouverture, gratuit, sert justement à éviter : juger sur pièce."
           style={{ marginTop: 12 }}
         />
       ) : (
@@ -176,13 +152,8 @@ export default function Formation() {
       )}
 
       <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
-        Le module 1 se regarde sans payer, dans l'app, maintenant. C'est ce qui rend ce mur
-        supportable : tu juges avant de sortir de l'application.
-      </Body>
-
-      <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 10, color: t('textFaint') }}>
-        Le montant débité reste celui que le serveur recalcule, jamais celui que cet écran
-        affiche : un prix transmis par un client ne décide de rien.
+        Le module d'ouverture se regarde ici, maintenant, sans compte. Les suivants s'ouvrent
+        avec ton accès.
       </Body>
     </Screen>
   );

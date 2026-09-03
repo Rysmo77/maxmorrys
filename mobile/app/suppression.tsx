@@ -167,8 +167,8 @@ export default function Suppression() {
         <Eyebrow>Pourquoi tout se passe ici</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
           La suppression se fait <Body style={{ fontWeight: '700', fontSize: 12.5 }}>dans l'app</Body>,
-          sans lien vers le site et sans écrire au support. C'est la règle de l'App Store, et
-          c'était déjà la nôtre.
+          sans lien vers le site et sans écrire au support. C'était déjà notre règle avant
+          d'être celle des magasins.
         </Body>
       </Surface>
     </Screen>

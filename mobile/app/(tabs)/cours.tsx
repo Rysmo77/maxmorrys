@@ -1,10 +1,10 @@
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
-  Avatar, Body, Button, ChipRow, Display, Eyebrow, Icon, IconButton, Num, PriceBlock,
+  Avatar, Body, Button, ChipRow, Display, Eyebrow, Icon, IconButton, Num,
   SansDonnees, Screen, Surface, TerritoryCard, isIOS, useToken,
 } from '../../ds';
-import { FORMATION, FORMATION_2, MOI, RELEVE, SOURCE } from '../../contenu/demo';
+import { FORMATION, FORMATION_2, MOI } from '../../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -81,8 +81,8 @@ export default function Cours() {
           <Display size={29} lines={['LE CATALOGUE', "N'EST PAS ARRIVÉ."]} style={{ marginTop: 8 }} />
           <SansDonnees
             quoi="le catalogue"
-            origine="du serveur, avec ses prix recalculés"
-            degat="Un prix inventé sur le premier écran du tunnel d'achat est le pire chiffre du produit : il fixe une attente, et il se dément à l'écran suivant. Le montant débité est de toute façon celui que le serveur recalcule."
+            origine="du serveur"
+            degat="Une formation inventée est une formation qu'on croit pouvoir suivre. Le catalogue est la promesse du produit : ce qui y figure doit exister."
             style={{ marginTop: 20 }}
           />
         </>
@@ -91,7 +91,7 @@ export default function Cours() {
           <Eyebrow style={{ marginTop: 6 }}>Je te forme · accès à vie</Eyebrow>
           <Display size={29} lines={['2 FORMATIONS.', 'ACCÈS À VIE.']} style={{ marginTop: 8 }} />
           <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
-            Le module d'ouverture de chacune se regarde sans payer, ici, maintenant. Tu juges
+            Le module d'ouverture de chacune se regarde ici, tout de suite et sans compte. Tu juges
             avant de sortir de l'application.
           </Body>
 
@@ -117,24 +117,22 @@ export default function Cours() {
                 title={f.titre}
                 titleSize={21}
               >
+                {/* ⚠️ LE PRIX A QUITTÉ CETTE CARTE, et le paramètre `prix` avec lui.
+                    Un catalogue qui affiche des montants EST une vitrine, quel que soit le
+                    libellé du bouton — et le transmettre à l'écran suivant reconstituait le
+                    tunnel qu'on vient de retirer. Ce qui reste décrit le contenu : le sujet,
+                    le format, la durée. */}
                 <View style={{
                   flexDirection: 'row', alignItems: 'flex-end',
-                  justifyContent: 'space-between', gap: 12, marginTop: 16,
+                  justifyContent: 'flex-end', gap: 12, marginTop: 16,
                 }}>
-                  <PriceBlock
-                    amount={f.prix}
-                    source={SOURCE}
-                    asOf={RELEVE}
-                    size={25}
-                    note={`Une fois · ou ${f.echelonnement}`}
-                  />
                   <Button
                     tone="primary"
                     size="sm"
-                    label="Voir"
+                    label="Voir le programme"
                     onPress={() => router.push({
                       pathname: '/formation',
-                      params: { slug: f.slug, titre: f.titre, prix: String(f.prix) },
+                      params: { slug: f.slug, titre: f.titre },
                     })}
                   />
                 </View>

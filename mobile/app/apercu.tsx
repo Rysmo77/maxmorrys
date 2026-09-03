@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import {
   Body, Display, Eyebrow, Icon, LessonRow, Screen, Surface, type IconName, useToken,
 } from '../ds';
@@ -33,7 +33,7 @@ const PLANCHE: Groupe[] = [
       { href: '/lancement', titre: 'Lancement', note: 'aucun indicateur de progression' },
       { href: '/onboarding', titre: 'Onboarding', note: 'trois écrans, aucun compte demandé' },
       { href: '/permissions', titre: 'Permissions', note: "le canal de relance que le web n'avait pas" },
-      { href: '/formation', titre: 'Mur de paiement', note: "l'app ne vend rien — App Store 3.1.1" },
+      { href: '/formation', titre: 'Fiche de formation', note: 'le programme, sans prix ni achat' },
       { href: '/telechargements', titre: 'Stockage', note: 'poids en monospace, plafond auto-imposé' },
       { href: '/plein-ecran', titre: 'Lecteur paysage', note: 'le seul écran hors châssis partagé' },
       { href: '/widget', titre: 'Widget', note: 'la relance qui n’interrompt rien' },
@@ -42,21 +42,11 @@ const PLANCHE: Groupe[] = [
     ],
   },
   {
-    titre: 'Argent',
-    glyphe: 'card',
-    ecrans: [
-      { href: '/cours', titre: 'Catalogue', note: "aucune note, aucun compteur d'inscrits" },
-      { href: '/paiement', titre: 'Moyen de paiement', note: 'le tunnel s’arrête ici et ouvre le web' },
-      { href: '/attente', titre: 'Attente', note: 'deux anneaux, aucun compte à rebours' },
-      { href: '/succes', titre: 'Retour de paiement', note: '« c’est à toi », pas « paiement accepté »' },
-      { href: '/echec', titre: 'Paiement refusé', note: 'le motif, et rien n’a été débité' },
-    ],
-  },
-  {
     titre: 'Apprentissage',
     glyphe: 'book',
     ecrans: [
       { href: '/', titre: 'Mon espace', note: 'la reprise reste le premier objet' },
+      { href: '/cours', titre: 'Catalogue', note: "aucune note, aucun compteur d'inscrits" },
       { href: '/lecon', titre: 'Lecteur de leçon', note: 'faux verre partout, parce que tout défile' },
       { href: '/notes', titre: 'Mes notes', note: 'bouton flottant, rond ou carré selon le système' },
       { href: '/certificat', titre: 'Certificat', note: 'une brillance passe deux fois, puis plus jamais' },
@@ -85,11 +75,11 @@ const PLANCHE: Groupe[] = [
     titre: 'Compte',
     glyphe: 'user',
     ecrans: [
-      { href: '/connexion', titre: 'Connexion', note: 'App Store 4.8 : « avec Apple » obligatoire' },
+      { href: '/connexion', titre: 'Connexion', note: 'e-mail seul — les fournisseurs tiers arrivent ensemble' },
       { href: '/creation', titre: 'Création de compte', note: 'la case n’est jamais pré-cochée' },
       { href: '/mot-de-passe', titre: 'Mot de passe oublié', note: 'la même phrase, compte ou pas' },
       { href: '/profil', titre: 'Préférences', note: 'la section notifications devient réelle' },
-      { href: '/suppression', titre: 'Suppression', note: 'App Store 5.1.1(v) : faisable DANS l’app' },
+      { href: '/suppression', titre: 'Suppression', note: 'faisable entièrement dans l’application' },
     ],
   },
   {
@@ -133,7 +123,24 @@ const PLANCHE: Groupe[] = [
   },
 ];
 
+/*
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * L'ATELIER — ce qui n'a rien à faire entre les mains du public.
+ *
+ * Le drapeau est LITTÉRAL DANS CE MODULE, et pas importé d'un fichier commun. C'est la même
+ * mécanique que `DEMO` dans `contenu/demo.ts`, pour la même raison mesurée : Metro ne replie
+ * une branche morte que là où la condition est un littéral. Importé, tout le contenu gardé
+ * resterait EMBARQUÉ dans le paquet de production — simplement inatteignable.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ */
+const ATELIER = process.env.EXPO_PUBLIC_CONTENU_DEMO === '1' || __DEV__;
+
 export default function Apercu() {
+  /* La planche liste les 48 écrans, systèmes et états compris. C'est un outil de revue :
+     elle n'a aucun sens pour quelqu'un qui utilise le produit, et elle se lit en revue de
+     magasin comme une application inachevée. */
+  if (!ATELIER) return <Redirect href="/" />;
+
   const t = useToken();
   const total = PLANCHE.reduce((n, g) => n + g.ecrans.length, 0);
 

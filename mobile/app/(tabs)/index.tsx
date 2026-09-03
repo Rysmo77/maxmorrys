@@ -52,7 +52,6 @@ function salutation(d: Date): string {
 /* Les trois portes de l'espace existent toujours ; seul leur RELEVÉ dépend du contenu.
    Une entrée sans son compte reste une entrée — c'est le compte qui ment, pas le chemin. */
 const ESPACE = [
-  { href: '/paiement', glyphe: 'card' as const, titre: 'Mes paiements', meta: STOCKAGE ? '1 transaction' : undefined },
   { href: '/certificats', glyphe: 'doc' as const, titre: 'Mes certificats', meta: STOCKAGE ? '0 émis' : undefined },
   { href: '/telechargements', glyphe: 'download' as const, titre: 'Téléchargements', meta: STOCKAGE ? `3 leçons · ${STOCKAGE.occupeCourt}` : undefined },
 ] as const;

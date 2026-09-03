@@ -39,12 +39,24 @@ const COMPTE = [
   { href: '/biometrie', glyphe: 'shield' as const, titre: 'Entrer sans mot de passe', meta: 'un raccourci, pas un remplacement' },
 ] as const;
 
+/*
+ * Le drapeau est LITTÉRAL ICI, comme dans les deux écrans qu'il garde : Metro ne replie une
+ * branche morte que là où la condition l'est. Importé d'un module commun, les deux entrées
+ * resteraient dans le paquet de production.
+ */
+const ATELIER = process.env.EXPO_PUBLIC_CONTENU_DEMO === '1' || __DEV__;
+
 const AILLEURS = [
   { href: '/media', glyphe: 'mic' as const, titre: 'Écouter & regarder', meta: 'le podcast, les vidéos' },
   { href: '/presence', glyphe: 'store' as const, titre: 'Présence Digitale', meta: 'pour ta boutique, hors application' },
   { href: '/legal', glyphe: 'doc' as const, titre: 'Textes légaux', meta: 'confidentialité, conditions, mentions' },
-  { href: '/console', glyphe: 'dashboard' as const, titre: 'Console support', meta: '5 écrans sur 19' },
-  { href: '/apercu', glyphe: 'layers' as const, titre: 'Tous les écrans', meta: 'la planche de référence du kit' },
+  /* Les deux écrans d'atelier ne sortent pas. La console expose six écrans
+     d'administration, la planche en liste quarante-huit : l'une comme l'autre se lisent en
+     revue comme une application inachevée. */
+  ...(ATELIER ? [
+    { href: '/console', glyphe: 'dashboard' as const, titre: 'Console support', meta: '5 écrans sur 19' },
+    { href: '/apercu', glyphe: 'layers' as const, titre: 'Tous les écrans', meta: 'la planche de référence du kit' },
+  ] : []),
 ] as const;
 
 export default function Profil() {
@@ -281,9 +293,12 @@ export default function Profil() {
       {/*
         ── AILLEURS DANS L'APPLICATION ───────────────────────────────────────────────────
         Le pôle média et l'offre TPE ne sont pas des réglages, mais c'est ici qu'on les cherche
-        quand on ne les a pas trouvés dans les onglets. La console, elle, n'apparaît que pour
-        un rôle qui l'atteint — le garde de route la cache, il ne l'interdit pas : le vrai
-        cloisonnement est dans les règles de la base (voir `/interdit`).
+        quand on ne les a pas trouvés dans les onglets.
+
+        ⚠️ CE COMMENTAIRE AFFIRMAIT QU'UN GARDE DE ROUTE CACHAIT LA CONSOLE. Il n'en existait
+        aucun : `console/_layout.tsx` retournait un `<Stack>` nu, et les six écrans partaient
+        à tout le monde. La garde existe maintenant, des deux côtés — ici pour l'entrée, et
+        dans la mise en page pour l'accès direct par URL, qu'une liste ne protège pas.
       */}
       <Eyebrow style={{ marginTop: 22 }}>Ailleurs</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
