@@ -15,7 +15,10 @@ import {
   assertSucceeds,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  doc, getDoc, setDoc, updateDoc,
+  collection, getDocs, query, where, documentId,
+} from 'firebase/firestore';
 import { beforeAll, afterAll, afterEach, describe, it } from 'vitest';
 
 const PROJECT_ID = 'demo-rules-test';
@@ -435,5 +438,198 @@ describe('redirects — table servie au bord, reservee a l administration', () =
   it('un visiteur anonyme ne peut rien creer', async () => {
     const db = testEnv.unauthenticatedContext().firestore();
     await assertFails(setDoc(doc(db, 'redirects', 'r4'), ENTRY));
+  });
+});
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ * `formations` — CE QU'UNE REQUETE PAR IDENTIFIANTS FAIT REELLEMENT.
+ *
+ * Ces cas ont ete SONDES contre l'emulateur avant d'etre ecrits, parce que l'intuition se
+ * trompe ici, et qu'elle avait deja produit un correctif qui ne corrigeait rien.
+ *
+ * Sur un `where(documentId(), 'in', [...])`, Firestore n'applique pas le raisonnement
+ * habituel « la requete doit prouver qu'elle ne demande que du lisible ». Il evalue la regle
+ * DOCUMENT PAR DOCUMENT, comme une rafale de `get`. Consequences, toutes verifiees ci-dessous :
+ *
+ *   · si tous les documents demandes sont lisibles, la requete passe — meme SANS filtre ;
+ *   · un seul brouillon parmi eux la refuse ENTIEREMENT ;
+ *   · un identifiant qui ne correspond a AUCUN document la refuse aussi (`resource` est nul) ;
+ *   · ajouter `where('status','==','published')` NE RATTRAPE NI L'UN NI L'AUTRE.
+ *
+ * C'est pourquoi `getFormationsByIds` ne fait plus de requete groupee : il lit chaque
+ * formation separement, pour qu'une formation dépubliée ou supprimee disparaisse de la liste
+ * au lieu de faire disparaitre TOUTES les inscriptions de l'espace eleve.
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ */
+describe('formations — la requete par identifiants est evaluee document par document', () => {
+  const PUBLIEE = { title: 'Publiee', status: 'published', price: 0, createdAt: '2026-01-01' };
+
+  async function seedCatalogue() {
+    await seed('formations/f1', PUBLIEE);
+    await seed('formations/f2', PUBLIEE);
+    await seed('formations/f3', { ...PUBLIEE, title: 'Brouillon', status: 'draft' });
+  }
+
+  it('accepte le list par identifiants quand tout le lot est publie, meme sans filtre', async () => {
+    await seedCatalogue();
+    await assertSucceeds(getDocs(query(
+      collection(asUser(ALICE), 'formations'),
+      where(documentId(), 'in', ['f1', 'f2']),
+    )));
+  });
+
+  it('mais UN SEUL brouillon dans le lot refuse la requete entiere', async () => {
+    await seedCatalogue();
+    await assertFails(getDocs(query(
+      collection(asUser(ALICE), 'formations'),
+      where(documentId(), 'in', ['f1', 'f3']),
+    )));
+  });
+
+  it("et le filtre `status == published` ne la rattrape PAS — c'est le piege", async () => {
+    await seedCatalogue();
+    await assertFails(getDocs(query(
+      collection(asUser(ALICE), 'formations'),
+      where(documentId(), 'in', ['f1', 'f3']),
+      where('status', '==', 'published'),
+    )));
+  });
+
+  it('un identifiant sans document refuse tout autant — `resource` y est nul', async () => {
+    // Le cas de production : une formation achetee puis SUPPRIMEE. L'inscription lui survit.
+    await seedCatalogue();
+    await assertFails(getDocs(query(
+      collection(asUser(ALICE), 'formations'),
+      where(documentId(), 'in', ['f1', 'jamais-existe']),
+    )));
+  });
+
+  it('lue seule, la formation publiee reste lisible — le repli document par document tient', async () => {
+    await seedCatalogue();
+    await assertSucceeds(getDoc(doc(asUser(ALICE), 'formations', 'f1')));
+  });
+
+  it('un brouillon demande explicitement reste refuse', async () => {
+    await seedCatalogue();
+    await assertFails(getDoc(doc(asUser(ALICE), 'formations', 'f3')));
+  });
+});
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ * COMING SOON — UNE FORMATION PUBLIEE MAIS PAS ENCORE OUVERTE.
+ *
+ * Le drapeau `comingSoon` vit sur une formation `status: 'published'`, pour que les regles de
+ * lecture et toutes les requetes du produit restent inchangees. Le prix de ce choix est ici :
+ * il faut fermer explicitement l'AUTO-INSCRIPTION, qui ne regardait que `status` et le prix.
+ *
+ * Sans la garde, une formation a venir affichee a 0 F etait auto-inscriptible par n'importe
+ * quel compte connecte — qui atterrissait dans un lecteur sans une seule lecon a ouvrir.
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ */
+describe('formations — une Coming Soon gratuite ne s inscrit pas toute seule', () => {
+  const GRATUITE = { title: 'Gratuite', status: 'published', price: 0, createdAt: '2026-01-01' };
+
+  /** L'inscription telle que le client l'ecrit : meme forme, meme identifiant composite. */
+  function inscription(db: ReturnType<typeof asUser>, uid: string, formationId: string) {
+    return setDoc(doc(db, 'enrollments', `${uid}_${formationId}`), {
+      userId: uid,
+      formationId,
+      progress: 0,
+      completedLessons: [],
+      enrolledAt: '2026-09-03',
+    });
+  }
+
+  it('refuse l auto-inscription a une formation a venir, meme a prix nul', async () => {
+    await seed('formations/f-venir', { ...GRATUITE, comingSoon: true });
+    await assertFails(inscription(asUser(ALICE), ALICE, 'f-venir'));
+  });
+
+  it('refuse aussi quand c est `promoPrice` qui rend la formation gratuite', async () => {
+    await seed('formations/f-promo', { ...GRATUITE, price: 50000, promoPrice: 0, comingSoon: true });
+    await assertFails(inscription(asUser(ALICE), ALICE, 'f-promo'));
+  });
+
+  it('NON-REGRESSION : une formation gratuite ouverte reste auto-inscriptible', async () => {
+    await seed('formations/f-ouverte', GRATUITE);
+    await assertSucceeds(inscription(asUser(ALICE), ALICE, 'f-ouverte'));
+  });
+
+  it("NON-REGRESSION : l absence du champ vaut « ouverte » pour tout l existant", async () => {
+    // Aucune formation anterieure ne porte `comingSoon`. Si son absence bloquait, tout le
+    // catalogue gratuit deja en ligne cesserait d etre inscriptible du jour du deploiement.
+    await seed('formations/f-legacy', GRATUITE);
+    await assertSucceeds(inscription(asUser(BOB), BOB, 'f-legacy'));
+  });
+
+  it('une formation a venir reste LISIBLE — c est tout l interet du drapeau', async () => {
+    await seed('formations/f-lisible', { ...GRATUITE, comingSoon: true });
+    await assertSucceeds(getDoc(doc(asUser(ALICE), 'formations', 'f-lisible')));
+  });
+
+  it('et le list du catalogue la rend, sans que la requete ait a la connaitre', async () => {
+    await seed('formations/f-a', GRATUITE);
+    await seed('formations/f-b', { ...GRATUITE, comingSoon: true });
+    await assertSucceeds(getDocs(query(
+      collection(asUser(ALICE), 'formations'),
+      where('status', '==', 'published'),
+    )));
+  });
+});
+
+/*
+ * `waitlist` — ecriture serveur uniquement, lecture bornee a sa propre entree.
+ *
+ * S'inscrire incremente aussi `formations/{id}.waitlistCount`, un document en ecriture admin :
+ * une ecriture client ne pourrait donc pas tenir le compteur, et l'ouvrir reviendrait a ouvrir
+ * `formations` a tout le monde. Le `list` reste ferme parce qu'il livrerait les adresses de
+ * toute la liste ; l'identifiant determinist rend le `get` suffisant.
+ */
+describe('waitlist — le client lit son entree, il n en ecrit aucune', () => {
+  const ENTREE = (uid: string) => ({
+    userId: uid,
+    formationId: 'f1',
+    email: `${uid}@exemple.test`,
+    language: 'fr',
+    createdAt: '2026-09-03T10:00:00.000Z',
+  });
+
+  it('refuse toute ecriture client, meme conforme et pour soi-meme', async () => {
+    await assertFails(setDoc(doc(asUser(ALICE), 'waitlist', `${ALICE}_f1`), ENTREE(ALICE)));
+  });
+
+  it('refuse la modification d une entree existante', async () => {
+    await seed(`waitlist/${ALICE}_f1`, ENTREE(ALICE));
+    await assertFails(updateDoc(doc(asUser(ALICE), 'waitlist', `${ALICE}_f1`), { notifiedAt: 'x' }));
+  });
+
+  it('laisse chacun verifier s il est deja inscrit', async () => {
+    await seed(`waitlist/${ALICE}_f1`, ENTREE(ALICE));
+    await assertSucceeds(getDoc(doc(asUser(ALICE), 'waitlist', `${ALICE}_f1`)));
+  });
+
+  it("refuse la lecture de l entree de quelqu un d autre", async () => {
+    await seed(`waitlist/${ALICE}_f1`, ENTREE(ALICE));
+    await assertFails(getDoc(doc(asUser(BOB), 'waitlist', `${ALICE}_f1`)));
+  });
+
+  it('refuse le list a un compte ordinaire — il livrerait toutes les adresses', async () => {
+    await seed(`waitlist/${ALICE}_f1`, ENTREE(ALICE));
+    await seed(`waitlist/${BOB}_f1`, ENTREE(BOB));
+    await assertFails(getDocs(query(
+      collection(asUser(ALICE), 'waitlist'),
+      where('formationId', '==', 'f1'),
+    )));
+  });
+
+  it("l administration liste les inscrits d une formation", async () => {
+    await seed(`users/${CAROL}`, { uid: CAROL, role: 'admin' });
+    await seed(`waitlist/${ALICE}_f1`, ENTREE(ALICE));
+    await assertSucceeds(getDocs(query(
+      collection(asUser(CAROL), 'waitlist'),
+      where('formationId', '==', 'f1'),
+    )));
   });
 });

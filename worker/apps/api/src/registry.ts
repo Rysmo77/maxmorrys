@@ -9,7 +9,9 @@ import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { importSpotifyEpisodesManual } from './handlers/importSpotifyEpisodesManual';
 import { issueCertificate } from './handlers/issueCertificate';
 import { mediaToken } from './handlers/mediaToken';
+import { joinWaitlist } from './handlers/joinWaitlist';
 import { notifyOnPublish } from './handlers/notifyOnPublish';
+import { notifyWaitlist } from './handlers/notifyWaitlist';
 import { parseCv } from './handlers/parseCv';
 import { popupEvent } from './handlers/popupEvent';
 import {
@@ -64,7 +66,9 @@ export const HANDLERS: Record<string, CallHandler> = {
   // Répond à un message de contact : écrit la réponse, notifie, envoie l'e-mail.
   replyToMessage,
   // Prévient à la publication ceux qui l'ont demandé dans leurs réglages.
+  joinWaitlist,
   notifyOnPublish,
+  notifyWaitlist,
   // Paiement — implémenté, mais volontairement hors de MIGRATED tant que la
   // fenêtre de dual-run avec Bictorys n'est pas calée.
   // Devis : le MÊME calcul que la charge, pour que l'écran et le débit ne divergent pas.

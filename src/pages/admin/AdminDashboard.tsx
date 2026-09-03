@@ -39,6 +39,7 @@ interface Stats {
   users: number;
   formations: number;
   publishedFormations: number;
+  comingSoonFormations: number;
   articles: number;
   publishedPosts: number;
   messages: number;
@@ -147,12 +148,17 @@ export default function AdminDashboard() {
   /* ── L'alerte du kit, sous condition de données ────────────────────────────
      « Ta boutique est fermée » n'a de sens que si elle est vraie : des formations en base,
      aucune publiée. Sinon elle ne s'affiche pas — une alerte permanente n'alerte plus. */
-  const shopClosed = Boolean(stats && stats.formations > 0 && stats.publishedFormations === 0);
+  /* ⚠️ OUVERTE, PAS PUBLIÉE. Une formation en « bientôt » est publiée : elle a une fiche, un
+     tarif et une liste d'attente, et rien à vendre. La compter comme ouverte aurait éteint
+     cette alerte au moment précis où elle devient utile — un catalogue tout entier en
+     annonce, qui a l'air plein et ne l'est pas. */
+  const openFormations = stats ? stats.publishedFormations - stats.comingSoonFormations : 0;
+  const shopClosed = Boolean(stats && stats.formations > 0 && openFormations === 0);
 
   /* ── Zone 2 · la file, une ligne par chose qui attend ──────────────────────
      Une ligne n'existe que si son compte est non nul, et UNE action par ligne. */
   const drafts = stats ? stats.articles - stats.publishedPosts : 0;
-  const unpublished = stats ? stats.formations - stats.publishedFormations : 0;
+  const unpublished = stats ? stats.formations - openFormations : 0;
   const unreadMessages = recentMessages.filter((m) => m.status === 'new').length;
 
   const queue = stats ? [
@@ -201,7 +207,7 @@ export default function AdminDashboard() {
     { key: 'accounts', label: t('dashboard.tileAccounts'), value: stats.users, foot: null },
     { key: 'enrollments', label: t('dashboard.tileEnrollments'), value: stats.enrollments, foot: t('dashboard.footNoUnit') },
     {
-      key: 'formations', label: t('dashboard.tilePublishedFormations'), value: stats.publishedFormations,
+      key: 'formations', label: t('dashboard.tilePublishedFormations'), value: openFormations,
       foot: <><Num value={stats.formations} source="db" asOf={asOf} /> {t('dashboard.footInBase')}</>,
     },
     {
@@ -263,7 +269,7 @@ export default function AdminDashboard() {
                     count={stats.formations}
                     components={{
                       total: <Num value={stats.formations} source="db" asOf={asOf} />,
-                      published: <Num value={stats.publishedFormations} source="db" asOf={asOf} />,
+                      published: <Num value={openFormations} source="db" asOf={asOf} />,
                     }}
                   />
                 </p>

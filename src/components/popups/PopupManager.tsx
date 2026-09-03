@@ -19,6 +19,7 @@ import { sendPopupEvent } from '../../lib/popups/beacon';
 import { getPendingCart, clearCartPending } from '../../lib/popups/cart';
 import { hasQuoteStarted, clearQuoteStarted } from '../../lib/popups/quote';
 import { useExitIntent } from '../../hooks/useExitIntent';
+import { accepteAchat, formationsOuvertes, formationMiseEnAvant } from '../../types/formationRelease';
 /*
   L'arbitre reste en import direct (cf. son montage dans `App.tsx`), mais les
   surfaces qu'il rend ne le sont plus : elles pesaient dans le chunk d'entrée de
@@ -182,6 +183,14 @@ export default function PopupManager() {
     jamais — `catalogueEmpty` resterait `null`, donc `shopClosed` resterait vrai, pour toujours.
   */
   const settingAllows = candidate !== null && settings?.enabled[candidate.id] === true;
+  /*
+   * ⚠️ « CATALOGUE VIDE » NE SUFFIT PLUS À DIRE « BOUTIQUE FERMÉE ».
+   *
+   * `catalogueEmpty` mesurait `list.length === 0`. Un catalogue entièrement fait d'annonces
+   * n'est pas vide — et cette fenêtre promet des formations. Elle se serait ouverte, au rang
+   * le plus haut, pour envoyer vers une boutique qui n'a rien à vendre : précisément le
+   * « on n'affiche rien plutôt qu'à tort » que ce fichier applique partout ailleurs.
+   */
   const shopClosed = candidate?.id === 'formationsEntry' && catalogueEmpty !== false;
   /*
     ⚠️ LE PANIER ORPHELIN. `getFormationBySlug` ne rend que les documents PUBLIÉS : une formation
@@ -194,6 +203,17 @@ export default function PopupManager() {
     est EFFACÉ : sans cela, la règle resterait la première à correspondre et bloquerait le
     créneau de toute la page sans rien afficher.
   */
+  /*
+   * ⚠️ UNE FORMATION PASSÉE EN « BIENTÔT » REND AUSSI LE PANIER ORPHELIN.
+   *
+   * `getFormationBySlug` la rend désormais — elle est publiée. Le marqueur pointe pourtant
+   * vers un `/checkout/<slug>` que `resolveCheckoutTotal` refuse côté serveur : la fenêtre
+   * s'ouvrirait au RANG 1 du registre, en écartant toutes les autres, pour conduire à un
+   * tunnel fermé. C'est exactement le cul-de-sac que `cartGone` existe pour éviter — la
+   * dépublication n'en était qu'un cas.
+   *
+   * La précommande fait exception : son tunnel accepte, donc le panier est encore bon.
+   */
   const cartStale = candidate?.id === 'cartRecovery' && cartGone !== false;
   const enabled = settingAllows && !shopClosed && !cartStale;
   const armed = enabled && variant === 'treatment' && active === null;
@@ -220,9 +240,13 @@ export default function PopupManager() {
       })
       .then((list) => {
         if (!alive) return;
-        setCatalogueEmpty(list.length === 0);
-        if (list.length === 0) return;
-        setFeatured(list.find((f) => f.featured) ?? list[0]);
+        /* La question posée par cette fenêtre est « y a-t-il quelque chose à acheter ? »,
+           pas « y a-t-il des documents ? ». Et la formation mise en avant doit être une
+           formation ouverte : la vedette d'un pop-up d'entrée ne peut pas être une annonce. */
+        const enVente = formationsOuvertes(list);
+        setCatalogueEmpty(enVente.length === 0);
+        if (enVente.length === 0) return;
+        setFeatured(formationMiseEnAvant(enVente) ?? enVente[0]);
       })
       .catch(() => {
         /*
@@ -244,15 +268,21 @@ export default function PopupManager() {
       .then((m) => m.getFormationBySlug(pendingCartSlug))
       .then((found) => {
         if (!alive) return;
-        if (found) {
+        if (found && accepteAchat(found)) {
           setCartFormation(found);
           setCartGone(false);
           return;
         }
         /*
-          Le document ne répond plus à une lecture publique : dépublié, ou supprimé. Le marqueur
-          ne vaut plus rien — on l'efface plutôt que de le laisser bloquer le créneau à chaque
-          page, et le mémo le relira grâce à `cartGone`.
+          Le marqueur ne vaut plus rien. Deux causes, une seule conséquence :
+
+           · le document ne répond plus à une lecture publique — dépublié, ou supprimé ;
+           · il répond, mais il est repassé en « bientôt » sans précommande : le tunnel le
+             refuse côté serveur, et la fenêtre conduirait à un cul-de-sac.
+
+          On l'EFFACE dans les deux cas, plutôt que de le laisser bloquer le créneau à chaque
+          page — la règle resterait la première à correspondre, désactivée, et aucune autre
+          fenêtre ne pourrait s'ouvrir. Le mémo le relira grâce à `cartGone`.
         */
         clearCartPending();
         setCartGone(true);

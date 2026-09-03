@@ -17,6 +17,8 @@ import type { Formation } from '../../types';
 import { generateEventId } from '../../lib/meta-pixel';
 import { trackBeginCheckout, trackPurchase } from '../../lib/tracking';
 import { markCartPending } from '../../lib/popups/cart';
+import { accepteAchat, ouverture } from '../../types/formationRelease';
+import { useFormat } from '../../hooks/useFormat';
 
 /**
  * LE TUNNEL DE COMMANDE — étape 2 sur 3 (`ScreensPay.js` · `Paiement`).
@@ -85,6 +87,7 @@ export default function Checkout() {
   const { user } = useAuth();
   const { language } = useLanguage();
   const { addToast } = useToast();
+  const { formatDate } = useFormat();
   const navigate = useNavigate();
   const path = useLocalizedPath();
   const reveal = useReveal<HTMLDivElement>();
@@ -150,6 +153,46 @@ export default function Checkout() {
             glyph={<Icon name="book" size={26} color="var(--text-muted)" />}
             title={t('checkout.notFoundTitle')}
             action={<Button tone="quiet" fullWidth href={path('/formations')}>{t('checkout.backToFormations')}</Button>}
+            style={{ padding: 0 }}
+          />
+        </GlassPanel>
+      </Frame>
+    );
+  }
+
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════════════
+   * UNE FORMATION À VENIR N'A PAS DE TUNNEL — SAUF SI LA PRÉCOMMANDE EST OUVERTE.
+   *
+   * `getFormationBySlug` la rend, puisqu'elle est publiée : sans cet écran, on entrerait
+   * dans le tunnel, `markCartPending` poserait un marqueur de panier, et le devis reviendrait
+   * en erreur serveur — la personne resterait devant un formulaire de paiement cassé.
+   *
+   * ⚠️ Cet écran est un REFLET, pas un garde-fou. L'autorité est `resolveCheckoutTotal`
+   * (Worker), qui refuse le devis ET le débit ; et pour une formation gratuite, la règle
+   * `isFreeFormation` de `firestore.rules`, qui refuse l'auto-inscription. Les deux tiennent
+   * même si quelqu'un ouvre `/checkout/<slug>` à la main.
+   * ══════════════════════════════════════════════════════════════════════════════════════
+   */
+  if (!accepteAchat(formation)) {
+    const quand = ouverture(formation);
+    return (
+      <Frame>
+        <SiteDisplay lines={t('checkout.notFoundLines', { returnObjects: true }) as string[]} size={30} />
+        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+          <EmptyState
+            glyph={<Icon name="lock" size={26} color="var(--warn)" />}
+            title={t('checkout.comingSoonTitle')}
+            body={quand
+              ? t('checkout.comingSoonBodyDated', {
+                date: quand.kind === 'date' ? formatDate(quand.value) : quand.value,
+              })
+              : t('checkout.comingSoonBody')}
+            action={(
+              <Button tone="quiet" fullWidth href={path(`/formations/${formation.slug}`)}>
+                {t('checkout.comingSoonAction')}
+              </Button>
+            )}
             style={{ padding: 0 }}
           />
         </GlassPanel>

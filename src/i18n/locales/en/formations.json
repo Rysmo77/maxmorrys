@@ -173,7 +173,7 @@
     "emptyTitle": "The catalogue opens soon.",
     "emptyBody": "No course is online yet. I'd rather tell you than have you click into the void. Create your account now: it will be ready on opening day, and you will have nothing to fill in then.",
     "emptyCta": "Create your account",
-    "emptyNote": "No « email me when it's ready »: there's no newsletter yet, and I won't make you fill a field that does nothing. Meanwhile, the blog comes out every week.",
+    "emptyNote": "No newsletter: when a course is announced, you can ask to be notified the day it opens — one email, and nothing else. In the meantime, the blog comes out every week.",
     "lifetime": "Once, lifetime access",
     "cardModules_one": "{{count}} module",
     "cardModules_other": "{{count}} modules",
@@ -224,5 +224,27 @@
     "moduleMeta_one": "{{count}} lesson",
     "moduleMeta_other": "{{count}} lessons",
     "translatedOriginal": "Read the original"
+  },
+  "comingSoon": {
+    "tag": "Coming soon",
+    "tagWithDate": "Opens {{date}}",
+    "opensOn": "Opens {{date}}.",
+    "noDateYet": "The opening date isn’t set yet. I’ll let you know as soon as it is.",
+    "notifyMe": "Notify me when it opens",
+    "notifyMeSignedOut": "Create your account to be notified",
+    "alreadyIn": "You’re on the list",
+    "preorder": "Pre-order now",
+    "promise": "One email, on opening day. No newsletter, no follow-ups.",
+    "waiting_one": "{{count}} person is waiting for this course.",
+    "waiting_other": "{{count}} people are waiting for this course.",
+    "truthBody_one": "{{count}} module planned. The lessons are being written — they’ll be there on opening day, and access stays for life.",
+    "truthBody_other": "{{count}} modules planned. The lessons are being written — they’ll be there on opening day, and access stays for life.",
+    "freeLater": "The opening module will be free on opening day: you’ll judge before you pay.",
+    "cardCta": "Coming soon",
+    "toastJoined": "You’re on the list. I’ll let you know on opening day.",
+    "toastAlready": "You were already on the list.",
+    "toastError": "Couldn’t add you to the list. Try again in a moment.",
+    "catalogTitle": "Nothing is open yet.",
+    "catalogBody": "The courses below are announced, not live yet. You can see their outline and price, and ask to be notified the day they open."
   }
 }

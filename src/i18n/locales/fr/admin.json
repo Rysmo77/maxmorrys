@@ -570,7 +570,6 @@
       "condTodo": "à régler",
       "checklistRule": "Le bouton « Publier » reste inactif tant qu'une ligne est orange. La liste n'est pas un conseil : c'est la condition.",
       "checklistNotAGuard": "Cette liste garde la SAISIE, pas la base. `firestore.rules` autorise tout administrateur à écrire `status: published` sur n'importe quel document, et aucune Cloud Function ne réagit à cette écriture. Elle empêche la faute d'inattention, jamais l'acte délibéré.",
-      "publishBlocked": "Une condition au moins n'est pas remplie — voir l'onglet « Publier ».",
       "lessonFreeNote": "Le champ est enregistré, mais AUCUN écran du produit ne le lit aujourd'hui : aucune leçon n'est réellement offerte en aperçu.",
       "triggersTitle": "Ce que la publication déclenche",
       "triggerCatalog": "Apparition au catalogue",
@@ -626,11 +625,70 @@
       "panelGuardBody": "C'est une garde de SAISIE, pas de sécurité. Les règles Firestore laissent un administrateur écrire « publiée » sur un document vide, et aucune Cloud Function ne réagit. Elle empêche la faute d'inattention, jamais l'acte délibéré — le dire est la moitié du travail.",
       "shopClosedTitle": "Ta boutique est fermée.",
       "shopClosedBody_one": "{{count}} formation en base, aucune publiée — un visiteur ne peut rien acheter.",
-      "shopClosedBody_other": "{{count}} formations en base, aucune publiée — un visiteur ne peut rien acheter."
+      "shopClosedBody_other": "{{count}} formations en base, aucune publiée — un visiteur ne peut rien acheter.",
+      "stageComingSoon": "Bientôt",
+      "tagComingSoon": "Bientôt",
+      "announceTitle": "L’annonce",
+      "announceIntro": "Ce que la fiche promet tant que la formation n’est pas ouverte. Laisse vide ce que tu ne peux pas tenir : sans date, la fiche dit que la date n’est pas fixée, ce qui est plus solide qu’une date qui glisse.",
+      "launchAtHint": "Facultative. Si elle est posée, elle s’affiche sur la fiche et dans l’e-mail d’accusé de réception.",
+      "launchLabelHint": "Utilisée seulement si aucune date exacte n’est posée.",
+      "waitlistTitle": "Liste d’attente",
+      "waitlistUnit_one": "inscrit",
+      "waitlistUnit_other": "inscrits",
+      "waitlistNotifyAction": "Prévenir la liste",
+      "waitlistNotifyBlocked": "La formation est encore en « bientôt ». Ouvre-la d’abord — on n’annonce pas une ouverture qui n’a pas eu lieu.",
+      "waitlistNotifyReady": "Envoie l’unique e-mail promis, plus une notification dans l’espace de chacun. Une seule fois.",
+      "waitlistAlreadySent": "La liste a déjà été prévenue. Le second envoi est refusé côté serveur.",
+      "tabWaitlist_one": "Liste d’attente ({{count}})",
+      "tabWaitlist_other": "Liste d’attente ({{count}})",
+      "waitlistEmpty": "Personne pour l’instant. Le bouton « Préviens-moi » apparaît sur la fiche dès que la formation est publiée en « bientôt ».",
+      "waitlistNotifiedTag": "Prévenu",
+      "waitlistPendingTag": "En attente",
+      "doorsTitle": "Ce qui est possible maintenant",
+      "doorComingSoon": "Annoncer en « bientôt »",
+      "doorLive": "Ouvrir à la vente",
+      "doorReady": "Toutes les conditions sont remplies.",
+      "doorMissing": "Il manque : {{conditions}}.",
+      "doorTagReady": "Possible",
+      "doorTagBlocked": "Bloqué",
+      "checkComingSoon": {
+        "identity": {
+          "title": "Titre et résumé renseignés",
+          "ok": "L’essentiel est écrit",
+          "ko": "Il manque le titre ou le résumé"
+        },
+        "modules": {
+          "title": "Au moins un module annoncé",
+          "ok": "{{modules}} module(s) au programme",
+          "ko": "Aucun module — la fiche promet un programme et n’aurait rien à montrer"
+        },
+        "price": {
+          "title": "Prix promo cohérent",
+          "ok": "Le tarif tient",
+          "ko": "Le prix promo doit être inférieur au prix, et non nul"
+        },
+        "cover": {
+          "title": "Image de couverture",
+          "ok": "La couverture est posée",
+          "ko": "Sans elle, la fiche part sur les réseaux avec le visuel générique du site"
+        }
+      },
+      "publishWarnOpenOnly": "Tu peux publier. Pour ouvrir à la vente, il manquera encore : {{conditions}}.",
+      "publishWarnBoth": "Tu peux publier quand même. Non rempli : {{conditions}}."
     },
     "toastNotified_one": "{{count}} personne prévenue.",
     "toastNotified_other": "{{count}} personnes prévenues.",
-    "toastNotifyError": "Formation publiée, mais l'alerte n'est pas partie. Réenregistre pour réessayer."
+    "toastNotifyError": "Formation publiée, mais l'alerte n'est pas partie. Réenregistre pour réessayer.",
+    "publishComingSoon": "Publier en « bientôt »",
+    "fieldLaunchAt": "Date d’ouverture",
+    "fieldLaunchLabel": "Ou période, en toutes lettres",
+    "fieldLaunchLabelPlaceholder": "Rentrée 2026",
+    "optPreorderLabel": "Précommande",
+    "optPreorderDesc": "Autorise l’achat avant l’ouverture, au tarif affiché. L’accès est délivré à l’ouverture.",
+    "toastWaitlistNotified_one": "{{count}} personne prévenue.",
+    "toastWaitlistNotified_other": "{{count}} personnes prévenues.",
+    "toastWaitlistAlready": "La liste a déjà été prévenue pour cette formation.",
+    "toastWaitlistError": "Impossible de prévenir la liste. Réessaie."
   },
   "coupons": {
     "title": "Codes promo",

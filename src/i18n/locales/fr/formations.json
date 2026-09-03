@@ -173,7 +173,7 @@
     "emptyTitle": "Le catalogue ouvre bientôt.",
     "emptyBody": "Aucune formation n'est encore en ligne. Je préfère te le dire que te faire cliquer dans le vide. Crée ton compte maintenant : il sera prêt le jour de l'ouverture, et tu n'auras rien à remplir ce jour-là.",
     "emptyCta": "Crée ton compte",
-    "emptyNote": "Pas de « préviens-moi par e-mail » : il n'y a pas encore de lettre, et je ne te fais pas remplir un champ qui ne sert à rien. En attendant, le blog paraît chaque semaine.",
+    "emptyNote": "Pas de lettre d’information : quand une formation est annoncée, tu peux demander à être prévenu·e le jour où elle ouvre — un seul e-mail, et rien d’autre. En attendant, le blog paraît chaque semaine.",
     "lifetime": "Une fois, accès à vie",
     "cardModules_one": "{{count}} module",
     "cardModules_other": "{{count}} modules",
@@ -224,5 +224,27 @@
     "moduleMeta_one": "{{count}} leçon",
     "moduleMeta_other": "{{count}} leçons",
     "translatedOriginal": "Lire l'original"
+  },
+  "comingSoon": {
+    "tag": "Bientôt",
+    "tagWithDate": "Ouverture le {{date}}",
+    "opensOn": "Ouverture le {{date}}.",
+    "noDateYet": "La date d’ouverture n’est pas encore fixée. Je te préviendrai dès qu’elle l’est.",
+    "notifyMe": "Préviens-moi à l’ouverture",
+    "notifyMeSignedOut": "Crée ton compte pour être prévenu·e",
+    "alreadyIn": "Tu es sur la liste",
+    "preorder": "Précommander maintenant",
+    "promise": "Un seul e-mail, le jour de l’ouverture. Pas de lettre, pas de relance.",
+    "waiting_one": "{{count}} personne attend cette formation.",
+    "waiting_other": "{{count}} personnes attendent cette formation.",
+    "truthBody_one": "{{count}} module au programme. Les leçons s’écrivent — elles seront là à l’ouverture, et l’accès restera à vie.",
+    "truthBody_other": "{{count}} modules au programme. Les leçons s’écrivent — elles seront là à l’ouverture, et l’accès restera à vie.",
+    "freeLater": "Le module d’ouverture sera en accès libre le jour de l’ouverture : tu jugeras avant de payer.",
+    "cardCta": "Bientôt",
+    "toastJoined": "C’est noté. Je te préviens le jour de l’ouverture.",
+    "toastAlready": "Tu étais déjà sur la liste.",
+    "toastError": "Impossible de t’inscrire à la liste. Réessaie dans un instant.",
+    "catalogTitle": "Rien n’est encore ouvert.",
+    "catalogBody": "Les formations ci-dessous sont annoncées, pas encore en ligne. Tu peux voir leur programme et leur tarif, et demander à être prévenu·e le jour de l’ouverture."
   }
 }

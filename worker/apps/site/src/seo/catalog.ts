@@ -64,12 +64,30 @@ export async function buildCatalog(db: Firestore): Promise<string> {
     const price = asNumber(data.price);
     const promoPrice = asNumber(data.promoPrice);
 
+    /*
+     * ═══════════════════════════════════════════════════════════════════════════════════
+     * UNE FORMATION À VENIR N'EST PAS « IN STOCK ».
+     *
+     * `availability` était câblé en dur. Depuis que « Coming Soon » est un drapeau posé sur
+     * une formation PUBLIÉE, la requête ci-dessus la rend comme les autres — et elle partait
+     * donc au catalogue Meta et Google Merchant comme achetable. C'est-à-dire : de la
+     * publicité payante conduisant vers un produit dont le tunnel d'achat est fermé.
+     *
+     * Deux cas, et ils ne se valent pas :
+     *   · précommande ouverte → `preorder`, une valeur que les deux catalogues comprennent ;
+     *   · sinon → on n'émet PAS la ligne. Mieux vaut une absence du flux qu'une promesse
+     *     qu'aucune page ne tient. La fiche reste indexée par le sitemap, elle.
+     * ═══════════════════════════════════════════════════════════════════════════════════
+     */
+    const aVenir = data.comingSoon === true;
+    if (aVenir && data.preorderEnabled !== true) continue;
+
     rows.push(
       buildCsvRow([
         document.id,
         asText(data.title),
         sanitizeDescription(asText(data.description) ?? ''),
-        'in stock',
+        aVenir ? 'preorder' : 'in stock',
         'new',
         `${price} ${CURRENCY}`,
         `${SITE_URL}/formations/${asText(data.slug) ?? ''}`,

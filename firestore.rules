@@ -26,6 +26,18 @@ service cloud.firestore {
     function isFreeFormation(formationId) {
       let f = get(/databases/$(database)/documents/formations/$(formationId)).data;
       return f.status == 'published' &&
+        // ─────────────────────────────────────────────────────────────────────────────
+        // UNE FORMATION EN COMING SOON N'EST PAS AUTO-INSCRIPTIBLE, MEME GRATUITE.
+        //
+        // « Coming Soon » est un drapeau posé sur une formation PUBLIEE : sans cette ligne,
+        // une formation a venir dont le prix est nul (ou dont `promoPrice` vaut 0) tombait
+        // dans la branche gratuite et n'importe quel compte connecte pouvait s'y inscrire.
+        // Il aurait alors atterri dans un lecteur sans une seule lecon a ouvrir.
+        //
+        // `get('comingSoon', false)` et non `'comingSoon' in f` : le champ est absent de
+        // toutes les formations anterieures, et son absence doit valoir « ouverte ».
+        // ─────────────────────────────────────────────────────────────────────────────
+        f.get('comingSoon', false) == false &&
         (('promoPrice' in f && f.promoPrice != null) ? f.promoPrice : f.price) == 0;
     }
 
@@ -809,6 +821,27 @@ service cloud.firestore {
     match /data_exports/{exportId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create, update, delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────────
+    // LISTE D'ATTENTE DES FORMATIONS A VENIR.
+    //
+    // ECRITURE SERVEUR UNIQUEMENT, et ce n'est pas une precaution de principe : s'inscrire
+    // incremente aussi `formations/{id}.waitlistCount`, un document en ecriture ADMIN. Le
+    // compteur denormalise est la seule facon d'afficher une preuve sociale, puisque cette
+    // collection n'est pas listable publiquement — le faire tenir cote client aurait donc
+    // exige d'ouvrir `formations` en ecriture a tout le monde. Le callable `joinWaitlist`
+    // ecrit les deux documents dans une transaction.
+    //
+    // `get` est ouvert au proprietaire, `list` ne l'est pas : l'identifiant est determinist
+    // (`{uid}_{formationId}`), donc la fiche sait si la personne est deja inscrite en lisant
+    // UN document. Ouvrir le `list` aurait livre les adresses de toute la liste.
+    // ─────────────────────────────────────────────────────────────────────────────────
+    match /waitlist/{entryId} {
+      allow get: if isAdminOrSupport() ||
+        (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow list: if isAdminOrSupport();
+      allow write: if false;
     }
 
     // Default deny all other collections

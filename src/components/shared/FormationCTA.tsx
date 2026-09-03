@@ -6,6 +6,7 @@ import { queryKeys } from '../../lib/queryClient';
 import type { Formation } from '../../types';
 import FormationCard from '../formations/FormationCard';
 import { universeThemes } from '../../lib/sectionThemes';
+import { formationsOuvertes, formationMiseEnAvant } from '../../types/formationRelease';
 
 const theme = universeThemes.formations;
 
@@ -36,11 +37,26 @@ export default function FormationCTA({ category, tags = [] }: FormationCTAProps)
   const formation = useMemo<Formation | null>(() => {
     if (formations.length === 0) return null;
 
+    /*
+     * ⚠️ ON NE CHERCHE QUE PARMI LES FORMATIONS OUVERTES.
+     *
+     * Ce bloc est rendu au bas de CHAQUE article de blog, c'est-à-dire sur tout le trafic
+     * organique du site. Une formation à venir y serait choisie dès qu'elle correspond au
+     * thème — et le catalogue étant trié par date de création décroissante, une annonce
+     * fraîche gagne facilement. Chaque article aurait alors poussé un produit qu'on ne peut
+     * pas acheter, sans que rien ne casse ni ne se voie.
+     *
+     * Le repli sur une annonce n'arrive que s'il n'y a rien d'ouvert du tout : mieux vaut
+     * montrer ce qui vient que de ne rien montrer.
+     */
+    const ouvertes = formationsOuvertes(formations);
+    const bassin = ouvertes.length > 0 ? ouvertes : formations;
+
     const normalise = (v: string) => v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const cat = category ? normalise(category) : '';
     const tagSet = tags.map(normalise);
 
-    const match = formations.find((f) => {
+    const match = bassin.find((f) => {
       const fCat = normalise(f.category ?? '');
       const fTags = (f.tags ?? []).map(normalise);
       if (cat && (fCat.includes(cat) || cat.includes(fCat))) return true;
@@ -48,8 +64,8 @@ export default function FormationCTA({ category, tags = [] }: FormationCTAProps)
       return false;
     });
 
-    // Repli : formation à la une, sinon la première.
-    return match ?? formations.find((f) => f.featured) ?? formations[0] ?? null;
+    // Repli : formation à la une, sinon la première — dans le même bassin.
+    return match ?? formationMiseEnAvant(bassin);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formations, category, tags.join('|')]);
 

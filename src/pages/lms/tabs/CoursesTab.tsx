@@ -10,6 +10,7 @@ import SpaceSplit from '../components/SpaceSplit';
 import ResumePanel from '../components/ResumePanel';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import type { Certificate } from '../../../types';
+import { estAVenir } from '../../../types/formationRelease';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -85,19 +86,29 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
   /* La date du relevé : l'instant de la lecture Firestore qui a produit ces inscriptions. */
   const asOf = new Date();
 
+  /*
+   * ⚠️ UNE PRÉCOMMANDE N'EST PAS UNE FORMATION « EN COURS ».
+   *
+   * L'inscription existe dès le paiement — c'est ce qui fait qu'on possède la formation — et
+   * sa progression vaut 0, donc « < 100 ». Sans cette exclusion, une précommande gonflerait
+   * le compte « en cours » d'un cours qu'il est impossible de commencer, et qu'on ne peut
+   * donc jamais faire redescendre.
+   */
   const counts = useMemo(() => ({
     all: enrolledFormations.length,
-    ongoing: enrolledFormations.filter((ef) => ef.enrollment.progress < 100).length,
+    ongoing: enrolledFormations.filter((ef) => !estAVenir(ef.formation) && ef.enrollment.progress < 100).length,
     done: enrolledFormations.filter((ef) => ef.enrollment.progress === 100).length,
   }), [enrolledFormations]);
 
   /* La formation à reprendre : celle qui est entamée, sinon la première non terminée.
      Même règle que le tableau de bord — un seul objet de reprise, jamais deux. */
-  const resume = useMemo(() => (
-    enrolledFormations.find((ef) => ef.enrollment.progress > 0 && ef.enrollment.progress < 100)
-    ?? enrolledFormations.find((ef) => ef.enrollment.progress < 100)
-    ?? null
-  ), [enrolledFormations]);
+  const resume = useMemo(() => {
+    // On ne reprend pas ce qui n'a pas commencé : une formation à venir n'a rien à ouvrir.
+    const ouvrables = enrolledFormations.filter((ef) => !estAVenir(ef.formation));
+    return ouvrables.find((ef) => ef.enrollment.progress > 0 && ef.enrollment.progress < 100)
+      ?? ouvrables.find((ef) => ef.enrollment.progress < 100)
+      ?? null;
+  }, [enrolledFormations]);
 
   const shown = useMemo(() => enrolledFormations.filter((ef) => (
     filter === 'all' ? true
@@ -190,24 +201,37 @@ export default function CoursesTab({ enrolledFormations, loadingEnrollments, cer
                     title={formation.title}
                     titleSize={20}
                   >
-                    <ProgressBar
-                      value={enrollment.progress}
-                      source="db"
-                      asOf={asOf}
-                      label={t('courses.progressLabel')}
-                      readout
-                      style={{ marginTop: '15px' }}
-                    />
-                    <div className="mt-[10px] flex flex-wrap items-center gap-2">
-                      <span className="text-meta-2" style={{ color: 'var(--card-ink-2)' }}>
-                        <Num value={enrollment.completedLessons.length} source="db" asOf={asOf} />
-                        {' / '}
-                        <Num value={lessons || null} source="db" asOf={asOf} />{' '}
-                        {t('courses.lessonsLabel')}
-                      </span>
-                      {enrollment.progress === 100 && <Tag tone="ok">{t('courses.completedTag')}</Tag>}
-                      {cert && <Tag>{t('courses.certificateTag')}</Tag>}
-                    </div>
+                    {/* Ni barre ni compteur sur une précommande : ils diraient « 0 / 0 leçon,
+                        0 % », trois nombres exacts qui décrivent une panne plutôt qu'un état. */}
+                    {estAVenir(formation) ? (
+                      <div className="mt-[15px] flex flex-wrap items-center gap-2">
+                        <Tag tone="warn">{t('courses.comingSoonTag')}</Tag>
+                        <span className="text-meta-2" style={{ color: 'var(--card-ink-2)' }}>
+                          {t('courses.comingSoonNote')}
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        <ProgressBar
+                          value={enrollment.progress}
+                          source="db"
+                          asOf={asOf}
+                          label={t('courses.progressLabel')}
+                          readout
+                          style={{ marginTop: '15px' }}
+                        />
+                        <div className="mt-[10px] flex flex-wrap items-center gap-2">
+                          <span className="text-meta-2" style={{ color: 'var(--card-ink-2)' }}>
+                            <Num value={enrollment.completedLessons.length} source="db" asOf={asOf} />
+                            {' / '}
+                            <Num value={lessons || null} source="db" asOf={asOf} />{' '}
+                            {t('courses.lessonsLabel')}
+                          </span>
+                          {enrollment.progress === 100 && <Tag tone="ok">{t('courses.completedTag')}</Tag>}
+                          {cert && <Tag>{t('courses.certificateTag')}</Tag>}
+                        </div>
+                      </>
+                    )}
                   </TerritoryCard>
                 </button>
               );

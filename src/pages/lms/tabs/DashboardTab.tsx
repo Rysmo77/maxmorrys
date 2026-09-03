@@ -15,6 +15,7 @@ import { getGamificationProfile, updateStreak, addXP, syncBadges } from '../../.
 import { getLevelFromXP, getXPForNextLevel, XP_REWARDS } from '../../../types/gamification';
 import type { GamificationProfile } from '../../../types/gamification';
 import type { EnrolledFormation } from '../hooks/useStudentData';
+import { estAVenir } from '../../../types/formationRelease';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -138,8 +139,11 @@ export default function DashboardTab({
   const tutor = tutorName(userData);
   const firstName = displayName.split(' ')[0];
 
-  const inProgress = enrolledFormations.find((ef) => ef.enrollment.progress > 0 && ef.enrollment.progress < 100)
-    ?? enrolledFormations.find((ef) => ef.enrollment.progress < 100);
+  /* Une précommande n'est pas « en cours » : son inscription existe et sa progression vaut 0,
+     mais il n'y a aucune leçon à ouvrir. La proposer ici mènerait au mur du lecteur. */
+  const ouvrables = enrolledFormations.filter((ef) => !estAVenir(ef.formation));
+  const inProgress = ouvrables.find((ef) => ef.enrollment.progress > 0 && ef.enrollment.progress < 100)
+    ?? ouvrables.find((ef) => ef.enrollment.progress < 100);
 
   /* ── « Le programme » — les modules de la formation en cours ────────────────
      Le handoff en fait un objet du tableau de bord desktop, et il n'y était pas :

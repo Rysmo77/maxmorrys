@@ -161,7 +161,11 @@
     "couponApply": "Vérifier le code",
     "couponChecking": "Vérification…",
     "couponApplied": "Code appliqué, remise de",
-    "couponInvalid": "Code promo invalide, expiré ou déjà utilisé."
+    "couponInvalid": "Code promo invalide, expiré ou déjà utilisé.",
+    "comingSoonTitle": "Cette formation n’est pas encore en vente.",
+    "comingSoonBody": "Elle est annoncée, pas encore ouverte. Depuis sa fiche, tu peux demander à être prévenu·e le jour de l’ouverture.",
+    "comingSoonBodyDated": "Elle ouvre le {{date}}. Depuis sa fiche, tu peux demander à être prévenu·e ce jour-là.",
+    "comingSoonAction": "Revenir à la formation"
   },
   "paymentReturn": {
     "verifyingTitle": "Vérification du paiement...",
@@ -305,7 +309,10 @@
     "durationSource": "Durée déclarée dans la fiche de la leçon",
     "previewEyebrow": "Aperçu gratuit",
     "previewBody": "Tu lis le module d'ouverture, en entier. Le reste du programme est verrouillé, et ta progression n'est pas enregistrée tant que tu n'es pas inscrit.",
-    "previewCta": "Voir la formation"
+    "previewCta": "Voir la formation",
+    "comingSoonTitle": "Cette formation n’est pas encore ouverte.",
+    "comingSoonBody": "Tu l’as bien précommandée, elle t’appartient. Les leçons arrivent — je te préviens dès qu’elles sont en ligne.",
+    "comingSoonBodyDated": "Tu l’as bien précommandée, elle t’appartient. Elle ouvre le {{date}}, et je te préviens ce jour-là."
   },
   "rysmoPage": {
     "tabTokens": "Tokens & abonnements",

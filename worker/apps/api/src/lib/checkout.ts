@@ -62,6 +62,32 @@ export async function resolveCheckoutTotal(
   if (!formationDoc) throw new HttpsError('not-found', 'Formation introuvable.');
   const formation = formationDoc.data;
 
+  /*
+   * ═════════════════════════════════════════════════════════════════════════════════════
+   * CE QUI EST ACHETABLE — LE SEUL ENDROIT OÙ LA QUESTION EST TRANCHÉE.
+   *
+   * Cette fonction sert le devis ET le débit. C'est donc le point de contrôle serveur du
+   * paiement, et jusqu'ici il ne lisait RIEN d'autre que le prix : un brouillon dont on
+   * connaissait l'identifiant était devisable et payable, sans jamais avoir été publié.
+   * Le garde existait bien — dans `Checkout.tsx`, c'est-à-dire dans le navigateur, donc
+   * chez la personne qui contourne. Même défaut, même endroit, que l'auto-inscription
+   * gratuite corrigée dans `firestore.rules`.
+   *
+   * La seconde condition est celle de la précommande : une formation en Coming Soon n'est
+   * achetable que si la précommande a été ouverte POUR ELLE. Le drapeau est par formation
+   * et non global, parce que précommander engage à livrer à une date.
+   * ═════════════════════════════════════════════════════════════════════════════════════
+   */
+  if (formation.status !== 'published') {
+    throw new HttpsError('failed-precondition', "Cette formation n'est pas disponible à l'achat.");
+  }
+  if (formation.comingSoon === true && formation.preorderEnabled !== true) {
+    throw new HttpsError(
+      'failed-precondition',
+      "Cette formation n'est pas encore ouverte. Inscris-toi à sa liste d'attente.",
+    );
+  }
+
   const basePrice = toNumber(formation.promoPrice) || toNumber(formation.price);
   if (basePrice <= 0) {
     throw new HttpsError('invalid-argument', 'Cette formation est gratuite, pas besoin de paiement.');

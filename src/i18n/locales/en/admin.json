@@ -570,7 +570,6 @@
       "condTodo": "to fix",
       "checklistRule": "The “Publish” button stays inactive while one line is amber. The list is not advice: it is the condition.",
       "checklistNotAGuard": "This list guards DATA ENTRY, not the database. `firestore.rules` lets any admin write `status: published` on any document, and no Cloud Function reacts to that write. It prevents the slip, never the deliberate act.",
-      "publishBlocked": "At least one condition is unmet — see the “Publish” tab.",
       "lessonFreeNote": "The field is saved, but NO screen in the product reads it today: no lesson is actually offered as a preview.",
       "triggersTitle": "What publishing sets off",
       "triggerCatalog": "Appears in the catalogue",
@@ -626,11 +625,70 @@
       "panelGuardBody": "It is an INPUT guard, not a security one. Firestore rules let an administrator write “published” on an empty document, and no Cloud Function reacts. It prevents the careless mistake, never the deliberate act — saying so is half the work.",
       "shopClosedTitle": "Your shop is closed.",
       "shopClosedBody_one": "{{count}} course in the database, none published — a visitor cannot buy anything.",
-      "shopClosedBody_other": "{{count}} courses in the database, none published — a visitor cannot buy anything."
+      "shopClosedBody_other": "{{count}} courses in the database, none published — a visitor cannot buy anything.",
+      "stageComingSoon": "Coming soon",
+      "tagComingSoon": "Coming soon",
+      "announceTitle": "The announcement",
+      "announceIntro": "What the page promises while the course isn’t open. Leave blank what you can’t hold to: with no date, the page says the date isn’t set, which holds better than a date that slips.",
+      "launchAtHint": "Optional. If set, it shows on the page and in the confirmation email.",
+      "launchLabelHint": "Only used when no exact date is set.",
+      "waitlistTitle": "Waiting list",
+      "waitlistUnit_one": "signup",
+      "waitlistUnit_other": "signups",
+      "waitlistNotifyAction": "Notify the list",
+      "waitlistNotifyBlocked": "The course is still “coming soon”. Open it first — you don’t announce an opening that hasn’t happened.",
+      "waitlistNotifyReady": "Sends the single promised email, plus a notification in everyone’s space. Once only.",
+      "waitlistAlreadySent": "The list has already been notified. A second send is refused server-side.",
+      "tabWaitlist_one": "Waiting list ({{count}})",
+      "tabWaitlist_other": "Waiting list ({{count}})",
+      "waitlistEmpty": "Nobody yet. The “Notify me” button appears on the page as soon as the course is published as “coming soon”.",
+      "waitlistNotifiedTag": "Notified",
+      "waitlistPendingTag": "Waiting",
+      "doorsTitle": "What’s possible right now",
+      "doorComingSoon": "Announce as “coming soon”",
+      "doorLive": "Open for sale",
+      "doorReady": "Every condition is met.",
+      "doorMissing": "Missing: {{conditions}}.",
+      "doorTagReady": "Available",
+      "doorTagBlocked": "Blocked",
+      "checkComingSoon": {
+        "identity": {
+          "title": "Title and summary filled in",
+          "ok": "The essentials are written",
+          "ko": "Title or summary is missing"
+        },
+        "modules": {
+          "title": "At least one module announced",
+          "ok": "{{modules}} module(s) planned",
+          "ko": "No module — the page promises an outline and would have nothing to show"
+        },
+        "price": {
+          "title": "Sale price is coherent",
+          "ok": "The price holds",
+          "ko": "The sale price must be below the price, and not zero"
+        },
+        "cover": {
+          "title": "Cover image",
+          "ok": "The cover is set",
+          "ko": "Without it, the page goes out on social with the site’s generic visual"
+        }
+      },
+      "publishWarnOpenOnly": "You can publish. To open for sale, you’ll still need: {{conditions}}.",
+      "publishWarnBoth": "You can publish anyway. Not filled in: {{conditions}}."
     },
     "toastNotified_one": "{{count}} person notified.",
     "toastNotified_other": "{{count}} people notified.",
-    "toastNotifyError": "Course published, but the alert didn't go out. Save again to retry."
+    "toastNotifyError": "Course published, but the alert didn't go out. Save again to retry.",
+    "publishComingSoon": "Publish as “coming soon”",
+    "fieldLaunchAt": "Opening date",
+    "fieldLaunchLabel": "Or a period, in words",
+    "fieldLaunchLabelPlaceholder": "Autumn 2026",
+    "optPreorderLabel": "Pre-order",
+    "optPreorderDesc": "Allows purchase before opening, at the displayed price. Access is granted on opening day.",
+    "toastWaitlistNotified_one": "{{count}} person notified.",
+    "toastWaitlistNotified_other": "{{count}} people notified.",
+    "toastWaitlistAlready": "The list has already been notified for this course.",
+    "toastWaitlistError": "Couldn’t notify the list. Try again."
   },
   "coupons": {
     "title": "Promo codes",

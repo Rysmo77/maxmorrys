@@ -9,11 +9,16 @@ import type { Formation } from '../../../types';
  * ═══════════════════════════════════════════════════════════════════════════════
  * LES CONDITIONS DE PUBLICATION — troisième colonne de l'écran des formations.
  *
- * `handoff_tableaux_de_bord/dashboards-console.jsx` § FormationsDesktop, et c'est la
- * décision la plus structurante du handoff :
+ * `handoff_tableaux_de_bord/dashboards-console.jsx` § FormationsDesktop. Le handoff y
+ * énonçait sa décision la plus structurante :
  *
  *     « La checklist EST la définition de publiable. Le bouton reste inactif tant
  *       qu'une ligne est orange. La liste n'est pas un conseil : c'est la condition. »
+ *
+ * ⚠️ CETTE DÉCISION A ÉTÉ RENVERSÉE, explicitement. Les boutons de publication ne se
+ * désactivent plus : la console publie quoi qu'il manque, et la liste — ici comme dans
+ * l'éditeur — n'est plus qu'un avertissement nommé. Le handoff n'a pas été réécrit ;
+ * c'est `formations/publishChecklist.ts` qui fait foi, et il porte le raisonnement.
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * POURQUOI LA SORTIR DE L'ÉDITEUR, PUISQU'ELLE Y EST DÉJÀ
@@ -39,10 +44,12 @@ import type { Formation } from '../../../types';
  * SECOND chemin de publication, à côté de celui de l'éditeur (`handleSave('published')`)
  * — deux écritures pour le même acte, dont une qui court-circuite le formulaire d'où
  * viennent les valeurs. C'est la faute que `LeadPanel` et `UserPanel` évitent déjà.
+ * L'argument tient toujours, et il ne dépendait pas du verrou : il porte sur le nombre
+ * de chemins d'écriture, pas sur ce qui les autorise.
  *
  * Le panneau porte donc l'action qui MÈNE à la publication : ouvrir la fiche. Ce que la
- * maquette dit avec un bouton gris — « il te manque deux conditions » — est dit ici par
- * la liste elle-même, ligne par ligne, avec le compte de ce qui manque.
+ * maquette dit avec un bouton gris est dit ici par la liste elle-même, ligne par ligne,
+ * avec le compte de ce qui manque.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -77,7 +84,11 @@ export default function PublishPanel({ formation, loading, onOpenFull }: Publish
   const list = formationChecklist(formation);
   const published = formation.status === 'published';
 
-  const conditionLabel = (id: PublishConditionId) => t(`formations.console.check.${id}.title`);
+  /* ⚠️ Les libellés dépendent de la porte : `formationChecklist` bascule déjà sur l'étape
+     du document, et servir les textes d'ouverture sur une liste d'annonce afficherait
+     « aucun module vide » — l'exigence que la porte « bientôt » lève précisément. */
+  const racine = formation.comingSoon ? 'checkComingSoon' : 'check';
+  const conditionLabel = (id: PublishConditionId) => t(`formations.console.${racine}.${id}.title`);
 
   return (
     <>
@@ -116,7 +127,7 @@ export default function PublishPanel({ formation, loading, onOpenFull }: Publish
                 )}
                 iconBackground={`color-mix(in srgb, var(${item.ok ? '--ok' : '--warn'}) 20%, transparent)`}
                 title={conditionLabel(item.id)}
-                meta={t(`formations.console.check.${item.id}.${item.ok ? 'ok' : 'ko'}`, item.counts)}
+                meta={t(`formations.console.${racine}.${item.id}.${item.ok ? 'ok' : 'ko'}`, item.counts)}
                 trailing={(
                   <Tag tone={item.ok ? 'ok' : 'warn'}>
                     {item.ok ? t('formations.console.checkReady') : t('formations.console.checkTodo')}

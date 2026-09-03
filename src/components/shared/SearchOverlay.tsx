@@ -14,6 +14,7 @@ import { contentPath, type ContentKind } from '../../lib/contentPath';
 import { buildCommands, filterCommands, type AppCommand } from '../../lib/commands';
 import { faqSlug } from '../../lib/faq/slug';
 import { Icon, type IconName } from '@ds';
+import { estAVenir } from '../../types/formationRelease';
 
 interface SearchOverlayProps {
   open: boolean;
@@ -153,7 +154,15 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
       });
       (cachedFormations ?? []).forEach((f) => {
         if (f.title.toLowerCase().includes(lower) || f.description?.toLowerCase().includes(lower)) {
-          r.push({ type: 'formation', title: f.title, slug: f.slug, slug_en: f.slug_en, excerpt: f.description });
+          /* Le résultat dit ce qu'il est. Sans cette mention, une annonce se présente comme
+             une formation disponible, et le clic conduit à une fiche sans bouton d'achat. */
+          r.push({
+            type: 'formation',
+            title: estAVenir(f) ? `${f.title} · ${t('search.comingSoon')}` : f.title,
+            slug: f.slug,
+            slug_en: f.slug_en,
+            excerpt: f.description,
+          });
         }
       });
       (cachedPodcasts ?? []).forEach((p) => {

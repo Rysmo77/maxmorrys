@@ -107,7 +107,7 @@ export async function getNewsletterCount(): Promise<number> {
 export async function getPlatformStats() {
   const [
     usersSnap, formationsSnap, blogSnap, messagesSnap, enrollmentsSnap, newsletterSnap,
-    publishedFormationsSnap, publishedPostsSnap, newMessagesSnap,
+    publishedFormationsSnap, comingSoonFormationsSnap, publishedPostsSnap, newMessagesSnap,
     agencyLeadsSnap, newAgencyLeadsSnap, mailPendingSnap,
     messagesMailPendingSnap, appointmentsMailPendingSnap,
   ] = await Promise.all([
@@ -118,6 +118,14 @@ export async function getPlatformStats() {
     getCountFromServer(collection(db, 'enrollments')),
     getCountFromServer(collection(db, 'newsletter')),
     getCountFromServer(query(collection(db, 'formations'), where('status', '==', 'published'))),
+    /* « Publiée » ne veut plus dire « ouverte ». Sans ce second comptage, un catalogue
+       entièrement en « bientôt » se présenterait au tableau de bord comme une boutique
+       ouverte — alors qu'elle n'a rien à vendre. Exige l'index `status + comingSoon`. */
+    getCountFromServer(query(
+      collection(db, 'formations'),
+      where('status', '==', 'published'),
+      where('comingSoon', '==', true),
+    )),
     getCountFromServer(query(collection(db, 'blog'), where('status', '==', 'published'))),
     getCountFromServer(query(collection(db, 'messages'), where('status', '==', 'new'))),
     getCountFromServer(collection(db, 'agency_leads')),
@@ -145,6 +153,7 @@ export async function getPlatformStats() {
     users: usersSnap.data().count,
     formations: formationsSnap.data().count,
     publishedFormations: publishedFormationsSnap.data().count,
+    comingSoonFormations: comingSoonFormationsSnap.data().count,
     articles: blogSnap.data().count,
     publishedPosts: publishedPostsSnap.data().count,
     messages: messagesSnap.data().count,

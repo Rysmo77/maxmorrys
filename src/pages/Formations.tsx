@@ -10,6 +10,7 @@ import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { PriceApprox, PriceFootnote } from '../components/shared/PriceApprox';
 import { getPublishedFormations } from '../lib/firestore';
+import { estAVenir, ouverture } from '../types/formationRelease';
 import { queryKeys } from '../lib/queryClient';
 
 /**
@@ -89,7 +90,17 @@ export default function Formations() {
     () =>
       formations
         .filter((f) => !level || f.level === level)
-        .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? '')),
+        /*
+         * CE QUI EST OUVERT PASSE DEVANT. Le tri par date placerait les annonces en tête —
+         * elles sont les plus récentes par construction — et la première chose que verrait
+         * un visiteur serait ce qu'il ne peut pas acheter. Le tri par date reste, mais à
+         * l'intérieur de chaque groupe.
+         */
+        .sort((a, b) => {
+          const rang = Number(estAVenir(a)) - Number(estAVenir(b));
+          if (rang !== 0) return rang;
+          return (b.publishedAt ?? '').localeCompare(a.publishedAt ?? '');
+        }),
     [formations, level],
   );
 
@@ -102,6 +113,16 @@ export default function Formations() {
    * n'est pas « il n'y en a pas ».
    */
   const vide = !isLoading && formations.length === 0;
+
+  /*
+   * ⚠️ UN CATALOGUE QUI N'A QUE DES ANNONCES N'EST PAS VIDE, ET N'EST PAS OUVERT NON PLUS.
+   *
+   * C'est le troisième état, et il n'existait pas : la page ne connaissait que « rien » et
+   * « tout ». Sans lui, un catalogue entièrement en « bientôt » aurait affiché la bande de
+   * bas de page au présent — « une fois payée, l'accès est à vie » — au-dessus de fiches dont
+   * aucune ne peut être payée.
+   */
+  const riencOuvert = !isLoading && formations.length > 0 && formations.every(estAVenir);
 
   /* Le prix vient de la base, et le PROMOTIONNEL PRIME — dans l'affichage comme au débit. */
   const asOf = new Date();
@@ -243,8 +264,29 @@ export default function Formations() {
               <span className="text-small text-ink-2">{t('index.sortNote')}</span>
             </div>
 
+            {/*
+              ── LE TROISIÈME ÉTAT ────────────────────────────────────────────────────────
+              Le catalogue n'est pas vide, et il n'est pas ouvert. Sans ce bandeau, la page
+              se présenterait exactement comme une boutique en activité : des cartes, des
+              prix, un bouton — et rien derrière. Le dire une fois en haut vaut mieux que de
+              le faire deviner carte par carte.
+            */}
+            {riencOuvert && (
+              <GlassPanel level="hero" padding={22} className="mt-5">
+                <p className="m-0 font-display text-[18px] font-black leading-tight tracking-[-.03em] text-ink">
+                  {t('comingSoon.catalogTitle')}
+                </p>
+                <p className="m-0 mt-2 max-w-[62ch] text-[14.5px] leading-[1.55] text-ink-2">
+                  {t('comingSoon.catalogBody')}
+                </p>
+              </GlassPanel>
+            )}
+
             <div className="mt-5 grid gap-4 stack:grid-cols-2">
-              {listed.map((formation, i) => (
+              {listed.map((formation, i) => {
+                const aVenir = estAVenir(formation);
+                const quand = ouverture(formation);
+                return (
                 <div key={formation.id} className="rv" style={{ ['--i' as string]: 6 + i }}>
                   <TerritoryCard
                     layout="plain"
@@ -262,12 +304,20 @@ export default function Formations() {
                      * Les quatre valeurs viennent de la base — catégorie, modules, leçons
                      * recomptées, niveau. Aucune n'est estimée, aucune n'est arrondie.
                      */
+                    /*
+                     * ⚠️ PAS DE COMPTE DE LEÇONS SUR UNE ANNONCE. Les leçons d'une formation
+                     * à venir sont retirées à la lecture : la ligne afficherait « 0 leçon »
+                     * juste à côté d'un prix. On dit le nombre de modules, et « bientôt » —
+                     * qui est la seule information neuve que porte cette carte.
+                     */
                     meta={[
                       formation.category,
                       t('index.cardModules', { count: formation.modules?.length ?? 0 }),
-                      t('index.cardLessons', {
-                        count: (formation.modules ?? []).reduce((n, m) => n + (m.lessons?.length ?? 0), 0),
-                      }),
+                      aVenir
+                        ? (quand?.kind === 'label' ? quand.value : t('comingSoon.tag'))
+                        : t('index.cardLessons', {
+                          count: (formation.modules ?? []).reduce((n, m) => n + (m.lessons?.length ?? 0), 0),
+                        }),
                       levelLabel[formation.level],
                     ].filter(Boolean).join(' · ')}
                     title={formation.title}
@@ -284,11 +334,14 @@ export default function Formations() {
                         approx={<PriceApprox xof={formation.promoPrice ?? formation.price} />}
                         note={t('index.lifetime')}
                       />
-                      <Button tone="primary" size="sm" fullWidth={false}>{t('index.see')}</Button>
+                      <Button tone="primary" size="sm" fullWidth={false}>
+                        {aVenir ? t('comingSoon.cardCta') : t('index.see')}
+                      </Button>
                     </div>
                   </TerritoryCard>
                 </div>
-              ))}
+                );
+              })}
             </div>
             <PriceFootnote className="mt-5" />
           </>
@@ -317,14 +370,20 @@ export default function Formations() {
               `vide` est mesuré, pas supposé : pendant le chargement `isLoading` est vrai et
               la branche pleine reste servie — on ne réécrit pas une section sur une lecture
               qui n'a pas abouti.
+
+              ⚠️ ET LE MÊME RAISONNEMENT VAUT POUR UN CATALOGUE QUI N'A QUE DES ANNONCES.
+              « Le module d'ouverture de chacune EST en accès libre » y serait faux au présent :
+              aucune leçon n'est ouverte tant qu'aucune formation ne l'est. Le futur, lui, est
+              exact dans les deux cas — c'est pourquoi la condition porte sur les deux états et
+              non sur le seul vide.
             */}
             <SiteDisplay
               as="h2"
-              lines={t(vide ? 'index.whyTitleEmpty' : 'index.whyTitle', { returnObjects: true }) as string[]}
+              lines={t(vide || riencOuvert ? 'index.whyTitleEmpty' : 'index.whyTitle', { returnObjects: true }) as string[]}
               size={34}
             />
             <p className="rv mt-3 max-w-[44ch] text-[15.5px] leading-[1.6] text-ink-2" style={{ ['--i' as string]: 1 }}>
-              {t(vide ? 'index.whyBodyEmpty' : 'index.whyBody')}
+              {t(vide || riencOuvert ? 'index.whyBodyEmpty' : 'index.whyBody')}
             </p>
           </div>
           <GlassPanel level="flat" padding={24} className="rv" style={{ ['--i' as string]: 2 }}>
@@ -333,8 +392,13 @@ export default function Formations() {
                 (`pages-formations.jsx`), et c'est cette ligne qui dit de quoi la liste parle. */}
             <SiteEyebrow style={{ margin: 0 }}>{t('index.includesTitle')}</SiteEyebrow>
             <div className="mt-3">
+              {/* Même raison que le titre de la bande, deux blocs plus haut : « le module
+                  d'ouverture EST gratuit » est faux au présent tant qu'aucune formation n'est
+                  ouverte. Les trois autres lignes décrivent le produit et restent vraies. */}
               {(['c1', 'c2', 'c3', 'c4'] as const).map((key) => (
-                <CheckLine key={key} tone="ok">{t(`index.${key}`)}</CheckLine>
+                <CheckLine key={key} tone="ok">
+                  {key === 'c2' && (vide || riencOuvert) ? t('comingSoon.freeLater') : t(`index.${key}`)}
+                </CheckLine>
               ))}
             </div>
           </GlassPanel>

@@ -2,27 +2,40 @@ import type { Module } from '../../../types';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
- * LA CHECKLIST *EST* LA DÉFINITION DE « PUBLIABLE ».
+ * LA CHECKLIST DÉCRIT « PUBLIABLE ». ELLE NE LE DÉCIDE PLUS.
  *
- * C'est la décision que le kit énonce sur son écran `PublierFormation` : publier n'est pas un
- * interrupteur, c'est une liste de conditions vérifiables, et le bouton reste inactif tant
- * qu'une ligne est orange. « La liste n'est pas un conseil : c'est la condition. »
+ * ⚠️ RENVERSEMENT ASSUMÉ, ET RÉCENT. Le kit énonçait l'inverse sur son écran
+ * `PublierFormation` — « publier n'est pas un interrupteur, c'est une liste de conditions
+ * vérifiables », « la liste n'est pas un conseil : c'est la condition » — et les boutons
+ * restaient inactifs tant qu'une ligne était orange. Ce verrou a été RETIRÉ sur décision
+ * explicite : la console publie désormais quoi qu'il manque, et la liste informe.
  *
- * ─── OÙ CETTE GARDE VIT, ET OÙ ELLE NE VIT PAS ─────────────────────────────────────────
+ * Ne pas le « rétablir » en croyant réparer un oubli. Si la question se rouvre, elle se
+ * tranche avec la personne qui possède le produit, pas dans ce fichier.
  *
- * `firestore.rules` n'exige RIEN pour publier une formation :
+ * ─── CE QUI RESTE, ET QUI N'A JAMAIS ÉTÉ ICI ───────────────────────────────────────────
+ *
+ * `firestore.rules` n'a jamais rien exigé pour publier une formation :
  *
  *     match /formations/{formationId} {
  *       allow read: if resource.data.status == 'published' || isAdmin();
  *       allow create, update, delete: if isAdmin();
  *     }
  *
- * Un administrateur peut écrire `status: 'published'` sur un document vide. Aucune Cloud
- * Function ne réagit à l'écriture non plus — `notifications.ts` ne se déclenche que sur
- * `enrollments/` et `certificates/`. Cette checklist est donc une garde DE SAISIE, pas une
- * garde de sécurité : elle empêche la faute d'inattention, pas l'acte délibéré. Le dire est
- * la moitié du travail — un garde-fou dont on croit à tort qu'il tient côté serveur est pire
- * que pas de garde-fou du tout.
+ * Un administrateur pouvait déjà écrire `status: 'published'` sur un document vide, et aucun
+ * déclencheur ne réagit à l'écriture. Cette checklist n'a donc JAMAIS été une garde de
+ * sécurité — seulement une garde de saisie, qu'on vient de convertir en avertissement.
+ *
+ * Les gardes réelles sont ailleurs et tiennent quoi qu'on publie :
+ *   · `resolveCheckoutTotal` (`worker/apps/api/src/lib/checkout.ts`) refuse le devis ET le
+ *     débit d'une formation non publiée, ou en « bientôt » sans précommande ;
+ *   · `isFreeFormation` (`firestore.rules`) refuse l'auto-inscription à un brouillon comme
+ *     à une formation à venir.
+ *
+ * Ce que la publication d'une fiche incomplète coûte vraiment, faute de verrou : sans
+ * couverture elle part au flux Meta avec le visuel générique du site ; ouverte sans leçon,
+ * elle vend un lecteur qui n'a rien à lire. C'est ce que l'avertissement du pied de modale
+ * nomme, ligne par ligne.
  *
  * ─── CE QUE LE DESSIN DU KIT DEMANDE ET QUE LE PRODUIT N'A PAS ─────────────────────────
  *
@@ -40,8 +53,27 @@ import type { Module } from '../../../types';
  *     mesuré nulle part dans le produit. La ligne est un vœu, pas un contrôle.
  *
  * Une seule condition du kit survit telle quelle : « Modules et leçons complets ».
+ *
+ * ─── IL Y A DÉSORMAIS DEUX DÉFINITIONS DE « PUBLIABLE » ────────────────────────────────
+ *
+ * Publier en « Coming Soon », c'est mettre en ligne une formation qui n'est PAS écrite : sa
+ * fiche montre son tarif et le titre de ses modules, et rien d'autre. Lui appliquer la liste
+ * d'ouverture serait absurde — elle exige des leçons pleines, c'est-à-dire exactement ce
+ * qu'on n'a pas encore. La condition `lessons` disparaît donc, et `modules` s'assouplit : un
+ * module sans leçon n'est plus un défaut, c'est la forme normale d'une annonce.
+ *
+ * Ce qui reste exigé l'est pour une raison qui tient AVANT l'ouverture : un titre et une
+ * description (la fiche doit dire quoi), une couverture (elle part sur les réseaux et dans
+ * les flux produit), un prix cohérent (il est affiché, et il engage). C'est une liste plus
+ * courte, pas une liste molle.
  * ═══════════════════════════════════════════════════════════════════════════════════════
  */
+
+/**
+ * L'intention de publication. Ce n'est pas le `status` du document : les deux étapes écrivent
+ * `status: 'published'`, et se distinguent par le drapeau `comingSoon`.
+ */
+export type PublishStage = 'live' | 'comingSoon';
 
 export type PublishConditionId = 'identity' | 'modules' | 'lessons' | 'price' | 'cover';
 
@@ -78,7 +110,10 @@ export interface PublishInput {
   modules: Module[];
 }
 
-export function buildPublishChecklist(form: PublishInput): PublishChecklist {
+export function buildPublishChecklist(
+  form: PublishInput,
+  stage: PublishStage = 'live',
+): PublishChecklist {
   const modules = form.modules.length;
   const lessons = form.modules.reduce((acc, m) => acc + m.lessons.length, 0);
   const emptyModules = form.modules.filter((m) => m.lessons.length === 0).length;
@@ -101,16 +136,21 @@ export function buildPublishChecklist(form: PublishInput): PublishChecklist {
     {
       // `CoursePlayer` ouvre `modules[0].lessons[0]` : sans module, ou avec un module vide,
       // l'apprenant achète un lecteur qui n'a rien à lire.
+      //
+      // En « Coming Soon », personne n'ouvre le lecteur — le tunnel d'achat est fermé et le
+      // curriculum est masqué à la lecture. Un module vide y est donc légitime : c'est le
+      // sommaire annoncé d'un contenu à écrire. Seule sa PRÉSENCE reste exigée, parce que la
+      // fiche promet « voilà le programme » et doit avoir quelque chose à montrer.
       id: 'modules',
-      ok: modules > 0 && emptyModules === 0,
+      ok: stage === 'comingSoon' ? modules > 0 : modules > 0 && emptyModules === 0,
       counts,
     },
-    {
+    ...(stage === 'comingSoon' ? [] : [{
       // Une leçon sans contenu ni vidéo rend une page blanche dans le lecteur.
-      id: 'lessons',
+      id: 'lessons' as const,
       ok: lessons > 0 && emptyLessons === 0,
       counts,
-    },
+    }]),
     {
       // Un prix promo supérieur ou égal au prix n'est pas une promotion : `functions/src/
       // catalog.ts` le publie tel quel en `sale_price` dans le flux Meta, et `payment.ts`

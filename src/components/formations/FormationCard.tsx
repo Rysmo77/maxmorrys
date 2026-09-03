@@ -8,6 +8,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { contentPath } from '../../lib/contentPath';
 import type { Formation, Enrollment, Certificate } from '../../types';
 import { Icon } from '@ds';
+import { estAVenir } from '../../types/formationRelease';
 
 function isRecent(dateString?: string): boolean {
   if (!dateString) return false;
@@ -46,6 +47,7 @@ export default function FormationCard({ formation, variant = 'default', enrollme
     avance: t('level.avance'),
   };
   const totalLessons = (formation.modules ?? []).reduce((acc, m) => acc + m.lessons.length, 0);
+  const aVenir = estAVenir(formation);
   const price = formation.promoPrice ?? formation.price;
   const hasPromo = formation.promoPrice != null && formation.promoPrice < formation.price;
 
@@ -119,7 +121,19 @@ export default function FormationCard({ formation, variant = 'default', enrollme
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
-          {formation.featured ? (
+          {/*
+            ⚠️ « BIENTÔT » PASSE DEVANT « À LA UNE » ET « NOUVEAU ».
+
+            Cette carte est rendue au bas de chaque article de blog, donc sur tout le trafic
+            organique. Une annonce y est « nouvelle » par construction — elle vient d'être
+            créée — et souvent « à la une ». Sans cette priorité, elle porterait un badge qui
+            appelle à l'achat sur une fiche qui n'en propose pas.
+          */}
+          {aVenir ? (
+            <span className="absolute top-3 left-3 px-2.5 py-1 bg-warn text-white text-[11px] font-bold rounded-full uppercase tracking-wider">
+              {t('comingSoon.tag')}
+            </span>
+          ) : formation.featured ? (
             <span className="absolute top-3 left-3 px-2.5 py-1 bg-[color:var(--mm-orange)] text-white text-[11px] font-bold rounded-full uppercase tracking-wider">
               {t('card.featured')}
             </span>
@@ -195,7 +209,14 @@ export default function FormationCard({ formation, variant = 'default', enrollme
             className="text-sm text-ink-2 leading-relaxed line-clamp-3 mb-3"
           />
           <div className="flex items-center gap-3 text-xs text-ink-2 mb-3">
-            <span className="flex items-center gap-1"><Icon name="book" size={14} className="text-forme" />{t('card.lessonsCount', { count: totalLessons })}</span>
+            {/* Les leçons d'une annonce ont été retirées à la lecture : le compte vaudrait
+                zéro, et « 0 leçon » sur une vignette de vente est un chiffre faux. */}
+            <span className="flex items-center gap-1">
+              <Icon name="book" size={14} className="text-forme" />
+              {aVenir
+                ? t('index.cardModules', { count: formation.modules?.length ?? 0 })
+                : t('card.lessonsCount', { count: totalLessons })}
+            </span>
             {formation.certificateEnabled && (
               <span className="flex items-center gap-1"><Icon name="award" size={14} className="text-ok" />{t('card.popoverCertificate')}</span>
             )}

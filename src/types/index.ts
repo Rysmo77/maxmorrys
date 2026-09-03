@@ -204,10 +204,46 @@ export interface Formation {
   students: number;
   rating: number;
   status: 'draft' | 'published';
+  /*
+   * ─── « COMING SOON » EST UN DRAPEAU, PAS UN TROISIÈME STATUT ───────────────────────────
+   *
+   * `firestore.rules` n'autorise la lecture que de `status == 'published'`, et les règles ne
+   * FILTRENT pas un `list` : elles le refusent en entier dès que les contraintes de la requête
+   * ne prouvent pas que tout résultat sera lisible. Un troisième statut aurait donc obligé à
+   * réécrire toutes les requêtes du produit, à modifier les règles, et à les redéployer à la
+   * main — la CI ne pousse que le hosting.
+   *
+   * Une formation en Coming Soon est donc une formation PUBLIÉE qui n'est pas encore OUVERTE :
+   * elle s'affiche partout, avec son tarif et le titre de ses modules, mais sans ses leçons et
+   * sans tunnel d'achat. Aucune requête, aucun index, aucune règle de lecture n'a bougé.
+   */
+  comingSoon?: boolean;
+  /** Ouverture annoncée, ISO. Absente = aucune date affichée, et c'est un état valide. */
+  launchAt?: string;
+  /** Formulation libre quand la date n'est pas ferme (« Rentrée 2026 »). Ignorée si `launchAt`. */
+  launchLabel?: string;
+  /** Précommande ouverte. N'a de sens qu'avec `comingSoon`. */
+  preorderEnabled?: boolean;
+  /**
+   * Inscrits à la liste d'attente. Compteur DÉNORMALISÉ, écrit uniquement par le Worker : la
+   * collection `waitlist` n'est listable que par l'administration, donc c'est le seul nombre
+   * qu'une page publique puisse afficher.
+   */
+  waitlistCount?: number;
+  /**
+   * Envoi de l'alerte d'ouverture. Marqueur d'idempotence DISTINCT de `publishNotifiedAt` :
+   * confondre les deux ferait qu'une publication en Coming Soon éteindrait définitivement
+   * l'alerte du jour de la vraie ouverture.
+   */
+  waitlistNotifiedAt?: string;
   featured: boolean;
   certificateEnabled: boolean;
   publishedAt?: string;
   updatedAt?: string;
+  /** Posé par `createDoc`. Porte tous les `orderBy` du catalogue — un document sans lui en sort. */
+  createdAt?: string;
+  /** Envoi de l'alerte « nouvelle formation en ligne » (`notifyOnPublish`). Serveur uniquement. */
+  publishNotifiedAt?: string;
   // SEO
   metaTitle?: string;
   metaDescription?: string;
@@ -244,6 +280,30 @@ export interface Resource {
   type: 'pdf' | 'template' | 'link' | 'file';
   url: string;
   size?: string;
+}
+
+/**
+ * Une inscription à la liste d'attente d'une formation en Coming Soon.
+ *
+ * L'identifiant est composite et déterministe — `{uid}_{formationId}`, la même convention que
+ * `enrollments`. C'est ce qui permet à la fiche de savoir si la personne est déjà inscrite par
+ * un simple `get` (la collection n'est LISTABLE que par l'administration), et c'est ce qui rend
+ * le bouton rejouable sans jamais fausser `Formation.waitlistCount`.
+ *
+ * ⚠️ Écriture serveur uniquement (`joinWaitlist`) : le compteur dénormalisé vit sur un document
+ * `formations`, que le client n'a pas le droit d'écrire.
+ */
+export interface WaitlistEntry {
+  id: string;
+  userId: string;
+  formationId: string;
+  email: string;
+  language: 'fr' | 'en';
+  createdAt: string;
+  /** Accusé de réception parti. `sendEmail` ne lève jamais : son absence est rattrapable. */
+  confirmationSentAt?: string;
+  /** Alerte d'ouverture partie, pour cette personne. */
+  notifiedAt?: string;
 }
 
 export interface Podcast {

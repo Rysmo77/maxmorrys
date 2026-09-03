@@ -19,7 +19,7 @@ import {
   useFormations, formationChecklist, LEVEL_KEYS, LESSON_TYPE_KEYS,
   type FormationStage, type FormationTab, type FormationFormState,
 } from './formations/useFormations';
-import type { PublishConditionId } from './formations/publishChecklist';
+import type { PublishChecklist, PublishConditionId, PublishStage } from './formations/publishChecklist';
 import type { Formation, Lesson } from '../../types';
 
 /**
@@ -28,11 +28,14 @@ import type { Formation, Lesson } from '../../types';
  *
  *     « La checklist EST la définition de publiable. »
  *
- * Publier n'est pas un interrupteur : c'est une liste de conditions vérifiables, et le bouton
- * reste inactif tant qu'une ligne est orange. L'onglet « Publier » de l'éditeur porte cette
- * liste ; le bouton du pied la lit. Les cinq conditions retenues, et les trois conditions du
- * DESSIN qui n'ont aucun répondant dans ce produit, sont argumentées une par une dans
- * `formations/publishChecklist.ts`.
+ * ⚠️ CE N'EST PLUS VRAI, et le renversement est délibéré. Le pied de modale désactivait ses
+ * boutons tant qu'une ligne était orange ; il ne le fait plus. La liste demeure — dans
+ * l'onglet « Publier », dans le panneau latéral, et sous les boutons où elle NOMME ce qui
+ * manque — mais elle informe au lieu de décider.
+ *
+ * ⚠️ Il y a désormais DEUX portes, avec deux listes distinctes : ANNONCER en « bientôt »
+ * (quatre conditions, sans les leçons) et OUVRIR à la vente (cinq). Elles sont argumentées
+ * une par une dans `formations/publishChecklist.ts`, qui fait foi sur ce sujet.
  *
  * ─── CE QUI A DISPARU DE CET ÉCRAN, ET POURQUOI ────────────────────────────────────────
  *
@@ -103,23 +106,33 @@ export default function AdminFormations() {
     mission: t('formations.lessonTypeMission'),
   };
 
-  const stageKeys: FormationStage[] = ['all', 'published', 'draft'];
+  const stageKeys: FormationStage[] = ['all', 'published', 'comingSoon', 'draft'];
   const stageLabels: Record<FormationStage, string> = {
     all: `${t('formations.console.stageAll')} ${f.counts.all}`,
     published: `${t('formations.console.stagePublished')} ${f.counts.published}`,
+    comingSoon: `${t('formations.console.stageComingSoon')} ${f.counts.comingSoon}`,
     draft: `${t('formations.console.stageDrafts')} ${f.counts.draft}`,
   };
 
-  const tabKeys: FormationTab[] = ['info', 'curriculum', 'settings', 'publish'];
+  /* L'onglet n'apparaît que sur une formation DÉJÀ EN BASE : sans identifiant, il n'y a
+     aucune liste à lire, et un onglet vide à l'ouverture d'un formulaire neuf est du bruit. */
+  const tabKeys: FormationTab[] = f.editingId
+    ? ['info', 'curriculum', 'settings', 'publish', 'waitlist']
+    : ['info', 'curriculum', 'settings', 'publish'];
   const tabLabels: Record<FormationTab, string> = {
     info: t('formations.tabInfo'),
     curriculum: t('formations.tabCurriculum', { count: f.totalLessons }),
     settings: t('formations.tabSettings'),
     publish: t('formations.console.tabPublish'),
+    waitlist: t('formations.console.tabWaitlist', { count: f.selectedWaitlistCount }),
   };
 
   /** L'état de la ligne. « À compléter » = la checklist n'est pas remplie. */
   const rowState = (item: Formation) => {
+    if (item.status === 'published' && item.comingSoon) {
+      // Publiée, mais fermée. Le ton `warn` le dit : c'est en ligne sans être en vente.
+      return { tone: 'warn' as const, label: t('formations.console.tagComingSoon'), ink: 'var(--warn)' };
+    }
     if (item.status === 'published') {
       return { tone: 'ok' as const, label: t('formations.statusPublished'), ink: 'var(--ok)' };
     }
@@ -128,21 +141,51 @@ export default function AdminFormations() {
       : { tone: 'stop' as const, label: t('formations.console.tagBlocked'), ink: 'var(--stop)' };
   };
 
-  const conditionLabel = (id: PublishConditionId) => t(`formations.console.check.${id}.title`);
+  /*
+   * ⚠️ LES LIBELLÉS DÉPENDENT DE LA PORTE, pas seulement de la condition.
+   *
+   * `modules` n'exige pas la même chose des deux côtés : « aucun module vide » pour ouvrir,
+   * « au moins un module » pour annoncer. Servir le libellé d'ouverture sur la liste d'annonce
+   * affichait donc une exigence qu'on venait précisément de lever — et laissait croire qu'il
+   * fallait écrire les leçons pour publier un « bientôt ».
+   */
+  /* La liste détaillée montre la porte de l'état COURANT du document — c'est la même règle
+     que `f.checklist` côté hook, et les deux doivent rester d'accord. */
+  const etapeAffichee: PublishStage = f.form.comingSoon ? 'comingSoon' : 'live';
+  const racine = (etape: PublishStage) => (etape === 'comingSoon' ? 'checkComingSoon' : 'check');
+  const conditionLabel = (id: PublishConditionId, etape: PublishStage = 'live') =>
+    t(`formations.console.${racine(etape)}.${id}.title`);
+
+  /*
+   * CE QUI MANQUE, NOMMÉ.
+   *
+   * Le pied de modale disait « une condition au moins n'est pas remplie — voir l'onglet
+   * Publier », et l'onglet, lui, n'affichait la liste que d'UNE des deux portes. Il fallait
+   * donc deviner laquelle bloquait, et sur une formation qu'on veut seulement ANNONCER, la
+   * liste montrée était celle de l'ouverture — avec sa ligne « leçons » en rouge, impossible
+   * à satisfaire par construction. Le message envoyait vers un écran qui égarait.
+   */
+  const manquantes = (list: PublishChecklist, etape: PublishStage) =>
+    list.items.filter((c) => !c.ok).map((c) => conditionLabel(c.id, etape)).join(' · ');
   const conditionMeta = (
     id: PublishConditionId,
     ok: boolean,
     counts: { modules: number; lessons: number; emptyModules: number; emptyLessons: number },
-  ) => t(`formations.console.check.${id}.${ok ? 'ok' : 'ko'}`, counts);
+    etape: PublishStage = 'live',
+  ) => t(`formations.console.${racine(etape)}.${id}.${ok ? 'ok' : 'ko'}`, counts);
 
   /* La sélection suit la liste FILTRÉE : un filtre qui masque la ligne ouverte laisserait
      un panneau qui parle d'une formation devenue invisible. Le repli est la première ligne
      de la page courante — la console s'ouvre sur ce qui bloque, pas sur une colonne vide. */
   const selected = f.filtered.find((x) => x.id === selectedId) ?? f.paged[0] ?? null;
 
-  /* LA BOUTIQUE EST FERMÉE : au moins une formation en base, aucune publiée. La condition
+  /* LA BOUTIQUE EST FERMÉE : au moins une formation en base, aucune OUVERTE. La condition
      est lue dans les compteurs, jamais supposée — le kit écrit « 2 formations, 0 publiée »
-     en quatre endroits qui se contredisent, et aucun de ces nombres n'est repris. */
+     en quatre endroits qui se contredisent, et aucun de ces nombres n'est repris.
+
+     ⚠️ `counts.published` ne compte plus que les formations ouvertes, précisément pour que
+     cette ligne reste vraie : un catalogue entièrement en « bientôt » est une boutique
+     fermée. Il a des fiches, des tarifs et des listes d'attente — il n'a rien à vendre. */
   const shopClosed = !f.loading && f.counts.all > 0 && f.counts.published === 0;
 
   return (
@@ -528,6 +571,48 @@ export default function AdminFormations() {
                 />
               </div>
             </GlassPanel>
+
+            {/* ── L'ANNONCE ──────────────────────────────────────────────────────────────
+                Ce bloc ne s'affiche QUE sur une formation en « bientôt ». Sur une formation
+                ouverte, ces trois réglages ne veulent rien dire, et `handleSave` les efface
+                de toute façon à l'ouverture : les montrer laisserait croire qu'ils tiennent.
+
+                Il est en lecture pure du document (`f.form.comingSoon`), donc il apparaît dès
+                qu'on rouvre une formation annoncée, et disparaît dès qu'on l'ouvre. */}
+            {f.form.comingSoon && (
+              <GlassPanel level="flat" padding={18} className="mt-4">
+                <SiteEyebrow>{t('formations.console.announceTitle')}</SiteEyebrow>
+                <p className="m-0 mb-3 mt-1 text-small leading-[1.5] text-ink-2">
+                  {t('formations.console.announceIntro')}
+                </p>
+                <Field
+                  label={t('formations.fieldLaunchAt')}
+                  type="date"
+                  value={f.form.launchAt}
+                  onChange={(v) => f.set('launchAt', v)}
+                  hint={t('formations.console.launchAtHint')}
+                />
+                <Field
+                  label={t('formations.fieldLaunchLabel')}
+                  value={f.form.launchLabel}
+                  onChange={(v) => f.set('launchLabel', v)}
+                  placeholder={t('formations.fieldLaunchLabelPlaceholder')}
+                  hint={t('formations.console.launchLabelHint')}
+                />
+                <div className="mt-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="m-0 text-meta font-semibold text-ink">{t('formations.optPreorderLabel')}</p>
+                    <p className="m-0 text-meta-2 text-ink-2">{t('formations.optPreorderDesc')}</p>
+                  </div>
+                  <Switch
+                    on={f.form.preorderEnabled}
+                    label={t('formations.optPreorderLabel')}
+                    onChange={(on) => f.set('preorderEnabled', on)}
+                  />
+                </div>
+              </GlassPanel>
+            )}
+
             <Field
               label={t('formations.fieldSlug')}
               value={f.form.slug}
@@ -589,6 +674,45 @@ export default function AdminFormations() {
               </div>
             </GlassPanel>
 
+            {/* ── LES DEUX PORTES, CÔTE À CÔTE ──────────────────────────────────────────
+                Publier n'est plus un seul geste : on peut ANNONCER une formation qui n'est pas
+                écrite, ou l'OUVRIR. Chaque porte a sa liste, et sans ce résumé il fallait
+                deviner laquelle était atteignable — la liste détaillée ci-dessous ne montre
+                que celle de l'état courant. */}
+            <GlassPanel level="flat" padding={18} className="mt-4">
+              <SiteEyebrow>{t('formations.console.doorsTitle')}</SiteEyebrow>
+              <div className="mt-2">
+                {([
+                  { cle: 'comingSoon' as const, liste: f.checklistComingSoon, libelle: t('formations.console.doorComingSoon') },
+                  { cle: 'live' as const, liste: f.checklistLive, libelle: t('formations.console.doorLive') },
+                ]).map((porte, i) => (
+                  <LessonRow
+                    key={porte.cle}
+                    icon={(
+                      <Icon
+                        name={porte.liste.ready ? 'check' : 'alert'}
+                        size={13}
+                        color={porte.liste.ready ? 'var(--ok)' : 'var(--warn)'}
+                      />
+                    )}
+                    iconBackground={`color-mix(in srgb, ${porte.liste.ready ? 'var(--ok)' : 'var(--warn)'} 18%, transparent)`}
+                    title={porte.libelle}
+                    meta={porte.liste.ready
+                      ? t('formations.console.doorReady')
+                      : t('formations.console.doorMissing', { conditions: manquantes(porte.liste, porte.cle) })}
+                    trailing={(
+                      <Tag tone={porte.liste.ready ? 'ok' : 'warn'}>
+                        {porte.liste.ready
+                          ? t('formations.console.doorTagReady')
+                          : t('formations.console.doorTagBlocked')}
+                      </Tag>
+                    )}
+                    last={i === 1}
+                  />
+                ))}
+              </div>
+            </GlassPanel>
+
             <SiteEyebrow style={{ marginTop: '22px' }}>{t('formations.console.checklistTitle')}</SiteEyebrow>
             <ConsoleList label={t('formations.console.checklistTitle')}>
               {f.checklist.items.map((c, i) => (
@@ -602,8 +726,8 @@ export default function AdminFormations() {
                       />
                     )}
                     iconBackground={`color-mix(in srgb, ${c.ok ? 'var(--ok)' : 'var(--warn)'} 18%, transparent)`}
-                    title={conditionLabel(c.id)}
-                    meta={conditionMeta(c.id, c.ok, c.counts)}
+                    title={conditionLabel(c.id, etapeAffichee)}
+                    meta={conditionMeta(c.id, c.ok, c.counts, etapeAffichee)}
                     trailing={(
                       <Tag tone={c.ok ? 'ok' : 'warn'}>
                         {c.ok ? t('formations.console.condReady') : t('formations.console.condTodo')}
@@ -628,9 +752,92 @@ export default function AdminFormations() {
               <DocLine label={t('formations.console.triggerEmail')} value={t('formations.console.triggerEmailValue')} last />
             </GlassPanel>
 
+            {/* ── LA LISTE D'ATTENTE ────────────────────────────────────────────────────
+                Visible dès qu'il y a quelqu'un dessus, y compris APRÈS l'ouverture : c'est
+                là qu'on déclenche l'alerte, et l'alerte ne se déclenche qu'une fois la
+                formation ouverte. Le masquer après la bascule cacherait le bouton au moment
+                exact où il sert. */}
+            {f.editingId && (f.selectedWaitlistCount > 0 || f.form.comingSoon) && (
+              <GlassPanel level="flat" padding={18} className="mt-4">
+                <SiteEyebrow>{t('formations.console.waitlistTitle')}</SiteEyebrow>
+                <div className="mt-2">
+                  <Num
+                    value={f.selectedWaitlistCount}
+                    source="db"
+                    asOf={f.loadedAt ?? new Date()}
+                    unit={t('formations.console.waitlistUnit', { count: f.selectedWaitlistCount })}
+                    showAsOf
+                  />
+                </div>
+
+                <Button
+                  size="sm"
+                  tone="quiet"
+                  fullWidth
+                  className="mt-3"
+                  onClick={() => f.editingId && f.handleNotifyWaitlist(f.editingId)}
+                  disabled={
+                    f.notifying || f.form.comingSoon || f.selectedWaitlistCount === 0 || f.waitlistAlreadyNotified
+                  }
+                  loading={f.notifying}
+                >
+                  {t('formations.console.waitlistNotifyAction')}
+                </Button>
+
+                {/* La raison du blocage est écrite À CÔTÉ du bouton. Un bouton inactif sans
+                    explication se lit comme une panne. */}
+                <p className="m-0 mt-2 text-small leading-[1.5] text-ink-2">
+                  {f.waitlistAlreadyNotified
+                    ? t('formations.console.waitlistAlreadySent')
+                    : f.form.comingSoon
+                      ? t('formations.console.waitlistNotifyBlocked')
+                      : t('formations.console.waitlistNotifyReady')}
+                </p>
+              </GlassPanel>
+            )}
+
             <p className="m-0 mt-3 text-small leading-[1.5] text-ink-2">
               {t('formations.console.checklistNotAGuard')}
             </p>
+          </div>
+        )}
+
+        {/* ── LES INSCRITS ──────────────────────────────────────────────────────────────
+            Ce que la liste d'attente a réellement produit, nom par nom. Le compteur du
+            panneau de publication est un agrégat écrit par le serveur ; ici on lit les
+            documents, ce qui permet de voir si le compteur et la collection s'accordent. */}
+        {f.activeTab === 'waitlist' && (
+          <div className="mt-1">
+            <SiteEyebrow>{t('formations.console.waitlistTitle')}</SiteEyebrow>
+            {f.waitlistLoading ? (
+              <Skeleton height={72} radius="var(--r-xl)" />
+            ) : f.waitlist.length === 0 ? (
+              <GlassPanel level="flat" padding={18}>
+                <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">
+                  {t('formations.console.waitlistEmpty')}
+                </p>
+              </GlassPanel>
+            ) : (
+              <ConsoleList label={t('formations.console.waitlistTitle')}>
+                {f.waitlist.map((entree, i) => (
+                  <li key={entree.id}>
+                    <LessonRow
+                      icon={<Icon name="mail" size={13} color="var(--ink-2)" />}
+                      iconBackground="var(--fill-2)"
+                      title={entree.email}
+                      meta={[
+                        entree.createdAt.slice(0, 10),
+                        entree.language.toUpperCase(),
+                      ].join(' · ')}
+                      trailing={entree.notifiedAt
+                        ? <Tag tone="ok">{t('formations.console.waitlistNotifiedTag')}</Tag>
+                        : <Tag tone="warn">{t('formations.console.waitlistPendingTag')}</Tag>}
+                      last={i === f.waitlist.length - 1}
+                    />
+                  </li>
+                ))}
+              </ConsoleList>
+            )}
           </div>
         )}
 
@@ -654,19 +861,47 @@ export default function AdminFormations() {
             <Button size="sm" tone="quiet" onClick={() => f.handleSave('draft')} disabled={f.saving} loading={f.saving}>
               {t('formations.saveDraft')}
             </Button>
-            {/* Le bouton NE S'ACTIVE PAS tant qu'une condition manque. C'est la décision du kit. */}
+            {/* ── LES DEUX PORTES SONT OUVERTES EN PERMANENCE ──────────────────────────
+                Les boutons ne se désactivaient plus qu'une fois la checklist complète. Ce
+                verrou a été RETIRÉ sur décision explicite : la liste informe, elle ne décide
+                plus. Le seul refus qui subsiste est celui de `handleSave` — titre et résumé —
+                parce qu'un document sans eux n'a ni fiche ni URL exploitable.
+
+                ⚠️ Ce qui protège réellement n'a pas bougé, et n'a jamais été ici :
+                `resolveCheckoutTotal` (Worker) refuse le devis et le débit d'un document non
+                publié ou fermé, et `isFreeFormation` (`firestore.rules`) refuse
+                l'auto-inscription. Ces deux-là tiennent quoi qu'on publie. */}
+            <Button
+              size="sm"
+              tone="quiet"
+              onClick={() => f.handleSave('comingSoon')}
+              disabled={f.saving}
+              loading={f.saving}
+            >
+              {t('formations.publishComingSoon')}
+            </Button>
             <Button
               size="sm"
               onClick={() => f.handleSave('published')}
-              disabled={f.saving || !f.checklist.ready}
+              disabled={f.saving}
               loading={f.saving}
             >
               {f.editingId ? t('formations.update') : t('formations.publish')}
             </Button>
           </div>
-          {!f.checklist.ready && (
-            <p className="m-0 mt-3 text-right text-small leading-[1.5] text-ink-2">
-              {t('formations.console.publishBlocked')}
+          {/* L'AVERTISSEMENT REMPLACE LE VERROU. Il nomme ce qui manque pour la porte visée,
+              et n'empêche rien — mais il ne disparaît pas non plus : publier une fiche sans
+              couverture l'envoie au flux Meta avec le visuel générique du site, et l'ouvrir
+              sans leçon vend un lecteur qui n'a rien à lire. */}
+          {!f.checklistLive.ready && (
+            <p className="m-0 mt-3 text-right text-small leading-[1.5] text-warn">
+              {f.checklistComingSoon.ready
+                ? t('formations.console.publishWarnOpenOnly', {
+                  conditions: manquantes(f.checklistLive, 'live'),
+                })
+                : t('formations.console.publishWarnBoth', {
+                  conditions: manquantes(f.checklistComingSoon, 'comingSoon'),
+                })}
             </p>
           )}
         </div>

@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@ds';
-import { getAllFormations, saveFormation, deleteFormation } from '../../../lib/firestore';
+import { getAllFormations, saveFormation, deleteFormation, listWaitlist } from '../../../lib/firestore';
 import { slugify } from '../../../lib/utils';
 import { generateSlugEn } from '../../../lib/slugEn';
 import { captureError } from '../../../lib/sentry';
 import { useConfirmDialog } from '../../../hooks/useConfirmDialog';
 import { usePagination } from '../../../hooks/usePagination';
-import { buildPublishChecklist } from './publishChecklist';
-import type { Formation, Module, Lesson } from '../../../types';
+import { buildPublishChecklist, type PublishStage } from './publishChecklist';
+import type { Formation, Module, Lesson, WaitlistEntry } from '../../../types';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../../config/firebase';
 
@@ -28,8 +28,13 @@ import { functions } from '../../../config/firebase';
 export const LEVEL_KEYS = ['debutant', 'intermediaire', 'avance'] as const;
 export const LESSON_TYPE_KEYS = ['video', 'text', 'quiz', 'resource', 'mission'] as const;
 
-export type FormationStage = 'all' | 'published' | 'draft';
-export type FormationTab = 'info' | 'curriculum' | 'settings' | 'publish';
+/**
+ * Le pipeline de la console. « publié » y désigne désormais ce qui est OUVERT : une formation
+ * en Coming Soon est publiée elle aussi, mais la ranger avec les autres rendrait invisible la
+ * seule question qui compte dans cet écran — qu'est-ce qui est réellement en vente.
+ */
+export type FormationStage = 'all' | 'published' | 'comingSoon' | 'draft';
+export type FormationTab = 'info' | 'curriculum' | 'settings' | 'publish' | 'waitlist';
 
 export type FormationFormState = {
   title: string;
@@ -45,6 +50,10 @@ export type FormationFormState = {
   duration: string;
   tags: string;
   status: 'draft' | 'published';
+  comingSoon: boolean;
+  launchAt: string;
+  launchLabel: string;
+  preorderEnabled: boolean;
   featured: boolean;
   certificateEnabled: boolean;
   // SEO
@@ -63,6 +72,7 @@ const EMPTY_FORM: FormationFormState = {
   title: '', slug: '', slug_en: '', description: '', longDescription: '', category: '',
   price: '', promoPrice: '', level: 'debutant', coverImage: '', duration: '',
   tags: '', status: 'draft', featured: false, certificateEnabled: true,
+  comingSoon: false, launchAt: '', launchLabel: '', preorderEnabled: false,
   focusKeyword: '', metaTitle: '', metaDescription: '', ogTitle: '',
   ogDescription: '', ogImage: '', noIndex: false, canonicalUrl: '',
   modules: [],
@@ -70,7 +80,14 @@ const EMPTY_FORM: FormationFormState = {
 
 const generateId = () => crypto.randomUUID();
 
-/** La checklist de publication d'une formation DÉJÀ EN BASE, pour l'étiquette de sa ligne. */
+/**
+ * La checklist de publication d'une formation DÉJÀ EN BASE, pour l'étiquette de sa ligne.
+ *
+ * ⚠️ L'étape se lit sur le DOCUMENT, pas sur l'intention en cours. Sans ça, toute formation en
+ * Coming Soon — qui n'a par construction aucune leçon — s'afficherait « incomplète » dans la
+ * liste et dans le panneau latéral, éternellement, alors qu'elle est exactement dans l'état
+ * qu'on a voulu pour elle.
+ */
 export function formationChecklist(f: Formation) {
   return buildPublishChecklist({
     title: f.title ?? '',
@@ -79,7 +96,7 @@ export function formationChecklist(f: Formation) {
     promoPrice: f.promoPrice ? String(f.promoPrice) : '',
     coverImage: f.coverImage ?? '',
     modules: f.modules ?? [],
-  });
+  }, f.comingSoon ? 'comingSoon' : 'live');
 }
 
 /**
@@ -97,6 +114,20 @@ const notifyOnPublish = httpsCallable<
   { kind: 'formation' | 'article'; id: string },
   { ok: boolean; notified: number; alreadyNotified: boolean }
 >(functions, 'notifyOnPublish');
+
+/**
+ * PRÉVENIR LA LISTE D'ATTENTE — le jour de l'ouverture, et sur un geste explicite.
+ *
+ * Volontairement PAS appelée par `handleSave` : ouvrir une formation et prévenir les gens qui
+ * l'attendent sont deux décisions. On ouvre parfois à 23 h en corrigeant une coquille, et
+ * l'e-mail promis est unique — il ne doit pas partir en effet de bord d'un enregistrement.
+ *
+ * Son marqueur d'idempotence est `waitlistNotifiedAt`, distinct de `publishNotifiedAt`.
+ */
+const notifyWaitlist = httpsCallable<
+  { formationId: string },
+  { ok: boolean; notified: number; mailsEnvoyes?: number; mailsEchoues?: number; alreadyNotified: boolean }
+>(functions, 'notifyWaitlist');
 
 export function useFormations() {
   const { t } = useTranslation('admin');
@@ -162,6 +193,10 @@ export function useFormations() {
       duration: f.duration,
       tags: f.tags?.join(', ') ?? '',
       status: f.status,
+      comingSoon: f.comingSoon ?? false,
+      launchAt: f.launchAt ?? '',
+      launchLabel: f.launchLabel ?? '',
+      preorderEnabled: f.preorderEnabled ?? false,
       featured: f.featured ?? false,
       certificateEnabled: f.certificateEnabled ?? true,
       focusKeyword: f.focusKeyword ?? '',
@@ -179,13 +214,23 @@ export function useFormations() {
     setShowModal(true);
   }, []);
 
-  const handleSave = useCallback(async (status: 'draft' | 'published') => {
+  /**
+   * TROIS INTENTIONS, DEUX STATUTS.
+   *
+   * `comingSoon` et `published` écrivent tous deux `status: 'published'` — c'est le principe
+   * du drapeau, qui laisse les règles de lecture et toutes les requêtes du produit intactes.
+   * Ce qui les sépare tient dans un booléen, et dans ce que la fiche montre.
+   */
+  const handleSave = useCallback(async (intent: 'draft' | 'comingSoon' | 'published') => {
     if (!form.title.trim() || !form.description.trim()) {
       addToast('error', t('formations.toastTitleDescRequired'));
       return;
     }
     setSaving(true);
     try {
+      const status: 'draft' | 'published' = intent === 'draft' ? 'draft' : 'published';
+      const comingSoon = intent === 'comingSoon';
+
       const slug = form.slug || slugify(form.title);
       const slug_en = form.slug_en || await generateSlugEn(form.title);
       const existing = editingId ? list.find((f) => f.id === editingId) : null;
@@ -203,6 +248,16 @@ export function useFormations() {
         duration: form.duration.trim(),
         tags: form.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
         status,
+        comingSoon,
+        /*
+         * Écrits même à vide, et c'est nécessaire : `saveFormation` fusionne (`setDoc` en
+         * `merge`). Sans réécriture explicite, une date d'ouverture posée puis retirée — ou
+         * une précommande refermée — survivrait au document, invisible dans le formulaire et
+         * bien vivante sur la fiche publique. Le passage en ouverture doit tout effacer.
+         */
+        launchAt: comingSoon ? form.launchAt.trim() : '',
+        launchLabel: comingSoon ? form.launchLabel.trim() : '',
+        preorderEnabled: comingSoon && form.preorderEnabled,
         featured: form.featured,
         certificateEnabled: form.certificateEnabled,
         focusKeyword: form.focusKeyword.trim(),
@@ -228,7 +283,19 @@ export function useFormations() {
        * croire que des gens ont été prévenus. Le marqueur `publishNotifiedAt` n'étant alors
        * pas posé, un second enregistrement rejouera l'envoi.
        */
-      if (status === 'published' && savedId) {
+      /*
+       * ⚠️ PAS D'ALERTE SUR UNE PUBLICATION EN « BIENTÔT », ET C'EST LE PIÈGE LE PLUS CHER.
+       *
+       * `notifyOnPublish` annonce « une nouvelle formation est en ligne » — ce qui serait faux
+       * pour une fiche qu'on ne peut ni lire ni acheter. Surtout, il pose `publishNotifiedAt`
+       * AVANT d'écrire : déclenché ici, il consommerait le jeton d'idempotence, et l'alerte du
+       * jour de la VRAIE ouverture ne partirait jamais — sans erreur, sans trace, et sans que
+       * rien à l'écran ne le laisse deviner.
+       *
+       * Les gens qui attendent cette formation-là sont prévenus autrement : par la liste
+       * d'attente, sur un geste explicite, à l'ouverture.
+       */
+      if (intent === 'published' && savedId) {
         try {
           const { data: envoi } = await notifyOnPublish({ kind: 'formation', id: savedId });
           if (envoi.notified > 0) {
@@ -249,6 +316,32 @@ export function useFormations() {
       setSaving(false);
     }
   }, [addToast, editingId, form, list, load, t]);
+
+  /**
+   * PRÉVENIR LA LISTE D'ATTENTE. Geste explicite, jamais automatique.
+   *
+   * Le serveur refuse tant que la formation porte encore le drapeau `comingSoon` : on ouvre
+   * d'abord, on annonce ensuite. Il refuse aussi le second envoi — l'e-mail promis est unique.
+   */
+  const [notifying, setNotifying] = useState(false);
+
+  const handleNotifyWaitlist = useCallback(async (id: string) => {
+    setNotifying(true);
+    try {
+      const { data: envoi } = await notifyWaitlist({ formationId: id });
+      if (envoi.alreadyNotified) {
+        addToast('info', t('formations.toastWaitlistAlready'));
+      } else {
+        addToast('success', t('formations.toastWaitlistNotified', { count: envoi.notified }));
+      }
+      load();
+    } catch (error: unknown) {
+      captureError(error, { context: 'Notify formation waitlist failed' });
+      addToast('error', error instanceof Error ? error.message : t('formations.toastWaitlistError'));
+    } finally {
+      setNotifying(false);
+    }
+  }, [addToast, load, t]);
 
   const doDelete = useCallback(async (id: string) => {
     try {
@@ -382,21 +475,38 @@ export function useFormations() {
     setEditingLesson((prev) => (prev ? { ...prev, lesson: { ...prev.lesson, ...patch } } : prev));
   }, []);
 
-  // ── La définition de « publiable », recalculée à chaque frappe ───────────────────────
-  const checklist = useMemo(() => buildPublishChecklist({
+  // ── Les deux définitions de « publiable », recalculées à chaque frappe ───────────────
+  /*
+   * DEUX LISTES, ET LES DEUX EN PERMANENCE. Chaque bouton du pied de modale a sa propre
+   * condition d'activation : on doit pouvoir dire « prêt pour une annonce, pas pour une
+   * ouverture » sans faire basculer l'écran d'un mode à l'autre.
+   */
+  const checklistFor = useCallback((etape: PublishStage) => buildPublishChecklist({
     title: form.title,
     description: form.description,
     price: form.price,
     promoPrice: form.promoPrice,
     coverImage: form.coverImage,
     modules: form.modules,
-  }), [form.title, form.description, form.price, form.promoPrice, form.coverImage, form.modules]);
+  }, etape), [form.title, form.description, form.price, form.promoPrice, form.coverImage, form.modules]);
 
-  const totalLessons = checklist.items[0].counts.lessons;
+  const checklistLive = useMemo(() => checklistFor('live'), [checklistFor]);
+  const checklistComingSoon = useMemo(() => checklistFor('comingSoon'), [checklistFor]);
+
+  /*
+   * `checklist` reste la liste AFFICHÉE, et elle suit ce qu'on est en train de faire : éditer
+   * une formation déjà en « bientôt » montre ses conditions à elle, pas celles de l'ouverture.
+   */
+  const checklist = form.comingSoon ? checklistComingSoon : checklistLive;
+
+  const totalLessons = checklistLive.items[0].counts.lessons;
 
   const counts = useMemo(() => ({
     all: list.length,
-    published: list.filter((f) => f.status === 'published').length,
+    // « publiées » = OUVERTES. Une formation à venir a son propre compartiment : les confondre
+    // masquerait la seule question de cet écran — qu'est-ce qui est réellement en vente.
+    published: list.filter((f) => f.status === 'published' && !f.comingSoon).length,
+    comingSoon: list.filter((f) => f.status === 'published' && f.comingSoon === true).length,
     draft: list.filter((f) => f.status !== 'published').length,
   }), [list]);
 
@@ -406,13 +516,49 @@ export function useFormations() {
       const matchSearch = !needle
         || (f.title ?? '').toLowerCase().includes(needle)
         || (f.category ?? '').toLowerCase().includes(needle);
+      const publiee = f.status === 'published';
       const matchStage = stage === 'all'
-        || (stage === 'published' ? f.status === 'published' : f.status !== 'published');
+        || (stage === 'published' && publiee && !f.comingSoon)
+        || (stage === 'comingSoon' && publiee && f.comingSoon === true)
+        || (stage === 'draft' && !publiee);
       return matchSearch && matchStage;
     });
   }, [list, search, stage]);
 
   const pagination = usePagination(filtered);
+
+  /*
+   * Les deux chiffres de la liste d'attente sont lus sur le DOCUMENT en base, pas sur le
+   * formulaire : ils sont écrits par le serveur (`joinWaitlist`, `notifyWaitlist`) et n'ont
+   * donc aucun miroir dans l'état d'édition. Les recopier dans `FormationFormState` aurait
+   * créé un second exemplaire qu'un enregistrement aurait pu écraser.
+   */
+  /*
+   * Les inscrits ne sont lus QU'À L'OUVERTURE DE L'ONGLET. C'est une collection qui peut
+   * compter des centaines de documents, et la console s'ouvre le plus souvent pour éditer un
+   * titre : la charger au montage ferait payer une lecture par formation ouverte à quiconque
+   * ne regarde jamais cet onglet.
+   */
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== 'waitlist' || !editingId) return;
+    let vivant = true;
+    setWaitlistLoading(true);
+    listWaitlist(editingId)
+      .then((r) => { if (vivant) setWaitlist(r); })
+      .catch((error: unknown) => {
+        captureError(error, { context: `listWaitlist(${editingId})` });
+        if (vivant) setWaitlist([]);
+      })
+      .finally(() => { if (vivant) setWaitlistLoading(false); });
+    return () => { vivant = false; };
+  }, [activeTab, editingId]);
+
+  const editing = editingId ? list.find((x) => x.id === editingId) ?? null : null;
+  const selectedWaitlistCount = editing?.waitlistCount ?? 0;
+  const waitlistAlreadyNotified = typeof editing?.waitlistNotifiedAt === 'string';
 
   return {
     list, loading, loadedAt, saving,
@@ -427,7 +573,9 @@ export function useFormations() {
     openNew, openEdit, handleSave, deleteEditing,
     addModule, updateModule, deleteModule, moveModule,
     addLesson, openEditLesson, saveLesson, deleteLesson, moveLesson,
-    checklist, totalLessons,
+    checklist, checklistLive, checklistComingSoon, totalLessons,
+    notifying, handleNotifyWaitlist, selectedWaitlistCount, waitlistAlreadyNotified,
+    waitlist, waitlistLoading,
     confirm,
   };
 }

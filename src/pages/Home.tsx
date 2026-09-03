@@ -13,6 +13,7 @@ import type { PublicCounts } from '../lib/firestore/publicCounts';
 import { queryKeys } from '../lib/queryClient';
 import { CLUB_PRICE_XOF } from '../lib/club/pricing';
 import { PACKS as presencePacks } from '../lib/presence/offer';
+import { formationsOuvertes } from '../types/formationRelease';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -171,8 +172,15 @@ export default function Home() {
    * est vide, `min` vaut `null` et le prix ne s'affiche pas — un « à partir de 0 F » serait
    * un chiffre inventé, et c'est exactement ce que la règle 6 refuse.
    */
-  const prixFormation = formations.length
-    ? Math.min(...formations.map((f) => f.promoPrice ?? f.price))
+  /*
+   * ⚠️ LE PRIX D'APPEL SE CALCULE SUR CE QUI EST OUVERT. Une annonce porte un tarif affiché,
+   * mais on ne peut pas l'acheter : la faire entrer dans le « à partir de » de l'accueil
+   * mettrait en vitrine un prix qu'aucun tunnel n'honore — et ce serait souvent le plus bas,
+   * puisqu'un tarif de lancement est fait pour ça.
+   */
+  const formationsEnVente = formationsOuvertes(formations);
+  const prixFormation = formationsEnVente.length
+    ? Math.min(...formationsEnVente.map((f) => f.promoPrice ?? f.price))
     : null;
   const prixTpe = presencePacks.length
     ? Math.min(...presencePacks.map((pk: (typeof presencePacks)[number]) => pk.promoPrice ?? pk.price))
@@ -183,7 +191,9 @@ export default function Home() {
   const starters = [
     posts[0] && { territory: 'informe' as const, meta: t('free.metaArticle'), title: posts[0].title, to: `/blog/${posts[0].slug}` },
     podcasts[0] && { territory: 'transforme' as const, meta: t('free.metaPodcast'), title: podcasts[0].title, to: `/podcasts/${podcasts[0].slug}` },
-    formations[0] && { territory: 'forme' as const, meta: t('free.metaCourse'), title: formations[0].title, to: `/formations/${formations[0].slug}` },
+    /* ⚠️ JAMAIS une annonce ici. Ce bloc s'appelle « Commence gratuitement » : sur une
+       formation à venir, aucune leçon n'est ouverte, et l'invitation serait creuse. */
+    formationsEnVente[0] && { territory: 'forme' as const, meta: t('free.metaCourse'), title: formationsEnVente[0].title, to: `/formations/${formationsEnVente[0].slug}` },
   ].filter(Boolean) as { territory: 'informe' | 'transforme' | 'forme'; meta: string; title: string; to: string }[];
 
   const asOf = counts?.asOf ?? new Date();
@@ -193,7 +203,18 @@ export default function Home() {
    * tant que la lecture n'a pas abouti, et un héros ne se réordonne pas sur une mesure qu'on
    * n'a pas. C'est ce booléen qui décide du ton des deux boutons du premier écran.
    */
-  const catalogueVide = counts ? counts.publishedFormations === 0 : false;
+  /*
+   * ⚠️ « VIDE » VEUT DIRE « RIEN À VENDRE », PAS « AUCUN DOCUMENT PUBLIÉ ».
+   *
+   * `counts.publishedFormations` compte désormais aussi les annonces — elles sont publiées.
+   * S'en tenir à lui aurait fait basculer le héros en mode « boutique ouverte » dès la
+   * première formation annoncée, alors qu'il n'y a toujours rien à acheter. La liste chargée
+   * juste au-dessus permet de trancher sans lecture supplémentaire ; `counts` reste la
+   * mesure de secours tant qu'elle n'est pas arrivée.
+   */
+  const catalogueVide = formations.length > 0
+    ? formationsEnVente.length === 0
+    : counts ? counts.publishedFormations === 0 : false;
 
   /*
    * ── « NON RELEVÉ » N'EST PAS UN ÉTAT DE CHARGEMENT ────────────────────────────────────

@@ -16,3 +16,4 @@ export * from './agency';
 export * from './missions';
 export * from './redirects';
 export * from './publicCounts';
+export * from './waitlist';

@@ -66,7 +66,9 @@
     "certificatesUnit_other": "certificats",
     "certificatesNote": "Le premier arrive à la fin d'une formation. Son code se vérifie sans compte.",
     "truthEyebrow": "Ce qui reste à toi, quoi qu'il arrive",
-    "truthBody": "L'accès est à vie, mises à jour comprises. Si je retravaille un module, tu as la version corrigée sans repayer. Si tu supprimes ton compte, les certificats déjà émis restent vérifiables par leur code."
+    "truthBody": "L'accès est à vie, mises à jour comprises. Si je retravaille un module, tu as la version corrigée sans repayer. Si tu supprimes ton compte, les certificats déjà émis restent vérifiables par leur code.",
+    "comingSoonTag": "Bientôt",
+    "comingSoonNote": "Précommandée. Elle s’ouvrira dans ton espace."
   },
   "dashboard": {
     "greeting": "Bonjour, {{name}}",

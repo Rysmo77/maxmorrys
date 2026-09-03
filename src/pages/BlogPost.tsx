@@ -9,6 +9,7 @@ import { CoverImage, PageSite, SiteBand, SiteDisplay, SiteEyebrow, useActiveHead
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
 import { getPostBySlug, getPublishedFormations, getPublishedPosts, incrementBlogViews } from '../lib/firestore';
+import { formationMiseEnAvant } from '../types/formationRelease';
 import { markdownToHtml, withArticleToc, type ArticleHeading } from '../lib/markdown';
 import { queryClient, queryKeys } from '../lib/queryClient';
 import { useFormat } from '../hooks/useFormat';
@@ -139,7 +140,9 @@ export default function BlogPost() {
     queryKey: queryKeys.publishedFormations,
     queryFn: () => getPublishedFormations(),
   });
-  const cible = formations[0] ?? null;
+  /* ⚠️ Une formation ouverte d'abord. La passerelle propose d'ACHETER : elle ne peut pas
+     pointer une annonce tant qu'il existe quelque chose de disponible. */
+  const cible = formationMiseEnAvant(formations);
   const cibleLecons = (cible?.modules ?? []).reduce((n: number, m) => n + (m.lessons?.length ?? 0), 0);
 
   const path = useLocalizedPath();

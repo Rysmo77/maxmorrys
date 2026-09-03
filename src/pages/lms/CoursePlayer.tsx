@@ -12,6 +12,8 @@ import { useLocalizedPath } from '../../contexts/LanguageContext';
 import { markdownToHtml } from '../../lib/markdown';
 import type { Formation, Lesson } from '../../types';
 import { useCoursePlayer } from './hooks/useCoursePlayer';
+import { estAVenir, ouverture } from '../../types/formationRelease';
+import { useFormat } from '../../hooks/useFormat';
 
 /**
  * LE LECTEUR DE LEÇON (`ScreensSpace.js` · `Lecteur`).
@@ -304,6 +306,7 @@ export default function CoursePlayer() {
   const { t } = useTranslation('lms');
   const { slug } = useParams();
   const path = useLocalizedPath();
+  const { formatDate } = useFormat();
   const reveal = useReveal<HTMLDivElement>();
   const [mobileOutlineOpen, setMobileOutlineOpen] = useState(false);
 
@@ -334,6 +337,46 @@ export default function CoursePlayer() {
             glyph={<Icon name="book" size={26} color="var(--text-muted)" />}
             title={t('player.courseNotFoundTitle')}
             action={<Button tone="quiet" fullWidth href={path('/mon-espace')}>{t('player.backToSpace')}</Button>}
+            style={{ padding: 0 }}
+          />
+        </GlassPanel>
+      </Frame>
+    );
+  }
+
+  /*
+    ══════════════════════════════════════════════════════════════════════════════════════
+    UNE FORMATION À VENIR N'A RIEN À LIRE, MÊME POUR QUI L'A PRÉCOMMANDÉE.
+
+    C'est le cas qui arrive VRAIMENT : on précommande, on est donc inscrit, et on revient
+    ouvrir le lecteur avant l'ouverture. Sans cet écran, `useCoursePlayer` ne trouverait
+    aucune leçon à activer — la couche d'accès aux données les a retirées — et le lecteur
+    s'ouvrirait sur un sommaire vide et un panneau blanc, ce qui se lit comme une panne.
+
+    Le verrou est DÉRIVÉ de la formation, pas posé sur l'inscription : il tombe tout seul le
+    jour où l'administration retire le drapeau, sans qu'aucune inscription n'ait à être
+    reprise une à une.
+    ══════════════════════════════════════════════════════════════════════════════════════
+  */
+  if (estAVenir(formation)) {
+    const quand = ouverture(formation);
+    return (
+      <Frame back={{ href: path(`/formations/${formation.slug}`), label: t('player.seeFormation') }}>
+        <SiteDisplay lines={t('player.lockedLines', { returnObjects: true }) as string[]} size={30} />
+        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+          <EmptyState
+            glyph={<Icon name="lock" size={26} color="var(--warn)" />}
+            title={t('player.comingSoonTitle')}
+            body={quand
+              ? t('player.comingSoonBodyDated', {
+                date: quand.kind === 'date' ? formatDate(quand.value) : quand.value,
+              })
+              : t('player.comingSoonBody')}
+            action={(
+              <Button tone="quiet" fullWidth href={path(`/formations/${formation.slug}`)}>
+                {t('player.seeFormation')}
+              </Button>
+            )}
             style={{ padding: 0 }}
           />
         </GlassPanel>

@@ -169,7 +169,11 @@ export async function getContentMeta(
           '@type': 'Offer',
           price: num(formation.promoPrice) ?? num(formation.price),
           priceCurrency: 'XOF',
-          availability: 'https://schema.org/InStock',
+          // Une formation en Coming Soon est publiée, donc pré-rendue comme les autres :
+          // sans cette distinction, son balisage l'annoncerait en stock aux moteurs.
+          availability: formation.comingSoon === true
+            ? 'https://schema.org/PreOrder'
+            : 'https://schema.org/InStock',
           url: `${SITE_URL}/formations/${slug}`,
         },
         ...(rating && rating > 0

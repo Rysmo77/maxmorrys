@@ -9,6 +9,10 @@ import { useFormat } from '../hooks/useFormat';
 import { PriceApprox } from '../components/shared/PriceApprox';
 import { useTranslatedContent, useTranslatedText } from '../hooks/useTranslatedContent';
 import { getFormationBySlug } from '../lib/firestore';
+import { estAVenir, estPrecommandable, ouverture, preuveSociale } from '../types/formationRelease';
+import { useWaitlist } from '../hooks/useWaitlist';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '@ds';
 import { markdownToHtml } from '../lib/markdown';
 import type { Formation } from '../types';
 import { trackViewItem, trackAddToCart } from '../lib/tracking';
@@ -58,6 +62,27 @@ export default function FormationDetail() {
   const longDescriptionBody = useTranslatedText(formation?.longDescription);
 
   const path = useLocalizedPath();
+  const { user } = useAuth();
+  const { addToast } = useToast();
+
+  /*
+   * ⚠️ LES HOOKS AVANT LES RETOURS ANTICIPÉS. Ce composant rend trois écrans (chargement,
+   * introuvable, fiche) : appeler `useWaitlist` plus bas, près de son bouton, le placerait
+   * après deux `return` et casserait l'ordre des hooks au premier changement d'état.
+   */
+  const aVenir = Boolean(formation && estAVenir(formation));
+  const attente = useWaitlist(
+    aVenir ? formation?.id : undefined,
+    language,
+    formation?.waitlistCount ?? 0,
+  );
+
+  const rejoindreListe = async () => {
+    const r = await attente.rejoindre();
+    if (r === 'ok') addToast('success', t('comingSoon.toastJoined'));
+    else if (r === 'deja') addToast('info', t('comingSoon.toastAlready'));
+    else addToast('error', t('comingSoon.toastError'));
+  };
 
   if (formation === undefined) {
     return (
@@ -93,11 +118,25 @@ export default function FormationDetail() {
    * ou d'une source citée ».
    */
   const modules = formation.modules ?? [];
-  /** Une leçon marquée gratuite existe-t-elle ? C'est ce qui autorise à parler d'aperçu. */
+  /**
+   * Une leçon marquée gratuite existe-t-elle ? C'est ce qui autorise à parler d'aperçu.
+   *
+   * ⚠️ Toujours faux sur une formation à venir : la couche d'accès aux données lui a retiré
+   * ses leçons. C'est voulu — la promesse « le module d'ouverture est gratuit, tu juges avant
+   * de payer » est SUSPENDUE jusqu'à l'ouverture, pas cassée, et la fiche le dit.
+   */
   const hasFreeLesson = modules.some((m) => (m.lessons ?? []).some((l) => l.isFree));
   const lessons = modules.reduce((n, m) => n + (m.lessons?.length ?? 0), 0);
   const price = formation.promoPrice ?? formation.price;
   const asOf = new Date();
+
+  const precommande = estPrecommandable(formation);
+  const dateOuverture = ouverture(formation);
+  const attendus = preuveSociale({ ...formation, waitlistCount: attente.compte });
+  /** La date, dite comme on la dirait à voix haute — ou la période libre, telle quelle. */
+  const ouvertureTexte = dateOuverture
+    ? (dateOuverture.kind === 'date' ? formatDate(dateOuverture.value) : dateOuverture.value)
+    : null;
 
   return (
     <DsNavHost>
@@ -122,7 +161,9 @@ export default function FormationDetail() {
         provider: { '@type': 'Organization', name: SITE_NAME },
         offers: {
           '@type': 'Offer', price, priceCurrency: 'XOF',
-          availability: 'https://schema.org/InStock',
+          // Annoncer « en stock » une formation dont le tunnel est fermé le ferait répéter
+          // par les moteurs — la faute que l'`aggregateRating` retiré plus haut commettait.
+          availability: aVenir ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock',
         },
       }} />
 
@@ -137,6 +178,15 @@ export default function FormationDetail() {
 
         <div className="mt-4 grid items-start gap-11 wide:grid-cols-[1.1fr_.9fr]">
           <div>
+            {/* L'étiquette est posée AVANT le titre : c'est la première chose à savoir sur
+                cette fiche, avant même de lire ce qu'elle vend. */}
+            {aVenir && (
+              <p className="m-0 mb-3">
+                <Tag tone="warn">
+                  {ouvertureTexte ? t('comingSoon.tagWithDate', { date: ouvertureTexte }) : t('comingSoon.tag')}
+                </Tag>
+              </p>
+            )}
             <SiteDisplay wrap lines={[tFormation?.title || formation.title]} size={48} style={{ maxWidth: '18ch' }} />
             <p className="rv mt-4 max-w-[48ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 3 }}>
               {tFormation?.description || formation.description}
@@ -207,6 +257,17 @@ export default function FormationDetail() {
                   `MAQUETTES.md` demande explicitement de ne pas rejouer.
                 */
                 const moduleFree = (module.lessons ?? []).some((l) => l.isFree);
+                /*
+                  UNE FORMATION À VENIR MONTRE SES MODULES, ET RIEN DE PLUS.
+
+                  Pas de dépliage — il n'y aurait rien dessous, la couche d'accès aux données
+                  a retiré les leçons. Pas d'étiquette « Gratuit » non plus : elle promettrait
+                  un aperçu qui n'ouvrira qu'à la mise en ligne. Le cadenas dit l'état juste.
+
+                  Et surtout : PAS de « N leçons » en méta. Le compte est à zéro ici, et
+                  l'afficher annoncerait « 0 leçon » sur une formation qu'on vend — un chiffre
+                  faux, exactement ce que la règle des relevés datés existe pour empêcher.
+                */
                 return (
                   <div key={module.id}>
                     <LessonRow
@@ -217,22 +278,22 @@ export default function FormationDetail() {
                          1 h 08 » (`PagesFormations.js:62`) ; la durée n'est pas reprise parce
                          que `Lesson.duration` est une chaîne libre — l'additionner produirait
                          un nombre que personne ne pourrait sourcer, ce que la règle 6 interdit. */
-                      meta={t('sheet.moduleMeta', { count: module.lessons?.length ?? 0 })}
-                      onClick={() =>
+                      meta={aVenir ? undefined : t('sheet.moduleMeta', { count: module.lessons?.length ?? 0 })}
+                      onClick={aVenir ? undefined : () =>
                         setExpandedModules((prev) =>
                           prev.includes(module.id) ? prev.filter((id) => id !== module.id) : [...prev, module.id],
                         )
                       }
                       icon={
-                        moduleFree
+                        moduleFree && !aVenir
                           ? <Icon name="play" size={13} color="var(--paper-fixed)" />
                           : <Icon name="lock" size={14} color="var(--ink-2)" strokeWidth={2.4} />
                       }
-                      iconBackground={moduleFree ? 'var(--action-forme)' : 'var(--fill-2)'}
-                      trailing={moduleFree ? <Tag tone="ok">{t('sheet.free')}</Tag> : undefined}
+                      iconBackground={moduleFree && !aVenir ? 'var(--action-forme)' : 'var(--fill-2)'}
+                      trailing={moduleFree && !aVenir ? <Tag tone="ok">{t('sheet.free')}</Tag> : undefined}
                       last={mi === modules.length - 1 && !open}
                     />
-                    {open && (
+                    {open && !aVenir && (
                       <ul className="list-none m-0 pb-3 pl-[46px]">
                         {(module.lessons ?? []).map((lesson) => (
                           <li key={lesson.id} className="flex items-baseline justify-between gap-3 py-[5px]">
@@ -278,14 +339,93 @@ export default function FormationDetail() {
                 SYSTÉMIQUE au composant — le corriger ici seul, en dégradant le lien en bouton,
                 échangerait un défaut contre un autre.
               */}
-              <Button
-                href={path(`/checkout/${formation.slug}`)}
-                tone="forme"
-                onClick={() => trackAddToCart({ id: formation.id, name: formation.title, category: formation.category, price, currency: 'XOF' })}
-                style={{ marginTop: '15px' }}
-              >
-                {t('sheet.enroll')}
-              </Button>
+              {/*
+                ── CE QU'ON PROPOSE DÉPEND DE CE QUI EST OUVERT ──────────────────────────
+                Une formation à venir n'a pas de tunnel : `resolveCheckoutTotal` le refuse
+                côté serveur, et `/checkout/:slug` s'y casserait. On propose donc la liste
+                d'attente — sauf si la précommande a été ouverte POUR CETTE formation, auquel
+                cas le tunnel accepte et devient l'action principale.
+
+                UN SEUL BOUTON PRINCIPAL. Quand la précommande est ouverte, l'inscription à
+                la liste passe en `quiet` juste dessous : deux actions de même poids côte à
+                côte ne se partagent pas l'attention, elles l'annulent.
+              */}
+              {!aVenir && (
+                <Button
+                  href={path(`/checkout/${formation.slug}`)}
+                  tone="forme"
+                  onClick={() => trackAddToCart({ id: formation.id, name: formation.title, category: formation.category, price, currency: 'XOF' })}
+                  style={{ marginTop: '15px' }}
+                >
+                  {t('sheet.enroll')}
+                </Button>
+              )}
+
+              {aVenir && (
+                <>
+                  {ouvertureTexte
+                    ? (
+                      <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-2">
+                        {t('comingSoon.opensOn', { date: ouvertureTexte })}
+                      </p>
+                    )
+                    : (
+                      /* Aucune date n'est posée, et on le DIT. Inventer « bientôt » sans
+                         rien derrière serait la promesse creuse que cette page évite ailleurs. */
+                      <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-2">
+                        {t('comingSoon.noDateYet')}
+                      </p>
+                    )}
+
+                  {precommande && (
+                    <Button
+                      href={path(`/checkout/${formation.slug}`)}
+                      tone="forme"
+                      onClick={() => trackAddToCart({ id: formation.id, name: formation.title, category: formation.category, price, currency: 'XOF' })}
+                      style={{ marginTop: '13px' }}
+                    >
+                      {t('comingSoon.preorder')}
+                    </Button>
+                  )}
+
+                  {/*
+                    Le compte est requis : déconnecté, le bouton mène à l'inscription EN
+                    GARDANT la fiche en destination — le même mécanisme que le tunnel, pour
+                    que personne ne revienne à la main.
+                  */}
+                  {user ? (
+                    <Button
+                      tone={precommande ? 'quiet' : 'forme'}
+                      onClick={rejoindreListe}
+                      disabled={attente.envoi || attente.inscrit === true}
+                      loading={attente.envoi}
+                      style={{ marginTop: precommande ? '10px' : '13px' }}
+                    >
+                      {attente.inscrit === true ? t('comingSoon.alreadyIn') : t('comingSoon.notifyMe')}
+                    </Button>
+                  ) : (
+                    <Button
+                      href={path('/inscription')}
+                      tone={precommande ? 'quiet' : 'forme'}
+                      style={{ marginTop: precommande ? '10px' : '13px' }}
+                    >
+                      {t('comingSoon.notifyMeSignedOut')}
+                    </Button>
+                  )}
+
+                  {/* LA PROMESSE, ÉCRITE SOUS LE BOUTON QUI L'ENGAGE. */}
+                  <p className="m-0 mt-2 text-small leading-[1.5] text-ink-2">
+                    {t('comingSoon.promise')}
+                  </p>
+
+                  {/* La preuve sociale ne s'affiche qu'au-dessus du seuil, et datée. */}
+                  {attendus !== null && (
+                    <p className="m-0 mt-2 text-small leading-[1.5] text-ink-2">
+                      {t('comingSoon.waiting', { count: attendus })}
+                    </p>
+                  )}
+                </>
+              )}
               {/*
                 « Commencer le module gratuit » MENAIT AU CATALOGUE — c'est-à-dire à la page
                 d'où l'on vient. Le geste promis ne se produisait pas : la personne revenait
@@ -296,7 +436,7 @@ export default function FormationDetail() {
                 existe : proposer d'ouvrir un module gratuit sur une formation qui n'en a
                 aucun serait la même promesse creuse, un cran plus loin.
               */}
-              {hasFreeLesson && (
+              {hasFreeLesson && !aVenir && (
                 <Button href={path(`/cours/${formation.slug}`)} tone="quiet" style={{ marginTop: '10px' }}>
                   {t('sheet.startFree')}
                 </Button>
@@ -308,6 +448,15 @@ export default function FormationDetail() {
                   {t(`sheet.${key}`)}
                 </CheckLine>
               ))}
+              {/* LA PROMESSE SUSPENDUE, DITE PLUTÔT QUE TUE. Le bouton « Commencer le module
+                  gratuit » a disparu plus haut : sans cette ligne, la personne conclurait que
+                  l'accès libre n'existe pas sur cette formation, alors qu'il est seulement
+                  reporté au jour de l'ouverture. */}
+              {aVenir && (
+                <CheckLine tone="neutre" dash style={{ fontSize: '13.5px' }}>
+                  {t('comingSoon.freeLater')}
+                </CheckLine>
+              )}
             </GlassPanel>
 
             {/*
@@ -316,8 +465,14 @@ export default function FormationDetail() {
             */}
             <GlassPanel level="truth" className="rv" style={{ ['--i' as string]: 5 }}>
               <SiteEyebrow style={{ marginBottom: '6px' }}>{t('sheet.truthTitle')}</SiteEyebrow>
+              {/* ⚠️ Sur une formation à venir, `lessons` vaut ZÉRO — les leçons ont été
+                  retirées à la lecture. Réutiliser la même phrase afficherait « 0 leçon »
+                  au milieu d'un argumentaire de vente. On compte les modules, et on dit
+                  que le reste s'écrit. */}
               <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">
-                {t('sheet.truthBody', { lessons, modules: modules.length })}
+                {aVenir
+                  ? t('comingSoon.truthBody', { modules: modules.length })
+                  : t('sheet.truthBody', { lessons, modules: modules.length })}
               </p>
             </GlassPanel>
           </aside>

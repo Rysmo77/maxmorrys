@@ -66,7 +66,9 @@
     "certificatesUnit_other": "certificates",
     "certificatesNote": "The first one arrives when you finish a course. Its code can be verified without an account.",
     "truthEyebrow": "What stays yours, whatever happens",
-    "truthBody": "Access is for life, updates included. If I rework a module, you get the corrected version without paying again. If you delete your account, certificates already issued stay verifiable by their code."
+    "truthBody": "Access is for life, updates included. If I rework a module, you get the corrected version without paying again. If you delete your account, certificates already issued stay verifiable by their code.",
+    "comingSoonTag": "Coming soon",
+    "comingSoonNote": "Pre-ordered. It’ll open in your space."
   },
   "dashboard": {
     "greeting": "Hi {{name}}",
