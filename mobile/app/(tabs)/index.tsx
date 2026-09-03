@@ -6,7 +6,8 @@ import {
   ProgressBar, QuotaMeter, SansDonnees, Screen, Surface, TerritoryCard, useActionGradient,
   useToken, useTutorNom,
 } from '../../ds';
-import { FORMATION, MOI, QUOTA, RELEVE, SOURCE, STOCKAGE } from '../../contenu/demo';
+import { QUOTA, RELEVE, SOURCE, STOCKAGE } from '../../contenu/demo';
+import { useEspace, useMoi } from '../../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -52,13 +53,14 @@ function salutation(d: Date): string {
 /* Les trois portes de l'espace existent toujours ; seul leur RELEVÉ dépend du contenu.
    Une entrée sans son compte reste une entrée — c'est le compte qui ment, pas le chemin. */
 const ESPACE = [
-  { href: '/paiement', glyphe: 'card' as const, titre: 'Mes paiements', meta: STOCKAGE ? '1 transaction' : undefined },
   { href: '/certificats', glyphe: 'doc' as const, titre: 'Mes certificats', meta: STOCKAGE ? '0 émis' : undefined },
   { href: '/telechargements', glyphe: 'download' as const, titre: 'Téléchargements', meta: STOCKAGE ? `3 leçons · ${STOCKAGE.occupeCourt}` : undefined },
 ] as const;
 
 export default function Espace() {
   const t = useToken();
+  const moi = useMoi();
+  const espace = useEspace();
   const g = useActionGradient();
   const tuteur = useTutorNom();
   const maintenant = new Date();
@@ -85,7 +87,7 @@ export default function Espace() {
             accessibilityLabel="Ton profil"
             onPress={() => router.push('/(tabs)/profil')}
           >
-            <Avatar initials={MOI?.initiale ?? ''} size={38} />
+            <Avatar initials={moi.valeur?.initiale ?? ''} size={38} />
           </Pressable>
         </>
       }
@@ -94,16 +96,18 @@ export default function Espace() {
       {/* La salutation tient sans le prénom : l'heure du téléphone suffit à la rendre vraie. */}
       <Display
         size={31}
-        lines={MOI ? [salutation(maintenant), MOI.prenom] : [`${salutation(maintenant)}.`]}
+        lines={moi.valeur ? [salutation(maintenant), moi.valeur.prenom] : [`${salutation(maintenant)}.`]}
         style={{ marginTop: 8 }}
       />
 
       {/* ── PREMIER OBJET. La reprise, avant tout le reste — et quand il n'y a rien à
              reprendre, c'est CETTE place qui doit le dire, pas un vide en bas d'écran. ── */}
-      {FORMATION === null ? (
+      {espace.valeur === null ? (
         <SansDonnees
           quoi="ta progression"
           degat="Une leçon inventée ici est une leçon qu'on croit avoir commencée : elle décale le compte, et elle rend faux le seul chiffre que tu viens vérifier."
+          etat={espace}
+          hauteur={4}
           style={{ marginTop: 20 }}
           action={<Button tone="forme" label="Voir le catalogue" onPress={() => router.push('/(tabs)/cours')} />}
         />
@@ -112,20 +116,22 @@ export default function Espace() {
         <TerritoryCard
           first
           territory="forme"
-          meta={FORMATION.arret}
-          title={`Leçon 5 · ${FORMATION.leconEnCours}`}
+          meta={espace.valeur.arret ?? undefined}
+          title={espace.valeur.leconEnCours ?? espace.valeur.titreCourt}
           titleSize={21}
           onPress={() => router.push('/lecon')}
         >
-          <ProgressBar value={FORMATION.progression} style={{ marginTop: 14 }} />
+          <ProgressBar value={espace.valeur.progression} style={{ marginTop: 14 }} />
           <View style={{
             flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
             gap: 12, marginTop: 12,
           }}>
+            {/* La provenance vient de l'ÉTAT, plus d'une constante : `source` et `asOf`
+                disaient jusqu'ici « transfert du 2 septembre » sur une donnée du jour. */}
             <Num
-              value={`${FORMATION.leconsFaites} / ${FORMATION.lecons} leçons · ${FORMATION.progression} %`}
-              source={SOURCE}
-              asOf={RELEVE}
+              value={`${espace.valeur.leconsFaites} / ${espace.valeur.lecons} leçons · ${espace.valeur.progression} %`}
+              source={espace.source}
+              asOf={espace.asOf}
               style={{ fontSize: 12.5, color: t('textMuted') }}
             />
             <Button tone="primary" size="sm" label="Reprendre" onPress={() => router.push('/lecon')} />
@@ -166,7 +172,7 @@ export default function Espace() {
 
       {/* ── DEUX FAITS, SANS LEVIER. Sans relevé, ils ne s'affichent pas : une série à zéro
              qu'on n'a pas mesurée se lit comme une série perdue. ── */}
-      {FORMATION === null ? null : (
+      {espace.valeur === null ? null : (
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
         <Surface level="flat" style={{ flex: 1, padding: 16 }}>
           <Eyebrow style={{ fontSize: 10 }}>Série</Eyebrow>

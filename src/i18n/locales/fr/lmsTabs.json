@@ -122,7 +122,9 @@
     "tutorPanelRemainingAfter_one": "question aujourd'hui. Remis à zéro à minuit.",
     "tutorPanelRemainingAfter_other": "questions aujourd'hui. Remis à zéro à minuit.",
     "tutorPanelPlaceholder": "Pose ta question",
-    "tutorPanelSend": "Envoyer à ton {{tutor}}"
+    "tutorPanelSend": "Envoyer à ton {{tutor}}",
+    "linkTestimonials": "Mon avis",
+    "linkTestimonialsMeta": "texte, audio ou vidéo"
   },
   "messages": {
     "newMessage": "Nouveau message",
@@ -483,6 +485,15 @@
     "targetGroupLabel": "Ce sur quoi porte ton avis",
     "ratingGroupLabel": "Ta note, de 1 à 5",
     "publishNote": "Rien n'est publié tant que je ne l'ai pas relu. Tu peux retirer un avis tant qu'il est en attente.",
-    "listLabel": "Les avis que tu as envoyés"
+    "listLabel": "Les avis que tu as envoyés",
+    "ratingLow": "1 · décevant",
+    "ratingHigh": "5 · excellent",
+    "captionOptional": "Facultatif. Une transcription rend ton témoignage lisible sans le son.",
+    "counter": "{{current}} / {{max}}",
+    "missingLead": "Il manque encore :",
+    "missingFormation": "la formation concernée",
+    "missingVideo": "ta vidéo",
+    "missingAudio": "ton audio",
+    "missingText": "ton message"
   }
 }

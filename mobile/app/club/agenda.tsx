@@ -1,5 +1,4 @@
-import { Alert, Platform, View } from 'react-native';
-import { openBrowserAsync } from 'expo-web-browser';
+import { Alert, View } from 'react-native';
 import {
   Body, Button, Eyebrow, Gradient, Icon, Num, Segmented, Surface, Tag, useActionGradient,
   useToken,
@@ -35,17 +34,26 @@ export default function Agenda() {
   const g = useActionGradient();
   const [vue, setVue] = useState('À venir');
 
+  /*
+   * ⚠️ CE BOUTON OUVRAIT UN FICHIER QUI N'EXISTE PAS. Il pointait sur
+   * `maxmorrys.me/club/agenda.ics` — mesuré : la réponse est un `200` avec
+   * `content-type: text/html`, c'est-à-dire la coquille de l'application web servie par le
+   * fourre-tout de l'hébergement. Le téléphone n'y voit aucun calendrier : il ouvre la page
+   * d'accueil du site. Une action principale qui fait autre chose que ce qu'elle annonce est
+   * un rejet en revue, et c'est un défaut qui survit parce que le lien RÉPOND.
+   *
+   * On ne remplace pas par un `expo-calendar` improvisé : écrire dans l'agenda demande une
+   * permission, une chaîne d'usage dans `app.json`, et une ligne au formulaire de
+   * confidentialité des deux magasins. Ça se décide, ça ne se bricole pas ici.
+   *
+   * En attendant, l'alerte dit l'horaire — ce qui est utile et vrai — et ne promet rien
+   * d'autre. C'est moins que prévu ; ce n'est pas faux.
+   */
   function ajouterALAgenda(titre: string, horaire: string) {
     Alert.alert(
-      'Ajouter à ton agenda',
-      `« ${titre} », ${horaire}.\n\nElle se posera dans l'agenda de ton téléphone : elle survit à la désinstallation de l'app, et elle ne dépend d'aucune permission de notification.`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: Platform.OS === 'ios' ? 'Ouvrir le fichier' : 'Ouvrir le fichier',
-          onPress: () => { void openBrowserAsync('https://maxmorrys.me/club/agenda.ics'); },
-        },
-      ],
+      titre,
+      `${horaire}.\n\nNote-la dans ton agenda : le lien de connexion arrive par e-mail le jour même.`,
+      [{ text: "J'ai noté" }],
     );
   }
 

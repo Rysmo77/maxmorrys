@@ -1,9 +1,17 @@
 import type { CallContext } from './context';
 import { acknowledgeAppointment } from './handlers/acknowledgeAppointment';
 import { resendTransactionMail } from './handlers/resendTransactionMail';
+import { appClub } from './handlers/app/club';
+import { appCertificats } from './handlers/app/certificats';
+import { appLecon } from './handlers/app/lecon';
+import { appNotes } from './handlers/app/notes';
+import { appCours } from './handlers/app/cours';
+import { appEspace } from './handlers/app/espace';
+import { appMoi } from './handlers/app/moi';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
 import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
+import { creerMonProfil } from './handlers/creerMonProfil';
 import { deleteUserAccount, exportUserData } from './handlers/gdpr';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { importSpotifyEpisodesManual } from './handlers/importSpotifyEpisodesManual';
@@ -52,12 +60,20 @@ export const HANDLERS: Record<string, CallHandler> = {
   acknowledgeAppointment,
   resendTransactionMail,
   clearRysmoMemory,
+  creerMonProfil,
   importSpotifyEpisodesManual,
   issueCertificate,
   translateContent,
   parseCv,
   // Administration
   adminCreateUser,
+  appCertificats,
+  appClub,
+  appCours,
+  appLecon,
+  appNotes,
+  appEspace,
+  appMoi,
   adminManageRysmoQuota,
   adminManageEnrollment,
   reindexSearch,

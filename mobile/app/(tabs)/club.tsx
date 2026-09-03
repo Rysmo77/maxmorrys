@@ -1,32 +1,33 @@
-import { View } from 'react-native';
 import { router } from 'expo-router';
-import { openAuthSessionAsync } from 'expo-web-browser';
 import {
-  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Screen,
+  Body, CheckLine, Display, Eyebrow, Icon, LessonRow, Screen,
   Surface, type IconName, isIOS, useToken,
 } from '../../ds';
-import { CLUB, QUOTA, RELEVE, SITE, SOURCE } from '../../contenu/demo';
+import { QUOTA } from '../../contenu/demo';
+import { useClub } from '../../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
- * ══ 5 · LE CLUB, MUR D'ABONNEMENT ══ — MÊME RÈGLE QUE LES FORMATIONS.
+ * ══ 5 · LE CLUB ══ — L'ACCÈS, PAS LA VENTE.
  *
- * 19 900 F encaissés dans l'application imposent l'achat intégré (App Store 3.1.1, Play
- * Payments), donc la commission et la disparition de Wave et d'Orange Money. Le mur renvoie
- * au site, comme celui des cours, et pour les mêmes raisons — mais il porte deux choses de
- * plus, parce qu'un abonnement n'est pas un achat :
+ * Cet écran était un MUR D'ABONNEMENT : prix au mois, prix à l'année, prix parrainé, un
+ * paragraphe sur les commissions des magasins, et deux boutons vers la boutique du site.
+ * L'application ne vend plus rien, alors tout cela est parti — y compris le texte, qui
+ * NOMMAIT le magasin dont il contournait la règle.
  *
- *   · **LE PRIX EST CADRÉ AU MOIS ET À L'ANNÉE.** « 1 658 F / mois » est ce qu'on compare
- *     mentalement ; « facturé 19 900 F, une fois, pour douze mois » est ce qu'on paie. Donner
- *     l'un sans l'autre est un prix qui ment par omission, dans un sens ou dans l'autre.
- *   · **CE QUI N'EST PAS PROMIS EST ÉCRIT.** Le Club a ouvert cette année : pas de nombre de
- *     membres, parce qu'il serait faux — et parce qu'il se vérifie au premier écran APRÈS le
- *     paiement, c'est-à-dire au pire moment possible.
+ * ⚠️ Le mot « payant » a disparu du bandeau lui aussi. Il ne restait pas grand-chose après
+ * le retrait du bloc, mais il suffisait : dans une application qui ne vend rien, annoncer
+ * une section « payante » désigne un achat introuvable — et invite précisément le relecteur
+ * à le chercher.
+ *
+ * ── CE QUI N'EST PAS PROMIS RESTE ÉCRIT ──────────────────────────────────────────────
+ * Le Club a ouvert cette année : pas de nombre de membres, parce qu'il serait faux. Ce bloc
+ * de vérité n'avait rien à voir avec le prix, et il survit intact.
  *
  * ── ET LES HUIT ONGLETS RESTENT ATTEIGNABLES ─────────────────────────────────────────────
  * Aucun n'est grisé. Chacun s'ouvre et dit lui-même ce qui n'est pas branché chez lui : c'est
- * plus honnête qu'une porte fermée qui ne dit pas pourquoi, et ça permet de juger AVANT de
- * payer — la même logique que le module 1 gratuit des formations.
+ * plus honnête qu'une porte fermée qui ne dit pas pourquoi. Voir ce à quoi on n'a pas encore
+ * accès n'est pas une vente — c'est une carte.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 const ONGLETS: Array<{ href: string; icon: IconName; titre: string; ligne: string }> = [
@@ -42,10 +43,11 @@ const ONGLETS: Array<{ href: string; icon: IconName; titre: string; ligne: strin
 
 export default function Club() {
   const t = useToken();
+  const club = useClub();
 
   return (
     <Screen territory="transforme" tabbar titre={isIOS ? undefined : 'Le Club'}>
-      <Eyebrow style={{ marginTop: 6 }}>Je te transforme · payant, fermé</Eyebrow>
+      <Eyebrow style={{ marginTop: 6 }}>Je te transforme · réservé aux membres</Eyebrow>
       <Display size={29} lines={['LE CLUB DES', 'DIGITOS.']} style={{ marginTop: 8 }} />
       <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
         Une année avec moi, et avec ceux qui font la même chose que toi. Des sessions en direct,
@@ -53,69 +55,29 @@ export default function Club() {
         personne.
       </Body>
 
-      {/*
-        ── LE MUR ────────────────────────────────────────────────────────────────────────
-        SANS PRIX, LE MUR TIENT QUAND MÊME, et c'est ce qui compte : la règle de magasin
-        (App Store 3.1.1) ne dépend d'aucun montant. Ce qui disparaît, c'est le chiffre — et
-        le dépôt l'exige : `tests/unit/club-pricing.test.ts` pose que la seule source admise
-        du prix du Club est `lib/club/pricing`, jamais une valeur écrite dans un écran.
-      */}
-      {CLUB === null ? (
-        <SansDonnees
-          quoi="le prix du Club"
-          origine="du serveur, qui le recalcule"
-          degat="Un prix d'abonnement écrit dans l'application diverge le jour où il change, et personne ne le voit — le dépôt l'interdit pour cette raison. L'abonnement se prend sur le site, où le montant est celui du serveur."
-          style={{ marginTop: 18 }}
-          action={(
-            <Button
-              tone="transforme"
-              label="Ouvrir sur maxmorrys.me"
-              trailing="forward"
-              onPress={() => { void openAuthSessionAsync(`${SITE}/club`, 'rysmo://paiement/retour'); }}
-            />
-          )}
-        />
-      ) : (
+      {/* ── L'ÉTAT D'ADHÉSION, SANS PRIX ET SANS PORTE DE SORTIE ─────────────────────
+          Ce bloc portait le prix mensuel, le prix annuel, le prix parrainé, un paragraphe
+          expliquant pourquoi le magasin refuse Wave et Orange Money, et deux boutons
+          « Ouvrir sur maxmorrys.me ». C'était une page de vente dans une application qui
+          n'a pas le droit d'en avoir une.
+
+          Ce qui le remplace ne dit ni combien ni où : l'application OUVRE ce qui est déjà
+          acquis. Membre, les huit onglets vivent ; non-membre, ils restent visibles et
+          cadenassés — voir ce à quoi on n'a pas accès n'est pas une vente, c'est une carte. */}
       <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-          <Num
-            value={CLUB.prixMois}
-            source={SOURCE}
-            asOf={RELEVE}
-            style={{ fontSize: 34, letterSpacing: -1.5, color: t('mmVioletT') }}
-          />
-          <Body style={{ fontSize: 14, fontWeight: '600' }}>F / mois</Body>
-        </View>
-        <Body muted style={{ fontSize: 13, marginTop: 5 }}>
-          Facturé{' '}
-          <Num value={CLUB.prixAn} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 13 }} />
-          , une fois, pour douze mois.
-        </Body>
-
-        <View style={{ height: 1, backgroundColor: t('borderHair'), marginVertical: 15 }} />
-
-        <Body muted style={{ fontSize: 13.5, lineHeight: 21 }}>
-          L'abonnement se prend <Body style={{ fontWeight: '700', fontSize: 13.5 }}>sur le site</Body> —
-          {' '}{isIOS ? "l’App Store" : 'Google Play'} exige son propre système de paiement pour
-          tout achat fait dans une application, et il ne connaît ni Wave ni Orange Money.
-        </Body>
-
-        <Button
-          tone="transforme"
-          label="Ouvrir sur maxmorrys.me"
-          trailing="forward"
-          style={{ marginTop: 15 }}
-          onPress={() => { void openAuthSessionAsync(`${SITE}/club`, 'rysmo://paiement/retour'); }}
-        />
-        <Body muted style={{ fontSize: 11.5, textAlign: 'center', marginTop: 10, color: t('textFaint') }}>
-          Parrainé ? Ton code te fait{' '}
-          <Num value={CLUB.prixParraine} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 11.5 }} />.
+        <Display size={19}>{club.valeur === null ? 'Le Club est réservé aux membres.' : 'Tu es membre.'}</Display>
+        <Body muted style={{ marginTop: 9, fontSize: 13.5, lineHeight: 21 }}>
+          {club.valeur === null
+            ? "Ton accès s'ouvre ici dès qu'il est actif — les sessions, le fil, les opportunités, tout arrive dans cette application, sans rien à faire de plus."
+            : 'Tout ce qui suit est ouvert. Les sessions en direct, le fil, les opportunités et le classement se rejoignent depuis les onglets ci-dessous.'}
         </Body>
       </Surface>
-      )}
 
-      {/* ── CE QU'ON PAIE, PRÉCISÉMENT ─────────────────────────────────────────────────── */}
-      <Eyebrow style={{ marginTop: 24 }}>Ce que tu paies, précisément</Eyebrow>
+      {/* ── CE QUE LE CLUB DONNE ───────────────────────────────────────────────────────
+          Le titre disait « Ce que tu paies, précisément ». Le verbe « payer » n'a plus sa
+          place dans une application qui ne vend rien — et il portait la même charge que le
+          bouton qu'on vient de retirer. */}
+      <Eyebrow style={{ marginTop: 24 }}>Ce que le Club donne</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
         <CheckLine style={{ marginTop: 0 }}>2 sessions en direct par mois, avec moi</CheckLine>
         <CheckLine>Les missions que je sors de mon carnet</CheckLine>

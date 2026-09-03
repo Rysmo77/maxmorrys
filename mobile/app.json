@@ -3,26 +3,86 @@
     "name": "Rysmo",
     "slug": "rysmo",
     "scheme": "rysmo",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
+    "primaryColor": "#0057BC",
+    "runtimeVersion": { "policy": "appVersion" },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "me.maxmorrys.rysmo",
+      "associatedDomains": [
+        "applinks:maxmorrys.me",
+        "applinks:www.maxmorrys.me",
+        "webcredentials:maxmorrys.me"
+      ],
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyTrackingDomains": [],
+        "NSPrivacyCollectedDataTypes": [],
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": ["E174.1"]
+          }
+        ]
       }
     },
     "android": {
       "package": "me.maxmorrys.rysmo",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FBFCFE"
-      }
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": [],
+      "blockedPermissions": [],
+      "edgeToEdgeEnabled": true,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "category": ["BROWSABLE", "DEFAULT"],
+          "data": [
+            { "scheme": "https", "host": "maxmorrys.me", "pathPrefix": "/formations" },
+            { "scheme": "https", "host": "maxmorrys.me", "pathPrefix": "/verifier" },
+            { "scheme": "https", "host": "www.maxmorrys.me", "pathPrefix": "/formations" },
+            { "scheme": "https", "host": "www.maxmorrys.me", "pathPrefix": "/verifier" }
+          ]
+        }
+      ]
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#0B0E13"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

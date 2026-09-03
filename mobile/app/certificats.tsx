@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import {
   Body, Button, EmptyState, Icon, Num, Screen, Surface, isIOS, useToken, veil,
 } from '../ds';
-import { MOI, RELEVE, SOURCE } from '../contenu/demo';
+import { provenance, useCertificats } from '../donnees';
 
 /**
  * ══ 4 · L'ÉTAT VIDE ══ — UNE INVITATION À AGIR, PAS UNE EXCUSE.
@@ -16,8 +16,23 @@ import { MOI, RELEVE, SOURCE } from '../contenu/demo';
  * n'a rien et n'a nulle part où aller. La sortie est la leçon en cours, pas le catalogue —
  * c'est de là que vient le premier certificat.
  */
+const MOIS = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+];
+
 export default function Certificats() {
   const t = useToken();
+  const certificats = useCertificats();
+
+  /* La date d'ouverture arrive en ISO du serveur, et en clair de la réplique. On accepte
+     les deux : ce qui compte est qu'elle soit lisible, pas d'où elle vient. */
+  const brut = certificats.valeur?.ouvertureCompte ?? null;
+  const ouverture = (() => {
+    if (brut === null) return null;
+    const d = new Date(brut);
+    return Number.isNaN(d.getTime()) ? brut : `${d.getUTCDate()} ${MOIS[d.getUTCMonth()]}`;
+  })();
 
   return (
     <Screen
@@ -46,9 +61,17 @@ export default function Certificats() {
         />
       </Surface>
 
+      {/* LE ZÉRO EST COMPTÉ, plus écrit. Il valait `0` en dur — juste au-dessus d'une phrase
+          expliquant qu'un zéro daté est une information. Un zéro qu'on n'a pas compté n'en
+          est pas une, et c'était précisément le cas. */}
       <Body muted style={{ fontSize: 11.5, textAlign: 'center', lineHeight: 18, marginTop: 16, color: t('textFaint') }}>
-        <Num value={0} source={SOURCE} asOf={RELEVE} style={{ fontSize: 11.5, color: t('textMuted') }} />
-        {' '}émis{MOI ? ` depuis l'ouverture de ton compte, le ${MOI.ouvertureCompte}` : ''}. Un
+        <Num
+          value={certificats.valeur ? certificats.valeur.certificats.length : null}
+          {...provenance(certificats)}
+          fallback="—"
+          style={{ fontSize: 11.5, color: t('textMuted') }}
+        />
+        {' '}émis{ouverture ? ` depuis l'ouverture de ton compte, le ${ouverture}` : ''}. Un
         zéro daté est une information ; un tiret n'en est pas une — et sans date d'ouverture,
         ce zéro en dit déjà moins.
       </Body>

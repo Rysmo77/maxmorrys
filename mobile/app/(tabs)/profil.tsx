@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   Avatar, Body, Button, Eyebrow, Field, Icon, LessonRow, SansDonnees, Screen, Segmented,
   Surface, Switch, TUTOR_DEFAUT, isIOS, setTutorNom, useScheme, useToken, useTutorNom, veil,
 } from '../../ds';
-import { MOI, STOCKAGE } from '../../contenu/demo';
+import { STOCKAGE } from '../../contenu/demo';
+import { ErreurAppel } from '../../donnees/appel';
+import { deconnexion } from '../../donnees/identite';
+import { useSession } from '../../donnees/session';
+import { useMoi } from '../../donnees';
+import { exporterMesDonnees } from '../../donnees/rgpd';
 
 /**
  * ══ 3 · LE PROFIL ══ — LA SECTION NOTIFICATIONS DEVIENT RÉELLE.
@@ -30,16 +35,29 @@ import { MOI, STOCKAGE } from '../../contenu/demo';
  * persisté dans le profil, pas avant.
  */
 const COMPTE = [
-  { href: '/connexion', glyphe: 'login' as const, titre: 'Connexion', meta: 'sur le site, avec la même session' },
+  { href: '/connexion', glyphe: 'login' as const, titre: 'Connexion', meta: 'ton e-mail et ton mot de passe' },
   { href: '/mot-de-passe', glyphe: 'lock' as const, titre: 'Mot de passe oublié', meta: 'un lien de réinitialisation' },
   { href: '/biometrie', glyphe: 'shield' as const, titre: 'Entrer sans mot de passe', meta: 'un raccourci, pas un remplacement' },
 ] as const;
 
+/*
+ * Le drapeau est LITTÉRAL ICI, comme dans les deux écrans qu'il garde : Metro ne replie une
+ * branche morte que là où la condition l'est. Importé d'un module commun, les deux entrées
+ * resteraient dans le paquet de production.
+ */
+const ATELIER = process.env.EXPO_PUBLIC_CONTENU_DEMO === '1' || __DEV__;
+
 const AILLEURS = [
   { href: '/media', glyphe: 'mic' as const, titre: 'Écouter & regarder', meta: 'le podcast, les vidéos' },
   { href: '/presence', glyphe: 'store' as const, titre: 'Présence Digitale', meta: 'pour ta boutique, hors application' },
-  { href: '/console', glyphe: 'dashboard' as const, titre: 'Console support', meta: '5 écrans sur 19' },
-  { href: '/apercu', glyphe: 'layers' as const, titre: 'Tous les écrans', meta: 'la planche de référence du kit' },
+  { href: '/legal', glyphe: 'doc' as const, titre: 'Textes légaux', meta: 'confidentialité, conditions, mentions' },
+  /* Les deux écrans d'atelier ne sortent pas. La console expose six écrans
+     d'administration, la planche en liste quarante-huit : l'une comme l'autre se lisent en
+     revue comme une application inachevée. */
+  ...(ATELIER ? [
+    { href: '/console', glyphe: 'dashboard' as const, titre: 'Console support', meta: '5 écrans sur 19' },
+    { href: '/apercu', glyphe: 'layers' as const, titre: 'Tous les écrans', meta: 'la planche de référence du kit' },
+  ] : []),
 ] as const;
 
 export default function Profil() {
@@ -47,6 +65,29 @@ export default function Profil() {
   const scheme = useScheme();
   const tuteur = useTutorNom();
   const [reprise, setReprise] = useState(true);
+  const [exportEnCours, setExportEnCours] = useState(false);
+  const session = useSession();
+  const moi = useMoi();
+
+  async function quitter() {
+    await deconnexion();
+    router.replace('/connexion');
+  }
+
+  async function exporter() {
+    if (exportEnCours) return;
+    setExportEnCours(true);
+    try {
+      await exporterMesDonnees();
+    } catch (erreur: unknown) {
+      Alert.alert(
+        "L'export n'a pas abouti",
+        erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
+      );
+    } finally {
+      setExportEnCours(false);
+    }
+  }
   const [serie, setSerie] = useState(true);
   const [club, setClub] = useState(true);
   const [bio, setBio] = useState(true);
@@ -59,21 +100,23 @@ export default function Profil() {
     >
       {/* L'identité vient du compte, et elle ne s'invente pas : un nom affiché ici est le nom
           que la personne croira connecté. Les réglages, eux, tiennent sans elle. */}
-      {MOI === null ? (
+      {moi.valeur === null ? (
         <SansDonnees
           quoi="ton compte"
           origine="de ta connexion"
           degat="Afficher un nom et une adresse ici ferait croire à une session ouverte. Les réglages ci-dessous fonctionnent quand même : ils vivent sur cet appareil."
+          etat={moi}
+          hauteur={2}
           style={{ marginTop: 8 }}
           action={<Button tone="forme" label="Me connecter" onPress={() => router.push('/connexion')} />}
         />
       ) : (
         <Surface level="flat" style={{ marginTop: 8, padding: 18 }}>
           <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-            <Avatar initials={MOI.initiale} size={54} />
+            <Avatar initials={moi.valeur.initiale} size={54} />
             <View style={{ flex: 1 }}>
-              <Body style={{ fontSize: 16, fontWeight: '700' }}>{MOI.nom}</Body>
-              <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 12, marginTop: 2 }}>{MOI.email}</Body>
+              <Body style={{ fontSize: 16, fontWeight: '700' }}>{moi.valeur.nom}</Body>
+              <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 12, marginTop: 2 }}>{moi.valeur.email}</Body>
             </View>
             <Button tone="quiet" size="sm" label="Modifier" onPress={() => router.push('/connexion')} />
           </View>
@@ -106,19 +149,29 @@ export default function Profil() {
         />
       </Surface>
 
+      {/* ⚠️ CE BLOC AFFIRMAIT « AUTORISÉES SUR CET APPAREIL », coche verte à l'appui, pour
+          une permission que RIEN NE DEMANDE JAMAIS. `permissions.tsx` prime l'accord puis
+          appelle `router.replace` : aucun dialogue système ne s'ouvre, `expo-notifications`
+          n'est pas installé. L'application se décernait donc un état qu'elle n'avait pas
+          établi — et c'est la forme d'erreur la plus coûteuse, parce qu'elle est
+          rassurante : personne ne va vérifier une coche verte.
+
+          Le texte dit maintenant ce qui est. Le jour où le canal existe, ce bloc lit
+          `getPermissionsAsync()` et redevient une affirmation — vérifiée, cette fois. */}
       <Surface level="flat" style={{ marginTop: 10, padding: 16 }}>
         <View style={{ flexDirection: 'row', gap: 11, alignItems: 'flex-start' }}>
           <View style={{
             width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
-            backgroundColor: veil(t('ok'), 0.14),
+            backgroundColor: veil(t('ink2'), 0.14),
           }}>
-            <Icon name="check" size={15} color={t('ok')} strokeWidth={3.2} />
+            <Icon name="info" size={15} color={t('ink2')} strokeWidth={2.6} />
           </View>
           <View style={{ flex: 1 }}>
-            <Body style={{ fontSize: 13.5, fontWeight: '600' }}>Autorisées sur cet appareil</Body>
+            <Body style={{ fontSize: 13.5, fontWeight: '600' }}>Rien n'est encore envoyé</Body>
             <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 3 }}>
-              Si tu changes d'avis, ça se coupe dans {isIOS ? 'les Réglages' : 'les paramètres'} du
-              téléphone — l'app ne peut plus reposer la question.
+              Ces trois réglages sont enregistrés, mais le canal d'envoi n'existe pas encore :
+              l'application n'a demandé aucune autorisation à {isIOS ? 'iOS' : 'Android'}, et
+              elle ne t'enverra rien tant qu'elle ne l'aura pas fait.
             </Body>
           </View>
         </View>
@@ -186,11 +239,16 @@ export default function Profil() {
       {/* ── LES DONNÉES ────────────────────────────────────────────────────────────────── */}
       <Eyebrow style={{ marginTop: 22 }}>Tes données</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
+        {/* ⚠️ CETTE LIGNE N'AVAIT AUCUN `onPress`. Elle avait l'apparence complète d'un
+            contrôle — glyphe, titre, chevron de tête de ligne — et ne faisait rien. Sur
+            l'écran des données, c'est le pire endroit pour un bouton mort : quelqu'un qui
+            veut ses données avant de partir repart en croyant que l'export n'existe pas. */}
         <LessonRow
           icon={<Icon name="download" size={14} color={t('ink2')} />}
           title="Exporter mes données"
-          meta="tout ce qui te concerne, en un fichier"
+          meta={exportEnCours ? 'préparation du fichier…' : 'tout ce qui te concerne, en un fichier'}
           trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+          onPress={() => { void exporter(); }}
         />
         <LessonRow
           icon={<Icon name="trash" size={14} color={t('stop')} />}
@@ -219,17 +277,42 @@ export default function Profil() {
             meta={e.meta}
             trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
             onPress={() => router.push(e.href)}
-            last={i === COMPTE.length - 1}
+            last={i === COMPTE.length - 1 && session.phase !== 'connectee'}
           />
         ))}
+
+        {/* ⚠️ IL N'Y AVAIT AUCUNE SORTIE. On pouvait entrer dans un compte et pas en sortir
+            — un défaut qui ne se voit qu'une fois l'authentification branchée, parce qu'avant
+            il n'y avait pas de session à quitter. La ligne n'existe que si quelqu'un est
+            connecté : proposer de se déconnecter à un visiteur anonyme est une action qui ne
+            veut rien dire. */}
+        {session.phase === 'connectee' ? (
+          <LessonRow
+            icon={<Icon name="logout" size={14} color={t('ink2')} />}
+            title="Me déconnecter"
+            meta={session.email ?? 'de ce téléphone'}
+            onPress={() => Alert.alert(
+              'Te déconnecter ?',
+              "Tes téléchargements restent sur ce téléphone tant que l'application est installée.",
+              [
+                { text: 'Annuler', style: 'cancel' },
+                { text: 'Me déconnecter', style: 'destructive', onPress: () => { void quitter(); } },
+              ],
+            )}
+            last
+          />
+        ) : null}
       </Surface>
 
       {/*
         ── AILLEURS DANS L'APPLICATION ───────────────────────────────────────────────────
         Le pôle média et l'offre TPE ne sont pas des réglages, mais c'est ici qu'on les cherche
-        quand on ne les a pas trouvés dans les onglets. La console, elle, n'apparaît que pour
-        un rôle qui l'atteint — le garde de route la cache, il ne l'interdit pas : le vrai
-        cloisonnement est dans les règles de la base (voir `/interdit`).
+        quand on ne les a pas trouvés dans les onglets.
+
+        ⚠️ CE COMMENTAIRE AFFIRMAIT QU'UN GARDE DE ROUTE CACHAIT LA CONSOLE. Il n'en existait
+        aucun : `console/_layout.tsx` retournait un `<Stack>` nu, et les six écrans partaient
+        à tout le monde. La garde existe maintenant, des deux côtés — ici pour l'entrée, et
+        dans la mise en page pour l'accès direct par URL, qu'une liste ne protège pas.
       */}
       <Eyebrow style={{ marginTop: 22 }}>Ailleurs</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>

@@ -122,7 +122,9 @@
     "tutorPanelRemainingAfter_one": "question left today. Resets at midnight.",
     "tutorPanelRemainingAfter_other": "questions left today. Resets at midnight.",
     "tutorPanelPlaceholder": "Ask your question",
-    "tutorPanelSend": "Send to your {{tutor}}"
+    "tutorPanelSend": "Send to your {{tutor}}",
+    "linkTestimonials": "My review",
+    "linkTestimonialsMeta": "text, audio or video"
   },
   "messages": {
     "newMessage": "New message",
@@ -483,6 +485,15 @@
     "targetGroupLabel": "What your review is about",
     "ratingGroupLabel": "Your rating, from 1 to 5",
     "publishNote": "Nothing is published until I have read it. You can withdraw a review while it is pending.",
-    "listLabel": "The reviews you have sent"
+    "listLabel": "The reviews you have sent",
+    "ratingLow": "1 · disappointing",
+    "ratingHigh": "5 · excellent",
+    "captionOptional": "Optional. A transcript makes your review readable without sound.",
+    "counter": "{{current}} / {{max}}",
+    "missingLead": "Still missing:",
+    "missingFormation": "the course it is about",
+    "missingVideo": "your video",
+    "missingAudio": "your audio",
+    "missingText": "your message"
   }
 }

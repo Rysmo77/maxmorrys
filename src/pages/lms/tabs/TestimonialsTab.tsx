@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, ChipRow, EmptyState, Field, GlassPanel, Icon, IconButton, Segmented, Tag, type IconName } from '@ds';
 import MediaRecorderInput from '../../../components/lms/MediaRecorderInput';
@@ -72,6 +72,9 @@ const TARGETS: { id: TargetKind; labelKey: string; glyph: IconName }[] = [
 
 const RATINGS = ['1', '2', '3', '4', '5'] as const;
 
+/** Plafond du message. Le `maxLength` du champ ET le compteur le lisent ici — un seul chiffre. */
+const MAX_CONTENT = 1000;
+
 const statusTone = (status?: string) => (status === 'approved' ? 'ok' : status === 'rejected' ? 'stop' : 'warn');
 
 const statusLabelKey = (status?: string) =>
@@ -84,29 +87,74 @@ export default function TestimonialsTab({
   const { t } = useTranslation('lmsTabs');
   const { formatDate } = useFormat();
   const reveal = useReveal<HTMLDivElement>();
+  const missingId = useId();
   const [format, setFormat] = useState<Format>('text');
   const [targetKind, setTargetKind] = useState<TargetKind>('platform');
   const [formationId, setFormationId] = useState('');
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
-  const [mediaUrl, setMediaUrl] = useState('');
+  /*
+    CHANGER DE FORMAT NE DOIT PLUS JETER CE QUI EST DÉJÀ TÉLÉVERSÉ.
+
+    Une seule adresse `mediaUrl` était remise à vide à chaque bascule du `Segmented` : qui
+    filmait deux minutes puis touchait « Audio » — au clavier, les flèches parcourent le
+    groupe — perdait son fichier, sans confirmation et sans retour possible. L'objet restait
+    dans R2, payé, inatteignable.
+
+    Les deux formats gardent donc leur propre adresse. Revenir sur « Vidéo » retrouve la
+    vidéo ; seul l'envoi retient celle du format choisi.
+  */
+  const [mediaByFormat, setMediaByFormat] = useState<{ audio: string; video: string }>({ audio: '', video: '' });
   const [submitting, setSubmitting] = useState(false);
+
+  const mediaUrl = format === 'text' ? '' : mediaByFormat[format];
+  const setMediaUrl = (url: string) => {
+    if (format === 'text') return;
+    setMediaByFormat((prev) => ({ ...prev, [format]: url }));
+  };
 
   const enrolledWithFormation = enrolledFormations.filter((ef) => ef.formation);
   const needsFormation = targetKind === 'formation';
+  /*
+    CE QUI EST OBLIGATOIRE DÉPEND DU FORMAT, ET C'ÉTAIT L'INVERSE.
+
+    Le texte était exigé POUR TOUS LES FORMATS : filmer un témoignage ne suffisait pas, il
+    fallait encore le retaper. C'est demander deux fois la même chose à la personne qui a
+    déjà fait le plus difficile — et c'est ce qui fait abandonner un enregistrement fini.
+
+    Désormais : en « Texte », le message porte tout, donc il est requis. En « Audio » ou
+    « Vidéo », c'est le média qui porte le témoignage, et la légende reste utile — elle
+    aide la modération et sert de transcription — mais elle ne bloque plus l'envoi.
+  */
+  const textRequired = format === 'text';
+  const textReady = !textRequired || content.trim().length > 0;
   const mediaReady = format === 'text' || !!mediaUrl;
   const formationReady = !needsFormation || !!formationId;
-  const canSubmit = !!userId && content.trim().length > 0 && mediaReady && formationReady && !submitting;
+  const canSubmit = !!userId && textReady && mediaReady && formationReady && !submitting;
+
+  /*
+    UN BOUTON ÉTEINT QUI NE DIT PAS POURQUOI EST UNE IMPASSE.
+
+    Trois conditions pouvaient le désactiver, aucune ne se lisait : on voyait « Envoyer mon
+    avis » grisé sans savoir s'il manquait la formation, le média ou le message. La phrase
+    ci-dessous nomme ce qui manque, et le bouton la porte en `aria-describedby` — donc elle
+    est aussi ENTENDUE, au moment où l'on atteint le bouton.
+  */
+  const missing = [
+    !formationReady ? t('testimonials.missingFormation') : null,
+    !mediaReady ? t(format === 'video' ? 'testimonials.missingVideo' : 'testimonials.missingAudio') : null,
+    !textReady ? t('testimonials.missingText') : null,
+  ].filter(Boolean) as string[];
 
   const formatLabels = FORMATS.map((f) => t(f.labelKey));
 
   const resetForm = () => {
     setFormat('text'); setTargetKind('platform'); setFormationId('');
-    setRating(5); setContent(''); setMediaUrl('');
+    setRating(5); setContent(''); setMediaByFormat({ audio: '', video: '' });
   };
 
   const handleSubmit = async () => {
-    if (!userId || !content.trim()) return;
+    if (!userId || !canSubmit) return;
     setSubmitting(true);
     try {
       let targetType: NonNullable<Testimonial['targetType']> = 'platform';
@@ -218,7 +266,8 @@ export default function TestimonialsTab({
           value={t(FORMATS.find((f) => f.id === format)!.labelKey)}
           onChange={(label) => {
             const found = FORMATS.find((f) => t(f.labelKey) === label);
-            if (found) { setFormat(found.id); setMediaUrl(''); }
+            // Rien n'est effacé ici : chaque format garde son média — voir `mediaByFormat`.
+            if (found) setFormat(found.id);
           }}
           label={t('testimonials.formatGroupLabel')}
         />
@@ -280,6 +329,16 @@ export default function TestimonialsTab({
           label={t('testimonials.ratingGroupLabel')}
           height={36}
         />
+        {/*
+          DE QUEL CÔTÉ EST LE BON ? Sans étoile, cinq chiffres nus ne portent plus aucun
+          sens d'échelle — rien ne dit que 5 vaut mieux que 1. Les deux bouts se nomment
+          donc. C'est le libellé accessible du groupe qui portait seul cette information
+          (« Ta note, de 1 à 5 ») : il disait les bornes, pas leur sens.
+        */}
+        <div className="flex items-center justify-between gap-3 mt-1.5" aria-hidden="true">
+          <span className="text-small text-ink-2">{t('testimonials.ratingLow')}</span>
+          <span className="text-small text-ink-2">{t('testimonials.ratingHigh')}</span>
+        </div>
 
         {format !== 'text' && userId && (
           <div className="mt-[18px]">
@@ -291,15 +350,40 @@ export default function TestimonialsTab({
         <Field
           as="textarea"
           rows={4}
-          maxLength={1000}
-          label={format === 'text' ? t('testimonials.yourMessage') : t('testimonials.captionTranscript')}
+          maxLength={MAX_CONTENT}
+          label={textRequired ? t('testimonials.yourMessage') : t('testimonials.captionTranscript')}
           value={content}
           onChange={setContent}
-          placeholder={format === 'text' ? t('testimonials.messagePlaceholder') : t('testimonials.captionPlaceholder')}
+          placeholder={textRequired ? t('testimonials.messagePlaceholder') : t('testimonials.captionPlaceholder')}
+          // Le champ DIT lui-même s'il est facultatif. En audio et en vidéo, la légende ne
+          // bloque plus l'envoi — encore faut-il le savoir avant de la rédiger.
+          hint={textRequired ? undefined : t('testimonials.captionOptional')}
         />
+        {/* Le plafond de 1 000 signes existait sans se voir : on ne le rencontrait qu'en
+            butant dessus, au milieu d'une phrase. */}
+        <p className="text-small text-ink-2 m-0 mt-1 text-right">
+          {t('testimonials.counter', { current: content.length, max: MAX_CONTENT })}
+        </p>
 
-        <div className="flex justify-end mt-4">
-          <Button size="sm" onClick={() => void handleSubmit()} disabled={!canSubmit} loading={submitting}>
+        <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 mt-4">
+          {/*
+            Ce qui manque, nommé — et lu par le bouton qu'il désactive.
+
+            LA RÉGION RESTE MONTÉE, MÊME VIDE. Une zone `aria-live` créée EN MÊME TEMPS que
+            son contenu n'annonce rien : le lecteur d'écran n'observe que les régions déjà
+            présentes dans l'arbre. Monter le paragraphe seulement quand il manque quelque
+            chose reviendrait à n'annoncer jamais — précisément dans le seul cas qui compte.
+          */}
+          <p id={missingId} role="status" aria-live="polite" className="text-small text-ink-2 m-0 mr-auto">
+            {missing.length > 0 ? `${t('testimonials.missingLead')} ${missing.join(' · ')}` : ''}
+          </p>
+          <Button
+            size="sm"
+            onClick={() => void handleSubmit()}
+            disabled={!canSubmit}
+            loading={submitting}
+            aria-describedby={missing.length > 0 ? missingId : undefined}
+          >
             <Icon name="send" size={15} color="var(--text-on-primary)" />
             {submitting ? t('testimonials.sending') : t('testimonials.submit')}
           </Button>

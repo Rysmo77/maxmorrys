@@ -5,6 +5,9 @@ import {
   Body, Button, Display, Eyebrow, Field, LessonRow, Screen, Surface, isIOS, useToken, veil,
 } from '../ds';
 import { CLUB, NOTES_TOTAL, STOCKAGE } from '../contenu/demo';
+import { ErreurAppel, appeler } from '../donnees/appel';
+import { exporterMesDonnees } from '../donnees/rgpd';
+import { deconnexion } from '../donnees/identite';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -42,7 +45,60 @@ const MOT = 'SUPPRIMER';
 export default function Suppression() {
   const t = useToken();
   const [saisie, setSaisie] = useState('');
+  const [enCours, setEnCours] = useState(false);
   const correspond = saisie.trim().toUpperCase() === MOT;
+
+  /**
+   * ⚠️ ON APPELLE LE SERVEUR, PAS `deleteUser(auth.currentUser)`.
+   *
+   * La suppression côté client jette `auth/requires-recent-login` dès que la session date de
+   * plus de quelques minutes — c'est-à-dire presque toujours. Il faudrait alors redemander le
+   * mot de passe SUR CET ÉCRAN, au moment le plus chargé de l'application, pour une raison
+   * que personne ne comprendrait. La callable, elle, supprime avec un compte de service et
+   * n'a besoin d'aucune ré-authentification.
+   *
+   * On envoie la CONSTANTE `MOT`, pas `saisie` : le bouton est déjà gardé sur `correspond`,
+   * et transmettre la valeur canonique retire au passage un mode d'échec sur un espace ou
+   * un accent que le serveur comparerait autrement.
+   */
+  async function effacerVraiment() {
+    setEnCours(true);
+    try {
+      await appeler('deleteUserAccount', { confirmation: MOT });
+      await deconnexion();
+      router.replace('/connexion');
+    } catch (erreur: unknown) {
+      setEnCours(false);
+      Alert.alert(
+        "La suppression n'a pas abouti",
+        erreur instanceof ErreurAppel
+          ? `${erreur.motif} Ton compte n'est pas touché — rien n'a été supprimé à moitié.`
+          : "Ton compte n'est pas touché. Réessaie dans un moment.",
+      );
+    }
+  }
+
+  /**
+   * L'EXPORT, QUI NE FAISAIT RIEN. Ce bouton appelait `router.back()` : il renvoyait à
+   * l'écran précédent sans rien exporter, sur l'écran où quelqu'un vient précisément
+   * chercher ses données avant de tout perdre. `exportUserData` existait pourtant déjà.
+   *
+   * Le lien est SIGNÉ et vaut 24 heures ; il s'ouvre dans la feuille intégrée, d'où le
+   * fichier se partage ou s'enregistre avec les gestes du système.
+   */
+  async function exporter() {
+    setEnCours(true);
+    try {
+      await exporterMesDonnees();
+    } catch (erreur: unknown) {
+      Alert.alert(
+        "L'export n'a pas abouti",
+        erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
+      );
+    } finally {
+      setEnCours(false);
+    }
+  }
 
   function supprimer() {
     Alert.alert(
@@ -53,12 +109,7 @@ export default function Suppression() {
         {
           text: 'Supprimer',
           style: 'destructive',
-          /* ⚠️ La suppression réelle demande le SDK d'authentification, absent. Le geste est
-             tenu jusqu'ici, et l'écran dit où il s'arrête plutôt que de faire semblant. */
-          onPress: () => Alert.alert(
-            'Pas encore branché ici',
-            "Le compte lui-même vit côté serveur, et ce port n'embarque pas encore le SDK. La suppression est traitée depuis ton profil sur le site, avec la même session. C'est la seule chose que je ne peux pas encore faire dans l'app — et l'App Store l'exige, donc elle y sera avant soumission.",
-          ),
+          onPress: () => { void effacerVraiment(); },
         },
       ],
     );
@@ -98,16 +149,17 @@ export default function Suppression() {
         />
         <Button
           tone="primary"
-          label="Supprimer définitivement"
-          disabled={!correspond}
+          label={enCours ? 'Suppression…' : 'Supprimer définitivement'}
+          disabled={!correspond || enCours}
           style={{ marginTop: 16 }}
           onPress={supprimer}
         />
         <Button
           tone="quiet"
           label="J'exporte d'abord mes données"
+          disabled={enCours}
           style={{ marginTop: 9 }}
-          onPress={() => router.back()}
+          onPress={() => { void exporter(); }}
         />
       </Surface>
 
@@ -115,8 +167,8 @@ export default function Suppression() {
         <Eyebrow>Pourquoi tout se passe ici</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
           La suppression se fait <Body style={{ fontWeight: '700', fontSize: 12.5 }}>dans l'app</Body>,
-          sans lien vers le site et sans écrire au support. C'est la règle de l'App Store, et
-          c'était déjà la nôtre.
+          sans lien vers le site et sans écrire au support. C'était déjà notre règle avant
+          d'être celle des magasins.
         </Body>
       </Surface>
     </Screen>

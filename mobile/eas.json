@@ -12,11 +12,35 @@
       "ios": { "simulator": true },
       "env": { "EXPO_PUBLIC_CONTENU_DEMO": "1" }
     },
+    "preview-device": {
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "ios": { "simulator": false },
+      "env": { "EXPO_PUBLIC_CONTENU_DEMO": "1" }
+    },
+    "release-candidate": {
+      "distribution": "internal",
+      "autoIncrement": false,
+      "android": { "buildType": "apk" },
+      "ios": { "simulator": false }
+    },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": { "buildType": "app-bundle" },
+      "ios": { "resourceClass": "m-medium" }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "REMPLIR — identifiant numérique de l'app dans App Store Connect",
+        "appleTeamId": "REMPLIR — Team ID, page Membership du compte développeur"
+      },
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft",
+        "changesNotSentForReview": false
+      }
+    }
   }
 }

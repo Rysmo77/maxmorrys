@@ -59,36 +59,25 @@ export default function ClubInfos() {
       </>
       )}
 
-      {/* Le prix ne s'écrit pas dans l'application : `tests/unit/club-pricing.test.ts` pose
-          que la seule source admise est `lib/club/pricing`. Ici, il arrive ou il manque. */}
-      {CLUB === null ? null : (
-      <>
-      <Eyebrow style={{ marginTop: 22 }}>Le prix, cadré deux fois</Eyebrow>
+      {/* ⚠️ LES TROIS PRIX ONT ÉTÉ RETIRÉS D'ICI — au mois, à l'année, avec parrainage.
+          L'application ne vend rien : afficher le tarif d'un abonnement qu'on ne peut pas
+          souscrire ne renseigne personne et désigne un achat introuvable. Le parrainage, lui,
+          reste atteignable : son intérêt est la RÈGLE (la remise va au filleul), pas le
+          montant — et cette règle vaut d'être lue par un membre déjà inscrit. */}
+      <Eyebrow style={{ marginTop: 22 }}>Le parrainage</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
         <LessonRow
-          title="Au mois, pour comparer"
-          trailing={<Num value={CLUB.prixMois} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 13 }} />}
-        />
-        <LessonRow
-          title="À l'année, pour payer"
-          meta="une fois, pour douze mois"
-          trailing={<Num value={CLUB.prixAn} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 13 }} />}
-        />
-        <LessonRow
-          title="Avec un code de parrainage"
-          meta="la remise va au filleul"
-          trailing={<Num value={CLUB.prixParraine} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 13 }} />}
+          title="Ton code, et ce qu'il donne"
+          meta="la remise va au filleul, jamais au parrain"
           onPress={() => router.push('/club/parrainage')}
           last
         />
       </Surface>
-      </>
-      )}
 
       <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
         <Eyebrow>Le renouvellement n'est pas automatique</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Wave et Orange Money ne font pas de prélèvement récurrent. À l'échéance{' '}
+          Ton accès ne se reconduit pas tout seul. À l'échéance{' '}
           {CLUB ? <Num value={CLUB.echeance} source={SOURCE} asOf={RELEVE} style={{ fontSize: 12.5 }} /> : 'de ton abonnement'}
           , ton accès s'arrête et tu réabonnes si tu veux. Personne n'est débité par surprise,
           et personne n'a à chercher où résilier.

@@ -52,6 +52,33 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/enrollments/$(request.auth.uid + '_' + formationId));
     }
 
+    /*
+     * `likes` et `reposts` sont des TABLEAUX d'identifiants, pas des compteurs
+     * (`arrayUnion(userId)` / `arrayRemove(userId)` cote client). Un membre autorise a
+     * « mettre a jour le champ likes » pouvait donc en poster une version entiere :
+     * vider les likes d'un post genant, ou s'en attribuer mille en y listant des UID.
+     *
+     * Ce predicat n'autorise qu'une bascule, et seulement pour soi : le tableau
+     * d'arrivee est celui de depart plus ou moins le SEUL identifiant de l'appelant.
+     */
+    function togglesOwnMark(field) {
+      let before = resource.data.get(field, []);
+      let after = request.resource.data.get(field, []);
+      return (
+        // Ajout de son propre identifiant, rien d'autre ne bouge
+        (after.size() == before.size() + 1 &&
+         after.hasAll(before) &&
+         request.auth.uid in after &&
+         !(request.auth.uid in before))
+        ||
+        // Retrait de son propre identifiant, rien d'autre ne bouge
+        (after.size() == before.size() - 1 &&
+         before.hasAll(after) &&
+         !(request.auth.uid in after) &&
+         request.auth.uid in before)
+      );
+    }
+
     function hasActiveClubSub() {
       return isSignedIn() &&
         exists(/databases/$(database)/documents/club_subscriptions/$(request.auth.uid)) &&
@@ -69,10 +96,45 @@ service cloud.firestore {
         request.resource.data.role == 'student' &&
         request.resource.data.uid == userId;
 
-      // Users can update their own profile, but cannot change their role
+      // ─────────────────────────────────────────────────────────────────────────────
+      // LE PROPRIETAIRE N'ECRIT QUE LES CHAMPS DE SON PROFIL, PAS N'IMPORTE LESQUELS.
+      //
+      // L'ancienne regle ne verrouillait que `role` et `uid`. Tout le reste du document
+      // etait libre — y compris des champs que le SERVEUR relit comme des gardes.
+      //
+      // `referralRewarded` en est un : `onReferralConversion` (functions/src/referrals.ts)
+      // s'arrete sur `if (!u?.referredByCode || u.referralRewarded) return;`. C'est la
+      // SEULE protection contre une double recompense de parrainage. Le champ n'est jamais
+      // ecrit par le client, mais rien ne l'empechait de l'etre : reposer le drapeau a
+      // `false` reouvrait la porte que le serveur croyait fermee.
+      //
+      // La liste ci-dessous est le miroir exact de `ALLOWED_PROFILE_FIELDS`
+      // (src/lib/firestore/users.ts), qui filtre deja cote client. Le filtre client protege
+      // des erreurs ; celui-ci protege des requetes forgees. Les deux doivent bouger
+      // ENSEMBLE : un champ ajoute la-bas sans etre ajoute ici echouera silencieusement.
+      //
+      // Absents de la liste, donc immuables cote client : `role`, `uid`, `email`,
+      // `createdAt`, `referralRewarded`.
+      // ─────────────────────────────────────────────────────────────────────────────
       allow update: if isOwner(userId) &&
-        request.resource.data.role == resource.data.role &&
-        request.resource.data.uid == resource.data.uid;
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'displayName', 'firstName', 'lastName', 'phone', 'avatar', 'bio', 'preferences',
+          'birthDate', 'whatsapp', 'linkedin', 'photoURL', 'onboardingCompleted',
+          'referralCode', 'referredByCode', 'tutorName',
+          'city', 'website', 'facebook', 'instagram', 'twitter', 'tiktok', 'youtube'
+        ]) &&
+        // ── Les deux champs de parrainage se POSENT, ils ne se rejouent pas ──────────
+        // `getOrCreateReferralCode()` n'ecrit `referralCode` que s'il est absent, et
+        // `Register.tsx` sort sans rien faire quand `referredByCode` existe deja. Les
+        // regles disent maintenant la meme chose, et c'est ce qui ferme deux abus :
+        //   • recopier le `referralCode` d'un tiers pour capter ses filleuls — la
+        //     recompense part a `where('referralCode','==',code).limit(1)`, donc au
+        //     premier document trouve, pas forcement au bon ;
+        //   • changer de parrain apres coup pour rejouer une conversion.
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['referralCode'])
+         || !('referralCode' in resource.data)) &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['referredByCode'])
+         || !('referredByCode' in resource.data));
 
       // Only admins can delete users
       allow delete: if isAdmin();
@@ -182,9 +244,12 @@ service cloud.firestore {
       // Only admins can create, update, or delete
       allow create, update, delete: if isAdmin();
 
-      // Allow incrementing view count
-      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) &&
-        request.resource.data.views == resource.data.views + 1;
+      // Allow incrementing view count — sur une video PUBLIEE uniquement.
+      // `blog` posait deja cette condition ; ici elle manquait, et un brouillon invisible
+      // pouvait voir son compteur monter, ce qui revient a confirmer son existence.
+      allow update: if resource.data.status == 'published' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) &&
+        request.resource.data.views == (resource.data.views == null ? 0 : resource.data.views) + 1;
     }
 
     // Testimonials collection
@@ -231,7 +296,17 @@ service cloud.firestore {
         && request.resource.data.email is string
         && request.resource.data.email.size() >= 5
         && request.resource.data.email.size() <= 254
-        && request.resource.data.date is string;
+        && request.resource.data.date is string
+        // Borne le nombre de champs : empeche le bourrage de document par un robot,
+        // comme le font deja `engagement_leads` et `agency_leads`. Le formulaire pose
+        // au plus name, email, phone, date, time, type, message, status, createdAt.
+        && request.resource.data.keys().size() <= 12
+        && (!('message' in request.resource.data)
+            || (request.resource.data.message is string
+                && request.resource.data.message.size() <= 2000))
+        // Un visiteur ne se declare pas confirme : le statut appartient a la console.
+        && (!('status' in request.resource.data)
+            || request.resource.data.status == 'pending');
 
       // Admins and support can read and update appointments
       allow read, update: if isAdminOrSupport();
@@ -263,7 +338,13 @@ service cloud.firestore {
         // peut écrire que le sien.
         && (!request.resource.data.keys().hasAny(['userId'])
             || request.resource.data.userId == null
-            || request.resource.data.userId == request.auth.uid);
+            || request.resource.data.userId == request.auth.uid)
+        // Meme borne que les autres formulaires publics : name, email, message, subject,
+        // phone, userId, status, locale, createdAt, et un peu de marge.
+        && request.resource.data.keys().size() <= 12
+        // Le traitement d'un message appartient a la console, pas a son expediteur.
+        && (!('status' in request.resource.data)
+            || request.resource.data.status == 'new');
 
       // Only admins and support can update (to mark as read/replied)
       allow update: if isAdminOrSupport();
@@ -436,13 +517,32 @@ service cloud.firestore {
       // Users can read their own transactions, admins can read all
       allow read: if isOwner(resource.data.userId) || isAdmin();
 
-      // Client-side creation restricted to free courses only
-      // Paid transactions are created server-side by the createBictorysCharge Cloud Function
+      // ─────────────────────────────────────────────────────────────────────────────
+      // UNE TRANSACTION « GRATUITE » DOIT PORTER SUR UNE FORMATION REELLEMENT GRATUITE.
+      //
+      // La regle se contentait de trois affirmations que l'ECRIVAIN fournissait lui-meme :
+      // `status: 'completed'`, `paymentMethod: 'free'`, `amount: 0`. Aucune ne dit quoi que
+      // ce soit sur le prix reel du produit. N'importe quel compte pouvait donc deposer une
+      // vente soldee a zero sur la formation la plus chere du catalogue.
+      //
+      // L'acces au contenu ne s'en trouvait pas ouvert — `enrollments` verifie le prix
+      // depuis le commit precedent. Mais la comptabilite, elle, prend tout : le tableau de
+      // bord admin, le chiffre d'affaires et les relances par courriel lisent cette
+      // collection. Une transaction inventee y reste indiscernable d'une vraie.
+      //
+      // `isFreeFormation()` est exactement le predicat que `enrollments` applique deja :
+      // les deux ecritures d'un parcours gratuit racontent maintenant la meme histoire.
+      // ─────────────────────────────────────────────────────────────────────────────
       allow create: if isSignedIn() &&
         request.resource.data.userId == request.auth.uid &&
         request.resource.data.status == 'completed' &&
         request.resource.data.paymentMethod == 'free' &&
-        request.resource.data.amount == 0;
+        request.resource.data.amount == 0 &&
+        request.resource.data.formationId is string &&
+        isFreeFormation(request.resource.data.formationId);
+
+      // Admins can record a transaction manually (manual enrollment, correction)
+      allow create: if isAdmin();
 
       // Only admins can update (for refunds, status changes)
       allow update: if isAdmin();
@@ -452,9 +552,25 @@ service cloud.firestore {
     }
 
     // Coupons collection
+    //
+    // ─────────────────────────────────────────────────────────────────────────────
+    // LES CODES PROMO NE SONT PLUS LISIBLES PUBLIQUEMENT.
+    //
+    // La regle disait « everyone can read active coupons to validate them ». Personne
+    // ne les validait ici : la seule validation qui compte vit dans `validateCoupon`
+    // (functions/src/payment.ts), executee par le SDK Admin, qui relit la collection
+    // en contournant ces regles. Le client n'envoie qu'un `couponCode` au callable.
+    //
+    // Ce que la lecture ouverte offrait, en revanche : `where('active','==',true)`
+    // depuis n'importe quel navigateur rendait TOUS les codes en cours, avec leur
+    // valeur, leur type et leur plafond d'utilisations — un catalogue de reductions
+    // servi a qui le demande, sans compte.
+    //
+    // Verifie avant fermeture : `getAllCoupons()` n'est appele que par
+    // `AdminCoupons.tsx`. Aucun parcours public ne lit la collection.
+    // ─────────────────────────────────────────────────────────────────────────────
     match /coupons/{couponId} {
-      // Everyone can read active coupons to validate them
-      allow read: if resource.data.active == true || isAdmin();
+      allow read: if isAdmin();
 
       // Only admins can manage coupons
       allow create, update, delete: if isAdmin();
@@ -521,12 +637,22 @@ service cloud.firestore {
       // or append a single badge. NOTE: validate with the Firestore emulator
       // (rules-unit-testing) before deploying. The long-term fix is to move all
       // gamification writes server-side (Cloud Functions) — see audit S2.
+      //
+      // AJOUT : la forme du document est fermee. Les bornes ci-dessous ne portent que sur
+      // cinq champs ; rien n'empechait d'en poser un sixieme. Or `rebuildLeaderboard` et
+      // les badges de parrainage relisent ce document cote serveur, et un champ inconnu
+      // qui s'y glisse est un champ que personne n'a valide. `hasOnly` fige le contrat sur
+      // `GamificationProfile` (src/types/gamification.ts) — les deux bougent ensemble.
       allow create: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(
+             ['xp', 'level', 'currentStreak', 'longestStreak', 'lastActiveDate', 'badges'])
         && request.resource.data.xp <= 500
         && request.resource.data.level >= 1 && request.resource.data.level <= 10
         && request.resource.data.currentStreak <= 1
         && request.resource.data.badges.size() <= 1;
       allow update: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(
+             ['xp', 'level', 'currentStreak', 'longestStreak', 'lastActiveDate', 'badges'])
         && request.resource.data.xp >= resource.data.xp
         && request.resource.data.xp <= resource.data.xp + 500
         && request.resource.data.level >= 1 && request.resource.data.level <= 10
@@ -710,14 +836,39 @@ service cloud.firestore {
       allow create: if (hasActiveClubSub() || isAdmin())
         && request.auth.uid == request.resource.data.userId;
 
-      // L'auteur peut modifier son post (userId immuable) ; admin peut tout faire
-      // Les membres peuvent mettre à jour uniquement les champs likes, reposts, commentsCount
-      // commentsCount ne peut changer que de +1 ou -1
-      allow update: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin()
-        || ((hasActiveClubSub() || isAdmin()) &&
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'reposts', 'commentsCount']) &&
-            (request.resource.data.commentsCount == resource.data.commentsCount
-             || request.resource.data.commentsCount == resource.data.commentsCount + 1
+      // ─────────────────────────────────────────────────────────────────────────────
+      // L'AUTEUR EDITE SON TEXTE. IL NE TOUCHE NI A LA PROPRIETE, NI AUX COMPTEURS.
+      //
+      // Le commentaire annoncait « userId immuable » et RIEN ne le verifiait : la premiere
+      // branche laissait l'auteur reecrire le document entier. Deux consequences, l'une
+      // discrete et l'autre pas :
+      //   • `userId` reattribuable — le post change de main, et avec lui le droit de le
+      //     supprimer, qui se lit sur ce meme champ ;
+      //   • `likes` et `reposts` librement reecrits par l'auteur du post, c'est-a-dire
+      //     par la seule personne qui a interet a les gonfler.
+      //
+      // La branche « membre » avait le meme trou dans l'autre sens : `hasOnly([...])` dit
+      // QUELS champs bougent, jamais COMMENT. `commentsCount` etait borne a plus ou moins
+      // un ; les deux tableaux, eux, passaient en entier. `togglesOwnMark` les traite comme
+      // `pollVotes` l'etait deja : une bascule, pour soi seul.
+      // ─────────────────────────────────────────────────────────────────────────────
+      allow update: if isAdmin()
+        // L'auteur : contenu du post, jamais la propriete ni les compteurs sociaux
+        || (isSignedIn() && resource.data.userId == request.auth.uid &&
+            request.resource.data.userId == resource.data.userId &&
+            !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['likes', 'reposts', 'commentsCount', 'pollVotes', 'createdAt']))
+        // Un membre aime ou repartage — un seul identifiant, le sien
+        || (hasActiveClubSub() &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) &&
+            togglesOwnMark('likes'))
+        || (hasActiveClubSub() &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reposts']) &&
+            togglesOwnMark('reposts'))
+        // Le compteur de commentaires suit l'ajout ou le retrait d'un commentaire
+        || (hasActiveClubSub() &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentsCount']) &&
+            (request.resource.data.commentsCount == resource.data.commentsCount + 1
              || request.resource.data.commentsCount == resource.data.commentsCount - 1))
         // Poll vote: a member may only add/change their OWN key in pollVotes
         || (hasActiveClubSub() &&
@@ -764,16 +915,26 @@ service cloud.firestore {
     // Club des Digitos — infos exclusives (lecture membres, like membres, écriture admin)
     match /club_infos/{infoId} {
       allow read: if hasActiveClubSub() || isAdmin();
-      // Les membres peuvent liker (mettre à jour uniquement le champ likes)
-      allow update: if (hasActiveClubSub() || isAdmin()) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
+      // Les membres peuvent liker — une bascule, sur leur propre identifiant.
+      // `hasOnly(['likes'])` disait quel champ bouge, pas comment : le tableau entier
+      // pouvait etre remplace. Cf. `togglesOwnMark`.
+      allow update: if hasActiveClubSub() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) &&
+        togglesOwnMark('likes');
       allow create, update, delete: if isAdmin();
     }
 
     // Notifications collection (per-user subcollection)
     match /notifications/{userId}/items/{notificationId} {
-      // Users can read and update (mark as read) their own notifications
-      allow read, update: if isOwner(userId);
+      // Users can read their own notifications
+      allow read: if isOwner(userId);
+
+      // « Mark as read » veut dire marquer comme lue, et rien d'autre : la regle ouvrait
+      // le document entier, donc le titre, le lien et la date de ce que le serveur avait
+      // envoye. Une notification est un message recu — son contenu n'appartient pas a
+      // celui qui la lit.
+      allow update: if isOwner(userId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
 
       // Only backend/admin can create notifications
       allow create: if isAdmin();

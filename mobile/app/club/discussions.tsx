@@ -92,7 +92,7 @@ export default function ClubDiscussions() {
         <Eyebrow>Qui répond</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
           D'autres membres, et moi. Pas un modérateur, pas un robot — c'est ce que l'abonnement
-          paie, et c'est écrit sur le mur avant de payer.
+          donne, et c'est écrit avant d'entrer.
         </Body>
         <Body muted style={{ marginTop: 10, fontSize: 12.5, lineHeight: 19 }}>
           Une question ouverte depuis longtemps sans réponse remonte : c'est le seul tri

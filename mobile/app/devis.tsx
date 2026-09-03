@@ -19,6 +19,17 @@ import { DEVIS, PACK, RELEVE, SOURCE } from '../contenu/demo';
  * EN NATIF, LE PARTAGE PASSE PAR LA FEUILLE SYSTÈME — donc un bouton au lieu de deux, comme
  * pour le certificat, et « copier le lien » est une cible de la feuille, pas une ligne de plus.
  */
+/*
+ * ⚠️ CE BOUTON POINTAIT SUR UN NUMÉRO DE REMPLACEMENT — un `wa.me` suivi de neuf zéros. Un
+ * appel à l'action principal qui ouvre un lien mort est un rejet en revue (2.1), et c'est le
+ * genre de défaut qui survit longtemps parce qu'il a l'air d'une vraie URL.
+ *
+ * Il ouvre maintenant la page de contact du site, qui existe et répond. Le libellé a suivi :
+ * annoncer WhatsApp pour ouvrir autre chose serait un second mensonge posé sur le premier.
+ * Le jour où le vrai numéro est connu, il remplace cette constante et le libellé revient.
+ */
+const CONTACT = 'https://maxmorrys.me/contact';
+
 export default function Devis() {
   const t = useToken();
 
@@ -93,9 +104,9 @@ export default function Devis() {
 
       <Button
         tone="digitalise"
-        label="Continuer sur WhatsApp"
+        label="Nous écrire"
         style={{ marginTop: 18 }}
-        onPress={() => { void openBrowserAsync('https://wa.me/221000000000'); }}
+        onPress={() => { void openBrowserAsync(CONTACT); }}
       />
       <Button
         tone="quiet"

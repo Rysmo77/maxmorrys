@@ -27,6 +27,17 @@ import { PACK, QUESTION_TPE, RELEVE, SOURCE } from '../contenu/demo';
  * l'incertitude perd exactement les gens qu'il devait aider.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
+/*
+ * ⚠️ CE BOUTON POINTAIT SUR UN NUMÉRO DE REMPLACEMENT — un `wa.me` suivi de neuf zéros. Un
+ * appel à l'action principal qui ouvre un lien mort est un rejet en revue (2.1), et c'est le
+ * genre de défaut qui survit longtemps parce qu'il a l'air d'une vraie URL.
+ *
+ * Il ouvre maintenant la page de contact du site, qui existe et répond. Le libellé a suivi :
+ * annoncer WhatsApp pour ouvrir autre chose serait un second mensonge posé sur le premier.
+ * Le jour où le vrai numéro est connu, il remplace cette constante et le libellé revient.
+ */
+const CONTACT = 'https://maxmorrys.me/contact';
+
 export default function Presence() {
   const t = useToken();
   const [reponse, setReponse] = useState<string>(QUESTION_TPE?.reponses[0] ?? '');
@@ -38,8 +49,8 @@ export default function Presence() {
       titre={isIOS ? undefined : 'Présence Digitale'}
       droite={
         <IconButton
-          label="Écrire sur WhatsApp"
-          onPress={() => { void openBrowserAsync('https://wa.me/221000000000'); }}
+          label="Nous écrire"
+          onPress={() => { void openBrowserAsync(CONTACT); }}
         >
           <Icon name="chat" size={17} color={t('textBody')} strokeWidth={2} />
         </IconButton>

@@ -91,8 +91,6 @@ const KIT_FORMATION = {
   titre: 'Référencement local pour ton commerce',
   titreCourt: 'Référencement local',
   meta: 'SEO · 6 modules · 47 leçons · débutant',
-  prix: 95000,
-  echelonnement: '3 × 31 700',
   lecons: 47,
   leconsFaites: 16,
   progression: 34,
@@ -105,8 +103,6 @@ const KIT_FORMATION_2 = {
   slug: 'ia-prospection',
   titre: "L'IA au service de ta prospection",
   meta: 'IA · 9 modules · 68 leçons · avancé',
-  prix: 200000,
-  echelonnement: '4 × 50 000',
 } as const;
 
 /** Le programme du module en cours. `poids` n'est pas décoratif : le forfait est compté. */
@@ -194,9 +190,6 @@ const KIT_MEMOIRE = [
 /* ─────────────────────────  LE CLUB  ───────────────────────── */
 
 const KIT_CLUB = {
-  prixMois: 1658,
-  prixAn: 19900,
-  prixParraine: 16915,
   echeance: '14/02/2027',
   depuis: 'février',
   bilan: [
@@ -359,11 +352,19 @@ const KIT_OPPORTUNITES = [
   },
 ] as const;
 
+/*
+ * ⚠️ LES MONTANTS ONT QUITTÉ CE MODULE — prix des formations, prix du Club, prix parrainé,
+ * remise du filleul. L'application est passée en CONSULTATION SEULE : elle ouvre ce qui est
+ * déjà acquis et ne propose rien à l'achat (App Store 3.1.1, résolu par retrait).
+ *
+ * Un chiffre laissé ici serait réapparu tôt ou tard dans un écran — c'est ce que fait un
+ * contenu de démonstration, il remplit les trous. Les prix de `KIT_PACK` restent, eux :
+ * Présence Digitale est une prestation du MONDE RÉEL, que la règle 3.1.5(a) exige justement
+ * de transacter hors du magasin.
+ */
 const KIT_PARRAINAGE = {
   code: 'AISSATOU-24',
   lien: `${KIT_SITE}/club?code=AISSATOU-24`,
-  remiseFilleul: 2985,
-  prixParraine: KIT_CLUB.prixParraine,
   filleuls: 2,
   /** Ce que TOI tu gagnes : rien en argent. Voir l'écran — c'est la décision, pas un oubli. */
   gainParrain: 'un mois offert par filleul qui reste 90 jours',

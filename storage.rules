@@ -184,6 +184,14 @@ service firebase.storage {
     }
 
     // Testimonial media (student-submitted audio/video/image)
+    //
+    // NOTE DE SECURITE (non corrigee ici, cf. rapport d'audit) : la lecture est publique
+    // pour que les temoignages APPROUVES s'affichent sur le site. Elle l'est en pratique
+    // pour tous, y compris ceux en attente ou refuses — un enregistrement video envoye
+    // puis retire reste servi a qui connait son URL. Le chemin contient l'UID et un nom
+    // horodate, donc il n'est pas devinable, mais ce n'est pas une autorisation.
+    // Le correctif tient dans le Worker media (R2), qui est desormais la vraie porte
+    // d'entree des medias : ce bucket-ci n'est plus ecrit par l'application.
     match /testimonial_media/{userId}/{fileName} {
       // Approved testimonials are shown publicly
       allow read: if true;
@@ -213,6 +221,18 @@ service firebase.storage {
     }
 
     // Temporary uploads (for admin uploads before processing)
+    //
+    // ─────────────────────────────────────────────────────────────────────────────
+    // UN DEPOT TEMPORAIRE RESTE UN DEPOT : LE TYPE DE FICHIER EST VERIFIE ICI AUSSI.
+    //
+    // C'etait le seul chemin en ecriture ouvert a tout compte connecte SANS controle de
+    // `contentType` — 50 Mo de n'importe quoi, executables et pages HTML comprises, sur
+    // un domaine Google au nom du projet. Le dossier ne se lit que par son proprietaire,
+    // mais un fichier depose ici s'atteint aussi par une URL signee, qui se partage.
+    //
+    // Les memes familles que partout ailleurs, et le plafond descend a 50 Mo effectifs
+    // pour un usage qui n'accueille que des imports en attente de traitement.
+    // ─────────────────────────────────────────────────────────────────────────────
     match /temp/{userId}/{fileName} {
       // Only the uploader can read their temp files
       allow read: if isOwner(userId) || isAdmin();
@@ -220,6 +240,8 @@ service firebase.storage {
       // Users can upload temp files
       allow create: if isSignedIn() &&
         isOwner(userId) &&
+        (isValidImageType() || isValidDocumentType() ||
+         isValidAudioType() || isValidVideoType()) &&
         isUnder50MB();
 
       // Users can delete their own temp files

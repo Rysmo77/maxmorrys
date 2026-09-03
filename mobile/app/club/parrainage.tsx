@@ -3,7 +3,7 @@ import {
   Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { CLUB, PARRAINAGE, RELEVE, SOURCE } from '../../contenu/demo';
+import { PARRAINAGE, RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -25,7 +25,7 @@ import { CLUB, PARRAINAGE, RELEVE, SOURCE } from '../../contenu/demo';
 export default function ClubParrainage() {
   const t = useToken();
 
-  if (PARRAINAGE === null || CLUB === null) {
+  if (PARRAINAGE === null) {
     return (
       <ClubScreen titre="Parrainage">
         <Display size={24} lines={['Ton code', "n'est pas chargé."]} />
@@ -47,7 +47,6 @@ export default function ClubParrainage() {
     );
   }
   const parrainage = PARRAINAGE;
-  const club = CLUB;
 
   async function partager() {
     await Share.share({
@@ -61,14 +60,14 @@ export default function ClubParrainage() {
       <Eyebrow>Ton code</Eyebrow>
       <Surface level="hero" style={{ marginTop: 10, padding: 20 }}>
         <Num value={parrainage.code} source={SOURCE} asOf={RELEVE} style={{ fontSize: 26, letterSpacing: 1.4 }} />
+        {/* ⚠️ LES MONTANTS SONT PARTIS. On disait « qui l'utilise paie X au lieu de Y ».
+            Trois chiffres qui ne servaient qu'à faire calculer une économie — c'est-à-dire
+            un argument de vente, dans une application qui ne vend rien. La règle, elle,
+            reste entière : c'est le FILLEUL qui gagne, et c'est ce qu'il faut savoir pour
+            décider de partager son code. */}
         <Body muted style={{ fontSize: 12.5, lineHeight: 19, marginTop: 8 }}>
-          Qui l'utilise paie{' '}
-          <Num value={parrainage.prixParraine} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
-          {' '}au lieu de{' '}
-          <Num value={club.prixAn} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
-          {' '}— soit{' '}
-          <Num value={parrainage.remiseFilleul} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
-          {' '}de moins, pour lui.
+          Qui l'utilise entre au Club à tarif réduit — la remise va à ton filleul, pas à toi.
+          Toi, tu gagnes un mois par filleul qui reste quatre-vingt-dix jours.
         </Body>
         <Button tone="transforme" label="Partager mon code" icon="share" style={{ marginTop: 16 }} onPress={() => void partager()} />
       </Surface>
