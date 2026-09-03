@@ -445,7 +445,10 @@
       "tilePublishedFoot_other": "{{count}} drafts waiting",
       "tileNoEn": "No English URL",
       "tileNoEnFoot": "published in French only"
-    }
+    },
+    "toastNotified_one": "{{count}} person notified.",
+    "toastNotified_other": "{{count}} people notified.",
+    "toastNotifyError": "Article published, but the alert didn't go out. Save again to retry."
   },
   "formations": {
     "pageTitle": "Courses",

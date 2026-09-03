@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../../config/firebase';
 import { useToast } from '@ds';
 import { getAllPosts, savePost, deletePost } from '../../../lib/firestore';
 import { slugify, calculateReadTime } from '../../../lib/utils';
@@ -22,6 +24,25 @@ import type { BlogPost } from '../../../types';
  * Rien ici n'a changé de comportement. Ce qui s'ajoute est `loadedAt` : la date du relevé,
  * sans laquelle aucun compteur de cet écran ne peut s'afficher (règle 6).
  */
+
+/**
+ * Alerte de publication.
+ *
+ * ⚠️ ELLE EXISTAIT ET N'ÉTAIT JAMAIS APPELÉE POUR UN ARTICLE. Le handler serveur gère deux
+ * types depuis toujours — `formation` et `article` — et seul le premier avait un appelant
+ * (`admin/formations/useFormations.ts`). Autrement dit, l'alerte était branchée sur le seul
+ * territoire qui n'a rien à publier — 0 formation publiée au relevé du 30 août — et absente
+ * de celui qui compte 46 articles. Les abonnés à `preferences.notifyOnPublish` ne recevaient
+ * donc jamais rien.
+ *
+ * ⚠️ Ce n'est PAS un déclencheur Firestore : Workers ne sait pas s'abonner aux événements de
+ * la base, et il ne reste plus de Cloud Function depuis le plan Spark. C'est donc l'action qui
+ * publie qui appelle l'endpoint — la forme de tout le reste du Worker.
+ */
+const notifyOnPublish = httpsCallable<
+  { kind: 'formation' | 'article'; id: string },
+  { ok: boolean; notified: number; alreadyNotified: boolean }
+>(functions, 'notifyOnPublish');
 
 export type ArticleStage = 'all' | 'published' | 'draft';
 
@@ -171,8 +192,27 @@ export function useArticles() {
         noIndex: form.noIndex,
         canonicalUrl: form.canonicalUrl.trim(),
       } as Omit<BlogPost, 'id'>;
-      await savePost(postData, editingId ?? undefined);
+      const savedId = await savePost(postData, editingId ?? undefined);
       addToast('success', editingId ? t('articles.toastUpdated') : t('articles.toastCreated'));
+
+      /*
+        L'article est publié : c'est le fait qui compte, et il est acquis. Si l'envoi échoue, on
+        le DIT — sans transformer une publication réussie en erreur, ni laisser croire que des
+        gens ont été prévenus. Le marqueur `publishNotifiedAt` n'étant alors pas posé côté
+        serveur, un second enregistrement rejouera l'envoi.
+      */
+      if (status === 'published' && savedId) {
+        try {
+          const { data: envoi } = await notifyOnPublish({ kind: 'article', id: savedId });
+          if (envoi.notified > 0) {
+            addToast('success', t('articles.toastNotified', { count: envoi.notified }));
+          }
+        } catch (error: unknown) {
+          captureError(error, { context: 'Notify on article publish failed' });
+          addToast('error', t('articles.toastNotifyError'));
+        }
+      }
+
       setShowModal(false);
       load();
     } catch (error: unknown) {

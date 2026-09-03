@@ -445,7 +445,10 @@
       "tilePublishedFoot_other": "{{count}} brouillons en attente",
       "tileNoEn": "Sans URL anglaise",
       "tileNoEnFoot": "publiés en français seul"
-    }
+    },
+    "toastNotified_one": "{{count}} personne prévenue.",
+    "toastNotified_other": "{{count}} personnes prévenues.",
+    "toastNotifyError": "Article publié, mais l'alerte n'est pas partie. Réenregistre pour réessayer."
   },
   "formations": {
     "pageTitle": "Formations",

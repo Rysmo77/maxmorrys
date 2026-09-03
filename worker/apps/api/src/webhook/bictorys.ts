@@ -7,6 +7,7 @@ import { sendEmail } from '../lib/email';
 import { allocateInvoiceNumber, buildInvoice, type Langue } from '../lib/invoice';
 import { sendConversionEvent } from '../lib/meta-capi';
 import { buildPurchaseNotice, urlDeDestination, type AchatKind } from '../lib/purchase';
+import { recompenserParrain } from '../lib/referral';
 import type { FamilleFiscale } from '../lib/tax';
 import { asText, toNumber } from '../lib/values';
 
@@ -127,6 +128,25 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
     if (txn.formationId === 'club_digitos') {
       await db.update(`club_subscriptions/${userId}`, { status: 'active' });
       console.log('Webhook Bictorys : abonnement Club activé pour', userId);
+
+      /*
+        LA CONTREPARTIE DU PARRAINAGE, versée ici et nulle part ailleurs.
+
+        C'est l'instant exact où `onReferralConversion` se déclenchait — un trigger Firestore
+        sur `club_subscriptions/{uid}` passant à `active` — et il n'existe plus depuis le plan
+        Spark. Le filleul obtenait bien sa remise de 15 % (calculée dans `payments.ts`), mais le
+        parrain n'obtenait plus rien : ni XP, ni badge, ni ligne dans son compteur, qui affichait
+        donc 0 à vie. Une seule moitié de l'échange fonctionnait.
+
+        `recompenserParrain` ne jette jamais : un échec de récompense ne doit pas faire répondre
+        autre chose que 200 à Bictorys, sous peine de relivraison sur un paiement déjà encaissé.
+      */
+      const parrainage = await recompenserParrain(db, userId);
+      if (parrainage.recompense) {
+        console.log('Parrainage : parrain', parrainage.parrainId, 'récompensé pour', userId);
+      } else if (parrainage.raison && parrainage.raison !== 'pasDeParrain') {
+        console.log('Parrainage : rien versé pour', userId, '—', parrainage.raison);
+      }
     } else if (txn.rysmoKind === 'pack' && rysmoPurchaseId) {
       // Le crédit du solde et le marquage de l'achat doivent être atomiques.
       await db.runTransaction(async (tx) => {
