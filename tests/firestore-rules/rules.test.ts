@@ -242,13 +242,14 @@ describe('certificate_lookups — verification publique par code', () => {
 });
 
 describe('transactions — client creation restricted to free courses', () => {
+  /** Une vente a zero, telle que le client l'ecrit. */
+  const GRATUITE = (formationId: string) => ({
+    userId: ALICE, formationId, status: 'completed', paymentMethod: 'free', amount: 0,
+  });
+
   it('user can create a free (amount 0) completed transaction', async () => {
-    const db = asUser(ALICE);
-    await assertSucceeds(
-      setDoc(doc(db, 'transactions', 't1'), {
-        userId: ALICE, status: 'completed', paymentMethod: 'free', amount: 0,
-      }),
-    );
+    await seed('formations/f-free', { status: 'published', price: 0, createdAt: '2026-01-01' });
+    await assertSucceeds(setDoc(doc(asUser(ALICE), 'transactions', 't1'), GRATUITE('f-free')));
   });
 
   it('user CANNOT create a paid transaction client-side', async () => {
@@ -258,6 +259,31 @@ describe('transactions — client creation restricted to free courses', () => {
         userId: ALICE, status: 'completed', paymentMethod: 'bictorys', amount: 5000,
       }),
     );
+  });
+
+  /*
+   * Le trou que ces trois cas ferment : les trois affirmations verifiees par l'ancienne
+   * regle (`completed`, `free`, `amount: 0`) etaient toutes fournies par l'ECRIVAIN. Le
+   * prix reel de la formation n'etait lu nulle part, donc une vente inventee a zero
+   * pouvait se poser sur le produit le plus cher du catalogue et entrait dans le chiffre
+   * d'affaires de la console comme une vraie.
+   */
+  it('une transaction « gratuite » sur une formation PAYANTE est refusee', async () => {
+    await seed('formations/f-payante', { status: 'published', price: 75000, createdAt: '2026-01-01' });
+    await assertFails(setDoc(doc(asUser(ALICE), 'transactions', 't3'), GRATUITE('f-payante')));
+  });
+
+  it('sans `formationId`, la gratuite n est pas verifiable — donc refusee', async () => {
+    await assertFails(setDoc(doc(asUser(ALICE), 'transactions', 't4'), {
+      userId: ALICE, status: 'completed', paymentMethod: 'free', amount: 0,
+    }));
+  });
+
+  it('un `promoPrice` a zero rend la transaction recevable — le predicat suit le prix effectif', async () => {
+    await seed('formations/f-promo0', {
+      status: 'published', price: 50000, promoPrice: 0, createdAt: '2026-01-01',
+    });
+    await assertSucceeds(setDoc(doc(asUser(ALICE), 'transactions', 't5'), GRATUITE('f-promo0')));
   });
 });
 
@@ -631,5 +657,303 @@ describe('waitlist — le client lit son entree, il n en ecrit aucune', () => {
       collection(asUser(CAROL), 'waitlist'),
       where('formationId', '==', 'f1'),
     )));
+  });
+});
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ * AUDIT DE SECURITE DU 03/09/2026 — les cas qui suivent couvrent les regles durcies ce
+ * jour-la. Chaque bloc dit d'abord ce qui etait ouvert, puis verifie que le parcours
+ * legitime tient toujours : un durcissement qui casse le produit se remarque ici, pas en
+ * production.
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ */
+
+/*
+ * `coupons` — la regle disait « everyone can read active coupons to validate them ».
+ * Personne ne les validait cote client : `validateCoupon` (functions/src/payment.ts) les
+ * relit par le SDK Admin. Ce que la lecture ouverte offrait vraiment, c'etait le catalogue
+ * des reductions en cours a qui savait ecrire `where('active','==',true)`.
+ */
+describe('coupons — les codes promo ne sont plus servis au public', () => {
+  const COUPON = { code: 'BLACKFRIDAY', type: 'percentage', value: 40, active: true, createdAt: '2026-01-01' };
+
+  it('un visiteur anonyme ne peut plus moissonner les codes actifs', async () => {
+    await seed('coupons/c1', COUPON);
+    await assertFails(getDocs(query(
+      collection(testEnv.unauthenticatedContext().firestore(), 'coupons'),
+      where('active', '==', true),
+    )));
+  });
+
+  it('un compte connecte ordinaire non plus', async () => {
+    await seed('coupons/c1', COUPON);
+    await assertFails(getDocs(query(
+      collection(asUser(ALICE), 'coupons'),
+      where('active', '==', true),
+    )));
+  });
+
+  it('et le get direct d un code devine reste ferme', async () => {
+    await seed('coupons/c1', COUPON);
+    await assertFails(getDoc(doc(asUser(ALICE), 'coupons', 'c1')));
+  });
+
+  it('NON-REGRESSION : la console administre toujours les coupons', async () => {
+    await seed(`users/${CAROL}`, { uid: CAROL, role: 'admin' });
+    await seed('coupons/c1', COUPON);
+    await assertSucceeds(getDoc(doc(asUser(CAROL), 'coupons', 'c1')));
+  });
+});
+
+/*
+ * `users` — l'ancienne regle ne verrouillait que `role` et `uid`. Tout le reste du document
+ * etait libre, y compris des champs que le SERVEUR relit comme des gardes.
+ */
+describe('users — le proprietaire n ecrit que les champs de son profil', () => {
+  const PROFIL = (extra: Record<string, unknown> = {}) => ({
+    uid: ALICE, email: 'alice@exemple.test', displayName: 'Alice',
+    role: 'student', createdAt: '2026-01-01', ...extra,
+  });
+
+  it("`referralRewarded` est hors d'atteinte — c'est la seule garde anti-double-recompense", async () => {
+    // `onReferralConversion` s'arrete sur ce drapeau. Le reposer a `false` rouvrirait la
+    // porte que le serveur croit fermee.
+    await seed(`users/${ALICE}`, PROFIL({ referredByCode: 'BOB123', referralRewarded: true }));
+    await assertFails(updateDoc(doc(asUser(ALICE), 'users', ALICE), { referralRewarded: false }));
+  });
+
+  it('ni `email` ni `createdAt` ne se reecrivent depuis le client', async () => {
+    await seed(`users/${ALICE}`, PROFIL());
+    await assertFails(updateDoc(doc(asUser(ALICE), 'users', ALICE), { email: 'autre@exemple.test' }));
+    await assertFails(updateDoc(doc(asUser(ALICE), 'users', ALICE), { createdAt: '2020-01-01' }));
+  });
+
+  it('un champ inconnu ne se glisse pas dans le document', async () => {
+    await seed(`users/${ALICE}`, PROFIL());
+    await assertFails(updateDoc(doc(asUser(ALICE), 'users', ALICE), { isPremium: true }));
+  });
+
+  it("on ne recopie pas le code de parrainage d un tiers pour capter ses filleuls", async () => {
+    // La recompense part a `where('referralCode','==',code).limit(1)` : deux porteurs du
+    // meme code, et c'est le premier document rendu qui encaisse.
+    await seed(`users/${ALICE}`, PROFIL({ referralCode: 'ALI777' }));
+    await assertFails(updateDoc(doc(asUser(ALICE), 'users', ALICE), { referralCode: 'BOB123' }));
+  });
+
+  it('on ne change pas de parrain apres coup', async () => {
+    await seed(`users/${ALICE}`, PROFIL({ referredByCode: 'BOB123' }));
+    await assertFails(updateDoc(doc(asUser(ALICE), 'users', ALICE), { referredByCode: 'CAR456' }));
+  });
+
+  it('NON-REGRESSION : poser son code de parrainage la premiere fois reste permis', async () => {
+    // `getOrCreateReferralCode()` n'ecrit que si le champ est absent — la regle dit pareil.
+    await seed(`users/${ALICE}`, PROFIL());
+    await assertSucceeds(updateDoc(doc(asUser(ALICE), 'users', ALICE), { referralCode: 'ALI777' }));
+  });
+
+  it("NON-REGRESSION : accepter un parrainage a l inscription reste permis", async () => {
+    await seed(`users/${ALICE}`, PROFIL());
+    await assertSucceeds(updateDoc(doc(asUser(ALICE), 'users', ALICE), { referredByCode: 'BOB123' }));
+  });
+
+  it('NON-REGRESSION : le profil complet reste editable par son proprietaire', async () => {
+    await seed(`users/${ALICE}`, PROFIL());
+    await assertSucceeds(updateDoc(doc(asUser(ALICE), 'users', ALICE), {
+      displayName: 'Alice N.', firstName: 'Alice', lastName: 'Ndiaye', bio: 'Bonjour',
+      phone: '+221770000000', city: 'Dakar', tutorName: 'Coach', onboardingCompleted: true,
+      preferences: { theme: 'dark', language: 'fr', newsletter: true, aiMemoryConsent: true },
+    }));
+  });
+
+  it("NON-REGRESSION : l inscription ecrit toujours le document initial", async () => {
+    await assertSucceeds(setDoc(doc(asUser(BOB), 'users', BOB), {
+      uid: BOB, email: 'bob@exemple.test', displayName: 'Bob',
+      role: 'student', createdAt: '2026-09-03',
+      preferences: { theme: 'system', language: 'fr', newsletter: false, aiMemoryConsent: true },
+    }));
+  });
+
+  it("NON-REGRESSION : l administration garde la main sur le document entier", async () => {
+    await seed(`users/${CAROL}`, { uid: CAROL, role: 'admin' });
+    await seed(`users/${ALICE}`, PROFIL());
+    await assertSucceeds(updateDoc(doc(asUser(CAROL), 'users', ALICE), { role: 'support' }));
+  });
+});
+
+/*
+ * `club_posts` / `club_infos` — `likes` et `reposts` sont des TABLEAUX d'identifiants
+ * (`arrayUnion` / `arrayRemove`), pas des compteurs. `hasOnly(['likes'])` disait quel champ
+ * bougeait, jamais comment : le tableau entier passait, dans les deux sens.
+ */
+describe('club — un like est une bascule, et seulement sur son propre nom', () => {
+  const MEMBRE = (uid: string) => seed(`club_subscriptions/${uid}`, { status: 'active' });
+  const POST = (extra: Record<string, unknown> = {}) => ({
+    userId: BOB, content: 'Bonjour le Club', likes: [] as string[], reposts: [] as string[],
+    commentsCount: 0, createdAt: '2026-09-01', ...extra,
+  });
+
+  it('NON-REGRESSION : un membre aime un post', async () => {
+    await MEMBRE(ALICE);
+    await seed('club_posts/p1', POST());
+    await assertSucceeds(updateDoc(doc(asUser(ALICE), 'club_posts', 'p1'), { likes: [ALICE] }));
+  });
+
+  it('NON-REGRESSION : et retire son like', async () => {
+    await MEMBRE(ALICE);
+    await seed('club_posts/p1', POST({ likes: [ALICE, CAROL] }));
+    await assertSucceeds(updateDoc(doc(asUser(ALICE), 'club_posts', 'p1'), { likes: [CAROL] }));
+  });
+
+  it('mais il ne peut pas aimer AU NOM de quelqu un d autre', async () => {
+    await MEMBRE(ALICE);
+    await seed('club_posts/p1', POST());
+    await assertFails(updateDoc(doc(asUser(ALICE), 'club_posts', 'p1'), { likes: [CAROL] }));
+  });
+
+  it('ni effacer les likes d un post qui le derange', async () => {
+    await MEMBRE(ALICE);
+    await seed('club_posts/p1', POST({ likes: [BOB, CAROL] }));
+    await assertFails(updateDoc(doc(asUser(ALICE), 'club_posts', 'p1'), { likes: [] }));
+  });
+
+  it('ni s en inventer mille d un coup', async () => {
+    await MEMBRE(ALICE);
+    await seed('club_posts/p1', POST());
+    const faux = Array.from({ length: 1000 }, (_, i) => `fantome-${i}`);
+    await assertFails(updateDoc(doc(asUser(ALICE), 'club_posts', 'p1'), { likes: faux }));
+  });
+
+  it("l auteur du post ne gonfle pas ses propres compteurs", async () => {
+    // Il en avait le droit : la premiere branche lui ouvrait le document entier.
+    await MEMBRE(BOB);
+    await seed('club_posts/p1', POST());
+    await assertFails(updateDoc(doc(asUser(BOB), 'club_posts', 'p1'), { likes: [ALICE, CAROL] }));
+  });
+
+  it("et il ne transfere pas la propriete de son post — `userId` porte le droit de suppression", async () => {
+    await MEMBRE(BOB);
+    await seed('club_posts/p1', POST());
+    await assertFails(updateDoc(doc(asUser(BOB), 'club_posts', 'p1'), { userId: ALICE }));
+  });
+
+  it('NON-REGRESSION : l auteur corrige toujours le texte de son post', async () => {
+    await MEMBRE(BOB);
+    await seed('club_posts/p1', POST());
+    await assertSucceeds(updateDoc(doc(asUser(BOB), 'club_posts', 'p1'), { content: 'Corrige' }));
+  });
+
+  it('NON-REGRESSION : le compteur de commentaires bouge toujours de un', async () => {
+    await MEMBRE(ALICE);
+    await seed('club_posts/p1', POST());
+    await assertSucceeds(updateDoc(doc(asUser(ALICE), 'club_posts', 'p1'), { commentsCount: 1 }));
+  });
+
+  it('un compteur de commentaires ne saute pas a une valeur inventee', async () => {
+    await MEMBRE(ALICE);
+    await seed('club_posts/p1', POST());
+    await assertFails(updateDoc(doc(asUser(ALICE), 'club_posts', 'p1'), { commentsCount: 500 }));
+  });
+
+  it('les infos exclusives se likent aux memes conditions', async () => {
+    await MEMBRE(ALICE);
+    await seed('club_infos/i1', { title: 'Info', likes: [BOB], createdAt: '2026-09-01' });
+    await assertSucceeds(updateDoc(doc(asUser(ALICE), 'club_infos', 'i1'), { likes: [BOB, ALICE] }));
+    await assertFails(updateDoc(doc(asUser(ALICE), 'club_infos', 'i1'), { likes: [] }));
+  });
+});
+
+/*
+ * `notifications/{uid}/items` — « mark as read » ouvrait le document entier, donc le titre,
+ * le lien et la date de ce que le serveur avait envoye.
+ */
+describe('notifications — on marque comme lue, on ne reecrit pas le message', () => {
+  const NOTIF = { title: 'Ta formation t attend', link: '/mes-formations', read: false, createdAt: '2026-09-01' };
+
+  it('NON-REGRESSION : marquer comme lue reste permis', async () => {
+    await seed(`notifications/${ALICE}/items/n1`, NOTIF);
+    await assertSucceeds(updateDoc(doc(asUser(ALICE), `notifications/${ALICE}/items`, 'n1'), { read: true }));
+  });
+
+  it('mais on ne reecrit pas le contenu recu', async () => {
+    await seed(`notifications/${ALICE}/items/n1`, NOTIF);
+    await assertFails(updateDoc(doc(asUser(ALICE), `notifications/${ALICE}/items`, 'n1'), {
+      title: 'Autre chose', link: 'https://ailleurs.test',
+    }));
+  });
+});
+
+/*
+ * `appointments` — le formulaire est public. Il l'etait sans plafond de champs, contrairement
+ * a `engagement_leads` et `agency_leads` qui bornent deja le bourrage de document.
+ */
+describe('appointments — formulaire public borne', () => {
+  const RDV = (extra: Record<string, unknown> = {}) => ({
+    name: 'Awa Ndiaye', email: 'awa@exemple.test', date: '2026-09-20',
+    type: 'decouverte', status: 'pending', ...extra,
+  });
+
+  it('NON-REGRESSION : un visiteur anonyme prend toujours rendez-vous', async () => {
+    await assertSucceeds(setDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'appointments', 'a1'), RDV(),
+    ));
+  });
+
+  it('refuse le bourrage de document par un robot', async () => {
+    const bourrage: Record<string, unknown> = RDV();
+    for (let i = 0; i < 30; i++) bourrage[`champ${i}`] = 'x';
+    await assertFails(setDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'appointments', 'a2'), bourrage,
+    ));
+  });
+
+  it('un visiteur ne se declare pas confirme', async () => {
+    await assertFails(setDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'appointments', 'a3'),
+      RDV({ status: 'confirmed' }),
+    ));
+  });
+});
+
+/*
+ * `videos` — le compteur de vues etait incrementable sur un brouillon, ce qui revient a
+ * confirmer son existence. `blog` posait deja la condition ; ici elle manquait.
+ */
+describe('videos — le compteur de vues ne parle que des videos publiees', () => {
+  it('NON-REGRESSION : une vue sur une video publiee compte toujours', async () => {
+    await seed('videos/v1', { title: 'V', status: 'published', views: 10 });
+    await assertSucceeds(updateDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'videos', 'v1'), { views: 11 },
+    ));
+  });
+
+  it('un brouillon ne voit pas son compteur monter', async () => {
+    await seed('videos/v2', { title: 'V', status: 'draft', views: 0 });
+    await assertFails(updateDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'videos', 'v2'), { views: 1 },
+    ));
+  });
+
+  it('et la vue reste un increment de un, pas une valeur choisie', async () => {
+    await seed('videos/v3', { title: 'V', status: 'published', views: 10 });
+    await assertFails(updateDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'videos', 'v3'), { views: 99999 },
+    ));
+  });
+});
+
+/*
+ * `gamification` — les bornes ne portaient que sur cinq champs ; rien n'empechait d'en poser
+ * un sixieme dans un document que le serveur relit pour le classement et les badges.
+ */
+describe('gamification — la forme du document est fermee', () => {
+  it('un champ inconnu ne se glisse pas dans le profil', async () => {
+    await seed(`gamification/${ALICE}`, GAMI(100));
+    await assertFails(updateDoc(doc(asUser(ALICE), 'gamification', ALICE), { rangSecret: 1 }));
+  });
+
+  it('NON-REGRESSION : un increment legitime passe toujours', async () => {
+    await seed(`gamification/${ALICE}`, GAMI(100));
+    await assertSucceeds(updateDoc(doc(asUser(ALICE), 'gamification', ALICE), { xp: 150, level: 2 }));
   });
 });
