@@ -89,6 +89,12 @@ export default function PopupManager() {
     c'est la seule pop-up dont la pertinence dépend d'un état de la BASE et non du chemin.
   */
   const [catalogueEmpty, setCatalogueEmpty] = useState<boolean | null>(null);
+  /*
+    La formation laissée en tunnel est-elle encore achetable ? `null` tant qu'on ne l'a pas
+    vérifié. Même forme que `catalogueEmpty` — et même motif : une fenêtre ne doit pas conduire
+    vers ce que le produit ne peut pas tenir.
+  */
+  const [cartGone, setCartGone] = useState<boolean | null>(null);
 
   const path = normalizePath(pathname);
   const activeTrigger = active?.trigger ?? null;
@@ -98,10 +104,12 @@ export default function PopupManager() {
     rendu des providers auth/langue. `active` figure dans les dépendances pour
     que la fermeture d'une fenêtre relise le marqueur effacé par `clearCartPending`.
   */
-  // `path` et `active` ne sont pas des dépendances au sens strict : ce sont les
-  // deux moments où le marqueur a pu changer sous nos pieds.
+  // `path`, `active` et `cartGone` ne sont pas des dépendances au sens strict : ce sont les
+  // trois moments où le marqueur a pu changer sous nos pieds. `cartGone` est le troisième —
+  // c'est lui qui fait relire un marqueur que la vérification vient d'effacer, et donc qui
+  // LIBÈRE LE CRÉNEAU pour la règle suivante du registre.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const pendingCartSlug = useMemo(() => getPendingCart(), [path, active]);
+  const pendingCartSlug = useMemo(() => getPendingCart(), [path, active, cartGone]);
 
   useEffect(() => {
     setSource(captureEntrySource());
@@ -169,7 +177,19 @@ export default function PopupManager() {
   */
   const settingAllows = candidate !== null && settings?.enabled[candidate.id] === true;
   const shopClosed = candidate?.id === 'formationsEntry' && catalogueEmpty !== false;
-  const enabled = settingAllows && !shopClosed;
+  /*
+    ⚠️ LE PANIER ORPHELIN. `getFormationBySlug` ne rend que les documents PUBLIÉS : une formation
+    dépubliée après l'entrée en tunnel laisse un marqueur qui pointe vers un `/checkout/<slug>`
+    où il n'y a plus rien à acheter. La fenêtre s'affichait quand même — c'était documenté comme
+    un repli « la fenêtre reste utile avec son texte seul » — au RANG 1 du registre, donc en
+    écartant toutes les autres pour conduire à un cul-de-sac.
+
+    On attend donc la vérification avant d'ouvrir. Et quand le marqueur se révèle orphelin, il
+    est EFFACÉ : sans cela, la règle resterait la première à correspondre et bloquerait le
+    créneau de toute la page sans rien afficher.
+  */
+  const cartStale = candidate?.id === 'cartRecovery' && cartGone !== false;
+  const enabled = settingAllows && !shopClosed && !cartStale;
   const armed = enabled && variant === 'treatment' && active === null;
 
   // ── Données nécessaires, préchargées AVANT l'ouverture ───────────────────────────────────────
@@ -212,16 +232,35 @@ export default function PopupManager() {
   }, [settingAllows, candidate, catalogueEmpty]);
 
   useEffect(() => {
-    if (!enabled || candidate?.id !== 'cartRecovery' || !pendingCartSlug || cartFormation) return;
+    if (!settingAllows || candidate?.id !== 'cartRecovery' || !pendingCartSlug || cartGone !== null) return;
     let alive = true;
     import('../../lib/firestore/formations')
       .then((m) => m.getFormationBySlug(pendingCartSlug))
-      .then((found) => { if (alive && found) setCartFormation(found); })
+      .then((found) => {
+        if (!alive) return;
+        if (found) {
+          setCartFormation(found);
+          setCartGone(false);
+          return;
+        }
+        /*
+          Le document ne répond plus à une lecture publique : dépublié, ou supprimé. Le marqueur
+          ne vaut plus rien — on l'efface plutôt que de le laisser bloquer le créneau à chaque
+          page, et le mémo le relira grâce à `cartGone`.
+        */
+        clearCartPending();
+        setCartGone(true);
+      })
       .catch(() => {
-        // Formation dépubliée ou introuvable : la fenêtre garde son texte seul.
+        /*
+          Échec de LECTURE, pas dépublication : réseau coupé, règle refusée. On n'efface donc
+          RIEN — le panier est peut-être parfaitement valide — mais on n'ouvre pas non plus une
+          fenêtre dont on n'a pas pu vérifier la destination.
+        */
+        if (alive) setCartGone(true);
       });
     return () => { alive = false; };
-  }, [enabled, candidate, pendingCartSlug, cartFormation]);
+  }, [settingAllows, candidate, pendingCartSlug, cartGone]);
 
   // ── Diagnostic console ───────────────────────────────────────────────────────────────────────
   /*

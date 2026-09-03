@@ -136,15 +136,24 @@ export default function FormationCard({ formation, variant = 'default', enrollme
             className="text-base font-bold tracking-tight text-ink leading-snug line-clamp-2 mb-1 group-hover:text-forme dark:group-hover:text-forme transition-colors"
           />
           <p className="text-xs text-ink-2 mb-2">Max-Morrys</p>
+          {/*
+            LA NOTE ET LE NOMBRE D'INSCRITS ONT ÉTÉ RETIRÉS D'ICI — 2026-09-02.
+
+            Deux des interdits ABSOLUS du système, et le dernier endroit PUBLIC où ils
+            survivaient. `CoursesTab` avait constaté le défaut et choisi d'écarter cette carte de
+            l'espace apprenant en la laissant « en place pour les surfaces publiques » — mais la
+            surface publique en question, c'est `FormationCTA`, donc le bas de CHAQUE article de
+            blog : le trafic organique, c'est-à-dire le plus de monde possible.
+
+            Et ils n'avaient ici AUCUNE garde `> 0`, contrairement aux deux fenêtres qui les
+            portaient. Avec 5 comptes et 2 inscriptions à 0 % de progression, cette carte
+            n'affichait donc pas une preuve sociale faible : elle affichait « ★ 0 » et « 0 »,
+            sous chaque article. Le kit le dit à la première personne — « je n'ai rien d'honnête
+            à en dire ».
+
+            Reste ce qui se prouve : la durée, et le prix.
+          */}
           <div className="flex items-center gap-2 text-xs text-ink-2 mb-3">
-            <span className="flex items-center gap-1">
-              <Icon name="star" size={14} className="text-informe-txt" />
-              <span className="font-bold text-ink-2">{formation.rating}</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <Icon name="users" size={14} />
-              {formation.students}
-            </span>
             <span className="flex items-center gap-1">
               <Icon name="clock" size={14} />
               {formation.duration}
