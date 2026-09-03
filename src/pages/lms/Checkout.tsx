@@ -9,6 +9,7 @@ import { useLanguage, useLocalizedPath } from '../../contexts/LanguageContext';
 import { localizedPath } from '../../i18n/routing';
 import { SiteDisplay, SiteEyebrow, useReveal } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';
+import { PriceApprox, PriceFootnote } from '../../components/shared/PriceApprox';
 import { getFormationBySlug } from '../../lib/firestore';
 import { functions } from '../../config/firebase';
 import { db } from '../../config/db';
@@ -339,11 +340,28 @@ export default function Checkout() {
             <b className="text-body">{t('checkout.total')}</b>
             {isFree
               ? <b className="text-ttl text-ok">{t('checkout.free')}</b>
-              : <b style={{ fontSize: '23px' }}><Num value={finalPrice} unit="FCFA" source="db" asOf={readAt} /></b>}
+              : (
+                /*
+                  LE DERNIER ÉCRAN AVANT LE DÉBIT est celui où « combien ça me coûte
+                  vraiment » se pose le plus fort, et c'est `finalPrice` qu'on convertit —
+                  le montant coupon déduit, pas le prix catalogue. Convertir autre chose que
+                  ce qui sera prélevé serait pire que ne rien convertir du tout.
+                */
+                <span className="text-right">
+                  <b style={{ fontSize: '23px' }}><Num value={finalPrice} unit="FCFA" source="db" asOf={readAt} /></b>
+                  <span className="block text-meta-2 font-semibold text-ink-2">
+                    <PriceApprox xof={finalPrice} />
+                  </span>
+                </span>
+              )}
           </div>
           {/* La phrase du kit, et elle n'est pas cosmétique : c'est le serveur qui recalcule
               le montant et applique le coupon. Ce total-ci est une lecture, pas un engagement. */}
           <p className="text-small text-ink-2 m-0 mt-1.5">{t('checkout.serverComputed')}</p>
+          {/* La note de change se pose ICI et pas ailleurs sur cette page : à l'instant du
+              paiement, « le prélèvement se fait en francs CFA » est une information, pas une
+              mention légale. C'est aussi le seul endroit où la règle est LUE au clavier. */}
+          {!isFree && <PriceFootnote className="m-0 mt-1" />}
         </GlassPanel>
 
         {!isFree && (
