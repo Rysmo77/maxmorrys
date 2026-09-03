@@ -34,6 +34,9 @@ import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
 import { runImportSpotify, runSyncMediaStats } from './lib/media-sync';
 import { sendRenewalNotices } from './lib/renewal';
+import { rebuildLeaderboard } from './lib/leaderboard';
+import { sendQuoteExpiryNotices } from './lib/quote-expiry';
+import { sendReengagementNotices } from './lib/reengagement';
 import { handleBictorysWebhook } from './webhook/bictorys';
 
 function migratedNames(env: Env): Set<string> {
@@ -144,11 +147,36 @@ export default {
         );
       },
       '0 8 * * *': async () => {
-        const bilan = await sendRenewalNotices(getFirestore(env), env);
-        console.log(
-          `Rappels d'échéance : ${bilan.envoyes} envoyé(s), ${bilan.echecs} échec(s), ` +
-            `sur ${bilan.examines} abonnement(s) actif(s).`,
-        );
+        const db = getFirestore(env);
+
+        /*
+          QUATRE TRAVAUX, QUATRE `try`. Ils n'ont rien à voir entre eux : une requête refusée
+          sur la gamification ne doit pas empêcher un rappel d'échéance de partir. Le premier
+          qui lèverait emporterait tous les suivants s'ils partageaient un seul bloc.
+        */
+        const etapes: Array<[string, () => Promise<string>]> = [
+          ['Rappels d’échéance', async () => {
+            const b = await sendRenewalNotices(db, env);
+            return `${b.envoyes} envoyé(s), ${b.echecs} échec(s), sur ${b.examines} abonnement(s) actif(s)`;
+          }],
+          ['Relances de devis', async () => {
+            const b = await sendQuoteExpiryNotices(db, env);
+            return `${b.envoyes} envoyé(s), ${b.echecs} échec(s), ${b.sansAdresse} sans adresse, sur ${b.examines} devis`;
+          }],
+          ['Relances d’engagement', async () => {
+            const b = await sendReengagementNotices(db);
+            return `${b.series} série(s), ${b.reprises} reprise(s) de cours, sur ${b.examines} inscription(s)`;
+          }],
+          ['Classement du Club', async () => `${await rebuildLeaderboard(db)} entrée(s) reconstruite(s)`],
+        ];
+
+        for (const [nom, etape] of etapes) {
+          try {
+            console.log(`${nom} : ${await etape()}.`);
+          } catch (error: unknown) {
+            console.error(`${nom} : interrompu —`, error);
+          }
+        }
       },
     };
 
