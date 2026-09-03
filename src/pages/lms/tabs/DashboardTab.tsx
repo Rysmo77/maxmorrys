@@ -58,7 +58,7 @@ interface DashboardTabProps {
   completedCount: number;
 }
 
-/** Les quatre entrées de « Dans ton espace ». Le glyphe vient du jeu unique du système. */
+/** Les entrées de « Dans ton espace ». Le glyphe vient du jeu unique du système. */
 const SPACE_LINKS: { to: string; glyph: IconName; title: string; meta: string }[] = [
   { to: '/mon-espace/cours', glyph: 'book', title: 'linkCourses', meta: 'linkCoursesMeta' },
   { to: '/mon-espace/notes', glyph: 'comment', title: 'linkNotes', meta: 'linkNotesMeta' },
@@ -68,6 +68,17 @@ const SPACE_LINKS: { to: string; glyph: IconName; title: string; meta: string }[
      (`screens-space.jsx` § Espace). Elle manquait, et deux pieds d'écran la
      désignaient pourtant : « Le reçu est dans ton espace ». */
   { to: '/mon-espace/paiements', glyph: 'card', title: 'linkPayments', meta: 'linkPaymentsMeta' },
+  /*
+    « MON AVIS » — LA SEULE ENTRÉE DE L'ESPACE QUI N'AVAIT AUCUN CHEMIN DEPUIS ICI.
+    Elle vit dans la barre latérale, donc au-delà de 700 px elle se voit ; en dessous, la
+    barre devient un tiroir derrière le bouton de menu, et la barre basse ne porte que cinq
+    onglets qui ne l'incluent pas. Sur téléphone, déposer un avis supposait d'ouvrir un
+    tiroir qu'on n'ouvre pas pour chercher ce qu'on ne sait pas exister.
+
+    Elle ferme la liste, et c'est délibéré : contrairement aux cours ou aux notes, un avis
+    se dépose une fois. Le rang dit la fréquence.
+  */
+  { to: '/mon-espace/temoignages', glyph: 'quote', title: 'linkTestimonials', meta: 'linkTestimonialsMeta' },
 ];
 
 export default function DashboardTab({

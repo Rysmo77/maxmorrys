@@ -333,7 +333,13 @@
     "directRecordingUnavailableAudio": "Direct recording isn't available in this browser — import an audio file.",
     "uploading": "Uploading… {{progress}}%",
     "delete": "Delete",
-    "restart": "Start over"
+    "restart": "Start over",
+    "limits": "{{minutes}} min max · {{megabytes}} MB max",
+    "elapsedLabel": "Recorded length",
+    "progressLabel": "Uploading media",
+    "statusRecording": "Recording.",
+    "statusStopped": "Recording finished, uploading.",
+    "statusReady": "Media ready to send."
   },
   "streak": {
     "days_one": "{{count}} day",

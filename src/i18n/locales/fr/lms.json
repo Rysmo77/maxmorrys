@@ -333,7 +333,13 @@
     "directRecordingUnavailableAudio": "L'enregistrement direct n'est pas disponible sur ce navigateur — importe un fichier audio.",
     "uploading": "Téléversement… {{progress}}%",
     "delete": "Supprimer",
-    "restart": "Recommencer"
+    "restart": "Recommencer",
+    "limits": "{{minutes}} min max · {{megabytes}} Mo max",
+    "elapsedLabel": "Durée enregistrée",
+    "progressLabel": "Envoi du média",
+    "statusRecording": "Enregistrement en cours.",
+    "statusStopped": "Enregistrement terminé, envoi en cours.",
+    "statusReady": "Média prêt à être envoyé."
   },
   "streak": {
     "days_one": "{{count}} jour",
