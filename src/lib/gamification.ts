@@ -1,8 +1,7 @@
 import { doc, getDoc, setDoc, runTransaction, collection, query, orderBy, limit, getDocs, type DocumentSnapshot } from 'firebase/firestore';
 import { db } from '../config/db';
 import type { GamificationProfile } from '../types/gamification';
-import { BADGES, getLevelFromXP } from '../types/gamification';
-import type { Badge } from '../types/gamification';
+import { getLevelFromXP } from '../types/gamification';
 
 const GAMIFICATION_COL = 'gamification';
 
@@ -124,37 +123,20 @@ export async function awardBadge(userId: string, badgeId: string): Promise<boole
  * depuis le tableau de bord supposerait de relire tout le fil du Club à chaque ouverture.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-export interface BadgeStats {
-  /** Leçons distinctes achevées, toutes formations confondues. */
-  lessons: number;
-  /** Série en cours, en jours. */
-  streak: number;
-  certificates: number;
-  /** Formations auxquelles la personne est inscrite. */
-  formations: number;
-}
+/*
+  LA PARTIE PURE A DÉMÉNAGÉ DANS `src/types/gamification.ts`.
 
-/** Ce que chaque `requirementType` va chercher dans le relevé. `posts` est traité à la source. */
-const COMPTEUR: Record<string, (s: BadgeStats) => number> = {
-  lessons: (s) => s.lessons,
-  days: (s) => s.streak,
-  certificates: (s) => s.certificates,
-  formations: (s) => s.formations,
-};
+  Son commentaire disait déjà « partie PURE, testable sans Firestore » — l'intention était
+  juste, l'emplacement la contredisait. Ce module importe `config/db`, qui importe
+  `config/firebase`, qui LÈVE quand les variables d'environnement manquent. Un test qui
+  importait `badgesMerites` faisait donc tomber tout le fichier, et il ne s'en est aperçu
+  qu'en CI : en local, `.env.local` masque le défaut.
 
-/**
- * Les badges dont les conditions sont remplies — partie PURE, testable sans Firestore.
- *
- * C'est elle qui porte la promesse « ajouter un badge au catalogue suffit à le rendre
- * attribuable » : elle ne connaît aucun identifiant, seulement `requirementType` et
- * `requirement`. Un badge dont le type n'a pas de compteur est simplement ignoré.
- */
-export function badgesMerites(stats: BadgeStats): Badge[] {
-  return BADGES.filter((badge) => {
-    const compteur = COMPTEUR[badge.requirementType];
-    return compteur !== undefined && compteur(stats) >= badge.requirement;
-  });
-}
+  Ré-exporté ici pour que les appelants existants ne bougent pas.
+*/
+import { badgesMerites, type BadgeStats } from '../types/gamification';
+
+export { badgesMerites, type BadgeStats };
 
 /**
  * Décerne tous les badges désormais mérités — UN PAR ÉCRITURE.

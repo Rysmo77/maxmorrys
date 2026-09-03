@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import { badgesMerites } from '../../src/lib/gamification';
+// Le module PUR, et pas `lib/gamification` qui importe Firestore : sans ça, le fichier
+// entier tombe dès que les variables d'environnement manquent — donc en CI, jamais en local.
+import { badgesMerites } from '../../src/types/gamification';
 import { BADGES } from '../../src/types/gamification';
 
 /**

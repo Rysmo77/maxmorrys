@@ -38,5 +38,6 @@
   "quotaPack": "{{balance}} pack",
   "quotaToday": "{{remaining}}/{{limit}} aujourd'hui",
   "clubBonusTooltip": "Bonus Club Digitos",
-  "thinking": "Réponse en cours d'écriture"
+  "thinking": "Réponse en cours d'écriture",
+  "upsellClub": "Ou passe à {{total}} par jour avec le Club"
 }

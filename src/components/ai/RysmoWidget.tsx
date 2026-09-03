@@ -9,6 +9,7 @@ import { trackChatbotInteraction } from '../../lib/tracking';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { tutorName } from '../../lib/naming';
+import { RYSMO_CLUB_DAILY } from '../../lib/rysmo/quota';
 import { Icon } from '@ds';
 
 /* Le fil et sa persistance vivent dans `lib/rysmo/conversation` : le panneau permanent
@@ -539,23 +540,51 @@ export default function RysmoWidget() {
             className="flex-shrink-0 border-t border-[color:var(--border-hair)] p-3"
             style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
           >
-            {/* Bannière upsell quand limite atteinte */}
+            {/*
+              ── LE MUR DE QUOTA : LE MOMENT LE PLUS INTENTIONNEL DU PRODUIT ──────────────
+
+              Quelqu'un qui épuise ses questions du jour veut plus, maintenant. Une seule
+              porte lui était proposée — les packs — alors qu'il en existe DEUX, et que la
+              seconde est celle que la page publique du Club met en avant comme argument :
+              « ton répétiteur à 5 questions par jour au lieu de 2 ».
+
+              Ne proposer que le pack pousse à racheter indéfiniment quelqu'un dont l'usage
+              est manifestement récurrent, et prive le produit de son seul revenu récurrent.
+              Les deux sont donc offertes, et le choix reste au visiteur.
+
+              ⚠️ La porte du Club ne s'affiche QUE si le bonus n'est pas déjà acquis
+              (`hasClubBonus`) : vendre le Club à un membre du Club serait la faute
+              symétrique. Un membre au bout de ses cinq questions ne voit que le pack, qui
+              est alors la seule chose qui lui reste réellement à acheter.
+            */}
             {limitReached && (
-              <LocalizedLink
-                to="/mon-espace/repetiteur?tab=tokens"
-                target="_blank"
-                rel="noopener noreferrer"
-                /* `from-amber-500 to-orange-500` : deux couleurs de la palette PAR DÉFAUT de
-                   Tailwind, étrangères aux quatre teintes du système. Elles génèrent du CSS
-                   valide — donc aucune porte ne les voyait — mais ne basculent pas sous `.dk`
-                   et ne sont dans aucun jeton. `--action-informe` est le dégradé orange de
-                   « Je t'informe », et son encre est `--ink-fixed` : le dégradé est clair, un
-                   `text-white` y donnerait du blanc sur orange pâle. */
-                className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl bg-[image:var(--action-informe)] text-[color:var(--ink-fixed)] text-xs font-semibold shadow-sm transition-opacity duration-ui hover:opacity-90"
-              >
-                <Icon name="sparkles" size={16} className="flex-shrink-0" />
-                <span className="flex-1">{t('upsellBanner')}</span>
-              </LocalizedLink>
+              <div className="mb-2 flex flex-col gap-1.5">
+                <LocalizedLink
+                  to="/mon-espace/repetiteur?tab=tokens"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  /* `--action-informe` est le dégradé orange de « Je t'informe », et son encre
+                     est `--ink-fixed` : le dégradé est clair, un `text-white` y donnerait du
+                     blanc sur orange pâle. */
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[image:var(--action-informe)] text-[color:var(--ink-fixed)] text-xs font-semibold shadow-sm transition-opacity duration-ui hover:opacity-90"
+                >
+                  <Icon name="sparkles" size={16} className="flex-shrink-0" />
+                  <span className="flex-1">{t('upsellBanner')}</span>
+                </LocalizedLink>
+
+                {!quota?.hasClubBonus && (
+                  <LocalizedLink
+                    to="/club-des-digitos"
+                    /* Territoire « Je te transforme » : dégradé violet, encre `--paper-fixed`.
+                       Le couple que `Button` applique à ses tons de territoire — et qui, lui,
+                       ne bascule pas avec le thème. */
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[image:var(--action-transforme)] text-[color:var(--paper-fixed)] text-xs font-semibold shadow-sm transition-opacity duration-ui hover:opacity-90"
+                  >
+                    <Icon name="crown" size={16} className="flex-shrink-0" />
+                    <span className="flex-1">{t('upsellClub', { total: RYSMO_CLUB_DAILY })}</span>
+                  </LocalizedLink>
+                )}
+              </div>
             )}
             <div className="flex items-end gap-2">
               <textarea
