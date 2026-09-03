@@ -85,6 +85,24 @@ export default function MapsProof() {
         <Button type="submit" tone="digitalise" fullWidth={false} disabled={!canSearch}>
           {t('proof.cta')}
         </Button>
+        {/*
+          ── LE BOUTON DÉSACTIVÉ NE DISAIT PAS CE QU'IL ATTENDAIT ──────────────────────────
+          C'est le premier geste de la meilleure preuve de la page, et il s'ouvre sur un
+          bouton gris. Sans le survoler ni le presser, rien n'indiquait qu'il était
+          désactivé, ni surtout POURQUOI — deux champs sont visibles, un seul est requis.
+          On restait devant un bouton qui semble cassé.
+
+          `aria-live="polite"` : la ligne apparaît et disparaît à la frappe, et un lecteur
+          d'écran doit l'entendre sans que le focus quitte le champ. `polite` et non
+          `assertive` — c'est une indication, pas une erreur, et personne n'a encore rien
+          fait de mal.
+
+          Elle s'efface dès que la condition est remplie : une consigne qui reste après
+          avoir été suivie se lit comme un reproche.
+        */}
+        <p className="m-0 text-meta-2 text-ink-2" aria-live="polite">
+          {canSearch ? '' : t('proof.ctaHint')}
+        </p>
       </form>
 
       <div className="my-[18px] h-px bg-[color:var(--border-hair)]" />

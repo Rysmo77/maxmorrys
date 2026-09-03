@@ -621,7 +621,10 @@
       "shopClosedTitle": "Ta boutique est fermée.",
       "shopClosedBody_one": "{{count}} formation en base, aucune publiée — un visiteur ne peut rien acheter.",
       "shopClosedBody_other": "{{count}} formations en base, aucune publiée — un visiteur ne peut rien acheter."
-    }
+    },
+    "toastNotified_one": "{{count}} personne prévenue.",
+    "toastNotified_other": "{{count}} personnes prévenues.",
+    "toastNotifyError": "Formation publiée, mais l'alerte n'est pas partie. Réenregistre pour réessayer."
   },
   "coupons": {
     "title": "Codes promo",
@@ -853,7 +856,8 @@
     "actions": {
       "delete": "Supprimer",
       "markReplied": "Marquer comme répondu",
-      "replyByEmail": "Répondre par email"
+      "replyByEmail": "Répondre par email",
+      "sendReply": "Envoyer la réponse"
     },
     "confirm": {
       "deleteTitle": "Supprimer",
@@ -862,7 +866,10 @@
     "toast": {
       "updateError": "Erreur de mise à jour.",
       "deleted": "Message supprimé.",
-      "deleteError": "Erreur de suppression."
+      "deleteError": "Erreur de suppression.",
+      "replySent": "Réponse envoyée.",
+      "replyNoEmail": "Réponse enregistrée, mais l'e-mail n'est pas parti. Elle reste lisible dans son espace.",
+      "replyError": "La réponse n'a pas pu être envoyée. Réessaie."
     },
     "sub": "Console · contact",
     "pipelineLabel": "Statut des messages",
@@ -876,7 +883,12 @@
     },
     "scope": "Aucune réponse ne part d'ici : « Répondre par e-mail » ouvre le client de messagerie de l'appareil, et rien de ce qui s'y écrit ne revient dans la fiche. « Clos » ne dit donc pas qu'une réponse est partie — il dit que quelqu'un l'a déclaré. Pas de fil, pas de pièce jointe, pas de relance, et aucun écran côté visiteur : celui qui a écrit ne saura où en est son message qu'en recevant une réponse.",
     "panelEyebrow": "Message sélectionné",
-    "panelNone": "Choisis un message dans la file. Rien n'est ouvert tant que tu ne l'ouvres pas — et ouvrir un message le marque comme lu, donc le sort de « à traiter »."
+    "panelNone": "Choisis un message dans la file. Rien n'est ouvert tant que tu ne l'ouvres pas — et ouvrir un message le marque comme lu, donc le sort de « à traiter ».",
+    "replyLabel": "Ta réponse",
+    "replyPlaceholder": "Écris ta réponse. Elle part par e-mail et s’affiche dans son espace.",
+    "replySent": "Réponse envoyée",
+    "replyNoteAccount": "La réponse arrivera par e-mail et dans son espace.",
+    "replyNoteGuest": "Ce message vient d’un visiteur sans compte : la réponse partira uniquement par e-mail."
   },
   "podcasts": {
     "title": "Podcasts",

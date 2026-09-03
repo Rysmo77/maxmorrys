@@ -172,18 +172,48 @@ export default function StudentLayout() {
         '/mon-espace/profil': 'transforme',
         '/mon-espace/parametres': 'transforme',
       }}
+      /*
+       * ── HUIT ENTRÉES DANS UN SEUL GROUPE, C'ÉTAIT UNE LISTE, PAS UNE NAVIGATION ────────
+       *
+       * « Espace » portait tableau de bord, cours, répétiteur, notes, paiements, succès,
+       * messages et témoignages — pendant que « Communauté » en portait une et « Compte »
+       * trois. La loi de Miller était à sa limite haute, mais le vrai défaut était ailleurs :
+       * l'écart de FRÉQUENCE. « Cours » se visite chaque jour, « Témoignages » une fois dans
+       * la vie d'un compte, et les deux avaient exactement le même poids visuel. Pour
+       * trouver « Paiements », il fallait lire les huit.
+       *
+       * Le partage suit celui que `territoryMap` fait déjà juste au-dessus, et qui est le bon
+       * — il n'est simplement pas répercuté ici :
+       *
+       *   · APPRENDRE (bleu, « forme ») — cours, notes, succès. Ce qui relève de l'étude.
+       *   · MON COMPTE (violet, « transforme ») — paiements, messages, témoignages, profil,
+       *     réglages. Ce qui relève du dossier plutôt que du travail.
+       *
+       * DEUX ENTRÉES NE SUIVENT PAS LEUR TEINTE, ET C'EST DÉLIBÉRÉ :
+       *   · Le tableau de bord reste SEUL en tête, hors groupe : c'est le point d'entrée, pas
+       *     une rubrique. Lui donner un titre de section l'aurait rangé au même rang que ce
+       *     qu'il résume.
+       *   · Le répétiteur est violet dans `territoryMap`, mais il vit dans « Apprendre » : on
+       *     l'ouvre pour réviser, jamais pour gérer son compte. La teinte dit le territoire,
+       *     le groupe dit le geste — ce sont deux axes.
+       *
+       * « Paiements » quitte donc l'étude pour le compte. `territoryMap` le laisse en bleu
+       * — « le chemin de l'argent relève de ce qu'on a ACHETÉ » — et les deux restent vrais :
+       * on le range avec le dossier, il garde la couleur de ce qu'il paie.
+       */
       sidebarSections={[
         {
-          title: t('nav.sectionSpace'),
           items: [
             { to: '/mon-espace/tableau-de-bord', label: t('nav.dashboard'), icon: 'dashboard' },
+          ],
+        },
+        {
+          title: t('nav.sectionLearn'),
+          items: [
             { to: '/mon-espace/cours',           label: t('nav.courses'),   icon: 'book' },
             { to: '/mon-espace/repetiteur',      label: tutorName(userData), icon: 'bot' },
             { to: '/mon-espace/notes',           label: t('nav.notes'),     icon: 'bookmark' },
-            { to: '/mon-espace/paiements',       label: t('nav.payments'),  icon: 'card' },
             { to: '/mon-espace/succes',          label: t('nav.achievements'), icon: 'award' },
-            { to: '/mon-espace/messages',        label: t('nav.messages'),  icon: 'inbox' },
-            { to: '/mon-espace/temoignages',     label: t('nav.testimonials'), icon: 'quote' },
           ],
         },
         {
@@ -199,9 +229,12 @@ export default function StudentLayout() {
         {
           title: t('nav.sectionAccount'),
           items: [
-            { to: '/mon-espace/profil',     label: t('nav.profile'),    icon: 'user' },
-            { to: '/mon-espace/parametres', label: t('nav.settings'),   icon: 'settings' },
-            { to: '/',                       label: t('nav.backToSite'), icon: 'home', end: true },
+            { to: '/mon-espace/paiements',   label: t('nav.payments'),     icon: 'card' },
+            { to: '/mon-espace/messages',    label: t('nav.messages'),     icon: 'inbox' },
+            { to: '/mon-espace/temoignages', label: t('nav.testimonials'), icon: 'quote' },
+            { to: '/mon-espace/profil',      label: t('nav.profile'),      icon: 'user' },
+            { to: '/mon-espace/parametres',  label: t('nav.settings'),     icon: 'settings' },
+            { to: '/',                       label: t('nav.backToSite'),   icon: 'home', end: true },
           ],
         },
       ]}

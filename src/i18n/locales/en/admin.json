@@ -621,7 +621,10 @@
       "shopClosedTitle": "Your shop is closed.",
       "shopClosedBody_one": "{{count}} course in the database, none published — a visitor cannot buy anything.",
       "shopClosedBody_other": "{{count}} courses in the database, none published — a visitor cannot buy anything."
-    }
+    },
+    "toastNotified_one": "{{count}} person notified.",
+    "toastNotified_other": "{{count}} people notified.",
+    "toastNotifyError": "Course published, but the alert didn't go out. Save again to retry."
   },
   "coupons": {
     "title": "Promo codes",
@@ -853,7 +856,8 @@
     "actions": {
       "delete": "Delete",
       "markReplied": "Mark as replied",
-      "replyByEmail": "Reply by email"
+      "replyByEmail": "Reply by email",
+      "sendReply": "Send the reply"
     },
     "confirm": {
       "deleteTitle": "Delete",
@@ -862,7 +866,10 @@
     "toast": {
       "updateError": "Error during update.",
       "deleted": "Message deleted.",
-      "deleteError": "Error during deletion."
+      "deleteError": "Error during deletion.",
+      "replySent": "Reply sent.",
+      "replyNoEmail": "Reply saved, but the email didn't go out. It's still readable in their space.",
+      "replyError": "The reply couldn't be sent. Try again."
     },
     "sub": "Console · contact",
     "pipelineLabel": "Message status",
@@ -876,7 +883,12 @@
     },
     "scope": "No reply leaves this screen: “Reply by email” opens the device's mail client, and nothing written there comes back to the record. “Closed” therefore does not mean a reply went out — it means someone said so. No thread, no attachment, no follow-up, and no screen on the visitor's side: whoever wrote will only learn where their message stands by receiving an answer.",
     "panelEyebrow": "Selected message",
-    "panelNone": "Pick a message from the queue. Nothing opens on its own — and opening a message marks it read, which takes it out of “to handle”."
+    "panelNone": "Pick a message from the queue. Nothing opens on its own — and opening a message marks it read, which takes it out of “to handle”.",
+    "replyLabel": "Your reply",
+    "replyPlaceholder": "Write your reply. It goes out by email and shows up in their space.",
+    "replySent": "Reply sent",
+    "replyNoteAccount": "The reply will arrive by email and in their space.",
+    "replyNoteGuest": "This message came from a visitor without an account: the reply will go out by email only."
   },
   "podcasts": {
     "title": "Podcasts",

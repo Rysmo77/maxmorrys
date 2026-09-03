@@ -12,6 +12,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { localizedPath } from '../../i18n/routing';
 import { contentPath, type ContentKind } from '../../lib/contentPath';
 import { buildCommands, filterCommands, type AppCommand } from '../../lib/commands';
+import { faqSlug } from '../../lib/faq/slug';
 import { Icon, type IconName } from '@ds';
 
 interface SearchOverlayProps {
@@ -42,7 +43,12 @@ const typeConfig: Record<ResultType, { icon: IconName; labelKey: string; path: s
   formation: { icon: 'graduation',   labelKey: 'search.types.formation', path: '/formations', color: 'text-forme' },
   podcast:   { icon: 'mic',          labelKey: 'search.types.podcast',   path: '/podcasts',   color: 'text-transforme-txt' },
   video:     { icon: 'video',        labelKey: 'search.types.video',     path: '/videos',     color: 'text-stop' },
-  faq:       { icon: 'help',         labelKey: 'search.types.faq',       path: '/contact',    color: 'text-ink-2' },
+  /* ⚠️ CETTE ENTRÉE POINTAIT SUR `/contact`. Elle datait de l'époque où la FAQ n'avait
+     qu'un index et aucune question n'avait d'adresse propre. `/faq/:slug` existe
+     désormais (route déclarée dans `App.tsx`), et c'est le résultat le plus « réponse »
+     de tout l'index : il envoyait vers un formulaire à remplir la personne qui venait
+     de LIRE sa réponse dans la liste. */
+  faq:       { icon: 'help',         labelKey: 'search.types.faq',       path: '/faq',        color: 'text-ink-2' },
 };
 
 let cachedPosts: BlogPost[] | null = null;
@@ -162,7 +168,11 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
       });
       (cachedFAQ ?? []).forEach((f) => {
         if (f.question.toLowerCase().includes(lower) || f.answer?.toLowerCase().includes(lower)) {
-          r.push({ type: 'faq', title: f.question, excerpt: f.answer });
+          /* Le `slug` MANQUAIT, et c'est lui qui décidait de tout : sans lui,
+             `goToResult` retombe sur le chemin d'index de la table ci-dessus.
+             `faqSlug()` dérive le segment des 46 questions qui n'en portent pas —
+             c'est déjà ce que fait `FAQ.tsx` pour ses propres liens. */
+          r.push({ type: 'faq', title: f.question, excerpt: f.answer, slug: faqSlug(f) });
         }
       });
 

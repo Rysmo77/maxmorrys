@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Breadcrumb, Button, GlassPanel, MediaCard, Skeleton, TranslationNotice } from '@ds';
+import { Breadcrumb, Button, GlassPanel, MediaCard, Skeleton, SubNav, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
@@ -118,6 +118,33 @@ export default function PodcastDetail() {
       }} />
 
       <PageSite>
+        {/*
+          ── LES DEUX ÉTAGES DU TERRITOIRE, DANS LA PAGE ────────────────────────────────
+          Elle vivait dans le chrome fixe, et deux mesures l'ont condamnée là : la rangée
+          portait `px-[18px]` sur toute la fenêtre, donc à 1440 px les deux pilules
+          ouvraient à x=18 quand la colonne de la page ouvre à x=120 — cent deux pixels
+          plus à gauche que TOUT le reste de l'écran, pilule de navigation comprise. Et
+          n'ayant aucune surface derrière elle, elle laissait le corps de l'article lui
+          passer AU TRAVERS dès le premier défilement : « Pourquoi écouter cet audio ? »
+          se lisait en toutes lettres par-dessus « Écouter & regarder ».
+
+          Les deux défauts ont la même cause — une primitive de page posée dans du chrome.
+          `SubNav` le dit dans son propre en-tête : « elle est en tête de page, elle défile
+          avec elle ». Ici, elle est dans `PageSite` : sa gouttière est celle du contenu par
+          construction, elle défile, et elle ne recouvre plus rien. C'est aussi l'endroit
+          exact où `MediaPole` et `ClubDigitos` la posent — la rangée ne se déplace donc
+          plus d'une route à l'autre du territoire.
+        */}
+        <SubNav
+          className="mb-[18px]"
+          label={t('pole.eyebrow')}
+          active={t('pole.subnavFree')}
+          items={[
+            { label: t('pole.subnavFree'), href: path('/podcast-et-videos'), territory: 'transforme' },
+            { label: t('pole.subnavClub'), href: path('/club-des-digitos'), territory: 'transforme' },
+          ]}
+        />
+
         <Breadcrumb
           label={t('detail.breadcrumbRoot')}
           items={[

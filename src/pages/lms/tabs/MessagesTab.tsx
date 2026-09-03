@@ -192,15 +192,36 @@ export default function MessagesTab({
       ) : (
         <GlassPanel level="flat" padding="6px 18px" className="mt-[18px]">
           {sentMessages.map((msg, i) => (
-            <LessonRow
-              key={msg.id}
-              state="plain"
-              icon={<Icon name="send" size={14} />}
-              title={msg.subject}
-              meta={formatDate(msg.sentAt)}
-              trailing={<Tag tone={statusTone(msg.status)}>{statusLabel(msg.status)}</Tag>}
-              last={i === sentMessages.length - 1}
-            />
+            <div key={msg.id}>
+              <LessonRow
+                state="plain"
+                icon={<Icon name="send" size={14} />}
+                title={msg.subject}
+                meta={formatDate(msg.sentAt)}
+                trailing={<Tag tone={statusTone(msg.status)}>{statusLabel(msg.status)}</Tag>}
+                /* La ligne n'est plus la dernière quand une réponse la suit : sinon le filet
+                   de séparation tomberait AU-DESSUS de la réponse au lieu de la clore. */
+                last={i === sentMessages.length - 1 && !msg.reply}
+              />
+              {/*
+                ── LA RÉPONSE, ENFIN LISIBLE ────────────────────────────────────────────
+                L'étiquette « Répondu » existait depuis toujours ; le texte, non. Elle était
+                posée à la main depuis la console, et l'écran affichait donc une pastille
+                verte au-dessus de rien. Ce bloc est la moitié qui manquait — la même que
+                celle que l'e-mail transporte, à la même place dans le fil.
+              */}
+              {msg.reply && (
+                <div
+                  className="ml-[30px] mb-3 rounded-m border-l-2 border-[color:var(--ok)] bg-[color:var(--fill-1)] px-4 py-3"
+                >
+                  <p className="mm-eyebrow m-0 mb-1">{t('messages.replyFrom')}</p>
+                  {msg.repliedAt && (
+                    <p className="m-0 text-small text-ink-3">{formatDate(msg.repliedAt)}</p>
+                  )}
+                  <p className="m-0 mt-2 whitespace-pre-wrap text-meta leading-[1.6] text-ink-2">{msg.reply}</p>
+                </div>
+              )}
+            </div>
           ))}
         </GlassPanel>
       )}

@@ -10,6 +10,24 @@ import { useConfirmDialog } from '../../hooks/useConfirmDialog';
 import { subscribeMessages, updateMessageStatus, deleteMessage } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import type { ContactMessage } from '../../types';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../config/firebase';
+import { captureError } from '../../lib/sentry';
+
+/**
+ * RÉPONDRE ÉCRIT TROIS CHOSES, ET C'EST LE SERVEUR QUI LES ÉCRIT.
+ *
+ * La réponse sur le message, la notification dans l'espace de son auteur, l'e-mail. Le
+ * client n'en écrit AUCUNE : `notifications/{uid}/items` est fermé à l'écriture cliente par
+ * les règles, et l'envoi passe par un binding qui n'existe que dans le runtime Workers.
+ *
+ * Déclarée au niveau module, avec ses génériques : c'est la convention du dépôt, et elle
+ * évite de reconstruire la référence à chaque rendu.
+ */
+const replyToMessage = httpsCallable<
+  { messageId: string; reply: string },
+  { ok: boolean; notified: boolean; emailSent: boolean; emailError?: string }
+>(functions, 'replyToMessage');
 
 /**
  * ── MESSAGES DE CONTACT — motif de console ──────────────────────────────────────────
@@ -70,6 +88,8 @@ export default function AdminMessages() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<Stage>('all');
   const [selected, setSelected] = useState<ContactMessage | null>(null);
+  const [reply, setReply] = useState('');
+  const [sending, setSending] = useState(false);
 
   /*
     ── UN SEUL CONTENU, DEUX VÉHICULES ─────────────────────────────────────────────
@@ -99,9 +119,34 @@ export default function AdminMessages() {
     }
   };
 
-  const markReplied = async (id: string) => {
-    await updateMessageStatus(id, 'replied').catch(() => addToast('error', t('messages.toast.updateError')));
-    if (selected?.id === id) setSelected((prev) => prev ? { ...prev, status: 'replied' } : prev);
+  /*
+   * ⚠️ CE QUI A DISPARU ICI : « marquer répondu », un drapeau posé À LA MAIN.
+   *
+   * Il faisait passer l'étiquette au vert sans qu'aucune réponse n'existe nulle part — la
+   * personne voyait « Répondu » dans son espace et n'avait rien à lire. Le statut n'est plus
+   * une déclaration : il est la CONSÉQUENCE d'une réponse écrite, et c'est le serveur qui
+   * le pose, dans le même geste que la notification et l'e-mail.
+   */
+  const handleReply = async () => {
+    if (!selected || reply.trim().length < 2) return;
+    setSending(true);
+    try {
+      const { data } = await replyToMessage({ messageId: selected.id, reply: reply.trim() });
+      const envoyee = { ...selected, reply: reply.trim(), repliedAt: new Date().toISOString(), status: 'replied' as const };
+      setSelected(envoyee);
+      setReply('');
+      /*
+       * L'e-mail peut échouer sans que la réponse soit perdue — elle est enregistrée et
+       * lisible dans l'espace. On le DIT plutôt que de le taire : un succès affiché sur un
+       * envoi qui n'a pas eu lieu ferait attendre une réponse déjà écrite.
+       */
+      if (data.emailSent) addToast('success', t('messages.toast.replySent'));
+      else addToast('error', t('messages.toast.replyNoEmail'));
+    } catch (error: unknown) {
+      captureError(error, { context: 'Reply to contact message failed' });
+      addToast('error', t('messages.toast.replyError'));
+    }
+    setSending(false);
   };
 
   const handleDelete = (id: string) => {
@@ -166,25 +211,43 @@ export default function AdminMessages() {
         <p className="m-0 mt-3 whitespace-pre-wrap text-meta leading-relaxed text-ink-2">{selected.message}</p>
       </GlassPanel>
 
-      <Button
-        size="sm"
-        fullWidth
-        href={`mailto:${selected.email}?subject=Re: ${encodeURIComponent(selected.subject)}`}
-        style={{ marginTop: '14px' }}
-      >
-        {t('messages.actions.replyByEmail')}
-      </Button>
-      {selected.status !== 'replied' && (
+      {/* La réponse déjà envoyée, relue telle qu'elle est partie. Sans elle, on ne saurait
+          pas ce qu'on a écrit — et on répondrait deux fois la même chose. */}
+      {selected.reply && (
+        <GlassPanel level="flat" padding={18} className="mt-3">
+          <SiteEyebrow style={{ marginBottom: '6px' }}>{t('messages.replySent')}</SiteEyebrow>
+          {selected.repliedAt && (
+            <p className="m-0 text-meta-2 text-ink-3">{new Date(selected.repliedAt).toLocaleString(locale)}</p>
+          )}
+          <p className="m-0 mt-3 whitespace-pre-wrap text-meta leading-relaxed text-ink-2">{selected.reply}</p>
+        </GlassPanel>
+      )}
+
+      <div className="mt-4">
+        <Field
+          as="textarea"
+          rows={5}
+          label={t('messages.replyLabel')}
+          placeholder={t('messages.replyPlaceholder')}
+          value={reply}
+          onChange={setReply}
+          maxLength={5000}
+        />
         <Button
           size="sm"
-          tone="quiet"
           fullWidth
-          onClick={() => { void markReplied(selected.id); }}
-          style={{ marginTop: '8px' }}
+          loading={sending}
+          disabled={sending || reply.trim().length < 2}
+          onClick={() => { void handleReply(); }}
+          style={{ marginTop: '10px' }}
         >
-          {t('messages.actions.markReplied')}
+          {t('messages.actions.sendReply')}
         </Button>
-      )}
+        {/* Ce que le geste déclenche, dit avant de le déclencher. */}
+        <p className="mt-2 mb-0 text-meta-2 text-ink-3">
+          {selected.userId ? t('messages.replyNoteAccount') : t('messages.replyNoteGuest')}
+        </p>
+      </div>
       <Button
         size="sm"
         tone="ghost"

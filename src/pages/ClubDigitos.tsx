@@ -145,7 +145,7 @@ export default function ClubDigitos() {
         />
 
         {/* ── 1 · Le héros, et ce que l'abonnement contient exactement ─────────── */}
-        <div className="mt-[26px] grid items-center gap-12 wide:grid-cols-[1.08fr_.92fr]">
+        <div className="mm-arc-host mt-[26px] grid items-center gap-12 wide:grid-cols-[1.08fr_.92fr]">
           <div>
             <SiteEyebrow>{t('publicPage.eyebrow')}</SiteEyebrow>
             <SiteDisplay arc lines={t('publicPage.titleLines', { returnObjects: true }) as string[]} size={58} from={1} />

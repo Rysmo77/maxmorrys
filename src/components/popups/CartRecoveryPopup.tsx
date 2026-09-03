@@ -64,19 +64,24 @@ export default function CartRecoveryPopup({
               as="p"
               className="text-sm wide:text-base font-bold text-white leading-snug line-clamp-2"
             />
+            {/*
+              LA NOTE ET LE NOMBRE D'INSCRITS ONT ÉTÉ RETIRÉS D'ICI — 2026-09-02.
+
+              Une étoile suivie de `formation.rating`, puis `formation.students`. Ce sont deux des
+              interdits ABSOLUS du système, et le kit les formule à la première personne :
+              « Je n'affiche ni note ni nombre d'inscrits : la plateforme vient d'ouvrir, je n'ai
+              rien d'honnête à en dire » (`Max-Morrys_DS_Platform/readme.md`).
+
+              Ils avaient été purgés du catalogue, de la fiche, et explicitement de
+              `FormationsEntryPopup` — dont le commentaire note qu'ils « survivaient sur le
+              déclencheur le plus large du registre ». Ils survivaient aussi ICI, c'est-à-dire sur
+              le déclencheur le PLUS PRIORITAIRE, que ce nettoyage avait manqué. Avec 5 comptes et
+              2 inscriptions à 0 % de progression, ces deux nombres se prennent en défaut en trente
+              secondes — devant le prospect le plus proche de l'achat de tout le site.
+
+              Reste ce qui se prouve : le prix, et le prix barré s'il y a une promotion.
+            */}
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
-              {formation.rating > 0 && (
-                <span className="inline-flex items-center gap-1">
-                  <Icon name="star" size={14} className="text-informe-txt" />
-                  {formation.rating.toFixed(1)}
-                </span>
-              )}
-              {formation.students > 0 && (
-                <span className="inline-flex items-center gap-1">
-                  <Icon name="users" size={14} />
-                  {formation.students}
-                </span>
-              )}
               {price !== null && (
                 <span className="font-bold text-white">{formatPrice(price)}</span>
               )}

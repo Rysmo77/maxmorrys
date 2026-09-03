@@ -131,11 +131,14 @@ export default function Blog() {
    * « Tout ». On garde donc la table dans les deux sens, et on ne redécoupe jamais rien.
    */
   const chips = useMemo(() => {
-    const tout = `${t('index.filterAll')} · ${posts.length}`;
+    /* Même raison que la ligne de titre : tant que la lecture n'a pas abouti, la puce ne
+       porte pas de compte. « Tout · 0 » sous un titre qui ne dit plus zéro rétablirait la
+       contradiction un cran plus bas. */
+    const tout = isLoading ? t('index.filterAll') : `${t('index.filterAll')} · ${posts.length}`;
     const table = new Map<string, string>([[tout, '']]);
     for (const [nom, n] of poles) table.set(`${nom} · ${n}`, nom);
     return { options: [...table.keys()], versPole: table, versLibelle: new Map([...table].map(([l, p]) => [p, l])) };
-  }, [poles, posts.length, t]);
+  }, [poles, posts.length, isLoading, t]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -181,24 +184,50 @@ export default function Blog() {
       )}
 
       <PageSite>
-        <SiteEyebrow>{t('index.eyebrow')}</SiteEyebrow>
         {/*
-          La première ligne porte un COMPTE RÉEL, dérivé de la liste. La contrainte d'AD-13
-          n'est pas que la ligne soit une constante — c'est qu'elle ne se replie jamais toute
-          seule. Elle est composée, puis rendue insécable.
-        */}
-        <SiteDisplay
-          arc
-          lines={[t('index.countLine', { count: posts.length }), t('index.freeLine')]}
-          size={52}
-          from={1}
-          /* Le kit pose 8 px sous le sourcil (`pages-core.jsx` § Blog). */
-          style={{ marginTop: '8px' }}
-        />
+          LE HÉROS A BESOIN D'UNE FRONTIÈRE, ET IL N'EN AVAIT PAS.
 
-        <p className="rv mt-[14px] max-w-[52ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 4 }}>
-          {t('index.lede')}
-        </p>
+          Sourcil, titre et chapô étaient des enfants DIRECTS de `PageSite`, comme la liste
+          qui suit : rien dans le DOM ne disait où le héros s'arrête. Le remplissage de l'arc
+          (AD-23) répond au survol du héros — posé sur `PageSite`, il aurait fait de la page
+          ENTIÈRE la cible, et le fragment serait resté peint en permanence.
+
+          Ce conteneur est neutre à la mise en page : `PageSite` ne déclare aucun `display`,
+          c'est donc un bloc, et trois blocs enveloppés dans un bloc tombent au même endroit.
+        */}
+        <div className="mm-arc-host">
+          <SiteEyebrow>{t('index.eyebrow')}</SiteEyebrow>
+          {/*
+            La première ligne porte un COMPTE RÉEL, dérivé de la liste. La contrainte d'AD-13
+            n'est pas que la ligne soit une constante — c'est qu'elle ne se replie jamais toute
+            seule. Elle est composée, puis rendue insécable.
+
+            ⚠️ ELLE N'ANNONCE PAS « 0 » TANT QUE LA BASE N'A PAS RÉPONDU.
+            `posts` vaut `[]` par défaut, donc le titre d'affichage — l'élément le plus lu de
+            la page, en 52 px — affirmait « 0 article » pendant tout le chargement, AU-DESSUS
+            de ses propres squelettes qui disent en même temps que du contenu arrive. La base
+            en publiait 46 : le premier écran contredisait le second.
+            C'est la règle 6 retournée contre elle-même — un nombre affiché sans avoir été
+            mesuré. Le zéro DATÉ reste une valeur ; le zéro d'un chargement n'en est pas une.
+            Le repli ne porte donc pas de compte, et la seconde ligne ne bouge pas : rien ne
+            saute quand la vraie ligne prend sa place.
+          */}
+          <SiteDisplay
+            arc
+            lines={[
+              isLoading ? t('index.loadingLine') : t('index.countLine', { count: posts.length }),
+              t('index.freeLine'),
+            ]}
+            size={52}
+            from={1}
+            /* Le kit pose 8 px sous le sourcil (`pages-core.jsx` § Blog). */
+            style={{ marginTop: '8px' }}
+          />
+
+          <p className="rv mt-[14px] max-w-[52ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 4 }}>
+            {t('index.lede')}
+          </p>
+        </div>
 
         <div className="rv mt-6 flex flex-wrap items-center justify-between gap-5" style={{ ['--i' as string]: 5 }}>
           <div className="min-w-0 flex-1 max-w-[640px]">

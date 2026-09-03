@@ -13,6 +13,7 @@ import { updateProfile } from 'firebase/auth';
 import { uploadMedia } from '../../lib/storage';
 import { captureError } from '../../lib/sentry';
 import { trackEvent } from '../../lib/tracking';
+import { useDialogA11y } from '../../hooks/useDialogA11y';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -90,17 +91,82 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     }
   };
 
+  /**
+   * LA SORTIE DE L'ENSEMBLE — Échap, et « Plus tard » en pied de chaque étape.
+   *
+   * Elle MARQUE `onboardingCompleted`, exactement comme la fin du parcours. Sans ça, fermer
+   * ne serait pas sortir : `StudentLayout` remonte l'écran tant que le champ est absent
+   * (`userData.onboardingCompleted === undefined`), et la personne retrouverait le même mur
+   * à chaque session. Une porte qui rouvre sur la même pièce n'est pas une porte.
+   *
+   * Rien d'irrattrapable ne se perd en partant : l'étape 1 enregistre nom, photo et bio dès
+   * qu'on la valide, et les trois restent modifiables dans « Profil ». C'est ce que le
+   * libellé dit, pour qu'on puisse sortir sans se demander ce qu'on abandonne.
+   *
+   * `method` sépare les deux sorties dans le suivi : sans cette distinction, un abandon
+   * massif au premier écran se lirait comme un onboarding réussi.
+   */
+  const handleSkipAll = async () => {
+    if (!user) return onComplete();
+    try {
+      await updateUserProfile(user.uid, { onboardingCompleted: true });
+      await refreshUserData();
+      trackEvent('onboarding_completed', { method: 'skipped' });
+    } catch (error: unknown) {
+      captureError(error, { context: 'Failed to skip onboarding' });
+      // La sortie ne reste JAMAIS bloquée par un échec d'écriture : l'écran se ferme quand
+      // même, quitte à reparaître à la prochaine session. Le contraire enfermerait la
+      // personne sur une coupure réseau, ce qui est exactement le défaut qu'on corrige.
+    }
+    onComplete();
+  };
+
+  /* Verrouillage du défilement, Échap, piège de focus et restitution du focus d'origine. */
+  const dialogRef = useDialogA11y(true, () => { void handleSkipAll(); });
+
   const initials = (displayName || user?.email?.split('@')[0] || 'É')
     .split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
+      {/*
+        ═══════════════════════════════════════════════════════════════════════════════
+        C'EST UN DIALOGUE MODAL, ET IL NE LE DISAIT À PERSONNE.
+
+        Ce panneau recouvre tout l'écran et c'est le PREMIER que voit une personne qui vient
+        de créer son compte. Il ne portait ni `role="dialog"`, ni `aria-modal`, ni fermeture
+        par Échap, ni piège de focus, ni restitution du focus — seul recouvrement du dépôt
+        dans ce cas, avec `admin/components/UserEditModal`. Les pop-ups contextuelles, la
+        prise de rendez-vous, la fiche membre du Club, la feuille de console et les
+        primitives `Modal`/`Sheet` passent tous par `useDialogA11y`.
+
+        Ce que ça coûtait, concrètement : au lecteur d'écran, la page derrière restait
+        annoncée et rien ne signalait qu'un dialogue s'était ouvert ; au clavier, la
+        tabulation sortait du panneau vers un contenu inerte et le focus se perdait ; Échap
+        ne faisait rien. Il existait bien un « passer cette étape », mais AUCUNE sortie de
+        l'ensemble : tant que les trois étapes n'étaient pas franchies, l'écran revenait à
+        chaque session — `onboardingCompleted` n'étant écrit qu'à la fin.
+
+        `useDialogA11y` apporte les quatre mécaniques d'un coup. Sa fermeture est câblée sur
+        `handleSkipAll`, et non sur un simple `onComplete()` : fermer sans marquer aurait
+        fait revenir le mur à la visite suivante, c'est-à-dire échangé un piège contre une
+        boucle.
+        ═══════════════════════════════════════════════════════════════════════════════
+      */}
       <motion.div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-titre"
+        tabIndex={-1}
         className="w-full max-w-lg bg-surface-sheet rounded-3xl shadow-2xl overflow-hidden"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
+        {/* Le nom du dialogue, pour qui l'entend plutôt que de le voir. La ligne visible est
+            un titre d'étape qui change à chaque écran : elle ne peut pas nommer l'ensemble. */}
+        <h2 id="onboarding-titre" className="sr-only">{t('onboarding.dialogLabel')}</h2>
 
         {/* Progress bar */}
         <div className="h-1 bg-[color:var(--fill-3)]">
@@ -302,6 +368,25 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               </div>
             </div>
           )}
+        </div>
+
+        {/*
+          LA SORTIE VISIBLE. Échap seul ne suffit pas : sur le marché visé cet écran se
+          traverse au pouce, et personne n'a de touche Échap sur un téléphone. Elle est
+          discrète — c'est un onboarding, pas un péage — mais elle est sur les TROIS
+          étapes, y compris la première, qui est celle où l'on veut sortir.
+
+          `type="button"` explicitement : l'étape 1 contient un formulaire, et un bouton
+          sans type y vaut `submit`. Sortir aurait déclenché l'enregistrement du profil.
+        */}
+        <div className="border-t border-[color:var(--border-hair)] px-8 py-3 text-center">
+          <button
+            type="button"
+            onClick={() => { void handleSkipAll(); }}
+            className="mm-touch-extend text-meta-2 text-ink-2 hover:text-ink transition-colors duration-ui"
+          >
+            {t('onboarding.skipAll')}
+          </button>
         </div>
       </motion.div>
     </div>

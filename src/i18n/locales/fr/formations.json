@@ -171,15 +171,22 @@
     "c3": "Tu paies en Wave, en Orange Money ou par carte",
     "c4": "Certificat vérifiable par son code, sans compte",
     "emptyTitle": "Le catalogue ouvre bientôt.",
-    "emptyBody": "Aucune formation n'est encore en ligne. Je préfère te le dire que te faire cliquer dans le vide. Crée ton compte : je t'alerte dans ton espace le jour de la mise en ligne.",
+    "emptyBody": "Aucune formation n'est encore en ligne. Je préfère te le dire que te faire cliquer dans le vide. Crée ton compte maintenant : il sera prêt le jour de l'ouverture, et tu n'auras rien à remplir ce jour-là.",
     "emptyCta": "Crée ton compte",
-    "emptyNote": "Pas de « préviens-moi par e-mail » : le produit n'a aucun canal d'envoi. L'alerte arrive dans ton espace.",
+    "emptyNote": "Pas de « préviens-moi par e-mail » : il n'y a pas encore de lettre, et je ne te fais pas remplir un champ qui ne sert à rien. En attendant, le blog paraît chaque semaine.",
     "lifetime": "Une fois, accès à vie",
     "cardModules_one": "{{count}} module",
     "cardModules_other": "{{count}} modules",
     "cardLessons_one": "{{count}} leçon",
     "cardLessons_other": "{{count}} leçons",
-    "includesTitle": "Ce que comprend chaque formation"
+    "includesTitle": "Ce que comprend chaque formation",
+    "loadingLine": "Les formations.",
+    "whyTitleEmpty": [
+      "Pourquoi il n'y en",
+      "aura que deux."
+    ],
+    "whyBodyEmpty": "Je préfère deux formations que je tiens à jour à un catalogue qui fait nombre. Le module d'ouverture de chacune sera en accès libre : tu jugeras avant de payer.",
+    "emptyReadTitle": "En attendant, à lire"
   },
   "sheet": {
     "eyebrow": "Je te forme",

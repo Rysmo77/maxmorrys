@@ -44,7 +44,15 @@ export interface SiteDisplayProps {
    */
   wrap?: boolean;
   /**
-   * UN FRAGMENT DU TITRE SE REMPLIT DE L'ARC, à l'entrée puis au survol (AD-23).
+   * UN FRAGMENT DU TITRE SE REMPLIT DE L'ARC AU SURVOL (AD-23).
+   *
+   * Le survol porte sur le HÉROS de la page, pas sur le fragment : viser sept lettres au
+   * milieu d'un titre demanderait une précision que personne n'a. C'est donc le héros qui
+   * porte `.mm-arc-host`, et la règle descend de là.
+   *
+   * Le titre le porte AUSSI, ci-dessous — non comme un doublon, mais comme plancher : un
+   * `SiteDisplay arc` posé hors de tout héros répond quand même, au lieu de ne jamais
+   * s'allumer sans que rien ne le signale.
    *
    * Le fragment est marqué DANS LA CHAÎNE, entre crochets — « AU [DIGITAL]. ». C'est le seul
    * endroit où il peut vivre : AD-13 pose que les titres ne sont pas traduits mais ÉCRITS par
@@ -105,6 +113,8 @@ export function SiteDisplay({ lines, size = 64, as: Tag = 'h1', from = 0, wrap =
   return (
     <Tag
       id={id}
+      // Le plancher de survol : le héros fait la vraie cible — voir la prop `arc`.
+      className={arc ? 'mm-arc-host' : undefined}
       style={{
         fontFamily: 'var(--f-display)',
         fontWeight: 900,
@@ -140,8 +150,8 @@ export function SiteDisplay({ lines, size = 64, as: Tag = 'h1', from = 0, wrap =
         >
           {arc
             ? segments(line).map((part, j) =>
-                // Impair = entre crochets. `.mm-arc` hérite du `--i` de la ligne : le
-                // remplissage part quand sa ligne part, et dure aussi longtemps qu'elle.
+                // Impair = entre crochets. Le fragment ne porte que la peinture ; le
+                // survol lui arrive du titre, par `.mm-arc-host`.
                 j % 2 === 1
                   ? <span key={j} className="mm-arc">{part}</span>
                   : part)

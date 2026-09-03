@@ -117,6 +117,19 @@ export interface UserPreferences {
   language: 'fr' | 'en';
   newsletter: boolean;
   aiMemoryConsent?: boolean;
+  /**
+   * PRÉVENIR À LA PUBLICATION — un consentement, jamais un défaut.
+   *
+   * Trois surfaces promettaient « je t'alerte dans ton espace le jour de la mise en ligne »
+   * sans qu'aucun producteur n'existe. Le producteur existe maintenant
+   * (`notifyOnPublish`, côté Worker) — et il ne s'adresse QU'aux comptes qui ont coché ceci.
+   *
+   * ⚠️ `undefined` vaut NON, et c'est la seule lecture acceptable. Notifier tous les comptes
+   * existants parce qu'ils n'ont rien refusé, ce serait exactement le spam que ce champ
+   * existe pour empêcher : personne ne peut consentir à une case qui n'existait pas encore
+   * quand il s'est inscrit. L'adhésion se fait dans les réglages, en connaissance de cause.
+   */
+  notifyOnPublish?: boolean;
 }
 
 export interface RysmoProfile {
@@ -494,6 +507,19 @@ export interface ContactMessage {
   sentAt: string;
   status: 'new' | 'read' | 'replied';
   userId?: string;
+  /**
+   * LA RÉPONSE, ET C'EST ELLE QUI MANQUAIT À TOUTE LA BOUCLE.
+   *
+   * `status: 'replied'` existait déjà — mais posé à la main depuis la console, sans qu'aucun
+   * texte n'existe nulle part. La personne voyait une étiquette verte « Répondu » dans son
+   * espace et n'avait rien à lire. Ces trois champs sont écrits par la callable
+   * `replyToMessage` (Worker), jamais par le client : `status` devient la conséquence d'une
+   * réponse réelle au lieu d'en être la déclaration.
+   */
+  reply?: string;
+  repliedAt?: string;
+  /** UID de l'administrateur qui a répondu. Traçabilité, jamais affichée. */
+  repliedBy?: string;
 }
 
 export interface Coupon {

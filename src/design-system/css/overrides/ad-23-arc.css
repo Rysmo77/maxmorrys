@@ -8,10 +8,30 @@
        Il est devenu une CIBLE : `--ink-2` au repos comme les autres commandes de la barre,
        l'arc au survol. Là, le survol est le bon déclencheur : c'est un lien.
 
-     · UN FRAGMENT DE TITRE, sur les neuf pages publiques. Un `h1` n'est PAS une cible : sur
-       mobile il n'y a pas de survol, et un effet qui ne répond qu'au curseur promet un clic
-       qui n'existe pas. Le fragment se remplit donc À L'ENTRÉE, dans la cascade `.rv-l` que
-       la page joue déjà, et le survol ne fait que REJOUER le balayage.
+     · UN FRAGMENT DE TITRE, sur les neuf pages publiques. Le remplissage y répond AU SURVOL
+       SEUL — décision du produit, prise en connaissance de sa contrepartie : il n'existe pas
+       sur mobile, où il n'y a pas de curseur. C'est ce qui le range du côté de l'ornement et
+       non de l'information : un fragment jamais survolé reste à l'encre du titre, lisible et
+       complet, et rien de ce que la page doit dire ne dépend de cet effet.
+
+       LA CIBLE EST LE HÉROS ENTIER, PAS LE FRAGMENT. Viser « DIGITAL » dans « AU DIGITAL. »
+       demanderait de poser le curseur sur sept lettres ; personne ne les trouverait. Le
+       survol est donc reçu par `.mm-arc-host`, et cette classe se pose à DEUX niveaux :
+
+         · sur le HÉROS de chaque page — c'est la cible réelle, celle qu'on traverse en
+           arrivant, et celle que le produit a demandée ;
+         · sur le `h1`/`h2` lui-même, posé par `SiteDisplay` quand `arc` est vrai.
+
+       Le second n'est pas un doublon mais un PLANCHER : un titre placé hors de tout héros
+       répond quand même, au lieu de ne jamais s'allumer sans que rien ne le signale. Les deux
+       portent la même déclaration — imbriqués, ils ne peuvent pas se contredire.
+
+       ⚠️ CE QUI INTERDIT DE POSER LA CLASSE SUR `PageSite`. Deux pages — formations et blog —
+       n'avaient AUCUNE frontière de héros : sourcil, titre et chapô y étaient des enfants
+       directs de `PageSite`, comme la liste en dessous. La solution paresseuse aurait été de
+       viser `PageSite` ; elle aurait fait de la PAGE ENTIÈRE la cible, et le fragment serait
+       resté peint en permanence — c'est-à-dire exactement l'état d'avant AD-23. Ces deux
+       pages ont reçu un conteneur, neutre à la mise en page.
 
    POURQUOI DEUX COUCHES ET PAS UN PSEUDO-ÉLÉMENT. La façon habituelle de remplir du texte
    est un `::after` en `content:attr(...)` que l'on découpe. Elle DUPLIQUE le texte dans le
@@ -81,15 +101,20 @@
    dans un `h1` en encre pleine se lirait comme désactivé, ou comme un bug. `currentColor`
    donne les deux sans que la primitive ait à les connaître.
 
-   LE RETARD SUIT LA CASCADE DE LA LIGNE. `--i` est posé par `SiteDisplay` sur le `.rv-l`
-   parent et les propriétés personnalisées héritent : le remplissage part exactement quand sa
-   ligne part, et dure `--t-scene` comme elle. La ligne se dévoile de bas en haut pendant que
-   la couleur traverse de gauche à droite — une seule arrivée, pas deux animations empilées.
+   UNE SEULE TRANSITION, AUCUN RETARD, AUCUNE `@keyframes`. Une version précédente faisait
+   jouer le remplissage à l'entrée de l'écran, calé sur la cascade `.rv-l` par un
+   `transition-delay` lu sur `--i`, et gardait des keyframes pour REJOUER le balayage au
+   survol d'un fragment déjà peint. Les deux sont partis avec le déclenchement à l'entrée :
+   un retard hérité de la cascade se serait appliqué à la SORTIE du curseur, et le fragment
+   aurait tardé à se dépeindre d'autant plus qu'il était bas dans le titre.
+
+   `--t-enter` (380 ms) et non `--t-scene` (700 ms) : le survol est une réponse, et 700 ms
+   traîne — sur le mot-symbole de la barre haute comme sur un titre.
 
    RIEN À ÉCRIRE POUR LE MOUVEMENT RÉDUIT. `brand/fallback.css` ramène toutes les durées à
-   1 ms à la racine, une seule fois (règle 4 / AD-7), et `useReveal` pose `.play` d'emblée :
-   le fragment est peint, sans balayage. Une seconde déclaration ici gagnerait par ordre de
-   chargement et rétablirait ce que la personne a refusé. */
+   1 ms à la racine, une seule fois (règle 4 / AD-7) : le survol peint alors le fragment d'un
+   coup, sans balayage. Une seconde déclaration ici gagnerait par ordre de chargement et
+   rétablirait ce que la personne a refusé. */
 .mm-arc{
   background-image:var(--arc),linear-gradient(currentColor,currentColor);
   background-size:0% 100%,100% 100%;
@@ -100,33 +125,29 @@
   -webkit-text-fill-color:transparent;
   /* `background-size` dimensionne une PEINTURE, pas une boîte : rien à remettre en page,
      aucun reflow. AD-16 vise `width`/`height` et consorts, qui déplacent le voisinage. */
-  transition:background-size var(--t-scene) var(--ease-out);
-  transition-delay:calc(var(--i,0) * var(--stagger-line));
+  transition:background-size var(--t-enter) var(--ease-out);
 }
 
-/* La scène a joué : le fragment RESTE peint. Une mise en valeur de titre qui repartirait
-   après son entrée se lirait comme un raté d'affichage, pas comme une intention. */
-.play .mm-arc{
-  background-size:100% 100%,100% 100%;
-}
+/* LES TROIS PORTÉES DE SURVOL, et pourquoi il en faut trois.
 
-/* Le survol répond tout de suite — pas de retard de cascade — et REJOUE le balayage sur un
-   fragment déjà peint. `@keyframes` sans `to` reprend la valeur calculée : l'animation part
-   de zéro et revient là où l'élément était, sans avoir à répéter `100% 100%`.
+   `.mm-arc-host:hover` — le héros, et le titre en plancher. C'est la cible réelle sur une
+   page : on survole un bloc d'arrivée, pas sept lettres au milieu d'un titre.
 
-   Sur le mot-symbole, qui n'est jamais dans une portée `.play`, la même règle fait le
-   remplissage tout court : il part de `0%` et y retourne à la sortie du curseur.
+   `a:hover >` — le mot-symbole depuis TOUT son lien, pilule de 44 px comprise. Sans elle, le
+   remplissage s'arrêterait au bord des lettres alors que le lien, lui, réagit déjà.
 
-   `a:hover >` fait répondre le mot-symbole depuis TOUT son lien, pilule de 44 px comprise, et
-   `a:focus-visible >` donne la même réponse au clavier. */
+   `.mm-arc:hover` — le fragment lui-même, filet de sécurité pour tout usage futur de la
+   primitive hors d'un titre et hors d'un lien.
+
+   `a:focus-visible >` donne au CLAVIER la réponse que le survol donne à la souris. Elle ne
+   vaut que pour le mot-symbole : lui est un lien, un titre ne se focalise pas. C'est la
+   contrepartie assumée du survol seul, pas un oubli. */
 .mm-arc:hover,
+.mm-arc-host:hover .mm-arc,
 a:hover > .mm-arc,
 a:focus-visible > .mm-arc{
   background-size:100% 100%,100% 100%;
-  transition-delay:0s;
-  animation:mm-arc var(--t-enter) var(--ease-out);
 }
-@keyframes mm-arc{from{background-size:0% 100%,100% 100%}}
 
 /* ── LE MOT-SYMBOLE ───────────────────────────────────────────────────────────
    Tout ce qui lui reste en propre : l'aplat de repos. `Wordmark` ne pose plus que la

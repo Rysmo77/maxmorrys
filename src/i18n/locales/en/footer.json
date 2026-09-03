@@ -29,11 +29,10 @@
   "copyright": "© {{year}} Max-Morrys. All rights reserved.",
   "operatedByPrefix": "Max-Morrys is a brand operated by",
   "followTitle": "Follow what I publish",
-  "followText": "The blog is the one place I write every week. Two ways not to miss anything.",
+  "followText": "The blog is the one place I write every week. The feed tells you; the account waits for you.",
   "rss": "RSS feed",
   "rssAction": "Copy the link",
-  "alert": "Alert in your space",
+  "alert": "Your account, ready for opening day",
   "alertAction": "Create an account",
-  "noEmail": "There's no email newsletter yet. I won't make you fill a field that does nothing.",
-  "registeredOn": "Registered on"
+  "noEmail": "There's no email newsletter yet, and no alert when I publish: the feed is the only way to follow. I'd rather tell you than have you open an account for nothing."
 }

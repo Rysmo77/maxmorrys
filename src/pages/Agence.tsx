@@ -248,7 +248,7 @@ export default function Agence() {
 
       <PageSite>
         {/* ── LE HÉROS — 1fr 1fr, gouttière 44, aligné au centre ────────────── */}
-        <div className="grid items-center gap-11 pb-[14px] wide:grid-cols-2">
+        <div className="mm-arc-host grid items-center gap-11 pb-[14px] wide:grid-cols-2">
           <div>
             {/* La seule marque de couleur de la page, et sa version TEXTE. Le kit écrit ici
                 `#B4231F` — qui est `--stop`, la couleur d'un échec, pas celle de l'agence. */}

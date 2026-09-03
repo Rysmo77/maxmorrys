@@ -39,16 +39,31 @@ import { markCartPending } from '../../lib/popups/cart';
  * présentés comme un contrôle. C'est la même décision que l'interrupteur grisé de `Switch` :
  * dire ce que le produit fait plutôt que laisser croire.
  *
- * ⚠️ ÉCART SIGNALÉ, NON CORRIGÉ (hors lot) : LE TOTAL AFFICHÉ IGNORE LE CODE PROMO.
+ * ✅ L'ÉCART DU TOTAL EST FERMÉ — LE MONTANT AFFICHÉ EST CELUI QUI SERA DÉBITÉ.
  *
- * `finalPrice` est lu ICI, dans le navigateur, sur la copie de catalogue (`promoPrice ??
- * price`). Le serveur, lui, valide le coupon et débite `finalPrice - couponDiscount`. Quelqu'un
- * qui saisit un code voit donc « Payer 95 000 » et se fait débiter moins. `couponHint` le dit
- * en toutes lettres au lieu de le laisser découvrir, et `serverComputed` reprend la phrase du
- * kit — « Montant calculé et débité côté serveur ». La vraie correction est de faire calculer
- * le total par une fonction serveur avant l'affichage ; elle n'appartient pas à ce lot.
+ * `finalPrice` était lu ICI, dans le navigateur, sur la copie de catalogue (`promoPrice ??
+ * price`), tandis que le serveur validait le coupon et débitait `finalPrice - couponDiscount`.
+ * Quelqu'un qui saisissait un code voyait donc « Payer 95 000 » et se faisait débiter moins.
+ *
+ * La correction n'a pas été « afficher le bon nombre » — ç'aurait été remettre deux calculs
+ * en présence, qui auraient divergé au premier coupon d'un type nouveau. C'est `quoteCheckout`
+ * (Worker) qui rend le total, et il appelle `resolveCheckoutTotal`, LA MÊME fonction que
+ * `createBictorysCharge`. Les deux montants sortent de la même source : ils ne peuvent plus
+ * se contredire, par construction.
+ *
+ * Le prix catalogue reste affiché tant que le devis n'a pas répondu — il est juste en
+ * l'absence de coupon, qui est le cas courant, et il évite un écran vide au premier rendu.
  * ═════════════════════════════════════════════════════════════════════════════
  */
+
+/**
+ * LE DEVIS. Il ne crée rien, ne consomme aucun usage de coupon, et peut être rejoué à chaque
+ * validation du champ de code. C'est lui qui rend le montant que l'écran affiche.
+ */
+const quoteCheckout = httpsCallable<
+  { formationId: string; couponCode?: string },
+  { basePrice: number; couponDiscount: number; finalPrice: number; couponApplied: boolean }
+>(functions, 'quoteCheckout');
 
 const createBictorysCharge = httpsCallable<
   { formationId: string; formationSlug: string; metaEventId?: string; couponCode?: string },
@@ -75,6 +90,10 @@ export default function Checkout() {
 
   const [formation, setFormation] = useState<Formation | null | undefined>(undefined);
   const [couponCode, setCouponCode] = useState('');
+  /** Le devis serveur. `null` tant qu'il n'a pas répondu — voir plus bas. */
+  const [quote, setQuote] = useState<{ finalPrice: number; couponDiscount: number; couponApplied: boolean } | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const [couponError, setCouponError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   /** L'instant de la lecture du catalogue : c'est la date de relevé du prix affiché. */
@@ -137,9 +156,43 @@ export default function Checkout() {
     );
   }
 
-  const finalPrice = formation.promoPrice ?? formation.price;
-  const isFree = finalPrice === 0;
+  /*
+   * ── LE MONTANT AFFICHÉ VIENT DU SERVEUR DÈS QU'IL A RÉPONDU ────────────────────────────
+   *
+   * `quote` est `null` tant que le devis n'est pas revenu. On retombe alors sur le prix
+   * catalogue, qui est JUSTE en l'absence de coupon — le cas courant — et qui évite un
+   * écran de paiement vide au premier rendu. Dès qu'un code est validé, c'est le montant
+   * du serveur qui s'affiche, et c'est exactement celui qui sera débité.
+   */
+  const catalogPrice = formation.promoPrice ?? formation.price;
+  const finalPrice = quote?.finalPrice ?? catalogPrice;
+  const isFree = catalogPrice === 0;
   const lessonCount = (formation.modules ?? []).reduce((a, m) => a + m.lessons.length, 0);
+
+  /**
+   * Demande au serveur ce que coûterait cette commande avec ce code.
+   *
+   * ⚠️ ON N'AFFICHE JAMAIS UN TOTAL QU'ON A CALCULÉ SOI-MÊME. En cas d'échec — code refusé,
+   * réseau coupé — `quote` retombe à `null` et l'écran réaffiche le prix catalogue, qui est
+   * le prix sans coupon, donc vrai. Le contraire — garder un total remisé après un refus —
+   * afficherait un montant que le paiement démentirait trente secondes plus tard.
+   */
+  const applyCoupon = async () => {
+    if (!formation || !couponCode.trim()) return;
+    setQuoting(true);
+    setCouponError('');
+    try {
+      const { data } = await quoteCheckout({ formationId: formation.id, couponCode: couponCode.trim() });
+      setQuote({ finalPrice: data.finalPrice, couponDiscount: data.couponDiscount, couponApplied: data.couponApplied });
+      setReadAt(new Date());
+    } catch (error: unknown) {
+      setQuote(null);
+      // Le serveur renvoie déjà une phrase lisible ; on ne la remplace que si elle manque.
+      const message = (error as { message?: string })?.message;
+      setCouponError(message || t('checkout.couponInvalid'));
+    }
+    setQuoting(false);
+  };
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -315,11 +368,35 @@ export default function Checkout() {
               <Field
                 label={t('checkout.couponLabel')}
                 value={couponCode}
-                onChange={setCouponCode}
+                onChange={(v) => { setCouponCode(v); setCouponError(''); }}
                 placeholder={t('checkout.couponPlaceholder')}
-                hint={t('checkout.couponHint')}
+                hint={quoting ? t('checkout.couponChecking') : t('checkout.couponHint')}
+                error={couponError || undefined}
                 autoComplete="off"
               />
+              {/*
+                LE CODE SE VALIDE SUR DEMANDE, PAS À LA FRAPPE.
+                Un devis par caractère saisi, c'est une requête pour chaque lettre d'un code
+                à huit signes, et surtout une erreur « code invalide » affichée pendant qu'on
+                le tape. La demande explicite laisse finir d'écrire.
+              */}
+              <Button
+                tone="quiet"
+                size="sm"
+                fullWidth={false}
+                loading={quoting}
+                disabled={quoting || !couponCode.trim()}
+                onClick={() => void applyCoupon()}
+                style={{ marginTop: '10px' }}
+              >
+                {t('checkout.couponApply')}
+              </Button>
+              {quote?.couponApplied && (
+                <p className="mt-2 mb-0 text-small text-ok">
+                  {t('checkout.couponApplied')}{' '}
+                  <Num value={quote.couponDiscount} unit="FCFA" source="server" asOf={readAt} showAsOf={false} />
+                </p>
+              )}
             </div>
           </>
         )}

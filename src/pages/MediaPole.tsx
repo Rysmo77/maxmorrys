@@ -177,7 +177,7 @@ export default function MediaPole() {
           La carte vedette est le média le plus récent, pas un choix éditorial : il n'existe
           aucun champ « à la une » sur `Podcast` ni sur `Video`.
         */}
-        <div className="mt-[26px] grid items-center gap-[44px] wide:grid-cols-[.92fr_1.08fr]">
+        <div className="mm-arc-host mt-[26px] grid items-center gap-[44px] wide:grid-cols-[.92fr_1.08fr]">
           <div>
             {/* Garde-fou 2 : « gratuit » est dans le premier écran, dans le sourcil. */}
             <SiteEyebrow>{t('pole.eyebrow')}</SiteEyebrow>

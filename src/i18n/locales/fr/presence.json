@@ -6,7 +6,6 @@
   "heroTitle2": "[trouvable]",
   "heroSubtitle": "Aujourd'hui, ils trouvent tes concurrents. Je mets en place tout ce qu'il faut pour qu'on te trouve, qu'on te contacte, et que tu saches enfin ce que ça te rapporte.",
   "heroCta": "Trouve ton pack en 3 questions",
-  "heroSecondary": "En parler sur WhatsApp",
   "stickyCta": "Poser ma question sur WhatsApp",
   "proof": {
     "title": "Fais le test tout de suite",
@@ -17,7 +16,8 @@
     "areaPlaceholder": "Point E, Dakar",
     "cta": "Voir qui sort avant toi",
     "note": "C'est exactement le problème que je règle en premier.",
-    "eyebrow": "La preuve, tout de suite"
+    "eyebrow": "La preuve, tout de suite",
+    "ctaHint": "Renseigne ton métier pour lancer le test. Le quartier est facultatif — il affine le résultat."
   },
   "whatsapp": {
     "greeting": "Bonjour Max-Morrys 👋",
@@ -111,7 +111,7 @@
     "subtitle": "Un paiement unique pour tout installer. Hors publicité, nom de domaine et abonnements tiers.",
     "priceLabel": "Mise en place",
     "promoLabel": "Prix de lancement : {{price}}",
-    "featured": "Le plus choisi",
+    "featured": "Si tu vends déjà",
     "recommended": "Recommandé pour toi",
     "cta": "Demander ce pack",
     "supportIncluded": "{{days}} jours de support inclus",
