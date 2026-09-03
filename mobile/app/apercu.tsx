@@ -136,12 +136,22 @@ const PLANCHE: Groupe[] = [
 const ATELIER = process.env.EXPO_PUBLIC_CONTENU_DEMO === '1' || __DEV__;
 
 export default function Apercu() {
+  /*
+   * LE HOOK PASSE AVANT LE RETOUR ANTICIPÉ, ET PAS PAR PRÉFÉRENCE DE STYLE.
+   *
+   * `useToken()` était appelé APRÈS `if (!ATELIER) return` : deux chemins de rendu, deux
+   * suites de hooks différentes. Ici `ATELIER` est une constante de module, donc l'ordre ne
+   * change jamais À L'EXÉCUTION et rien ne casse — mais la règle ne lit pas la constante, et
+   * `eslint .` rend une ERREUR. C'est le job `lint-and-build` de la CI, donc `deploy` qui en
+   * dépend : la porte du déploiement était fermée par ces deux lignes.
+   */
+  const t = useToken();
+
   /* La planche liste les 48 écrans, systèmes et états compris. C'est un outil de revue :
      elle n'a aucun sens pour quelqu'un qui utilise le produit, et elle se lit en revue de
      magasin comme une application inachevée. */
   if (!ATELIER) return <Redirect href="/" />;
 
-  const t = useToken();
   const total = PLANCHE.reduce((n, g) => n + g.ecrans.length, 0);
 
   return (
