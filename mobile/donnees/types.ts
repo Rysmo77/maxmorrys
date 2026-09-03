@@ -60,3 +60,9 @@ export interface VueCertificats {
   certificats: VueCertificat[];
   incomplets: number;
 }
+
+export interface VueClub {
+  echeance: string | null;
+  depuis: string | null;
+  bilan: ReadonlyArray<{ n: number | null; l: string }>;
+}

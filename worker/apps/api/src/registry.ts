@@ -1,6 +1,7 @@
 import type { CallContext } from './context';
 import { acknowledgeAppointment } from './handlers/acknowledgeAppointment';
 import { resendTransactionMail } from './handlers/resendTransactionMail';
+import { appClub } from './handlers/app/club';
 import { appCertificats } from './handlers/app/certificats';
 import { appCours } from './handlers/app/cours';
 import { appEspace } from './handlers/app/espace';
@@ -65,6 +66,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   // Administration
   adminCreateUser,
   appCertificats,
+  appClub,
   appCours,
   appEspace,
   appMoi,

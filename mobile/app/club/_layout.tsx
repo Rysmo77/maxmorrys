@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Body, Display, Eyebrow, Num, Screen, Surface, useToken } from '../../ds';
-import { CLUB, RELEVE as REFERENCE_ASOF, SOURCE as REFERENCE_SOURCE } from '../../contenu/demo';
+import { RELEVE as REFERENCE_ASOF, SOURCE as REFERENCE_SOURCE } from '../../contenu/demo';
+import { useClub } from '../../donnees';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -124,6 +125,7 @@ export function ClubScreen({ titre, children }: { titre: string; children: React
  * flatteur inventé se paierait le plus cher : c'est celui qu'on regarde avant de renoncer.
  */
 export function Bilan() {
+  const club = useClub();
   const p = useLocalSearchParams<{
     depuis?: string; echeance?: string; rappel?: string; releve?: string;
     sessions?: string; opportunites?: string; missions?: string;
@@ -146,19 +148,21 @@ export function Bilan() {
   const stats = deReference
     /* Aucun relevé transmis. En démonstration, le contenu du transfert ; en production, trois
        « non relevé » — le bilan garde sa PLACE, ce sont ses chiffres qui manquent. */
-    ? (CLUB?.bilan ?? [
+    ? (club.valeur?.bilan ?? [
       { n: null, l: 'sessions suivies' },
       { n: null, l: 'opportunités vues' },
       { n: null, l: 'missions décrochées' },
-    ]).map((b) => ({ value: b.n as number | null, asOf: REFERENCE_ASOF, label: b.l }))
+    ]).map((b: { n: number | null; l: string }) => ({
+      value: b.n, asOf: REFERENCE_ASOF, label: b.l,
+    }))
     : [
       { ...mesure(p.sessions, asOf), label: 'sessions suivies' },
       { ...mesure(p.opportunites, asOf), label: 'opportunités vues' },
       { ...mesure(p.missions, asOf), label: 'missions décrochées' },
     ];
 
-  const depuis = texte(p.depuis) ?? CLUB?.depuis ?? null;
-  const echeance = texte(p.echeance) ?? CLUB?.echeance ?? null;
+  const depuis = texte(p.depuis) ?? club.valeur?.depuis ?? null;
+  const echeance = texte(p.echeance) ?? club.valeur?.echeance ?? null;
   const rappel = texte(p.rappel);
 
   return (

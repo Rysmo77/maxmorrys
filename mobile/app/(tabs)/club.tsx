@@ -3,7 +3,8 @@ import {
   Body, CheckLine, Display, Eyebrow, Icon, LessonRow, Screen,
   Surface, type IconName, isIOS, useToken,
 } from '../../ds';
-import { CLUB, QUOTA } from '../../contenu/demo';
+import { QUOTA } from '../../contenu/demo';
+import { useClub } from '../../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -42,6 +43,7 @@ const ONGLETS: Array<{ href: string; icon: IconName; titre: string; ligne: strin
 
 export default function Club() {
   const t = useToken();
+  const club = useClub();
 
   return (
     <Screen territory="transforme" tabbar titre={isIOS ? undefined : 'Le Club'}>
@@ -63,9 +65,9 @@ export default function Club() {
           acquis. Membre, les huit onglets vivent ; non-membre, ils restent visibles et
           cadenassés — voir ce à quoi on n'a pas accès n'est pas une vente, c'est une carte. */}
       <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
-        <Display size={19}>{CLUB === null ? 'Le Club est réservé aux membres.' : 'Tu es membre.'}</Display>
+        <Display size={19}>{club.valeur === null ? 'Le Club est réservé aux membres.' : 'Tu es membre.'}</Display>
         <Body muted style={{ marginTop: 9, fontSize: 13.5, lineHeight: 21 }}>
-          {CLUB === null
+          {club.valeur === null
             ? "Ton accès s'ouvre ici dès qu'il est actif — les sessions, le fil, les opportunités, tout arrive dans cette application, sans rien à faire de plus."
             : 'Tout ce qui suit est ouvert. Les sessions en direct, le fil, les opportunités et le classement se rejoignent depuis les onglets ci-dessous.'}
         </Body>

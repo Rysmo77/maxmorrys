@@ -13,10 +13,10 @@
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 import type { Etat } from '../ds';
-import { FORMATION, FORMATION_2, MOI } from '../contenu/demo';
+import { CLUB, FORMATION, FORMATION_2, MOI } from '../contenu/demo';
 import { composer, composerListe } from './etat';
 export { provenance } from './etat';
-import type { VueCertificats, VueCours, VueEspace, VueMoi } from './types';
+import type { VueCertificats, VueClub, VueCours, VueEspace, VueMoi } from './types';
 import { useVue } from './vue';
 
 export { SessionProvider, useSession, useUid } from './session';
@@ -24,7 +24,7 @@ export { connexionEmail, creationEmail, deconnexion, reinitialiser, ErreurIdenti
 export { exporterMesDonnees } from './rgpd';
 export { appeler, ErreurAppel } from './appel';
 export { viderLesVues } from './vue';
-export type { VueCertificat, VueCertificats, VueCours, VueEspace, VueMoi } from './types';
+export type { VueCertificat, VueCertificats, VueClub, VueCours, VueEspace, VueMoi } from './types';
 
 /** Qui regarde : prénom, initiale, date d'ouverture du compte. */
 export function useMoi(): Etat<VueMoi> {
@@ -89,5 +89,21 @@ export function useCertificats(): Etat<VueCertificats> {
     ouvertureCompte: MOI.ouvertureCompte,
     certificats: [],
     incomplets: 0,
+  });
+}
+
+/**
+ * L'abonnement au Club, ou `null` — et `null` veut dire « pas membre », pas « erreur ».
+ *
+ * Le serveur ne jette pas `permission-denied` pour quelqu'un sans abonnement actif : il
+ * répond une vue vide. La nuance décide de ce qu'on lit après avoir laissé expirer son
+ * accès — « le Club est réservé aux membres » plutôt qu'un écran d'erreur.
+ */
+export function useClub(): Etat<VueClub> {
+  const brut = useVue<VueClub>('appClub');
+  return composer(brut, CLUB === null ? null : {
+    echeance: CLUB.echeance,
+    depuis: CLUB.depuis,
+    bilan: CLUB.bilan.map((b) => ({ n: b.n as number | null, l: b.l })),
   });
 }
