@@ -9,6 +9,7 @@ import MapsProof from '../components/presence/MapsProof';
 import PackSelector from '../components/presence/PackSelector';
 import StickyWhatsApp from '../components/presence/StickyWhatsApp';
 import { useFormat } from '../hooks/useFormat';
+import { PriceApprox, PriceFootnote } from '../components/shared/PriceApprox';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
@@ -78,7 +79,7 @@ const UNIT_SUFFIX: Record<string, string | undefined> = {
 
 export default function PresenceDigitale() {
   const { t } = useTranslation('presence');
-  const { formatPrice } = useFormat();
+  const { formatPrice, formatApprox } = useFormat();
   const path = useLocalizedPath();
   const q = usePresenceQuote();
   /** Le détail des conditions est replié : il est contractuel, pas promotionnel. */
@@ -388,6 +389,7 @@ export default function PresenceDigitale() {
                       strike={strike}
                       strikeLabel={t('packs.strikeLabel')}
                       size={26}
+                      approx={<PriceApprox xof={amount.value} />}
                       note={strike ? t('packs.promoNote') : t('packs.onceNote')}
                       style={{ marginTop: '18px' }}
                     />
@@ -411,6 +413,11 @@ export default function PresenceDigitale() {
               );
             })}
           </div>
+
+          {/* Sous les trois prix, et pas sous la page : la phrase parle de la grille qu'on
+              vient de lire. C'est aussi le seul endroit où la règle de change est LUE — le
+              `title` des contrevaleurs n'existe pas au clavier ni au lecteur d'écran. */}
+          <PriceFootnote className="mt-5" />
 
           {/*
             L'ENCART QUI DÉSAMORCE — descendu du héros, et posé JUSTE APRÈS les trois prix.
@@ -498,8 +505,26 @@ export default function PresenceDigitale() {
                           portait alors deux orthographes de la même devise à trois mots
                           d'intervalle.
                         */
-                        `${t('plans.setupLabel')} ${formatPrice(plan.setupPrice)} · `
-                        + t('plans.monthlyLabel', { price: formatPrice(plan.monthlyPrice) })
+                        <>
+                          {`${t('plans.setupLabel')} ${formatPrice(plan.setupPrice)} · `
+                            + t('plans.monthlyLabel', { price: formatPrice(plan.monthlyPrice) })}
+                          {/*
+                            LA CONTREVALEUR REPREND LA MÊME PHRASE, aux mêmes places, plutôt
+                            qu'un format abrégé : deux montants convertis alignés sous deux
+                            montants réels se relisent l'un sous l'autre. Un « ≈ 570 / 265 »
+                            aurait obligé à retrouver lequel est la mise en place.
+
+                            La garde porte sur les NOMBRES et pas sur les chaînes rendues :
+                            c'est exactement la condition sous laquelle `formatApprox` rend
+                            `null`, écrite là où elle se lit.
+                          */}
+                          {plan.setupPrice > 0 && plan.monthlyPrice > 0 && (
+                            <span className="block font-semibold">
+                              {`${t('plans.setupLabel')} ${formatApprox(plan.setupPrice)} · `
+                                + t('plans.monthlyLabel', { price: formatApprox(plan.monthlyPrice) })}
+                            </span>
+                          )}
+                        </>
                       }
                       last={i === PLANS.length - 1}
                       style={{ flexWrap: 'wrap' }}
@@ -818,6 +843,12 @@ export default function PresenceDigitale() {
                       <>
                         {t('options.range', { min: formatPrice(opt.min), max: formatPrice(opt.max) })}
                         {UNIT_SUFFIX[opt.unit] ? ` ${t(UNIT_SUFFIX[opt.unit]!)}` : ''}
+                        {opt.min > 0 && opt.max > 0 && (
+                          <span className="block font-semibold">
+                            {t('options.range', { min: formatApprox(opt.min), max: formatApprox(opt.max) })}
+                            {UNIT_SUFFIX[opt.unit] ? ` ${t(UNIT_SUFFIX[opt.unit]!)}` : ''}
+                          </span>
+                        )}
                       </>
                     }
                     last={i === OPTIONS.length - 1}

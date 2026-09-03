@@ -8,6 +8,7 @@ import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
+import { PriceApprox, PriceFootnote } from '../components/shared/PriceApprox';
 import { getPublishedFormations } from '../lib/firestore';
 import { queryKeys } from '../lib/queryClient';
 
@@ -280,6 +281,7 @@ export default function Formations() {
                         amount={{ value: formation.promoPrice ?? formation.price, source: 'db', asOf }}
                         strike={formation.promoPrice ? { value: formation.price, source: 'db', asOf } : undefined}
                         currency="FCFA"
+                        approx={<PriceApprox xof={formation.promoPrice ?? formation.price} />}
                         note={t('index.lifetime')}
                       />
                       <Button tone="primary" size="sm" fullWidth={false}>{t('index.see')}</Button>
@@ -288,6 +290,7 @@ export default function Formations() {
                 </div>
               ))}
             </div>
+            <PriceFootnote className="mt-5" />
           </>
         )}
       </PageSite>

@@ -19,5 +19,10 @@
   "offline": {
     "title": "Pas de réseau. Ta progression partira dès qu'il revient.",
     "link": "Ce qui reste lisible"
+  },
+  "secondaryPrice": {
+    "footnote": "Les prix sont en francs CFA — c'est le montant prélevé. La contrevaleur en euro est indicative, à la parité fixe 1 € = 655,957 FCFA.",
+    "fixedParity": "Contrevaleur indicative. Parité fixe : 1 € = {{rate}} FCFA. Le paiement est prélevé en francs CFA.",
+    "floatingRate": "Contrevaleur indicative, au taux relevé le {{date}}. Le paiement est prélevé en francs CFA."
   }
 }

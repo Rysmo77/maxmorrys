@@ -5,6 +5,7 @@ import { Button, CheckLine, GlassPanel, Icon, Num, PriceBlock, QuotaMeter, Skele
 import { functions } from '../../../config/firebase';
 import { useAuth } from '../../../contexts/AuthContext';
 import { tutorName } from '../../../lib/naming';
+import { PriceApprox } from '../../../components/shared/PriceApprox';
 import { captureError } from '../../../lib/sentry';
 
 /**
@@ -216,6 +217,7 @@ export default function RysmoStoreTab() {
                 size={25}
                 amount={{ value: pack.price, source: TARIFF_SOURCE, asOf: tariffAsOf }}
                 currency="FCFA"
+                approx={<PriceApprox xof={pack.price} />}
                 note={
                   <>
                     <Num value={pack.requests} source={TARIFF_SOURCE} asOf={tariffAsOf} /> {t('rysmoStore.requestsLabel')}
@@ -262,6 +264,7 @@ export default function RysmoStoreTab() {
                   size={27}
                   amount={{ value: plan.price, source: TARIFF_SOURCE, asOf: tariffAsOf }}
                   currency="FCFA"
+                  approx={<PriceApprox xof={plan.price} />}
                   note={t('rysmoStore.perMonth')}
                   style={{ marginTop: '12px' }}
                 />

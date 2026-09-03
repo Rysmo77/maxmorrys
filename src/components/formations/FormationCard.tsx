@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import LocalizedLink from '../shared/LocalizedLink';
 import TranslatedText from '../shared/TranslatedText';
-import { formatPrice } from '../../lib/utils';
+import { useFormat } from '../../hooks/useFormat';
+import { PriceApprox } from '../shared/PriceApprox';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { contentPath } from '../../lib/contentPath';
 import type { Formation, Enrollment, Certificate } from '../../types';
@@ -34,6 +35,10 @@ interface FormationCardProps {
 export default function FormationCard({ formation, variant = 'default', enrollment, certificate, enablePopover = true }: FormationCardProps) {
   const { t } = useTranslation('formations');
   const { language } = useLanguage();
+  /* Le formateur LOCALISÉ. `formatPrice` de `lib/utils` retombe sur fr-FR et écrivait
+     « 19 900 F CFA » sur le site anglais — même défaut que celui déjà corrigé dans les
+     deux pop-ups, et sur la ligne qui porte désormais aussi la contrevaleur. */
+  const { formatPrice } = useFormat();
   const formationPath = contentPath('formations', formation, language);
   const levelLabels: Record<string, string> = {
     debutant: t('level.debutant'),
@@ -168,6 +173,9 @@ export default function FormationCard({ formation, variant = 'default', enrollme
                 {hasPromo && (
                   <span className="text-sm text-ink-2 line-through">{formatPrice(formation.price)}</span>
                 )}
+                {/* La contrevaleur suit le prix PRATIQUÉ, jamais le prix barré : convertir un
+                    montant mort donnerait deux estimations à comparer au lieu d'un repère. */}
+                <PriceApprox xof={price} className="text-xs font-semibold text-ink-2" />
               </>
             )}
           </div>

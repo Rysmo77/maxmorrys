@@ -3,6 +3,7 @@ import LocalizedLink from '../shared/LocalizedLink';
 import TranslatedText from '../shared/TranslatedText';
 import PopupHeading from './PopupHeading';
 import { useFormat } from '../../hooks/useFormat';
+import { PriceApprox } from '../shared/PriceApprox';
 import { CTA_BRAND, DISMISS, BODY, ACTIONS } from './popupStyles';
 import type { Formation } from '../../types';
 import { Icon } from '@ds';
@@ -83,7 +84,12 @@ export default function CartRecoveryPopup({
             */}
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
               {price !== null && (
-                <span className="font-bold text-white">{formatPrice(price)}</span>
+                <>
+                  <span className="font-bold text-white">{formatPrice(price)}</span>
+                  {/* Le conteneur porte déjà `text-xs text-white/50` : la contrevaleur hérite
+                      de l'encre secondaire de la surface nuit, qui ne suit pas `.dk`. */}
+                  <PriceApprox xof={price} />
+                </>
               )}
             </div>
           </div>

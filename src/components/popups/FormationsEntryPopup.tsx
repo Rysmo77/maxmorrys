@@ -5,6 +5,7 @@ import TranslatedText from '../shared/TranslatedText';
 import { contentPath } from '../../lib/contentPath';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useFormat } from '../../hooks/useFormat';
+import { PriceApprox } from '../shared/PriceApprox';
 import { staggerContainer, staggerItem } from '../../lib/animations';
 import type { Formation } from '../../types';
 import { Icon } from '@ds';
@@ -143,6 +144,7 @@ export default function FormationsEntryPopup({ formation, onAccept, onDismiss }:
             {hasPromo && (
               <span className="line-through text-white/30">{formatPrice(formation.price)}</span>
             )}
+            <PriceApprox xof={price} />
           </div>
         </div>
       </motion.div>

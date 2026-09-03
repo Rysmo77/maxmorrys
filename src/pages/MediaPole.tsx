@@ -12,6 +12,7 @@ import { getPublishedPodcasts, getPublishedVideos } from '../lib/firestore/conte
 import { queryKeys } from '../lib/queryClient';
 import { socialLinks } from '../lib/brand';
 import { CLUB_PRICE_XOF } from '../lib/club/pricing';
+import { PriceApprox } from '../components/shared/PriceApprox';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -388,6 +389,10 @@ export default function MediaPole() {
                 {t('pole.clubBilled')}{' '}
                 <Num value={CLUB_PRICE_XOF} unit="F" source="server" asOf={asOf} showAsOf={false} />{' '}
                 {t('pole.clubBilledSuffix')}
+                {' · '}
+                {/* Le `<p>` porte déjà l'encre de la surface nuit — `text-ink` y serait faux,
+                    cette surface ne suit pas `.dk`. La contrevaleur hérite, elle ne repeint pas. */}
+                <PriceApprox xof={CLUB_PRICE_XOF} />
               </p>
             </div>
           </div>

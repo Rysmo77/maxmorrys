@@ -7,6 +7,7 @@ import JsonLd from '../components/seo/JsonLd';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
+import { PriceApprox, PriceFootnote } from '../components/shared/PriceApprox';
 import { CLUB_PRICE_XOF, clubReferralPrice } from '../lib/club/pricing';
 import { RYSMO_BASE_DAILY, RYSMO_CLUB_DAILY } from '../lib/rysmo/quota';
 import { getPublishedPodcasts } from '../lib/firestore/content';
@@ -171,6 +172,8 @@ export default function ClubDigitos() {
                 {t('publicPage.billedPre')}{' '}
                 <b><Num value={CLUB_PRICE_XOF} unit="F" source="server" asOf={asOf} /></b>{' '}
                 {t('publicPage.billedPost')}
+                <br />
+                <PriceApprox xof={CLUB_PRICE_XOF} />
               </span>
             </div>
 
@@ -302,6 +305,12 @@ export default function ClubDigitos() {
               <b className="text-ink"><Num value={CLUB_PRICE_XOF} unit="FCFA" source="server" asOf={asOf} /></b>
               {t('publicPage.priceBilledPost')}
             </p>
+            {/* La contrevaleur porte l'ANNUEL, pas le mensuel affiché en 52 px au-dessus :
+                c'est l'annuel qui est prélevé, et c'est lui que quelqu'un qui compte en euros
+                ou en dollars a besoin de reconnaître sur son relevé bancaire. */}
+            <p className="mt-1 mb-0 text-[13px] font-semibold text-ink-2">
+              <PriceApprox xof={CLUB_PRICE_XOF} />
+            </p>
 
             <Button href={path('/mon-espace/club')} tone="transforme" style={{ marginTop: '20px' }}>
               {t('publicPage.cta')}
@@ -320,6 +329,7 @@ export default function ClubDigitos() {
               <b className="text-[16px] text-ink"><Num value={clubReferralPrice()} unit="F" source="server" asOf={asOf} /></b>
             </div>
             <p className="mt-[9px] mb-0 text-small text-ink-2">{t('publicPage.referralNote')}</p>
+            <PriceFootnote className="mt-[9px] mb-0" />
           </GlassPanel>
         </div>
 

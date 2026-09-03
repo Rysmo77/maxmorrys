@@ -6,6 +6,7 @@ import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLanguage, useLocalizedPath } from '../contexts/LanguageContext';
 import { useFormat } from '../hooks/useFormat';
+import { PriceApprox } from '../components/shared/PriceApprox';
 import { useTranslatedContent, useTranslatedText } from '../hooks/useTranslatedContent';
 import { getFormationBySlug } from '../lib/firestore';
 import { markdownToHtml } from '../lib/markdown';
@@ -255,6 +256,7 @@ export default function FormationDetail() {
                 amount={{ value: price, source: 'db', asOf }}
                 strike={formation.promoPrice ? { value: formation.price, source: 'db', asOf } : undefined}
                 currency="FCFA"
+                approx={<PriceApprox xof={price} />}
                 note={t('sheet.lifetime')}
               />
               {/*

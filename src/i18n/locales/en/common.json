@@ -19,5 +19,10 @@
   "offline": {
     "title": "No network. Your progress will sync as soon as it is back.",
     "link": "What stays readable"
+  },
+  "secondaryPrice": {
+    "footnote": "Prices are in CFA francs — that is the amount charged. The US dollar figure is indicative, converted through the fixed euro parity.",
+    "fixedParity": "Indicative equivalent. Fixed parity: 1 EUR = {{rate}} XOF. Payment is charged in CFA francs.",
+    "floatingRate": "Indicative equivalent, at the rate recorded on {{date}}. Payment is charged in CFA francs."
   }
 }

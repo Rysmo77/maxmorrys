@@ -12,6 +12,17 @@ import { Num } from './Num';
  * délibération que 1 658 par mois ne franchit pas ; c'est la même somme, et la personne doit
  * pouvoir la regarder des deux côtés. Ce cadrage vit dans `note`.
  *
+ * LA CONTREVALEUR (`approx`) SE POSE ENTRE LE MONTANT ET LA NOTE, ET PAS AILLEURS. C'est un
+ * prix d'aide à la lecture — euro sur la version française, dollar sur l'anglaise — et sa
+ * place dans la hiérarchie est tout le sujet : au-dessus, il concurrencerait le montant
+ * débité ; dans la note, il se lirait comme une condition de vente. Cette primitive ne sait
+ * NI convertir NI choisir la devise : elle reçoit du texte déjà écrit, comme <Num> reçoit
+ * déjà sa langue de `<html lang>`. Le change est du domaine, il vit dans `lib/currency`.
+ *
+ * Elle ne prend pas la monospace, non plus. Le tabulaire sert à aligner des colonnes de
+ * chiffres comparables ; une estimation arrondie n'en est pas une, et lui donner la même
+ * face qu'au montant réel, c'est lui donner la même autorité.
+ *
  * L'ANCIEN PRIX BARRÉ N'EST PAS UNE DÉCORATION. `<s>` est visuel : un lecteur d'écran annonce
  * deux montants d'affilée sans dire lequel est mort. `strikeLabel` porte le mot qui les
  * distingue — et il n'a AUCUN DÉFAUT, parce qu'une primitive n'écrit pas la copie d'un
@@ -35,6 +46,11 @@ export interface PriceBlockProps {
   strike?: { value: number | string; source: NumSource; asOf: Date };
   /** Ce que le lecteur d'écran entend avant le prix barré — « Ancien prix ». */
   strikeLabel?: string;
+  /**
+   * La contrevaleur indicative, DÉJÀ ÉCRITE et déjà porteuse de son « ≈ » — « ≈ 30 € ».
+   * Côté produit, elle vient de `<PriceApprox>`, jamais d'une concaténation locale.
+   */
+  approx?: ReactNode;
   /** Sous le prix : « Une fois, accès à vie », l'équivalent mensuel, l'échéancier. */
   note?: ReactNode;
   /** @default 31 */
@@ -42,7 +58,7 @@ export interface PriceBlockProps {
   style?: CSSProperties;
 }
 
-export function PriceBlock({ amount, currency = 'FCFA', strike, strikeLabel, note, size = 31, style }: PriceBlockProps) {
+export function PriceBlock({ amount, currency = 'FCFA', strike, strikeLabel, approx, note, size = 31, style }: PriceBlockProps) {
   return (
     <div style={style}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -59,6 +75,13 @@ export function PriceBlock({ amount, currency = 'FCFA', strike, strikeLabel, not
           </s>
         )}
       </div>
+      {/* 13 px contre 12,5 pour la note, et graisse 600 : la contrevaleur est un prix, pas une
+          mention légale. Elle reste sous --text-muted — le montant débité garde l'encre pleine. */}
+      {approx && (
+        <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginTop: '3px' }}>
+          {approx}
+        </p>
+      )}
       {/* --text-muted et non --text-faint : le kit posait le prix barré sur rgba(14,17,22,.42),
           soit l'encre tertiaire — 2,61:1 sur blanc pur, et invisible sous `.dk` puisque la
           valeur d'encre y reste sombre au lieu de blanchir (AD-3 bis, AD-18). */}

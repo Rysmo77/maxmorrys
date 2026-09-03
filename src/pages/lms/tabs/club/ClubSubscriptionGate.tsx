@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Button, GlassPanel, Icon, Num, Switch, Tag, TruthPanel, type IconName } from '@ds';
 import LocalizedLink from '../../../../components/shared/LocalizedLink';
+import { PriceApprox } from '../../../../components/shared/PriceApprox';
 import { CLUB_PRICE_XOF, clubReferralPrice } from '../../../../lib/club/pricing';
 import { CLUB_CATEGORIES } from '../../hooks/useClubData';
 import type { useClubData } from '../../hooks/useClubData';
@@ -91,6 +92,7 @@ export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubS
           <p className="m-0 text-meta text-ink-2">
             {t('subscriptionGate.billedOnce')}{' '}
             <Num value={CLUB_PRICE_XOF} unit="F" source="server" asOf={asOf} />
+            <span className="block font-semibold"><PriceApprox xof={CLUB_PRICE_XOF} /></span>
           </p>
         </div>
         <p className="mt-2 text-small text-ink-2">
