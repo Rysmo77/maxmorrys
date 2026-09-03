@@ -327,8 +327,10 @@ export default function MediaPole() {
               icon={<Icon name="doc" size={16} />}
               title={t('pole.elsewhereRss')}
               last
+              /* `/podcast.xml` et NON `/rss.xml` : ce dernier n'interroge que le blog, et
+                 cette ligne annonçait donc un flux d'écoute qui livrait des articles. */
               trailing={
-                <Button href="/rss.xml" tone="quiet" size="sm" fullWidth={false}>
+                <Button href="/podcast.xml" tone="quiet" size="sm" fullWidth={false}>
                   {t('pole.elsewhereRssCta')}
                 </Button>
               }

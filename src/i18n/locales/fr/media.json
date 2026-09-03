@@ -160,7 +160,7 @@
     "elsewhereNote": "Les compteurs d'écoute sont synchronisés côté serveur, jamais appelés depuis ton navigateur. Ils ne sont pas affichés ici : à un épisode, un compteur ne dit rien d'utile.",
     "elsewhereYoutube": "YouTube",
     "elsewhereYoutubeCta": "S'abonner",
-    "elsewhereRss": "Flux RSS",
+    "elsewhereRss": "Flux podcast",
     "elsewhereRssCta": "Ouvrir",
     "elsewhereMissing": "Pas encore de page Spotify à te donner : le podcast n'y est pas publié sous un flux à moi. Le jour où il l'est, il s'ajoute ici.",
     "clubEyebrow": "L'étage au-dessus",

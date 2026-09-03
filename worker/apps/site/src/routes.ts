@@ -9,7 +9,7 @@
  *   /EN/blog    → origine   (la correspondance est sensible à la casse)
  */
 
-export type Route = 'sitemap' | 'rss' | 'catalog' | 'prerender' | 'origin';
+export type Route = 'sitemap' | 'rss' | 'podcast' | 'catalog' | 'prerender' | 'origin';
 
 /** Sources exactes de `firebase.json` routées vers `prerender`. */
 const PRERENDER_EXACT = new Set([
@@ -70,6 +70,7 @@ export function resolveRoute(pathname: string): Route {
 
   if (path === '/sitemap.xml') return 'sitemap';
   if (path === '/rss.xml') return 'rss';
+  if (path === '/podcast.xml') return 'podcast';
   if (path === '/catalog.csv') return 'catalog';
 
   if (PRERENDER_EXACT.has(path)) return 'prerender';

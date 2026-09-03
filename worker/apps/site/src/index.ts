@@ -29,6 +29,7 @@ import {
 import { resolveRoute, type Route } from './routes';
 import { buildCatalog } from './seo/catalog';
 import { buildRss } from './seo/rss';
+import { buildPodcastRss } from './seo/podcast-rss';
 import { buildSitemap } from './seo/sitemap';
 
 /** Les flux SEO sont recalculés au plus une fois par heure — comme leur `max-age` actuel. */
@@ -86,6 +87,14 @@ async function handleFeed(route: Route, env: Env, ctx: ExecutionContext): Promis
     case 'rss':
       return withSecurity(text(
         await cached(env, ctx, 'feed:v1:rss', FEED_TTL_SECONDS, () => buildRss(db)),
+        'application/rss+xml; charset=utf-8',
+        200,
+        { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
+      ));
+
+    case 'podcast':
+      return withSecurity(text(
+        await cached(env, ctx, 'feed:v1:podcast', FEED_TTL_SECONDS, () => buildPodcastRss(db)),
         'application/rss+xml; charset=utf-8',
         200,
         { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },
