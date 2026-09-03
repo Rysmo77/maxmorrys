@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import {
   Body, Button, Display, Eyebrow, Gradient, Icon, Num, Screen, Surface, useToken,
 } from '../ds';
-import { RELEVE, SOURCE } from '../contenu/reference';
+import { RELEVE, SOURCE } from '../contenu/demo';
 
 /**
  * ══ 5 · L'ERREUR ══ — MOTIF, CONSÉQUENCE, SORTIE. DANS CET ORDRE, ET JAMAIS D'EXCUSE.

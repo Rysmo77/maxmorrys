@@ -2,9 +2,9 @@ import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   Avatar, Body, Button, ChipRow, Display, Eyebrow, Icon, IconButton, Num, PriceBlock,
-  Screen, Surface, TerritoryCard, isIOS, useToken,
+  SansDonnees, Screen, Surface, TerritoryCard, isIOS, useToken,
 } from '../../ds';
-import { FORMATION, FORMATION_2, MOI, RELEVE, SOURCE } from '../../contenu/reference';
+import { FORMATION, FORMATION_2, MOI, RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -26,13 +26,16 @@ import { FORMATION, FORMATION_2, MOI, RELEVE, SOURCE } from '../../contenu/refer
  * Un tiret ne dirait aucune des trois.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
-const CATALOGUE = [FORMATION, FORMATION_2] as const;
-
 export default function Cours() {
   const t = useToken();
   const { compte } = useLocalSearchParams<{ compte?: string }>();
   const compteServeur = compte ? Number(compte) : Number.NaN;
   const videConfirme = Number.isFinite(compteServeur) && compteServeur === 0;
+
+  /* En production le catalogue est vide — pas parce qu'il n'y a rien à vendre, mais parce que
+     rien ne l'a transmis. Les deux cas ne se disent pas de la même façon, et c'est toute la
+     raison d'être des trois branches ci-dessous. */
+  const catalogue = [FORMATION, FORMATION_2].filter((f) => f !== null);
 
   return (
     <Screen
@@ -72,6 +75,17 @@ export default function Cours() {
             widget et la notification, eux, existent — ils se règlent dans ton profil.
           </Body>
         </>
+      ) : catalogue.length === 0 ? (
+        <>
+          <Eyebrow style={{ marginTop: 6 }}>Je te forme</Eyebrow>
+          <Display size={29} lines={['LE CATALOGUE', "N'EST PAS ARRIVÉ."]} style={{ marginTop: 8 }} />
+          <SansDonnees
+            quoi="le catalogue"
+            origine="du serveur, avec ses prix recalculés"
+            degat="Un prix inventé sur le premier écran du tunnel d'achat est le pire chiffre du produit : il fixe une attente, et il se dément à l'écran suivant. Le montant débité est de toute façon celui que le serveur recalcule."
+            style={{ marginTop: 20 }}
+          />
+        </>
       ) : (
         <>
           <Eyebrow style={{ marginTop: 6 }}>Je te forme · accès à vie</Eyebrow>
@@ -90,7 +104,7 @@ export default function Cours() {
           />
 
           <View style={{ marginTop: 16 }}>
-            {CATALOGUE.map((f, i) => (
+            {catalogue.map((f, i) => (
               <TerritoryCard
                 key={f.slug}
                 first={i === 0}
@@ -139,17 +153,20 @@ export default function Cours() {
         </>
       )}
 
-      {/* La reprise reste atteignable depuis l'onglet où l'on vient chercher un cours. */}
-      <Surface level="flat" style={{ marginTop: 14, padding: 18 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Avatar initials={MOI.initiale} size={38} />
-          <View style={{ flex: 1 }}>
-            <Body style={{ fontWeight: '700' }}>Reprendre où tu t'es arrêtée</Body>
-            <Body muted style={{ fontSize: 12.5, marginTop: 2 }}>{FORMATION.moduleEnCours}</Body>
+      {/* La reprise n'a de sens que s'il y a une leçon en cours. Sans elle, la carte annoncerait
+          un endroit où revenir qui n'existe pas. */}
+      {MOI && FORMATION ? (
+        <Surface level="flat" style={{ marginTop: 14, padding: 18 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Avatar initials={MOI.initiale} size={38} />
+            <View style={{ flex: 1 }}>
+              <Body style={{ fontWeight: '700' }}>Reprendre où tu t'es arrêtée</Body>
+              <Body muted style={{ fontSize: 12.5, marginTop: 2 }}>{FORMATION.moduleEnCours}</Body>
+            </View>
+            <Button tone="quiet" size="sm" label="Ouvrir" onPress={() => router.push('/lecon')} />
           </View>
-          <Button tone="quiet" size="sm" label="Ouvrir" onPress={() => router.push('/lecon')} />
-        </View>
-      </Surface>
+        </Surface>
+      ) : null}
     </Screen>
   );
 }

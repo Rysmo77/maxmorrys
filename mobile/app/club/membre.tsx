@@ -1,10 +1,10 @@
 import { Alert, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
-  Avatar, Body, Button, Display, Eyebrow, Icon, LessonRow, Num, Surface, Tag, useToken, veil,
+  Avatar, Body, Button, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { MEMBRE, RELEVE, SOURCE } from '../../contenu/reference';
+import { MEMBRE, RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ── CLUB · LA FICHE D'UN MEMBRE ───────────────────────────────────────────────────────
@@ -26,10 +26,11 @@ export default function ClubMembre() {
   const t = useToken();
   const p = useLocalSearchParams<{ nom?: string; metier?: string; ville?: string }>();
 
-  const nom = p.nom ?? MEMBRE.nom;
-  const metier = p.metier ?? MEMBRE.metier;
-  const ville = p.ville ?? MEMBRE.ville;
-  const initiales = nom.trim().split(' ').map((m) => m.charAt(0)).join('').slice(0, 2).toUpperCase();
+  const nom = p.nom ?? MEMBRE?.nom ?? null;
+  const metier = p.metier ?? MEMBRE?.metier ?? null;
+  const ville = p.ville ?? MEMBRE?.ville ?? null;
+  const initiales = nom === null ? null
+    : nom.trim().split(' ').map((m) => m.charAt(0)).join('').slice(0, 2).toUpperCase();
 
   function signaler() {
     Alert.alert(
@@ -41,6 +42,21 @@ export default function ClubMembre() {
       ],
     );
   }
+
+  if (nom === null || initiales === null || MEMBRE === null) {
+    return (
+      <ClubScreen titre="Membre">
+        <Display size={24} lines={['Cette fiche', "n'est pas chargée."]} />
+        <SansDonnees
+          quoi="cette fiche"
+          origine="du compte de la personne"
+          degat="Une fiche inventée attribue un métier et un quartier à quelqu'un. Et ce qui n'y figure jamais — ni numéro, ni adresse — vaut aussi pour une fiche fabriquée."
+          style={{ marginTop: 20 }}
+        />
+      </ClubScreen>
+    );
+  }
+  const membre = MEMBRE;
 
   return (
     <ClubScreen titre="Membre">
@@ -57,11 +73,11 @@ export default function ClubMembre() {
         </View>
 
         <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
-          <Tag tone="ok">{MEMBRE.depuis}</Tag>
-          {MEMBRE.formations.map((f) => <Tag key={f}>{f}</Tag>)}
+          <Tag tone="ok">{membre.depuis}</Tag>
+          {membre.formations.map((f) => <Tag key={f}>{f}</Tag>)}
         </View>
 
-        <Body style={{ marginTop: 14, lineHeight: 22 }}>{MEMBRE.presentation}</Body>
+        <Body style={{ marginTop: 14, lineHeight: 22 }}>{membre.presentation}</Body>
       </Surface>
 
       <Eyebrow style={{ marginTop: 22 }}>Ce que la fiche porte</Eyebrow>
@@ -69,12 +85,12 @@ export default function ClubMembre() {
         <LessonRow
           icon={<Icon name="comment" size={14} color={t('ink2')} />}
           title="Contributions au fil"
-          trailing={<Num value={MEMBRE.contributions} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
+          trailing={<Num value={membre.contributions} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
         />
         <LessonRow
           icon={<Icon name="book" size={14} color={t('ink2')} />}
           title="Formations suivies"
-          trailing={<Num value={MEMBRE.formations.length} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
+          trailing={<Num value={membre.formations.length} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
           last
         />
       </Surface>

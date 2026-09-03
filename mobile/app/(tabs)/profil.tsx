@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Avatar, Body, Button, Eyebrow, Field, Icon, LessonRow, Screen, Segmented, Surface, Switch,
-  TUTOR_DEFAUT, isIOS, setTutorNom, useScheme, useToken, useTutorNom, veil,
+  Avatar, Body, Button, Eyebrow, Field, Icon, LessonRow, SansDonnees, Screen, Segmented,
+  Surface, Switch, TUTOR_DEFAUT, isIOS, setTutorNom, useScheme, useToken, useTutorNom, veil,
 } from '../../ds';
-import { MOI, STOCKAGE } from '../../contenu/reference';
+import { MOI, STOCKAGE } from '../../contenu/demo';
 
 /**
  * ══ 3 · LE PROFIL ══ — LA SECTION NOTIFICATIONS DEVIENT RÉELLE.
@@ -57,16 +57,28 @@ export default function Profil() {
       tabbar
       titre={isIOS ? undefined : 'Mon profil'}
     >
-      <Surface level="flat" style={{ marginTop: 8, padding: 18 }}>
-        <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          <Avatar initials={MOI.initiale} size={54} />
-          <View style={{ flex: 1 }}>
-            <Body style={{ fontSize: 16, fontWeight: '700' }}>{MOI.nom}</Body>
-            <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 12, marginTop: 2 }}>{MOI.email}</Body>
+      {/* L'identité vient du compte, et elle ne s'invente pas : un nom affiché ici est le nom
+          que la personne croira connecté. Les réglages, eux, tiennent sans elle. */}
+      {MOI === null ? (
+        <SansDonnees
+          quoi="ton compte"
+          origine="de ta connexion"
+          degat="Afficher un nom et une adresse ici ferait croire à une session ouverte. Les réglages ci-dessous fonctionnent quand même : ils vivent sur cet appareil."
+          style={{ marginTop: 8 }}
+          action={<Button tone="forme" label="Me connecter" onPress={() => router.push('/connexion')} />}
+        />
+      ) : (
+        <Surface level="flat" style={{ marginTop: 8, padding: 18 }}>
+          <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+            <Avatar initials={MOI.initiale} size={54} />
+            <View style={{ flex: 1 }}>
+              <Body style={{ fontSize: 16, fontWeight: '700' }}>{MOI.nom}</Body>
+              <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 12, marginTop: 2 }}>{MOI.email}</Body>
+            </View>
+            <Button tone="quiet" size="sm" label="Modifier" onPress={() => router.push('/connexion')} />
           </View>
-          <Button tone="quiet" size="sm" label="Modifier" onPress={() => router.push('/connexion')} />
-        </View>
-      </Surface>
+        </Surface>
+      )}
 
       {/* ── NOTIFICATIONS ──────────────────────────────────────────────────────────────── */}
       <Eyebrow style={{ marginTop: 22 }}>Notifications</Eyebrow>
@@ -157,7 +169,7 @@ export default function Profil() {
         <LessonRow
           icon={<Icon name="download" size={14} color={t('ink2')} />}
           title="Téléchargements"
-          meta={`3 leçons · ${STOCKAGE.occupeCourt}`}
+          meta={STOCKAGE ? `3 leçons · ${STOCKAGE.occupeCourt}` : undefined}
           trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
           onPress={() => router.push('/telechargements')}
         />

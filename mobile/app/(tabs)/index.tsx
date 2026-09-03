@@ -3,10 +3,10 @@ import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   Avatar, Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num,
-  ProgressBar, QuotaMeter, Screen, Surface, TerritoryCard, useActionGradient, useToken,
-  useTutorNom,
+  ProgressBar, QuotaMeter, SansDonnees, Screen, Surface, TerritoryCard, useActionGradient,
+  useToken, useTutorNom,
 } from '../../ds';
-import { FORMATION, MOI, QUOTA, RELEVE, SOURCE, STOCKAGE } from '../../contenu/reference';
+import { FORMATION, MOI, QUOTA, RELEVE, SOURCE, STOCKAGE } from '../../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -49,10 +49,12 @@ function salutation(d: Date): string {
   return 'Bonsoir';
 }
 
+/* Les trois portes de l'espace existent toujours ; seul leur RELEVÉ dépend du contenu.
+   Une entrée sans son compte reste une entrée — c'est le compte qui ment, pas le chemin. */
 const ESPACE = [
-  { href: '/paiement', glyphe: 'card' as const, titre: 'Mes paiements', meta: '1 transaction' },
-  { href: '/certificats', glyphe: 'doc' as const, titre: 'Mes certificats', meta: '0 émis' },
-  { href: '/telechargements', glyphe: 'download' as const, titre: 'Téléchargements', meta: `3 leçons · ${STOCKAGE.occupeCourt}` },
+  { href: '/paiement', glyphe: 'card' as const, titre: 'Mes paiements', meta: STOCKAGE ? '1 transaction' : undefined },
+  { href: '/certificats', glyphe: 'doc' as const, titre: 'Mes certificats', meta: STOCKAGE ? '0 émis' : undefined },
+  { href: '/telechargements', glyphe: 'download' as const, titre: 'Téléchargements', meta: STOCKAGE ? `3 leçons · ${STOCKAGE.occupeCourt}` : undefined },
 ] as const;
 
 export default function Espace() {
@@ -83,15 +85,29 @@ export default function Espace() {
             accessibilityLabel="Ton profil"
             onPress={() => router.push('/(tabs)/profil')}
           >
-            <Avatar initials={MOI.initiale} size={38} />
+            <Avatar initials={MOI?.initiale ?? ''} size={38} />
           </Pressable>
         </>
       }
     >
       <Eyebrow style={{ marginTop: 6 }}>{dateDuJour(maintenant)}</Eyebrow>
-      <Display size={31} lines={[salutation(maintenant), MOI.prenom]} style={{ marginTop: 8 }} />
+      {/* La salutation tient sans le prénom : l'heure du téléphone suffit à la rendre vraie. */}
+      <Display
+        size={31}
+        lines={MOI ? [salutation(maintenant), MOI.prenom] : [`${salutation(maintenant)}.`]}
+        style={{ marginTop: 8 }}
+      />
 
-      {/* ── PREMIER OBJET. La reprise, avant tout le reste. ─────────────────────────────── */}
+      {/* ── PREMIER OBJET. La reprise, avant tout le reste — et quand il n'y a rien à
+             reprendre, c'est CETTE place qui doit le dire, pas un vide en bas d'écran. ── */}
+      {FORMATION === null ? (
+        <SansDonnees
+          quoi="ta progression"
+          degat="Une leçon inventée ici est une leçon qu'on croit avoir commencée : elle décale le compte, et elle rend faux le seul chiffre que tu viens vérifier."
+          style={{ marginTop: 20 }}
+          action={<Button tone="forme" label="Voir le catalogue" onPress={() => router.push('/(tabs)/cours')} />}
+        />
+      ) : (
       <View style={{ marginTop: 20 }}>
         <TerritoryCard
           first
@@ -116,6 +132,7 @@ export default function Espace() {
           </View>
         </TerritoryCard>
       </View>
+      )}
 
       {/* ── CE QUE LE WEB NE POUVAIT PAS OFFRIR ─────────────────────────────────────────── */}
       {proposeRelance ? (
@@ -147,7 +164,9 @@ export default function Espace() {
         </Surface>
       ) : null}
 
-      {/* ── DEUX FAITS, SANS LEVIER ─────────────────────────────────────────────────────── */}
+      {/* ── DEUX FAITS, SANS LEVIER. Sans relevé, ils ne s'affichent pas : une série à zéro
+             qu'on n'a pas mesurée se lit comme une série perdue. ── */}
+      {FORMATION === null ? null : (
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
         <Surface level="flat" style={{ flex: 1, padding: 16 }}>
           <Eyebrow style={{ fontSize: 10 }}>Série</Eyebrow>
@@ -160,6 +179,7 @@ export default function Espace() {
           <ProgressBar value={60} height={5} territory="transforme" style={{ marginTop: 7 }} />
         </Surface>
       </View>
+      )}
 
       {/* ── LE RÉPÉTITEUR, ET SON QUOTA ANNONCÉ D'AVANCE ────────────────────────────────── */}
       <Surface level="flat" style={{ marginTop: 14, padding: 17 }}>
@@ -185,7 +205,9 @@ export default function Espace() {
         </View>
         {/* Le quota est ANNONCÉ avant d'être atteint : un refus au plafond est vécu comme une
             panne s'il n'a pas été dit. */}
-        <QuotaMeter used={QUOTA.utilise - 1} total={QUOTA.total} style={{ marginTop: 13 }} />
+        {/* Le quota est ANNONCÉ avant d'être atteint — mais on n'annonce pas un plafond
+            qu'on n'a pas relevé : ce serait promettre des questions qu'on ne peut pas tenir. */}
+        {QUOTA ? <QuotaMeter used={QUOTA.utilise - 1} total={QUOTA.total} style={{ marginTop: 13 }} /> : null}
       </Surface>
 
       <Eyebrow style={{ marginTop: 22 }}>Dans ton espace</Eyebrow>

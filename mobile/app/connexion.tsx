@@ -6,7 +6,7 @@ import {
   AppleMark, Body, Button, Display, Eyebrow, Field, GoogleMark, Icon, IconButton, Screen,
   Surface, Wordmark, isIOS, useToken,
 } from '../ds';
-import { MOI, SITE } from '../contenu/reference';
+import { MOI, SITE } from '../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -84,7 +84,7 @@ export default function Connexion() {
           label="Ton e-mail"
           value={email}
           onChangeText={setEmail}
-          placeholder={MOI.email}
+          placeholder={MOI?.email ?? 'ton@adresse.sn'}
           keyboardType="email-address"
           textContentType="emailAddress"
           style={{ marginTop: 0 }}

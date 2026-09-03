@@ -1,10 +1,9 @@
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, ChipRow, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, ProgressBar,
-  Screen, Surface, isIOS, useActionGradient, useToken, veil,
+  Body, ChipRow, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, ProgressBar, SansDonnees, Screen, Surface, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
-import { FORMATION, PROGRAMME, RELEVE, SOURCE } from '../contenu/reference';
+import { FORMATION, PROGRAMME, RELEVE, SOURCE } from '../contenu/demo';
 import { useState } from 'react';
 
 /**
@@ -40,14 +39,14 @@ export default function Lecon() {
       territory="forme"
       tabbar
       retour="Cours"
-      titre={isIOS ? undefined : FORMATION.moduleEnCours}
+      titre={isIOS ? undefined : (FORMATION?.moduleEnCours ?? 'Leçon')}
       droite={
         <IconButton label="Télécharger cette leçon">
           <Icon name="download" size={17} color={t('textBody')} strokeWidth={2.2} />
         </IconButton>
       }
     >
-      <Eyebrow style={{ marginTop: 6 }}>{FORMATION.moduleEnCours}</Eyebrow>
+      <Eyebrow style={{ marginTop: 6 }}>{FORMATION?.moduleEnCours ?? 'Ta leçon'}</Eyebrow>
       <Display size={26} lines={['Les mots que', 'tapent tes clients']} style={{ marginTop: 8 }} />
 
       {/* ── LE LECTEUR ─────────────────────────────────────────────────────────────────── */}
@@ -132,14 +131,23 @@ export default function Lecon() {
       }}>
         <Eyebrow>Le programme</Eyebrow>
         <Num
-          value={`${FORMATION.progression} %`}
+          value={FORMATION ? `${FORMATION.progression} %` : null}
           source={SOURCE}
           asOf={RELEVE}
+          fallback="non relevée"
           style={{ fontSize: 12.5, color: t('textMuted') }}
         />
       </View>
-      <ProgressBar value={FORMATION.progression} style={{ marginTop: 8 }} />
+      {/* Une barre à zéro qu'on n'a pas mesurée se lit comme une progression perdue. */}
+      {FORMATION ? <ProgressBar value={FORMATION.progression} style={{ marginTop: 8 }} /> : null}
 
+      {PROGRAMME.length === 0 ? (
+        <SansDonnees
+          quoi="le programme de ce module"
+          degat="Une leçon inventée est une leçon qu'on croit avoir à regarder — et son poids en mégaoctets déciderait de charger ou pas."
+          style={{ marginTop: 14 }}
+        />
+      ) : (
       <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
         {PROGRAMME.map((l, i) => (
           <LessonRow
@@ -157,6 +165,7 @@ export default function Lecon() {
           />
         ))}
       </Surface>
+      )}
 
       <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
         Chaque poids est affiché parce que le forfait est compté. Le téléchargement se fait en

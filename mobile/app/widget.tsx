@@ -1,9 +1,8 @@
 import { View } from 'react-native';
 import {
-  Body, Display, Eyebrow, Gradient, Icon, LessonRow, Num, Screen, Surface, Wordmark,
-  isIOS, useActionGradient, useToken, veil,
+  Body, Display, Eyebrow, Gradient, Icon, LessonRow, Num, SansDonnees, Screen, Surface, Wordmark, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
-import { FORMATION, RELEVE, SOURCE } from '../contenu/reference';
+import { FORMATION, RELEVE, SOURCE } from '../contenu/demo';
 
 /**
  * ══ 7 · LE WIDGET D'ÉCRAN D'ACCUEIL ══
@@ -33,6 +32,23 @@ export default function Widget() {
   const verre = veil(surFond, 0.1);
   const liseré = veil(surFond, 0.16);
 
+  if (FORMATION === null) {
+    return (
+      <Screen territory="transforme" retour="Profil" titre="Le widget">
+        <Display size={27} lines={['Le widget', 'reste vide.']} style={{ marginTop: 10 }} />
+        <SansDonnees
+          quoi="ta progression"
+          degat="Le widget affiche ce qui reste vrai sans réseau. Sans progression relevée, il n'a rien de vrai à afficher — et un widget qui ment est un mensonge posé sur l'écran d'accueil."
+          style={{ marginTop: 20 }}
+        />
+      </Screen>
+    );
+  }
+
+  /* Le rétrécissement de type ne survit pas à une closure quand la liaison vient d'un
+     autre module : `onPress={() => X.y}` reperd le `non null` que la garde vient
+     d'établir. Une constante LOCALE le porte jusque dans les rappels. */
+  const formation = FORMATION;
   return (
     <Screen territory="transforme" retour="Profil" titre="Le widget">
       <Eyebrow style={{ marginTop: 6 }}>Sur ton écran d'accueil</Eyebrow>
@@ -60,16 +76,16 @@ export default function Widget() {
             <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10, color: surFond2 }}>il y a 8 jours</Body>
           </View>
           <Body style={{ fontSize: 15, fontWeight: '600', color: surFond, lineHeight: 20, marginTop: 10 }}>
-            {FORMATION.leconEnCours}
+            {formation.leconEnCours}
           </Body>
           <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: surFond2, marginTop: 3 }}>
-            {FORMATION.leconsFaites} / {FORMATION.lecons} leçons · {FORMATION.progression} %
+            {formation.leconsFaites} / {formation.lecons} leçons · {formation.progression} %
           </Body>
           <View style={{ height: 6, borderRadius: 4, backgroundColor: veil(surFond, 0.18), marginTop: 12, overflow: 'hidden' }}>
             <Gradient
               colors={[t('mmBleuN'), t('mmVioletN'), t('mmOrangeN'), t('mmTealN')]}
               angle={90}
-              style={{ width: `${FORMATION.progression}%`, height: 6 }}
+              style={{ width: `${formation.progression}%`, height: 6 }}
             />
           </View>
           <View style={{

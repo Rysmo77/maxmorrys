@@ -3,7 +3,7 @@ import {
   Body, Button, EmptyState, Eyebrow, Icon, Num, Pipeline, Surface, useToken, veil,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
-import { RELEVE, SOURCE } from '../../contenu/reference';
+import { RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ══ CONSOLE 2/5 · LES TÉMOIGNAGES ══

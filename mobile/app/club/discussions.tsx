@@ -4,7 +4,7 @@ import {
   Avatar, Body, ChipRow, EmptyState, Eyebrow, Icon, Num, Surface, Tag, useToken,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { DISCUSSIONS, RELEVE, SOURCE } from '../../contenu/reference';
+import { DISCUSSIONS, RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ── CLUB · DISCUSSIONS ────────────────────────────────────────────────────────────────

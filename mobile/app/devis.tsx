@@ -1,10 +1,9 @@
 import { Share, View } from 'react-native';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Button, DocLine, Display, Eyebrow, Icon, IconButton, Num, PriceBlock, Screen,
-  Surface, Tag, isIOS, useToken,
+  Body, Button, Display, DocLine, Eyebrow, Icon, IconButton, Num, PriceBlock, SansDonnees, Screen, Surface, Tag, isIOS, useToken,
 } from '../ds';
-import { DEVIS, PACK, RELEVE, SOURCE } from '../contenu/reference';
+import { DEVIS, PACK, RELEVE, SOURCE } from '../contenu/demo';
 
 /**
  * ══ 5 · LE DEVIS PARTAGEABLE ══
@@ -23,6 +22,27 @@ import { DEVIS, PACK, RELEVE, SOURCE } from '../contenu/reference';
 export default function Devis() {
   const t = useToken();
 
+  /* La garde vient AVANT tout usage, y compris dans les props de la barre haute : un bouton
+     de partage qui compose son message à partir d'un devis absent partagerait « undefined ». */
+  if (DEVIS === null || PACK === null) {
+    return (
+      <Screen territory="digitalise" retour="Offre" titre={isIOS ? undefined : 'Ton devis'}>
+        <Display size={27} lines={['Aucun devis', 'à afficher.']} style={{ marginTop: 10 }} />
+        <SansDonnees
+          quoi="ce devis"
+          origine="du serveur qui l'a émis"
+          degat="Un devis est un document opposable : son contenu est figé à l'émission, et son montant engage. En fabriquer un ici produirait un prix que personne n'a chiffré."
+          style={{ marginTop: 20 }}
+        />
+      </Screen>
+    );
+  }
+
+  /* Le rétrécissement de type ne survit pas à une closure quand la liaison vient d'un
+     autre module : `onPress={() => X.y}` reperd le `non null` que la garde vient
+     d'établir. Une constante LOCALE le porte jusque dans les rappels. */
+  const devis = DEVIS;
+  const pack = PACK;
   return (
     <Screen
       territory="digitalise"
@@ -31,40 +51,40 @@ export default function Devis() {
       droite={
         <IconButton
           label="Partager le devis"
-          onPress={() => { void Share.share({ message: `Mon devis — ${PACK.nom}\n${DEVIS.lien}`, url: DEVIS.lien }); }}
+          onPress={() => { void Share.share({ message: `Mon devis — ${pack.nom}\n${devis.lien}`, url: devis.lien }); }}
         >
           <Icon name="share" size={17} color={t('textBody')} strokeWidth={2} />
         </IconButton>
       }
     >
       <Eyebrow style={{ marginTop: 6 }}>Devis · consultable sans compte</Eyebrow>
-      <Display size={27} lines={['TON DEVIS,', 'PACK VISIBLE.']} style={{ marginTop: 8 }} />
+      <Display size={27} lines={['TON devis,', 'pack VISIBLE.']} style={{ marginTop: 8 }} />
       <Num
-        value={DEVIS.lien.replace('https://', '')}
+        value={devis.lien.replace('https://', '')}
         source={SOURCE}
         asOf={RELEVE}
         style={{ fontSize: 11.5, color: t('textFaint'), marginTop: 10 }}
       />
 
       <Surface level="flat" style={{ marginTop: 16, padding: 19 }}>
-        {PACK.lignes.map((l, i) => (
-          <DocLine key={l} label={l} value="incluse" last={i === PACK.lignes.length - 1} />
+        {pack.lignes.map((l, i) => (
+          <DocLine key={l} label={l} value="incluse" last={i === pack.lignes.length - 1} />
         ))}
 
         <View style={{ height: 1, backgroundColor: t('borderHair'), marginVertical: 14 }} />
 
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
           <PriceBlock
-            amount={PACK.prix}
+            amount={pack.prix}
             source={SOURCE}
             asOf={RELEVE}
             size={28}
             note="Une fois · promotion de lancement"
           />
-          <Tag tone="ok">{DEVIS.validite}</Tag>
+          <Tag tone="ok">{devis.validite}</Tag>
         </View>
         <Num
-          value={`Émis le ${DEVIS.emisLe} · valable jusqu'au ${DEVIS.valideJusqu}`}
+          value={`Émis le ${devis.emisLe} · valable jusqu'au ${devis.valideJusqu}`}
           source={SOURCE}
           asOf={RELEVE}
           style={{ fontSize: 11.5, color: t('textMuted'), marginTop: 10 }}
@@ -82,7 +102,7 @@ export default function Devis() {
         label="Partager le devis"
         icon="share"
         style={{ marginTop: 9 }}
-        onPress={() => { void Share.share({ message: `Mon devis — ${PACK.nom}\n${DEVIS.lien}`, url: DEVIS.lien }); }}
+        onPress={() => { void Share.share({ message: `Mon devis — ${pack.nom}\n${devis.lien}`, url: devis.lien }); }}
       />
 
       <Surface level="truth" style={{ marginTop: 18, padding: 15 }}>

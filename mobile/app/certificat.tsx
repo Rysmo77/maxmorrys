@@ -4,10 +4,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import {
-  Body, Button, DocLine, Display, Eyebrow, Icon, IconButton, Num, Screen, Surface, Tag,
-  Wordmark, useToken,
+  Body, Button, Display, DocLine, Eyebrow, Icon, IconButton, Num, SansDonnees, Screen, Surface, Tag, Wordmark, useToken,
 } from '../ds';
-import { CERTIFICAT, RELEVE, SITE, SOURCE } from '../contenu/reference';
+import { CERTIFICAT, RELEVE, SITE, SOURCE } from '../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -44,23 +43,32 @@ export default function Certificat() {
     code?: string; titulaire?: string; formation?: string; emisLe?: string; lecons?: string;
   }>();
 
-  /* Les paramètres priment ; à défaut, le contenu de référence du transfert, cité comme tel. */
-  const doc = {
-    code: code ?? CERTIFICAT.code,
-    titulaire: titulaire ?? CERTIFICAT.titulaire,
-    formation: formation ?? CERTIFICAT.formation,
-    emisLe: emisLe ?? CERTIFICAT.emisLe,
-    lecons: lecons ?? String(CERTIFICAT.lecons),
-  };
-  const lien = `${SITE}/verifier/${doc.code}`;
-  const prenom = doc.titulaire.trim().split(' ')[0];
+  /*
+   * LES QUATRE CHAMPS SONT SOLIDAIRES. Un certificat sans titulaire ne certifie personne ;
+   * sans date d'émission, ce n'est pas un document. On les rend tous, ou aucun — et on ne
+   * complète JAMAIS un jeu partiel avec l'autre source : moitié serveur, moitié démonstration
+   * produirait un document au nom de quelqu'un avec le code d'un autre.
+   */
+  const doc = (code && titulaire && formation && emisLe && lecons)
+    ? { code, titulaire, formation, emisLe, lecons }
+    : CERTIFICAT
+      ? {
+        code: CERTIFICAT.code,
+        titulaire: CERTIFICAT.titulaire,
+        formation: CERTIFICAT.formation,
+        emisLe: CERTIFICAT.emisLe,
+        lecons: String(CERTIFICAT.lecons),
+      }
+      : null;
+  const lien = doc === null ? null : `${SITE}/verifier/${doc.code}`;
+  const prenom = doc === null ? null : doc.titulaire.trim().split(' ')[0];
 
   const [taille, setTaille] = useState({ l: 0, h: 0 });
   const [brille, setBrille] = useState(false);
   const balayage = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (taille.l === 0 || DEJA_CELEBRES.has(doc.code)) return;
+    if (doc === null || taille.l === 0 || DEJA_CELEBRES.has(doc.code)) return;
     DEJA_CELEBRES.add(doc.code);
 
     let annule = false;
@@ -83,9 +91,10 @@ export default function Certificat() {
     });
 
     return () => { annule = true; };
-  }, [doc.code, taille.l, balayage]);
+  }, [doc, taille.l, balayage]);
 
   async function partager() {
+    if (doc === null || lien === null) return;
     await Share.share({
       message: `Mon certificat — ${doc.formation}\n${lien}`,
       url: lien,
@@ -97,6 +106,22 @@ export default function Certificat() {
     inputRange: [0, 1],
     outputRange: [-1.3 * taille.l, 1.3 * taille.l],
   });
+
+  /* La garde vient APRÈS les hooks : un retour anticipé placé avant eux changerait leur
+     ordre d'un rendu à l'autre, ce que React refuse. */
+  if (doc === null || lien === null || prenom === null) {
+    return (
+      <Screen territory="forme" retour="Espace">
+        <Display size={27} lines={['Aucun certificat', 'à afficher.']} style={{ marginTop: 10 }} />
+        <SansDonnees
+          quoi="ce certificat"
+          origine="du serveur qui l'a émis"
+          degat="Un certificat rempli de valeurs d'exemple est un faux, et un faux se montre à un employeur. Les quatre champs — titulaire, formation, date, code — arrivent ensemble ou pas du tout."
+          style={{ marginTop: 20 }}
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen

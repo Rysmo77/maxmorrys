@@ -3,10 +3,9 @@ import { View } from 'react-native';
 import { router } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Icon, IconButton, Num, PayOption, PriceBlock, Screen,
-  StepDots, Surface, TerritoryCard, isIOS, useToken,
+  Body, Button, Display, Eyebrow, Icon, IconButton, Num, PayOption, PriceBlock, SansDonnees, Screen, StepDots, Surface, TerritoryCard, isIOS, useToken,
 } from '../ds';
-import { PACK, QUESTION_TPE, RELEVE, SOURCE } from '../contenu/reference';
+import { PACK, QUESTION_TPE, RELEVE, SOURCE } from '../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -30,7 +29,7 @@ import { PACK, QUESTION_TPE, RELEVE, SOURCE } from '../contenu/reference';
  */
 export default function Presence() {
   const t = useToken();
-  const [reponse, setReponse] = useState<string>(QUESTION_TPE.reponses[0]);
+  const [reponse, setReponse] = useState<string>(QUESTION_TPE?.reponses[0] ?? '');
 
   return (
     <Screen
@@ -53,7 +52,17 @@ export default function Presence() {
         téléphone.
       </Body>
 
-      {/* ── L'ANCRAGE, DÉSAMORCÉ AVANT TOUT LE RESTE ───────────────────────────────────── */}
+      {/* ── L'ANCRAGE, DÉSAMORCÉ AVANT TOUT LE RESTE — et il ne se désamorce qu'avec un
+             CHIFFRE. Sans prix, la question reste posée et la réponse manque : mieux vaut le
+             dire que répondre « à partir de », qui rouvre exactement l'ancrage. ── */}
+      {PACK === null ? (
+        <SansDonnees
+          quoi="le prix du pack"
+          origine="du serveur"
+          degat="Tout cet écran existe pour désamorcer une comparaison de prix AVANT que tu remplisses quoi que ce soit. Un montant approximatif la rouvrirait au lieu de la fermer."
+          style={{ marginTop: 18 }}
+        />
+      ) : (
       <Surface level="hero" style={{ marginTop: 18, padding: 19 }}>
         <Eyebrow style={{ color: t('mmTealT') }}>La question que tout le monde pose</Eyebrow>
         <Body style={{ fontWeight: '700', fontSize: 15, lineHeight: 20, marginTop: 7 }}>
@@ -68,8 +77,11 @@ export default function Presence() {
           que tu prends après la mise en ligne — pas maintenant.
         </Body>
       </Surface>
+      )}
 
       {/* ── TROIS QUESTIONS ────────────────────────────────────────────────────────────── */}
+      {QUESTION_TPE ? (
+      <>
       <Eyebrow style={{ marginTop: 24 }}>Trois questions, une recommandation</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, padding: 19 }}>
         <StepDots total={QUESTION_TPE.total} current={QUESTION_TPE.etape} style={{ marginBottom: 16 }} />
@@ -89,8 +101,11 @@ export default function Presence() {
           « Je ne sais pas » est une réponse valable : elle mène aussi à une recommandation.
         </Body>
       </Surface>
+      </>
+      ) : null}
 
       {/* ── LA RECOMMANDATION ──────────────────────────────────────────────────────────── */}
+      {PACK === null ? null : (
       <View style={{ marginTop: 18 }}>
         <TerritoryCard first territory="digitalise" meta="Recommandé pour toi" title={PACK.nom}>
           <View style={{
@@ -114,6 +129,7 @@ export default function Presence() {
           </View>
         </TerritoryCard>
       </View>
+      )}
 
       <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 14, color: t('textFaint') }}>
         Un pack se contracte hors de l'application : ce n'est pas du contenu numérique consommé

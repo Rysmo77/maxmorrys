@@ -4,7 +4,7 @@ import {
   Body, ChipRow, Display, Eyebrow, Fab, Icon, IconButton, LessonRow, Num, Screen, Surface, Tag,
   isIOS, useToken,
 } from '../ds';
-import { FORMATION, NOTES, NOTES_TOTAL, RELEVE, SOURCE } from '../contenu/reference';
+import { FORMATION, NOTES, NOTES_TOTAL, RELEVE, SOURCE } from '../contenu/demo';
 
 /**
  * ══ 5 · MES NOTES ══
@@ -59,17 +59,19 @@ export default function Notes() {
         </Fab>
       )}
     >
-      <Eyebrow style={{ marginTop: 6 }}>{FORMATION.moduleEnCours}</Eyebrow>
+      <Eyebrow style={{ marginTop: 6 }}>{FORMATION?.moduleEnCours ?? 'Tes notes'}</Eyebrow>
       <Display size={27} lines={['Mes notes']} style={{ marginTop: 8 }} />
 
       <View style={{
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         gap: 12, marginTop: 10,
       }}>
+        {/* Le compte, ou rien. « 0 notes » sans relevé se lirait comme une perte. */}
         <Num
-          value={`${NOTES_TOTAL.notes} notes · ${NOTES_TOTAL.lecons} leçons`}
+          value={NOTES_TOTAL ? `${NOTES_TOTAL.notes} notes · ${NOTES_TOTAL.lecons} leçons` : null}
           source={SOURCE}
           asOf={RELEVE}
+          fallback="compte non relevé"
           style={{ fontSize: 12, color: t('textMuted') }}
         />
         <Tag>Toi seule les lis</Tag>

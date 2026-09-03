@@ -6,7 +6,7 @@ import {
   AppleMark, Body, Button, Display, Eyebrow, Field, GoogleMark, Icon, Screen,
   Surface, isIOS, useToken,
 } from '../ds';
-import { MOI, SITE } from '../contenu/reference';
+import { MOI, SITE } from '../contenu/demo';
 
 /**
  * ══ 2 · LA CRÉATION DE COMPTE ══
@@ -71,7 +71,7 @@ export default function Creation() {
           label="Ton prénom et ton nom"
           value={nom}
           onChangeText={setNom}
-          placeholder={MOI.nom}
+          placeholder={MOI?.nom ?? 'Prénom Nom'}
           autoCapitalize="words"
           textContentType="name"
           style={{ marginTop: 0 }}
@@ -80,7 +80,7 @@ export default function Creation() {
           label="Ton e-mail"
           value={email}
           onChangeText={setEmail}
-          placeholder={MOI.email}
+          placeholder={MOI?.email ?? 'ton@adresse.sn'}
           keyboardType="email-address"
           textContentType="emailAddress"
         />

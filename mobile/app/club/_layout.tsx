@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Body, Display, Eyebrow, Num, Screen, Surface, useToken } from '../../ds';
-import { CLUB, RELEVE as REFERENCE_ASOF, SOURCE as REFERENCE_SOURCE } from '../../contenu/reference';
+import { CLUB, RELEVE as REFERENCE_ASOF, SOURCE as REFERENCE_SOURCE } from '../../contenu/demo';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -17,11 +17,16 @@ import { CLUB, RELEVE as REFERENCE_ASOF, SOURCE as REFERENCE_SOURCE } from '../.
  * `app/`, TOUT fichier `.tsx` devient une route — `_bilan.tsx` s'ouvrirait à `/club/_bilan`.
  * Seul `_layout` échappe à la règle. C'est donc ici, une fois, plutôt que recopié huit fois.
  *
- * ⚠️ AUCUNE DONNÉE N'EST SIMULÉE SUR CES ÉCRANS, et c'est le fil du Club qui rend la règle
- * non négociable : un cours inventé est un cours qu'on croit avoir, mais un MESSAGE inventé
- * est attribué à quelqu'un — un nom, un métier, un quartier qui appartiennent à une personne
- * réelle. Chaque écran affiche donc ce qu'il reçoit par `useLocalSearchParams()`, ou un vide
- * qui dit ce qui n'est pas branché.
+ * ⚠️ CES ÉCRANS AFFICHENT DU CONTENU DE DÉMONSTRATION, et c'est le fil du Club qui rend la
+ * chose la plus coûteuse : un cours inventé est un cours qu'on croit avoir, mais un MESSAGE
+ * inventé est ATTRIBUÉ À QUELQU'UN — un nom, un métier, un quartier. « Seynabou K. » et
+ * « Fatou D. » n'ont rien écrit.
+ *
+ * Ce commentaire affirmait l'inverse, et il était faux depuis le portage du transfert. Il est
+ * corrigé plutôt que laissé à quelqu'un qui l'aurait cru. Un paramètre de route prime toujours
+ * sur la référence, et `contenu/demo.ts` est le seul endroit d'où ce contenu peut sortir.
+ * L'interrupteur de `contenu/mode.ts` le ferme en production : ces écrans y montrent alors ce
+ * qu'ils ne savent pas, au lieu de le mettre dans la bouche de quelqu'un.
  * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function ClubLayout() {
@@ -139,21 +144,26 @@ export function Bilan() {
      référence, ce qui est vrai aujourd'hui et faux le jour où quelqu'un copie la date. */
   const deReference = asOf === null;
   const stats = deReference
-    /* Aucun relevé transmis : le contenu de RÉFÉRENCE du transfert, cité comme tel. */
-    ? CLUB.bilan.map((b) => ({ value: b.n as number | null, asOf: REFERENCE_ASOF, label: b.l }))
+    /* Aucun relevé transmis. En démonstration, le contenu du transfert ; en production, trois
+       « non relevé » — le bilan garde sa PLACE, ce sont ses chiffres qui manquent. */
+    ? (CLUB?.bilan ?? [
+      { n: null, l: 'sessions suivies' },
+      { n: null, l: 'opportunités vues' },
+      { n: null, l: 'missions décrochées' },
+    ]).map((b) => ({ value: b.n as number | null, asOf: REFERENCE_ASOF, label: b.l }))
     : [
       { ...mesure(p.sessions, asOf), label: 'sessions suivies' },
       { ...mesure(p.opportunites, asOf), label: 'opportunités vues' },
       { ...mesure(p.missions, asOf), label: 'missions décrochées' },
     ];
 
-  const depuis = texte(p.depuis) ?? CLUB.depuis;
-  const echeance = texte(p.echeance) ?? CLUB.echeance;
+  const depuis = texte(p.depuis) ?? CLUB?.depuis ?? null;
+  const echeance = texte(p.echeance) ?? CLUB?.echeance ?? null;
   const rappel = texte(p.rappel);
 
   return (
     <Surface level="ink" style={{ padding: 18 }}>
-      <Eyebrow>Ton abonnement, depuis {depuis}</Eyebrow>
+      <Eyebrow>{depuis === null ? 'Ton abonnement' : `Ton abonnement, depuis ${depuis}`}</Eyebrow>
       <Display size={19} style={{ marginTop: 5 }}>Ce qu'il t'a apporté</Display>
 
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 15 }}>

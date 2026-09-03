@@ -1,9 +1,8 @@
 import { Pressable, View } from 'react-native';
 import {
-  Body, Button, Display, Eyebrow, Icon, LessonRow, Num, ProgressBar, Screen, Surface, Switch,
-  useToken, veil,
+  Body, Button, Display, Eyebrow, Icon, LessonRow, Num, ProgressBar, SansDonnees, Screen, Surface, Switch, useToken, veil,
 } from '../ds';
-import { RELEVE, SOURCE, STOCKAGE, TELECHARGE } from '../contenu/reference';
+import { RELEVE, SOURCE, STOCKAGE, TELECHARGE } from '../contenu/demo';
 import { useState } from 'react';
 
 /**
@@ -24,12 +23,30 @@ export default function Telechargements() {
   const t = useToken();
   const [wifi, setWifi] = useState(true);
 
+  if (STOCKAGE === null) {
+    return (
+      <Screen territory="forme" retour="Profil" titre="Téléchargements">
+        <Display size={27} lines={['Rien de gardé', 'sur ce téléphone.']} style={{ marginTop: 10 }} />
+        <SansDonnees
+          quoi="ce que tu as téléchargé"
+          origine="de cet appareil"
+          degat="Un poids inventé décide à ta place de charger ou d'attendre le Wi-Fi. Sur un forfait compté, c'est le chiffre qui coûte le plus cher à se tromper."
+          style={{ marginTop: 20 }}
+        />
+      </Screen>
+    );
+  }
+
+  /* Le rétrécissement de type ne survit pas à une closure quand la liaison vient d'un
+     autre module : `onPress={() => X.y}` reperd le `non null` que la garde vient
+     d'établir. Une constante LOCALE le porte jusque dans les rappels. */
+  const stockage = STOCKAGE;
   return (
     <Screen territory="forme" retour="Profil" titre="Téléchargements">
       <Eyebrow style={{ marginTop: 6 }}>
         {TELECHARGE.length} leçons hors connexion
       </Eyebrow>
-      <Display size={27} lines={[STOCKAGE.occupeCourt, 'sur ton téléphone']} style={{ marginTop: 8 }} />
+      <Display size={27} lines={[stockage.occupeCourt, 'sur ton téléphone']} style={{ marginTop: 8 }} />
 
       <Surface level="flat" style={{ marginTop: 18, padding: 18 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
@@ -45,7 +62,7 @@ export default function Telechargements() {
             <Body style={{ fontSize: 14, fontWeight: '600' }}>Qualité des vidéos</Body>
             <Body muted style={{ fontSize: 12, marginTop: 2 }}>480p suffit pour un cours parlé.</Body>
           </View>
-          <Num value={STOCKAGE.qualite} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13, color: t('textMuted') }} />
+          <Num value={stockage.qualite} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13, color: t('textMuted') }} />
         </View>
       </Surface>
 
@@ -78,11 +95,11 @@ export default function Telechargements() {
       <Surface level="flat" style={{ marginTop: 14, padding: 18 }}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
           <Body muted style={{ fontSize: 13.5 }}>Total occupé</Body>
-          <Num value={STOCKAGE.occupe} source={SOURCE} asOf={RELEVE} style={{ fontSize: 21 }} />
+          <Num value={stockage.occupe} source={SOURCE} asOf={RELEVE} style={{ fontSize: 21 }} />
         </View>
-        <ProgressBar value={STOCKAGE.pourcentage} style={{ marginTop: 12 }} />
+        <ProgressBar value={stockage.pourcentage} style={{ marginTop: 12 }} />
         <Body muted style={{ fontSize: 11.5, marginTop: 8, color: t('textFaint') }}>
-          sur {STOCKAGE.plafond} que l'app s'autorise. Au-delà, elle supprime d'abord les
+          sur {stockage.plafond} que l'app s'autorise. Au-delà, elle supprime d'abord les
           leçons déjà terminées.
         </Body>
         <Button tone="quiet" label="Tout supprimer" style={{ marginTop: 14 }} />

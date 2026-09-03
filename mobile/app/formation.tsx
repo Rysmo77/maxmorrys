@@ -2,10 +2,9 @@ import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { openAuthSessionAsync } from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, PriceBlock,
-  Screen, Surface, Tag, isIOS, useActionGradient, useToken, veil,
+  Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, PriceBlock, SansDonnees, Screen, Surface, Tag, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
-import { FORMATION, MODULES_MUR, RELEVE, SITE, SOURCE } from '../contenu/reference';
+import { FORMATION, MODULES_MUR, RELEVE, SITE, SOURCE } from '../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -60,21 +59,21 @@ export default function Formation() {
   /* Les paramètres priment sur le contenu de référence : le jour où le catalogue arrive de
      Firestore, il transmet ses valeurs et cet écran n'a pas à changer d'une ligne. */
   const { slug, titre, prix } = useLocalSearchParams<{ slug?: string; titre?: string; prix?: string }>();
-  const nom = titre ?? FORMATION.titre;
-  const montant = prix ? Number(prix) : FORMATION.prix;
-  const cible = slug ?? FORMATION.slug;
+  const nom = titre ?? FORMATION?.titre ?? null;
+  const montant = prix ? Number(prix) : FORMATION?.prix ?? null;
+  const cible = slug ?? FORMATION?.slug ?? null;
 
   async function ouvrirLaBoutique() {
     /* `openAuthSessionAsync` et non `openBrowserAsync` : la session partage les cookies du
        site, donc quelqu'un déjà connecté ne se reconnecte pas pour payer. */
-    await openAuthSessionAsync(`${SITE}/formations/${cible}`, 'rysmo://paiement/retour');
+    await openAuthSessionAsync(cible === null ? `${SITE}/formations` : `${SITE}/formations/${cible}`, 'rysmo://paiement/retour');
   }
 
   return (
     <Screen
       territory="forme"
       retour="Cours"
-      titre={isIOS ? undefined : (titre ?? FORMATION.titreCourt)}
+      titre={isIOS ? undefined : (titre ?? FORMATION?.titreCourt ?? 'Formation')}
       droite={
         <IconButton label="Partager cette formation" onPress={() => router.push('/partage')}>
           <Icon name="share" size={17} color={t('textBody')} strokeWidth={2} />
@@ -94,8 +93,12 @@ export default function Formation() {
         <Tag tone="art">Aperçu · 4 min gratuit</Tag>
       </Gradient>
 
-      <Eyebrow style={{ marginTop: 20 }}>{FORMATION.meta}</Eyebrow>
-      <Display size={26} lines={deuxLignes(nom)} style={{ marginTop: 8 }} />
+      {FORMATION ? <Eyebrow style={{ marginTop: 20 }}>{FORMATION.meta}</Eyebrow> : null}
+      <Display
+        size={26}
+        lines={nom === null ? ['Cette formation', "n'est pas chargée."] : deuxLignes(nom)}
+        style={{ marginTop: 8 }}
+      />
 
       {/* ── LE MUR ─────────────────────────────────────────────────────────────────────── */}
       <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
@@ -109,13 +112,19 @@ export default function Formation() {
 
         <View style={{ height: 1, backgroundColor: t('borderHair'), marginVertical: 16 }} />
 
-        <PriceBlock
-          amount={montant}
-          source={SOURCE}
-          asOf={RELEVE}
-          size={29}
-          note={`Une fois, accès à vie · ou ${FORMATION.echelonnement}`}
-        />
+        {/* Le prix, ou rien. Un montant approximatif sur un mur de paiement est la pire
+            place possible pour un chiffre faux : on sort de l'app en croyant le connaître. */}
+        {montant === null ? (
+          <Num value={null} source="server" asOf={RELEVE} fallback="prix non transmis" style={{ fontSize: 15 }} />
+        ) : (
+          <PriceBlock
+            amount={montant}
+            source={SOURCE}
+            asOf={RELEVE}
+            size={29}
+            note={FORMATION ? `Une fois, accès à vie · ou ${FORMATION.echelonnement}` : 'Une fois, accès à vie'}
+          />
+        )}
         <Button
           tone="forme"
           label="Ouvrir sur maxmorrys.me"
@@ -139,6 +148,13 @@ export default function Formation() {
       </Surface>
 
       {/* ── CE QU'ON PEUT VOIR SANS PAYER, ET CE QUI ATTEND ────────────────────────────── */}
+      {MODULES_MUR.length === 0 ? (
+        <SansDonnees
+          quoi="le programme"
+          degat="Un module inventé promet un contenu qu'on croit acheter. C'est ce que le module 1 gratuit sert justement à éviter : juger sur pièce."
+          style={{ marginTop: 12 }}
+        />
+      ) : (
       <Surface level="flat" style={{ marginTop: 12, paddingHorizontal: 16 }}>
         {MODULES_MUR.map((m, i) => (
           <LessonRow
@@ -157,6 +173,7 @@ export default function Formation() {
           />
         ))}
       </Surface>
+      )}
 
       <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
         Le module 1 se regarde sans payer, dans l'app, maintenant. C'est ce qui rend ce mur

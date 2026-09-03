@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import {
   Body, Button, Display, Eyebrow, Field, LessonRow, Screen, Surface, isIOS, useToken, veil,
 } from '../ds';
-import { CLUB, NOTES_TOTAL, STOCKAGE } from '../contenu/reference';
+import { CLUB, NOTES_TOTAL, STOCKAGE } from '../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -24,12 +24,17 @@ import { CLUB, NOTES_TOTAL, STOCKAGE } from '../contenu/reference';
  * ET LA SORTIE DE SECOURS EST À CÔTÉ DU BOUTON ROUGE : « j'exporte d'abord mes données ». La
  * plupart des gens qui suppriment veulent en fait récupérer ce qu'ils ont écrit.
  */
+/*
+ * CHAQUE LIGNE EST UN RELEVÉ, et sans relevé elle perd son chiffre — pas sa ligne. « Tes notes
+ * personnelles » reste vrai sans savoir combien ; « Tes 14 notes » ne l'est que si on a compté.
+ * C'est l'écran où un chiffre faux coûte le plus : on décide de supprimer d'après lui.
+ */
 const CE_QUI_PART = [
-  { titre: '2 inscriptions et leur progression', meta: 'accès à vie perdu, sans remboursement' },
-  { titre: `Tes ${NOTES_TOTAL.notes} notes personnelles`, meta: "elles ne sont nulle part ailleurs" },
+  { titre: 'Tes inscriptions et leur progression', meta: 'accès à vie perdu, sans remboursement' },
+  { titre: NOTES_TOTAL ? `Tes ${NOTES_TOTAL.notes} notes personnelles` : 'Tes notes personnelles', meta: "elles ne sont nulle part ailleurs" },
   { titre: 'La mémoire de ton répétiteur', meta: 'effaçable seule, sans supprimer le compte' },
-  { titre: 'Ton abonnement au Club', meta: `échéance au ${CLUB.echeance}, non remboursée` },
-  { titre: `Les ${STOCKAGE.occupeCourt} téléchargés sur ce téléphone`, meta: 'supprimés à la déconnexion' },
+  { titre: 'Ton abonnement au Club', meta: CLUB ? `échéance au ${CLUB.echeance}, non remboursée` : 'non remboursée' },
+  { titre: STOCKAGE ? `Les ${STOCKAGE.occupeCourt} téléchargés sur ce téléphone` : 'Ce qui est téléchargé sur ce téléphone', meta: 'supprimés à la déconnexion' },
 ];
 
 const MOT = 'SUPPRIMER';

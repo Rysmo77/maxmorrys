@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import {
   Body, Gradient, Icon, useActionGradient, useToken, veil,
 } from '../ds';
-import { FORMATION } from '../contenu/reference';
+import { FORMATION } from '../contenu/demo';
 
 /**
  * ══ 6 · LECTEUR PLEIN ÉCRAN ══
@@ -79,7 +79,7 @@ export default function PleinEcran() {
             <Text numberOfLines={1} style={{
               fontFamily: 'SchibstedGrotesk', fontSize: 14.5, fontWeight: '600', color: surVideo,
             }}>
-              {FORMATION.leconEnCours}
+              {FORMATION?.leconEnCours ?? 'Lecture'}
             </Text>
             <Text style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('cardInk2') }}>
               module 3 · leçon 5 · 480p · 9 Mo

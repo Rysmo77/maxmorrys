@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Icon, IconButton, MediaCard, MiniPlayer, Screen, SubNav,
-  Surface, Tag, useToken,
+  Body, Button, Display, Eyebrow, Icon, IconButton, MediaCard, MiniPlayer, SansDonnees, Screen, SubNav, Surface, Tag, useToken,
 } from '../ds';
-import { EPISODE, VIDEO } from '../contenu/reference';
+import { EPISODE, VIDEO } from '../contenu/demo';
 import { View } from 'react-native';
 
 /**
@@ -34,6 +33,24 @@ export default function Media() {
   const t = useToken();
   const [enLecture, setEnLecture] = useState(false);
 
+  if (EPISODE === null || VIDEO === null) {
+    return (
+      <Screen territory="transforme" retour="Profil">
+        <Display size={27} lines={['Rien à écouter', 'pour l’instant.']} style={{ marginTop: 10 }} />
+        <SansDonnees
+          quoi="le pôle média"
+          degat="Un épisode inventé porte le nom d'un invité qui n'a rien enregistré, et un poids en mégaoctets qui déciderait de charger ou pas."
+          style={{ marginTop: 20 }}
+        />
+      </Screen>
+    );
+  }
+
+  /* Le rétrécissement de type ne survit pas à une closure quand la liaison vient d'un
+     autre module : `onPress={() => X.y}` reperd le `non null` que la garde vient
+     d'établir. Une constante LOCALE le porte jusque dans les rappels. */
+  const episode = EPISODE;
+  const video = VIDEO;
   return (
     <Screen
       territory="transforme"
@@ -45,9 +62,9 @@ export default function Media() {
       }
       overlay={(
         <MiniPlayer
-          titre={EPISODE.titreCourt}
-          position={EPISODE.position}
-          duree={EPISODE.duree}
+          titre={episode.titreCourt}
+          position={episode.position}
+          duree={episode.duree}
           enLecture={enLecture}
           tabbar={false}
           onToggle={() => setEnLecture(!enLecture)}
@@ -77,10 +94,10 @@ export default function Media() {
         format="audio"
         artHeight={150}
         titleSize={20}
-        eyebrow={EPISODE.eyebrow}
-        title={EPISODE.titre}
-        body={EPISODE.chapo}
-        cost={EPISODE.cout}
+        eyebrow={episode.eyebrow}
+        title={episode.titre}
+        body={episode.chapo}
+        cost={episode.cout}
         style={{ marginTop: 18 }}
         actions={(
           <>
@@ -92,11 +109,11 @@ export default function Media() {
 
       <MediaCard
         format="video"
-        badge={VIDEO.badge}
+        badge={video.badge}
         artHeight={126}
-        eyebrow={VIDEO.eyebrow}
-        title={VIDEO.titre}
-        cost={VIDEO.cout}
+        eyebrow={video.eyebrow}
+        title={video.titre}
+        cost={video.cout}
         style={{ marginTop: 12 }}
         actions={<Button tone="quiet" size="sm" label="Regarder" onPress={() => router.push('/video')} />}
       />

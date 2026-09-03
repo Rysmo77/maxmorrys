@@ -5,7 +5,7 @@ import {
   useToken,
 } from '../../ds';
 import { Bilan, ClubScreen } from './_layout';
-import { OPPORTUNITES, RELEVE, SOURCE } from '../../contenu/reference';
+import { OPPORTUNITES, RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ── CLUB · LES OPPORTUNITÉS ───────────────────────────────────────────────────────────

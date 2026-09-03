@@ -1,10 +1,11 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, Button, Eyebrow, Icon, LessonRow, Num, Pipeline, StatTile, Surface, useToken, veil,
+  Body, Button, Eyebrow, Icon, LessonRow, Num, Pipeline, SansDonnees, StatTile, Surface, useToken, veil,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
-import { PROSPECT, RELEVE, SOURCE, SUPPORT_PORTEE } from '../../contenu/reference';
+import { PROSPECT, RELEVE, SOURCE, SUPPORT_COMPTES } from '../../contenu/demo';
+import { SUPPORT_PORTEE } from '../../contenu/portee';
 import { useState } from 'react';
 
 /**
@@ -20,9 +21,16 @@ import { useState } from 'react';
  */
 export default function Console() {
   const t = useToken();
-  const [etape, setEtape] = useState('à traiter 1');
+  const [etape, setEtape] = useState('à traiter');
 
-  const aTraiter = SUPPORT_PORTEE.reduce((n, e) => n + e.compte, 0);
+  /* Sans relevé, on ne compte pas : le filtre affiche ses étapes sans nombre plutôt qu'un
+     zéro qu'on n'a pas mesuré. « Rien à traiter » et « je ne sais pas » ne se disent pas
+     pareil, et c'est toute la différence sur une console de support. */
+  const compte = (titre: string) => SUPPORT_COMPTES?.[titre] ?? null;
+  const comptes = SUPPORT_COMPTES;
+  const aTraiter = comptes === null
+    ? null
+    : SUPPORT_PORTEE.reduce((n, e) => n + (comptes[e.titre] ?? 0), 0);
 
   return (
     <ConsoleScreen
@@ -33,40 +41,51 @@ export default function Console() {
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
         <StatTile
           label="Prospects"
-          value={1}
+          value={compte('Prospects')}
           source={SOURCE}
-          asOf={RELEVE}
+          asOf={SUPPORT_COMPTES === null ? null : RELEVE}
           foot="non qualifié"
           style={{ flex: 1 }}
         />
         <StatTile
           label="Messages"
-          value={0}
+          value={compte('Messages')}
           source={SOURCE}
-          asOf={RELEVE}
+          asOf={SUPPORT_COMPTES === null ? null : RELEVE}
           foot="depuis l'origine"
           style={{ flex: 1 }}
         />
       </View>
 
       <Pipeline
-        stages={[`tout ${aTraiter}`, `à traiter ${aTraiter}`, 'clos 0']}
+        stages={aTraiter === null
+          ? ['tout', 'à traiter', 'clos']
+          : [`tout ${aTraiter}`, `à traiter ${aTraiter}`, 'clos 0']}
         active={etape}
         onSelect={setEtape}
         style={{ marginTop: 14 }}
       />
 
       {/* UNE SEULE ACTION PAR LIGNE. Deux boutons sur 44 px, c'est une erreur par jour. */}
-      <Surface level="night" style={{ marginTop: 14, paddingHorizontal: 16 }}>
-        <LessonRow
-          icon={<Icon name="case" size={14} color={t('mmOrange')} />}
-          iconBackground={veil(t('mmOrange'), 0.2)}
-          title={PROSPECT.titre}
-          meta={PROSPECT.meta}
-          trailing={<Button tone="quiet" size="sm" label="Qualifier" onPress={() => router.push('/console/prospects')} />}
-          last
+      {PROSPECT === null ? (
+        <SansDonnees
+          quoi="ce qu'il y a à traiter"
+          origine="du serveur"
+          degat="Une demande inventée ferait rappeler quelqu'un qui n'a rien demandé, et masquerait qu'il n'y a rien à faire."
+          style={{ marginTop: 14 }}
         />
-      </Surface>
+      ) : (
+        <Surface level="night" style={{ marginTop: 14, paddingHorizontal: 16 }}>
+          <LessonRow
+            icon={<Icon name="case" size={14} color={t('mmOrange')} />}
+            iconBackground={veil(t('mmOrange'), 0.2)}
+            title={PROSPECT.titre}
+            meta={PROSPECT.meta}
+            trailing={<Button tone="quiet" size="sm" label="Qualifier" onPress={() => router.push('/console/prospects')} />}
+            last
+          />
+        </Surface>
+      )}
 
       <Eyebrow style={{ marginTop: 24 }}>Ce que ton rôle atteint</Eyebrow>
       <Surface level="night" style={{ marginTop: 10, paddingHorizontal: 16 }}>
@@ -76,7 +95,15 @@ export default function Console() {
             icon={<Icon name="check" size={13} color={t('mmTeal')} strokeWidth={3.4} />}
             iconBackground={veil(t('mmTeal'), 0.18)}
             title={e.titre}
-            trailing={<Num value={e.compte} source={SOURCE} asOf={RELEVE} style={{ fontSize: 12.5, color: t('textMuted') }} />}
+            trailing={(
+              <Num
+                value={compte(e.titre)}
+                source={SOURCE}
+                asOf={RELEVE}
+                fallback="—"
+                style={{ fontSize: 12.5, color: t('textMuted') }}
+              />
+            )}
             onPress={() => router.push(e.href)}
             last={i === SUPPORT_PORTEE.length - 1}
           />

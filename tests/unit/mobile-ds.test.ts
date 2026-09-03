@@ -239,3 +239,81 @@ describe('port natif — rien ne sort du dossier', () => {
     }
   });
 });
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * LE CONTENU DE DÉMONSTRATION NE SORT PAS EN PRODUCTION.
+ *
+ * Le portage du transfert a levé la règle d'origine du port (« aucun écran ne simule de
+ * données ») pour une raison valable : un kit de 36 écrans ne se juge pas sur 36 états vides.
+ * Le coût, lui, n'était pas théorique — un APK a circulé où quelqu'un voyait une formation
+ * qu'il n'avait pas achetée et des messages du Club signés par des gens qui ne les avaient
+ * jamais écrits. Pire : deux fichiers affirmaient encore qu'aucune donnée n'était simulée.
+ *
+ * Le typecheck tient déjà la moitié du mécanisme : `contenu/demo.ts` type ses sorties
+ * `T | null`, donc un écran qui ne traite pas l'absence ne compile pas. Ce test tient l'autre
+ * moitié — celle que `tsc` ne peut pas voir : que l'interrupteur soit bien FERMÉ là où il
+ * compte, et qu'aucun écran ne contourne le module.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ */
+describe('port natif — le contenu de démonstration reste hors production', () => {
+  const eas = JSON.parse(readFileSync(join(MOBILE, 'eas.json'), 'utf8'));
+
+  it('le profil `production` ne porte pas le drapeau de démonstration', () => {
+    const env = eas.build?.production?.env ?? {};
+    expect(env.EXPO_PUBLIC_CONTENU_DEMO).toBeUndefined();
+  });
+
+  /*
+   * `preview` sert à JUGER le kit sur l'appareil : sans le drapeau, ces builds sortiraient
+   * vides et la revue de design n'aurait rien à regarder. Le test le vérifie dans ce sens-là
+   * aussi — un interrupteur qu'on oublie d'ouvrir coûte une journée de fausse alerte.
+   */
+  it('les profils `preview` et `development` le portent', () => {
+    for (const profil of ['preview', 'development']) {
+      expect(eas.build?.[profil]?.env?.EXPO_PUBLIC_CONTENU_DEMO, profil).toBe('1');
+    }
+  });
+
+  /*
+   * L'interrupteur vit DANS `contenu/demo.ts`, et pas dans un module à lui : le minifieur de
+   * Metro ne replie une branche morte que là où la condition est littérale, donc importée elle
+   * laissait tout le contenu du transfert embarqué dans le paquet de production. Mesuré :
+   * 3 octets d'écart entre les deux paquets, contre 3,4 Ko une fois la ligne rapatriée ici.
+   */
+  it("l'interrupteur est fermé par défaut", () => {
+    const mode = code(join(MOBILE, 'contenu/demo.ts'));
+    // `DEMO` doit EXIGER une preuve : la variable d'environnement, ou le serveur Metro.
+    expect(mode).toMatch(/EXPO_PUBLIC_CONTENU_DEMO === '1'/);
+    expect(mode).toMatch(/__DEV__/);
+    // Jamais un littéral vrai : ce serait la porte ouverte que la production devrait penser
+    // à refermer, c'est-à-dire exactement le défaut qu'on vient de corriger.
+    expect(mode).not.toMatch(/const DEMO\s*=\s*true/);
+    // Et il reste dans le module qu'il garde : l'importer replacerait la condition hors de
+    // portée du minifieur, et le contenu repartirait dans le paquet de production.
+    expect(mode).not.toMatch(/import \{[^}]*\bDEMO\b[^}]*\} from/);
+  });
+
+  it('toute sortie de `contenu/demo.ts` passe par l’interrupteur', () => {
+    const demo = code(join(MOBILE, 'contenu/demo.ts'));
+    const fautes: string[] = [];
+    for (const m of demo.matchAll(/^export const (\w+)([^=]*)= *(.*)$/gm)) {
+      const [, nom, , valeur] = m;
+      // Trois sorties sont de la MÉTA-donnée, pas du contenu : la source citée, sa date, et
+      // l'adresse du site. Elles ne décrivent personne et n'affirment aucun fait sur le monde.
+      if (['SOURCE', 'RELEVE', 'SITE'].includes(nom)) continue;
+      if (!valeur.startsWith('DEMO ?')) fautes.push(`${nom} = ${valeur.slice(0, 40)}`);
+    }
+    expect(fautes).toEqual([]);
+  });
+
+  it('aucun écran ne lit les valeurs du kit en contournant le module', () => {
+    // Le module privatise ses constantes sous le préfixe `KIT_` : les voir ailleurs
+    // signifierait qu'on a recopié une valeur au lieu de passer par la porte.
+    const fautes: string[] = [];
+    for (const f of walk(join(MOBILE, 'app'))) {
+      if (/KIT_/.test(code(f))) fautes.push(rel(f));
+    }
+    expect(fautes).toEqual([]);
+  });
+});

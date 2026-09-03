@@ -1,7 +1,7 @@
 import {
   Body, Display, Eyebrow, Icon, LessonRow, Num, Screen, Surface, Tag, useToken, veil,
 } from '../ds';
-import { FILE_ENVOI, RELEVE, SOURCE, TELECHARGE } from '../contenu/reference';
+import { FILE_ENVOI, RELEVE, SOURCE, TELECHARGE } from '../contenu/demo';
 import { router } from 'expo-router';
 
 /**

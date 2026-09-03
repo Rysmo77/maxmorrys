@@ -1,11 +1,10 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Avatar, Body, Button, ChipRow, Icon, LessonRow, Num, PriceBlock, Surface, Tag,
-  TerritoryCard, useToken,
+  Avatar, Body, Button, ChipRow, Icon, LessonRow, Num, PriceBlock, SansDonnees, Surface, Tag, TerritoryCard, useToken,
 } from '../../ds';
 import { Bilan, ClubScreen } from './_layout';
-import { CLUB_FIL, CLUB_MISSION, RELEVE, SOURCE } from '../../contenu/reference';
+import { CLUB_FIL, CLUB_MISSION, RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ══ 6 · LE FIL DU CLUB ══
@@ -42,7 +41,13 @@ export default function Fil() {
         style={{ marginTop: 18 }}
       />
 
-      {CLUB_FIL.map((post) => (
+      {CLUB_FIL.length === 0 ? (
+        <SansDonnees
+          quoi="le fil du Club"
+          degat="Un message inventé porte le nom de quelqu'un — un nom, un métier, un quartier qui appartiennent à une personne réelle. C'est le contenu du produit où fabriquer coûte le plus cher."
+          style={{ marginTop: 14 }}
+        />
+      ) : CLUB_FIL.map((post) => (
         <Surface key={post.auteur} level="flat" style={{ marginTop: 14, padding: 18 }}>
           <View style={{ flexDirection: 'row', gap: 11, alignItems: 'center' }}>
             <Avatar initials={post.initiales} size={38} />
@@ -79,6 +84,9 @@ export default function Fil() {
         </Surface>
       ))}
 
+      {/* Une annonce, ou rien : un budget inventé fixe une attente de revenu chez quelqu'un
+          qui organise son temps dessus. */}
+      {CLUB_MISSION === null ? null : (
       <View style={{ marginTop: 12 }}>
         <TerritoryCard
           first
@@ -107,6 +115,7 @@ export default function Fil() {
           </View>
         </TerritoryCard>
       </View>
+      )}
 
       <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
         <LessonRow

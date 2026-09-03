@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import {
-  Body, Button, Eyebrow, Icon, LessonRow, Num, Pipeline, Surface, Tag, useToken, veil,
+  Body, Button, Eyebrow, Icon, LessonRow, Num, Pipeline, SansDonnees, Surface, Tag, useToken, veil,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
-import { PROSPECT, RELEVE, SOURCE } from '../../contenu/reference';
+import { PROSPECT, RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ══ CONSOLE 4/5 · LES PROSPECTS ══ — LE SEUL DES CINQ QUI A QUELQUE CHOSE À TRAITER.
@@ -21,7 +21,7 @@ import { PROSPECT, RELEVE, SOURCE } from '../../contenu/reference';
  */
 export default function Prospects() {
   const t = useToken();
-  const [etape, setEtape] = useState('à qualifier 1');
+  const [etape, setEtape] = useState(PROSPECT === null ? 'à qualifier' : 'à qualifier 1');
 
   function qualifier() {
     Alert.alert(
@@ -38,27 +38,38 @@ export default function Prospects() {
       lignes={['Qui attend', 'une réponse.']}
     >
       <Pipeline
-        stages={['tout 1', 'à qualifier 1', 'devis 0', 'sans suite 0']}
+        stages={PROSPECT === null
+          ? ['tout', 'à qualifier', 'devis', 'sans suite']
+          : ['tout 1', 'à qualifier 1', 'devis 0', 'sans suite 0']}
         active={etape}
         onSelect={setEtape}
         style={{ marginTop: 18 }}
       />
 
-      <Surface level="night" style={{ marginTop: 14, paddingHorizontal: 16 }}>
-        <LessonRow
-          icon={<Icon name="case" size={14} color={t('mmOrange')} />}
-          iconBackground={veil(t('mmOrange'), 0.2)}
-          title={PROSPECT.titre}
-          meta={PROSPECT.meta}
-          trailing={<Button tone="quiet" size="sm" label="Qualifier" onPress={qualifier} />}
-          last
+      {PROSPECT === null ? (
+        <SansDonnees
+          quoi="la file des prospects"
+          origine="du serveur"
+          degat="Un prospect inventé porte le nom d'un commerce et un budget. Le rappeler mettrait quelqu'un devant une demande qu'il n'a pas faite."
+          style={{ marginTop: 14 }}
         />
-      </Surface>
+      ) : (
+        <Surface level="night" style={{ marginTop: 14, paddingHorizontal: 16 }}>
+          <LessonRow
+            icon={<Icon name="case" size={14} color={t('mmOrange')} />}
+            iconBackground={veil(t('mmOrange'), 0.2)}
+            title={PROSPECT.titre}
+            meta={PROSPECT.meta}
+            trailing={<Button tone="quiet" size="sm" label="Qualifier" onPress={qualifier} />}
+            last
+          />
+        </Surface>
+      )}
 
       <Surface level="night" style={{ marginTop: 12, padding: 17 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <Eyebrow style={{ fontSize: 10 }}>Depuis combien de temps</Eyebrow>
-          <Tag tone="warn">{PROSPECT.statut}</Tag>
+          {PROSPECT ? <Tag tone="warn">{PROSPECT.statut}</Tag> : null}
         </View>
         <Body muted style={{ fontSize: 12.5, lineHeight: 19, marginTop: 8 }}>
           C'est le seul chiffre qui doit peser : ni score, ni probabilité de conversion. Une
@@ -68,7 +79,14 @@ export default function Prospects() {
 
       <Eyebrow style={{ marginTop: 22 }}>Le relevé</Eyebrow>
       <Surface level="night" style={{ marginTop: 10, padding: 17 }}>
-        <Num value={1} source={SOURCE} asOf={RELEVE} unit="prospect non qualifié" style={{ fontSize: 15 }} />
+        <Num
+          value={PROSPECT === null ? null : 1}
+          source={SOURCE}
+          asOf={RELEVE}
+          unit="prospect non qualifié"
+          fallback="file non relevée"
+          style={{ fontSize: 15 }}
+        />
       </Surface>
 
       <PiedDePortee quoi="Qualifier est l'unique action ; la proposition et la facturation se font au clavier." />

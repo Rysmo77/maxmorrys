@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import {
   Body, Button, DocLine, Display, Eyebrow, Gradient, Icon, Num, Screen, Surface, useToken,
 } from '../ds';
-import { FORMATION, RELEVE, SOURCE } from '../contenu/reference';
+import { FORMATION, RELEVE, SOURCE } from '../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -28,7 +28,7 @@ export default function Succes() {
     titre?: string; moyen?: string; premierModule?: string;
   }>();
 
-  const nom = titre ?? FORMATION.titreCourt;
+  const nom = titre ?? FORMATION?.titreCourt ?? null;
   const duree = premierModule ?? '22 minutes';
 
   return (
@@ -52,9 +52,13 @@ export default function Succes() {
       </Body>
 
       <Surface level="flat" style={{ marginTop: 20, padding: 18 }}>
+        {/* Le nom vient du retour de paiement. Sans lui, on ne l'invente pas : quelqu'un qui
+            vient de payer doit lire CE qu'il a acheté, pas un exemple. */}
         <DocLine
           label="Formation"
-          value={<Body style={{ fontWeight: '700', fontSize: 13.5 }}>{nom}</Body>}
+          value={nom
+            ? <Body style={{ fontWeight: '700', fontSize: 13.5 }}>{nom}</Body>
+            : <Num value={null} source="server" asOf={RELEVE} fallback="non transmise" style={{ fontSize: 13.5 }} />}
         />
         <DocLine label="Payée sur" value="maxmorrys.me" />
         {/* Le moyen n'est affiché QUE s'il a été transmis : le deviner reviendrait à écrire

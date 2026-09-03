@@ -1,9 +1,9 @@
 import { Share, View } from 'react-native';
 import {
-  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, Surface, Tag, useToken, veil,
+  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { CLUB, PARRAINAGE, RELEVE, SOURCE } from '../../contenu/reference';
+import { CLUB, PARRAINAGE, RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -25,10 +25,34 @@ import { CLUB, PARRAINAGE, RELEVE, SOURCE } from '../../contenu/reference';
 export default function ClubParrainage() {
   const t = useToken();
 
+  if (PARRAINAGE === null || CLUB === null) {
+    return (
+      <ClubScreen titre="Parrainage">
+        <Display size={24} lines={['Ton code', "n'est pas chargé."]} />
+        <SansDonnees
+          quoi="ton code de parrainage"
+          origine="de ton compte"
+          degat="Un code inventé partagé à quelqu'un ne lui donnerait aucune remise — et c'est toi qui l'aurais promise."
+          style={{ marginTop: 20 }}
+        />
+        <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
+          <Eyebrow>La règle, elle, ne dépend d'aucun relevé</Eyebrow>
+          <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
+            La remise va au FILLEUL, pas à toi. Un parrainage qui paie le parrain en argent
+            transforme les membres en apporteurs d'affaires ; ce que tu gagnes est du temps —
+            un mois offert par filleul qui reste quatre-vingt-dix jours.
+          </Body>
+        </Surface>
+      </ClubScreen>
+    );
+  }
+  const parrainage = PARRAINAGE;
+  const club = CLUB;
+
   async function partager() {
     await Share.share({
-      message: `Le Club des Digitos, avec mon code : ${PARRAINAGE.code}\n${PARRAINAGE.lien}`,
-      url: PARRAINAGE.lien,
+      message: `Le Club des Digitos, avec mon code : ${parrainage.code}\n${parrainage.lien}`,
+      url: parrainage.lien,
     });
   }
 
@@ -36,14 +60,14 @@ export default function ClubParrainage() {
     <ClubScreen titre="Parrainage">
       <Eyebrow>Ton code</Eyebrow>
       <Surface level="hero" style={{ marginTop: 10, padding: 20 }}>
-        <Num value={PARRAINAGE.code} source={SOURCE} asOf={RELEVE} style={{ fontSize: 26, letterSpacing: 1.4 }} />
+        <Num value={parrainage.code} source={SOURCE} asOf={RELEVE} style={{ fontSize: 26, letterSpacing: 1.4 }} />
         <Body muted style={{ fontSize: 12.5, lineHeight: 19, marginTop: 8 }}>
           Qui l'utilise paie{' '}
-          <Num value={PARRAINAGE.prixParraine} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
+          <Num value={parrainage.prixParraine} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
           {' '}au lieu de{' '}
-          <Num value={CLUB.prixAn} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
+          <Num value={club.prixAn} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
           {' '}— soit{' '}
-          <Num value={PARRAINAGE.remiseFilleul} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
+          <Num value={parrainage.remiseFilleul} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 12.5 }} />
           {' '}de moins, pour lui.
         </Body>
         <Button tone="transforme" label="Partager mon code" icon="share" style={{ marginTop: 16 }} onPress={() => void partager()} />
@@ -78,7 +102,7 @@ export default function ClubParrainage() {
           icon={<Icon name="users" size={14} color={t('mmVioletT')} />}
           iconBackground={veil(t('mmViolet'), 0.12)}
           title="Ont utilisé ton code"
-          trailing={<Num value={PARRAINAGE.filleuls} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
+          trailing={<Num value={parrainage.filleuls} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
         />
         <LessonRow
           icon={<Icon name="gift" size={14} color={t('ok')} />}

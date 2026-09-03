@@ -64,7 +64,7 @@ export default function MotDePasse() {
             label="Ton e-mail"
             value={email}
             onChangeText={setEmail}
-            placeholder="aissatou@exemple.sn"
+            placeholder="ton@adresse.sn"
             keyboardType="email-address"
             textContentType="emailAddress"
             style={{ marginTop: 0 }}

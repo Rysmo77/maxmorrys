@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, Screen,
-  Segmented, Surface, isIOS, useActionGradient, useToken, veil,
+  Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, SansDonnees, Screen, Segmented, Surface, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
-import { EPISODE, RELEVE, SOURCE, TRANSCRIPTION } from '../contenu/reference';
+import { EPISODE, RELEVE, SOURCE, TRANSCRIPTION } from '../contenu/demo';
 
 /**
  * ══ 2 · L'ÉPISODE ══
@@ -31,6 +30,23 @@ export default function Episode() {
 
   const vitesses = [1, 1.25, 1.5, 2];
 
+  if (EPISODE === null) {
+    return (
+      <Screen territory="transforme" retour="Écouter">
+        <Display size={27} lines={['Cet épisode', 'n’est pas chargé.']} style={{ marginTop: 10 }} />
+        <SansDonnees
+          quoi="cet épisode"
+          degat="Une transcription fabriquée met des phrases dans la bouche de quelqu'un. C'est le seul contenu du produit où l'invention se lit comme une citation."
+          style={{ marginTop: 20 }}
+        />
+      </Screen>
+    );
+  }
+
+  /* Le rétrécissement de type ne survit pas à une closure quand la liaison vient d'un
+     autre module : `onPress={() => X.y}` reperd le `non null` que la garde vient
+     d'établir. Une constante LOCALE le porte jusque dans les rappels. */
+  const episode = EPISODE;
   return (
     <Screen
       territory="transforme"
@@ -45,7 +61,7 @@ export default function Episode() {
       <Eyebrow style={{ marginTop: 6 }}>Podcast · épisode 1</Eyebrow>
       <Display size={27} lines={['Vendre sans', 'budget pub.']} style={{ marginTop: 8 }} />
       <Num
-        value={`${EPISODE.date} · ${EPISODE.duree} · ${EPISODE.invitee}`}
+        value={`${episode.date} · ${episode.duree} · ${episode.invitee}`}
         source={SOURCE}
         asOf={RELEVE}
         style={{ fontSize: 11.5, color: t('textFaint'), marginTop: 10 }}
@@ -87,11 +103,11 @@ export default function Episode() {
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 16 }}>
-          <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('paperFixed') }}>{EPISODE.position}</Body>
+          <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('paperFixed') }}>{episode.position}</Body>
           <View style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: veil(t('paperFixed'), 0.35) }}>
             <View style={{ width: '24%', height: '100%', borderRadius: 2, backgroundColor: t('paperFixed') }} />
           </View>
-          <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('paperFixed') }}>{EPISODE.duree}</Body>
+          <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('paperFixed') }}>{episode.duree}</Body>
         </View>
       </Gradient>
 
@@ -101,7 +117,7 @@ export default function Episode() {
           tone="quiet"
           size="sm"
           fullWidth
-          label={`Télécharger · ${EPISODE.poids}`}
+          label={`Télécharger · ${episode.poids}`}
           icon="download"
           style={{ flex: 1 }}
         />
@@ -120,7 +136,7 @@ export default function Episode() {
           <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 12 }}>
             Affichée par défaut : elle se lit sans charger l'audio —{' '}
             <Num value="0 Mo" source={SOURCE} asOf={RELEVE} style={{ fontSize: 12 }} /> contre{' '}
-            {EPISODE.poids}.
+            {episode.poids}.
           </Body>
           <Surface level="flat" style={{ marginTop: 12, paddingHorizontal: 16 }}>
             {TRANSCRIPTION.map((l, i) => (

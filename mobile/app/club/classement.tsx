@@ -1,9 +1,9 @@
 import { View } from 'react-native';
 import {
-  Avatar, Body, Eyebrow, Num, ProgressBar, Surface, Tag, useToken, veil,
+  Avatar, Body, Display, Eyebrow, Num, ProgressBar, SansDonnees, Surface, Tag, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { CLASSEMENT, RELEVE, SOURCE } from '../../contenu/reference';
+import { CLASSEMENT, RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -27,36 +27,59 @@ import { CLASSEMENT, RELEVE, SOURCE } from '../../contenu/reference';
 export default function ClubClassement() {
   const t = useToken();
 
+  if (CLASSEMENT === null) {
+    return (
+      <ClubScreen titre="Classement">
+        <Display size={24} lines={['Ton rang', "n'est pas calculé."]} />
+        <SansDonnees
+          quoi="ton classement"
+          origine="du serveur, qui compte les contributions"
+          degat="Un rang inventé classe des gens les uns par rapport aux autres. Il n'y a pas de version approximative d'une position."
+          style={{ marginTop: 20 }}
+        />
+        <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
+          <Eyebrow>La règle, elle, ne dépend d'aucun relevé</Eyebrow>
+          <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
+            Le classement est par VAGUE D'ARRIVÉE, jamais absolu : quelqu'un qui arrive en
+            novembre ne rattrapera jamais quelqu'un arrivé en février, et un classement absolu
+            mesurerait l'ancienneté. Les points se gagnent en aidant, pas en se connectant.
+          </Body>
+        </Surface>
+      </ClubScreen>
+    );
+  }
+  const classement = CLASSEMENT;
+
   return (
     <ClubScreen titre="Classement">
-      <Eyebrow>{CLASSEMENT.vague}</Eyebrow>
+      <Eyebrow>{classement.vague}</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, padding: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
           <View>
             <Body muted style={{ fontSize: 12.5 }}>Ton rang dans ta vague</Body>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
-              <Num value={CLASSEMENT.rang} source={SOURCE} asOf={RELEVE} style={{ fontSize: 34 }} />
+              <Num value={classement.rang} source={SOURCE} asOf={RELEVE} style={{ fontSize: 34 }} />
               <Body muted style={{ fontSize: 14 }}>
-                sur <Num value={CLASSEMENT.surCombien} source={SOURCE} asOf={RELEVE} style={{ fontSize: 14 }} />
+                sur <Num value={classement.surCombien} source={SOURCE} asOf={RELEVE} style={{ fontSize: 14 }} />
               </Body>
             </View>
           </View>
-          <Tag tone="ok">+{CLASSEMENT.semaine} cette semaine</Tag>
+          <Tag tone="ok">+{classement.semaine} cette semaine</Tag>
         </View>
         <ProgressBar
-          value={(1 - (CLASSEMENT.rang - 1) / CLASSEMENT.surCombien) * 100}
+          value={(1 - (classement.rang - 1) / classement.surCombien) * 100}
           territory="transforme"
           style={{ marginTop: 14 }}
         />
         <Body muted style={{ fontSize: 11.5, marginTop: 8, color: t('textFaint') }}>
-          Tu es comparée aux <Num value={CLASSEMENT.surCombien} source={SOURCE} asOf={RELEVE} style={{ fontSize: 11.5 }} />
+          Tu es comparée aux <Num value={classement.surCombien} source={SOURCE} asOf={RELEVE} style={{ fontSize: 11.5 }} />
           {' '}personnes arrivées en même temps que toi — pas à tout le Club.
         </Body>
       </Surface>
 
       <Eyebrow style={{ marginTop: 22 }}>Ta vague</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16, paddingVertical: 4 }}>
-        {CLASSEMENT.lignes.map((l) => (
+        {classement.lignes.map((l) => (
           <View
             key={l.rang}
             style={{

@@ -2,10 +2,10 @@ import { View } from 'react-native';
 import { router } from 'expo-router';
 import { openAuthSessionAsync } from 'expo-web-browser';
 import {
-  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, Screen, Surface,
-  type IconName, isIOS, useToken,
+  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Screen,
+  Surface, type IconName, isIOS, useToken,
 } from '../../ds';
-import { CLUB, QUOTA, RELEVE, SITE, SOURCE } from '../../contenu/reference';
+import { CLUB, QUOTA, RELEVE, SITE, SOURCE } from '../../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -53,7 +53,29 @@ export default function Club() {
         personne.
       </Body>
 
-      {/* ── LE MUR ─────────────────────────────────────────────────────────────────────── */}
+      {/*
+        ── LE MUR ────────────────────────────────────────────────────────────────────────
+        SANS PRIX, LE MUR TIENT QUAND MÊME, et c'est ce qui compte : la règle de magasin
+        (App Store 3.1.1) ne dépend d'aucun montant. Ce qui disparaît, c'est le chiffre — et
+        le dépôt l'exige : `tests/unit/club-pricing.test.ts` pose que la seule source admise
+        du prix du Club est `lib/club/pricing`, jamais une valeur écrite dans un écran.
+      */}
+      {CLUB === null ? (
+        <SansDonnees
+          quoi="le prix du Club"
+          origine="du serveur, qui le recalcule"
+          degat="Un prix d'abonnement écrit dans l'application diverge le jour où il change, et personne ne le voit — le dépôt l'interdit pour cette raison. L'abonnement se prend sur le site, où le montant est celui du serveur."
+          style={{ marginTop: 18 }}
+          action={(
+            <Button
+              tone="transforme"
+              label="Ouvrir sur maxmorrys.me"
+              trailing="forward"
+              onPress={() => { void openAuthSessionAsync(`${SITE}/club`, 'rysmo://paiement/retour'); }}
+            />
+          )}
+        />
+      ) : (
       <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
           <Num
@@ -90,6 +112,7 @@ export default function Club() {
           <Num value={CLUB.prixParraine} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 11.5 }} />.
         </Body>
       </Surface>
+      )}
 
       {/* ── CE QU'ON PAIE, PRÉCISÉMENT ─────────────────────────────────────────────────── */}
       <Eyebrow style={{ marginTop: 24 }}>Ce que tu paies, précisément</Eyebrow>
@@ -98,9 +121,12 @@ export default function Club() {
         <CheckLine>Les missions que je sors de mon carnet</CheckLine>
         <CheckLine>Les ateliers à Dakar, places membres</CheckLine>
         <CheckLine>Une réponse de moi, pas d'un modérateur</CheckLine>
-        <CheckLine>
-          Ton répétiteur à {QUOTA.total} questions/jour au lieu de 2
-        </CheckLine>
+        {/* Le plafond relevé, ou rien : « 5 questions » écrit sans mesure est une promesse. */}
+        {QUOTA ? (
+          <CheckLine>Ton répétiteur à {QUOTA.total} questions/jour au lieu de 2</CheckLine>
+        ) : (
+          <CheckLine>Ton répétiteur à un plafond de questions plus haut</CheckLine>
+        )}
       </Surface>
 
       {/* ── LES HUIT ONGLETS, OUVERTS ──────────────────────────────────────────────────── */}

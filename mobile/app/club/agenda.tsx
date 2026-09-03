@@ -5,7 +5,7 @@ import {
   useToken,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { AGENDA, RELEVE, SOURCE } from '../../contenu/reference';
+import { AGENDA, RELEVE, SOURCE } from '../../contenu/demo';
 import { useState } from 'react';
 
 /**

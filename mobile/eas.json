@@ -3,12 +3,14 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": { "EXPO_PUBLIC_CONTENU_DEMO": "1" }
     },
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "ios": { "simulator": true }
+      "ios": { "simulator": true },
+      "env": { "EXPO_PUBLIC_CONTENU_DEMO": "1" }
     },
     "production": {
       "autoIncrement": true

@@ -21,6 +21,44 @@
  */
 import type { NumSource } from '../ds';
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * L'INTERRUPTEUR DE CONTENU — et pourquoi il est fermé PAR DÉFAUT.
+ *
+ * `DEMO` est FAUX sauf preuve du contraire. Un build de production n'a rien à déclarer pour
+ * être honnête : il l'est parce que personne n'a rien allumé. L'inverse — une porte ouverte
+ * que la production devrait penser à refermer — aurait la forme exacte du défaut qu'on vient
+ * de corriger : une garantie qui repose sur le fait que quelqu'un s'en souvienne.
+ *
+ * Deux façons de l'ouvrir, aucune accidentelle :
+ *   `__DEV__`                      le serveur Metro. On développe sur du contenu, et un
+ *                                  build de développement ne s'installe chez personne.
+ *   `EXPO_PUBLIC_CONTENU_DEMO=1`   déclaré dans `eas.json`, sur `development` et `preview`
+ *                                  UNIQUEMENT. `tests/unit/mobile-ds.test.ts` échoue si le
+ *                                  profil `production` le porte un jour.
+ *
+ * ── POURQUOI CETTE LIGNE VIT ICI, ET PAS DANS UN MODULE À ELLE ────────────────────────────
+ * Elle y a vécu, et c'était plus propre à lire. Mais Metro inline `process.env.EXPO_PUBLIC_*`
+ * à la transformation, et son minifieur ne replie une branche morte QUE dans le module où la
+ * condition est littérale. Importée, la condition restait opaque : les chaînes du transfert —
+ * « aissatou@exemple.sn », « Vendre sans budget pub » — se retrouvaient EMBARQUÉES dans le
+ * paquet de production, simplement inatteignables. Mesuré, pas supposé : 3 octets d'écart
+ * entre les deux paquets au lieu de plusieurs kilo-octets.
+ *
+ * Une définition unique, dans le module qu'elle garde : le minifieur remplace alors chaque
+ * `DEMO ? … : null` par `null` et laisse tomber la plupart des constantes devenues inutiles.
+ * Mesuré après correction : **3,4 Ko de moins** dans le paquet de production, et les textes du
+ * transfert en sont sortis.
+ *
+ * ⚠️ MAIS L'ÉLIMINATION N'EST PAS TOTALE, et il ne faut pas le promettre : quelques littéraux
+ * courts survivent au repliage (les codes `MM-C7K4-9RTX-2081`, `MM-D-4831`, `AISSATOU-24`).
+ * Ils sont INATTEIGNABLES à l'exécution — aucun écran ne peut les afficher, le type l'interdit
+ * — mais ils restent lisibles par qui décompresse le paquet. La garantie qui compte est celle
+ * de l'exécution, et elle est tenue par le compilateur ; celle du paquet est un bonus partiel.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ */
+const DEMO = process.env.EXPO_PUBLIC_CONTENU_DEMO === '1' || __DEV__;
+
 /** La source de tout nombre de cet écran-témoin : le transfert de conception, daté. */
 export const SOURCE: NumSource = { cite: 'handoff_natif — kit de référence' };
 
@@ -28,7 +66,7 @@ export const SOURCE: NumSource = { cite: 'handoff_natif — kit de référence' 
 export const RELEVE = new Date('2026-09-02T00:00:00Z');
 
 /** La personne dont le transfert dessine le parcours, d'un bout à l'autre. */
-export const MOI = {
+const KIT_MOI = {
   prenom: 'Aïssatou',
   nom: 'Aïssatou Ndiaye',
   initiale: 'A',
@@ -37,11 +75,18 @@ export const MOI = {
 } as const;
 
 /** Le site. L'application n'encaisse rien : elle y renvoie (AD-11, App Store 3.1.1). */
-export const SITE = 'https://maxmorrys.me';
+/*
+ * L'adresse du site est une CONSTANTE PRIVÉE d'abord, ré-exportée ensuite : une liaison
+ * exportée est « vivante » pour le minifieur, et un gabarit qui la référence résiste au
+ * repliage. Ça n'a pas suffi à faire disparaître les trois codes — voir la note ci-dessus —
+ * mais ça retire une raison de les garder, et l'écriture reste la bonne.
+ */
+const KIT_SITE = 'https://maxmorrys.me';
+export const SITE = KIT_SITE;
 
 /* ─────────────────────────  CE QUI S'APPREND  ───────────────────────── */
 
-export const FORMATION = {
+const KIT_FORMATION = {
   slug: 'referencement-local',
   titre: 'Référencement local pour ton commerce',
   titreCourt: 'Référencement local',
@@ -56,7 +101,7 @@ export const FORMATION = {
   leconEnCours: 'Les mots que tapent tes clients',
 } as const;
 
-export const FORMATION_2 = {
+const KIT_FORMATION_2 = {
   slug: 'ia-prospection',
   titre: "L'IA au service de ta prospection",
   meta: 'IA · 9 modules · 68 leçons · avancé',
@@ -65,7 +110,7 @@ export const FORMATION_2 = {
 } as const;
 
 /** Le programme du module en cours. `poids` n'est pas décoratif : le forfait est compté. */
-export const PROGRAMME = [
+const KIT_PROGRAMME = [
   { titre: 'Choisir tes mots-clés', meta: '06:12 · téléchargé · 12 Mo', etat: 'done' },
   { titre: 'Ce que cherche un client à Dakar', meta: '07:48 · téléchargé · 9 Mo', etat: 'done' },
   { titre: 'Les mots que tapent tes clients', meta: '08:24 · en cours', etat: 'current' },
@@ -74,13 +119,13 @@ export const PROGRAMME = [
 ] as const;
 
 /** Les modules verrouillés du mur de paiement. Le premier, lui, se regarde sans payer. */
-export const MODULES_MUR = [
+const KIT_MODULES_MUR = [
   { titre: 'Pourquoi ta boutique est invisible', meta: 'module 1 · 4 leçons · 22 min', ouvert: true },
   { titre: 'Ta fiche Google, pas à pas', meta: '11 leçons · 1 h 08', ouvert: false },
   { titre: 'Les mots que tapent tes clients', meta: '9 leçons · 54 min', ouvert: false },
 ] as const;
 
-export const NOTES = [
+const KIT_NOTES = [
   { texte: "Lister ce que la cliente dit à voix haute, pas ce que je vends.", date: '04/09 · 21:14 · Leçon 5' },
   { texte: '« cosmétique Almadies » plutôt que « cosmétique Sénégal ».', date: '04/09 · 21:02 · Leçon 5' },
   { texte: 'Vérifier les horaires de la fiche Google avant le week-end.', date: '28/08 · 08:47 · Leçon 4' },
@@ -88,17 +133,17 @@ export const NOTES = [
   { texte: 'Photos de la boutique : refaire celles de la vitrine.', date: '21/08 · 19:05 · Leçon 2' },
 ] as const;
 
-export const NOTES_TOTAL = { notes: 14, lecons: 6 } as const;
+const KIT_NOTES_TOTAL = { notes: 14, lecons: 6 } as const;
 
 /* ─────────────────────────  CE QUI SE GARDE HORS RÉSEAU  ───────────────────────── */
 
-export const TELECHARGE = [
+const KIT_TELECHARGE = [
   { titre: 'Choisir tes mots-clés', meta: 'vidéo 480p · 12 Mo' },
   { titre: 'Ce que cherche un client à Dakar', meta: 'vidéo 480p · 9 Mo' },
   { titre: 'Exercice : ta liste de 20 mots', meta: 'PDF · 180 Ko', doc: true },
 ] as const;
 
-export const STOCKAGE = {
+const KIT_STOCKAGE = {
   occupe: '21,2 Mo',
   occupeCourt: '21 Mo',
   plafond: '512 Mo',
@@ -107,38 +152,38 @@ export const STOCKAGE = {
 } as const;
 
 /** Ce qui attend le retour du réseau. La file est un objet PERMANENT, pas un rattrapage. */
-export const FILE_ENVOI = [
+const KIT_FILE_ENVOI = [
   { titre: 'Leçon 5 terminée', meta: 'il y a 12 min', glyphe: 'check' as const },
   { titre: '1 note écrite', meta: 'il y a 9 min', glyphe: 'comment' as const },
 ] as const;
 
 /* ─────────────────────────  LE CERTIFICAT  ───────────────────────── */
 
-export const CERTIFICAT = {
+const KIT_CERTIFICAT = {
   code: 'MM-C7K4-9RTX-2081',
-  titulaire: MOI.nom,
-  formation: FORMATION.titre,
+  titulaire: KIT_MOI.nom,
+  formation: KIT_FORMATION.titre,
   emisLe: '12/09/2026',
   lecons: 47,
-  lien: `${SITE}/verifier/MM-C7K4-9RTX-2081`,
+  lien: `${KIT_SITE}/verifier/MM-C7K4-9RTX-2081`,
 } as const;
 
 /* ─────────────────────────  LE RÉPÉTITEUR  ───────────────────────── */
 
-export const QUOTA = { utilise: 3, total: 5 } as const;
+const KIT_QUOTA = { utilise: 3, total: 5 } as const;
 
-export const ECHANGE = [
+const KIT_ECHANGE = [
   { de: 'ai', texte: "Salut Aïssatou. Je suis ton répétiteur — tu peux me donner un autre nom quand tu veux. Tu t'es arrêtée à la leçon 5 du module 3. On la reprend, ou tu as une question ?" },
   { de: 'me', texte: 'Comment je choisis mes mots-clés ?' },
   { de: 'ai', texte: "Trois points, dans cet ordre :\n\n1. Ce que tes clientes disent à voix haute en entrant — pas ce que toi tu vends.\n2. Le nom de ton quartier.\n3. Ce que tapent celles qui ne te connaissent pas encore." },
 ] as const;
 
-export const RENVOI_COURS = {
+const KIT_RENVOI_COURS = {
   eyebrow: 'Depuis ton cours',
   titre: 'Module 3, leçon 4 — « Ce que cherche un client à Dakar »',
 } as const;
 
-export const MEMOIRE = [
+const KIT_MEMOIRE = [
   { fait: 'Tu gères la page Instagram de ta cousine coiffeuse, le week-end.', depuis: 'depuis le 12 août' },
   { fait: 'Tu vends des cosmétiques aux Almadies.', depuis: 'depuis le 12 août' },
   { fait: 'Ton objectif : être trouvable sur Google Maps avant décembre.', depuis: 'depuis le 28 août' },
@@ -148,7 +193,7 @@ export const MEMOIRE = [
 
 /* ─────────────────────────  LE CLUB  ───────────────────────── */
 
-export const CLUB = {
+const KIT_CLUB = {
   prixMois: 1658,
   prixAn: 19900,
   prixParraine: 16915,
@@ -161,7 +206,7 @@ export const CLUB = {
   ],
 } as const;
 
-export const CLUB_FIL = [
+const KIT_CLUB_FIL = [
   {
     auteur: 'Seynabou K.', initiales: 'SK', categorie: 'Entraide', quand: 'il y a 2 h',
     texte: "J'ai refait ma fiche Google en suivant le module 2. Trois appels en une semaine, sur des recherches « coiffure Ouakam ». Je mets ma liste de mots en commentaire si ça sert à quelqu'un.",
@@ -169,14 +214,14 @@ export const CLUB_FIL = [
   },
 ] as const;
 
-export const CLUB_MISSION = {
+const KIT_CLUB_MISSION = {
   meta: 'Mission · Dakar · publiée hier',
   titre: 'Fiche Google pour trois boutiques',
   budget: 180000,
   note: 'Budget annoncé par la personne qui publie',
 } as const;
 
-export const AGENDA = [
+const KIT_AGENDA = [
   {
     jour: 'Jeudi 10 septembre', titre: 'Ta fiche Google, en direct',
     horaire: '20:00 → 21:00 · en ligne', glyphe: 'chat' as const,
@@ -191,7 +236,7 @@ export const AGENDA = [
 
 /* ─────────────────────────  LE PÔLE MÉDIA  ───────────────────────── */
 
-export const EPISODE = {
+const KIT_EPISODE = {
   titre: 'Vendre sans budget pub, avec Fatou D.',
   titreCourt: 'Vendre sans budget pub',
   invitee: 'avec Fatou D.',
@@ -205,14 +250,14 @@ export const EPISODE = {
   date: '6 août 2026',
 } as const;
 
-export const VIDEO = {
+const KIT_VIDEO = {
   titre: 'Trois heures au marché Sandaga',
   eyebrow: 'Vidéo · 12 juillet',
   badge: 'Vidéo · 16:9',
   cout: ['18:04', '96 Mo en HD', '24 Mo en 480p'],
 } as const;
 
-export const TRANSCRIPTION = [
+const KIT_TRANSCRIPTION = [
   { t: '00:42', l: "Fatou : « Je payais 15 000 par semaine en pub, et je vendais autant qu'avant. »" },
   { t: '04:18', l: '« La première cliente venue de Google avait cherché cosmétique Almadies. »' },
   { t: '11:05', l: 'La différence entre une page Facebook et une fiche Google.' },
@@ -221,7 +266,7 @@ export const TRANSCRIPTION = [
 
 /* ─────────────────────────  PRÉSENCE DIGITALE (TPE)  ───────────────────────── */
 
-export const PACK = {
+const KIT_PACK = {
   nom: 'Pack Visible',
   prix: 250000,
   prixBarre: 295000,
@@ -232,15 +277,15 @@ export const PACK = {
   ],
 } as const;
 
-export const DEVIS = {
+const KIT_DEVIS = {
   reference: 'MM-D-4831',
-  lien: `${SITE}/devis/MM-D-4831`,
+  lien: `${KIT_SITE}/devis/MM-D-4831`,
   emisLe: '05/09/2026',
   valideJusqu: '05/10/2026',
   validite: 'Valide 30 j',
 } as const;
 
-export const QUESTION_TPE = {
+const KIT_QUESTION_TPE = {
   question: 'Tes clients te trouvent comment aujourd’hui ?',
   reponses: ['Bouche-à-oreille et passage', 'WhatsApp et Facebook', 'Je ne sais pas trop'],
   etape: 2, total: 3,
@@ -248,16 +293,8 @@ export const QUESTION_TPE = {
 
 /* ─────────────────────────  LA CONSOLE, RÔLE SUPPORT  ───────────────────────── */
 
-/** Cinq écrans sur dix-neuf. Les quatorze autres restent au tableau de bord desktop. */
-export const SUPPORT_PORTEE = [
-  { titre: 'Messages', compte: 0, href: '/console/messages' },
-  { titre: 'Témoignages', compte: 0, href: '/console/temoignages' },
-  { titre: 'Rendez-vous', compte: 0, href: '/console/rendez-vous' },
-  { titre: 'Prospects', compte: 1, href: '/console/prospects' },
-  { titre: 'Projets', compte: 0, href: '/console/projets' },
-] as const;
 
-export const PROSPECT = {
+const KIT_PROSPECT = {
   titre: 'Boutique de cosmétiques · Almadies',
   meta: 'Pack Visible · 250 000 F · « nouveau » depuis le 6 août',
   statut: 'à traiter',
@@ -271,7 +308,7 @@ export const PROSPECT = {
  * les cinq écrans soient JUGEABLES au lieu d'être cinq états vides.
  */
 
-export const DISCUSSIONS = [
+const KIT_DISCUSSIONS = [
   {
     categorie: 'Entraide', titre: "Ma fiche Google refuse ma photo de devanture, quelqu'un a eu ça ?",
     auteur: 'Awa T.', initiales: 'AT', quand: 'il y a 3 h', reponses: 4, resolu: true,
@@ -290,7 +327,7 @@ export const DISCUSSIONS = [
   },
 ] as const;
 
-export const MEMBRE = {
+const KIT_MEMBRE = {
   nom: 'Seynabou Kane', initiales: 'SK', metier: 'Coiffure à domicile',
   ville: 'Dakar · Ouakam', depuis: 'membre depuis février',
   presentation: "Je coiffe à domicile depuis quatre ans. J'ai refait ma fiche Google en août, et j'essaie de comprendre ce qui fait revenir les clientes plutôt que ce qui les fait venir une fois.",
@@ -299,7 +336,7 @@ export const MEMBRE = {
 } as const;
 
 /** Le classement est PAR VAGUE D'ARRIVÉE, jamais absolu — voir l'écran pour la raison. */
-export const CLASSEMENT = {
+const KIT_CLASSEMENT = {
   vague: 'Arrivées en février',
   rang: 3, surCombien: 12, points: 240, semaine: 40,
   lignes: [
@@ -311,7 +348,7 @@ export const CLASSEMENT = {
   ],
 } as const;
 
-export const OPPORTUNITES = [
+const KIT_OPPORTUNITES = [
   {
     type: 'Mission', titre: 'Fiche Google pour trois boutiques', lieu: 'Dakar', quand: 'publiée hier',
     budget: 180000, par: 'Groupement des commerçants de Ouakam',
@@ -322,17 +359,17 @@ export const OPPORTUNITES = [
   },
 ] as const;
 
-export const PARRAINAGE = {
+const KIT_PARRAINAGE = {
   code: 'AISSATOU-24',
-  lien: `${SITE}/club?code=AISSATOU-24`,
+  lien: `${KIT_SITE}/club?code=AISSATOU-24`,
   remiseFilleul: 2985,
-  prixParraine: CLUB.prixParraine,
+  prixParraine: KIT_CLUB.prixParraine,
   filleuls: 2,
   /** Ce que TOI tu gagnes : rien en argent. Voir l'écran — c'est la décision, pas un oubli. */
   gainParrain: 'un mois offert par filleul qui reste 90 jours',
 } as const;
 
-export const CLUB_INFOS = {
+const KIT_CLUB_INFOS = {
   garanti: [
     '2 sessions en direct par mois, avec moi',
     'Les missions que je sors de mon carnet',
@@ -346,3 +383,56 @@ export const CLUB_INFOS = {
     'Une réponse dans l’heure : je réponds dans la journée ouvrée',
   ],
 } as const;
+
+/** Ce que chaque écran du rôle support a À TRAITER. Un compte est un relevé, jamais une
+    propriété de l'écran : il vit donc ici, et il disparaît avec le reste. */
+const KIT_SUPPORT_COMPTES: Record<string, number> = {
+  Messages: 0, Témoignages: 0, 'Rendez-vous': 0, Prospects: 1, Projets: 0,
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   L'INTERRUPTEUR. C'est la SEULE sortie de ce module.
+
+   Rien au-dessus n'est exporté : les valeurs du transfert sont des constantes privées, et
+   elles ne franchissent cette ligne que si `DEMO` est vrai. En production, chaque contenu vaut
+   `null` (un objet) ou `[]` (une liste) — et le TYPE le dit, donc le compilateur oblige chaque
+   écran à traiter le cas.
+
+   C'est un MÉCANISME, pas une promesse : on n'oublie pas une branche que `tsc` refuse de
+   compiler. Le port avait déjà appris la différence — un commentaire affirmait « aucune donnée
+   n'est simulée » pendant que 42 écrans en affichaient.
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+export const MOI: typeof KIT_MOI | null = DEMO ? KIT_MOI : null;
+export const FORMATION: typeof KIT_FORMATION | null = DEMO ? KIT_FORMATION : null;
+export const FORMATION_2: typeof KIT_FORMATION_2 | null = DEMO ? KIT_FORMATION_2 : null;
+export const PROGRAMME: typeof KIT_PROGRAMME | readonly [] = DEMO ? KIT_PROGRAMME : [];
+export const MODULES_MUR: typeof KIT_MODULES_MUR | readonly [] = DEMO ? KIT_MODULES_MUR : [];
+export const NOTES: typeof KIT_NOTES | readonly [] = DEMO ? KIT_NOTES : [];
+export const NOTES_TOTAL: typeof KIT_NOTES_TOTAL | null = DEMO ? KIT_NOTES_TOTAL : null;
+export const TELECHARGE: typeof KIT_TELECHARGE | readonly [] = DEMO ? KIT_TELECHARGE : [];
+export const STOCKAGE: typeof KIT_STOCKAGE | null = DEMO ? KIT_STOCKAGE : null;
+export const FILE_ENVOI: typeof KIT_FILE_ENVOI | readonly [] = DEMO ? KIT_FILE_ENVOI : [];
+export const CERTIFICAT: typeof KIT_CERTIFICAT | null = DEMO ? KIT_CERTIFICAT : null;
+export const QUOTA: typeof KIT_QUOTA | null = DEMO ? KIT_QUOTA : null;
+export const ECHANGE: typeof KIT_ECHANGE | readonly [] = DEMO ? KIT_ECHANGE : [];
+export const RENVOI_COURS: typeof KIT_RENVOI_COURS | null = DEMO ? KIT_RENVOI_COURS : null;
+export const MEMOIRE: typeof KIT_MEMOIRE | readonly [] = DEMO ? KIT_MEMOIRE : [];
+export const CLUB: typeof KIT_CLUB | null = DEMO ? KIT_CLUB : null;
+export const CLUB_FIL: typeof KIT_CLUB_FIL | readonly [] = DEMO ? KIT_CLUB_FIL : [];
+export const CLUB_MISSION: typeof KIT_CLUB_MISSION | null = DEMO ? KIT_CLUB_MISSION : null;
+export const AGENDA: typeof KIT_AGENDA | readonly [] = DEMO ? KIT_AGENDA : [];
+export const EPISODE: typeof KIT_EPISODE | null = DEMO ? KIT_EPISODE : null;
+export const VIDEO: typeof KIT_VIDEO | null = DEMO ? KIT_VIDEO : null;
+export const TRANSCRIPTION: typeof KIT_TRANSCRIPTION | readonly [] = DEMO ? KIT_TRANSCRIPTION : [];
+export const PACK: typeof KIT_PACK | null = DEMO ? KIT_PACK : null;
+export const DEVIS: typeof KIT_DEVIS | null = DEMO ? KIT_DEVIS : null;
+export const QUESTION_TPE: typeof KIT_QUESTION_TPE | null = DEMO ? KIT_QUESTION_TPE : null;
+export const PROSPECT: typeof KIT_PROSPECT | null = DEMO ? KIT_PROSPECT : null;
+export const DISCUSSIONS: typeof KIT_DISCUSSIONS | readonly [] = DEMO ? KIT_DISCUSSIONS : [];
+export const MEMBRE: typeof KIT_MEMBRE | null = DEMO ? KIT_MEMBRE : null;
+export const CLASSEMENT: typeof KIT_CLASSEMENT | null = DEMO ? KIT_CLASSEMENT : null;
+export const OPPORTUNITES: typeof KIT_OPPORTUNITES | readonly [] = DEMO ? KIT_OPPORTUNITES : [];
+export const PARRAINAGE: typeof KIT_PARRAINAGE | null = DEMO ? KIT_PARRAINAGE : null;
+export const CLUB_INFOS: typeof KIT_CLUB_INFOS | null = DEMO ? KIT_CLUB_INFOS : null;
+export const SUPPORT_COMPTES: typeof KIT_SUPPORT_COMPTES | null = DEMO ? KIT_SUPPORT_COMPTES : null;

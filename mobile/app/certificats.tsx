@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import {
   Body, Button, EmptyState, Icon, Num, Screen, Surface, isIOS, useToken, veil,
 } from '../ds';
-import { MOI, RELEVE, SOURCE } from '../contenu/reference';
+import { MOI, RELEVE, SOURCE } from '../contenu/demo';
 
 /**
  * ══ 4 · L'ÉTAT VIDE ══ — UNE INVITATION À AGIR, PAS UNE EXCUSE.
@@ -48,8 +48,9 @@ export default function Certificats() {
 
       <Body muted style={{ fontSize: 11.5, textAlign: 'center', lineHeight: 18, marginTop: 16, color: t('textFaint') }}>
         <Num value={0} source={SOURCE} asOf={RELEVE} style={{ fontSize: 11.5, color: t('textMuted') }} />
-        {' '}émis depuis l'ouverture de ton compte, le {MOI.ouvertureCompte}. Un zéro daté est
-        une information ; un tiret n'en est pas une.
+        {' '}émis{MOI ? ` depuis l'ouverture de ton compte, le ${MOI.ouvertureCompte}` : ''}. Un
+        zéro daté est une information ; un tiret n'en est pas une — et sans date d'ouverture,
+        ce zéro en dit déjà moins.
       </Body>
     </Screen>
   );

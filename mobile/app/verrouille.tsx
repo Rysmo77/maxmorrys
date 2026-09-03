@@ -3,9 +3,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
-  Body, Button, Gradient, ThemeScope, Wordmark, isIOS, useActionGradient, useToken, veil,
+  Body, Button, Display, Gradient, SansDonnees, Screen, ThemeScope, Wordmark, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
-import { EPISODE } from '../contenu/reference';
+import { EPISODE } from '../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -33,16 +33,36 @@ import { EPISODE } from '../contenu/reference';
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function Verrouille() {
+  if (EPISODE === null) {
+    return (
+      <Screen territory="transforme" retour="Écouter" titre="Écran verrouillé">
+        <Display size={27} lines={['Rien ne joue', 'en ce moment.']} style={{ marginTop: 10 }} />
+        <SansDonnees
+          quoi="la lecture en cours"
+          origine="du lecteur"
+          degat="Cet écran montre ce que le système affichera pendant une écoute. Sans lecture réelle, il n'y a rien à montrer — et une pochette inventée ferait croire à un son qui ne joue pas."
+          style={{ marginTop: 20 }}
+        />
+      </Screen>
+    );
+  }
+
+  /* Le rétrécissement de type ne survit pas à une closure quand la liaison vient d'un
+     autre module : `onPress={() => X.y}` reperd le `non null` que la garde vient
+     d'établir. Une constante LOCALE le porte jusque dans les rappels. */
   return (
     /* La portée nuit est OUVERTE ici : cet écran est sombre sur un téléphone en mode clair,
        exactement comme un vrai écran verrouillé la nuit. */
     <ThemeScope scheme="dark">
-      <Corps />
+      {/* L'épisode est PASSÉ, pas re-lu : `Corps` reçoit une valeur déjà prouvée non nulle
+          par la garde ci-dessus. Une assertion `!` aurait rendu la garantie invisible — et
+          c'est exactement la forme du défaut qu'on vient de corriger ailleurs. */}
+      <Corps episode={EPISODE} />
     </ThemeScope>
   );
 }
 
-function Corps() {
+function Corps({ episode }: { episode: NonNullable<typeof EPISODE> }) {
   const t = useToken();
   const g = useActionGradient();
   const insets = useSafeAreaInsets();
@@ -101,18 +121,18 @@ function Corps() {
               <Gradient colors={g.media} angle={140} radius={12} style={{ width: 58, height: 58 }} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Body numberOfLines={1} style={{ fontSize: 16, fontWeight: '600', color: blanc }}>
-                  {EPISODE.titreCourt}
+                  {episode.titreCourt}
                 </Body>
-                <Body style={{ fontSize: 14, color: blanc2, marginTop: 2 }}>Rysmo · {EPISODE.invitee}</Body>
+                <Body style={{ fontSize: 14, color: blanc2, marginTop: 2 }}>Rysmo · {episode.invitee}</Body>
               </View>
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16 }}>
-              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: blanc2 }}>{EPISODE.position}</Body>
+              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: blanc2 }}>{episode.position}</Body>
               <View style={{ flex: 1, height: 7, borderRadius: 4, backgroundColor: veil(blanc, 0.24) }}>
                 <View style={{ width: '24%', height: '100%', borderRadius: 4, backgroundColor: blanc }} />
               </View>
-              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: blanc2 }}>{EPISODE.restant}</Body>
+              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: blanc2 }}>{episode.restant}</Body>
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', marginTop: 16 }}>
@@ -138,9 +158,9 @@ function Corps() {
               <Gradient colors={g.media} angle={140} radius={10} style={{ width: 50, height: 50 }} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Body numberOfLines={1} style={{ fontSize: 14.5, fontWeight: '600', color: blanc }}>
-                  {EPISODE.titreCourt}
+                  {episode.titreCourt}
                 </Body>
-                <Body style={{ fontSize: 12.5, color: blanc2, marginTop: 2 }}>{EPISODE.invitee}</Body>
+                <Body style={{ fontSize: 12.5, color: blanc2, marginTop: 2 }}>{episode.invitee}</Body>
               </View>
               <View style={{
                 width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center',
@@ -153,11 +173,11 @@ function Corps() {
               </View>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 13 }}>
-              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10.5, color: blanc2 }}>{EPISODE.position}</Body>
+              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10.5, color: blanc2 }}>{episode.position}</Body>
               <View style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: veil(blanc, 0.24) }}>
                 <View style={{ width: '24%', height: '100%', borderRadius: 2, backgroundColor: blanc }} />
               </View>
-              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10.5, color: blanc2 }}>{EPISODE.duree}</Body>
+              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10.5, color: blanc2 }}>{episode.duree}</Body>
             </View>
           </View>
         )}

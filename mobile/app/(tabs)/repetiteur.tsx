@@ -6,9 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
   Body, Button, ChatBubble, Eyebrow, Gradient, Icon, IconButton, Mesh, NavBar, QuotaMeter,
-  Surface, isIOS, px, useActionGradient, useToken, useTutorNom,
+  SansDonnees, Surface, isIOS, px, useActionGradient, useToken, useTutorNom,
 } from '../../ds';
-import { ECHANGE, QUOTA, RENVOI_COURS } from '../../contenu/reference';
+import { ECHANGE, QUOTA, RENVOI_COURS } from '../../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -59,7 +59,11 @@ export default function Repetiteur() {
     return () => { ouvre.remove(); ferme.remove(); };
   }, []);
 
-  const reste = QUOTA.total - QUOTA.utilise;
+  /* Sans relevé, on ne connaît pas le plafond — et on ne bloque donc pas la saisie sur un
+     chiffre qu'on ignore. Le champ reste ouvert ; c'est le serveur qui refusera, avec sa
+     raison. Bloquer sur une supposition ferait passer une limite inventée pour une règle. */
+  const reste = QUOTA === null ? null : QUOTA.total - QUOTA.utilise;
+  const bloque = reste !== null && reste <= 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: t('surfacePage') }}>
@@ -84,11 +88,17 @@ export default function Repetiteur() {
 
         {/* ── ÉPINGLÉ. Hors du défilement, hors de portée du clavier. ──────────────────── */}
         <View style={{ paddingHorizontal: 18, paddingBottom: 10 }}>
-          <QuotaMeter
-            used={QUOTA.utilise}
-            total={QUOTA.total}
-            label={`${QUOTA.utilise} / ${QUOTA.total} questions aujourd'hui`}
-          />
+          {QUOTA ? (
+            <QuotaMeter
+              used={QUOTA.utilise}
+              total={QUOTA.total}
+              label={`${QUOTA.utilise} / ${QUOTA.total} questions aujourd'hui`}
+            />
+          ) : (
+            <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 11.5 }}>
+              plafond du jour non relevé
+            </Body>
+          )}
         </View>
 
         <ScrollView
@@ -97,22 +107,30 @@ export default function Repetiteur() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
-          {ECHANGE.map((m, i) => (
+          {ECHANGE.length === 0 ? (
+            <SansDonnees
+              quoi="cet échange"
+              origine="de ton compte"
+              degat="Une réponse inventée ici serait attribuée à ton répétiteur, et elle porterait sur un cours que tu n'as peut-être pas. C'est le seul écran où une phrase fabriquée se lit comme un conseil."
+            />
+          ) : ECHANGE.map((m, i) => (
             <ChatBubble key={i} from={m.de === 'me' ? 'me' : 'ai'}>{m.texte}</ChatBubble>
           ))}
 
           {/* Le renvoi vers le cours : la réponse cite SA source, et elle est atteignable. */}
-          <Surface level="flat" style={{ padding: 14, maxWidth: '86%' }}>
-            <Eyebrow style={{ fontSize: 9.5 }}>{RENVOI_COURS.eyebrow}</Eyebrow>
-            <Body style={{ fontSize: 13, fontWeight: '600', marginTop: 6 }}>{RENVOI_COURS.titre}</Body>
-            <Button
-              tone="quiet"
-              size="sm"
-              label="Ouvrir la leçon"
-              style={{ marginTop: 10 }}
-              onPress={() => router.push('/lecon')}
-            />
-          </Surface>
+          {RENVOI_COURS ? (
+            <Surface level="flat" style={{ padding: 14, maxWidth: '86%' }}>
+              <Eyebrow style={{ fontSize: 9.5 }}>{RENVOI_COURS.eyebrow}</Eyebrow>
+              <Body style={{ fontSize: 13, fontWeight: '600', marginTop: 6 }}>{RENVOI_COURS.titre}</Body>
+              <Button
+                tone="quiet"
+                size="sm"
+                label="Ouvrir la leçon"
+                style={{ marginTop: 10 }}
+                onPress={() => router.push('/lecon')}
+              />
+            </Surface>
+          ) : null}
         </ScrollView>
 
         {/* ── LA SAISIE. Elle monte avec le clavier ; la barre d'onglets reste dessous. ── */}
@@ -132,9 +150,9 @@ export default function Repetiteur() {
               accessibilityLabel={`Ta question à ${tuteur}`}
               value={question}
               onChangeText={setQuestion}
-              placeholder={reste > 0 ? 'Pose ta question' : "Plus de question aujourd'hui"}
+              placeholder={bloque ? "Plus de question aujourd'hui" : 'Pose ta question'}
               placeholderTextColor={t('textFaint')}
-              editable={reste > 0}
+              editable={!bloque}
               multiline
               style={{
                 fontFamily: 'SchibstedGrotesk', fontSize: 15, color: t('textBody'),
@@ -145,10 +163,10 @@ export default function Repetiteur() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Envoyer ta question"
-            accessibilityState={{ disabled: reste === 0 || question.trim() === '' }}
-            disabled={reste === 0 || question.trim() === ''}
+            accessibilityState={{ disabled: bloque || question.trim() === '' }}
+            disabled={bloque || question.trim() === ''}
             style={({ pressed }: { pressed: boolean }) => ({
-              opacity: reste === 0 || question.trim() === '' ? 0.4 : 1,
+              opacity: bloque || question.trim() === '' ? 0.4 : 1,
               transform: [{ scale: pressed ? 0.94 : 1 }],
             })}
           >

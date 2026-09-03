@@ -19,6 +19,8 @@ export { Surface } from './Surface';
 export { Gradient, useActionGradient } from './Gradient';
 export { Skeleton } from './Skeleton';
 export { EmptyState } from './EmptyState';
+/* Le vide HONNÊTE de la production : ce qui manque, d'où ça vient, pourquoi rien n'est inventé. */
+export { SansDonnees } from './SansDonnees';
 export { TerritoryCard, type Territory, type CardLayout } from './TerritoryCard';
 
 /* Typographie et nombres */

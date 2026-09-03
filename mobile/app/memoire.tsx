@@ -4,7 +4,7 @@ import {
   Body, Button, Display, Eyebrow, Field, Icon, IconButton, LessonRow, Screen, Surface,
   TUTOR_DEFAUT, isIOS, setTutorNom, useToken, useTutorNom, veil,
 } from '../ds';
-import { MEMOIRE } from '../contenu/reference';
+import { MEMOIRE } from '../contenu/demo';
 import { router } from 'expo-router';
 
 /**

@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
 import {
-  Body, Button, CheckLine, Display, Eyebrow, LessonRow, Num, Surface, useToken,
+  Body, Button, CheckLine, Display, Eyebrow, LessonRow, Num, SansDonnees, Surface, useToken,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { CLUB, CLUB_INFOS, RELEVE, SOURCE } from '../../contenu/reference';
+import { CLUB, CLUB_INFOS, RELEVE, SOURCE } from '../../contenu/demo';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -30,6 +30,15 @@ export default function ClubInfos() {
     <ClubScreen titre="Infos">
       <Display size={24} lines={["Ce que l'abonnement", 'te donne.']} />
 
+      {CLUB_INFOS === null ? (
+        <SansDonnees
+          quoi="ce que l'abonnement donne"
+          origine="du serveur"
+          degat="Les deux listes de cet écran — ce qui est garanti et ce qui ne l'est pas — sont un engagement. En écrire une version approximative reviendrait à promettre à la place du produit."
+          style={{ marginTop: 22 }}
+        />
+      ) : (
+      <>
       <Eyebrow style={{ marginTop: 22 }}>Garanti</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
         {CLUB_INFOS.garanti.map((g, i) => (
@@ -47,7 +56,13 @@ export default function ClubInfos() {
           n'énumère que des promesses vend une deuxième fois quelqu'un qui a déjà payé.
         </Body>
       </Surface>
+      </>
+      )}
 
+      {/* Le prix ne s'écrit pas dans l'application : `tests/unit/club-pricing.test.ts` pose
+          que la seule source admise est `lib/club/pricing`. Ici, il arrive ou il manque. */}
+      {CLUB === null ? null : (
+      <>
       <Eyebrow style={{ marginTop: 22 }}>Le prix, cadré deux fois</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
         <LessonRow
@@ -67,12 +82,14 @@ export default function ClubInfos() {
           last
         />
       </Surface>
+      </>
+      )}
 
       <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
         <Eyebrow>Le renouvellement n'est pas automatique</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Wave et Orange Money ne font pas de prélèvement récurrent. À l'échéance du{' '}
-          <Num value={CLUB.echeance} source={SOURCE} asOf={RELEVE} style={{ fontSize: 12.5 }} />
+          Wave et Orange Money ne font pas de prélèvement récurrent. À l'échéance{' '}
+          {CLUB ? <Num value={CLUB.echeance} source={SOURCE} asOf={RELEVE} style={{ fontSize: 12.5 }} /> : 'de ton abonnement'}
           , ton accès s'arrête et tu réabonnes si tu veux. Personne n'est débité par surprise,
           et personne n'a à chercher où résilier.
         </Body>

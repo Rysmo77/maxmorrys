@@ -120,17 +120,42 @@ code de production […] reprends la structure, les valeurs de style et l'ordre 
 Pas l'architecture. » Recopier ces valeurs DANS les écrans reproduirait exactement
 l'architecture qu'on nous dit de ne pas reprendre.
 
-`contenu/reference.ts` les porte donc **une fois**, avec sa source citée et sa date de relevé :
+`contenu/demo.ts` les porte donc **une fois**, avec sa source citée et sa date de relevé — et
+**derrière un interrupteur fermé par défaut** :
 
 ```ts
-export const SOURCE: NumSource = { cite: 'handoff_natif — kit de référence' };
-export const RELEVE = new Date('2026-09-02T00:00:00Z');
+// contenu/mode.ts
+export const DEMO = process.env.EXPO_PUBLIC_CONTENU_DEMO === '1' || __DEV__;
 ```
+
+| Profil | `EXPO_PUBLIC_CONTENU_DEMO` | Ce que l'application affiche |
+|---|---|---|
+| serveur Metro (`npm run start`) | — (`__DEV__`) | le contenu du transfert |
+| `development` · `preview` | `1`, déclaré dans `eas.json` | le contenu du transfert |
+| **`production`** | **absent** | **rien d'inventé** — chaque écran dit ce qu'il ne sait pas |
+
+**Le mécanisme n'est pas une promesse.** `contenu/demo.ts` type ses 33 sorties `T | null` ou
+`readonly []` : un écran qui ne traite pas l'absence **ne compile pas**. C'est le compilateur
+qui tient la garantie d'exécution, pas la vigilance de qui relit.
+
+Les variables `EXPO_PUBLIC_*` étant inlinées à la construction, la condition devient
+littéralement `false` en production et le minifieur retire la plus grande partie du contenu :
+**3,4 Ko de moins**, et les textes du transfert n'y sont plus. ⚠️ L'élimination n'est
+cependant **pas totale** — quelques codes courts survivent au repliage. Ils sont inatteignables
+à l'exécution, mais lisibles par qui décompresse le paquet : la garantie qui compte est celle
+de l'exécution, celle du paquet est un bonus partiel. (Mesuré, pas supposé.)
+
+Ce qui NE passe pas par l'interrupteur : `contenu/portee.ts`, la carte des cinq écrans du rôle
+support. **Ce qui route reste, ce qui raconte disparaît** — sinon `/console` et `/403`
+annonceraient cinq écrans sans pouvoir en ouvrir un.
 
 La règle 6 n'est pas contournée — `<Num>` exige toujours une source et une date, et il écrit
 « non relevé » sans elles. Brancher Firestore, c'est remplacer ce module ; les écrans ne
 changent pas. Un paramètre de route prime toujours sur la référence : le jour où le catalogue
 arrive du serveur, il transmet ses valeurs et rien d'autre ne bouge.
+
+`tests/unit/mobile-ds.test.ts` refuse qu'un build `production` porte le drapeau, qu'une sortie
+du module échappe à l'interrupteur, ou qu'un écran recopie une valeur en contournant la porte.
 
 **Un écran importe depuis `../ds`, jamais d'un chemin profond** : le jour où une primitive
 change de fichier, c'est l'écran qui casse sans que rien ne l'ait annoncé.
@@ -166,16 +191,30 @@ Les deux respectent `AccessibilityInfo.isReduceMotionEnabled()`, et n'y réponde
 ramenant les durées à 1 ms — ce qui ferait tourner une boucle à plein régime pour un résultat
 immobile — mais en **ne lançant aucune animation**.
 
-### Aucun écran ne simule de données
+### Le contenu de démonstration, et l'interrupteur qui le retient
 
-C'est la règle qui a le plus gouverné ces écrans. Aucune liste de démonstration : chaque écran
-lit ses valeurs par `useLocalSearchParams()` ou **dit précisément ce qui n'est pas branché, et
-le dommage qu'une simulation causerait**. Un cours inventé est un cours qu'on croit avoir ; un
-message inventé dans le fil du Club porte le nom de quelqu'un qui ne l'a jamais écrit ; un
-budget inventé fixe une attente de revenu.
+Le port d'origine ne simulait rien. **Le portage du transfert a levé cette règle** — un kit de
+36 écrans ne se juge pas sur 36 états vides — et la première version l'a levée SANS filet : un
+APK a circulé où quelqu'un voyait une formation qu'il n'avait pas achetée, un certificat au nom
+d'une autre, et des messages du Club signés par des gens qui ne les avaient jamais écrits.
 
-Corollaire : **un nombre n'existe que s'il arrive avec sa date de relevé.** Sans elle, `<Num>`
-écrit « non relevé ». Un zéro DATÉ, lui, s'affiche — c'est une information.
+Deux fichiers affirmaient encore, à ce moment-là, qu'aucune donnée n'était simulée. **C'était
+le vrai défaut** : pas le contenu de démonstration, mais la documentation qui le niait.
+
+L'interrupteur ci-dessus règle les deux. En production, `contenu/demo.ts` ne rend rien et
+`<SansDonnees>` prend le relais, en trois temps : ce qui manque, d'où ça vient, et **pourquoi
+rien n'est inventé à la place**. Un composant plutôt qu'une phrase recopiée — à 27 écrans, une
+phrase recopiée devient 27 formulations qui divergent, et la troisième ligne est la première à
+sauter.
+
+⚠️ **Une garantie qui n'en était pas une, pour mémoire.** Chaque nombre porte sa source
+(`{cite:'handoff_natif — kit de référence'}`), et cette citation avait été présentée comme une
+protection. Elle n'en est pas une : `<Num>` la reçoit et la jette (`void source; void asOf;`).
+Elle sert la revue de code, pas la personne qui tient le téléphone. **Une provenance invisible
+n'est pas une provenance** — seul l'interrupteur l'est.
+
+Corollaire toujours vrai : **un nombre n'existe que s'il arrive avec sa date de relevé.** Sans
+elle, `<Num>` écrit « non relevé ». Un zéro DATÉ, lui, s'affiche — c'est une information.
 
 ### Ce qui n'est pas encore branché
 

@@ -2,7 +2,8 @@ import { router } from 'expo-router';
 import {
   Body, Button, Display, Eyebrow, Icon, LessonRow, Num, Screen, Surface, isIOS, useToken, veil,
 } from '../ds';
-import { RELEVE, SOURCE, SUPPORT_PORTEE } from '../contenu/reference';
+import { RELEVE, SOURCE } from '../contenu/demo';
+import { SUPPORT_PORTEE } from '../contenu/portee';
 
 /**
  * ══ 7 · /403 ══ — CE QUE LES RÈGLES DE LA BASE ONT DÉJÀ REFUSÉ.
