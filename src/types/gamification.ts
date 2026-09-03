@@ -70,3 +70,35 @@ export function getLevelTitle(level: number): string {
   ];
   return titles[Math.min(level - 1, titles.length - 1)];
 }
+
+export interface BadgeStats {
+  /** Leçons distinctes achevées, toutes formations confondues. */
+  lessons: number;
+  /** Série en cours, en jours. */
+  streak: number;
+  certificates: number;
+  /** Formations auxquelles la personne est inscrite. */
+  formations: number;
+}
+
+/** Ce que chaque `requirementType` va chercher dans le relevé. `posts` est traité à la source. */
+const COMPTEUR: Record<string, (s: BadgeStats) => number> = {
+  lessons: (s) => s.lessons,
+  days: (s) => s.streak,
+  certificates: (s) => s.certificates,
+  formations: (s) => s.formations,
+};
+
+/**
+ * Les badges dont les conditions sont remplies — partie PURE, testable sans Firestore.
+ *
+ * C'est elle qui porte la promesse « ajouter un badge au catalogue suffit à le rendre
+ * attribuable » : elle ne connaît aucun identifiant, seulement `requirementType` et
+ * `requirement`. Un badge dont le type n'a pas de compteur est simplement ignoré.
+ */
+export function badgesMerites(stats: BadgeStats): Badge[] {
+  return BADGES.filter((badge) => {
+    const compteur = COMPTEUR[badge.requirementType];
+    return compteur !== undefined && compteur(stats) >= badge.requirement;
+  });
+}
