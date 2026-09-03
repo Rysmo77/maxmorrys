@@ -1,4 +1,5 @@
 import type { CallContext } from './context';
+import { acknowledgeAppointment } from './handlers/acknowledgeAppointment';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
 import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
@@ -45,6 +46,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   syncMediaStatsManual,
   youtubeProxy,
   // Écritures simples
+  acknowledgeAppointment,
   clearRysmoMemory,
   importSpotifyEpisodesManual,
   issueCertificate,

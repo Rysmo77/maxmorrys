@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { httpsCallable } from 'firebase/functions';
 import { useToast } from '@ds';
+import { functions } from '../../config/firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { saveAppointment } from '../../lib/firestore';
 import { captureError } from '../../lib/sentry';
 import { trackGenerateLead } from '../../lib/tracking';
@@ -20,6 +23,23 @@ import { EMAIL_RE, SUBJECT_KEYS } from './useContactMessage';
  * L'état porte désormais la CLÉ ; la traduction se fait à l'envoi.
  */
 
+/**
+ * Accusé de réception de la demande.
+ *
+ * ⚠️ AVANT, RIEN NE PARTAIT. Une demande de rendez-vous ne produisait qu'un message à
+ * l'écran : ni accusé, ni rappel, ni alerte interne. La personne ne savait pas si sa
+ * demande était arrivée, sur la page dont c'est précisément le métier.
+ *
+ * L'adresse n'est PAS transmise : le serveur la relit sur le document. Sans cela,
+ * l'endpoint serait un relais d'envoi anonyme signé Max-Morrys.
+ *
+ * Déclarée au niveau module — jamais dans le corps du composant (convention du dépôt).
+ */
+const acknowledgeAppointment = httpsCallable<
+  { appointmentId: string; langue: string },
+  { ok: boolean; sent: boolean; reason?: string }
+>(functions, 'acknowledgeAppointment');
+
 /** Les créneaux du soir, heure de Dakar. Valeurs du produit, pas du design system. */
 export const TIME_SLOTS = ['18:00', '18:30', '19:00', '19:30', '20:00', '20:30'] as const;
 
@@ -37,6 +57,7 @@ export type AppointmentForm = typeof EMPTY;
 
 export function useAppointment() {
   const { t } = useTranslation('contact');
+  const { language } = useLanguage();
   const { addToast } = useToast();
 
   const [open, setOpen] = useState(false);
@@ -81,7 +102,7 @@ export function useAppointment() {
     if (!validate()) return;
     setLoading(true);
     try {
-      await saveAppointment({
+      const appointmentId = await saveAppointment({
         name: form.name.trim(),
         email: form.email.trim(),
         phone: form.phone.trim() || undefined,
@@ -92,6 +113,18 @@ export function useAppointment() {
       });
       trackGenerateLead('appointment_booking');
       setSuccess(true);
+
+      /*
+        L'accusé part APRÈS le succès affiché, et son échec ne le remet pas en cause : le
+        rendez-vous est enregistré, c'est le fait qui compte. On ne transforme pas une
+        demande reçue en erreur parce qu'un serveur de messagerie a hoqueté — le marqueur
+        `acknowledgedAt` n'étant alors pas posé, un rejeu pourra rattraper l'envoi.
+      */
+      try {
+        await acknowledgeAppointment({ appointmentId, langue: language });
+      } catch (error: unknown) {
+        captureError(error, { context: 'Acknowledge appointment failed' });
+      }
     } catch (error: unknown) {
       captureError(error, { context: 'Save appointment failed' });
       addToast('error', error instanceof Error ? error.message : t('toast.appointmentError'));
