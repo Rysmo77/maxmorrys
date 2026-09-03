@@ -36,6 +36,17 @@ export default function Permissions() {
    * L'écran fait donc ce qu'il peut faire honnêtement : il explique, il enregistre le
    * consentement, et il laisse la demande système au jour où l'envoi existe.
    */
+  /*
+   * ⚠️ AUCUN DIALOGUE SYSTÈME NE S'OUVRE ICI, et le bouton ne prétend plus le contraire.
+   * Il disait « D'accord, demande-moi » — une phrase qui décrit une demande qui n'a jamais
+   * lieu, `expo-notifications` n'étant pas installé. Le profil enchaînait en affirmant
+   * « Autorisées sur cet appareil », coche verte à l'appui.
+   *
+   * Le geste est conservé — les trois préférences se choisissent — mais il ne s'annonce plus
+   * comme une autorisation. Brancher `expo-notifications` demande un greffon, une permission
+   * Android, une icône de notification et une ligne au formulaire de confidentialité des deux
+   * magasins : ça se décide, ça ne se glisse pas.
+   */
   function accepter() {
     router.replace('/biometrie');
   }
@@ -81,7 +92,7 @@ export default function Permissions() {
         </Body>
       </Surface>
 
-      <Button tone="transforme" label="D'accord, demande-moi" style={{ marginTop: 18 }} onPress={accepter} />
+      <Button tone="transforme" label="Continuer" style={{ marginTop: 18 }} onPress={accepter} />
       <Button tone="quiet" label="Pas maintenant" style={{ marginTop: 9 }} onPress={() => router.replace('/(tabs)')} />
 
       <Body muted style={{ fontSize: 11.5, textAlign: 'center', lineHeight: 18, marginTop: 12, color: t('textFaint') }}>

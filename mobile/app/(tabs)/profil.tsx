@@ -145,19 +145,29 @@ export default function Profil() {
         />
       </Surface>
 
+      {/* ⚠️ CE BLOC AFFIRMAIT « AUTORISÉES SUR CET APPAREIL », coche verte à l'appui, pour
+          une permission que RIEN NE DEMANDE JAMAIS. `permissions.tsx` prime l'accord puis
+          appelle `router.replace` : aucun dialogue système ne s'ouvre, `expo-notifications`
+          n'est pas installé. L'application se décernait donc un état qu'elle n'avait pas
+          établi — et c'est la forme d'erreur la plus coûteuse, parce qu'elle est
+          rassurante : personne ne va vérifier une coche verte.
+
+          Le texte dit maintenant ce qui est. Le jour où le canal existe, ce bloc lit
+          `getPermissionsAsync()` et redevient une affirmation — vérifiée, cette fois. */}
       <Surface level="flat" style={{ marginTop: 10, padding: 16 }}>
         <View style={{ flexDirection: 'row', gap: 11, alignItems: 'flex-start' }}>
           <View style={{
             width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
-            backgroundColor: veil(t('ok'), 0.14),
+            backgroundColor: veil(t('ink2'), 0.14),
           }}>
-            <Icon name="check" size={15} color={t('ok')} strokeWidth={3.2} />
+            <Icon name="info" size={15} color={t('ink2')} strokeWidth={2.6} />
           </View>
           <View style={{ flex: 1 }}>
-            <Body style={{ fontSize: 13.5, fontWeight: '600' }}>Autorisées sur cet appareil</Body>
+            <Body style={{ fontSize: 13.5, fontWeight: '600' }}>Rien n'est encore envoyé</Body>
             <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 3 }}>
-              Si tu changes d'avis, ça se coupe dans {isIOS ? 'les Réglages' : 'les paramètres'} du
-              téléphone — l'app ne peut plus reposer la question.
+              Ces trois réglages sont enregistrés, mais le canal d'envoi n'existe pas encore :
+              l'application n'a demandé aucune autorisation à {isIOS ? 'iOS' : 'Android'}, et
+              elle ne t'enverra rien tant qu'elle ne l'aura pas fait.
             </Body>
           </View>
         </View>

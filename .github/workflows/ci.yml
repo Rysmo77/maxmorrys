@@ -116,6 +116,71 @@ jobs:
       - name: Firestore rules tests
         run: npm run test:rules
 
+  # ══════════════════════════════════════════════════════════════════════════════════
+  # L'APPLICATION NATIVE — jusqu'ici, RIEN dans cette CI ne la regardait.
+  #
+  # `mobile/` est un projet Expo autonome, avec son propre `package-lock.json`. Les deux
+  # suites `tests/unit/mobile-*.test.ts` tournaient bien, mais par accident : elles sont
+  # dans la suite de la racine et lisent des fichiers. Ni le typecheck de `mobile/`, ni
+  # sa construction n'étaient exécutés — une régression TypeScript ou un import cassé
+  # partait sans que rien ne le dise.
+  #
+  # ⚠️ ET LE TYPECHECK NE SUFFIT PAS. `tsc` résout des chemins que Metro refuse : le port
+  # a déjà connu un état où le typecheck était vert et le paquet impossible à construire
+  # (`Unable to resolve module ../../src/design-system/tokens.generated`). L'export est
+  # la seule porte qui prouve que l'application se construit.
+  # ══════════════════════════════════════════════════════════════════════════════════
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - run: npm ci
+        working-directory: mobile
+
+      - name: Typecheck natif
+        run: npm run typecheck
+        working-directory: mobile
+
+      # 21 vérifications sur 21 aujourd'hui. Un greffon déclaré sans son paquet est
+      # attrapé ICI plutôt qu'au `prebuild`, c'est-à-dire des minutes au lieu d'un build.
+      - name: expo-doctor
+        run: npx expo-doctor
+        working-directory: mobile
+
+      # AUCUNE variable EXPO_PUBLIC_* n'est posée : le paquet produit est donc celui de
+      # PRODUCTION, avec son contenu de démonstration éteint et son atelier fermé.
+      - name: Construire le paquet des deux plateformes
+        run: npx expo export --platform ios --platform android --output-dir dist
+        working-directory: mobile
+        env:
+          EXPO_NO_TELEMETRY: '1'
+
+      - name: Le paquet de production ne contient ni démonstration ni tunnel d'achat
+        working-directory: mobile
+        run: |
+          fautes=0
+          # ⚠️ NE PAS AJOUTER « App Store » À CETTE LISTE. La chaîne est présente dans le
+          # paquet, mais elle vient de `@firebase/auth` (« An iOS Bundle ID must be
+          # provided if an App Store ID is provided ») — un grep dessus échouerait pour
+          # une raison qui n'est pas la nôtre. Mesuré, pas supposé.
+          for marqueur in \
+            "aissatou@exemple.sn" "Vendre sans budget pub" "planche de référence" \
+            "Payer en Wave" "Ouvrir sur maxmorrys.me" "/checkout/" "Google Play"
+          do
+            if grep -rqF "$marqueur" dist/; then
+              echo "::error::« $marqueur » est présent dans le paquet de production"
+              fautes=1
+            fi
+          done
+          exit $fautes
+
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: lint-and-build
