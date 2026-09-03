@@ -1,6 +1,8 @@
 import type { CallContext } from './context';
 import { acknowledgeAppointment } from './handlers/acknowledgeAppointment';
 import { resendTransactionMail } from './handlers/resendTransactionMail';
+import { appEspace } from './handlers/app/espace';
+import { appMoi } from './handlers/app/moi';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
 import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
@@ -60,6 +62,8 @@ export const HANDLERS: Record<string, CallHandler> = {
   parseCv,
   // Administration
   adminCreateUser,
+  appEspace,
+  appMoi,
   adminManageRysmoQuota,
   adminManageEnrollment,
   reindexSearch,

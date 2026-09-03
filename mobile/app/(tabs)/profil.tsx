@@ -5,10 +5,11 @@ import {
   Avatar, Body, Button, Eyebrow, Field, Icon, LessonRow, SansDonnees, Screen, Segmented,
   Surface, Switch, TUTOR_DEFAUT, isIOS, setTutorNom, useScheme, useToken, useTutorNom, veil,
 } from '../../ds';
-import { MOI, STOCKAGE } from '../../contenu/demo';
+import { STOCKAGE } from '../../contenu/demo';
 import { ErreurAppel } from '../../donnees/appel';
 import { deconnexion } from '../../donnees/identite';
 import { useSession } from '../../donnees/session';
+import { useMoi } from '../../donnees';
 import { exporterMesDonnees } from '../../donnees/rgpd';
 
 /**
@@ -66,6 +67,7 @@ export default function Profil() {
   const [reprise, setReprise] = useState(true);
   const [exportEnCours, setExportEnCours] = useState(false);
   const session = useSession();
+  const moi = useMoi();
 
   async function quitter() {
     await deconnexion();
@@ -98,21 +100,23 @@ export default function Profil() {
     >
       {/* L'identité vient du compte, et elle ne s'invente pas : un nom affiché ici est le nom
           que la personne croira connecté. Les réglages, eux, tiennent sans elle. */}
-      {MOI === null ? (
+      {moi.valeur === null ? (
         <SansDonnees
           quoi="ton compte"
           origine="de ta connexion"
           degat="Afficher un nom et une adresse ici ferait croire à une session ouverte. Les réglages ci-dessous fonctionnent quand même : ils vivent sur cet appareil."
+          etat={moi}
+          hauteur={2}
           style={{ marginTop: 8 }}
           action={<Button tone="forme" label="Me connecter" onPress={() => router.push('/connexion')} />}
         />
       ) : (
         <Surface level="flat" style={{ marginTop: 8, padding: 18 }}>
           <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-            <Avatar initials={MOI.initiale} size={54} />
+            <Avatar initials={moi.valeur.initiale} size={54} />
             <View style={{ flex: 1 }}>
-              <Body style={{ fontSize: 16, fontWeight: '700' }}>{MOI.nom}</Body>
-              <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 12, marginTop: 2 }}>{MOI.email}</Body>
+              <Body style={{ fontSize: 16, fontWeight: '700' }}>{moi.valeur.nom}</Body>
+              <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 12, marginTop: 2 }}>{moi.valeur.email}</Body>
             </View>
             <Button tone="quiet" size="sm" label="Modifier" onPress={() => router.push('/connexion')} />
           </View>
