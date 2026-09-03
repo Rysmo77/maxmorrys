@@ -1,4 +1,5 @@
 import type { AgencyPack, AgencyPlan, AgencyLeadStatus } from '../../types';
+import { regimeDe, ventilerDepuisHT, type Ventilation } from '../tax/senegal';
 
 /**
  * Grille tarifaire de l'offre « Digital Commerce Local » — SOURCE DE VÉRITÉ UNIQUE.
@@ -276,6 +277,24 @@ export interface QuoteTotals {
   commitmentMonths?: number;
   /** Coût total sur la durée d'engagement, quand elle existe */
   commitmentTotal?: number;
+
+  /*
+   * ── LA TAXE ────────────────────────────────────────────────────────────────
+   *
+   * Tous les montants ci-dessus sont HORS TAXES. C'est ce que dit désormais l'article 5.1
+   * des CGV — il annonçait « toutes taxes comprises » jusqu'au 03/09/2026, et cette
+   * rédaction était en contradiction avec la façon dont les prix ont été fixés.
+   *
+   * Les deux ventilations qui suivent portent les montants RÉELLEMENT EXIGIBLES. Ce sont
+   * elles qu'un prospect doit voir avant de valider, parce que l'article 5.1 l'exige
+   * explicitement : « le montant total toutes taxes comprises est présenté avant la
+   * validation de la commande ».
+   */
+
+  /** Ventilation du montant dû à la signature. `ttc` est ce que le client paie. */
+  setupDueTax: Ventilation;
+  /** Ventilation de l'abonnement mensuel. `ttc` est ce qui sera prélevé chaque mois. */
+  monthlyTax: Ventilation;
 }
 
 /** Calcule les montants d'un devis. Un pack et/ou une formule peuvent être absents. */
@@ -297,7 +316,25 @@ export function computeTotals(pack: AgencyPack, plan: AgencyPlan): QuoteTotals {
     ? planSetup + planMonthly * commitmentMonths
     : undefined;
 
-  return { packPrice, planSetup, planMonthly, setupDue, pipelineValue, commitmentMonths, commitmentTotal };
+  /*
+   * L'offre agence est assujettie au taux normal. Le régime vit dans `REGIME.agence` et
+   * nulle part ailleurs : l'affichage, le devis, le message WhatsApp et la facture lisent
+   * tous cette même table, exactement comme `packEffectivePrice` est la seule source du
+   * prix affiché. Deux sources de taux divergeraient au premier changement de taux.
+   */
+  const regime = regimeDe('agence');
+
+  return {
+    packPrice,
+    planSetup,
+    planMonthly,
+    setupDue,
+    pipelineValue,
+    commitmentMonths,
+    commitmentTotal,
+    setupDueTax: ventilerDepuisHT(setupDue, regime),
+    monthlyTax: ventilerDepuisHT(planMonthly, regime),
+  };
 }
 
 /**

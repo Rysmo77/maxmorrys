@@ -6,6 +6,8 @@ import type { Env } from '../env';
 import { sendEmail } from '../lib/email';
 import { allocateInvoiceNumber, buildInvoice, type Langue } from '../lib/invoice';
 import { sendConversionEvent } from '../lib/meta-capi';
+import { buildPurchaseNotice, urlDeDestination, type AchatKind } from '../lib/purchase';
+import type { FamilleFiscale } from '../lib/tax';
 import { asText, toNumber } from '../lib/values';
 
 /**
@@ -116,6 +118,10 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
     const rysmoPurchaseId = asText(txn.rysmoPurchaseId);
     const rysmoSubscriptionId = asText(txn.rysmoSubscriptionId);
 
+    /* Renseignés par la branche « pack » ci-dessous, pour le courrier de confirmation. */
+    let jetonsCredites: number | undefined;
+    let soldeRysmo: number | undefined;
+
     // L'effet de bord est appliqué AVANT de marquer la transaction terminée :
     // une panne en cours laisse `pending`, donc rattrapable. Chacun est idempotent.
     if (txn.formationId === 'club_digitos') {
@@ -130,6 +136,19 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
         const rateLimit = await tx.get(`_ratelimits/rysmo_${userId}`);
         const newBalance =
           toNumber(rateLimit?.data.packBalance) + toNumber(purchase.data.requestsTotal);
+        /*
+         * Ces deux nombres SORTENT de la transaction pour le courrier de confirmation.
+         *
+         * Ils sont lus ici et nulle part ailleurs : les relire après coup donnerait un solde
+         * qui a pu bouger entre-temps — le répétiteur consomme des jetons en continu. Un
+         * courrier qui annonce « tu en as 1 700 » alors que la personne en a déjà dépensé
+         * trois est faux, et c'est le genre de faux qu'on ne remarque jamais côté serveur.
+         *
+         * Les deux sorties anticipées ci-dessus les laissent indéfinis, ce qui est correct :
+         * elles signalent une relivraison déjà traitée, donc un courrier déjà parti.
+         */
+        jetonsCredites = toNumber(purchase.data.requestsTotal);
+        soldeRysmo = newBalance;
         tx.update(`rysmoPackPurchases/${rysmoPurchaseId}`, {
           status: 'completed',
           completedAt: new Date().toISOString(),
@@ -192,6 +211,58 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
         const prefs = profil?.data.preferences as { language?: string } | undefined;
         const langue: Langue = prefs?.language === 'en' ? 'en' : 'fr';
 
+        /*
+         * ── CE QUI A ÉTÉ ACHETÉ, EN UN SEUL ENDROIT ──
+         *
+         * Le webhook branchait déjà sur ces quatre cas plus haut pour appliquer l'effet. On
+         * refait la lecture ici plutôt que de la faire remonter : les deux endroits lisent la
+         * MÊME transaction et ne peuvent pas diverger, alors qu'une variable portée sur
+         * quarante lignes se serait fait réaffecter au premier ajout de branche.
+         *
+         * La famille fiscale sort de la même lecture. Elle décide du taux appliqué à la
+         * facture — voir `tax.ts`. Aujourd'hui les trois familles autres qu'`agence` sont en
+         * régime non tranché : aucune ne porte de TVA, et c'est délibéré.
+         */
+        const kind: AchatKind =
+          txn.formationId === 'club_digitos' ? 'club'
+          : txn.rysmoKind === 'pack' ? 'rysmoPack'
+          : txn.rysmoKind === 'subscription' ? 'rysmoSubscription'
+          : 'formation';
+        const famille: FamilleFiscale =
+          kind === 'club' ? 'club'
+          : kind === 'rysmoPack' || kind === 'rysmoSubscription' ? 'rysmo'
+          : 'formation';
+
+        /*
+         * LA CONFIRMATION D'ACHAT, AVANT LA FACTURE.
+         *
+         * L'ordre compte dans la boîte de réception : la confirmation dit ce qu'on vient
+         * d'obtenir, la facture est la pièce comptable. Reçues dans l'autre sens, la première
+         * chose qu'on lit après avoir payé est un document administratif.
+         *
+         * `purchaseNoticeSentAt` porte l'idempotence, exactement comme `invoiceSentAt` :
+         * Bictorys relivre, et une deuxième confirmation du même achat ferait douter d'un
+         * double débit.
+         */
+        if (!txn.purchaseNoticeSentAt) {
+          const avis = buildPurchaseNotice({
+            kind,
+            langue,
+            userName: asText(txn.userName),
+            designation: asText(txn.formationTitle),
+            jetonsCredites,
+            soldeTotal: soldeRysmo,
+            url: urlDeDestination(kind, langue, env.APP_BASE_URL),
+          });
+          const envoiAvis = await sendEmail(env, { to: destinataire, ...avis });
+          if (envoiAvis.sent) {
+            await db.update(transaction.path, { purchaseNoticeSentAt: new Date().toISOString() });
+            console.log('Webhook Bictorys : confirmation', kind, 'envoyée pour', chargeId);
+          } else {
+            console.error('Webhook Bictorys : confirmation non envoyée —', envoiAvis.error);
+          }
+        }
+
         // Attribué une seule fois et relu ensuite : une relivraison ne consomme pas un rang
         // et n'envoie pas une seconde facture sous un autre numéro.
         const numero = await allocateInvoiceNumber(db, transaction.path);
@@ -205,6 +276,7 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
             userName: asText(txn.userName),
             chargeId,
             paidAt: completedAt,
+            famille,
           },
           numero,
           langue,

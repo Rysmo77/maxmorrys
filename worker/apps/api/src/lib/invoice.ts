@@ -21,6 +21,9 @@
  * question, une ligne inventée est un faux.
  */
 
+import * as DS from './email-design';
+import { regimeDe, tauxEnPourcent, ventilerDepuisTTC, type FamilleFiscale } from './tax';
+
 /** Identité de l'émetteur. Reprise VERBATIM des mentions légales publiées
  *  (`src/i18n/locales/fr/legal.json` § mentions.editor) : deux rédactions de la même identité
  *  légale, c'est une occasion de les faire diverger. */
@@ -49,6 +52,15 @@ export interface TransactionFacturable {
   chargeId?: string;
   /** Horodatage ISO de la validation du paiement. */
   paidAt?: string;
+  /**
+   * Famille fiscale de ce qui a été vendu. Détermine le régime appliqué — voir `tax.ts`.
+   *
+   * Par défaut `formation`, donc EXONÉRÉE : une transaction dont la famille serait mal
+   * renseignée ne se verra jamais facturer une taxe qu'elle ne doit pas. Le défaut penche
+   * du côté où l'erreur est réparable — on peut réémettre une facture qui a omis la TVA,
+   * on ne peut pas défaire un client qui l'a payée à tort.
+   */
+  famille?: FamilleFiscale;
 }
 
 export interface Facture {
@@ -164,6 +176,9 @@ const T = {
     reference: 'Référence de paiement',
     client: 'Client',
     emetteur: 'Émetteur',
+    totalHT: 'Total hors taxes',
+    exonere: "Exonéré de TVA — prestation d'enseignement.",
+    tva: (taux: number) => `TVA ${taux} %`,
     total: 'Total réglé',
     pied: "Cette facture est émise automatiquement à la validation du paiement. Si un élément te paraît faux, réponds à ce message : je corrige et je réémets.",
     signature: 'Max-Morrys',
@@ -180,15 +195,18 @@ const T = {
     reference: 'Payment reference',
     client: 'Customer',
     emetteur: 'Issued by',
+    totalHT: 'Total excluding tax',
+    exonere: 'VAT-exempt — teaching service.',
+    tva: (taux: number) => `VAT ${taux}%`,
     total: 'Total paid',
     pied: "This invoice is issued automatically when payment clears. If anything looks wrong, reply to this message — I'll fix it and reissue.",
     signature: 'Max-Morrys',
   },
 } as const;
 
-function echapper(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
+/* L'échappement vivait ici en copie. Il est désormais unique dans `email-design.ts`, appliqué
+   par les primitives elles-mêmes : une valeur ne peut plus traverser le HTML sans passer par
+   lui. Voir `DS.echapper`. */
 
 /**
  * Rend la facture dans les deux formats. `text` n'est pas une politesse : certains clients de
@@ -230,6 +248,48 @@ export function buildInvoice(
   if (txn.userName) lignes.push([t.client, txn.userName]);
   if (txn.chargeId) lignes.push([t.reference, txn.chargeId]);
 
+  /*
+   * ── LA VENTILATION SE FAIT DEPUIS LE TTC, JAMAIS DEPUIS LE HT ──
+   *
+   * `txn.amount` est ce que l'opérateur a RÉELLEMENT débité. C'est donc un montant toutes
+   * taxes comprises par construction, et ça reste vrai des deux côtés du changement de
+   * l'article 5.1 :
+   *
+   *   · avant le 03/09/2026, les prix étaient annoncés TTC — la taxe était dedans ;
+   *   · depuis, ils sont annoncés HT et la taxe est ajoutée AVANT le débit — elle est donc
+   *     encore dedans au moment où l'opérateur encaisse.
+   *
+   * Reconstruire le TTC en ajoutant la taxe au montant débité le compterait deux fois. Une
+   * facture qui annonce plus que ce qui a été prélevé est un faux, et le client le voit sur
+   * son relevé.
+   *
+   * Les deux lignes n'apparaissent que si une taxe est due. Une ligne « TVA 0 » sur une
+   * prestation dont le régime n'est pas tranché serait une affirmation fiscale — exactement
+   * ce que l'avertissement de `mentionFiscale` plus bas interdit d'écrire.
+   */
+  const regime = regimeDe(txn.famille ?? 'formation');
+  const v = ventilerDepuisTTC(txn.amount, regime);
+  if (v.etat === 'taxable' && v.tva > 0) {
+    lignes.push([t.totalHT, formatMontant(v.ht, txn.currency, langue)]);
+    lignes.push([t.tva(tauxEnPourcent(v.taux)), formatMontant(v.tva, txn.currency, langue)]);
+  }
+
+  /*
+   * LA MENTION FISCALE — trois comportements, un par état.
+   *
+   * `taxable`     les deux lignes ci-dessus suffisent : le montant de la taxe EST la mention.
+   * `exonere`     il faut dire POURQUOI. Une facture sans TVA et sans motif est incomplète
+   *               pour un comptable, et MY ONOMA est assujettie — l'absence de taxe sur une
+   *               de ses factures demande donc une explication.
+   * `indetermine` on n'écrit rien. C'est le seul comportement sûr tant qu'on ne sait pas.
+   *
+   * `INVOICE_TAX_NOTICE` reste prioritaire : le jour où le comptable fournit la rédaction
+   * exacte, avec son article, elle remplace la phrase par défaut sans toucher au code. Cette
+   * phrase-ci ne cite AUCUN article, précisément parce que celui du CGI sénégalais n'a pas
+   * été vérifié — et qu'une référence inventée se recopie chez le client.
+   */
+  const mention = mentionFiscale ?? (v.etat === 'exonere' ? t.exonere : undefined);
+
   const emetteurLignes = [
     EMETTEUR.raisonSociale,
     EMETTEUR.formeJuridique,
@@ -238,36 +298,37 @@ export function buildInvoice(
     EMETTEUR.siege,
   ];
 
-  const html = `<!doctype html>
-<html lang="${langue}">
-<body style="margin:0;padding:24px;background:#F4F6F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0E1116;font-size:15px;line-height:1.45">
-  <div style="max-width:560px;margin:0 auto;background:#FFFFFF;border-radius:18px;padding:28px">
-    <p style="margin:0 0 4px">${echapper(t.bonjour(txn.userName))}</p>
-    <p style="margin:0 0 24px;color:#5A6472">${echapper(t.intro)}</p>
-
-    <h1 style="margin:0 0 16px;font-size:20px;letter-spacing:-.02em">${echapper(t.titre)} ${echapper(numero)}</h1>
-
-    <table role="presentation" style="width:100%;border-collapse:collapse;margin-bottom:20px">
-      ${lignes.map(([k, v]) => `<tr>
-        <td style="padding:8px 0;color:#5A6472;border-bottom:1px dashed #E3E7EC">${echapper(k)}</td>
-        <td style="padding:8px 0;text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;border-bottom:1px dashed #E3E7EC">${echapper(v)}</td>
-      </tr>`).join('')}
-      <tr>
-        <td style="padding:14px 0 0;font-weight:600">${echapper(t.total)}</td>
-        <td style="padding:14px 0 0;text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;font-size:19px">${echapper(montant)}</td>
-      </tr>
-    </table>
-
-    ${mentionFiscale ? `<p style="margin:0 0 20px;font-size:12px;color:#5A6472">${echapper(mentionFiscale)}</p>` : ''}
-
-    <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#5A6472">${echapper(t.emetteur)}</p>
-    <p style="margin:0 0 24px;font-size:12px;color:#5A6472;line-height:1.6">${emetteurLignes.map(echapper).join('<br>')}</p>
-
-    <p style="margin:0 0 16px;font-size:12px;color:#5A6472">${echapper(t.pied)}</p>
-    <p style="margin:0;font-size:13px">${echapper(t.signature)}</p>
-  </div>
-</body>
-</html>`;
+  /*
+   * LA HIÉRARCHIE DE LA PIÈCE.
+   *
+   * L'identité légale de l'émetteur descend en PIED DE PAGE, hors de la carte blanche. Elle
+   * occupait le centre du document alors qu'elle ne s'y lit jamais : ce qu'on ouvre une
+   * facture pour voir, c'est le montant et ce qu'on a acheté. Le bloc reste intégralement
+   * présent — les CGV et le comptable du client l'exigent — mais à sa place.
+   *
+   * Le total est la seule ligne portée à 24 px : la hiérarchie se fait par la taille, jamais
+   * par une couleur d'accent, parce qu'un accent coloré sur une facture se lit comme une
+   * alerte.
+   */
+  const html = DS.page({
+    langue,
+    apercu: `${t.titre} ${numero} · ${montant}`,
+    contenu: [
+      DS.paragraphe(t.bonjour(txn.userName)),
+      DS.paragraphe(t.intro, true),
+      DS.filet(),
+      DS.surTitre(t.titre),
+      DS.lignes(lignes),
+      DS.total(t.total, montant),
+      mention ? DS.mention(mention, DS.ECHELLE.small) : '',
+      DS.filet(),
+      DS.mention(t.pied),
+      DS.paragraphe(t.signature),
+    ]
+      .filter(Boolean)
+      .join('\n'),
+    pied: [`${t.emetteur} :`, ...emetteurLignes],
+  });
 
   const text = [
     t.bonjour(txn.userName),
@@ -278,7 +339,7 @@ export function buildInvoice(
     '',
     ...lignes.map(([k, v]) => `${k} : ${v}`),
     `${t.total} : ${montant}`,
-    ...(mentionFiscale ? ['', mentionFiscale] : []),
+    ...(mention ? ['', mention] : []),
     '',
     `${t.emetteur} :`,
     ...emetteurLignes,

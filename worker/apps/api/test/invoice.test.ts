@@ -120,14 +120,47 @@ describe('buildInvoice', () => {
   });
 
   /*
-   * La mention fiscale est un paramètre SANS valeur par défaut : le régime de MY ONOMA SARL
-   * n'est pas déductible du dépôt. Une facture qui n'affirme rien se corrige ; une mention
-   * inventée se recopie chez le client, qui la produit à son propre comptable.
+   * ── CE QUE LA FACTURE A LE DROIT D'AFFIRMER, RÉGIME PAR RÉGIME ──
+   *
+   * Ce test disait « n'affirme rien sur la TVA tant que la mention n'est pas fournie », et
+   * sa raison était juste : le régime de MY ONOMA SARL n'était pas déductible du dépôt.
+   *
+   * Il l'est depuis le 03/09/2026 — la société est assujettie, l'enseignement est exonéré.
+   * La règle change donc de forme sans changer de fond : on n'affirme toujours QUE ce qui a
+   * été tranché, et on ne cite toujours AUCUN article. C'est la citation inventée qui avait
+   * fait écrire « article 293 B », qui est du code français, sur une facture sénégalaise.
    */
-  it('n’affirme rien sur la TVA tant que la mention n’est pas fournie', () => {
+  it('énonce l’exonération sur une prestation d’enseignement, sans citer d’article', () => {
     const f = buildInvoice(txn, 'MO-2026-000007', 'fr');
-    expect(f.html).not.toMatch(/TVA|VAT|293/i);
-    expect(f.text).not.toMatch(/TVA|VAT|293/i);
+    expect(f.html).toContain('Exonéré de TVA');
+    expect(f.text).toContain('Exonéré de TVA');
+    // Aucun numéro d'article, d'aucun code, dans aucune des deux versions.
+    expect(f.html).not.toMatch(/article\s*\d|293/i);
+    expect(f.text).not.toMatch(/article\s*\d|293/i);
+  });
+
+  it('se tait complètement quand le régime n’est pas tranché', () => {
+    const f = buildInvoice({ ...txn, famille: 'rysmo' }, 'MO-2026-000009', 'fr');
+    expect(f.html).not.toMatch(/TVA|VAT|exonér/i);
+    expect(f.text).not.toMatch(/TVA|VAT|exonér/i);
+  });
+
+  it('ventile la taxe sur une prestation d’agence, et le total reste le montant débité', () => {
+    const f = buildInvoice(
+      { amount: 295_000, currency: 'XOF', famille: 'agence' },
+      'MO-2026-000010',
+      'fr',
+    );
+    expect(f.text).toContain('TVA 18 %');
+    expect(f.text).toContain(`250${NB}000${NB}FCFA`); // base hors taxes
+    expect(f.text).toContain(`45${NB}000${NB}FCFA`); // taxe
+    expect(f.text).toContain(`295${NB}000${NB}FCFA`); // total réglé = ce qui a été débité
+  });
+
+  it('laisse la mention fournie l’emporter sur la phrase par défaut', () => {
+    const f = buildInvoice(txn, 'MO-2026-000011', 'fr', 'Régime XYZ selon avis du comptable.');
+    expect(f.text).toContain('Régime XYZ selon avis du comptable.');
+    expect(f.text).not.toContain('prestation d’enseignement');
   });
 
   it('porte la mention fiscale quand elle est fournie', () => {

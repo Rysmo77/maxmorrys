@@ -30,6 +30,7 @@
 import type { Firestore } from '@mm/firestore-rest';
 
 import type { Env } from '../env';
+import * as DS from './email-design';
 import { sendEmail } from './email';
 import { type Langue } from './invoice';
 
@@ -88,9 +89,8 @@ const T = {
   },
 } as const;
 
-function echapper(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
+/* L'échappement est unique dans `email-design.ts`, appliqué par les primitives elles-mêmes.
+   Il en vivait trois copies — trois occasions d'en corriger une seule. Voir `DS.echapper`. */
 
 /** Le message de rappel. Pur, comme le rendu de facture, et testable sans réseau. */
 export function buildRenewalNotice(
@@ -99,22 +99,31 @@ export function buildRenewalNotice(
   urlReabonnement: string,
 ): { subject: string; html: string; text: string } {
   const t = T[abonnement.langue];
-  const html = `<!doctype html>
-<html lang="${abonnement.langue}">
-<body style="margin:0;padding:24px;background:#F4F6F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0E1116;font-size:15px;line-height:1.5">
-  <div style="max-width:520px;margin:0 auto;background:#FFFFFF;border-radius:18px;padding:28px">
-    <p style="margin:0 0 16px">${echapper(t.bonjour(abonnement.userName))}</p>
-    <p style="margin:0 0 12px">${echapper(t.corps(dateLisible))}</p>
-    <p style="margin:0 0 20px;color:#5A6472">${echapper(t.rien)}</p>
-    <p style="margin:0 0 18px">${echapper(t.action)}</p>
-    <p style="margin:0 0 22px">
-      <a href="${echapper(urlReabonnement)}" style="display:inline-block;padding:14px 22px;border-radius:999px;background:#6C23DD;color:#FFFFFF;text-decoration:none;font-weight:700">${echapper(t.lien)}</a>
-    </p>
-    <p style="margin:0 0 20px;font-size:13px;color:#5A6472">${echapper(t.apres)}</p>
-    <p style="margin:0;font-size:13px">${echapper(t.signature)}</p>
-  </div>
-</body>
-</html>`;
+  /*
+   * LA DATE EST LE TITRE.
+   *
+   * Ce message n'a qu'une information — le jour où l'accès s'arrête — et elle était noyée dans
+   * quatre paragraphes de même taille. Elle passe en display : c'est ce que le destinataire
+   * doit pouvoir lire sans lire le reste.
+   *
+   * Le bouton était violet. Il est encre, parce que `actionPrimary` vaut `#0E1116` : sur un
+   * rappel d'échéance, une couleur vive lit comme une urgence commerciale alors que le message
+   * dit précisément l'inverse — que rien ne sera prélevé.
+   */
+  const html = DS.page({
+    langue: abonnement.langue,
+    apercu: t.corps(dateLisible),
+    contenu: [
+      DS.paragraphe(t.bonjour(abonnement.userName)),
+      DS.titre(t.corps(dateLisible)),
+      DS.paragraphe(t.rien, true),
+      DS.filet(),
+      DS.paragraphe(t.action),
+      DS.bouton(t.lien, urlReabonnement),
+      DS.mention(t.apres),
+      DS.paragraphe(t.signature),
+    ].join('\n'),
+  });
 
   const text = [
     t.bonjour(abonnement.userName),

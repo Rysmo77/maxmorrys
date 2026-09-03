@@ -9,6 +9,8 @@ import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { getAgencyQuote } from '../lib/firestore';
 import { useFormat } from '../hooks/useFormat';
+import { PriceApprox } from '../components/shared/PriceApprox';
+import { tauxEnPourcent } from '../lib/tax/senegal';
 import { captureError } from '../lib/sentry';
 import {
   QUOTE_VALIDITY_DAYS, balanceAmount, computeTotals, depositAmount, findPack, findPlan,
@@ -236,10 +238,36 @@ export default function PresenceDevis() {
             {/* Le filet : au-dessus le détail, en dessous ce qu'il y a à payer. */}
             <div className="my-[14px] h-px bg-[color:var(--fill-3)]" />
 
+            {/*
+              LA TAXE EST UNE LIGNE, PAS UNE NOTE DE BAS DE PAGE.
+
+              L'article 5.1 des CGV exige que « le montant total toutes taxes comprises soit
+              présenté avant la validation de la commande ». Un prospect doit donc lire les
+              trois nombres — base, taxe, total — et non un total dont il devrait deviner la
+              composition. Les lignes n'apparaissent que si une taxe est effectivement due :
+              une ligne « TVA 0 » sur une prestation exonérée est une affirmation fiscale de
+              plus, et c'est exactement ce qu'on cherche à ne pas écrire.
+            */}
+            {totals.setupDueTax.tva > 0 && (
+              <>
+                <DocLine
+                  label={t('quote.htLine')}
+                  value={<Num value={totals.setupDueTax.ht} source={grid.source} asOf={grid.asOf} unit="FCFA" />}
+                />
+                <DocLine
+                  label={t('quote.vatLine', { rate: tauxEnPourcent(totals.setupDueTax.taux) })}
+                  value={<Num value={totals.setupDueTax.tva} source={grid.source} asOf={grid.asOf} unit="FCFA" />}
+                  last
+                />
+                <div className="my-[14px] h-px bg-[color:var(--fill-3)]" />
+              </>
+            )}
+
             <div className="flex flex-wrap items-end justify-between gap-3">
               <PriceBlock
                 size={29}
-                amount={{ value: totals.setupDue, source: grid.source, asOf: grid.asOf }}
+                amount={{ value: totals.setupDueTax.ttc, source: grid.source, asOf: grid.asOf }}
+                approx={<PriceApprox xof={totals.setupDueTax.ttc} />}
                 note={t('quote.upfrontTotal')}
               />
               <Tag tone={expired ? 'warn' : 'ok'}>

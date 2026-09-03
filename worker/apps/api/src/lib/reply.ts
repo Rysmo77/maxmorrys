@@ -39,13 +39,13 @@
  * hoqueté.
  */
 import type { Env } from '../env';
+import * as DS from './email-design';
 import { sendEmail } from './email';
 
 export type Langue = 'fr' | 'en';
 
-function echapper(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
+/* L'échappement est unique dans `email-design.ts`, appliqué par les primitives elles-mêmes.
+   Il en vivait trois copies — trois occasions d'en corriger une seule. Voir `DS.echapper`. */
 
 const T = {
   fr: {
@@ -92,25 +92,30 @@ export function buildReplyNotice(
 ): { subject: string; html: string; text: string } {
   const t = T[message.langue];
 
-  const html = `<!doctype html>
-<html lang="${message.langue}">
-<body style="margin:0;padding:24px;background:#F4F6F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0E1116;font-size:15px;line-height:1.5">
-  <div style="max-width:520px;margin:0 auto;background:#FFFFFF;border-radius:18px;padding:28px">
-    <p style="margin:0 0 16px">${echapper(t.bonjour(message.destinataireNom))}</p>
-    <p style="margin:0 0 18px;color:#5A6472">${echapper(t.intro)}</p>
-    <div style="margin:0 0 22px;white-space:pre-wrap">${echapper(message.reponse)}</div>
-    <div style="margin:0 0 22px;padding:14px 16px;border-left:3px solid #D3D9DF;background:#F4F6F9;border-radius:0 10px 10px 0">
-      <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#5A6472">${echapper(t.rappelTitre)}</p>
-      <p style="margin:0;font-size:13px;color:#5A6472;white-space:pre-wrap">${echapper(message.question)}</p>
-    </div>
-    <p style="margin:0 0 22px">
-      <a href="${echapper(urlEspace)}" style="display:inline-block;padding:14px 22px;border-radius:999px;background:#0A5FA6;color:#FFFFFF;text-decoration:none;font-weight:700">${echapper(t.lien)}</a>
-    </p>
-    <p style="margin:0 0 20px;font-size:13px;color:#5A6472">${echapper(t.apres)}</p>
-    <p style="margin:0;font-size:13px">${echapper(t.signature)}</p>
-  </div>
-</body>
-</html>`;
+  /*
+   * LA RÉPONSE D'ABORD, LA QUESTION ENSUITE.
+   *
+   * L'ordre était déjà le bon et il est conservé : le destinataire sait ce qu'il a demandé, il
+   * ouvre pour lire la réponse. Le rappel de sa question vient après, en citation, pour qu'il
+   * puisse se resituer sans avoir à retrouver son propre envoi.
+   *
+   * Le filet de la citation était `#D3D9DF` — une teinte qui n'est dans aucune palette. Il est
+   * encre, et le fond passe au jeton `paper3`. Le bouton était `#0A5FA6`, un bleu qui n'existe
+   * pas non plus dans le système ; il devient encre comme partout ailleurs.
+   */
+  const html = DS.page({
+    langue: message.langue,
+    apercu: t.intro,
+    contenu: [
+      DS.paragraphe(t.bonjour(message.destinataireNom)),
+      DS.paragraphe(t.intro, true),
+      DS.prose(message.reponse),
+      DS.citation(t.rappelTitre, message.question),
+      DS.bouton(t.lien, urlEspace),
+      DS.mention(t.apres),
+      DS.paragraphe(t.signature),
+    ].join('\n'),
+  });
 
   const text = [
     t.bonjour(message.destinataireNom),
@@ -143,6 +148,17 @@ export function sendReplyEmail(
   destinataire: string,
   message: ReplyMessage,
 ): Promise<{ sent: boolean; error?: string }> {
-  const url = `${env.APP_BASE_URL}${message.langue === 'fr' ? '/mon-espace/messages' : '/en/my-space/messages'}`;
+  /*
+   * ⚠️ `my-learning`, PAS `my-space`.
+   *
+   * Le segment anglais de `mon-espace` a changé avec la refonte (`src/i18n/segments.ts`, qui
+   * cite la table du design system). Le bord redirige `/en/my-space` vers `/en/my-learning`,
+   * mais PAS les chemins profonds : `/en/my-space/messages` traverse donc jusqu'au routeur,
+   * qui ne connaît plus ce segment et rend son écran d'absence.
+   *
+   * Un lien d'e-mail est le pire endroit où découvrir ça : il est cliqué des jours plus tard,
+   * par quelqu'un qui vient lire une réponse qu'on lui a promise.
+   */
+  const url = `${env.APP_BASE_URL}${message.langue === 'fr' ? '/mon-espace/messages' : '/en/my-learning/messages'}`;
   return sendEmail(env, { to: destinataire, ...buildReplyNotice(message, url) });
 }
