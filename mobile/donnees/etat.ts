@@ -1,4 +1,4 @@
-import type { Etat } from '../ds';
+import type { Etat, NumSource } from '../ds';
 import { RELEVE, SOURCE } from '../contenu/demo';
 
 /**
@@ -41,4 +41,20 @@ export function composer<T>(brut: Etat<T>, replique: T | null): Etat<T> {
 /** Même chose pour une liste : `[]` compte comme une absence de réplique. */
 export function composerListe<T>(brut: Etat<readonly T[]>, replique: readonly T[]): Etat<readonly T[]> {
   return composer(brut, replique.length === 0 ? null : replique);
+}
+
+/**
+ * La provenance d'un état, prête pour `<Num source asOf>`.
+ *
+ * `Num` EXIGE une date — c'est sa règle, et c'est ce qui l'empêche d'écrire un chiffre que
+ * personne n'a relevé. Mais quatre des six phases n'en ont pas : rien n'est encore arrivé.
+ * On rend alors l'instant présent AVEC une valeur nulle : `Num` affiche son repli, la date
+ * n'est jamais lue, et l'appelant n'a pas à écrire une ternaire de trois lignes sur chacun
+ * des quarante écrans — ce que la première version de cet appel faisait, et c'était illisible.
+ */
+export function provenance(etat: Etat<unknown>): { source: NumSource; asOf: Date } {
+  if (etat.phase === 'servie' || etat.phase === 'vide' || etat.phase === 'replique') {
+    return { source: etat.source, asOf: etat.asOf };
+  }
+  return { source: 'server', asOf: new Date() };
 }

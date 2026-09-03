@@ -53,6 +53,23 @@ function listesMigrated(): string[][] {
     .map((m) => m[1].split(',').map((n) => n.trim()).filter(Boolean));
 }
 
+/** Les callables que l'application NATIVE appelle, par sa porte unique. */
+function appeleesParLeNatif(): string[] {
+  const noms = new Set<string>();
+  const dossier = join(RACINE, 'mobile/donnees');
+  for (const e of readdirSync(dossier)) {
+    if (!/\.tsx?$/.test(e)) continue;
+    const code = readFileSync(join(dossier, e), 'utf8');
+    for (const m of code.matchAll(/(?:appeler|useVue)<[^>]*>?\(\s*'([A-Za-z0-9_]+)'/g)) {
+      noms.add(m[1]);
+    }
+    for (const m of code.matchAll(/(?:appeler|useVue)\(\s*'([A-Za-z0-9_]+)'/g)) {
+      noms.add(m[1]);
+    }
+  }
+  return [...noms];
+}
+
 /** Les callables que le frontend appelle réellement. */
 function appeleesParLeFront(): string[] {
   const noms = new Set<string>();
@@ -115,6 +132,18 @@ describe("aiguillage des callables du Worker api", () => {
     const connus = new Set([...handlers(), ...SERVIS_HORS_REGISTRE]);
     const fantomes = listesMigrated().flat().filter((n) => !connus.has(n));
     expect([...new Set(fantomes)], 'déclarés sans implémentation').toEqual([]);
+  });
+
+  it("toute callable appelée par l'application native est servie par le Worker", () => {
+    /*
+     * LE MÊME DÉFAUT, MAIS PIRE SUR UN TÉLÉPHONE. Un nom absent de `MIGRATED` part au relais
+     * mort et reçoit la page HTML 404 de Google. Sur le web, la console montre le corps ; sur
+     * un téléphone, il n'y a pas de console — ça se présente comme une panne de réseau, et
+     * quelqu'un ira vérifier son forfait avant de soupçonner une liste de configuration.
+     */
+    const servis = new Set([...handlers(), ...SERVIS_HORS_REGISTRE]);
+    const perdues = appeleesParLeNatif().filter((n) => !servis.has(n));
+    expect(perdues, 'appelées par le natif, servies par personne').toEqual([]);
   });
 
   it('toute callable appelée par le frontend est servie par le Worker', () => {

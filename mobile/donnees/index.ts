@@ -13,9 +13,10 @@
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 import type { Etat } from '../ds';
-import { FORMATION, MOI } from '../contenu/demo';
-import { composer } from './etat';
-import type { VueEspace, VueMoi } from './types';
+import { FORMATION, FORMATION_2, MOI } from '../contenu/demo';
+import { composer, composerListe } from './etat';
+export { provenance } from './etat';
+import type { VueCertificats, VueCours, VueEspace, VueMoi } from './types';
 import { useVue } from './vue';
 
 export { SessionProvider, useSession, useUid } from './session';
@@ -23,7 +24,7 @@ export { connexionEmail, creationEmail, deconnexion, reinitialiser, ErreurIdenti
 export { exporterMesDonnees } from './rgpd';
 export { appeler, ErreurAppel } from './appel';
 export { viderLesVues } from './vue';
-export type { VueEspace, VueMoi } from './types';
+export type { VueCertificat, VueCertificats, VueCours, VueEspace, VueMoi } from './types';
 
 /** Qui regarde : prénom, initiale, date d'ouverture du compte. */
 export function useMoi(): Etat<VueMoi> {
@@ -59,5 +60,34 @@ export function useEspace(): Etat<VueEspace> {
     arret: FORMATION.arret,
     moduleEnCours: FORMATION.moduleEnCours,
     leconEnCours: FORMATION.leconEnCours,
+  });
+}
+
+/** Le catalogue publié, avec ce qu'on possède déjà — jamais un prix. */
+export function useCours(): Etat<readonly VueCours[]> {
+  const brut = useVue<readonly VueCours[]>('appCours');
+  const replique = [FORMATION, FORMATION_2]
+    .filter((f): f is NonNullable<typeof f> => f !== null)
+    .map((f) => ({
+      id: f.slug,
+      slug: f.slug,
+      titre: f.titre,
+      titreCourt: 'titreCourt' in f ? f.titreCourt : f.titre,
+      meta: f.meta,
+      /* Le transfert ne disait pas ce qui est acquis. La première l'est — c'est elle que
+         l'accueil propose de reprendre —, la seconde non : la différence entre les deux
+         états EST l'information de cet écran, et l'aplatir la ferait disparaître. */
+      acquise: f === FORMATION,
+    }));
+  return composerListe(brut, replique);
+}
+
+/** Les certificats émis, et la date qui permet de dater le zéro. */
+export function useCertificats(): Etat<VueCertificats> {
+  const brut = useVue<VueCertificats>('appCertificats');
+  return composer(brut, MOI === null ? null : {
+    ouvertureCompte: MOI.ouvertureCompte,
+    certificats: [],
+    incomplets: 0,
   });
 }

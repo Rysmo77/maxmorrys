@@ -1,6 +1,8 @@
 import type { CallContext } from './context';
 import { acknowledgeAppointment } from './handlers/acknowledgeAppointment';
 import { resendTransactionMail } from './handlers/resendTransactionMail';
+import { appCertificats } from './handlers/app/certificats';
+import { appCours } from './handlers/app/cours';
 import { appEspace } from './handlers/app/espace';
 import { appMoi } from './handlers/app/moi';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
@@ -62,6 +64,8 @@ export const HANDLERS: Record<string, CallHandler> = {
   parseCv,
   // Administration
   adminCreateUser,
+  appCertificats,
+  appCours,
   appEspace,
   appMoi,
   adminManageRysmoQuota,

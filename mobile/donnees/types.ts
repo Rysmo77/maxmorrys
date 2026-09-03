@@ -37,3 +37,26 @@ export interface VueEspace {
   moduleEnCours: string | null;
   leconEnCours: string | null;
 }
+
+export interface VueCours {
+  id: string;
+  slug: string;
+  titre: string;
+  titreCourt: string;
+  meta: string;
+  acquise: boolean;
+}
+
+export interface VueCertificat {
+  code: string;
+  titulaire: string;
+  formation: string;
+  emisLe: string;
+  lecons: number;
+}
+
+export interface VueCertificats {
+  ouvertureCompte: string | null;
+  certificats: VueCertificat[];
+  incomplets: number;
+}
