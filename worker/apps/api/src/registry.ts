@@ -4,6 +4,7 @@ import { resendTransactionMail } from './handlers/resendTransactionMail';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
 import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
+import { creerMonProfil } from './handlers/creerMonProfil';
 import { deleteUserAccount, exportUserData } from './handlers/gdpr';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { importSpotifyEpisodesManual } from './handlers/importSpotifyEpisodesManual';
@@ -52,6 +53,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   acknowledgeAppointment,
   resendTransactionMail,
   clearRysmoMemory,
+  creerMonProfil,
   importSpotifyEpisodesManual,
   issueCertificate,
   translateContent,

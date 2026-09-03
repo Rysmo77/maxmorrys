@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
-import { openAuthSessionAsync } from 'expo-web-browser';
 import {
-  AppleMark, Body, Button, Display, Eyebrow, Field, GoogleMark, Icon, Screen,
+  Body, Button, Display, Eyebrow, Field, Icon, Screen,
   Surface, isIOS, useToken,
 } from '../ds';
-import { MOI, SITE } from '../contenu/demo';
+import { ErreurIdentite, creationEmail } from '../donnees/identite';
 
 /**
  * ══ 2 · LA CRÉATION DE COMPTE ══
@@ -16,8 +15,15 @@ import { MOI, SITE } from '../contenu/demo';
  * inscription sans lui, donc l'écran ne peut pas mentir même s'il le voulait. Créer un compte
  * n'inscrit à rien d'autre.
  *
- * COMME POUR LA CONNEXION, le bouton Apple n'existe que sur iOS (App Store 4.8) — offrir
- * Google sans Apple fait rejeter l'application.
+ * COMME POUR LA CONNEXION, cette version ne propose que l'e-mail. Apple et Google partiront
+ * ensemble, dans une même livraison : App Store 4.8 rend « Se connecter avec Apple »
+ * obligatoire dès qu'une connexion tierce existe, et livrer Google seul fait rejeter.
+ *
+ * ⚠️ LE FAUX LIEN A ÉTÉ RETIRÉ D'ICI. « Politique de confidentialité » était rendue en bleu
+ * et en gras — la forme d'un lien — À L'INTÉRIEUR du `Pressable` de la case newsletter : la
+ * toucher cochait la case au lieu d'ouvrir le texte. Une fausse affordance posée sur un
+ * contrôle de consentement, à l'endroit où elle coûte le plus cher. Les textes ont désormais
+ * leur ligne à eux, hors de la case, comme App Store 5.1.1(i) l'exige au point d'inscription.
  *
  * ── CE QUE LES CHAMPS FONT DÉJÀ, ET QUI COMPTE PLUS QU'ON NE CROIT ───────────────────────
  * `textContentType` décide de ce que le trousseau propose, et `keyboardType` de ce qui s'ouvre
@@ -30,9 +36,23 @@ export default function Creation() {
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [lettre, setLettre] = useState(false);
+  const [enCours, setEnCours] = useState(false);
+  const [echec, setEchec] = useState<string | null>(null);
+
+  const complet = nom.trim() !== '' && email.trim() !== '' && motDePasse.length >= 8;
 
   async function creer() {
-    await openAuthSessionAsync(`${SITE}/creation`, 'rysmo://connexion/retour');
+    if (!complet || enCours) return;
+    setEnCours(true);
+    setEchec(null);
+    try {
+      await creationEmail(nom, email, motDePasse);
+      router.replace('/(tabs)');
+    } catch (erreur: unknown) {
+      setEchec(erreur instanceof ErreurIdentite ? erreur.motif : 'La création a échoué.');
+    } finally {
+      setEnCours(false);
+    }
   }
 
   return (
@@ -44,34 +64,11 @@ export default function Creation() {
       <Display size={29} lines={['ON COMMENCE', 'PAR TOI.']} style={{ marginTop: 10 }} />
 
       <Surface level="hero" style={{ marginTop: 20, padding: 20 }}>
-        {isIOS ? (
-          <Button
-            tone="ink"
-            label="Continuer avec Apple"
-            leading={<AppleMark />}
-            style={{ marginBottom: 9 }}
-            onPress={() => { void creer(); }}
-          />
-        ) : null}
-
-        <Button
-          tone="ghost"
-          label="Continuer avec Google"
-          leading={<GoogleMark />}
-          onPress={() => { void creer(); }}
-        />
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 18 }}>
-          <View style={{ flex: 1, height: 1, backgroundColor: t('borderHair') }} />
-          <Eyebrow>ou</Eyebrow>
-          <View style={{ flex: 1, height: 1, backgroundColor: t('borderHair') }} />
-        </View>
-
         <Field
           label="Ton prénom et ton nom"
           value={nom}
           onChangeText={setNom}
-          placeholder={MOI?.nom ?? 'Prénom Nom'}
+          placeholder="Prénom Nom"
           autoCapitalize="words"
           textContentType="name"
           style={{ marginTop: 0 }}
@@ -80,7 +77,7 @@ export default function Creation() {
           label="Ton e-mail"
           value={email}
           onChangeText={setEmail}
-          placeholder={MOI?.email ?? 'ton@adresse.sn'}
+          placeholder="ton@adresse.sn"
           keyboardType="email-address"
           textContentType="emailAddress"
         />
@@ -91,6 +88,7 @@ export default function Creation() {
           secureTextEntry
           textContentType="password"
           hint="Huit caractères au minimum."
+          error={echec ?? undefined}
         />
 
         {/* ── LA CASE. Jamais pré-cochée, et sa cible fait toute la ligne. ─────────────── */}
@@ -111,12 +109,35 @@ export default function Creation() {
             {lettre ? <Icon name="check" size={14} color={t('textOnPrimary')} strokeWidth={3.4} /> : null}
           </View>
           <Body muted style={{ flex: 1, fontSize: 12.5, lineHeight: 18 }}>
-            Je veux recevoir la lettre d'information. Je peux me désinscrire à tout moment —
-            <Body style={{ fontSize: 12.5, color: t('mmBleu'), fontWeight: '700' }}> politique de confidentialité</Body>.
+            Je veux recevoir la lettre d'information. Je peux me désinscrire à tout moment.
           </Body>
         </Pressable>
 
-        <Button tone="forme" label="Crée mon compte" style={{ marginTop: 17 }} onPress={() => { void creer(); }} />
+        {/* ── LES TEXTES, HORS DE LA CASE. ────────────────────────────────────────────────
+            Leur place est ici — App Store 5.1.1(i) les veut au point d'inscription — et
+            SURTOUT pas à l'intérieur du `Pressable` au-dessus : un lien qui coche une case
+            n'est pas un lien. Cette ligne-ci ouvre vraiment. */}
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel="Lire les textes légaux"
+          onPress={() => router.push('/legal')}
+          style={{ marginTop: 14 }}
+        >
+          <Body muted style={{ fontSize: 12, lineHeight: 18 }}>
+            En créant un compte, tu acceptes les{' '}
+            <Body style={{ fontSize: 12, color: t('mmBleu'), fontWeight: '700' }}>
+              conditions d'utilisation et la politique de confidentialité
+            </Body>.
+          </Body>
+        </Pressable>
+
+        <Button
+          tone="forme"
+          label={enCours ? 'Création…' : 'Crée mon compte'}
+          disabled={!complet || enCours}
+          style={{ marginTop: 17 }}
+          onPress={() => { void creer(); }}
+        />
       </Surface>
 
       <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>

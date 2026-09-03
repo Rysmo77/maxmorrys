@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import {
   Body, Button, Display, Eyebrow, Field, Icon, Screen, Surface, isIOS, useToken, veil,
 } from '../ds';
+import { reinitialiser } from '../donnees/identite';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -22,10 +23,10 @@ import {
  * `if`, pas de second message, pas d'état d'erreur. Il ne peut pas y en avoir : le résultat
  * de l'envoi n'est pas lu.
  *
- * ⚠️ ET LE LIEN NE PART PAS. Le produit n'a AUCUN canal d'envoi d'e-mail. L'accusé de
- * réception le dit dans le même encart, sous la même bordure — pour qu'on ne puisse pas
- * lire l'un sans l'autre. La maquette pose ce constat aussi ; on ne l'a pas déplacé en note
- * de bas de page, où il se lit après avoir cru.
+ * ✅ LE LIEN PART MAINTENANT. C'est Firebase Authentication qui l'envoie, depuis son propre
+ * domaine — le produit n'a toujours pas de canal d'e-mail à lui, et il n'en a pas besoin
+ * pour celui-ci. L'invariant, lui, n'a pas bougé d'une ligne : le résultat de l'envoi n'est
+ * toujours pas lu, et l'écran sort au même endroit qu'avant.
  * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function MotDePasse() {
@@ -33,20 +34,21 @@ export default function MotDePasse() {
   const [email, setEmail] = useState('');
   const [accuse, setAccuse] = useState(false);
 
-  function accuseReception() {
+  async function accuseReception() {
     /*
-      ── L'INVARIANT. NE PAS BRANCHER D'EMBRANCHEMENT ICI. ──
-      Quand l'envoi existera, il vient à cette ligne et SON RÉSULTAT N'EST PAS LU :
+      ── L'INVARIANT, TENU. NE PAS BRANCHER D'EMBRANCHEMENT ICI. ──
+      L'envoi est arrivé, exactement à la ligne que ce fichier avait prévue pour lui, et
+      SON RÉSULTAT N'EST PAS LU. Le `catch` vide n'est pas une négligence, c'est la mesure :
+      distinguer « adresse inconnue » de « lien envoyé » rendrait cet écran capable de
+      répondre « inscrit / pas inscrit » à qui lui soumet une liste d'adresses. Le seul état
+      de sortie reste celui-ci.
 
-          try { await envoyerLienDeReinitialisation(email.trim()); }
-          catch { /* volontairement vide *\/ }
-          finally { setAccuse(true); }
-
-      Le `catch` vide n'est pas une négligence, c'est la mesure : distinguer « adresse
-      inconnue » de « lien envoyé » rendrait cet écran capable de répondre « inscrit / pas
-      inscrit » à qui lui soumet une liste d'adresses. Le seul état de sortie est celui-ci.
+      `reinitialiser()` ne jette d'ailleurs que sur un défaut de TRANSPORT, jamais sur une
+      adresse inconnue — la distinction est étouffée au plus près de sa source, pas ici.
     */
-    setAccuse(true);
+    try { await reinitialiser(email); }
+    catch { /* volontairement vide — voir ci-dessus */ }
+    finally { setAccuse(true); }
   }
 
   return (
@@ -76,7 +78,7 @@ export default function MotDePasse() {
             // qui ne consulte rien et ne révèle donc rien. La seule frontière qu'on ne
             // franchit pas est celle qui dirait quelque chose sur le compte lui-même.
             disabled={!email.trim()}
-            onPress={accuseReception}
+            onPress={() => { void accuseReception(); }}
             style={{ marginTop: 16 }}
           />
         </Surface>
@@ -107,9 +109,9 @@ export default function MotDePasse() {
                 */}
                 <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: t('borderHair') }}>
                   <Body muted style={{ fontSize: 12 }}>
-                    Ce lien dépend d'un canal d'envoi d'e-mail, qui n'existe pas encore dans le
-                    produit. Rien n'est parti pour l'instant — et la phrase au-dessus reste
-                    celle que tu liras quand il existera, mot pour mot.
+                    Le message vient de Firebase, pas d'une adresse en maxmorrys.me — cherche
+                    « noreply » si tu ne le trouves pas. Et si cette adresse n'a pas de compte,
+                    tu lis exactement la même phrase : cet écran ne dit jamais qui est inscrit.
                   </Body>
                 </View>
               </View>

@@ -1,34 +1,33 @@
 import { useState } from 'react';
-import { View } from 'react-native';
 import { router } from 'expo-router';
-import { openAuthSessionAsync } from 'expo-web-browser';
 import {
-  AppleMark, Body, Button, Display, Eyebrow, Field, GoogleMark, Icon, IconButton, Screen,
-  Surface, Wordmark, isIOS, useToken,
+  Body, Button, Display, Eyebrow, Field, Icon, IconButton, Screen,
+  Surface, Wordmark, useToken,
 } from '../ds';
-import { MOI, SITE } from '../contenu/demo';
+import { ErreurIdentite, connexionEmail } from '../donnees/identite';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
- * ══ 1 · LA CONNEXION ══ — ET LA RÈGLE DE MAGASIN QUI DESSINE UN BOUTON.
+ * ══ 1 · LA CONNEXION ══ — elle est branchée, et elle ne propose qu'un seul moyen.
  *
- * **APP STORE 4.8 : « Se connecter avec Apple » est OBLIGATOIRE dès qu'on propose une
- * connexion tierce.** Offrir Google sans Apple fait rejeter l'application. Le bouton n'existe
- * donc que dans le châssis iOS — et c'est, avec l'écran de création, l'UN DES DEUX SEULS
- * ENDROITS DU KIT où le CONTENU diffère d'une plateforme à l'autre, et pas seulement le cadre.
+ * ── POURQUOI NI APPLE NI GOOGLE ICI, POUR L'INSTANT ─────────────────────────────────────
+ * **App Store 4.8 : « Se connecter avec Apple » devient OBLIGATOIRE dès qu'on propose une
+ * connexion tierce.** Les deux boutons doivent donc partir dans la MÊME livraison — offrir
+ * Google en version *n* et Apple en *n+1* fait rejeter la version *n*, sans recours.
  *
- * La conséquence descend jusqu'à l'encart : « trois moyens » d'un côté, « deux » de l'autre.
- * Écrire « trois » sur Android serait faux, et c'est le genre de faux qu'on ne voit jamais
- * parce qu'on relit toujours sur la même plateforme.
+ * Cette version ne tient que l'e-mail et le mot de passe. C'est délibéré : ça n'appelle
+ * aucune obligation, ça n'a besoin d'aucun actif d'Apple (`ds/BrandMarks.tsx` porte une
+ * pomme REDESSINÉE, que les HIG interdisent), et ça se vérifie de bout en bout.
  *
- * ⚠️ L'ASSET D'APPLE EST UN EMPLACEMENT RÉSERVÉ (voir `ds/BrandMarks.tsx`). Apple fournit sa
- * marque et impose son usage ; elle ne se redessine pas. À remplacer avant soumission.
+ * ⚠️ LA DETTE EST RÉELLE ET IL FAUT LA NOMMER. Le site propose déjà Google. Quelqu'un qui
+ * s'y est inscrit par Google n'a jamais choisi de mot de passe : ici, il obtiendra
+ * « cette adresse et ce mot de passe ne vont pas ensemble » et essaiera des mots de passe qui
+ * n'ont jamais existé. C'est ce qui rend la livraison Google + Apple urgente, pas facultative.
  *
- * ── LE MOT DE PASSE, LUI, N'EST PAS ENCORE TENU ICI ──────────────────────────────────────
- * Le SDK d'authentification n'est pas branché. Les champs sont RÉELS — un vrai `TextInput`,
- * le bon clavier, le bon `textContentType`, donc le trousseau propose le mot de passe — mais
- * la validation ouvre la session web, avec les mêmes cookies. Ne pas faire semblant d'avoir ce
- * qu'on n'a pas (AD-11, même raisonnement que pour le paiement).
+ * ── LE MESSAGE D'ÉCHEC EST VOLONTAIREMENT FLOU, ET C'EST UNE PROTECTION ────────────────
+ * Firebase renvoie `auth/invalid-credential` aussi bien pour un mot de passe faux que pour un
+ * compte inexistant, exprès : distinguer les deux dirait à n'importe qui quelles adresses
+ * sont inscrites. `donnees/identite.ts` garde cette indistinction plutôt que de l'affiner.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function Connexion() {
@@ -36,9 +35,26 @@ export default function Connexion() {
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [visible, setVisible] = useState(false);
+  const [enCours, setEnCours] = useState(false);
+  const [echec, setEchec] = useState<string | null>(null);
 
-  async function ouvrirLaSession(chemin: string) {
-    await openAuthSessionAsync(`${SITE}${chemin}`, 'rysmo://connexion/retour');
+  const complet = email.trim() !== '' && motDePasse !== '';
+
+  async function seConnecter() {
+    if (!complet || enCours) return;
+    setEnCours(true);
+    setEchec(null);
+    try {
+      await connexionEmail(email, motDePasse);
+      /* On ne route PAS ici. `onAuthStateChanged` change la session, et c'est elle qui décide
+         où l'on va — router depuis les deux endroits produirait deux navigations pour une
+         seule connexion. */
+      router.replace('/(tabs)');
+    } catch (erreur: unknown) {
+      setEchec(erreur instanceof ErreurIdentite ? erreur.motif : 'La connexion a échoué.');
+    } finally {
+      setEnCours(false);
+    }
   }
 
   return (
@@ -55,36 +71,11 @@ export default function Connexion() {
       <Display size={29} lines={['CONTENT DE', 'TE REVOIR.']} style={{ marginTop: 18 }} />
 
       <Surface level="hero" style={{ marginTop: 20, padding: 20 }}>
-        {/* iOS SEULEMENT — App Store 4.8. Le bouton est en tête : c'est la position
-            qu'Apple attend quand plusieurs connexions tierces sont proposées. */}
-        {isIOS ? (
-          <Button
-            tone="ink"
-            label="Continuer avec Apple"
-            leading={<AppleMark />}
-            style={{ marginBottom: 9 }}
-            onPress={() => { void ouvrirLaSession('/connexion?fournisseur=apple'); }}
-          />
-        ) : null}
-
-        <Button
-          tone="ghost"
-          label="Continuer avec Google"
-          leading={<GoogleMark />}
-          onPress={() => { void ouvrirLaSession('/connexion?fournisseur=google'); }}
-        />
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 18 }}>
-          <View style={{ flex: 1, height: 1, backgroundColor: t('borderHair') }} />
-          <Eyebrow>ou</Eyebrow>
-          <View style={{ flex: 1, height: 1, backgroundColor: t('borderHair') }} />
-        </View>
-
         <Field
           label="Ton e-mail"
           value={email}
           onChangeText={setEmail}
-          placeholder={MOI?.email ?? 'ton@adresse.sn'}
+          placeholder="ton@adresse.sn"
           keyboardType="email-address"
           textContentType="emailAddress"
           style={{ marginTop: 0 }}
@@ -93,6 +84,9 @@ export default function Connexion() {
           label="Ton mot de passe"
           value={motDePasse}
           onChangeText={setMotDePasse}
+          /* L'échec porte sur le COUPLE, pas sur le mot de passe seul — mais il s'affiche
+             ici, sous le dernier champ rempli, là où le regard se trouve déjà. */
+          error={echec ?? undefined}
           secureTextEntry={!visible}
           textContentType="password"
           trailing={
@@ -108,9 +102,10 @@ export default function Connexion() {
 
         <Button
           tone="forme"
-          label="Je me connecte"
+          label={enCours ? 'Connexion…' : 'Je me connecte'}
+          disabled={!complet || enCours}
           style={{ marginTop: 17 }}
-          onPress={() => { void ouvrirLaSession('/connexion'); }}
+          onPress={() => { void seConnecter(); }}
         />
         <Button
           tone="quiet"
@@ -121,11 +116,11 @@ export default function Connexion() {
       </Surface>
 
       <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
-        <Eyebrow>{isIOS ? 'Trois moyens, un seul compte' : 'Deux moyens, un seul compte'}</Eyebrow>
+        <Eyebrow>Un seul compte, ici et sur le site</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          {isIOS
-            ? 'Apple, Google ou ton e-mail : tu retrouves les mêmes cours, la même progression, les mêmes certificats. Ce n’est pas trois comptes.'
-            : 'Google ou ton e-mail : tu retrouves les mêmes cours, la même progression, les mêmes certificats. Ce n’est pas deux comptes.'}
+          C'est le même compte que sur maxmorrys.me : les mêmes cours, la même progression,
+          les mêmes certificats. Si tu t'es inscrit par Google sur le site, tu n'as pas encore
+          de mot de passe — passe par « mot de passe oublié » pour t'en donner un.
         </Body>
       </Surface>
 

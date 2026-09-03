@@ -21,6 +21,11 @@ export { Skeleton } from './Skeleton';
 export { EmptyState } from './EmptyState';
 /* Le vide HONNÊTE de la production : ce qui manque, d'où ça vient, pourquoi rien n'est inventé. */
 export { SansDonnees } from './SansDonnees';
+/* Le vocabulaire de ce qu'on sait — six situations là où les écrans n'en connaissaient
+   que deux. C'est `SansDonnees` qui traduit chaque phase en écran. */
+export {
+  type Etat, type Phase, type Provenance, PHASES_SANS_VALEUR, enChargement, nonBranche,
+} from './Etat';
 export { TerritoryCard, type Territory, type CardLayout } from './TerritoryCard';
 
 /* Typographie et nombres */
