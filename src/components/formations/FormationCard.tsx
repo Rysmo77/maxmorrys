@@ -9,6 +9,7 @@ import { contentPath } from '../../lib/contentPath';
 import type { Formation, Enrollment, Certificate } from '../../types';
 import { Icon } from '@ds';
 import { estAVenir } from '../../types/formationRelease';
+import FormationArt from './FormationArt';
 
 function isRecent(dateString?: string): boolean {
   if (!dateString) return false;
@@ -114,12 +115,22 @@ export default function FormationCard({ formation, variant = 'default', enrollme
         to={formationPath}
         className="flex flex-col h-full bg-surface-sheet border border-[color:var(--line)] rounded-2xl overflow-hidden hover:border-[color-mix(in_srgb,var(--mm-bleu)_40%,transparent)] hover:shadow-lg transition duration-300"
       >
+        {/*
+          ⚠️ L'IMAGE NUE NE GÉRAIT PAS SON ÉCHEC. Cette carte est rendue au bas de CHAQUE
+          article de blog : une couverture supprimée de R2, ou une URL périmée, affichait
+          l'icône de lien brisé du navigateur sur tout le trafic organique du site.
+          `FormationArt` retombe sur le dégradé de territoire — jamais un cadre cassé.
+
+          L'enveloppe reste ici, et pas dans le composant : c'est elle qui porte le rapport
+          16:9 ET le repère des badges posés en absolu juste dessous. Le survol n'anime qu'un
+          `transform` (règle 3 / AD-16).
+        */}
         <div className="relative aspect-[16/9] overflow-hidden">
-          <img
+          <FormationArt
             src={formation.coverImage}
-            alt={formation.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
+            radius="0"
+            fallback="linear-gradient(150deg,var(--g-forme-1) 0%,var(--g-forme-2) 100%)"
+            imgClassName="transition-transform duration-500 group-hover:scale-105"
           />
           {/*
             ⚠️ « BIENTÔT » PASSE DEVANT « À LA UNE » ET « NOUVEAU ».

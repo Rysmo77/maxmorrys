@@ -20,6 +20,7 @@ import SEOHead from '../components/seo/SEOHead';
 import { contentPath } from '../lib/contentPath';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
+import FormationArt from '../components/formations/FormationArt';
 
 
 
@@ -193,21 +194,46 @@ export default function FormationDetail() {
             </p>
 
             {/*
-              L'emplacement d'aperçu : un dégradé de marque, pas une photographie. Le dépôt
-              n'en contient aucune, et c'est ce qui tient le budget de première vue.
+              ── L'EMPLACEMENT D'APERÇU PORTE LA CRÉA, QUAND IL Y EN A UNE ────────────────
+              Il disait : « un dégradé de marque, pas une photographie. Le dépôt n'en
+              contient aucune, et c'est ce qui tient le budget de première vue. » L'argument
+              valait quand aucune formation n'existait. Depuis, `coverImage` est saisi dans
+              la console, part au flux Meta et sert d'image Open Graph : la fiche était le
+              seul endroit qui possédait l'image et refusait de la montrer — sur la page
+              même où l'on décide d'acheter.
+
+              Le dégradé ne disparaît pas, il devient le REPLI (AD-24) : couverture absente,
+              URL cassée, image encore en vol — c'est lui qu'on voit, jamais un trou.
+
+              `priority` : cette zone est au-dessus de la ligne de flottaison et candidate au
+              LCP. La hauteur reste figée à 210 px, donc l'arrivée de l'image ne décale rien.
             */}
-            <div
-              className="rv-s mt-5 flex h-[210px] items-end rounded-media p-4"
-              style={{
-                background: 'var(--action-forme)',
-                boxShadow: 'var(--sh-bleu)',
-                ['--i' as string]: 4,
-              }}
+            <FormationArt
+              src={formation.coverImage}
+              height={210}
+              fallback="var(--action-forme)"
+              priority
+              veil
+              className="rv-s mt-5 p-4"
+              style={{ boxShadow: 'var(--sh-bleu)', ['--i' as string]: 4 }}
             >
-              <Tag style={{ background: 'rgba(255,255,255,.9)', color: 'var(--ink-fixed)' }}>
-                {t('sheet.preview')}
-              </Tag>
-            </div>
+              {/*
+                LA BALISE NE S'AFFICHE QUE SI ELLE EST VRAIE. Elle annonce « aperçu · module
+                d'ouverture gratuit » et se posait INCONDITIONNELLEMENT — sur une formation
+                dont aucune leçon ne porte `isFree`, elle promettait un accès libre qui
+                n'existe pas. C'est le même défaut que les lignes de module corrigeaient
+                trente lignes plus bas : la gratuité est une donnée, pas un décor.
+
+                Sur une formation à venir, elle ne se pose pas non plus — l'étiquette
+                « bientôt » est déjà posée au-dessus du titre, et la redire ici doublerait
+                l'annonce sans rien ajouter.
+              */}
+              {hasFreeLesson && !aVenir && (
+                <Tag style={{ background: 'rgba(255,255,255,.9)', color: 'var(--ink-fixed)' }}>
+                  {t('sheet.preview')}
+                </Tag>
+              )}
+            </FormationArt>
 
             {/*
               LE BANDEAU EST OBLIGATOIRE SUR TOUT CORPS TRADUIT À LA MACHINE.

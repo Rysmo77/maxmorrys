@@ -12,6 +12,7 @@ import { PriceApprox, PriceFootnote } from '../components/shared/PriceApprox';
 import { getPublishedFormations } from '../lib/firestore';
 import { estAVenir, ouverture } from '../types/formationRelease';
 import { queryKeys } from '../lib/queryClient';
+import FormationArt from '../components/formations/FormationArt';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -321,6 +322,32 @@ export default function Formations() {
                       levelLabel[formation.level],
                     ].filter(Boolean).join(' · ')}
                     title={formation.title}
+                    /*
+                     * ── LA MINIATURE, S'IL Y EN A UNE ───────────────────────────────────
+                     * `coverImage` était saisi, stocké, envoyé au flux Meta et posé en image
+                     * Open Graph — et le catalogue, lui, n'affichait rien. C'est la page qui
+                     * fait choisir entre deux formations : elle était la seule à décider sans
+                     * l'image.
+                     *
+                     * Elle se pose dans `trailing`, la colonne droite de l'en-tête de carte,
+                     * plutôt qu'en bandeau pleine largeur : la carte est une TerritoryCard,
+                     * son dégradé porte l'identité de section, et une photo pleine largeur
+                     * la recouvrirait au lieu de l'habiter. Format 16:9 comme partout
+                     * ailleurs pour ce champ, largeur figée pour que deux cartes voisines
+                     * alignent leurs titres.
+                     *
+                     * ⚠️ Sans couverture, `FormationArt` ne rend RIEN — aucun repli n'est
+                     * demandé ici. Une carte sans image reste exactement ce qu'elle était,
+                     * au lieu de gagner un rectangle vide.
+                     */
+                    trailing={(
+                      <FormationArt
+                        src={formation.coverImage}
+                        ratio="16 / 9"
+                        radius="var(--r-s)"
+                        style={{ width: '92px', flex: '0 0 auto' }}
+                      />
+                    )}
                   >
                     <p className="mt-[10px] mb-0 text-[14px] leading-[1.5]" style={{ color: 'var(--card-ink-2)' }}>
                       {formation.description}
