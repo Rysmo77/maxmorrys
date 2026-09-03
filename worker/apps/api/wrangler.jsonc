@@ -35,7 +35,7 @@
     // Autrement dit : le Worker va bien, et TOUT LE CHEMIN DE L'ARGENT était injoignable —
     // aucune formation, aucun pack Rysmo, aucun abonnement Club ne pouvait être payé, et le
     // webhook de confirmation n'aurait de toute façon pas répondu.
-    "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,exportUserData,deleteUserAccount,mediaToken,popupEvent,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,createClubCharge,bictorysWebhook,replyToMessage,notifyOnPublish,quoteCheckout",
+    "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,exportUserData,deleteUserAccount,mediaToken,popupEvent,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,createClubCharge,bictorysWebhook,replyToMessage,notifyOnPublish,quoteCheckout,importSpotifyEpisodesManual,syncMediaStatsManual",
 
     "FUNCTIONS_ORIGIN": "https://us-central1-max-morrys.cloudfunctions.net",
     "BICTORYS_API_URL": "https://api.bictorys.com/pay/v1/charges",
@@ -65,7 +65,13 @@
   // Rappel d'échéance du Club, une fois par jour. La fenêtre de préavis est d'un jour
   // calendaire exactement : une exécution manquée n'est pas rattrapée le lendemain, parce
   // qu'un message « dans 15 jours » envoyé le quatorzième jour est faux.
-  "triggers": { "crons": ["0 8 * * *"] },
+  // Trois rendez-vous quotidiens. L'ordre est celui d'origine et il compte : la synchro
+  // des statistiques passe AVANT l'import, pour ne pas mesurer des épisodes arrivés la
+  // minute d'avant et n'ayant encore aucune écoute.
+  //   03:00  syncMediaStats          vues YouTube + popularité Spotify
+  //   04:00  importSpotifyEpisodes   nouveaux épisodes, en brouillon
+  //   08:00  rappels d'échéance      fenêtre d'un jour calendaire, voir `estAEcheance`
+  "triggers": { "crons": ["0 3 * * *", "0 4 * * *", "0 8 * * *"] },
 
   // Secrets :
   //   npx wrangler secret put GCP_SA_JSON < ../../../max-morrys-<id>.json
@@ -87,7 +93,7 @@
       "vars": {
         "FIREBASE_PROJECT_ID": "max-morrys",
         "ALLOWED_ORIGINS": "https://maxmorrys.me,https://www.maxmorrys.me,http://localhost:5173",
-        "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,createClubCharge,bictorysWebhook,exportUserData,deleteUserAccount,mediaToken,popupEvent,replyToMessage,notifyOnPublish,quoteCheckout",
+        "MIGRATED": "getRysmoQuota,spotifyProxy,youtubeProxy,clearRysmoMemory,issueCertificate,adminCreateUser,adminManageRysmoQuota,adminManageEnrollment,translateContent,reindexSearch,parseCv,backfillSlugEn,weeklyClubDigestManual,rysmo,createBictorysCharge,createRysmoPackCharge,createRysmoSubscriptionCharge,createClubCharge,bictorysWebhook,exportUserData,deleteUserAccount,mediaToken,popupEvent,replyToMessage,notifyOnPublish,quoteCheckout,importSpotifyEpisodesManual,syncMediaStatsManual",
         "FUNCTIONS_ORIGIN": "https://us-central1-max-morrys.cloudfunctions.net",
     "BICTORYS_API_URL": "https://api.bictorys.com/pay/v1/charges",
     "APP_BASE_URL": "https://maxmorrys.me",

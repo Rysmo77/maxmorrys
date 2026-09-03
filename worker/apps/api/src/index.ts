@@ -32,6 +32,7 @@ import type { Env } from './env';
 import { handleExportDownload } from './exportDownload';
 import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
+import { runImportSpotify, runSyncMediaStats } from './lib/media-sync';
 import { sendRenewalNotices } from './lib/renewal';
 import { handleBictorysWebhook } from './webhook/bictorys';
 
@@ -115,17 +116,55 @@ export default {
    * se termine dans 15 jours » écrit le quatorzième jour serait faux. Perdre un rappel est
    * préférable à en envoyer un qui ment sur la date.
    */
-  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    /*
+     * TROIS CRONS, UN SEUL POINT D'ENTRÉE. Workers n'appelle qu'un `scheduled` : c'est
+     * `event.cron` qui dit lequel des trois rendez-vous a sonné. Sans ce filtre, les trois
+     * travaux tourneraient trois fois par jour chacun — et l'import Spotify réécrirait des
+     * brouillons à 03:00 comme à 08:00.
+     *
+     * Chaque branche est isolée dans son `try` : une panne de l'API YouTube ne doit pas
+     * emporter les rappels d'échéance, qui n'ont rien à voir avec elle.
+     */
+    const travaux: Record<string, () => Promise<void>> = {
+      '0 3 * * *': async () => {
+        const bilan = await runSyncMediaStats(getFirestore(env), env);
+        console.log(
+          `Statistiques média : ${bilan.videosUpdated}/${bilan.videosProcessed} vidéo(s), ` +
+            `${bilan.podcastsUpdated}/${bilan.podcastsProcessed} podcast(s)` +
+            (bilan.errors.length ? ` — ${bilan.errors.length} erreur(s) : ${bilan.errors.join(' | ')}` : ''),
+        );
+      },
+      '0 4 * * *': async () => {
+        const bilan = await runImportSpotify(getFirestore(env), env);
+        console.log(
+          `Import Spotify : ${bilan.created} créé(s), ${bilan.skipped} déjà présent(s), ` +
+            `sur ${bilan.fetched} épisode(s)` +
+            (bilan.errors.length ? ` — ${bilan.errors.length} erreur(s) : ${bilan.errors.join(' | ')}` : ''),
+        );
+      },
+      '0 8 * * *': async () => {
+        const bilan = await sendRenewalNotices(getFirestore(env), env);
+        console.log(
+          `Rappels d'échéance : ${bilan.envoyes} envoyé(s), ${bilan.echecs} échec(s), ` +
+            `sur ${bilan.examines} abonnement(s) actif(s).`,
+        );
+      },
+    };
+
+    const travail = travaux[event.cron];
+    if (!travail) {
+      // Un cron ajouté à la configuration sans branche ici ne ferait RIEN, en silence.
+      console.error(`Cron sans travail associé : ${event.cron}`);
+      return;
+    }
+
     ctx.waitUntil(
       (async () => {
         try {
-          const bilan = await sendRenewalNotices(getFirestore(env), env);
-          console.log(
-            `Rappels d'échéance : ${bilan.envoyes} envoyé(s), ${bilan.echecs} échec(s), ` +
-              `sur ${bilan.examines} abonnement(s) actif(s).`,
-          );
+          await travail();
         } catch (error: unknown) {
-          console.error("Rappels d'échéance : exécution interrompue —", error);
+          console.error(`Cron ${event.cron} : exécution interrompue —`, error);
         }
       })(),
     );

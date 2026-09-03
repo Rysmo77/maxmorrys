@@ -4,6 +4,7 @@ import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
 import { deleteUserAccount, exportUserData } from './handlers/gdpr';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
+import { importSpotifyEpisodesManual } from './handlers/importSpotifyEpisodesManual';
 import { issueCertificate } from './handlers/issueCertificate';
 import { mediaToken } from './handlers/mediaToken';
 import { notifyOnPublish } from './handlers/notifyOnPublish';
@@ -20,6 +21,7 @@ import { reindexSearch } from './handlers/reindexSearch';
 import { replyToMessage } from './handlers/replyToMessage';
 import { rysmo } from './handlers/rysmo';
 import { spotifyProxy } from './handlers/spotifyProxy';
+import { syncMediaStatsManual } from './handlers/syncMediaStatsManual';
 import { weeklyClubDigestManual } from './handlers/weeklyClubDigestManual';
 import { translateContent } from './handlers/translateContent';
 import { youtubeProxy } from './handlers/youtubeProxy';
@@ -40,9 +42,11 @@ export const HANDLERS: Record<string, CallHandler> = {
   getRysmoQuota,
   // Lectures et proxies
   spotifyProxy,
+  syncMediaStatsManual,
   youtubeProxy,
   // Écritures simples
   clearRysmoMemory,
+  importSpotifyEpisodesManual,
   issueCertificate,
   translateContent,
   parseCv,

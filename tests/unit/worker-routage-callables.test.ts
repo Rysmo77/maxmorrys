@@ -82,19 +82,18 @@ function appeleesParLeFront(): string[] {
 const SERVIS_HORS_REGISTRE = ['bictorysWebhook'];
 
 /**
- * DEUX BOUTONS D'ADMINISTRATION SONT MORTS, et ce test le dit au lieu de le taire.
+ * LA DETTE EST REMBOURSÉE — et cette liste vide est ce qui le prouve.
  *
- * `importSpotifyEpisodesManual` et `syncMediaStatsManual` n'existent que dans
- * `functions/src/` — donc nulle part, puisque plus rien n'est déployé sur GCP. Le
- * Worker n'a pas de handler pour eux. Les boutons correspondants de l'admin (import
- * d'épisodes Spotify, synchronisation des statistiques média) partent dans le relais
- * mort et échouent.
+ * `importSpotifyEpisodesManual` et `syncMediaStatsManual` ont vécu ici : ils n'existaient
+ * que dans `functions/src/`, donc nulle part, et les boutons d'import Spotify et de
+ * synchronisation des statistiques partaient dans le relais mort. Ils sont maintenant
+ * servis par le Worker (`lib/media-sync.ts`), avec leurs deux crons quotidiens.
  *
- * Ils sont listés ici pour que la porte passe au vert SANS que le défaut disparaisse
- * de la vue : c'est une dette nommée, pas un cas ignoré. Les retirer de cette liste
- * est le geste qui accompagne leur portage vers le Worker.
+ * La liste reste, vide, plutôt que d'être supprimée : elle est le point d'entrée nommé
+ * pour la prochaine callable qu'on saurait cassée sans pouvoir la porter tout de suite.
+ * Y inscrire un nom est un aveu daté, pas une exemption silencieuse.
  */
-const DETTE_NON_PORTEE = ['importSpotifyEpisodesManual', 'syncMediaStatsManual'];
+const DETTE_NON_PORTEE: string[] = [];
 
 describe("aiguillage des callables du Worker api", () => {
   it('tout handler implémenté est aussi déclaré dans MIGRATED', () => {
@@ -122,6 +121,26 @@ describe("aiguillage des callables du Worker api", () => {
     const servis = new Set([...handlers(), ...SERVIS_HORS_REGISTRE, ...DETTE_NON_PORTEE]);
     const perdues = appeleesParLeFront().filter((n) => !servis.has(n));
     expect(perdues, 'appelées par le front, servies par personne').toEqual([]);
+  });
+
+  it('tout cron déclaré a une branche qui le traite', () => {
+    /*
+     * Le même silence, un cran plus loin. Workers n'appelle qu'un `scheduled` pour tous
+     * les crons : c'est `event.cron` qui dit lequel a sonné. Une expression ajoutée à
+     * `triggers.crons` sans branche correspondante ne lève rien — elle ne fait RIEN,
+     * chaque nuit, sans que personne ne s'en aperçoive. Exactement la forme du défaut
+     * qui a coûté le paiement du Club, transposée à l'horloge.
+     */
+    const cfg = sansCommentaires(readFileSync(join(API, 'wrangler.jsonc'), 'utf8'));
+    const crons = [...(/"crons"\s*:\s*\[([^\]]*)\]/.exec(cfg)?.[1] ?? '')
+      .matchAll(/'([^']*)'|"([^"]*)"/g)]
+      .map((m) => m[1] ?? m[2])
+      .filter(Boolean);
+    expect(crons.length, 'aucun cron déclaré — la lecture de la config a échoué').toBeGreaterThan(0);
+
+    const index = readFileSync(join(API, 'src/index.ts'), 'utf8');
+    const sansBranche = crons.filter((cron) => !index.includes(`'${cron}'`));
+    expect(sansBranche, 'déclarés mais jamais traités').toEqual([]);
   });
 
   it('la dette nommée reste exacte — ni oubliée, ni périmée', () => {
