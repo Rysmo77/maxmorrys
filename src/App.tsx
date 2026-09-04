@@ -147,6 +147,7 @@ const AdminSettings = lazyWithReload(() => import('./pages/admin/AdminSettings')
 const AdminPodcasts = lazyWithReload(() => import('./pages/admin/AdminPodcasts'), ['admin']);
 const AdminVideos = lazyWithReload(() => import('./pages/admin/AdminVideos'), ['admin']);
 const AdminTransactions = lazyWithReload(() => import('./pages/admin/AdminTransactions'), ['admin']);
+const AdminRevenue = lazyWithReload(() => import('./pages/admin/AdminRevenue'), ['admin']);
 const AdminCoupons = lazyWithReload(() => import('./pages/admin/AdminCoupons'), ['admin']);
 const AdminAnnouncements = lazyWithReload(() => import('./pages/admin/AdminAnnouncements'), ['admin']);
 const AdminFAQ = lazyWithReload(() => import('./pages/admin/AdminFAQ'), ['admin']);
@@ -518,6 +519,7 @@ function appChildren() {
         { path: 'podcasts', element: <Suspense fallback={<PageLoader />}><AdminPodcasts /></Suspense> },
         { path: 'videos', element: <Suspense fallback={<PageLoader />}><AdminVideos /></Suspense> },
         { path: 'transactions', element: <Suspense fallback={<PageLoader />}><AdminTransactions /></Suspense> },
+        { path: 'revenu', element: <Suspense fallback={<PageLoader />}><AdminRevenue /></Suspense> },
         { path: 'coupons', element: <Suspense fallback={<PageLoader />}><AdminCoupons /></Suspense> },
         { path: 'annonces', element: <Suspense fallback={<PageLoader />}><AdminAnnouncements /></Suspense> },
         { path: 'faq', element: <Suspense fallback={<PageLoader />}><AdminFAQ /></Suspense> },

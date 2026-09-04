@@ -10,6 +10,7 @@
     "videos": "Videos",
     "users": "Users",
     "transactions": "Transactions",
+    "revenue": "Revenue",
     "messages": "Messages",
     "coupons": "Coupons",
     "announcements": "Announcements",
@@ -135,6 +136,44 @@
     "panelReceived": "Received on",
     "panelAdvance": "Move to “{{status}}”",
     "panelOpenFull": "Open the full record"
+  },
+  "revenue": {
+    "title": "Revenue",
+    "sub": "Console · takings",
+    "refresh": "Try again",
+    "periodLabel": "Takings period",
+    "period": {
+      "mois": "30 days",
+      "trimestre": "90 days",
+      "annee": "12 months",
+      "tout": "all"
+    },
+    "statNet": "Net taken",
+    "statRefunded": "Refunded",
+    "statBasket": "Average sale",
+    "statFailureRate": "Failure rate",
+    "footSales_one": "on {{count}} completed sale",
+    "footSales_other": "on {{count}} completed sales",
+    "footAttempts_one": "on {{count}} attempt",
+    "footAttempts_other": "on {{count}} attempts",
+    "linesTitle": "By business line",
+    "line": {
+      "formation": "Courses",
+      "club": "Digitos Club",
+      "rysmoSubscription": "Rysmo+ · subscription",
+      "rysmoPack": "Rysmo · tokens",
+      "unassigned": "Unassigned"
+    },
+    "lineMeta_one": "{{count}} completed sale",
+    "lineMeta_other": "{{count}} completed sales",
+    "lineOpen": "Open",
+    "emptyTitle": "Nothing taken in this period",
+    "emptyBody": "A dated zero is a value: nothing was taken between these two dates.",
+    "failedTitle": "The reading failed",
+    "failedBody": "Transactions could not be read. This is not a zero: it is a missing measurement.",
+    "ratioCite": "computed on the period's transactions",
+    "unassignedNote": "Some transactions predate the business-line marker. They count towards the totals but stay unassigned until they are backfilled.",
+    "scope": "This screen does not cover: cash actually received at the payment provider — Bictorys settles later, so takings dated here may be credited afterwards; VAT — amounts are what was charged, the breakdown is on the invoice; refunds, which are dated on their own day rather than on the original sale; and agency work, taken outside the platform and therefore absent from this collection. Bank reconciliation happens elsewhere."
   },
   "analytics": {
     "title": "Analytics",
