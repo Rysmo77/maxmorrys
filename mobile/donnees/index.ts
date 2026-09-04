@@ -14,14 +14,15 @@
  */
 import type { Etat } from '../ds';
 import {
-  CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, EPISODE, FORMATION, FORMATION_2,
-  MEMBRE, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, VIDEO,
+  CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION,
+  FORMATION_2, MEMBRE, MEMOIRE, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, PROSPECT,
+  QUOTA, SUPPORT_COMPTES, VIDEO,
 } from '../contenu/demo';
 import { composer, composerListe } from './etat';
 export { provenance } from './etat';
 import type {
-  VueCertificats, VueClassement, VueClub, VueClubFil, VueCours, VueDiscussion, VueEspace,
-  VueLecon, VueMedia, VueMembre, VueMoi, VueNotes, VueOpportunite,
+  VueCertificats, VueClassement, VueClub, VueClubFil, VueConsole, VueCours, VueDiscussion,
+  VueEspace, VueLecon, VueMedia, VueMembre, VueMoi, VueNotes, VueOpportunite, VueRepetiteur,
 } from './types';
 import { useVue } from './vue';
 
@@ -32,8 +33,9 @@ export { appeler, ErreurAppel } from './appel';
 export { viderLesVues } from './vue';
 export type {
   VueCertificat, VueCertificats, VueClub, VueClubFil, VueClubMessage, VueClubMission,
-  VueClassement, VueCours, VueDiscussion, VueEpisode, VueEspace, VueLecon, VueLeconLigne,
-  VueMedia, VueMembre, VueMoi, VueNote, VueNotes, VueOpportunite, VueVideo,
+  VueClassement, VueConsole, VueCours, VueDiscussion, VueEpisode, VueEspace, VueLecon,
+  VueLeconLigne, VueMedia, VueMembre, VueMoi, VueNote, VueNotes, VueOpportunite,
+  VueRepetiteur, VueVideo,
 } from './types';
 
 /** Qui regarde : prénom, initiale, date d'ouverture du compte. */
@@ -257,5 +259,32 @@ export function useClassement(): Etat<VueClassement> {
     lignes: CLASSEMENT.lignes.map((l) => ({
       rang: l.rang, nom: l.nom, initiales: l.initiales, points: l.points, moi: l.moi,
     })),
+  });
+}
+
+/** Le quota du répétiteur, sa mémoire, et l'échange en cours. */
+export function useRepetiteur(): Etat<VueRepetiteur> {
+  const brut = useVue<VueRepetiteur>('appRepetiteur');
+  return composer(brut, QUOTA === null ? null : {
+    quota: { utilise: QUOTA.utilise, total: QUOTA.total },
+    memoire: MEMOIRE.map((m, i) => ({ id: String(i), fait: m.fait, depuis: m.depuis })),
+    echange: ECHANGE.map((e, i) => ({ id: String(i), de: e.de, texte: e.texte })),
+  });
+}
+
+/**
+ * La console support — la seule vue où un RÔLE décide, pas un identifiant.
+ *
+ * Le serveur répond `permission-denied` à qui n'a pas le rôle, et non une vue vide :
+ * le Club est un accès qu'on peut ne pas avoir souscrit, la console est une zone où
+ * l'on n'a rien à faire. La différence décide de ce que l'écran affiche.
+ */
+export function useConsole(): Etat<VueConsole> {
+  const brut = useVue<VueConsole>('appConsole');
+  return composer(brut, SUPPORT_COMPTES === null ? null : {
+    comptes: { ...SUPPORT_COMPTES },
+    prospect: PROSPECT === null ? null : {
+      titre: PROSPECT.titre, meta: PROSPECT.meta, statut: PROSPECT.statut,
+    },
   });
 }

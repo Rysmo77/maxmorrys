@@ -4,7 +4,7 @@ import {
   Body, Button, Eyebrow, Icon, LessonRow, Num, Pipeline, SansDonnees, StatTile, Surface, useToken, veil,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
-import { PROSPECT, RELEVE, SOURCE, SUPPORT_COMPTES } from '../../contenu/demo';
+import { provenance, useConsole } from '../../donnees';
 import { SUPPORT_PORTEE } from '../../contenu/portee';
 import { useState } from 'react';
 
@@ -26,8 +26,10 @@ export default function Console() {
   /* Sans relevé, on ne compte pas : le filtre affiche ses étapes sans nombre plutôt qu'un
      zéro qu'on n'a pas mesuré. « Rien à traiter » et « je ne sais pas » ne se disent pas
      pareil, et c'est toute la différence sur une console de support. */
-  const compte = (titre: string) => SUPPORT_COMPTES?.[titre] ?? null;
-  const comptes = SUPPORT_COMPTES;
+  const console = useConsole();
+  const comptes = console.valeur?.comptes ?? null;
+  const prospect = console.valeur?.prospect ?? null;
+  const compte = (titre: string) => comptes?.[titre] ?? null;
   const aTraiter = comptes === null
     ? null
     : SUPPORT_PORTEE.reduce((n, e) => n + (comptes[e.titre] ?? 0), 0);
@@ -42,16 +44,14 @@ export default function Console() {
         <StatTile
           label="Prospects"
           value={compte('Prospects')}
-          source={SOURCE}
-          asOf={SUPPORT_COMPTES === null ? null : RELEVE}
+          {...provenance(console)}
           foot="non qualifié"
           style={{ flex: 1 }}
         />
         <StatTile
           label="Messages"
           value={compte('Messages')}
-          source={SOURCE}
-          asOf={SUPPORT_COMPTES === null ? null : RELEVE}
+          {...provenance(console)}
           foot="depuis l'origine"
           style={{ flex: 1 }}
         />
@@ -67,7 +67,7 @@ export default function Console() {
       />
 
       {/* UNE SEULE ACTION PAR LIGNE. Deux boutons sur 44 px, c'est une erreur par jour. */}
-      {PROSPECT === null ? (
+      {prospect === null ? (
         <SansDonnees
           quoi="ce qu'il y a à traiter"
           origine="du serveur"
@@ -79,8 +79,8 @@ export default function Console() {
           <LessonRow
             icon={<Icon name="case" size={14} color={t('mmOrange')} />}
             iconBackground={veil(t('mmOrange'), 0.2)}
-            title={PROSPECT.titre}
-            meta={PROSPECT.meta}
+            title={prospect.titre}
+            meta={prospect.meta}
             trailing={<Button tone="quiet" size="sm" label="Qualifier" onPress={() => router.push('/console/prospects')} />}
             last
           />
@@ -98,8 +98,7 @@ export default function Console() {
             trailing={(
               <Num
                 value={compte(e.titre)}
-                source={SOURCE}
-                asOf={RELEVE}
+                {...provenance(console)}
                 fallback="—"
                 style={{ fontSize: 12.5, color: t('textMuted') }}
               />

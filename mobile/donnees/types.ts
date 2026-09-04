@@ -183,3 +183,14 @@ export interface VueClassement {
     moi: boolean;
   }>;
 }
+
+export interface VueRepetiteur {
+  quota: { utilise: number; total: number };
+  memoire: ReadonlyArray<{ id: string; fait: string; depuis: string | null }>;
+  echange: ReadonlyArray<{ id: string; de: string; texte: string }>;
+}
+
+export interface VueConsole {
+  comptes: Record<string, number>;
+  prospect: { titre: string; meta: string | null; statut: string } | null;
+}

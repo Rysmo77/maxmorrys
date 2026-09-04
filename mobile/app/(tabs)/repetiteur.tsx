@@ -8,7 +8,8 @@ import {
   Body, Button, ChatBubble, Eyebrow, Gradient, Icon, IconButton, Mesh, NavBar, QuotaMeter,
   SansDonnees, Surface, isIOS, px, useActionGradient, useToken, useTutorNom,
 } from '../../ds';
-import { ECHANGE, QUOTA, RENVOI_COURS } from '../../contenu/demo';
+import { RENVOI_COURS } from '../../contenu/demo';
+import { useRepetiteur } from '../../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -62,7 +63,10 @@ export default function Repetiteur() {
   /* Sans relevé, on ne connaît pas le plafond — et on ne bloque donc pas la saisie sur un
      chiffre qu'on ignore. Le champ reste ouvert ; c'est le serveur qui refusera, avec sa
      raison. Bloquer sur une supposition ferait passer une limite inventée pour une règle. */
-  const reste = QUOTA === null ? null : QUOTA.total - QUOTA.utilise;
+  const rep = useRepetiteur();
+  const quota = rep.valeur?.quota ?? null;
+  const echange = rep.valeur?.echange ?? [];
+  const reste = quota === null ? null : quota.total - quota.utilise;
   const bloque = reste !== null && reste <= 0;
 
   return (
@@ -88,11 +92,11 @@ export default function Repetiteur() {
 
         {/* ── ÉPINGLÉ. Hors du défilement, hors de portée du clavier. ──────────────────── */}
         <View style={{ paddingHorizontal: 18, paddingBottom: 10 }}>
-          {QUOTA ? (
+          {quota ? (
             <QuotaMeter
-              used={QUOTA.utilise}
-              total={QUOTA.total}
-              label={`${QUOTA.utilise} / ${QUOTA.total} questions aujourd'hui`}
+              used={quota.utilise}
+              total={quota.total}
+              label={`${quota.utilise} / ${quota.total} questions aujourd'hui`}
             />
           ) : (
             <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 11.5 }}>
@@ -107,13 +111,13 @@ export default function Repetiteur() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
-          {ECHANGE.length === 0 ? (
+          {echange.length === 0 ? (
             <SansDonnees
               quoi="cet échange"
               origine="de ton compte"
               degat="Une réponse inventée ici serait attribuée à ton répétiteur, et elle porterait sur un cours que tu n'as peut-être pas. C'est le seul écran où une phrase fabriquée se lit comme un conseil."
             />
-          ) : ECHANGE.map((m, i) => (
+          ) : echange.map((m, i) => (
             <ChatBubble key={i} from={m.de === 'me' ? 'me' : 'ai'}>{m.texte}</ChatBubble>
           ))}
 

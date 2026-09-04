@@ -2,6 +2,8 @@ import type { CallContext } from './context';
 import { acknowledgeAppointment } from './handlers/acknowledgeAppointment';
 import { resendTransactionMail } from './handlers/resendTransactionMail';
 import { appClubListe } from './handlers/app/clubListe';
+import { appConsole } from './handlers/app/console';
+import { appRepetiteur } from './handlers/app/repetiteur';
 import { appClubClassement } from './handlers/app/clubClassement';
 import { appClubFil } from './handlers/app/clubFil';
 import { appClub } from './handlers/app/club';
@@ -74,6 +76,8 @@ export const HANDLERS: Record<string, CallHandler> = {
   appCertificats,
   appClub,
   appClubClassement,
+  appConsole,
+  appRepetiteur,
   appClubFil,
   appClubListe,
   appCours,

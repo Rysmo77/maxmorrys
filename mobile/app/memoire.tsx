@@ -4,7 +4,7 @@ import {
   Body, Button, Display, Eyebrow, Field, Icon, IconButton, LessonRow, Screen, Surface,
   TUTOR_DEFAUT, isIOS, setTutorNom, useToken, useTutorNom, veil,
 } from '../ds';
-import { MEMOIRE } from '../contenu/demo';
+import { useRepetiteur } from '../donnees';
 import { router } from 'expo-router';
 
 /**
@@ -30,6 +30,8 @@ import { router } from 'expo-router';
 const PROPOSITIONS = ['Répétiteur', 'Prof', 'Coach', 'Tonton'] as const;
 
 export default function Memoire() {
+  const rep = useRepetiteur();
+  const memoire = rep.valeur?.memoire ?? [];
   const t = useToken();
   const tuteur = useTutorNom();
   const [brouillon, setBrouillon] = useState(tuteur);
@@ -107,14 +109,14 @@ export default function Memoire() {
 
       <Eyebrow style={{ marginTop: 24 }}>Ce qu'il a retenu</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        {MEMOIRE.map((m, i) => (
+        {memoire.map((m, i) => (
           <LessonRow
             key={m.fait}
             icon={<Icon name="chat" size={14} color={t('mmVioletT')} />}
             iconBackground={veil(t('mmViolet'), 0.12)}
             title={m.fait}
             meta={m.depuis}
-            last={i === MEMOIRE.length - 1}
+            last={i === memoire.length - 1}
             trailing={
               <Pressable
                 accessibilityRole="button"
