@@ -32,8 +32,7 @@ import type { Firestore } from '@mm/firestore-rest';
 import type { Env } from '../env';
 import { sendEmail } from './email';
 import { allocateInvoiceNumber, buildInvoice, type Langue } from './invoice';
-import { buildPurchaseNotice, urlDeDestination, type AchatKind } from './purchase';
-import type { FamilleFiscale } from './tax';
+import { buildPurchaseNotice, classerAchat, urlDeDestination } from './purchase';
 import { asText, toNumber } from './values';
 
 /** L'issue d'un des deux courriers. */
@@ -58,22 +57,12 @@ export interface ContexteCourriers {
   soldeTotal?: number;
 }
 
-/** Ce qu'on vend, déduit de la transaction. Une seule lecture, deux usages. */
-export function classerAchat(txn: Record<string, unknown>): {
-  kind: AchatKind;
-  famille: FamilleFiscale;
-} {
-  const kind: AchatKind =
-    txn.formationId === 'club_digitos' ? 'club'
-    : txn.rysmoKind === 'pack' ? 'rysmoPack'
-    : txn.rysmoKind === 'subscription' ? 'rysmoSubscription'
-    : 'formation';
-  const famille: FamilleFiscale =
-    kind === 'club' ? 'club'
-    : kind === 'rysmoPack' || kind === 'rysmoSubscription' ? 'rysmo'
-    : 'formation';
-  return { kind, famille };
-}
+/*
+ * `classerAchat` vivait ici. Elle est passée dans `purchase.ts`, à côté d'`AchatKind`
+ * qu'elle produit — et elle lit désormais le champ `ligne` avant de déduire. Elle est
+ * ré-exportée ici parce que le webhook et la console la connaissent sous ce chemin.
+ */
+export { classerAchat };
 
 /**
  * Produit et envoie les deux courriers d'une transaction encaissée.

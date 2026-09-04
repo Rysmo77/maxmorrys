@@ -263,6 +263,19 @@ export default function Checkout() {
           paymentMethod: 'free',
           couponCode: couponCode.trim() || undefined,
           createdAt: now,
+          /*
+           * ⚠️ LE CINQUIÈME ÉCRIVAIN DE TRANSACTION, ET LE SEUL QUI NE SOIT PAS DANS LE WORKER.
+           *
+           * L'inscription gratuite s'écrit depuis le navigateur — les règles Firestore
+           * l'autorisent, bornée à `amount == 0` sur une formation réellement gratuite. Sans
+           * cette ligne, toute inscription gratuite tomberait en « non réparti » dans le
+           * relevé de revenu, alors que c'est exactement le début du parcours qu'on veut
+           * mesurer : combien de gens entrent par le module gratuit.
+           *
+           * La valeur est FIGÉE à `'formation'` et les règles l'exigent : ce chemin ne sert
+           * qu'aux formations, et il ne doit pas pouvoir se déclarer Club.
+           */
+          ligne: 'formation',
         });
 
         // Enrollment document (deterministic ID: uid_formationId)

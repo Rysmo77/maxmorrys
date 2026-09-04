@@ -533,12 +533,26 @@ service cloud.firestore {
       // `isFreeFormation()` est exactement le predicat que `enrollments` applique deja :
       // les deux ecritures d'un parcours gratuit racontent maintenant la meme histoire.
       // ─────────────────────────────────────────────────────────────────────────────
+      //
+      // ── LA LIGNE DE BUSINESS EST TOLEREE, MAIS PAS LIBRE ─────────────────────────
+      //
+      // Le champ `ligne` alimente le releve de revenu, par ligne de produit. Ce chemin-ci
+      // est le SEUL ou un navigateur ecrit une transaction, et il ne sert qu'aux formations
+      // gratuites : sans contrainte, un client hostile pourrait s'y declarer `club` et
+      // fausser les comptages. Pas le chiffre d'affaires — `amount == 0` le tient — mais le
+      // nombre de ventes par ligne, ce qui suffit a rendre un tableau de bord inutilisable.
+      //
+      // ⚠️ LA REGLE EST TOLERANTE A L'ABSENCE, ET ELLE DOIT PARTIR AVANT LE FRONT. Exiger le
+      // champ ferait echouer 100 % des inscriptions gratuites tant que l'ancien bundle est
+      // encore servi — c'est exactement le piege documente sur le plafond de cles de
+      // `newsletter`. On resserre plus tard, quand plus aucun client ancien ne tourne.
       allow create: if isSignedIn() &&
         request.resource.data.userId == request.auth.uid &&
         request.resource.data.status == 'completed' &&
         request.resource.data.paymentMethod == 'free' &&
         request.resource.data.amount == 0 &&
         request.resource.data.formationId is string &&
+        (!('ligne' in request.resource.data) || request.resource.data.ligne == 'formation') &&
         isFreeFormation(request.resource.data.formationId);
 
       // Admins can record a transaction manually (manual enrollment, correction)

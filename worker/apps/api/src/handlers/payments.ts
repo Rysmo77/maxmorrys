@@ -13,6 +13,7 @@ import {
 } from '../lib/bictorys';
 import { asText, toDate } from '../lib/values';
 import { resolveCheckoutTotal } from '../lib/checkout';
+import type { AchatKind } from '../lib/purchase';
 import { SUBSCRIPTION_QUOTAS } from '../lib/rysmo-quota';
 import { deciderRenouvellement, echeanceApres } from '../lib/rysmo-subscription';
 
@@ -51,8 +52,22 @@ async function identify(context: CallContext, uid: string): Promise<Identity> {
   };
 }
 
-/** Champs communs à toutes les transactions. */
-function transactionBase(identity: Identity, txnId: string, charge: BictorysChargeResult) {
+/**
+ * Champs communs à toutes les transactions.
+ *
+ * ⚠️ `ligne` EST UN PARAMÈTRE OBLIGATOIRE, ET C'EST TOUT L'INTÉRÊT. Il aurait été plus court
+ * de laisser chaque branche épandre son propre champ — et il aurait suffi d'en oublier une
+ * pour que ses ventes disparaissent de l'écran de revenu, sans erreur, sans test rouge, sans
+ * que rien ne le dise. En le faisant traverser cette fonction, le compilateur devient la
+ * garde : les quatre appels doivent le nommer, et un cinquième produit ne peut pas être
+ * ajouté sans y penser.
+ */
+function transactionBase(
+  identity: Identity,
+  txnId: string,
+  charge: BictorysChargeResult,
+  ligne: AchatKind,
+) {
   return {
     id: txnId,
     userId: identity.uid,
@@ -63,6 +78,15 @@ function transactionBase(identity: Identity, txnId: string, charge: BictorysChar
     paymentMethod: 'bictorys',
     chargeId: charge.chargeId,
     opToken: charge.opToken,
+    /*
+     * La ligne de business, écrite À LA CRÉATION et non au succès du paiement.
+     *
+     * Le webhook aurait été l'autre endroit possible. Écrire ici met le champ sur les
+     * `pending` et les `failed` aussi — ce qu'un taux de conversion PAR LIGNE exige — et
+     * n'ajoute aucune écriture sur le chemin de l'argent, où `bictorys.ts` prend soin de ne
+     * passer en `completed` qu'en dernier, une fois l'effet acquis.
+     */
+    ligne,
   };
 }
 
@@ -132,7 +156,7 @@ export async function createBictorysCharge(data: unknown, context: CallContext):
   // `usedCount` du coupon n'est incrémenté qu'au succès du paiement, dans le
   // webhook : un panier abandonné ne doit pas consommer un usage.
   await context.db.set(txn.path, {
-    ...transactionBase(identity, txn.id, result),
+    ...transactionBase(identity, txn.id, result, 'formation'),
     formationId,
     formationSlug,
     formationTitle,
@@ -204,7 +228,7 @@ export async function createClubCharge(data: unknown, context: CallContext): Pro
   });
 
   await context.db.set(txn.path, {
-    ...transactionBase(identity, txn.id, result),
+    ...transactionBase(identity, txn.id, result, 'club'),
     formationId: 'club_digitos',
     formationSlug: 'club-des-digitos',
     formationTitle: 'Club des Digitos — Abonnement annuel',
@@ -246,7 +270,7 @@ export async function createRysmoPackCharge(data: unknown, context: CallContext)
   });
 
   await context.db.set(txn.path, {
-    ...transactionBase(identity, txn.id, result),
+    ...transactionBase(identity, txn.id, result, 'rysmoPack'),
     formationId: `rysmo_pack_${pack}`,
     formationSlug: `rysmo-pack-${pack}`,
     formationTitle: definition.label,
@@ -354,7 +378,7 @@ export async function createRysmoSubscriptionCharge(
   });
 
   await context.db.set(txn.path, {
-    ...transactionBase(identity, txn.id, result),
+    ...transactionBase(identity, txn.id, result, 'rysmoSubscription'),
     formationId: `rysmo_sub_${plan}`,
     formationSlug: `rysmo-sub-${plan}`,
     formationTitle: definition.label,

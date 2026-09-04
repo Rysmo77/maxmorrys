@@ -639,6 +639,25 @@ export interface Transaction {
   /** Reste-t-il un courrier à envoyer ? Absent sur les transactions antérieures
    *  au marqueur — l'absence ne vaut donc pas « tout est parti ». */
   mailPending?: boolean;
+
+  /**
+   * LA LIGNE DE BUSINESS — ce que cette transaction a vendu.
+   *
+   * Écrite à la création par le Worker (`lib/purchase.ts`), sur les quatre branches de
+   * paiement, et par `Checkout.tsx` pour l'inscription gratuite.
+   *
+   * ⚠️ ABSENTE SUR LES TRANSACTIONS ANTÉRIEURES AU MARQUEUR, ET SON ABSENCE NE VAUT PAS
+   * `'formation'`. C'est le même raisonnement que `mailPending` juste au-dessus : Firestore
+   * ne sait pas requêter un champ absent, donc la ligne devait devenir explicite pour être
+   * filtrable. Le corollaire est qu'une transaction sans le champ n'est pas « une formation
+   * par défaut » — elle est NON RÉPARTIE, et l'écran de revenu la compte à part. Une absence
+   * qui se voit se rattrape ; une absence rangée d'office ne se rattrape jamais.
+   *
+   * Ne pas la redériver de `formationId` ou de `rysmoKind` côté navigateur : le prédicat vit
+   * dans le Worker, il y est déjà lu à deux endroits, et une troisième lecture divergerait au
+   * premier produit nouveau.
+   */
+  ligne?: 'formation' | 'club' | 'rysmoPack' | 'rysmoSubscription';
 }
 
 export interface SiteStats {
