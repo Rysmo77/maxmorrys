@@ -16,4 +16,5 @@ export interface Env {
 
   /** Clé de l'API Gemini (secret). Absente = pas de traduction, repli sur le FR. */
   GOOGLE_AI_API_KEY?: string;
+
 }

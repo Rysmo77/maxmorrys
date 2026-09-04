@@ -136,3 +136,50 @@ export interface VueMedia {
   episode: VueEpisode | null;
   video: VueVideo | null;
 }
+
+export interface VueDiscussion {
+  id: string;
+  categorie: string;
+  titre: string;
+  auteur: string;
+  initiales: string;
+  quand: string | null;
+  reponses: number;
+  resolu: boolean;
+}
+
+export interface VueOpportunite {
+  id: string;
+  type: string;
+  titre: string;
+  lieu: string | null;
+  quand: string | null;
+  budget: number | null;
+  par: string | null;
+}
+
+export interface VueMembre {
+  nom: string;
+  initiales: string;
+  metier: string | null;
+  ville: string | null;
+  depuis: string | null;
+  presentation: string | null;
+  formations: string[];
+  contributions: number;
+}
+
+export interface VueClassement {
+  vague: string;
+  rang: number | null;
+  surCombien: number;
+  points: number;
+  semaine: number;
+  lignes: ReadonlyArray<{
+    rang: number;
+    nom: string;
+    initiales: string;
+    points: number;
+    moi: boolean;
+  }>;
+}

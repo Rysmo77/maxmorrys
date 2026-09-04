@@ -14,14 +14,14 @@
  */
 import type { Etat } from '../ds';
 import {
-  CLUB, CLUB_FIL, CLUB_MISSION, EPISODE, FORMATION, FORMATION_2, MOI, NOTES, NOTES_TOTAL,
-  PROGRAMME, VIDEO,
+  CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, EPISODE, FORMATION, FORMATION_2,
+  MEMBRE, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, VIDEO,
 } from '../contenu/demo';
 import { composer, composerListe } from './etat';
 export { provenance } from './etat';
 import type {
-  VueCertificats, VueClub, VueClubFil, VueCours, VueEspace, VueLecon, VueMedia, VueMoi,
-  VueNotes,
+  VueCertificats, VueClassement, VueClub, VueClubFil, VueCours, VueDiscussion, VueEspace,
+  VueLecon, VueMedia, VueMembre, VueMoi, VueNotes, VueOpportunite,
 } from './types';
 import { useVue } from './vue';
 
@@ -32,8 +32,8 @@ export { appeler, ErreurAppel } from './appel';
 export { viderLesVues } from './vue';
 export type {
   VueCertificat, VueCertificats, VueClub, VueClubFil, VueClubMessage, VueClubMission,
-  VueCours, VueEpisode, VueEspace, VueLecon, VueLeconLigne, VueMedia, VueMoi, VueNote,
-  VueNotes, VueVideo,
+  VueClassement, VueCours, VueDiscussion, VueEpisode, VueEspace, VueLecon, VueLeconLigne,
+  VueMedia, VueMembre, VueMoi, VueNote, VueNotes, VueOpportunite, VueVideo,
 } from './types';
 
 /** Qui regarde : prénom, initiale, date d'ouverture du compte. */
@@ -188,4 +188,74 @@ export function useMedia(): Etat<VueMedia> {
     },
   };
   return composer(brut, replique);
+}
+
+/** Les sujets de discussion du Club. */
+export function useDiscussions(): Etat<readonly VueDiscussion[]> {
+  const brut = useVue<readonly VueDiscussion[]>('appClubListe', { onglet: 'discussions' });
+  return composerListe(brut, DISCUSSIONS.map((d, i) => ({
+    id: String(i),
+    categorie: d.categorie,
+    titre: d.titre,
+    auteur: d.auteur,
+    initiales: d.initiales,
+    quand: d.quand,
+    reponses: d.reponses,
+    resolu: d.resolu,
+  })));
+}
+
+/** Les missions et appels d'offres qui circulent. */
+export function useOpportunites(): Etat<readonly VueOpportunite[]> {
+  const brut = useVue<readonly VueOpportunite[]>('appClubListe', { onglet: 'opportunites' });
+  return composerListe(brut, OPPORTUNITES.map((o, i) => ({
+    id: String(i),
+    type: o.type,
+    titre: o.titre,
+    lieu: o.lieu,
+    quand: o.quand,
+    budget: o.budget,
+    par: o.par,
+  })));
+}
+
+/**
+ * La fiche d'un membre.
+ *
+ * ⚠️ Ni téléphone ni adresse n'arrivent jamais ici : le serveur ne les envoie pas, même
+ * s'il les connaît. Ce qui ne quitte pas le serveur ne fuite pas.
+ */
+export function useMembre(id?: string): Etat<VueMembre> {
+  const brut = useVue<VueMembre>('appClubListe', id ? { onglet: 'membre', id } : { onglet: 'membre' });
+  return composer(brut, MEMBRE === null ? null : {
+    nom: MEMBRE.nom,
+    initiales: MEMBRE.initiales,
+    metier: MEMBRE.metier,
+    ville: MEMBRE.ville,
+    depuis: MEMBRE.depuis,
+    presentation: MEMBRE.presentation,
+    formations: [...MEMBRE.formations],
+    contributions: MEMBRE.contributions,
+  });
+}
+
+/**
+ * Le classement de ta vague — jamais absolu.
+ *
+ * Un classement absolu mesurerait l'ancienneté : quelqu'un arrivé en novembre ne
+ * rattraperait jamais quelqu'un arrivé en février. La règle est appliquée côté serveur ;
+ * l'écran l'énonce.
+ */
+export function useClassement(): Etat<VueClassement> {
+  const brut = useVue<VueClassement>('appClubClassement');
+  return composer(brut, CLASSEMENT === null ? null : {
+    vague: CLASSEMENT.vague,
+    rang: CLASSEMENT.rang,
+    surCombien: CLASSEMENT.surCombien,
+    points: CLASSEMENT.points,
+    semaine: CLASSEMENT.semaine,
+    lignes: CLASSEMENT.lignes.map((l) => ({
+      rang: l.rang, nom: l.nom, initiales: l.initiales, points: l.points, moi: l.moi,
+    })),
+  });
 }

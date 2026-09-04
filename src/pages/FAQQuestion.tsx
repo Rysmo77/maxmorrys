@@ -7,6 +7,7 @@ import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
+import ShareButtons from '../components/shared/ShareButtons';
 import TranslatedText from '../components/shared/TranslatedText';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
@@ -25,7 +26,8 @@ import { SITE_URL } from '../components/seo/seo-config';
  * accordéon — utile pour parcourir, inutile pour tout le reste :
  *
  *   • on ne peut envoyer à quelqu'un QUE la réponse qui le concerne ;
- *   • un moteur voit une page unique de 46 questions, jamais une page qui répond à la sienne ;
+ *   • un moteur voit une page unique portant TOUTES les questions, jamais une page qui répond
+ *     à la sienne ;
  *   • la réponse la plus gênante du produit — « Combien de membres y a-t-il dans le Club ? » —
  *     n'a aucune adresse à laquelle renvoyer.
  *
@@ -48,8 +50,8 @@ export default function FAQQuestion() {
   const { slug = '' } = useParams();
 
   /*
-   * La collection entière, et la même clé de cache que l'index : 46 documents, un seul aller
-   * chez Firestore pour les deux écrans. C'est aussi ce qui donne les questions voisines sans
+   * La collection entière, et la même clé de cache que l'index : un seul aller chez Firestore
+   * pour les deux écrans. C'est aussi ce qui donne les questions voisines sans
    * requête supplémentaire — une requête par catégorie coûterait plus que tout charger.
    */
   const { data: faqs, isLoading } = useQuery({
@@ -162,6 +164,21 @@ export default function FAQQuestion() {
           <GlassPanel level="hero" padding={22} className="rv mt-4" style={{ ['--i' as string]: 5 }}>
             <p className="m-0 whitespace-pre-line text-[15px] leading-[1.6] text-ink">{answer}</p>
           </GlassPanel>
+
+          {/*
+            ENVOYER LA RÉPONSE À QUELQU'UN — c'est la raison d'être de cette page.
+
+            Le kit la formule ainsi : « on ne peut envoyer à quelqu'un QUE la réponse qui le
+            concerne ». L'adresse était affichée et sélectionnable, mais rien ne permettait de
+            l'envoyer sans la copier à la main.
+          */}
+          <ShareButtons
+            className="rv mt-4"
+            url={`/faq/${slug}`}
+            title={question}
+            contentType="faq"
+            contentId={item.id}
+          />
 
           <div className="rv mt-4" style={{ ['--i' as string]: 6 }}>
             <Button href={path('/contact')} tone="quiet" size="sm" fullWidth={false}>

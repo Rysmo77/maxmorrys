@@ -9,6 +9,7 @@
  * progression d'upload, attendus par les barres de progression existantes.
  */
 import { auth } from '../config/firebase';
+import { compressImage, withExtension } from './images/compress';
 
 const MEDIA_API_URL =
   import.meta.env.VITE_MEDIA_API_URL?.replace(/\/$/, '') || 'https://media-api.maxmorrys.me';
@@ -34,11 +35,29 @@ export async function uploadMedia(
   if (!user) throw new Error('Authentification requise pour téléverser un fichier.');
   const token = await user.getIdToken();
 
+  /*
+    LES IMAGES PASSENT EN WEBP AVANT DE PARTIR, ET L'EXTENSION DE LA CLÉ SUIT.
+
+    Les couvertures d'article servies aujourd'hui sont des PNG de 643 à 847 Ko (mesuré le
+    03/09/2026) ; les mêmes en WebP tiennent autour de 100 Ko. Une couverture est téléchargée
+    par la lectrice, par chaque robot qui construit l'aperçu du lien, puis par chaque
+    plateforme où il est partagé — l'écart se paie trois fois, sur des forfaits comptés.
+
+    `compressImage` rend TOUJOURS quelque chose d'envoyable : un GIF, un SVG, une image déjà
+    légère ou un navigateur sans encodeur WebP ressortent inchangés. Le téléversement ne peut
+    donc pas échouer à cause de la compression.
+
+    Renommer la clé n'est pas cosmétique : sans cela, R2 servirait des octets WebP sous une
+    adresse en `.png`.
+  */
+  const { blob: payload, extension, converted } = await compressImage(file);
+  const finalKey = converted ? withExtension(key, extension) : key;
+
   return new Promise<string>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${MEDIA_API_URL}/upload?key=${encodeURIComponent(key)}`);
+    xhr.open('POST', `${MEDIA_API_URL}/upload?key=${encodeURIComponent(finalKey)}`);
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    xhr.setRequestHeader('Content-Type', payload.type || 'application/octet-stream');
 
     if (onProgress) {
       xhr.upload.onprogress = (e) => {
@@ -61,6 +80,6 @@ export async function uploadMedia(
     };
     xhr.onerror = () => reject(new Error("Échec réseau lors de l'upload."));
 
-    xhr.send(file);
+    xhr.send(payload);
   });
 }

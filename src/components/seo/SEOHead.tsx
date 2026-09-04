@@ -91,10 +91,20 @@ export default function SEOHead({
       <meta property="og:type" content={ogType} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:image" content={resolvedOgImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
+      {/*
+        NI DIMENSIONS NI TYPE CODÉS EN DUR.
+
+        Ces trois lignes annonçaient `1200×630` et `image/jpeg` pour toute image, quelle
+        qu'elle soit. Aucune des images du site ne correspond : l'image par défaut fait
+        1500×1000, les couvertures d'article sont des PNG de 1408×768, les pochettes de
+        podcast des carrés de 640×640 (mesuré le 03/09/2026). Un consommateur qui lit ces
+        nombres recadre au format annoncé.
+
+        Ces balises-ci ne sont vues d'aucun crawler social — ils n'exécutent pas React, et
+        c'est le Worker qui produit la sortie qu'ils lisent. Elles sont corrigées quand même :
+        c'est ce fichier qu'on recopie en croyant tenir la référence.
+      */}
       <meta property="og:image:alt" content={resolvedOgImageAlt} />
-      <meta property="og:image:type" content="image/jpeg" />
       <meta property="og:locale" content={ogLocale(language)} />
       <meta property="og:site_name" content={SITE_NAME} />
 

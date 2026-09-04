@@ -68,6 +68,12 @@ export function normalizePath(pathname: string): string {
 export function resolveRoute(pathname: string): Route {
   const path = normalizePath(pathname);
 
+  /*
+   * Les cartes d'aperçu (`/og/**.png`) ne sont PAS traitées ici : ce sont des fichiers
+   * statiques, générés par `npm run og:cards` et servis par l'hébergement. Elles tombent donc
+   * dans `origin`, comme tout autre asset — c'est voulu, et c'est ce qui leur donne un coût
+   * d'exécution nul.
+   */
   if (path === '/sitemap.xml') return 'sitemap';
   if (path === '/rss.xml') return 'rss';
   if (path === '/podcast.xml') return 'podcast';

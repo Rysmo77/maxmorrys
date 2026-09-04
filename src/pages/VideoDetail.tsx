@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Breadcrumb, Button, GlassPanel, MediaCard, Num, Skeleton, SubNav, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import ShareButtons from '../components/shared/ShareButtons';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { contentPath } from '../lib/contentPath';
@@ -191,6 +192,15 @@ export default function VideoDetail() {
             <p className="mm-num rv mt-3 text-meta text-ink-2" style={{ ['--i' as string]: 3 }}>
               {formatDate(video.publishedAt)} · {video.duration}
             </p>
+
+            {/* Une vidéo se transmet ; il n'y avait aucun bouton pour le faire. */}
+            <ShareButtons
+              className="rv mt-3"
+              url={`/videos/${video.slug}`}
+              title={video.title}
+              contentType="video"
+              contentId={video.id}
+            />
 
             {/*
               LE BANDEAU DE TRADUCTION, EN TÊTE DE CORPS.
