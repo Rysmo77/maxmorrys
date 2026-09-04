@@ -157,7 +157,10 @@
     "selected": "Ton choix",
     "strikeLabel": "Ancien prix",
     "promoNote": "Une fois · promotion de lancement",
-    "onceNote": "Une fois"
+    "onceNote": "Une fois",
+    "htSuffix": "hors taxes",
+    "ttcPrefix": "Soit, TVA de {{rate}} % comprise :",
+    "taxCite": "grille tarifaire et taux de TVA en vigueur"
   },
   "plans": {
     "title": "L'accompagnement mensuel",
@@ -193,7 +196,8 @@
       ],
       "note": "Budget publicitaire non compris. On construit la formule ensemble avant de signer."
     },
-    "selected": "Ton choix"
+    "selected": "Ton choix",
+    "taxNote": "Montants hors taxes. La TVA s'ajoute, et le total toutes taxes comprises figure sur ton devis avant que tu ne valides."
   },
   "options": {
     "title": "Options et suppléments",
@@ -226,7 +230,8 @@
     "seo": {
       "name": "Référencement local",
       "text": "Engagement recommandé de six mois."
-    }
+    },
+    "taxNote": "Fourchettes hors taxes. La TVA s'ajoute à la facturation."
   },
   "process": {
     "title": "Comment ça se passe",
@@ -416,7 +421,7 @@
     "eyebrow": "La question que tout le monde pose",
     "question": "« Une agence me vend un site 400 000 F une fois. Toi c'est combien la première année ? »",
     "answerBefore": "Réponse avant que tu remplisses quoi que ce soit : ",
-    "answerAfter": " pour le pack d'entrée, une fois, tout compris. L'accompagnement mensuel est une décision séparée, que tu prends après la mise en ligne — pas maintenant, et pas comme condition.",
+    "answerAfter": " hors taxes pour le pack d'entrée, une fois, sans supplément caché. L'accompagnement mensuel est une décision séparée, que tu prends après la mise en ligne — pas maintenant, et pas comme condition.",
     "footnote": "Si tu ne prends que le pack, ça fonctionne quand même. C'est écrit ici pour que tu n'aies pas à le demander."
   },
   "plansAside": {

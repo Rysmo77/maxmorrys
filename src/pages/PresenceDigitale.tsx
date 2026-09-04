@@ -18,6 +18,7 @@ import {
   PACKS, PLANS, OPTIONS, JOURNEY_STEPS, TERMS, SECTOR_KEYS, PACK_KEYS, PLAN_KEYS,
   packEffectivePrice,
 } from '../lib/presence/offer';
+import { doitMentionnerLaTaxe, regimeDe, tauxEnPourcent, ventilerDepuisHT } from '../lib/tax/senegal';
 import { whatsappUrl } from '../lib/presence/whatsapp';
 import { usePresenceQuote } from './presence/usePresenceQuote';
 
@@ -32,6 +33,45 @@ import { usePresenceQuote } from './presence/usePresenceQuote';
  * À mettre à jour AVEC le catalogue, jamais séparément.
  */
 const CATALOGUE_ASOF = new Date('2026-08-02');
+
+/**
+ * ── LE RÉGIME FISCAL DE LA PAGE, LU UNE FOIS ─────────────────────────────────────────
+ *
+ * L'article 5.1 des CGV est passé de TTC à HT le 03/09/2026. Cette page affichait neuf
+ * montants sans jamais écrire « hors taxes » — sur la page dont le titre promet que les prix
+ * sont affichés. Le défaut n'était donc pas « le TTC manque » : c'est que rien ne disait de
+ * quelle NATURE étaient ces nombres, alors qu'ils avaient changé de nature la veille.
+ *
+ * Ce que la page montre désormais, et où :
+ *   · les trois PACKS — « hors taxes » ET le montant TTC, parce qu'ils sont le seul montant
+ *     EXIGIBLE (`computeTotals` les appelle `setupDue`, et c'est lui que l'acompte 60/40
+ *     découpe) ;
+ *   · tout le reste — « hors taxes » seulement. Les formules d'accompagnement ne sont pas un
+ *     dû (`pipelineValue`, « usage interne, ne jamais l'afficher à un prospect ») et portent
+ *     déjà quatre nombres par ligne ; les options sont des FOURCHETTES, dont le TTC serait
+ *     une fourchette de fourchette.
+ *
+ * ⚠️ À SIGNALER AU MÉTIER, ET VOLONTAIREMENT PAS CORRIGÉ ICI : `depositAmount()` calcule les
+ * 60/40 sur le HT, tandis que `terms.items.payment` ne précise pas sur quelle base. Ce n'est
+ * pas un défaut d'affichage, c'est une question commerciale — elle se tranche avec la
+ * personne qui facture, pas dans un composant.
+ *
+ * ⚠️⚠️ LA COLLISION DU PACK D'ENTRÉE — NE PAS LA « RÉPARER » EN CACHANT LE TTC.
+ *
+ * « Présence Locale » porte `price: 295_000` et `promoPrice: 250_000`. Or 250 000 HT font
+ * exactement 295 000 TTC. La carte affiche donc un prix barré à 295 000 et un total à
+ * 295 000 : LA PROMOTION DE LANCEMENT VAUT EXACTEMENT LA TVA, et le commerçant paie le prix
+ * de liste d'origine.
+ *
+ * Les deux nombres sont vrais et disent deux choses différentes — un ancien prix de liste, et
+ * un total à payer. Les afficher ensemble met la situation à nu, et c'est le comportement
+ * voulu : masquer le TTC de cette carte-là ferait découvrir les 18 % au devis, c'est-à-dire
+ * exactement le défaut que ce travail corrige.
+ *
+ * L'inconfort n'est pas dans l'affichage, il est dans la grille. Ce qui se décide — retirer
+ * le barré, ajuster le promo, ou assumer — appartient à la personne qui fixe les prix.
+ */
+const REGIME_AGENCE = regimeDe('agence');
 
 /**
  * ── LE PRIX BARRÉ, ET POURQUOI IL EST LÉGITIME ───────────────────────────────────────
@@ -59,6 +99,13 @@ function packPricing(pack: (typeof PACKS)[number]) {
     strike: amount < pack.price
       ? { value: pack.price, source: 'db' as const, asOf: CATALOGUE_ASOF }
       : undefined,
+    /*
+     * ⚠️ LA VENTILATION NE SE CALCULE PAS À LA MAIN. `ventilerDepuisHT` arrondit la TAXE puis
+     * reconstruit le total par addition ; un `× 1,18` local diverge du devis une fois sur
+     * deux, et le devis est le document que le commerçant garde. Même fonction des deux
+     * côtés, donc même franc.
+     */
+    tax: ventilerDepuisHT(amount, REGIME_AGENCE),
   };
 }
 
@@ -309,7 +356,7 @@ export default function PresenceDigitale() {
 
           <div className="mt-6 grid gap-4 stack:grid-cols-3">
             {PACKS.map((pack, i) => {
-              const { amount, strike } = packPricing(pack);
+              const { amount, strike, tax } = packPricing(pack);
               const features = t(`packs.${pack.key}.features`, { returnObjects: true }) as string[];
               const isReco = q.reco?.pack === pack.key;
               const isSelected = q.form.pack === pack.key;
@@ -390,7 +437,45 @@ export default function PresenceDigitale() {
                       strikeLabel={t('packs.strikeLabel')}
                       size={26}
                       approx={<PriceApprox xof={amount.value} />}
-                      note={strike ? t('packs.promoNote') : t('packs.onceNote')}
+                      /*
+                        LE TTC VA DANS `note`, ET C'EST LE SEUL EMPLACEMENT POSSIBLE.
+
+                        `PriceBlock` n'a que deux fentes sous le montant, et son en-tête
+                        verrouille la première : « la contrevaleur se pose ENTRE le montant et
+                        la note, et pas ailleurs ». `approx` porte donc l'euro/le dollar, et
+                        n'a pas à céder la place.
+
+                        Le précédent est dans la primitive elle-même : le cadrage mensuel du
+                        Club — « 19 900 par an franchit seul un seuil de délibération que
+                        1 658 par mois ne franchit pas ; c'est la même somme, et la personne
+                        doit pouvoir la regarder des deux côtés » — vit exactement là. Le TTC
+                        d'un HT est le même cas : la même somme, regardée de l'autre côté.
+
+                        ⚠️ `source` est `{ cite }` et NON `'db'`. Le HT est lu au catalogue ;
+                        le TTC en est DÉRIVÉ, avec le taux du régime. `PresenceDevis.tsx` fait
+                        déjà exactement cette distinction. Mettre `'db'` serait une source
+                        fausse, et c'est précisément ce que la règle 6 existe pour empêcher.
+                      */
+                      note={
+                        <>
+                          {strike ? t('packs.promoNote') : t('packs.onceNote')}
+                          {' · '}
+                          {t('packs.htSuffix')}
+                          {doitMentionnerLaTaxe(tax.etat) && tax.tva > 0 && (
+                            <>
+                              <br />
+                              {t('packs.ttcPrefix', { rate: tauxEnPourcent(tax.taux) })}{' '}
+                              <Num
+                                value={tax.ttc}
+                                unit="FCFA"
+                                source={{ cite: t('packs.taxCite') }}
+                                asOf={CATALOGUE_ASOF}
+                                showAsOf={false}
+                              />
+                            </>
+                          )}
+                        </>
+                      }
                       style={{ marginTop: '18px' }}
                     />
 
@@ -531,6 +616,11 @@ export default function PresenceDigitale() {
                     />
                   ))}
                 </div>
+                {/* Une note de BLOC, pas un TTC par ligne : chaque formule porte déjà quatre
+                    nombres (mise en place et mensuel, réels et contrevaleurs), et surtout
+                    l'accompagnement n'est pas un dû — `computeTotals` le range dans
+                    `pipelineValue`, « usage interne, ne jamais l'afficher à un prospect ». */}
+                <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-2">{t('plans.taxNote')}</p>
               </div>
               <Button
                 tone="quiet"
@@ -855,6 +945,9 @@ export default function PresenceDigitale() {
                   />
                 ))}
               </div>
+              {/* Ce sont des FOURCHETTES : leur TTC serait une fourchette de fourchette, soit
+                  quatre nombres par ligne sur six lignes. La note dit la nature, sans chiffrer. */}
+              <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-2">{t('options.taxNote')}</p>
             </div>
 
             {/* Les conditions commerciales, repliées : contractuelles, pas promotionnelles. */}

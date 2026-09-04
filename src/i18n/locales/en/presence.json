@@ -157,7 +157,10 @@
     "selected": "Your choice",
     "strikeLabel": "Previous price",
     "promoNote": "Once · launch offer",
-    "onceNote": "Once"
+    "onceNote": "Once",
+    "htSuffix": "excl. tax",
+    "ttcPrefix": "That is, with {{rate}}% VAT:",
+    "taxCite": "price list and current VAT rate"
   },
   "plans": {
     "title": "Monthly support",
@@ -193,7 +196,8 @@
       ],
       "note": "Advertising budget not included. We shape the plan together before signing."
     },
-    "selected": "Your choice"
+    "selected": "Your choice",
+    "taxNote": "Amounts exclude tax. VAT is added, and the total including tax appears on your quote before you confirm."
   },
   "options": {
     "title": "Options and extras",
@@ -226,7 +230,8 @@
     "seo": {
       "name": "Local search",
       "text": "Six-month commitment recommended."
-    }
+    },
+    "taxNote": "Ranges exclude tax. VAT is added at invoicing."
   },
   "process": {
     "title": "How it works",
@@ -416,7 +421,7 @@
     "eyebrow": "The question everyone asks",
     "question": "“An agency quotes me 400,000 F once for a website. What does the first year cost with you?”",
     "answerBefore": "The answer before you fill in anything: ",
-    "answerAfter": " for the entry pack, once, everything included. Monthly support is a separate decision you make after you go live — not now, and not as a condition.",
+    "answerAfter": " excl. tax for the entry pack, once, with no hidden extras. Monthly support is a separate decision you make after you go live — not now, and not as a condition.",
     "footnote": "If you only take the pack, it still works. This is written here so you don't have to ask."
   },
   "plansAside": {
