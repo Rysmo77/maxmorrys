@@ -20,3 +20,13 @@ des dix-huit contrôles éteints.
 - source_spec: none
   summary: Orientation paysage (expo-screen-orientation) et état du réseau (expo-network).
   evidence: Deux paquets, deux écrans (`plein-ecran`, `hors-connexion`), aucun lien avec le stockage local. `hors-connexion` deviendra utile APRÈS le hors-ligne, mais ne le bloque pas.
+
+## Différés une seconde fois, après investigation (2026-09-04)
+
+- source_spec: none
+  summary: Orientation paysage (`expo-screen-orientation`) sur `plein-ecran.tsx`.
+  evidence: L'écran fait pivoter un LECTEUR QUI NE LIT RIEN — la vidéo de leçon est un `<iframe>` hébergé ailleurs (voir `constat-hors-ligne.md`). Faire tourner un dégradé statique n'est pas une fonction. À reprendre quand le média sera hébergé, pas avant.
+
+- source_spec: none
+  summary: Notifications (`expo-notifications`) — demander la permission et envoyer.
+  evidence: Le paquet ne fait que la moitié du travail : il demande une autorisation. Ce qui manque est un SERVEUR QUI ENVOIE, et il n'existe pas. Brancher la demande sans l'envoi produirait une permission accordée pour rien — et une ligne au formulaire Data Safety des deux magasins pour une capacité jamais exercée. `permissions.tsx` et `profil.tsx` sont déjà honnêtes sur ce point depuis la correction du 3 septembre.

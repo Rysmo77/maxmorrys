@@ -475,8 +475,10 @@ des verbes. Aucune valeur hors système.
 C'est une proposition, pas un choix arrêté. Une icône d'application se décide, elle ne se
 déduit pas d'une planche : **à trancher avant toute soumission.**
 
-L'écran de lancement, lui, est celui d'Expo par défaut : `expo-splash-screen` n'est pas
-installé, et déclarer son greffon sans son paquet fait échouer le `prebuild`.
+L'écran de lancement du système, lui, est déclaré depuis le chantier des fontes :
+`expo-splash-screen` est installé et son greffon porte `assets/splash-icon.png`, en clair
+comme en sombre. Le piège reste vrai dans l'autre sens — déclarer un greffon `expo-*` sans
+son paquet fait échouer le `prebuild` —, et `tests/unit/mobile-app-config.test.ts` le garde.
 
 ## ⚠️ Ce dossier n'avait jamais pu s'installer
 

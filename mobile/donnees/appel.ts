@@ -1,5 +1,6 @@
 import { API_BASE, MOTIF_CONFIG_MANQUANTE } from './config';
 import { jetonCourant } from './firebase';
+import { etatDuReseau } from './reseau';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -76,6 +77,80 @@ function motifLisible(code: CodeErreur, message: string): string {
 const DELAI = 20_000;
 
 /**
+ * Ce qu'on dit quand on ne sait PAS — et rien d'autre.
+ *
+ * C'était la réponse unique à tous les échecs de transport. Elle reste, réduite au seul cas
+ * qu'elle décrit honnêtement : celui où le téléphone n'a pas pu dire dans quel état il est.
+ */
+const MOTIF_INDETERMINE = 'Pas de connexion.';
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * TROIS CAUSES, TROIS GESTES — l'échec de transport cesse d'être une phrase unique.
+ *
+ * Ce `catch` répondait « Pas de connexion. » à tout : absence de réseau, serveur muet, DNS,
+ * délai dépassé. La phrase est fausse la moitié du temps, et sa fausseté COÛTE quelque
+ * chose : elle envoie vérifier un forfait, recharger du crédit, chercher une meilleure
+ * antenne — pendant que le serveur, lui, est simplement en train de tomber.
+ *
+ * ── LE DÉLAI SE RECONNAÎT AU SIGNAL, JAMAIS AU NOM DE L'ERREUR ────────────────────────
+ * Tentant : lire `echec.name === 'TimeoutError'`. Faux ici, et de trois façons à la fois.
+ * `AbortSignal.timeout` est posé par le socle Expo et pose bien un `TimeoutError` en
+ * `signal.reason` — mais le `fetch` de React Native rejette avec son propre
+ * `DOMException('Aborted', 'AbortError')`, et celui d'Expo enveloppe l'échec natif dans un
+ * `FetchError` dont le nom est « Error ». Selon le drapeau `EXPO_PUBLIC_USE_RN_FETCH` et la
+ * version du SDK, le même délai dépassé se présente donc sous trois noms différents.
+ *
+ * Le SIGNAL, lui, ne ment pas : il n'a qu'une seule raison de s'abattre — la nôtre. On le
+ * garde sous la main et on lui demande après coup. C'est vrai quelle que soit
+ * l'implémentation de `fetch` en dessous, et ça le restera à la prochaine mise à jour.
+ *
+ * ── ET L'ÉTAT DU RÉSEAU N'EST LU QU'ENSUITE ──────────────────────────────────────────
+ * Un appel qui dépasse vingt secondes n'a rien à dire du réseau : on tenait la connexion
+ * assez longtemps pour attendre. Interroger `expo-network` sur ce chemin ajouterait une
+ * lecture pour une réponse qui ne changerait pas le motif.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ */
+async function echecDeTransport(
+  nom: string, limite: AbortSignal | undefined, echec: unknown,
+): Promise<ErreurAppel> {
+  // La trace porte la cause technique ; le motif porte ce que la personne lit. Les deux
+  // vivent dans la même erreur pour qu'un rapport de panne ne perde ni l'un ni l'autre.
+  const trace = echec instanceof Error ? echec.message : String(echec);
+
+  if (limite?.aborted === true) {
+    return new ErreurAppel(
+      'deadline-exceeded',
+      `Délai de ${DELAI} ms dépassé sur ${nom} — ${trace}`,
+      'Le serveur met trop de temps.',
+    );
+  }
+
+  switch (await etatDuReseau()) {
+    case 'absent':
+      return new ErreurAppel(
+        'unavailable',
+        `Aucun réseau au moment de ${nom} — ${trace}`,
+        "Ton téléphone n'a pas de réseau.",
+      );
+    case 'present':
+      /* Le téléphone a du réseau et l'appel n'est pas parti : c'est l'autre bout. Le dire
+         évite le seul geste inutile — aller vérifier son forfait. */
+      return new ErreurAppel(
+        'unavailable',
+        `Réseau présent, ${nom} injoignable — ${trace}`,
+        'Le serveur ne répond pas.',
+      );
+    default:
+      return new ErreurAppel(
+        'unavailable',
+        `Transport indisponible pour ${nom} — ${trace}`,
+        MOTIF_INDETERMINE,
+      );
+  }
+}
+
+/**
  * Appelle une callable et renvoie sa charge utile.
  *
  * Jette une `ErreurAppel` — jamais une erreur nue : chaque échec porte son motif lisible,
@@ -91,16 +166,21 @@ export async function appeler<T>(nom: string, data: unknown = {}): Promise<T> {
   if (jeton) entetes.Authorization = `Bearer ${jeton}`;
 
   let reponse: Response;
+  /* Le signal est RETENU : c'est lui qu'on interroge après l'échec pour savoir si le délai
+     a été dépassé. Il est fabriqué dans le `try` parce que `AbortSignal.timeout` vient d'un
+     correctif du socle — l'absent en ferait une erreur nue, pas un motif lisible. */
+  let limite: AbortSignal | undefined;
   try {
+    limite = AbortSignal.timeout(DELAI);
     reponse = await fetch(`${API_BASE}/${nom}`, {
       method: 'POST',
       headers: entetes,
       body: JSON.stringify({ data }),
-      signal: AbortSignal.timeout(DELAI),
+      signal: limite,
     });
-  } catch {
-    // Vraie panne de transport : pas de réseau, DNS, délai dépassé.
-    throw new ErreurAppel('unavailable', `Transport indisponible pour ${nom}`, 'Pas de connexion.');
+  } catch (echec: unknown) {
+    // Vraie panne de transport — et elle a trois causes, qui appellent trois gestes.
+    throw await echecDeTransport(nom, limite, echec);
   }
 
   const texte = await reponse.text();
