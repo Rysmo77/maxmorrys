@@ -34,5 +34,6 @@
   "rssAction": "Copy the link",
   "alert": "Your account, ready for opening day",
   "alertAction": "Create an account",
-  "noEmail": "There's no email newsletter yet, and no alert when I publish: the feed is the only way to follow. I'd rather tell you than have you open an account for nothing."
+  "noEmail": "There's no email newsletter yet, and no alert when I publish: the feed is the only way to follow. I'd rather tell you than have you open an account for nothing.",
+  "newsletterEyebrow": "Keep up"
 }

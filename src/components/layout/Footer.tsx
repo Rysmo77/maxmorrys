@@ -1,11 +1,25 @@
 import { useTranslation } from 'react-i18next';
-import type { ComponentType } from 'react';
+import { lazy, Suspense, type ComponentType } from 'react';
 import LocalizedLink from '../shared/LocalizedLink';
 import { FacebookIcon, InstagramIcon, LinkedInIcon, TikTokIcon, XIcon, YouTubeIcon } from '../shared/SocialIcons';
 import { SOCIAL_LINKS } from '../seo/seo-config';
 import { contact, corporateUrl, legalName } from '../../lib/brand';
 import { Wordmark } from '../../design-system';
 import { Icon } from '@ds';
+
+/*
+  LE FORMULAIRE EST CHARGÉ PARESSEUSEMENT, ET CE N'EST PAS UNE OPTIMISATION DE CONFORT.
+
+  Il écrit dans Firestore, donc il importe `firebase/firestore`. Le pied de page, lui, est
+  dans le graphe STATIQUE de la première vue : un import direct aurait fait précharger le SDK
+  — 90 Ko gzip — sur toutes les pages du site, pour un champ que la plupart des visiteurs ne
+  rempliront jamais. `tests/unit/first-view-graph.test.ts` a attrapé la régression au premier
+  essai ; c'est exactement le défaut qu'il existe pour empêcher, et il était déjà arrivé.
+
+  Le pied de page est sous la ligne de flottaison : le temps de chargement du morceau est
+  invisible en pratique, et le repli réserve sa hauteur pour qu'aucune ligne ne saute.
+*/
+const NewsletterForm = lazy(() => import('../shared/NewsletterForm'));
 
 /**
  * LE PIED DE PAGE DU SITE — une dalle d'encre, dans les deux modes.
@@ -97,6 +111,7 @@ const COL_LINK =
 
 export default function Footer() {
   const { t } = useTranslation('footer');
+  const { t: tShared } = useTranslation('shared');
 
   const column = (
     titleKey: string,
@@ -185,6 +200,40 @@ export default function Footer() {
           marginInline: 'auto',
         }}
       >
+        {/*
+          ── LA LETTRE ────────────────────────────────────────────────────────────────
+          UNE BANDE, ET NON UNE CINQUIÈME COLONNE.
+
+          Le kit fixe le pied de page à `1.15fr .95fr .95fr .95fr`, un filet, une ligne de
+          copyright — et il ne prévoit AUCUN bloc de capture, parce qu'il a été écrit quand
+          il n'y avait pas de lettre. Ajouter une colonne aurait déformé une proportion qui
+          fait autorité ; poser une bande au-dessus, avec son propre filet, ajoute sans
+          rien casser. Les quatre colonnes et la ligne de mentions restent au pixel.
+
+          C'est le SEUL point de capture du produit. Le formulaire existait depuis des mois,
+          monté nulle part : la collection `newsletter` ne grandissait donc pas, et tout le
+          canal marketing — six modèles Brevo, deux lettres diffusées, la synchronisation
+          d'audience — attendait cette poignée de pixels.
+
+          Le consentement se recueille ici, jamais ailleurs : case à cocher explicite, jamais
+          pré-cochée, horodatée, et exigée côté serveur par `firestore.rules`. C'est ce qui
+          rend les listes Brevo légales.
+        */}
+        <div className="py-9 border-b border-[color:var(--border-hair)] grid grid-cols-1 gap-6 stack:grid-cols-[1.15fr_.95fr] stack:items-center">
+          <div>
+            <p className="mm-eyebrow m-0 mb-1.5">{t('newsletterEyebrow')}</p>
+            <h2 className="m-0 mb-2 font-display text-[21px] font-black leading-tight tracking-[-.03em] text-ink">
+              {tShared('newsletter.cardTitle')}
+            </h2>
+            <p className="m-0 max-w-[46ch] text-meta leading-relaxed text-ink-2">
+              {tShared('newsletter.cardText')}
+            </p>
+          </div>
+          <Suspense fallback={<div aria-hidden className="h-[104px]" />}>
+            <NewsletterForm source="footer" />
+          </Suspense>
+        </div>
+
         {/* Les proportions du kit : `1.15fr .95fr .95fr .95fr`, gouttière 26, et 40 px
             de rembourrage vertical — `reference/site-shell.jsx:45-46`. */}
         <div className="py-10 grid grid-cols-1 gap-[26px] stack:grid-cols-2 wide:grid-cols-[1.15fr_.95fr_.95fr_.95fr]">
