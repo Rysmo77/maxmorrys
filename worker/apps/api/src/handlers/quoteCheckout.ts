@@ -19,7 +19,13 @@ import { resolveCheckoutTotal } from '../lib/checkout';
  * trace. Le devis dit ce qu'une personne paierait ; il n'a pas à répondre à un inconnu.
  */
 export async function quoteCheckout(data: unknown, context: CallContext): Promise<unknown> {
-  requireAuth(context);
+  /*
+   * ⚠️ LE RETOUR DE `requireAuth` ÉTAIT IGNORÉ, ET C'EST CETTE LIGNE QUI REND LA REMISE
+   * MEMBRE POSSIBLE. Sans l'`uid`, le devis calculerait un total sans la remise pendant que
+   * la charge la déduirait — c'est-à-dire l'écart exact que ce module a été écrit pour
+   * fermer, réintroduit par la porte d'à côté.
+   */
+  const { uid } = requireAuth(context);
 
   const { formationId, couponCode } = (data ?? {}) as {
     formationId?: unknown;
@@ -29,11 +35,10 @@ export async function quoteCheckout(data: unknown, context: CallContext): Promis
     throw new HttpsError('invalid-argument', 'formationId est obligatoire.');
   }
 
-  const total = await resolveCheckoutTotal(
-    context.db,
-    formationId,
-    typeof couponCode === 'string' ? couponCode : undefined,
-  );
+  const total = await resolveCheckoutTotal(context.db, formationId, {
+    uid,
+    couponCode: typeof couponCode === 'string' ? couponCode : undefined,
+  });
 
   /*
    * `couponId` NE SORT PAS. Il ne sert qu'à l'écriture de la transaction, côté serveur, et
@@ -42,7 +47,15 @@ export async function quoteCheckout(data: unknown, context: CallContext): Promis
   return {
     basePrice: total.basePrice,
     couponDiscount: total.couponDiscount,
+    clubDiscount: total.clubDiscount,
+    clubMember: total.clubMember,
     finalPrice: total.finalPrice,
-    couponApplied: total.couponDiscount > 0,
+    /*
+     * « Appliqué » et « valide » ne sont pas la même chose. Un coupon peut être bon et rester
+     * SANS EFFET parce que la remise membre était plus généreuse : l'écran doit alors dire
+     * laquelle a joué, pas laisser croire que le code n'a pas été reconnu.
+     */
+    couponApplied: total.couponDiscount > 0 && total.couponDiscount >= total.clubDiscount,
+    clubApplied: total.clubDiscount > 0 && total.clubDiscount > total.couponDiscount,
   };
 }

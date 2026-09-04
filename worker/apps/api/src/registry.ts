@@ -17,6 +17,7 @@ import { appCours } from './handlers/app/cours';
 import { appEspace } from './handlers/app/espace';
 import { appMoi } from './handlers/app/moi';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
+import { backfillLigne } from './handlers/backfillLigne';
 import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
 import { creerMonProfil } from './handlers/creerMonProfil';
@@ -102,6 +103,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   reindexSearch,
   reserverSession,
   backfillSlugEn,
+  backfillLigne,
   weeklyClubDigestManual,
   // Répond à un message de contact : écrit la réponse, notifie, envoie l'e-mail.
   replyToMessage,

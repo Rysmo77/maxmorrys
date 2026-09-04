@@ -313,6 +313,39 @@ describe('transactions — client creation restricted to free courses', () => {
     });
     await assertSucceeds(setDoc(doc(asUser(ALICE), 'transactions', 't5'), GRATUITE('f-promo0')));
   });
+
+  /*
+   * ── LA LIGNE DE BUSINESS, SUR LE SEUL CHEMIN OU UN NAVIGATEUR ECRIT ───────────────
+   *
+   * `amount == 0` empeche deja de fausser le chiffre d'affaires. Ce qui restait ouvert est
+   * le COMPTAGE : une inscription gratuite qui se declarerait `club` gonflerait le nombre
+   * de ventes du Club dans le releve, sans qu'aucun franc ne bouge.
+   */
+  it('la ligne « formation » est acceptee sur une inscription gratuite', async () => {
+    await seed('formations/f-ligne', { status: 'published', price: 0, createdAt: '2026-01-01' });
+    await assertSucceeds(setDoc(doc(asUser(ALICE), 'transactions', 't6'), {
+      ...GRATUITE('f-ligne'), ligne: 'formation',
+    }));
+  });
+
+  it('une inscription gratuite ne peut pas se declarer d une autre ligne', async () => {
+    await seed('formations/f-ligne2', { status: 'published', price: 0, createdAt: '2026-01-01' });
+    for (const ligne of ['club', 'rysmoPack', 'rysmoSubscription', 'inventee']) {
+      await assertFails(setDoc(doc(asUser(ALICE), 'transactions', `t7-${ligne}`), {
+        ...GRATUITE('f-ligne2'), ligne,
+      }));
+    }
+  });
+
+  /*
+   * ⚠️ NON-REGRESSION DE DEPLOIEMENT. La regle part AVANT le front : pendant la fenetre ou
+   * l'ancien bundle est encore servi, les inscriptions gratuites arrivent SANS le champ.
+   * Exiger sa presence ferait echouer 100 % d'entre elles, en silence.
+   */
+  it('l absence du champ reste acceptee, le temps que le front rattrape', async () => {
+    await seed('formations/f-ligne3', { status: 'published', price: 0, createdAt: '2026-01-01' });
+    await assertSucceeds(setDoc(doc(asUser(ALICE), 'transactions', 't8'), GRATUITE('f-ligne3')));
+  });
 });
 
 describe('engagement_leads — formulaire de qualification /agence', () => {
@@ -339,6 +372,42 @@ describe('engagement_leads — formulaire de qualification /agence', () => {
   it('un visiteur anonyme peut soumettre une demande valide', async () => {
     const db = asVisitor();
     await assertSucceeds(setDoc(doc(db, 'engagement_leads', 'l1'), LEAD()));
+  });
+
+  /*
+   * ── LA DEMANDE DE FORMATION D'EQUIPE, DEPOSEE PAR /formations ────────────────────
+   *
+   * La regle ne valide pas l'ENUMERATION de `projectType` — seulement qu'il soit une
+   * chaine bornee. Ajouter une valeur ne demande donc aucun redeploiement de regles, et
+   * ce test le PROUVE plutot que de le supposer.
+   */
+  it('une demande de formation d equipe passe, avec son type propre', async () => {
+    const db = asVisitor();
+    await assertSucceeds(setDoc(doc(db, 'engagement_leads', 'l-training'), LEAD({
+      projectType: 'training',
+      company: 'Institut Panafricain',
+      description:
+        'Nous voulons former vingt personnes au referencement local et a la publicite en ligne.',
+      locale: 'fr',
+      via: 'chez-awa',
+    })));
+  });
+
+  /*
+   * ⚠️ LE PLAFOND EST ATTEINT, ET C'EST CE QUI REND CE TEST NECESSAIRE. La demande de
+   * formation ecrit onze cles sur treize. Deux champs de plus feraient echouer 100 % des
+   * envois — silencieusement, comme le plafond de `newsletter` l'a deja fait ailleurs.
+   */
+  it('trois champs de plus franchissent le plafond de cles', async () => {
+    const db = asVisitor();
+    await assertFails(setDoc(doc(db, 'engagement_leads', 'l-trop'), LEAD({
+      projectType: 'training',
+      locale: 'fr',
+      via: 'chez-awa',
+      website: 'https://institut.sn',
+      routedTo: 'MY_ONOMA_GROW',
+      source: 'formations',
+    })));
   });
 
   it('accepte le marqueur de routage Growth', async () => {

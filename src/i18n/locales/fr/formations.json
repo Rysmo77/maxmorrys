@@ -78,6 +78,60 @@
       "coachingTitle": "Accompagnement",
       "coachingDesc": "Suivi et coaching de tes talents",
       "coachingNote": "Sur devis"
+    },
+    "titleLines": ["Forme tes équipes", "avec [MAX-MORRYS BUSINESS]."],
+    "offersEyebrow": "Trois façons de travailler ensemble",
+    "formEyebrow": "Décris ton besoin",
+    "form": {
+      "descriptionLabel": "Ce que tu veux faire monter en compétences",
+      "descriptionPlaceholder": "Combien de personnes, sur quels sujets, et pourquoi maintenant.",
+      "budgetLabel": "Budget envisagé",
+      "budgetPlaceholder": "Choisis une fourchette",
+      "budgetHint": "Je demande une fourchette au lieu d'en annoncer une : c'est la seule façon de savoir tout de suite si on peut travailler ensemble.",
+      "budgets": {
+        "exploring": "Je ne sais pas encore — j'aimerais en parler",
+        "small": "Une session, sur un seul sujet",
+        "medium": "Un programme court, sur un trimestre",
+        "large": "Un parcours complet, sur plusieurs trimestres",
+        "xlarge": "Un dispositif permanent, à l'échelle de l'organisation"
+      },
+      "timelineLabel": "Échéance souhaitée",
+      "timelinePlaceholder": "Choisis une échéance",
+      "timelines": {
+        "urgent": "Le mois prochain",
+        "quarter": "Ce trimestre",
+        "halfYear": "Dans les six mois",
+        "flexible": "Pas de date arrêtée"
+      },
+      "replyEyebrow": "Pour que je te réponde",
+      "nameLabel": "Ton nom",
+      "namePlaceholder": "Aïssatou Diallo",
+      "companyLabel": "Ton organisation",
+      "companyPlaceholder": "Nom de l'entreprise ou de l'institution",
+      "emailLabel": "Ton adresse e-mail",
+      "emailPlaceholder": "aissatou@organisation.sn",
+      "submitting": "Envoi…",
+      "reply": "Je te réponds sous 48 h, moi-même.",
+      "errors": {
+        "budget": "Choisis une fourchette. Sans elle, je ne peux pas te dire tout de suite si on peut travailler ensemble.",
+        "timeline": "Choisis une échéance.",
+        "description": "Décris ton besoin.",
+        "descriptionShort": "Donne-moi au moins {{min}} caractères : en dessous, je ne peux pas préparer de réponse utile.",
+        "name": "Indique ton nom.",
+        "company": "Indique ton organisation.",
+        "email": "Indique ton adresse e-mail.",
+        "emailInvalid": "Cette adresse ne semble pas valide.",
+        "sendFailed": "L'envoi a échoué. Réessaie dans un instant."
+      }
+    },
+    "sent": {
+      "titleLines": ["C'est parti.", "Je te lis."],
+      "body": "Ta demande est enregistrée. Je te réponds sous 48 h avec une proposition de programme, ou avec les questions qui me manquent.",
+      "recapEyebrow": "Ce qui est enregistré",
+      "recapCompany": "Organisation",
+      "recapStatus": "Statut",
+      "recapStatusValue": "Reçue",
+      "back": "Envoyer une autre demande"
     }
   },
   "popularSkills": {

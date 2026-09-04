@@ -179,6 +179,32 @@ export async function updateTransactionStatus(id: string, status: Transaction['s
 }
 
 /**
+ * Les transactions depuis une date, tous statuts confondus.
+ *
+ * ⚠️ TOUS LES STATUTS, ET C'EST LA RAISON D'ÊTRE DE CETTE LECTURE. L'index composite
+ * `status ASC, createdAt DESC` existe déjà et servirait une requête bornée aux encaissées —
+ * mais un relevé de revenu a besoin des échecs (le dénominateur de son taux) et des
+ * remboursements (une sortie de caisse). Le seul `where` possible porte donc sur
+ * `createdAt`, ce qui n'exige AUCUN index composite : Firestore le sert avec l'index simple
+ * du champ, et il n'y a rien à déployer.
+ *
+ * C'est aussi le seul gain de volume disponible sans changer d'architecture :
+ * `getAllTransactions()` lit la collection entière, ce qui reste acceptable tant qu'elle
+ * compte quelques centaines de documents (`agency.ts` documente le même seuil). Un écran de
+ * revenu est précisément celui qu'on ouvrira quand elle aura grossi.
+ *
+ * La lecture reste réservée aux administrateurs : `firestore.rules` n'autorise un `list` non
+ * borné sur `userId` que par la branche `isAdmin()`.
+ */
+export async function getTransactionsSince(sinceIso: string): Promise<Transaction[]> {
+  return getCollection<Transaction>(
+    'transactions',
+    where('createdAt', '>=', sinceIso),
+    orderBy('createdAt', 'desc'),
+  );
+}
+
+/**
  * Les transactions D'UNE SEULE personne, les siennes, de la plus récente à la plus ancienne.
  *
  * Elle vit à côté de `getAllTransactions` et non dans un module « apprenant » : les deux

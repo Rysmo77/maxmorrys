@@ -161,6 +161,8 @@
     "couponApply": "Vérifier le code",
     "couponChecking": "Vérification…",
     "couponApplied": "Code appliqué, remise de",
+    "couponBeatenByClub": "Ton code est valide, mais ta remise de membre est plus avantageuse : c'est elle qui s'applique.",
+    "clubDiscount": "Remise membre du Club",
     "couponInvalid": "Code promo invalide, expiré ou déjà utilisé.",
     "comingSoonTitle": "Cette formation n’est pas encore en vente.",
     "comingSoonBody": "Elle est annoncée, pas encore ouverte. Depuis sa fiche, tu peux demander à être prévenu·e le jour de l’ouverture.",
@@ -168,6 +170,9 @@
     "comingSoonAction": "Revenir à la formation"
   },
   "paymentReturn": {
+    "clubTitle": "Tu n'apprends pas tout seul",
+    "clubBody": "Le Club des Digitos réunit des gens qui font la même chose que toi, avec des sessions en direct, un agenda et des missions qui circulent. C'est une décision séparée — regarde d'abord, tu verras.",
+    "clubCta": "Voir le Club",
     "verifyingTitle": "Vérification du paiement...",
     "verifyingText": "Patiente quelques instants.",
     "confirmedTitle": "Paiement confirmé !",

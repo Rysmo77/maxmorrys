@@ -6,6 +6,7 @@ import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
 import DsNavHost from '../components/layout/DsNavHost';
+import BusinessSection from '../components/formations/BusinessSection';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { PriceApprox, PriceFootnote } from '../components/shared/PriceApprox';
@@ -431,6 +432,26 @@ export default function Formations() {
           </GlassPanel>
         </div>
       </SiteBand>
+
+      {/*
+        ── L'OFFRE ENTREPRISES — UN `PageSite`, ET SURTOUT PAS UNE SECONDE BANDE ──────────
+        `Agence.tsx` le dit mot pour mot : « deux bandes collées partagent le même
+        `--surface-band` : elles fondraient en un seul aplat ». Le `paddingTop` reprend
+        l'écart de section, comme là-bas.
+
+        ELLE EST APRÈS LA BANDE EXPLICATIVE, ET PAS AVANT. Dans l'état vide, la séquence
+        devient « rien à acheter aujourd'hui → voilà pourquoi → et voilà ce que je peux faire
+        pour ton organisation dès maintenant ». Placée avant, le B2B passerait pour un lot de
+        consolation.
+
+        Elle ne dépend NI de `vide` NI de `riencOuvert` : une organisation qui veut former
+        vingt personnes ne commande pas un cours au détail, et sa demande se traite qu'il y
+        ait un catalogue ouvert ou non. C'est même la seule chose de cette page qui se vende
+        pendant que la boutique est fermée.
+      */}
+      <PageSite style={{ paddingTop: 'var(--site-section-gap)' }}>
+        <BusinessSection />
+      </PageSite>
     </DsNavHost>
   );
 }

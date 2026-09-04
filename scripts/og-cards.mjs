@@ -399,6 +399,22 @@ async function main() {
    */
   pages.push({ path: '/_fallback', title: 'Maîtrise le digital, accélère ta croissance' });
 
+  /*
+   * LA CARTE DES CERTIFICATS — une seule, générique, et c'est la seule possible.
+   *
+   * Un certificat n'existe pas au moment du build : sa carte ne peut donc pas porter le nom
+   * du titulaire. Rendre à la demande demanderait des mégaoctets de WebAssembly sur le chemin
+   * de chaque page vue, ce que l'en-tête de ce script a refusé.
+   *
+   * Ce qu'elle remplace n'est pas « rien » : c'était la PHOTO DE LA PAGE D'ACCUEIL, servie
+   * par `index.html` sur toute adresse `/certificat/*`. Le nom et la formation, eux, sont
+   * personnalisés — dans le titre et la description, que `prerender/certificat.ts` écrit.
+   *
+   * ⚠️ Le chemin est SANS code : `og/certificat.png`, pas `og/certificat/<code>.png`. C'est
+   * exactement ce que `prerender/certificat.ts` annonce en dur.
+   */
+  pages.push({ path: '/certificat', title: 'Certificat vérifié' });
+
   const targets = pages.map((page) => ({
     ...page,
     // `/` → `public/og.png` ; `/faq/x` → `public/og/faq/x.png`.

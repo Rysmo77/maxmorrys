@@ -30,6 +30,21 @@ export const PROJECT_TYPES: readonly EngagementProjectType[] = [
 ];
 
 /**
+ * La demande de FORMATION D'ÉQUIPE, déposée par la section entreprises de `/formations`.
+ *
+ * ⚠️ ABSENTE DE `PROJECT_TYPES` À DESSEIN. Cette valeur n'est pas proposée par le formulaire
+ * de `/agence` : elle est POSÉE par une autre surface, qui écrit dans la même collection sans
+ * offrir de choix. L'ajouter à la liste ci-dessus ferait apparaître « Formation d'équipe »
+ * dans le menu d'une page qui vend des plateformes.
+ *
+ * ⚠️ ET ELLE NE PASSE PAS PAR `routingTagFor`. `GROWTH_KEYWORDS` contient « acquisition », et
+ * la recherche se fait en SOUS-CHAÎNE : « structurer l'acquisition de compétences » — la
+ * phrase la plus naturelle sur un formulaire de formation — serait routée vers Cléa. Une
+ * demande de formation n'est ni BUILD ni GROW ; elle ne se route pas.
+ */
+export const TRAINING_PROJECT_TYPE: EngagementProjectType = 'training';
+
+/**
  * Types de projet qui relèvent de Cléa Growth Office (pilier GROW), pas de Max-Morrys Agency.
  *
  * Le lead n'est JAMAIS rejeté : il est enregistré normalement et tagué `MY_ONOMA_GROW`,

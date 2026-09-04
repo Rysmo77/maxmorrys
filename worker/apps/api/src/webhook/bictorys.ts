@@ -4,6 +4,7 @@ import { verifyHmacSha256 } from '@mm/shared';
 import { getFirestore } from '../context';
 import type { Env } from '../env';
 import { sendConversionEvent } from '../lib/meta-capi';
+import { ligneDeBusiness } from '../lib/purchase';
 import { recompenserParrain } from '../lib/referral';
 import { envoyerCourriersTransaction } from '../lib/transaction-mail';
 import { asText, toNumber } from '../lib/values';
@@ -112,6 +113,19 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
 
   const userId = asText(txn.userId) ?? '';
 
+  /*
+   * CE QUE CETTE TRANSACTION VEND — lu UNE fois, pour les deux aiguillages.
+   *
+   * Ce fichier reposait la question six fois, en réécrivant à chaque branche
+   * `formationId === 'club_digitos'` et `rysmoKind === '…'`. Ce n'était pas une copie de
+   * `classerAchat` — c'est un aiguillage d'effets — mais c'en était la même règle, redite
+   * en six endroits qu'il aurait fallu corriger ensemble.
+   *
+   * `ligneDeBusiness` lit le champ écrit quand il est là, et retombe sur la déduction pour
+   * les transactions antérieures : le comportement est inchangé sur tout l'historique.
+   */
+  const ligne = ligneDeBusiness(txn);
+
   if (status && SUCCESS_STATUSES.has(status)) {
     const rysmoPurchaseId = asText(txn.rysmoPurchaseId);
     const rysmoSubscriptionId = asText(txn.rysmoSubscriptionId);
@@ -122,7 +136,7 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
 
     // L'effet de bord est appliqué AVANT de marquer la transaction terminée :
     // une panne en cours laisse `pending`, donc rattrapable. Chacun est idempotent.
-    if (txn.formationId === 'club_digitos') {
+    if (ligne === 'club') {
       await db.update(`club_subscriptions/${userId}`, { status: 'active' });
       console.log('Webhook Bictorys : abonnement Club activé pour', userId);
 
@@ -144,7 +158,7 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
       } else if (parrainage.raison && parrainage.raison !== 'pasDeParrain') {
         console.log('Parrainage : rien versé pour', userId, '—', parrainage.raison);
       }
-    } else if (txn.rysmoKind === 'pack' && rysmoPurchaseId) {
+    } else if (ligne === 'rysmoPack' && rysmoPurchaseId) {
       // Le crédit du solde et le marquage de l'achat doivent être atomiques.
       await db.runTransaction(async (tx) => {
         const purchase = await tx.get(`rysmoPackPurchases/${rysmoPurchaseId}`);
@@ -177,7 +191,7 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
         );
       });
       console.log('Webhook Bictorys : pack Rysmo crédité pour', userId);
-    } else if (txn.rysmoKind === 'subscription' && rysmoSubscriptionId) {
+    } else if (ligne === 'rysmoSubscription' && rysmoSubscriptionId) {
       await db.update(`rysmoSubscriptions/${rysmoSubscriptionId}`, { status: 'active' });
       console.log('Webhook Bictorys : abonnement Rysmo+ activé pour', userId);
     } else {
@@ -273,7 +287,7 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
   } else if (status && FAILURE_STATUSES.has(status)) {
     await db.update(transaction.path, { status: 'failed' });
 
-    if (txn.formationId === 'club_digitos') {
+    if (ligne === 'club') {
       // On efface l'abonnement en attente, sinon `createClubCharge` bloquerait
       // toute nouvelle tentative.
       const subscription = await db.get(`club_subscriptions/${userId}`);
@@ -284,9 +298,9 @@ export async function handleBictorysWebhook(request: Request, env: Env): Promise
       ) {
         await db.delete(`club_subscriptions/${userId}`);
       }
-    } else if (txn.rysmoKind === 'pack' && asText(txn.rysmoPurchaseId)) {
+    } else if (ligne === 'rysmoPack' && asText(txn.rysmoPurchaseId)) {
       await db.update(`rysmoPackPurchases/${asText(txn.rysmoPurchaseId)}`, { status: 'failed' });
-    } else if (txn.rysmoKind === 'subscription' && asText(txn.rysmoSubscriptionId)) {
+    } else if (ligne === 'rysmoSubscription' && asText(txn.rysmoSubscriptionId)) {
       await db.update(`rysmoSubscriptions/${asText(txn.rysmoSubscriptionId)}`, {
         status: 'cancelled',
       });

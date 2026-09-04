@@ -10,6 +10,8 @@ import { useLocalizedPath } from '../../contexts/LanguageContext';
 import { trackPurchase } from '../../lib/tracking';
 import { clearCartPending } from '../../lib/popups/cart';
 import { useAuth } from '../../contexts/AuthContext';
+import { getClubSubscription } from '../../lib/firestore';
+import { estMembreActif } from '../../lib/club/membership';
 import type { Transaction } from '../../types';
 
 /**
@@ -65,6 +67,27 @@ export default function PaymentReturn() {
 
   const [status, setStatus] = useState<PaymentStatus>('loading');
   const [transaction, setTransaction] = useState<Transaction | null>(null);
+  /**
+   * Membre du Club ? `null` tant qu'on n'a pas lu — et c'est une TROISIÈME valeur, pas un
+   * `false` par défaut. La passerelle ne s'affiche que sur un `false` avéré : sur l'écran de
+   * succès d'un paiement, un panneau qui apparaît une seconde après coup se lit comme une
+   * relance déclenchée par l'achat.
+   */
+  const [clubActif, setClubActif] = useState<boolean | null>(null);
+
+  /*
+   * L'appartenance au Club, lue une fois. Un échec de lecture laisse `null` : la passerelle
+   * ne s'affiche pas, ce qui est le côté sûr — proposer le Club à un membre serait la seule
+   * erreur que cette section puisse commettre, et elle est vexante.
+   */
+  useEffect(() => {
+    if (!user) return;
+    let annule = false;
+    getClubSubscription(user.uid)
+      .then((sub) => { if (!annule) setClubActif(estMembreActif(sub)); })
+      .catch(() => { /* Lecture indisponible : on ne propose rien plutôt que de se tromper. */ });
+    return () => { annule = true; };
+  }, [user]);
 
   useEffect(() => {
     if (!transactionId) {
@@ -275,7 +298,44 @@ export default function PaymentReturn() {
 
           {actions}
 
-          <p className="rv text-small text-ink-2 text-center mt-3.5" style={{ ['--i' as string]: 8 }}>{foot}</p>
+          {/*
+            ── LA PASSERELLE VERS LE CLUB — du contenu d'écran, jamais une pop-up ────────────
+
+            Deux raisons indépendantes, et chacune suffit : `/paiement/**` est dans
+            `CHECKOUT_PATHS` du registre — « rien ne doit JAMAIS s'y afficher » — et surtout
+            cet écran est monté sous `LmsLayout`, où `PopupManager` n'existe pas. La fenêtre
+            ne pourrait pas s'ouvrir même si le registre l'autorisait.
+
+            CE N'EST PAS UN TROISIÈME BOUTON. L'écran en porte déjà deux, et son objet tient
+            en quatre mots : c'est payé, va apprendre. Le panneau se pose APRÈS les actions,
+            en encre secondaire, et ne demande rien — il nomme une porte.
+
+            ⚠️ IL NE S'AFFICHE QUE SUR UN FAIT. Tant que l'abonnement n'a pas été lu,
+            `clubActif` vaut `null` et rien ne s'affiche : un panneau qui apparaît puis
+            disparaît sur l'écran de succès d'un paiement serait pire que pas de panneau.
+
+            ⚠️ AUCUN CHIFFRE ICI. `/club-des-digitos` affiche le prix trois fois ; le répéter
+            sur l'écran de quelqu'un qui vient de payer transformerait une porte en relance.
+          */}
+          {status === 'completed' && clubActif === false && (
+            <GlassPanel level="flat" padding={17} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
+              <p className="m-0 text-meta font-bold text-ink">{t('paymentReturn.clubTitle')}</p>
+              <p className="m-0 mt-1.5 text-meta-2 leading-[1.55] text-ink-2">
+                {t('paymentReturn.clubBody')}
+              </p>
+              <Button
+                tone="quiet"
+                size="sm"
+                fullWidth={false}
+                href={path('/club-des-digitos')}
+                style={{ marginTop: '12px' }}
+              >
+                {t('paymentReturn.clubCta')}
+              </Button>
+            </GlassPanel>
+          )}
+
+          <p className="rv text-small text-ink-2 text-center mt-3.5" style={{ ['--i' as string]: 9 }}>{foot}</p>
         </div>
       </DsNavHost>
     </div>

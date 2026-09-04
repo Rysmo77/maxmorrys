@@ -344,6 +344,8 @@
     "subscriptionSubtitle": "A high daily quota, renewed every month. Ideal for intensive learning periods.",
     "perMonth": "/month",
     "alreadySubscribed": "Subscription already active",
+    "renewPlan": "Renew my subscription",
+    "renewNote": "Your new month starts when this one ends: you don't lose the days you have left.",
     "subscribeTo": "Subscribe to {{plan}}",
     "paymentNote": "Secure payment by Bictorys · Wave, Orange Money or your card.",
     "packs": {
@@ -366,14 +368,12 @@
       "lite": {
         "label": "Rysmo+ Lite",
         "description": "For regular use without a second thought",
-        "feature1": "20 requests/day",
         "feature2": "Monthly renewal",
         "feature3": "Unused quota not carried over"
       },
       "pro": {
         "label": "Rysmo+ Pro",
         "description": "For power users in certification or intensive learning",
-        "feature1": "100 requests/day",
         "feature2": "Priority support",
         "feature3": "Monthly renewal"
       }

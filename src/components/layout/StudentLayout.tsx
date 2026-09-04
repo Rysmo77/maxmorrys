@@ -11,6 +11,7 @@ import { useNotes } from '../../pages/lms/hooks/useNotes';
 import {
   getUserMessages, getUserCertificates, getClubSubscription, getMyTestimonials,
 } from '../../lib/firestore';
+import { estMembreActif } from '../../lib/club/membership';
 import type { ContactMessage, Certificate, ClubDigitosSubscription, Testimonial } from '../../types';
 
 const Onboarding = lazy(() => import('../../pages/lms/Onboarding'));
@@ -110,7 +111,7 @@ export default function StudentLayout() {
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
   const photoURL = user?.photoURL || userData?.photoURL;
 
-  const isClubActive = clubSubscription?.status === 'active' && new Date(clubSubscription.expiresAt) > new Date();
+  const isClubActive = estMembreActif(clubSubscription);
   const isClubPending = clubSubscription?.status === 'pending';
 
   const context: StudentLayoutContext = {

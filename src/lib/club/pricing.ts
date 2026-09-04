@@ -42,6 +42,22 @@ export function clubReferralPrice(): number {
 }
 
 /**
+ * Remise accordée à un membre actif sur l'achat d'une FORMATION.
+ *
+ * C'est la première chose que l'abonnement fait gagner en dehors du Club lui-même : jusqu'ici,
+ * les deux lignes se côtoyaient sans jamais se nourrir. Le montant est recalculé côté serveur
+ * (`resolveCheckoutTotal`) — cette constante ne sert qu'à ANNONCER, jamais à débiter.
+ *
+ * ⚠️ MIROIR SERVEUR : `worker/apps/api/src/lib/bictorys.ts` → `CLUB_MEMBER_FORMATION_DISCOUNT`.
+ * `tests/unit/club-pricing.test.ts` lit ce fichier-là EN TEXTE et échoue si les deux
+ * divergent. C'est la porte que le prix du Club n'avait pas.
+ *
+ * ⚠️ NON CUMULABLE AVEC UN CODE PROMO : le serveur retient la meilleure des deux remises,
+ * jamais leur somme. Annoncer un cumul ferait attendre un prix qui ne sera pas débité.
+ */
+export const CLUB_MEMBER_FORMATION_DISCOUNT = 0.2;
+
+/**
  * SESSIONS EN DIRECT INCLUSES, PAR MOIS — un TERME DE L'OFFRE, pas un relevé.
  *
  * Il était écrit `const LIVE_SESSIONS_PER_MONTH = 2` dans `ClubDigitos.tsx`, c'est-à-dire dans

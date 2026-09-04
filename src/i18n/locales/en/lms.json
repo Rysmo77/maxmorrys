@@ -161,6 +161,8 @@
     "couponApply": "Check the code",
     "couponChecking": "Checking…",
     "couponApplied": "Code applied, discount of",
+    "couponBeatenByClub": "Your code is valid, but your member discount is better: that's the one applied.",
+    "clubDiscount": "Club member discount",
     "couponInvalid": "Promo code invalid, expired or already used.",
     "comingSoonTitle": "This course isn’t on sale yet.",
     "comingSoonBody": "It’s announced, not open yet. From its page, you can ask to be notified the day it opens.",
@@ -168,6 +170,9 @@
     "comingSoonAction": "Back to the course"
   },
   "paymentReturn": {
+    "clubTitle": "You're not learning alone",
+    "clubBody": "The Digitos Club brings together people doing what you're doing, with live sessions, a calendar and briefs that circulate. It's a separate decision — take a look first, you'll see.",
+    "clubCta": "See the Club",
     "verifyingTitle": "Verifying payment...",
     "verifyingText": "Hang on a moment.",
     "confirmedTitle": "Payment confirmed!",

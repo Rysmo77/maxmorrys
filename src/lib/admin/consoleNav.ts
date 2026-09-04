@@ -42,6 +42,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { to: '/admin/videos',           labelKey: 'nav.videos',         titleKey: 'nav.videos',         icon: 'video' },
   { to: '/admin/utilisateurs',     labelKey: 'nav.users',          titleKey: 'nav.users',          icon: 'users' },
   { to: '/admin/transactions',     labelKey: 'nav.transactions',   titleKey: 'nav.transactions',   icon: 'card' },
+  { to: '/admin/revenu',           labelKey: 'nav.revenue',        titleKey: 'nav.revenue',        icon: 'layers' },
   { to: '/admin/messages',         labelKey: 'nav.messages',       titleKey: 'nav.messages',       icon: 'comment' },
   { to: '/admin/coupons',          labelKey: 'nav.coupons',        titleKey: 'nav.coupons',        icon: 'tag' },
   { to: '/admin/annonces',         labelKey: 'nav.announcements',  titleKey: 'nav.announcements',  icon: 'megaphone' },
@@ -100,7 +101,7 @@ export const ADMIN_SECTIONS: { titleKey: string; paths: string[] }[] = [
   },
   {
     titleKey: 'nav.sectionCommerce',
-    paths: ['/admin/transactions', '/admin/coupons', '/admin/projets', '/admin/prospects-agence'],
+    paths: ['/admin/transactions', '/admin/revenu', '/admin/coupons', '/admin/projets', '/admin/prospects-agence'],
   },
 ];
 

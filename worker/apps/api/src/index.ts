@@ -35,6 +35,7 @@ import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
 import { runImportSpotify, runSyncMediaStats } from './lib/media-sync';
 import { sendRenewalNotices } from './lib/renewal';
+import { sendRysmoRenewalNotices } from './lib/rysmo-renewal';
 import { rebuildLeaderboard } from './lib/leaderboard';
 import { rebuildPublicClubStats } from './lib/public-stats';
 import { sendQuoteExpiryNotices } from './lib/quote-expiry';
@@ -166,8 +167,18 @@ export default {
           qui lèverait emporterait tous les suivants s'ils partageaient un seul bloc.
         */
         const etapes: Array<[string, () => Promise<string>]> = [
-          ['Rappels d’échéance', async () => {
+          ['Rappels d’échéance du Club', async () => {
             const b = await sendRenewalNotices(db, env);
+            return `${b.envoyes} envoyé(s), ${b.echecs} échec(s), sur ${b.examines} abonnement(s) actif(s)`;
+          }],
+          /*
+            LE MENSUEL A SA PROPRE PASSE, ET SA PROPRE FENÊTRE. Rysmo+ n'était prévenu de
+            rien : le balayage ne lisait que `club_subscriptions`. Un abonnement mensuel sans
+            prélèvement et sans rappel meurt au trentième jour, en silence. Voir
+            `lib/rysmo-renewal.ts` pour le préavis de cinq jours et sa raison.
+          */
+          ['Rappels d’échéance Rysmo+', async () => {
+            const b = await sendRysmoRenewalNotices(db, env);
             return `${b.envoyes} envoyé(s), ${b.echecs} échec(s), sur ${b.examines} abonnement(s) actif(s)`;
           }],
           ['Relances de devis', async () => {

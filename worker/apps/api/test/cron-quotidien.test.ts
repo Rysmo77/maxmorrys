@@ -8,9 +8,14 @@ import { buildQuoteExpiryNotice, sendQuoteExpiryNotices, PREAVIS_DEVIS_JOURS } f
 import { sendReengagementNotices } from '../src/lib/reengagement';
 
 /**
- * Les quatre travaux du cron de 8 h partagent une contrainte : ils tournent sans témoin, une
+ * Les cinq travaux du cron de 8 h partagent une contrainte : ils tournent sans témoin, une
  * fois par jour. Ce qui doit tenir n'est donc pas « ça marche » mais « ça ne part qu'une fois,
  * et ça ne ment pas ».
+ *
+ * Le cinquième — les rappels d'échéance de Rysmo+ — a sa propre suite
+ * (`rysmo-renewal.test.ts`) : sa fenêtre, son courrier et son chaînage de dates n'ont rien de
+ * commun avec l'annuel du Club, et les mélanger ici aurait produit un fichier où chaque cas
+ * demande « lequel des deux ? ».
  */
 
 /** Faux Firestore : on n'observe que ce qui est écrit et ce qui est demandé. */

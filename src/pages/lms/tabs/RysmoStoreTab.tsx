@@ -51,20 +51,43 @@ interface QuotaSnapshot {
   plan: 'lite' | 'pro' | null;
   hasActiveSubscription: boolean;
   hasClubBonus: boolean;
+  /** Échéance de l'abonnement courant, ISO. `null` s'il n'y en a pas. */
+  expiresAt: string | null;
+  /**
+   * La reprise est-elle ouverte ?
+   *
+   * ⚠️ NE PAS RECALCULER CE BOOLÉEN ICI, MÊME « JUSTE POUR L'AFFICHAGE ». Il vient de
+   * `deciderRenouvellement`, la fonction que le serveur applique au moment de débiter — et
+   * il tient compte d'un paiement déjà en attente, ce que l'échéance seule ne dit pas. Le
+   * dériver de `expiresAt` dans le navigateur rouvrirait l'écart écran/serveur que ce champ
+   * existe pour fermer.
+   */
+  canRenew: boolean;
 }
 
 const getRysmoQuota = httpsCallable<Record<string, never>, QuotaSnapshot>(functions, 'getRysmoQuota');
 const createRysmoPackCharge = httpsCallable<{ pack: string }, { checkoutUrl: string; transactionId: string }>(functions, 'createRysmoPackCharge');
 const createRysmoSubscriptionCharge = httpsCallable<{ plan: string }, { checkoutUrl: string; transactionId: string }>(functions, 'createRysmoSubscriptionCharge');
 
-/** Miroir d'affichage de `RYSMO_PACKS` (functions/src/payment.ts). Le débit vient de LÀ-BAS. */
+/**
+ * Miroir d'affichage de `RYSMO_PACKS` (`worker/apps/api/src/lib/bictorys.ts`). Le débit vient
+ * de LÀ-BAS — cet écran ne fait qu'annoncer ce que le serveur facturera.
+ *
+ * ⚠️ Le commentaire désignait `functions/src/payment.ts`, supprimé le 03/09/2026 avec le
+ * retour au plan Spark. Un miroir qui cite une source morte n'est plus un miroir : personne
+ * ne sait plus contre quoi le vérifier. `tests/unit/rysmo-quota.test.ts` compare désormais
+ * ces deux tableaux à leurs sources réelles, ligne à ligne.
+ */
 const PACKS = [
   { id: 'discovery', requests: 30, price: 500, hasBadge: false },
   { id: 'regular', requests: 100, price: 1500, hasBadge: true },
   { id: 'intensive', requests: 300, price: 3500, hasBadge: true },
 ];
 
-/** Miroir d'affichage de `RYSMO_SUBSCRIPTIONS` et de `SUBSCRIPTION_QUOTAS`. */
+/**
+ * Miroir d'affichage de `RYSMO_SUBSCRIPTIONS` (le prix, `lib/bictorys.ts`) et de
+ * `SUBSCRIPTION_QUOTAS` (le plafond, `lib/rysmo-quota.ts`), tous deux côté Worker.
+ */
 const PLANS = [
   { id: 'lite', perDay: 20, price: 3000 },
   { id: 'pro', perDay: 100, price: 7500 },
@@ -280,17 +303,43 @@ export default function RysmoStoreTab() {
                   <CheckLine>{t(`rysmoStore.plans.${plan.id}.feature2`)}</CheckLine>
                   <CheckLine>{t(`rysmoStore.plans.${plan.id}.feature3`)}</CheckLine>
                 </div>
+                {/*
+                  LE BOUTON S'OUVRE DANS LA FENÊTRE DE REPRISE.
+
+                  Il était désactivé sur le seul `hasActiveSubscription` : la reprise restait
+                  donc fermée jusqu'au dernier jour, et le rappel d'échéance — envoyé cinq
+                  jours avant — menait à un bouton mort. `canRenew` vient du serveur, qui
+                  applique la même décision au moment de débiter.
+
+                  ⚠️ Reprendre dans la fenêtre ne coûte pas les jours restants : le serveur
+                  chaîne le nouveau mois sur l'échéance en cours. C'est ce que dit
+                  `rysmoStore.renewNote`, et c'est ce qui rend l'avance sans regret.
+                */}
                 <Button
                   tone={plan.id === 'pro' ? 'transforme' : 'quiet'}
                   style={{ marginTop: '15px' }}
                   onClick={() => void handleBuySubscription(plan.id)}
-                  disabled={purchasing !== null || quota?.hasActiveSubscription}
+                  /*
+                    ⚠️ `quota !== null && !canRenew`, JAMAIS `!quota?.canRenew`. Le quota vaut
+                    `null` tant qu'il n'est pas lu — et il reste `null` si la lecture échoue.
+                    La seconde écriture désactiverait alors le bouton pour toujours, sur une
+                    panne réseau, sans que rien ne le dise : la vente s'arrêterait en silence.
+                    On ne refuse que ce qu'on SAIT refusé ; le vrai garde est côté serveur.
+                  */
+                  disabled={purchasing !== null || (quota !== null && !quota.canRenew)}
                   loading={purchasing === `sub_${plan.id}`}
                 >
-                  {quota?.hasActiveSubscription
-                    ? t('rysmoStore.alreadySubscribed')
-                    : t('rysmoStore.subscribeTo', { plan: planLabel })}
+                  {current && quota?.canRenew
+                    ? t('rysmoStore.renewPlan')
+                    : quota?.hasActiveSubscription
+                      ? t('rysmoStore.alreadySubscribed')
+                      : t('rysmoStore.subscribeTo', { plan: planLabel })}
                 </Button>
+                {current && quota?.canRenew && (
+                  <p className="m-0 mt-[8px] text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
+                    {t('rysmoStore.renewNote')}
+                  </p>
+                )}
               </GlassPanel>
             );
           })}

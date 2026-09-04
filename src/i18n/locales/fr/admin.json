@@ -10,6 +10,7 @@
     "videos": "Vidéos",
     "users": "Utilisateurs",
     "transactions": "Transactions",
+    "revenue": "Revenu",
     "messages": "Messages",
     "coupons": "Coupons",
     "announcements": "Annonces",
@@ -135,6 +136,44 @@
     "panelReceived": "Reçu le",
     "panelAdvance": "Passer en « {{status}} »",
     "panelOpenFull": "Ouvrir la fiche complète"
+  },
+  "revenue": {
+    "title": "Revenu",
+    "sub": "Console · encaissement",
+    "refresh": "Réessayer",
+    "periodLabel": "Période d'encaissement",
+    "period": {
+      "mois": "30 jours",
+      "trimestre": "90 jours",
+      "annee": "12 mois",
+      "tout": "tout"
+    },
+    "statNet": "Encaissé net",
+    "statRefunded": "Remboursé",
+    "statBasket": "Panier moyen",
+    "statFailureRate": "Taux d'échec",
+    "footSales_one": "sur {{count}} vente encaissée",
+    "footSales_other": "sur {{count}} ventes encaissées",
+    "footAttempts_one": "sur {{count}} tentative",
+    "footAttempts_other": "sur {{count}} tentatives",
+    "linesTitle": "Par ligne de business",
+    "line": {
+      "formation": "Formations",
+      "club": "Club des Digitos",
+      "rysmoSubscription": "Rysmo+ · abonnement",
+      "rysmoPack": "Rysmo · jetons",
+      "unassigned": "Non réparti"
+    },
+    "lineMeta_one": "{{count}} vente encaissée",
+    "lineMeta_other": "{{count}} ventes encaissées",
+    "lineOpen": "Ouvrir",
+    "emptyTitle": "Rien d'encaissé sur cette période",
+    "emptyBody": "Un zéro daté est une valeur : rien n'a été encaissé entre ces deux dates.",
+    "failedTitle": "Le relevé n'a pas pu être lu",
+    "failedBody": "La lecture des transactions a échoué. Ce n'est pas un zéro : c'est une absence de mesure.",
+    "ratioCite": "calculé sur les transactions de la période",
+    "unassignedNote": "Certaines transactions sont antérieures au marqueur de ligne. Elles comptent dans les totaux mais ne sont réparties nulle part tant qu'elles n'ont pas été reprises.",
+    "scope": "Cet écran ne couvre pas : la trésorerie réellement reçue chez l'opérateur — Bictorys règle en différé, un encaissement daté ici peut n'être crédité que plus tard ; la TVA — les montants sont ceux débités, la ventilation est sur la facture ; les remboursements, qui sont datés de leur propre journée et non de la vente d'origine ; et les prestations d'agence, encaissées hors plateforme et donc absentes de cette collection. Le rapprochement bancaire se fait ailleurs."
   },
   "analytics": {
     "title": "Analytics",

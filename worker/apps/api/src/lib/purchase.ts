@@ -27,8 +27,87 @@
  */
 import * as DS from './email-design';
 import { type Langue } from './invoice';
+import type { FamilleFiscale } from './tax';
 
 export type AchatKind = 'club' | 'rysmoPack' | 'rysmoSubscription' | 'formation';
+
+/** Les quatre lignes vendues, dans l'ordre où on les lit. Sert aussi à valider `ligne`. */
+export const LIGNES_BUSINESS: readonly AchatKind[] = [
+  'formation',
+  'club',
+  'rysmoPack',
+  'rysmoSubscription',
+];
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * CE QU'UNE TRANSACTION VEND — le champ explicite d'abord, la déduction en repli.
+ *
+ * ── POURQUOI UN CHAMP, ALORS QUE LA DÉDUCTION MARCHE ──────────────────────────
+ *
+ * La déduction ci-dessous est exacte. Elle a un seul défaut, et il est rédhibitoire :
+ * **Firestore ne sait pas requêter un champ ABSENT.** `rysmoKind` n'existe que sur les
+ * transactions Rysmo ; « toutes celles qui n'en ont pas » n'est pas une requête. Tant qu'on
+ * se contentait de classer une transaction qu'on tenait déjà en main — pour rédiger sa
+ * facture —, ça suffisait. Pour répondre à « combien cette ligne a-t-elle rapporté ce
+ * mois-ci », il faut pouvoir filtrer, donc un champ écrit sur les QUATRE branches.
+ *
+ * C'est exactement le raisonnement de `mailPending`, et sa formulation dans
+ * `src/lib/firestore/admin.ts` vaut ici mot pour mot : un booléen explicite plutôt que
+ * l'absence d'un autre champ.
+ *
+ * ── L'ORDRE DES DEUX SOURCES ──────────────────────────────────────────────────
+ *
+ * Le champ écrit fait foi. La déduction ne sert qu'aux transactions ANTÉRIEURES au marqueur,
+ * et elle est exacte pour les quatre formes historiques : rien de l'historique n'est perdu à
+ * la lecture. Ce qui est perdu, c'est la capacité de les REQUÊTER — d'où la reprise, et d'où
+ * le seau « non réparti » que l'écran de revenu affiche plutôt que de les ranger d'office
+ * dans `formation`. Une absence qui se voit se rattrape ; une absence répartie par défaut,
+ * jamais.
+ *
+ * ⚠️ Une valeur inconnue dans le champ retombe sur la déduction. Elle ne devient jamais une
+ * cinquième ligne : le seul écrivain est le Worker, et une valeur qu'il n'a pas écrite est
+ * une donnée corrompue, pas un produit nouveau.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+export function ligneDeBusiness(txn: Record<string, unknown>): AchatKind {
+  const ecrite = txn.ligne;
+  if (typeof ecrite === 'string' && (LIGNES_BUSINESS as readonly string[]).includes(ecrite)) {
+    return ecrite as AchatKind;
+  }
+  return deduireLigne(txn);
+}
+
+/** La forme historique, telle qu'elle vivait dans `transaction-mail.ts`. */
+function deduireLigne(txn: Record<string, unknown>): AchatKind {
+  if (txn.formationId === 'club_digitos') return 'club';
+  if (txn.rysmoKind === 'pack') return 'rysmoPack';
+  if (txn.rysmoKind === 'subscription') return 'rysmoSubscription';
+  return 'formation';
+}
+
+/** La famille FISCALE d'une ligne. Table pure : le régime se lit dans `tax.ts`. */
+export function familleDeLaLigne(kind: AchatKind): FamilleFiscale {
+  if (kind === 'club') return 'club';
+  if (kind === 'rysmoPack' || kind === 'rysmoSubscription') return 'rysmo';
+  return 'formation';
+}
+
+/**
+ * Ce qu'on vend, déduit de la transaction. Une seule lecture, deux usages.
+ *
+ * ⚠️ Cette fonction vivait dans `transaction-mail.ts`. Elle est ici parce qu'elle PRODUIT
+ * `AchatKind`, qui est déclaré ici : une fonction rangée loin du type qu'elle rend finit
+ * toujours par être réécrite sur place par quelqu'un qui ne l'a pas trouvée. C'est
+ * précisément ce qui était arrivé au webhook, qui redérivait les mêmes branches six fois.
+ */
+export function classerAchat(txn: Record<string, unknown>): {
+  kind: AchatKind;
+  famille: FamilleFiscale;
+} {
+  const kind = ligneDeBusiness(txn);
+  return { kind, famille: familleDeLaLigne(kind) };
+}
 
 export interface Achat {
   kind: AchatKind;

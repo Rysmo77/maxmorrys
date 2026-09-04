@@ -63,9 +63,22 @@ import { useFormat } from '../../hooks/useFormat';
  * LE DEVIS. Il ne crée rien, ne consomme aucun usage de coupon, et peut être rejoué à chaque
  * validation du champ de code. C'est lui qui rend le montant que l'écran affiche.
  */
+/*
+ * ⚠️ `clubApplied` N'EST PAS `clubMember`. On peut être membre ET voir le coupon l'emporter :
+ * les deux remises ne se cumulent pas, le serveur retient la meilleure. L'écran doit dire
+ * LAQUELLE a joué, sinon un code promo valide passerait pour non reconnu.
+ */
 const quoteCheckout = httpsCallable<
   { formationId: string; couponCode?: string },
-  { basePrice: number; couponDiscount: number; finalPrice: number; couponApplied: boolean }
+  {
+    basePrice: number;
+    couponDiscount: number;
+    clubDiscount: number;
+    clubMember: boolean;
+    finalPrice: number;
+    couponApplied: boolean;
+    clubApplied: boolean;
+  }
 >(functions, 'quoteCheckout');
 
 const createBictorysCharge = httpsCallable<
@@ -95,7 +108,13 @@ export default function Checkout() {
   const [formation, setFormation] = useState<Formation | null | undefined>(undefined);
   const [couponCode, setCouponCode] = useState('');
   /** Le devis serveur. `null` tant qu'il n'a pas répondu — voir plus bas. */
-  const [quote, setQuote] = useState<{ finalPrice: number; couponDiscount: number; couponApplied: boolean } | null>(null);
+  const [quote, setQuote] = useState<{
+    finalPrice: number;
+    couponDiscount: number;
+    couponApplied: boolean;
+    clubDiscount: number;
+    clubApplied: boolean;
+  } | null>(null);
   const [quoting, setQuoting] = useState(false);
   const [couponError, setCouponError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -130,6 +149,46 @@ export default function Checkout() {
       });
     }
   }, [user, navigate, slug, language]);
+
+  /*
+   * ── LE DEVIS D'OUVERTURE, SANS COUPON ────────────────────────────────────────────────
+   *
+   * Il n'y en avait pas : le serveur n'était interrogé qu'au moment où quelqu'un tapait un
+   * code. C'était sans conséquence tant que la seule remise venait d'un coupon — le prix
+   * catalogue était alors le bon.
+   *
+   * La remise membre du Club change ça. Elle ne se demande pas, elle se CONSTATE : sans cet
+   * appel, un membre verrait le prix plein à l'écran et se ferait débiter moins. L'écart
+   * jouerait en sa faveur, il serait invisible, et ce serait exactement le défaut que
+   * `resolveCheckoutTotal` a été écrit pour fermer — repassé par la porte de l'affichage.
+   *
+   * ⚠️ IL EST ICI, AVANT LES RETOURS ANTICIPÉS, ET PAS PLUS BAS. Posé après le premier
+   * `return`, il n'était appelé que sur certains rendus — `react-hooks/rules-of-hooks` l'a
+   * refusé, et il avait raison : l'ordre des hooks aurait changé d'un rendu à l'autre.
+   * Le prix catalogue est donc recalculé ici plutôt que lu dans une variable définie plus
+   * bas ; c'est le prix de l'emplacement correct.
+   *
+   * ⚠️ Un échec laisse `quote` à `null`, donc le prix catalogue : le prix SANS remise, donc
+   * jamais un montant inférieur à ce qui sera débité. C'est le bon côté pour se tromper.
+   */
+  useEffect(() => {
+    if (!formation) return;
+    if ((formation.promoPrice ?? formation.price) === 0) return;
+    let annule = false;
+    quoteCheckout({ formationId: formation.id })
+      .then(({ data }) => {
+        if (annule) return;
+        setQuote({
+          finalPrice: data.finalPrice,
+          couponDiscount: data.couponDiscount,
+          couponApplied: data.couponApplied,
+          clubDiscount: data.clubDiscount,
+          clubApplied: data.clubApplied,
+        });
+      })
+      .catch(() => { /* Prix catalogue conservé : voir ci-dessus. */ });
+    return () => { annule = true; };
+  }, [formation]);
 
   if (formation === undefined) {
     return (
@@ -227,7 +286,13 @@ export default function Checkout() {
     setCouponError('');
     try {
       const { data } = await quoteCheckout({ formationId: formation.id, couponCode: couponCode.trim() });
-      setQuote({ finalPrice: data.finalPrice, couponDiscount: data.couponDiscount, couponApplied: data.couponApplied });
+      setQuote({
+        finalPrice: data.finalPrice,
+        couponDiscount: data.couponDiscount,
+        couponApplied: data.couponApplied,
+        clubDiscount: data.clubDiscount,
+        clubApplied: data.clubApplied,
+      });
       setReadAt(new Date());
     } catch (error: unknown) {
       setQuote(null);
@@ -263,6 +328,19 @@ export default function Checkout() {
           paymentMethod: 'free',
           couponCode: couponCode.trim() || undefined,
           createdAt: now,
+          /*
+           * ⚠️ LE CINQUIÈME ÉCRIVAIN DE TRANSACTION, ET LE SEUL QUI NE SOIT PAS DANS LE WORKER.
+           *
+           * L'inscription gratuite s'écrit depuis le navigateur — les règles Firestore
+           * l'autorisent, bornée à `amount == 0` sur une formation réellement gratuite. Sans
+           * cette ligne, toute inscription gratuite tomberait en « non réparti » dans le
+           * relevé de revenu, alors que c'est exactement le début du parcours qu'on veut
+           * mesurer : combien de gens entrent par le module gratuit.
+           *
+           * La valeur est FIGÉE à `'formation'` et les règles l'exigent : ce chemin ne sert
+           * qu'aux formations, et il ne doit pas pouvoir se déclarer Club.
+           */
+          ligne: 'formation',
         });
 
         // Enrollment document (deterministic ID: uid_formationId)
@@ -377,6 +455,25 @@ export default function Checkout() {
             </>
           )}
 
+          {/*
+            LA REMISE MEMBRE, ANNONCÉE AVANT LE TOTAL ET NON APRÈS.
+
+            Elle ne se demande pas : elle est constatée par le serveur à l'ouverture de
+            l'écran. Posée sous le total, elle se lirait comme une justification ; posée
+            au-dessus, elle explique le nombre qui suit.
+
+            `source="server"` et non `'db'` : ce montant est CALCULÉ par le serveur sur
+            l'appartenance de la personne, il n'est lu dans aucun catalogue.
+          */}
+          {quote?.clubApplied && (
+            <div className="flex items-baseline justify-between gap-3 mt-2.5">
+              <span className="text-meta text-ok">{t('checkout.clubDiscount')}</span>
+              <span className="text-ok">
+                − <Num value={quote.clubDiscount} unit="FCFA" source="server" asOf={readAt} showAsOf={false} />
+              </span>
+            </div>
+          )}
+
           <div className="h-px bg-[color:var(--border-hair)] my-[13px]" />
 
           <div className="flex items-baseline justify-between gap-3">
@@ -457,6 +554,15 @@ export default function Checkout() {
                   {t('checkout.couponApplied')}{' '}
                   <Num value={quote.couponDiscount} unit="FCFA" source="server" asOf={readAt} showAsOf={false} />
                 </p>
+              )}
+              {/*
+                ⚠️ « Le coupon n'a pas joué » n'est pas « le coupon est refusé ». Quand la
+                remise membre est la plus généreuse, le code saisi reste valide mais sans
+                effet : le dire évite de laisser croire à un refus, et évite surtout de faire
+                chercher un autre code à quelqu'un qui a déjà la meilleure remise.
+              */}
+              {quote?.clubApplied && quote.couponDiscount > 0 && (
+                <p className="mt-2 mb-0 text-small text-ink-2">{t('checkout.couponBeatenByClub')}</p>
               )}
             </div>
           </>
