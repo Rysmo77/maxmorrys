@@ -55,7 +55,14 @@ export function niveauDepuisXp(xp: number): number {
 /** Ce que l'appelant peut journaliser. `raison` dit pourquoi rien n'a été versé. */
 export interface ResultatParrainage {
   recompense: boolean;
-  raison?: 'pasDeParrain' | 'dejaRecompense' | 'codeInconnu' | 'autoParrainage' | 'erreur';
+  raison?:
+    | 'pasDeParrain'
+    | 'dejaRecompense'
+    | 'codeInconnu'
+    /** Plusieurs comptes portent le meme code : on refuse d'arbitrer. */
+    | 'codeAmbigu'
+    | 'autoParrainage'
+    | 'erreur';
   parrainId?: string;
 }
 
@@ -77,12 +84,38 @@ export async function recompenserParrain(
       return { recompense: false, raison: 'dejaRecompense' };
     }
 
+    /*
+     * ─────────────────────────────────────────────────────────────────────────────
+     * UN CODE AMBIGU NE RECOMPENSE PERSONNE (audit du 03/09/2026).
+     *
+     * `limit: 1` sur une requete sans `orderBy` ne rend pas « le porteur du code » : il rend
+     * le premier document que Firestore veut bien rendre, c'est-a-dire celui dont
+     * l'identifiant trie le plus bas. Tant qu'un code est unique, la nuance ne se voit pas.
+     *
+     * Elle se voyait pourtant : `firestore.rules` verrouillait `referralCode` en MISE A JOUR
+     * mais pas a la CREATION du profil. Il suffisait donc de s'inscrire en posant le code
+     * d'un tiers — et, les UID Firebase etant tires au hasard, de recreer un compte jusqu'a
+     * en obtenir un qui trie plus bas que le sien — pour encaisser TOUTES ses conversions
+     * futures. La regle `create` porte desormais une liste blanche qui ferme cette porte.
+     *
+     * Ce `limit: 2` est le second rideau, et il ne fait pas confiance a la premiere garde :
+     * il CONSTATE l'ambiguite au lieu de trancher au hasard. Deux porteurs d'un meme code
+     * sont une anomalie a corriger a la main, pas un arbitrage a rendre en silence.
+     * ─────────────────────────────────────────────────────────────────────────────
+     */
     const parrains = await db.query({
       collection: 'users',
       where: [{ field: 'referralCode', op: '==', value: code }],
-      limit: 1,
+      limit: 2,
     });
     if (parrains.length === 0) return { recompense: false, raison: 'codeInconnu' };
+    if (parrains.length > 1) {
+      console.error(
+        `Parrainage : code ambigu « ${code} » porte par plusieurs comptes ` +
+          `(${parrains.map((p) => p.id).join(', ')}). Aucune recompense versee.`,
+      );
+      return { recompense: false, raison: 'codeAmbigu' };
+    }
 
     const parrainId = parrains[0].id;
     if (!parrainId || parrainId === filleulId) {

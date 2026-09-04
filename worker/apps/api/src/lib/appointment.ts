@@ -66,13 +66,72 @@ export interface DemandeRdv {
   objet: string;
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * CE QUI SORT D'UN CHAMP LIBRE N'EST PAS DU TEXTE : C'EST UNE CHARGE UTILE.
+ *
+ * Les quatre valeurs recopiees dans ce courrier viennent d'un document `appointments`
+ * que **n'importe qui peut creer sans compte** — c'est le propre d'un formulaire de
+ * contact public, et ce n'est pas negociable : le prospect deconnecte est le cas
+ * principal, pas le cas limite.
+ *
+ * Le HTML, lui, etait deja sur : `DS.paragraphe` et `DS.lignes` echappent via `echapper()`,
+ * donc aucune balise ne passe. LE REPLI TEXTE N'ECHAPPE RIEN — et il n'a pas a le faire,
+ * c'est du texte brut. Sauf que les clients de messagerie transforment automatiquement une
+ * URL en lien cliquable. Le champ « objet » suffisait donc a placer l'adresse d'un
+ * attaquant dans un courrier authentifie au nom de Max-Morrys : signature SPF/DKIM valide,
+ * domaine legitime, et une destination choisie par lui. C'est la definition d'un
+ * hameconnage credible.
+ *
+ * D'ou cette fonction, posee au point de passage OBLIGATOIRE entre le document et l'envoi
+ * plutot que chez l'appelant : un second appelant de `buildAppointmentNotice` heriterait
+ * de la garde sans avoir a y penser. C'est la lecon des six constats de l'audit — une
+ * protection posee d'un seul cote de la porte n'en est pas une.
+ *
+ * Elle ne remplace pas les plafonds du handler : celle-ci retire le contenu de l'abus,
+ * ceux-la en retirent le volume. Il faut les deux.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+export function assainirChampLibre(valeur: string, max = 120): string {
+  return (
+    valeur
+      // Sauts de ligne, caracteres de controle, marques bidi et espaces de largeur nulle :
+      // ils ne portent aucun texte, ils fabriquent une fausse mise en page dans le repli
+      // texte — un faux pied de page, une fausse signature. Ils sont la CIBLE du filtre,
+      // d ou la derogation ci-dessous : ici, les ecrire est le correctif.
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028\u2029\u202A-\u202E\uFEFF]+/g, ' ')
+      // Toute adresse explicite. C'est LA ligne qui compte.
+      .replace(/\b(?:https?:\/\/|www\.|mailto:)\S*/gi, '[lien retire]')
+      // Un domaine nu passe aussi la linkification chez plusieurs clients : « paye-ici.top »
+      // devient cliquable sans jamais avoir porte de schema.
+      .replace(
+        /\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|io|me|fr|sn|co|xyz|top|link|click|info|biz|app|site|online|shop|ru|cn)\b/gi,
+        '[lien retire]',
+      )
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, max)
+  );
+}
+
 export function buildAppointmentNotice(
-  demande: DemandeRdv,
+  entree: DemandeRdv,
   langue: Langue,
   baseUrl: string,
 ): { subject: string; html: string; text: string } {
   const t = T[langue];
   const lienContact = `${baseUrl}${langue === 'en' ? '/en' : ''}/contact`;
+
+  /* Les bornes reprennent celles de `firestore.rules` : la regle refuse a l'entree ce que
+     cette fonction retaille a la sortie. Les deux disent la meme chose, et c'est voulu —
+     un document ecrit avant le durcissement des regles passe encore par ici. */
+  const demande: DemandeRdv = {
+    nom: assainirChampLibre(entree.nom, 100),
+    date: assainirChampLibre(entree.date, 40),
+    heure: assainirChampLibre(entree.heure, 10),
+    objet: assainirChampLibre(entree.objet, 120),
+  };
 
   const contenu = [
     DS.surTitre(t.surTitre),

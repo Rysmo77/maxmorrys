@@ -15,6 +15,14 @@
  *   node scripts/recrawl.mjs --token <jeton>            # tout ce qui a changé
  *   node scripts/recrawl.mjs --token <jeton> --dry      # affiche la liste, n'appelle rien
  *   node scripts/recrawl.mjs --token <jeton> --only /faq
+ *   node scripts/recrawl.mjs --token <jeton> --retry    # seulement les échecs du dernier passage
+ *
+ * LE PLAFOND DE L'APPLICATION. Facebook compte les appels PAR APPLICATION sur une fenêtre
+ * glissante, pas par URL. Une série de quatre-vingts liens la touche en fin de course :
+ * l'erreur `(#4) Application request limit reached` ne dit rien de l'URL, elle dit que le
+ * quota du jeton est épuisé. Le script attend et retente de lui-même ; s'il échoue quand
+ * même, les URL concernées sont écrites dans `.recrawl-failed.txt` et `--retry` les reprend
+ * seules, une fois la fenêtre passée.
  *
  * LE JETON. Il vient du Graph API Explorer
  * (https://developers.facebook.com/tools/explorer/) : « Generate Access Token », aucune
@@ -28,6 +36,8 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { existsSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+
 const args = process.argv.slice(2);
 const flag = (name) => {
   const i = args.indexOf(name);
@@ -35,6 +45,9 @@ const flag = (name) => {
 };
 
 const TOKEN = flag('--token') ?? process.env.FB_ACCESS_TOKEN;
+const RETRY = args.includes('--retry');
+/** Les URL que le dernier passage n'a pas pu re-balayer. Relu par `--retry`. */
+const FAILED_FILE = new URL('../.recrawl-failed.txt', import.meta.url);
 const DRY = args.includes('--dry');
 const ONLY = flag('--only');
 const SITEMAP = flag('--sitemap') ?? 'https://maxmorrys.me/sitemap.xml';
@@ -54,6 +67,11 @@ async function urlsFromSitemap() {
   const xml = await response.text();
   const all = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   return all.filter((u) => !IMAGE_INCHANGEE.test(u)).filter((u) => !ONLY || u.includes(ONLY));
+}
+
+/** L'erreur du plafond d'application, qui n'a rien à voir avec l'URL demandée. */
+function estPlafond(message) {
+  return /#4\b|request limit|rate limit/i.test(message);
 }
 
 /**
@@ -79,9 +97,44 @@ async function rescrape(url) {
   return body?.image?.[0]?.url ?? body?.og_object?.image?.[0]?.url;
 }
 
+/**
+ * Re-balaie en encaissant le plafond.
+ *
+ * La fenêtre de Facebook se compte en minutes : attendre est la seule réponse utile, et une
+ * pause vaut mieux qu'un échec à faire reprendre à la main. Les autres erreurs — jeton
+ * expiré, URL refusée — remontent tout de suite : les retenter ne changerait rien.
+ */
+async function rescrapePatient(url, onWait) {
+  const attentes = [60, 180, 300];
+  for (let i = 0; ; i++) {
+    try {
+      return await rescrape(url);
+    } catch (error) {
+      if (!estPlafond(error.message) || i >= attentes.length) throw error;
+      onWait(attentes[i]);
+      await new Promise((r) => setTimeout(r, attentes[i] * 1000));
+    }
+  }
+}
+
 async function main() {
-  const urls = await urlsFromSitemap();
-  console.log(`${urls.length} URL dont l'aperçu a changé.\n`);
+  /*
+    `--retry` ne relit PAS le sitemap : il reprend exactement ce qui a échoué. Rejouer les
+    quatre-vingts pour quatre manquantes rebrûlerait le quota qui les avait fait échouer.
+  */
+  const urls = RETRY
+    ? (existsSync(FAILED_FILE) ? readFileSync(FAILED_FILE, 'utf8').trim().split('\n').filter(Boolean) : [])
+    : await urlsFromSitemap();
+
+  if (RETRY && urls.length === 0) {
+    console.log('Aucun échec en attente — rien à reprendre.');
+    return;
+  }
+  console.log(
+    RETRY
+      ? `${urls.length} URL reprises depuis le dernier passage.\n`
+      : `${urls.length} URL dont l'aperçu a changé.\n`,
+  );
 
   if (DRY) {
     for (const u of urls) console.log(`  ${u}`);
@@ -105,7 +158,9 @@ async function main() {
 
   for (const [index, url] of urls.entries()) {
     try {
-      const image = await rescrape(url);
+      const image = await rescrapePatient(url, (secondes) =>
+        console.log(`      ⏸ plafond de l'application atteint — pause de ${secondes} s`),
+      );
       ok++;
       const seen = image ? image.replace('https://maxmorrys.me', '') : '— aucune image vue';
       console.log(`  ✔ ${String(index + 1).padStart(3)}/${urls.length}  ${url}\n         → ${seen}`);
@@ -119,11 +174,24 @@ async function main() {
   }
 
   console.log(`\n${ok}/${urls.length} re-balayées.`);
-  if (failures.length) {
-    console.log(`${failures.length} échec(s) :`);
-    for (const f of failures) console.log(`  ${f.url} — ${f.message}`);
-    process.exit(1);
+
+  if (failures.length === 0) {
+    // Plus rien en attente : ne pas laisser derrière soi une liste d'échecs périmée, que le
+    // prochain `--retry` rejouerait pour rien.
+    if (existsSync(FAILED_FILE)) unlinkSync(FAILED_FILE);
+    return;
   }
+
+  writeFileSync(FAILED_FILE, failures.map((f) => f.url).join('\n') + '\n');
+  console.log(`${failures.length} échec(s) :`);
+  for (const f of failures) console.log(`  ${f.url} — ${f.message}`);
+  console.log(
+    failures.every((f) => estPlafond(f.message))
+      ? '\nToutes dues au plafond de l’application : la fenêtre se rouvre en une heure environ.\n' +
+          '  node scripts/recrawl.mjs --token <jeton> --retry'
+      : '\n  node scripts/recrawl.mjs --token <jeton> --retry',
+  );
+  process.exit(1);
 }
 
 main().catch((error) => {

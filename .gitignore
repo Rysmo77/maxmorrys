@@ -45,3 +45,7 @@ max-morrys-*.json
 # Originaux des couvertures, avant réencodage (`scripts/covers-weight.mjs --backup`).
 # 37 Mo de binaires : c'est un filet de sécurité local, pas un artefact du dépôt.
 .covers-backup/
+
+# Les URL qu'un passage de `recrawl` n'a pas pu re-balayer, reprises par `--retry`.
+# État de travail local, jamais un artefact du dépôt.
+.recrawl-failed.txt

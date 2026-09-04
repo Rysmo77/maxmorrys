@@ -135,6 +135,28 @@ export const socialLinks = [
 export const podcastPlatform: { name: string; url: string } | null = null;
 
 /**
+ * ── L'OUVERTURE DE LA PLATEFORME, ET POURQUOI C'EST UNE DONNÉE ──────────────────────────
+ *
+ * « La plateforme vient d'ouvrir » et « Le Club a ouvert cette année » étaient écrites en
+ * toutes lettres dans la copie, en deux langues, à trois endroits. Vraies au moment où on les
+ * écrit, fausses quelques mois plus tard, et RIEN ne le signale : une phrase relative au temps
+ * ne casse pas, elle se met simplement à mentir. Sur les deux écrans dont le métier est
+ * d'expliquer pourquoi aucun chiffre n'est annoncé, c'est le pire endroit possible.
+ *
+ * Une phrase DATÉE, elle, ne périme pas : elle vieillit avec son lecteur, qui fait lui-même le
+ * calcul. La date remplace donc le relatif, et elle vit ici parce que c'est une donnée.
+ *
+ * ⚠️ GRANULARITÉ AU MOIS, VOLONTAIREMENT. Le format est `AAAA-MM`, pas une date complète : le
+ * jour exact n'est pas connu, et l'inventer pour satisfaire un type `Date` serait exactement la
+ * fabrication que tout ce fichier existe pour empêcher. `useFormat().formatMonth()` en fait
+ * « avril 2026 » ou « April 2026 » selon la langue.
+ *
+ * ⚠️ Comme `podcastPlatform`, cette date n'existe PAS dans le miroir corporate `My-onoma` :
+ * elle date l'ouverture de LA PLATEFORME, pas celle de la société, immatriculée en 2022.
+ */
+export const PLATFORM_OPENED_AT = '2026-04';
+
+/**
  * OÙ ON PEUT ME TROUVER — les profils sociaux, PLUS la plateforme d'écoute quand elle existe.
  *
  * Distinct de `socialLinks`, et ça n'est pas une redondance : le pied de page rend `socialLinks`

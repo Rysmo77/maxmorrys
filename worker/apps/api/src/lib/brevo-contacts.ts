@@ -1,13 +1,25 @@
 /**
- * LA SYNCHRONISATION D'AUDIENCE — Firestore vers Listmonk.
+ * LA SYNCHRONISATION D'AUDIENCE — Firestore vers Brevo.
  *
  * ═══════════════════════════════════════════════════════════════════════════════
- * POURQUOI UNE POUSSÉE, ET NON UNE LECTURE
+ * POURQUOI BREVO SEUL, ET PLUS LISTMONK
  *
- * Listmonk sait importer depuis un CSV ou une URL. On ne s'en sert pas : cela demanderait
- * d'exposer publiquement une liste d'adresses consentantes, ne serait-ce que derrière un
- * jeton. Le Worker pousse, Listmonk n'a rien à venir chercher, et aucune adresse ne transite
- * par une URL joignable de l'extérieur.
+ * Listmonk a été installé puis retiré, et l'erreur mérite d'être écrite plutôt qu'effacée.
+ * Il RELAYAIT vers Brevo : il n'apportait donc rien sur le plafond de 300 envois par jour,
+ * qui est la contrainte dure du programme. Brevo ne facture pas au contact — la raison
+ * classique d'auto-héberger tombait aussi. Et surtout, Listmonk envoie des campagnes mais
+ * ne sait pas faire de SÉQUENCES, alors que le plan en contient deux : la bienvenue en
+ * trois e-mails et le nurture de devis. L'outil ne savait pas faire la moitié du plan.
+ *
+ * L'argument restant — « les données restent chez nous » — était plus faible qu'il n'en
+ * avait l'air : la preuve du consentement vit dans Firestore (`newsletter.consentAt`,
+ * exigée par les règles serveur), pas dans l'outil d'envoi. Listmonk n'était qu'une copie
+ * intermédiaire de plus, susceptible de diverger de la source.
+ *
+ * ── POURQUOI UNE POUSSÉE, ET NON UN IMPORT ──
+ * Brevo sait importer depuis une URL. On ne s'en sert pas : cela demanderait d'exposer une
+ * liste d'adresses consentantes derrière une URL joignable. Le Worker pousse contact par
+ * contact ; rien n'est exposé.
  *
  * ═══════════════════════════════════════════════════════════════════════════════
  * ⚠️ CE QUI N'ENTRE JAMAIS DANS CETTE SYNCHRONISATION
@@ -34,14 +46,19 @@ import type { Firestore } from '@mm/firestore-rest';
 import type { Env } from '../env';
 import { normaliserAdresse } from './unsubscribe';
 
-/** Un abonné tel que Listmonk l'attend. */
-export interface AbonneListmonk {
+/**
+ * Un contact tel que Brevo l'attend.
+ *
+ * ⚠️ Les clés d'attributs sont en MAJUSCULES et doivent avoir été DÉCLARÉES dans le compte
+ * (Contacts → Attributs) avant tout envoi. Brevo rejette un attribut inconnu au lieu de
+ * l'ignorer : un champ ajouté ici sans être déclaré là-bas fait échouer le contact entier,
+ * silencieusement du point de vue de l'appelant.
+ */
+export interface ContactBrevo {
   email: string;
-  name: string;
-  /** `enabled` — un abonné poussé ici a déjà consenti ; `blocklisted` pour un désabonné. */
-  status: 'enabled' | 'blocklisted';
-  /** Attributs libres, exploitables par les segments SQL de Listmonk. */
-  attribs: Record<string, unknown>;
+  /** `false` — le contact reçoit ; `true` pour un désabonné, que Brevo met en liste noire. */
+  bloque: boolean;
+  attributes: Record<string, unknown>;
 }
 
 export interface BilanSync {
@@ -62,8 +79,20 @@ export interface BilanSync {
  * La version du compte l'emporte sur celle de la lettre : elle porte un nom, une langue et
  * une ancienneté, là où l'inscription anonyme n'a que l'adresse.
  */
-export async function rassemblerAudience(db: Firestore): Promise<AbonneListmonk[]> {
-  const par_adresse = new Map<string, AbonneListmonk>();
+/**
+ * Une date au format que Brevo attend : `YYYY-MM-DD`, jamais un horodatage complet.
+ *
+ * Brevo REJETTE le contact entier si un attribut de type date ne parse pas — il ne l'ignore
+ * pas. Nos valeurs sont des ISO 8601 avec l'heure ; les passer telles quelles ferait échouer
+ * chaque contact portant une date, c'est-à-dire tous.
+ */
+function jour(valeur: unknown): string {
+  const s = typeof valeur === 'string' ? valeur.slice(0, 10) : '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+}
+
+export async function rassemblerAudience(db: Firestore): Promise<ContactBrevo[]> {
+  const par_adresse = new Map<string, ContactBrevo>();
 
   // ── Source 1 : la collection `newsletter` ──
   const abonnes = await db.query({
@@ -73,18 +102,16 @@ export async function rassemblerAudience(db: Firestore): Promise<AbonneListmonk[
   for (const a of abonnes) {
     const email = normaliserAdresse(String(a.data.email ?? ''));
     if (!email.includes('@')) continue;
-    // Un désabonné n'est pas OMIS : il est poussé en `blocklisted`, pour que Listmonk le
+    // Un désabonné n'est pas OMIS : il est poussé avec `emailBlacklisted`, pour que Brevo le
     // connaisse et refuse de l'inclure. L'omettre le laisserait ressortir au prochain import.
-    const sorti = Boolean(a.data.unsubscribedAt);
     par_adresse.set(email, {
       email,
-      name: email.split('@')[0],
-      status: sorti ? 'blocklisted' : 'enabled',
-      attribs: {
-        source: a.data.source ?? 'inconnue',
-        locale: a.data.locale ?? 'fr',
-        consenti_le: a.data.consentAt ?? a.data.subscribedAt ?? null,
-        compte: false,
+      bloque: Boolean(a.data.unsubscribedAt),
+      attributes: {
+        SOURCE: String(a.data.source ?? 'inconnue'),
+        LOCALE: String(a.data.locale ?? 'fr'),
+        CONSENTI_LE: jour(a.data.consentAt ?? a.data.subscribedAt),
+        COMPTE: false,
       },
     });
   }
@@ -109,16 +136,17 @@ export async function rassemblerAudience(db: Firestore): Promise<AbonneListmonk[
     const prefs = (u.data.preferences ?? {}) as Record<string, unknown>;
     par_adresse.set(email, {
       email,
-      name: String(u.data.displayName ?? u.data.firstName ?? email.split('@')[0]),
-      status: 'enabled',
-      attribs: {
-        source: 'compte',
-        locale: prefs.language === 'en' ? 'en' : 'fr',
-        compte: true,
-        ville: u.data.city ?? null,
-        inscrit_le: u.data.createdAt ?? null,
+      bloque: false,
+      attributes: {
+        PRENOM: String(u.data.firstName ?? u.data.displayName ?? '').trim() || email.split('@')[0],
+        NOM: String(u.data.lastName ?? '').trim(),
+        SOURCE: 'compte',
+        LOCALE: prefs.language === 'en' ? 'en' : 'fr',
+        COMPTE: true,
+        VILLE: String(u.data.city ?? ''),
+        INSCRIT_LE: jour(u.data.createdAt),
         /* Sert aux segments : « les inscrits qui n'ont jamais commencé », par exemple. */
-        onboarding: Boolean(u.data.onboardingCompleted),
+        ONBOARDING: Boolean(u.data.onboardingCompleted),
       },
     });
   }
@@ -127,32 +155,35 @@ export async function rassemblerAudience(db: Firestore): Promise<AbonneListmonk[
 }
 
 /**
- * Pousse un abonné vers Listmonk.
+ * Pousse un contact vers Brevo.
  *
- * `PUT /api/subscribers` avec `upsert` : Listmonk crée ou met à jour selon l'adresse. Sans
- * upsert, une deuxième synchronisation échouerait sur chaque abonné déjà connu, et le bilan
- * ne montrerait plus que des erreurs — l'état où l'on cesse de lire les journaux.
+ * `POST /v3/contacts` avec `updateEnabled` : Brevo crée ou met à jour selon l'adresse. Sans
+ * ce drapeau, une deuxième synchronisation échouerait sur chaque contact déjà connu, et le
+ * bilan ne montrerait plus que des erreurs — l'état où l'on cesse de lire les journaux.
+ *
+ * ⚠️ `emailBlacklisted` est envoyé DANS LES DEUX SENS, jamais seulement à `true`. Un contact
+ * qui se réabonne après s'être retiré doit voir son drapeau retomber ; ne l'écrire qu'au
+ * retrait le laisserait bloqué à vie, sans que rien ne le signale.
  */
-async function pousser(env: Env, abonne: AbonneListmonk): Promise<{ ok: boolean; erreur?: string }> {
-  const url = `${env.LISTMONK_URL}/api/subscribers`;
+async function pousser(env: Env, contact: ContactBrevo): Promise<{ ok: boolean; erreur?: string }> {
   try {
-    const reponse = await fetch(url, {
+    const reponse = await fetch('https://api.brevo.com/v3/contacts', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        authorization: `token ${env.LISTMONK_API_USER}:${env.LISTMONK_API_TOKEN}`,
+        accept: 'application/json',
+        'api-key': env.BREVO_API_KEY as string,
       },
       body: JSON.stringify({
-        email: abonne.email,
-        name: abonne.name,
-        status: abonne.status,
-        lists: [Number(env.LISTMONK_LIST_ID ?? 1)],
-        attribs: abonne.attribs,
-        preconfirm_subscriptions: true,
-        upsert: true,
+        email: contact.email,
+        attributes: contact.attributes,
+        listIds: [Number(env.BREVO_LIST_ID ?? 0)],
+        emailBlacklisted: contact.bloque,
+        updateEnabled: true,
       }),
     });
-    if (reponse.ok) return { ok: true };
+    // 201 = créé, 204 = mis à jour. Les deux sont des succès.
+    if (reponse.ok || reponse.status === 204) return { ok: true };
     const corps = await reponse.text();
     return { ok: false, erreur: `${reponse.status} ${corps.slice(0, 120)}` };
   } catch (error: unknown) {
@@ -160,36 +191,29 @@ async function pousser(env: Env, abonne: AbonneListmonk): Promise<{ ok: boolean;
   }
 }
 
-/**
- * La passe de synchronisation, appelée par le cron de 08:00.
- *
- * NE LÈVE JAMAIS. Elle partage le cron avec les rappels d'échéance et les relances de devis ;
- * une exception ici empêcherait les deux autres de s'exécuter — et ceux-là portent des
- * promesses contractuelles, pas du marketing.
- */
 export async function synchroniserAudience(db: Firestore, env: Env): Promise<BilanSync> {
   const bilan: BilanSync = { candidats: 0, pousses: 0, bloques: 0, echecs: 0, erreurs: [] };
 
-  if (!env.LISTMONK_URL || !env.LISTMONK_API_TOKEN) {
+  if (!env.BREVO_API_KEY || !env.BREVO_LIST_ID) {
     // Absence de configuration : ce n'est pas une panne, c'est un canal non branché. On le
     // dit et on sort, comme `sendEmail` le fait quand son binding manque.
-    bilan.erreurs.push('Listmonk non configuré (LISTMONK_URL ou LISTMONK_API_TOKEN absent)');
+    bilan.erreurs.push('Brevo non configuré (BREVO_API_KEY ou BREVO_LIST_ID absent)');
     return bilan;
   }
 
   const audience = await rassemblerAudience(db);
   bilan.candidats = audience.length;
 
-  for (const abonne of audience) {
-    const r = await pousser(env, abonne);
+  for (const contact of audience) {
+    const r = await pousser(env, contact);
     if (r.ok) {
-      if (abonne.status === 'blocklisted') bilan.bloques += 1;
+      if (contact.bloque) bilan.bloques += 1;
       else bilan.pousses += 1;
     } else {
       bilan.echecs += 1;
       // On garde les cinq premiers motifs : au-delà, c'est le même défaut répété, et une
       // journalisation qui déborde ne se lit plus.
-      if (bilan.erreurs.length < 5) bilan.erreurs.push(`${abonne.email} — ${r.erreur}`);
+      if (bilan.erreurs.length < 5) bilan.erreurs.push(`${contact.email} — ${r.erreur}`);
     }
   }
 

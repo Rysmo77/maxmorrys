@@ -59,3 +59,78 @@ describe('buildAppointmentNotice', () => {
     expect(buildAppointmentNotice(DEMANDE, 'en', 'https://maxmorrys.me').html).toContain('https://maxmorrys.me/en/contact');
   });
 });
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * LE REPLI TEXTE ÉTAIT LA PORTE — audit du 03/09/2026.
+ *
+ * Le test « échappe ce que le visiteur a tapé » ci-dessus ne regardait QUE le HTML, et le
+ * HTML allait bien. Le courrier a deux corps, et le second n'échappe rien — il n'a pas à le
+ * faire, c'est du texte brut. Sauf que les clients de messagerie transforment d'eux-mêmes
+ * une URL en lien cliquable : le champ « objet », que `firestore.rules` ne contraignait pas
+ * et qu'un anonyme pouvait écrire, suffisait donc à placer la destination d'un attaquant
+ * dans un message signé SPF/DKIM au nom de Max-Morrys.
+ *
+ * Ces tests tiennent la garde sur les DEUX corps. Un futur contributeur qui ajouterait un
+ * champ libre au courrier sans le faire passer par `assainirChampLibre` les casse.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+describe('assainirChampLibre — ce qui sort ne porte pas la charge utile', () => {
+  it('retire une adresse explicite des DEUX corps', () => {
+    const m = buildAppointmentNotice(
+      { ...DEMANDE, objet: 'Urgent : confirme sur https://paye-ici.example/compte' },
+      'fr',
+      'https://maxmorrys.me',
+    );
+    expect(m.text).not.toContain('paye-ici.example');
+    expect(m.html).not.toContain('paye-ici.example');
+    expect(m.text).toContain('[lien retire]');
+  });
+
+  it('retire aussi un domaine nu, que plusieurs clients rendent cliquable', () => {
+    const m = buildAppointmentNotice({ ...DEMANDE, nom: 'Voir paye-ici.top' }, 'fr', 'https://x');
+    expect(m.text).not.toContain('paye-ici.top');
+    expect(m.html).not.toContain('paye-ici.top');
+  });
+
+  it('retire mailto: et www. sans schéma', () => {
+    const m = buildAppointmentNotice(
+      { ...DEMANDE, objet: 'ecris a mailto:pirate@example.test ou www.example.test' },
+      'fr',
+      'https://x',
+    );
+    expect(m.text).not.toContain('pirate@example.test');
+    expect(m.text).not.toContain('www.example.test');
+  });
+
+  it('aplatit les sauts de ligne qui fabriquent une fausse mise en page', () => {
+    const m = buildAppointmentNotice(
+      { ...DEMANDE, objet: 'Coaching\n\n--\nMax-Morrys\nService facturation' },
+      'fr',
+      'https://x',
+    );
+    // La ligne « Objet : … » du repli texte ne doit pas pouvoir en engendrer quatre.
+    const ligneObjet = m.text.split('\n').find((l) => l.startsWith('Objet'));
+    expect(ligneObjet).toContain('Service facturation');
+    expect(m.text.split('\n').filter((l) => l.includes('Service facturation'))).toHaveLength(1);
+  });
+
+  it('borne la longueur, quel que soit ce que portait le document', () => {
+    // Des documents créés AVANT le durcissement des règles passent encore par ici.
+    const m = buildAppointmentNotice({ ...DEMANDE, objet: 'x'.repeat(5000) }, 'fr', 'https://x');
+    expect(m.text.length).toBeLessThan(2000);
+  });
+
+  it('NON-REGRESSION : un trait d’union légitime survit', () => {
+    // La première version de la classe de caractères avalait le tiret : « Max-Morrys »
+    // devenait « Max Morrys » dans le courrier adressé à un prospect.
+    const m = buildAppointmentNotice({ ...DEMANDE, nom: 'Awa Ndiaye-Fall' }, 'fr', 'https://x');
+    expect(m.text).toContain('Awa Ndiaye-Fall');
+  });
+
+  it('NON-REGRESSION : un objet ordinaire traverse intact', () => {
+    const m = buildAppointmentNotice({ ...DEMANDE, objet: 'Audit de presence digitale' }, 'fr', 'https://x');
+    expect(m.text).toContain('Audit de presence digitale');
+    expect(m.text).not.toContain('[lien retire]');
+  });
+});

@@ -16,22 +16,17 @@ import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL } from '../components/seo/seo-config';
 import {
   PACKS, PLANS, OPTIONS, JOURNEY_STEPS, TERMS, SECTOR_KEYS, PACK_KEYS, PLAN_KEYS,
-  packEffectivePrice,
+  packEffectivePrice, CATALOGUE_REVISED_AT,
 } from '../lib/presence/offer';
 import { whatsappUrl } from '../lib/presence/whatsapp';
 import { usePresenceQuote } from './presence/usePresenceQuote';
 
-/**
- * LE CATALOGUE EST DATÉ, ET C'EST CE QUI AUTORISE `source="db"`.
- *
- * `<Num>` exige une source ET une date de relevé. Les prix ne viennent pas d'une requête :
- * ils sont écrits dans `src/lib/presence/offer.ts`. La date de sa dernière révision est donc
- * la date de relevé honnête — pas `new Date()`, qui prétendrait que le prix a été vérifié à
- * l'instant où la page s'affiche.
- *
- * À mettre à jour AVEC le catalogue, jamais séparément.
+/*
+ * LE CATALOGUE EST DATÉ, ET C'EST CE QUI AUTORISE `source="db"` — la date vit désormais DANS
+ * `src/lib/presence/offer.ts`, à côté des montants qu'elle date. Elle était déclarée ici, dans
+ * un fichier qu'on n'ouvre pas pour changer un prix, et l'encart de vérité plus bas la
+ * recopiait en toutes lettres dans les deux langues. Voir `CATALOGUE_REVISED_AT`.
  */
-const CATALOGUE_ASOF = new Date('2026-08-02');
 
 /**
  * ── LE PRIX BARRÉ, ET POURQUOI IL EST LÉGITIME ───────────────────────────────────────
@@ -55,9 +50,9 @@ const CATALOGUE_ASOF = new Date('2026-08-02');
 function packPricing(pack: (typeof PACKS)[number]) {
   const amount = packEffectivePrice(pack);
   return {
-    amount: { value: amount, source: 'db' as const, asOf: CATALOGUE_ASOF },
+    amount: { value: amount, source: 'db' as const, asOf: CATALOGUE_REVISED_AT },
     strike: amount < pack.price
-      ? { value: pack.price, source: 'db' as const, asOf: CATALOGUE_ASOF }
+      ? { value: pack.price, source: 'db' as const, asOf: CATALOGUE_REVISED_AT }
       : undefined,
   };
 }
@@ -79,7 +74,17 @@ const UNIT_SUFFIX: Record<string, string | undefined> = {
 
 export default function PresenceDigitale() {
   const { t } = useTranslation('presence');
-  const { formatPrice, formatApprox } = useFormat();
+  const { formatPrice, formatApprox, locale } = useFormat();
+
+  /*
+   * LA DATE DE LA GRILLE, ÉCRITE EN TOUTES LETTRES DANS L'ENCART DE VÉRITÉ — donc formatée en
+   * UTC, pas dans le fuseau du visiteur. `formatDate()` aurait affiché « 1er août 2026 » à
+   * l'ouest de Greenwich : une date de révision fausse, dans le bloc de la page dont c'est
+   * précisément le métier d'être exact. Voir `CATALOGUE_REVISED_AT`.
+   */
+  const gridAsOf = CATALOGUE_REVISED_AT.toLocaleDateString(locale, {
+    timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric',
+  });
   const path = useLocalizedPath();
   const q = usePresenceQuote();
   /** Le détail des conditions est replié : il est contractuel, pas promotionnel. */
@@ -441,7 +446,7 @@ export default function PresenceDigitale() {
               <p className="m-0 mt-3 text-meta leading-[1.6] text-ink-2">
                 {t('anchor.answerBefore')}
                 <b className="text-ink">
-                  <Num value={entryPrice} source="db" asOf={CATALOGUE_ASOF} unit="FCFA" />
+                  <Num value={entryPrice} source="db" asOf={CATALOGUE_REVISED_AT} unit="FCFA" />
                 </b>
                 {t('anchor.answerAfter')}
               </p>
@@ -565,7 +570,13 @@ export default function PresenceDigitale() {
             <TruthPanel
               provenTitle={t('truth.provenTitle')}
               withheldTitle={t('truth.title')}
-              proven={t('truth.proven', { returnObjects: true }) as string[]}
+              /* La date de la grille est INJECTÉE, jamais écrite dans la phrase : c'est la
+                 même valeur que celle des `<Num>` de la page, donc l'encart ne peut plus dater
+                 une grille qui a bougé depuis. */
+              proven={t('truth.proven', {
+                returnObjects: true,
+                asOf: gridAsOf,
+              }) as string[]}
               withheld={t('truth.withheld', { returnObjects: true }) as string[]}
             />
           </div>

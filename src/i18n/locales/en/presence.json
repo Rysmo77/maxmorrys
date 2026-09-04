@@ -428,7 +428,7 @@
     "title": "What I don't show",
     "provenTitle": "What I can prove to you",
     "proven": [
-      "The price list above, as of 2 August 2026. Every amount comes from the catalogue, not from a sentence.",
+      "The price list above, as of {{asOf}}. Every amount comes from the catalogue, not from a sentence.",
       "The Google Maps search on the first screen: you ran it yourself, in a tool that isn't mine.",
       "Your summary re-reads that same price list every time it opens. If the list moves, it moves with it."
     ],

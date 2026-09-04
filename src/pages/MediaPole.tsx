@@ -10,7 +10,7 @@ import { useTranslatedList } from '../hooks/useTranslatedContent';
 import { useFormat } from '../hooks/useFormat';
 import { getPublishedPodcasts, getPublishedVideos } from '../lib/firestore/content';
 import { queryKeys } from '../lib/queryClient';
-import { socialLinks } from '../lib/brand';
+import { podcastPlatform, socialLinks } from '../lib/brand';
 import { CLUB_PRICE_XOF } from '../lib/club/pricing';
 import { PriceApprox } from '../components/shared/PriceApprox';
 
@@ -312,6 +312,25 @@ export default function MediaPole() {
             </p>
           </div>
           <GlassPanel level="flat" padding="6px 22px" className="rv" style={{ ['--i' as string]: 5 }}>
+            {/*
+              LA TROISIÈME RANGÉE DU KIT, LE JOUR OÙ ELLE A UNE ADRESSE. Elle est dessinée par
+              `Pages.js:261-272` et n'a jamais été rendue, faute d'URL de show. Elle vient de
+              `podcastPlatform` — la même valeur qui commande l'aveu sous le panneau et
+              l'emplacement déclaré de `/a-propos` : la ligne paraît et les phrases s'en vont
+              dans le même geste, au lieu qu'une des trois survive aux autres.
+            */}
+            {podcastPlatform !== null && (
+              <LessonRow
+                state="plain"
+                icon={<Icon name="mic" size={16} />}
+                title={podcastPlatform.name}
+                trailing={
+                  <Button href={podcastPlatform.url} target="_blank" tone="quiet" size="sm" fullWidth={false}>
+                    {t('pole.elsewherePlatformCta')}
+                  </Button>
+                }
+              />
+            )}
             <LessonRow
               state="plain"
               icon={<Icon name="play" size={16} />}
@@ -338,7 +357,10 @@ export default function MediaPole() {
           </GlassPanel>
         </div>
 
-        <p className="mt-3 max-w-[74ch] text-small leading-[1.55] text-ink-2">{t('pole.elsewhereMissing')}</p>
+        {/* L'aveu ne se rend que tant qu'il est vrai — voir `podcastPlatform`. */}
+        {podcastPlatform === null && (
+          <p className="mt-3 max-w-[74ch] text-small leading-[1.55] text-ink-2">{t('pole.elsewhereMissing')}</p>
+        )}
 
         {/* Garde-fou 3 : le Club, EN BAS. Jamais devant. */}
         <div

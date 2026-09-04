@@ -36,9 +36,10 @@ import { HANDLERS } from './registry';
 import { runImportSpotify, runSyncMediaStats } from './lib/media-sync';
 import { sendRenewalNotices } from './lib/renewal';
 import { rebuildLeaderboard } from './lib/leaderboard';
+import { rebuildPublicClubStats } from './lib/public-stats';
 import { sendQuoteExpiryNotices } from './lib/quote-expiry';
 import { sendReengagementNotices } from './lib/reengagement';
-import { synchroniserAudience } from './lib/listmonk';
+import { synchroniserAudience } from './lib/brevo-contacts';
 import { handleBictorysWebhook } from './webhook/bictorys';
 
 function migratedNames(env: Env): Set<string> {
@@ -178,15 +179,25 @@ export default {
           }],
           ['Classement du Club', async () => `${await rebuildLeaderboard(db)} entrée(s) reconstruite(s)`],
           /*
+            Le miroir public du Club — il rend VÉRIFIABLE l'engagement « deux sessions par
+            mois » affiché avant paiement. Il vit dans le cron de 08:00 avec les autres :
+            l'agenda bouge à la journée, pas à l'heure, et une fenêtre de 90 jours ne se
+            déplace pas assez vite pour mériter son propre rendez-vous.
+          */
+          ['Statistiques publiques du Club', async () => {
+            const b = await rebuildPublicClubStats(db);
+            return `${b.sessionsTenues} session(s) tenue(s) sur ${b.fenetreJours} jours`;
+          }],
+          /*
             LA SYNCHRONISATION MARKETING PASSE EN DERNIER, ET CE N'EST PAS UN DÉTAIL.
 
             Les quatre travaux au-dessus portent des promesses : un rappel d'échéance annoncé
             par les CGV, une relance de devis, un classement affiché. Celui-ci pousse une
             audience vers un service TIERS, sur le réseau, et c'est donc le plus susceptible
-            de traîner ou d'échouer. Placé avant, une instance Listmonk injoignable retarderait
-            des courriers contractuels ; placé ici, il ne retarde que lui-même.
+            de traîner ou d'échouer. Placé avant, une API Brevo lente retarderait des courriers
+            contractuels ; placé ici, il ne retarde que lui-même.
           */
-          ['Synchronisation Listmonk', async () => {
+          ['Synchronisation Brevo', async () => {
             const b = await synchroniserAudience(db, env);
             const motifs = b.erreurs.length ? ` — ${b.erreurs.join(' | ')}` : '';
             return `${b.pousses} poussé(s), ${b.bloques} bloqué(s), ${b.echecs} échec(s), sur ${b.candidats} candidat(s)${motifs}`;

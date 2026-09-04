@@ -25,7 +25,7 @@ export const staticPages: Record<string, PageMeta> = {
     h1: 'Maîtrise le digital, accélère ta croissance',
     bodyText:
       "Max-Morrys propose des formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA. Plateforme éducative basée à Dakar, dédiée à la croissance digitale en Afrique francophone.\n\n" +
-      "SEO, marketing et intelligence artificielle, expliqués pour le marché ouest-africain. Le paiement se fait en Wave ou en Orange Money, en francs CFA : pas de carte obligatoire, pas de conversion, pas de compte à l'étranger.\n\n" +
+      "SEO, marketing et intelligence artificielle, expliqués pour le marché ouest-africain. Le paiement se fait avec Wave, Orange Money ou avec ta carte, en francs CFA : la carte reste facultative, pas de conversion, pas de compte à l'étranger.\n\n" +
       "Six portes, du gratuit au sur-mesure, et chacune annonce son prix avant le clic : les formations (SEO, marketing, IA, accès à vie), le blog publié chaque semaine, le podcast et les vidéos où des gens d'ici racontent ce qu'ils ont fait, le Club des Digitos sur une année en groupe fermé, la présence digitale pour les commerces de proximité, et l'Agence sur cadrage écrit.\n\n" +
       "Les exemples sont pris ici : « Cosmétique Almadies », pas « organic skincare Brooklyn » — ce que tapent tes clients, dans les mots qu'ils emploient. Le poids de chaque vidéo est annoncé avant lecture et chaque leçon a une transcription, parce qu'un forfait mobile se compte.\n\n" +
       "Formateur, consultant et créateur de contenu digital basé à Dakar. J'écris les articles, je monte les formations, j'anime le Club et je réponds aux messages : il n'y a personne d'autre derrière cette plateforme.",

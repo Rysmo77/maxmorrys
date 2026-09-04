@@ -51,15 +51,12 @@
     // délivrabilité de maxmorrys.me, d'où partent les échanges personnels.
     "EMAIL_FROM": "facture@mail.maxmorrys.me",
     "EMAIL_FROM_NAME": "Max-Morrys",
-    /* ── Listmonk : le canal MARKETING ──────────────────────────────────────
-       Distinct du transactionnel de bout en bout : autre fournisseur (Brevo en relais),
-       autre sous-domaine d'envoi (`lettre.` et non `mail.`), autre réputation. Un incident
-       sur l'un laisse l'autre intact — et Cloudflare Email Sending interdit de toute façon
-       le marketing sur son propre canal.
-       Le JETON est un secret : `npx wrangler secret put LISTMONK_API_TOKEN`. */
-    "LISTMONK_URL": "https://listmonk.maxmorrys.me",
-    "LISTMONK_API_USER": "API",
-    "LISTMONK_LIST_ID": "3",
+    /* ── Brevo : le canal MARKETING ─────────────────────────────────────────
+       Autre fournisseur que le transactionnel, autre sous-domaine d'envoi (`lettre.`),
+       autre réputation. La CLÉ est un secret : `npx wrangler secret put BREVO_API_KEY`.
+       Seul l'identifiant de liste vit ici — il n'a rien de confidentiel et doit se relire
+       dans le dépôt. Liste 4 = « Lettre — apprenants » ; 5 = « Lettre — commerces ». */
+    "BREVO_LIST_ID": "4",
 
 
     // Vide tant que le régime fiscal de MY ONOMA SARL n'est pas confirmé par son comptable.
@@ -113,15 +110,12 @@
         "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com",
         "EMAIL_FROM": "facture@mail.maxmorrys.me",
         "EMAIL_FROM_NAME": "Max-Morrys",
-    /* ── Listmonk : le canal MARKETING ──────────────────────────────────────
-       Distinct du transactionnel de bout en bout : autre fournisseur (Brevo en relais),
-       autre sous-domaine d'envoi (`lettre.` et non `mail.`), autre réputation. Un incident
-       sur l'un laisse l'autre intact — et Cloudflare Email Sending interdit de toute façon
-       le marketing sur son propre canal.
-       Le JETON est un secret : `npx wrangler secret put LISTMONK_API_TOKEN`. */
-    "LISTMONK_URL": "https://listmonk.maxmorrys.me",
-    "LISTMONK_API_USER": "API",
-    "LISTMONK_LIST_ID": "3",
+    /* ── Brevo : le canal MARKETING ─────────────────────────────────────────
+       Autre fournisseur que le transactionnel, autre sous-domaine d'envoi (`lettre.`),
+       autre réputation. La CLÉ est un secret : `npx wrangler secret put BREVO_API_KEY`.
+       Seul l'identifiant de liste vit ici — il n'a rien de confidentiel et doit se relire
+       dans le dépôt. Liste 4 = « Lettre — apprenants » ; 5 = « Lettre — commerces ». */
+    "BREVO_LIST_ID": "4",
 
         "INVOICE_TAX_NOTICE": ""
       },

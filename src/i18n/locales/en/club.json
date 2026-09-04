@@ -215,7 +215,7 @@
       "proven1": "This screen hides the Club; it doesn't forbid it. The real separation lives in the database rules: without an active subscription they refuse to read the posts, the agenda, the directory, the opportunities and the exclusive info.",
       "proven2": "Nobody makes themselves a member from the browser: the rules only accept creating a subscription with the status « pending », and refuse any change of status. Only the admin activates.",
       "proven3": "The price shown is the one the server charges, and it lives in exactly one place in the code.",
-      "withheld1": "No member count. The Club opened this year: the number would be small, so making an argument of it would mislead you, and you'd check it on the first screen after paying.",
+      "withheld1": "No member count. The Club opened in {{opened}}: the number would be small, so making an argument of it would mislead you, and you'd check it on the first screen after paying.",
       "withheld2": "No testimonials and no star ratings. What's said inside belongs to the people inside, and a rating on a closed club can't be verified."
     }
   },
@@ -381,7 +381,7 @@
       "promise you yet."
     ],
     "guaranteeTruthTitle": "Why I'm telling you this instead of selling you a dream",
-    "guaranteeTruthBody": "The Club opened this year. I won't quote you a member count, because it would be false, and because you'd check it on the first screen after paying. I'd rather you came in knowing what you're buying: a year of access to what already exists, and a seat in what's being built.",
+    "guaranteeTruthBody": "The Club opened in {{opened}}. I won't quote you a member count, because it would be false, and because you'd check it on the first screen after paying. I'd rather you came in knowing what you're buying: a year of access to what already exists, and a seat in what's being built.",
     "tabsTitle": [
       "Eight tabs.",
       "Here's what they're for."
@@ -461,6 +461,7 @@
     "finalBody": "If you want to judge before you pay, listen to the podcast and watch the videos: free, no account, same territory. The blog too.",
     "finalCtaSecondary": "Talk to me first",
     "sessionsCite": "the Club's stated commitment",
+    "sessionsHeldPre": "Held over the past {{days}} days:",
     "truthProvenTitle": "What I can prove to you"
   },
   "panel": {

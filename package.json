@@ -17,6 +17,8 @@
     "seo:check": "node scripts/seo-check.mjs",
     "og:cards": "node scripts/og-cards.mjs",
     "og:check": "node scripts/og-cards.mjs --check",
+    "proof:check": "node scripts/proof-check.mjs",
+    "proof:links": "node scripts/proof-check.mjs --links",
     "recrawl": "node scripts/recrawl.mjs",
     "covers:weight": "node scripts/covers-weight.mjs",
     "test": "vitest run --passWithNoTests tests/unit",

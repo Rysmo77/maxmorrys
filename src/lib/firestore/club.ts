@@ -11,6 +11,41 @@ import type {
   ClubEventRegistration, ClubSessionRegistration, ClubMemberProfile, ClubOpportunity,
 } from '../../types';
 
+/**
+ * ── LE MIROIR PUBLIC DES CHIFFRES DU CLUB ───────────────────────────────────────────────
+ *
+ * `/club-des-digitos` annonce deux sessions en direct par mois. C'est un ENGAGEMENT, et un
+ * engagement qu'on ne peut pas confronter à son exécution ne vaut pas plus que la phrase qui
+ * le porte. Or l'agenda est fermé : `club_events` exige un abonnement actif en lecture
+ * (`firestore.rules`), et une agrégation passe par la même règle — le navigateur d'un visiteur
+ * ne peut donc rien compter, et c'est pour ça que le nombre était un littéral de composant.
+ *
+ * Le Worker compte par compte de service, hors des règles, et dénormalise le résultat dans
+ * `public_stats/club`, lisible par tous et écrit par personne. La page peut alors afficher, à
+ * côté de la promesse, ce qui a réellement été tenu.
+ *
+ * ⚠️ CE DOCUMENT NE PORTE AUCUNE PREUVE SOCIALE. Ni membres, ni note, ni avis : ce sont des
+ * interdits absolus du système, et le compte de membres reste dans `leaderboard/global`,
+ * réservé aux connectés. Ce qu'on publie ici, c'est ce que J'AI FAIT — pas ce que d'autres
+ * pensent de moi.
+ *
+ * ⚠️ `null` TANT QUE LE WORKER N'A PAS TOURNÉ. Le document n'existe pas avant la première
+ * exécution planifiée : `<Num>` affiche alors « non relevé », ce qui est exactement l'état de
+ * la connaissance. Aucun zéro n'est fabriqué — un zéro dirait « aucune session tenue ».
+ */
+export interface PublicClubStats {
+  /** Sessions en direct tenues sur la fenêtre, telles que comptées côté serveur. */
+  liveSessionsHeld: number;
+  /** Largeur de la fenêtre glissante, en jours. Publiée pour que la phrase la lise. */
+  windowDays: number;
+  /** Instant du relevé, ISO. */
+  asOf: string;
+}
+
+export async function getPublicClubStats(): Promise<PublicClubStats | null> {
+  return getDocById<PublicClubStats>('public_stats', 'club');
+}
+
 export async function getClubSubscription(userId: string): Promise<ClubDigitosSubscription | null> {
   return getDocById<ClubDigitosSubscription>('club_subscriptions', userId);
 }
