@@ -71,7 +71,7 @@ const T = {
     /* NOMMER LA CONTRAINTE PLUTÔT QUE LA MASQUER. Le produit ne prélève rien automatiquement,
        et le dire est plus utile que de laisser la personne le découvrir le jour où son accès
        s'arrête. */
-    rien: "Rien ne sera prélevé : Wave et Orange Money ne permettent pas le prélèvement automatique, et je préfère te prévenir que te débiter sans que tu l'aies demandé.",
+    rien: "Je ne prélèverai rien automatiquement — ni sur Wave, ni sur Orange Money, ni sur ta carte. Je préfère te prévenir que te débiter sans que tu l'aies demandé.",
     action: 'Si tu veux continuer, tu te réabonnes ici — ça prend une minute.',
     lien: 'Reprendre mon abonnement',
     apres: "Si tu préfères t'arrêter là, tu n'as rien à faire : l'accès se termine tout seul à la date ci-dessus.",
@@ -81,7 +81,7 @@ const T = {
     subject: 'Your Club access ends in 15 days',
     bonjour: (nom?: string) => (nom ? `Hi ${nom},` : 'Hi,'),
     corps: (date: string) => `Your Club des Digitos membership ends on ${date}, fifteen days from now.`,
-    rien: "Nothing will be charged: Wave and Orange Money don't support automatic debits, and I'd rather warn you than take your money without you asking.",
+    rien: "I won't charge anything automatically — not on Wave, not on Orange Money, not on your card. I'd rather warn you than take your money without you asking.",
     action: "If you want to keep going, you can renew here — it takes a minute.",
     lien: 'Renew my membership',
     apres: "If you'd rather stop, there's nothing to do: access ends on its own on the date above.",
