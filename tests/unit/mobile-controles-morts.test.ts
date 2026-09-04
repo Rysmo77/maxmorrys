@@ -117,6 +117,32 @@ describe('aucun contrôle natif ne fait semblant', () => {
     expect(fautes, 'confirmations destructives sans action').toEqual([]);
   });
 
+  it("aucune API d'une seule plateforme n'est appelée sans son équivalent", () => {
+    /*
+     * ⚠️ CE DÉFAUT A ÉTÉ COMMIS EN CORRIGEANT LES CONTRÔLES MORTS, ce qui dit assez bien
+     * comme il est facile à faire. `Alert.prompt` N'EXISTE QUE SUR iOS : appelé en
+     * `Alert.prompt?.(…)`, il ne lève rien sur Android — il ne fait simplement RIEN.
+     *
+     * C'est le contrôle mort remis en place, mais sur une seule plateforme : donc
+     * invisible à qui relit sur l'autre, et invisible au typecheck, qui connaît la
+     * signature et la juge correcte. `ds/platform.ts` existe précisément pour que les
+     * divergences soient DÉCLARÉES ; une API à moitié disponible ne l'est pas.
+     *
+     * `ActionSheetIOS` tombe sous la même règle, et `PermissionsAndroid` du côté opposé.
+     */
+    const interdits = [/\bAlert\.prompt\b/, /\bActionSheetIOS\b/, /\bPermissionsAndroid\b/];
+    const fautes: string[] = [];
+    for (const f of fichiers(APP)) {
+      const code = readFileSync(f, 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/^\s*\/\/.*$/gm, '');
+      for (const motif of interdits) {
+        if (motif.test(code)) fautes.push(`${relative(RACINE, f)} · ${motif.source}`);
+      }
+    }
+    expect(fautes, 'API disponibles sur une seule plateforme').toEqual([]);
+  });
+
   it('le test voit bien quelque chose', () => {
     // Sans ce garde, un `fichiers()` cassé rendrait les deux portes vertes à vide.
     const total = fichiers(APP).length;

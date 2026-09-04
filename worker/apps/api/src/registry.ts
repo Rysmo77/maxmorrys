@@ -18,6 +18,7 @@ import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from '.
 import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
 import { creerMonProfil } from './handlers/creerMonProfil';
+import { ecrireUneNote } from './handlers/ecrireUneNote';
 import { deleteUserAccount, exportUserData } from './handlers/gdpr';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { importSpotifyEpisodesManual } from './handlers/importSpotifyEpisodesManual';
@@ -108,6 +109,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   createRysmoPackCharge,
   createRysmoSubscriptionCharge,
   // RGPD
+  ecrireUneNote,
   exportUserData,
   deleteUserAccount,
   // Mesure — compteurs agrégés, sans donnée personnelle

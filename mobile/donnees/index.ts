@@ -348,3 +348,21 @@ export async function effacerLaMemoire(): Promise<void> {
 export async function signalerLeMembre(membreId: string, motif?: string): Promise<void> {
   await appeler('signalerMembre', { membreId, motif });
 }
+
+/**
+ * Écrit une note et renvoie ce qui a été enregistré.
+ *
+ * On renvoie la note TELLE QU'ÉCRITE plutôt qu'un accusé : l'écran l'insère sans relire
+ * toute la liste, et ce qu'il affiche est exactement ce qui est en base — pas une
+ * reconstruction locale qui pourrait en différer d'un caractère ou d'une troncature.
+ */
+export async function ecrireUneNote(
+  texte: string,
+  lecon?: { id: string; label: string },
+): Promise<{ id: string; texte: string; date: string | null }> {
+  const { note } = await appeler<{ note: { id: string; texte: string; date: string | null } }>(
+    'ecrireUneNote',
+    { texte, lessonId: lecon?.id, lessonLabel: lecon?.label },
+  );
+  return note;
+}
