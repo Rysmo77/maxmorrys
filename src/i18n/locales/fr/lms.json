@@ -8,7 +8,7 @@
     "notes": "Mes notes",
     "achievements": "Succès & Certificats",
     "messages": "Messages",
-    "testimonials": "Mon avis",
+    "testimonials": "Donner mon avis",
     "club": "Club des Digitos",
     "clubPending": "En attente",
     "profile": "Profil",
@@ -29,7 +29,7 @@
     "notes": "Mes notes",
     "achievements": "Succès & Certificats",
     "messages": "Messages",
-    "testimonials": "Mon avis",
+    "testimonials": "Donner mon avis",
     "club": "Club des Digitos",
     "profile": "Mon profil",
     "settings": "Paramètres",
@@ -340,7 +340,11 @@
     "statusRecording": "Enregistrement en cours.",
     "statusStopped": "Enregistrement terminé, envoi en cours.",
     "statusReady": "Média prêt à être envoyé.",
-    "levelLabel": "Niveau capté par le micro"
+    "levelLabel": "Niveau capté par le micro",
+    "accessDenied": "L'accès au micro/caméra a été refusé. Autorise-le dans la barre d'adresse de ton navigateur, puis réessaie — ou importe un fichier.",
+    "accessNoDevice": "Aucun micro ni caméra détecté sur cet appareil. Branche-en un, ou importe un fichier.",
+    "accessBusy": "Le micro ou la caméra est déjà utilisé par une autre application. Ferme-la, puis réessaie — ou importe un fichier.",
+    "recorderFailed": "L'enregistrement n'a pas pu démarrer sur ce navigateur. Importe un fichier à la place."
   },
   "streak": {
     "days_one": "{{count}} jour",

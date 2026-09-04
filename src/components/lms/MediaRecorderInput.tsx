@@ -57,6 +57,21 @@ const MAX_BYTES = 100 * 1024 * 1024;
 /** Barres de l'enveloppe sonore — deux secondes d'historique à 20 relevés par seconde. */
 const METER_BARS = 40;
 
+/**
+ * Ce que `getUserMedia` refuse, et le geste que chaque refus appelle.
+ *
+ * Les noms viennent de la spec ; les regrouper sous une seule phrase revenait à envoyer
+ * chercher au mauvais endroit dans trois cas sur quatre.
+ */
+const ACCESS_ERROR_KEYS: Record<string, string> = {
+  NotAllowedError: 'mediaRecorder.accessDenied',
+  SecurityError: 'mediaRecorder.accessDenied',
+  NotFoundError: 'mediaRecorder.accessNoDevice',
+  OverconstrainedError: 'mediaRecorder.accessNoDevice',
+  NotReadableError: 'mediaRecorder.accessBusy',
+  AbortError: 'mediaRecorder.accessBusy',
+};
+
 function supportsRecording(): boolean {
   return (
     typeof navigator !== 'undefined' &&
@@ -236,16 +251,52 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
 
   const startRecording = async () => {
     setError(null);
+
+    /*
+     * ══════════════════════════════════════════════════════════════════════════════════
+     * DEUX ESSAIS SÉPARÉS, PARCE QU'ILS ÉCHOUENT POUR DES RAISONS OPPOSÉES.
+     *
+     * Un seul `try` couvrait l'accès au matériel ET la construction de l'enregistreur : un
+     * conteneur refusé par le navigateur s'affichait donc « Impossible d'accéder au
+     * micro/caméra », et envoyait vérifier des autorisations qui n'étaient pas en cause.
+     * Un message d'erreur qui désigne le mauvais coupable coûte plus cher que pas de message.
+     *
+     * ET SURTOUT, `getUserMedia` DIT POURQUOI. Son `error.name` est normalisé, et les cas
+     * appellent des gestes DIFFÉRENTS : autoriser dans la barre d'adresse, brancher un
+     * micro, ou fermer l'application qui tient déjà la caméra. Les confondre sous une seule
+     * phrase, c'est laisser chercher au mauvais endroit — ce qui vient d'arriver pour de
+     * vrai, sur un blocage qui ne venait même pas du navigateur mais de notre propre
+     * en-tête `Permissions-Policy` (voir `tests/unit/permissions-policy.test.ts`).
+     * ══════════════════════════════════════════════════════════════════════════════════
+     */
+    let stream: MediaStream;
     try {
       const constraints = mode === 'video' ? { audio: true, video: true } : { audio: true };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (error: unknown) {
+      const name = error instanceof Error ? error.name : '';
+      setError(t(ACCESS_ERROR_KEYS[name] ?? 'mediaRecorder.accessError'));
+      return;
+    }
+
+    try {
       streamRef.current = stream;
       // Le flux est branché sur l'élément par un EFFET, pas ici : à cet instant `recording`
       // vaut encore `false`, donc ni le `<video>` ni le niveau ne sont montés.
       chunksRef.current = [];
 
+      /*
+       * Le conteneur demandé peut être refusé À LA CONSTRUCTION, même après un
+       * `isTypeSupported` favorable. On retombe alors sur le choix du navigateur plutôt que
+       * d'abandonner un enregistrement pour une préférence d'encodage.
+       */
       const wanted = pickMimeType(mode);
-      const recorder = new MediaRecorder(stream, wanted ? { mimeType: wanted } : undefined);
+      let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(stream, wanted ? { mimeType: wanted } : undefined);
+      } catch {
+        recorder = new MediaRecorder(stream);
+      }
 
       recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       recorder.onstop = () => {
@@ -274,8 +325,9 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
         setElapsed((prev) => Math.min(prev + 1, MAX_SECONDS));
       }, 1000);
     } catch {
+      // L'accès au matériel est déjà passé : ce qui échoue ici est l'ENREGISTREUR.
       stopStream();
-      setError(t('mediaRecorder.accessError'));
+      setError(t('mediaRecorder.recorderFailed'));
     }
   };
 
