@@ -194,3 +194,15 @@ export interface VueConsole {
   comptes: Record<string, number>;
   prospect: { titre: string; meta: string | null; statut: string } | null;
 }
+
+export interface VueSeance {
+  id: string;
+  collection: string;
+  jour: string | null;
+  titre: string;
+  horaire: string | null;
+  glyphe: string;
+  territoire: string;
+  inscrite: boolean;
+  places: string | null;
+}

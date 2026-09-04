@@ -4,6 +4,7 @@ import { resendTransactionMail } from './handlers/resendTransactionMail';
 import { appClubListe } from './handlers/app/clubListe';
 import { appConsole } from './handlers/app/console';
 import { appRepetiteur } from './handlers/app/repetiteur';
+import { appClubAgenda } from './handlers/app/clubAgenda';
 import { appClubClassement } from './handlers/app/clubClassement';
 import { appClubFil } from './handlers/app/clubFil';
 import { appClub } from './handlers/app/club';
@@ -29,6 +30,7 @@ import { joinWaitlist } from './handlers/joinWaitlist';
 import { notifyOnPublish } from './handlers/notifyOnPublish';
 import { notifyWaitlist } from './handlers/notifyWaitlist';
 import { parseCv } from './handlers/parseCv';
+import { posterAuClub } from './handlers/posterAuClub';
 import { popupEvent } from './handlers/popupEvent';
 import {
   createBictorysCharge,
@@ -37,6 +39,7 @@ import {
   createRysmoSubscriptionCharge,
 } from './handlers/payments';
 import { quoteCheckout } from './handlers/quoteCheckout';
+import { reserverSession } from './handlers/reserverSession';
 import { reindexSearch } from './handlers/reindexSearch';
 import { replyToMessage } from './handlers/replyToMessage';
 import { rysmo } from './handlers/rysmo';
@@ -79,6 +82,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   adminCreateUser,
   appCertificats,
   appClub,
+  appClubAgenda,
   appClubClassement,
   appConsole,
   appRepetiteur,
@@ -93,6 +97,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   adminManageRysmoQuota,
   adminManageEnrollment,
   reindexSearch,
+  reserverSession,
   backfillSlugEn,
   weeklyClubDigestManual,
   // Répond à un message de contact : écrit la réponse, notifie, envoie l'e-mail.
@@ -115,6 +120,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   deleteUserAccount,
   // Mesure — compteurs agrégés, sans donnée personnelle
   popupEvent,
+  posterAuClub,
   // Accès aux médias protégés
   marquerLecon,
   mediaToken,

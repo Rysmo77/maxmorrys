@@ -1,10 +1,12 @@
-import { View } from 'react-native';
+import { useState } from 'react';
+import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Avatar, Body, Button, ChipRow, Icon, LessonRow, Num, PriceBlock, SansDonnees, Surface, Tag, TerritoryCard, useToken,
+  Avatar, Body, Button, ChipRow, Field, Icon, LessonRow, Num, PriceBlock, SansDonnees, Surface, Tag, TerritoryCard, useToken,
 } from '../../ds';
 import { Bilan, ClubScreen } from './_layout';
-import { provenance, useClubFil } from '../../donnees';
+import { ErreurAppel, posterAuClub, provenance, useClubFil } from '../../donnees';
+import type { VueClubMessage } from '../../donnees';
 
 /**
  * ══ 6 · LE FIL DU CLUB ══
@@ -26,7 +28,32 @@ import { provenance, useClubFil } from '../../donnees';
 export default function Fil() {
   const t = useToken();
   const club = useClubFil();
-  const fil = club.valeur?.fil ?? [];
+  const [publies, setPublies] = useState<VueClubMessage[]>([]);
+  const [redaction, setRedaction] = useState<string | null>(null);
+  const [enCours, setEnCours] = useState(false);
+  const fil = [...publies, ...(club.valeur?.fil ?? [])];
+
+  async function publier(texte: string) {
+    if (texte.trim() === '' || enCours) return;
+    setEnCours(true);
+    try {
+      const message = await posterAuClub(texte);
+      /* En TÊTE, et sans relire : le fil est trié du plus récent au plus ancien, et
+         redemander le serveur pour voir ce qu'on vient d'écrire coûterait un aller-retour
+         pour afficher ce qu'on connaît déjà. */
+      setPublies((p: VueClubMessage[]) => [message, ...p]);
+      setRedaction(null);
+    } catch (erreur: unknown) {
+      Alert.alert(
+        "Ton message n'est pas parti",
+        erreur instanceof ErreurAppel
+          ? `${erreur.motif} Recopie-le avant de quitter l'écran.`
+          : "Recopie-le avant de quitter l'écran, il n'est nulle part.",
+      );
+    } finally {
+      setEnCours(false);
+    }
+  }
   const mission = club.valeur?.mission ?? null;
 
   return (
@@ -43,6 +70,55 @@ export default function Fil() {
         }}
         style={{ marginTop: 18 }}
       />
+
+      {/* ── ÉCRIRE, DANS L'ÉCRAN ──────────────────────────────────────────────────────
+          Le fil n'avait aucun moyen d'y contribuer : on pouvait le lire, pas y répondre.
+          La saisie s'ouvre ici plutôt que sur un écran à part — et c'est aussi la seule
+          forme qui marche sur les deux plateformes. */}
+      {redaction === null ? (
+        <Button
+          tone="quiet"
+          size="sm"
+          label="Écrire au Club"
+          icon="comment"
+          style={{ marginTop: 14 }}
+          onPress={() => setRedaction('')}
+        />
+      ) : (
+        <Surface level="flat" style={{ marginTop: 14, padding: 16 }}>
+          <Field
+            label="Ton message"
+            value={redaction}
+            onChangeText={setRedaction}
+            placeholder="Ce que tu as essayé, et ce que ça a donné."
+            multiline
+            autoCapitalize="sentences"
+            style={{ marginTop: 0 }}
+          />
+          <View style={{ flexDirection: 'row', gap: 9, marginTop: 12 }}>
+            <Button
+              tone="quiet"
+              size="sm"
+              label="Annuler"
+              disabled={enCours}
+              style={{ flex: 1 }}
+              onPress={() => setRedaction(null)}
+            />
+            <Button
+              tone="transforme"
+              size="sm"
+              label={enCours ? 'Publication…' : 'Publier'}
+              disabled={enCours || redaction.trim() === ''}
+              style={{ flex: 1 }}
+              onPress={() => { void publier(redaction); }}
+            />
+          </View>
+          <Body muted style={{ fontSize: 11.5, lineHeight: 17, marginTop: 10, color: t('textFaint') }}>
+            Ton message part signé de ton nom d'affichage — celui de ton profil, pas un
+            pseudonyme choisi ici.
+          </Body>
+        </Surface>
+      )}
 
       {fil.length === 0 ? (
         <SansDonnees

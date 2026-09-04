@@ -4,7 +4,7 @@ import {
   useToken,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { AGENDA, RELEVE, SOURCE } from '../../contenu/demo';
+import { ErreurAppel, provenance, reserverSession, useAgenda } from '../../donnees';
 import { useState } from 'react';
 
 /**
@@ -33,6 +33,35 @@ export default function Agenda() {
   const t = useToken();
   const g = useActionGradient();
   const [vue, setVue] = useState('À venir');
+
+  const agenda = useAgenda();
+  const seances = agenda.valeur ?? [];
+  /* L'état affiché est celui du serveur, sauf pour les séances qu'on vient de basculer.
+     Une réservation qui met une seconde à se voir se re-touche, et on se désinscrit sans
+     l'avoir voulu. */
+  const [bascules, setBascules] = useState<Record<string, boolean>>({});
+  const [enVol, setEnVol] = useState<string | null>(null);
+
+  async function basculer(
+    s: { id: string; collection: string }, inscrite: boolean,
+  ) {
+    if (enVol !== null) return;
+    setEnVol(s.id);
+    setBascules((b: Record<string, boolean>) => ({ ...b, [s.id]: inscrite }));
+    try {
+      await reserverSession(s.collection, s.id, inscrite);
+    } catch (erreur: unknown) {
+      /* On REMET l'état d'avant. Une place qui reste affichée comme réservée alors que le
+         serveur l'ignore, c'est quelqu'un qui se présente à un atelier complet. */
+      setBascules((b: Record<string, boolean>) => ({ ...b, [s.id]: !inscrite }));
+      Alert.alert(
+        inscrite ? "Ta place n'est pas réservée" : "Tu n'as pas été désinscrite",
+        erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
+      );
+    } finally {
+      setEnVol(null);
+    }
+  }
 
   /*
    * ⚠️ CE BOUTON OUVRAIT UN FICHIER QUI N'EXISTE PAS. Il pointait sur
@@ -65,13 +94,13 @@ export default function Agenda() {
         onChange={setVue}
       />
 
-      {AGENDA.map((s) => (
+      {seances.map((s) => (
         <View key={s.titre}>
           <Eyebrow style={{ marginTop: 22 }}>{s.jour}</Eyebrow>
           <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
             <View style={{ flexDirection: 'row', gap: 13 }}>
               <Gradient
-                colors={g[s.territoire]}
+                colors={g[s.territoire as keyof typeof g]}
                 radius={14}
                 style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
               >
@@ -81,8 +110,7 @@ export default function Agenda() {
                 <Body style={{ fontSize: 15, fontWeight: '700' }}>{s.titre}</Body>
                 <Num
                   value={s.horaire}
-                  source={SOURCE}
-                  asOf={RELEVE}
+                  {...provenance(agenda)}
                   style={{ fontSize: 11.5, color: t('textMuted'), marginTop: 3 }}
                 />
               </View>
@@ -92,14 +120,17 @@ export default function Agenda() {
               flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
               gap: 10, marginTop: 14,
             }}>
-              {s.inscrite ? <Tag tone="ok">Tu es inscrite</Tag> : (
-                <Num value={s.places ?? null} source={SOURCE} asOf={RELEVE} fallback="places non relevées" style={{ fontSize: 12.5, color: t('mmTealT') }} />
+              {(bascules[s.id] ?? s.inscrite) ? <Tag tone="ok">Tu es inscrite</Tag> : (
+                <Num value={s.places ?? null} {...provenance(agenda)} fallback="places non relevées" style={{ fontSize: 12.5, color: t('mmTealT') }} />
               )}
               <Button
                 tone={s.inscrite ? 'quiet' : 'digitalise'}
                 size="sm"
-                label={s.inscrite ? 'Me désinscrire' : 'Je réserve'}
-                disabled
+                label={enVol === s.id
+                  ? '…'
+                  : (bascules[s.id] ?? s.inscrite) ? 'Me désinscrire' : 'Je réserve'}
+                disabled={enVol !== null}
+                onPress={() => { void basculer(s, !(bascules[s.id] ?? s.inscrite)); }}
               />
             </View>
 
@@ -111,7 +142,7 @@ export default function Agenda() {
                 label="Ajouter à mon agenda"
                 icon="calendar"
                 style={{ marginTop: 10 }}
-                onPress={() => ajouterALAgenda(s.titre, s.horaire)}
+                onPress={() => ajouterALAgenda(s.titre, s.horaire ?? '')}
               />
             ) : null}
           </Surface>

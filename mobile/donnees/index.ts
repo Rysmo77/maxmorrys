@@ -14,7 +14,7 @@
  */
 import type { Etat } from '../ds';
 import {
-  CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION,
+  AGENDA, CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION,
   FORMATION_2, MEMBRE, MEMOIRE, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, PROSPECT,
   QUOTA, SUPPORT_COMPTES, VIDEO,
 } from '../contenu/demo';
@@ -23,6 +23,7 @@ export { provenance } from './etat';
 import type {
   VueCertificats, VueClassement, VueClub, VueClubFil, VueConsole, VueCours, VueDiscussion,
   VueEspace, VueLecon, VueMedia, VueMembre, VueMoi, VueNotes, VueOpportunite, VueRepetiteur,
+  VueSeance,
 } from './types';
 import { useVue } from './vue';
 
@@ -36,7 +37,7 @@ export type {
   VueCertificat, VueCertificats, VueClub, VueClubFil, VueClubMessage, VueClubMission,
   VueClassement, VueConsole, VueCours, VueDiscussion, VueEpisode, VueEspace, VueLecon,
   VueLeconLigne, VueMedia, VueMembre, VueMoi, VueNote, VueNotes, VueOpportunite,
-  VueRepetiteur, VueVideo,
+  VueRepetiteur, VueSeance, VueVideo,
 } from './types';
 
 /** Qui regarde : prénom, initiale, date d'ouverture du compte. */
@@ -386,4 +387,51 @@ export async function marquerLecon(
   formationId: string, leconId: string, faite: boolean,
 ): Promise<BilanLecon> {
   return appeler<BilanLecon>('marquerLecon', { formationId, leconId, faite });
+}
+
+/**
+ * Publie un message sur le mur du Club.
+ *
+ * ⚠️ NI LE NOM NI LES COMPTEURS NE SONT TRANSMIS. Le serveur lit le nom d'affichage dans
+ * le profil — l'accepter du client, ce serait accepter qu'il choisisse sous quel nom il
+ * parle — et initialise `likes`/`reposts` à zéro, que la règle Firestore interdit à
+ * l'auteur de réécrire : c'est la seule personne qui a intérêt à les gonfler.
+ */
+export async function posterAuClub(
+  texte: string, categorie?: string,
+): Promise<import('./types').VueClubMessage> {
+  const { message } = await appeler<{ message: import('./types').VueClubMessage }>(
+    'posterAuClub', { texte, categorie },
+  );
+  return message;
+}
+
+/** Les séances à venir — directs et ateliers fusionnés, triés par date. */
+export function useAgenda(): Etat<readonly VueSeance[]> {
+  const brut = useVue<readonly VueSeance[]>('appClubAgenda');
+  return composerListe(brut, AGENDA.map((s, i) => ({
+    id: String(i),
+    collection: 'club_sessions',
+    jour: s.jour,
+    titre: s.titre,
+    horaire: s.horaire,
+    glyphe: s.glyphe,
+    territoire: s.territoire,
+    inscrite: s.inscrite,
+    places: 'places' in s ? s.places : null,
+  })));
+}
+
+/**
+ * Réserve une place, ou la libère.
+ *
+ * Le document d'inscription porte l'uid comme IDENTIFIANT : réserver deux fois ne crée
+ * pas deux places, et la règle Firestore s'appuie sur ce même identifiant pour savoir à
+ * qui la ligne appartient. L'écran promettait déjà que « se réinscrire ne crée pas de
+ * doublon » — c'est vrai parce que le chemin l'impose, pas par attention.
+ */
+export async function reserverSession(
+  collection: string, seanceId: string, inscrite: boolean,
+): Promise<void> {
+  await appeler('reserverSession', { collection, seanceId, inscrite });
 }
