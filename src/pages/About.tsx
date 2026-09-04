@@ -10,7 +10,12 @@ import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useFormat } from '../hooks/useFormat';
 import { HOUSE_AUTHOR_FULL_NAME, portrait } from '../lib/author';
-import { legalEntity, pillars, practices, socialLinks } from '../lib/brand';
+import {
+  CHAPTERS, DECLARED_AT, MILESTONE_KEYS, MILESTONE_PROOFS, MILESTONE_UNPROVABLE, MILESTONES_OWED,
+} from '../lib/about/milestones';
+import {
+  legalEntity, pillars, PLATFORM_OPENED_AT, podcastPlatform, practices, publicProfiles,
+} from '../lib/brand';
 import { getPublicCounts, type PublicCounts } from '../lib/firestore';
 import { queryKeys } from '../lib/queryClient';
 
@@ -58,64 +63,14 @@ import { queryKeys } from '../lib/queryClient';
  * emplacement déclaré est censé finir par faire. Voir `SiteSlot` et le rapport de
  * recomposition pour les deux endroits où la copie du kit a dû être corrigée contre la donnée
  * réelle du dépôt.
+ *
+ * ⚠️ CELUI DES JALONS SE FERME SEUL DEPUIS LE 04/09/2026. Le portrait avait demandé qu'un
+ * humain se souvienne de supprimer le bloc ET ses deux clés i18n le jour où la photo est
+ * arrivée : un emplacement dont la fermeture dépend d'une mémoire ne se ferme pas. Celui des
+ * jalons est désormais DÉRIVÉ de `MILESTONE_PROOFS` — il compte ce qu'il réclame et il
+ * disparaît de lui-même à la dernière URL posée. Celui des profils ne l'est pas encore.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-
-/**
- * La date à laquelle le parcours a été relevé auprès de son auteur.
- *
- * `<Num>` exige `asOf` : un jalon déclaré n'est pas lu en base, il est DIT par quelqu'un, à un
- * moment. Le composant l'annonce au survol et au lecteur d'écran — « parcours déclaré par
- * Max-Morrys · relevé du 30/08/2026 » — ce qui est exactement le statut de cette information.
- */
-const DECLARED_AT = new Date('2026-08-30T00:00:00Z');
-
-/**
- * ── LA FRISE, EN TROIS CHAPITRES ────────────────────────────────────────────────────────
- *
- * Onze jalons en une colonne, chacun avec sa description : la section faisait à elle seule
- * plus d'un écran et demi, sur une page dont le rôle est de rassurer AVANT l'achat. Le kit,
- * lui, n'en dessine que trois et pose un emplacement « trois à cinq jalons à ajouter » — la
- * longueur est donc un écart, pas une fidélité.
- *
- * Les onze restent TOUS visibles : cacher une date sur la page dont le métier est de donner
- * des dates vérifiables serait le contraire du but. Ils sont groupés par chapitre, et les
- * trois chapitres passent côte à côte au-delà de 1080 px — la hauteur est divisée par trois
- * sans qu'aucun fait ne disparaisse.
- *
- * LES CHAPITRES SONT UNE INFORMATION, PAS UN ORNEMENT : ils nomment les trois temps que la
- * frise raconte déjà — la formation, le basculement vers le digital, la construction. C'est
- * pour ça qu'ils portent leur intervalle d'années plutôt qu'un numéro.
- */
-const CHAPTERS = [
-  { key: 'learn', items: ['m2014', 'm2017', 'm2018', 'm2020'] },
-  { key: 'pivot', items: ['m2021', 'm2023Onoma', 'm2023Master'] },
-  { key: 'build', items: ['m2024Jan', 'm2024May', 'm2025Apr', 'm2025'] },
-] as const;
-
-/**
- * ── LA PREUVE PUBLIQUE D'UN JALON ───────────────────────────────────────────────────────
- *
- * Une date, un établissement, un employeur : tout ça est DÉCLARÉ par une personne. Sur une
- * page qui remplace la preuve sociale, la seule chose qui vaut mieux qu'une déclaration est
- * un lien qu'un inconnu peut ouvrir sans me croire.
- *
- * Chaque jalon peut donc porter une URL. Quand elle existe, la ligne affiche « Vérifier ↗ » ;
- * quand elle n'existe pas, elle affiche « déclaré » — et l'emplacement en bas de section
- * compte ce qui manque, au lieu de laisser croire que tout est sourcé.
- *
- * CE QUI FAIT UNE PREUVE ACCEPTABLE ICI, par ordre de force :
- *   1. une page du TIERS qui te nomme (un employeur, une école, une association) ;
- *   2. une réalisation en ligne que tu as construite — `src/lib/brand/clients.ts` en porte
- *      quatorze, toutes avec leur URL, et c'est la source la plus solide dont dispose cette
- *      page depuis que les accords écrits sont obtenus ;
- *   3. un profil public que TU tiens (LinkedIn), qui prouve la déclaration, pas le fait.
- *
- * Ce qui n'en est pas une : un annuaire tiers recopié, une capture d'écran, un chiffre.
- */
-const MILESTONE_PROOFS: Partial<Record<string, string>> = {
-  // À remplir au fil des accords : `m2024Jan: 'https://…/equipe'`, etc.
-};
 
 /** Les trois panneaux de « Ce que je fais ». Une teinte de territoire chacun, jamais un hex. */
 const DOES: { key: 'Train' | 'Publish' | 'Support'; glyph: IconName; tint: string; ink: string }[] = [
@@ -162,7 +117,7 @@ function SiteSlot({
 export default function About() {
   const { t } = useTranslation('about');
   const path = useLocalizedPath();
-  const { formatDate } = useFormat();
+  const { formatDate, formatMonth } = useFormat();
 
   /*
    * Les seuls chiffres que cette page a le droit d'afficher. `getPublicCounts()` compte côté
@@ -414,7 +369,10 @@ export default function About() {
               </div>
               <div className="my-[18px] h-px bg-[color:var(--border-hair)]" />
               <p className="mm-prose m-0 max-w-[46ch] text-meta leading-[1.55] text-ink-2">
-                {t('page.producedBody')} <b className="text-ink">{t('page.producedStrong')}</b>
+                {t('page.producedBody')}{' '}
+                <b className="text-ink">
+                  {t('page.producedStrong', { opened: formatMonth(PLATFORM_OPENED_AT) })}
+                </b>
               </p>
             </GlassPanel>
           </div>
@@ -458,6 +416,7 @@ export default function About() {
                 >
                   {chapter.items.map((key, i) => {
                     const proof = MILESTONE_PROOFS[key];
+                    const unprovable = MILESTONE_UNPROVABLE.has(key);
                     return (
                       <div
                         key={key}
@@ -484,8 +443,9 @@ export default function About() {
                           {t(`milestones.${key}.desc`)}
                         </p>
                         {/*
-                          LA PREUVE, OU SON ABSENCE — jamais rien. Un lien qu'on peut ouvrir
-                          quand il existe ; le mot « déclaré » quand il n'existe pas. Laisser
+                          LA PREUVE, SA DETTE, OU SON IMPOSSIBILITÉ — jamais rien. Un lien
+                          qu'on peut ouvrir quand il existe ; « déclaré » quand il est dû ;
+                          « personnel » quand aucun tiers ne pourra jamais l'écrire. Laisser
                           la ligne muette reviendrait à présenter une déclaration comme un
                           fait vérifié, ce qui est exactement ce que cette page refuse.
                         */}
@@ -502,7 +462,7 @@ export default function About() {
                           </a>
                         ) : (
                           <span className="mm-eyebrow mt-[6px] block" style={{ color: 'var(--ink-3)' }}>
-                            {t('page.pathDeclared')}
+                            {t(unprovable ? 'page.pathPersonal' : 'page.pathDeclared')}
                           </span>
                         )}
                       </div>
@@ -513,10 +473,20 @@ export default function About() {
             ))}
           </div>
 
-          {/* Emplacement déclaré nº 2 — ce que la frise ne peut toujours pas prouver. */}
-          <SiteSlot title={t('page.slotPathTitle')} style={{ marginTop: '18px' }}>
-            {t('page.slotPathBody')} <b className="text-ink">{t('page.slotPathStrong')}</b>
-          </SiteSlot>
+          {/*
+            Emplacement déclaré nº 2 — ce que la frise ne peut toujours pas prouver, ET RIEN
+            DE PLUS. Il ne se rend qu'aussi longtemps qu'un lien est dû : la dernière URL posée
+            dans `MILESTONE_PROOFS` le fait disparaître, sans qu'aucune phrase soit à éditer.
+          */}
+          {MILESTONES_OWED.length > 0 && (
+            <SiteSlot title={t('page.slotPathTitle')} style={{ marginTop: '18px' }}>
+              {t('page.slotPathBody', {
+                count: MILESTONES_OWED.length,
+                total: MILESTONE_KEYS.length,
+              })}{' '}
+              <b className="text-ink">{t('page.slotPathStrong')}</b>
+            </SiteSlot>
+          )}
         </div>
       </PageSite>
 
@@ -595,10 +565,17 @@ export default function About() {
             >
               {t('page.findLede')}
             </p>
-            {/* Emplacement déclaré nº 3 — ce qui reste vide, et pourquoi on ne le devine pas. */}
-            <SiteSlot title={t('page.slotFindTitle')} style={{ marginTop: '18px' }}>
-              {t('page.slotFindBody')} <b className="text-ink">{t('page.slotFindStrong')}</b>
-            </SiteSlot>
+            {/*
+              Emplacement déclaré nº 3 — ce qui reste vide, et pourquoi on ne le devine pas.
+              Il ne se rend que tant que `podcastPlatform` vaut `null` : déclarer la plateforme
+              ajoute sa ligne au panneau ci-contre, l'ajoute à `sameAs`, et retire cet aveu ici
+              ET sa phrase jumelle sous les rangées de `/podcast-et-videos`.
+            */}
+            {podcastPlatform === null && (
+              <SiteSlot title={t('page.slotFindTitle')} style={{ marginTop: '18px' }}>
+                {t('page.slotFindBody')} <b className="text-ink">{t('page.slotFindStrong')}</b>
+              </SiteSlot>
+            )}
           </div>
 
           {/*
@@ -614,7 +591,7 @@ export default function About() {
             paragraphe de gauche s'élargissaient avec le panneau, donc toute la page.
           */}
           <GlassPanel level="flat" padding={24} className="min-w-0 rv" style={{ ['--i' as string]: 3 }}>
-            {socialLinks.map((profile, i) => (
+            {publicProfiles.map((profile, i) => (
               <a
                 key={profile.name}
                 href={profile.url}
@@ -649,7 +626,7 @@ export default function About() {
                   un profil est alimenté. Le ton neutre retire l'affirmation sans en inventer
                   une autre : le lien est déclaré, c'est tout ce qu'on sait.
 
-                  Le jour où `socialLinks` porte un état, la distinction du kit revient telle
+                  Le jour où `publicProfiles` porte un état, la distinction du kit revient telle
                   quelle — voir [[maxmorrys-todo-humains]].
                 */}
                 <span className="shrink-0"><Tag>{t('page.findDeclared')}</Tag></span>

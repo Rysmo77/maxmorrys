@@ -1,0 +1,38 @@
+name: Preuves — les adresses publiées
+
+# Onze réalisations clientes et trois ventures sont nommées publiquement sur `/agence`,
+# chacune avec son URL. Une preuve qui répond 404 prouve le contraire de ce qu'elle affirme,
+# et personne ne s'en aperçoit : ces pages ne sont visitées par personne de la maison.
+#
+# ⚠️ POURQUOI CE N'EST PAS DANS LA CI DE CHAQUE LIVRAISON. Le contrôle sort du réseau, vers
+# quatorze hébergeurs qu'on ne pilote pas. Un site tiers en maintenance un mardi bloquerait
+# une livraison qui n'a rien à voir — et un garde qu'on finit par contourner ne garde plus
+# rien. Il a donc son rendez-vous, et son échec ouvre un constat plutôt qu'un barrage.
+#
+# ⚠️ CE QU'IL N'ATTRAPE PAS : la confusion. Une page parquée répond 200 comme une autre.
+# `lauraverse.blog` est déduit d'un sous-domaine trouvé dans un dépôt, pas d'une URL
+# canonique — il répond, et ça ne dit toujours pas que c'est le bon site. Cette
+# vérification-là reste humaine, et elle est consignée dans `docs/CONTENT-TODO.md §5`.
+
+on:
+  schedule:
+    # Lundi, 07:00 UTC — avant la semaine, pas pendant.
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Aucun `npm ci` : le script n'utilise que la bibliothèque standard de Node.
+      # Installer trois cents paquets pour quatorze requêtes HEAD serait une dépense sans
+      # contrepartie, et une surface de panne de plus sur un job dont le seul travail est
+      # de dire si des adresses répondent.
+      - name: Les quatorze adresses répondent-elles ?
+        run: node scripts/proof-check.mjs --links

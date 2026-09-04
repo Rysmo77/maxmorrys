@@ -70,19 +70,20 @@ export interface Env {
   META_ACCESS_TOKEN?: string;
   /** Secret de signature des liens de téléchargement d'export. */
   EXPORT_SIGNING_KEY?: string;
-  /* ── Listmonk : le canal MARKETING, distinct du transactionnel ──────────────
-     Le transactionnel passe par le binding `EMAIL` de Cloudflare, sans clé. Le marketing
-     passe par Listmonk sur le VPS, qui relaie vers Brevo. Les deux ne partagent NI
-     fournisseur, NI sous-domaine, NI réputation : un incident sur l'un laisse l'autre
-     intact. C'est aussi une obligation — Cloudflare Email Sending interdit le marketing. */
-  /** Base de l'instance Listmonk, ex. `https://listmonk.maxmorrys.me`. */
-  LISTMONK_URL?: string;
-  /** Utilisateur d'API Listmonk (type `api`), créé dans sa console. */
-  LISTMONK_API_USER?: string;
-  /** Jeton associé. Secret : `npx wrangler secret put LISTMONK_API_TOKEN`. */
-  LISTMONK_API_TOKEN?: string;
-  /** Identifiant de la liste cible. Défaut 1 — la liste créée à l'installation. */
-  LISTMONK_LIST_ID?: string;
+  /* ── Brevo : le canal MARKETING ────────────────────────────────────────────
+     Distinct du transactionnel de bout en bout. Le transactionnel passe par le binding
+     `EMAIL` de Cloudflare, sans aucune clé ; le marketing passe par Brevo, avec la sienne.
+     Autre fournisseur, autre sous-domaine d'envoi (`lettre.` et non `mail.`), autre
+     réputation — un incident sur l'un laisse l'autre intact. Et Cloudflare Email Sending
+     interdit de toute façon le marketing sur son propre canal.
+
+     Listmonk a occupé cette place quelques heures puis a été retiré : il relayait vers
+     Brevo, n'apportait donc rien sur le plafond d'envoi, et ne savait pas exécuter de
+     séquences — voir l'en-tête de `brevo-contacts.ts`. */
+  /** Clé API v3. Secret : `npx wrangler secret put BREVO_API_KEY`. */
+  BREVO_API_KEY?: string;
+  /** Identifiant de la liste cible dans Brevo (Contacts → Listes). */
+  BREVO_LIST_ID?: string;
 
   /** Secret partagé avec le Worker media pour signer les liens de lecture. */
   MEDIA_SIGNING_KEY?: string;

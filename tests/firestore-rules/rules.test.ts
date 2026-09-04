@@ -207,6 +207,34 @@ describe('enrollments — repere maxProgress anti-farm XP', () => {
   });
 });
 
+describe('public_stats — le miroir qui rend un engagement verifiable', () => {
+  const STATS = { liveSessionsHeld: 7, windowDays: 90, asOf: '2026-09-04T08:00:00.000Z' };
+
+  it('un visiteur anonyme lit le releve, puisque c est tout son objet', async () => {
+    await seed('public_stats/club', STATS);
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(db, 'public_stats', 'club')));
+  });
+
+  it('personne ne l ecrit depuis le client — pas meme un admin', async () => {
+    await seed(`users/${CAROL}`, { role: 'admin' });
+    const db = asUser(CAROL);
+    await assertFails(setDoc(doc(db, 'public_stats', 'club'), STATS));
+  });
+
+  it('le releve reste immuable cote client', async () => {
+    await seed('public_stats/club', STATS);
+    const db = asUser(ALICE);
+    await assertFails(updateDoc(doc(db, 'public_stats', 'club'), { liveSessionsHeld: 99 }));
+  });
+
+  it('l agenda dont il est tire, lui, reste ferme aux non-membres', async () => {
+    await seed('club_events/e1', { title: 'Session de septembre', date: '2026-09-01', status: 'past' });
+    const db = asUser(BOB);
+    await assertFails(getDoc(doc(db, 'club_events', 'e1')));
+  });
+});
+
 describe('certificate_lookups — verification publique par code', () => {
   const CODE = 'MM-ABCDEF1234';
   const LOOKUP = {

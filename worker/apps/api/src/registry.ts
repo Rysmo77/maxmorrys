@@ -1,4 +1,5 @@
 import type { CallContext } from './context';
+import { accuserDemandeAgence, accuserDevis } from './handlers/accuserDemande';
 import { acknowledgeAppointment } from './handlers/acknowledgeAppointment';
 import { resendTransactionMail } from './handlers/resendTransactionMail';
 import { appClubListe } from './handlers/app/clubListe';
@@ -71,6 +72,8 @@ export const HANDLERS: Record<string, CallHandler> = {
   syncMediaStatsManual,
   youtubeProxy,
   // Écritures simples
+  accuserDevis,
+  accuserDemandeAgence,
   acknowledgeAppointment,
   resendTransactionMail,
   clearRysmoMemory,

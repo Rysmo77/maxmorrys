@@ -11,6 +11,14 @@
  * exporté doit rester unique sur l'ensemble.
  */
 import { orderBy } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../config/firebase';
+
+/** Accusé de réception — voir `worker/apps/api/src/handlers/accuserDemande.ts`. */
+const accuserAgenceCallable = httpsCallable<{ id: string; langue: string }, { ok: boolean; sent: boolean }>(
+  functions,
+  'accuserDemandeAgence',
+);
 import { getCollection, createDoc, updateDocById, deleteDocById } from './helpers';
 import type { EngagementLead, EngagementLeadStatus, EngagementRouting } from '../../types';
 
@@ -45,10 +53,24 @@ export const MISSION_STAGES: EngagementLeadStatus[] = [
  * partageable à générer, donc aucune séparation de données personnelles à opérer.
  */
 export async function saveEngagementLead(data: EngagementLeadInput): Promise<string> {
-  return createDoc('engagement_leads', {
+  const id = await createDoc('engagement_leads', {
     ...data,
     status: 'new' as const,
   });
+
+  /*
+    L'ACCUSÉ DE RÉCEPTION — celui qui manquait le plus.
+
+    Ce formulaire porte les demandes haut de gamme, à cinq ou six chiffres. Jusqu'ici,
+    quelqu'un décrivait son projet, envoyait, et le produit se taisait : ni e-mail, ni
+    notification, ni la moindre trace visible de réception.
+
+    L'échec est avalé et l'appel ne bloque pas le retour : la demande est enregistrée, c'est
+    ce qui compte. Le serveur revérifie tout — fraîcheur, plafonds, idempotence.
+  */
+  void accuserAgenceCallable({ id, langue: data.locale ?? 'fr' }).catch(() => null);
+
+  return id;
 }
 
 /** Liste complète des demandes, les plus récentes d'abord. Réservé à l'administration. */

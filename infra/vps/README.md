@@ -1,188 +1,77 @@
-# Infrastructure VPS — Listmonk
+# Le canal marketing — Brevo, et pourquoi pas Listmonk
 
-Ce dossier est le **premier fichier de déploiement VPS versionné du dépôt**. Jusqu'ici, la
-seule trace de l'infrastructure était `docs/typesense-vps.md`, qui la décrivait par ricochet.
-Le VPS portait n8n, NocoDB, Typesense et `render-card` sans qu'aucun de leurs fichiers ne
-soit sauvegardé ailleurs que sur la machine elle-même.
+Ce dossier ne décrit plus aucune installation. Il conserve une **décision et son
+retournement**, parce que l'erreur est plus instructive que le résultat.
 
-## Le contexte
+## Ce qui a été fait, puis défait
 
-Le produit envoie déjà du **transactionnel** par Cloudflare Email Service — facture,
-confirmations d'achat, rappels. Ce canal reste inchangé et ne bouge pas.
+Listmonk a été installé sur le VPS le 04/09/2026 — conteneur, Postgres, entrée Caddy,
+sauvegarde quotidienne, relais SMTP Brevo configuré et testé — puis **entièrement retiré le
+même jour**.
 
-Ce dossier installe le **canal marketing**, qui ne peut pas passer par Cloudflare : Email
-Sending y est contractuellement réservé au transactionnel. Et Brevo, dont un compte existe
-déjà, **ne s'installe pas** — c'est un SaaS exclusif.
+Le raisonnement initial : « Brevo ne s'auto-héberge pas, donc Listmonk sur le VPS relayant
+vers Brevo permet de garder la donnée chez soi. » Il était juste sur les faits et faux sur
+les conséquences.
 
-D'où le montage : **Listmonk tient tout sur le VPS** (listes, segments, campagnes,
-désabonnement natif, statistiques) et ne délègue à Brevo que l'acheminement SMTP.
+### Les trois raisons du retrait
 
----
+**Le quota était identique.** Listmonk relayait *à travers* Brevo. Il n'apportait donc rien
+sur le plafond de 300 envois/jour du plan gratuit, qui est la contrainte dure du programme.
 
-## 1. DNS — l'état relevé, et ce qu'il faut poser
+**Brevo ne facture pas au contact.** La raison classique d'auto-héberger — la facturation par
+abonné — n'existait pas ici.
 
-### Ce qui existe déjà (mesuré, ne pas y toucher)
+**Listmonk ne sait pas faire de séquences.** Il envoie des campagnes, pas des scénarios. Or
+le plan de campagnes contient une bienvenue en trois e-mails et un nurture de devis en deux
+temps. L'outil recommandé ne savait pas exécuter la moitié du plan écrit ensuite.
 
-| Nom | Contenu | Rôle |
-|---|---|---|
-| `mail.maxmorrys.me` | SPF `_spf.mx.cloudflare.net`, DKIM `cf-bounce`, DMARC `p=reject`, MX de rebond | **Transactionnel Cloudflare.** Intouchable. |
-| `maxmorrys.me` | DKIM `brevo1`/`brevo2`, TXT `brevo-code:…` | Brevo est déjà autorisé sur la racine |
+### L'argument qui restait, et pourquoi il ne tenait pas
 
-### ⚠️ Deux défauts à corriger
+« Les données restent chez nous. » Mais **la preuve du consentement vit dans Firestore** —
+`newsletter.consentAt`, horodaté, exigé par les règles serveur. Listmonk n'en était pas le
+dépositaire : c'était une copie intermédiaire de plus, susceptible de diverger de la source.
 
-**La racine n'a aucun SPF.** Brevo y a son DKIM, mais rien ne l'autorise en SPF, et le DMARC
-racine est en `p=none`. La délivrabilité repose donc entièrement sur l'alignement DKIM —
-fragile, à l'heure où Gmail et Yahoo durcissent leurs exigences.
+## Ce qui survit au retrait, et qui valait le détour
 
-**Le marketing ne doit pas partir de la racine.** `maxmorrys.me` porte les échanges
-personnels. Une plainte pour spam y abîmerait leur réputation *et*, par voisinage de domaine,
-celle des factures. C'est le raisonnement qui avait fait choisir `mail.` pour le
-transactionnel ; il vaut double pour le marketing, dont le taux de plainte est
-structurellement plus élevé.
+Le démontage n'a rien coûté de ce qui comptait, parce que l'essentiel ne dépendait pas de
+l'outil :
 
-### À créer
-
-| Type | Nom | Valeur | Proxy |
-|---|---|---|---|
-| A | `listmonk.maxmorrys.me` | `158.220.124.185` | **DNS only** — le défi ACME HTTP-01 doit atteindre Caddy |
-| TXT | `lettre.maxmorrys.me` | `v=spf1 include:spf.brevo.com -all` | — |
-| CNAME | `brevo1._domainkey.lettre.maxmorrys.me` | `b1.lettre-maxmorrys-me.dkim.brevo.com` † | DNS only |
-| CNAME | `brevo2._domainkey.lettre.maxmorrys.me` | `b2.lettre-maxmorrys-me.dkim.brevo.com` † | DNS only |
-| TXT | `_dmarc.lettre.maxmorrys.me` | `v=DMARC1; p=quarantine; rua=mailto:rua@dmarc.brevo.com; pct=100` | — |
-| TXT | `maxmorrys.me` | `v=spf1 include:spf.brevo.com ~all` | — (comble le trou) |
-
-⚠️ Le `rua` pointe sur **l'adresse Brevo**, pas sur `dmarc@maxmorrys.me` : **la racine n'a
-aucun MX**, donc aucune adresse `@maxmorrys.me` ne reçoit quoi que ce soit. C'est aussi vrai
-de `contact@maxmorrys.me`, que la politique de confidentialité donne pour exercer ses droits —
-un défaut à traiter à part.
-
-† **Motif déduit, à confirmer dans l'interface.** Il est relevé sur la racine, déjà vérifiée
-chez Brevo : `brevo1._domainkey.maxmorrys.me` pointe sur `b1.maxmorrys-me.dkim.brevo.com`,
-lui-même sur `brevo15.dkim.brevo.com`. Brevo remplace les points du domaine par des tirets.
-C'est néanmoins **Brevo qui fait foi** : déclarer le sous-domaine (Senders → Domains) et
-recopier les valeurs qu'il affiche, sans les déduire.
-
-Les valeurs SPF ci-dessus sont vérifiées : `spf.brevo.com` publie bien un enregistrement, et
-`smtp-relay.brevo.com` (172.246.243.66) tombe dans son bloc `172.246.0.0/18`.
-
-> ⚠️ **NE PAS interroger un nom avant de le créer.** Cloudflare garde le NXDOMAIN dans son
-> propre cache négatif — durée fixée par le SOA de la zone, **1800 s ici**. Un nom neuf, créé
-> sans avoir été interrogé, résout en quelques secondes ; un nom qu'on a « vérifié comme
-> libre » d'abord reste introuvable une demi-heure, alors que l'API le montre bien enregistré.
-> Constaté sur `lettre.maxmorrys.me`, et isolé par un témoin sur un nom jamais interrogé.
-
-> **Le DMARC du marketing démarre en `p=quarantine`, pas `p=reject`.** Un `reject` sur un
-> sous-domaine dont la réputation n'est pas encore établie fait disparaître les messages
-> plutôt que de les mettre de côté — et l'on perd le signal qui permettrait de corriger.
-> Passer à `reject` après un mois de rapports propres.
-
----
-
-## 2. Installation
-
-Toutes les commandes depuis `maxmorrys-vps` (alias SSH), dans `/opt/maxmorrys-stack/`.
-
-> **Listmonk vit dans SON PROPRE projet compose**, `/opt/maxmorrys-stack/listmonk/`, et non
-> fusionné dans le `docker-compose.yml` du stack. Ce fichier de production porte déjà
-> Typesense, n8n et NocoDB : y ajouter deux services, c'est risquer les trois autres à chaque
-> édition. En projet séparé, le retour arrière est un `docker compose down` qui ne touche
-> rien d'autre. Le lien avec le reste se fait par le réseau `khanouss_default`, que Caddy
-> partage déjà.
-
-```bash
-# 1. Les secrets — générés SUR LE SERVEUR, pour qu'ils ne transitent par aucun journal.
-mkdir -p /opt/maxmorrys-stack/listmonk && cd /opt/maxmorrys-stack/listmonk
-{ echo "LISTMONK_DB_PASSWORD=$(openssl rand -base64 33 | tr -d /=+ | cut -c1-40)"
-  echo "LISTMONK_ADMIN_USER=maxmorrys"
-  echo "LISTMONK_ADMIN_PASSWORD=$(openssl rand -base64 33 | tr -d /=+ | cut -c1-32)"
-} > .env && chmod 600 .env
-
-# 2. Déposer docker-compose.yml (celui de ce dossier) à côté du .env.
-
-# 3. ⚠️ LE SCHÉMA NE S'INSTALLE PAS TOUT SEUL.
-#    Sans cette étape, le conteneur redémarre en boucle sur « the database does not appear
-#    to be setup. Run --install. » — et rien dans l'interface ne le dit.
-docker compose up -d maxmorrys-listmonk-db
-docker compose run --rm --no-deps maxmorrys-listmonk ./listmonk --install --idempotent --yes
-docker compose up -d
-
-# 4. Une fois le compte administrateur créé, RETIRER les deux variables d'admin du .env :
-#    les laisser réécrit le mot de passe à chaque redémarrage.
-
-# 5. Le bloc Caddy — le Caddyfile vit dans /opt/khanouss-stack/, monté par le conteneur
-#    khanouss-caddy-1. Toujours sauvegarder, VALIDER, puis recharger.
-cp -a /opt/khanouss-stack/Caddyfile /opt/khanouss-stack/Caddyfile.bak-$(date +%F-%H%M)
-# … y ajouter le bloc de ce dossier …
-docker exec khanouss-caddy-1 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
-docker exec khanouss-caddy-1 caddy reload   --config /etc/caddy/Caddyfile --adapter caddyfile
-
-# 6. La sauvegarde quotidienne.
-install -m 755 sauvegarde.sh /opt/maxmorrys-stack/sauvegarde-listmonk.sh
-( crontab -l 2>/dev/null; echo '0 2 * * * /opt/maxmorrys-stack/sauvegarde-listmonk.sh >> /var/log/listmonk-backup.log 2>&1' ) | crontab -
-/opt/maxmorrys-stack/sauvegarde-listmonk.sh    # premier passage à la main : il doit dire OK
-```
-
----
-
-## 3. Le relais Brevo
-
-Dans Listmonk, **Settings → SMTP**, un seul serveur :
-
-| Champ | Valeur |
+| Acquis | État |
 |---|---|
-| Host | `smtp-relay.brevo.com` |
-| Port | `587` |
-| Auth protocol | `LOGIN` |
-| Username | l'identifiant SMTP Brevo (≠ l'adresse e-mail du compte) |
-| Password | la clé SMTP Brevo — **pas** la clé API v3 |
-| TLS | `STARTTLS`, vérification activée |
-| Max connections | `5` pour commencer |
+| `lettre.maxmorrys.me` authentifié chez Brevo | SPF, DKIM (`brevo1`/`brevo2`), DMARC `p=quarantine` |
+| Séparation des réputations | Le marketing part de `lettre.`, jamais de la racine ni de `mail.` |
+| Trou SPF de la racine | Comblé — elle n'en avait aucun, avec un DMARC en `p=none` |
+| Transactionnel | Intact, `mail.maxmorrys.me` toujours en `p=reject` |
+| Désabonnement | `GET /desabonnement`, dans le Worker, sans JavaScript ni compte |
+| Synchronisation d'audience | `worker/apps/api/src/lib/brevo-contacts.ts` |
 
-La clé vit dans Listmonk et dans `/opt/maxmorrys-stack/.env`. Le dépôt déclare déjà
-`BREVO_API_KEY` **vide** dans `paperclip/org.json` — il doit le rester.
+## L'architecture actuelle
 
-Puis **Settings → General** : expéditeur `lettre@lettre.maxmorrys.me`, et l'URL racine
-`https://listmonk.maxmorrys.me` (elle construit les liens de désabonnement natifs).
-
-> Listmonk pose `List-Unsubscribe` et `List-Unsubscribe-Post` de lui-même. C'est une des
-> raisons de ce montage : le binding Cloudflare, tel qu'il est typé, n'expose aucun en-tête
-> personnalisé et ne pourrait pas les porter.
-
----
-
-## 4. Vérification
-
-```bash
-# La console répond, avec son certificat.
-curl -sI https://listmonk.maxmorrys.me | head -3
-
-# La console n'est PAS indexable.
-curl -sI https://listmonk.maxmorrys.me | grep -i x-robots-tag
-
-# Le port 9000 n'est pas joignable depuis l'extérieur.
-curl -sS --max-time 5 http://158.220.124.185:9000 && echo "⚠️ EXPOSÉ" || echo "OK, fermé"
-
-# L'authentification du sous-domaine d'envoi.
-dig +short TXT lettre.maxmorrys.me
-dig +short TXT _dmarc.lettre.maxmorrys.me
-
-# ⚠️ Et surtout : le transactionnel n'a pas bougé.
-dig +short TXT mail.maxmorrys.me
-dig +short TXT _dmarc.mail.maxmorrys.me    # doit toujours dire p=reject
+```
+TRANSACTIONNEL                         MARKETING
+Worker Cloudflare                      Worker Cloudflare (cron 08:00)
+  binding send_email, aucune clé         → POST api.brevo.com/v3/contacts
+  facture@mail.maxmorrys.me              → campagnes depuis la console Brevo
+  DMARC p=reject                         lettre@lettre.maxmorrys.me
+                                         DMARC p=quarantine
 ```
 
-Puis une campagne de test vers une adresse Gmail, et **« Afficher l'original »** : trois
-`PASS` exigés — SPF, DKIM, DMARC — comme pour le canal transactionnel.
+Aucun service à maintenir sur le VPS pour l'e-mail. Les deux canaux ne partagent ni
+fournisseur, ni sous-domaine, ni réputation.
 
----
+## Où vivent les choses
 
-## 5. Ce que ce dossier ne fait pas
+- **Listes Brevo** : `4` — Lettre — apprenants · `5` — Lettre — commerces (dossier `Max-Morrys`)
+- **Attributs déclarés** : `SOURCE`, `LOCALE`, `COMPTE`, `VILLE`, `INSCRIT_LE`, `CONSENTI_LE`,
+  `ONBOARDING`. ⚠️ Brevo **rejette** un contact portant un attribut non déclaré, il ne
+  l'ignore pas : tout nouvel attribut se crée d'abord dans la console.
+- **Clé API** : secret du Worker (`BREVO_API_KEY`), jamais dans le dépôt.
+- **Sauvegardes Listmonk** : deux archives conservées dans
+  `/opt/maxmorrys-stack/sauvegardes/listmonk/` sur le VPS. Elles ne contiennent que des
+  données de test — à supprimer sans hésiter.
 
-- **Il n'installe rien tout seul.** Les commandes sont à jouer à la main sur le VPS ; aucun
-  script ne s'y connecte depuis le dépôt.
-- **Il ne remplace pas** `WF-EMAIL-SEND` / `WF-EMAIL-NOTIFY` de n8n : ces workflows sont
-  inactifs et destinés à être abandonnés, pas réactivés. Leur circuit d'approbation Telegram
-  reste en revanche un bon modèle pour valider une campagne avant envoi.
-- **Il ne synchronise aucune audience.** C'est le lot suivant : un cron du Worker qui pousse
-  vers l'API Listmonk les abonnés consentants, et EUX SEULS — jamais les adresses issues de
-  `appointments`, `messages` ou `agency_leads`, qui ne recueillent aucun consentement.
+## Ce qui reste à faire sur le VPS
+
+`/opt/maxmorrys-stack/listmonk/.env` porte encore les secrets d'un service démonté
+(mot de passe Postgres, admin Listmonk, clé SMTP Brevo). Le fichier est en mode 600, mais il
+n'a plus de raison d'être.

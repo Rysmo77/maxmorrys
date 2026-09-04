@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { rassemblerAudience, synchroniserAudience } from '../src/lib/listmonk';
+import { rassemblerAudience, synchroniserAudience } from '../src/lib/brevo-contacts';
 import type { Env } from '../src/env';
 
 /**
@@ -28,8 +28,8 @@ describe('l’audience rassemblée', () => {
     const a = await rassemblerAudience(db);
     expect(a).toHaveLength(1);
     expect(a[0].email).toBe('awa@example.com');
-    expect(a[0].status).toBe('enabled');
-    expect(a[0].attribs.locale).toBe('fr');
+    expect(a[0].bloque).toBe(false);
+    expect(a[0].attributes.LOCALE).toBe('fr');
   });
 
   /*
@@ -42,7 +42,7 @@ describe('l’audience rassemblée', () => {
     });
     const a = await rassemblerAudience(db);
     expect(a).toHaveLength(1);
-    expect(a[0].status).toBe('blocklisted');
+    expect(a[0].bloque).toBe(true);
   });
 
   it('prend un compte qui a coché la préférence', async () => {
@@ -51,9 +51,9 @@ describe('l’audience rassemblée', () => {
     });
     const a = await rassemblerAudience(db);
     expect(a).toHaveLength(1);
-    expect(a[0].name).toBe('Moussa');
-    expect(a[0].attribs.locale).toBe('en');
-    expect(a[0].attribs.compte).toBe(true);
+    expect(a[0].attributes.PRENOM).toBe('Moussa');
+    expect(a[0].attributes.LOCALE).toBe('en');
+    expect(a[0].attributes.COMPTE).toBe(true);
   });
 
   /*
@@ -79,8 +79,8 @@ describe('l’audience rassemblée', () => {
     });
     const a = await rassemblerAudience(db);
     expect(a).toHaveLength(1);
-    expect(a[0].name).toBe('Awa Diallo');
-    expect(a[0].attribs.compte).toBe(true);
+    expect(a[0].attributes.PRENOM).toBe('Awa Diallo');
+    expect(a[0].attributes.COMPTE).toBe(true);
   });
 
   it('ignore une adresse qui n’en est pas une', async () => {
@@ -106,7 +106,7 @@ describe('l’audience rassemblée', () => {
 });
 
 describe('la passe de synchronisation', () => {
-  it('se tait proprement quand Listmonk n’est pas configuré', async () => {
+  it('se tait proprement quand Brevo n’est pas configuré', async () => {
     const db = fauxDb({ newsletter: [{ email: 'awa@example.com', consent: true }] });
     const bilan = await synchroniserAudience(db, {} as Env);
     expect(bilan.pousses).toBe(0);
@@ -123,18 +123,15 @@ describe('la passe de synchronisation', () => {
         { email: 'casse@example.com', consent: true },
       ],
     });
-    const env = {
-      LISTMONK_URL: 'https://listmonk.test',
-      LISTMONK_API_USER: 'worker-sync',
-      LISTMONK_API_TOKEN: 'jeton',
-      LISTMONK_LIST_ID: '1',
-    } as Env;
+    const env = { BREVO_API_KEY: 'cle-de-test', BREVO_LIST_ID: '4' } as Env;
 
     vi.stubGlobal('fetch', vi.fn(async (_u: string, init: RequestInit) => {
       const corps = JSON.parse(String(init.body)) as { email: string };
+      // 204 = mis à jour chez Brevo, et c'est un SUCCÈS : le traiter comme un échec ferait
+      // basculer tout le bilan en rouge dès la deuxième synchronisation.
       return corps.email === 'casse@example.com'
         ? new Response('boom', { status: 500 })
-        : new Response('{}', { status: 200 });
+        : new Response(null, { status: 204 });
     }));
 
     const bilan = await synchroniserAudience(db, env);

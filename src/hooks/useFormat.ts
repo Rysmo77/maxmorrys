@@ -13,6 +13,23 @@ export function useFormat() {
   const locale = intlLocale(language);
 
   const formatDate = useCallback((dateString: string) => formatDateBase(dateString, locale), [locale]);
+  /**
+   * Un mois et son année — « avril 2026 », « April 2026 ».
+   *
+   * Prend un `AAAA-MM`, pas une `Date` : ce qu'on formate ici est une date dont le JOUR n'est
+   * pas connu (une ouverture, un début de période), et fabriquer un jour pour satisfaire un
+   * type reviendrait à inventer une précision qu'on n'a pas.
+   *
+   * `timeZone: 'UTC'` avec un midi en entrée : sans lui, un visiteur à l'ouest de Greenwich
+   * lirait le mois précédent au premier jour du mois.
+   */
+  const formatMonth = useCallback(
+    (yearMonth: string) => new Date(`${yearMonth}-01T12:00:00Z`).toLocaleDateString(locale, {
+      month: 'long', year: 'numeric', timeZone: 'UTC',
+    }),
+    [locale],
+  );
+
   const formatPrice = useCallback(
     (price: number, currency = 'XOF') => formatPriceBase(price, currency, locale),
     [locale],
@@ -34,5 +51,5 @@ export function useFormat() {
     [language, locale],
   );
 
-  return { formatDate, formatPrice, formatApprox, secondaryCurrency: SECONDARY_CURRENCY[language], locale, language };
+  return { formatDate, formatMonth, formatPrice, formatApprox, secondaryCurrency: SECONDARY_CURRENCY[language], locale, language };
 }

@@ -215,7 +215,7 @@
       "proven1": "This screen hides the Club; it doesn't forbid it. The real separation lives in the database rules: without an active subscription they refuse to read the posts, the agenda, the directory, the opportunities and the exclusive info.",
       "proven2": "Nobody makes themselves a member from the browser: the rules only accept creating a subscription with the status « pending », and refuse any change of status. Only the admin activates.",
       "proven3": "The price shown is the one the server charges, and it lives in exactly one place in the code.",
-      "withheld1": "No member count. The Club opened this year: the number would be small, so making an argument of it would mislead you, and you'd check it on the first screen after paying.",
+      "withheld1": "No member count. The Club opened in {{opened}}: the number would be small, so making an argument of it would mislead you, and you'd check it on the first screen after paying.",
       "withheld2": "No testimonials and no star ratings. What's said inside belongs to the people inside, and a rating on a closed club can't be verified."
     }
   },
@@ -381,7 +381,7 @@
       "promise you yet."
     ],
     "guaranteeTruthTitle": "Why I'm telling you this instead of selling you a dream",
-    "guaranteeTruthBody": "The Club opened this year. I won't quote you a member count, because it would be false, and because you'd check it on the first screen after paying. I'd rather you came in knowing what you're buying: a year of access to what already exists, and a seat in what's being built.",
+    "guaranteeTruthBody": "The Club opened in {{opened}}. I won't quote you a member count, because it would be false, and because you'd check it on the first screen after paying. I'd rather you came in knowing what you're buying: a year of access to what already exists, and a seat in what's being built.",
     "tabsTitle": [
       "Eight tabs.",
       "Here's what they're for."
@@ -402,7 +402,7 @@
     ],
     "priceBody": "A yearly subscription doesn't remove the hesitation, it concentrates it into one moment. So here are both numbers up front: the one you pay, and what it works out to each month.",
     "renewalTitle": "What happens when it runs out",
-    "renewalBody": "When it runs out, your access stops. Nothing is charged automatically: Wave and Orange Money don't support recurring debits, and I'd rather tell you than let you assume otherwise. If you asked for it, I'll email you fifteen days ahead, with a one-click link to pick it back up.",
+    "renewalBody": "When it runs out, your access stops. I don't charge anything automatically — not on Wave, not on Orange Money, not on your card. I'd rather tell you now than let you find out that day. If you asked for it, I'll email you fifteen days ahead, with a one-click link to pick it back up.",
     "priceUnit": "FCFA / month",
     "priceBilledPre": "Billed",
     "priceBilledPost": ", once, for twelve months.",
@@ -461,6 +461,7 @@
     "finalBody": "If you want to judge before you pay, listen to the podcast and watch the videos: free, no account, same territory. The blog too.",
     "finalCtaSecondary": "Talk to me first",
     "sessionsCite": "the Club's stated commitment",
+    "sessionsHeldPre": "Held over the past {{days}} days:",
     "truthProvenTitle": "What I can prove to you"
   },
   "panel": {

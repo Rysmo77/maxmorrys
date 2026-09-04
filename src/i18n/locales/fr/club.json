@@ -215,7 +215,7 @@
       "proven1": "Cet écran cache le Club ; il ne l'interdit pas. Le vrai cloisonnement est dans les règles de la base : sans abonnement actif, elles refusent la lecture des publications, de l'agenda, de l'annuaire, des opportunités et des infos.",
       "proven2": "Personne ne se rend membre depuis le navigateur : les règles n'acceptent la création d'un abonnement qu'au statut « en attente », et refusent toute modification du statut. Seule l'administration active.",
       "proven3": "Le prix affiché est celui que le serveur débite, et il vit à un seul endroit dans le code.",
-      "withheld1": "Aucun nombre de membres. Le Club a ouvert cette année : le chiffre serait faible, il serait donc trompeur d'en faire un argument, et tu le vérifierais au premier écran après avoir payé.",
+      "withheld1": "Aucun nombre de membres. Le Club a ouvert en {{opened}} : le chiffre serait faible, il serait donc trompeur d'en faire un argument, et tu le vérifierais au premier écran après avoir payé.",
       "withheld2": "Aucun témoignage ni note en étoiles. Ce qui se dit à l'intérieur appartient à ceux qui y sont, et une note sur un club fermé ne se vérifie pas."
     }
   },
@@ -381,7 +381,7 @@
       "encore te garantir."
     ],
     "guaranteeTruthTitle": "Pourquoi je te dis ça au lieu de te vendre du rêve",
-    "guaranteeTruthBody": "Le Club a ouvert cette année. Je ne t'annoncerai pas un nombre de membres, parce qu'il serait faux, et parce que tu le vérifieras au premier écran après avoir payé. Je préfère que tu entres en sachant ce que tu achètes : une année d'accès à ce qui existe déjà, et une place dans ce qui se construit.",
+    "guaranteeTruthBody": "Le Club a ouvert en {{opened}}. Je ne t'annoncerai pas un nombre de membres, parce qu'il serait faux, et parce que tu le vérifieras au premier écran après avoir payé. Je préfère que tu entres en sachant ce que tu achètes : une année d'accès à ce qui existe déjà, et une place dans ce qui se construit.",
     "tabsTitle": [
       "Huit onglets.",
       "Voilà à quoi ils servent."
@@ -402,7 +402,7 @@
     ],
     "priceBody": "Un abonnement annuel ne supprime pas l'hésitation, il la concentre sur un instant. Alors je te donne les deux chiffres tout de suite : celui que tu paies, et celui que ça représente chaque mois.",
     "renewalTitle": "Ce qui se passe à l'échéance",
-    "renewalBody": "À l'échéance, ton accès s'arrête. Rien n'est prélevé automatiquement : Wave et Orange Money ne permettent pas le prélèvement récurrent, et je préfère te le dire que te faire croire le contraire. Si tu l'as demandé, je t'envoie un e-mail quinze jours avant, avec le lien pour reprendre en un geste.",
+    "renewalBody": "À l'échéance, ton accès s'arrête. Je ne prélève rien automatiquement — ni sur Wave, ni sur Orange Money, ni sur ta carte. Je préfère te le dire maintenant que te laisser le découvrir ce jour-là. Si tu l'as demandé, je t'envoie un e-mail quinze jours avant, avec le lien pour reprendre en un geste.",
     "priceUnit": "FCFA / mois",
     "priceBilledPre": "Facturé",
     "priceBilledPost": ", une fois, pour douze mois.",
@@ -461,6 +461,7 @@
     "finalBody": "Si tu veux juger avant de payer, écoute le podcast et regarde les vidéos : c'est gratuit, sans compte, et c'est le même territoire. Le blog aussi.",
     "finalCtaSecondary": "Écris-moi d'abord",
     "sessionsCite": "engagement du Club, annoncé",
+    "sessionsHeldPre": "Tenues sur les {{days}} derniers jours :",
     "truthProvenTitle": "Ce que je peux te prouver"
   },
   "panel": {

@@ -372,7 +372,7 @@
     "producedPodcasts": "podcast episodes",
     "producedVideos": "videos",
     "producedBody": "These are production figures, not audience figures. I announce no students, no views and no revenue:",
-    "producedStrong": "the platform has just opened, and an inflated number takes thirty seconds to check.",
+    "producedStrong": "the platform opened in {{opened}}, and an inflated number takes thirty seconds to check.",
     "soloTitle": "Why I work alone",
     "soloBody": "Because I'd rather answer you myself. It explains everything that is capped here: the tutor quota, the workshop seats, the publishing rhythm.",
     "soloStrong": "Nothing is unlimited because nothing can be — and I'd rather write it than let you find out afterwards.",
@@ -405,13 +405,15 @@
     "closingContact": "Talk to me",
     "portraitAlt": "Max-Morrys Eyoum, waist-up portrait: round glasses, green shirt, arms folded, in a bright interior.",
     "slotPathTitle": "Milestones · what's still missing",
-    "slotPathBody": "The milestones marked « stated » have no link you can open. The two figures that used to decorate them — traffic growth, follower count — are gone: they have no public source. I don't invent them, and I don't lift them from a third-party directory.",
+    "slotPathBody_one": "One milestone out of {{total}} still has no link you can open: it is marked « stated ». The ones marked « personal » are not waiting for one — no third-party page documents a move to another country. The two figures that used to decorate the timeline — traffic growth, follower count — are gone: they have no public source. I don't invent them, and I don't lift them from a third-party directory.",
+    "slotPathBody_other": "{{count}} milestones out of {{total}} still have no link you can open: they are marked « stated ». The ones marked « personal » are not waiting for one — no third-party page documents a move to another country. The two figures that used to decorate the timeline — traffic growth, follower count — are gone: they have no public source. I don't invent them, and I don't lift them from a third-party directory.",
     "slotPathStrong": "Here, proof means a link a stranger can open without taking my word.",
     "slotFindTitle": "Links to confirm",
     "slotFindBody": "The profiles opposite are declared and verified one by one. What is missing: the listening platform for the podcast, which is declared nowhere.",
     "slotFindStrong": "I'd rather leave it empty than guess an address — and no account shows its follower count.",
     "pathProofLabel": "Check",
-    "pathDeclared": "stated"
+    "pathDeclared": "stated",
+    "pathPersonal": "personal"
   },
   "chapters": {
     "learn": {

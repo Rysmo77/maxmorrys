@@ -12,10 +12,17 @@ import { regimeDe, ventilerDepuisHT, type Ventilation } from '../tax/senegal';
  * grille tarifaire publique. Voir `docs/AGENCY-POSITIONING.md §9`.
  *
  * ⚠️ Toute modification de montant doit être répercutée dans :
+ *   - `CATALOGUE_REVISED_AT` ci-dessous (la date de relevé de TOUS les montants affichés)
  *   - `docs/OFFRE_AGENCE_TPE.md`        (référence commerciale)
  *   - `skills/commercial-kit/SKILL.md`  (mémoire des agents Sales)
  *   - `finance/model.py`                (projections 5 ans)
- *   - `functions/src/prerender.ts`      (bodyText SEO de /presence-digitale)
+ *   - `worker/apps/site/src/prerender/static-pages.ts` (`/presence-digitale` : les cinq
+ *     montants sont écrits en toutes lettres dans `description` ET `bodyText`, c'est-à-dire
+ *     dans ce qu'un moteur lit. Ce miroir se déploie à la main, séparément du front.)
+ *
+ * ⚠️ La ligne `functions/src/prerender.ts` a été retirée de cette liste : le répertoire
+ * `functions/` n'existe plus depuis le 03/09/2026 et le prérendu vit dans le Worker. Un
+ * pointeur mort envoie chercher le miroir au mauvais endroit — et le vrai reste non mis à jour.
  *
  * Montants en XOF (FCFA). Les libellés vivent dans les fichiers i18n `presence.json` :
  * ce module ne porte que des clés et des nombres, jamais de texte affichable.
@@ -59,6 +66,31 @@ export interface OptionDefinition {
 }
 
 /** Mise en place — paiement unique. */
+/**
+ * LA DATE DE RÉVISION DE LA GRILLE — elle fait partie des montants.
+ *
+ * `<Num>` exige un `asOf` : ces prix ne viennent pas d'une requête, ils sont écrits juste en
+ * dessous. La date de leur dernière révision est donc le seul relevé honnête — `new Date()`
+ * prétendrait que le prix a été vérifié à l'instant où la page s'affiche.
+ *
+ * ⚠️ ELLE VIT ICI, AU CONTACT DES MONTANTS, ET C'EST TOUT L'INTÉRÊT. Elle était déclarée dans
+ * `PresenceDigitale.tsx` — un fichier qu'on n'ouvre pas pour changer un prix — et recopiée EN
+ * TOUTES LETTRES dans l'encart de vérité de la même page, en français et en anglais. Trois
+ * copies, dont deux en prose : le premier changement de prix aurait daté la grille d'un jour
+ * où elle n'existait plus, dans l'encart qui sert précisément à établir la confiance. Ici,
+ * changer un montant sans toucher la ligne au-dessus se voit dans le même diff.
+ */
+/*
+ * ⚠️ MIDI UTC, PAS MINUIT — c'est une date de calendrier rangée dans un instant.
+ * `new Date('2026-08-02')` est parsé en MINUIT UTC, et `<Num>` le rend dans le fuseau du
+ * visiteur : à New York, la provenance annonçait « relevé du 01/08/2026 », une date à laquelle
+ * la grille n'a pas été révisée. Midi décale le point de bascule de douze heures et rend la
+ * bonne date de UTC-11 à UTC+11 — le fuseau de tout le public de cette offre, Amériques
+ * comprises. La primitive `<Num>` formate sans `timeZone` et ne se règle pas d'ici ; l'encart
+ * de vérité, lui, qui ÉCRIT cette date en toutes lettres, la formate explicitement en UTC.
+ */
+export const CATALOGUE_REVISED_AT = new Date('2026-08-02T12:00:00Z');
+
 export const PACKS: PackDefinition[] = [
   { key: 'presence', price: 295_000, promoPrice: 250_000, floorPrice: 225_000, featured: false, supportDays: 30 },
   { key: 'visible', price: 495_000, floorPrice: 400_000, featured: true, supportDays: 30 },

@@ -433,7 +433,7 @@
     "title": "Ce que je n'affiche pas",
     "provenTitle": "Ce que je peux te prouver",
     "proven": [
-      "La grille de prix ci-dessus, relevée au 2 août 2026. Chaque montant vient du catalogue, pas d'une phrase.",
+      "La grille de prix ci-dessus, relevée au {{asOf}}. Chaque montant vient du catalogue, pas d'une phrase.",
       "La recherche Google Maps du premier écran : tu l'as lancée toi-même, dans un outil qui n'est pas le mien.",
       "Ton récapitulatif relit cette même grille à chaque ouverture. Si elle bouge, il bouge avec elle."
     ],

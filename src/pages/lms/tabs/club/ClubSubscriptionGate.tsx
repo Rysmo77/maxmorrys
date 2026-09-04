@@ -1,10 +1,11 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useFormat } from '../../../../hooks/useFormat';
 import { motion } from 'framer-motion';
 import { Button, GlassPanel, Icon, Num, Switch, Tag, TruthPanel, type IconName } from '@ds';
 import LocalizedLink from '../../../../components/shared/LocalizedLink';
 import { PriceApprox } from '../../../../components/shared/PriceApprox';
-import { CLUB_PRICE_XOF, clubReferralPrice } from '../../../../lib/club/pricing';
+import { CLUB_OPENED_AT, CLUB_PRICE_XOF, clubReferralPrice } from '../../../../lib/club/pricing';
 import { CLUB_CATEGORIES } from '../../hooks/useClubData';
 import type { useClubData } from '../../hooks/useClubData';
 import type { EnrolledFormation } from '../../hooks/useStudentData';
@@ -66,6 +67,8 @@ const FEATURES: { icon: IconName; titleKey: string; descKey: string }[] = [
  */
 export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubSubscriptionGateProps) {
   const { t } = useTranslation('club');
+  /* La même clé que la page publique, donc la même valeur : deux écrans, une seule date. */
+  const { formatMonth } = useFormat();
   const {
     isClubPending,
     clubAutoRenew, setClubAutoRenew,
@@ -157,7 +160,7 @@ export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubS
           t('subscriptionGate.truth.proven3'),
         ]}
         withheld={[
-          t('subscriptionGate.truth.withheld1'),
+          t('subscriptionGate.truth.withheld1', { opened: formatMonth(CLUB_OPENED_AT) }),
           t('subscriptionGate.truth.withheld2'),
         ]}
       />

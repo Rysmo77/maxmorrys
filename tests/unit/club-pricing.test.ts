@@ -10,11 +10,15 @@
  * juridique sans que personne ne le relise. La cohérence est donc vérifiée ici, pas imposée
  * par le rendu.
  *
- * ⚠️ CE FICHIER DÉCLARAIT LES MIROIRS SERVEUR HORS DE PORTÉE. C'était vrai à l'IMPORT — les
+ * ⚠️ CE FICHIER DÉCLARAIT LE MIROIR SERVEUR HORS DE PORTÉE. C'était vrai à l'IMPORT — les
  * projets TypeScript du dépôt ne s'importent pas entre eux — et faux tout court : rien
  * n'empêche de relire leur SOURCE, ce que `tax-sync.test.ts` fait depuis longtemps. Le dernier
  * bloc de ce fichier le fait désormais aussi, et c'est ce qui manquait le jour où le prix a
  * divergé.
+ *
+ * Le troisième miroir autrefois cité, `functions/src/payment.ts`, a disparu avec le répertoire
+ * `functions/` le 03/09/2026 : plus aucune Cloud Function n'y était déployée. Il ne reste donc
+ * qu'un miroir serveur — `worker/apps/api/src/lib/bictorys.ts` — et il est vérifié.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';

@@ -123,7 +123,7 @@
     "tutorPanelRemainingAfter_other": "questions left today. Resets at midnight.",
     "tutorPanelPlaceholder": "Ask your question",
     "tutorPanelSend": "Send to your {{tutor}}",
-    "linkTestimonials": "My review",
+    "linkTestimonials": "Leave a review",
     "linkTestimonialsMeta": "text, audio or video"
   },
   "messages": {
@@ -347,7 +347,7 @@
     "renewPlan": "Renew my subscription",
     "renewNote": "Your new month starts when this one ends: you don't lose the days you have left.",
     "subscribeTo": "Subscribe to {{plan}}",
-    "paymentNote": "Secure payment by Bictorys · Wave, Orange Money, bank card.",
+    "paymentNote": "Secure payment by Bictorys · Wave, Orange Money or your card.",
     "packs": {
       "discovery": {
         "label": "Discovery",

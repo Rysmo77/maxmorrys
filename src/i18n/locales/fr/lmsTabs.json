@@ -123,7 +123,7 @@
     "tutorPanelRemainingAfter_other": "questions aujourd'hui. Remis à zéro à minuit.",
     "tutorPanelPlaceholder": "Pose ta question",
     "tutorPanelSend": "Envoyer à ton {{tutor}}",
-    "linkTestimonials": "Mon avis",
+    "linkTestimonials": "Donner mon avis",
     "linkTestimonialsMeta": "texte, audio ou vidéo"
   },
   "messages": {
@@ -347,7 +347,7 @@
     "renewPlan": "Reprendre mon abonnement",
     "renewNote": "Ton nouveau mois démarre à la fin de celui-ci : tu ne perds pas les jours qui restent.",
     "subscribeTo": "S'abonner à {{plan}}",
-    "paymentNote": "Paiement sécurisé par Bictorys · Wave, Orange Money, carte bancaire.",
+    "paymentNote": "Paiement sécurisé par Bictorys · Wave, Orange Money ou ta carte.",
     "packs": {
       "discovery": {
         "label": "Découverte",

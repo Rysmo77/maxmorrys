@@ -794,6 +794,27 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Miroir public des chiffres du Club — ecrit par le Worker (compte de service, qui
+    // contourne ces regles), lu par la page publique /club-des-digitos.
+    //
+    // Il existe parce qu'un ENGAGEMENT affiche avant paiement — « deux sessions en direct
+    // par mois » — ne se verifiait pas : club_events exige un abonnement actif en lecture,
+    // une agregation passe par la meme regle, et cette fermeture est voulue. Le miroir
+    // publie donc l'EXECUTION de l'engagement : le nombre de sessions reellement tenues sur
+    // une fenetre datee, compte cote serveur.
+    //
+    // ⚠️ Aucun chiffre de preuve sociale n'entrera ici : ni nombre de membres, ni note, ni
+    // avis, ni temoignage. Le compte de membres existe deja dans leaderboard/global,
+    // reserve aux connectes, et il n'en sort pas.
+    //
+    // ⚠️ Aucune ecriture cliente, pas meme admin : un chiffre que le navigateur pourrait
+    // poser ne prouverait plus rien, et c'est la seule raison pour laquelle celui-la vaut
+    // quelque chose.
+    match /public_stats/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // User progress in lessons (subcollection under enrollments)
     match /enrollments/{enrollmentId}/progress/{lessonId} {
       // Users can read their own progress

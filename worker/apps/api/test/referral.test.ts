@@ -53,6 +53,32 @@ describe('niveauDepuisXp — miroir des paliers du client', () => {
 });
 
 describe('recompenserParrain', () => {
+  /*
+   * Audit du 03/09/2026 — LE CODE AMBIGU.
+   *
+   * La requête portait `limit: 1` sur un `where` sans `orderBy` : elle ne rendait donc pas
+   * « le porteur du code » mais le document dont l'identifiant trie le plus bas. Couplée à
+   * une règle `create` qui laissait poser `referralCode` à l'inscription, elle permettait de
+   * capter les conversions d'un tiers en recréant un compte jusqu'à obtenir un UID plus bas.
+   *
+   * La règle Firestore ferme la porte ; ce test tient le second rideau, qui refuse
+   * d'arbitrer plutôt que de désigner un gagnant au hasard.
+   */
+  it('ne récompense personne quand deux comptes portent le même code', async () => {
+    const { db, ecritures, ajouts } = fauxDb(
+      { 'users/filleul': { referredByCode: 'ABC123', displayName: 'Awa' } },
+      [{ id: 'aaa-attaquant' }, { id: 'zzz-legitime' }],
+    );
+
+    const r = await recompenserParrain(db, 'filleul');
+
+    expect(r).toEqual({ recompense: false, raison: 'codeAmbigu' });
+    // Ni XP, ni badge, ni conversion consignée, ni marqueur posé sur le filleul :
+    // l'ambiguïté doit rester rattrapable une fois le doublon corrigé à la main.
+    expect(ecritures).toHaveLength(0);
+    expect(ajouts).toHaveLength(0);
+  });
+
   it('verse 100 XP et le badge Ambassadeur, et consigne la conversion', async () => {
     const { db, ecritures, ajouts } = fauxDb(
       { 'users/filleul': { referredByCode: 'ABC123', displayName: 'Awa' }, 'gamification/parrain': { xp: 40, badges: [] } },

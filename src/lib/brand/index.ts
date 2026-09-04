@@ -28,6 +28,7 @@ export {
   socialLinks,
   podcastPlatform,
   publicProfiles,
+  PLATFORM_OPENED_AT,
   formatPhone,
   formatRegisteredAddress,
   type LegalEntity,

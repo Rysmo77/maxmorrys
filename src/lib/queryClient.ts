@@ -41,6 +41,7 @@ export const queryKeys = {
   /* Les seuls chiffres que les pages publiques ont le droit d'afficher (AD-5). Comptés côté
      serveur, donc une lecture au lieu de quarante-six — le forfait est compté, ici. */
   publicCounts: ['public', 'counts'] as const,
+  publicClubStats: ['public', 'clubStats'] as const,
   allUsers: ['users', 'all'] as const,
   allFormations: ['formations', 'all'] as const,
   studentData: (userId: string) => ['student', userId] as const,

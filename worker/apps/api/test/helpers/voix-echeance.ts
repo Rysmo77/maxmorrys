@@ -21,9 +21,23 @@ import { expect } from 'vitest';
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-/** Le message DIT que rien ne sera prélevé — en français comme en anglais. */
+/**
+ * Le message DIT que rien ne sera prélevé — en français comme en anglais.
+ *
+ * ⚠️ LA LISTE S'ALLONGE, ELLE NE SE RESSERRE PAS. Elle porte les tournures RÉELLEMENT
+ * employées par les courriers du produit, et il y en a déjà deux familles : la forme
+ * impersonnelle du rappel Rysmo+ (« rien ne sera prélevé ») et la forme à la première
+ * personne du rappel du Club (« je ne prélèverai rien »), qui l'a remplacée le 04/09/2026.
+ *
+ * Une garde qui n'accepterait qu'une seule formulation forcerait le prochain rédacteur à
+ * écrire la phrase du test plutôt que la phrase juste — c'est-à-dire à faire dire au produit
+ * ce qui arrange la suite. Ce qui compte est que la promesse SOIT là, pas qu'elle soit
+ * toujours dite pareil.
+ */
 export function assertDitQueRienNestPreleve(message: { text: string }): void {
-  expect(message.text).toMatch(/[Rr]ien ne sera prélevé|[Nn]othing will be charged/);
+  expect(message.text).toMatch(
+    /[Rr]ien ne sera prélevé|ne prélèverai rien|[Nn]othing will be charged|won't charge anything/,
+  );
 }
 
 /**

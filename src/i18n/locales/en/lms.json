@@ -8,7 +8,7 @@
     "notes": "My notes",
     "achievements": "Achievements & Certificates",
     "messages": "Messages",
-    "testimonials": "My review",
+    "testimonials": "Leave a review",
     "club": "Digitos Club",
     "clubPending": "Pending",
     "profile": "Profile",
@@ -29,7 +29,7 @@
     "notes": "My notes",
     "achievements": "Achievements & Certificates",
     "messages": "Messages",
-    "testimonials": "My review",
+    "testimonials": "Leave a review",
     "club": "Digitos Club",
     "profile": "My profile",
     "settings": "Settings",
@@ -344,7 +344,12 @@
     "progressLabel": "Uploading media",
     "statusRecording": "Recording.",
     "statusStopped": "Recording finished, uploading.",
-    "statusReady": "Media ready to send."
+    "statusReady": "Media ready to send.",
+    "levelLabel": "Level picked up by the mic",
+    "accessDenied": "Access to the mic/camera was denied. Allow it in your browser's address bar, then try again — or import a file.",
+    "accessNoDevice": "No mic or camera detected on this device. Plug one in, or import a file.",
+    "accessBusy": "The mic or camera is already in use by another app. Close it, then try again — or import a file.",
+    "recorderFailed": "Recording couldn't start in this browser. Import a file instead."
   },
   "streak": {
     "days_one": "{{count}} day",

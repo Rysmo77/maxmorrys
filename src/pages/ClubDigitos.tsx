@@ -7,10 +7,14 @@ import JsonLd from '../components/seo/JsonLd';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
+import { useFormat } from '../hooks/useFormat';
 import { PriceApprox, PriceFootnote } from '../components/shared/PriceApprox';
-import { CLUB_PRICE_XOF, clubReferralPrice } from '../lib/club/pricing';
+import {
+  CLUB_OPENED_AT, CLUB_PRICE_XOF, CLUB_TERMS_REVISED_AT, LIVE_SESSIONS_PER_MONTH, clubReferralPrice,
+} from '../lib/club/pricing';
 import { RYSMO_BASE_DAILY, RYSMO_CLUB_DAILY } from '../lib/rysmo/quota';
 import { getPublishedPodcasts } from '../lib/firestore/content';
+import { getPublicClubStats, type PublicClubStats } from '../lib/firestore/club';
 import { queryKeys } from '../lib/queryClient';
 
 /**
@@ -45,15 +49,16 @@ import { queryKeys } from '../lib/queryClient';
  *     serveur débite (le mensuel est l'annuel divisé par douze, et la page le dit) ;
  *   • 5 questions par jour au lieu de 2        → `lib/rysmo/quota`, miroir vérifié des deux
  *     backends par `tests/unit/rysmo-quota.test.ts` ;
- *   • 2 sessions en direct par mois            → engagement éditorial de l'offre, cité comme
- *     tel. Ce n'est pas une mesure, et ça ne se présente pas comme une mesure.
+ *   • 2 sessions en direct par mois            → `lib/club/pricing`, engagement de l'offre,
+ *     cité comme tel. Ce n'est pas une mesure, et ça ne se présente pas comme une mesure —
+ *     mais depuis le 04/09/2026 elle n'est plus SEULE : le nombre de sessions réellement
+ *     tenues sur 90 jours s'affiche dessous, lu dans `public_stats/club`. Un engagement qu'on
+ *     peut confronter à sa propre exécution est la seule forme vérifiable qu'il puisse prendre
+ *     ici, l'agenda étant fermé aux non-membres par les règles.
  *
  * Aucun autre chiffre. Pas de nombre de membres, pas de note, pas de témoignage.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-
-/** L'engagement éditorial du Club, cité là où il s'affiche. Ce n'est pas un relevé. */
-const LIVE_SESSIONS_PER_MONTH = 2;
 
 /**
  * Les huit onglets — et ce sont bien les huit du produit, pas huit du kit.
@@ -82,6 +87,14 @@ export default function ClubDigitos() {
      les reprennent mot pour mot plutôt que d'en réécrire une variante. */
   const { t: tNav } = useTranslation('nav');
   const path = useLocalizedPath();
+  const { formatMonth } = useFormat();
+
+  /*
+   * Le mois d'ouverture du Club, écrit plutôt que dit au présent. « Le Club a ouvert cette
+   * année » était vrai en écrivant la phrase et faux dès janvier, sans que rien ne le
+   * signale — sur l'encart qui explique précisément pourquoi aucun chiffre n'est annoncé.
+   */
+  const clubOpened = formatMonth(CLUB_OPENED_AT);
 
   /*
    * La date de relevé des montants. `useRef` et non `new Date()` dans le corps : sans cela
@@ -102,6 +115,18 @@ export default function ClubDigitos() {
     queryFn: () => getPublishedPodcasts(),
   });
   const firstEpisode = podcasts[0];
+
+  /*
+   * CE QUI A RÉELLEMENT ÉTÉ TENU, à côté de ce qui est promis.
+   *
+   * Une lecture, un document, aucune règle à assouplir : le Worker a déjà compté. Un échec ou
+   * un document absent rendent `null`, et `<Num>` écrit alors « non relevé » — jamais un zéro,
+   * qui dirait « aucune session tenue » là où on ne sait simplement pas encore.
+   */
+  const { data: clubStats } = useQuery<PublicClubStats | null>({
+    queryKey: queryKeys.publicClubStats,
+    queryFn: () => getPublicClubStats(),
+  });
 
   /*
    * `returnObjects` rend la CLÉ, une chaîne, tant que le namespace n'est pas là — et
@@ -187,13 +212,31 @@ export default function ClubDigitos() {
           <GlassPanel level="flat" padding={26} className="rv" style={{ ['--i' as string]: 6 }}>
             <SiteEyebrow style={{ margin: 0 }}>{t('publicPage.includedTitle')}</SiteEyebrow>
             <div className="mt-3">
+              {/*
+                L'ENGAGEMENT, PUIS SON EXÉCUTION — et jamais l'un sans l'autre.
+
+                Le premier nombre est ANNONCÉ : il porte la date de révision des termes, pas
+                l'heure d'ouverture de la page, parce qu'il n'a pas été relevé à cet instant.
+                Le second est COMPTÉ par le Worker sur une fenêtre glissante. C'est la seule
+                vérification qu'un visiteur puisse faire ici : l'agenda lui est fermé par les
+                règles, et il ne le sera pas — ce qui s'y dit appartient aux membres.
+              */}
               <CheckLine>
                 <Num
                   value={LIVE_SESSIONS_PER_MONTH}
                   source={{ cite: t('publicPage.sessionsCite') }}
-                  asOf={asOf}
+                  asOf={CLUB_TERMS_REVISED_AT}
                 />{' '}
                 {t('publicPage.included.sessionsPost')}
+                <span className="mt-[3px] block text-meta-2 text-ink-2">
+                  {t('publicPage.sessionsHeldPre', { days: clubStats?.windowDays ?? 90 })}{' '}
+                  <Num
+                    value={clubStats?.liveSessionsHeld ?? null}
+                    source="server"
+                    asOf={clubStats ? new Date(clubStats.asOf) : asOf}
+                    showAsOf={Boolean(clubStats)}
+                  />
+                </span>
               </CheckLine>
               <CheckLine>{t('publicPage.included.missions')}</CheckLine>
               <CheckLine>{t('publicPage.included.workshops')}</CheckLine>
@@ -242,7 +285,9 @@ export default function ClubDigitos() {
 
           <GlassPanel level="truth" className="rv mt-5 max-w-[74ch]" style={{ ['--i' as string]: 3 }}>
             <SiteEyebrow style={{ margin: '0 0 7px' }}>{t('publicPage.guaranteeTruthTitle')}</SiteEyebrow>
-            <p className="m-0 text-meta-2 leading-[1.6] text-ink-2">{t('publicPage.guaranteeTruthBody')}</p>
+            <p className="m-0 text-meta-2 leading-[1.6] text-ink-2">
+              {t('publicPage.guaranteeTruthBody', { opened: clubOpened })}
+            </p>
           </GlassPanel>
         </div>
 
@@ -285,9 +330,11 @@ export default function ClubDigitos() {
                 serait donc possible qu'en carte — pour la minorité, en excluant le marché
                 pour lequel le produit existe.
 
-                La page nomme donc la contrainte au lieu de la masquer : rien n'est prélevé,
-                et on prévient à temps. C'est le maximum honnête, et le dire vaut mieux que
-                laisser quelqu'un le découvrir le jour où son accès s'arrête.
+                La page ne nomme donc plus la contrainte : elle prend l'ENGAGEMENT de ne rien
+                prélever, quel que soit le moyen de paiement, et de prévenir à temps. Un
+                engagement se tient ; une limite technique, elle, expire le jour où le
+                prestataire change d'avis. Et le dire vaut toujours mieux que laisser
+                quelqu'un le découvrir le jour où son accès s'arrête.
               */}
               <p className="mt-2 mb-0 text-[14.5px] leading-[1.6] text-ink-2">{t('publicPage.renewalBody')}</p>
             </GlassPanel>
@@ -431,7 +478,10 @@ export default function ClubDigitos() {
           provenTitle={t('publicPage.truthProvenTitle')}
           withheldTitle={t('subscriptionGate.truth.withheldTitle')}
           proven={[t('subscriptionGate.truth.proven2'), t('subscriptionGate.truth.proven3')]}
-          withheld={[t('subscriptionGate.truth.withheld1'), t('subscriptionGate.truth.withheld2')]}
+          withheld={[
+            t('subscriptionGate.truth.withheld1', { opened: clubOpened }),
+            t('subscriptionGate.truth.withheld2'),
+          ]}
         />
 
         {/* ── 9 · La dalle d'encre finale ──────────────────────────────────────── */}
