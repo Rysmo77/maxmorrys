@@ -48,8 +48,13 @@ structurellement plus élevé.
 | TXT | `lettre.maxmorrys.me` | `v=spf1 include:spf.brevo.com -all` | — |
 | CNAME | `brevo1._domainkey.lettre.maxmorrys.me` | `b1.lettre-maxmorrys-me.dkim.brevo.com` † | DNS only |
 | CNAME | `brevo2._domainkey.lettre.maxmorrys.me` | `b2.lettre-maxmorrys-me.dkim.brevo.com` † | DNS only |
-| TXT | `_dmarc.lettre.maxmorrys.me` | `v=DMARC1; p=quarantine; rua=mailto:dmarc@maxmorrys.me; pct=100` | — |
+| TXT | `_dmarc.lettre.maxmorrys.me` | `v=DMARC1; p=quarantine; rua=mailto:rua@dmarc.brevo.com; pct=100` | — |
 | TXT | `maxmorrys.me` | `v=spf1 include:spf.brevo.com ~all` | — (comble le trou) |
+
+⚠️ Le `rua` pointe sur **l'adresse Brevo**, pas sur `dmarc@maxmorrys.me` : **la racine n'a
+aucun MX**, donc aucune adresse `@maxmorrys.me` ne reçoit quoi que ce soit. C'est aussi vrai
+de `contact@maxmorrys.me`, que la politique de confidentialité donne pour exercer ses droits —
+un défaut à traiter à part.
 
 † **Motif déduit, à confirmer dans l'interface.** Il est relevé sur la racine, déjà vérifiée
 chez Brevo : `brevo1._domainkey.maxmorrys.me` pointe sur `b1.maxmorrys-me.dkim.brevo.com`,
@@ -59,6 +64,12 @@ recopier les valeurs qu'il affiche, sans les déduire.
 
 Les valeurs SPF ci-dessus sont vérifiées : `spf.brevo.com` publie bien un enregistrement, et
 `smtp-relay.brevo.com` (172.246.243.66) tombe dans son bloc `172.246.0.0/18`.
+
+> ⚠️ **NE PAS interroger un nom avant de le créer.** Cloudflare garde le NXDOMAIN dans son
+> propre cache négatif — durée fixée par le SOA de la zone, **1800 s ici**. Un nom neuf, créé
+> sans avoir été interrogé, résout en quelques secondes ; un nom qu'on a « vérifié comme
+> libre » d'abord reste introuvable une demi-heure, alors que l'API le montre bien enregistré.
+> Constaté sur `lettre.maxmorrys.me`, et isolé par un témoin sur un nom jamais interrogé.
 
 > **Le DMARC du marketing démarre en `p=quarantine`, pas `p=reject`.** Un `reject` sur un
 > sous-domaine dont la réputation n'est pas encore établie fait disparaître les messages
@@ -71,26 +82,41 @@ Les valeurs SPF ci-dessus sont vérifiées : `spf.brevo.com` publie bien un enre
 
 Toutes les commandes depuis `maxmorrys-vps` (alias SSH), dans `/opt/maxmorrys-stack/`.
 
+> **Listmonk vit dans SON PROPRE projet compose**, `/opt/maxmorrys-stack/listmonk/`, et non
+> fusionné dans le `docker-compose.yml` du stack. Ce fichier de production porte déjà
+> Typesense, n8n et NocoDB : y ajouter deux services, c'est risquer les trois autres à chaque
+> édition. En projet séparé, le retour arrière est un `docker compose down` qui ne touche
+> rien d'autre. Le lien avec le reste se fait par le réseau `khanouss_default`, que Caddy
+> partage déjà.
+
 ```bash
-# 1. Les secrets, dans le .env du stack — jamais dans le dépôt.
-#    Le mot de passe admin n'y reste QUE le temps du premier démarrage (voir compose).
-cat >> /opt/maxmorrys-stack/.env <<'EOF'
-LISTMONK_DB_PASSWORD=<mot de passe long, tiré au hasard>
-LISTMONK_ADMIN_USER=<identifiant>
-LISTMONK_ADMIN_PASSWORD=<mot de passe long, tiré au hasard>
-EOF
+# 1. Les secrets — générés SUR LE SERVEUR, pour qu'ils ne transitent par aucun journal.
+mkdir -p /opt/maxmorrys-stack/listmonk && cd /opt/maxmorrys-stack/listmonk
+{ echo "LISTMONK_DB_PASSWORD=$(openssl rand -base64 33 | tr -d /=+ | cut -c1-40)"
+  echo "LISTMONK_ADMIN_USER=maxmorrys"
+  echo "LISTMONK_ADMIN_PASSWORD=$(openssl rand -base64 33 | tr -d /=+ | cut -c1-32)"
+} > .env && chmod 600 .env
 
-# 2. Fusionner les deux services dans le docker-compose.yml du stack,
-#    puis le fragment Caddy dans le Caddyfile.
+# 2. Déposer docker-compose.yml (celui de ce dossier) à côté du .env.
 
-# 3. Démarrage — Listmonk applique son schéma tout seul au premier lancement.
-docker compose up -d maxmorrys-listmonk-db maxmorrys-listmonk
-docker compose logs -f maxmorrys-listmonk   # attendre « listening on 0.0.0.0:9000 »
+# 3. ⚠️ LE SCHÉMA NE S'INSTALLE PAS TOUT SEUL.
+#    Sans cette étape, le conteneur redémarre en boucle sur « the database does not appear
+#    to be setup. Run --install. » — et rien dans l'interface ne le dit.
+docker compose up -d maxmorrys-listmonk-db
+docker compose run --rm --no-deps maxmorrys-listmonk ./listmonk --install --idempotent --yes
+docker compose up -d
 
-# 4. Une fois le compte administrateur créé, RETIRER les deux variables d'admin du .env
-#    et redémarrer : les laisser réécrit le mot de passe à chaque redémarrage.
+# 4. Une fois le compte administrateur créé, RETIRER les deux variables d'admin du .env :
+#    les laisser réécrit le mot de passe à chaque redémarrage.
 
-# 5. La sauvegarde quotidienne.
+# 5. Le bloc Caddy — le Caddyfile vit dans /opt/khanouss-stack/, monté par le conteneur
+#    khanouss-caddy-1. Toujours sauvegarder, VALIDER, puis recharger.
+cp -a /opt/khanouss-stack/Caddyfile /opt/khanouss-stack/Caddyfile.bak-$(date +%F-%H%M)
+# … y ajouter le bloc de ce dossier …
+docker exec khanouss-caddy-1 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+docker exec khanouss-caddy-1 caddy reload   --config /etc/caddy/Caddyfile --adapter caddyfile
+
+# 6. La sauvegarde quotidienne.
 install -m 755 sauvegarde.sh /opt/maxmorrys-stack/sauvegarde-listmonk.sh
 ( crontab -l 2>/dev/null; echo '0 2 * * * /opt/maxmorrys-stack/sauvegarde-listmonk.sh >> /var/log/listmonk-backup.log 2>&1' ) | crontab -
 /opt/maxmorrys-stack/sauvegarde-listmonk.sh    # premier passage à la main : il doit dire OK
