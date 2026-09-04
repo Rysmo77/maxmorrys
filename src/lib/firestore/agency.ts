@@ -8,7 +8,15 @@
  */
 import { orderBy } from 'firebase/firestore';
 import { getCollection, getDocById, createDoc, setDocById, updateDocById, deleteDocById } from './helpers';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../config/firebase';
 import { computeTotals, generateQuoteRef, isValidQuoteRef, QUOTE_VALIDITY_DAYS } from '../presence/offer';
+
+/** Accusé de réception du devis — voir `worker/apps/api/src/handlers/accuserDemande.ts`. */
+const accuserDevisCallable = httpsCallable<{ id: string; langue: string }, { ok: boolean; sent: boolean }>(
+  functions,
+  'accuserDevis',
+);
 import type { AgencyLead, AgencyLeadStatus, AgencyQuote } from '../../types';
 
 /** Champs fournis par le prospect ; le statut et l'horodatage sont posés à la création. */
@@ -58,6 +66,24 @@ export async function saveAgencyLead(data: AgencyLeadInput): Promise<{ id: strin
     status: 'new' as const,
     ...(savedRef ? { quoteRef: savedRef } : {}),
   });
+
+  /*
+    L'ACCUSÉ PART APRÈS LES DEUX ÉCRITURES, ET NE PEUT PAS LES DÉFAIRE.
+
+    Firestore ne notifie plus personne — il ne reste aucune Cloud Function, et Cloudflare
+    Workers ne sait pas s'abonner à ses événements. La forme retenue est celle que le dépôt
+    tient déjà pour l'accusé de rendez-vous : l'action qui écrit appelle aussi l'endpoint.
+
+    L'appel est volontairement SANS `await` bloquant sur le retour : un prospect ne doit pas
+    attendre un serveur de messagerie pour voir son devis. Et l'échec est avalé — le lead est
+    capturé, c'est le livrable ; l'accusé est un confort, exactement comme le devis plus haut.
+
+    Le serveur refait toutes les vérifications : fraîcheur du document, plafonds, idempotence.
+    Rien ici n'est cru sur parole.
+  */
+  if (savedRef) {
+    void accuserDevisCallable({ id: savedRef, langue: data.locale ?? 'fr' }).catch(() => null);
+  }
 
   return { id, quoteRef: savedRef };
 }
