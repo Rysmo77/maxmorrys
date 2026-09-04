@@ -1,6 +1,8 @@
 import { HttpsError } from '@mm/shared';
 
 import { type CallContext, requireAuth } from '../context';
+import { envoyerModele } from '../lib/brevo-send';
+import { asText } from '../lib/values';
 
 /**
  * Port de `issueCertificate`.
@@ -79,6 +81,41 @@ export async function issueCertificate(data: unknown, context: CallContext): Pro
     certificateCode,
   });
   await context.db.update(`enrollments/${certificateId}`, { certificateIssued: true });
+
+  /*
+    LE SEUL MOMENT DE FIERTÉ DU PARCOURS NE DÉCLENCHAIT RIEN.
+
+    Ni e-mail, ni notification : on terminait une formation et le produit se taisait. Le
+    certificat existait en base, avec son code vérifiable publiquement, et personne n'était
+    prévenu qu'il pouvait le partager.
+
+    TRANSACTIONNEL, donc aucun consentement à vérifier et aucun lien de retrait : la personne
+    vient d'obtenir un document qui lui appartient. Proposer de « se désabonner » d'un
+    certificat n'aurait pas de sens.
+
+    L'ENVOI NE FAIT PAS ÉCHOUER L'ÉMISSION. Le certificat est écrit et rendu à l'appelant
+    quoi qu'il arrive : perdre un courrier est réparable, perdre un certificat qu'on a mérité
+    ne l'est pas. `envoyerModele` ne lève jamais ; on journalise l'issue.
+  */
+  const profil = await context.db.get(`users/${uid}`);
+  const prefs = (profil?.data.preferences ?? {}) as { language?: string };
+  const destinataire = asText(profil?.data.email) ?? '';
+  if (destinataire) {
+    const envoi = await envoyerModele(context.env, {
+      modele: 'certificat',
+      to: destinataire,
+      langue: prefs.language === 'en' ? 'en' : 'fr',
+      params: {
+        prenom: asText(profil?.data.firstName) ?? asText(profil?.data.displayName) ?? '',
+        formation: asText(formation.title) ?? '',
+        code: certificateCode,
+        lien: `${context.env.APP_BASE_URL}${prefs.language === 'en' ? '/en/verify' : '/verifier'}?code=${certificateCode}`,
+      },
+    });
+    if (envoi.issue !== 'envoye') {
+      console.error('Certificat', certificateCode, ': courrier non envoyé —', envoi.issue, envoi.erreur ?? '');
+    }
+  }
 
   return { certificateId, certificateCode };
 }

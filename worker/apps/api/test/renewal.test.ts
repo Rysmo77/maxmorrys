@@ -60,13 +60,14 @@ describe('buildRenewalNotice', () => {
   });
 
   /*
-   * NOMMER LA CONTRAINTE PLUTÔT QUE LA MASQUER. Le message doit dire explicitement que RIEN
-   * n'est prélevé — c'est la différence entre ce rappel et le renouvellement automatique que
-   * les CGV promettaient et que les rails de paiement ne permettent pas.
+   * PRENDRE L'ENGAGEMENT PLUTÔT QUE SUBIR LA CONTRAINTE. Le message doit dire explicitement
+   * que RIEN n'est prélevé — c'est la différence entre ce rappel et le renouvellement
+   * automatique que les CGV promettaient. La FORMULATION peut bouger, l'affirmation non :
+   * c'est elle que ces deux gardes tiennent, pas une phrase particulière.
    */
   it('dit explicitement que rien ne sera prélevé', () => {
     const m = buildRenewalNotice(ab, '15/09/2026', 'https://x');
-    expect(m.text).toMatch(/[Rr]ien ne sera prélevé/);
+    expect(m.text).toMatch(/ne prélèverai rien|[Rr]ien ne sera prélevé/);
   });
 
   it('ne promet à aucun moment un prélèvement automatique', () => {
@@ -77,7 +78,7 @@ describe('buildRenewalNotice', () => {
   it('bascule en anglais', () => {
     const m = buildRenewalNotice({ ...ab, langue: 'en' }, '09/15/2026', 'https://x');
     expect(m.subject).toContain('ends in 15 days');
-    expect(m.text).toMatch(/[Nn]othing will be charged/);
+    expect(m.text).toMatch(/won't charge anything|[Nn]othing will be charged/);
   });
 
   it('rend toujours une version texte non vide', () => {

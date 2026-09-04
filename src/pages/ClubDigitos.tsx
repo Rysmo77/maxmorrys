@@ -330,9 +330,11 @@ export default function ClubDigitos() {
                 serait donc possible qu'en carte — pour la minorité, en excluant le marché
                 pour lequel le produit existe.
 
-                La page nomme donc la contrainte au lieu de la masquer : rien n'est prélevé,
-                et on prévient à temps. C'est le maximum honnête, et le dire vaut mieux que
-                laisser quelqu'un le découvrir le jour où son accès s'arrête.
+                La page ne nomme donc plus la contrainte : elle prend l'ENGAGEMENT de ne rien
+                prélever, quel que soit le moyen de paiement, et de prévenir à temps. Un
+                engagement se tient ; une limite technique, elle, expire le jour où le
+                prestataire change d'avis. Et le dire vaut toujours mieux que laisser
+                quelqu'un le découvrir le jour où son accès s'arrête.
               */}
               <p className="mt-2 mb-0 text-[14.5px] leading-[1.6] text-ink-2">{t('publicPage.renewalBody')}</p>
             </GlassPanel>
