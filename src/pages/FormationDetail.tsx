@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Breadcrumb, Button, CheckLine, GlassPanel, Icon, LessonRow, PriceBlock, Skeleton, Tag, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import ShareButtons from '../components/shared/ShareButtons';
 import { useLanguage, useLocalizedPath } from '../contexts/LanguageContext';
 import { useFormat } from '../hooks/useFormat';
 import { PriceApprox } from '../components/shared/PriceApprox';
@@ -192,6 +193,22 @@ export default function FormationDetail() {
             <p className="rv mt-4 max-w-[48ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 3 }}>
               {tFormation?.description || formation.description}
             </p>
+
+            {/*
+              PARTAGER UNE FORMATION — le geste manquait sur la page où l'on décide d'acheter.
+
+              Une formation se recommande de personne à personne, et sur ce marché cela veut
+              dire WhatsApp. La fiche possédait déjà tout ce qu'il faut pour un bel aperçu
+              (titre, description, `coverImage` en image Open Graph) et n'offrait aucun moyen
+              de l'envoyer.
+            */}
+            <ShareButtons
+              className="rv mt-4"
+              url={`/formations/${formation.slug}`}
+              title={formation.title}
+              contentType="formation"
+              contentId={formation.id}
+            />
 
             {/*
               ── L'EMPLACEMENT D'APERÇU PORTE LA CRÉA, QUAND IL Y EN A UNE ────────────────

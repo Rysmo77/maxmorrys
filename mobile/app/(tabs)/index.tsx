@@ -79,7 +79,7 @@ export default function Espace() {
       tabbar
       droite={
         <>
-          <IconButton label="Notifications" badge>
+          <IconButton disabled label="Notifications" badge>
             <Icon name="bell" size={17} color={t('textBody')} strokeWidth={2} />
           </IconButton>
           <Pressable

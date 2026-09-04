@@ -2,15 +2,15 @@
   "newsletter": {
     "emailLabel": "Adresse email",
     "emailPlaceholder": "toi@email.com",
-    "cardTitle": "Le jour où j'aurai une lettre",
-    "cardText": "Il n'y a pas encore de lettre. Les seuls e-mails qui partent sont transactionnels — un reçu, un rappel d'échéance, une réponse à ton message. En attendant, le flux RSS prévient à chaque publication.",
+    "cardTitle": "La lettre",
+    "cardText": "Une fois toutes les deux semaines : ce qui a été publié, ce que j'en ai appris, et ce qui mérite ton temps. Rien d'autre. Tu te désabonnes en un clic, depuis n'importe lequel de ces e-mails.",
     "submit": "S'inscrire",
     "submitAria": "S'inscrire à la newsletter",
     "submittingAria": "Inscription en cours…",
     "loading": "Chargement…",
-    "successToast": "C'est noté. Tu seras prévenu le jour où une lettre existera, et pas avant.",
+    "successToast": "C'est noté. Tu reçois la prochaine.",
     "errorToast": "Une erreur est survenue. Réessaie.",
-    "consentLabel": "J'accepte d'être prévenu le jour où une lettre existera, et j'ai lu la",
+    "consentLabel": "J'accepte de recevoir la lettre, et j'ai lu la",
     "consentPolicyLink": "politique de confidentialité",
     "consentRequired": "Merci de confirmer ton accord avant de t'inscrire."
   },
@@ -105,7 +105,7 @@
       "title": "Tu as lu jusqu'au bout",
       "eyebrow": "Ça t'a servi ?",
       "sticker": "Sans e-mail",
-      "text": "Il n'y a pas encore de lettre par e-mail, et je ne te fais pas remplir un champ qui ne sert à rien. Voilà les deux façons de ne rien rater.",
+      "text": "Je ne te fais pas remplir un champ qui ne sert à rien. Voilà les deux façons de ne rien rater.",
       "dismiss": "Non merci",
       "rss": "Flux RSS",
       "rssAction": "Ouvrir",
@@ -277,5 +277,12 @@
       "truthTitle": "Pourquoi cet écran compte autant",
       "truthBody": "C'est le seul canal sortant du produit : aucun e-mail ne part encore. Une relance qui n'arrive pas ici n'arrive nulle part."
     }
+  },
+  "share": {
+    "label": "Partager",
+    "native": "Partager…",
+    "on": "Partager sur {{network}}",
+    "copy": "Copier le lien",
+    "copied": "Lien copié"
   }
 }

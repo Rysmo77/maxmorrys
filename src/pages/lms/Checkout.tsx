@@ -150,6 +150,46 @@ export default function Checkout() {
     }
   }, [user, navigate, slug, language]);
 
+  /*
+   * ── LE DEVIS D'OUVERTURE, SANS COUPON ────────────────────────────────────────────────
+   *
+   * Il n'y en avait pas : le serveur n'était interrogé qu'au moment où quelqu'un tapait un
+   * code. C'était sans conséquence tant que la seule remise venait d'un coupon — le prix
+   * catalogue était alors le bon.
+   *
+   * La remise membre du Club change ça. Elle ne se demande pas, elle se CONSTATE : sans cet
+   * appel, un membre verrait le prix plein à l'écran et se ferait débiter moins. L'écart
+   * jouerait en sa faveur, il serait invisible, et ce serait exactement le défaut que
+   * `resolveCheckoutTotal` a été écrit pour fermer — repassé par la porte de l'affichage.
+   *
+   * ⚠️ IL EST ICI, AVANT LES RETOURS ANTICIPÉS, ET PAS PLUS BAS. Posé après le premier
+   * `return`, il n'était appelé que sur certains rendus — `react-hooks/rules-of-hooks` l'a
+   * refusé, et il avait raison : l'ordre des hooks aurait changé d'un rendu à l'autre.
+   * Le prix catalogue est donc recalculé ici plutôt que lu dans une variable définie plus
+   * bas ; c'est le prix de l'emplacement correct.
+   *
+   * ⚠️ Un échec laisse `quote` à `null`, donc le prix catalogue : le prix SANS remise, donc
+   * jamais un montant inférieur à ce qui sera débité. C'est le bon côté pour se tromper.
+   */
+  useEffect(() => {
+    if (!formation) return;
+    if ((formation.promoPrice ?? formation.price) === 0) return;
+    let annule = false;
+    quoteCheckout({ formationId: formation.id })
+      .then(({ data }) => {
+        if (annule) return;
+        setQuote({
+          finalPrice: data.finalPrice,
+          couponDiscount: data.couponDiscount,
+          couponApplied: data.couponApplied,
+          clubDiscount: data.clubDiscount,
+          clubApplied: data.clubApplied,
+        });
+      })
+      .catch(() => { /* Prix catalogue conservé : voir ci-dessus. */ });
+    return () => { annule = true; };
+  }, [formation]);
+
   if (formation === undefined) {
     return (
       <Frame>
@@ -231,39 +271,6 @@ export default function Checkout() {
   const finalPrice = quote?.finalPrice ?? catalogPrice;
   const isFree = catalogPrice === 0;
   const lessonCount = (formation.modules ?? []).reduce((a, m) => a + m.lessons.length, 0);
-
-  /*
-   * ── LE DEVIS D'OUVERTURE, SANS COUPON ────────────────────────────────────────────────
-   *
-   * Il n'y en avait pas : le serveur n'était interrogé qu'au moment où quelqu'un tapait un
-   * code. C'était sans conséquence tant que la seule remise venait d'un coupon — le prix
-   * catalogue était alors le bon.
-   *
-   * La remise membre du Club change ça. Elle ne se demande pas, elle se CONSTATE : sans cet
-   * appel, un membre verrait le prix plein à l'écran et se ferait débiter moins. L'écart
-   * jouerait en sa faveur, il serait invisible, et ce serait exactement le défaut que
-   * `resolveCheckoutTotal` a été écrit pour fermer — repassé par la porte de l'affichage.
-   *
-   * ⚠️ Un échec laisse `quote` à `null`, donc le prix catalogue : le prix SANS remise, donc
-   * jamais un montant inférieur à ce qui sera débité. C'est le bon côté pour se tromper.
-   */
-  useEffect(() => {
-    if (isFree) return;
-    let annule = false;
-    quoteCheckout({ formationId: formation.id })
-      .then(({ data }) => {
-        if (annule) return;
-        setQuote({
-          finalPrice: data.finalPrice,
-          couponDiscount: data.couponDiscount,
-          couponApplied: data.couponApplied,
-          clubDiscount: data.clubDiscount,
-          clubApplied: data.clubApplied,
-        });
-      })
-      .catch(() => { /* Prix catalogue conservé : voir ci-dessus. */ });
-    return () => { annule = true; };
-  }, [formation.id, isFree]);
 
   /**
    * Demande au serveur ce que coûterait cette commande avec ce code.

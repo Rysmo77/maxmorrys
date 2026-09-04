@@ -23,7 +23,7 @@ import type { FAQ as FAQItem } from '../types';
  * `forward` de sa maquette dit « ça mène ailleurs », pas « ça se déplie ». L'accordéon était
  * un pis-aller tant que `/faq/:slug` n'existait pas ; il rendait la réponse consultable et
  * rien d'autre — impossible d'envoyer à quelqu'un LA question qui le concerne, aucune
- * position propre en recherche, et un moteur qui voit quarante-six réponses sur une adresse.
+ * position propre en recherche, et un moteur qui voit toutes les réponses sur une seule adresse.
  *
  * Le `FAQPage` en données structurées reste ici, et il garde son sens : il décrit l'index.
  * Chaque page de question en déclare une seule, la sienne.

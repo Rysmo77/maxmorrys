@@ -1,7 +1,4 @@
 {
-  "functions": {
-    "source": "functions"
-  },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
@@ -14,7 +11,8 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "**/*.map"
     ],
     "headers": [
       {
@@ -93,168 +91,9 @@
     ],
     "rewrites": [
       {
-        "source": "/sitemap.xml",
-        "function": "sitemap"
-      },
-      {
-        "source": "/rss.xml",
-        "function": "rss"
-      },
-      {
-        "source": "/catalog.csv",
-        "function": "catalog"
-      },
-      {
-        "source": "/",
-        "function": "prerender"
-      },
-      {
-        "source": "/blog",
-        "function": "prerender"
-      },
-      {
-        "source": "/blog/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/formations",
-        "function": "prerender"
-      },
-      {
-        "source": "/formations/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/podcasts",
-        "function": "prerender"
-      },
-      {
-        "source": "/podcasts/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/videos",
-        "function": "prerender"
-      },
-      {
-        "source": "/videos/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/podcast-et-videos",
-        "function": "prerender"
-      },
-      {
-        "source": "/club-des-digitos",
-        "function": "prerender"
-      },
-      {
-        "source": "/verifier",
-        "function": "prerender"
-      },
-      {
-        "source": "/faq",
-        "function": "prerender"
-      },
-      {
-        "source": "/faq/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/a-propos",
-        "function": "prerender"
-      },
-      {
-        "source": "/contact",
-        "function": "prerender"
-      },
-      {
-        "source": "/agence",
-        "function": "prerender"
-      },
-      {
-        "source": "/presence-digitale",
-        "function": "prerender"
-      },
-      {
-        "source": "/legal/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/en",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/blog",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/blog/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/courses",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/courses/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/podcasts",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/podcasts/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/videos",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/videos/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/podcast-and-videos",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/digitos-club",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/verify",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/faq",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/faq/**",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/about",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/contact",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/agency",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/local-presence",
-        "function": "prerender"
-      },
-      {
-        "source": "/en/legal/**",
-        "function": "prerender"
+        "//": "LE FILET ANTI-404 DES CARTES D'APERCU. Les cartes sont des fichiers statiques generes par `npm run og:cards`. Une reecriture ne s'applique QUE si aucun fichier ne correspond : une carte existante est donc servie telle quelle, et une page creee depuis la derniere generation retombe sur la carte de marque. Sans cette ligne, elle repondrait 404 — et un og:image en 404 ne degrade pas l'apercu du lien, il le supprime.",
+        "source": "/og/**",
+        "destination": "/og/_fallback.png"
       },
       {
         "source": "**",
@@ -298,9 +137,6 @@
     },
     "storage": {
       "port": 9199
-    },
-    "functions": {
-      "port": 5001
     },
     "hosting": {
       "port": 5000

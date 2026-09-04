@@ -16,12 +16,25 @@ import { useToken, px } from './theme';
  * zone tactile sans changer le dessin. C'est la seule façon d'avoir les deux.
  */
 export function IconButton({
-  label, badge, onPress, children, style,
+  label, badge, onPress, disabled, children, style,
 }: {
   /** Nom accessible. Un bouton qui ne porte qu'un glyphe DOIT le porter. */
   label: string;
   badge?: boolean;
   onPress?: () => void;
+  /**
+   * ÉTEINT, ET QUI LE DIT.
+   *
+   * Cette prop n'existait pas, et son absence a laissé passer des boutons qui annonçaient
+   * une action sans en porter — un glyphe de recherche sans recherche, un partage sans
+   * partage. Ils avaient l'air vivants : on les touchait, rien ne se passait, et on
+   * recommençait en croyant avoir mal visé.
+   *
+   * Un contrôle visiblement inactif dit la vérité. `accessibilityState` la dit aussi aux
+   * lecteurs d'écran, sans quoi le bouton resterait annoncé comme actionnable à ceux qui
+   * ne voient pas qu'il est pâle.
+   */
+  disabled?: boolean;
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -32,7 +45,9 @@ export function IconButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={onPress}
+      accessibilityState={{ disabled: disabled === true }}
+      onPress={disabled ? undefined : onPress}
+      disabled={disabled}
       hitSlop={4}
       android_ripple={ripple(t('ink3'), true)}
       style={({ pressed }: { pressed: boolean }) => [{
@@ -40,7 +55,8 @@ export function IconButton({
         alignItems: 'center', justifyContent: 'center',
         backgroundColor: t('chromeBg'),
         borderWidth: 1, borderColor: t('chromeBrd'),
-        transform: [{ scale: pressed ? Number.parseFloat(t('pressScaleSm')) || 0.94 : 1 }],
+        opacity: disabled ? 0.4 : 1,
+        transform: [{ scale: pressed && !disabled ? Number.parseFloat(t('pressScaleSm')) || 0.94 : 1 }],
       }, style]}
     >
       {children}

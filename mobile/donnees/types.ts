@@ -90,3 +90,119 @@ export interface VueLecon {
   moduleTitre: string | null;
   programme: VueLeconLigne[];
 }
+
+export interface VueClubMessage {
+  id: string;
+  auteur: string;
+  initiales: string;
+  categorie: string;
+  quand: string | null;
+  texte: string;
+  aime: number;
+  republie: number;
+  commente: number;
+}
+
+export interface VueClubMission {
+  meta: string;
+  titre: string;
+  budget: number | null;
+  note: string;
+}
+
+export interface VueClubFil {
+  mission: VueClubMission | null;
+  fil: VueClubMessage[];
+}
+
+export interface VueEpisode {
+  titre: string;
+  titreCourt: string;
+  invitee: string | null;
+  eyebrow: string;
+  chapo: string | null;
+  duree: string | null;
+  lien: string | null;
+}
+
+export interface VueVideo {
+  titre: string;
+  eyebrow: string;
+  lien: string | null;
+  cout: string[];
+}
+
+export interface VueMedia {
+  episode: VueEpisode | null;
+  video: VueVideo | null;
+}
+
+export interface VueDiscussion {
+  id: string;
+  categorie: string;
+  titre: string;
+  auteur: string;
+  initiales: string;
+  quand: string | null;
+  reponses: number;
+  resolu: boolean;
+}
+
+export interface VueOpportunite {
+  id: string;
+  type: string;
+  titre: string;
+  lieu: string | null;
+  quand: string | null;
+  budget: number | null;
+  par: string | null;
+}
+
+export interface VueMembre {
+  nom: string;
+  initiales: string;
+  metier: string | null;
+  ville: string | null;
+  depuis: string | null;
+  presentation: string | null;
+  formations: string[];
+  contributions: number;
+}
+
+export interface VueClassement {
+  vague: string;
+  rang: number | null;
+  surCombien: number;
+  points: number;
+  semaine: number;
+  lignes: ReadonlyArray<{
+    rang: number;
+    nom: string;
+    initiales: string;
+    points: number;
+    moi: boolean;
+  }>;
+}
+
+export interface VueRepetiteur {
+  quota: { utilise: number; total: number };
+  memoire: ReadonlyArray<{ id: string; fait: string; depuis: string | null }>;
+  echange: ReadonlyArray<{ id: string; de: string; texte: string }>;
+}
+
+export interface VueConsole {
+  comptes: Record<string, number>;
+  prospect: { titre: string; meta: string | null; statut: string } | null;
+}
+
+export interface VueSeance {
+  id: string;
+  collection: string;
+  jour: string | null;
+  titre: string;
+  horaire: string | null;
+  glyphe: string;
+  territoire: string;
+  inscrite: boolean;
+  places: string | null;
+}

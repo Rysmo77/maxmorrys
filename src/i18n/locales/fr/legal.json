@@ -98,7 +98,9 @@
       "intro": "Nous faisons appel aux sous-traitants suivants pour le fonctionnement de nos services :",
       "item1": "Firebase / Google Cloud (Google LLC) — Hébergement, base de données et authentification",
       "item2": "Bictorys — Traitement des paiements (Wave, Orange Money, Free Money, carte bancaire)",
-      "item3": "Google Generative AI (Gemini) — Assistant pédagogique Rysmo (traitement des échanges pour générer les réponses ; l'historique est stocké côté serveur Max-Morrys pour la mémoire personnalisée)"
+      "item3": "Google Generative AI (Gemini) — Assistant pédagogique Rysmo (traitement des échanges pour générer les réponses ; l'historique est stocké côté serveur Max-Morrys pour la mémoire personnalisée)",
+      "item4": "Cloudflare (Cloudflare, Inc.) — Diffusion du site, stockage des médias et envoi des e-mails transactionnels (reçus, factures, rappels)",
+      "item5": "Brevo (Sendinblue SAS, France) — Acheminement de la lettre d'information"
     },
     "contact": {
       "heading": "Contact",

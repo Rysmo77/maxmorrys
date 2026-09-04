@@ -30,6 +30,18 @@
     // Remplacer par l'URL AI Gateway pour obtenir cache, budgets et traces :
     // https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/google-ai-studio
     "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com"
+
+    // AUCUNE VARIABLE DE RENDU D'IMAGE, ET C'EST LA CONCLUSION DE LA JOURNÉE DU 03/09/2026.
+    //
+    // Une `OG_RENDER_URL` a existé ici quelques heures, pointant sur la Cloud Function
+    // `ogImage`. Elle n'a jamais eu de moteur en face : `functions/` a été supprimé le même
+    // jour, le projet étant repassé au plan Spark. Le rendu à la demande a donc été abandonné
+    // — le code qui l'appelait (`src/og.ts`) avec.
+    //
+    // Les cartes d'aperçu sont désormais des FICHIERS, rendus au build par
+    // `npm run og:cards` et servis par l'hébergement. Le Worker n'a rien à faire pour elles :
+    // `/og/**.png` ne figure dans aucune de ses tables de routage et part à l'origine, comme
+    // n'importe quel autre asset. C'est ce qui leur donne un coût d'exécution nul.
   },
 
   // Secrets (jamais dans vars) :
@@ -47,6 +59,10 @@
       // se retrouve posé sur le domaine de production.
       "routes": [],
       "kv_namespaces": [{ "binding": "SEO", "id": "0a094ec96ffd4aa8910df4914775bb06" }],
+      // ⚠️ Les `vars` du niveau racine ne sont PAS héritées ici — même piège que les routes
+      // ci-dessus, et wrangler le signale à chaque déploiement. Une variable oubliée ne casse
+      // rien : elle éteint silencieusement la fonctionnalité sur la préversion, qui cesse
+      // alors de valider ce qu'on croit valider.
       "vars": {
         "ORIGIN": "https://max-morrys.web.app",
         "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com"

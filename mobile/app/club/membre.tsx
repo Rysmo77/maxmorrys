@@ -4,7 +4,7 @@ import {
   Avatar, Body, Button, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { MEMBRE, RELEVE, SOURCE } from '../../contenu/demo';
+import { ErreurAppel, provenance, signalerLeMembre, useMembre } from '../../donnees';
 
 /**
  * ── CLUB · LA FICHE D'UN MEMBRE ───────────────────────────────────────────────────────
@@ -24,13 +24,39 @@ import { MEMBRE, RELEVE, SOURCE } from '../../contenu/demo';
  */
 export default function ClubMembre() {
   const t = useToken();
-  const p = useLocalSearchParams<{ nom?: string; metier?: string; ville?: string }>();
+  const p = useLocalSearchParams<{ id?: string; nom?: string; metier?: string; ville?: string }>();
+  const fiche = useMembre(p.id);
 
-  const nom = p.nom ?? MEMBRE?.nom ?? null;
-  const metier = p.metier ?? MEMBRE?.metier ?? null;
-  const ville = p.ville ?? MEMBRE?.ville ?? null;
+  /* Les paramètres priment sur la fiche : quand une liste transmet déjà le nom, l'écran
+     l'affiche avant même que la lecture aboutisse — c'est ce qui évite un titre vide
+     pendant une seconde sur un écran ouvert depuis le fil. */
+  const nom = p.nom ?? fiche.valeur?.nom ?? null;
+  const metier = p.metier ?? fiche.valeur?.metier ?? null;
+  const ville = p.ville ?? fiche.valeur?.ville ?? null;
   const initiales = nom === null ? null
-    : nom.trim().split(' ').map((m) => m.charAt(0)).join('').slice(0, 2).toUpperCase();
+    : nom.trim().split(' ').map((m: string) => m.charAt(0)).join('').slice(0, 2).toUpperCase();
+
+  /*
+   * ⚠️ CETTE ALERTE PROMETTAIT CE QU'ELLE NE FAISAIT PAS. Elle affirmait « le signalement
+   * part tout de suite » et son bouton destructif n'avait aucun gestionnaire : il se
+   * fermait sans rien envoyer. Sur un signalement, celui qui l'a touché s'en va en pensant
+   * que c'est traité — et ne le refait pas.
+   */
+  async function envoyerLeSignalement() {
+    if (!p.id) {
+      Alert.alert('Membre non identifié', "Ouvre la fiche depuis le fil ou l'annuaire.");
+      return;
+    }
+    try {
+      await signalerLeMembre(p.id);
+      Alert.alert('C\'est envoyé', 'Le support le regarde. La personne ne saura pas que ça vient de toi.');
+    } catch (erreur: unknown) {
+      Alert.alert(
+        "Le signalement n'est pas parti",
+        erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
+      );
+    }
+  }
 
   function signaler() {
     Alert.alert(
@@ -38,12 +64,12 @@ export default function ClubMembre() {
       "Le signalement part tout de suite, sans que tu aies à expliquer pourquoi. Je te demanderai le motif ensuite, si tu veux le donner — et la personne ne saura pas que ça vient de toi.",
       [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Signaler', style: 'destructive' },
+        { text: 'Signaler', style: 'destructive', onPress: () => { void envoyerLeSignalement(); } },
       ],
     );
   }
 
-  if (nom === null || initiales === null || MEMBRE === null) {
+  if (nom === null || initiales === null || fiche.valeur === null) {
     return (
       <ClubScreen titre="Membre">
         <Display size={24} lines={['Cette fiche', "n'est pas chargée."]} />
@@ -56,7 +82,7 @@ export default function ClubMembre() {
       </ClubScreen>
     );
   }
-  const membre = MEMBRE;
+  const membre = fiche.valeur;
 
   return (
     <ClubScreen titre="Membre">
@@ -85,12 +111,12 @@ export default function ClubMembre() {
         <LessonRow
           icon={<Icon name="comment" size={14} color={t('ink2')} />}
           title="Contributions au fil"
-          trailing={<Num value={membre.contributions} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
+          trailing={<Num value={membre.contributions} {...provenance(fiche)} style={{ fontSize: 13 }} />}
         />
         <LessonRow
           icon={<Icon name="book" size={14} color={t('ink2')} />}
           title="Formations suivies"
-          trailing={<Num value={membre.formations.length} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
+          trailing={<Num value={membre.formations.length} {...provenance(fiche)} style={{ fontSize: 13 }} />}
           last
         />
       </Surface>

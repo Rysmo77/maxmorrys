@@ -113,6 +113,39 @@ export const socialLinks = [
 ] as const;
 
 /**
+ * LA PLATEFORME D'ÉCOUTE DU PODCAST — `null` tant qu'il n'y en a pas.
+ *
+ * Le podcast s'écoute sur le site et se distribue par `/podcast.xml`. Aucun show n'est publié
+ * sous un flux à nous chez un diffuseur : le dépôt ne contient AUCUNE URL de show, et en
+ * deviner une serait exactement ce que la page À propos reproche au reste du web.
+ *
+ * ⚠️ C'EST LA SEULE PORTE, ET C'EST TOUT SON INTÉRÊT. Le fait était écrit en toutes lettres à
+ * DEUX endroits — l'emplacement déclaré « Liens à confirmer » de `/a-propos` et la phrase sous
+ * les rangées de `/podcast-et-videos` — donc dans quatre fichiers avec l'anglais. Le jour de la
+ * publication, l'un des deux aveux aurait survécu à l'autre. Les deux surfaces lisent
+ * maintenant cette valeur : y poser `{ name, url }` fait apparaître la ligne d'écoute et la
+ * troisième rangée du kit, l'ajoute à `sameAs`, et retire les deux aveux d'un seul geste.
+ *
+ * `name` est l'étiquette ET l'initiale de la pastille sur `/a-propos` : écrire « Spotify »,
+ * pas « Podcast Spotify ».
+ *
+ * ⚠️ Cette constante n'existe PAS dans le miroir corporate `My-onoma` : le podcast appartient
+ * à la plateforme, pas à la société. Ne pas la remonter là-bas au nom de l'alignement.
+ */
+export const podcastPlatform: { name: string; url: string } | null = null;
+
+/**
+ * OÙ ON PEUT ME TROUVER — les profils sociaux, PLUS la plateforme d'écoute quand elle existe.
+ *
+ * Distinct de `socialLinks`, et ça n'est pas une redondance : le pied de page rend `socialLinks`
+ * par une table d'icônes indexée par NOM (`Footer.tsx`), où un nom absent ne rendrait pas un
+ * icône vide — il ferait planter la rangée. Les surfaces qui affichent un nom et une URL
+ * (panneau « Où me trouver », `sameAs` du JSON-LD) lisent celle-ci.
+ */
+export const publicProfiles: readonly { name: string; url: string }[] =
+  podcastPlatform ? [...socialLinks, podcastPlatform] : socialLinks;
+
+/**
  * Formate un téléphone international pour l'affichage : +221 77 604 19 85.
  * Retourne la valeur brute si elle ne fait pas douze chiffres.
  */

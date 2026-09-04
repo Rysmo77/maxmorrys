@@ -89,3 +89,77 @@ describe('les vues natives refont les contrôles que les règles ne feront pas',
     expect(sans, 'répondraient sans date de relevé').toEqual([]);
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * LES ÉCRITURES DU NATIF — là où l'absence de filet coûte le plus cher.
+ *
+ * Une LECTURE sans contrôle expose des données. Une ÉCRITURE sans contrôle en fabrique :
+ * elle laisse quelqu'un modifier ce qui ne lui appartient pas, et le défaut ne se voit
+ * qu'après, dans les données.
+ *
+ * Le cas le plus subtil est `marquerLecon`. La règle `match /enrollments/{id}` impose
+ * SEPT conditions à une mise à jour, dont celle-ci : `maxProgress` ne peut jamais
+ * décroître. Ce n'est pas un plafond décoratif — il sert à n'accorder l'XP d'un palier
+ * qu'une fois. Sans lui, décocher puis recocher une leçon rapporte de l'XP en boucle, et
+ * cet XP alimente le classement du Club et les badges de parrainage.
+ *
+ * Le compte de service ne subit aucune de ces sept conditions. Chaque handler d'écriture
+ * doit donc les refaire, et ces portes vérifient qu'il ne s'en dispense pas.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+const ECRITURES = [
+  'ecrireUneNote.ts',
+  'marquerLecon.ts',
+  'signalerMembre.ts',
+  'creerMonProfil.ts',
+];
+
+describe("les écritures natives refont les règles qu'elles contournent", () => {
+  const lireEcriture = (f: string) =>
+    readFileSync(join(RACINE, 'worker/apps/api/src/handlers', f), 'utf8');
+
+  it('chaque handler d’écriture existe', () => {
+    for (const f of ECRITURES) {
+      expect(existsSync(join(RACINE, 'worker/apps/api/src/handlers', f)), f).toBe(true);
+    }
+  });
+
+  it("aucune écriture ne prend son identifiant ailleurs que dans le jeton", () => {
+    /*
+     * Le chemin d'écriture se construit avec `auth.uid`, jamais avec une valeur reçue.
+     * Un `users/${data.uid}/notes` écrirait dans le carnet de quelqu'un d'autre, et les
+     * deux lignes se ressemblent assez pour passer une relecture.
+     */
+    const fautes = ECRITURES.filter((f) => !/auth\.uid/.test(lireEcriture(f)));
+    expect(fautes, 'écrivent sans borner sur le jeton').toEqual([]);
+  });
+
+  it('`marquerLecon` empêche la progression maximale de redescendre', () => {
+    // La ligne qui ferme la boucle à XP. Sans elle, le classement du Club devient faux.
+    const code = lireEcriture('marquerLecon.ts');
+    expect(code).toMatch(/Math\.max\(\s*maxAvant/);
+    // Et le pourcentage est DÉDUIT, pas reçu : un `progress` transmis serait un curseur
+    // qu'on tend à l'appelant — il n'a qu'à écrire 100 pour obtenir son certificat.
+    expect(code).not.toMatch(/progress:\s*toNumber\(\s*data/);
+  });
+
+  it('chaque écriture borne ce qu’elle accepte', () => {
+    /*
+     * Un champ de texte sans plafond finit par recevoir un copier-coller de plusieurs
+     * mégaoctets — et c'est la LISTE entière qui devient lente à charger, pas seulement
+     * l'entrée fautive.
+     *
+     * DEUX FAÇONS DE BORNER, toutes deux valides, et la porte accepte les deux : tronquer
+     * (`slice`) ou REFUSER (`.length > N` puis `HttpsError`). La première version de ce
+     * test n'acceptait que `slice` et signalait `creerMonProfil`, qui refuse — c'est-à-dire
+     * qu'elle poussait à remplacer un refus explicite par une troncature silencieuse. Un
+     * nom coupé au 120e caractère sans le dire est pire qu'un nom rejeté avec son motif.
+     */
+    const borne = (code: string) => /\.slice\(/.test(code) || /\.length\s*>\s*\d+/.test(code);
+    const fautes = ECRITURES
+      .filter((f) => /texte|motif|displayName/.test(lireEcriture(f)))
+      .filter((f) => !borne(lireEcriture(f)));
+    expect(fautes, 'acceptent un texte sans borne').toEqual([]);
+  });
+});

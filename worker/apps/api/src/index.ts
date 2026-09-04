@@ -30,6 +30,7 @@ import {
 import { getFirestore, getVerifier, type CallContext } from './context';
 import type { Env } from './env';
 import { handleExportDownload } from './exportDownload';
+import { handleUnsubscribe } from './unsubscribeRoute';
 import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
 import { runImportSpotify, runSyncMediaStats } from './lib/media-sync';
@@ -38,6 +39,7 @@ import { sendRysmoRenewalNotices } from './lib/rysmo-renewal';
 import { rebuildLeaderboard } from './lib/leaderboard';
 import { sendQuoteExpiryNotices } from './lib/quote-expiry';
 import { sendReengagementNotices } from './lib/reengagement';
+import { synchroniserAudience } from './lib/listmonk';
 import { handleBictorysWebhook } from './webhook/bictorys';
 
 function migratedNames(env: Env): Set<string> {
@@ -67,6 +69,13 @@ export default {
     // rejetterait en 400 avant même d'atteindre Cloud Functions.
     // Téléchargement d'un export RGPD : une requête GET signée, pas une callable.
     if (name === 'exportDownload') return handleExportDownload(request, env);
+
+    /*
+     * Le désabonnement : une requête GET signée, publique, sans compte et sans JavaScript.
+     * Placé ici, avant le contrôle de méthode POST des callables — c'est un lien qu'on
+     * clique depuis un client de messagerie, pas une fonction qu'on appelle.
+     */
+    if (name === 'desabonnement') return handleUnsubscribe(request, env);
 
     if (name === 'bictorysWebhook') {
       if (migratedNames(env).has(name)) return handleBictorysWebhook(request, env);
@@ -101,7 +110,7 @@ export default {
 
     try {
       const auth = await getVerifier(env)(bearerFrom(request));
-      const context: CallContext = { env, ctx, db: getFirestore(env), auth, raw };
+      const context: CallContext = { env, ctx, db: getFirestore(env), auth, raw, request };
       return callableResult(await handler(data, context), cors);
     } catch (error: unknown) {
       return callableError(error, cors);
@@ -179,6 +188,20 @@ export default {
             return `${b.series} série(s), ${b.reprises} reprise(s) de cours, sur ${b.examines} inscription(s)`;
           }],
           ['Classement du Club', async () => `${await rebuildLeaderboard(db)} entrée(s) reconstruite(s)`],
+          /*
+            LA SYNCHRONISATION MARKETING PASSE EN DERNIER, ET CE N'EST PAS UN DÉTAIL.
+
+            Les quatre travaux au-dessus portent des promesses : un rappel d'échéance annoncé
+            par les CGV, une relance de devis, un classement affiché. Celui-ci pousse une
+            audience vers un service TIERS, sur le réseau, et c'est donc le plus susceptible
+            de traîner ou d'échouer. Placé avant, une instance Listmonk injoignable retarderait
+            des courriers contractuels ; placé ici, il ne retarde que lui-même.
+          */
+          ['Synchronisation Listmonk', async () => {
+            const b = await synchroniserAudience(db, env);
+            const motifs = b.erreurs.length ? ` — ${b.erreurs.join(' | ')}` : '';
+            return `${b.pousses} poussé(s), ${b.bloques} bloqué(s), ${b.echecs} échec(s), sur ${b.candidats} candidat(s)${motifs}`;
+          }],
         ];
 
         for (const [nom, etape] of etapes) {

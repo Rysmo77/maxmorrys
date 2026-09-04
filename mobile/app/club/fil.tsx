@@ -1,10 +1,12 @@
-import { View } from 'react-native';
+import { useState } from 'react';
+import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Avatar, Body, Button, ChipRow, Icon, LessonRow, Num, PriceBlock, SansDonnees, Surface, Tag, TerritoryCard, useToken,
+  Avatar, Body, Button, ChipRow, Field, Icon, LessonRow, Num, PriceBlock, SansDonnees, Surface, Tag, TerritoryCard, useToken,
 } from '../../ds';
 import { Bilan, ClubScreen } from './_layout';
-import { CLUB_FIL, CLUB_MISSION, RELEVE, SOURCE } from '../../contenu/demo';
+import { ErreurAppel, posterAuClub, provenance, useClubFil } from '../../donnees';
+import type { VueClubMessage } from '../../donnees';
 
 /**
  * ══ 6 · LE FIL DU CLUB ══
@@ -25,6 +27,34 @@ import { CLUB_FIL, CLUB_MISSION, RELEVE, SOURCE } from '../../contenu/demo';
  */
 export default function Fil() {
   const t = useToken();
+  const club = useClubFil();
+  const [publies, setPublies] = useState<VueClubMessage[]>([]);
+  const [redaction, setRedaction] = useState<string | null>(null);
+  const [enCours, setEnCours] = useState(false);
+  const fil = [...publies, ...(club.valeur?.fil ?? [])];
+
+  async function publier(texte: string) {
+    if (texte.trim() === '' || enCours) return;
+    setEnCours(true);
+    try {
+      const message = await posterAuClub(texte);
+      /* En TÊTE, et sans relire : le fil est trié du plus récent au plus ancien, et
+         redemander le serveur pour voir ce qu'on vient d'écrire coûterait un aller-retour
+         pour afficher ce qu'on connaît déjà. */
+      setPublies((p: VueClubMessage[]) => [message, ...p]);
+      setRedaction(null);
+    } catch (erreur: unknown) {
+      Alert.alert(
+        "Ton message n'est pas parti",
+        erreur instanceof ErreurAppel
+          ? `${erreur.motif} Recopie-le avant de quitter l'écran.`
+          : "Recopie-le avant de quitter l'écran, il n'est nulle part.",
+      );
+    } finally {
+      setEnCours(false);
+    }
+  }
+  const mission = club.valeur?.mission ?? null;
 
   return (
     <ClubScreen titre="Le fil">
@@ -41,13 +71,64 @@ export default function Fil() {
         style={{ marginTop: 18 }}
       />
 
-      {CLUB_FIL.length === 0 ? (
+      {/* ── ÉCRIRE, DANS L'ÉCRAN ──────────────────────────────────────────────────────
+          Le fil n'avait aucun moyen d'y contribuer : on pouvait le lire, pas y répondre.
+          La saisie s'ouvre ici plutôt que sur un écran à part — et c'est aussi la seule
+          forme qui marche sur les deux plateformes. */}
+      {redaction === null ? (
+        <Button
+          tone="quiet"
+          size="sm"
+          label="Écrire au Club"
+          icon="comment"
+          style={{ marginTop: 14 }}
+          onPress={() => setRedaction('')}
+        />
+      ) : (
+        <Surface level="flat" style={{ marginTop: 14, padding: 16 }}>
+          <Field
+            label="Ton message"
+            value={redaction}
+            onChangeText={setRedaction}
+            placeholder="Ce que tu as essayé, et ce que ça a donné."
+            multiline
+            autoCapitalize="sentences"
+            style={{ marginTop: 0 }}
+          />
+          <View style={{ flexDirection: 'row', gap: 9, marginTop: 12 }}>
+            <Button
+              tone="quiet"
+              size="sm"
+              label="Annuler"
+              disabled={enCours}
+              style={{ flex: 1 }}
+              onPress={() => setRedaction(null)}
+            />
+            <Button
+              tone="transforme"
+              size="sm"
+              label={enCours ? 'Publication…' : 'Publier'}
+              disabled={enCours || redaction.trim() === ''}
+              style={{ flex: 1 }}
+              onPress={() => { void publier(redaction); }}
+            />
+          </View>
+          <Body muted style={{ fontSize: 11.5, lineHeight: 17, marginTop: 10, color: t('textFaint') }}>
+            Ton message part signé de ton nom d'affichage — celui de ton profil, pas un
+            pseudonyme choisi ici.
+          </Body>
+        </Surface>
+      )}
+
+      {fil.length === 0 ? (
         <SansDonnees
           quoi="le fil du Club"
           degat="Un message inventé porte le nom de quelqu'un — un nom, un métier, un quartier qui appartiennent à une personne réelle. C'est le contenu du produit où fabriquer coûte le plus cher."
+          etat={club}
+          hauteur={4}
           style={{ marginTop: 14 }}
         />
-      ) : CLUB_FIL.map((post) => (
+      ) : fil.map((post) => (
         <Surface key={post.auteur} level="flat" style={{ marginTop: 14, padding: 18 }}>
           <View style={{ flexDirection: 'row', gap: 11, alignItems: 'center' }}>
             <Avatar initials={post.initiales} size={38} />
@@ -77,7 +158,7 @@ export default function Fil() {
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
               >
                 <Icon name={glyphe} size={16} color={glyphe === 'heart' ? t('mmVioletT') : t('ink2')} />
-                <Num value={n} source={SOURCE} asOf={RELEVE} style={{ fontSize: 12.5 }} />
+                <Num value={n} {...provenance(club)} style={{ fontSize: 12.5 }} />
               </View>
             ))}
           </View>
@@ -86,13 +167,13 @@ export default function Fil() {
 
       {/* Une annonce, ou rien : un budget inventé fixe une attente de revenu chez quelqu'un
           qui organise son temps dessus. */}
-      {CLUB_MISSION === null ? null : (
+      {mission === null ? null : (
       <View style={{ marginTop: 12 }}>
         <TerritoryCard
           first
           territory="transforme"
-          meta={CLUB_MISSION.meta}
-          title={CLUB_MISSION.titre}
+          meta={mission.meta}
+          title={mission.titre}
           titleSize={21}
         >
           <View style={{
@@ -100,11 +181,10 @@ export default function Fil() {
             gap: 12, marginTop: 14,
           }}>
             <PriceBlock
-              amount={CLUB_MISSION.budget}
-              source={SOURCE}
-              asOf={RELEVE}
+              amount={mission.budget ?? 0}
+              {...provenance(club)}
               size={21}
-              note={CLUB_MISSION.note}
+              note={mission.note}
             />
             <Button
               tone="transforme"

@@ -2,15 +2,15 @@
   "newsletter": {
     "emailLabel": "Email address",
     "emailPlaceholder": "your@email.com",
-    "cardTitle": "The day I have a newsletter",
-    "cardText": "There's no newsletter yet. The only emails that go out are transactional — a receipt, a renewal notice, a reply to your message. Meanwhile, the RSS feed tells you about every new post.",
+    "cardTitle": "The newsletter",
+    "cardText": "Once every two weeks: what went out, what I learnt making it, and what's worth your time. Nothing else. You're one click from unsubscribing, in any of them.",
     "submit": "Subscribe",
     "submitAria": "Subscribe to the newsletter",
     "submittingAria": "Subscribing…",
     "loading": "Loading…",
-    "successToast": "Noted. You'll hear from me the day a newsletter exists, and not before.",
+    "successToast": "Noted. You'll get the next one.",
     "errorToast": "Something went wrong. Please try again.",
-    "consentLabel": "I agree to be told the day a newsletter exists, and I've read the",
+    "consentLabel": "I agree to receive the newsletter, and I've read the",
     "consentPolicyLink": "privacy policy",
     "consentRequired": "Please confirm your consent before subscribing."
   },
@@ -105,7 +105,7 @@
       "title": "You read it all the way through",
       "eyebrow": "Was it useful?",
       "sticker": "No email",
-      "text": "There's no email newsletter yet, and I'm not asking you to fill in a field that does nothing. Here are the two ways to keep up.",
+      "text": "I'm not asking you to fill in a field that does nothing. Here are the two ways to keep up.",
       "dismiss": "No thanks",
       "rss": "RSS feed",
       "rssAction": "Open",
@@ -277,5 +277,12 @@
       "truthTitle": "Why this screen matters so much",
       "truthBody": "It's the only outbound channel the product has: no email goes out yet. A nudge that doesn't arrive here arrives nowhere."
     }
+  },
+  "share": {
+    "label": "Share",
+    "native": "Share…",
+    "on": "Share on {{network}}",
+    "copy": "Copy link",
+    "copied": "Link copied"
   }
 }

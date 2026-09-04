@@ -1,10 +1,10 @@
-import { Pressable, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   Body, ChipRow, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, ProgressBar, SansDonnees, Screen, Surface, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
-import { provenance, useEspace, useLecon } from '../donnees';
-import { useState } from 'react';
+import { ErreurAppel, marquerLecon, provenance, useEspace, useLecon } from '../donnees';
 
 /**
  * ══ 4 · LE LECTEUR DE LEÇON ══
@@ -28,6 +28,35 @@ export default function Lecon() {
   const lecon = useLecon();
   const espace = useEspace();
   const programme = lecon.valeur?.programme ?? [];
+  const [bascules, setBascules] = useState<Record<string, 'done' | 'current' | 'todo'>>({});
+
+  /**
+   * Cocher une leçon.
+   *
+   * ⚠️ ON BASCULE L'AFFICHAGE AVANT LA RÉPONSE, et on le REMET si elle échoue. C'est le
+   * geste le plus répété de l'application : attendre l'aller-retour ferait un décalage
+   * visible entre le doigt et la coche, et on recommencerait en croyant avoir raté.
+   *
+   * Mais une coche qui reste après un échec est pire que le décalage : elle fait croire
+   * qu'une leçon est acquise alors que le serveur ne le sait pas, et l'écart ne se
+   * découvre qu'au prochain lancement.
+   */
+  async function basculer(id: string, faite: boolean) {
+    const slug = espace.valeur?.slug;
+    if (!slug) return;
+    setBascules((b: typeof bascules) => ({ ...b, [id]: faite ? 'done' : 'todo' }));
+    try {
+      await marquerLecon(slug, id, faite);
+    } catch (erreur: unknown) {
+      setBascules((b: typeof bascules) => ({ ...b, [id]: faite ? 'todo' : 'done' }));
+      Alert.alert(
+        "Ça n'a pas été enregistré",
+        erreur instanceof ErreurAppel
+          ? `${erreur.motif} Ta progression n'a pas changé.`
+          : "Ta progression n'a pas changé. Réessaie dans un moment.",
+      );
+    }
+  }
   const [vue, setVue] = useState<string>('Vidéo');
 
   function ouvrirLaVue(v: string) {
@@ -44,7 +73,7 @@ export default function Lecon() {
       retour="Cours"
       titre={isIOS ? undefined : (lecon.valeur?.moduleTitre ?? 'Leçon')}
       droite={
-        <IconButton label="Télécharger cette leçon">
+        <IconButton disabled label="Télécharger cette leçon">
           <Icon name="download" size={17} color={t('textBody')} strokeWidth={2.2} />
         </IconButton>
       }
@@ -66,6 +95,7 @@ export default function Lecon() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Lire la leçon"
+                disabled
           style={({ pressed }: { pressed: boolean }) => ({
             width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center',
             backgroundColor: t('paperFixed'),
@@ -162,7 +192,11 @@ export default function Lecon() {
         {programme.map((l, i) => (
           <LessonRow
             key={l.id}
-            state={l.etat}
+            /* L'état affiché est celui du serveur, sauf pour les lignes qu'on vient de
+               cocher : elles basculent tout de suite. Attendre la réponse ferait un
+               décalage d'une demi-seconde entre le doigt et la coche — le geste le plus
+               répété de l'application. */
+            state={bascules[l.id] ?? l.etat}
             icon={
               l.etat === 'current' ? <Icon name="play" size={13} color={t('paperFixed')} />
                 : l.doc ? <Icon name="doc" size={13} color={t('ink2')} />
@@ -171,6 +205,7 @@ export default function Lecon() {
             iconBackground={l.etat === 'current' ? t('mmBleu') : undefined}
             title={l.titre}
             meta={l.meta ?? undefined}
+            onPress={() => { void basculer(l.id, (bascules[l.id] ?? l.etat) !== 'done'); }}
             last={i === programme.length - 1}
           />
         ))}
