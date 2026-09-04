@@ -346,6 +346,42 @@ describe('engagement_leads — formulaire de qualification /agence', () => {
     await assertSucceeds(setDoc(doc(db, 'engagement_leads', 'l1'), LEAD()));
   });
 
+  /*
+   * ── LA DEMANDE DE FORMATION D'EQUIPE, DEPOSEE PAR /formations ────────────────────
+   *
+   * La regle ne valide pas l'ENUMERATION de `projectType` — seulement qu'il soit une
+   * chaine bornee. Ajouter une valeur ne demande donc aucun redeploiement de regles, et
+   * ce test le PROUVE plutot que de le supposer.
+   */
+  it('une demande de formation d equipe passe, avec son type propre', async () => {
+    const db = asVisitor();
+    await assertSucceeds(setDoc(doc(db, 'engagement_leads', 'l-training'), LEAD({
+      projectType: 'training',
+      company: 'Institut Panafricain',
+      description:
+        'Nous voulons former vingt personnes au referencement local et a la publicite en ligne.',
+      locale: 'fr',
+      via: 'chez-awa',
+    })));
+  });
+
+  /*
+   * ⚠️ LE PLAFOND EST ATTEINT, ET C'EST CE QUI REND CE TEST NECESSAIRE. La demande de
+   * formation ecrit onze cles sur treize. Deux champs de plus feraient echouer 100 % des
+   * envois — silencieusement, comme le plafond de `newsletter` l'a deja fait ailleurs.
+   */
+  it('trois champs de plus franchissent le plafond de cles', async () => {
+    const db = asVisitor();
+    await assertFails(setDoc(doc(db, 'engagement_leads', 'l-trop'), LEAD({
+      projectType: 'training',
+      locale: 'fr',
+      via: 'chez-awa',
+      website: 'https://institut.sn',
+      routedTo: 'MY_ONOMA_GROW',
+      source: 'formations',
+    })));
+  });
+
   it('accepte le marqueur de routage Growth', async () => {
     const db = asVisitor();
     await assertSucceeds(

@@ -443,7 +443,20 @@ export type EngagementProjectType =
   | 'transformation'
   | 'brand'
   | 'growth'
-  | 'other';
+  | 'other'
+  /**
+   * ⚠️ `training` EST DANS LE TYPE ET PAS DANS `PROJECT_TYPES`, ET C'EST DÉLIBÉRÉ.
+   *
+   * `PROJECT_TYPES` est la liste que `/agence` PROPOSE ; ce type est ce que la collection
+   * ACCEPTE. Les deux ont divergé le jour où une seconde surface a écrit dans la même
+   * collection : la section entreprises de `/formations` dépose une demande de formation
+   * d'équipe sans jamais offrir de choisir « plateforme web ».
+   *
+   * Les fusionner remettrait « Formation d'équipe » dans le menu d'une page qui ne vend pas
+   * de formation — et l'inverse. Une seule collection, deux surfaces, deux vocabulaires :
+   * c'est le `projectType` qui les distingue en console.
+   */
+  | 'training';
 
 export type EngagementBudget = 'exploring' | 'small' | 'medium' | 'large' | 'xlarge';
 

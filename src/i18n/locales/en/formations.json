@@ -78,6 +78,60 @@
       "coachingTitle": "Coaching",
       "coachingDesc": "Follow-up & coaching for your talent",
       "coachingNote": "On quote"
+    },
+    "titleLines": ["Train your teams", "with [MAX-MORRYS BUSINESS]."],
+    "offersEyebrow": "Three ways to work together",
+    "formEyebrow": "Describe what you need",
+    "form": {
+      "descriptionLabel": "The skills you want to build",
+      "descriptionPlaceholder": "How many people, on which topics, and why now.",
+      "budgetLabel": "Budget in mind",
+      "budgetPlaceholder": "Pick a range",
+      "budgetHint": "I ask for a range instead of naming one: it is the only way to know straight away whether we can work together.",
+      "budgets": {
+        "exploring": "I don't know yet — I'd like to talk it through",
+        "small": "One session, on a single topic",
+        "medium": "A short programme, over a quarter",
+        "large": "A full track, over several quarters",
+        "xlarge": "A standing programme, across the organisation"
+      },
+      "timelineLabel": "When you need it",
+      "timelinePlaceholder": "Pick a timeframe",
+      "timelines": {
+        "urgent": "Next month",
+        "quarter": "This quarter",
+        "halfYear": "Within six months",
+        "flexible": "No fixed date"
+      },
+      "replyEyebrow": "So I can reply",
+      "nameLabel": "Your name",
+      "namePlaceholder": "Aïssatou Diallo",
+      "companyLabel": "Your organisation",
+      "companyPlaceholder": "Company or institution name",
+      "emailLabel": "Your email address",
+      "emailPlaceholder": "aissatou@organisation.sn",
+      "submitting": "Sending…",
+      "reply": "I reply within 48 hours, myself.",
+      "errors": {
+        "budget": "Pick a range. Without it, I can't tell you straight away whether we can work together.",
+        "timeline": "Pick a timeframe.",
+        "description": "Describe what you need.",
+        "descriptionShort": "Give me at least {{min}} characters: below that, I can't prepare a useful reply.",
+        "name": "Enter your name.",
+        "company": "Enter your organisation.",
+        "email": "Enter your email address.",
+        "emailInvalid": "That address doesn't look valid.",
+        "sendFailed": "Sending failed. Try again in a moment."
+      }
+    },
+    "sent": {
+      "titleLines": ["We're on.", "I'm reading you."],
+      "body": "Your request is recorded. I reply within 48 hours with a proposed programme, or with the questions I still need answered.",
+      "recapEyebrow": "What is recorded",
+      "recapCompany": "Organisation",
+      "recapStatus": "Status",
+      "recapStatusValue": "Received",
+      "back": "Send another request"
     }
   },
   "popularSkills": {
