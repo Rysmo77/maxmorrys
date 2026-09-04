@@ -57,6 +57,19 @@ jobs:
       - name: Cartes d'aperçu — couverture
         run: npm run og:check
 
+      # ── Une donnée contre la phrase qui la décrit ────────────────────────
+      # Ce que les autres gardes ne regardent pas : un aveu écrit en dur qui survit à la
+      # matière qu'il réclamait, une date de relevé gelée dans une traduction, une preuve
+      # posée sur une clé de jalon qui n'existe plus. Rien de tout ça ne casse quoi que ce
+      # soit — ça fait seulement mentir les pages dont le métier est d'être vérifiables,
+      # et ça ne se voit d'aucune capture d'écran.
+      #
+      # Hors ligne, donc dans la CI de chaque livraison. Le contrôle des URLs publiées
+      # (`proof:links`) a son propre rendez-vous hebdomadaire : un site tiers qui tombe un
+      # mardi doit se voir, pas bloquer une livraison.
+      - name: Preuves — la donnée contre sa description
+        run: npm run proof:check
+
       - name: Build
         run: npm run build
         env:

@@ -345,7 +345,7 @@
     "perMonth": "/month",
     "alreadySubscribed": "Subscription already active",
     "subscribeTo": "Subscribe to {{plan}}",
-    "paymentNote": "Secure payment by Bictorys · Wave, Orange Money, bank card.",
+    "paymentNote": "Secure payment by Bictorys · Wave, Orange Money or your card.",
     "packs": {
       "discovery": {
         "label": "Discovery",

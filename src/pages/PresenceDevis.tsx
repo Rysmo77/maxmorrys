@@ -14,6 +14,7 @@ import { tauxEnPourcent } from '../lib/tax/senegal';
 import { captureError } from '../lib/sentry';
 import {
   QUOTE_VALIDITY_DAYS, balanceAmount, computeTotals, depositAmount, findPack, findPlan,
+  CATALOGUE_REVISED_AT,
 } from '../lib/presence/offer';
 import { whatsappUrl } from '../lib/presence/whatsapp';
 import type { AgencyQuote } from '../types';
@@ -128,8 +129,17 @@ export default function PresenceDevis() {
   const expiresAt = new Date(quote.expiresAt);
   const expired = expiresAt < new Date();
 
-  /* Chaque montant porte sa source : la grille tarifaire, relue à l'ouverture. */
-  const grid = { source: { cite: t('quote.gridCite') }, asOf: issuedAt } as const;
+  /*
+   * Chaque montant porte sa source : la grille tarifaire, relue à l'ouverture.
+   *
+   * ⚠️ `asOf` EST CELUI DE LA GRILLE, PAS CELUI DU DEVIS. Il valait `issuedAt` — la date
+   * d'émission — alors que le commentaire ci-dessus et l'encart de vérité de ce document
+   * disent tous les deux l'inverse : les montants sont RELUS dans la grille courante à chaque
+   * ouverture. Un devis émis en juin et ouvert en septembre annonçait donc des prix de
+   * septembre datés de juin. Les dates du devis lui-même — émission, expiration — gardent
+   * `issuedAt` et `expiresAt` : elles datent le document, pas les montants.
+   */
+  const grid = { source: { cite: t('quote.gridCite') }, asOf: CATALOGUE_REVISED_AT } as const;
 
   const packFeatures = pack ? (t(`packs.${quote.pack}.features`, { returnObjects: true }) as string[]) : [];
   const planFeatures = plan ? (t(`plans.${quote.plan}.features`, { returnObjects: true }) as string[]) : [];
@@ -274,10 +284,12 @@ export default function PresenceDevis() {
                 {expired ? t('quote.expiredTag') : (
                   <>
                     {t('quote.validFor')}{' '}
+                    {/* Trente jours viennent du catalogue, comme les montants — donc de
+                        la même date de relevé qu'eux, pas de celle du devis. */}
                     <Num
                       value={QUOTE_VALIDITY_DAYS}
                       source={{ cite: t('quote.gridCite') }}
-                      asOf={issuedAt}
+                      asOf={CATALOGUE_REVISED_AT}
                       unit={t('quote.daysUnit')}
                     />
                   </>

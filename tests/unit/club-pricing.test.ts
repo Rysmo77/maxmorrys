@@ -10,10 +10,13 @@
  * juridique sans que personne ne le relise. La cohérence est donc vérifiée ici, pas imposée
  * par le rendu.
  *
- * ⚠️ Ce test ne peut PAS atteindre les miroirs serveur (`functions/src/payment.ts`,
- * `worker/apps/api/src/lib/bictorys.ts`) : les trois projets TypeScript du dépôt ne peuvent pas
- * s'importer entre eux. Ces deux-là restent sous surveillance humaine — voir l'en-tête de
+ * ⚠️ Ce test ne peut PAS atteindre le miroir serveur (`worker/apps/api/src/lib/bictorys.ts`,
+ * et le calcul de total dans `lib/checkout.ts`) : les projets TypeScript du dépôt ne peuvent
+ * pas s'importer entre eux. Il reste sous surveillance humaine — voir l'en-tête de
  * `src/lib/club/pricing.ts`.
+ *
+ * Le troisième miroir cité ici, `functions/src/payment.ts`, a disparu avec le répertoire
+ * `functions/` le 03/09/2026 : plus aucune Cloud Function n'y était déployée.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
