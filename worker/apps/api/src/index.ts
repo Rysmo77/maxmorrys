@@ -38,6 +38,7 @@ import { sendRenewalNotices } from './lib/renewal';
 import { rebuildLeaderboard } from './lib/leaderboard';
 import { sendQuoteExpiryNotices } from './lib/quote-expiry';
 import { sendReengagementNotices } from './lib/reengagement';
+import { synchroniserAudience } from './lib/listmonk';
 import { handleBictorysWebhook } from './webhook/bictorys';
 
 function migratedNames(env: Env): Set<string> {
@@ -158,7 +159,7 @@ export default {
         const db = getFirestore(env);
 
         /*
-          QUATRE TRAVAUX, QUATRE `try`. Ils n'ont rien à voir entre eux : une requête refusée
+          CINQ TRAVAUX, CINQ `try`. Ils n'ont rien à voir entre eux : une requête refusée
           sur la gamification ne doit pas empêcher un rappel d'échéance de partir. Le premier
           qui lèverait emporterait tous les suivants s'ils partageaient un seul bloc.
         */
@@ -176,6 +177,20 @@ export default {
             return `${b.series} série(s), ${b.reprises} reprise(s) de cours, sur ${b.examines} inscription(s)`;
           }],
           ['Classement du Club', async () => `${await rebuildLeaderboard(db)} entrée(s) reconstruite(s)`],
+          /*
+            LA SYNCHRONISATION MARKETING PASSE EN DERNIER, ET CE N'EST PAS UN DÉTAIL.
+
+            Les quatre travaux au-dessus portent des promesses : un rappel d'échéance annoncé
+            par les CGV, une relance de devis, un classement affiché. Celui-ci pousse une
+            audience vers un service TIERS, sur le réseau, et c'est donc le plus susceptible
+            de traîner ou d'échouer. Placé avant, une instance Listmonk injoignable retarderait
+            des courriers contractuels ; placé ici, il ne retarde que lui-même.
+          */
+          ['Synchronisation Listmonk', async () => {
+            const b = await synchroniserAudience(db, env);
+            const motifs = b.erreurs.length ? ` — ${b.erreurs.join(' | ')}` : '';
+            return `${b.pousses} poussé(s), ${b.bloques} bloqué(s), ${b.echecs} échec(s), sur ${b.candidats} candidat(s)${motifs}`;
+          }],
         ];
 
         for (const [nom, etape] of etapes) {
