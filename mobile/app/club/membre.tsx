@@ -4,7 +4,7 @@ import {
   Avatar, Body, Button, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { provenance, useMembre } from '../../donnees';
+import { ErreurAppel, provenance, signalerLeMembre, useMembre } from '../../donnees';
 
 /**
  * ── CLUB · LA FICHE D'UN MEMBRE ───────────────────────────────────────────────────────
@@ -36,13 +36,35 @@ export default function ClubMembre() {
   const initiales = nom === null ? null
     : nom.trim().split(' ').map((m: string) => m.charAt(0)).join('').slice(0, 2).toUpperCase();
 
+  /*
+   * ⚠️ CETTE ALERTE PROMETTAIT CE QU'ELLE NE FAISAIT PAS. Elle affirmait « le signalement
+   * part tout de suite » et son bouton destructif n'avait aucun gestionnaire : il se
+   * fermait sans rien envoyer. Sur un signalement, celui qui l'a touché s'en va en pensant
+   * que c'est traité — et ne le refait pas.
+   */
+  async function envoyerLeSignalement() {
+    if (!p.id) {
+      Alert.alert('Membre non identifié', "Ouvre la fiche depuis le fil ou l'annuaire.");
+      return;
+    }
+    try {
+      await signalerLeMembre(p.id);
+      Alert.alert('C\'est envoyé', 'Le support le regarde. La personne ne saura pas que ça vient de toi.');
+    } catch (erreur: unknown) {
+      Alert.alert(
+        "Le signalement n'est pas parti",
+        erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
+      );
+    }
+  }
+
   function signaler() {
     Alert.alert(
       'Signaler ce profil',
       "Le signalement part tout de suite, sans que tu aies à expliquer pourquoi. Je te demanderai le motif ensuite, si tu veux le donner — et la personne ne saura pas que ça vient de toi.",
       [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Signaler', style: 'destructive' },
+        { text: 'Signaler', style: 'destructive', onPress: () => { void envoyerLeSignalement(); } },
       ],
     );
   }

@@ -53,7 +53,7 @@ export default function Episode() {
       retour="Écouter"
       titre={isIOS ? undefined : 'Épisode 1'}
       droite={
-        <IconButton label="Partager cet épisode">
+        <IconButton disabled label="Partager cet épisode">
           <Icon name="share" size={17} color={t('textBody')} strokeWidth={2} />
         </IconButton>
       }
@@ -119,6 +119,7 @@ export default function Episode() {
           fullWidth
           label={`Télécharger · ${episode.poids}`}
           icon="download"
+          disabled
           style={{ flex: 1 }}
         />
         <Button

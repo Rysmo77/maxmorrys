@@ -50,7 +50,7 @@ export default function RendezVous() {
           Les heures s'affichent en heure de Dakar, avec leur fuseau écrit. Dakar n'a pas
           d'heure d'été ; l'Europe en a une, et la moitié des demandes en viennent.
         </Body>
-        <Button tone="quiet" size="sm" label="Ouvrir mon agenda" style={{ marginTop: 12 }} />
+        <Button tone="quiet" size="sm" label="Ouvrir mon agenda" disabled style={{ marginTop: 12 }} />
       </Surface>
 
       <PiedDePortee quoi="Confirmer ou décaler : deux gestes, sur le créneau le plus proche d'abord." />

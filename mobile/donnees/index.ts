@@ -30,6 +30,7 @@ export { SessionProvider, useSession, useUid } from './session';
 export { connexionEmail, creationEmail, deconnexion, reinitialiser, ErreurIdentite } from './identite';
 export { exporterMesDonnees } from './rgpd';
 export { appeler, ErreurAppel } from './appel';
+import { appeler } from './appel';
 export { viderLesVues } from './vue';
 export type {
   VueCertificat, VueCertificats, VueClub, VueClubFil, VueClubMessage, VueClubMission,
@@ -287,4 +288,63 @@ export function useConsole(): Etat<VueConsole> {
       titre: PROSPECT.titre, meta: PROSPECT.meta, statut: PROSPECT.statut,
     },
   });
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * PARLER AU RÉPÉTITEUR — la seule ÉCRITURE de cette porte, et elle mérite son commentaire.
+ *
+ * Le bouton d'envoi de l'onglet répétiteur n'avait AUCUN gestionnaire. Il avait tout d'un
+ * contrôle — rôle d'accessibilité, libellé, dégradé, animation de pression, état désactivé
+ * quand le champ est vide — et il ne faisait rien. Sur l'écran qui porte l'argument du
+ * produit, c'était le pire endroit possible.
+ *
+ * ── L'HISTORIQUE PART AVEC LA QUESTION, ET C'EST OBLIGATOIRE ─────────────────────────
+ * Le serveur ne garde pas la conversation entre deux appels : c'est le client qui la
+ * transmet. Ne pas l'envoyer donnerait un répétiteur amnésique à chaque phrase — qui
+ * redemanderait le prénom, reproposerait la même leçon, et se contredirait au troisième
+ * échange.
+ *
+ * ── LE QUOTA REVIENT AVEC LA RÉPONSE ─────────────────────────────────────────────────
+ * On ne le recalcule pas côté client : le serveur RÉSERVE la requête avant d'appeler le
+ * modèle, donc lui seul connaît le compte exact. Un client qui décrémenterait son propre
+ * compteur afficherait « il te reste 2 » pendant que le serveur en compte 1 — et c'est la
+ * personne qui découvrirait l'écart en se faisant refuser.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ */
+export interface ReponseRepetiteur {
+  reply: string;
+  quota: { dailyLimit: number; dayCount: number };
+}
+
+export async function demanderAuRepetiteur(
+  message: string,
+  historique: ReadonlyArray<{ de: string; texte: string }>,
+  prenom?: string | null,
+): Promise<ReponseRepetiteur> {
+  return appeler<ReponseRepetiteur>('rysmo', {
+    message,
+    conversationHistory: historique.map((m) => ({
+      role: m.de === 'me' ? 'user' : 'assistant',
+      content: m.texte,
+    })),
+    userContext: prenom ? { displayName: prenom } : undefined,
+    language: 'fr',
+  });
+}
+
+/** Efface ce que le répétiteur a retenu. Irréversible, et l'écran le dit avant. */
+export async function effacerLaMemoire(): Promise<void> {
+  await appeler('clearRysmoMemory');
+}
+
+/**
+ * Signale un membre.
+ *
+ * Le motif est FACULTATIF — l'écran le promet, et exiger une explication pour signaler,
+ * c'est filtrer les signalements par la capacité à les argumenter. Le serveur écrit un
+ * document déterministe : toucher deux fois ne crée pas deux entrées.
+ */
+export async function signalerLeMembre(membreId: string, motif?: string): Promise<void> {
+  await appeler('signalerMembre', { membreId, motif });
 }

@@ -87,7 +87,7 @@ export default function ClubOpportunites() {
                     note={o.par ? `Budget annoncé par ${o.par}` : 'Budget annoncé'}
                   />
                 )}
-                <Button tone="transforme" size="sm" label="Postuler" />
+                <Button tone="transforme" size="sm" label="Postuler" disabled />
               </View>
             </TerritoryCard>
           ))}

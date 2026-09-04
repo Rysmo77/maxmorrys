@@ -99,6 +99,7 @@ export default function Agenda() {
                 tone={s.inscrite ? 'quiet' : 'digitalise'}
                 size="sm"
                 label={s.inscrite ? 'Me désinscrire' : 'Je réserve'}
+                disabled
               />
             </View>
 

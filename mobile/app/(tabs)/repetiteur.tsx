@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View,
+  Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -9,7 +9,7 @@ import {
   SansDonnees, Surface, isIOS, px, useActionGradient, useToken, useTutorNom,
 } from '../../ds';
 import { RENVOI_COURS } from '../../contenu/demo';
-import { useRepetiteur } from '../../donnees';
+import { ErreurAppel, demanderAuRepetiteur, useMoi, useRepetiteur } from '../../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -64,10 +64,53 @@ export default function Repetiteur() {
      chiffre qu'on ignore. Le champ reste ouvert ; c'est le serveur qui refusera, avec sa
      raison. Bloquer sur une supposition ferait passer une limite inventée pour une règle. */
   const rep = useRepetiteur();
-  const quota = rep.valeur?.quota ?? null;
-  const echange = rep.valeur?.echange ?? [];
+  const moi = useMoi();
+
+  /*
+   * LA CONVERSATION VIT DANS L'ÉCRAN, pas seulement sur le serveur. Ce que la vue renvoie
+   * est l'historique déjà enregistré ; les tours de la session en cours s'y ajoutent ici.
+   * Sans cet état local, chaque question ferait disparaître la précédente le temps d'une
+   * relecture — et le fil de la discussion avec.
+   */
+  const [tours, setTours] = useState<Array<{ id: string; de: string; texte: string }>>([]);
+  const [enVol, setEnVol] = useState(false);
+  const [depense, setDepense] = useState<{ utilise: number; total: number } | null>(null);
+
+  const quota = depense ?? rep.valeur?.quota ?? null;
+  const echange = [...(rep.valeur?.echange ?? []), ...tours];
   const reste = quota === null ? null : quota.total - quota.utilise;
-  const bloque = reste !== null && reste <= 0;
+  const bloque = (reste !== null && reste <= 0) || enVol;
+
+  async function envoyer() {
+    const texte = question.trim();
+    if (texte === '' || bloque) return;
+
+    /* La question s'affiche IMMÉDIATEMENT, avant la réponse. Sur un réseau lent, voir sa
+       propre phrase partir est ce qui distingue « c'est en route » de « ça n'a pas marché » —
+       et c'est ce qui empêche de la retaper. */
+    const mien = { id: `local-${Date.now()}`, de: 'me', texte };
+    setTours((t) => [...t, mien]);
+    setQuestion('');
+    setEnVol(true);
+    try {
+      const reponse = await demanderAuRepetiteur(texte, echange, moi.valeur?.prenom);
+      setTours((t) => [...t, { id: `${mien.id}-r`, de: 'ai', texte: reponse.reply }]);
+      // Le compte vient du SERVEUR, qui a réservé la requête. On ne le décrémente pas ici.
+      setDepense({ utilise: reponse.quota.dayCount, total: reponse.quota.dailyLimit });
+    } catch (erreur: unknown) {
+      /* On RETIRE la question envoyée. La laisser afficherait une phrase qui a l'air posée
+         alors que personne ne l'a reçue — et on la remet dans le champ, parce que la
+         retaper est le vrai coût de l'échec. */
+      setTours((t) => t.filter((m) => m.id !== mien.id));
+      setQuestion(texte);
+      Alert.alert(
+        "Ta question n'est pas partie",
+        erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
+      );
+    } finally {
+      setEnVol(false);
+    }
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: t('surfacePage') }}>
@@ -169,6 +212,7 @@ export default function Repetiteur() {
             accessibilityLabel="Envoyer ta question"
             accessibilityState={{ disabled: bloque || question.trim() === '' }}
             disabled={bloque || question.trim() === ''}
+            onPress={() => { void envoyer(); }}
             style={({ pressed }: { pressed: boolean }) => ({
               opacity: bloque || question.trim() === '' ? 0.4 : 1,
               transform: [{ scale: pressed ? 0.94 : 1 }],

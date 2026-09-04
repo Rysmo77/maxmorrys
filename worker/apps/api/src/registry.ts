@@ -38,6 +38,7 @@ import { quoteCheckout } from './handlers/quoteCheckout';
 import { reindexSearch } from './handlers/reindexSearch';
 import { replyToMessage } from './handlers/replyToMessage';
 import { rysmo } from './handlers/rysmo';
+import { signalerMembre } from './handlers/signalerMembre';
 import { spotifyProxy } from './handlers/spotifyProxy';
 import { syncMediaStatsManual } from './handlers/syncMediaStatsManual';
 import { weeklyClubDigestManual } from './handlers/weeklyClubDigestManual';
@@ -59,6 +60,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   rysmo,
   getRysmoQuota,
   // Lectures et proxies
+  signalerMembre,
   spotifyProxy,
   syncMediaStatsManual,
   youtubeProxy,

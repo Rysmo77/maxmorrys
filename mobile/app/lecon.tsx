@@ -44,7 +44,7 @@ export default function Lecon() {
       retour="Cours"
       titre={isIOS ? undefined : (lecon.valeur?.moduleTitre ?? 'Leçon')}
       droite={
-        <IconButton label="Télécharger cette leçon">
+        <IconButton disabled label="Télécharger cette leçon">
           <Icon name="download" size={17} color={t('textBody')} strokeWidth={2.2} />
         </IconButton>
       }
@@ -66,6 +66,7 @@ export default function Lecon() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Lire la leçon"
+                disabled
           style={({ pressed }: { pressed: boolean }) => ({
             width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center',
             backgroundColor: t('paperFixed'),

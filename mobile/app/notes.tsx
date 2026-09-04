@@ -46,7 +46,7 @@ export default function Notes() {
       retour="Leçon"
       titre={isIOS ? undefined : 'Mes notes'}
       droite={
-        <IconButton label="Chercher dans mes notes">
+        <IconButton disabled label="Chercher dans mes notes">
           <Icon name="search" size={17} color={t('textBody')} strokeWidth={2.4} />
         </IconButton>
       }
