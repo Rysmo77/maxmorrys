@@ -6,8 +6,10 @@
  * casse le renommage silencieusement — sans erreur de type, sans test rouge, sans rendu
  * cassé. Juste un mot qui ne suit pas, à un endroit sur treize.
  *
- *   « Hello ! »      le mot-symbole des PAGES WEB — barre haute et pied de page du site.
- *                    Rendu par <Wordmark brand="hello">, en type pur, pour 0 octet.
+ *   « Hello ! »      le mot-symbole des PAGES WEB — barre haute du site. Rendu par
+ *                    <Wordmark brand="hello">, en type pur, pour 0 octet. Le PIED DE PAGE
+ *                    signe « Max-Morrys » (variant `signature`) : c'est une signature, pas
+ *                    une deuxième barre de navigation.
  *   « Rysmo »        le nom de l'APPLICATION — écran de lancement, bannière d'installation,
  *                    connexion, création de compte, /403.
  *   « Répétiteur »   le RÉPÉTITEUR IA qui vit dans l'application. Valeur par DÉFAUT :

@@ -37,11 +37,13 @@ const NewsletterForm = lazy(() => import('../shared/NewsletterForm'));
  * « Le thème est une PORTÉE CSS, jamais une variante de composant. » Une région
  * définitivement sombre est donc une région où la portée est posée : `.dk` sur le `<footer>`
  * bascule d'un coup les 78 jetons — l'encre, le verre, les quatre teintes, le corail texte de
- * l'agence, et jusqu'au dégradé de « Hello ! », qui prend sa variante nuit sans qu'on lui
- * passe quoi que ce soit. Aucune couleur n'est écrite, et le mode clair devient lisible.
+ * l'agence, et jusqu'aux quatre teintes du mot-symbole, qui prennent leur variante nuit sans
+ * qu'on leur passe quoi que ce soit. Aucune couleur n'est écrite, et le mode clair devient
+ * lisible.
  *
- * Le mot-symbole est « Hello ! », en type pur, pour 0 octet — pas « MAX-MORRYS » en capitales.
- * Max-Morrys ne survit ici que comme PERSONNE, dans la ligne d'exploitation et le copyright.
+ * Le mot-symbole est « Max-Morrys » — le variant `signature` de <Wordmark>, en type pur, pour
+ * 0 octet, pas « MAX-MORRYS » en capitales. La barre haute garde « Hello ! » : le pied de page
+ * signe du nom de la PERSONNE, qui est aussi celui de la ligne d'exploitation et du copyright.
  */
 
 const socialIcons: Record<string, ComponentType<{ className?: string }>> = {
@@ -241,7 +243,7 @@ export default function Footer() {
           {/* Marque */}
           <div>
             <LocalizedLink to="/" className="inline-block mb-5">
-              <Wordmark brand="hello" size={26} />
+              <Wordmark brand="signature" size={26} />
             </LocalizedLink>
             <p className="max-w-prose text-meta text-ink-2 leading-relaxed mb-4">
               {t('brandTagline')}
