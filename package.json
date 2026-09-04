@@ -18,6 +18,7 @@
     "og:cards": "node scripts/og-cards.mjs",
     "og:check": "node scripts/og-cards.mjs --check",
     "recrawl": "node scripts/recrawl.mjs",
+    "covers:weight": "node scripts/covers-weight.mjs",
     "test": "vitest run --passWithNoTests tests/unit",
     "test:rules": "firebase emulators:exec --only firestore --project demo-rules-test \"vitest run tests/firestore-rules\""
   },
