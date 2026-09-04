@@ -110,6 +110,33 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
    * qu'ils n'ont rien refusé serait le spam que ce réglage existe pour empêcher : personne
    * ne peut consentir à une case qui n'existait pas quand il s'est inscrit.
    */
+  /*
+    LA LETTRE — l'interrupteur qui ne servait à rien.
+
+    `preferences.newsletter` était écrit `false` à la création du compte et plus jamais relu
+    ni modifiable : un champ mort, dans une ligne grisée, sous un texte qui affirmait qu'aucune
+    lettre n'existait. Les trois se tenaient — et tombent ensemble maintenant qu'une lettre
+    existe pour de bon.
+
+    C'est un OPT-IN : `undefined` vaut non, comme pour `notifyOnPublish`. Personne ne se
+    retrouve abonné par le simple fait d'avoir créé un compte.
+  */
+  const handleToggleNewsletter = async (checked: boolean) => {
+    if (!user || !userData) return;
+    setSavingConsent(true);
+    try {
+      await updateUserProfile(user.uid, {
+        preferences: { ...userData.preferences, newsletter: checked },
+      });
+      await refreshUserData();
+      addToast('success', checked ? t('settings.toastNewsletterOn') : t('settings.toastNewsletterOff'));
+    } catch {
+      addToast('error', t('settings.toastUpdateError'));
+    } finally {
+      setSavingConsent(false);
+    }
+  };
+
   const handleTogglePublishAlert = async (checked: boolean) => {
     if (!user || !userData) return;
     setSavingConsent(true);
@@ -270,13 +297,13 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
         <LessonRow
           state="plain"
           icon={<Icon name="send" size={14} />}
-          title={<span style={{ color: 'var(--text-faint)' }}>{t('settings.sendEmail')}</span>}
+          title={t('settings.sendEmail')}
           meta={t('settings.sendEmailNote')}
           trailing={
             <Switch
-              disabled
+              on={userData?.preferences?.newsletter === true}
+              onChange={(on) => void handleToggleNewsletter(on)}
               label={t('settings.sendEmail')}
-              disabledReason={t('settings.sendEmailNote')}
             />
           }
           last

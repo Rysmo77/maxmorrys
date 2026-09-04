@@ -442,13 +442,15 @@
     "sendCenter": "Notification centre",
     "sendCenterNote": "Everything addressed to you arrives there, and only there.",
     "sendEmail": "By email",
-    "sendEmailNote": "Nothing to set: only necessary emails go out — receipt, renewal notice, reply to a message. No newsletter, no follow-ups.",
+    "sendEmailNote": "The newsletter, once every two weeks. The necessary emails — receipt, renewal notice, reply to a message — go out regardless: they aren't set here.",
     "sendTruthTitle": "What this setting does today",
-    "sendTruthBody": "What I send arrives in your notification centre, inside the app — and only if you reopen it. No email goes out yet: the greyed-out line says so instead of letting you assume otherwise.",
+    "sendTruthBody": "What I send arrives in your notification centre, inside the app — and only if you reopen it. The newsletter arrives by email, and this switch stops it for good.",
     "publishAlert": "Tell me when something new is out",
     "publishAlertNote": "A notification here when a course or an article goes live. Nothing by email.",
     "toastPublishOn": "Turned on. You'll hear about the next publication right here.",
-    "toastPublishOff": "Turned off. No more publication notifications."
+    "toastPublishOff": "Turned off. No more publication notifications.",
+    "toastNewsletterOn": "Done, you'll get the newsletter.",
+    "toastNewsletterOff": "Stopped. No more newsletter."
   },
   "testimonials": {
     "shareTitle": "Share a review",

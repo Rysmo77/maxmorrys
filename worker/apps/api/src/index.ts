@@ -30,6 +30,7 @@ import {
 import { getFirestore, getVerifier, type CallContext } from './context';
 import type { Env } from './env';
 import { handleExportDownload } from './exportDownload';
+import { handleUnsubscribe } from './unsubscribeRoute';
 import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
 import { runImportSpotify, runSyncMediaStats } from './lib/media-sync';
@@ -67,6 +68,13 @@ export default {
     // Téléchargement d'un export RGPD : une requête GET signée, pas une callable.
     if (name === 'exportDownload') return handleExportDownload(request, env);
 
+    /*
+     * Le désabonnement : une requête GET signée, publique, sans compte et sans JavaScript.
+     * Placé ici, avant le contrôle de méthode POST des callables — c'est un lien qu'on
+     * clique depuis un client de messagerie, pas une fonction qu'on appelle.
+     */
+    if (name === 'desabonnement') return handleUnsubscribe(request, env);
+
     if (name === 'bictorysWebhook') {
       if (migratedNames(env).has(name)) return handleBictorysWebhook(request, env);
       return proxyWebhook(name, request, env);
@@ -100,7 +108,7 @@ export default {
 
     try {
       const auth = await getVerifier(env)(bearerFrom(request));
-      const context: CallContext = { env, ctx, db: getFirestore(env), auth, raw };
+      const context: CallContext = { env, ctx, db: getFirestore(env), auth, raw, request };
       return callableResult(await handler(data, context), cors);
     } catch (error: unknown) {
       return callableError(error, cors);
