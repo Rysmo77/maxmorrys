@@ -366,3 +366,24 @@ export async function ecrireUneNote(
   );
   return note;
 }
+
+export interface BilanLecon {
+  progression: number;
+  leconsFaites: number;
+  lecons: number;
+  complete: boolean;
+  titre: string | null;
+}
+
+/**
+ * Coche ou décoche une leçon, et renvoie la progression RECALCULÉE par le serveur.
+ *
+ * Le pourcentage n'est jamais envoyé : il est déduit côté serveur du nombre de leçons de
+ * la formation. Un `progress` transmis par le client serait un curseur qu'on lui tend —
+ * il n'aurait qu'à écrire 100 pour obtenir son certificat.
+ */
+export async function marquerLecon(
+  formationId: string, leconId: string, faite: boolean,
+): Promise<BilanLecon> {
+  return appeler<BilanLecon>('marquerLecon', { formationId, leconId, faite });
+}

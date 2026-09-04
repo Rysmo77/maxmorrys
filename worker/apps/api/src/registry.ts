@@ -23,6 +23,7 @@ import { deleteUserAccount, exportUserData } from './handlers/gdpr';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { importSpotifyEpisodesManual } from './handlers/importSpotifyEpisodesManual';
 import { issueCertificate } from './handlers/issueCertificate';
+import { marquerLecon } from './handlers/marquerLecon';
 import { mediaToken } from './handlers/mediaToken';
 import { joinWaitlist } from './handlers/joinWaitlist';
 import { notifyOnPublish } from './handlers/notifyOnPublish';
@@ -115,5 +116,6 @@ export const HANDLERS: Record<string, CallHandler> = {
   // Mesure — compteurs agrégés, sans donnée personnelle
   popupEvent,
   // Accès aux médias protégés
+  marquerLecon,
   mediaToken,
 };
