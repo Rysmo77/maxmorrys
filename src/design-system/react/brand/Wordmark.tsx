@@ -33,6 +33,21 @@ export interface WordmarkProps {
   tail?: string;
   /** `signature` court : « Max » seul. */
   short?: boolean;
+  /**
+   * `signature` EN CIBLE — l'aplat à l'encre au repos, l'arc qui se remplit au survol,
+   * exactement comme le mot-symbole de la barre haute. RÉSERVÉ AUX LIENS : la primitive
+   * `.mm-arc` reçoit son survol par `a:hover > .mm-arc`, et `a:focus-visible` donne au
+   * clavier la même réponse. Posée hors d'un lien, elle ne se déclencherait jamais.
+   *
+   * ⚠️ ELLE ÉTEINT LES COULEURS PAR LETTRE, et ce n'est pas contournable. `.mm-arc` peint
+   * par `background-clip:text` sur le conteneur, ce qui impose `-webkit-text-fill-color:
+   * transparent` — propriété HÉRITÉE. Les `color` en ligne des lettres ne peuvent plus
+   * rien peindre. C'est le marché de l'arc : le mot est à l'encre au repos, et les cinq
+   * teintes le traversent au survol au lieu d'être posées sur quatre lettres.
+   *
+   * `tail` est donc sans effet ici — il n'y a plus de partie non colorée à teindre.
+   */
+  arc?: boolean;
   style?: CSSProperties;
 }
 
@@ -44,7 +59,7 @@ const base: CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
-export function Wordmark({ brand = 'hello', size = 22, tail, short, style }: WordmarkProps) {
+export function Wordmark({ brand = 'hello', size = 22, tail, short, arc, style }: WordmarkProps) {
   const s: CSSProperties = { ...base, fontSize: `${size}px`, ...style };
 
   if (brand === 'hello') {
@@ -58,6 +73,20 @@ export function Wordmark({ brand = 'hello', size = 22, tail, short, style }: Wor
         <span style={{ color: 'var(--mm-bleu)' }}>R</span>
         <span style={{ color: tail ?? 'var(--text-body)' }}>ysm</span>
         <span style={{ color: 'var(--mm-teal)' }}>o</span>
+      </span>
+    );
+  }
+
+  /*
+   * L'ARC PLUTÔT QUE LES LETTRES. Un seul nœud de texte, aucune couleur en ligne : un style
+   * en ligne battrait la primitive, et c'est précisément la raison pour laquelle le dégradé
+   * de `hello` a quitté ce fichier (AD-23). `.mm-signature` n'ajoute que l'aplat de repos,
+   * qui est aussi le repli là où `background-clip:text` n'est pas compris.
+   */
+  if (arc) {
+    return (
+      <span className="mm-arc mm-signature" style={s}>
+        {short ? 'Max' : 'Max-Morrys'}
       </span>
     );
   }

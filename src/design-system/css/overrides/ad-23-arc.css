@@ -3,10 +3,12 @@
 
    Une seule primitive, `.mm-arc`, et deux consommateurs qui ne se déclenchent pas pareil :
 
-     · LE MOT-SYMBOLE « Hello ! » de la barre haute. Il portait son dégradé EN PERMANENCE et
-       n'était cliquable nulle part — la seule marque du site qui ne ramenait pas à l'accueil.
-       Il est devenu une CIBLE : `--ink-2` au repos comme les autres commandes de la barre,
-       l'arc au survol. Là, le survol est le bon déclencheur : c'est un lien.
+     · LE MOT-SYMBOLE, dans les DEUX morceaux de chrome — « Hello ! » en barre haute,
+       « Max-Morrys » en pied de page. Il portait son dégradé EN PERMANENCE et n'était
+       cliquable nulle part — la seule marque du site qui ne ramenait pas à l'accueil. Il est
+       devenu une CIBLE : un aplat au repos, l'arc au survol. Là, le survol est le bon
+       déclencheur : c'est un lien. Les deux surfaces ne diffèrent que par l'aplat, `--ink-2`
+       en haut et `--ink` en bas — voir les deux blocs en fin de fichier.
 
      · UN FRAGMENT DE TITRE, sur les neuf pages publiques. Le remplissage y répond AU SURVOL
        SEUL — décision du produit, prise en connaissance de sa contrepartie : il n'existe pas
@@ -157,4 +159,25 @@ a:focus-visible > .mm-arc{
    reste lisible en `--ink-2` au lieu de disparaître. */
 .mm-hello{
   color:var(--ink-2);
+}
+
+/* ── LA SIGNATURE DU PIED DE PAGE ─────────────────────────────────────────────
+   Le second consommateur du mot-symbole, et il ne prend PAS `.mm-hello`.
+
+   `.mm-hello` pose `--ink-2` : l'encre des autres commandes de la BARRE HAUTE, où le
+   mot-symbole est une commande parmi douze et n'a aucune raison de crier. Le pied de page
+   est l'inverse — le mot y est la seule marque, posé au-dessus d'un chapô déjà en `--ink-2`.
+   Repris à `--ink-2`, il se confondrait avec sa propre légende et la hiérarchie tomberait.
+   D'où l'encre pleine : le même effet, l'autre poids.
+
+   Aucune rotation à déclarer. `[data-arc]` est publié par `<main>` dans `App.tsx`, et le
+   pied de page en est le FRÈRE, pas l'enfant : il hérite du `--arc` de `:root`, l'arc du
+   bleu, comme la barre haute. Les deux morceaux de chrome ouvrent donc sur la même teinte
+   quelle que soit la page — ce qui est exactement l'intention d'AD-23, où la rotation dit
+   le territoire d'une PAGE et non celui d'un cadre qui les surplombe toutes.
+
+   `color` porte AUSSI le repli, comme pour `.mm-hello` : là où `background-clip:text` n'est
+   pas compris, « Max-Morrys » reste lisible en encre pleine au lieu de disparaître. */
+.mm-signature{
+  color:var(--ink);
 }
