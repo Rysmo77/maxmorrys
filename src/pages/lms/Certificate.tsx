@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, EmptyState, GlassPanel, Icon, Mesh, Num, Skeleton, Tag, useToast, Wordmark } from '@ds';
+import { Button, EmptyState, GlassPanel, Icon, Mesh, Num, Skeleton, Tag, Wordmark } from '@ds';
 import { getCertificateByCode } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
@@ -9,6 +9,8 @@ import { SiteDisplay, SiteEyebrow, useReveal } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';
 import type { CertificateLookup } from '../../types';
 import { trackCertificateEarned, trackShare } from '../../lib/tracking';
+import ShareButtons from '../../components/shared/ShareButtons';
+import { shareLink } from '../../lib/share/links';
 import SEOHead from '../../components/seo/SEOHead';
 
 /**
@@ -37,7 +39,6 @@ import SEOHead from '../../components/seo/SEOHead';
 export default function Certificate() {
   const { t } = useTranslation('lms');
   const { formatDate } = useFormat();
-  const { addToast } = useToast();
   const path = useLocalizedPath();
   const { code } = useParams();
   const reveal = useReveal<HTMLDivElement>();
@@ -60,26 +61,22 @@ export default function Certificate() {
       .catch(() => { setNotFound(true); setLoading(false); });
   }, [code]);
 
-  const handleShare = (platform: string) => {
-    const text = encodeURIComponent(t('certificate.shareText', { title: certificate?.formationTitle }));
-    const url = encodeURIComponent(window.location.href);
-    let shareUrl = '';
-    if (platform === 'linkedin') shareUrl = `https://linkedin.com/sharing/share-offsite/?url=${url}`;
-    else if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${text}%20${url}`;
-    else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
-    if (shareUrl) window.open(shareUrl, '_blank', 'noopener,noreferrer');
-    if (certificate) trackShare(platform, 'certificate', certificate.certificateCode);
-  };
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      addToast('success', t('certificate.copied'));
-      if (certificate) trackShare('copy', 'certificate', certificate.certificateCode);
-    } catch {
-      addToast('error', t('certificate.copyError'));
-    }
-  };
+  /*
+   * ── LE PARTAGE EST PASSÉ AU COMPOSANT MUTUALISÉ ──────────────────────────────────────
+   *
+   * `handleShare` et `handleCopyLink` vivaient ici, en copie locale. Trois défauts que
+   * `ShareButtons` avait déjà réglés pour les cinq autres pages qui le montent :
+   *
+   *   · `window.location.href` n'est pas canonique — le site répond aussi sur l'origine
+   *     Firebase, et un certificat partagé depuis là porte un domaine que le destinataire
+   *     ne reconnaît pas. `shareLink()` passe par `SITE_URL`.
+   *   · pas de Facebook, alors qu'il pèse ici ;
+   *   · pas de feuille de partage NATIVE, qui est le geste réel sur un mobile ouest-africain.
+   *
+   * Le titre partagé reste celui de cette page : c'est le seul endroit qui connaît la
+   * formation.
+   */
+  const shareTitle = t('certificate.shareText', { title: certificate?.formationTitle });
 
   /*
    * PAS DE ROND QUI TOURNE PENDANT LE CHARGEMENT — c'est le contrat de `Button`, et il vaut
@@ -171,23 +168,41 @@ export default function Certificate() {
             <p className="text-small text-ink-2 mt-2.5 mb-0 leading-[1.5]">{t('certificate.verifiableBy')}</p>
           </GlassPanel>
 
-          <Button tone="forme" onClick={() => handleShare('linkedin')} className="rv mt-[17px]" style={{ ['--i' as string]: 6 }}>
+          {/*
+            LINKEDIN GARDE SON BOUTON PROPRE, ET C'EST DÉLIBÉRÉ.
+
+            Le kit dessine UN partage mis en avant, et c'est le seul réseau où un certificat a
+            une valeur professionnelle. Il passe simplement par `shareLink()` au lieu du
+            gabarit local : `SITE_URL` y remplace `window.location.href`, qui pouvait produire
+            l'origine Firebase — un lien partagé sur un domaine que personne ne reconnaît.
+          */}
+          <Button
+            tone="forme"
+            href={shareLink('linkedin', `/certificat/${certificate.certificateCode}`, shareTitle)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackShare('linkedin', 'certificate', certificate.certificateCode)}
+            className="rv mt-[17px]"
+            style={{ ['--i' as string]: 6 }}
+          >
             <Icon name="share" size={17} color="var(--paper-fixed)" />
             {t('certificate.shareLinkedin')}
           </Button>
 
-          <Button tone="ghost" fullWidth onClick={() => void handleCopyLink()} className="rv mt-2.5" style={{ ['--i' as string]: 7 }}>
-            <Icon name="copy" size={17} />
-            {t('certificate.copyLink')}
-          </Button>
-
-          {/* Les deux autres partages du produit gardent leur fonction, au second rang :
-              le kit n'en dessine qu'un, mais retirer un canal de partage d'un certificat
-              serait retirer une fonction pour ressembler à une maquette. */}
-          <div className="rv flex gap-2.5 mt-2.5" style={{ ['--i' as string]: 7 }}>
-            <Button tone="quiet" size="sm" onClick={() => handleShare('whatsapp')} style={{ flex: 1 }}>WhatsApp</Button>
-            <Button tone="quiet" size="sm" onClick={() => handleShare('twitter')} style={{ flex: 1 }}>X</Button>
-          </div>
+          {/*
+            Le reste passe au composant mutualisé, monté sur cinq autres pages. Trois choses
+            que l'implémentation locale n'avait pas : Facebook, le bouton de copie qu'elle
+            portait déjà mais en double, et surtout la FEUILLE DE PARTAGE NATIVE — celle qui
+            compte sur un mobile ouest-africain, où l'on partage dans WhatsApp sans passer par
+            un bouton de site.
+          */}
+          <ShareButtons
+            className="rv mt-2.5"
+            url={`/certificat/${certificate.certificateCode}`}
+            title={shareTitle}
+            contentType="certificate"
+            contentId={certificate.certificateCode}
+          />
 
           <GlassPanel level="truth" className="rv mt-[18px]" style={{ ['--i' as string]: 8 }}>
             <SiteEyebrow style={{ marginBottom: '6px' }}>{t('certificate.whyItCounts')}</SiteEyebrow>

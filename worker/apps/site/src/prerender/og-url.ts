@@ -158,6 +158,10 @@ const SECTIONS: Record<string, SectionLabel> = {
   podcasts: { index: { fr: 'Podcasts', en: 'Podcasts' }, item: { fr: 'Podcast', en: 'Podcast' } },
   videos: { index: { fr: 'Vidéos', en: 'Videos' }, item: { fr: 'Vidéo', en: 'Video' } },
   faq: { index: { fr: 'FAQ', en: 'FAQ' }, item: { fr: 'Question', en: 'Question' } },
+  /* La carte des certificats est UNE seule image générique : pas d'`item`, le sourcil est
+     le même pour tous. Le nom du titulaire vit dans le titre, qui, lui, est personnalisé. */
+  certificat: { index: { fr: 'Certificat', en: 'Certificate' } },
+  certificate: { index: { fr: 'Certificat', en: 'Certificate' } },
   legal: { index: { fr: 'Mentions', en: 'Legal' } },
   'podcast-et-videos': { index: { fr: 'Podcast & vidéos', en: 'Podcast & videos' } },
   'podcast-and-videos': { index: { fr: 'Podcast & vidéos', en: 'Podcast & videos' } },

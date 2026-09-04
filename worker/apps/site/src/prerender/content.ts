@@ -4,6 +4,7 @@ import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from '../constants';
 import { asText } from '../seo/values';
 import { stripMarkdown } from './html';
 import { enPath } from './segments';
+import { getCertificateMeta } from './certificat';
 import { getFaqQuestionMeta } from './faq';
 import type { PageMeta } from './types';
 
@@ -95,6 +96,16 @@ export async function getContentMeta(
    */
   const faqMatch = path.match(/^\/faq\/([^/?#]+)$/);
   if (faqMatch) return getFaqQuestionMeta(db, faqMatch[1], lang);
+
+  /*
+   * Certificat : /certificat/:code
+   *
+   * Même motif que la FAQ, et pour la même raison : la page était servie par l'origine, donc
+   * ses aperçus portaient le titre et la photo de la page d'accueil. Sur une page dont la
+   * fonction EST le partage. Voir `certificat.ts`.
+   */
+  const certMatch = path.match(/^\/certificat\/([^/?#]+)$/);
+  if (certMatch) return getCertificateMeta(db, certMatch[1], lang);
 
   // Article : /blog/:slug
   const blogMatch = path.match(/^\/blog\/([^/?#]+)$/);

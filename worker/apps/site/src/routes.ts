@@ -51,6 +51,14 @@ const PRERENDER_PREFIXES = [
   /* Une page PAR question — `/faq/<adresse>`, et sa contrepartie anglaise. */
   '/faq/',
   '/legal/',
+  /*
+    Un certificat par code. Il est en `noindex` — il se partage, il ne se cherche pas — mais
+    il DOIT être pré-rendu quand même : sans ça, l'origine sert `index.html` tel quel et les
+    robots sociaux lisent le titre et la photo de la page d'accueil. Sur la seule page du
+    produit dont la fonction est d'être montrée à quelqu'un d'autre.
+  */
+  '/certificat/',
+  '/en/certificate/',
   '/en/blog/',
   '/en/courses/',
   '/en/podcasts/',
