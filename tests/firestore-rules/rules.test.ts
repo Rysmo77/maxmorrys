@@ -671,9 +671,10 @@ describe('waitlist — le client lit son entree, il n en ecrit aucune', () => {
 
 /*
  * `coupons` — la regle disait « everyone can read active coupons to validate them ».
- * Personne ne les validait cote client : `validateCoupon` (functions/src/payment.ts) les
- * relit par le SDK Admin. Ce que la lecture ouverte offrait vraiment, c'etait le catalogue
- * des reductions en cours a qui savait ecrire `where('active','==',true)`.
+ * Personne ne les validait cote client : `validateCoupon` (aujourd'hui dans
+ * `worker/apps/api/src/lib/checkout.ts`, alors dans les Cloud Functions) les relit par un
+ * compte de service, qui contourne ces regles. Ce que la lecture ouverte offrait vraiment,
+ * c'etait le catalogue des reductions en cours a qui savait ecrire `where('active','==',true)`.
  */
 describe('coupons — les codes promo ne sont plus servis au public', () => {
   const COUPON = { code: 'BLACKFRIDAY', type: 'percentage', value: 40, active: true, createdAt: '2026-01-01' };
@@ -911,6 +912,112 @@ describe('appointments — formulaire public borne', () => {
     await assertFails(setDoc(
       doc(testEnv.unauthenticatedContext().firestore(), 'appointments', 'a3'),
       RDV({ status: 'confirmed' }),
+    ));
+  });
+
+  /*
+   * Audit du 03/09/2026 — ce document DICTE UN ENVOI D'E-MAIL.
+   *
+   * `acknowledgeAppointment` le relit et envoie un courrier signe SPF/DKIM a l'adresse
+   * qu'il porte, en y recopiant `name`, `date`, `time` et `subject`. La creation etant
+   * publique — et elle doit le rester —, ces regles sont le SEUL endroit ou se decide ce
+   * qui peut entrer dans un courrier sortant. Les quatre cas ci-dessous sont les quatre
+   * trous par lesquels un attaquant fabriquait un hameconnage credible.
+   */
+  it('NON-REGRESSION : le formulaire complet passe toujours', async () => {
+    await assertSucceeds(setDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'appointments', 'a4'),
+      RDV({
+        phone: '+221770000000', time: '18:30', subject: 'Audit de presence digitale',
+        message: 'Bonjour, je souhaite un premier echange.',
+        createdAt: new Date().toISOString(),
+      }),
+    ));
+  });
+
+  it("refuse une adresse qui n'en est pas une", async () => {
+    // L'ancienne regle ne verifiait que la LONGUEUR : « aaaaa » etait une adresse valide.
+    await assertFails(setDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'appointments', 'a5'),
+      RDV({ email: 'aaaaa' }),
+    ));
+  });
+
+  it('refuse un objet trop long pour tenir dans un intitule', async () => {
+    // `subject` n'apparaissait dans AUCUNE contrainte, et il finit dans le corps du mail.
+    await assertFails(setDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'appointments', 'a6'),
+      RDV({ subject: 'x'.repeat(400) }),
+    ));
+  });
+
+  it('refuse un champ hors de la liste, meme peu nombreux', async () => {
+    // Le plafond `keys().size() <= 12` bornait le NOMBRE de champs, jamais lesquels.
+    await assertFails(setDoc(
+      doc(testEnv.unauthenticatedContext().firestore(), 'appointments', 'a7'),
+      RDV({ acknowledgedAt: '2026-01-01T00:00:00.000Z' }),
+    ));
+  });
+});
+
+/*
+ * `users` — la creation etait la moitie non gardee d'une porte dont la mise a jour, elle,
+ * avait recu une liste blanche exacte. Un profil se cree une fois par compte : il suffisait
+ * de s'inscrire pour poser n'importe quel champ, y compris ceux que le SERVEUR relit comme
+ * des gardes.
+ *
+ * L'abus concret, verifie contre `worker/apps/api/src/lib/referral.ts` : la recompense de
+ * parrainage cherchait le parrain par `where('referralCode','==',code)` avec `limit: 1`, une
+ * requete sans `orderBy` que Firestore resout par `__name__` croissant. Poser a l'inscription
+ * le code d'un tiers, avec un UID qui trie plus bas, detournait toutes ses conversions
+ * futures. Le Worker refuse desormais d'arbitrer un code ambigu ; cette regle-ci empeche
+ * l'ambiguite d'exister.
+ */
+describe('users — la creation est bornee comme la mise a jour', () => {
+  const PROFIL = (extra: Record<string, unknown> = {}) => ({
+    uid: ALICE, email: 'alice@exemple.test', displayName: 'Alice', role: 'student',
+    createdAt: new Date().toISOString(),
+    preferences: { theme: 'system', language: 'fr', newsletter: false },
+    ...extra,
+  });
+
+  it("NON-REGRESSION : l'inscription normale cree toujours le profil", async () => {
+    // Miroir exact de ce que pose AuthContext.tsx a l'inscription par e-mail.
+    await assertSucceeds(setDoc(doc(asUser(ALICE), 'users', ALICE), PROFIL()));
+  });
+
+  it('NON-REGRESSION : le profil Google passe aussi', async () => {
+    await assertSucceeds(setDoc(
+      doc(asUser(ALICE), 'users', ALICE),
+      PROFIL({ photoURL: 'https://exemple.test/a.png' }),
+    ));
+  });
+
+  it("refuse de poser un code de parrainage a l'inscription", async () => {
+    await assertFails(setDoc(
+      doc(asUser(ALICE), 'users', ALICE),
+      PROFIL({ referralCode: 'CODEVOLE' }),
+    ));
+  });
+
+  it("refuse de poser la garde anti-double-recompense a l'inscription", async () => {
+    await assertFails(setDoc(
+      doc(asUser(ALICE), 'users', ALICE),
+      PROFIL({ referralRewarded: false }),
+    ));
+  });
+
+  it('refuse tout champ hors de la liste', async () => {
+    await assertFails(setDoc(
+      doc(asUser(ALICE), 'users', ALICE),
+      PROFIL({ xp: 100000 }),
+    ));
+  });
+
+  it("NON-REGRESSION : le role reste verrouille a 'student'", async () => {
+    await assertFails(setDoc(
+      doc(asUser(ALICE), 'users', ALICE),
+      PROFIL({ role: 'admin' }),
     ));
   });
 });

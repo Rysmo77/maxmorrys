@@ -23,8 +23,12 @@ function constant(path: string, name: string): number {
   return Number(match[1]);
 }
 
+/*
+ * `functions/src/rysmo.ts` était le second miroir serveur. `functions/` a été supprimé le
+ * 03/09/2026 : aucune Cloud Function n'était plus déployée. Le Worker porte désormais seul
+ * les constantes serveur, et c'est lui qu'il faut tenir aligné sur le client.
+ */
 const MIRRORS = [
-  'functions/src/rysmo.ts',
   'worker/apps/api/src/lib/rysmo-quota.ts',
 ];
 
