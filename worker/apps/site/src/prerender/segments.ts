@@ -54,6 +54,30 @@ const SEGMENTS: Record<string, string> = {
   'rendez-vous': 'appointments',
   'club-digitos': 'club-digitos',
   redirections: 'redirects',
+  /*
+   * LES TROIS ENTRÉES PUBLIQUES QUI MANQUAIENT, ET CE QU'ELLES COÛTAIENT.
+   *
+   * Cette table s'était désynchronisée de `src/i18n/segments.ts` sans aucun signe. Faute de
+   * `podcast-et-videos`, `club-des-digitos` et `verifier`, `enPath()` laissait le segment
+   * FRANÇAIS dans l'URL anglaise : le sitemap publiait `/en/podcast-et-videos`, que
+   * `resolveRoute` ne connaît pas et qui repartait donc à l'origine sans la moindre méta.
+   * Et dans l'autre sens, `canonicalizeSegments()` ne savait pas ramener `/en/digitos-club`
+   * sur `/club-des-digitos` : la page tombait dans `unknownRouteMeta`, donc en
+   * `noindex, nofollow`. Les trois pages anglaises étaient à la fois mal annoncées et
+   * activement désindexées, sans erreur nulle part.
+   */
+  'podcast-et-videos': 'podcast-and-videos',
+  'club-des-digitos': 'digitos-club',
+  verifier: 'verify',
+  // Le reste de l'écart : routes privées (LMS, admin, auth). Aucune n'est prérendue, mais
+  // une table à moitié copiée est exactement ce qui a produit le défaut ci-dessus.
+  devis: 'quote',
+  repetiteur: 'tutor',
+  'hors-connexion': 'offline',
+  notifications: 'notifications',
+  paiements: 'payments',
+  'prospects-agence': 'agency-leads',
+  projets: 'projects',
 };
 
 const EN_TO_FR: Record<string, string> = {};
