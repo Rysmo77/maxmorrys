@@ -339,7 +339,8 @@
     "progressLabel": "Envoi du média",
     "statusRecording": "Enregistrement en cours.",
     "statusStopped": "Enregistrement terminé, envoi en cours.",
-    "statusReady": "Média prêt à être envoyé."
+    "statusReady": "Média prêt à être envoyé.",
+    "levelLabel": "Niveau capté par le micro"
   },
   "streak": {
     "days_one": "{{count}} jour",

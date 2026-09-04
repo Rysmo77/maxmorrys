@@ -339,7 +339,8 @@
     "progressLabel": "Uploading media",
     "statusRecording": "Recording.",
     "statusStopped": "Recording finished, uploading.",
-    "statusReady": "Media ready to send."
+    "statusReady": "Media ready to send.",
+    "levelLabel": "Level picked up by the mic"
   },
   "streak": {
     "days_one": "{{count}} day",
