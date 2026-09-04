@@ -13,10 +13,16 @@
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 import type { Etat } from '../ds';
-import { CLUB, FORMATION, FORMATION_2, MOI, NOTES, NOTES_TOTAL, PROGRAMME } from '../contenu/demo';
+import {
+  CLUB, CLUB_FIL, CLUB_MISSION, EPISODE, FORMATION, FORMATION_2, MOI, NOTES, NOTES_TOTAL,
+  PROGRAMME, VIDEO,
+} from '../contenu/demo';
 import { composer, composerListe } from './etat';
 export { provenance } from './etat';
-import type { VueCertificats, VueClub, VueCours, VueEspace, VueLecon, VueMoi, VueNotes } from './types';
+import type {
+  VueCertificats, VueClub, VueClubFil, VueCours, VueEspace, VueLecon, VueMedia, VueMoi,
+  VueNotes,
+} from './types';
 import { useVue } from './vue';
 
 export { SessionProvider, useSession, useUid } from './session';
@@ -25,8 +31,9 @@ export { exporterMesDonnees } from './rgpd';
 export { appeler, ErreurAppel } from './appel';
 export { viderLesVues } from './vue';
 export type {
-  VueCertificat, VueCertificats, VueClub, VueCours, VueEspace, VueLecon, VueLeconLigne,
-  VueMoi, VueNote, VueNotes,
+  VueCertificat, VueCertificats, VueClub, VueClubFil, VueClubMessage, VueClubMission,
+  VueCours, VueEpisode, VueEspace, VueLecon, VueLeconLigne, VueMedia, VueMoi, VueNote,
+  VueNotes, VueVideo,
 } from './types';
 
 /** Qui regarde : prénom, initiale, date d'ouverture du compte. */
@@ -133,4 +140,52 @@ export function useLecon(formationId?: string): Etat<VueLecon> {
       doc: 'doc' in l ? Boolean(l.doc) : false,
     })),
   });
+}
+
+/** Le fil du Club, et la mission en tête. Vide tant que l'abonnement n'est pas actif. */
+export function useClubFil(): Etat<VueClubFil> {
+  const brut = useVue<VueClubFil>('appClubFil');
+  const replique = CLUB_FIL.length === 0 && CLUB_MISSION === null ? null : {
+    mission: CLUB_MISSION === null ? null : {
+      meta: CLUB_MISSION.meta,
+      titre: CLUB_MISSION.titre,
+      budget: CLUB_MISSION.budget,
+      note: CLUB_MISSION.note,
+    },
+    fil: CLUB_FIL.map((m, i) => ({
+      id: String(i),
+      auteur: m.auteur,
+      initiales: m.initiales,
+      categorie: m.categorie,
+      quand: m.quand,
+      texte: m.texte,
+      aime: m.aime,
+      republie: m.republie,
+      commente: m.commente,
+    })),
+  };
+  return composer(brut, replique);
+}
+
+/** Le dernier épisode et la dernière vidéo publiés. */
+export function useMedia(): Etat<VueMedia> {
+  const brut = useVue<VueMedia>('appMedia');
+  const replique = EPISODE === null && VIDEO === null ? null : {
+    episode: EPISODE === null ? null : {
+      titre: EPISODE.titre,
+      titreCourt: EPISODE.titreCourt,
+      invitee: EPISODE.invitee,
+      eyebrow: EPISODE.eyebrow,
+      chapo: EPISODE.chapo,
+      duree: EPISODE.duree,
+      lien: null,
+    },
+    video: VIDEO === null ? null : {
+      titre: VIDEO.titre,
+      eyebrow: VIDEO.eyebrow,
+      lien: null,
+      cout: [...VIDEO.cout],
+    },
+  };
+  return composer(brut, replique);
 }

@@ -90,3 +90,49 @@ export interface VueLecon {
   moduleTitre: string | null;
   programme: VueLeconLigne[];
 }
+
+export interface VueClubMessage {
+  id: string;
+  auteur: string;
+  initiales: string;
+  categorie: string;
+  quand: string | null;
+  texte: string;
+  aime: number;
+  republie: number;
+  commente: number;
+}
+
+export interface VueClubMission {
+  meta: string;
+  titre: string;
+  budget: number | null;
+  note: string;
+}
+
+export interface VueClubFil {
+  mission: VueClubMission | null;
+  fil: VueClubMessage[];
+}
+
+export interface VueEpisode {
+  titre: string;
+  titreCourt: string;
+  invitee: string | null;
+  eyebrow: string;
+  chapo: string | null;
+  duree: string | null;
+  lien: string | null;
+}
+
+export interface VueVideo {
+  titre: string;
+  eyebrow: string;
+  lien: string | null;
+  cout: string[];
+}
+
+export interface VueMedia {
+  episode: VueEpisode | null;
+  video: VueVideo | null;
+}

@@ -1,8 +1,10 @@
 import type { CallContext } from './context';
 import { acknowledgeAppointment } from './handlers/acknowledgeAppointment';
 import { resendTransactionMail } from './handlers/resendTransactionMail';
+import { appClubFil } from './handlers/app/clubFil';
 import { appClub } from './handlers/app/club';
 import { appCertificats } from './handlers/app/certificats';
+import { appMedia } from './handlers/app/media';
 import { appLecon } from './handlers/app/lecon';
 import { appNotes } from './handlers/app/notes';
 import { appCours } from './handlers/app/cours';
@@ -69,8 +71,10 @@ export const HANDLERS: Record<string, CallHandler> = {
   adminCreateUser,
   appCertificats,
   appClub,
+  appClubFil,
   appCours,
   appLecon,
+  appMedia,
   appNotes,
   appEspace,
   appMoi,

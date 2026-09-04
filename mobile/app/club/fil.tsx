@@ -4,7 +4,7 @@ import {
   Avatar, Body, Button, ChipRow, Icon, LessonRow, Num, PriceBlock, SansDonnees, Surface, Tag, TerritoryCard, useToken,
 } from '../../ds';
 import { Bilan, ClubScreen } from './_layout';
-import { CLUB_FIL, CLUB_MISSION, RELEVE, SOURCE } from '../../contenu/demo';
+import { provenance, useClubFil } from '../../donnees';
 
 /**
  * ══ 6 · LE FIL DU CLUB ══
@@ -25,6 +25,9 @@ import { CLUB_FIL, CLUB_MISSION, RELEVE, SOURCE } from '../../contenu/demo';
  */
 export default function Fil() {
   const t = useToken();
+  const club = useClubFil();
+  const fil = club.valeur?.fil ?? [];
+  const mission = club.valeur?.mission ?? null;
 
   return (
     <ClubScreen titre="Le fil">
@@ -41,13 +44,15 @@ export default function Fil() {
         style={{ marginTop: 18 }}
       />
 
-      {CLUB_FIL.length === 0 ? (
+      {fil.length === 0 ? (
         <SansDonnees
           quoi="le fil du Club"
           degat="Un message inventé porte le nom de quelqu'un — un nom, un métier, un quartier qui appartiennent à une personne réelle. C'est le contenu du produit où fabriquer coûte le plus cher."
+          etat={club}
+          hauteur={4}
           style={{ marginTop: 14 }}
         />
-      ) : CLUB_FIL.map((post) => (
+      ) : fil.map((post) => (
         <Surface key={post.auteur} level="flat" style={{ marginTop: 14, padding: 18 }}>
           <View style={{ flexDirection: 'row', gap: 11, alignItems: 'center' }}>
             <Avatar initials={post.initiales} size={38} />
@@ -77,7 +82,7 @@ export default function Fil() {
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
               >
                 <Icon name={glyphe} size={16} color={glyphe === 'heart' ? t('mmVioletT') : t('ink2')} />
-                <Num value={n} source={SOURCE} asOf={RELEVE} style={{ fontSize: 12.5 }} />
+                <Num value={n} {...provenance(club)} style={{ fontSize: 12.5 }} />
               </View>
             ))}
           </View>
@@ -86,13 +91,13 @@ export default function Fil() {
 
       {/* Une annonce, ou rien : un budget inventé fixe une attente de revenu chez quelqu'un
           qui organise son temps dessus. */}
-      {CLUB_MISSION === null ? null : (
+      {mission === null ? null : (
       <View style={{ marginTop: 12 }}>
         <TerritoryCard
           first
           territory="transforme"
-          meta={CLUB_MISSION.meta}
-          title={CLUB_MISSION.titre}
+          meta={mission.meta}
+          title={mission.titre}
           titleSize={21}
         >
           <View style={{
@@ -100,11 +105,10 @@ export default function Fil() {
             gap: 12, marginTop: 14,
           }}>
             <PriceBlock
-              amount={CLUB_MISSION.budget}
-              source={SOURCE}
-              asOf={RELEVE}
+              amount={mission.budget ?? 0}
+              {...provenance(club)}
               size={21}
-              note={CLUB_MISSION.note}
+              note={mission.note}
             />
             <Button
               tone="transforme"
