@@ -66,6 +66,15 @@ export interface CallContext {
   auth: DecodedIdToken | null;
   /** Corps brut, pour les vérifications de signature. */
   raw: string;
+  /**
+   * La requête entrante.
+   *
+   * Utile aux seuls endpoints ANONYMES, qui n'ont pas d'`uid` sur lequel compter et
+   * doivent se rabattre sur `CF-Connecting-IP` pour se plafonner (cf. `lib/rate-limit.ts`).
+   * Un handler authentifié n'a aucune raison de la lire : son identifiant d'appelant est
+   * `auth.uid`, qui est vérifié cryptographiquement là où un en-tête ne l'est pas.
+   */
+  request: Request;
 }
 
 /**
