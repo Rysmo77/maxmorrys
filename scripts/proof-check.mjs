@@ -197,9 +197,142 @@ if (LINKS) {
   }));
 }
 
+/* ══ 8 · LES MOYENS DE PAIEMENT SE COMPTENT AU MÊME ENDROIT ════════════════════════════
+   Le 04/09/2026, l'accueil annonçait « Tu paies en Wave ou en Orange Money » pendant que le
+   tunnel de paiement en acceptait TROIS, carte comprise, et que les CGV l'engageaient déjà.
+   Les deux fichiers étaient justes séparément ; la contradiction ne vivait qu'ENTRE eux, et
+   c'est précisément l'angle mort de toutes les autres barrières. Quelqu'un sans compte Wave
+   lisait sur la première page du site qu'il ne pouvait pas acheter — alors qu'il pouvait.
+
+   LA RÈGLE COMPARE DES FAITS, PAS DES PHRASES. Elle n'épingle aucune formulation : elle
+   extrait l'ENSEMBLE des marques citées et le compare à la liste qui fait autorité, celle
+   du tunnel. On réécrit librement, on ne peut plus en oublier une.
+
+   Une chaîne qui n'en cite qu'UNE est un libellé (`checkout.methodWave`), pas une liste :
+   elle ne déclenche rien. Il faut au moins deux marques pour qu'une énumération commence,
+   et une énumération commencée doit être complète. */
+const MARQUES = [
+  /* Sensible à la casse, et c'est délibéré : `leaderboard.truth` parle d'une « joining
+     wave », une vague de membres. La marque porte une capitale, le nom commun non. */
+  ['Wave', /\bWave\b/],
+  ['Om', /Orange Money/i],
+  ['Card', /\bcartes?\b|\bcards?\b/i],
+];
+const marquesDe = (texte) => new Set(MARQUES.filter(([, re]) => re.test(texte)).map(([k]) => k));
+
+const CHECKOUT = lire('src/pages/lms/Checkout.tsx');
+const blocMethods = CHECKOUT.match(/const METHODS = \[([\s\S]*?)\n\];/);
+const MOYENS = new Set(blocMethods ? [...blocMethods[1].matchAll(/key: '([^']+)'/g)].map((m) => m[1]) : []);
+if (MOYENS.size === 0) {
+  add('8 · moyens de paiement', 'src/pages/lms/Checkout.tsx',
+    'METHODS introuvable — la règle ne sait plus à quoi comparer, et passerait au vert en ne gardant rien');
+}
+
+/** Toutes les chaînes des deux catalogues, avec leur chemin. Les règles 8 et 10 s'en servent. */
+const toutesLesChaines = () => {
+  const sorties = [];
+  for (const langue of ['fr', 'en']) {
+    const dossier = `src/i18n/locales/${langue}`;
+    for (const fichier of readdirSync(join(root, dossier))) {
+      if (!fichier.endsWith('.json')) continue;
+      const parcourir = (noeud, chemin) => {
+        if (typeof noeud === 'string') return sorties.push([`${dossier}/${fichier}`, chemin.slice(1), noeud]);
+        if (noeud && typeof noeud === 'object') for (const [k, v] of Object.entries(noeud)) parcourir(v, `${chemin}.${k}`);
+      };
+      parcourir(lireJson(`${dossier}/${fichier}`), '');
+    }
+  }
+  return sorties;
+};
+const CHAINES = toutesLesChaines();
+
+if (MOYENS.size > 0) {
+  for (const [fichier, chemin, valeur] of CHAINES) {
+    const citees = marquesDe(valeur);
+    if (citees.size < 2 || citees.size >= MOYENS.size) continue;
+    const manquants = [...MOYENS].filter((m) => !citees.has(m));
+    add('8 · moyens de paiement', fichier,
+      `${chemin} énumère ${[...citees].join(' + ')} mais oublie ${manquants.join(' + ')} — le tunnel en accepte ${MOYENS.size}`);
+  }
+}
+
+/* ══ 9 · LE MIROIR SEO AFFIRME LES MÊMES FAITS QUE L'INTERFACE ═════════════════════════
+   `static-pages.ts` est servi aux ROBOTS, l'i18n est servi aux HUMAINS, et les deux
+   décrivent le même produit. Rien ne les relie : le 04/09/2026, j'ai corrigé la phrase de
+   paiement d'un seul côté et le site s'est contredit entre son aperçu de partage et sa
+   propre page, sans qu'aucun test bronche.
+
+   ON NE PEUT PAS DÉDUPLIQUER, ET IL NE FAUT PAS. Le texte SEO est à la troisième personne
+   (« Le paiement se fait… ») quand l'interface tutoie (« Tu paies… ») : deux écritures
+   différentes du même fait, et c'est voulu. La règle compare donc les ENSEMBLES de marques
+   des deux côtés, pas les mots. Reformule tant que tu veux ; oublie un moyen d'un seul
+   côté, et ça tombe. */
+const STATIC_PAGES = lire('worker/apps/site/src/prerender/static-pages.ts');
+const MIROIRS = [
+  ['/', 'src/i18n/locales/fr/home.json', ['hero.lede', 'why.r1Body']],
+  ['/club-des-digitos', 'src/i18n/locales/fr/club.json',
+    ['publicPage.payWave', 'publicPage.payOrange', 'publicPage.payCard']],
+];
+const auChemin = (table, chemin) => chemin.split('.').reduce((o, k) => o?.[k], table);
+
+for (const [route, source, cles] of MIROIRS) {
+  const bloc = STATIC_PAGES.match(new RegExp(`'${route}': \\{([\\s\\S]*?)\\n  \\},`));
+  if (!bloc) {
+    add('9 · miroir SEO', 'worker/apps/site/src/prerender/static-pages.ts',
+      `la route ${route} est introuvable — la règle ne garde plus ce miroir`);
+    continue;
+  }
+  const table = lireJson(source.replace(`${root}/`, ''));
+  const cote_i18n = marquesDe(cles.map((c) => auChemin(table, c) ?? '').join(' \n '));
+  const cote_seo = marquesDe(bloc[1]);
+  const ecart = [...new Set([...cote_i18n, ...cote_seo])].filter((m) => cote_i18n.has(m) !== cote_seo.has(m));
+  if (ecart.length > 0) {
+    add('9 · miroir SEO', 'worker/apps/site/src/prerender/static-pages.ts',
+      `${route} : l'interface cite {${[...cote_i18n].join(', ')}}, le miroir cite {${[...cote_seo].join(', ')}} — ` +
+      `écart sur ${ecart.join(' + ')}. Les robots et les humains ne liraient pas la même promesse.`);
+  }
+}
+
+/* ══ 10 · AUCUNE PHRASE NE NIE CE QUE LE PRODUIT PROPOSE ═══════════════════════════════
+   Le 04/09/2026, le pied de page a reçu un formulaire d'inscription à la lettre. Cent
+   lignes plus bas, dans LE MÊME COMPOSANT, une phrase écrite des mois plus tôt affirmait
+   toujours « il n'y a pas encore de lettre par e-mail ». Sur toutes les pages du site.
+
+   Aucune barrière ne pouvait le voir : la clé existait, le ton tenait, la phrase ne portait
+   pas de date. Elle n'était fausse que par rapport à du CODE, et c'est ce lien-là qu'on
+   déclare ici. Chaque entrée dit : « si cette chose existe dans le code, alors aucune
+   traduction ne peut prétendre le contraire. »
+
+   ⚠️ CETTE RÈGLE NE GARDE QUE CE QU'ON Y INSCRIT. Elle n'est pas une intelligence, c'est un
+   registre. Une fonctionnalité livrée sans son entrée ici passe au vert sans rien garder —
+   c'est le pire mode d'échec d'une barrière, et il vaut mieux le savoir en l'écrivant. */
+const NIÉS = [
+  {
+    quoi: 'la lettre',
+    preuve: ['src/components/layout/Footer.tsx', /NewsletterForm/],
+    interdits: [
+      /pas encore de lettre/i,
+      /no email newsletter/i,
+      /seul moyen de suivre/i,
+      /only way to follow/i,
+    ],
+  },
+];
+
+for (const { quoi, preuve: [fichierPreuve, motifPreuve], interdits } of NIÉS) {
+  if (!motifPreuve.test(lire(fichierPreuve))) continue;
+  for (const [fichier, chemin, valeur] of CHAINES) {
+    const touche = interdits.find((re) => re.test(valeur));
+    if (touche) {
+      add('10 · négations périmées', fichier,
+        `${chemin} nie ${quoi}, que ${fichierPreuve} monte pourtant (${touche})`);
+    }
+  }
+}
+
 /* ── Le verdict ──────────────────────────────────────────────────────────────────────── */
 if (findings.length === 0) {
-  console.log(`\nproof:check — ${LINKS ? 'sept' : 'six'} invariants tiennent, ${jalons.length} jalons vérifiés. 0 constat.\n`);
+  console.log(`\nproof:check — ${LINKS ? 'dix' : 'neuf'} invariants tiennent, ${jalons.length} jalons vérifiés. 0 constat.\n`);
   process.exit(0);
 }
 
