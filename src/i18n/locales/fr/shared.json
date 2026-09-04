@@ -111,7 +111,7 @@
       "rssAction": "Ouvrir",
       "alert": "Ton compte, prêt pour l'ouverture",
       "alertAction": "Créer un compte",
-      "noEmail": "Le flux est le seul moyen de suivre. Le compte, lui, garde ta place pour l'ouverture du catalogue."
+      "noEmail": "La lettre ou le flux, comme tu préfères. Le compte, lui, garde ta place pour l'ouverture du catalogue."
     },
     "cartRecovery": {
       "title": "Tu n'as pas terminé",

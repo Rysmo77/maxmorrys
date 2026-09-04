@@ -77,7 +77,7 @@
     "rssAction": "Copier",
     "alert": "Ton compte, prêt pour l'ouverture",
     "alertAction": "Créer un compte",
-    "noEmail": "Il n'y a pas encore de lettre par e-mail, ni d'alerte à la publication : le flux est le seul moyen de suivre. Je préfère te le dire que te faire créer un compte pour rien.",
+    "noEmail": "La lettre part quand il y a quelque chose à dire, pas chaque semaine. Le flux reste là si tu préfères suivre sans donner ton adresse.",
     "empty": "Aucun article ne correspond. Retire un filtre, ou vide la recherche.",
     "featuredMarker": "À la une",
     "tagFilter": "Sujet : {{tag}}",

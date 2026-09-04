@@ -77,7 +77,7 @@
     "rssAction": "Copy",
     "alert": "Your account, ready for opening day",
     "alertAction": "Create an account",
-    "noEmail": "There's no email newsletter yet, and no alert when I publish: the feed is the only way to follow. I'd rather tell you than have you open an account for nothing.",
+    "noEmail": "The letter goes out when there's something worth saying, not every week. The feed is still there if you'd rather follow without giving me your address.",
     "empty": "No article matches. Drop a filter, or clear the search.",
     "featuredMarker": "Featured",
     "tagFilter": "Topic: {{tag}}",
