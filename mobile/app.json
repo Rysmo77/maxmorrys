@@ -53,7 +53,6 @@
       },
       "permissions": [],
       "blockedPermissions": [],
-      "edgeToEdgeEnabled": true,
       "intentFilters": [
         {
           "action": "VIEW",
@@ -80,6 +79,52 @@
           "dark": {
             "image": "./assets/splash-icon.png",
             "backgroundColor": "#0B0E13"
+          }
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Fraunces",
+                "fontDefinitions": [
+                  { "path": "./assets/fonts/Fraunces_400Regular.ttf", "weight": 400 },
+                  { "path": "./assets/fonts/Fraunces_700Bold.ttf", "weight": 700 },
+                  { "path": "./assets/fonts/Fraunces_900Black.ttf", "weight": 900 }
+                ]
+              },
+              {
+                "fontFamily": "SchibstedGrotesk",
+                "fontDefinitions": [
+                  { "path": "./assets/fonts/SchibstedGrotesk_400Regular.ttf", "weight": 400 },
+                  { "path": "./assets/fonts/SchibstedGrotesk_500Medium.ttf", "weight": 500 },
+                  { "path": "./assets/fonts/SchibstedGrotesk_600SemiBold.ttf", "weight": 600 },
+                  { "path": "./assets/fonts/SchibstedGrotesk_700Bold.ttf", "weight": 700 }
+                ]
+              },
+              {
+                "fontFamily": "JetBrainsMono",
+                "fontDefinitions": [
+                  { "path": "./assets/fonts/JetBrainsMono_400Regular.ttf", "weight": 400 },
+                  { "path": "./assets/fonts/JetBrainsMono_700Bold.ttf", "weight": 700 }
+                ]
+              }
+            ]
+          },
+          "ios": {
+            "fonts": [
+              "./assets/fonts/Fraunces_400Regular.ttf",
+              "./assets/fonts/Fraunces_700Bold.ttf",
+              "./assets/fonts/Fraunces_900Black.ttf",
+              "./assets/fonts/SchibstedGrotesk_400Regular.ttf",
+              "./assets/fonts/SchibstedGrotesk_500Medium.ttf",
+              "./assets/fonts/SchibstedGrotesk_600SemiBold.ttf",
+              "./assets/fonts/SchibstedGrotesk_700Bold.ttf",
+              "./assets/fonts/JetBrainsMono_400Regular.ttf",
+              "./assets/fonts/JetBrainsMono_700Bold.ttf"
+            ]
           }
         }
       ]

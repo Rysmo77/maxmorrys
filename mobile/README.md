@@ -229,8 +229,35 @@ changerait. Aucun n'est un bouton mort : ils rendent le geste, et disent où il 
 | La biométrie | `expo-local-authentication` | `biometrie` `profil` |
 | L'orientation paysage | `expo-screen-orientation` | `plein-ecran` — il TIENT en portrait en attendant |
 | L'état du réseau | `expo-network` | `hors-connexion`, aujourd'hui une destination |
-| Les trois fontes | `expo-font` + les binaires | partout — on retombe sur la police système, lisible, sans casser une mise en page |
 | Le widget d'accueil | WidgetKit / Glance, hors React Native | `widget` en est l'écran d'INSTALLATION, pas une imitation |
+
+### ✅ Les trois fontes SONT chargées, aux neuf graisses du kit
+
+Cette table portait une ligne « Les trois fontes », et elle est retirée plutôt que laissée à
+quelqu'un qui la croirait. Les neuf fichiers déclarés par le kit (Fraunces 400/700/900,
+Schibsted Grotesk 400/500/600/700, JetBrains Mono 400/700) vivent dans `assets/fonts/` et
+arrivent par DEUX chemins, dont aucun ne remplace l'autre :
+
+- **le greffon `expo-font`** (`app.json`) les lie au projet natif. C'est lui qui rend les
+  graisses sur Android : une famille XML par nom, un `app:fontWeight` par graisse, enregistrée
+  par `addCustomFont` — le seul chemin qu'Android consulte avant sa case NORMAL ;
+- **`ds/Fontes.ts`** les charge à l'exécution. C'est lui qui pose, sur iOS, l'alias sans espace
+  (`SchibstedGrotesk`) que les écrans écrivent et que la vraie famille (« Schibsted Grotesk »)
+  ne fournit pas.
+
+`app/_layout.tsx` ne rend rien tant que la question n'est pas tranchée, pour qu'aucun premier
+écran ne parte en police système avant de sauter à la marque ; un échec de chargement rend
+quand même, et le dit. `tests/unit/mobile-fontes.test.ts` (17 vérifications) tient toute la
+chaîne : `fonts.css` → `ds/Fontes.ts` → `assets/fonts/` → `app.json` → les octets eux-mêmes,
+dont il lit les tables `OS/2` et `name` plutôt que de croire les noms de fichiers.
+
+**Ce qui reste approximé** : sur iOS, les deux familles dont le vrai nom porte une espace
+passent par l'alias, qui ne rend qu'UNE fonte — leurs 500/600/700 s'y ramènent au 400. Le
+fermer demanderait de renommer la famille dans les trente-neuf fichiers qui la citent.
+
+⚠️ **Le `prebuild` est la seule preuve** que les graisses sont liées côté natif : ni le
+typecheck ni `expo export` n'exécutent les greffons. `npx expo prebuild --platform android
+--clean --no-install`, puis lire `android/app/src/main/res/font/`.
 
 ### ✅ Le SDK Firebase, lui, EST branché — et voici jusqu'où
 

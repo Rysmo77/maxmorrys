@@ -1,11 +1,32 @@
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { edgeSwipeBack, screenAnimation, screenAnimationDuration, useScheme, useToken } from '../ds';
+import {
+  edgeSwipeBack, screenAnimation, screenAnimationDuration, useFontesChargees, useScheme, useToken,
+} from '../ds';
 import { SessionProvider } from '../donnees/session';
 
+/*
+ * L'ÉCRAN DE LANCEMENT RESTE EN PLACE TANT QUE LES FONTES NE SONT PAS TRANCHÉES.
+ *
+ * Appelé au chargement du module, donc avant le premier rendu : c'est la seule fenêtre où
+ * `preventAutoHideAsync()` a encore un effet. Sans lui, l'application rendrait son premier
+ * écran en police système puis SAUTERAIT à la marque une fraction de seconde plus tard —
+ * ce saut se lit comme un défaut, là où une attente d'un instant ne se lit pas du tout.
+ *
+ * L'échec est avalé volontairement : ne pas pouvoir retenir l'écran de lancement est un
+ * inconfort, mais une promesse rejetée au chargement du module ferait tomber l'application.
+ */
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 /**
- * La racine. Elle ne fait que trois choses, et c'est délibéré.
+ * La racine. Elle ne fait que quatre choses, et c'est délibéré.
+ *
+ * La quatrième est la plus récente : elle ATTEND LES FONTES. C'est le seul endroit d'où
+ * l'attente peut précéder tout rendu, et c'est pour ça qu'elle est ici et non dans `ds/` —
+ * la table, elle, appartient au système (`ds/Fontes.ts`).
  *
  * Aucune prop de thème n'est distribuée depuis ici : chaque composant appelle `useToken()`,
  * qui lit le mode lui-même. C'est la transposition native de la règle du web — le thème est
@@ -20,6 +41,22 @@ import { SessionProvider } from '../donnees/session';
 export default function RootLayout() {
   const t = useToken();
   const scheme = useScheme();
+  /*
+   * Les trois familles de marque. Le hook rend `true` quand elles sont prêtes — OU quand leur
+   * chargement a échoué, auquel cas il l'a déjà journalisé. Un démarrage bloqué serait pire
+   * qu'une police de repli : voir `ds/Fontes.ts`.
+   */
+  const fontesPretes = useFontesChargees();
+
+  useEffect(() => {
+    if (!fontesPretes) return;
+    // L'effet passe APRÈS le commit du premier rendu de marque : l'écran de lancement se
+    // retire donc sur quelque chose de déjà dessiné, pas sur un fond vide.
+    SplashScreen.hideAsync().catch(() => {});
+  }, [fontesPretes]);
+
+  /* Rien du tout tant que la question n'est pas tranchée — l'écran de lancement couvre. */
+  if (!fontesPretes) return null;
 
   return (
     <SafeAreaProvider>
