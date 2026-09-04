@@ -23,14 +23,17 @@ const COLLAPSED_KEY = 'app:sidebar:collapsed';
  * son territoire d'entrée.
  *
  * LES TROIS POINTS DE RUPTURE, aux valeurs du système et non à celles de Tailwind :
- *   · sous 700 px  — barre d'onglets basse de 80 px, la seconde des deux surfaces floutées ;
- *   · au-delà      — navigation latérale de 250 px en faux verre.
+ *   · sous 700 px  — barre d'onglets basse de 80 px ;
+ *   · au-delà      — navigation latérale de 250 px.
  * Le seuil était `md` (768 px). Entre 700 et 768 vivent les tablettes en portrait, qui
  * recevaient une barre d'onglets là où le système prévoit la colonne.
  *
- * PLUS DE FLOU SUR LA BARRE DU HAUT. `bg-[color-mix(in_srgb,var(--paper)_95%,transparent)] backdrop-blur` en faisait une troisième
- * surface floutée, alors que le budget — deux — est déjà pris par la barre haute du site et
- * la barre d'onglets. C'est `.glass-flat` : voile à 78 %, aucun flou, gratuit à faire défiler.
+ * LE CHROME NE LAISSE PLUS RIEN PASSER (AD-26). Il a perdu son flou en deux temps, puis son
+ * voile : la barre du haut écrivait `backdrop-blur` en ligne, elle est passée en faux verre
+ * (`.glass-flat`, 78 %), et c'est là que ça s'est arrêté trop tôt. En nuit `.dk .glass-flat`
+ * vaut blanc à SEPT pour cent : sans flou, ce qui passe sous la barre et derrière la colonne
+ * se lit à travers. Les trois surfaces portent maintenant `.mm-menu`, opaque, qui bascule
+ * seule avec le thème. Le voile du tiroir, lui, RESTE translucide : c'est sa fonction.
  *
  * PLUS DE TRANSITION SUR UNE MARGE. Le repli de la colonne animait `margin-left` et `width` :
  * AD-16 ne l'autorise pas, et sur le profil d'appareil visé — 2 Go, 4 cœurs — c'est un
@@ -76,11 +79,24 @@ export interface AppShellProps {
   outletContext?: unknown;
   /** Override the main content max-width container. */
   contentClassName?: string;
+  /**
+   * PORTÉE CSS POSÉE SUR LA COQUILLE ENTIÈRE — chrome compris.
+   *
+   * Elle existe parce que `contentClassName` ne pouvait pas en tenir lieu, et que le défaut
+   * était invisible en mode sombre. La console pose `dk` pour accompagner son maillage nuit ;
+   * posée sur le `<main>`, elle laissait DEHORS la colonne, la barre haute, le tiroir, le menu
+   * utilisateur et la cloche. En mode clair, ces cinq surfaces prenaient donc leurs jetons
+   * clairs par-dessus un maillage #0A0D11 : chrome clair, corps nuit, sur vingt et un écrans.
+   *
+   * Ce n'est pas une prop de thème (AD-3 l'interdit) : c'est une PORTÉE, le mécanisme que le
+   * même AD-3 prescrit. Le niveau était faux, pas le principe.
+   */
+  shellClassName?: string;
 }
 
 export default function AppShell({
   brand, territory = 'forme', territoryMap, wordmark = 'rysmo', sidebarSections, bottomNavItems,
-  titleMap, beforeOutlet, outletContext, contentClassName,
+  titleMap, beforeOutlet, outletContext, contentClassName, shellClassName,
 }: AppShellProps) {
   const { t } = useTranslation('lms');
   const [collapsed, setCollapsed] = useState<boolean>(() => {
@@ -140,7 +156,7 @@ export default function AppShell({
   const hasBottomNav = bottomNavItems && bottomNavItems.length > 0;
 
   return (
-    <div className="min-h-screen relative isolate overflow-x-clip">
+    <div className={cn('min-h-screen relative isolate overflow-x-clip', shellClassName)}>
       {/* Le fond du produit : trois lobes flous en dérive, animés en `transform` seulement,
           fixés à la fenêtre pour que le voile de lisibilité garde la géométrie sur laquelle
           AD-18 a été mesuré. Poids : 0 octet. */}
@@ -149,7 +165,7 @@ export default function AppShell({
       {/* Colonne latérale — 250 px, à partir de 700 px */}
       <aside
         className={cn(
-          'glass-flat fixed left-0 top-0 bottom-0 z-30 rounded-none border-0 border-r border-[color:var(--nav-brd)] hidden stack:block',
+          'mm-menu fixed left-0 top-0 bottom-0 z-30 rounded-none border-0 border-r border-[color:var(--menu-brd)] shadow-none hidden stack:block',
           collapsed ? 'w-16' : 'w-[250px]',
         )}
       >
@@ -173,7 +189,7 @@ export default function AppShell({
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
           />
-          <aside className="glass-flat fixed left-0 top-0 bottom-0 w-[250px] max-w-[85vw] rounded-none border-0 border-r border-[color:var(--nav-brd)] z-50 mm-drop">
+          <aside className="mm-menu fixed left-0 top-0 bottom-0 w-[250px] max-w-[85vw] rounded-none border-0 border-r border-[color:var(--menu-brd)] z-50 mm-drop">
             <AppSidebar
               sections={sidebarSections}
               brand={brand}
@@ -189,10 +205,11 @@ export default function AppShell({
 
       {/* Colonne principale */}
       <div className={cn('relative z-[1]', collapsed ? 'stack:ml-16' : 'stack:ml-[250px]')}>
-        {/* Barre du haut — faux verre, aucun flou. Elle est collante, mais elle n'est pas la
-            surface sous laquelle le contenu passe : la barre haute du site et la barre
-            d'onglets prennent déjà les deux places du budget. */}
-        <header className="glass-flat sticky top-0 z-20 rounded-none border-0 border-b border-[color:var(--nav-brd)]">
+        {/* Barre du haut — opaque (AD-26). Le contenu passe RÉELLEMENT dessous, elle est
+            collante : c'est exactement le cas où un voile se remarque, et où il ne sert à
+            rien puisque plus rien ne le floute. `--menu-brd` remplace `--nav-brd`, qui vaut
+            50 % de blanc en clair et disparaissait sur une surface blanche pleine. */}
+        <header className="mm-menu sticky top-0 z-20 rounded-none border-0 border-b border-[color:var(--menu-brd)] shadow-none">
           <div className="flex items-center gap-2 px-3 stack:px-pane h-12 stack:h-14">
             <button
               type="button"

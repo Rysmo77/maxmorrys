@@ -124,9 +124,18 @@ export default function AdminLayout() {
 
         `dk` ici fait basculer les 78 jetons concernés en même temps que le maillage, et rend
         cohérent le `territory="nuit"` déjà décidé au-dessus.
+
+        ⚠️ ET IL LA FAUT SUR LA COQUILLE, PAS SUR LE CONTENU. La version précédente posait
+        `dk` sur `contentClassName`, c'est-à-dire sur le seul `<main>`. La colonne, la barre
+        haute, le tiroir, le menu utilisateur et la cloche sont rendus DEHORS : en mode clair
+        ils prenaient donc leurs jetons clairs par-dessus le maillage nuit #0A0D11 — chrome
+        clair, corps nuit, sur les vingt et un écrans, pour qui n'a pas choisi le mode sombre.
+        Le défaut se voyait d'autant moins que le chrome était translucide ; AD-26 le rend
+        opaque, et il serait devenu une dalle blanche. `shellClassName` porte la portée.
         ────────────────────────────────────────────────────────────────────────────────
       */
-      contentClassName="dk p-4 stack:p-pane"
+      shellClassName="dk"
+      contentClassName="p-4 stack:p-pane"
       /*
         « Max-Morrys » ne survit que comme PERSONNE (AD-12) : la page « Je suis Max-Morrys »,
         la signature d'article, les mentions légales, « Max-Morrys Agency ». La console est

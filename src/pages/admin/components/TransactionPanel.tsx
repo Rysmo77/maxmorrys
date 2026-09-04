@@ -167,7 +167,7 @@ export default function TransactionPanel({ tx, loading, asOf, onRefund, refundin
         se liraient comme une panne.
       */}
       {tx.status === 'completed' && (
-        <GlassPanel padding={16} className="rv mt-4" style={{ ['--i' as string]: 2 }}>
+        <GlassPanel level="flat" padding={16} className="rv mt-4" style={{ ['--i' as string]: 2 }}>
           <SiteEyebrow style={{ marginBottom: '8px' }}>{t('transactions.mailTitle')}</SiteEyebrow>
           <DocLine
             label={t('transactions.mailConfirmation')}

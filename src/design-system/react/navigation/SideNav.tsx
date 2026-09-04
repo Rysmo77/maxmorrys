@@ -5,12 +5,15 @@ import { TERRITORY_INK } from '../types';
 /**
  * LA NAVIGATION LATÉRALE — 250 px, tablette et écran large (700 à 1080 px).
  *
- * ELLE A PERDU SON FLOU. Le kit lui donnait `.glass`, et elle devenait la troisième surface
- * floutée d'une page qui a déjà sa barre haute. Le flou n'a droit qu'à une surface qui ne
- * défile pas AVEC le contenu, et une colonne latérale n'en est pas une : dès qu'elle est plus
- * haute que la fenêtre, elle défile. C'est donc du faux verre — `.glass-flat`, voile à 78 %,
- * aucun flou. La différence visuelle sur un maillage est presque nulle ; la différence de
- * composition, elle, est un recompositing par image en moins.
+ * ELLE A PERDU SON FLOU, PUIS SON VOILE. Le kit lui donnait `.glass` : elle devenait la
+ * troisième surface floutée d'une page qui a déjà sa barre haute, alors qu'une colonne
+ * latérale défile dès qu'elle est plus haute que la fenêtre. Elle est donc passée en faux
+ * verre (`.glass-flat`, voile à 78 %, aucun flou), ce qui réglait le coût de composition.
+ *
+ * Restait le voile, et il ne réglait rien : en nuit `.dk .glass-flat` vaut blanc à 7 %, et la
+ * page se lit à travers le panneau — c'est le flou qui tenait la lisibilité, pas le voile.
+ * AD-26 : `.mm-menu`, opaque, qui bascule seule avec le thème. Un tiroir doit MASQUER ; c'est
+ * le voile derrière lui, et lui seul, qui reste translucide.
  *
  * DE VRAIS LIENS DANS UNE VRAIE LISTE. Le kit rendait des `<a>` sans `href`, posés côte à côte
  * sans conteneur : un lecteur d'écran n'annonçait ni « liste de 4 », ni « lien », ni quelle
@@ -26,7 +29,9 @@ const PANE: CSSProperties = {
   flex: '0 0 auto',
   padding: '22px 18px',
   /* Ce n'est pas une carte posée sur la page, c'est un bord de page : ni rayon, ni ombre,
-     un seul filet à droite. `--nav-brd` s'effondre seul de 50 % de blanc à 10 % sous `.dk`. */
+     un seul filet à droite — les trois écrasent `.mm-menu`, un style en ligne gagnant sur une
+     classe. `--nav-brd` est repointé sur `--menu-brd` dans la portée du menu (AD-26) : à 50 %
+     de blanc, l'ancien filet était invisible sur une surface blanche opaque. */
   border: 0,
   borderRight: '1px solid var(--nav-brd)',
   borderRadius: 0,
@@ -79,7 +84,7 @@ export interface SideNavProps {
 
 export function SideNav({ brand, items, active, footer, label, className = '', style }: SideNavProps) {
   return (
-    <nav aria-label={label} className={['glass-flat', className].filter(Boolean).join(' ')} style={{ width: '250px', ...PANE, ...style }}>
+    <nav aria-label={label} className={['mm-menu', className].filter(Boolean).join(' ')} style={{ width: '250px', ...PANE, ...style }}>
       {brand && <div style={{ margin: '2px 0 22px 12px' }}>{brand}</div>}
       <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
         {items.map((it) => {

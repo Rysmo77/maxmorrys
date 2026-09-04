@@ -15,6 +15,22 @@ ne vient pas du kit ? » — la réponse est ce dossier, et rien d'autre.
 | `ad-20-corail-texte.css` | AD-20 | Le DS donne au corail un rôle de **texte** (l'entrée « agence » de la barre haute) mais aucune version lisible : `#FF6E7F` fait 2,70:1 sur blanc. Mesuré. |
 | `ad-21-radio-epaisseur.css` | AD-21 | `brand/states.css` transitionne `border-width` sur `.mm-radio` — une propriété de mise en page, ce qu'AD-16 interdit. La copie littérale (AD-1) ne peut pas être corrigée sur place : l'écart la neutralise par une transition de couleur. |
 | `ad-23-arc.css` | AD-23 | Un remplissage de gauche à droite sur du texte, et ses **deux** usages. Le mot-symbole « Hello ! » devient une cible (`--ink-2` au repos, l'arc au survol) ; un fragment de chaque titre de page se remplit **au survol du titre** (`.mm-arc-host`), ornement assumé qui n'existe pas sur mobile — rien de ce que la page doit dire n'en dépend. L'arc tourne pour démarrer sur la teinte de la page. Remplace les jetons AD-3 d'`ad-06-etats.css`. |
+| `ad-26-menus-opaques.css` | AD-26 | Un menu doit MASQUER ce qu'il recouvre. Le kit avait retiré le flou de la navigation mais gardé le voile — `.dk .glass-flat` vaut blanc à 7 %, donc la page se lisait à travers le tiroir. Mesuré. |
+
+## Un défaut du kit que cet écart CONTOURNE sans le corriger — `.lowfi .dk`
+
+`brand/fallback.css` déclare le repli « appareil modeste » en deux temps : `.lowfi .glass` force
+un fond blanc à 90 %, puis `.lowfi .dk .glass` le corrige à 13 % pour le mode sombre. Le second
+sélecteur est un combinateur **descendant**, alors que `lowfi.ts` et `ThemeContext.tsx` posent
+les deux classes sur **le même élément**, `<html>`. Il ne peut donc jamais s'apparier — le
+premier, si. Sur un téléphone à 2 Go réglé en sombre, que la règle 5 désigne comme LE profil du
+marché visé, la barre haute rendait un blanc à 90 %.
+
+`ds:check` ne le voyait pas : sa règle 5 vérifie que la chaîne `.dk` figure dans les 900
+caractères qui suivent chaque repli, pas qu'elle **s'apparie**. Le sélecteur juste est
+`.lowfi.dk` (composé), et il vit dans une copie littérale — donc il ne peut pas être corrigé
+ici. AD-26 le rend sans effet côté produit, puisque plus aucune surface ne porte `.glass` ni
+`.mm-chrome`. **À remonter au kit à la prochaine relivraison** : `ds:sync` le réimportera intact.
 
 ## Un écart qui ne vit pas dans ce dossier — AD-24
 

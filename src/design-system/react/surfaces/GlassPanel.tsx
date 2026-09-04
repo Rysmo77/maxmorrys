@@ -17,8 +17,14 @@ import type { GlassLevel } from '../types';
  * poids réseau étant nul, il n'apparaît dans aucun audit de poids.
  *
  * Le niveau `panel` ne doit donc être posé QUE sur un élément en `position: fixed|sticky`.
- * `npm run ds:check` le vérifie ; en pratique, seules la barre haute du site et la barre
- * d'onglets basse y ont droit.
+ * `npm run ds:check` le vérifie — mais il ne PEUT PAS voir celui-ci : la classe vient du
+ * composant, pas de la ligne d'appel. Or `panel` était le niveau PAR DÉFAUT, et c'était un
+ * piège armé : sur 285 usages, un seul omettait la prop — un panneau de console qui défile,
+ * flouté sans que personne l'ait demandé ni pu le lire dans un grep.
+ *
+ * Le défaut est donc `flat`, le niveau que 148 appels demandent explicitement. `panel` reste
+ * atteignable, mais il faut l'ÉCRIRE — et depuis AD-26 plus aucune surface ne le fait : les
+ * deux chromes qui y avaient droit sont passés à `.mm-menu`, opaque.
  *
  * CE QUI FAIT QU'UN VERRE A L'AIR D'UN VERRE n'est pas le flou : c'est le liseré de lumière
  * de 1 px en haut, la bordure blanche à 55 % et le `saturate(170%)`. Sans la saturation, le
@@ -69,7 +75,7 @@ export interface GlassPanelProps {
 }
 
 export function GlassPanel({
-  level = 'panel', padding, children, as: Tag = 'div', className = '', style, ...rest
+  level = 'flat', padding, children, as: Tag = 'div', className = '', style, ...rest
 }: GlassPanelProps) {
   return (
     <Tag

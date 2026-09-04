@@ -16,13 +16,15 @@ import {
 } from '../../design-system';
 
 /**
- * LA BARRE HAUTE DU SITE — pilule de verre flottante, et l'UNE DES DEUX SEULES SURFACES
- * FLOUTÉES DU PRODUIT.
+ * LA BARRE HAUTE DU SITE — pilule flottante, et la dernière surface du produit à avoir perdu
+ * son verre (AD-26).
  *
- * Elle y a droit pour une raison qui se vérifie à l'œil : elle ne défile pas, et le contenu
- * passe RÉELLEMENT dessous. Partout ailleurs — tiroir, sous-navigation, menu de compte — c'est
- * du faux verre (`.glass-flat`), gratuit à faire défiler. Le flou n'est jamais coûteux là où
- * on l'écrit : il le devient là où le composant est répété.
+ * Elle avait droit au flou pour une raison qui se vérifiait à l'œil : elle ne défile pas, et
+ * le contenu passe RÉELLEMENT dessous. Cet argument justifiait le FLOU, jamais le VOILE — et
+ * c'est le voile qui tenait la lisibilité une fois le flou retiré : `.dk .glass` vaut blanc à
+ * NEUF pour cent. Le chrome, le tiroir, la sous-navigation et le menu de compte sont
+ * désormais opaques ; seul le voile derrière le tiroir reste translucide, parce que reculer
+ * la page est sa fonction.
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * CE QUI A CHANGÉ, ET POURQUOI
@@ -141,6 +143,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
   const profileBtnRef = useRef<HTMLButtonElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const announceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -159,6 +162,32 @@ export default function Header({ onSearchOpen }: HeaderProps) {
     else root.removeAttribute('data-header-compact');
     return () => root.removeAttribute('data-header-compact');
   }, [scrolled]);
+
+  /**
+   * PUBLIE LA HAUTEUR DE LA BANNIÈRE D'ANNONCE SUR <html>.
+   *
+   * `AnnouncementBanner` vit DANS ce `<header>` fixe, et elle pousse la pilule vers le bas.
+   * `--header-h` ne la comptait pas : la première ligne du corps passait dessous. Le défaut
+   * se devinait à travers le verre ; depuis AD-26 le chrome est opaque et la coupe est nette.
+   *
+   * Mesurée, jamais estimée : la bannière fait une ou deux lignes selon la longueur du texte
+   * et la largeur de l'écran, et elle apparaît APRÈS le premier rendu (ses annonces sont
+   * chargées à la demande). Un `ResizeObserver` couvre les trois cas — apparition, repli sur
+   * deux lignes, fermeture — là où une mesure unique au montage n'en couvrirait aucun.
+   */
+  useEffect(() => {
+    const el = announceRef.current;
+    const root = document.documentElement;
+    if (!el) return;
+    const publier = () => root.style.setProperty('--announce-h', `${el.offsetHeight}px`);
+    publier();
+    const ro = new ResizeObserver(publier);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty('--announce-h');
+    };
+  }, []);
 
   const isTransforme = TRANSFORME_PATHS.some((p) => path === p || path.startsWith(p + '/'));
 
@@ -358,9 +387,10 @@ export default function Header({ onSearchOpen }: HeaderProps) {
         <div
           id="nav-account-menu"
           role="menu"
-          /* FAUX VERRE. Un menu de compte n'est pas du chrome fixe : il apparaît, il disparaît,
-             et rien ne passe dessous. `.glass-flat` — voile à 78 %, aucun flou. */
-          className="glass-flat absolute right-0 top-full mt-2.5 w-60 py-1.5 mm-drop"
+          /* OPAQUE (AD-26). Le raisonnement d'avant s'arrêtait au flou : « rien ne passe
+             dessous, donc pas de flou ». Mais le panneau, lui, passe sur QUELQUE CHOSE — la
+             page — et à 78 % de blanc (7 % en nuit) elle se lisait au travers. */
+          className="mm-menu absolute right-0 top-full mt-2.5 w-60 py-1.5 mm-drop"
         >
           <div className="px-4 py-3 border-b border-[color:var(--border-hair)]">
             <p className="text-meta font-bold text-ink">{user.displayName || t('learner')}</p>
@@ -409,7 +439,12 @@ export default function Header({ onSearchOpen }: HeaderProps) {
           `z-50` alors que le header est `fixed z-40` : les deux occupaient la même bande et la
           bannière peignait par-dessus le logo.
         */}
-        <AnnouncementBanner />
+        {/* Enveloppe MESURÉE, pas décorative : `AnnouncementBanner` rend `null` quand il n'y a
+            rien à dire, et un conteneur vide fait alors 0 px — ce qui est exactement la valeur
+            que `--announce-h` doit prendre dans ce cas. */}
+        <div ref={announceRef}>
+          <AnnouncementBanner />
+        </div>
 
         {/*
           ── LA PILULE SUIT LA MESURE DU SITE ──────────────────────────────────────────

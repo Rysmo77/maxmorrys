@@ -30,13 +30,21 @@
    * navigation qui la dimensionnent — sous 1080 px ils sont dans le tiroir.
    *
    * `data-header-compact` est posé sur <html> par le Header au-delà de 20 px de défilement.
+   *
+   * ⚠️ ET ELLE COMPTE AUSSI LA BANNIÈRE D'ANNONCE. `AnnouncementBanner` est rendue DANS le
+   * `<header>` fixe : quand une annonce est active, la pilule descend d'environ 40 px et la
+   * première ligne du corps passait dessous. Le défaut se devinait à travers le verre ; avec
+   * un chrome opaque (AD-26) c'est une coupe nette. `--announce-h` est publiée par le Header
+   * — 0 px tant qu'aucune annonce n'est visible — et les onze consommateurs de `--header-h`
+   * en héritent sans qu'aucun ne soit modifié : c'est la raison d'être d'une source unique.
    */
   :root {
-    --header-h: 5rem;
+    --announce-h: 0px;
+    --header-h: calc(5rem + var(--announce-h));
   }
 
   :root[data-header-compact] {
-    --header-h: 4.25rem;
+    --header-h: calc(4.25rem + var(--announce-h));
   }
 
   /*

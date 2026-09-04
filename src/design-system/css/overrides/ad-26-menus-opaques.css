@@ -1,0 +1,89 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AD-26 · UN MENU NE LAISSE RIEN PASSER
+
+   Le kit avait déjà tranché la moitié de cette question : `backdrop-filter` réduit au chrome
+   qui ne défile pas, soit DEUX surfaces — la pilule du site et la barre d'onglets basse. Le
+   reste de la navigation est passé en « faux verre » : plus de flou, mais TOUJOURS un voile.
+   C'est ce voile-là qui n'avait jamais été rediscuté, et il portait trois défauts mesurés :
+
+   1 · LE REPLI « APPAREIL MODESTE » NE S'APPLIQUE PAS EN MODE SOMBRE.
+       `brand/fallback.css` écrit `.lowfi .dk .glass` — un combinateur DESCENDANT — alors que
+       `lowfi.ts` et `ThemeContext.tsx` posent les deux classes sur le MÊME élément, <html>.
+       Le sélecteur ne peut jamais s'apparier ; celui de la ligne au-dessus, si. Sur un
+       téléphone à 2 Go réglé en sombre — le profil que la règle 5 désigne comme LE marché
+       visé, pas un cas limite — la barre haute rendait donc blanc à 90 %.
+
+   2 · LE VOILE NUIT NE MASQUE RIEN. `.dk .glass` vaut blanc à 9 %, `.dk .glass-flat` blanc à
+       7 % : sans le flou, ce qui passe dessous se lit à travers. C'est le flou qui tenait la
+       lisibilité, pas le voile — et le flou est précisément ce qui coûte.
+
+   3 · DEUX TRAITEMENTS DANS LA MÊME BARRE. `NotificationDropdown` était déjà opaque
+       (`bg-surface-sheet`), `UserMenu` était en verre à 78 %, côte à côte.
+
+   LA DÉCISION. Les barres de navigation et les panneaux qui s'en ouvrent portent `.mm-menu`,
+   une surface OPAQUE. Elles cessent de porter `.glass`, `.glass-flat` et `.mm-chrome` — c'est
+   un REMPLACEMENT, jamais un ajout : les trois replis de `fallback.css` sont en `!important`
+   et réimposeraient leur fond à une surface qui aurait gardé l'ancienne classe.
+
+   CE QUI N'EST PAS TOUCHÉ. Les voiles derrière les tiroirs et les boîtes de dialogue : un
+   voile DOIT être translucide, c'est sa fonction — il recule la page au lieu de la masquer.
+   Les cartes, le héros, l'encart de vérité et les pop-ups gardent le leur : leur translucidité
+   est une décision de conception, pas un artefact du flou.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* La surface. `--surface-sheet` (AD-22) est le jeton opaque qui BASCULE seul : `--paper`
+     en clair, `--night-3` en nuit. `--paper` seul aurait donné 1,06:1 en mode sombre. */
+  --menu-bg: var(--surface-sheet);
+  --menu-brd: var(--line);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     LES ÉTATS D'ENTRÉE SONT DES VOILES DE BLANC, ET C'EST LE PIÈGE DE CETTE PASSE.
+
+     `--nav-on-bg` vaut `rgba(255,255,255,.7)` en clair. Il se lisait parce que la colonne
+     n'était elle-même qu'à 78 % : deux voiles de blanc l'un sur l'autre, sur un maillage
+     coloré. Composé sur une surface blanche OPAQUE, il donne du blanc — l'entrée courante
+     disparaît, et il ne reste que `--nav-on-sh`, une ombre à 7 %. Même piège pour
+     `--ctl-off-bg` (blanc à 55 %), qui peint le déclencheur de recherche de la colonne.
+
+     La correction suit la doctrine des remplissages neutres du kit : en clair ce sont des
+     teintes d'ENCRE, en sombre des teintes de LUMIÈRE. `--ink` s'inversant seul sous `.dk`,
+     UNE seule déclaration tient les deux modes — et l'écart mesuré y est le même :
+
+         clair   #FFFFFF → #F1F1F1   1,13:1
+         nuit    #0F151B → #1C2228   1,14:1
+
+     C'est l'écart que produisait l'ancien empilement de voiles. Il est ici obtenu par une
+     couleur pleine, donc il ne dépend plus de ce qu'il y a derrière.
+     ───────────────────────────────────────────────────────────────────────── */
+  --menu-on-bg: color-mix(in srgb, var(--ink) 6%, var(--menu-bg));
+  --menu-off-bg: color-mix(in srgb, var(--ink) 4%, var(--menu-bg));
+
+  /* Ce qui fait flotter un menu n'est plus sa transparence : c'est son ombre. Elle porte
+     seule le « au-dessus » que le verre disait, et elle doit donc connaître le thème —
+     `.dk .glass-flat` mettait `box-shadow:none`, ce qui collait le panneau à la page. */
+  --menu-sh: 0 6px 18px rgba(14, 17, 22, .07);
+}
+
+.dk {
+  --menu-sh: 0 6px 18px rgba(0, 0, 0, .38);
+}
+
+.mm-menu {
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-brd);
+  box-shadow: var(--menu-sh);
+  border-radius: var(--r-l);
+
+  /* Aucune surface de menu ne porte plus `.glass`, donc plus rien à retirer — la déclaration
+     reste pour qu'un appelant qui composerait les deux classes ne rende pas un flou. La règle 1
+     l'admet explicitement : « un repli RETIRE un flou ». */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+
+  /* Les jetons d'état du kit, repointés DANS LA SEULE PORTÉE DU MENU. Les descendants en
+     héritent sans qu'aucun appelant ne change, et rien d'autre dans le produit ne bouge. */
+  --nav-on-bg: var(--menu-on-bg);
+  --ctl-off-bg: var(--menu-off-bg);
+  --nav-brd: var(--menu-brd);
+}

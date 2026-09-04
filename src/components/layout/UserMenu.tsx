@@ -82,7 +82,10 @@ export default function UserMenu({ compact = false }: UserMenuProps) {
       {open && (
         <div
           role="menu"
-          className="glass-flat absolute right-0 top-full mt-2 w-64 overflow-hidden z-50 mm-drop"
+          /* AD-26 : opaque. Un menu qui se superpose au contenu doit le MASQUER — c'est la
+             différence entre un menu et un voile. La cloche voisine était déjà opaque et ce
+             panneau-ci était en verre à 78 % : deux traitements dans la même barre. */
+          className="mm-menu absolute right-0 top-full mt-2 w-64 overflow-hidden z-50 mm-drop"
         >
           <div className="px-4 py-3 border-b border-[color:var(--line)]">
             <p className="text-sm font-semibold text-ink truncate">{displayName}</p>

@@ -11,9 +11,12 @@ import { TERRITORY_INK } from '../types';
  * derrière le mur et ne clique pas — et le haut de l'entonnoir perd sa fonction. L'ordre
  * n'est donc pas négociable : le gratuit d'abord, le Club ensuite.
  *
- * FAUX VERRE, AUCUN FLOU. Elle est en tête de page, elle défile avec elle. Les deux seules
- * surfaces floutées du produit sont la barre haute et la barre d'onglets ; ici, l'état actif
- * se lit au voile (`--surface-card`) et au liseré, pas au flou.
+ * PLUS DE VERRE DU TOUT (AD-26). Elle n'a jamais eu de flou — elle défile avec la page — mais
+ * ses puces étaient deux voiles de blanc, `--surface-card` (62 %) pour l'active et
+ * `--ctl-off-bg` (55 %) pour les autres. Sur un maillage, deux voiles proches se distinguent
+ * mal, et en nuit ils tombent à 7,5 % et 8 % : l'écart entre l'étage courant et les autres
+ * devenait un jeu de contraste sur ce qu'il y avait DERRIÈRE. Les deux puces sont désormais
+ * des couleurs pleines, `--menu-on-bg` et `--menu-off-bg`, dont l'écart ne dépend plus du fond.
  *
  * DE VRAIS LIENS. Le kit rendait des `<a>` sans `href` et un `onSelect` : deux étages d'un
  * même territoire sont deux ADRESSES, pas deux états d'un composant — elles se partagent,
@@ -74,11 +77,13 @@ export function SubNav({ items, active, label, className = '', style }: SubNavPr
                 className="mm-press-sm mm-touch-extend"
                 style={{
                   ...ITEM,
-                  background: on ? 'var(--surface-card)' : 'var(--ctl-off-bg)',
-                  border: `1px solid ${on ? 'var(--glass-brd)' : 'var(--ctl-off-brd)'}`,
+                  background: on ? 'var(--menu-on-bg)' : 'var(--menu-off-bg)',
+                  border: '1px solid var(--menu-brd)',
                   // AD-18 : l'étage au repos reste sur `--ink-2`, jamais sur l'encre tertiaire.
                   color: on ? 'var(--text-body)' : 'var(--text-muted)',
-                  boxShadow: on ? 'var(--glass-hl),0 4px 14px rgba(14,17,22,.07)' : 'none',
+                  // `--glass-hl` était un liseré de lumière INTERNE : il imitait la réfraction
+                  // d'un bord de verre, et sur une couleur pleine il ne dit plus rien.
+                  boxShadow: on ? '0 4px 14px rgba(14,17,22,.07)' : 'none',
                 }}
               >
                 <span aria-hidden="true" style={{ ...DOT, background: it.territory ? TERRITORY_INK[it.territory] : 'var(--fill-5)' }} />

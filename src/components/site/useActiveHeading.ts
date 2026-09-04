@@ -41,11 +41,14 @@ export function useActiveHeading(ids: string[]): string | null {
       .filter((el): el is HTMLElement => el !== null);
     if (!elements.length) return;
 
-    // `--header-h` est la source unique de la hauteur du chrome, marges comprises. Lue
-    // au calcul plutôt que codée : elle change entre la barre pleine et la barre compacte.
-    const chrome =
-      parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 5;
-    const hautPx = Math.round(chrome * parseFloat(getComputedStyle(document.documentElement).fontSize || '16'));
+    /* La hauteur du chrome est lue sur le REMBOURRAGE RÉEL du contenu, pas sur le jeton.
+       `#main-content` a `padding-top: var(--header-h)` : c'est la même valeur par
+       construction, mais elle arrive ici en pixels calculés. `getPropertyValue` sur une
+       propriété personnalisée rend la valeur SPÉCIFIÉE — depuis que `--header-h` compte la
+       bannière d'annonce, c'est la chaîne `calc(5rem + 0px)`, que `parseFloat` rend NaN.
+       Le repli silencieux à 5rem aurait tenu sans bannière, et faussé le calcul avec. */
+    const main = document.getElementById('main-content');
+    const hautPx = main ? Math.round(parseFloat(getComputedStyle(main).paddingTop) || 80) : 80;
 
     const visibles = new Set<string>();
 

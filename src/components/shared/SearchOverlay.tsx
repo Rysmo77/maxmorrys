@@ -257,8 +257,12 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]">
-      {/* Voile décoratif : Échap ferme aussi, et le champ garde le focus. */}
-      <div aria-hidden="true" className="fixed inset-0 bg-black/50 backdrop-blur-sm mm-drop" onClick={onClose} />
+      {/* Voile décoratif : Échap ferme aussi, et le champ garde le focus.
+          AUCUN FLOU. À 50 % de noir il ne restait rien à distinguer derrière, et un
+          `backdrop-filter` en plein écran fait recomposer TOUTE la pile à chaque image —
+          le poste le plus cher du produit sur un appareil à 2 Go. Le panneau, lui, est
+          opaque : c'est lui qui masque, pas le voile. */}
+      <div aria-hidden="true" className="fixed inset-0 bg-black/50 mm-drop" onClick={onClose} />
       <div
         role="dialog"
         aria-modal="true"

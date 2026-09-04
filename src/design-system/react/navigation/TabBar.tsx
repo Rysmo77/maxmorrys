@@ -1,29 +1,23 @@
 import type { CSSProperties, ReactNode } from 'react';
 
 /**
- * LA BARRE D'ONGLETS BASSE — 80 px, et l'UNE DES DEUX SEULES SURFACES FLOUTÉES DU PRODUIT.
+ * LA BARRE D'ONGLETS BASSE — 80 px, et la seconde surface qui A PERDU SON VERRE (AD-26).
  *
- * Elle y a droit pour une raison qui se vérifie à l'œil : elle ne défile pas, et le contenu
- * passe RÉELLEMENT dessous. C'est le seul endroit, avec la barre haute, où le flou porte du
- * sens plutôt que du décor. Partout ailleurs c'est du faux verre (`.glass-flat`), qui est
- * gratuit à faire défiler — `backdrop-filter` sur un conteneur défilant force un
- * recompositing PAR IMAGE de toute la pile derrière lui, et sur le profil d'appareil visé —
- * 2 Go de mémoire, 4 cœurs, qui EST le marché et non le cas limite — c'est le poste le plus
- * coûteux du produit.
+ * Elle avait droit au flou pour une raison qui se vérifiait à l'œil : elle ne défile pas, et
+ * le contenu passe RÉELLEMENT dessous. Cet argument justifiait le FLOU ; il n'a jamais rien
+ * dit en faveur du VOILE. Or c'est le voile qui posait le problème — `--tabbar-bg` vaut
+ * rgba(13,17,23,.72) en nuit, et sans flou une barre à 72 % laisse lire ce qui passe dessous.
  *
- * LE FLOU N'EST PAS ÉCRIT ICI, et la raison n'est PAS celle qu'on croit.
+ * Le calcul est net : `backdrop-filter` force un recompositing PAR IMAGE de toute la pile
+ * derrière la surface, et sur le profil d'appareil visé — 2 Go de mémoire, 4 cœurs, qui EST le
+ * marché et non le cas limite — c'était le poste le plus coûteux du produit. Une barre opaque
+ * ne compose rien du tout : elle est plus lisible ET moins chère.
  *
- * Le kit pose bien un `backdropFilter` en style inline — mais il pose aussi `mm-chrome`, avec
- * ce commentaire : « la classe d'accroche des replis. Sans elle, le flou en ligne échappe à
- * `.lowfi`, à `prefers-reduced-transparency` et à `@supports not` ». Le kit avait donc déjà
- * traité la question, et il avait raison de le faire ainsi : un `!important` d'une feuille
- * d'auteur BAT un style en ligne non-important. Les replis atteignaient la barre.
- *
- * Le flou vient quand même de `.glass` ici, pour une raison plus simple : AD-4 veut qu'il
- * n'existe qu'à UN endroit du dépôt, pour que « combien de surfaces sont floutées » soit une
- * question à laquelle un grep répond. Un flou en ligne est correct et invérifiable ; c'est
- * l'invérifiable qui coûte, pas le flou. `mm-chrome` reste posée : c'est toujours par elle
- * que les trois replis attrapent le chrome.
+ * CE QUI DISPARAÎT AVEC LE VERRE. `mm-chrome` — l'accroche des trois replis de `fallback.css`
+ * — n'a plus rien à raccrocher, puisqu'il n'y a plus de flou à retirer ni de voile à densifier.
+ * `--tabbar-hl`, un liseré de lumière INTERNE, ne veut plus rien dire sur une couleur pleine :
+ * il imitait la réfraction d'un bord de verre. Le fond en ligne passe sur `--menu-bg`, qui
+ * bascule seul comme `--tabbar-bg` le faisait (AD-3 : jamais de prop de thème).
  *
  * LES LIENS SONT DE VRAIS LIENS. Le kit rendait des `<a>` SANS `href` : rien n'était
  * atteignable au clavier, rien n'était annoncé comme un lien, et l'onglet courant n'était
@@ -31,23 +25,23 @@ import type { CSSProperties, ReactNode } from 'react';
  * ouvert C du transfert, et le port React est le moment où il se corrige (AD-6).
  */
 
-/* Le chrome garde le flou de 26 px que le kit lui donnait, sans écrire un second
-   `backdrop-filter` : on repointe la variable que `.glass` consomme déjà. `--glass-blur`
-   vaut 24 px partout ailleurs ; le chrome, lui, est déclaré à 26 px dans tokens/glass.css. */
+/* Le fond est écrit ICI, en ligne, et il doit l'être : un style en ligne bat la déclaration
+   de `.mm-menu`, donc laisser `--tabbar-bg` aurait silencieusement rendu le voile à la barre.
+   `--menu-bg` bascule seul sous `.dk`, comme `--tabbar-bg` le faisait — AD-3, jamais de prop
+   de thème : un fond clair figé sous des glyphes #ECF0F5 donnerait 1,4:1. */
 const BAR = {
   height: 'var(--tabbar-h)',
   display: 'flex',
   alignItems: 'flex-start',
   padding: '10px 8px 0',
   zIndex: 7,
-  /* Aucune prop de thème : `--tabbar-bg` passe seul de 62 % de blanc à rgba(13,17,23,.72)
-     sous `.dk`. Un fond clair figé sous des glyphes #ECF0F5 donnerait 1,4:1 — AD-3. */
-  background: 'var(--tabbar-bg)',
+  background: 'var(--menu-bg)',
   border: 0,
-  borderTop: '1px solid var(--tabbar-brd)',
+  borderTop: '1px solid var(--menu-brd)',
   borderRadius: 0,
-  boxShadow: 'var(--tabbar-hl)',
-  '--glass-blur': 'var(--glass-blur-chrome)',
+  /* La barre est collée au bas de l'écran : son ombre porte VERS LE HAUT, sinon elle tombe
+     hors de l'écran et la barre se colle au contenu. `--menu-sh` descend, d'où l'inversion. */
+  boxShadow: '0 -6px 18px rgba(14, 17, 22, .07)',
 } as CSSProperties;
 
 const TAB: CSSProperties = {
@@ -91,9 +85,10 @@ export interface TabBarProps {
 
 export function TabBar({ items, active, label, className = '', style }: TabBarProps) {
   return (
-    // `glass` et `fixed` sur la même ligne : c'est la forme que ds:check sait vérifier, et
-    // c'est aussi la condition réelle du droit au flou — une surface qui ne défile pas.
-    <nav aria-label={label} className={['glass mm-chrome', className].filter(Boolean).join(' ')} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, ...BAR, ...style }}>
+    // AD-26 : `mm-menu` REMPLACE `glass mm-chrome`, elle ne s'y ajoute pas. Les trois replis
+    // de `fallback.css` sont en `!important` : une surface qui garderait l'ancienne classe se
+    // verrait réimposer son voile de verre, et en mode sombre un fond blanc à 90 %.
+    <nav aria-label={label} className={['mm-menu', className].filter(Boolean).join(' ')} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, ...BAR, ...style }}>
       {items.map((it) => {
         const on = it.label === active;
         return (

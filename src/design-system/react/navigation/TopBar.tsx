@@ -3,13 +3,23 @@ import type { Territory } from '../types';
 import { TERRITORY_INK } from '../types';
 
 /**
- * LA BARRE HAUTE DU SITE — pilule de verre flottante, et LA SECONDE des deux seules surfaces
- * floutées du produit.
+ * LA BARRE HAUTE DU SITE — pilule flottante, et la première des surfaces qui ONT PERDU LEUR
+ * VERRE (AD-26).
  *
- * Même critère que la barre d'onglets : le contenu passe dessous sans jamais l'emporter. Le
- * kit la pose en `relative` dans une maquette qui ne défile pas ; en production c'est
- * `sticky`, et c'est le RÉSULTAT qui compte, pas le mot-clé. La marge de 16 px survit au
- * collage : `top: 0` colle la boîte de marge, donc la pilule reste détachée du bord.
+ * Elle portait `glass mm-chrome` : blanc à 62 % et `blur(24px)`, blanc à 9 % en nuit. C'était
+ * la dernière des deux surfaces à qui le kit accordait encore un flou, au motif que le contenu
+ * passe RÉELLEMENT dessous. L'argument tenait tant qu'on acceptait de voir au travers ; il ne
+ * dit rien en faveur du voile lui-même. Deux mesures l'ont emporté : en nuit, 9 % de blanc ne
+ * masque rien sans le flou ; et le repli « appareil modeste » de `fallback.css` ne s'appliquait
+ * JAMAIS en mode sombre (`.lowfi .dk` est un combinateur descendant, les deux classes sont sur
+ * <html>), donc la barre y rendait blanc à 90 % sur le profil d'appareil du marché visé.
+ *
+ * `.mm-menu` est opaque et bascule seule avec le thème. Ce qui la fait flotter n'est plus sa
+ * transparence, c'est son ombre — et `--r-pill` ci-dessous, qui garde la silhouette.
+ *
+ * Le kit la pose en `relative` dans une maquette qui ne défile pas ; en production c'est
+ * `sticky`. La marge de 16 px survit au collage : `top: 0` colle la boîte de marge, donc la
+ * pilule reste détachée du bord.
  *
  * LE LIEN DE SAUT EST LE PREMIER ÉLÉMENT FOCALISABLE. Il ne coûte rien et il est le seul
  * moyen, au clavier, de ne pas retraverser six entrées de navigation à chaque page. Il est
@@ -81,9 +91,10 @@ export function TopBar({
   brand, items, active, trailing, label, skipHref = '#contenu', skipLabel, className = '', style,
 }: TopBarProps) {
   return (
-    // `glass` et `sticky` sur la même ligne — la condition du droit au flou, et la forme que
-    // ds:check sait lire. `mm-chrome` est l'accroche des trois replis.
-    <header className={['glass mm-chrome', className].filter(Boolean).join(' ')} style={{ position: 'sticky', ...BAR, ...style }}>
+    // AD-26 : plus de `glass` ni de `mm-chrome`. Le REMPLACEMENT est le point — garder l'une
+    // des deux à côté de `mm-menu` laisserait les trois replis de `fallback.css`, qui sont en
+    // `!important`, réimposer leur fond de verre à une surface qui n'en veut plus.
+    <header className={['mm-menu', className].filter(Boolean).join(' ')} style={{ position: 'sticky', ...BAR, ...style }}>
       <a className="mm-skip" href={skipHref}>{skipLabel}</a>
       {brand}
       <nav aria-label={label} style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
