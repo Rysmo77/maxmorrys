@@ -13,6 +13,7 @@ import {
 } from '../lib/bictorys';
 import { asText, toDate } from '../lib/values';
 import { resolveCheckoutTotal } from '../lib/checkout';
+import { SUBSCRIPTION_QUOTAS } from '../lib/rysmo-quota';
 import { deciderRenouvellement, echeanceApres } from '../lib/rysmo-subscription';
 
 /** Port des quatre callables de paiement de `functions/src/payment.ts`. */
@@ -264,8 +265,12 @@ export async function createRysmoSubscriptionCharge(
 ): Promise<unknown> {
   const { uid } = requireAuth(context);
   const { plan } = (data ?? {}) as { plan?: string };
-  const definition = plan ? RYSMO_SUBSCRIPTIONS[plan] : undefined;
-  if (!definition) throw new HttpsError('invalid-argument', 'Plan Rysmo+ inconnu.');
+  /* Le garde porte sur `plan` et non sur la seule définition : c'est ce qui le rend narrowant,
+     et le plan sert de clé à DEUX tables — le tarif ici, le quota estampillé plus bas. */
+  if (!plan || !RYSMO_SUBSCRIPTIONS[plan]) {
+    throw new HttpsError('invalid-argument', 'Plan Rysmo+ inconnu.');
+  }
+  const definition = RYSMO_SUBSCRIPTIONS[plan];
 
   /*
    * ── LA FENÊTRE DE RENOUVELLEMENT ────────────────────────────────────────────────────
@@ -325,6 +330,15 @@ export async function createRysmoSubscriptionCharge(
     userEmail: identity.email,
     userName: identity.name,
     plan,
+    /*
+     * LE QUOTA EST ESTAMPILLÉ SUR LE CONTRAT, PAS RELU DANS UNE TABLE.
+     *
+     * `resolveQuotaLimits` lit ce champ en priorité. Le jour où le plafond d'un plan changera
+     * — la marge de Pro devient négative bien avant les 100 requêtes qu'il promet —, les
+     * abonnements en cours garderont ce qu'on leur a vendu, sans script de reprise ni fenêtre
+     * de migration. Un contrat s'estampille ; il ne se relit pas dans le tarif du jour.
+     */
+    dailyQuota: SUBSCRIPTION_QUOTAS[plan],
     status: 'pending',
     startedAt: decision.depart.toISOString(),
     expiresAt: expiresAt.toISOString(),

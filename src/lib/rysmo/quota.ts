@@ -10,15 +10,27 @@
  * existe pour empêcher : si le serveur passe le bonus à 2 et que la page continue d'annoncer
  * 5, personne ne le voit — sauf la personne qui vient de payer.
  *
- * ⚠️ MIROIRS À SYNCHRONISER À LA MAIN. Les trois projets TypeScript du dépôt ne peuvent pas
+ * ⚠️ MIROIRS À SYNCHRONISER À LA MAIN. Les projets TypeScript du dépôt ne peuvent pas
  * s'importer entre eux ; la duplication est structurelle, pas négligente :
  *
- *   functions/src/rysmo.ts                    → BASE_DAILY_QUOTA + CLUB_BONUS_QUOTA
  *   worker/apps/api/src/lib/rysmo-quota.ts    → BASE_DAILY_QUOTA + CLUB_BONUS_QUOTA
  *
- * `tests/unit/rysmo-quota.test.ts` LIT ces deux fichiers et échoue si l'une des trois valeurs
- * s'écarte. C'est ce que le prix du Club n'avait pas, et c'est ainsi que les CGV ont pu
- * annoncer 10 000 pendant que le code débitait 19 900 — voir `src/lib/club/pricing.ts`.
+ * ⚠️ Cette liste citait aussi `functions/src/rysmo.ts`. `functions/` a été supprimé le
+ * 03/09/2026 avec le retour au plan Spark : le Worker porte désormais SEUL les constantes
+ * serveur. Un miroir qui cite une source morte donne l'illusion d'être gardé.
+ *
+ * ── CE QUE CE FICHIER NE COUVRE PAS, ET QUI EST GARDÉ AILLEURS ─────────────────────────
+ *
+ * Les constantes ci-dessous sont celles du quota GRATUIT et du bonus Club. Les plafonds et
+ * les prix des plans payants vivent dans `RysmoStoreTab.tsx` (`PLANS`, `PACKS`) et dans le
+ * Worker (`SUBSCRIPTION_QUOTAS`, `RYSMO_SUBSCRIPTIONS`, `RYSMO_PACKS`). Ils n'étaient tenus
+ * par AUCUN test : on pouvait changer le plafond de Pro sans que l'écran de vente le suive.
+ * `tests/unit/rysmo-quota.test.ts` les compare désormais tous, y compris le libellé qui
+ * finit sur la facture.
+ *
+ * `tests/unit/rysmo-quota.test.ts` LIT ces fichiers et échoue si une valeur s'écarte. C'est
+ * ce que le prix du Club n'avait pas, et c'est ainsi que les CGV ont pu annoncer 10 000
+ * pendant que le code débitait 19 900 — voir `src/lib/club/pricing.ts`.
  */
 
 /** Questions offertes chaque jour à un compte sans abonnement. */

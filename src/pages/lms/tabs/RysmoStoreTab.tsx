@@ -69,14 +69,25 @@ const getRysmoQuota = httpsCallable<Record<string, never>, QuotaSnapshot>(functi
 const createRysmoPackCharge = httpsCallable<{ pack: string }, { checkoutUrl: string; transactionId: string }>(functions, 'createRysmoPackCharge');
 const createRysmoSubscriptionCharge = httpsCallable<{ plan: string }, { checkoutUrl: string; transactionId: string }>(functions, 'createRysmoSubscriptionCharge');
 
-/** Miroir d'affichage de `RYSMO_PACKS` (functions/src/payment.ts). Le débit vient de LÀ-BAS. */
+/**
+ * Miroir d'affichage de `RYSMO_PACKS` (`worker/apps/api/src/lib/bictorys.ts`). Le débit vient
+ * de LÀ-BAS — cet écran ne fait qu'annoncer ce que le serveur facturera.
+ *
+ * ⚠️ Le commentaire désignait `functions/src/payment.ts`, supprimé le 03/09/2026 avec le
+ * retour au plan Spark. Un miroir qui cite une source morte n'est plus un miroir : personne
+ * ne sait plus contre quoi le vérifier. `tests/unit/rysmo-quota.test.ts` compare désormais
+ * ces deux tableaux à leurs sources réelles, ligne à ligne.
+ */
 const PACKS = [
   { id: 'discovery', requests: 30, price: 500, hasBadge: false },
   { id: 'regular', requests: 100, price: 1500, hasBadge: true },
   { id: 'intensive', requests: 300, price: 3500, hasBadge: true },
 ];
 
-/** Miroir d'affichage de `RYSMO_SUBSCRIPTIONS` et de `SUBSCRIPTION_QUOTAS`. */
+/**
+ * Miroir d'affichage de `RYSMO_SUBSCRIPTIONS` (le prix, `lib/bictorys.ts`) et de
+ * `SUBSCRIPTION_QUOTAS` (le plafond, `lib/rysmo-quota.ts`), tous deux côté Worker.
+ */
 const PLANS = [
   { id: 'lite', perDay: 20, price: 3000 },
   { id: 'pro', perDay: 100, price: 7500 },

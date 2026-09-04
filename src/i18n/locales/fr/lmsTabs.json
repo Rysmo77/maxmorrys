@@ -368,14 +368,12 @@
       "lite": {
         "label": "Rysmo+ Lite",
         "description": "Pour un usage régulier sans y penser",
-        "feature1": "20 requêtes/jour",
         "feature2": "Renouvellement mensuel",
         "feature3": "Quota inutilisé non reporté"
       },
       "pro": {
         "label": "Rysmo+ Pro",
         "description": "Pour les power users en certification ou apprentissage intensif",
-        "feature1": "100 requêtes/jour",
         "feature2": "Priorité service",
         "feature3": "Renouvellement mensuel"
       }

@@ -20,7 +20,33 @@ import { toDate, toNumber, toStringOrNull } from './values';
 export const BASE_DAILY_QUOTA = 2;
 /** Bonus Club des Digitos : 5 requêtes par jour au total. */
 export const CLUB_BONUS_QUOTA = 3;
+/**
+ * Le quota VENDU aujourd'hui, par plan. C'est cette table qu'on estampille sur l'abonnement
+ * au moment de l'achat — elle décrit ce qu'on propose, pas ce que les gens ont déjà acheté.
+ */
 export const SUBSCRIPTION_QUOTAS: Record<string, number> = {
+  lite: 20,
+  pro: 100,
+};
+
+/**
+ * ⚠️ NE CHANGE PLUS JAMAIS. Tout abonnement dépourvu de `dailyQuota` a été vendu sous CES
+ * valeurs-là ; les modifier reviendrait à réécrire un contrat déjà conclu.
+ *
+ * ── POURQUOI UNE TABLE GELÉE PLUTÔT QU'UN SCRIPT DE REPRISE ───────────────────────────
+ *
+ * Le jour où le plafond de Pro bougera — la marge devient négative au-delà d'environ
+ * 81 requêtes par jour, dans un plan qui en promet 100 —, les abonnés en cours ne doivent
+ * pas voir leur quota baisser en silence. Le repli évident aurait été `SUBSCRIPTION_QUOTAS`,
+ * et c'est exactement la dégradation qu'on veut éviter : elle est invisible partout, sauf de
+ * la personne qui vient de payer.
+ *
+ * L'ABSENCE DU CHAMP EST LA PREUVE D'ANTÉRIORITÉ. Il n'y a donc ni script à écrire, ni
+ * fenêtre d'ordonnancement à respecter, ni migration à surveiller : un document sans
+ * `dailyQuota` est un contrat d'avant, et il est lu comme tel jusqu'à son terme. Le
+ * grand-père s'éteint tout seul au renouvellement suivant, ce qui est juste pour un mensuel.
+ */
+export const QUOTAS_HERITES: Record<string, number> = {
   lite: 20,
   pro: 100,
 };
@@ -79,6 +105,20 @@ export async function hasActiveClubSub(db: Firestore, uid: string): Promise<bool
   return !(expiresAt && expiresAt < new Date());
 }
 
+/**
+ * Le quota d'un abonnement — celui qui lui a été VENDU, pas celui qu'on vend aujourd'hui.
+ *
+ * ⚠️ L'ORDRE DES DEUX SOURCES EST TOUT LE SUJET. L'estampille du document d'abord, la table
+ * gelée ensuite, et `SUBSCRIPTION_QUOTAS` **jamais** : c'est elle qui bougera le jour où le
+ * tarif changera, et la lire ici ferait baisser le quota d'un abonné en cours de mois.
+ */
+function quotaDeLAbonnement(courant: AbonnementLu | null, plan: string | null): number | null {
+  if (!courant || !plan) return null;
+  const estampille = toNumber(courant.data.dailyQuota);
+  if (estampille > 0) return estampille;
+  return QUOTAS_HERITES[plan] ?? null;
+}
+
 export interface QuotaLimits {
   dailyLimit: number;
   hasActiveSubscription: boolean;
@@ -112,9 +152,10 @@ export async function resolveQuotaLimits(db: Firestore, uid: string): Promise<Qu
   const canRenew = deciderRenouvellement(abonnements, maintenant).autorise;
   const etat = { expiresAt, canRenew };
 
-  if (plan && SUBSCRIPTION_QUOTAS[plan]) {
+  const quotaVendu = quotaDeLAbonnement(courant, plan);
+  if (quotaVendu !== null) {
     return {
-      dailyLimit: SUBSCRIPTION_QUOTAS[plan],
+      dailyLimit: quotaVendu,
       hasActiveSubscription: true,
       hasClubBonus: false,
       plan,
