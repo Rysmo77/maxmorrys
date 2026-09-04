@@ -140,7 +140,7 @@ export async function createBictorysCharge(data: unknown, context: CallContext):
    * ce qui empêche le montant lu et le montant débité de diverger, comme ils divergeaient
    * quand le navigateur calculait le sien de son côté.
    */
-  const total = await resolveCheckoutTotal(context.db, formationId, couponCode);
+  const total = await resolveCheckoutTotal(context.db, formationId, { uid, couponCode });
   const { finalPrice, couponId, couponDiscount, formationTitle } = total;
 
   const identity = await identify(context, uid);

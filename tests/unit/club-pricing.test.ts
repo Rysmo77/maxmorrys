@@ -10,15 +10,17 @@
  * juridique sans que personne ne le relise. La cohérence est donc vérifiée ici, pas imposée
  * par le rendu.
  *
- * ⚠️ Ce test ne peut PAS atteindre les miroirs serveur (`functions/src/payment.ts`,
- * `worker/apps/api/src/lib/bictorys.ts`) : les trois projets TypeScript du dépôt ne peuvent pas
- * s'importer entre eux. Ces deux-là restent sous surveillance humaine — voir l'en-tête de
- * `src/lib/club/pricing.ts`.
+ * ⚠️ CE FICHIER DÉCLARAIT LES MIROIRS SERVEUR HORS DE PORTÉE. C'était vrai à l'IMPORT — les
+ * projets TypeScript du dépôt ne s'importent pas entre eux — et faux tout court : rien
+ * n'empêche de relire leur SOURCE, ce que `tax-sync.test.ts` fait depuis longtemps. Le dernier
+ * bloc de ce fichier le fait désormais aussi, et c'est ce qui manquait le jour où le prix a
+ * divergé.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 
 import {
+  CLUB_MEMBER_FORMATION_DISCOUNT,
   CLUB_PRICE_XOF,
   CLUB_REFERRAL_DISCOUNT,
   clubReferralPrice,
@@ -54,6 +56,50 @@ describe('prix du Club — constante', () => {
   it('donne 16 915 au filleul, avec le même arrondi que le serveur', () => {
     expect(clubReferralPrice()).toBe(Math.round(19900 * 0.85));
     expect(clubReferralPrice()).toBe(16915);
+  });
+});
+
+/**
+ * ── LES MIROIRS SERVEUR SONT ATTEIGNABLES, CONTRAIREMENT À CE QUI ÉTAIT ÉCRIT ──────────
+ *
+ * L'en-tête de ce fichier déclarait les constantes serveur hors de portée « parce que les
+ * projets TypeScript ne s'importent pas entre eux ». C'est vrai à l'IMPORT, et faux tout
+ * court : `tax-sync.test.ts` lit son miroir EN TEXTE depuis 2026 et compare. Rien n'empêchait
+ * d'en faire autant ici — et c'est exactement l'écart qui a laissé les CGV annoncer 10 000
+ * pendant que le code débitait 19 900.
+ *
+ * ⚠️ `functions/src/payment.ts` ne figure plus dans la liste : `functions/` a été supprimé le
+ * 03/09/2026. Le Worker porte seul les montants côté serveur.
+ */
+describe('miroir serveur — le Worker débite ce que le client annonce', () => {
+  const MIROIR = 'worker/apps/api/src/lib/bictorys.ts';
+
+  /** Le code, commentaires retirés : ils citent des montants en toutes lettres. */
+  const code = readFileSync(MIROIR, 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+
+  const constante = (nom: string): number => {
+    const m = code.match(new RegExp(`const\\s+${nom}\\s*=\\s*([0-9.]+)`));
+    if (!m) throw new Error(`${nom} introuvable dans ${MIROIR}`);
+    return Number(m[1]);
+  };
+
+  it('porte le même prix annuel', () => {
+    expect(constante('CLUB_PRICE')).toBe(CLUB_PRICE_XOF);
+  });
+
+  it('porte la même remise de parrainage', () => {
+    expect(constante('REFERRAL_DISCOUNT')).toBe(CLUB_REFERRAL_DISCOUNT);
+  });
+
+  /*
+   * La remise membre est ANNONCÉE côté client et DÉBITÉE côté serveur. Un écart entre les
+   * deux ne serait visible que de la personne qui vient de payer — la définition même du
+   * défaut que ce fichier existe pour empêcher.
+   */
+  it('porte la même remise membre sur les formations', () => {
+    expect(constante('CLUB_MEMBER_FORMATION_DISCOUNT')).toBe(CLUB_MEMBER_FORMATION_DISCOUNT);
   });
 });
 

@@ -24,6 +24,7 @@ const createClubCharge = httpsCallable<
   { autoRenew?: boolean },
   { checkoutUrl: string; transactionId: string }
 >(functions, 'createClubCharge');
+import { estMembreActif } from '../../../lib/club/membership';
 import type { ClubDigitosSubscription, ClubDigitosPost, ClubDigitosEvent, ClubDigitosSession, ClubDigitosInfo, ClubDigitosComment, ClubPostCategory } from '../../../types';
 import type { IconName } from '@ds';
 
@@ -151,7 +152,7 @@ export function useClubData() {
   const [togglingReg, setTogglingReg] = useState<string | null>(null);
   const [infoShareMenuOpen, setInfoShareMenuOpen] = useState<string | null>(null);
 
-  const isClubActive = clubSubscription?.status === 'active' && new Date(clubSubscription.expiresAt) > new Date();
+  const isClubActive = estMembreActif(clubSubscription);
   const isClubPending = clubSubscription?.status === 'pending';
 
   useEffect(() => {

@@ -1,8 +1,8 @@
 import { HttpsError } from '@mm/shared';
 import type { Firestore } from '@mm/firestore-rest';
 
-import { validateCoupon } from './bictorys';
-import { toNumber } from './values';
+import { CLUB_MEMBER_FORMATION_DISCOUNT, validateCoupon } from './bictorys';
+import { toDate, toNumber } from './values';
 
 /**
  * LE TOTAL D'UNE COMMANDE — calculé UNE FOIS, pour l'affichage comme pour le débit.
@@ -36,6 +36,10 @@ export interface CheckoutTotal {
   basePrice: number;
   /** Remise du coupon, 0 s'il n'y en a pas. */
   couponDiscount: number;
+  /** Remise membre du Club, 0 pour un non-membre. Non cumulable avec le coupon. */
+  clubDiscount: number;
+  /** L'acheteur est-il membre actif ? Sert à l'écran, jamais au calcul de l'écran. */
+  clubMember: boolean;
   /** Ce qui sera débité. C'est le seul montant qu'un écran a le droit d'afficher. */
   finalPrice: number;
   /** Identifiant du coupon retenu, pour l'écriture de la transaction. */
@@ -56,8 +60,14 @@ export interface CheckoutTotal {
 export async function resolveCheckoutTotal(
   db: Firestore,
   formationId: string,
-  couponCode?: string,
+  /*
+   * ⚠️ UN OBJET, ET PLUS DES POSITIONNELS. `uid` s'ajoute à `couponCode` — deux paramètres
+   * optionnels côte à côte, dont l'un décide d'une remise : les intervertir à l'appel aurait
+   * fait chercher un abonnement sous un code promo, en silence.
+   */
+  opts: { uid?: string; couponCode?: string } = {},
 ): Promise<CheckoutTotal> {
+  const { uid, couponCode } = opts;
   const formationDoc = await db.get(`formations/${formationId}`);
   if (!formationDoc) throw new HttpsError('not-found', 'Formation introuvable.');
   const formation = formationDoc.data;
@@ -95,9 +105,40 @@ export async function resolveCheckoutTotal(
 
   const formationTitle = typeof formation.title === 'string' ? formation.title : '';
 
+  /*
+   * ═════════════════════════════════════════════════════════════════════════════════════
+   * LA REMISE MEMBRE DU CLUB — dans CE calcul, et pas à côté.
+   *
+   * Le contre-exemple est dans le dépôt : la remise de parrainage est appliquée en dur dans
+   * `createClubCharge`, hors de toute fonction commune. Conséquence, personne ne peut la
+   * VOIR avant de payer — elle n'existe qu'au moment du débit. C'est exactement l'écart que
+   * cette fonction a été écrite pour fermer, et le rouvrir pour une seconde remise aurait
+   * été le rouvrir pour de bon.
+   *
+   * Sans `uid` — un appel anonyme, s'il en existait un jour — il n'y a pas de remise : on ne
+   * devine pas une appartenance.
+   * ═════════════════════════════════════════════════════════════════════════════════════
+   */
+  let clubDiscount = 0;
+  let clubMember = false;
+  if (uid) {
+    const abonnement = await db.get(`club_subscriptions/${uid}`);
+    const expiresAt = toDate(abonnement?.data.expiresAt);
+    clubMember = abonnement?.data.status === 'active' && !!expiresAt && expiresAt > new Date();
+    if (clubMember) clubDiscount = Math.round(basePrice * CLUB_MEMBER_FORMATION_DISCOUNT);
+  }
+
   const code = couponCode?.trim();
+
+  /*
+   * ⚠️ NON CUMULABLE, ET C'EST UNE DÉCISION EXPLICITE. `validateCoupon` calcule les remises
+   * en pourcentage CONTRE `basePrice` : empiler les deux produirait un prix que personne n'a
+   * chiffré, et un coupon à 30 % sur un membre à 20 % passerait sous n'importe quel plancher
+   * sans que rien ne l'arrête. On retient LA MEILLEURE DES DEUX — jamais leur somme.
+   */
   if (!code) {
-    return { basePrice, couponDiscount: 0, finalPrice: basePrice, formationTitle };
+    const finalPrice = basePrice - clubDiscount;
+    return { basePrice, couponDiscount: 0, clubDiscount, clubMember, finalPrice, formationTitle };
   }
 
   const coupon = await validateCoupon(db, code, basePrice);
@@ -105,7 +146,8 @@ export async function resolveCheckoutTotal(
     throw new HttpsError('invalid-argument', 'Code promo invalide, expiré ou déjà utilisé.');
   }
 
-  const finalPrice = basePrice - coupon.discount;
+  const remise = Math.max(coupon.discount, clubDiscount);
+  const finalPrice = basePrice - remise;
   if (finalPrice <= 0) {
     throw new HttpsError(
       'invalid-argument',
@@ -116,9 +158,17 @@ export async function resolveCheckoutTotal(
   return {
     basePrice,
     couponDiscount: coupon.discount,
+    clubDiscount,
+    clubMember,
     finalPrice,
-    couponId: coupon.couponId,
-    couponCode: code.toUpperCase(),
+    /*
+     * Le coupon n'est retenu — donc consommé au webhook — que s'il a effectivement servi.
+     * Sinon la remise membre l'a emporté, et faire compter un usage à un code qui n'a rien
+     * réduit le viderait pour rien.
+     */
+    ...(coupon.discount >= clubDiscount
+      ? { couponId: coupon.couponId, couponCode: code.toUpperCase() }
+      : {}),
     formationTitle,
   };
 }

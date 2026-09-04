@@ -123,3 +123,17 @@ export const RYSMO_SUBSCRIPTIONS: Record<string, { price: number; label: string 
 export const CLUB_PRICE = 19900;
 /** Remise de parrainage accordée au filleul. */
 export const REFERRAL_DISCOUNT = 0.15;
+
+/**
+ * Remise accordée à un membre actif du Club sur l'achat d'une formation.
+ *
+ * ⚠️ MIROIR À SYNCHRONISER À LA MAIN avec `src/lib/club/pricing.ts`. Les projets TypeScript
+ * du dépôt ne s'importent pas entre eux ; la duplication est structurelle, pas négligente.
+ * `tests/unit/club-pricing.test.ts` LIT ce fichier en texte et échoue si les deux divergent —
+ * la porte que le prix du Club n'avait pas, et qui a laissé les CGV annoncer 10 000 pendant
+ * que le code débitait 19 900.
+ *
+ * ⚠️ NON CUMULABLE AVEC UN COUPON : `resolveCheckoutTotal` retient la meilleure des deux,
+ * jamais leur somme.
+ */
+export const CLUB_MEMBER_FORMATION_DISCOUNT = 0.2;
