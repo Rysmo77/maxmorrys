@@ -51,6 +51,16 @@
     // délivrabilité de maxmorrys.me, d'où partent les échanges personnels.
     "EMAIL_FROM": "facture@mail.maxmorrys.me",
     "EMAIL_FROM_NAME": "Max-Morrys",
+    /* ── Listmonk : le canal MARKETING ──────────────────────────────────────
+       Distinct du transactionnel de bout en bout : autre fournisseur (Brevo en relais),
+       autre sous-domaine d'envoi (`lettre.` et non `mail.`), autre réputation. Un incident
+       sur l'un laisse l'autre intact — et Cloudflare Email Sending interdit de toute façon
+       le marketing sur son propre canal.
+       Le JETON est un secret : `npx wrangler secret put LISTMONK_API_TOKEN`. */
+    "LISTMONK_URL": "https://listmonk.maxmorrys.me",
+    "LISTMONK_API_USER": "API",
+    "LISTMONK_LIST_ID": "3",
+
 
     // Vide tant que le régime fiscal de MY ONOMA SARL n'est pas confirmé par son comptable.
     // Une facture qui n'affirme rien sur la TVA se corrige ; une mention inventée se recopie
@@ -103,6 +113,16 @@
         "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com",
         "EMAIL_FROM": "facture@mail.maxmorrys.me",
         "EMAIL_FROM_NAME": "Max-Morrys",
+    /* ── Listmonk : le canal MARKETING ──────────────────────────────────────
+       Distinct du transactionnel de bout en bout : autre fournisseur (Brevo en relais),
+       autre sous-domaine d'envoi (`lettre.` et non `mail.`), autre réputation. Un incident
+       sur l'un laisse l'autre intact — et Cloudflare Email Sending interdit de toute façon
+       le marketing sur son propre canal.
+       Le JETON est un secret : `npx wrangler secret put LISTMONK_API_TOKEN`. */
+    "LISTMONK_URL": "https://listmonk.maxmorrys.me",
+    "LISTMONK_API_USER": "API",
+    "LISTMONK_LIST_ID": "3",
+
         "INVOICE_TAX_NOTICE": ""
       },
       "r2_buckets": [{ "binding": "EXPORTS", "bucket_name": "maxmorrys-lms" }],
