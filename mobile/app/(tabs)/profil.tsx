@@ -11,6 +11,7 @@ import { deconnexion } from '../../donnees/identite';
 import { useSession } from '../../donnees/session';
 import { useMoi } from '../../donnees';
 import { exporterMesDonnees } from '../../donnees/rgpd';
+import { useVerrou } from '../../donnees/verrou';
 
 /**
  * ══ 3 · LE PROFIL ══ — LA SECTION NOTIFICATIONS DEVIENT RÉELLE.
@@ -90,7 +91,23 @@ export default function Profil() {
   }
   const [serie, setSerie] = useState(true);
   const [club, setClub] = useState(true);
-  const [bio, setBio] = useState(true);
+  /*
+   * ⚠️ CET INTERRUPTEUR ÉTAIT UN `useState(true)`. Il s'affichait ALLUMÉ au premier rendu,
+   * pour un verrou que rien ne posait et que rien ne lisait — le même mensonge que le bouton
+   * de l'écran `/biometrie`, mais en pire : celui-ci l'affirmait sans qu'on ait rien demandé.
+   * Il lit maintenant le drapeau réel, et il ne se laisse toucher que si l'appareil peut
+   * tenir la promesse.
+   */
+  const verrou = useVerrou();
+
+  async function basculerVerrou() {
+    if (verrou.actif) {
+      await verrou.desactiver();
+      return;
+    }
+    const verdict = await verrou.activer();
+    if (!verdict.ok) Alert.alert("Le verrou n'a pas été posé", verdict.motif);
+  }
 
   return (
     <Screen
@@ -216,8 +233,20 @@ export default function Profil() {
         <LessonRow
           icon={<Icon name="lock" size={14} color={t('ink2')} />}
           title={isIOS ? 'Entrer avec Face ID' : "Entrer avec l'empreinte"}
-          meta="raccourci, pas remplacement"
-          trailing={<Switch on={bio} label="Entrer avec la biométrie" onPress={() => setBio(!bio)} />}
+          /* Quand l'appareil ne peut pas, la ligne DIT pourquoi plutôt que de rester
+             muette : un réglage éteint sans raison se lit comme une panne. */
+          meta={verrou.capacite === null || verrou.capacite.etat === 'pret'
+            ? 'raccourci, pas remplacement'
+            : verrou.capacite.court}
+          trailing={verrou.capacite === null || verrou.capacite.etat !== 'pret' ? (
+            <Switch disabled label="Entrer avec la biométrie — indisponible" />
+          ) : (
+            <Switch
+              on={verrou.actif}
+              label="Entrer avec la biométrie"
+              onPress={() => { if (!verrou.occupe) void basculerVerrou(); }}
+            />
+          )}
         />
         <LessonRow
           icon={<Icon name="download" size={14} color={t('ink2')} />}

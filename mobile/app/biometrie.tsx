@@ -1,7 +1,9 @@
+import { Alert } from 'react-native';
 import { router } from 'expo-router';
 import {
   Body, Button, CheckLine, Display, Eyebrow, Gradient, Icon, isIOS, Screen, Surface, useToken,
 } from '../ds';
+import { useVerrou } from '../donnees/verrou';
 
 /**
  * ══ 9 · BIOMÉTRIE ══
@@ -17,9 +19,30 @@ import {
  * LA QUATRIÈME LIGNE EST UN TIRET, PAS UNE COCHE. Elle dit ce que la biométrie NE protège
  * pas : la vérification d'un certificat est publique, à dessein — c'est ce qui permet à un
  * employeur de la contrôler sans compte.
+ *
+ * ⚠️ CE BOUTON NAVIGUAIT AU LIEU D'AGIR. « Activer Face ID » appelait `router.replace` et
+ * rien d'autre : l'écran posait la question, personne n'enregistrait la réponse, et aucun
+ * verrou n'existait. Ce n'était pas un bouton mort au sens de la porte existante — il AVAIT
+ * une action — mais ce n'était pas celle qu'il annonçait, ce qui est pire : on repartait en
+ * croyant avoir posé un verrou. Le geste système est branché maintenant
+ * (`donnees/verrou.ts`), et l'écran ne PROPOSE plus rien quand l'appareil ne peut pas tenir
+ * la promesse — proposer un verrou impossible à poser serait exactement le réglage qui ment
+ * que l'en-tête ci-dessus reproche.
  */
 export default function Biometrie() {
   const t = useToken();
+  const { actif, capacite, occupe, activer, desactiver } = useVerrou();
+
+  async function poser() {
+    const verdict = await activer();
+    if (verdict.ok) {
+      router.replace('/(tabs)');
+      return;
+    }
+    /* Le motif est DIT. Un échec silencieux laisserait croire que le bouton est mort — le
+       défaut qu'on vient précisément de corriger. */
+    Alert.alert("Le verrou n'a pas été posé", verdict.motif);
+  }
 
   return (
     <Screen territory="transforme" center>
@@ -59,19 +82,56 @@ export default function Biometrie() {
       </Surface>
 
       {/*
-        ⚠️ L'AUTHENTIFICATION SYSTÈME N'EST PAS BRANCHÉE. Elle demande `expo-local-authentication`
-        et, surtout, un compte à déverrouiller : le SDK d'authentification n'est pas encore là
-        (README, « ce qui n'est pas encore branché »). Activer un verrou sur rien donnerait un
-        réglage qui ment. L'écran pose la question et enregistre le choix ; le geste système
-        arrive avec le compte.
+        TROIS ÉTATS, ET UN SEUL JEU DE BOUTONS À LA FOIS.
+
+        · le matériel n'a pas encore répondu → le bouton existe, éteint. Il ne ment pas : il
+          ne promet rien tant qu'on ne sait pas ;
+        · l'appareil ne peut pas → AUCUNE proposition, et la raison écrite ;
+        · le verrou est déjà posé → on ne le repropose pas, on offre de l'éteindre.
       */}
-      <Button
-        tone="digitalise"
-        label={isIOS ? 'Activer Face ID' : "Activer l’empreinte"}
-        style={{ marginTop: 18 }}
-        onPress={() => router.replace('/(tabs)')}
-      />
-      <Button tone="quiet" label="Non merci" style={{ marginTop: 9 }} onPress={() => router.replace('/(tabs)')} />
+      {capacite !== null && capacite.etat !== 'pret' ? (
+        <>
+          <Surface level="truth" style={{ marginTop: 20, padding: 15 }}>
+            <Eyebrow>Pas sur ce téléphone</Eyebrow>
+            <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
+              {capacite.motif}
+            </Body>
+          </Surface>
+          <Button
+            tone="quiet"
+            label="Continuer"
+            style={{ marginTop: 18 }}
+            onPress={() => router.replace('/(tabs)')}
+          />
+        </>
+      ) : actif ? (
+        <>
+          <Button
+            tone="digitalise"
+            label="C'est bon"
+            style={{ marginTop: 18 }}
+            onPress={() => router.replace('/(tabs)')}
+          />
+          <Button
+            tone="quiet"
+            label={isIOS ? 'Désactiver Face ID' : "Désactiver l’empreinte"}
+            style={{ marginTop: 9 }}
+            disabled={occupe}
+            onPress={() => { void desactiver(); }}
+          />
+        </>
+      ) : (
+        <>
+          <Button
+            tone="digitalise"
+            label={isIOS ? 'Activer Face ID' : "Activer l’empreinte"}
+            style={{ marginTop: 18 }}
+            disabled={capacite === null || occupe}
+            onPress={() => { void poser(); }}
+          />
+          <Button tone="quiet" label="Non merci" style={{ marginTop: 9 }} onPress={() => router.replace('/(tabs)')} />
+        </>
+      )}
 
       <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
         <Eyebrow>Pourquoi cette question arrive maintenant</Eyebrow>

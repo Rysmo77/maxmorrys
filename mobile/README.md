@@ -226,10 +226,53 @@ changerait. Aucun n'est un bouton mort : ils rendent le geste, et disent où il 
 | La lecture audio en fond | `expo-audio` + `UIBackgroundModes` / service de premier plan | `media` `episode` `verrouille` — c'est le chantier n° 1, et l'argument même du virage natif |
 | La notification poussée | `expo-notifications` + un serveur qui envoie | `permissions` `profil` — ⚠️ le profil AFFIRMAIT « Autorisées sur cet appareil », coche verte, pour une permission que rien ne demandait |
 | L'écriture dans l'agenda | `expo-calendar` | `club/agenda` — ⚠️ le `.ics` qu'il proposait N'EXISTAIT PAS : mesuré, `maxmorrys.me/club/agenda.ics` répond `200` avec `content-type: text/html`, c'est-à-dire la coquille SPA. Le bouton a été retiré |
-| La biométrie | `expo-local-authentication` | `biometrie` `profil` |
 | L'orientation paysage | `expo-screen-orientation` | `plein-ecran` — il TIENT en portrait en attendant |
 | L'état du réseau | `expo-network` | `hors-connexion`, aujourd'hui une destination |
 | Le widget d'accueil | WidgetKit / Glance, hors React Native | `widget` en est l'écran d'INSTALLATION, pas une imitation |
+
+### ✅ Le verrou biométrique EST branché
+
+Cette table portait une ligne « La biométrie », et elle est retirée plutôt que laissée à
+quelqu'un qui la croirait. `expo-local-authentication` pose le geste, `expo-secure-store` garde
+le choix, et `donnees/verrou.ts` tient les deux.
+
+⚠️ **Le défaut d'origine ne rentrait dans aucune des deux catégories de cette page.** « Activer
+Face ID » n'était pas un bouton MORT — il portait un `onPress`, et cet `onPress` appelait
+`router.replace('/(tabs)')`. Il agissait, mais pas comme il l'annonçait : on repartait en
+croyant avoir posé un verrou qui n'existait pas, et l'interrupteur du profil s'affichait
+ALLUMÉ sur un `useState(true)`. `tests/unit/mobile-controles-morts.test.ts` ne pouvait pas le
+voir ; `tests/unit/mobile-verrou.test.ts` le voit.
+
+Trois choses que ce verrou ne fait PAS, et qu'il ne faut pas lui prêter :
+
+- **il ne protège pas la session**, seulement l'accès à l'application. Le jeton reste dans
+  AsyncStorage, en clair, là où le SDK le met — rien n'est rechiffré, et l'écran le dit déjà :
+  « un raccourci, pas un remplacement » ;
+- **il ne se propose pas quand l'appareil ne peut pas le tenir.** `hasHardwareAsync()` PUIS
+  `isEnrolledAsync()` : un téléphone sans capteur ne voit pas le bouton, et un téléphone dont
+  on a retiré les empreintes voit le réglage s'éteindre tout seul — en le DISANT ;
+- **il n'enferme jamais.** Le repli par code du téléphone reste actif, l'écran verrouillé porte
+  une déconnexion, et cette déconnexion RETIRE le drapeau : sans ça, un capteur cassé
+  rendrait le compte inaccessible depuis ce téléphone.
+
+### ⚠️ La liste des permissions Android disait `[]`, et elle en embarquait SEPT
+
+Le tableau `permissions` d'`app.json` ne contrôle QUE ce que les greffons d'Expo ajoutent.
+Il ne retire rien de ce que les manifestes des paquets font fusionner par Gradle. Vide, il
+donnait donc une assurance fausse — et `tests/unit/mobile-app-config.test.ts` ne vérifiait
+que son existence, pas sa véracité.
+
+Mesuré après `npx expo prebuild --platform android` :
+
+| Permission | Origine | Décision |
+|---|---|---|
+| `USE_BIOMETRIC`, `USE_FINGERPRINT` | manifeste d'`expo-local-authentication` | **déclarées** — inhérentes à la fonction, `protectionLevel="normal"`, aucun dialogue |
+| `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE` | greffon d'`expo-file-system`, dépendance TRANSITIVE d'`expo` que notre code n'utilise pas | **bloquées** via `blockedPermissions` — vérifié : le manifeste porte `tools:node="remove"` |
+| `INTERNET`, `VIBRATE`, `SYSTEM_ALERT_WINDOW` | React Native et son client de développement | inévitables |
+
+`WRITE_EXTERNAL_STORAGE` sur une application moderne attire des questions en revue Play, et
+il aurait fallu la justifier au formulaire Data Safety pour une capacité dont l'application
+ne se sert jamais. La liste dit désormais ce que l'application embarque.
 
 ### ✅ Les trois fontes SONT chargées, aux neuf graisses du kit
 
