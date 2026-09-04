@@ -21,5 +21,15 @@ export async function getRysmoQuota(_data: unknown, context: CallContext): Promi
     plan: limits.plan,
     hasActiveSubscription: limits.hasActiveSubscription,
     hasClubBonus: limits.hasClubBonus,
+    /*
+     * L'ÉCHÉANCE ET LA REPRISE SORTENT D'ICI, ET L'ÉCRAN NE LES RECALCULE PAS.
+     *
+     * La boutique désactivait son bouton sur le seul `hasActiveSubscription`, ce qui fermait
+     * la reprise jusqu'au dernier jour — donc envoyait le rappel d'échéance vers un bouton
+     * mort. `canRenew` vient de `deciderRenouvellement`, la même fonction que le serveur
+     * applique au moment de débiter : les deux ne peuvent pas diverger.
+     */
+    expiresAt: limits.expiresAt,
+    canRenew: limits.canRenew,
   };
 }

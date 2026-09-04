@@ -4,6 +4,7 @@ import type { Firestore } from '@mm/firestore-rest';
 
 import type { Env } from '../src/env';
 import { PREAVIS_JOURS, buildRenewalNotice, estAEcheance, sendRenewalNotices } from '../src/lib/renewal';
+import { assertDitQueRienNestPreleve, assertNePrometAucunPrelevement } from './helpers/voix-echeance';
 
 /**
  * Le rappel d'échéance est le seul message que le produit envoie sans que personne ne l'ait
@@ -64,20 +65,21 @@ describe('buildRenewalNotice', () => {
    * n'est prélevé — c'est la différence entre ce rappel et le renouvellement automatique que
    * les CGV promettaient et que les rails de paiement ne permettent pas.
    */
+  /* Les deux gardes vivent dans `helpers/voix-echeance.ts` : le rappel mensuel de Rysmo+
+     les appelle aussi, et deux copies auraient divergé sur le moins relu des deux. */
   it('dit explicitement que rien ne sera prélevé', () => {
-    const m = buildRenewalNotice(ab, '15/09/2026', 'https://x');
-    expect(m.text).toMatch(/[Rr]ien ne sera prélevé/);
+    assertDitQueRienNestPreleve(buildRenewalNotice(ab, '15/09/2026', 'https://x'));
   });
 
   it('ne promet à aucun moment un prélèvement automatique', () => {
-    const m = buildRenewalNotice(ab, '15/09/2026', 'https://x');
-    expect(m.text).not.toMatch(/renouvellement automatique|sera débité|prélèvement automatique sera/i);
+    assertNePrometAucunPrelevement(buildRenewalNotice(ab, '15/09/2026', 'https://x'));
   });
 
   it('bascule en anglais', () => {
     const m = buildRenewalNotice({ ...ab, langue: 'en' }, '09/15/2026', 'https://x');
     expect(m.subject).toContain('ends in 15 days');
-    expect(m.text).toMatch(/[Nn]othing will be charged/);
+    assertDitQueRienNestPreleve(m);
+    assertNePrometAucunPrelevement(m);
   });
 
   it('rend toujours une version texte non vide', () => {

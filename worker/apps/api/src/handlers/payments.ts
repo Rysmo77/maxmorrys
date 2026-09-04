@@ -13,6 +13,7 @@ import {
 } from '../lib/bictorys';
 import { asText, toDate } from '../lib/values';
 import { resolveCheckoutTotal } from '../lib/checkout';
+import { deciderRenouvellement, echeanceApres } from '../lib/rysmo-subscription';
 
 /** Port des quatre callables de paiement de `functions/src/payment.ts`. */
 
@@ -266,20 +267,37 @@ export async function createRysmoSubscriptionCharge(
   const definition = plan ? RYSMO_SUBSCRIPTIONS[plan] : undefined;
   if (!definition) throw new HttpsError('invalid-argument', 'Plan Rysmo+ inconnu.');
 
-  const active = await context.db.query({
+  /*
+   * ── LA FENÊTRE DE RENOUVELLEMENT ────────────────────────────────────────────────────
+   *
+   * Ce garde REFUSAIT tout tant qu'un abonnement actif courait. C'était tenable tant que
+   * personne n'était prévenu de son échéance ; ça ne l'est plus depuis que
+   * `sendRysmoRenewalNotices` envoie un courrier cinq jours avant avec un bouton dedans.
+   * Un rappel qui mène à un refus est pire que pas de rappel.
+   *
+   * La décision est sortie d'ici (`lib/rysmo-subscription.ts`) pour deux raisons : elle est
+   * partagée avec la lecture de quota, et elle est la seule partie testable sans réseau.
+   *
+   * ⚠️ On lit désormais AUSSI les `pending`. Rysmo n'avait pas la garde que le Club a
+   * (l. 157) : on pouvait empiler des paiements en attente en cliquant plusieurs fois, et
+   * chacun serait devenu un mois facturé si son paiement aboutissait.
+   */
+  const maintenant = new Date();
+  const existants = await context.db.query({
     collection: 'rysmoSubscriptions',
     where: [
       { field: 'userId', op: '==', value: uid },
-      { field: 'status', op: '==', value: 'active' },
+      { field: 'status', op: 'in', value: ['active', 'pending'] },
     ],
-    limit: 1,
   });
-  if (active.length > 0) {
-    const expiresAt = toDate(active[0].data.expiresAt);
-    // Sans date d'expiration, l'abonnement est considéré comme toujours valide.
-    if (!expiresAt || expiresAt > new Date()) {
-      throw new HttpsError('already-exists', 'Tu as déjà un abonnement Rysmo+ actif.');
-    }
+  const decision = deciderRenouvellement(existants, maintenant);
+  if (!decision.autorise) {
+    throw new HttpsError(
+      'already-exists',
+      decision.motif === 'enAttente'
+        ? 'Un paiement Rysmo+ est déjà en cours. Termine-le, ou reviens dans quelques minutes.'
+        : 'Tu as déjà un abonnement Rysmo+ actif.',
+    );
   }
 
   const identity = await identify(context, uid);
@@ -288,9 +306,17 @@ export async function createRysmoSubscriptionCharge(
   const txn = newTransactionId();
   const result = await charge(context, identity, definition.price, txn.id, 'rysmo sub');
 
-  const now = new Date();
-  const expiresAt = new Date(now);
-  expiresAt.setMonth(expiresAt.getMonth() + 1);
+  /*
+   * ⚠️ LE MOIS PART DE `decision.depart`, PAS DE MAINTENANT — et c'est tout l'intérêt.
+   * Reprendre cinq jours à l'avance ne doit pas coûter cinq jours, sinon le calcul rationnel
+   * est d'attendre le dernier jour, donc de rater l'échéance. Hors fenêtre (premier achat ou
+   * abonnement expiré), `depart` VAUT maintenant : le comportement d'origine est intact.
+   *
+   * `startedAt` suit `depart` pour la même raison — c'est la date à laquelle le droit
+   * s'ouvre. La TRANSACTION, elle, garde l'instant réel de l'achat : elle raconte un
+   * paiement, pas un droit, et une pièce comptable datée du futur serait fausse.
+   */
+  const expiresAt = echeanceApres(decision.depart);
   const subscriptionId = crypto.randomUUID().replace(/-/g, '').slice(0, 20);
 
   await context.db.set(`rysmoSubscriptions/${subscriptionId}`, {
@@ -300,8 +326,15 @@ export async function createRysmoSubscriptionCharge(
     userName: identity.name,
     plan,
     status: 'pending',
-    startedAt: now.toISOString(),
+    startedAt: decision.depart.toISOString(),
     expiresAt: expiresAt.toISOString(),
+    /*
+     * ⚠️ `createdAt` EST NOUVEAU, ET IL EST NÉCESSAIRE. Depuis le chaînage, `startedAt` peut
+     * être dans le FUTUR : il ne date plus le document, il date le droit. Or la garde
+     * `pending` doit savoir depuis quand un paiement traîne pour cesser de bloquer au bout
+     * d'une heure — sans quoi un onglet fermé sans payer interdirait l'abonnement à vie.
+     */
+    createdAt: maintenant.toISOString(),
     amount: definition.price,
     chargeId: result.chargeId,
   });
@@ -312,7 +345,7 @@ export async function createRysmoSubscriptionCharge(
     formationSlug: `rysmo-sub-${plan}`,
     formationTitle: definition.label,
     amount: definition.price,
-    createdAt: now.toISOString(),
+    createdAt: maintenant.toISOString(),
     rysmoSubscriptionId: subscriptionId,
     rysmoKind: 'subscription',
   });

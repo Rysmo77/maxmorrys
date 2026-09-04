@@ -344,6 +344,8 @@
     "subscriptionSubtitle": "Un quota élevé chaque jour, renouvelé chaque mois. Idéal pour les périodes d'apprentissage intensif.",
     "perMonth": "/mois",
     "alreadySubscribed": "Abonnement déjà actif",
+    "renewPlan": "Reprendre mon abonnement",
+    "renewNote": "Ton nouveau mois démarre à la fin de celui-ci : tu ne perds pas les jours qui restent.",
     "subscribeTo": "S'abonner à {{plan}}",
     "paymentNote": "Paiement sécurisé par Bictorys · Wave, Orange Money, carte bancaire.",
     "packs": {

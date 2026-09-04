@@ -344,6 +344,8 @@
     "subscriptionSubtitle": "A high daily quota, renewed every month. Ideal for intensive learning periods.",
     "perMonth": "/month",
     "alreadySubscribed": "Subscription already active",
+    "renewPlan": "Renew my subscription",
+    "renewNote": "Your new month starts when this one ends: you don't lose the days you have left.",
     "subscribeTo": "Subscribe to {{plan}}",
     "paymentNote": "Secure payment by Bictorys · Wave, Orange Money, bank card.",
     "packs": {
