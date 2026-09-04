@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import {
-  Body, Button, ChipRow, EmptyState, Eyebrow, Icon, PriceBlock, Surface, Tag, TerritoryCard,
-  useToken,
+  Body, Button, ChipRow, EmptyState, Eyebrow, Icon, Num, PriceBlock, Surface, Tag, TerritoryCard, useToken,
 } from '../../ds';
 import { Bilan, ClubScreen } from './_layout';
-import { OPPORTUNITES, RELEVE, SOURCE } from '../../contenu/demo';
+import { provenance, useOpportunites } from '../../donnees';
 
 /**
  * ── CLUB · LES OPPORTUNITÉS ───────────────────────────────────────────────────────────
@@ -29,7 +28,8 @@ export default function ClubOpportunites() {
   const t = useToken();
   const [filtre, setFiltre] = useState<string>(FILTRES[0]);
 
-  const visibles = OPPORTUNITES.filter((o) => {
+  const offres = useOpportunites();
+  const visibles = (offres.valeur ?? []).filter((o) => {
     if (filtre === 'Toutes') return true;
     if (filtre === 'Missions') return o.type === 'Mission';
     if (filtre === "Appels d'offres") return o.type === "Appel d'offres";
@@ -68,14 +68,26 @@ export default function ClubOpportunites() {
                 flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between',
                 gap: 12, marginTop: 14,
               }}>
-                <PriceBlock
-                  amount={o.budget}
-                  source={SOURCE}
-                  asOf={RELEVE}
-                  size={21}
-                  note={`Budget annoncé par ${o.par}`}
-                />
-                <Button tone="transforme" size="sm" label="Postuler" />
+                {/* ⚠️ LE BUDGET PEUT MANQUER, et c'est un état légitime : toutes les
+                    offres n'en annoncent pas. Un montant inventé fixerait une attente de
+                    revenu chez quelqu'un qui organise son temps dessus — on affiche donc
+                    l'absence plutôt qu'un chiffre. */}
+                {o.budget === null ? (
+                  <Num
+                    value={null}
+                    {...provenance(offres)}
+                    fallback="budget non annoncé"
+                    style={{ fontSize: 13 }}
+                  />
+                ) : (
+                  <PriceBlock
+                    amount={o.budget}
+                    {...provenance(offres)}
+                    size={21}
+                    note={o.par ? `Budget annoncé par ${o.par}` : 'Budget annoncé'}
+                  />
+                )}
+                <Button tone="transforme" size="sm" label="Postuler" disabled />
               </View>
             </TerritoryCard>
           ))}

@@ -90,11 +90,36 @@ service cloud.firestore {
       // Users can read their own profile; admins can read all
       allow read: if isOwner(userId) || isAdmin();
 
-      // Users can only create their own profile during signup
+      // ─────────────────────────────────────────────────────────────────────────────
+      // LA CREATION EST BORNEE COMME L'EST LA MISE A JOUR — LES DEUX MOITIES DE LA PORTE.
+      //
+      // La regle `update` ci-dessous a recu une liste blanche exacte, et son commentaire
+      // explique tres bien pourquoi : `referralCode` reecrit permet de capter les filleuls
+      // d'un tiers, `referralRewarded` repose a `false` rouvre une double recompense. Cette
+      // regle-ci, elle, ne verrouillait que `role` et `uid`. La porte fermee en ECRITURE
+      // etait donc grande ouverte a la CREATION, et un profil se cree une fois par compte —
+      // il suffit de s'inscrire.
+      //
+      // L'abus concret, verifie contre `functions/src/referrals.ts:31` : la recompense part a
+      // `where('referralCode','==',code).limit(1)`, une requete SANS `orderBy`, que Firestore
+      // resout donc par `__name__` croissant. Poser a l'inscription le `referralCode` d'un
+      // tiers, avec un UID qui trie plus bas que le sien, detourne TOUTES ses conversions
+      // futures. Les UID Firebase etant tires au hasard, c'est une chance sur deux par
+      // compte recree — autant dire acquis.
+      //
+      // La liste ci-dessous est le miroir exact de ce que pose `AuthContext.tsx` (lignes
+      // 116-122 pour l'e-mail, 151-157 pour Google), et rien de plus. Les trois champs de
+      // parrainage en sont ABSENTS a dessein : ils se posent apres coup, par la regle
+      // `update`, qui sait deja n'accepter qu'une seule pose et jamais un rejeu.
+      // ─────────────────────────────────────────────────────────────────────────────
       allow create: if isSignedIn() &&
         request.auth.uid == userId &&
         request.resource.data.role == 'student' &&
-        request.resource.data.uid == userId;
+        request.resource.data.uid == userId &&
+        request.resource.data.keys().hasOnly([
+          'uid', 'email', 'displayName', 'role', 'createdAt', 'preferences',
+          'firstName', 'lastName', 'phone', 'photoURL'
+        ]);
 
       // ─────────────────────────────────────────────────────────────────────────────
       // LE PROPRIETAIRE N'ECRIT QUE LES CHAMPS DE SON PROFIL, PAS N'IMPORTE LESQUELS.
@@ -288,19 +313,59 @@ service cloud.firestore {
 
     // Appointments collection
     match /appointments/{appointmentId} {
-      // Anyone can book an appointment (public contact form) — with field validation
+      // ─────────────────────────────────────────────────────────────────────────────
+      // CE DOCUMENT DICTE UN ENVOI D'E-MAIL — IL SE VALIDE COMME TEL.
+      //
+      // `acknowledgeAppointment` (Worker api) relit ce document et envoie un courrier a
+      // l'adresse qu'il porte, depuis `mail.maxmorrys.me`, signe SPF/DKIM. Le handler s'en
+      // remet a cette regle pour la forme de ce qu'il enverra : c'est ICI, et nulle part
+      // ailleurs, que se decide ce qui peut entrer dans un courrier sortant.
+      //
+      // Ce qui manquait, et qui n'etait pas une omission de detail :
+      //   • `email` n'etait verifie que par sa LONGUEUR — « aaaaa » etait une adresse ;
+      //   • `subject` et `time` n'apparaissaient dans AUCUNE contrainte, alors que les deux
+      //     sont recopies dans le corps du message. Le plafond `keys().size() <= 12` bornait
+      //     leur NOMBRE, jamais leur contenu : un « objet » de dix mille caracteres passait ;
+      //   • `date` n'etait borne ni en longueur ni en forme.
+      //
+      // `hasOnly()` remplace le comptage de cles. Un plafond numerique laisse passer
+      // n'importe quel champ tant qu'on n'en met pas trop ; une liste dit lesquels. C'est la
+      // meme correction que sur `users` : la porte se ferme en nommant ce qui entre.
+      //
+      // ⚠️ La liste est le miroir de `saveAppointment()` (src/lib/firestore/content.ts:138)
+      // et de `handleSubmit` (src/pages/contact/useAppointment.ts). Les trois bougent ENSEMBLE :
+      // un champ ajoute au formulaire sans etre ajoute ici echoue silencieusement.
+      // ─────────────────────────────────────────────────────────────────────────────
       allow create: if request.resource.data.keys().hasAll(['name', 'email', 'date', 'type'])
+        && request.resource.data.keys().hasOnly([
+             'name', 'email', 'phone', 'date', 'time', 'type', 'subject', 'message',
+             'status', 'createdAt'
+           ])
         && request.resource.data.name is string
         && request.resource.data.name.size() >= 2
         && request.resource.data.name.size() <= 100
         && request.resource.data.email is string
         && request.resource.data.email.size() >= 5
         && request.resource.data.email.size() <= 254
+        // Une adresse, pas une chaine de cinq caracteres. `matches()` porte sur la chaine
+        // entiere : pas d'espace, un seul arobase, un domaine avec extension alphabetique.
+        && request.resource.data.email.matches('^[^@\\s]+@[^@\\s]+\\.[a-zA-Z]{2,}$')
         && request.resource.data.date is string
-        // Borne le nombre de champs : empeche le bourrage de document par un robot,
-        // comme le font deja `engagement_leads` et `agency_leads`. Le formulaire pose
-        // au plus name, email, phone, date, time, type, message, status, createdAt.
-        && request.resource.data.keys().size() <= 12
+        && request.resource.data.date.size() <= 40
+        && request.resource.data.type is string
+        && request.resource.data.type.size() <= 60
+        && (!('time' in request.resource.data)
+            || (request.resource.data.time is string
+                && request.resource.data.time.size() <= 10))
+        // `subject` finit dans le corps du courrier : c'est le champ par lequel un texte
+        // choisi par l'appelant atteignait son destinataire. 120 caracteres suffisent a
+        // l'intitule que pose le formulaire, et ne suffisent a rien d'autre.
+        && (!('subject' in request.resource.data)
+            || (request.resource.data.subject is string
+                && request.resource.data.subject.size() <= 120))
+        && (!('phone' in request.resource.data)
+            || (request.resource.data.phone is string
+                && request.resource.data.phone.size() <= 30))
         && (!('message' in request.resource.data)
             || (request.resource.data.message is string
                 && request.resource.data.message.size() <= 2000))
@@ -499,6 +564,19 @@ service cloud.firestore {
       //
       // ⚠️ Le plafond de cles est passe de 3 a 5 EN MEME TEMPS que l'ajout de ces deux
       // champs. Les dissocier ferait echouer 100% des inscriptions.
+      //
+      // ⚠️ ET IL EST REPASSE DE 5 A 6 POUR `locale`, POUR LA MEME RAISON.
+      // Le plafond etait EXACTEMENT atteint : les cinq champs poses par le formulaire
+      // occupaient les cinq places. Ajouter `locale` sans lever le plafond aurait fait
+      // echouer 100% des inscriptions, silencieusement, cote client.
+      //
+      // `locale` est indispensable et n'a pas de substitut : un abonne a la lettre n'a pas
+      // forcement de compte, donc pas de `users/{uid}.preferences.language` ou lire sa
+      // langue. Sans ce champ, la lettre part en francais a tout le monde.
+      //
+      // `unsubscribedAt` n'est PAS dans cette liste, et c'est deliberе : il est ecrit par le
+      // Worker via son compte de service, qui ne passe pas par ces regles. Un client ne doit
+      // pas pouvoir desabonner une adresse qui n'est pas la sienne en forgeant une creation.
       allow create: if request.resource.data.keys().hasAll(['email', 'consent'])
         && request.resource.data.email is string
         && request.resource.data.email.size() >= 5
@@ -506,7 +584,9 @@ service cloud.firestore {
         && request.resource.data.consent == true
         && (!('consentAt' in request.resource.data)
             || request.resource.data.consentAt is string)
-        && request.resource.data.keys().size() <= 5;
+        && (!('locale' in request.resource.data)
+            || request.resource.data.locale in ['fr', 'en'])
+        && request.resource.data.keys().size() <= 6;
 
       // Only admins can update or delete
       allow update, delete: if isAdmin();

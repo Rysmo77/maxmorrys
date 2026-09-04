@@ -4,7 +4,7 @@ import {
   Body, Button, Display, Eyebrow, Field, Icon, IconButton, LessonRow, Screen, Surface,
   TUTOR_DEFAUT, isIOS, setTutorNom, useToken, useTutorNom, veil,
 } from '../ds';
-import { MEMOIRE } from '../contenu/demo';
+import { ErreurAppel, effacerLaMemoire, useRepetiteur } from '../donnees';
 import { router } from 'expo-router';
 
 /**
@@ -30,6 +30,10 @@ import { router } from 'expo-router';
 const PROPOSITIONS = ['Répétiteur', 'Prof', 'Coach', 'Tonton'] as const;
 
 export default function Memoire() {
+  const rep = useRepetiteur();
+  const [efface, setEfface] = useState(false);
+  const [enCours, setEnCours] = useState(false);
+  const memoire = efface ? [] : rep.valeur?.memoire ?? [];
   const t = useToken();
   const tuteur = useTutorNom();
   const [brouillon, setBrouillon] = useState(tuteur);
@@ -39,13 +43,39 @@ export default function Memoire() {
     setTutorNom(nom);
   }
 
+  /*
+   * ⚠️ CE BOUTON N'AVAIT AUCUN GESTIONNAIRE. L'alerte s'ouvrait, on touchait « Tout
+   * effacer », et elle se fermait sans rien effacer. Sur une action DESTRUCTIVE, c'est la
+   * pire forme de contrôle mort : celui qui la touche croit avoir effacé, et repart en
+   * pensant que le produit ne sait plus rien de lui. La callable `clearRysmoMemory`
+   * existait pourtant déjà côté serveur.
+   */
+  async function effacerVraiment() {
+    setEnCours(true);
+    try {
+      await effacerLaMemoire();
+      /* On vide l'affichage tout de suite : relire pour constater un vide qu'on vient de
+         provoquer ferait clignoter la liste, et coûterait un aller-retour pour rien. */
+      setEfface(true);
+    } catch (erreur: unknown) {
+      Alert.alert(
+        "La mémoire n'a pas été effacée",
+        erreur instanceof ErreurAppel
+          ? `${erreur.motif} Rien n'a été supprimé à moitié.`
+          : "Rien n'a été supprimé. Réessaie dans un moment.",
+      );
+    } finally {
+      setEnCours(false);
+    }
+  }
+
   function toutEffacer() {
     Alert.alert(
       'Effacer toute la mémoire ?',
       "Immédiat, et sans passer par le support. Elle se reconstitue à partir des seuls échanges suivants. Le nom que tu lui as donné ne s'efface pas avec.",
       [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Tout effacer', style: 'destructive' },
+        { text: 'Tout effacer', style: 'destructive', onPress: () => { void effacerVraiment(); } },
       ],
     );
   }
@@ -107,18 +137,19 @@ export default function Memoire() {
 
       <Eyebrow style={{ marginTop: 24 }}>Ce qu'il a retenu</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        {MEMOIRE.map((m, i) => (
+        {memoire.map((m, i) => (
           <LessonRow
             key={m.fait}
             icon={<Icon name="chat" size={14} color={t('mmVioletT')} />}
             iconBackground={veil(t('mmViolet'), 0.12)}
             title={m.fait}
             meta={m.depuis}
-            last={i === MEMOIRE.length - 1}
+            last={i === memoire.length - 1}
             trailing={
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Oublier : ${m.fait}`}
+                disabled
                 hitSlop={4}
                 style={{
                   width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
@@ -134,7 +165,8 @@ export default function Memoire() {
 
       <Button
         tone="quiet"
-        label="Tout effacer"
+        label={enCours ? 'Effacement…' : 'Tout effacer'}
+        disabled={enCours || memoire.length === 0}
         style={{ marginTop: 14 }}
         onPress={toutEffacer}
       />

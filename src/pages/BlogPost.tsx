@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Avatar, Breadcrumb, Button, GlassPanel, Icon, Num, ReadingBar, Skeleton, TerritoryCard, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
-import { LinkedInIcon, XIcon } from '../components/shared/SocialIcons';
+import ShareButtons from '../components/shared/ShareButtons';
 import { CoverImage, PageSite, SiteBand, SiteDisplay, SiteEyebrow, useActiveHeading, useReadingProgress } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useTranslatedText } from '../hooks/useTranslatedContent';
@@ -16,7 +16,7 @@ import { useFormat } from '../hooks/useFormat';
 import { categoryToPole } from '../lib/blogCategories';
 import { HOUSE_AUTHOR, isHouseAuthor, portrait } from '../lib/author';
 import type { BlogPost as BlogPostType } from '../types';
-import { trackViewItem, trackShare } from '../lib/tracking';
+import { trackViewItem } from '../lib/tracking';
 import { useContentEngagement } from '../hooks/useContentEngagement';
 import SEOHead from '../components/seo/SEOHead';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -74,7 +74,6 @@ export default function BlogPost() {
   const { slug } = useParams();
   const { language } = useLanguage();
   const navigate = useNavigate();
-  const [copied, setCopied] = useState(false);
   const [post, setPost] = useState<BlogPostType | null | undefined>(undefined);
   const [relatedPosts, setRelatedPosts] = useState<BlogPostType[]>([]);
 
@@ -198,13 +197,6 @@ export default function BlogPost() {
     );
   }
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    trackShare('copy_link', 'article', post.id);
-  };
-
   /*
    * Navigation SPA pour les liens internes insérés dans le contenu HTML.
    *
@@ -235,10 +227,6 @@ export default function BlogPost() {
   /* La signature affichée ET indexée. Une seule expression pour les deux, sinon elles
      divergent — c'est exactement ce qui s'était produit avec le nom écrit en dur. */
   const postAuthor = post.author || HOUSE_AUTHOR;
-
-  const shareUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.href : `${SITE_URL}/blog/${post.slug}`);
-  const shareBtn =
-    'w-10 h-10 rounded-m border border-[color:var(--line)] flex items-center justify-center text-ink-2 transition';
 
   return (
     <DsNavHost>
@@ -350,22 +338,18 @@ export default function BlogPost() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <a className={shareBtn} href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
-                   target="_blank" rel="noreferrer" aria-label="LinkedIn"
-                   onClick={() => trackShare('linkedin', 'article', post.id)}>
-                  <LinkedInIcon className="h-4 w-4" />
-                </a>
-                <a className={shareBtn} href={`https://twitter.com/intent/tweet?url=${shareUrl}`}
-                   target="_blank" rel="noreferrer" aria-label="X"
-                   onClick={() => trackShare('twitter', 'article', post.id)}>
-                  <XIcon className="h-4 w-4" />
-                </a>
-                <button type="button" className={shareBtn} onClick={handleCopy}
-                        aria-label={copied ? t('article.copied') : t('article.copy')}>
-                  {copied ? <Icon name="check" size={16} /> : <Icon name="copy" size={16} />}
-                </button>
-              </div>
+              {/*
+                LA RANGÉE EST PASSÉE EN COMPOSANT. Elle proposait LinkedIn, X et la copie du
+                lien — pas WhatsApp, qui est pourtant le canal par lequel un article circule
+                réellement ici. `ShareButtons` porte le même geste sur les cinq types de
+                contenu, au lieu de l'avoir sur un seul.
+              */}
+              <ShareButtons
+                url={`/blog/${post.slug}`}
+                title={post.title}
+                contentType="article"
+                contentId={post.id}
+              />
             </div>
 
             {/*

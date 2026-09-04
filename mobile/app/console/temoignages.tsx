@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { openBrowserAsync } from 'expo-web-browser';
 import {
   Body, Button, EmptyState, Eyebrow, Icon, Num, Pipeline, Surface, useToken, veil,
 } from '../../ds';
@@ -62,7 +63,13 @@ export default function Temoignages() {
           qu'elle a réellement suivie — la règle de la base recoupe l'inscription. Et un refus
           n'est jamais silencieux.
         </Body>
-        <Button tone="quiet" size="sm" label="Voir la règle sur le site" style={{ marginTop: 12 }} />
+        <Button
+          tone="quiet"
+          size="sm"
+          label="Voir la règle sur le site"
+          style={{ marginTop: 12 }}
+          onPress={() => { void openBrowserAsync('https://maxmorrys.me/legal/cgu'); }}
+        />
       </Surface>
 
       <PiedDePortee quoi="Lire, publier ou refuser : trois gestes, et rien d'autre." />

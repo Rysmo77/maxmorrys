@@ -5,11 +5,27 @@
  * Cloud Functions (`sitemap`, `rss`, `catalog`, `prerender`) et relaie tout le
  * reste à l'origine.
  *
- * Deux filets de sécurité, volontairement redondants :
- *   1. toute erreur de ce Worker retombe sur l'origine, qui sait encore répondre
- *      tant que les rewrites Firebase sont en place ;
- *   2. supprimer la route Cloudflare rend la main à Firebase Hosting en quelques
- *      secondes, sans propagation DNS.
+ * ⚠️ LE FILET EST RÉEL MAIS DÉGRADÉ, ET CE N'EST PLUS CE QUI ÉTAIT ÉCRIT ICI.
+ *
+ * Ce bloc promettait que « toute erreur de ce Worker retombe sur l'origine, qui sait
+ * encore répondre tant que les rewrites Firebase sont en place ». C'était faux depuis
+ * que le projet n'héberge plus aucune Cloud Function : `firebase functions:list` répond
+ * « No functions found », et les 41 rewrites qui pointaient vers `prerender`, `sitemap`,
+ * `rss` et `catalog` renvoyaient donc **404** à l'origine. Mesuré le 03/09/2026 :
+ * `max-morrys.web.app/formations`, `/a-propos`, `/en`, `/sitemap.xml` — 404, toutes.
+ * Le repli annoncé ne rattrapait rien ; il aggravait la panne.
+ *
+ * Ces rewrites morts ont été retirés de `firebase.json`. Le catch-all `** → /index.html`,
+ * qui existait déjà en dernier et qu'ils masquaient, reprend la main. Ce qui reste vrai :
+ *
+ *   1. une erreur de ce Worker retombe sur l'origine, qui sert le shell SPA — les pages
+ *      FONCTIONNENT pour un humain, mais sans métadonnées prérendues. Un robot qui passe
+ *      pendant une panne voit le shell nu. Dégradation, pas continuité : ce Worker est le
+ *      producteur UNIQUE du SEO, il n'a pas de doublure ;
+ *   2. les flux (`/sitemap.xml`, `/rss.xml`, `/podcast.xml`, `/catalog.csv`) n'ont AUCUN
+ *      repli — l'origine leur rendra le shell SPA, pas du XML ;
+ *   3. supprimer la route Cloudflare rend la main à Firebase Hosting en quelques
+ *      secondes, sans propagation DNS — mais avec la même dégradation qu'au point 1.
  */
 import { text } from '@mm/shared';
 

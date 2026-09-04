@@ -4,6 +4,7 @@ import {
   DEFAULT_TITLE,
   SITE_NAME,
   SITE_URL,
+  SOCIAL_URLS,
 } from '../constants';
 import type { PageMeta } from './types';
 
@@ -23,7 +24,11 @@ export const staticPages: Record<string, PageMeta> = {
     canonical: `${SITE_URL}/`,
     h1: 'Maîtrise le digital, accélère ta croissance',
     bodyText:
-      "Max-Morrys propose des formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA. Plateforme éducative basée à Dakar, dédiée à la croissance digitale en Afrique francophone.",
+      "Max-Morrys propose des formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA. Plateforme éducative basée à Dakar, dédiée à la croissance digitale en Afrique francophone.\n\n" +
+      "SEO, marketing et intelligence artificielle, expliqués pour le marché ouest-africain. Le paiement se fait en Wave ou en Orange Money, en francs CFA : pas de carte obligatoire, pas de conversion, pas de compte à l'étranger.\n\n" +
+      "Six portes, du gratuit au sur-mesure, et chacune annonce son prix avant le clic : les formations (SEO, marketing, IA, accès à vie), le blog publié chaque semaine, le podcast et les vidéos où des gens d'ici racontent ce qu'ils ont fait, le Club des Digitos sur une année en groupe fermé, la présence digitale pour les commerces de proximité, et l'Agence sur cadrage écrit.\n\n" +
+      "Les exemples sont pris ici : « Cosmétique Almadies », pas « organic skincare Brooklyn » — ce que tapent tes clients, dans les mots qu'ils emploient. Le poids de chaque vidéo est annoncé avant lecture et chaque leçon a une transcription, parce qu'un forfait mobile se compte.\n\n" +
+      "Formateur, consultant et créateur de contenu digital basé à Dakar. J'écris les articles, je monte les formations, j'anime le Club et je réponds aux messages : il n'y a personne d'autre derrière cette plateforme.",
     jsonLd: [
       {
         '@context': 'https://schema.org',
@@ -31,7 +36,9 @@ export const staticPages: Record<string, PageMeta> = {
         name: SITE_NAME,
         url: SITE_URL,
         logo: DEFAULT_OG_IMAGE,
-        sameAs: ['https://www.linkedin.com/in/maxmorrys', 'https://www.youtube.com/@maxmorrys'],
+        // Les profils VÉRIFIÉS. Les deux adresses écrites à la main ici en désignaient un
+        // qui répond 404 — voir `SOCIAL_URLS`.
+        sameAs: SOCIAL_URLS,
       },
       {
         '@context': 'https://schema.org',
@@ -54,6 +61,23 @@ export const staticPages: Record<string, PageMeta> = {
     ogType: 'profile',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/a-propos`,
+    /*
+     * `og:type: profile` sans balisage `Person` : la page annonçait une personne aux réseaux
+     * sociaux et n'en décrivait aucune aux moteurs. C'est la seule page du site dont le sujet
+     * EST quelqu'un — et celle que Google consulte pour rattacher la marque à un auteur, ce
+     * dont dépend l'`author` déclaré sur chaque article.
+     */
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: 'Max-Morrys',
+      url: `${SITE_URL}/a-propos`,
+      image: DEFAULT_OG_IMAGE,
+      jobTitle: 'Formateur et consultant en marketing digital',
+      worksFor: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+      address: { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
+      sameAs: SOCIAL_URLS,
+    },
     h1: 'Je suis Max-Morrys',
     bodyText:
       "Formateur, consultant et créateur de contenu digital basé à Dakar. J'aide les entreprises et entrepreneurs francophones à maîtriser le marketing digital, le SEO et l'IA pour accélérer leur croissance.",
@@ -280,6 +304,35 @@ export const staticPages: Record<string, PageMeta> = {
     breadcrumbs: [
       { name: 'Accueil', url: `${SITE_URL}/` },
       { name: 'CGV', url: `${SITE_URL}/legal/cgv` },
+    ],
+  },
+  /*
+   * LES CGU — l'entrée qui manquait, et ce qu'elle coûtait.
+   *
+   * La page existe (`/legal/cgu`, route montée dans `App.tsx`), `sitemap.ts` la DÉCLARE aux
+   * moteurs, et `routes.ts` l'envoie au pré-rendu par le préfixe `/legal/`. Mais aucune
+   * entrée ici : elle tombait dans `unknownRouteMeta`, donc servie en
+   * `noindex, nofollow` sous le titre générique du site. Le sitemap demandait de l'indexer
+   * pendant que la page elle-même l'interdisait — une contradiction qu'aucune porte ne voit,
+   * parce que les deux fichiers sont justes séparément.
+   *
+   * Vérifié en production le 03/09/2026 : `/legal/cgu` répondait 200 avec le titre de
+   * l'accueil et `robots: noindex, nofollow`, quand `/legal/cgv` répondait correctement.
+   *
+   * Les textes reprennent `cgu.seoTitle` / `cgu.seoDescription` de `locales/fr/legal.json`,
+   * pour que le robot et le visiteur lisent la même promesse.
+   */
+  '/legal/cgu': {
+    title: `Conditions d'utilisation | ${SITE_NAME}`,
+    description:
+      "Conditions générales d'utilisation de la plateforme Max-Morrys et de l'assistant IA Rysmo.",
+    ogType: 'website',
+    ogImage: DEFAULT_OG_IMAGE,
+    canonical: `${SITE_URL}/legal/cgu`,
+    h1: "Conditions d'utilisation",
+    breadcrumbs: [
+      { name: 'Accueil', url: `${SITE_URL}/` },
+      { name: "Conditions d'utilisation", url: `${SITE_URL}/legal/cgu` },
     ],
   },
   '/legal/cookies': {

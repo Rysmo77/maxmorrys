@@ -514,7 +514,7 @@ export interface FAQ {
   /**
    * Le segment d'URL de la page de la question — `/faq/<slug>`.
    *
-   * FACULTATIF, ET CE N'EST PAS UN CONFORT. Les 46 questions déjà en base n'en ont pas :
+   * FACULTATIF, ET CE N'EST PAS UN CONFORT. Les questions déjà en base n'en portent aucun :
    * `faqSlug()` en dérive un du texte de la question, ce qui rend la page atteignable tout de
    * suite. Mais un slug dérivé CHANGE quand la question est reformulée, et l'URL partagée
    * meurt sans que rien ne le signale. Renseigner ce champ fige l'adresse.

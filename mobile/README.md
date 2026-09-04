@@ -224,23 +224,49 @@ changerait. Aucun n'est un bouton mort : ils rendent le geste, et disent où il 
 | Ce qui manque | Le paquet | Les écrans concernés |
 |---|---|---|
 | La lecture audio en fond | `expo-audio` + `UIBackgroundModes` / service de premier plan | `media` `episode` `verrouille` — c'est le chantier n° 1, et l'argument même du virage natif |
-| La notification poussée | `expo-notifications` + un serveur qui envoie | `permissions` `profil` |
-| L'écriture dans l'agenda | `expo-calendar` | `club/agenda` — l'écran propose le `.ics` en attendant |
+| La notification poussée | `expo-notifications` + un serveur qui envoie | `permissions` `profil` — ⚠️ le profil AFFIRMAIT « Autorisées sur cet appareil », coche verte, pour une permission que rien ne demandait |
+| L'écriture dans l'agenda | `expo-calendar` | `club/agenda` — ⚠️ le `.ics` qu'il proposait N'EXISTAIT PAS : mesuré, `maxmorrys.me/club/agenda.ics` répond `200` avec `content-type: text/html`, c'est-à-dire la coquille SPA. Le bouton a été retiré |
 | La biométrie | `expo-local-authentication` | `biometrie` `profil` |
 | L'orientation paysage | `expo-screen-orientation` | `plein-ecran` — il TIENT en portrait en attendant |
 | L'état du réseau | `expo-network` | `hors-connexion`, aujourd'hui une destination |
 | Les trois fontes | `expo-font` + les binaires | partout — on retombe sur la police système, lisible, sans casser une mise en page |
 | Le widget d'accueil | WidgetKit / Glance, hors React Native | `widget` en est l'écran d'INSTALLATION, pas une imitation |
 
-Et le SDK Firebase : l'authentification, la lecture des inscriptions, l'écriture d'une note, le
-quota du répétiteur, les échanges. Là où le geste existe déjà sur le web, l'écran ouvre le site
-dans le navigateur système avec la même session (`openAuthSessionAsync`), pour la même raison
-qu'AD-11 : ne pas faire semblant d'avoir ce qu'on n'a pas.
+### ✅ Le SDK Firebase, lui, EST branché — et voici jusqu'où
+
+Cette section disait l'inverse. Elle est corrigée ici plutôt que laissée à quelqu'un qui
+l'aurait crue : le vrai défaut de la fois précédente n'était pas le contenu simulé, c'était la
+documentation qui le niait.
+
+**Ce qui marche** : la connexion et la création de compte par e-mail, la réinitialisation du
+mot de passe, la déconnexion, la suppression de compte (App Store 5.1.1(v)), l'export RGPD, et
+sept vues de lecture — profil, reprise, catalogue, certificats, Club, notes, programme d'un
+module.
+
+**Deux décisions structurent tout le reste :**
+
+- **`firebase/auth` seulement.** `firebase/firestore` n'entre pas dans `mobile/`. Ce que les
+  écrans consomment est un modèle de VUE, pas un document : `FORMATION.arret`, `CLASSEMENT`,
+  `CLUB.bilan` sont des jointures. Les refaire côté client réimplémenterait la logique métier
+  sans test partagé, ferait payer les règles (`hasActiveClubSub()` fait un `get()` par lecture)
+  et ajouterait ~250 Ko pour un cache hors-ligne qui, sur React Native, ne vit qu'en mémoire.
+- **Les lectures passent par `api.maxmorrys.me`**, qui parle déjà le protocole `onCall`. Le
+  serveur ESTAMPILLE chaque réponse (`releveA`), et c'est ce que `<Num asOf>` attendait : les
+  écrans citaient jusqu'ici une date en dur du 2 septembre.
+
+⚠️ **Ces vues lisent avec un compte de service, donc SANS `firestore.rules`.** Chaque handler
+refait ses contrôles à la main, et `tests/unit/worker-vues-natives.test.ts` refuse un handler
+Club qui ne revérifierait pas l'abonnement — sans quoi tout le contenu payant devient lisible
+par n'importe quel compte gratuit.
+
+**Ce qui reste à brancher** : le fil du Club et ses six onglets, le pôle média, le répétiteur,
+la console support, l'écriture (notes, progression). Le mécanisme est posé : un handler, un
+hook, un nom dans `MIGRATED`.
 
 `setTutorNom()` ne persiste pas, et **ne doit pas** persister localement : le nom du tuteur vit
 dans le profil (`users/<uid>.tutorName`), comme au web. Un magasin local créerait une seconde
-source de vérité à réconcilier. Ce module est un cache de session, à alimenter depuis le profil
-au démarrage quand Firebase sera là.
+source de vérité à réconcilier. `appMoi` le renvoie désormais ; ce module reste un cache de
+session, alimenté au démarrage.
 
 ## Les écrans, et lesquels portent la barre
 
@@ -296,11 +322,18 @@ daté, rien de transmis — parce que c'est cette distinction-là qui valait d'�
 atteintes par le code — comme `/403` au web. `+not-found` y renvoie tout lien profond périmé,
 avec un motif réel plutôt qu'un « une erreur est survenue ».
 
-**Le retour de paiement est routé.** Le tunnel ouvre le web puis revient sur `rysmo://paiement/retour` ;
-ce retour n'avait aucun destinataire, et quelqu'un qui venait de valider dans Wave retombait sur
-l'écran de paiement sans savoir si sa transaction était passée. Les trois issues sont désormais
-traitées, et aucune n'est devinée : le verdict est LU dans l'URL de retour, et un navigateur
-fermé mène à l'attente — la seule chose qu'on sache alors.
+**⚠️ LE TUNNEL DE PAIEMENT N'EXISTE PLUS.** Ce paragraphe décrivait le routage des trois issues
+d'un retour de paiement. L'application est passée en CONSULTATION SEULE : elle ouvre ce qui est
+déjà acquis et ne propose rien à l'achat. `paiement`, `attente`, `succes` et `echec` ont été
+supprimés, et avec eux le renvoi vers la boutique du site.
+
+C'est le repli que ce README nommait lui-même comme la sortie de l'hypothèse non levée sur
+l'App Store 3.1.1 — appliqué. Ce qui a disparu n'est pas seulement le bouton : c'est aussi le
+texte qui NOMMAIT le magasin. Une revue lit les chaînes autant que les contrôles, et citer la
+règle qu'on contourne est un signal aussi net qu'un lien d'achat.
+
+`presence` et `devis` gardent leurs prix : Présence Digitale est une prestation du MONDE RÉEL,
+que la règle 3.1.5(a) exige justement de transacter hors du magasin.
 
 ## Le jeu d'icônes est partagé, pas recopié (même raisonnement qu'AD-8)
 
@@ -329,8 +362,22 @@ Native 0.86 réclame 17 ou plus ; aucun SDK Android n'est installé. `eas.json` 
 
 Il manque alors deux choses qui ne sont pas du code : un **compte Apple Developer** (99 $/an)
 avec son identifiant d'application enregistré, et un **compte Google Play** (25 $ une fois).
-Et la question ouverte plus haut sur la règle 3.1.1 se pose au moment de la soumission, pas
-avant.
+
+⚠️ **Deux délais qui ne se rattrapent pas, et qui doivent démarrer AVANT le code restant :**
+en Organisation, l'inscription Apple exige un numéro D-U-N-S — 2 à 4 semaines pour une entité
+sénégalaise. Et si le compte Play est personnel et créé après novembre 2023, Google exige
+**12 testeurs pendant 14 jours consécutifs** avant même de pouvoir demander l'accès production.
+
+La question sur la règle 3.1.1, elle, est TRANCHÉE : l'application ne vend plus rien, donc elle
+ne se pose plus. Dividende direct — aucun accord « Paid Applications » à signer chez Apple, et
+« financial features : non » chez Google.
+
+Cinq profils EAS existent désormais, et deux comblent des trous qui coûtaient cher :
+`preview-device` (l'ancien `preview` est `simulator: true`, il ne s'installe sur AUCUN iPhone)
+et `release-candidate` — un build de production avec le contenu réel, **pour les captures
+d'écran**. Des captures prises depuis `preview` montreraient Aïssatou Ndiaye et des messages
+fabriqués : un état que la production ne rend jamais, donc un rejet 2.3.3 après avoir tout fait
+juste par ailleurs.
 
 ### Le défaut qui rendait tout cela impossible, et que rien ne voyait
 

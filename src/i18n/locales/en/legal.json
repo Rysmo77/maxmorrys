@@ -98,7 +98,9 @@
       "intro": "We rely on the following sub-processors to operate our services:",
       "item1": "Firebase / Google Cloud (Google LLC) — Hosting, database and authentication",
       "item2": "Bictorys — Payment processing (Wave, Orange Money, Free Money, bank card)",
-      "item3": "Google Generative AI (Gemini) — Rysmo educational assistant (processing of conversations to generate responses; the history is stored on Max-Morrys servers for personalized memory)"
+      "item3": "Google Generative AI (Gemini) — Rysmo educational assistant (processing of conversations to generate responses; the history is stored on Max-Morrys servers for personalized memory)",
+      "item4": "Cloudflare (Cloudflare, Inc.) — Site delivery, media storage and transactional email (receipts, invoices, reminders)",
+      "item5": "Brevo (Sendinblue SAS, France) — Newsletter delivery"
     },
     "contact": {
       "heading": "Contact",

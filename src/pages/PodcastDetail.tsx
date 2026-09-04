@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Breadcrumb, Button, GlassPanel, MediaCard, Skeleton, SubNav, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import ShareButtons from '../components/shared/ShareButtons';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { contentPath } from '../lib/contentPath';
@@ -198,6 +199,15 @@ export default function PodcastDetail() {
                 <p className="mm-num rv mt-3 text-meta text-ink-2" style={{ ['--i' as string]: 3 }}>
                   {formatDate(podcast.publishedAt)} · {podcast.duration}
                 </p>
+
+                {/* Un épisode s'envoie à quelqu'un ; il n'y avait aucun bouton pour le faire. */}
+                <ShareButtons
+                  className="rv mt-3"
+                  url={`/podcasts/${podcast.slug}`}
+                  title={podcast.title}
+                  contentType="podcast"
+                  contentId={podcast.id}
+                />
 
                 {/*
                   LE BANDEAU DE TRADUCTION, EN TÊTE DE CORPS.

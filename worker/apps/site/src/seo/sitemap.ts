@@ -1,6 +1,7 @@
 import type { Firestore } from '@mm/firestore-rest';
 
 import { SITE_URL } from '../constants';
+import { getFaqSlugs } from '../prerender/faq';
 import { enPath } from '../prerender/segments';
 import { asIsoDate, asText, escapeXml } from './values';
 
@@ -166,6 +167,35 @@ export async function buildSitemap(db: Firestore): Promise<string> {
   pushDynamic(formations, 'formations', 'weekly', '0.8', 'coverImage');
   pushDynamic(podcasts, 'podcasts', 'monthly', '0.6', 'coverImage');
   pushDynamic(videos, 'videos', 'monthly', '0.6', 'thumbnailUrl');
+
+  /*
+   * LES QUESTIONS DE LA FAQ.
+   *
+   * Elles ont une adresse depuis que `/faq/:slug` existe, et le sitemap n'en déclarait
+   * AUCUNE : autant de pages que rien n'annonçait aux moteurs — ni le sitemap, ni un lien
+   * interne dans le corps pré-rendu, ni la page elle-même, qui repartait en `noindex`. Les
+   * trois manques se tenaient, et se réparent ensemble.
+   *
+   * Pas de `lastmod` : les documents `faq` ne portent pas de date de modification. Mieux vaut
+   * l'omettre qu'inventer une date, qu'un moteur croirait.
+   *
+   * En cas d'échec, le sitemap sort SANS les questions plutôt que pas du tout : perdre
+   * les questions est un moindre mal ; perdre tout le reste du sitemap n'en est pas un.
+   */
+  try {
+    for (const slug of await getFaqSlugs(db)) {
+      urls.push(
+        urlEntryPair({
+          frPath: `/faq/${slug}`,
+          enFullPath: enPath(`/faq/${slug}`),
+          changefreq: 'monthly',
+          priority: '0.4',
+        }),
+      );
+    }
+  } catch (error: unknown) {
+    console.error('Questions de la FAQ absentes du sitemap :', error);
+  }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml">

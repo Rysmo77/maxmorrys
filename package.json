@@ -14,6 +14,11 @@
     "ds": "npm run ds:sync && npm run ds:tokens && npm run ds:barrel && npm run ds:check",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "seo:check": "node scripts/seo-check.mjs",
+    "og:cards": "node scripts/og-cards.mjs",
+    "og:check": "node scripts/og-cards.mjs --check",
+    "recrawl": "node scripts/recrawl.mjs",
+    "covers:weight": "node scripts/covers-weight.mjs",
     "test": "vitest run --passWithNoTests tests/unit",
     "test:rules": "firebase emulators:exec --only firestore --project demo-rules-test \"vitest run tests/firestore-rules\""
   },
@@ -48,6 +53,7 @@
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "@firebase/rules-unit-testing": "^5.0.1",
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/typography": "^0.5.19",
     "@types/canvas-confetti": "^1.9.0",
     "@types/react": "^18.3.5",
@@ -60,6 +66,7 @@
     "firebase-tools": "^15.20.0",
     "globals": "^15.9.0",
     "postcss": "^8.4.35",
+    "satori": "^0.11.3",
     "sharp": "^0.34.5",
     "svgo": "^4.0.1",
     "tailwindcss": "^3.4.1",

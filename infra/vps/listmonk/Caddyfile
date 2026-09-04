@@ -1,0 +1,33 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FRAGMENT CADDY — à ajouter au Caddyfile de /opt/maxmorrys-stack/.
+#
+# Même schéma que typesense.maxmorrys.me : ACME HTTP-01, un A direct vers le VPS, et
+# surtout PAS de proxy Cloudflare. C'est la convention des services du VPS, et elle a une
+# raison : le défi HTTP-01 doit atteindre Caddy, pas le proxy.
+# ─────────────────────────────────────────────────────────────────────────────
+
+listmonk.maxmorrys.me {
+	# Le conteneur n'expose aucun port sur l'hôte : on le joint par son nom, sur le
+	# réseau docker partagé.
+	reverse_proxy maxmorrys-listmonk:9000
+
+	# LA CONSOLE NE S'INDEXE PAS. Sans cet en-tête, l'écran de connexion d'un outil
+	# d'e-mailing se retrouve dans les résultats de recherche — c'est la première chose
+	# que cherche un robot de force brute.
+	header {
+		X-Robots-Tag "noindex, nofollow, noarchive"
+		Referrer-Policy "same-origin"
+		X-Content-Type-Options "nosniff"
+	}
+
+	# ⚠️ `/subscription/*` et `/link/*` sont les chemins PUBLICS de Listmonk : page de
+	# désabonnement natif, confirmation d'inscription, suivi des liens. Ils doivent rester
+	# joignables sans authentification — les fermer casserait le désabonnement, qui est
+	# précisément ce qu'aucun envoi ne peut se permettre de casser.
+
+	encode zstd gzip
+	log {
+		output file /var/log/caddy/listmonk.log
+		format json
+	}
+}

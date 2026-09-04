@@ -5,14 +5,21 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  // `functions/lib` est la sortie de `tsc`, commitée pour le déploiement : la
-  // linter fait remonter les commentaires `eslint-disable` de règles qui ne sont
-  // pas définies pour du JS, et échoue sur du code qu'on n'écrit pas.
   {
     ignores: [
       'dist',
-      'functions/lib',
       'worker/**/node_modules',
+      /*
+       * `.claude/worktrees/` PORTE UNE COPIE COMPLETE DU DEPOT, kit de design inclus.
+       *
+       * Les entrees ci-dessous sont ancrees a la racine : elles ne matchent donc pas la copie
+       * imbriquee, et le kit y rouvre exactement les 57 erreurs de parsage que ces memes
+       * entrees avaient refermees a la racine. Une sortie de lint a 57 erreurs permanentes
+       * n'est plus lue — c'est le mecanisme par lequel une VRAIE erreur passe inapercue.
+       *
+       * Un worktree est une copie de travail, jamais une source de ce projet.
+       */
+      '.claude/**',
       /*
        * LE KIT EST UNE SOURCE, PAS DU CODE DU PRODUIT. Ses fichiers `.js` portent du JSX
        * compilé dans le navigateur par Babel standalone, ce que le parseur d'ESLint refuse :

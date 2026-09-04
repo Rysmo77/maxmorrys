@@ -107,6 +107,7 @@ export default function PleinEcran() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Mettre en pause"
+                disabled
             style={({ pressed }: { pressed: boolean }) => ({
               width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center',
               backgroundColor: surVideo,
@@ -133,6 +134,7 @@ export default function PleinEcran() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Vitesse de lecture : une fois"
+                disabled
               style={{
                 minHeight: 34, paddingHorizontal: 10, justifyContent: 'center',
                 borderRadius: 999, backgroundColor: t('surfaceNight'),

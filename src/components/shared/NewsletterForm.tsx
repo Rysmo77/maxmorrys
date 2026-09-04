@@ -45,7 +45,7 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const { addToast } = useToast();
-  const { t } = useTranslation('shared');
+  const { t, i18n } = useTranslation('shared');
   const consentId = useId();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,12 +57,25 @@ export default function NewsletterForm({ variant = 'inline', source = 'footer' }
     }
     setLoading(true);
     try {
+      /*
+        L'ADRESSE EST NORMALISEE A L'ECRITURE, ET C'EST UNE CONDITION DU DESABONNEMENT.
+
+        Le retrait cherche `where email == <adresse en minuscules>` (`worker/.../lib/unsubscribe.ts`).
+        Stocker « Awa@Example.com » tel quel rendrait cette adresse introuvable : la personne
+        cliquerait sur son lien de desabonnement, la page confirmerait, et elle continuerait de
+        recevoir la lettre. Un desabonnement qui ment est pire que pas de desabonnement du tout.
+
+        `locale` accompagne l'adresse parce qu'un abonne n'a pas forcement de compte : sans lui,
+        la lettre part en francais a tout le monde. Le plafond de cles de `firestore.rules` a ete
+        releve de 5 a 6 EN MEME TEMPS — les dissocier ferait echouer 100% des inscriptions.
+      */
       await addDoc(collection(db, 'newsletter'), {
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         subscribedAt: new Date().toISOString(),
         source,
         consent: true,
         consentAt: new Date().toISOString(),
+        locale: i18n.language?.startsWith('en') ? 'en' : 'fr',
       });
       trackSubscribeNewsletter(source || 'newsletter');
       addToast('success', t('newsletter.successToast'));

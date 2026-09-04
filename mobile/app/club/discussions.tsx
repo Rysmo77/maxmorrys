@@ -4,7 +4,7 @@ import {
   Avatar, Body, ChipRow, EmptyState, Eyebrow, Icon, Num, Surface, Tag, useToken,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { DISCUSSIONS, RELEVE, SOURCE } from '../../contenu/demo';
+import { provenance, useDiscussions } from '../../donnees';
 
 /**
  * ── CLUB · DISCUSSIONS ────────────────────────────────────────────────────────────────
@@ -26,7 +26,9 @@ export default function ClubDiscussions() {
   const t = useToken();
   const [cat, setCat] = useState<string>(CATEGORIES[0]);
 
-  const visibles = cat === 'Toutes' ? DISCUSSIONS : DISCUSSIONS.filter((d) => d.categorie === cat);
+  const discussions = useDiscussions();
+  const sujets = discussions.valeur ?? [];
+  const visibles = cat === 'Toutes' ? sujets : sujets.filter((d) => d.categorie === cat);
 
   return (
     <ClubScreen titre="Discussions">
@@ -36,8 +38,7 @@ export default function ClubDiscussions() {
         <Eyebrow>{cat === 'Toutes' ? 'Toutes catégories' : cat}</Eyebrow>
         <Num
           value={visibles.length}
-          source={SOURCE}
-          asOf={RELEVE}
+          {...provenance(discussions)}
           unit={visibles.length > 1 ? 'discussions' : 'discussion'}
           style={{ fontSize: 12 }}
         />
@@ -70,8 +71,7 @@ export default function ClubDiscussions() {
             <Icon name="comment" size={15} color={t('ink2')} />
             <Num
               value={d.reponses}
-              source={SOURCE}
-              asOf={RELEVE}
+          {...provenance(discussions)}
               unit={d.reponses > 1 ? 'réponses' : 'réponse'}
               style={{ fontSize: 12.5 }}
             />

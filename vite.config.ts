@@ -77,7 +77,26 @@ export default defineConfig({
     },
   },
   build: {
-    sourcemap: 'hidden',
+    /*
+     * ─────────────────────────────────────────────────────────────────────────────
+     * PAS DE SOURCE MAPS DANS `dist/` — PARCE QUE `dist/` EST PUBLIÉ TEL QUEL.
+     *
+     * Le réglage précédent était `'hidden'`, et c'est un faux ami : il retire le
+     * commentaire `//# sourceMappingURL` en fin de bundle, il n'empêche PAS l'écriture
+     * des fichiers `.map`. Ils partaient donc à chaque déploiement — 193 fichiers, sous
+     * des noms directement dérivables de ceux des bundles, eux publics. Vérifié en
+     * production le 03/09/2026 : `GET /assets/About-Dj8R5tmL.js.map` répondait 200 avec
+     * `sourcesContent` complet, c'est-à-dire le TypeScript d'origine, commentaires
+     * compris. Or les commentaires de ce dépôt nomment les failles corrigées et les
+     * gardes qui tiennent : c'était une carte du système servie à qui la demandait.
+     *
+     * `'hidden'` n'a de sens que couplé à un téléversement vers un collecteur d'erreurs
+     * SUIVI d'une purge de `dist/`. Aucune étape de la CI ne le fait (`.github/workflows/ci.yml`),
+     * donc les maps ne servaient personne. Le jour où les traces Sentry doivent redevenir
+     * lisibles, c'est ce couple-là qu'il faut remettre — pas ce seul drapeau.
+     * ─────────────────────────────────────────────────────────────────────────────
+     */
+    sourcemap: false,
     rollupOptions: {
       output: { manualChunks },
     },

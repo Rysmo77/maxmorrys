@@ -3,7 +3,7 @@ import {
   Avatar, Body, Display, Eyebrow, Num, ProgressBar, SansDonnees, Surface, Tag, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { CLASSEMENT, RELEVE, SOURCE } from '../../contenu/demo';
+import { provenance, useClassement } from '../../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -27,7 +27,8 @@ import { CLASSEMENT, RELEVE, SOURCE } from '../../contenu/demo';
 export default function ClubClassement() {
   const t = useToken();
 
-  if (CLASSEMENT === null) {
+  const vue = useClassement();
+  if (vue.valeur === null) {
     return (
       <ClubScreen titre="Classement">
         <Display size={24} lines={['Ton rang', "n'est pas calculé."]} />
@@ -48,7 +49,7 @@ export default function ClubClassement() {
       </ClubScreen>
     );
   }
-  const classement = CLASSEMENT;
+  const classement = vue.valeur;
 
   return (
     <ClubScreen titre="Classement">
@@ -58,21 +59,26 @@ export default function ClubClassement() {
           <View>
             <Body muted style={{ fontSize: 12.5 }}>Ton rang dans ta vague</Body>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
-              <Num value={classement.rang} source={SOURCE} asOf={RELEVE} style={{ fontSize: 34 }} />
+              <Num value={classement.rang} {...provenance(vue)} style={{ fontSize: 34 }} />
               <Body muted style={{ fontSize: 14 }}>
-                sur <Num value={classement.surCombien} source={SOURCE} asOf={RELEVE} style={{ fontSize: 14 }} />
+                sur <Num value={classement.surCombien} {...provenance(vue)} style={{ fontSize: 14 }} />
               </Body>
             </View>
           </View>
           <Tag tone="ok">+{classement.semaine} cette semaine</Tag>
         </View>
-        <ProgressBar
-          value={(1 - (classement.rang - 1) / classement.surCombien) * 100}
-          territory="transforme"
-          style={{ marginTop: 14 }}
-        />
+        {/* ⚠️ LE RANG PEUT MANQUER, et ce n'est pas une panne : quelqu'un dont la vague
+            n'a pas encore été calculée n'a pas de position. Une barre à zéro dirait « tu es
+            dernière », ce qui est un fait qu'on n'a pas mesuré. */}
+        {classement.rang === null ? null : (
+          <ProgressBar
+            value={(1 - (classement.rang - 1) / Math.max(1, classement.surCombien)) * 100}
+            territory="transforme"
+            style={{ marginTop: 14 }}
+          />
+        )}
         <Body muted style={{ fontSize: 11.5, marginTop: 8, color: t('textFaint') }}>
-          Tu es comparée aux <Num value={classement.surCombien} source={SOURCE} asOf={RELEVE} style={{ fontSize: 11.5 }} />
+          Tu es comparée aux <Num value={classement.surCombien} {...provenance(vue)} style={{ fontSize: 11.5 }} />
           {' '}personnes arrivées en même temps que toi — pas à tout le Club.
         </Body>
       </Surface>
@@ -90,10 +96,10 @@ export default function ClubClassement() {
               backgroundColor: l.moi ? veil(t('mmViolet'), 0.1) : 'transparent',
             }}
           >
-            <Num value={l.rang} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13, width: 20 }} />
+            <Num value={l.rang} {...provenance(vue)} style={{ fontSize: 13, width: 20 }} />
             <Avatar initials={l.initiales} size={32} />
             <Body style={{ flex: 1, fontWeight: l.moi ? '700' : '500' }}>{l.nom}</Body>
-            <Num value={l.points} source={SOURCE} asOf={RELEVE} unit="pts" style={{ fontSize: 12.5 }} />
+            <Num value={l.points} {...provenance(vue)} unit="pts" style={{ fontSize: 12.5 }} />
           </View>
         ))}
       </Surface>

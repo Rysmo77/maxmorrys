@@ -179,7 +179,7 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         if (f.question.toLowerCase().includes(lower) || f.answer?.toLowerCase().includes(lower)) {
           /* Le `slug` MANQUAIT, et c'est lui qui décidait de tout : sans lui,
              `goToResult` retombe sur le chemin d'index de la table ci-dessus.
-             `faqSlug()` dérive le segment des 46 questions qui n'en portent pas —
+             `faqSlug()` dérive le segment des questions qui n'en portent pas —
              c'est déjà ce que fait `FAQ.tsx` pour ses propres liens. */
           r.push({ type: 'faq', title: f.question, excerpt: f.answer, slug: faqSlug(f) });
         }

@@ -13,20 +13,31 @@
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 import type { Etat } from '../ds';
-import { CLUB, FORMATION, FORMATION_2, MOI, NOTES, NOTES_TOTAL, PROGRAMME } from '../contenu/demo';
+import {
+  AGENDA, CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION,
+  FORMATION_2, MEMBRE, MEMOIRE, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, PROSPECT,
+  QUOTA, SUPPORT_COMPTES, VIDEO,
+} from '../contenu/demo';
 import { composer, composerListe } from './etat';
 export { provenance } from './etat';
-import type { VueCertificats, VueClub, VueCours, VueEspace, VueLecon, VueMoi, VueNotes } from './types';
+import type {
+  VueCertificats, VueClassement, VueClub, VueClubFil, VueConsole, VueCours, VueDiscussion,
+  VueEspace, VueLecon, VueMedia, VueMembre, VueMoi, VueNotes, VueOpportunite, VueRepetiteur,
+  VueSeance,
+} from './types';
 import { useVue } from './vue';
 
 export { SessionProvider, useSession, useUid } from './session';
 export { connexionEmail, creationEmail, deconnexion, reinitialiser, ErreurIdentite } from './identite';
 export { exporterMesDonnees } from './rgpd';
 export { appeler, ErreurAppel } from './appel';
+import { appeler } from './appel';
 export { viderLesVues } from './vue';
 export type {
-  VueCertificat, VueCertificats, VueClub, VueCours, VueEspace, VueLecon, VueLeconLigne,
-  VueMoi, VueNote, VueNotes,
+  VueCertificat, VueCertificats, VueClub, VueClubFil, VueClubMessage, VueClubMission,
+  VueClassement, VueConsole, VueCours, VueDiscussion, VueEpisode, VueEspace, VueLecon,
+  VueLeconLigne, VueMedia, VueMembre, VueMoi, VueNote, VueNotes, VueOpportunite,
+  VueRepetiteur, VueSeance, VueVideo,
 } from './types';
 
 /** Qui regarde : prénom, initiale, date d'ouverture du compte. */
@@ -133,4 +144,294 @@ export function useLecon(formationId?: string): Etat<VueLecon> {
       doc: 'doc' in l ? Boolean(l.doc) : false,
     })),
   });
+}
+
+/** Le fil du Club, et la mission en tête. Vide tant que l'abonnement n'est pas actif. */
+export function useClubFil(): Etat<VueClubFil> {
+  const brut = useVue<VueClubFil>('appClubFil');
+  const replique = CLUB_FIL.length === 0 && CLUB_MISSION === null ? null : {
+    mission: CLUB_MISSION === null ? null : {
+      meta: CLUB_MISSION.meta,
+      titre: CLUB_MISSION.titre,
+      budget: CLUB_MISSION.budget,
+      note: CLUB_MISSION.note,
+    },
+    fil: CLUB_FIL.map((m, i) => ({
+      id: String(i),
+      auteur: m.auteur,
+      initiales: m.initiales,
+      categorie: m.categorie,
+      quand: m.quand,
+      texte: m.texte,
+      aime: m.aime,
+      republie: m.republie,
+      commente: m.commente,
+    })),
+  };
+  return composer(brut, replique);
+}
+
+/** Le dernier épisode et la dernière vidéo publiés. */
+export function useMedia(): Etat<VueMedia> {
+  const brut = useVue<VueMedia>('appMedia');
+  const replique = EPISODE === null && VIDEO === null ? null : {
+    episode: EPISODE === null ? null : {
+      titre: EPISODE.titre,
+      titreCourt: EPISODE.titreCourt,
+      invitee: EPISODE.invitee,
+      eyebrow: EPISODE.eyebrow,
+      chapo: EPISODE.chapo,
+      duree: EPISODE.duree,
+      lien: null,
+    },
+    video: VIDEO === null ? null : {
+      titre: VIDEO.titre,
+      eyebrow: VIDEO.eyebrow,
+      lien: null,
+      cout: [...VIDEO.cout],
+    },
+  };
+  return composer(brut, replique);
+}
+
+/** Les sujets de discussion du Club. */
+export function useDiscussions(): Etat<readonly VueDiscussion[]> {
+  const brut = useVue<readonly VueDiscussion[]>('appClubListe', { onglet: 'discussions' });
+  return composerListe(brut, DISCUSSIONS.map((d, i) => ({
+    id: String(i),
+    categorie: d.categorie,
+    titre: d.titre,
+    auteur: d.auteur,
+    initiales: d.initiales,
+    quand: d.quand,
+    reponses: d.reponses,
+    resolu: d.resolu,
+  })));
+}
+
+/** Les missions et appels d'offres qui circulent. */
+export function useOpportunites(): Etat<readonly VueOpportunite[]> {
+  const brut = useVue<readonly VueOpportunite[]>('appClubListe', { onglet: 'opportunites' });
+  return composerListe(brut, OPPORTUNITES.map((o, i) => ({
+    id: String(i),
+    type: o.type,
+    titre: o.titre,
+    lieu: o.lieu,
+    quand: o.quand,
+    budget: o.budget,
+    par: o.par,
+  })));
+}
+
+/**
+ * La fiche d'un membre.
+ *
+ * ⚠️ Ni téléphone ni adresse n'arrivent jamais ici : le serveur ne les envoie pas, même
+ * s'il les connaît. Ce qui ne quitte pas le serveur ne fuite pas.
+ */
+export function useMembre(id?: string): Etat<VueMembre> {
+  const brut = useVue<VueMembre>('appClubListe', id ? { onglet: 'membre', id } : { onglet: 'membre' });
+  return composer(brut, MEMBRE === null ? null : {
+    nom: MEMBRE.nom,
+    initiales: MEMBRE.initiales,
+    metier: MEMBRE.metier,
+    ville: MEMBRE.ville,
+    depuis: MEMBRE.depuis,
+    presentation: MEMBRE.presentation,
+    formations: [...MEMBRE.formations],
+    contributions: MEMBRE.contributions,
+  });
+}
+
+/**
+ * Le classement de ta vague — jamais absolu.
+ *
+ * Un classement absolu mesurerait l'ancienneté : quelqu'un arrivé en novembre ne
+ * rattraperait jamais quelqu'un arrivé en février. La règle est appliquée côté serveur ;
+ * l'écran l'énonce.
+ */
+export function useClassement(): Etat<VueClassement> {
+  const brut = useVue<VueClassement>('appClubClassement');
+  return composer(brut, CLASSEMENT === null ? null : {
+    vague: CLASSEMENT.vague,
+    rang: CLASSEMENT.rang,
+    surCombien: CLASSEMENT.surCombien,
+    points: CLASSEMENT.points,
+    semaine: CLASSEMENT.semaine,
+    lignes: CLASSEMENT.lignes.map((l) => ({
+      rang: l.rang, nom: l.nom, initiales: l.initiales, points: l.points, moi: l.moi,
+    })),
+  });
+}
+
+/** Le quota du répétiteur, sa mémoire, et l'échange en cours. */
+export function useRepetiteur(): Etat<VueRepetiteur> {
+  const brut = useVue<VueRepetiteur>('appRepetiteur');
+  return composer(brut, QUOTA === null ? null : {
+    quota: { utilise: QUOTA.utilise, total: QUOTA.total },
+    memoire: MEMOIRE.map((m, i) => ({ id: String(i), fait: m.fait, depuis: m.depuis })),
+    echange: ECHANGE.map((e, i) => ({ id: String(i), de: e.de, texte: e.texte })),
+  });
+}
+
+/**
+ * La console support — la seule vue où un RÔLE décide, pas un identifiant.
+ *
+ * Le serveur répond `permission-denied` à qui n'a pas le rôle, et non une vue vide :
+ * le Club est un accès qu'on peut ne pas avoir souscrit, la console est une zone où
+ * l'on n'a rien à faire. La différence décide de ce que l'écran affiche.
+ */
+export function useConsole(): Etat<VueConsole> {
+  const brut = useVue<VueConsole>('appConsole');
+  return composer(brut, SUPPORT_COMPTES === null ? null : {
+    comptes: { ...SUPPORT_COMPTES },
+    prospect: PROSPECT === null ? null : {
+      titre: PROSPECT.titre, meta: PROSPECT.meta, statut: PROSPECT.statut,
+    },
+  });
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * PARLER AU RÉPÉTITEUR — la seule ÉCRITURE de cette porte, et elle mérite son commentaire.
+ *
+ * Le bouton d'envoi de l'onglet répétiteur n'avait AUCUN gestionnaire. Il avait tout d'un
+ * contrôle — rôle d'accessibilité, libellé, dégradé, animation de pression, état désactivé
+ * quand le champ est vide — et il ne faisait rien. Sur l'écran qui porte l'argument du
+ * produit, c'était le pire endroit possible.
+ *
+ * ── L'HISTORIQUE PART AVEC LA QUESTION, ET C'EST OBLIGATOIRE ─────────────────────────
+ * Le serveur ne garde pas la conversation entre deux appels : c'est le client qui la
+ * transmet. Ne pas l'envoyer donnerait un répétiteur amnésique à chaque phrase — qui
+ * redemanderait le prénom, reproposerait la même leçon, et se contredirait au troisième
+ * échange.
+ *
+ * ── LE QUOTA REVIENT AVEC LA RÉPONSE ─────────────────────────────────────────────────
+ * On ne le recalcule pas côté client : le serveur RÉSERVE la requête avant d'appeler le
+ * modèle, donc lui seul connaît le compte exact. Un client qui décrémenterait son propre
+ * compteur afficherait « il te reste 2 » pendant que le serveur en compte 1 — et c'est la
+ * personne qui découvrirait l'écart en se faisant refuser.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ */
+export interface ReponseRepetiteur {
+  reply: string;
+  quota: { dailyLimit: number; dayCount: number };
+}
+
+export async function demanderAuRepetiteur(
+  message: string,
+  historique: ReadonlyArray<{ de: string; texte: string }>,
+  prenom?: string | null,
+): Promise<ReponseRepetiteur> {
+  return appeler<ReponseRepetiteur>('rysmo', {
+    message,
+    conversationHistory: historique.map((m) => ({
+      role: m.de === 'me' ? 'user' : 'assistant',
+      content: m.texte,
+    })),
+    userContext: prenom ? { displayName: prenom } : undefined,
+    language: 'fr',
+  });
+}
+
+/** Efface ce que le répétiteur a retenu. Irréversible, et l'écran le dit avant. */
+export async function effacerLaMemoire(): Promise<void> {
+  await appeler('clearRysmoMemory');
+}
+
+/**
+ * Signale un membre.
+ *
+ * Le motif est FACULTATIF — l'écran le promet, et exiger une explication pour signaler,
+ * c'est filtrer les signalements par la capacité à les argumenter. Le serveur écrit un
+ * document déterministe : toucher deux fois ne crée pas deux entrées.
+ */
+export async function signalerLeMembre(membreId: string, motif?: string): Promise<void> {
+  await appeler('signalerMembre', { membreId, motif });
+}
+
+/**
+ * Écrit une note et renvoie ce qui a été enregistré.
+ *
+ * On renvoie la note TELLE QU'ÉCRITE plutôt qu'un accusé : l'écran l'insère sans relire
+ * toute la liste, et ce qu'il affiche est exactement ce qui est en base — pas une
+ * reconstruction locale qui pourrait en différer d'un caractère ou d'une troncature.
+ */
+export async function ecrireUneNote(
+  texte: string,
+  lecon?: { id: string; label: string },
+): Promise<{ id: string; texte: string; date: string | null }> {
+  const { note } = await appeler<{ note: { id: string; texte: string; date: string | null } }>(
+    'ecrireUneNote',
+    { texte, lessonId: lecon?.id, lessonLabel: lecon?.label },
+  );
+  return note;
+}
+
+export interface BilanLecon {
+  progression: number;
+  leconsFaites: number;
+  lecons: number;
+  complete: boolean;
+  titre: string | null;
+}
+
+/**
+ * Coche ou décoche une leçon, et renvoie la progression RECALCULÉE par le serveur.
+ *
+ * Le pourcentage n'est jamais envoyé : il est déduit côté serveur du nombre de leçons de
+ * la formation. Un `progress` transmis par le client serait un curseur qu'on lui tend —
+ * il n'aurait qu'à écrire 100 pour obtenir son certificat.
+ */
+export async function marquerLecon(
+  formationId: string, leconId: string, faite: boolean,
+): Promise<BilanLecon> {
+  return appeler<BilanLecon>('marquerLecon', { formationId, leconId, faite });
+}
+
+/**
+ * Publie un message sur le mur du Club.
+ *
+ * ⚠️ NI LE NOM NI LES COMPTEURS NE SONT TRANSMIS. Le serveur lit le nom d'affichage dans
+ * le profil — l'accepter du client, ce serait accepter qu'il choisisse sous quel nom il
+ * parle — et initialise `likes`/`reposts` à zéro, que la règle Firestore interdit à
+ * l'auteur de réécrire : c'est la seule personne qui a intérêt à les gonfler.
+ */
+export async function posterAuClub(
+  texte: string, categorie?: string,
+): Promise<import('./types').VueClubMessage> {
+  const { message } = await appeler<{ message: import('./types').VueClubMessage }>(
+    'posterAuClub', { texte, categorie },
+  );
+  return message;
+}
+
+/** Les séances à venir — directs et ateliers fusionnés, triés par date. */
+export function useAgenda(): Etat<readonly VueSeance[]> {
+  const brut = useVue<readonly VueSeance[]>('appClubAgenda');
+  return composerListe(brut, AGENDA.map((s, i) => ({
+    id: String(i),
+    collection: 'club_sessions',
+    jour: s.jour,
+    titre: s.titre,
+    horaire: s.horaire,
+    glyphe: s.glyphe,
+    territoire: s.territoire,
+    inscrite: s.inscrite,
+    places: 'places' in s ? s.places : null,
+  })));
+}
+
+/**
+ * Réserve une place, ou la libère.
+ *
+ * Le document d'inscription porte l'uid comme IDENTIFIANT : réserver deux fois ne crée
+ * pas deux places, et la règle Firestore s'appuie sur ce même identifiant pour savoir à
+ * qui la ligne appartient. L'écran promettait déjà que « se réinscrire ne crée pas de
+ * doublon » — c'est vrai parce que le chemin l'impose, pas par attention.
+ */
+export async function reserverSession(
+  collection: string, seanceId: string, inscrite: boolean,
+): Promise<void> {
+  await appeler('reserverSession', { collection, seanceId, inscrite });
 }

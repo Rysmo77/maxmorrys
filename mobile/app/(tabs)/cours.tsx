@@ -47,10 +47,10 @@ export default function Cours() {
       titre={isIOS ? undefined : 'Mes cours'}
       droite={
         <>
-          <IconButton label="Chercher une formation">
+          <IconButton disabled label="Chercher une formation">
             <Icon name="search" size={17} color={t('textBody')} strokeWidth={2.4} />
           </IconButton>
-          <IconButton label="Notifications" badge>
+          <IconButton disabled label="Notifications" badge>
             <Icon name="bell" size={17} color={t('textBody')} strokeWidth={2} />
           </IconButton>
         </>

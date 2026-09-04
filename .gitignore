@@ -36,3 +36,12 @@ max-morrys-*.json
 # Manifeste de reprise de la copie GCS → R2 (état local, pas de la configuration)
 .migration-gcs-r2.json
 .rules-backup/
+
+# Worktrees git crees sous .claude/ : une copie complete du depot, que `git add -A`
+# emporterait sans prevenir. Ce depot a deja vu deux balayages accidentels de travail
+# en cours ; celui-ci porterait des milliers de fichiers.
+.claude/worktrees/
+
+# Originaux des couvertures, avant réencodage (`scripts/covers-weight.mjs --backup`).
+# 37 Mo de binaires : c'est un filet de sécurité local, pas un artefact du dépôt.
+.covers-backup/

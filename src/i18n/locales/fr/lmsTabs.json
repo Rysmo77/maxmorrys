@@ -442,13 +442,15 @@
     "sendCenter": "Centre de notifications",
     "sendCenterNote": "Tout ce qui t'est adressé arrive là, et seulement là.",
     "sendEmail": "Par e-mail",
-    "sendEmailNote": "Rien à régler : seuls les e-mails nécessaires partent — reçu, rappel d'échéance, réponse à un message. Aucune lettre, aucune relance.",
+    "sendEmailNote": "La lettre, une fois toutes les deux semaines. Les e-mails nécessaires — reçu, rappel d'échéance, réponse à un message — partent de toute façon : ils ne se règlent pas ici.",
     "sendTruthTitle": "Ce que ce réglage fait aujourd'hui",
-    "sendTruthBody": "Ce qui part de moi arrive dans ton centre de notifications, dans l'application — et seulement si tu la rouvres. Aucun e-mail ne part encore : la ligne grisée le dit au lieu de le laisser croire.",
+    "sendTruthBody": "Ce qui part de moi arrive dans ton centre de notifications, dans l'application — et seulement si tu la rouvres. La lettre, elle, arrive par e-mail, et cet interrupteur la coupe pour de bon.",
     "publishAlert": "Me prévenir à la publication",
     "publishAlertNote": "Une notification ici quand une formation ou un article paraît. Rien par e-mail.",
     "toastPublishOn": "C'est activé. Tu seras prévenu ici à la prochaine publication.",
-    "toastPublishOff": "C'est désactivé. Plus aucune notification de publication."
+    "toastPublishOff": "C'est désactivé. Plus aucune notification de publication.",
+    "toastNewsletterOn": "C'est bon, tu reçois la lettre.",
+    "toastNewsletterOff": "C'est coupé. Tu ne recevras plus la lettre."
   },
   "testimonials": {
     "shareTitle": "Partager un avis",

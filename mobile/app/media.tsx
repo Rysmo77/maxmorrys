@@ -56,7 +56,7 @@ export default function Media() {
       territory="transforme"
       retour="Profil"
       droite={
-        <IconButton label="Chercher un épisode">
+        <IconButton disabled label="Chercher un épisode">
           <Icon name="search" size={17} color={t('textBody')} strokeWidth={2.4} />
         </IconButton>
       }

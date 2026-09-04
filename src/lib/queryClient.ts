@@ -29,8 +29,14 @@ export const queryKeys = {
   // blog en demande 50. Même clé = une des deux vues serait tronquée.
   homeRecentPosts: ['blog', 'recent', 5] as const,
   featuredTestimonials: ['testimonials', 'featured'] as const,
-  /* Une seule clé pour l'index ET la page d'une question : 46 documents, un aller. La page
-     d'une question y trouve aussi ses voisines, sans requête par catégorie. */
+  /* Une seule clé pour l'index ET la page d'une question : la collection entière, un seul
+     aller. La page d'une question y trouve aussi ses voisines, sans requête par catégorie.
+
+     ⚠️ Le nombre de questions n'est PAS écrit ici, et c'est délibéré. Il l'était — « 46 » —
+     et c'était faux : 46 est le nombre d'ARTICLES, recopié de commentaire en commentaire
+     jusque sur la FAQ, qui en comptait 24 le 03/09/2026. Un chiffre qu'aucun test ne garde
+     finit toujours par mentir ; celui-ci n'apportait aucun argument que « la collection
+     entière » ne porte déjà. */
   faq: ['faq', 'all'] as const,
   /* Les seuls chiffres que les pages publiques ont le droit d'afficher (AD-5). Comptés côté
      serveur, donc une lecture au lieu de quarante-six — le forfait est compté, ici. */

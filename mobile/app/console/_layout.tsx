@@ -61,7 +61,7 @@ export function ConsoleScreen({
       onRetour={() => (router.canGoBack() ? router.back() : router.replace('/console'))}
       titre={isIOS ? undefined : titre}
       droite={
-        <IconButton label="Notifications" badge>
+        <IconButton disabled label="Notifications" badge>
           <Icon name="bell" size={17} color={t('textBody')} strokeWidth={2} />
         </IconButton>
       }

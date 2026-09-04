@@ -4,6 +4,7 @@ import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from '../constants';
 import { asText } from '../seo/values';
 import { stripMarkdown } from './html';
 import { enPath } from './segments';
+import { getFaqQuestionMeta } from './faq';
 import type { PageMeta } from './types';
 
 /** Port de la résolution de contenu dynamique de `functions/src/prerender.ts`. */
@@ -83,6 +84,18 @@ export async function getContentMeta(
   path: string,
   lang: 'fr' | 'en',
 ): Promise<PageMeta | null> {
+  /*
+   * Question de la FAQ : /faq/:slug
+   *
+   * En tête, et pas en queue : `routes.ts` route `/faq/**` vers le pré-rendu depuis que les
+   * questions ont une adresse, mais aucune branche ne les produisait — toutes repartaient en
+   * `noindex` avec la méta générique du site. La résolution vit dans `faq.ts` parce qu'elle
+   * ne ressemble à aucune des quatre autres : pas de champ `status`, pas de `slug_en`, et un
+   * slug DÉRIVÉ du texte de la question, donc impossible à interroger directement.
+   */
+  const faqMatch = path.match(/^\/faq\/([^/?#]+)$/);
+  if (faqMatch) return getFaqQuestionMeta(db, faqMatch[1], lang);
+
   // Article : /blog/:slug
   const blogMatch = path.match(/^\/blog\/([^/?#]+)$/);
   if (blogMatch) {
@@ -98,6 +111,7 @@ export async function getContentMeta(
       description: str(post.metaDescription) || str(post.excerpt) || '',
       ogType: 'article',
       ogImage: str(post.ogImage) || str(post.coverImage) || DEFAULT_OG_IMAGE,
+      ogImageAlt: str(post.title),
       noIndex: post.noIndex === true,
       publishedAt: str(post.publishedAt),
       modifiedAt: str(post.updatedAt),
@@ -151,6 +165,7 @@ export async function getContentMeta(
       description: str(formation.metaDescription) || str(formation.description) || '',
       ogType: 'website',
       ogImage: str(formation.ogImage) || str(formation.coverImage) || DEFAULT_OG_IMAGE,
+      ogImageAlt: str(formation.title),
       noIndex: formation.noIndex === true,
       publishedAt: str(formation.publishedAt),
       modifiedAt: str(formation.updatedAt),
@@ -213,6 +228,7 @@ export async function getContentMeta(
       description: str(podcast.metaDescription) || str(podcast.description) || '',
       ogType: 'music.song',
       ogImage: str(podcast.ogImage) || str(podcast.coverImage) || DEFAULT_OG_IMAGE,
+      ogImageAlt: str(podcast.title),
       noIndex: podcast.noIndex === true,
       publishedAt: str(podcast.publishedAt),
       modifiedAt: str(podcast.updatedAt),
@@ -256,6 +272,7 @@ export async function getContentMeta(
       description: str(video.metaDescription) || str(video.description) || '',
       ogType: 'video.other',
       ogImage: str(video.ogImage) || str(video.thumbnailUrl) || DEFAULT_OG_IMAGE,
+      ogImageAlt: str(video.title),
       noIndex: video.noIndex === true,
       publishedAt: str(video.publishedAt),
       modifiedAt: str(video.updatedAt),

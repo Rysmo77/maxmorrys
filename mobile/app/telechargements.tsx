@@ -79,6 +79,7 @@ export default function Telechargements() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Supprimer : ${l.titre}`}
+                disabled
                 hitSlop={4}
                 style={{
                   width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
@@ -102,7 +103,7 @@ export default function Telechargements() {
           sur {stockage.plafond} que l'app s'autorise. Au-delà, elle supprime d'abord les
           leçons déjà terminées.
         </Body>
-        <Button tone="quiet" label="Tout supprimer" style={{ marginTop: 14 }} />
+        <Button tone="quiet" label="Tout supprimer" disabled style={{ marginTop: 14 }} />
       </Surface>
 
       <Surface level="truth" style={{ marginTop: 12, padding: 15 }}>

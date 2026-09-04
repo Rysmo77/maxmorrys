@@ -1,8 +1,15 @@
 import type { CallContext } from './context';
 import { acknowledgeAppointment } from './handlers/acknowledgeAppointment';
 import { resendTransactionMail } from './handlers/resendTransactionMail';
+import { appClubListe } from './handlers/app/clubListe';
+import { appConsole } from './handlers/app/console';
+import { appRepetiteur } from './handlers/app/repetiteur';
+import { appClubAgenda } from './handlers/app/clubAgenda';
+import { appClubClassement } from './handlers/app/clubClassement';
+import { appClubFil } from './handlers/app/clubFil';
 import { appClub } from './handlers/app/club';
 import { appCertificats } from './handlers/app/certificats';
+import { appMedia } from './handlers/app/media';
 import { appLecon } from './handlers/app/lecon';
 import { appNotes } from './handlers/app/notes';
 import { appCours } from './handlers/app/cours';
@@ -12,15 +19,18 @@ import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from '.
 import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
 import { creerMonProfil } from './handlers/creerMonProfil';
+import { ecrireUneNote } from './handlers/ecrireUneNote';
 import { deleteUserAccount, exportUserData } from './handlers/gdpr';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
 import { importSpotifyEpisodesManual } from './handlers/importSpotifyEpisodesManual';
 import { issueCertificate } from './handlers/issueCertificate';
+import { marquerLecon } from './handlers/marquerLecon';
 import { mediaToken } from './handlers/mediaToken';
 import { joinWaitlist } from './handlers/joinWaitlist';
 import { notifyOnPublish } from './handlers/notifyOnPublish';
 import { notifyWaitlist } from './handlers/notifyWaitlist';
 import { parseCv } from './handlers/parseCv';
+import { posterAuClub } from './handlers/posterAuClub';
 import { popupEvent } from './handlers/popupEvent';
 import {
   createBictorysCharge,
@@ -29,9 +39,11 @@ import {
   createRysmoSubscriptionCharge,
 } from './handlers/payments';
 import { quoteCheckout } from './handlers/quoteCheckout';
+import { reserverSession } from './handlers/reserverSession';
 import { reindexSearch } from './handlers/reindexSearch';
 import { replyToMessage } from './handlers/replyToMessage';
 import { rysmo } from './handlers/rysmo';
+import { signalerMembre } from './handlers/signalerMembre';
 import { spotifyProxy } from './handlers/spotifyProxy';
 import { syncMediaStatsManual } from './handlers/syncMediaStatsManual';
 import { weeklyClubDigestManual } from './handlers/weeklyClubDigestManual';
@@ -53,6 +65,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   rysmo,
   getRysmoQuota,
   // Lectures et proxies
+  signalerMembre,
   spotifyProxy,
   syncMediaStatsManual,
   youtubeProxy,
@@ -69,14 +82,22 @@ export const HANDLERS: Record<string, CallHandler> = {
   adminCreateUser,
   appCertificats,
   appClub,
+  appClubAgenda,
+  appClubClassement,
+  appConsole,
+  appRepetiteur,
+  appClubFil,
+  appClubListe,
   appCours,
   appLecon,
+  appMedia,
   appNotes,
   appEspace,
   appMoi,
   adminManageRysmoQuota,
   adminManageEnrollment,
   reindexSearch,
+  reserverSession,
   backfillSlugEn,
   weeklyClubDigestManual,
   // Répond à un message de contact : écrit la réponse, notifie, envoie l'e-mail.
@@ -94,10 +115,13 @@ export const HANDLERS: Record<string, CallHandler> = {
   createRysmoPackCharge,
   createRysmoSubscriptionCharge,
   // RGPD
+  ecrireUneNote,
   exportUserData,
   deleteUserAccount,
   // Mesure — compteurs agrégés, sans donnée personnelle
   popupEvent,
+  posterAuClub,
   // Accès aux médias protégés
+  marquerLecon,
   mediaToken,
 };
