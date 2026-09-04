@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { uploadMedia } from '../../lib/storage';
 import { baseType, extensionFor, pickMimeType } from '../../lib/media/container';
+import { rmsFromTimeDomain } from '../../lib/media/level';
 import { Button, Icon, type IconName } from '@ds';
 
 /**
@@ -53,6 +54,8 @@ interface MediaRecorderInputProps {
 
 const MAX_SECONDS = 120;
 const MAX_BYTES = 100 * 1024 * 1024;
+/** Barres de l'enveloppe sonore — deux secondes d'historique à 20 relevés par seconde. */
+const METER_BARS = 40;
 
 function supportsRecording(): boolean {
   return (
@@ -81,12 +84,25 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
   const [error, setError] = useState<string | null>(null);
   /** Ce qu'un lecteur d'écran entend quand l'état change — jamais le compteur qui défile. */
   const [status, setStatus] = useState('');
+  /**
+   * L'ENVELOPPE DU SON, EN TRAIN D'ÊTRE CAPTÉ.
+   *
+   * En audio, il n'existait AUCUN retour pendant l'enregistrement : un compteur qui monte,
+   * et rien d'autre. Or c'est le format où l'on ne voit rien — micro coupé, mauvaise
+   * entrée sélectionnée, casque débranché se découvraient à la relecture, après le
+   * téléversement. Ces valeurs sont mesurées sur le flux réel (RMS d'un `AnalyserNode`),
+   * jamais simulées : une barre qui bouge sans écouter mentirait exactement là où l'on a
+   * besoin d'être rassuré.
+   */
+  const [levels, setLevels] = useState<number[]>([]);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const livePreviewRef = useRef<HTMLVideoElement>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const rafRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const stopStream = () => {
@@ -145,17 +161,87 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
     if (recording && elapsed >= MAX_SECONDS) stopRecording();
   }, [recording, elapsed]);
 
+  /*
+   * ══════════════════════════════════════════════════════════════════════════════════
+   * BRANCHER LE FLUX SUR CE QUI N'EXISTE PAS ENCORE — LE DÉFAUT, ET SA FORME EXACTE.
+   *
+   * Le `<video>` d'aperçu n'est rendu QUE sous `recording`. Or `startRecording` posait
+   * `livePreviewRef.current.srcObject = stream` AVANT `setRecording(true)` : à cet instant
+   * l'élément n'est pas monté, la référence vaut `null`, et le garde `&&` avalait tout le
+   * bloc sans lever quoi que ce soit. La caméra s'allumait, le voyant du portable
+   * s'allumait, et l'écran ne montrait que le fond sombre de la boîte.
+   *
+   * Rien ne pouvait le signaler : pas d'exception, pas de console, et l'enregistrement
+   * PRODUISAIT un fichier correct. Seul l'œil, sur un écran déjà rendu, voyait le noir.
+   *
+   * Un effet ne peut pas se tromper de moment : React ne l'exécute qu'après avoir posé le
+   * DOM. `streamRef.current` est renseigné avant que `recording` ne bascule, donc il est
+   * là quand l'effet part.
+   * ══════════════════════════════════════════════════════════════════════════════════
+   */
+  useEffect(() => {
+    const stream = streamRef.current;
+    if (!recording || !stream) return;
+
+    const el = livePreviewRef.current;
+    if (mode === 'video' && el) {
+      el.srcObject = stream;
+      // `muted` est indispensable AVANT `play()` : sans lui, Safari et Chrome refusent la
+      // lecture automatique — et l'aperçu renverrait en plus le son du micro dans la pièce.
+      el.muted = true;
+      void el.play().catch(() => null);
+    }
+
+    let ctx: AudioContext | null = null;
+    if (mode === 'audio') {
+      type WithWebkit = typeof window & { webkitAudioContext?: typeof AudioContext };
+      const Ctor = window.AudioContext ?? (window as WithWebkit).webkitAudioContext;
+      if (Ctor) {
+        ctx = new Ctor();
+        audioCtxRef.current = ctx;
+        /* Un contexte créé hors du geste de l'utilisateur naît SUSPENDU — et un analyseur
+           suspendu ne rend que du silence. L'effet part après `getUserMedia`, donc hors du
+           clic : sans ce réveil, la barre resterait plate quoi qu'on dise. */
+        void ctx.resume().catch(() => null);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 1024;
+        ctx.createMediaStreamSource(stream).connect(analyser);
+
+        const frame = new Uint8Array(analyser.fftSize);
+        let last = 0;
+        const tick = () => {
+          rafRef.current = requestAnimationFrame(tick);
+          const now = performance.now();
+          // ~20 relevés par seconde : au-delà, on rend soixante fois pour un œil qui ne
+          // distingue pas la différence.
+          if (now - last < 50) return;
+          last = now;
+          analyser.getByteTimeDomainData(frame);
+          const rms = rmsFromTimeDomain(frame);
+          setLevels((prev) => [...prev.slice(-(METER_BARS - 1)), rms]);
+        };
+        tick();
+      }
+    }
+
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      if (el) el.srcObject = null;
+      void ctx?.close().catch(() => null);
+      audioCtxRef.current = null;
+      setLevels([]);
+    };
+  }, [recording, mode]);
+
   const startRecording = async () => {
     setError(null);
     try {
       const constraints = mode === 'video' ? { audio: true, video: true } : { audio: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
-      if (mode === 'video' && livePreviewRef.current) {
-        livePreviewRef.current.srcObject = stream;
-        livePreviewRef.current.muted = true;
-        await livePreviewRef.current.play().catch(() => null);
-      }
+      // Le flux est branché sur l'élément par un EFFET, pas ici : à cet instant `recording`
+      // vaut encore `false`, donc ni le `<video>` ni le niveau ne sont montés.
       chunksRef.current = [];
 
       const wanted = pickMimeType(mode);
@@ -175,7 +261,6 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
         if (localUrl) URL.revokeObjectURL(localUrl);
         setLocalUrl(URL.createObjectURL(blob));
         stopStream();
-        if (livePreviewRef.current) livePreviewRef.current.srcObject = null;
         setStatus(t('mediaRecorder.statusStopped'));
         void uploadBlob(blob, extensionFor(encoded, mode === 'video' ? 'mp4' : 'm4a'));
       };
@@ -228,9 +313,47 @@ export default function MediaRecorderInput({ mode, userId, value, onChange, fold
           seconde annoncée chaque seconde recouvre tout le reste de la page. */}
       <p className="sr-only" role="status" aria-live="polite">{status}</p>
 
-      {/* Live preview while recording video */}
+      {/* L'aperçu de la caméra. `muted` est posé ici ET dans l'effet : en attribut il évite
+          le bref larsen du premier rendu, dans l'effet il garantit la lecture automatique. */}
       {mode === 'video' && recording && (
-        <video ref={livePreviewRef} className="w-full max-h-64 rounded-xs bg-[color:var(--surface-night)]" playsInline />
+        <video
+          ref={livePreviewRef}
+          className="w-full max-h-64 rounded-xs bg-[color:var(--surface-night)]"
+          playsInline
+          muted
+        />
+      )}
+
+      {/* L'équivalent pour le son : ce que le micro entend, à l'instant où il l'entend.
+          `scaleY` et non `height` — AD-16 ne laisse bouger que transform et opacity. */}
+      {mode === 'audio' && recording && (
+        <div
+          className="flex items-end gap-[3px] h-12 w-full rounded-xs bg-[color:var(--fill-2)] px-2 py-1.5"
+          role="meter"
+          aria-label={t('mediaRecorder.levelLabel')}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round((levels[levels.length - 1] ?? 0) * 100)}
+        >
+          {Array.from({ length: METER_BARS }, (_, i) => {
+            // Les relevés arrivent par la droite : la barre la plus à droite est la plus
+            // récente, et l'historique glisse vers la gauche.
+            const level = levels[levels.length - METER_BARS + i] ?? 0;
+            return (
+              <span
+                key={i}
+                className="flex-1 rounded-pill bg-[color:var(--stop)]"
+                style={{
+                  height: '100%',
+                  // Un plancher visible : une barre à zéro doit rester une barre, sinon
+                  // le silence ressemble à une panne.
+                  transform: `scaleY(${Math.max(0.06, level)})`,
+                  transformOrigin: 'bottom',
+                }}
+              />
+            );
+          })}
+        </div>
       )}
 
       {/* ── Au repos : les deux façons d'apporter un média, et ce qui les borne ───── */}
