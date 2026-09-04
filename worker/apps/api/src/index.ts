@@ -160,7 +160,7 @@ export default {
         const db = getFirestore(env);
 
         /*
-          CINQ TRAVAUX, CINQ `try`. Ils n'ont rien à voir entre eux : une requête refusée
+          SIX TRAVAUX, SIX `try`. Ils n'ont rien à voir entre eux : une requête refusée
           sur la gamification ne doit pas empêcher un rappel d'échéance de partir. Le premier
           qui lèverait emporterait tous les suivants s'ils partageaient un seul bloc.
         */

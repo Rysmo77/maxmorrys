@@ -106,7 +106,7 @@ describe('l’audience rassemblée', () => {
 });
 
 describe('la passe de synchronisation', () => {
-  it('se tait proprement quand Listmonk n’est pas configuré', async () => {
+  it('se tait proprement quand Brevo n’est pas configuré', async () => {
     const db = fauxDb({ newsletter: [{ email: 'awa@example.com', consent: true }] });
     const bilan = await synchroniserAudience(db, {} as Env);
     expect(bilan.pousses).toBe(0);
