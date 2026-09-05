@@ -73,6 +73,55 @@ export function normalizePath(pathname: string): string {
   return stripped === '' ? '/' : stripped;
 }
 
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * CE QUI PART À L'ORIGINE SANS PRÉ-RENDU EMPRUNTE L'IDENTITÉ DE L'ACCUEIL.
+ *
+ * Mesuré sur la production, en se présentant comme `facebookexternalhit` :
+ *
+ *     GET /connexion  →  <title>Max-Morrys | Maîtrise le digital…</title>
+ *                        og:url = https://maxmorrys.me
+ *                        ni canonical, ni robots
+ *
+ * C'est le shell SPA tel quel. Ces pages posent pourtant `noIndex` via `SEOHead`, et
+ * ce `noIndex` n'atteint AUCUN crawler : il est écrit par React, après hydratation,
+ * dans un DOM que les robots sociaux ne construisent jamais. Résultat : plusieurs URL
+ * différentes présentent aux moteurs le titre, la description et l'`og:url` de la page
+ * d'accueil — c'est-à-dire un signal de contenu dupliqué contre `/` elle-même.
+ *
+ * POURQUOI UN EN-TÊTE PLUTÔT QU'UN PRÉ-RENDU. Les faire entrer dans le pipeline
+ * coûterait un aller-retour Firestore pour des pages sans contenu indexable. Un
+ * `X-Robots-Tag` fait le même travail, à l'octet près, sans quitter le bord.
+ *
+ * ⚠️ CE QUE CETTE LISTE NE PEUT PAS COUVRIR : la route attrape-tout du 404. L'origine
+ * répond 200 sur un chemin inconnu — c'est une SPA — donc rien ici ne permet de le
+ * distinguer d'une page réelle. Ce trou-là se ferme dans le routeur, pas au bord.
+ *
+ * `robots.txt` couvre déjà `/admin`, `/mon-espace`, `/checkout`, `/paiement` et `/403` :
+ * ils sont absents de cette liste à dessein. Un chemin dont l'exploration est interdite
+ * n'est jamais récupéré, donc son en-tête n'est jamais lu.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+const NOINDEX_EXACT = new Set([
+  '/connexion',
+  '/inscription',
+  '/mot-de-passe-oublie',
+  '/en/sign-in',
+  '/en/signup',
+  '/en/forgot-password',
+]);
+
+/** Un devis porte une référence client dans son URL : rien de tout ça n'a à être indexé. */
+const NOINDEX_PREFIXES = ['/presence-digitale/devis/', '/en/local-presence/quote/'];
+
+/** Ce chemin doit-il être servi avec `X-Robots-Tag: noindex, nofollow` ? */
+export function shouldNoIndex(pathname: string): boolean {
+  const path = normalizePath(pathname);
+  if (NOINDEX_EXACT.has(path)) return true;
+  // Le chemin brut est testé aussi, pour la même raison que dans `resolveRoute`.
+  return NOINDEX_PREFIXES.some((prefix) => path.startsWith(prefix) || pathname.startsWith(prefix));
+}
+
 export function resolveRoute(pathname: string): Route {
   const path = normalizePath(pathname);
 

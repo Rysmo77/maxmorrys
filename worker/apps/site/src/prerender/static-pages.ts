@@ -235,6 +235,42 @@ export const staticPages: Record<string, PageMeta> = {
       { name: 'Accueil', url: `${SITE_URL}/` },
       { name: 'Agence', url: `${SITE_URL}/agence` },
     ],
+    /*
+     * CE BALISAGE EXISTAIT DÉJÀ — CÔTÉ REACT, DONC POUR PERSONNE.
+     *
+     * `src/pages/Agence.tsx` posait `Service` et `Brand` via Helmet. Sur une route
+     * prérendue, le Worker écrit le `<head>` que lisent les robots, et React ne repasse
+     * qu'après hydratation : aucun crawler ne voyait ce bloc. La page commerciale la plus
+     * chère du site n'avait donc, pour les moteurs, aucune donnée structurée.
+     *
+     * ⚠️ `provider` = MY ONOMA SARL, `brand` = Max-Morrys Agency. Max-Morrys Agency est une
+     * MARQUE, pas une personne morale : il ne doit jamais exister d'`Organization` autonome
+     * portant ce nom. Miroir de `src/lib/brand/company.ts` et `practices.ts`, tenu par
+     * `tests/unit/pages-commerciales-miroir.test.ts`.
+     */
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: 'Max-Morrys Agency',
+        serviceType: 'Digital Product · AI · Technology · Brand',
+        description:
+          'Nous concevons les produits numériques, systèmes IA et expériences digitales dont les entreprises ont besoin pour avancer. Practice Product, AI, Technology & Brand de MY ONOMA, depuis Dakar.',
+        url: `${SITE_URL}/agence`,
+        brand: { '@type': 'Brand', name: 'Max-Morrys Agency' },
+        provider: {
+          '@type': 'Organization',
+          name: 'MY ONOMA SARL',
+          url: 'https://myonoma.com',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Quartier Ouakam, Cité Batrain, Lot 384',
+            addressLocality: 'Dakar',
+            addressCountry: 'SN',
+          },
+        },
+      },
+    ],
   },
   // Offre « Digital Commerce Local » — déplacée depuis /agence, à contenu constant.
   // ⚠️ Les montants doivent rester alignés sur src/lib/presence/offer.ts.
@@ -251,6 +287,42 @@ export const staticPages: Record<string, PageMeta> = {
     breadcrumbs: [
       { name: 'Accueil', url: `${SITE_URL}/` },
       { name: 'Présence Digitale', url: `${SITE_URL}/presence-digitale` },
+    ],
+    /*
+     * Même constat que pour `/agence` : `Service` et `OfferCatalog` étaient posés par
+     * `src/pages/PresenceDigitale.tsx`, donc jamais lus par un moteur.
+     *
+     * ⚠️ LES MONTANTS SONT UN MIROIR DE `src/lib/presence/offer.ts`, ET C'EST LE SECOND :
+     * `bodyText` juste au-dessus les écrit déjà en toutes lettres, sans que rien ne le
+     * vérifie. `tests/unit/pages-commerciales-miroir.test.ts` tient désormais les deux.
+     *
+     * Le prix émis est le prix EFFECTIF (`promoPrice ?? price`), pas le prix de liste :
+     * c'est ce que la personne paie, et c'est ce que `Offer.price` désigne. Le pack
+     * « Présence Locale » est donc à 250 000, pendant que la prose annonce 295 000 barré —
+     * l'écart est voulu et suit `packEffectivePrice()`.
+     *
+     * Aucun `aggregateRating` : le produit n'a pas d'avis collectés, et en fabriquer un
+     * serait le premier des six interdits.
+     */
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: 'Je digitalise ton commerce — Site, Google Maps, WhatsApp',
+        description:
+          'Ton commerce visible 24h/24, trouvé sur Google Maps et présent sur WhatsApp. Mise en place et accompagnement mensuel pour les commerces de Dakar, Abidjan et Cotonou.',
+        areaServed: "Afrique de l'Ouest",
+        url: `${SITE_URL}/presence-digitale`,
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          name: 'Packs de mise en place',
+          itemListElement: [
+            { '@type': 'Offer', name: 'Présence Locale', price: 250000, priceCurrency: 'XOF' },
+            { '@type': 'Offer', name: 'Commerce Visible', price: 495000, priceCurrency: 'XOF' },
+            { '@type': 'Offer', name: 'Boutique Digitale', price: 895000, priceCurrency: 'XOF' },
+          ],
+        },
+      },
     ],
   },
   '/contact': {

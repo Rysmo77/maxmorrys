@@ -39,10 +39,19 @@ export const auth = getAuth(app);
 // Le second argument accepte soit une région, soit un domaine personnalisé : le
 // SDK appelle alors `${domaine}/${nomDeLaFonction}`. C'est le point de bascule
 // des callables vers Cloudflare — les sites `httpsCallable` restent inchangés.
-// Non défini = comportement historique (Cloud Functions us-central1).
+//
+// ⚠️ LE REPLI NE PEUT PLUS ÊTRE UNE RÉGION. Il valait `'us-central1'`, c'est-à-dire
+// Cloud Functions — un backend qui N'EXISTE PLUS : `functions/` a été supprimé le
+// 03/09/2026, le projet est Cloudflare-only. Un build sans `VITE_FUNCTIONS_ORIGIN`
+// envoyait donc les 33 `httpsCallable` — paiements, inscriptions, Rysmo, certificats —
+// vers `us-central1-….cloudfunctions.net`, qui ne répond plus. La CSP l'autorisait
+// encore, si bien que l'appel partait vraiment et échouait en 404 : une panne
+// fonctionnelle sans la moindre violation visible en console.
+// Le repli pointe désormais là où le backend vit réellement, et `*.cloudfunctions.net`
+// a quitté `connect-src` dans `firebase.json` — voir `tests/unit/csp.test.ts`.
 export const functions = getFunctions(
   app,
-  import.meta.env.VITE_FUNCTIONS_ORIGIN || 'us-central1',
+  import.meta.env.VITE_FUNCTIONS_ORIGIN || 'https://api.maxmorrys.me',
 );
 
 // En dev, on cible les fonctions de PROD par défaut. Mettre VITE_USE_FUNCTIONS_EMULATOR=true

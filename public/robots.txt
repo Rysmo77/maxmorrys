@@ -7,8 +7,16 @@ Disallow: /paiement
 Disallow: /403
 # Équivalents anglais — l'arbre de routes est monté deux fois, les chemins /en/ existent
 # réellement et étaient jusqu'ici indexables.
+#
+# ⚠️ CES SEGMENTS SONT UNE COPIE DE `src/i18n/segments.ts`. `/en/my-space` a figuré ici
+# alors que le segment anglais de `mon-espace` valait `my-learning` depuis son alignement
+# sur la table du design system : la ligne protégeait une URL qui redirige, pendant que
+# l'espace apprenant restait ouvert à l'indexation. Rien ne pouvait le voir — un
+# `Disallow` qui ne correspond à aucune route ne produit aucune erreur.
+# `tests/unit/segments-sync.test.ts` confronte désormais chaque `Disallow: /en/…` à la
+# table des segments.
 Disallow: /en/admin
-Disallow: /en/my-space
+Disallow: /en/my-learning
 Disallow: /en/checkout
 Disallow: /en/payment
 Disallow: /en/403

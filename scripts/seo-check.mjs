@@ -134,6 +134,42 @@ async function main() {
   console.log(`Sitemap : ${declared.length} URL déclarées`);
 
   /*
+   * DEUX ENTRÉES POUR LA MÊME PAGE, QUI NE DISENT PAS LA MÊME CHOSE.
+   *
+   * Ce contrôle manquait, et c'est pour ça que le défaut a vécu : trois articles français
+   * étaient déclarés DEUX FOIS, chaque fois avec un `hreflang="en"` DIFFÉRENT — deux
+   * documents de traduction anglais coexistaient en base, l'un des slugs finissant par
+   * `-2`. Le sitemap recopiait fidèlement les deux.
+   *
+   * Rien d'autre ne pouvait le voir. La page elle-même est irréprochable : elle ne déclare
+   * qu'un seul alternate, le sien. C'est la RENCONTRE des deux entrées qui se contredit,
+   * et un cluster hreflang non réciproque n'est pas corrigé par Google — il est ignoré EN
+   * BLOC. Les deux versions linguistiques perdent leur appariement d'un coup, sans qu'une
+   * seule URL soit en erreur.
+   */
+  const alternatesParLoc = new Map();
+  for (const bloc of sitemap.match(/<url>[\s\S]*?<\/url>/g) || []) {
+    const loc = bloc.match(/<loc>([^<]+)<\/loc>/)?.[1];
+    if (!loc) continue;
+    const alternates = [...bloc.matchAll(/hreflang="([^"]+)"\s+href="([^"]+)"/g)]
+      .map((m) => `${m[1]}=${m[2]}`)
+      .sort()
+      .join(' ');
+    if (!alternatesParLoc.has(loc)) alternatesParLoc.set(loc, []);
+    alternatesParLoc.get(loc).push(alternates);
+  }
+  for (const [loc, entrees] of alternatesParLoc) {
+    if (entrees.length === 1) continue;
+    const distinctes = [...new Set(entrees)];
+    fail(
+      loc,
+      distinctes.length > 1
+        ? `déclarée ${entrees.length} fois au sitemap, avec des alternates hreflang CONTRADICTOIRES`
+        : `déclarée ${entrees.length} fois au sitemap`,
+    );
+  }
+
+  /*
    * L'échantillon prend une URL PAR FAMILLE plutôt que les vingt-quatre premières : les
    * défauts trouvés étaient tous concentrés sur une famille entière (les questions de la FAQ, les
    * CGU). Un échantillon en tête de liste ne les aurait jamais vus.

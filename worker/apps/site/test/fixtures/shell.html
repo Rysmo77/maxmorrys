@@ -9,7 +9,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA. Par Max-Morrys depuis Dakar." />
-    <meta name="theme-color" content="#0c93e7" />
+    <meta name="theme-color" content="#0057BC" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="google-site-verification" content="YhaFPQVPh5iGsYDAHTyxD6Zln18M3v00Q04K2rHEj0M" />
     <meta name="facebook-domain-verification" content="zk1tcw1svad4fl9p6t24jv9gyi5oe0" />
@@ -18,19 +18,19 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Max-Morrys" />
-    <meta property="og:title" content="Max-Morrys — Maîtrisez le digital" />
-    <meta property="og:description" content="Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA." />
+    <meta property="og:title" content="Max-Morrys | Maîtrise le digital, accélère ta croissance" />
+    <meta property="og:description" content="Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA. Par Max-Morrys depuis Dakar." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://maxmorrys.me" />
     <meta property="og:image" content="https://media.maxmorrys.me/Je-te-forme/2252.jpg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image:width" content="1500" />
+    <meta property="og:image:height" content="1000" />
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:site_name" content="Max-Morrys" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@max_morrys" />
-    <meta name="twitter:title" content="Max-Morrys — Maîtrisez le digital" />
-    <meta name="twitter:description" content="Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA." />
+    <meta name="twitter:title" content="Max-Morrys | Maîtrise le digital, accélère ta croissance" />
+    <meta name="twitter:description" content="Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA. Par Max-Morrys depuis Dakar." />
     <meta name="twitter:image" content="https://media.maxmorrys.me/Je-te-forme/2252.jpg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -99,12 +99,29 @@
       })();
     </script>
 
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    <!--
+      GOOGLE TAG MANAGER — L'IDENTIFIANT VIENT DE L'ENVIRONNEMENT, ET C'EST LE POINT.
+
+      Il était écrit en dur. Conséquence mesurable : chaque `npm run dev` et chaque canal de
+      preview émettait dans LA MÊME propriété GA4 et LE MÊME Pixel que la production. Les
+      chiffres sur lesquels se prennent les décisions comptaient donc aussi les sessions de
+      développement — sans qu'aucun rapport ne puisse les distinguer.
+
+      Vite substitue les jetons `VITE_*` encadrés de pourcents dans ce fichier au moment du
+      build. La garde `indexOf('GTM-')` n'est pas une ceinture de sécurité de plus : SANS
+      ELLE, un environnement qui ne définit pas la variable laisse le jeton NON SUBSTITUÉ
+      dans le code, et le snippet part chercher un conteneur qui n'existe pas.
+      Avec elle, l'absence de variable coupe la mesure — ce qui est exactement le
+      comportement voulu hors production.
+
+      La CI passe une valeur de repli explicite (`.github/workflows/ci.yml`), pour qu'une
+      variable de dépôt oubliée ne puisse jamais éteindre la mesure en production.
+    -->
+    <script>(function(w,d,s,l,i){if(i.indexOf('GTM-')!==0)return;w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-PJ3R433M');</script>
+    })(window,document,'script','dataLayer','%VITE_GTM_ID%');</script>
     <!-- End Google Tag Manager -->
 
     <!-- Meta Pixel Code -->
@@ -128,17 +145,31 @@
         }
       } catch(e) { fbq('consent', 'revoke'); }
     })();
-    fbq('init', '925361066071417');
+    /* Même raison que pour GTM : un identifiant absent NE DOIT PAS initialiser le Pixel.
+       Un Pixel initialisé sur un identifiant vide envoie quand même des requêtes. */
+    var mmPixelId = '%VITE_META_PIXEL_ID%';
+    if (/^[0-9]+$/.test(mmPixelId)) fbq('init', mmPixelId);
     </script>
     <!-- End Meta Pixel Code -->
   </head>
   <body>
-    <!-- Google Tag Manager (noscript) -->
+    <!--
+      GOOGLE TAG MANAGER (noscript) — SEUL ENDROIT OÙ L'IDENTIFIANT RESTE LITTÉRAL.
+
+      Il ne peut PAS porter le jeton de variable : le plugin `vite:build-html` passe chaque
+      attribut d'URL à `decodeURI`, et un jeton non substitué n'est pas un échappement
+      pourcent valide — le build échoue avec « URI malformed ». Vérifié, pas supposé.
+
+      Le laisser en dur ne rouvre pas le défaut qu'on corrige : ce repli ne s'exécute QUE
+      chez un visiteur sans JavaScript, alors que la pollution des chiffres venait des
+      sessions de développement et de preview, qui en ont. `tests/unit/tags-mesure.test.ts`
+      exige donc les variables sur le chemin JS, et tolère la valeur littérale ici.
+    -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PJ3R433M"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
 
-    <!-- Meta Pixel noscript fallback -->
+    <!-- Meta Pixel noscript — identifiant littéral, même raison que GTM ci-dessus. -->
     <noscript><img height="1" width="1" style="display:none" alt=""
     src="https://www.facebook.com/tr?id=925361066071417&ev=PageView&noscript=1"
     /></noscript>

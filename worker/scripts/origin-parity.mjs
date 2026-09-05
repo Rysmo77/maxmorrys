@@ -8,16 +8,36 @@
  *   #    même chose que le domaine public (hypothèse du passe-plat)
  *   node scripts/origin-parity.mjs https://maxmorrys.me https://max-morrys.web.app
  *
- *   # 2. Après bascule — vérifier que le Worker n'a rien changé
+ *   # 2. Après bascule — vérifier que le Worker n'a rien changé  ⚠️ OBSOLÈTE, voir plus bas
  *   node scripts/origin-parity.mjs https://max-morrys.web.app https://maxmorrys.me
  *
- * Sort en code 1 dès qu'une divergence SEO est détectée.
+ *   # 3. En continu — vérifier que le Worker n'a rien PERDU des en-têtes de l'origine
+ *   node scripts/origin-parity.mjs https://max-morrys.web.app https://maxmorrys.me --headers-only
+ *
+ * Sort en code 1 dès qu'une divergence est détectée.
+ *
+ * ⚠️ L'USAGE 2 NE VEUT PLUS RIEN DIRE, ET LE CROIRE COÛTERAIT UNE JOURNÉE.
+ *
+ * Il reposait sur une hypothèse morte : que l'origine Firebase Hosting prérendait, elle
+ * aussi, via ses rewrites vers des Cloud Functions. Ces fonctions ont été supprimées le
+ * 03/09/2026 et les rewrites retirés. L'origine sert donc le shell SPA nu, pendant que le
+ * Worker sert le pré-rendu — et LA DIVERGENCE EST DEVENUE LE BUT DU DISPOSITIF.
+ *
+ * Mesuré le 05/09/2026 : 18 routes divergentes sur 19, toutes légitimes. Câbler cette
+ * comparaison-là dans un job la rendrait rouge en permanence, c'est-à-dire ignorée.
+ *
+ * CE QUI RESTE VRAI, ET QUI VAUT D'ÊTRE GARDÉ : le Worker fabrique ses Response lui-même,
+ * donc il n'hérite d'AUCUN en-tête de l'origine — `applySecurityHeaders` les recopie à la
+ * main. Leur perte ne se voit dans aucun rendu. C'est la régression que ce script a déjà
+ * laissé passer une fois, et c'est ce que `--headers-only` continue de surveiller.
  */
 
-const [, , REFERENCE, CANDIDATE] = process.argv;
+const args = process.argv.slice(2);
+const HEADERS_ONLY = args.includes('--headers-only');
+const [REFERENCE, CANDIDATE] = args.filter((a) => !a.startsWith('--'));
 
 if (!REFERENCE || !CANDIDATE) {
-  console.error('Usage : node scripts/origin-parity.mjs <référence> <candidat>');
+  console.error('Usage : node scripts/origin-parity.mjs <référence> <candidat> [--headers-only]');
   process.exit(2);
 }
 
@@ -136,7 +156,7 @@ for (const path of PATHS) {
 
   const problems = [];
 
-  if (reference.status !== candidate.status) {
+  if (!HEADERS_ONLY && reference.status !== candidate.status) {
     problems.push(`statut ${reference.status} → ${candidate.status}`);
   }
 
@@ -152,7 +172,9 @@ for (const path of PATHS) {
     }
   }
 
-  if (path.endsWith('.xml') || path.endsWith('.csv')) {
+  if (HEADERS_ONLY) {
+    // Le corps et les balises ne sont plus comparables : le Worker les PRODUIT.
+  } else if (path.endsWith('.xml') || path.endsWith('.csv')) {
     // Contenu machine : comparaison ligne à ligne, domaine neutralisé.
     const a = normalize(reference.body).split('><').join('>\n<').split('\n');
     const b = normalize(candidate.body).split('><').join('>\n<').split('\n');
@@ -184,9 +206,10 @@ for (const path of PATHS) {
   }
 }
 
+const portee = HEADERS_ONLY ? 'En-têtes de sécurité conformes' : 'Parité confirmée';
 console.log(
   failures === 0
-    ? `\nParité confirmée sur ${PATHS.length} routes.`
+    ? `\n${portee} sur ${PATHS.length} routes.`
     : `\n${failures} route(s) divergente(s) sur ${PATHS.length}.`,
 );
 process.exit(failures === 0 ? 0 : 1);

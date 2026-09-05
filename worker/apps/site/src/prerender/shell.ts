@@ -47,10 +47,20 @@ const SECURITY_HEADERS = [
   'cross-origin-opener-policy',
 ];
 
-function shellResponse(html: string, origin?: Headers): Response {
+function shellResponse(html: string, origin?: Headers, degrade = false): Response {
   const headers = new Headers({
     'Content-Type': 'text/html; charset=utf-8',
-    'Cache-Control': `max-age=${SHELL_TTL_SECONDS}`,
+    /*
+     * UN REPLI NE SE MET PAS EN CACHE.
+     *
+     * Le shell dégradé ne porte ni GTM, ni Pixel, ni Consent Mode, ni le
+     * `<script type="module">` de l'application — donc page blanche — et aucun en-tête
+     * de sécurité, puisqu'il n'y a pas d'origine d'où les recopier. Lui laisser le
+     * `max-age` du shell normal faisait payer un hoquet de cinq secondes à l'origine
+     * pendant une minute pleine, PAR POP, sur TOUTES les routes prérendues à la fois.
+     * `no-store` ramène la panne à sa durée réelle.
+     */
+    'Cache-Control': degrade ? 'no-store' : `max-age=${SHELL_TTL_SECONDS}`,
   });
   for (const name of SECURITY_HEADERS) {
     const value = origin?.get(name);
@@ -89,5 +99,18 @@ export async function getSpaShell(env: Env, ctx: ExecutionContext): Promise<Resp
     console.error('Récupération du shell impossible :', error);
   }
 
-  return shellResponse(MINIMAL_FALLBACK);
+  /*
+   * ⚠️ PANNE TOTALE ET SILENCIEUSE — LE SEUL ENDROIT D'OÙ ELLE SE VOIT.
+   *
+   * À partir d'ici, TOUTES les routes prérendues sont servies avec dix lignes de HTML :
+   * pas d'application (page blanche pour un humain), pas de balises (identité vide pour
+   * un robot), pas d'en-têtes de sécurité (`applySecurityHeaders` n'a rien à recopier —
+   * c'est assumé, cf. `test/security-headers.test.ts`).
+   *
+   * Rien d'autre ne le signale : le Worker répond 200, la route est « saine » pour toute
+   * sonde qui regarde un code de statut. Ce préfixe est là pour être cherché tel quel
+   * dans l'observabilité Workers et servir de base à une alerte.
+   */
+  console.error('ALERTE shell-degrade : pré-rendu servi sans application ni en-têtes');
+  return shellResponse(MINIMAL_FALLBACK, undefined, true);
 }

@@ -190,3 +190,73 @@ describe('table des segments — les deux copies', () => {
     });
   }
 });
+
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * LA TROISIÈME COPIE DES SEGMENTS EST DANS `robots.txt`, ET PERSONNE NE LA REGARDAIT.
+ *
+ * Le fichier listait `Disallow: /en/my-space` alors que le segment anglais de
+ * `mon-espace` valait `my-learning` depuis son alignement sur la table du design system.
+ * La ligne protégeait donc une URL qui REDIRIGE (301 vers `/en/my-learning`), pendant que
+ * l'espace apprenant anglais — qui répond 200 — restait ouvert à l'indexation.
+ *
+ * C'est le même profil de défaut que tout ce fichier traque, avec un cran de plus : un
+ * `Disallow` qui ne correspond à aucune route ne produit AUCUNE erreur, nulle part. Ni
+ * chez Google, qui l'ignore en silence, ni au build, qui recopie le fichier tel quel.
+ * Le seul symptôme est une page privée qui apparaît dans un index — c'est-à-dire trop tard.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+describe('robots.txt — les chemins protégés existent vraiment', () => {
+  const disallows = readFileSync('public/robots.txt', 'utf8')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.startsWith('Disallow:'))
+    .map((l) => l.slice('Disallow:'.length).trim())
+    .filter(Boolean);
+
+  const fr = disallows.filter((p) => !p.startsWith('/en/'));
+  const en = disallows.filter((p) => p.startsWith('/en/'));
+
+  it('le relevé trouve les deux familles de chemins', () => {
+    expect(fr.length).toBeGreaterThan(0);
+    expect(en.length).toBeGreaterThan(0);
+  });
+
+  it('chaque chemin FR protégé a son équivalent anglais, traduit par la table', () => {
+    const front = readTable(FRONT);
+    const ecarts: string[] = [];
+
+    for (const frPath of fr) {
+      // `/403` n'a pas de traduction : un segment absent de la table se recopie tel quel.
+      const attendu = `/en${frPath.split('/').map((seg) => (seg ? (front[seg] ?? seg) : seg)).join('/')}`;
+      if (!en.includes(attendu)) {
+        ecarts.push(`${frPath} → « ${attendu} » manque dans robots.txt`);
+      }
+    }
+
+    expect(
+      ecarts,
+      'Une route privée est protégée en français et ouverte en anglais.',
+    ).toEqual([]);
+  });
+
+  it('aucun chemin anglais protégé n’est le fantôme d’un ancien segment', () => {
+    const front = readTable(FRONT);
+    const anglaisConnus = new Set(Object.values(front));
+    const ecarts: string[] = [];
+
+    for (const enPath of en) {
+      const premier = enPath.split('/')[2];
+      // Un segment purement numérique est un code de statut (`/en/403`), pas une traduction.
+      if (!premier || /^\d+$/.test(premier)) continue;
+      if (!anglaisConnus.has(premier)) {
+        ecarts.push(`« ${premier} » n'est la traduction d'aucun segment — chemin mort`);
+      }
+    }
+
+    expect(
+      ecarts,
+      'Un Disallow qui ne vise aucune route ne protège rien, et ne signale rien.',
+    ).toEqual([]);
+  });
+});

@@ -80,6 +80,17 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_FUNCTIONS_ORIGIN: ${{ vars.VITE_FUNCTIONS_ORIGIN }}
+          # Sans cette ligne, `initSentry()` sort au premier `if` et la supervision
+          # d'erreurs n'existe pas — en production comme en local. Le paquet est installé
+          # et l'appel est fait : seule la valeur manquait. Voir `src/lib/sentry.ts`.
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          # Les identifiants de mesure. Ils étaient écrits en dur dans `index.html`, si
+          # bien que dev et preview alimentaient les propriétés de PRODUCTION.
+          # Le repli `||` n'est pas décoratif : sans lui, une variable de dépôt oubliée
+          # laisserait le jeton non substitué et couperait la mesure en production —
+          # une régression pire que le défaut qu'on corrige.
+          VITE_GTM_ID: ${{ vars.VITE_GTM_ID || 'GTM-PJ3R433M' }}
+          VITE_META_PIXEL_ID: ${{ vars.VITE_META_PIXEL_ID || '925361066071417' }}
 
   # Cloudflare Workers : typecheck + tests unitaires du monorepo worker/.
   # Ils n'étaient couverts par aucun job — tsconfig.app.json n'inclut que src/.
@@ -214,6 +225,17 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_FUNCTIONS_ORIGIN: ${{ vars.VITE_FUNCTIONS_ORIGIN }}
+          # Sans cette ligne, `initSentry()` sort au premier `if` et la supervision
+          # d'erreurs n'existe pas — en production comme en local. Le paquet est installé
+          # et l'appel est fait : seule la valeur manquait. Voir `src/lib/sentry.ts`.
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          # Les identifiants de mesure. Ils étaient écrits en dur dans `index.html`, si
+          # bien que dev et preview alimentaient les propriétés de PRODUCTION.
+          # Le repli `||` n'est pas décoratif : sans lui, une variable de dépôt oubliée
+          # laisserait le jeton non substitué et couperait la mesure en production —
+          # une régression pire que le défaut qu'on corrige.
+          VITE_GTM_ID: ${{ vars.VITE_GTM_ID || 'GTM-PJ3R433M' }}
+          VITE_META_PIXEL_ID: ${{ vars.VITE_META_PIXEL_ID || '925361066071417' }}
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -244,6 +266,17 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_FUNCTIONS_ORIGIN: ${{ vars.VITE_FUNCTIONS_ORIGIN }}
+          # Sans cette ligne, `initSentry()` sort au premier `if` et la supervision
+          # d'erreurs n'existe pas — en production comme en local. Le paquet est installé
+          # et l'appel est fait : seule la valeur manquait. Voir `src/lib/sentry.ts`.
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          # Les identifiants de mesure. Ils étaient écrits en dur dans `index.html`, si
+          # bien que dev et preview alimentaient les propriétés de PRODUCTION.
+          # Le repli `||` n'est pas décoratif : sans lui, une variable de dépôt oubliée
+          # laisserait le jeton non substitué et couperait la mesure en production —
+          # une régression pire que le défaut qu'on corrige.
+          VITE_GTM_ID: ${{ vars.VITE_GTM_ID || 'GTM-PJ3R433M' }}
+          VITE_META_PIXEL_ID: ${{ vars.VITE_META_PIXEL_ID || '925361066071417' }}
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

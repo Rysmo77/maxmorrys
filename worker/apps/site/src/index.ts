@@ -42,7 +42,7 @@ import {
   shouldConsultRedirects,
   type RedirectHit,
 } from './redirects';
-import { resolveRoute, type Route } from './routes';
+import { resolveRoute, shouldNoIndex, type Route } from './routes';
 import { buildCatalog } from './seo/catalog';
 import { buildRss } from './seo/rss';
 import { buildPodcastRss } from './seo/podcast-rss';
@@ -155,7 +155,29 @@ export default {
     }
 
     const route = resolveRoute(url.pathname);
-    if (route === 'origin' || !isRead) return fetchOrigin(request, env);
+    if (route === 'origin' || !isRead) {
+      const response = await fetchOrigin(request, env);
+      /*
+       * Le shell SPA arrive ici avec les métadonnées de l'ACCUEIL, quelle que soit
+       * l'URL demandée : c'est le même fichier. Sur les pages d'authentification et
+       * les devis, cela revenait à présenter aux moteurs plusieurs adresses portant
+       * le titre, la description et l'`og:url` de `/`. Le `noIndex` que ces pages
+       * posent côté React n'y change rien — il n'existe qu'après hydratation.
+       *
+       * On ne réécrit pas le corps : un en-tête suffit, et il vaut aussi pour les
+       * robots sociaux, qui ne lisent que ce que l'origine a servi.
+       */
+      if (isRead && shouldNoIndex(url.pathname)) {
+        const headers = new Headers(response.headers);
+        headers.set('X-Robots-Tag', 'noindex, nofollow');
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        });
+      }
+      return response;
+    }
 
     try {
       if (route === 'prerender') return await handlePrerender(request, env, ctx);

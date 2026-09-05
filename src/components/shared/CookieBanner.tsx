@@ -136,7 +136,16 @@ export default function CookieBanner() {
                   {t('cookies.text')}
                 </p>
               </div>
-              <button onClick={() => setVisible(false)} className="p-1 text-ink-2 hover:text-ink-2 dark:hover:text-ink-2" aria-label={t('cookies.close')}>
+              {/*
+                FERMER, C'EST REFUSER — ET ÇA S'ENREGISTRE.
+
+                Ce bouton se contentait de `setVisible(false)` : rien n'était écrit, donc le
+                bandeau revenait au chargement suivant, et surtout le refus n'existait nulle
+                part. Un rejet qu'on ne consigne pas n'est pas un rejet : c'est une question
+                reposée indéfiniment. Fermer vaut donc « essentiels seulement », comme le
+                bouton explicite — jamais un consentement, qui ne peut être qu'un acte positif.
+              */}
+              <button onClick={acceptEssential} className="p-1 text-ink-2 hover:text-ink-2 dark:hover:text-ink-2" aria-label={t('cookies.close')}>
                 <Icon name="close" size={16} />
               </button>
             </div>

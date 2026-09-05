@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { injectMeta } from '../src/prerender/rewriter';
 import type { PageMeta } from '../src/prerender/types';
 
-// Copie conforme de `index.html`. À resynchroniser si le shell change.
+/*
+ * Copie conforme de `index.html` — et « conforme » est désormais VÉRIFIÉ, pas espéré.
+ * `tests/unit/shell-fixture-sync.test.ts` fait échouer la suite dès que les deux
+ * divergent. La note qui tenait lieu de garde ici a laissé la fixture dériver de sept
+ * balises, dont l'`og:title` et les dimensions de l'image de partage.
+ */
 import shellHtml from './fixtures/shell.html?raw';
 
 /**

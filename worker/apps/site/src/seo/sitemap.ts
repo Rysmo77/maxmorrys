@@ -129,15 +129,51 @@ export async function buildSitemap(db: Firestore): Promise<string> {
 
   const urls: string[] = [];
 
+  /*
+   * ───────────────────────────────────────────────────────────────────────────
+   * UNE PAGE, UNE ENTRÉE — ET LE DÉDOUBLONNAGE PORTE SUR LA PAIRE.
+   *
+   * Trois articles français étaient déclarés DEUX FOIS, chaque fois avec un
+   * `hreflang="en"` différent : deux documents de traduction anglais coexistaient en
+   * base pour un même article, l'un des slugs finissant par `-2` — la signature d'une
+   * déduplication à l'écriture. Ce fichier recopiait fidèlement les deux.
+   *
+   * CE QUE ÇA COÛTE. La page, elle, est irréprochable : elle ne déclare qu'un seul
+   * alternate. C'est la rencontre des deux entrées qui se contredit — et un cluster
+   * hreflang non réciproque n'est pas arbitré par Google, il est ignoré EN BLOC. Les
+   * deux versions linguistiques perdent leur appariement d'un coup, sans qu'une seule
+   * URL soit en erreur.
+   *
+   * ⚠️ POURQUOI PAS UN SIMPLE `Set` SUR LES `<loc>`. Écarter la seconde entrée FRANÇAISE
+   * ne suffit pas : la seconde entrée ANGLAISE a une adresse différente, elle survivrait
+   * au filtre, et elle continuerait d'annoncer `hreflang="fr"` vers le même article. La
+   * contradiction resterait entière. C'est la PAIRE qu'il faut écarter.
+   *
+   * ⚠️ CE N'EST PAS LE CORRECTIF DE FOND. Le doublon vit dans Firestore ; il est
+   * seulement rendu inoffensif ici. Tant qu'il y est, une traduction reste orpheline —
+   * publiée, atteignable, annoncée nulle part.
+   * ───────────────────────────────────────────────────────────────────────────
+   */
+  const locsVues = new Set<string>();
+  const pushPair = (options: UrlEntryOptions): void => {
+    const frLoc = `${SITE_URL}${options.frPath}`;
+    const enLoc = `${SITE_URL}${options.enFullPath}`;
+    if (locsVues.has(frLoc) || locsVues.has(enLoc)) {
+      console.warn(`Sitemap : doublon écarté — ${frLoc} / ${enLoc}`);
+      return;
+    }
+    locsVues.add(frLoc);
+    locsVues.add(enLoc);
+    urls.push(urlEntryPair(options));
+  };
+
   for (const page of STATIC_PAGES) {
-    urls.push(
-      urlEntryPair({
-        frPath: page.path,
-        enFullPath: enPath(page.path),
-        changefreq: page.changefreq,
-        priority: page.priority,
-      }),
-    );
+    pushPair({
+      frPath: page.path,
+      enFullPath: enPath(page.path),
+      changefreq: page.changefreq,
+      priority: page.priority,
+    });
   }
 
   const pushDynamic = (
@@ -149,17 +185,15 @@ export async function buildSitemap(db: Firestore): Promise<string> {
   ) => {
     for (const item of items) {
       if (!item.slug) continue;
-      urls.push(
-        urlEntryPair({
-          frPath: `/${segment}/${item.slug}`,
-          enFullPath: enPath(`/${segment}/${item.slug_en || item.slug}`),
-          lastmod: item.updatedAt || item.publishedAt,
-          changefreq,
-          priority,
-          imageLoc: item[imageKey],
-          imageTitle: item.title,
-        }),
-      );
+      pushPair({
+        frPath: `/${segment}/${item.slug}`,
+        enFullPath: enPath(`/${segment}/${item.slug_en || item.slug}`),
+        lastmod: item.updatedAt || item.publishedAt,
+        changefreq,
+        priority,
+        imageLoc: item[imageKey],
+        imageTitle: item.title,
+      });
     }
   };
 
@@ -184,14 +218,12 @@ export async function buildSitemap(db: Firestore): Promise<string> {
    */
   try {
     for (const slug of await getFaqSlugs(db)) {
-      urls.push(
-        urlEntryPair({
-          frPath: `/faq/${slug}`,
-          enFullPath: enPath(`/faq/${slug}`),
-          changefreq: 'monthly',
-          priority: '0.4',
-        }),
-      );
+      pushPair({
+        frPath: `/faq/${slug}`,
+        enFullPath: enPath(`/faq/${slug}`),
+        changefreq: 'monthly',
+        priority: '0.4',
+      });
     }
   } catch (error: unknown) {
     console.error('Questions de la FAQ absentes du sitemap :', error);

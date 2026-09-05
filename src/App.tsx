@@ -277,6 +277,17 @@ function AuthLayout() {
     <>
       <MetaPixelTracker />
       <Outlet />
+      {/*
+        LE BANDEAU DE CONSENTEMENT VIT DANS LES TROIS LAYOUTS, PAS DANS UN SEUL.
+
+        Il n'était monté que dans `PublicLayout`. Or `MetaPixelTracker` — juste au-dessus —
+        est monté ici aussi : la mesure démarrait sur des écrans où le choix ne pouvait
+        JAMAIS être proposé. Qui arrive directement sur `/connexion` par un lien, ou qui vit
+        dans l'espace apprenant, était mesuré sans avoir vu la question.
+        Le bandeau ne rend rien dès qu'un choix est enregistré : le monter ici ne coûte rien
+        à qui a déjà répondu.
+      */}
+      <CookieBanner />
       <ScrollRestoration />
     </>
   );
@@ -291,6 +302,17 @@ function LmsLayout() {
       <Suspense fallback={null}>
         <RysmoWidget />
       </Suspense>
+      {/*
+        LE BANDEAU DE CONSENTEMENT VIT DANS LES TROIS LAYOUTS, PAS DANS UN SEUL.
+
+        Il n'était monté que dans `PublicLayout`. Or `MetaPixelTracker` — juste au-dessus —
+        est monté ici aussi : la mesure démarrait sur des écrans où le choix ne pouvait
+        JAMAIS être proposé. Qui arrive directement sur `/connexion` par un lien, ou qui vit
+        dans l'espace apprenant, était mesuré sans avoir vu la question.
+        Le bandeau ne rend rien dès qu'un choix est enregistré : le monter ici ne coûte rien
+        à qui a déjà répondu.
+      */}
+      <CookieBanner />
       <ScrollRestoration />
     </>
   );

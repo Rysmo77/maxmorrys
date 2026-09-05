@@ -7,7 +7,14 @@ declare global {
   }
 }
 
-const PIXEL_ID = '925361066071417';
+/*
+ * Même source que le snippet de `index.html`. L'identifiant était écrit en dur ici ET
+ * là-bas ET dans le Worker CAPI : trois miroirs, et chaque `npm run dev` émettait dans
+ * le Pixel de production. Le repli garde la valeur historique pour qu'une variable
+ * absente n'éteigne pas la mesure en production — `tests/unit/tags-mesure.test.ts`
+ * vérifie qu'il reste égal à celui du Worker.
+ */
+const PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID || '925361066071417';
 
 // ── Consent management ──────────────────────────────────────────────────────
 
