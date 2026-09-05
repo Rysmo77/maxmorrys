@@ -184,24 +184,16 @@ jobs:
         env:
           EXPO_NO_TELEMETRY: '1'
 
+      # ⚠️ CETTE PORTE ÉTAIT UN `grep`, ET ELLE ÉTAIT AVEUGLE SUR UN DE SES SEPT MARQUEURS.
+      # Hermes range les chaînes accentuées dans une table UTF-16 : mesuré le 05/09/2026,
+      # « Vendre sans budget pub » (ASCII) se trouve dans le `.hbc`, « elles sont comptées »
+      # ne s'y trouve pas en UTF-8. « planche de référence » ne pouvait donc PAS être
+      # détecté — la porte était verte parce qu'elle ne voyait rien.
+      # Le script cherche dans les deux encodages, et vérifie d'abord qu'il sait trouver un
+      # témoin accentué qu'il sait présent : une porte muette se confond avec une verte.
       - name: Le paquet de production ne contient ni démonstration ni tunnel d'achat
         working-directory: mobile
-        run: |
-          fautes=0
-          # ⚠️ NE PAS AJOUTER « App Store » À CETTE LISTE. La chaîne est présente dans le
-          # paquet, mais elle vient de `@firebase/auth` (« An iOS Bundle ID must be
-          # provided if an App Store ID is provided ») — un grep dessus échouerait pour
-          # une raison qui n'est pas la nôtre. Mesuré, pas supposé.
-          for marqueur in \
-            "aissatou@exemple.sn" "Vendre sans budget pub" "planche de référence" \
-            "Payer en Wave" "Ouvrir sur maxmorrys.me" "/checkout/" "Google Play"
-          do
-            if grep -rqF "$marqueur" dist/; then
-              echo "::error::« $marqueur » est présent dans le paquet de production"
-              fautes=1
-            fi
-          done
-          exit $fautes
+        run: node ../scripts/paquet-natif-propre.mjs dist
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import {
-  Body, Button, CheckLine, Display, Eyebrow, LessonRow, Num, SansDonnees, Surface, useToken,
+  Body, Button, CheckLine, Display, Eyebrow, LessonRow, Num, Surface, useToken,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { CLUB, CLUB_INFOS, RELEVE, SOURCE } from '../../contenu/demo';
+import { CLUB_GARANTI, CLUB_PAS_GARANTI } from '../../contenu/engagement';
+import { provenance, useClub } from '../../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -25,30 +26,28 @@ import { CLUB, CLUB_INFOS, RELEVE, SOURCE } from '../../contenu/demo';
  */
 export default function ClubInfos() {
   const t = useToken();
+  const club = useClub();
+  const echeance = club.valeur?.echeance ?? null;
 
   return (
     <ClubScreen titre="Infos">
       <Display size={24} lines={["Ce que l'abonnement", 'te donne.']} />
 
-      {CLUB_INFOS === null ? (
-        <SansDonnees
-          quoi="ce que l'abonnement donne"
-          origine="du serveur"
-          degat="Les deux listes de cet écran — ce qui est garanti et ce qui ne l'est pas — sont un engagement. En écrire une version approximative reviendrait à promettre à la place du produit."
-          style={{ marginTop: 22 }}
-        />
-      ) : (
-      <>
+      {/* ⚠️ CES DEUX LISTES NE SONT PLUS UN `SansDonnees`. Elles vivaient sous l'interrupteur
+          de démonstration, donc elles disparaissaient en production — et l'écran affichait
+          alors « en attente du serveur », pour une promesse que personne n'a jamais eu
+          l'intention de ranger dans un serveur. Elles sont l'engagement commercial du
+          produit : voir `contenu/engagement.ts`. */}
       <Eyebrow style={{ marginTop: 22 }}>Garanti</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
-        {CLUB_INFOS.garanti.map((g, i) => (
+        {CLUB_GARANTI.map((g, i) => (
           <CheckLine key={g} tone="ok" style={i === 0 ? { marginTop: 0 } : undefined}>{g}</CheckLine>
         ))}
       </Surface>
 
       <Eyebrow style={{ marginTop: 22 }}>Pas garanti</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
-        {CLUB_INFOS.pasGaranti.map((g, i) => (
+        {CLUB_PAS_GARANTI.map((g, i) => (
           <CheckLine key={g} tone="neutre" dash style={i === 0 ? { marginTop: 0 } : undefined}>{g}</CheckLine>
         ))}
         <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 14, color: t('textFaint') }}>
@@ -56,8 +55,6 @@ export default function ClubInfos() {
           n'énumère que des promesses vend une deuxième fois quelqu'un qui a déjà payé.
         </Body>
       </Surface>
-      </>
-      )}
 
       {/* ⚠️ LES TROIS PRIX ONT ÉTÉ RETIRÉS D'ICI — au mois, à l'année, avec parrainage.
           L'application ne vend rien : afficher le tarif d'un abonnement qu'on ne peut pas
@@ -78,7 +75,9 @@ export default function ClubInfos() {
         <Eyebrow>Le renouvellement n'est pas automatique</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
           Ton accès ne se reconduit pas tout seul. À l'échéance{' '}
-          {CLUB ? <Num value={CLUB.echeance} source={SOURCE} asOf={RELEVE} style={{ fontSize: 12.5 }} /> : 'de ton abonnement'}
+          {echeance === null
+            ? 'de ton abonnement'
+            : <Num value={echeance} {...provenance(club)} style={{ fontSize: 12.5 }} />}
           , ton accès s'arrête et tu réabonnes si tu veux. Personne n'est débité par surprise,
           et personne n'a à chercher où résilier.
         </Body>

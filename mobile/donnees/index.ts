@@ -14,12 +14,12 @@
  */
 import type { Etat } from '../ds';
 import {
-  AGENDA, CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION, FORMATION_2, MEMBRE, MEMOIRE, MODULES_MUR, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, PROSPECT, QUOTA, SUPPORT_COMPTES, TRANSCRIPTION, VIDEO,
+  AGENDA, CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION, FORMATION_2, MEMBRE, MEMOIRE, MODULES_MUR, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PARRAINAGE, PROGRAMME, PROSPECT, QUOTA, SUPPORT_COMPTES, TRANSCRIPTION, VIDEO,
 } from '../contenu/demo';
 import { composer, composerIdentite, composerListe } from './etat';
 export { provenance } from './etat';
 import type {
-  VueCertificats, VueClassement, VueClub, VueClubFil, VueConsole, VueCours, VueFormation, VueDiscussion,
+  VueCertificats, VueClassement, VueClub, VueClubFil, VueConsole, VueCours, VueFormation, VueParrainage, VueDiscussion,
   VueEspace, VueLecon, VueMedia, VueMembre, VueMoi, VueNotes, VueOpportunite, VueRepetiteur,
   VueSeance,
 } from './types';
@@ -169,6 +169,16 @@ export function useFormation(slug?: string): Etat<VueFormation> {
     modules: MODULES_MUR.map((m) => ({ titre: m.titre, meta: m.meta, ouvert: m.ouvert })),
   };
   return composer(brut, replique);
+}
+
+/** Le code de parrainage et son compte de filleuls. Nul tant que l'abonnement n'est pas actif. */
+export function useParrainage(): Etat<VueParrainage> {
+  const brut = useVue<VueParrainage>('appClubParrainage');
+  return composer(brut, PARRAINAGE === null ? null : {
+    code: PARRAINAGE.code,
+    lien: PARRAINAGE.lien,
+    filleuls: PARRAINAGE.filleuls,
+  });
 }
 
 /** Le fil du Club, et la mission en tête. Vide tant que l'abonnement n'est pas actif. */

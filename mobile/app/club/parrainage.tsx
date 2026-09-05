@@ -3,7 +3,7 @@ import {
   Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { PARRAINAGE, RELEVE, SOURCE } from '../../contenu/demo';
+import { provenance, useParrainage } from '../../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -25,7 +25,10 @@ import { PARRAINAGE, RELEVE, SOURCE } from '../../contenu/demo';
 export default function ClubParrainage() {
   const t = useToken();
 
-  if (PARRAINAGE === null) {
+  const etat = useParrainage();
+  const parrainage = etat.valeur;
+
+  if (parrainage === null) {
     return (
       <ClubScreen titre="Parrainage">
         <Display size={24} lines={['Ton code', "n'est pas chargé."]} />
@@ -33,6 +36,7 @@ export default function ClubParrainage() {
           quoi="ton code de parrainage"
           origine="de ton compte"
           degat="Un code inventé partagé à quelqu'un ne lui donnerait aucune remise — et c'est toi qui l'aurais promise."
+          etat={etat}
           style={{ marginTop: 20 }}
         />
         <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
@@ -46,12 +50,17 @@ export default function ClubParrainage() {
       </ClubScreen>
     );
   }
-  const parrainage = PARRAINAGE;
+
+  /* Le rétrécissement de type ne survit pas à une closure : `partager()` reperdrait le
+     non-null que la garde vient d'établir. Une constante LOCALE le porte jusque-là — c'est
+     la même raison qui valait pour les constantes du transfert, et elle vaut aussi pour une
+     valeur venue du serveur. */
+  const fiche = parrainage;
 
   async function partager() {
     await Share.share({
-      message: `Le Club des Digitos, avec mon code : ${parrainage.code}\n${parrainage.lien}`,
-      url: parrainage.lien,
+      message: `Le Club des Digitos, avec mon code : ${fiche.code}\n${fiche.lien}`,
+      url: fiche.lien,
     });
   }
 
@@ -59,7 +68,7 @@ export default function ClubParrainage() {
     <ClubScreen titre="Parrainage">
       <Eyebrow>Ton code</Eyebrow>
       <Surface level="hero" style={{ marginTop: 10, padding: 20 }}>
-        <Num value={parrainage.code} source={SOURCE} asOf={RELEVE} style={{ fontSize: 26, letterSpacing: 1.4 }} />
+        <Num value={parrainage.code} {...provenance(etat)} style={{ fontSize: 26, letterSpacing: 1.4 }} />
         {/* ⚠️ LES MONTANTS SONT PARTIS. On disait « qui l'utilise paie X au lieu de Y ».
             Trois chiffres qui ne servaient qu'à faire calculer une économie — c'est-à-dire
             un argument de vente, dans une application qui ne vend rien. La règle, elle,
@@ -101,14 +110,19 @@ export default function ClubParrainage() {
           icon={<Icon name="users" size={14} color={t('mmVioletT')} />}
           iconBackground={veil(t('mmViolet'), 0.12)}
           title="Ont utilisé ton code"
-          trailing={<Num value={parrainage.filleuls} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
+          trailing={<Num value={parrainage.filleuls} {...provenance(etat)} style={{ fontSize: 13 }} />}
         />
         <LessonRow
           icon={<Icon name="gift" size={14} color={t('ok')} />}
           iconBackground={veil(t('ok'), 0.14)}
           title="Mois offerts, acquis"
           meta="après 90 jours de présence"
-          trailing={<Num value={0} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13 }} />}
+          /* ⚠️ CE NOMBRE ÉTAIT UN `0` ÉCRIT EN DUR. Personne ne calcule les mois acquis :
+             la règle demande de savoir quels filleuls ont tenu quatre-vingt-dix jours, et
+             aucune vue ne le mesure aujourd'hui. Un zéro affirmé se lit comme un relevé —
+             et c'est la seule ligne de l'écran qui parle de ce que TU gagnes. `<Num>` écrit
+             « non relevé » tant que le compte n'existe pas. */
+          trailing={<Num value={null} {...provenance(etat)} style={{ fontSize: 13 }} />}
           last
         />
       </Surface>

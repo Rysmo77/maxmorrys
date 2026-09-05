@@ -64,6 +64,13 @@ export interface VueFormation {
   modules: VueModuleFiche[];
 }
 
+export interface VueParrainage {
+  code: string;
+  lien: string;
+  /** Le NOMBRE de filleuls, jamais qui ils sont. */
+  filleuls: number;
+}
+
 export interface VueCertificat {
   code: string;
   titulaire: string;
