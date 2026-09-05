@@ -26,9 +26,12 @@ export default function Episode() {
   const t = useToken();
   const g = useActionGradient();
   const [vue, setVue] = useState<string>('Transcription');
-  const [vitesse, setVitesse] = useState(1);
 
-  const vitesses = [1, 1.25, 1.5, 2];
+  /* La vitesse n'est plus un ÉTAT : rien ne la lit, et un état qui ne pilote rien finit par
+     se faire brancher sur autre chose. Elle redeviendra un état le jour où un lecteur la
+     recevra — `expo-audio` expose `setPlaybackRate`. En attendant, c'est la valeur affichée
+     par un bouton éteint, et rien de plus. */
+  const vitesse = 1;
 
   if (EPISODE === null) {
     return (
@@ -122,12 +125,15 @@ export default function Episode() {
           disabled
           style={{ flex: 1 }}
         />
-        <Button
-          tone="quiet"
-          size="sm"
-          label={`${vitesse}×`}
-          onPress={() => setVitesse(vitesses[(vitesses.indexOf(vitesse) + 1) % vitesses.length])}
-        />
+        {/* ⚠️ CE BOUTON RÉPONDAIT AU DOIGT ET NE PILOTAIT RIEN. Il faisait tourner son
+            libellé 1× → 1,25× → 1,5× → 2× sur un état local, sans lecteur derrière — le
+            contrôle le plus trompeur du pôle média, parce qu'un bouton qui RÉAGIT se lit
+            comme un bouton qui AGIT. Et il était invisible pour la porte des contrôles
+            morts, qui cherche un `onPress` absent : celui-ci en avait un.
+
+            Éteint jusqu'à ce qu'`expo-audio` arrive. Il garde sa place et sa valeur —
+            l'écran continue de dire ce qu'il proposera — mais il ne fait plus semblant. */}
+        <Button tone="quiet" size="sm" label={`${vitesse}×`} disabled />
       </View>
 
       <Segmented options={VUES} value={vue} onChange={setVue} style={{ marginTop: 16 }} />
