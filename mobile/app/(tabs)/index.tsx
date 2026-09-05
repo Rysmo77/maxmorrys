@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -6,8 +5,8 @@ import {
   ProgressBar, QuotaMeter, SansDonnees, Screen, Surface, TerritoryCard, useActionGradient,
   useToken, useTutorNom,
 } from '../../ds';
-import { QUOTA, RELEVE, SOURCE, STOCKAGE } from '../../contenu/demo';
-import { useEspace, useMoi } from '../../donnees';
+import { QUOTA, STOCKAGE } from '../../contenu/demo';
+import { provenance, useEspace, useMoi } from '../../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -71,7 +70,6 @@ export default function Espace() {
    * créerait une seconde source de vérité à réconcilier, et la carte reviendrait sur un autre
    * appareil alors que la question a déjà été posée.
    */
-  const [proposeRelance, setProposeRelance] = useState(true);
 
   return (
     <Screen
@@ -144,49 +142,55 @@ export default function Espace() {
       </View>
       )}
 
-      {/* ── CE QUE LE WEB NE POUVAIT PAS OFFRIR ─────────────────────────────────────────── */}
-      {proposeRelance ? (
-        <Surface level="flat" style={{ marginTop: 14, padding: 17 }}>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <Gradient
-              colors={[t('mmVioletN'), t('mmViolet')]}
-              radius={12}
-              style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Icon name="bell" size={17} color={t('paperFixed')} strokeWidth={2.2} />
-            </Gradient>
-            <View style={{ flex: 1 }}>
-              <Body style={{ fontWeight: '700' }}>Je te préviens la prochaine fois ?</Body>
-              <Body muted style={{ fontSize: 12.5, lineHeight: 19, marginTop: 4 }}>
-                Huit jours, c'est le moment où on décroche. Une notification, et tu reprends.
-              </Body>
-              <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
-                <Button
-                  tone="transforme"
-                  size="sm"
-                  label="Activer"
-                  onPress={() => { setProposeRelance(false); router.push('/permissions'); }}
-                />
-                <Button tone="quiet" size="sm" label="Non" onPress={() => setProposeRelance(false)} />
-              </View>
-            </View>
-          </View>
-        </Surface>
-      ) : null}
+      {/* ⚠️ LA CARTE « JE TE PRÉVIENS LA PROCHAINE FOIS ? » A ÉTÉ RETIRÉE — 05/09/2026.
+          Elle promettait « une notification, et tu reprends », sur le PREMIER écran de
+          l'application. Or aucun canal de notification n'existe : `expo-notifications` n'est
+          pas installé, aucune permission n'est demandée, et aucun serveur n'envoie quoi que
+          ce soit. Son bouton « Activer » menait à `/permissions`, un écran qui ne demande
+          rien et se contente de passer au suivant.
+
+          Ce n'était donc pas un contrôle mort — c'était une PROMESSE. Quelqu'un qui appuie
+          sur « Activer » compte sur un rappel qui ne viendra jamais, et n'ouvrira pas
+          l'application en l'attendant.
+
+          Elle reviendra avec `expo-notifications` ET un émetteur, pas avant. */}
 
       {/* ── DEUX FAITS, SANS LEVIER. Sans relevé, ils ne s'affichent pas : une série à zéro
-             qu'on n'a pas mesurée se lit comme une série perdue. ── */}
+             qu'on n'a pas mesurée se lit comme une série perdue.
+
+          ⚠️ CE BLOC AFFICHAIT DEUX NOMBRES FABRIQUÉS — « Série 3 j · record 7 j » et
+          « Niveau 4 » à 60 % — cités depuis le kit de transfert. Et `SOURCE`/`RELEVE` ne
+          passent PAS sous l'interrupteur de démonstration : ces valeurs s'affichaient donc
+          en PRODUCTION, à toute personne connectée ayant une inscription. Un utilisateur
+          réel lisait sa série et son niveau, tous deux inventés — et le commentaire
+          ci-dessus jurait le contraire.
+
+          Le serveur connaît deux choses vraies : l'XP (`appMoi`) et l'avancement du cours en
+          reprise (`appEspace`). Ni série, ni record, ni niveau. On affiche donc ce qui est
+          mesuré, et on l'affiche avec sa provenance. ── */}
       {espace.valeur === null ? null : (
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
         <Surface level="flat" style={{ flex: 1, padding: 16 }}>
-          <Eyebrow style={{ fontSize: 10 }}>Série</Eyebrow>
-          <Num value="3 j" source={SOURCE} asOf={RELEVE} style={{ fontSize: 25, marginTop: 4 }} />
-          <Body muted style={{ fontSize: 11.5, color: t('textFaint') }}>record 7 j</Body>
+          <Eyebrow style={{ fontSize: 10 }}>Expérience</Eyebrow>
+          <Num
+            value={moi.valeur?.xp ?? null}
+            {...provenance(moi)}
+            unit="XP"
+            style={{ fontSize: 25, marginTop: 4 }}
+          />
+          <Body muted style={{ fontSize: 11.5, color: t('textFaint') }}>gagnée en terminant des leçons</Body>
         </Surface>
         <Surface level="flat" style={{ flex: 1, padding: 16 }}>
-          <Eyebrow style={{ fontSize: 10 }}>Niveau</Eyebrow>
-          <Num value={4} source={SOURCE} asOf={RELEVE} style={{ fontSize: 25, marginTop: 4 }} />
-          <ProgressBar value={60} height={5} territory="transforme" style={{ marginTop: 7 }} />
+          <Eyebrow style={{ fontSize: 10 }}>Ta reprise</Eyebrow>
+          <Num
+            value={espace.valeur.leconsFaites}
+            {...provenance(espace)}
+            style={{ fontSize: 25, marginTop: 4 }}
+          />
+          <Body muted style={{ fontSize: 11.5, color: t('textFaint') }}>
+            leçons sur {espace.valeur.lecons}
+          </Body>
+          <ProgressBar value={espace.valeur.progression} height={5} territory="transforme" style={{ marginTop: 7 }} />
         </Surface>
       </View>
       )}
