@@ -8,6 +8,16 @@
   },
   "hosting": {
     "public": "dist",
+    "//appAssociation": [
+      "⚠️ SANS CE 'NONE', HOSTING GÉNÈRE SON PROPRE apple-app-site-association.",
+      "La valeur par défaut est AUTO : Firebase Hosting compose alors un fichier",
+      "d'association (héritage des Dynamic Links, service arrêté) qui MASQUE celui",
+      "du dépôt. On déploierait le nôtre sans qu'il soit jamais servi, et les liens",
+      "universels échoueraient pour une raison invisible dans le code.",
+      "Mesuré par ailleurs : le motif d'ignore '**/.*' n'exclut PAS .well-known/ —",
+      "il ne matche qu'un nom de fichier commençant par un point, pas un dossier."
+    ],
+    "appAssociation": "NONE",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -15,6 +25,24 @@
       "**/*.map"
     ],
     "headers": [
+      {
+        "//": [
+          "Apple EXIGE application/json sur ce fichier, et il n'a PAS d'extension :",
+          "Hosting le servirait en application/octet-stream, et la validation échouerait",
+          "sans message — le fichier est là, correct, et Apple l'ignore."
+        ],
+        "source": "/.well-known/apple-app-site-association",
+        "headers": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cache-Control", "value": "public, max-age=3600" }
+        ]
+      },
+      {
+        "source": "/.well-known/assetlinks.json",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=3600" }
+        ]
+      },
       {
         "source": "/index.html",
         "headers": [

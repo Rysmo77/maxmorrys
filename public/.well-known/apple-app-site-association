@@ -1,0 +1,18 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["REMPLIR_TEAM_ID.me.maxmorrys.rysmo"],
+        "components": [
+          { "/": "/formations/*", "comment": "Fiche d'une formation" },
+          { "/": "/formations", "comment": "Le catalogue" },
+          { "/": "/verifier/*", "comment": "Verification d'un certificat par son code" },
+          { "/": "/verifier", "comment": "Le formulaire de verification" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["REMPLIR_TEAM_ID.me.maxmorrys.rysmo"]
+  }
+}
