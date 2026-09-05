@@ -14,12 +14,12 @@
  */
 import type { Etat } from '../ds';
 import {
-  AGENDA, CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION, FORMATION_2, MEMBRE, MEMOIRE, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, PROSPECT, QUOTA, SUPPORT_COMPTES, TRANSCRIPTION, VIDEO,
+  AGENDA, CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION, FORMATION_2, MEMBRE, MEMOIRE, MODULES_MUR, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, PROSPECT, QUOTA, SUPPORT_COMPTES, TRANSCRIPTION, VIDEO,
 } from '../contenu/demo';
 import { composer, composerIdentite, composerListe } from './etat';
 export { provenance } from './etat';
 import type {
-  VueCertificats, VueClassement, VueClub, VueClubFil, VueConsole, VueCours, VueDiscussion,
+  VueCertificats, VueClassement, VueClub, VueClubFil, VueConsole, VueCours, VueFormation, VueDiscussion,
   VueEspace, VueLecon, VueMedia, VueMembre, VueMoi, VueNotes, VueOpportunite, VueRepetiteur,
   VueSeance,
 } from './types';
@@ -150,6 +150,25 @@ export function useLecon(formationId?: string): Etat<VueLecon> {
       doc: 'doc' in l ? Boolean(l.doc) : false,
     })),
   });
+}
+
+/**
+ * La fiche d'une formation, et son programme.
+ *
+ * ⚠️ Le `slug` vient de la ROUTE, et il ne sert qu'à CHOISIR. C'est le serveur qui décide de
+ * ce qu'il publie : il refait `status == 'published'` de son côté, et rend une vue nulle pour
+ * un slug inconnu comme pour un brouillon — l'écran n'a donc jamais à distinguer les deux.
+ */
+export function useFormation(slug?: string): Etat<VueFormation> {
+  const brut = useVue<VueFormation>('appFormation', slug ? { slug } : {});
+  const replique = FORMATION === null ? null : {
+    titre: FORMATION.titre,
+    titreCourt: FORMATION.titreCourt,
+    meta: FORMATION.meta,
+    lecons: FORMATION.lecons,
+    modules: MODULES_MUR.map((m) => ({ titre: m.titre, meta: m.meta, ouvert: m.ouvert })),
+  };
+  return composer(brut, replique);
 }
 
 /** Le fil du Club, et la mission en tête. Vide tant que l'abonnement n'est pas actif. */

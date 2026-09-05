@@ -49,6 +49,21 @@ export interface VueCours {
   acquise: boolean;
 }
 
+export interface VueModuleFiche {
+  titre: string;
+  meta: string;
+  /** Un module est ouvert s'il contient au moins une leçon gratuite — un FAIT, pas le rang. */
+  ouvert: boolean;
+}
+
+export interface VueFormation {
+  titre: string;
+  titreCourt: string;
+  meta: string;
+  lecons: number;
+  modules: VueModuleFiche[];
+}
+
 export interface VueCertificat {
   code: string;
   titulaire: string;

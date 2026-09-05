@@ -4,7 +4,7 @@ import {
   Body, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, SansDonnees, Screen,
   Surface, Tag, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
-import { FORMATION, MODULES_MUR } from '../contenu/demo';
+import { useFormation } from '../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -59,14 +59,21 @@ export default function Formation() {
      d'un appelant — un lien profond, une ancienne version — mais cet écran ne l'affiche
      plus : une fiche qui montre un montant est une fiche qui vend, quel que soit le nombre
      de boutons qu'on lui retire. */
-  const { titre } = useLocalSearchParams<{ slug?: string; titre?: string; prix?: string }>();
-  const nom = titre ?? FORMATION?.titre ?? null;
+  const { slug, titre } = useLocalSearchParams<{ slug?: string; titre?: string; prix?: string }>();
+  const fiche = useFormation(slug);
+  const f = fiche.valeur;
+
+  /* Le serveur fait autorité sur le titre. Le paramètre de route ne sert qu'à tenir l'écran
+     PENDANT la lecture : il vient du catalogue, donc du même serveur, et l'afficher évite un
+     titre qui apparaît une seconde après l'écran qu'il nomme. */
+  const nom = f?.titre ?? titre ?? null;
+  const modules = f?.modules ?? [];
 
   return (
     <Screen
       territory="forme"
       retour="Cours"
-      titre={isIOS ? undefined : (titre ?? FORMATION?.titreCourt ?? 'Formation')}
+      titre={isIOS ? undefined : (f?.titreCourt ?? titre ?? 'Formation')}
       droite={
         <IconButton label="Partager cette formation" onPress={() => router.push('/partage')}>
           <Icon name="share" size={17} color={t('textBody')} strokeWidth={2} />
@@ -86,7 +93,7 @@ export default function Formation() {
         <Tag tone="art">Aperçu · 4 min gratuit</Tag>
       </Gradient>
 
-      {FORMATION ? <Eyebrow style={{ marginTop: 20 }}>{FORMATION.meta}</Eyebrow> : null}
+      {f === null ? null : <Eyebrow style={{ marginTop: 20 }}>{f.meta}</Eyebrow>}
       <Display
         size={26}
         lines={nom === null ? ['Cette formation', "n'est pas chargée."] : deuxLignes(nom)}
@@ -108,9 +115,9 @@ export default function Formation() {
       <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
         <Display size={19}>Ce que tu vas apprendre.</Display>
         <Body muted style={{ marginTop: 9, fontSize: 13.5, lineHeight: 21 }}>
-          {FORMATION
-            ? `${FORMATION.lecons} leçons réparties en modules, à ton rythme. Le module d'ouverture se regarde ici, tout de suite, sans compte.`
-            : "Le module d'ouverture se regarde ici, tout de suite, sans compte."}
+          {f === null
+            ? "Le module d'ouverture se regarde ici, tout de suite, sans compte."
+            : `${f.lecons} leçons réparties en modules, à ton rythme. Le module d'ouverture se regarde ici, tout de suite, sans compte.`}
         </Body>
 
         <View style={{ height: 1, backgroundColor: t('borderHair'), marginVertical: 16 }} />
@@ -124,15 +131,17 @@ export default function Formation() {
       </Surface>
 
       {/* ── CE QU'ON PEUT VOIR SANS PAYER, ET CE QUI ATTEND ────────────────────────────── */}
-      {MODULES_MUR.length === 0 ? (
+      {modules.length === 0 ? (
         <SansDonnees
           quoi="le programme"
           degat="Un module inventé promet un contenu qui n'existe pas. C'est ce que le module d'ouverture, gratuit, sert justement à éviter : juger sur pièce."
+          etat={fiche}
+          hauteur={3}
           style={{ marginTop: 12 }}
         />
       ) : (
       <Surface level="flat" style={{ marginTop: 12, paddingHorizontal: 16 }}>
-        {MODULES_MUR.map((m, i) => (
+        {modules.map((m, i) => (
           <LessonRow
             key={m.titre}
             state={m.ouvert ? 'current' : 'todo'}
@@ -144,7 +153,7 @@ export default function Formation() {
             iconBackground={m.ouvert ? t('mmBleu') : veil(t('ink'), 0.06)}
             title={m.titre}
             meta={m.meta}
-            last={i === MODULES_MUR.length - 1}
+            last={i === modules.length - 1}
             onPress={m.ouvert ? () => router.push('/lecon') : undefined}
           />
         ))}
