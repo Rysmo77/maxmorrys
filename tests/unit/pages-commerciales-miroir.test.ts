@@ -42,9 +42,15 @@ function entree(chemin: string, suivante: string): string {
   return source.slice(debut, fin);
 }
 
-/** Les montants sont écrits avec des espaces (parfois insécables) : on les efface. */
+/**
+ * Les montants sont écrits avec des espaces, parfois insécables : on les efface.
+ *
+ * Les échappements `\u00a0` / `\u202f` ne sont pas de la coquetterie : écrits en clair,
+ * ces caractères sont invisibles à la relecture, et `no-irregular-whitespace` fait
+ * échouer le lint — donc toute la CI, donc le déploiement.
+ */
 function sansEspaces(texte: string): string {
-  return texte.replace(/[\s  ]/g, '');
+  return texte.replace(/[\s\u00a0\u202f]/g, '');
 }
 
 describe('/presence-digitale — les montants prérendus sont ceux de l’offre', () => {
