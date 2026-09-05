@@ -1,0 +1,23 @@
+/* ÉCHELLE CANONIQUE — la seule à employer dans du code neuf. */
+:root{
+  --sp-4:4px; --sp-8:8px; --sp-12:12px; --sp-16:16px;
+  --sp-20:20px; --sp-24:24px; --sp-32:32px; --sp-40:40px;
+
+  /* Valeurs intermédiaires relevées dans le kit source. Elles existent parce que le kit les
+     pratique — ne pas les arrondir sur la grille, et n'en introduire aucune nouvelle. */
+  --sp-6:6px; --sp-10:10px; --sp-14:14px; --sp-18:18px;
+  --sp-22:22px; --sp-26:26px; --sp-30:30px; --sp-36:36px; --sp-44:44px;
+
+  --gutter-screen:18px;      /* marge latérale d'un écran mobile */
+  --gutter-pane:30px;        /* marge d'un panneau tablette / desktop */
+  --pad-panel:20px;          /* rembourrage d'un panneau de verre */
+  --pad-panel-hero:22px;
+  --stack-overlap:-14px;     /* chevauchement de l'empilement en M */
+  --tabbar-h:80px;
+  --touch-min:42px;          /* chrome rond du kit source */
+  --touch-aa:44px;           /* plancher exigé de cible tactile — écart de 2 px assumé, voir readme.md § 4 */
+  --touch-gap:8px;           /* espace minimal entre deux cibles */
+  --touch-btn:54px;          /* bouton primaire pleine largeur */
+  --bp-stack:700px;          /* au-delà, l'empilement en M passe en grille */
+  --bp-wide:1080px;          /* au-delà, les quatre cartes passent en rangée */
+}

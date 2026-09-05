@@ -1,0 +1,119 @@
+<!-- @dsCard group="Natif" viewport="1180x1080" name="Média, TPE et console" subtitle="Sept écrans portés — pôle média, épisode, écran verrouillé, Présence Digitale, devis, console support, 403" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — natif, média, TPE et console</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:28px 26px 46px}
+*{box-sizing:border-box}
+.wrap{max-width:1120px;margin:0 auto}
+/* Sélecteurs d'élément PORTÉS en enfant direct : nus, ils atteindraient les <h1> que
+   `NTitre` rend dans les 14 maquettes montées ici et les forceraient en blanc sur clair. */
+.wrap > .eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+.wrap > h1{font-family:var(--f-display);font-weight:900;font-size:42px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+.wrap > p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+.wrap > p.k b{color:#fff;font-weight:600}
+.wrap > .fin{border-left:2px solid var(--mm-teal);padding:2px 0 2px 15px;color:#C3CDD9;max-width:76ch;margin:20px 0 0;font-size:13.5px;line-height:1.6}
+.wrap > .fin b{color:#3FD9C6}
+.lot{padding:30px 0 8px;border-top:1px solid #171D24}
+.lot > .t{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0}
+.lot > .t b{display:block;margin-top:5px;font-family:var(--f-display);font-size:26px;font-weight:900;letter-spacing:-.032em;text-transform:none;color:#fff}
+.lot > .t span{display:block;margin-top:8px;font-family:var(--f-body);font-size:13.5px;letter-spacing:0;text-transform:none;color:#A7B2BF;line-height:1.6;max-width:74ch}
+.lot > .t span b{display:inline;margin:0;font-family:var(--f-body);font-size:13.5px;font-weight:600;color:#fff}
+.ecran{padding:26px 0;display:flex;gap:28px;align-items:flex-start;border-top:1px solid #12181E}
+.txt{flex:1;min-width:240px;position:sticky;top:22px}
+.txt > .n{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#6D7987;margin:0}
+.txt > h2{font-family:var(--f-display);font-weight:900;font-size:23px;letter-spacing:-.032em;line-height:1.04;margin:5px 0 0;color:#fff}
+.txt > p{font-size:13.5px;color:#A7B2BF;line-height:1.6;margin:11px 0 0}
+.txt > p b{color:#fff;font-weight:600}
+.txt > .pq{border-left:2px solid var(--mm-violet);padding-left:14px;margin-top:15px;font-size:13px;color:#C3CDD9;line-height:1.6}
+.txt > .pq b{color:#B98CFF}
+.txt > .pq.gain{border-left-color:var(--mm-teal)}
+.txt > .pq.gain b{color:#3FD9C6}
+.frames{display:flex;gap:22px;flex:0 0 auto}
+.f .cap{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 9px}
+.dev{border-radius:36px;overflow:hidden;position:relative;background:#fff;box-shadow:0 22px 54px rgba(0,0,0,.5)}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script type="text/babel" src="NativeShell.js"></script>
+<script type="text/babel" src="ScreensNatifApp.js"></script>
+<script type="text/babel" src="ScreensNatifMedia.js"></script>
+</head><body><div class="wrap">
+
+<p class="eb">Natif · portage, lot 4 — le dernier</p>
+<h1>Un podcast s'arrête<br>quand tu verrouilles.</h1>
+<p class="k">Sept écrans, et les neuf groupes sont couverts. Le gain décisif de ce lot n'a rien à voir avec l'apparence : <b>dans un navigateur, un épisode s'arrête quand on verrouille le téléphone.</b> En natif il continue. Pour 34 minutes écoutées dans un taxi, ce n'est pas une amélioration — c'est la différence entre utilisable et inutilisable.</p>
+<p class="k">Deux surfaces en découlent, sans aucun équivalent web : le <b>mini-lecteur persistant</b> au-dessus de la barre d'onglets, et l'<b>écran verrouillé</b>.</p>
+
+<div class="lot"><p class="t">Groupe 7<b>Le pôle média</b><span>Trois écrans. Le seul groupe dont le portage natif <b>débloque un usage</b> au lieu de transposer une mise en page.</span></p></div>
+<div id="g7"></div>
+
+<div class="lot"><p class="t">Groupe 8<b>Présence Digitale</b><span>Deux écrans. <b>Aucune règle de magasin ici</b> — un pack se contracte hors application, ce n'est pas du contenu numérique consommé dedans. Le devis part sur WhatsApp, comme sur le web.</span></p></div>
+<div id="g8"></div>
+
+<div class="lot"><p class="t">Groupe 9<b>La console — sous-ensemble assumé</b><span>Deux écrans, pas dix-neuf. <b>Cinq écrans du rôle support</b> sont portés : ceux qu'on traite debout. Les quatorze écrans d'administration restent au tableau de bord desktop 1440 px — ils se travaillent au clavier sur deux ou trois colonnes, et les porter sur un téléphone serait une régression déguisée en couverture.</span></p></div>
+<div id="g9"></div>
+
+<p class="fin"><b>Les neuf groupes sont couverts : 36 écrans, dans les deux châssis.</b> 9 propres au natif, 27 portés. Ce qui reste hors du kit natif est un choix explicite, pas un oubli — les cinq onglets de liste du Club, qui se portent à l'identique, et les quatorze écrans d'administration, qui appartiennent au desktop.</p>
+
+<script type="text/babel">
+const R = window.MMNAT || {};
+
+const G7 = [
+  ['21','Le pôle','NatMediaPole',
+   <>Sous-navigation, mise en avant, poids affichés — et un <b>mini-lecteur</b> qui suit d'un écran à l'autre.</>,
+   <>Le mini-lecteur n'a aucun équivalent web&nbsp;: sur le site, quitter la page du podcast arrête le podcast. Ici il reste au-dessus de la barre d'onglets, et la lecture continue pendant qu'on parcourt le catalogue.</>,'gain'],
+  ['22','Épisode','NatMediaEpisode',
+   <>La transcription par défaut — <b className="mm-num">0 Mo</b> contre 31. S'ajoutent le téléchargement et la vitesse de lecture.</>,
+   <>La décision de la transcription vient du web et ne change pas. Ce qui s'ajoute, c'est ce qu'un navigateur <b>ne garde pas</b> d'une session à l'autre&nbsp;: un épisode téléchargé, et une vitesse de lecture qui reste choisie.</>],
+  ['23','Écran verrouillé','NatEcranVerrouille',
+   <>La surface la plus native du kit, avec le widget. <b>Un navigateur ne peut pas y écrire.</b></>,
+   <>Et les deux plateformes la traitent différemment&nbsp;: iOS pose un <b>lecteur pleine largeur</b> sous une horloge géante centrée&nbsp;; Android pose une <b>carte de notification média</b> avec l'icône de l'app, sous une horloge alignée à gauche. Le fond d'écran est celui de la personne, pas un maillage de marque — on est chez elle.</>,'gain']
+];
+
+const G8 = [
+  ['24','Offre','NatPresence',
+   <>L'ancrage désamorcé <b>avant</b> le prix, puis le sélecteur en trois questions.</>,
+   <>Porté à l'identique du web. « Je ne sais pas » reste une réponse valable&nbsp;: elle mène aussi à une recommandation. Aucune règle de magasin ne s'applique — un pack se contracte hors de l'application.</>],
+  ['25','Devis partageable','NatDevis',
+   <>Consultable sans compte, <b>figé à l'émission</b>, sans aucune donnée personnelle.</>,
+   <>Comme pour le certificat, le partage passe par la feuille système&nbsp;: <b>un</b> bouton au lieu de deux. Une évolution de la grille ne réécrit pas un devis déjà envoyé.</>]
+];
+
+const G9 = [
+  ['26','Console support','NatConsoleSupport',
+   <>Cinq écrans sur dix-neuf, ceux qu'on traite debout. Le motif en trois zones tient.</>,
+   <>Filtre par <b>statut</b> et jamais par date, une seule action par ligne, et un pied qui dit ce que l'écran ne couvre pas. Les zéros sont datés&nbsp;: «&nbsp;0 message depuis l'origine&nbsp;» est une information, «&nbsp;aucune donnée&nbsp;» n'en est pas une.</>],
+  ['27','/403','NatInterdit',
+   <>Ce que les règles de la base ont déjà refusé, avec la liste de ce que le rôle atteint.</>,
+   <>Un garde de route est du code client&nbsp;: il <b>cache</b>, il n'interdit pas. Le vrai cloisonnement est côté base — cette page ne fait que le rendre lisible, au lieu de laisser un écran vide.</>]
+];
+
+function Ecran({n,titre,comp,quoi,pq,ton}){
+  const C = R[comp];
+  const i = React.useRef(null), a = React.useRef(null);
+  React.useEffect(()=>{
+    if (!C) return;
+    ReactDOM.createRoot(i.current).render(<MMBoundary><C os="ios" /></MMBoundary>);
+    ReactDOM.createRoot(a.current).render(<MMBoundary><C os="android" /></MMBoundary>);
+  },[]);
+  return (
+    <div className="ecran">
+      <div className="txt"><p className="n">{n}</p><h2>{titre}</h2><p>{quoi}</p>
+        <p className={'pq'+(ton?' '+ton:'')}>{pq}</p></div>
+      <div className="frames">
+        <div className="f"><p className="cap">iOS · 390 × 844</p><div className="dev" ref={i} /></div>
+        <div className="f"><p className="cap">Android · 412 × 915</p><div className="dev" ref={a} /></div>
+      </div>
+    </div>
+  );
+}
+const rendre = (id,lot)=>ReactDOM.createRoot(document.getElementById(id)).render(
+  <React.Fragment>{lot.map(e=><Ecran key={e[0]} n={e[0]} titre={e[1]} comp={e[2]} quoi={e[3]} pq={e[4]} ton={e[5]} />)}</React.Fragment>);
+rendre('g7',G7); rendre('g8',G8); rendre('g9',G9);
+</script>
+</div></body></html>

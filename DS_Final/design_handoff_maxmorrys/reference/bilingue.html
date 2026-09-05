@@ -1,0 +1,95 @@
+<!-- Référence de conception — Max-Morrys. group="Bilingue" viewport="1480x1100" name="FR / EN côte à côte" subtitle="L'accueil dans les deux langues, l'article anglais avec son bandeau, et la table des routes" 
+     Copie de la maquette du système ; ce n'est pas du code de production. -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — bilingue</title>
+<link rel="stylesheet" href="../css/styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:26px 24px 44px}
+*{box-sizing:border-box}
+.wrap{max-width:1440px;margin:0 auto}
+.eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+h1{font-family:var(--f-display);font-weight:900;font-size:40px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+p.k{color:#A7B2BF;max-width:78ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+p.k b{color:#fff;font-weight:600}
+.bloc{margin-top:34px;padding-top:30px;border-top:1px solid #171D24}
+.cap{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 10px}
+.cap b{display:block;margin-top:3px;font-family:var(--f-body);font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:#fff}
+.cap i{font-style:normal;color:#FFC46B}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.fr{position:relative;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 22px 54px rgba(0,0,0,.46)}
+.fr>div{transform:scale(.5);transform-origin:top left;width:1400px;height:1720px}
+.fr{height:860px}
+.one{position:relative;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 22px 54px rgba(0,0,0,.46);height:900px}
+.one>div{transform:scale(.64);transform-origin:top left;width:1400px;height:1406px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+th{text-align:left;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6D7987;font-weight:400;padding:0 14px 8px 0}
+td{padding:8px 14px 8px 0;border-top:1px solid #1B222A;color:#B6C0CC;vertical-align:top}
+td b{color:#fff}
+.mono{font-family:var(--f-mono)}
+.ok{color:#4ADE9B}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="_components.jsx"></script>
+<script src="routes.js"></script>
+<script type="text/babel" src="site-shell.jsx"></script>
+<script type="text/babel" src="pages-core.jsx"></script>
+<script type="text/babel" src="pages-en.jsx"></script>
+</head><body><div class="wrap">
+<p class="eb">Déclinaison anglaise</p>
+<h1>L'anglais n'a pas de tutoiement.<br>La familiarité passe ailleurs.</h1>
+<p class="k">Toute la voix française repose sur le tutoiement. En anglais, elle est portée par la <b>contraction</b> — « I'll », « you're », « doesn't » — et le <b>verbe à particule</b> : « show up », « get you online », « keep you posted ». Les six libellés de navigation ne sont pas traduits, ils sont <b>écrits</b>.</p>
+<table>
+<tr><th>Français</th><th>Anglais</th><th>Ce qu'on évite</th></tr>
+<tr><td>Je suis Max-Morrys</td><td><b>I'm Max-Morrys</b></td><td>« I am » — la contraction porte le registre</td></tr>
+<tr><td>Je te forme</td><td><b>I'll train you</b></td><td>« I educate you », qui met une estrade entre nous</td></tr>
+<tr><td>Je t'informe</td><td><b>I'll keep you posted</b></td><td>« I inform you », qui sonne administratif</td></tr>
+<tr><td>Je te transforme</td><td><b>I'll push you further</b></td><td><span style="color:#FF8A80">« I transform you »</span> — publicité de coach de vie</td></tr>
+<tr><td>Je te digitalise</td><td><b>I'll get you online</b></td><td><span style="color:#FF8A80">« I digitize you »</span> — « digitize » se dit de documents, pas de commerces</td></tr>
+<tr><td>Contacte-moi</td><td><b>Talk to me</b></td><td>« Contact us », qui invente une équipe</td></tr>
+</table>
+
+<div class="bloc">
+  <p class="cap">Règle de mise en page<b>Les titres d'affichage sont écrits par langue, pas traduits</b> · <i>le français court ~18 % plus long</i></p>
+  <p class="k">Un titre calé sur trois lignes en français en fait deux en anglais, et le bloc perd sa masse. Comparez les longueurs : <span class="mono">JE TE FORME</span> (11) · <span class="mono">AU DIGITAL.</span> (11) · <span class="mono">DEPUIS DAKAR.</span> (13) contre <span class="mono">I'LL TRAIN YOU</span> (14) · <span class="mono">TO GO DIGITAL.</span> (14) · <span class="mono">FROM DAKAR.</span> (11). Trois lignes de part et d'autre, <b>même masse typographique</b>, et l'anglais reprend son libellé de navigation mot pour mot.</p>
+  <div class="duo" style="margin-top:18px">
+    <div>
+      <p class="cap" style="margin-bottom:8px">/ <b>Accueil français</b></p>
+      <div class="fr"><div id="fr"></div></div>
+    </div>
+    <div>
+      <p class="cap" style="margin-bottom:8px">/en <b>Accueil anglais</b></p>
+      <div class="fr"><div id="en"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="bloc">
+  <p class="cap">Élément d'interface obligatoire<b>Article anglais avec son bandeau de traduction</b></p>
+  <p class="k">La traduction est générée au pré-rendu <b>et mise en cache</b> : une correction du français n'atteint la page anglaise qu'à l'expiration du cache, et il n'y a pas d'invalidation manuelle. Le bandeau est donc obligatoire, <b>au-dessus du corps</b> — après l'article, un avertissement n'avertit plus.</p>
+  <div class="one" style="margin-top:18px"><div id="art"></div></div>
+</div>
+
+<div class="bloc">
+  <p class="cap">Arbre monté deux fois<b>Table des routes — chaque segment anglais est unique</b></p>
+  <p class="k">Deux entrées qui collident produisent une page inatteignable dans une langue et pas dans l'autre, <b>sans erreur de compilation pour le signaler</b>. La table est donc vérifiée au chargement.</p>
+  <table id="routes"></table>
+</div>
+</div>
+<script type="text/babel">
+const S = window.MMSITE;
+ReactDOM.createRoot(document.getElementById('fr')).render(<MMBoundary><S.Accueil go={()=>{}} /></MMBoundary>);
+ReactDOM.createRoot(document.getElementById('en')).render(<MMBoundary><S.AccueilEN go={()=>{}} /></MMBoundary>);
+ReactDOM.createRoot(document.getElementById('art')).render(<MMBoundary><S.ArticleEN go={()=>{}} /></MMBoundary>);
+
+const t = document.getElementById('routes');
+t.innerHTML = '<tr><th>Page</th><th>Français</th><th>Anglais</th><th>Unique</th></tr>' +
+  window.MM_ROUTES_I18N.map(function(r){
+    const identique = r[1] === r[2];
+    return '<tr><td>'+r[0]+'</td><td class="mono">'+r[1]+'</td><td class="mono"><b>'+r[2]+'</b>'+
+      (identique ? ' <span style="color:#7C8896">· identique, listé explicitement</span>' : '')+
+      '</td><td class="ok mono">oui</td></tr>';
+  }).join('');
+</script></body></html>

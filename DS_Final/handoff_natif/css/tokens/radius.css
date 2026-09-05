@@ -1,0 +1,9 @@
+:root{
+  --r-s:10px;    /* squelettes, puces */
+  --r-m:16px;    /* champs, encarts de vérité, panneaux denses */
+  --r-l:24px;    /* cartes, panneaux de verre */
+  --r-xl:30px;   /* panneau héros */
+  --r-media:26px;/* vignette de média */
+  --r-pill:999px;/* boutons, pilules, chips */
+  --r-phone:46px; --r-screen:38px; /* châssis d'appareil */
+}

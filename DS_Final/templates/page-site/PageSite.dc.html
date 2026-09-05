@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Page du site public" description="Page publique Max-Morrys en 1280 px : maillage plein cadre, barre de verre flottante, héros deux colonnes, grille de territoires." -->
+<helmet><script src="./ds-base.js"></script></helmet>
+<div style="width:1280px;margin:0 auto;position:relative;min-height:760px;overflow:hidden;isolation:isolate;background:#fff;color:#0E1116;font-family:var(--f-body);font-size:15px;line-height:1.5">
+<div class="mesh m-forme"><b style="width:520px;height:520px"></b><b style="width:520px;height:520px"></b><b style="width:520px;height:520px"></b></div>
+<div class="glass" style="display:flex;align-items:center;gap:24px;padding:14px 22px;position:relative;z-index:4;margin:16px 22px;border-radius:999px">
+<x-import component-from-global-scope="DesignSystem_b7a7ca.Wordmark" size="{{ 23 }}" hint-size="140px,24px"></x-import>
+<a href="#" style="font-size:13.5px;font-weight:600;color:#0E1116;padding-bottom:3px;border-bottom:2px solid transparent">Je suis Max-Morrys</a>
+<a href="#" style="font-size:13.5px;font-weight:600;color:#0E1116;padding-bottom:3px;border-bottom:2px solid #0057BC">Je te forme</a>
+<a href="#" style="font-size:13.5px;font-weight:600;color:#0E1116;padding-bottom:3px;border-bottom:2px solid #F38B0A">Je t'informe</a>
+<a href="#" style="font-size:13.5px;font-weight:600;color:#0E1116;padding-bottom:3px;border-bottom:2px solid #6C23DD">Je te transforme</a>
+<a href="#" style="font-size:13.5px;font-weight:600;color:#0E1116;padding-bottom:3px;border-bottom:2px solid #02AC9C">Je te digitalise</a>
+<span style="margin-left:auto;display:flex;gap:12px;align-items:center"><span style="font-family:var(--f-mono);font-size:12px;color:#5A6472">FR&nbsp;/&nbsp;EN</span><x-import component-from-global-scope="DesignSystem_b7a7ca.Button" tone="primary" size="sm" hint-size="110px,42px">Connexion</x-import></span>
+</div>
+<div style="position:relative;z-index:3;padding:34px 40px 56px;display:grid;grid-template-columns:1.1fr .9fr;gap:46px;align-items:center">
+<div>
+<h1 style="font-family:var(--f-display);font-weight:900;font-size:64px;letter-spacing:-.038em;line-height:.9;margin:0">JE TE FORME<br>AU DIGITAL.<br>DEPUIS DAKAR.</h1>
+<p style="font-size:16px;color:#5A6472;line-height:1.5;max-width:46ch;margin:20px 0 0">Remplace ce chapô par une phrase au tutoiement, à la première personne. Deux lignes suffisent.</p>
+<div style="display:flex;gap:12px;margin-top:26px">
+<x-import component-from-global-scope="DesignSystem_b7a7ca.Button" tone="forme" full-width="{{ false }}" hint-size="190px,54px">Voir les formations</x-import>
+<x-import component-from-global-scope="DesignSystem_b7a7ca.Button" tone="ghost" full-width="{{ false }}" hint-size="220px,54px">Lire le blog</x-import>
+</div>
+<div class="truth" style="margin-top:26px;max-width:52ch">
+<p style="font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#5A6472;margin:0 0 6px">Ce que je n'affiche pas</p>
+<p style="font-size:12.5px;color:#5A6472;line-height:1.5;margin:0">Ni nombre d'élèves, ni taux de réussite, ni chiffre d'affaires. Ce que je peux prouver est sur chaque fiche.</p>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<x-import component-from-global-scope="DesignSystem_b7a7ca.TerritoryCard" stacked="{{ false }}" territory="forme" meta="6 modules · 47 leçons" title="Je te forme" hint-size="100%,150px"></x-import>
+<x-import component-from-global-scope="DesignSystem_b7a7ca.TerritoryCard" stacked="{{ false }}" territory="informe" meta="Blog · podcast · vidéo" title="Je t'informe" hint-size="100%,150px"></x-import>
+<x-import component-from-global-scope="DesignSystem_b7a7ca.TerritoryCard" stacked="{{ false }}" territory="transforme" meta="Communauté fermée" title="Je te transforme" hint-size="100%,150px"></x-import>
+<x-import component-from-global-scope="DesignSystem_b7a7ca.TerritoryCard" stacked="{{ false }}" territory="digitalise" meta="Commerces de proximité" title="Je te digitalise" hint-size="100%,150px"></x-import>
+</div>
+</div>
+</div>
+
+</x-dc>
+</body>
+</html>

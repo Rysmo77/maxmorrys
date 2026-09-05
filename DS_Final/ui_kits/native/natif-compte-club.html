@@ -1,0 +1,114 @@
+<!-- @dsCard group="Natif" viewport="1180x1080" name="Compte et Club" subtitle="Sept écrans portés — connexion, création, préférences, suppression, mur du Club, fil, agenda" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — natif, compte et Club</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:28px 26px 46px}
+*{box-sizing:border-box}
+.wrap{max-width:1120px;margin:0 auto}
+/* Sélecteurs d'élément PORTÉS en enfant direct : nus, ils atteindraient les <h1> que
+   `NTitre` rend dans les 14 maquettes montées ici et les forceraient en blanc sur clair. */
+.wrap > .eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+.wrap > h1{font-family:var(--f-display);font-weight:900;font-size:42px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+.wrap > p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+.wrap > p.k b{color:#fff;font-weight:600}
+.regle{border-left:2px solid var(--mm-orange);padding:2px 0 2px 15px;color:#C3CDD9;max-width:76ch;margin:18px 0;font-size:13.5px;line-height:1.6}
+.regle b{color:#FFC46B}
+.lot{padding:30px 0 8px;border-top:1px solid #171D24}
+.lot > .t{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0}
+.lot > .t b{display:block;margin-top:5px;font-family:var(--f-display);font-size:26px;font-weight:900;letter-spacing:-.032em;text-transform:none;color:#fff}
+.lot > .t span{display:block;margin-top:8px;font-family:var(--f-body);font-size:13.5px;letter-spacing:0;text-transform:none;color:#A7B2BF;line-height:1.6;max-width:74ch}
+.lot > .t span b{display:inline;margin:0;font-family:var(--f-body);font-size:13.5px;font-weight:600;color:#fff}
+.ecran{padding:26px 0;display:flex;gap:28px;align-items:flex-start;border-top:1px solid #12181E}
+.txt{flex:1;min-width:240px;position:sticky;top:22px}
+.txt > .n{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#6D7987;margin:0}
+.txt > h2{font-family:var(--f-display);font-weight:900;font-size:23px;letter-spacing:-.032em;line-height:1.04;margin:5px 0 0;color:#fff}
+.txt > p{font-size:13.5px;color:#A7B2BF;line-height:1.6;margin:11px 0 0}
+.txt > p b{color:#fff;font-weight:600}
+.txt > .pq{border-left:2px solid var(--mm-violet);padding-left:14px;margin-top:15px;font-size:13px;color:#C3CDD9;line-height:1.6}
+.txt > .pq b{color:#B98CFF}
+.txt > .pq.store{border-left-color:var(--mm-orange)}
+.txt > .pq.store b{color:#FFC46B}
+.frames{display:flex;gap:22px;flex:0 0 auto}
+.f .cap{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 9px}
+.dev{border-radius:36px;overflow:hidden;position:relative;background:#fff;box-shadow:0 22px 54px rgba(0,0,0,.5)}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script type="text/babel" src="NativeShell.js"></script>
+<script type="text/babel" src="ScreensNatifApp.js"></script>
+<script type="text/babel" src="ScreensNatifCompte.js"></script>
+</head><body><div class="wrap">
+
+<p class="eb">Natif · portage, lot 3</p>
+<h1>Les règles des magasins<br>dessinent trois écrans.</h1>
+<p class="k">Sept écrans de plus. Ce lot est celui où les directives de publication décident du dessin — <b>trois fois, et aucune n'est un détail juridique</b>. Chacune change un écran, et deux créent la première divergence de <b>contenu</b> entre les deux plateformes, pas seulement de cadre.</p>
+
+<div class="regle"><b>Règle 4.8 — connexion tierce.</b> L'App Store impose « Se connecter avec Apple » dès qu'on propose une connexion tierce. Offrir Google sans Apple fait rejeter l'app. Le bouton n'existe donc que dans le châssis iOS, et la phrase qui le suit compte « trois moyens » d'un côté, « deux » de l'autre.</div>
+<div class="regle"><b>Règle 5.1.1(v) — suppression de compte.</b> Elle doit être faisable <i>dans</i> l'app : un lien vers le site ne suffit pas. Le web le faisait déjà bien — ici ça devient obligatoire au lieu d'être vertueux.</div>
+<div class="regle"><b>Achat intégré, encore.</b> L'abonnement au Club est un achat numérique comme une formation : 19 900 F encaissés dans l'app imposent le paiement du magasin. Le mur renvoie au site, exactement comme celui des cours.</div>
+
+<div class="lot"><p class="t">Groupe 5<b>Compte et préférences</b><span>Quatre écrans. Deux portent une règle de magasin. Et les préférences gagnent enfin une section de notifications <b>réelle</b> — elle reflète l'état de la permission système, ce que le web ne pouvait pas faire.</span></p></div>
+<div id="g5"></div>
+
+<div class="lot"><p class="t">Groupe 6<b>Le Club</b><span>Trois écrans représentatifs des huit onglets : le mur, le fil, l'agenda. Les cinq autres sont des listes qui se portent à l'identique — les dessiner un par un n'apprendrait rien de plus.</span></p></div>
+<div id="g6"></div>
+
+<script type="text/babel">
+const R = window.MMNAT || {};
+
+const G5 = [
+  ['14','Connexion','NatConnexion',
+   <>Connexion tierce, séparateur, e-mail et mot de passe. <b>Le châssis iOS porte un bouton de plus.</b></>,
+   <><b>Première divergence de contenu du portage.</b> L'App Store impose « Se connecter avec Apple » dès qu'une connexion tierce est offerte — proposer Google seul fait rejeter l'app. La phrase de l'encart suit&nbsp;: «&nbsp;trois moyens, un seul compte&nbsp;» sur iOS, «&nbsp;deux&nbsp;» sur Android.<br /><br />La marque Apple doit venir de <b>l'asset officiel fourni par Apple</b>, dont l'usage est imposé par les mêmes directives — elle ne se redessine pas. L'emplacement est réservé, à remplir.</>,'store'],
+  ['15','Création de compte','NatCreation',
+   <>Même structure. La case de consentement <b>n'est jamais pré-cochée</b>, et le consentement est horodaté.</>,
+   <>Porté à l'identique du web, au bouton Apple près. La règle de la base refuse une inscription sans consentement horodaté&nbsp;: l'interface ne fait que refléter une contrainte réelle.</>],
+  ['16','Préférences','NatPreferences',
+   <>La section des notifications devient <b>réelle</b> : trois types actifs, l'état de la permission système, et la ligne « par e-mail » toujours grisée.</>,
+   <>Sur le web, ces interrupteurs ne pilotaient qu'un centre applicatif. Ici ils pilotent de vraies notifications — et la carte verte dit ce que l'app <b>ne peut plus faire</b>&nbsp;: si tu coupes la permission dans les réglages du téléphone, elle ne pourra pas reposer la question. La ligne e-mail reste grisée parce qu'<b>aucun canal d'envoi n'existe toujours</b>.</>],
+  ['17','Suppression de compte','NatSuppression',
+   <>Ce qui part, ce qui reste, et un champ de confirmation. Tout se passe <b>dans l'app</b>.</>,
+   <>L'App Store l'exige (règle 5.1.1(v))&nbsp;: un lien vers le site ne suffit pas. Une ligne s'ajoute au web — les <b>21 Mo téléchargés</b> sur ce téléphone, supprimés à la déconnexion. C'est le seul élément de la liste qui n'existait pas côté web.</>,'store']
+];
+
+const G6 = [
+  ['18','Mur d\'abonnement','NatClubMur',
+   <>Le prix cadré <b>au mois et à l'année</b>, les cinq engagements, et l'abonnement qui se prend sur le site.</>,
+   <>Même règle que les formations. Le prix reste donné des deux façons dès le premier écran&nbsp;: mensualisé il relève de l'achat impulsif, annualisé il franchit un seuil de délibération — et cacher l'un des deux chiffres, c'est choisir à la place de la personne.</>,'store'],
+  ['19','Le fil','NatClubFil',
+   <>Le bilan d'abonnement en tête, <b>permanent</b>, puis une publication de membre et une mission.</>,
+   <>Le bilan utilise <code style={{fontFamily:'var(--f-mono)',color:'#FFB24D'}}>level="ink"</code>&nbsp;— carte opaque sur page claire. Un voile nuit y composerait avec le fond et remonterait à un gris moyen. Un abonnement annuel ne supprime pas le renoncement, il le concentre sur un instant&nbsp;: le bilan est donc permanent, pas terminal.</>],
+  ['20','Agenda','NatClubAgenda',
+   <>Sessions en ligne et ateliers, avec les places restantes. <b>Et une action que le web ne pouvait pas offrir.</b></>,
+   <><b>Le seul écran du portage qui GAGNE une action native</b>&nbsp;: «&nbsp;ajouter à mon agenda&nbsp;». Une session dans l'agenda système <b>survit à la désinstallation de l'app</b> et ne dépend d'aucune permission de notification. C'est le meilleur rappel possible, et il ne coûte rien.</>]
+];
+
+function Ecran({n,titre,comp,quoi,pq,ton}){
+  const C = R[comp];
+  const i = React.useRef(null), a = React.useRef(null);
+  React.useEffect(()=>{
+    if (!C) return;
+    ReactDOM.createRoot(i.current).render(<MMBoundary><C os="ios" /></MMBoundary>);
+    ReactDOM.createRoot(a.current).render(<MMBoundary><C os="android" /></MMBoundary>);
+  },[]);
+  return (
+    <div className="ecran">
+      <div className="txt"><p className="n">{n}</p><h2>{titre}</h2><p>{quoi}</p>
+        <p className={'pq'+(ton?' '+ton:'')}>{pq}</p></div>
+      <div className="frames">
+        <div className="f"><p className="cap">iOS · 390 × 844</p><div className="dev" ref={i} /></div>
+        <div className="f"><p className="cap">Android · 412 × 915</p><div className="dev" ref={a} /></div>
+      </div>
+    </div>
+  );
+}
+const rendre = (id,lot)=>ReactDOM.createRoot(document.getElementById(id)).render(
+  <React.Fragment>{lot.map(e=><Ecran key={e[0]} n={e[0]} titre={e[1]} comp={e[2]} quoi={e[3]} pq={e[4]} ton={e[5]} />)}</React.Fragment>);
+rendre('g5',G5); rendre('g6',G6);
+</script>
+</div></body></html>

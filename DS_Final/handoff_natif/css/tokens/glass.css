@@ -1,0 +1,25 @@
+/* L'opacité du verre est un jeton, pas une valeur libre.
+   Sous 0,45 le contraste de l'encre passe sous 4,5:1 sur le maillage violet. */
+:root{
+  --glass-a:.62; /* @kind other */        /* panneau à texte dense */
+  --glass-a-hero:.58; /* @kind other */   /* héros, SANS flou. Le plancher de .45 avait été
+                                             mesuré avec le flou, qui adoucissait le maillage ;
+                                             sans lui, il faut .58 pour le même contraste. */
+  --glass-a-flat:.78; /* @kind other */   /* faux verre, sans flou, pour tout ce qui défile */
+  --glass-blur:24px;
+  /* --glass-blur-hero retiré : le héros défile, donc il n'a plus de flou. */
+  --glass-blur-chrome:26px;
+  --glass-sat:170%; /* @kind other */
+  --glass-brd:rgba(255,255,255,.55);
+  --glass-hl:inset 0 1px 0 rgba(255,255,255,.75); /* @kind shadow */
+  --glass-sh:0 14px 38px rgba(14,17,22,.13);
+  --glass-sh-hero:0 18px 44px rgba(14,17,22,.14);
+  --glass-sh-flat:0 6px 18px rgba(14,17,22,.07);
+  --glass-d-a:.72; /* @kind other */      /* verre nuit, sans flou : relevé de .62 */
+
+  /* Ombres colorées des boutons dégradés */
+  --sh-bleu:0 8px 24px rgba(0,87,188,.34);
+  --sh-violet:0 8px 24px rgba(108,35,221,.34);
+  --sh-teal:0 8px 24px rgba(2,172,156,.32);
+  --sh-ink:0 8px 22px rgba(14,17,22,.24);
+}

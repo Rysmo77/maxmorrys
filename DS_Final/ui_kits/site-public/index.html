@@ -1,0 +1,45 @@
+<!-- @dsCard group="Site public" viewport="1280x700" name="Site public" subtitle="Quinze pages en pleine largeur — navigation, sections, pied de page" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — Site public</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>html,body{margin:0}body{background:#0A0D11;font-family:var(--f-body)}#root{width:1280px;margin:0 auto}/* Mobilier de planche, pas du produit : aucun flou, pour ne pas polluer le comptage. */
+.pager{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;display:flex;flex-wrap:wrap;justify-content:center;max-width:1180px;gap:5px;background:#0F141A;padding:6px;border-radius:22px}.pager button{border:0;cursor:pointer;border-radius:999px;padding:7px 12px;font-family:var(--f-body);font-size:11.5px;font-weight:600;background:rgba(255,255,255,.12);color:#fff}.pager button.on{background:#fff;color:#0E1116}.pager i{align-self:center;width:1px;height:18px;background:rgba(255,255,255,.18);margin:0 3px}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script type="text/babel" src="SiteShell.js"></script>
+<script type="text/babel" src="PagesCore.js"></script>
+<script type="text/babel" src="Pages.js"></script>
+<script type="text/babel" src="PagesFormations.js"></script>
+<script type="text/babel" src="PagesUtiles.js"></script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+/* Treize routes publiques, groupées par territoire. Le séparateur marque la sortie
+   des quatre verbes : l'agence, puis les pages transverses. */
+const PAGES = [
+  ['accueil','Accueil'],
+  ['formations','Formations'],['fiche','Fiche formation'],
+  ['blog','Blog'],['article','Article'],['media','Podcast & vidéos'],['faq','FAQ'],
+  ['transforme','Club des Digitos'],
+  ['presence','Présence Digitale'],
+  null,
+  ['agence','Agency'],
+  null,
+  ['apropos','À propos'],['contact','Contact'],['verifier','Vérifier'],['connexion','Connexion'],['cgv','CGV']
+];
+function App(){
+  const [p,setP] = React.useState('accueil');
+  const R = window.MMSITE || {};
+  const V = {accueil:R.Accueil,formations:R.Formations,fiche:R.FicheFormation,blog:R.Blog,article:R.Article,
+    media:R.SiteMedia,faq:R.Faq,transforme:R.Transforme,presence:R.Presence,agence:R.Agence,
+    apropos:R.Apropos,contact:R.Contact,verifier:R.Verifier,connexion:R.Connexion,cgv:R.Cgv}[p];
+  return (
+    <React.Fragment>
+      <MMBoundary key={'b'+p}>{V ? <V key={p} go={setP} /> : null}</MMBoundary>
+      <div className="pager">{PAGES.map((e,i)=> e ? (<button key={e[0]} className={e[0]===p?'on':''} onClick={()=>setP(e[0])}>{e[1]}</button>) : <i key={'s'+i} />)}</div>
+    </React.Fragment>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

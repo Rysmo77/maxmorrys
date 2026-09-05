@@ -1,0 +1,107 @@
+<!-- @dsCard group="Natif" viewport="1180x1080" name="Les deux châssis" subtitle="Un corps, deux châssis — ce qui diffère entre iOS et Android, et ce qui ne diffère pas" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — les deux châssis natifs</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:28px 26px 46px}
+*{box-sizing:border-box}
+.wrap{max-width:1120px;margin:0 auto}
+/* Tous les sélecteurs d'élément ci-dessous sont PORTÉS en enfant direct. Nus, ils
+   atteindraient les <h1> que `NTitre` rend dans les maquettes montées dans #i1 et #a1,
+   écraseraient leur héritage, et mettraient un titre blanc sur un fond clair — 1,00:1. */
+.wrap > .eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+.wrap > h1{font-family:var(--f-display);font-weight:900;font-size:42px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+.wrap > .bloc > h2{font-family:var(--f-display);font-weight:900;font-size:24px;letter-spacing:-.03em;line-height:1;margin:0 0 10px;color:#fff}
+.wrap > .bloc > p.k,.wrap > p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+.wrap p.k b{color:#fff;font-weight:600}
+.bloc{padding:32px 0;border-top:1px solid #171D24}
+.paire{display:flex;gap:34px;align-items:flex-start;margin-top:20px}
+.col{flex:0 0 auto}
+.cap{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 10px}
+.cap b{display:block;margin-top:3px;font-family:var(--f-body);font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:#fff}
+.dev{border-radius:38px;overflow:hidden;position:relative;background:#fff;box-shadow:0 26px 60px rgba(0,0,0,.55)}
+.notes{flex:1;min-width:260px;padding-top:38px}
+.note{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #1B222A}
+.note:last-child{border-bottom:0}
+.note u{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.1);display:grid;place-items:center;
+  font-family:var(--f-mono);font-size:10px;font-weight:700;color:#8FD8FF;text-decoration:none;margin-top:1px}
+.note div{flex:1}
+.note b{display:block;font-size:13.5px;color:#fff;margin-bottom:3px}
+.note span{font-size:12.5px;color:#A2ADBB;line-height:1.5}
+.note code{font-family:var(--f-mono);font-size:11.5px;color:#FFB24D}
+.wrap table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+.wrap th{text-align:left;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6D7987;font-weight:400;padding:0 12px 8px 0}
+.wrap td{padding:10px 12px 10px 0;border-top:1px solid #1B222A;color:#B6C0CC;vertical-align:top}
+.wrap td b{color:#fff}
+.wrap td.mono{font-family:var(--f-mono);font-size:12px}
+.encart{border-left:2px solid var(--mm-orange);padding:2px 0 2px 15px;color:#C3CDD9;max-width:76ch;margin:18px 0;font-size:13.5px;line-height:1.6}
+.encart b{color:#FFC46B}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script type="text/babel" src="NativeShell.js"></script>
+<script type="text/babel" src="ScreensNatif.js"></script>
+</head><body><div class="wrap">
+
+<p class="eb">Natif · le système de châssis</p>
+<h1>Un corps.<br>Deux châssis.</h1>
+<p class="k">« La marque d'abord » a une conséquence qu'il faut nommer, parce qu'elle décide tout le reste : <b>le contenu d'un écran est identique sur les deux plateformes, et seul le châssis diffère.</b> Un écran qui aurait besoin de deux corps différents serait un écran où la marque a cédé aux conventions — c'est un signal d'erreur, pas une exception à gérer.</p>
+<p class="k">Les deux appareils ci-dessous rendent le <b>même appel de composant</b>, avec un seul argument qui change : <code style="font-family:var(--f-mono);color:#FFB24D">os="ios"</code> ou <code style="font-family:var(--f-mono);color:#FFB24D">os="android"</code>.</p>
+
+<div class="bloc">
+<h2>Le même écran, les deux châssis</h2>
+<p class="k">Le mur de paiement, parce qu'il porte tout ce qui diffère à la fois : barre d'état, barre de navigation, affordance de retour, et une phrase dont le texte dépend du magasin.</p>
+<div class="paire">
+  <div class="col"><p class="cap">iOS · iPhone 13/14<b>390 × 844</b></p><div class="dev" id="i1"></div></div>
+  <div class="col"><p class="cap">Android · Pixel 8<b>412 × 915</b></p><div class="dev" id="a1"></div></div>
+  <div class="notes">
+    <div class="note"><u>1</u><div><b>Le gabarit</b><span>390 × 844 contre <code>412 × 915</code>. Android est plus large ET plus haut : un écran qui ne survit pas aux deux largeurs n'est pas portable. Les deux se testent ensemble, jamais l'un après l'autre.</span></div></div>
+    <div class="note"><u>2</u><div><b>La découpe de caméra</b><span>Encoche large et attachée au bord sur iOS ; <code>poinçon</code> centré et détaché sur Android. C'est le détail qui dit « Android » avant tout le reste.</span></div></div>
+    <div class="note"><u>3</u><div><b>La barre d'état</b><span>iOS : heure à gauche, triade signal-wifi-batterie à droite. Android : heure ET icônes de notification à gauche, batterie <code>avec son pourcentage</code> à droite.</span></div></div>
+    <div class="note"><u>4</u><div><b>La barre de navigation</b><span><code>44 px</code> sur iOS, titre centré. <code>64 px</code> sur Android, titre aligné à gauche — deux hauteurs système que l'utilisateur reconnaît sans les nommer.</span></div></div>
+    <div class="note"><u>5</u><div><b>Le retour</b><span>Chevron <b>+ libellé</b> sur iOS : il dit où l'on revient. Flèche seule sur Android, parce que le retour système peut venir d'ailleurs — et un libellé faux est pire que pas de libellé.</span></div></div>
+    <div class="note"><u>6</u><div><b>La barre basse</b><span>Indicateur d'accueil <code>134 × 5</code> sur iOS. Sur Android, <code>108 × 3</code> en gestuel, ou trois boutons sur <code>48 px</code> — un réglage que l'utilisateur possède, donc les deux formes doivent tenir.</span></div></div>
+    <div class="note"><u>7</u><div><b>Le flou</b><span>Présent sur iOS, <b>absent par défaut sur Android</b>. Voir la section suivante : c'est la seule divergence qui touche le dessin, pas seulement le châssis.</span></div></div>
+  </div>
+</div>
+</div>
+
+<div class="bloc">
+<h2>Le verre sur Android : le repli est le cas normal</h2>
+<p class="k">L'équivalent Android de <code style="font-family:var(--f-mono);color:#FFB24D">backdrop-filter</code> est <code style="font-family:var(--f-mono);color:#FFB24D">RenderEffect</code>, et il demande <b>API 31+</b>. Or le marché visé ici est bas de gamme — c'est écrit dans le système : le repli web se déclenche à <code style="font-family:var(--f-mono);color:#FFB24D">deviceMemory ≤ 2</code>. Construire le verre sur une capacité que la moitié du parc n'a pas, c'est concevoir pour l'autre moitié.</p>
+<p class="k">Donc <b>aucun flou par défaut sous Android</b>. Les voiles montent pour compenser, exactement comme le repli <code style="font-family:var(--f-mono);color:#FFB24D">.lowfi</code> du web. Le flou devient un bonus, activé par <code style="font-family:var(--f-mono);color:#FFB24D">.andro.blur-ok</code> quand l'appareil le déclare — jamais une hypothèse.</p>
+<table>
+<tr><th>Niveau</th><th>iOS</th><th>Android par défaut</th><th>Android, flou déclaré</th></tr>
+<tr><td><b>chrome</b></td><td class="mono">blanc .62 + blur 24</td><td class="mono">blanc .86, aucun flou</td><td class="mono">identique à iOS</td></tr>
+<tr><td><b>héros</b></td><td class="mono">blanc .72</td><td class="mono">blanc .90</td><td class="mono">blanc .72</td></tr>
+<tr><td><b>nuit</b></td><td class="mono">encre .72</td><td class="mono">encre .92</td><td class="mono">encre .72</td></tr>
+<tr><td><b>faux verre</b></td><td class="mono">déjà sans flou</td><td class="mono">inchangé</td><td class="mono">inchangé</td></tr>
+</table>
+<div class="encart"><b>Ce que ça ne change pas.</b> Le maillage reste identique sur les deux plateformes : c'est du dégradé et de la <code style="font-family:var(--f-mono)">transform</code>, gratuit partout. C'est précisément ce qui permet à Android de perdre le flou <b>sans perdre l'identité</b> — l'écran reste reconnaissable, il est seulement moins translucide. Un système dont l'identité reposait sur le flou seul n'aurait pas survécu à cette décision.</div>
+</div>
+
+<div class="bloc">
+<h2>Ce qui ne diffère pas</h2>
+<p class="k">La liste est plus longue que celle des différences, et c'est le but. Tout ce qui suit est écrit <b>une fois</b> :</p>
+<table>
+<tr><td style="width:26%"><b>Le maillage</b></td><td>Quatre territoires, trois lobes, dérive de 25 à 38 s. Identique.</td></tr>
+<tr><td><b>Les cartes territoire</b></td><td>Chevron, empilement en M, dégradé à deux arrêts. Identiques.</td></tr>
+<tr><td><b>La typographie</b></td><td>Fraunces 900 en affichage, Schibsted en texte, JetBrains Mono pour les données. Identique.</td></tr>
+<tr><td><b>La règle du monospace</b></td><td>Un nombre dans cette fonte vient de la base ou d'une source citée. Identique.</td></tr>
+<tr><td><b>Les encarts de vérité</b></td><td>Même surface, même sourcil, même rôle. Identiques.</td></tr>
+<tr><td><b>Le mouvement</b></td><td>Quatre durées, deux courbes, deux moments scénarisés. Identique.</td></tr>
+<tr><td><b>La barre d'onglets</b></td><td>80 px, cinq entrées, verre. La <b>marque impose sa hauteur</b> aux deux plateformes ; sur iOS la zone sûre de 34 px s'ajoute au lieu de rogner les cibles.</td></tr>
+<tr><td><b>La voix</b></td><td>« Je te… », tutoiement, aucune preuve sociale. Identique.</td></tr>
+</table>
+</div>
+
+<script type="text/babel">
+const R = window.MMNAT || {};
+ReactDOM.createRoot(document.getElementById('i1')).render(<MMBoundary><R.MurPaiement os="ios" /></MMBoundary>);
+ReactDOM.createRoot(document.getElementById('a1')).render(<MMBoundary><R.MurPaiement os="android" /></MMBoundary>);
+</script>
+</div></body></html>

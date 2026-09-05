@@ -1,0 +1,44 @@
+<!-- @dsCard group="Composants" viewport="700x400" name="Navigation" subtitle="Barre d'onglets, barre haute, latérale, recherche, fil, cycle de vente" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Navigation</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>html,body{margin:0}body{font-family:var(--f-body);color:var(--ink);background:#FBFCFE;padding:18px}*{box-sizing:border-box}.lbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}body{padding:0}.stage{position:relative;min-height:400px;overflow:hidden}.in{position:relative;z-index:3;padding:18px}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+</head><body><div id="root"></div><script type="text/babel">
+const { TabBar, TopBar, SideNav, SearchPill, Breadcrumb, Pipeline, ReadingBar, Mesh, Wordmark, Button, Icon, GlassPanel, ProgressBar } = window.DesignSystem_b7a7ca;
+const mmTabs=[{label:'Espace',icon:<Icon name="home" size={21} />},{label:'Cours',icon:<Icon name="book" size={21} />},{label:'Rysmo',icon:<Icon name="chat" size={21} />},{label:'Club',icon:<Icon name="users" size={21} />},{label:'Profil',icon:<Icon name="user" size={21} />}];
+function Card(){return (
+  <div className="stage play">
+    <Mesh territory="forme" size={420} />
+    <ReadingBar value={46} />
+    <div className="in">
+      <p className="lbl">Barre haute desktop · pilule de verre flottante</p>
+      <TopBar style={{margin:'0 0 16px'}} brand={<Wordmark size={21} style={{marginRight:'10px'}} />}
+        items={[{label:'Je suis Max-Morrys'},{label:'Je te forme',territory:'forme'},{label:"Je t'informe",territory:'informe'},{label:'Je te transforme',territory:'transforme'},{label:'Je te digitalise',territory:'digitalise'}]}
+        trailing={<><span className="mm-num" style={{fontSize:'12px',color:'var(--ink-2)'}}>FR / EN</span><Button size="sm">Connexion</Button></>} />
+      <div style={{display:'grid',gridTemplateColumns:'250px 1fr',gap:'16px'}}>
+        <SideNav style={{borderRadius:'var(--r-l)',border:'1px solid var(--glass-brd)'}} active="Je te forme"
+          items={[{label:'Je te forme',color:'#0057BC'},{label:"Je t'informe",color:'#F38B0A'},{label:'Je te transforme',color:'#6C23DD'},{label:'Je te digitalise',color:'#02AC9C'}]}
+          footer={<GlassPanel padding={13}><p className="lbl" style={{margin:0}}>Ton espace</p><p style={{fontSize:'13px',fontWeight:600,margin:'5px 0 0'}}>Leçon 5 · 34 %</p><ProgressBar value={34} style={{marginTop:'9px'}} /></GlassPanel>} />
+        <div>
+          <p className="lbl">Recherche</p>
+          <SearchPill icon={<Icon name="search" size={17} />} label="TROUVE CE " hint="QU'IL TE FAUT" />
+          <p className="lbl" style={{marginTop:'16px'}}>Fil d'Ariane</p>
+          <Breadcrumb items={["Je t'informe",'Blog','SEO local à Dakar']} />
+          <p className="lbl" style={{marginTop:'16px'}}>Cycle de vente — prospects TPE</p>
+          <div style={{background:'#0A0D11',padding:'10px',borderRadius:'var(--r-m)'}}>
+            <Pipeline active="nouveau" stages={['nouveau','qualifié','devisé','signé','perdu']} />
+          </div>
+          <p className="lbl" style={{marginTop:'16px'}}>Barre d'onglets · 80 px, verre flouté fixe</p>
+          <div style={{position:'relative',height:'90px',borderRadius:'var(--r-m)',overflow:'hidden',border:'1px solid var(--glass-brd)'}}>
+            <TabBar items={mmTabs} active="Espace" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<MMBoundary><Card /></MMBoundary>);
+</script></body></html>

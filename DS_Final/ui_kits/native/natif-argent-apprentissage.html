@@ -1,0 +1,106 @@
+<!-- @dsCard group="Natif" viewport="1180x1080" name="Argent et apprentissage" subtitle="Sept écrans portés — catalogue, mur, retour, espace, lecteur, notes, certificat" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — natif, argent et apprentissage</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:28px 26px 46px}
+*{box-sizing:border-box}
+.wrap{max-width:1120px;margin:0 auto}
+/* Sélecteurs d'élément PORTÉS en enfant direct : nus, ils atteindraient les <h1> que
+   `NTitre` rend dans les 14 maquettes montées ici et les forceraient en blanc sur clair. */
+.wrap > .eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+.wrap > h1{font-family:var(--f-display);font-weight:900;font-size:42px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+.wrap > p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+.wrap > p.k b{color:#fff;font-weight:600}
+.lot{padding:30px 0 10px;border-top:1px solid #171D24}
+.lot > .t{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0}
+.lot > .t b{display:block;margin-top:5px;font-family:var(--f-display);font-size:26px;font-weight:900;letter-spacing:-.032em;text-transform:none;color:#fff}
+.lot > .t span{display:block;margin-top:8px;font-family:var(--f-body);font-size:13.5px;letter-spacing:0;text-transform:none;color:#A7B2BF;line-height:1.6;max-width:74ch}
+.lot > .t span b{display:inline;margin:0;font-family:var(--f-body);font-size:13.5px;font-weight:600;color:#fff}
+.ecran{padding:26px 0;display:flex;gap:28px;align-items:flex-start;border-top:1px solid #12181E}
+.txt{flex:1;min-width:240px;position:sticky;top:22px}
+.txt > .n{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#6D7987;margin:0}
+.txt > h2{font-family:var(--f-display);font-weight:900;font-size:23px;letter-spacing:-.032em;line-height:1.04;margin:5px 0 0;color:#fff}
+.txt > p{font-size:13.5px;color:#A7B2BF;line-height:1.6;margin:11px 0 0}
+.txt > p b{color:#fff;font-weight:600}
+.txt > .pq{border-left:2px solid var(--mm-violet);padding-left:14px;margin-top:15px;font-size:13px;color:#C3CDD9;line-height:1.6}
+.txt > .pq b{color:#B98CFF}
+.frames{display:flex;gap:22px;flex:0 0 auto}
+.f .cap{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 9px}
+.dev{border-radius:36px;overflow:hidden;position:relative;background:#fff;box-shadow:0 22px 54px rgba(0,0,0,.5)}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script type="text/babel" src="NativeShell.js"></script>
+<script type="text/babel" src="ScreensNatif.js"></script>
+<script type="text/babel" src="ScreensNatifApp.js"></script>
+</head><body><div class="wrap">
+
+<p class="eb">Natif · portage, lot 1</p>
+<h1>Sept écrans portés.<br>Un corps, deux châssis.</h1>
+<p class="k">Le motif de portage, prouvé sur deux groupes entiers : <b>le corps vient du web sans modification de fond</b>, et seul l'emballage change — <code style="font-family:var(--f-mono);color:#FFB24D">NativeScreen</code> remplace <code style="font-family:var(--f-mono);color:#FFB24D">Screen</code>, la barre haute du châssis remplace <code style="font-family:var(--f-mono);color:#FFB24D">AppBar</code>, le reste est identique au caractère près.</p>
+<p class="k">Deux écrans font exception, et c'est instructif : ce sont ceux où le <b>natif change le produit</b>, pas son emballage. Ils sont signalés.</p>
+
+<div class="lot"><p class="t">Groupe 1<b>Le chemin de l'argent</b><span>Trois écrans. Le tunnel de paiement web n'est pas porté : <b>l'app n'encaisse rien</b> — App&nbsp;Store 3.1.1 et Play Payments l'interdisent pour du contenu numérique. Le catalogue et le mur restent, l'achat sort vers le site, et le retour constate.</span></p></div>
+<div id="g1"></div>
+
+<div class="lot"><p class="t">Groupe 2<b>L'apprentissage</b><span>Quatre écrans. Celui-ci se porte presque à l'identique — c'est la salle de classe, et elle ne dépend d'aucune règle de magasin. Une seule addition&nbsp;: la carte de notification de l'espace.</span></p></div>
+<div id="g2"></div>
+
+<script type="text/babel">
+const R = window.MMNAT || {};
+
+const G1 = [
+  ['01','Catalogue','NatCatalogue',
+   <>Deux formations, <b>aucune note, aucun compteur d'inscrits</b>. Le module d'ouverture se regarde sans payer, dans l'app.</>,
+   <>Le catalogue est parcourable entièrement sans compte&nbsp;: c'est ce qui permet de juger avant d'être renvoyé vers le site pour payer.</>],
+  ['02','Mur de paiement','MurPaiement',
+   <>L'app ne vend rien. Elle ouvre ce qui est déjà payé et renvoie au site — même prix, Wave et Orange&nbsp;Money.</>,
+   <><b>C'est l'écran qui évite le rejet en revue.</b> Le tunnel web à trois étapes ne se porte pas&nbsp;: il est remplacé par une explication et un lien sortant. Le texte nomme le magasin, donc il diffère entre les deux châssis — la seule chaîne du lot dans ce cas.</>],
+  ['03','Retour de paiement','NatRetourPaiement',
+   <>« C'est à toi », pas « paiement accepté ». L'app <b>constate</b> que l'accès est ouvert.</>,
+   <>La nuance compte&nbsp;: annoncer une transaction qu'on n'a pas faite serait un mensonge de plus. Le reçu est renvoyé vers le site, là où le paiement a réellement eu lieu.</>]
+];
+
+const G2 = [
+  ['04','Mon espace','NatEspace',
+   <>La reprise reste <b>le premier objet</b>, comme sur le web. Série, niveau, répétiteur, puis les entrées d'espace.</>,
+   <><b>La seule addition du natif.</b> Sur le web, la reprise devait être en tête parce que la relance ne pouvait venir que de l'écran — aucun canal d'envoi. En natif elle peut venir de l'extérieur, donc l'écran propose la notification, <b>une fois</b>, et pas à chaque ouverture.</>],
+  ['05','Lecteur de leçon','NatLecteur',
+   <>Faux verre partout, parce que tout défile. Chaque poids affiché, téléchargement en Wi-Fi par défaut.</>,
+   <>Le bouton en haut à droite de la vidéo est l'entrée du plein écran paysage — le seul écran du produit qui sort du châssis partagé.</>],
+  ['06','Mes notes','NatNotes',
+   <>Cinq notes horodatées, rattachées à leur leçon. Le seul écran du lot avec un bouton flottant.</>,
+   <>Le bouton flottant est <b>rond sur iOS, arrondi carré sur Android</b>&nbsp;: c'est la seule concession de forme aux conventions, parce qu'un bouton d'ajout est un objet système reconnaissable. Il se place au-dessus de la barre d'onglets, dans la zone sûre.</>],
+  ['07','Certificat','NatCertificat',
+   <>Le second moment scénarisé&nbsp;: une brillance passe <b>deux fois</b>, puis plus jamais.</>,
+   <>En natif, le partage passe par la feuille système — d'où <b>un</b> bouton au lieu des deux du web. Ce qui part est le lien de vérification, pas une image&nbsp;: une capture ne se vérifie pas.</>]
+];
+
+function Ecran({n,titre,comp,quoi,pq}){
+  const C = R[comp];
+  const i = React.useRef(null), a = React.useRef(null);
+  React.useEffect(()=>{
+    if (!C) return;
+    ReactDOM.createRoot(i.current).render(<MMBoundary><C os="ios" /></MMBoundary>);
+    ReactDOM.createRoot(a.current).render(<MMBoundary><C os="android" /></MMBoundary>);
+  },[]);
+  return (
+    <div className="ecran">
+      <div className="txt"><p className="n">{n}</p><h2>{titre}</h2><p>{quoi}</p><p className="pq">{pq}</p></div>
+      <div className="frames">
+        <div className="f"><p className="cap">iOS · 390 × 844</p><div className="dev" ref={i} /></div>
+        <div className="f"><p className="cap">Android · 412 × 915</p><div className="dev" ref={a} /></div>
+      </div>
+    </div>
+  );
+}
+const rendre = (id,lot)=>ReactDOM.createRoot(document.getElementById(id)).render(
+  <React.Fragment>{lot.map(e=><Ecran key={e[0]} n={e[0]} titre={e[1]} comp={e[2]} quoi={e[3]} pq={e[4]} />)}</React.Fragment>);
+rendre('g1',G1); rendre('g2',G2);
+</script>
+</div></body></html>

@@ -1,0 +1,84 @@
+<!-- @dsCard group="Points de rupture" viewport="1500x1080" name="Tableaux de bord desktop" subtitle="Espace apprenant et console admin en 1440 px — trois colonnes, la largeur sert la navigation" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — tableaux de bord desktop</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:26px 24px 44px}
+*{box-sizing:border-box}
+.wrap{max-width:1440px;margin:0 auto}
+/* Tous les sélecteurs d'élément ci-dessous sont PORTÉS par .wrap. Un sélecteur nu comme
+   h1{color:#fff} atteint aussi les <h1> des maquettes montées dans #d1 et #d2, écrase
+   l'héritage de Fenetre, et met un titre blanc sur un fond clair — 1,32:1. */
+.eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+.wrap > h1{font-family:var(--f-display);font-weight:900;font-size:40px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+.wrap > .bloc > p.k, .wrap > p.k{color:#A7B2BF;max-width:78ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+.wrap p.k b{color:#fff;font-weight:600}
+.bloc{margin-top:34px;padding-top:30px;border-top:1px solid #171D24}
+.cap{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 12px}
+.cap b{display:block;margin-top:3px;font-family:var(--f-body);font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:#fff}
+.cap i{font-style:normal;color:#FFC46B}
+.wrap > .bloc > table, .wrap > table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+.wrap th{text-align:left;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6D7987;font-weight:400;padding:0 12px 8px 0}
+.wrap td{padding:9px 12px 9px 0;border-top:1px solid #1B222A;color:#B6C0CC;vertical-align:top}
+.wrap td b{color:#fff}
+.mono{font-family:var(--f-mono)}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script type="text/babel" src="Dashboards.js"></script>
+</head><body><div class="wrap">
+<p class="eb">Points de rupture · au-delà de 1080 px</p>
+<h1>Deux tableaux de bord,<br>trois colonnes chacun.</h1>
+<p class="k">L'espace apprenant et la console n'existaient qu'en 390 px. Pour une application web c'est un défaut de fond sur la console : <b>un opérateur qui qualifie des prospects et réconcilie des paiements travaille à un bureau</b>, pas au pouce.</p>
+<p class="k">La règle d'élargissement ne change pas — <b>l'espace gagné va à la marge et à la navigation, jamais à la longueur de ligne</b>. Ces deux vues ajoutent des colonnes, elles n'étirent aucun bloc.</p>
+<table>
+<tr><th>Vue</th><th>Colonne 1</th><th>Colonne 2</th><th>Colonne 3</th><th>Ce que la largeur apporte</th></tr>
+<tr><td><b>Espace apprenant</b></td><td class="mono">250 px<br>navigation</td><td>travail<br><span class="mono">fluide</span></td><td class="mono">340 px<br>répétiteur</td><td>Le répétiteur passe d'une carte qu'on ouvre à un <b>panneau permanent</b></td></tr>
+<tr><td><b>Console admin</b></td><td class="mono">230 px<br>les 19 écrans</td><td>liste dense<br><span class="mono">fluide</span></td><td class="mono">380 px<br>détail</td><td>Le détail cesse d'être un écran séparé : <b>la file reste visible pendant qu'on traite</b></td></tr>
+</table>
+
+<div class="bloc">
+  <p class="cap">Rôle apprenant<b>Mon espace · 1440 × 900</b> · <i>la reprise reste le premier objet</i></p>
+  <div id="d1"></div>
+  <p class="k" style="margin-top:14px">Ce qui ne bouge pas depuis le 390 px : <b>la carte de reprise est le premier objet de l'écran</b>. Le produit n'a aucun canal d'e-mail, donc la relance ne peut venir que de l'écran lui-même — l'élargir ne change pas ça.</p>
+</div>
+
+<div class="bloc">
+  <p class="cap">Rôle administrateur<b>Console · 1440 × 900</b> · <i>les trois zones du motif, en colonnes</i></p>
+  <div id="d2"></div>
+  <p class="k" style="margin-top:14px">Le motif des trois zones est conservé : <b>filtre par statut</b> (jamais par date), <b>liste dense à une action par ligne</b>, et un <b>pied qui dit ce que l'écran ne couvre pas</b>. Les 19 écrans deviennent visibles d'un coup au lieu de vivre dans un menu.</p>
+</div>
+
+<div class="bloc">
+  <p class="cap">Les 24 pages<b>5 pour l'espace apprenant, 19 pour la console</b></p>
+  <p class="k">Cette page montre les deux vues en entier pour expliquer le <b>pourquoi</b>. Les vingt-quatre pages elles-mêmes sont dans <b>« Tableaux de bord · les 24 pages »</b>, avec un sélecteur — c'est là qu'on les regarde une par une.</p>
+  <table>
+  <tr><th>Groupe</th><th>Pages</th></tr>
+  <tr><td><b>Espace apprenant</b></td><td>Mon espace · Mes cours · Mon répétiteur · Le Club · Mon profil</td></tr>
+  <tr><td><b>Console · pilotage</b></td><td>Tableau de bord · Transactions · Utilisateurs</td></tr>
+  <tr><td><b>Console · commerce</b></td><td>Prospects · Projets · Coupons</td></tr>
+  <tr><td><b>Console · contenu</b></td><td>Formations · Articles · Podcasts · Vidéos · FAQ</td></tr>
+  <tr><td><b>Console · Club</b></td><td>Événements · Défis · Témoignages</td></tr>
+  <tr><td><b>Console · réglages</b></td><td>Redirections · Pop-ups · Notifications · Rendez-vous · Paramètres</td></tr>
+  </table>
+  <p class="k" style="margin-top:14px"><b>Cinq écrans de console sont à zéro</b> — projets, défis, témoignages, notifications, rendez-vous. Ils sont dessinés quand même : un écran d'administration qu'on ne dessine pas parce qu'il est vide finit par afficher des données d'exemple le jour où il se remplit. Chacun porte un zéro daté et la <b>raison</b> du zéro, pas un « aucune donnée ».</p>
+</div>
+
+<div class="bloc">
+  <p class="cap">Ce que je n'ai pas créé, et pourquoi</p>
+  <table>
+  <tr><td style="width:26%"><b>Tableau de bord formateur</b></td><td>Max-Morrys opère seul : il <i>est</i> l'administrateur. Un troisième rôle serait une invention que personne ne reconnaîtrait.</td></tr>
+  <tr><td><b>Espace client TPE</b></td><td>Le devis est consultable par URL, sans compte, et ne contient aucune donnée personnelle. Lui donner un espace obligerait à créer des comptes pour des gens qui n'en veulent pas.</td></tr>
+  <tr><td><b>Graphiques et cohortes</b></td><td>La console répond à « qu'est-ce qui bloque aujourd'hui », pas à « comment ça évolue ». Avec 5 comptes et 0 certificat, une courbe serait du décor.</td></tr>
+  </table>
+</div>
+</div>
+<script type="text/babel">
+const D = window.MMDASH;
+ReactDOM.createRoot(document.getElementById('d1')).render(<MMBoundary><D.EspaceDesktop /></MMBoundary>);
+ReactDOM.createRoot(document.getElementById('d2')).render(<MMBoundary><D.ConsoleDesktop /></MMBoundary>);
+</script></body></html>

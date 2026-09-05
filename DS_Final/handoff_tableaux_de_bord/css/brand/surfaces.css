@@ -1,0 +1,30 @@
+/* Cinq niveaux de verre. Un seul porte encore un flou : voir le commentaire ci-dessous. */
+/* LA SEULE SURFACE FLOUTÉE DU SYSTÈME : le chrome qui ne défile pas — barre haute du site,
+   barre d'onglets basse. En production, elle est en `position: fixed` ou `sticky`. Dans les
+   maquettes à cadre de 390 × 844, elle est en `absolute` dans le cadre, ce qui produit le même
+   résultat : elle ne défile pas avec le contenu. C'est ça le critère, pas le mot-clé. */
+.glass{background:rgba(255,255,255,var(--glass-a));backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));border:1px solid var(--glass-brd);box-shadow:var(--glass-hl),var(--glass-sh);border-radius:var(--r-l)}
+.glass-hero{background:rgba(255,255,255,var(--glass-a-hero));border:1px solid rgba(255,255,255,.62);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),var(--glass-sh-hero);border-radius:var(--r-xl)}
+.glass-flat{background:rgba(255,255,255,var(--glass-a-flat));border:1px solid rgba(255,255,255,.7);box-shadow:var(--glass-hl),var(--glass-sh-flat);border-radius:var(--r-l)}
+/* Aucun flou : le verre nuit ne porte que du contenu, empilé à trois ou six par écran
+   dans un corps qui défile. Voile relevé de .62 à .72 pour compenser. */
+.glass-d{background:rgba(14,17,22,var(--glass-d-a));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 14px 38px rgba(0,0,0,.4);border-radius:var(--r-l)}
+/* Carte d'encre : opaque, pour une surface sombre posée sur une page CLAIRE. Un voile
+   composerait avec le fond clair et remonterait à rgb(80,81,86) — 2,61:1 sous un gris nuit.
+   Le composant lui applique aussi la portée .dk, pour que ses TEXTES prennent l'encre nuit.
+   D'où --surface-ink et non --ink : le fond et la portée sont sur le même élément, donc un
+   jeton thématique lu ici basculerait avec les textes et peindrait la carte en blanc cassé. */
+.ink-card{background:var(--surface-ink);border:1px solid rgba(255,255,255,.1);box-shadow:0 16px 40px rgba(14,17,22,.28);border-radius:var(--r-l)}
+/* Faux verre : aucun flou. À blur(10px) il ne gagnait rien et coûtait une surface floutée
+   sur chaque écran. Opacité relevée de .5 à .72 pour tenir le contraste sans le flou. */
+.truth{border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.72);border-radius:var(--r-m);padding:15px}
+/* Le bloc `@supports not (backdrop-filter)` vivait ici EN DOUBLE de brand/fallback.css :
+   deux déclarations, l'ordre de chargement qui tranche, et la règle 4 contredite dans le
+   fichier même qui l'énonce. Les trois replis vivent maintenant uniquement dans fallback.css. */
+/* Voiles nuit relevés d'environ deux points depuis le retrait du flou : sans lui le maillage
+   remonte, et sur fond sombre un voile trop léger laisse le lobe traverser le texte.
+   Ils restent très bas — sur fond sombre, un voile épais fait flotter la surface. */
+.dk .glass{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 14px 38px rgba(0,0,0,.46)}
+.dk .glass-hero{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 18px 44px rgba(0,0,0,.5)}
+.dk .glass-flat{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.09);box-shadow:none}
+.dk .truth{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.11)}

@@ -1,0 +1,52 @@
+/* ══ NATIF — zones sûres et politique de flou ══
+   Deux plateformes, deux gabarits réels. Ce ne sont pas des marges décoratives : un écran
+   qui ne survit pas aux DEUX largeurs n'est pas portable. 390 et 412 px se testent ensemble.
+
+   iOS      iPhone 13/14 · 390 × 844 · encoche · haut 47 · bas 34
+   Android  Pixel 8      · 412 × 915 · poinçon · haut 24 · bas 24 (navigation gestuelle)
+
+   Le bas d'Android passe à 48 quand la navigation à trois boutons est active — d'où un jeton
+   séparé, et non une valeur écrite dans les écrans. */
+:root{
+  --safe-ios-top:47px;
+  --safe-ios-bottom:34px;
+  --safe-andro-top:24px;
+  --safe-andro-bottom:24px;
+  --safe-andro-bottom-3btn:48px;
+
+  /* Chrome natif : la barre de navigation haute. iOS 44, Android 64 (Material 3).
+     Elles diffèrent même en « marque d'abord », parce que ce sont des hauteurs système
+     que l'utilisateur reconnaît sans les nommer. */
+  --navbar-ios:44px;
+  --navbar-andro:64px;
+
+  /* Pas de jeton de hauteur de barre ici : `--tabbar-h` (tokens/spacing.css) est la seule
+     source. En avoir deux à la même valeur, c'est garantir qu'un jour ils divergeront —
+     `TabBar` lit l'un pour sa hauteur et l'écran l'autre pour son rembourrage.
+     La zone sûre, elle, s'AJOUTE aux 80 px : elle ne les rogne pas. */
+}
+
+/* ══ LA POLITIQUE DE FLOU D'ANDROID ══
+   Sur Android, le repli EST le cas normal — décision assumée, pas une dégradation.
+   `RenderEffect` demande API 31+, et le marché visé est bas de gamme : construire le
+   verre sur une capacité que la moitié du parc n'a pas, c'est concevoir pour l'autre moitié.
+
+   Donc : aucun flou par défaut sous `.andro`. Les voiles montent pour compenser, exactement
+   comme le repli `.lowfi` du web. Le flou devient un BONUS, activé par `.andro.blur-ok`
+   quand l'appareil le déclare — jamais une hypothèse. */
+.andro .glass,.andro .glass-hero,.andro .glass-d,.andro .truth{backdrop-filter:none;-webkit-backdrop-filter:none}
+.andro .glass{background:rgba(255,255,255,.86)}
+.andro .glass-hero{background:rgba(255,255,255,.9)}
+.andro .glass-d{background:rgba(13,17,23,.92)}
+.andro .truth{background:rgba(255,255,255,.88)}
+.andro.dk .glass{background:rgba(255,255,255,.13)}
+.andro.dk .glass-hero{background:rgba(255,255,255,.16)}
+.andro.dk .truth{background:rgba(255,255,255,.11)}
+
+/* L'appareil a déclaré savoir flouter : le verre reprend sa recette d'origine. */
+.andro.blur-ok .glass,.andro.blur-ok .glass-hero,.andro.blur-ok .glass-d,.andro.blur-ok .truth{
+  backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat))}
+
+/* Le maillage, lui, ne bouge pas : c'est du dégradé et de la transform, gratuit partout.
+   C'est ce qui permet à Android de perdre le flou sans perdre l'identité. */

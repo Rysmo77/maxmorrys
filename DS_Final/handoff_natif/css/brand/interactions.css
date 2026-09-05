@@ -1,0 +1,11 @@
+/* « J'ai senti ton doigt » — 120 ms, transform seulement.
+   Les composants portent .mm-press (ou .mm-press-sm pour les pilules et boutons ronds) ;
+   la règle vit ici parce qu'un style inline ne peut pas exprimer :active. */
+.mm-press,.mm-press-sm{transition:transform var(--t-tap) var(--ease),box-shadow var(--t-ui) var(--ease)}
+.mm-press:active{transform:scale(var(--press-scale))}
+.mm-press-sm:active{transform:scale(var(--press-scale-sm))}
+.mm-press[aria-disabled="true"]:active{transform:none}
+/* Le survol ne porte jamais d'information : il ne fait que confirmer la cible, sur pointeur fin. */
+@media (hover:hover) and (pointer:fine){
+  .mm-press:hover,.mm-press-sm:hover{filter:brightness(1.03)}
+}

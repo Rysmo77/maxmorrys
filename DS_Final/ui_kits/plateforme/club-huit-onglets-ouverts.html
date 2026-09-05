@@ -1,0 +1,30 @@
+<!-- @dsCard group="Plateforme · apprenant" viewport="3350x1010" name="Club, 8 onglets ouverts" subtitle="Fil, discussions, membres, agenda, classement, opportunités, informations, parrainage" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — Club, les 8 onglets</title>
+<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="board.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script src="board.js"></script>
+<script type="text/babel" src="AppShell.js"></script>
+<script type="text/babel" src="ScreensPublic.js"></script>
+<script type="text/babel" src="ScreensSpace.js"></script>
+<script type="text/babel" src="ScreensClub.js"></script>
+<script type="text/babel" src="ScreensClubVerrou.js"></script>
+</head><body><div id="root"></div>
+<script type="text/babel">
+/* Les huit onglets, tous ouverts — l'état d'un membre. La planche précédente en montrait
+   sept : le mur d'abonnement occupait le créneau d'« Informations », qui n'existait pas. */
+renderBoard([
+  {n:'01',titre:'Fil — le contenu, le bilan dans le rail',comp:'ClubFil'},
+  {n:'02',titre:'Discussions — par sujet, jamais par date',comp:'ClubDiscussions'},
+  {n:'03',titre:'Membres — fiche et signalement',comp:'ClubMembre'},
+  {n:'04',titre:'Agenda — en ligne et présentiel',comp:'ClubAgenda'},
+  {n:'05',titre:'Classement — par vague',comp:'ClubClassement',note:'aucun classement absolu'},
+  {n:'06',titre:'Opportunités — budgets annoncés',comp:'ClubOpportunites'},
+  {n:'07',titre:'Informations — le digest',comp:'ClubInfos',note:'la section qui manquait'},
+  {n:'08',titre:'Parrainage — 15 % au filleul',comp:'ClubParrainage'}
+]);
+</script></body></html>

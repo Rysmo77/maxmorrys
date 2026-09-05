@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+html,body{margin:0;height:100%}
+body{width:1280px;height:854px;display:flex;overflow:hidden;background:var(--mm-bleu)}
+*{box-sizing:border-box}
+/* Zone principale : le bleu de marque bord à bord, le nom entier centré.
+   Pas de mark dessinée : le système rend sa marque en type pur, c'est sa règle. */
+.marque{flex:1;display:grid;place-items:center;background:var(--mm-bleu);padding:0 48px}
+.marque span{font-family:var(--f-display);font-weight:900;font-size:142px;letter-spacing:-.045em;
+  line-height:1;color:#fff;white-space:nowrap}
+/* Bande de valeurs : quatre accents saturés, du plus clair au plus sombre, à fond perdu. */
+.bande{width:320px;flex:0 0 auto;display:flex;flex-direction:column}
+.bande i{flex:1;display:block}
+</style></head><body>
+<div class="marque"><span>Max-Morrys</span></div>
+<div class="bande">
+  <i style="background:#FFC9CE"></i>
+  <i style="background:#F38B0A"></i>
+  <i style="background:#02AC9C"></i>
+  <i style="background:#6C23DD"></i>
+</div>
+</body></html>

@@ -1,0 +1,10 @@
+html,body{margin:0}
+body{background:#0A0D11;font-family:var(--f-body);padding:26px 24px 40px}
+*{box-sizing:border-box}
+#root{display:flex;gap:24px;align-items:flex-start}
+.col{width:390px;flex:0 0 auto}
+.cap{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 9px}
+.cap b{display:block;font-family:var(--f-body);font-size:13.5px;letter-spacing:0;text-transform:none;color:#fff;margin-top:3px}
+.cap i{font-style:normal;color:#FFC46B}
+.dev{width:390px;border-radius:38px;overflow:hidden;position:relative;background:#fff;box-shadow:0 30px 70px rgba(0,0,0,.55)}
+::-webkit-scrollbar{display:none}

@@ -1,0 +1,134 @@
+<!-- Maquette de référence — Max-Morrys, les 36 écrans natifs iOS et Android.
+     Ouvre ce fichier dans un navigateur : rien à installer, rien à servir. -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — les 36 écrans natifs</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:22px 20px 40px}
+*{box-sizing:border-box}
+.wrap{max-width:1000px;margin:0 auto}
+.wrap > .cap{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 14px}
+.wrap > .cap b{display:block;margin-top:4px;font-family:var(--f-display);font-size:23px;font-weight:900;letter-spacing:-.03em;text-transform:none;color:#fff}
+.wrap > .cap i{font-style:normal;color:#FFC46B;display:block;margin-top:7px;font-family:var(--f-body);font-size:13px;letter-spacing:0;text-transform:none;line-height:1.55}
+.paire{display:flex;gap:26px;align-items:flex-start;justify-content:center}
+.f .lbl{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 9px;text-align:center}
+.dev{border-radius:36px;overflow:hidden;position:relative;background:#fff;box-shadow:0 22px 54px rgba(0,0,0,.5)}
+.pager{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 22px;background:rgba(255,255,255,.04);
+  padding:9px;border-radius:16px;border:1px solid rgba(255,255,255,.09)}
+.pager button{border:0;cursor:pointer;border-radius:999px;padding:6px 10px;font-family:var(--f-body);
+  font-size:11px;font-weight:600;background:rgba(255,255,255,.1);color:#C3CDD9}
+.pager button.on{background:#fff;color:#0E1116}
+.pager u{align-self:center;font-family:var(--f-mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:#68727F;text-decoration:none;padding:0 5px 0 9px;width:100%;margin-top:4px}
+.pager u:first-child{margin-top:0}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel" src="native-shell.jsx"></script>
+<script type="text/babel" src="screens-natif.jsx"></script>
+<script type="text/babel" src="screens-app.jsx"></script>
+<script type="text/babel" src="screens-etats.jsx"></script>
+<script type="text/babel" src="screens-compte.jsx"></script>
+<script type="text/babel" src="screens-media.jsx"></script>
+</head><body>
+<div class="wrap">
+  <p class="cap" id="legende"></p>
+  <div class="pager" id="pager"></div>
+  <div class="paire" id="paire">
+    <div class="f"><p class="lbl">iOS · 390 × 844</p><div class="dev" id="ios"></div></div>
+    <div class="f"><p class="lbl">Android · 412 × 915</p><div class="dev" id="andro"></div></div>
+  </div>
+</div>
+<script type="text/babel">
+/* Les 36 écrans, groupés comme dans le README. Chacun est rendu dans les DEUX châssis :
+   c'est la thèse du kit, et le sélecteur ne permet pas de l'oublier. */
+const ECRANS = [
+  ['sep','Propres au natif'],
+  ['Lancement','Lancement',"aucun indicateur de progression"],
+  ['Onboarding','Onboarding',"trois écrans, aucun compte demandé"],
+  ['Permissions','Permissions',"le canal de relance que le web n'avait pas"],
+  ['MurPaiement','Mur de paiement',"l'app ne vend rien — App Store 3.1.1, Play Payments"],
+  ['Telechargements','Stockage',"poids en monospace, plafond auto-imposé"],
+  ['LecteurPleinEcran','Lecteur paysage',"le seul écran hors châssis partagé"],
+  ['WidgetAccueil','Widget',"la relance qui n'interrompt pas et ne demande aucune permission"],
+  ['PartageSysteme','Partage système',"ce qui part est le lien de vérification, pas une image"],
+  ['Biometrie','Biométrie',"après la première connexion, jamais avant"],
+  ['sep','Argent'],
+  ['NatCatalogue','Catalogue',"aucune note, aucun compteur d'inscrits"],
+  ['NatRetourPaiement','Retour de paiement',"« c'est à toi », pas « paiement accepté »"],
+  ['sep','Apprentissage'],
+  ['NatEspace','Mon espace',"la reprise reste le premier objet · + la carte de notification"],
+  ['NatLecteur','Lecteur de leçon',"faux verre partout, parce que tout défile"],
+  ['NatNotes','Mes notes',"bouton flottant rond sur iOS, arrondi carré sur Android"],
+  ['NatCertificat','Certificat',"une brillance passe deux fois, puis plus jamais"],
+  ['sep','Répétiteur'],
+  ['NatRepetiteur','Conversation',"le quota épinglé : le clavier ne doit pas le cacher"],
+  ['NatMemoire','Mémoire de profil',"porté sans une ligne de différence"],
+  ['sep','États transverses'],
+  ['NatChargement','Chargement',"la forme exacte du contenu réel"],
+  ['NatVide','État vide',"le zéro est daté"],
+  ['NatErreur','Erreur',"motif, conséquence, sortie — dans cet ordre"],
+  ['NatHorsConnexion','Hors connexion',"meilleur en natif : le système le dit avant d'essayer"],
+  ['sep','Compte'],
+  ['NatConnexion','Connexion',"App Store 4.8 : « avec Apple » obligatoire dès qu'on offre Google"],
+  ['NatCreation','Création de compte',"la case de consentement n'est jamais pré-cochée"],
+  ['NatPreferences','Préférences',"la section notifications devient réelle"],
+  ['NatSuppression','Suppression',"App Store 5.1.1(v) : faisable DANS l'app"],
+  ['sep','Club'],
+  ['NatClubMur','Mur du Club',"même règle d'achat intégré que les formations"],
+  ['NatClubFil','Le fil',"le bilan d'abonnement, permanent · carte d'encre opaque"],
+  ['NatClubAgenda','Agenda',"le seul écran qui GAGNE une action native"],
+  ['sep','Média'],
+  ['NatMediaPole','Pôle média',"mini-lecteur persistant : la lecture survit au changement d'écran"],
+  ['NatMediaEpisode','Épisode',"transcription par défaut · 0 Mo contre 31"],
+  ['NatEcranVerrouille','Écran verrouillé',"un navigateur ne peut pas y écrire"],
+  ['sep','TPE et console'],
+  ['NatPresence','Présence Digitale',"aucune règle de magasin : le pack se contracte hors app"],
+  ['NatDevis','Devis',"figé à l'émission, sans donnée personnelle"],
+  ['NatConsoleSupport','Console support',"5 écrans sur 19 — les 14 autres restent au desktop"],
+  ['NatInterdit','/403',"un garde de route cache, il n'interdit pas"]
+];
+
+let courant = 'Lancement';
+const rIos = ReactDOM.createRoot(document.getElementById('ios'));
+const rAnd = ReactDOM.createRoot(document.getElementById('andro'));
+
+function monter(){
+  const R = window.MMNAT || {};
+  const it = ECRANS.find(e=>e[0]===courant);
+  const C = R[courant];
+  const l = document.getElementById('legende');
+  l.textContent = 'Écran';
+  const b = document.createElement('b'); b.textContent = it[1];
+  const i = document.createElement('i'); i.textContent = it[2];
+  l.appendChild(b); l.appendChild(i);
+  const B = window.MMBoundary;
+  rIos.render(React.createElement(B,{key:'i'+courant}, C ? React.createElement(C,{os:'ios'}) : null));
+  rAnd.render(React.createElement(B,{key:'a'+courant}, C ? React.createElement(C,{os:'android'}) : null));
+  [].forEach.call(document.querySelectorAll('.pager button'), n=>{
+    n.className = n.dataset.k === courant ? 'on' : '';
+  });
+}
+
+const pager = document.getElementById('pager');
+ECRANS.forEach(e=>{
+  if (e[0] === 'sep'){ const u = document.createElement('u'); u.textContent = e[1]; pager.appendChild(u); return; }
+  const b = document.createElement('button');
+  b.textContent = e[1]; b.dataset.k = e[0];
+  b.onclick = ()=>{ courant = e[0]; monter(); };
+  pager.appendChild(b);
+});
+
+/* Babel charge les fichiers text/babel[src] de façon asynchrone : on attend que le
+   registre soit peuplé avant de monter. setTimeout, pas requestAnimationFrame — hors
+   peinture, rAF ne se déclenche jamais et la page resterait vide. */
+let essais = 0;
+(function attend(){
+  if ((window.MMNAT && window.MMNAT.NatInterdit) || essais++ > 80) return monter();
+  setTimeout(attend, 20);
+})();
+</script>
+</body></html>

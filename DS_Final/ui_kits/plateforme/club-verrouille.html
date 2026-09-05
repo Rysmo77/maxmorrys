@@ -1,0 +1,46 @@
+<!-- @dsCard group="Plateforme · apprenant" viewport="3350x1010" name="Club verrouillé" subtitle="Un écran par onglet — compteurs réels et un élément entier, jamais de contenu flouté" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — Club verrouillé</title>
+<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="board.css">
+<style>
+/* Le bandeau explique la thèse de la planche : les colonnes ne se lisent pas sans elle. */
+.these{width:1180px;margin:0 auto 26px;padding:0 2px}
+.these > .eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+.these > h1{font-family:var(--f-display);font-weight:900;font-size:34px;letter-spacing:-.035em;line-height:.98;margin:0 0 12px;color:#fff}
+.these > p{color:#A7B2BF;max-width:88ch;margin:0 0 10px;font-size:13.5px;line-height:1.65}
+.these > p b{color:#fff;font-weight:600}
+.these > .pq{border-left:2px solid var(--mm-violet);padding-left:14px;margin-top:14px;font-size:13px;color:#C3CDD9;line-height:1.65;max-width:88ch}
+.these > .pq b{color:#B98CFF}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script src="board.js"></script>
+<script type="text/babel" src="AppShell.js"></script>
+<script type="text/babel" src="ScreensPublic.js"></script>
+<script type="text/babel" src="ScreensSpace.js"></script>
+<script type="text/babel" src="ScreensClub.js"></script>
+<script type="text/babel" src="ScreensClubVerrou.js"></script>
+</head><body>
+<div class="these">
+  <p class="eb">Club · l'écran verrouillé</p>
+  <h1>Ce n'est pas le mur d'abonnement.</h1>
+  <p>Le mur s'adresse à un <b>visiteur</b>, sur le site public. Cet écran-ci s'adresse à quelqu'un qui a <b>déjà un compte</b>, qui est dans l'application, et qui vient de toucher « Club » dans la barre d'onglets. Ce n'est pas la même personne — et lui servir la page de vente publique gâche la seule information qu'on ait en plus : <b>elle est entrée, donc on sait quel onglet elle voulait.</b></p>
+  <p>D'où huit écrans et non un seul. Chacun montre ce qui est derrière <i>ce</i> cadenas-là.</p>
+  <p class="pq"><b>Pas de contenu flouté.</b> C'est le motif réflexe, et il est faux ici : un flou dit « il y a foule là-dedans, fais-nous confiance ». Le Club a ouvert cette année, il ne peut pas dire ça — et la personne le vérifierait au premier écran après avoir payé. À la place, chaque onglet montre <b>ses compteurs réels</b> et <b>un élément complet, non tronqué</b>. Moins flatteur qu'un flou, et beaucoup plus solide : ce qui est promis est exactement ce qui sera livré. Tous ces nombres sont en monospace parce qu'ils viennent de la base — et c'est sur un écran de vente que cette règle compte le plus.</p>
+</div>
+<div id="root"></div>
+<script type="text/babel">
+renderBoard([
+  {n:'01',titre:'Fil verrouillé',comp:'VerrouFil',note:'7 publications, 41 réponses'},
+  {n:'02',titre:'Discussions verrouillées',comp:'VerrouDiscussions',note:'41 sujets ouverts'},
+  {n:'03',titre:'Membres verrouillés',comp:'VerrouMembres',note:'6 fiches remplies'},
+  {n:'04',titre:'Agenda verrouillé',comp:'VerrouAgenda',note:'2 sessions ce mois, 4 places'},
+  {n:'05',titre:'Classement verrouillé',comp:'VerrouClassement',note:'« 0 classement absolu » est un argument'},
+  {n:'06',titre:'Opportunités verrouillées',comp:'VerrouOpportunites',note:'3 missions, 180 000 à 450 000 F'},
+  {n:'07',titre:'Informations verrouillées',comp:'VerrouInfos',note:'3 digests, 0 e-mail envoyé'},
+  {n:'08',titre:'Parrainage verrouillé',comp:'VerrouParrainage',note:'0 commission, et c\'est écrit'}
+]);
+</script></body></html>

@@ -1,0 +1,113 @@
+<!-- @dsCard group="Natif" viewport="1180x1080" name="Les neuf écrans natifs" subtitle="Lancement, onboarding, permissions, mur de paiement, stockage, lecteur, widget, partage, biométrie" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — les neuf écrans propres au natif</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:28px 26px 46px}
+*{box-sizing:border-box}
+.wrap{max-width:1120px;margin:0 auto}
+/* Les sélecteurs d'élément sont PORTÉS en enfant direct. Nus, `.wrap h1` atteignait les
+   <h1> que `NTitre` rend dans les 18 maquettes montées ici et forçait 12 titres display
+   en blanc sur fond clair — 1,00:1. Les titres des maquettes héritent de leur châssis. */
+.wrap > .eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+.wrap > h1{font-family:var(--f-display);font-weight:900;font-size:42px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+.wrap > p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+.wrap p.k b{color:#fff;font-weight:600}
+.ecran{padding:34px 0;border-top:1px solid #171D24;display:flex;gap:30px;align-items:flex-start}
+.txt{flex:1;min-width:250px;position:sticky;top:22px}
+.txt .n{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6D7987;margin:0}
+.txt > h2{font-family:var(--f-display);font-weight:900;font-size:26px;letter-spacing:-.032em;line-height:1.02;margin:6px 0 0;color:#fff}
+.txt > p{font-size:13.5px;color:#A7B2BF;line-height:1.6;margin:12px 0 0}
+.txt > p b{color:#fff;font-weight:600}
+.txt .pourquoi{border-left:2px solid var(--mm-violet);padding-left:14px;margin-top:16px;font-size:13px;color:#C3CDD9}
+.txt .pourquoi b{color:#B98CFF}
+.frames{display:flex;gap:22px;flex:0 0 auto}
+/* Le lecteur plein écran est en PAYSAGE : 844 × 390 et 915 × 412. Côte à côte ils font
+   1781 px et débordent la planche de 941 px — le cadre Android sortait entièrement du
+   champ. Cette ligne passe donc en pleine largeur, cadres empilés : 915 px tient dans
+   les 1120 px du conteneur, sans mise à l'échelle ni rognage. */
+.ecran.pays{flex-direction:column;gap:22px}
+.ecran.pays .txt{position:static;top:auto;width:100%;min-width:0}
+.ecran.pays .frames{flex-direction:column;width:100%}
+.f .cap{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 9px}
+.dev{border-radius:36px;overflow:hidden;position:relative;background:#fff;box-shadow:0 22px 54px rgba(0,0,0,.5)}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script type="text/babel" src="NativeShell.js"></script>
+<script type="text/babel" src="ScreensNatif.js"></script>
+</head><body><div class="wrap">
+
+<p class="eb">Natif · les écrans réellement nouveaux</p>
+<h1>Neuf écrans<br>sans équivalent web.</h1>
+<p class="k">Tout le reste du produit se porte : même corps, deux châssis. Ces neuf-là n'existent pas côté web, ce sont donc les seuls écrans réellement <b>nouveaux</b> du virage — et deux d'entre eux changent le produit, pas seulement son emballage.</p>
+<p class="k">Chacun est écrit <b>une fois</b> et rendu dans les deux châssis. Si l'un avait eu besoin de deux corps différents, la décision « la marque d'abord » serait fausse.</p>
+
+<div id="racine"></div>
+
+<script type="text/babel">
+const R = window.MMNAT || {};
+
+const ECRANS = [
+  ['01','Lancement','Lancement',
+   <>Le mot-symbole, le maillage qui dérive, et rien d'autre. <b>Aucun indicateur de progression&nbsp;:</b> une barre branchée sur rien est un mensonge de trois secondes.</>,
+   <>C'est aussi le premier endroit où le nom se joue&nbsp;: l'app s'appelle <b>Rysmo</b>, pas Max-Morrys — celui-ci est la personne, et il apparaît en petit, en dessous.</>],
+  ['02','Onboarding','Onboarding',
+   <>Trois écrans, passables, et surtout <b>aucun compte demandé</b>. Le point de bascule n'est pas «&nbsp;inscris-toi&nbsp;», c'est «&nbsp;télécharge une leçon et regarde-la dans le taxi&nbsp;».</>,
+   <>Exiger un compte avant d'avoir montré quoi que ce soit, c'est perdre la personne au deuxième écran. Le catalogue se parcourt entièrement sans compte.</>],
+  ['03','Permissions','Permissions',
+   <>On explique <b>avant</b> d'ouvrir le dialogue système. Trois types de notification, nommés, et la liste de ce qui ne sera jamais envoyé.</>,
+   <><b>C'est le premier vrai gain du natif.</b> La plateforme web n'a aucun canal d'envoi&nbsp;: toute la conception s'est pliée à ça — la reprise est le premier objet de l'espace parce que la relance ne pouvait venir que de l'écran. La notification poussée donne enfin ce canal, et justifie à elle seule le virage.</>],
+  ['04','Mur de paiement','MurPaiement',
+   <>L'app <b>ne vend rien</b>. Elle ouvre ce qui est déjà payé, et renvoie au site pour l'achat — même prix, Wave et Orange&nbsp;Money.</>,
+   <>Vendre en Wave/OM direct dans une app native fait <b>rejeter l'app</b>&nbsp;: App&nbsp;Store 3.1.1 et Play Payments imposent l'achat intégré pour du contenu numérique consommé dans l'app. Plutôt qu'un bouton grisé sans explication, l'écran dit la raison dans la voix de la marque. Le module&nbsp;1 reste regardable sans payer, dans l'app&nbsp;: c'est ce qui rend le mur supportable.</>],
+  ['05','Stockage','Telechargements',
+   <>Chaque poids en monospace, un total, un plafond que l'app s'impose, et le Wi-Fi seul par défaut.</>,
+   <>Le forfait est compté et l'appareil est petit. Un écran de téléchargement qui n'affiche pas les mégaoctets demande une décision sans en donner les moyens.</>],
+  ['06','Lecteur plein écran','LecteurPleinEcran',
+   <>Paysage, donc son propre gabarit — le seul écran du lot qui ne passe pas par le châssis partagé.</>,
+   <>La transcription reste atteignable pendant la lecture. C'est elle qui permet de suivre le cours quand le réseau lâche au milieu, et la position est gardée.</>,true],
+  ['07','Widget','WidgetAccueil',
+   <>La carte de reprise, réduite à ce qui reste vrai sans réseau&nbsp;: le titre, la progression, une seule action.</>,
+   <>Le natif gagne <b>deux</b> canaux de relance, pas un. Un widget n'interrompt jamais — il attend d'être vu — et il ne demande <b>aucune permission</b>. C'est la relance la moins coûteuse du produit.</>],
+  ['08','Partage système','PartageSysteme',
+   <>Le certificat, la feuille système, et les cibles du téléphone. Ce qui part est le <b>lien de vérification</b>.</>,
+   <>Pas une image&nbsp;: une capture d'écran ne se vérifie pas. Le lien répond à un code, sans compte, et ne remonte à aucun profil — c'est ce qui le rend utilisable par un employeur.</>],
+  ['09','Biométrie','Biometrie',
+   <>Proposée <b>après</b> la première connexion réussie, jamais à l'ouverture de l'app.</>,
+   <>Elle ne remplace pas le mot de passe, elle évite de le retaper. Et elle ne protège pas la vérification d'un certificat&nbsp;: celle-ci est publique, à dessein.</>]
+];
+
+function Ecran({n,titre,comp,quoi,pourquoi,pays}){
+  const C = R[comp];
+  const iref = React.useRef(null), aref = React.useRef(null);
+  React.useEffect(()=>{
+    if (!C) return;
+    ReactDOM.createRoot(iref.current).render(<MMBoundary><C os="ios" /></MMBoundary>);
+    ReactDOM.createRoot(aref.current).render(<MMBoundary><C os="android" /></MMBoundary>);
+  },[]);
+  return (
+    <div className={'ecran'+(pays?' pays':'')}>
+      <div className="txt">
+        <p className="n">{n}</p>
+        <h2>{titre}</h2>
+        <p>{quoi}</p>
+        <p className="pourquoi">{pourquoi}</p>
+      </div>
+      <div className="frames">
+        <div className="f"><p className="cap">iOS{pays?' · 844 × 390':''}</p><div className="dev" ref={iref} /></div>
+        <div className="f"><p className="cap">Android{pays?' · 915 × 412':''}</p><div className="dev" ref={aref} /></div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('racine')).render(
+  <React.Fragment>{ECRANS.map(e=><Ecran key={e[0]} n={e[0]} titre={e[1]} comp={e[2]} quoi={e[3]} pourquoi={e[4]} pays={e[5]} />)}</React.Fragment>
+);
+</script>
+</div></body></html>

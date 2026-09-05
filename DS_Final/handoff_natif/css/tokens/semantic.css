@@ -1,0 +1,85 @@
+/* Alias sémantiques — c'est par ceux-ci que les composants lisent le système. */
+:root{
+  --text-body:var(--ink);
+  --text-muted:var(--ink-2);
+  --text-faint:var(--ink-3);
+  --text-invert:#FFFFFF;
+  --text-num:var(--ink);
+  --text-eyebrow:var(--ink-2);
+  --text-link:var(--mm-bleu);
+  --text-link-hover:var(--mm-violet);
+
+  --surface-page:var(--paper);
+  --surface-card:rgba(255,255,255,var(--glass-a));
+  --surface-card-flat:rgba(255,255,255,var(--glass-a-flat));
+  --surface-hero:rgba(255,255,255,var(--glass-a-hero));
+  --surface-night:rgba(14,17,22,var(--glass-d-a));
+  --surface-quiet:rgba(14,17,22,.065);
+  --border-hair:rgba(14,17,22,.07);
+  --border-field:rgba(14,17,22,.13);
+  --border-glass:var(--glass-brd);
+
+  --action-primary:var(--ink);
+  --text-on-primary:#FFFFFF;
+  --btn-ghost-bg:rgba(255,255,255,.74); /* relevé de .6 : le fantôme n'a plus de flou */
+  --btn-ghost-brd:1.5px solid rgba(14,17,22,.9); /* @kind other */
+  --btn-quiet-brd:1px solid rgba(14,17,22,.11); /* @kind other */
+  --btn-off-bg:rgba(14,17,22,.1);
+
+  /* Chrome rond (IconButton) et barre d'onglets. Ces surfaces sont du verre : elles
+     s'effondrent en sombre comme les autres, sinon un disque blanc reste sous un glyphe
+     presque blanc — 1,4:1. Aucune prop `dark` : le thème est une portée CSS. */
+  --chrome-bg:rgba(255,255,255,.6);
+  --chrome-brd:rgba(255,255,255,.6);
+  --chrome-hl:inset 0 1px 0 rgba(255,255,255,.8); /* @kind shadow */
+  --tabbar-bg:rgba(255,255,255,.62);
+  --tabbar-brd:rgba(255,255,255,.7);
+  --tabbar-hl:inset 0 1px 0 rgba(255,255,255,.8); /* @kind shadow */
+
+  /* Contrôles à deux états : le repos est du verre, la sélection est de l'encre. */
+  --ctl-off-bg:rgba(255,255,255,.55);
+  --ctl-off-brd:rgba(255,255,255,.6);
+  --ctl-sel-brd:rgba(14,17,22,.85);
+  --ctl-sel-ring:0 0 0 3px rgba(14,17,22,.07); /* @kind shadow */
+  --ctl-radio-brd:rgba(14,17,22,.18);
+  /* Échelle de remplissage neutre — pistes, puits d'icône, états « éteint ».
+     En clair ce sont des teintes d'encre ; en sombre, des teintes de lumière. */
+  --fill-1:rgba(14,17,22,.06);
+  --fill-2:rgba(14,17,22,.09);
+  --fill-3:rgba(14,17,22,.12);
+  --fill-4:rgba(14,17,22,.16);
+  --fill-5:rgba(14,17,22,.2);
+  --fill-tag:rgba(14,17,22,.07);
+  --seg-on-bg:#FFFFFF;
+  --seg-on-sh:0 2px 8px rgba(14,17,22,.10); /* @kind shadow */
+
+  /* Surface d'encre — INVARIANTE par construction. Une carte sombre posée sur une page claire
+     ouvre sa propre portée .dk pour que ses textes prennent l'encre nuit ; si son FOND lisait
+     --ink, il basculerait avec eux et la carte se peindrait en blanc cassé. Ce jeton est donc
+     déclaré à l'identique dans :root et dans .dk. Ne jamais l'aliaser sur --ink. */
+  --surface-ink:#0E1116;
+
+  --field-bg:rgba(255,255,255,.72);
+  --field-hl:inset 0 1px 0 rgba(255,255,255,.75); /* @kind shadow */
+  --pill-bg:rgba(14,17,22,.9);
+  --bubble-bg:rgba(255,255,255,.68);
+  --bubble-brd:rgba(255,255,255,.7);
+  --nav-on-bg:rgba(255,255,255,.7);
+  --nav-on-sh:0 2px 10px rgba(14,17,22,.07); /* @kind shadow */
+  --nav-brd:rgba(255,255,255,.5);
+
+  /* Encre portée par les cartes territoire — elle s'inverse avec leurs dégradés. */
+  --card-ink:var(--ink);
+  --card-ink-2:rgba(14,17,22,.62);
+  --card-hl:inset 0 1px 0 rgba(255,255,255,.6); /* @kind shadow */
+  --card-sh:0 10px 28px rgba(14,17,22,.10);
+  --card-grip:rgba(255,255,255,.75);
+  --action-forme:linear-gradient(135deg,#0057BC,#6C23DD); /* @kind color */
+  --action-informe:linear-gradient(135deg,#F38B0A,#FF6E7F); /* @kind color */
+  --action-transforme:linear-gradient(135deg,#6C23DD,#0057BC); /* @kind color */
+  --action-digitalise:linear-gradient(135deg,#02AC9C,#0057BC); /* @kind color */
+
+  --state-ok:var(--ok); --state-warn:var(--warn); --state-stop:var(--stop);
+  --focus-ring:0 0 0 3px rgba(0,87,188,.16);
+  --error-ring:0 0 0 3px rgba(180,35,31,.13);
+}

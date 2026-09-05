@@ -1,0 +1,19 @@
+/* « J'ai senti ton doigt » — 120 ms, transform seulement.
+   Les composants portent .mm-press (ou .mm-press-sm pour les pilules et boutons ronds) ;
+   la règle vit ici parce qu'un style inline ne peut pas exprimer :active. */
+.mm-press,.mm-press-sm{transition:transform var(--t-tap) var(--ease),box-shadow var(--t-ui) var(--ease)}
+.mm-press:active{transform:scale(var(--press-scale))}
+.mm-press-sm:active{transform:scale(var(--press-scale-sm))}
+.mm-press[aria-disabled="true"]:active{transform:none}
+/* Le survol ne porte jamais d'information : il ne fait que confirmer la cible, sur pointeur fin. */
+@media (hover:hover) and (pointer:fine){
+  .mm-press:hover,.mm-press-sm:hover{filter:brightness(1.03)}
+}
+
+/* Défilement horizontal sans barre visible. Même raison d'être que .mm-chrome pour le flou :
+   `::-webkit-scrollbar` est un pseudo-élément, donc un style inline ne peut pas l'exprimer —
+   la règle doit vivre dans la fermeture de styles.css pour voyager avec le composant.
+   Sans elle, `<ChipRow layout="scroll">` sert une barre native épaisse sous une bande de
+   pilules dans tout projet consommateur : aucune application mobile n'affiche ça. */
+.mm-scroll-x{scrollbar-width:none;-ms-overflow-style:none}
+.mm-scroll-x::-webkit-scrollbar{display:none}

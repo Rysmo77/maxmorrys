@@ -1,0 +1,9 @@
+/* Réglages de document. Les replis d'accessibilité et de performance vivent dans
+   brand/fallback.css — UNE seule déclaration, sinon l'ordre de chargement tranche. */
+.mm-body{margin:0;background:var(--surface-page);color:var(--text-body);font-family:var(--f-body);font-size:var(--fs-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+.mm-num{font-family:var(--f-mono);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:var(--ls-num)}
+.mm-eyebrow{font-family:var(--f-mono);font-size:var(--fs-eyebrow);letter-spacing:var(--ls-eyebrow);text-transform:uppercase;color:var(--text-eyebrow)}
+.mm-dsp{font-family:var(--f-display);font-weight:900;letter-spacing:var(--ls-dsp);line-height:var(--lh-dsp);font-size:var(--fs-dsp)}
+.mm-prose{font-size:var(--fs-prose);line-height:var(--lh-prose);max-width:var(--measure-prose)}
+a{color:var(--text-link);text-decoration:none}
+a:hover{color:var(--text-link-hover)}

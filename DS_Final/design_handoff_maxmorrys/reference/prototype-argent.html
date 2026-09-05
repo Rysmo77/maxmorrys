@@ -1,0 +1,65 @@
+<!-- Référence de conception — Max-Morrys. group="Plateforme · apprenant" viewport="470x1000" name="Prototype cliquable" subtitle="Le chemin de l'argent, de l'accueil au certificat — transitions réelles" 
+     Copie de la maquette du système ; ce n'est pas du code de production. -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — prototype, le chemin de l'argent</title>
+<link rel="stylesheet" href="../css/styles.css">
+<style>
+html,body{margin:0;height:100%}
+body{background:#0A0D11;font-family:var(--f-body);display:grid;place-items:start center;padding:28px 20px 40px}
+*{box-sizing:border-box}
+::-webkit-scrollbar{display:none}
+#root{width:390px}
+.pv-frame{position:relative;width:390px;height:844px;border-radius:38px;overflow:hidden;background:#fff;isolation:isolate;box-shadow:0 30px 70px rgba(0,0,0,.55)}
+/* Le maillage est persistant : il ne bouge pas quand on entre dans un détail. */
+.pv-mesh{position:absolute;inset:0;z-index:0}
+.pv-mesh-out{z-index:1;animation:pvMeshOut 500ms var(--ease) both}
+@keyframes pvMeshOut{from{opacity:1}to{opacity:0}}
+.pv-layer{position:absolute;inset:0;z-index:3;will-change:transform,opacity}
+/* Entrer dans un détail · 260 ms */
+.pv-in-in{animation:pvInIn 260ms var(--ease-out) both}
+@keyframes pvInIn{from{transform:translateX(100%)}to{transform:none}}
+.pv-out-in{animation:pvOutIn 260ms var(--ease-out) both;z-index:2}
+@keyframes pvOutIn{from{transform:none;opacity:1}to{transform:translateX(-22%);opacity:.5}}
+/* Revenir · même mouvement, inversé */
+.pv-in-back{animation:pvInBack 260ms var(--ease-out) both}
+@keyframes pvInBack{from{transform:translateX(-22%);opacity:.5}to{transform:none;opacity:1}}
+.pv-out-back{animation:pvOutBack 260ms var(--ease-out) both;z-index:4;box-shadow:-14px 0 34px rgba(14,17,22,.18)}
+@keyframes pvOutBack{from{transform:none}to{transform:translateX(100%)}}
+/* Changer d'onglet · fondu croisé, aucune translation */
+.pv-in-fade{animation:pvFadeIn 180ms var(--ease) both}
+@keyframes pvFadeIn{from{opacity:0}to{opacity:1}}
+.pv-out-fade{animation:pvFadeOut 180ms var(--ease) both;z-index:2}
+@keyframes pvFadeOut{from{opacity:1}to{opacity:0}}
+/* Feuille montante · 300 ms, voile 0 → 30 % */
+.pv-scrim{position:absolute;inset:0;z-index:8;background:rgba(14,17,22,.3);animation:pvScrim 300ms var(--ease) both}
+@keyframes pvScrim{from{background:rgba(14,17,22,0)}to{background:rgba(14,17,22,.3)}}
+.pv-sheet{position:absolute;left:0;right:0;bottom:0;top:0;z-index:9;padding-top:14px;border-radius:26px 26px 0 0;overflow:hidden;
+  background:rgba(255,255,255,.62);backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border-top:1px solid rgba(255,255,255,.55);box-shadow:0 -14px 38px rgba(14,17,22,.22);animation:pvSheet 300ms var(--ease-out) both}
+@keyframes pvSheet{from{transform:translateY(100%)}to{transform:none}}
+.pv-grip{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:34px;height:4px;border-radius:3px;background:rgba(14,17,22,.2);z-index:12}
+.pv-hud{position:absolute;left:0;right:0;bottom:0;z-index:20;pointer-events:none;display:flex;justify-content:space-between;align-items:center;padding:0 18px 3px;font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(14,17,22,.32)}
+.legende{width:390px;margin-top:16px;font-family:var(--f-mono);font-size:10.5px;line-height:1.7;color:#7C8896}
+.legende b{color:#fff;font-family:var(--f-body);font-size:12.5px;letter-spacing:0;text-transform:none;display:block;margin-bottom:6px}
+.legende i{font-style:normal;color:#FFC46B}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="_components.jsx"></script>
+<script type="text/babel" src="app-shell.jsx"></script>
+<script type="text/babel" src="screens-public.jsx"></script>
+<script type="text/babel" src="screens-catalogue.jsx"></script>
+<script type="text/babel" src="screens-pay.jsx"></script>
+<script type="text/babel" src="screens-pay-end.jsx"></script>
+<script type="text/babel" src="screens-space.jsx"></script>
+<script type="text/babel" src="proto.jsx"></script>
+</head><body>
+<div id="root"></div>
+<p class="legende"><b>Le chemin de l'argent, cliquable</b>
+Accueil → catalogue → fiche → paiement → attente → succès → mon espace → lecteur → certificat.
+Tout se déclenche sur l'élément réel : la carte « Je te forme », le bouton « Crée ton compte », « Je m'inscris », « Payer », « J'ai payé, vérifie », « Ouvrir la première leçon ». Les flèches de retour reviennent.
+<i>Glissement 260 ms pour les détails · retour inversé · feuille montante 300 ms pour le paiement · fondu croisé 180 ms pour la barre d'onglets · maillage persistant, fondu de 500 ms au changement de territoire.</i></p>
+<script type="text/babel">
+montProto();
+</script>
+</body></html>

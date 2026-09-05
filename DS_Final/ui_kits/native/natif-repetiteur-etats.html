@@ -1,0 +1,103 @@
+<!-- @dsCard group="Natif" viewport="1180x1080" name="Répétiteur et états" subtitle="Six écrans portés — conversation avec clavier, mémoire, chargement, vide, erreur, hors connexion" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — natif, répétiteur et états</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:28px 26px 46px}
+*{box-sizing:border-box}
+.wrap{max-width:1120px;margin:0 auto}
+/* Sélecteurs d'élément PORTÉS en enfant direct : nus, ils atteindraient les <h1> que
+   `NTitre` rend dans les 12 maquettes montées ici et les forceraient en blanc sur clair. */
+.wrap > .eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+.wrap > h1{font-family:var(--f-display);font-weight:900;font-size:42px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+.wrap > p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+.wrap > p.k b{color:#fff;font-weight:600}
+.lot{padding:30px 0 8px;border-top:1px solid #171D24}
+.lot > .t{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0}
+.lot > .t b{display:block;margin-top:5px;font-family:var(--f-display);font-size:26px;font-weight:900;letter-spacing:-.032em;text-transform:none;color:#fff}
+.lot > .t span{display:block;margin-top:8px;font-family:var(--f-body);font-size:13.5px;letter-spacing:0;text-transform:none;color:#A7B2BF;line-height:1.6;max-width:74ch}
+.lot > .t span b{display:inline;margin:0;font-family:var(--f-body);font-size:13.5px;font-weight:600;color:#fff}
+.ecran{padding:26px 0;display:flex;gap:28px;align-items:flex-start;border-top:1px solid #12181E}
+.txt{flex:1;min-width:240px;position:sticky;top:22px}
+.txt > .n{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#6D7987;margin:0}
+.txt > h2{font-family:var(--f-display);font-weight:900;font-size:23px;letter-spacing:-.032em;line-height:1.04;margin:5px 0 0;color:#fff}
+.txt > p{font-size:13.5px;color:#A7B2BF;line-height:1.6;margin:11px 0 0}
+.txt > p b{color:#fff;font-weight:600}
+.txt > .pq{border-left:2px solid var(--mm-violet);padding-left:14px;margin-top:15px;font-size:13px;color:#C3CDD9;line-height:1.6}
+.txt > .pq b{color:#B98CFF}
+.frames{display:flex;gap:22px;flex:0 0 auto}
+.f .cap{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 9px}
+.dev{border-radius:36px;overflow:hidden;position:relative;background:#fff;box-shadow:0 22px 54px rgba(0,0,0,.5)}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script type="text/babel" src="NativeShell.js"></script>
+<script type="text/babel" src="ScreensNatifApp.js"></script>
+<script type="text/babel" src="ScreensNatifEtats.js"></script>
+</head><body><div class="wrap">
+
+<p class="eb">Natif · portage, lot 2</p>
+<h1>Le clavier change<br>la conception.</h1>
+<p class="k">Six écrans de plus. Le lot 1 se portait presque mécaniquement ; celui-ci contient <b>la plus grosse divergence de tout le virage</b>, et elle n'existe pas en web mobile où le navigateur s'occupe du clavier.</p>
+<p class="k">Un clavier natif mange <b>291 px sur iOS, 268 sur Android</b>. Ce n'est pas une question de mise en page : c'est ce qui décide où vit la barre de quota.</p>
+
+<div class="lot"><p class="t">Groupe 3<b>Le répétiteur</b><span>Deux écrans. La conversation est le seul écran du produit où l'on <b>tape</b> longtemps — donc le seul où le clavier décide de la hiérarchie.</span></p></div>
+<div id="g3"></div>
+
+<div class="lot"><p class="t">Groupe 4<b>Les quatre états transverses</b><span>Ils s'appliquent à toutes les listes du produit. Trois se portent à l'identique ; le quatrième, hors connexion, est <b>meilleur en natif</b> — et c'est une des rares fois où le portage améliore l'écran au lieu de le transposer.</span></p></div>
+<div id="g4"></div>
+
+<script type="text/babel">
+const R = window.MMNAT || {};
+
+const G3 = [
+  ['08','Conversation','NatRepetiteur',
+   <>Le quota est épinglé <b>sous la barre de navigation</b>, hors du flux défilant. Il ne bouge pas quand le clavier monte.</>,
+   <><b>C'est la décision de l'écran.</b> Un refus au-delà du plafond est vécu comme une panne s'il n'a pas été annoncé — et un quota caché par le clavier n'a pas été annoncé. Le mettre en bas de page, comme sur le web, le rendait invisible au moment exact où l'on tape sa question.<br /><br />Le clavier lui-même diffère&nbsp;: iOS pose des <b>touches individuelles à capuchon blanc</b> sur fond gris ; Gboard pose des <b>lettres nues</b> sur un fond plat, et intègre sa rangée de suggestions au lieu de la poser au-dessus.</>],
+  ['09','Mémoire de profil','NatMemoire',
+   <>Le renommage en tête, les cinq lignes retenues, chacune effaçable. Porté à l'identique.</>,
+   <>C'est déjà l'écran où se règle la relation, et le natif n'y change rien. Un écran qui se porte sans une ligne de différence est un bon signe&nbsp;: il n'était pas dépendant du support.</>]
+];
+
+const G4 = [
+  ['10','Chargement','NatChargement',
+   <>Le squelette a la <b>forme exacte</b> du contenu réel — sur-ligne, deux lignes de titre, carte de reprise, deux tuiles, liste.</>,
+   <>Quand le contenu arrive, rien ne saute. Le squelette descend jusque dans la barre de navigation, où les deux ronds d'action sont aussi en attente&nbsp;: un chrome déjà peint au-dessus d'un corps vide fait croire que l'écran est cassé.</>],
+  ['11','État vide','NatVide',
+   <>Un glyphe, une phrase qui dit <b>pourquoi</b> c'est vide, et UNE action. Le zéro est daté.</>,
+   <>Un écran vide est une invitation à agir, pas une excuse. «&nbsp;<b className="mm-num">0</b> émis depuis l'ouverture de ton compte, le 12 août&nbsp;» est une information ; «&nbsp;aucune donnée&nbsp;» n'en est pas une.</>],
+  ['12','Erreur','NatErreur',
+   <><b>Motif, conséquence, sortie.</b> Dans cet ordre, et jamais d'excuse.</>,
+   <>La sortie de secours du natif est meilleure que celle du web&nbsp;: la transcription est <b>déjà sur l'appareil</b>, donc «&nbsp;lire à la place&nbsp;» coûte 0&nbsp;Mo et fonctionne même si le réseau ne revient pas.</>],
+  ['13','Hors connexion','NatHorsConnexion',
+   <>Les leçons disponibles avec leur poids, l'interrupteur Wi-Fi, et la file d'envoi.</>,
+   <><b>La divergence la plus utile du lot.</b> En web, hors connexion est une requête qui échoue — l'écran apparaît après trente secondes d'attente. En natif, le système annonce la perte de réseau <b>avant</b> qu'une requête soit tentée&nbsp;: l'écran est juste dès la première image, et la file d'envoi devient un objet permanent au lieu d'un rattrapage.</>]
+];
+
+function Ecran({n,titre,comp,quoi,pq}){
+  const C = R[comp];
+  const i = React.useRef(null), a = React.useRef(null);
+  React.useEffect(()=>{
+    if (!C) return;
+    ReactDOM.createRoot(i.current).render(<MMBoundary><C os="ios" /></MMBoundary>);
+    ReactDOM.createRoot(a.current).render(<MMBoundary><C os="android" /></MMBoundary>);
+  },[]);
+  return (
+    <div className="ecran">
+      <div className="txt"><p className="n">{n}</p><h2>{titre}</h2><p>{quoi}</p><p className="pq">{pq}</p></div>
+      <div className="frames">
+        <div className="f"><p className="cap">iOS · 390 × 844</p><div className="dev" ref={i} /></div>
+        <div className="f"><p className="cap">Android · 412 × 915</p><div className="dev" ref={a} /></div>
+      </div>
+    </div>
+  );
+}
+const rendre = (id,lot)=>ReactDOM.createRoot(document.getElementById(id)).render(
+  <React.Fragment>{lot.map(e=><Ecran key={e[0]} n={e[0]} titre={e[1]} comp={e[2]} quoi={e[3]} pq={e[4]} />)}</React.Fragment>);
+rendre('g3',G3); rendre('g4',G4);
+</script>
+</div></body></html>

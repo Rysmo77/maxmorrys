@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Écran mobile" description="Écran d'app Max-Morrys : maillage de territoire, chrome en verre, titre d'affichage, empilement en M, barre d'onglets." -->
+<helmet><script src="./ds-base.js"></script></helmet>
+<div style="width:390px;height:844px;margin:0 auto;position:relative;overflow:hidden;isolation:isolate;background:#fff;color:#0E1116;font-family:var(--f-body);font-size:15px;line-height:1.45">
+<div class="mesh m-forme"><b></b><b></b><b></b></div>
+<div style="position:absolute;top:11px;left:50%;transform:translateX(-50%);width:104px;height:30px;background:#000;border-radius:16px;z-index:6"></div>
+<div style="position:relative;z-index:4;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 24px 0 30px;font-size:14px;font-weight:600"><span>9:41</span><span style="font-family:var(--f-mono);font-size:12px">4G</span></div>
+<div style="position:relative;z-index:4;display:flex;align-items:center;justify-content:space-between;padding:4px 18px 12px;gap:10px">
+<x-import component-from-global-scope="DesignSystem_b7a7ca.PillButton" hint-size="90px,42px">Menu</x-import>
+<x-import component-from-global-scope="DesignSystem_b7a7ca.Avatar" initials="A" hint-size="42px,42px"></x-import>
+</div>
+<div style="position:relative;z-index:3;padding:0 18px 104px;height:calc(100% - 50px);overflow-y:auto">
+<p style="font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#5A6472;margin:0">Je te forme</p>
+<h1 style="font-family:var(--f-display);font-weight:900;font-size:41px;letter-spacing:-.038em;line-height:.9;margin:6px 0 0">JE TE FORME<br>AU DIGITAL.<br>DEPUIS DAKAR.</h1>
+<p style="color:#5A6472;font-size:14px;line-height:1.5;margin:13px 0 0">Remplace ce chapô. Une phrase, deux au maximum, au tutoiement.</p>
+<div style="margin-top:20px">
+<x-import component-from-global-scope="DesignSystem_b7a7ca.TerritoryCard" first="{{ true }}" territory="forme" meta="6 modules · 47 leçons" title="Je te forme" big="1" big-label="formation" hint-size="100%,120px"></x-import>
+<x-import component-from-global-scope="DesignSystem_b7a7ca.TerritoryCard" territory="informe" meta="Blog · podcast · vidéo" title="Je t'informe" big="46" big-label="gratuits" hint-size="100%,120px"></x-import>
+<x-import component-from-global-scope="DesignSystem_b7a7ca.TerritoryCard" territory="transforme" meta="19 900 F/an ≈ 1 658 F/mois" title="Je te transforme" big="8" big-label="onglets" hint-size="100%,120px"></x-import>
+</div>
+<div class="truth" style="margin-top:18px">
+<p style="font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#5A6472;margin:0 0 6px">Ce que je peux te prouver</p>
+<p style="font-size:12.5px;color:#5A6472;line-height:1.5;margin:0">Écris ici ce qui est vérifiable, et seulement ça. Pas de note, pas de nombre d'inscrits, aucun chiffre sans source.</p>
+</div>
+<div style="margin-top:18px">
+<x-import component-from-global-scope="DesignSystem_b7a7ca.Button" tone="forme" hint-size="100%,54px">Je m'inscris</x-import>
+</div>
+</div>
+<div style="position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:134px;height:5px;background:#0E1116;opacity:.32;border-radius:3px;z-index:8"></div>
+</div>
+
+</x-dc>
+</body>
+</html>

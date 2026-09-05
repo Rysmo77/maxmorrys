@@ -1,0 +1,192 @@
+<!-- @dsCard group="Natif" viewport="1180x1080" name="Le Club, huit onglets et le verrou" subtitle="Sept écrans — les six onglets qui manquaient sous une bande unique, et l'écran verrouillé dont le bouton n'achète pas" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — natif, le Club au complet</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:28px 26px 46px}
+*{box-sizing:border-box}
+.wrap{max-width:1120px;margin:0 auto}
+/* Sélecteurs d'élément PORTÉS en enfant direct : nus, ils atteindraient les <h1> que
+   `NTitre` rend dans les maquettes montées ici et les forceraient en blanc sur clair. */
+.wrap > .eb{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0 0 8px}
+.wrap > h1{font-family:var(--f-display);font-weight:900;font-size:42px;letter-spacing:-.035em;line-height:.95;margin:0 0 14px;color:#fff}
+.wrap > p.k{color:#A7B2BF;max-width:76ch;margin:0 0 14px;font-size:14px;line-height:1.6}
+.wrap > p.k b{color:#fff;font-weight:600}
+.regle{border-left:2px solid var(--mm-orange);padding:2px 0 2px 15px;color:#C3CDD9;max-width:76ch;margin:18px 0;font-size:13.5px;line-height:1.6}
+.regle b{color:#FFC46B}
+.lot{padding:30px 0 8px;border-top:1px solid #171D24}
+.lot > .t{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6D7987;margin:0}
+.lot > .t b{display:block;margin-top:5px;font-family:var(--f-display);font-size:26px;font-weight:900;letter-spacing:-.032em;text-transform:none;color:#fff}
+.lot > .t span{display:block;margin-top:8px;font-family:var(--f-body);font-size:13.5px;letter-spacing:0;text-transform:none;color:#A7B2BF;line-height:1.6;max-width:74ch}
+.lot > .t span b{display:inline;margin:0;font-family:var(--f-body);font-size:13.5px;font-weight:600;color:#fff}
+.ecran{padding:26px 0;display:flex;gap:28px;align-items:flex-start;border-top:1px solid #12181E}
+.txt{flex:1;min-width:240px;position:sticky;top:22px}
+.txt > .n{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#6D7987;margin:0}
+.txt > h2{font-family:var(--f-display);font-weight:900;font-size:23px;letter-spacing:-.032em;line-height:1.04;margin:5px 0 0;color:#fff}
+.txt > p{font-size:13.5px;color:#A7B2BF;line-height:1.6;margin:11px 0 0}
+.txt > p b{color:#fff;font-weight:600}
+.txt > .pq{border-left:2px solid var(--mm-violet);padding-left:14px;margin-top:15px;font-size:13px;color:#C3CDD9;line-height:1.6}
+.txt > .pq b{color:#B98CFF}
+.txt > .pq.store{border-left-color:var(--mm-orange)}
+.txt > .pq.store b{color:#FFC46B}
+.txt > .pq.rappel{border-left-color:#3A4551}
+.txt > .pq.rappel b{color:#9FB0C2}
+.frames{display:flex;gap:22px;flex:0 0 auto}
+.f .cap{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 9px}
+.dev{border-radius:36px;overflow:hidden;position:relative;background:#fff;box-shadow:0 22px 54px rgba(0,0,0,.5)}
+.bande{display:flex;gap:18px;overflow-x:auto;padding:6px 0 18px}
+.bande .f{flex:0 0 auto}
+.bande .dev{border-radius:30px;box-shadow:0 14px 34px rgba(0,0,0,.45)}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script type="text/babel" src="NativeShell.js"></script>
+<script type="text/babel" src="ScreensNatifApp.js"></script>
+<script type="text/babel" src="ScreensNatifCompte.js"></script>
+<script type="text/babel" src="ScreensNatifClub.js"></script>
+</head><body><div class="wrap">
+
+<p class="eb">Natif · portage, lot 5</p>
+<h1>Huit onglets annoncés,<br>huit onglets dessinés.</h1>
+<p class="k">Le lot 3 avait porté trois écrans du Club — le mur, le fil, l'agenda — et déclaré les cinq autres « portables à l'identique ». C'était vrai de la mise en page, faux de la navigation : <b>deux manques se cachaient derrière cette phrase</b>, et l'un des deux est l'écran que les règles des magasins changent le plus.</p>
+<p class="k">Sept écrans ici. Les six onglets qui manquaient, sous une bande unique — et l'écran verrouillé, celui qu'on voit quand on a un compte, qu'on est dans l'app, et qu'on touche « Club » sans être abonné. Le fil et l'agenda, portés au lot 3, ont été réalignés sur la même bande dans leur fichier d'origine.</p>
+
+<div class="regle"><b>La bande des huit, et pas des quatre.</b> Le web posait des bandes de quatre valeurs, différentes d'un onglet à l'autre. En natif la barre basse occupe déjà le bas de l'écran : la navigation interne du Club n'a plus qu'un endroit possible, juste sous la barre haute, et elle doit porter les <b>huit</b> noms. Elle défile, elle est servie à <b>44 px</b> — le plancher de cible tactile —, et elle est identique sur les neuf écrans, verrouillé compris.</div>
+<div class="regle"><b>Achat intégré, une troisième fois.</b> Le web met un bouton d'achat sur l'écran verrouillé. L'app n'en a pas le droit : 19 900 F encaissés dedans imposeraient le paiement du magasin, qui ne connaît ni Wave ni Orange Money. Le bouton devient un renvoi vers le site, et la phrase qui le suit nomme le magasin — <b>App Store</b> ou <b>Google Play</b> selon le châssis.</div>
+
+<div class="lot"><p class="t">Groupe 10<b>Les huit onglets</b><span>Six écrans neufs. Les deux autres — le fil et l'agenda — étaient portés au lot 3&nbsp;: ils ne sont pas redessinés ici, ils ont été <b>réalignés sur la bande des huit</b> dans leur fichier d'origine, ce qui était le manque. Le corps vient du kit 390 px à la lettre&nbsp;: mêmes compteurs, mêmes cartes, mêmes encarts de vérité, <b>aucun nombre de membres</b>.</span></p></div>
+<div id="g10"></div>
+
+<div class="lot"><p class="t">Groupe 11<b>L'écran verrouillé</b><span>Un composant, huit contenus. Ce n'est pas le mur d'abonnement : le mur s'adresse à un visiteur du site public, celui-ci à quelqu'un qui a déjà un compte et qui vient de toucher un onglet <b>précis</b>. C'est la seule information qu'on ait en plus, et l'écran est construit autour d'elle.</span></p></div>
+<div id="g11"></div>
+<div id="huit"></div>
+
+<script type="text/babel">
+const R = window.MMNAT || {};
+
+const G10 = [
+  ['28','Discussions','NatClubDiscussions',
+   <>Trois sujets, la catégorie devant le titre, la pile des visages qui ont répondu. <b>Et la première divergence d'affordance du portage.</b></>,
+   <>Publier n'a pas le même emplacement des deux côtés&nbsp;: <b>Android pose un bouton flottant</b> au-dessus de la barre d'onglets, <b>iOS met l'action en haut à droite</b>. Même action, deux conventions — c'est le châssis qui décide, pas nous. Le décompte des réponses dérive des listes stockées&nbsp;: ce n'est pas un compteur libre.</>],
+  ['29','Membres','NatClubMembres',
+   <>L'annuaire, pas la fiche. Six lignes remplies <b>sur neuf arrivées</b>, et les trois manquantes sont écrites.</>,
+   <>Une ligne vide ferait croire à un annuaire plus grand qu'il n'est, donc les fiches non remplies n'apparaissent pas — et le sourcil dit «&nbsp;6 sur 9&nbsp;». Le métier et le quartier servent à se trouver&nbsp;; <b>le numéro de téléphone n'est jamais montré</b>.</>],
+  ['30','Classement','NatClubClassement',
+   <>Ta vague d'arrivée, pas un palmarès. Neuf personnes, et une seconde vue qui ne compare qu'à soi.</>,
+   <>Un classement absolu flatte les premiers et fait décrocher les derniers. Celui-ci compare aux gens <b>arrivés en même temps</b>, et l'écran dit pourquoi au lieu de le laisser deviner. La carte de tête est un dégradé de territoire, pas du verre&nbsp;: c'est le seul objet du Club qui porte un chiffre de rang.</>],
+  ['31','Opportunités','NatClubOpportunites',
+   <>Trois annonces, chacune avec son budget <b>annoncé</b> — mission, appel d'offres, recrutement.</>,
+   <>Les budgets sont ceux que la personne qui publie déclare. Ils ne sont pas vérifiés par la plateforme, et c'est <b>écrit sur l'écran</b> plutôt que caché dans les CGV. L'app ajoute une chose&nbsp;: une mission publiée arrive en notification, une fois, le jour de sa publication.</>],
+  ['32','Informations','NatClubInformations',
+   <>Le digest de la semaine — ce qui s'est passé, ce qui arrive, <b>et ce que je n'ai pas fait</b>.</>,
+   <>C'est le premier onglet du Club à profiter du canal que le web n'avait pas&nbsp;: le digest arrive <b>en notification poussée</b>. Par e-mail, toujours rien — aucun canal d'envoi n'existe, et l'écran le dit plutôt que de le laisser croire.</>],
+  ['33','Parrainage','NatClubParrainage',
+   <>Un code, deux compteurs, et la remise qui va <b>au filleul</b>.</>,
+   <>Le geste change ici&nbsp;: «&nbsp;Partager&nbsp;» ouvre la <b>feuille de partage système</b> — WhatsApp, message, ce que la personne veut. Le web ne pouvait que copier dans le presse-papier et espérer. La ligne à tiret dit ce que le parrain ne gagne pas&nbsp;: <b>zéro commission</b>, dans l'onglet, pas en bas de page.</>]
+];
+
+const G11 = [
+  ['34','Club verrouillé','NatVerrouOpportunites',
+   <>Les compteurs réels de ce qui est derrière, <b>un élément complet non flouté</b>, le prix des deux façons — et un bouton qui n'achète pas.</>,
+   <>Aucun contenu flouté&nbsp;: un flou dit «&nbsp;il y a foule là-dedans, fais-nous confiance&nbsp;», le Club a ouvert cette année et ne peut pas dire ça. Effet secondaire heureux&nbsp;: <b>c'est le seul écran du kit qui ne dépend d'aucun repli de flou</b> — sur Android, où le flou n'existe qu'à partir d'API 31, un mur de vente bâti dessus tomberait précisément là où il doit convaincre.<br /><br />La bande des huit reste <b>cliquable</b>&nbsp;: masquer la navigation d'un espace verrouillé, c'est vendre une boîte fermée. Et le bouton renvoie au site, sous une phrase qui nomme le magasin&nbsp;: c'est la seule différence de fond avec la version web.</>,'store']
+];
+
+/* Quatorze maquettes, montées directement — c'est le compte éprouvé des autres planches du
+   dossier. Un premier jet en montait vingt-six (les huit contextes du cadenas en téléphones
+   entiers) et les mettait en file pour survivre : la file rendait la page inerte pendant une
+   minute et demie, parce que chaque maquette porte trois lobes de maillage floutés. La
+   correction n'est pas d'étaler le coût, c'est de ne pas monter ce qui ne varie pas — les
+   huit contextes sont posés en cartes, plus bas. */
+const GAB = {ios:{width:'390px',height:'844px'},android:{width:'412px',height:'915px'}};
+
+function Ecran({n,titre,comp,quoi,pq,ton}){
+  const C = R[comp];
+  const i = React.useRef(null), a = React.useRef(null);
+  React.useEffect(()=>{
+    if (!C) return;
+    ReactDOM.createRoot(i.current).render(<MMBoundary><C os="ios" /></MMBoundary>);
+    ReactDOM.createRoot(a.current).render(<MMBoundary><C os="android" /></MMBoundary>);
+  },[]);
+  return (
+    <div className="ecran">
+      <div className="txt"><p className="n">{n}</p><h2>{titre}</h2><p>{quoi}</p>
+        <p className={'pq'+(ton?' '+ton:'')}>{pq}</p></div>
+      <div className="frames">
+        <div className="f"><p className="cap">iOS · 390 × 844</p><div className="dev" style={GAB.ios} ref={i} /></div>
+        <div className="f"><p className="cap">Android · 412 × 915</p><div className="dev" style={GAB.android} ref={a} /></div>
+      </div>
+    </div>
+  );
+}
+const rendre = (id,lot)=>ReactDOM.createRoot(document.getElementById(id)).render(
+  <React.Fragment>{lot.map(e=><Ecran key={e[0]} n={e[0]} titre={e[1]} comp={e[2]} quoi={e[3]} pq={e[4]} ton={e[5]} />)}</React.Fragment>);
+rendre('g10',G10); rendre('g11',G11);
+
+/* Les huit contextes du cadenas. Ils ne sont PAS montés en huit téléphones : le châssis y
+   serait huit fois le même, et seize maquettes de plus sur la même page coûtent une
+   seconde de calcul chacune pour ne rien apprendre. Ce qui change d'un onglet à l'autre,
+   c'est le contenu du cadenas — le titre, les trois compteurs, l'élément entier. C'est
+   donc ça, et rien d'autre, qui est posé côte à côte. */
+const NOTES = {
+  Fil:'7 publications, 41 réponses',
+  Discussions:'41 sujets ouverts',
+  Membres:'6 fiches remplies sur 9',
+  Agenda:'2 sessions, 4 places',
+  Classement:'« 0 classement absolu » est un argument',
+  'Opportunités':'3 missions, 180 000 à 450 000 F',
+  Informations:'3 digests, 0 e-mail envoyé',
+  Parrainage:'0 commission, et c\'est écrit'
+};
+function CarteVerrou({onglet}){
+  const v = (R.VERROU_NAT || {})[onglet];
+  const A = R.ApercuVerrou;
+  if (!v) return null;
+  return (
+    <div className="f" style={{width:'292px'}}>
+      <p className="cap">{onglet} · {NOTES[onglet]}</p>
+      <div style={{background:'#fff',color:'#0E1116',borderRadius:'24px',padding:'20px',
+        boxShadow:'0 14px 34px rgba(0,0,0,.45)'}}>
+        <span style={{width:'38px',height:'38px',borderRadius:'13px',display:'grid',placeItems:'center',
+          background:'linear-gradient(135deg,#B98CFF,#6C23DD)'}}>
+          <DS.Icon name="lock" size={17} color="#fff" strokeWidth={2.3} /></span>
+        <h3 style={{fontFamily:'var(--f-display)',fontWeight:900,fontSize:'21px',letterSpacing:'-.035em',
+          lineHeight:.96,margin:'13px 0 0'}}>{v.titre.map(l=><span key={l} style={{display:'block'}}>{l}</span>)}</h3>
+        <div style={{display:'flex',gap:'10px',marginTop:'15px'}}>
+          {v.chiffres.map(([n,l])=>(
+            <div key={l} style={{flex:1}}>
+              <p className="mm-num" style={{fontSize:'18px',letterSpacing:'-.03em',margin:0}}>{n}</p>
+              <p style={{fontSize:'10px',color:'#5A6472',lineHeight:1.25,margin:0}}>{l}</p>
+            </div>
+          ))}
+        </div>
+        <p style={{fontFamily:'var(--f-mono)',fontSize:'9.5px',letterSpacing:'.12em',textTransform:'uppercase',
+          color:'#8A94A2',margin:'16px 0 8px'}}>{v.apercuTitre}</p>
+        <div style={{border:'1px solid rgba(14,17,22,.1)',borderRadius:'16px',padding:'14px'}}>
+          {A ? <A onglet={onglet} /> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+function Huit(){
+  return (
+    <div className="ecran" style={{display:'block'}}>
+      <div className="txt" style={{position:'static',minWidth:0}}>
+        <p className="n">34 · les huit contextes</p>
+        <h2>Un cadenas, huit contenus.</h2>
+        <p>La personne a touché un onglet précis. Chaque contexte montre donc <b>les compteurs de cet onglet-là</b> et un élément entier qui en vient — jamais un argumentaire général. Le châssis, le prix et l'encart de vérité sont ceux de l'écran ci-dessus&nbsp;; seul ce bloc change.</p>
+        <p className="pq">Tous ces nombres sortent de la base, et ils sont en monospace pour le dire. C'est justement sur un écran de vente que la règle compte le plus&nbsp;: <b>« 0 commission » et « 0 e-mail envoyé » sont des arguments</b>, pas des trous à combler.</p>
+      </div>
+      <div className="bande" style={{marginTop:'18px'}}>
+        {R.CLUB_ORDRE.map(o=><CarteVerrou key={o} onglet={o} />)}
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('huit')).render(<Huit />);
+</script>
+</div></body></html>

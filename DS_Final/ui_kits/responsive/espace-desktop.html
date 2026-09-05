@@ -1,0 +1,115 @@
+<!-- @dsCard group="Plateforme · desktop" viewport="1480x980" name="Espace apprenant desktop" subtitle="26 pages en 1440 px — dont les 8 onglets du Club et ses 8 contextes verrouillés" -->
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Max-Morrys — espace apprenant desktop</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+html,body{margin:0}
+body{background:#0A0D11;color:#E9EDF2;font-family:var(--f-body);padding:20px 20px 34px}
+*{box-sizing:border-box}
+.wrap{max-width:1440px;margin:0 auto}
+/* Sélecteurs d'élément PORTÉS en enfant direct : nus, ils atteindraient les <h1> que
+   `AppFrame` rend dans la maquette montée ici et écraseraient son héritage de thème. */
+.wrap > .cap{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7C8896;margin:0 0 12px}
+.wrap > .cap b{display:block;margin-top:4px;font-family:var(--f-display);font-size:22px;font-weight:900;letter-spacing:-.03em;text-transform:none;color:#fff}
+.wrap > .cap i{display:block;margin-top:7px;font-style:normal;font-family:var(--f-body);font-size:13px;letter-spacing:0;text-transform:none;color:#FFC46B;line-height:1.55;max-width:88ch}
+.pager{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 18px;background:rgba(255,255,255,.04);
+  padding:9px;border-radius:16px;border:1px solid rgba(255,255,255,.09)}
+.pager button{border:0;cursor:pointer;border-radius:999px;padding:6px 11px;font-family:var(--f-body);
+  font-size:11.5px;font-weight:600;background:rgba(255,255,255,.1);color:#C3CDD9}
+.pager button.on{background:#fff;color:#0E1116}
+.pager u{width:100%;margin-top:5px;font-family:var(--f-mono);font-size:8.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:#68727F;text-decoration:none}
+.pager u:first-child{margin-top:0}
+#vue{min-height:900px}
+::-webkit-scrollbar{display:none}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../ui_kits/guard.js"></script>
+<script type="text/babel" src="Dashboards.js"></script>
+<script type="text/babel" src="DashboardsApp.js"></script>
+<script type="text/babel" src="DashboardsEspace.js"></script>
+<script type="text/babel" src="DashboardsClub.js"></script>
+<script type="text/babel" src="DashboardsClub2.js"></script>
+<script type="text/babel" src="DashboardsClubVerrou.js"></script>
+</head><body><div class="wrap">
+<p class="cap" id="legende"></p>
+<div class="pager" id="pager"></div>
+<div id="vue"></div>
+</div>
+<script type="text/babel">
+/* Les 26 pages de l'espace apprenant en 1440 px. Le Club en occupe seize — huit onglets pour
+   une abonnée, et les huit mêmes contextes pour un compte SANS abonnement. C'est un produit
+   dans le produit, et le réduire à une page revenait à le vendre pour ce qu'il n'est pas. */
+const PAGES = [
+  ['sep','Espace'],
+  ['EspaceDesktop','Mon espace',"la reprise reste le premier objet · trois colonnes"],
+  ['CoursDesktop','Mes cours',"la reprise atteignable depuis n'importe quelle page de cours"],
+  ['FicheDesktop','Fiche formation',"carte de prix collante : le prix reste à l'écran pendant qu'on lit les 47 leçons"],
+  ['sep','Apprendre'],
+  ['LecteurDesktop','Lecteur de leçon',"l'écran ouvert le soir · écrire une note SANS quitter la vidéo"],
+  ['NotesDesktop','Mes notes',"liste et note ouverte côte à côte, avec le retour à l'instant de vidéo"],
+  ['CertificatsDesktop','Mes certificats',"0 émis, daté · un aperçu grisé plutôt qu'une case vide"],
+  ['sep','Compte'],
+  ['PaiementsDesktop','Mes paiements',"l'écran d'historique que le web n'avait pas · le tiret n'est pas un bug"],
+  ['ProfilDesktop','Mon profil',"préférences, données, suppression complète"],
+  ['RepetiteurDesktop','Mon répétiteur',"quota et mémoire visibles PENDANT la conversation"],
+  ['sep','Le Club des Digitos — 8 onglets'],
+  ['ClubFilDesktop','Fil',"le fil commence enfin par du contenu : le bilan est passé dans le rail"],
+  ['ClubDiscussionsDesktop','Discussions',"par sujet, jamais par date · deux colonnes pour ne pas étirer les lignes"],
+  ['ClubMembresDesktop','Membres',"annuaire et fiche ensemble : on parcourt sans perdre la fiche ouverte"],
+  ['ClubAgendaDesktop','Agenda',"le calendrier du mois — la seule vraie addition du desktop"],
+  ['ClubClassementDesktop','Classement',"les deux vues côte à côte · AUCUN classement général absolu"],
+  ['ClubOpportunitesDesktop','Opportunités',"liste et détail ensemble · les budgets ne sont pas vérifiés, et c'est écrit"],
+  ['ClubInfosDesktop','Informations',"le digest de la semaine · ici et en notification, jamais par e-mail"],
+  ['ClubParrainageDesktop','Parrainage',"« rien en argent » est un titre de section, pas une note en bas de page"],
+  ['sep','Club verrouillé — compte sans abonnement'],
+  ['VerrouFilDesktop','Fil',"le prix quitte la fin du défilement : il vit dans le rail, permanent"],
+  ['VerrouDiscussionsDesktop','Discussions',"41 sujets ouverts · un sujet entier, non flouté"],
+  ['VerrouMembresDesktop','Membres',"6 fiches remplies sur 9 — le manque est écrit"],
+  ['VerrouAgendaDesktop','Agenda',"2 sessions, 4 places · une session entière"],
+  ['VerrouClassementDesktop','Classement',"« 0 classement absolu » est un argument, pas un trou"],
+  ['VerrouOpportunitesDesktop','Opportunités',"3 missions, 180 000 à 450 000 F · budgets non vérifiés, et c'est écrit"],
+  ['VerrouInfosDesktop','Informations',"3 digests, 0 e-mail envoyé · aucun canal d'envoi n'existe"],
+  ['VerrouParrainageDesktop','Parrainage',"0 commission pour toi, dans l'onglet et pas en bas de page"],
+  ['sep','Ancienne page unique'],
+  ['ClubDesktop','Club (v1)',"la page unique que les huit onglets remplacent — gardée pour comparaison"]
+];
+
+let courant = 'ClubFilDesktop';
+const racine = ReactDOM.createRoot(document.getElementById('vue'));
+
+function monter(){
+  const R = window.MMDASH || {};
+  const it = PAGES.find(e=>e[0]===courant);
+  const C = R[courant];
+  const l = document.getElementById('legende');
+  l.textContent = 'Page';
+  const b = document.createElement('b'); b.textContent = it[1];
+  const i = document.createElement('i'); i.textContent = it[2];
+  l.appendChild(b); l.appendChild(i);
+  racine.render(React.createElement(window.MMBoundary,{key:courant}, C ? React.createElement(C) : null));
+  [].forEach.call(document.querySelectorAll('.pager button'), n=>{
+    n.className = n.dataset.k === courant ? 'on' : '';
+  });
+}
+
+const pager = document.getElementById('pager');
+PAGES.forEach(e=>{
+  if (e[0] === 'sep'){ const u = document.createElement('u'); u.textContent = e[1]; pager.appendChild(u); return; }
+  const b = document.createElement('button');
+  b.textContent = e[1]; b.dataset.k = e[0];
+  b.onclick = ()=>{ courant = e[0]; monter(); };
+  pager.appendChild(b);
+});
+
+/* Babel charge les text/babel[src] de façon asynchrone : on attend le registre.
+   setTimeout, pas requestAnimationFrame — hors peinture, rAF ne se déclenche jamais. */
+let essais = 0;
+(function attend(){
+  if ((window.MMDASH && window.MMDASH.ClubParrainageDesktop) || essais++ > 80) return monter();
+  setTimeout(attend, 20);
+})();
+</script>
+</body></html>
