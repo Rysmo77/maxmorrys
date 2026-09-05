@@ -269,6 +269,52 @@ describe('certificate_lookups — verification publique par code', () => {
   });
 });
 
+describe('club_blocks — la liste de blocage ne se retourne pas contre qui elle protege', () => {
+  /*
+   * Exigee par la regle des magasins sur le contenu genere par les utilisateurs : une
+   * application qui publie de membre a membre doit permettre de bloquer un compte abusif.
+   *
+   * Mais ce document dit QUI QUELQU UN EVITE. C est une decision prise pour soi, jamais pour
+   * etre vue — l ouvrir en lecture au Club la retournerait contre la personne qu elle
+   * protege. Et l ouvrir en ECRITURE au client contournerait les deux controles que le
+   * Worker tient : le plafond de 200, et le refus de l auto-blocage.
+   */
+  const LISTE = { userId: ALICE, bloques: [BOB], updatedAt: '2026-09-05T00:00:00.000Z' };
+
+  it('on lit sa propre liste', async () => {
+    await seed(`club_blocks/${ALICE}`, LISTE);
+    await assertSucceeds(getDoc(doc(asUser(ALICE), 'club_blocks', ALICE)));
+  });
+
+  it('un autre membre ne lit pas la liste de quelqu un', async () => {
+    await seed(`club_blocks/${ALICE}`, LISTE);
+    await assertFails(getDoc(doc(asUser(BOB), 'club_blocks', ALICE)));
+  });
+
+  it('celui qui est bloque ne peut pas savoir qu il l est', async () => {
+    /* Le cas qui compte vraiment : Bob est DANS la liste, et c est precisement lui qui ne
+       doit pas pouvoir la lire. Un blocage qui se sait n en est plus un. */
+    await seed(`club_blocks/${ALICE}`, LISTE);
+    await assertFails(getDoc(doc(asUser(BOB), 'club_blocks', ALICE)));
+  });
+
+  it('un visiteur anonyme ne lit rien', async () => {
+    await seed(`club_blocks/${ALICE}`, LISTE);
+    await assertFails(getDoc(doc(testEnv.unauthenticatedContext().firestore(), 'club_blocks', ALICE)));
+  });
+
+  it('personne n ecrit depuis le client — pas meme sur sa propre liste', async () => {
+    /* L ecriture passe par le Worker, qui borne a 200 et refuse l auto-blocage. Ouvrir le
+       client ici rendrait ces deux controles contournables par construction. */
+    await assertFails(setDoc(doc(asUser(ALICE), 'club_blocks', ALICE), LISTE));
+  });
+
+  it('on ne modifie pas non plus une liste existante', async () => {
+    await seed(`club_blocks/${ALICE}`, LISTE);
+    await assertFails(updateDoc(doc(asUser(ALICE), 'club_blocks', ALICE), { bloques: [BOB, CAROL] }));
+  });
+});
+
 describe('transactions — client creation restricted to free courses', () => {
   /** Une vente a zero, telle que le client l'ecrit. */
   const GRATUITE = (formationId: string) => ({
