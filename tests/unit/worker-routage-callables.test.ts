@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 /**
@@ -85,8 +85,16 @@ function appeleesParLeNatif(): string[] {
       }
     }
   };
-  parcourir(join(RACINE, 'mobile/donnees'));
-  parcourir(join(RACINE, 'mobile/app'));
+  /* ⚠️ `mobile/` a été supprimé le 05/09/2026 : l'application est réécrite en Kotlin et en
+     Swift. Cette porte ne peut donc plus vérifier qu'une callable appelée par le natif est
+     bien servie — c'est un ANGLE MORT ouvert, pas une garantie qui tient.
+     Elle se rebranchera sur les sources Kotlin puis Swift au lot 6. Les deux autres sens
+     (tout handler est déclaré dans MIGRATED, les deux listes sont identiques) continuent
+     de mordre, et ce sont eux qui ont attrapé la panne du chemin de l'argent. */
+  for (const dossier of ['android/app/src', 'ios/Rysmo']) {
+    const chemin = join(RACINE, dossier);
+    if (existsSync(chemin)) parcourir(chemin);
+  }
   return [...noms];
 }
 

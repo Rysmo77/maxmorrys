@@ -66,7 +66,9 @@ function walk(dir, out = []) {
 const tally = new Map(); const bump = (k, n = 1) => tally.set(k, (tally.get(k) ?? 0) + n);
 let changed = 0;
 
-for (const f of [...walk(join(root, 'src')), ...walk(join(root, 'mobile'))]) {
+/* `mobile/` a été supprimé le 05/09/2026 (réécriture en Kotlin et en Swift). Ce parcours
+   reprendra sur les sources natives quand elles existeront — d'ici là, il n'y a que `src/`. */
+for (const f of walk(join(root, 'src'))) {
   const before = readFileSync(f, 'utf8');
   let s = before;
 

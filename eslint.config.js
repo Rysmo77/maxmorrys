@@ -40,8 +40,20 @@ export default tseslint.config(
        * y vit désormais comme sous-arbre `design_handoff_maxmorrys/`. Ignorer la racine les
        * couvre tous les deux ; laisser les anciens noms ne couvrait plus personne, et les
        * 56 erreurs de parsage étaient revenues à l'identique.
+       *
+       * ⛔ ET C'EST ARRIVÉ UNE TROISIÈME FOIS, le 05/09/2026. Le kit a été relivré sous
+       * `DS_Final/`, qui absorbe à son tour `handoff_natif/`, `handoff_tableaux_de_bord/` et
+       * `design_handoff_maxmorrys/` — plus huit dossiers qui n'existaient nulle part. Les 44
+       * erreurs de parsage sont revenues à l'identique, sur des fichiers qu'on n'a pas écrits.
+       *
+       * TROIS RENOMMAGES, TROIS FOIS LE MÊME TROU. Ce n'est plus un accident : c'est la forme
+       * de ce projet. Le kit arrive sous un nom neuf à chaque livraison, et une entrée ancrée
+       * à un nom ne survit pas au suivant. `tests/unit/lint-kits-ignores.test.ts` refuse
+       * désormais qu'un dossier de kit non ignoré entre dans le dépôt — la porte se déplace du
+       * nom vers la FORME, parce que c'est la forme qui se répète.
        */
       'Max-Morrys_DS_Platform',
+      'DS_Final',
     ],
   },
   {

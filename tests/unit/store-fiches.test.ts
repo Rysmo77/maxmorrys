@@ -6,6 +6,10 @@ import { resolve } from 'node:path';
  * ═══════════════════════════════════════════════════════════════════════════════
  * LES TEXTES DE FICHE, ET LES DEUX FAÇONS DONT ILS SE FONT REFUSER.
  *
+ * ⓘ Ce dossier vivait dans `mobile/store/`. Il en est sorti le 05/09/2026 avec l'abandon
+ *   de React Native : une fiche de magasin décrit un PRODUIT, pas une technologie. Elle
+ *   survit à la réécriture en Swift et en Kotlin sans qu'un mot change.
+ *
  * 1 · PAR LA MACHINE, AU TÉLÉVERSEMENT. Un titre de 31 caractères est rejeté par
  *     l'API du magasin — après le build, après la file d'attente, un vendredi soir.
  *     Ces limites se comptent en CARACTÈRES, pas en octets : « Rysmo — apprendre
@@ -21,7 +25,7 @@ import { resolve } from 'node:path';
  */
 
 const RACINE = resolve(__dirname, '../..');
-const STORE = resolve(RACINE, 'mobile/store');
+const STORE = resolve(RACINE, 'store');
 const lire = (p: string) => readFileSync(resolve(STORE, p), 'utf8');
 
 /** Play compte les caractères, et les emoji comptent double par leurs paires. */

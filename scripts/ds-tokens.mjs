@@ -33,20 +33,24 @@ const OVERRIDES = join(root, 'src/design-system/css/overrides');
 const OUT = join(root, 'src/design-system/tokens.generated.ts');
 
 /**
- * ── ET LA COPIE NATIVE, DANS LE PROJET NATIF ──────────────────────────────────────────
+ * ── LA CIBLE NATIVE, RETIRÉE LE 05/09/2026 ────────────────────────────────────────────
  *
- * `mobile/ds/theme.tsx` lisait `../../src/design-system/tokens.generated` — un chemin qui
- * SORT du dossier `mobile/`. TypeScript le suit sans broncher, et le typecheck natif était
- * vert. Metro, lui, ne résout rien hors de la racine du projet : `npx expo export` échouait
- * sur « Unable to resolve module ». L'application ne pouvait donc pas se bundler — ni tourner,
- * ni se construire — pendant que sa porte de vérification passait.
+ * Ce script écrivait aussi `mobile/ds/tokens.generated.ts`, parce que le dossier React Native
+ * était AUTONOME (AD-9) et ne pouvait pas lire un fichier au-dessus de lui — Metro ne résout
+ * rien hors de la racine du projet, là où TypeScript, lui, suivait le chemin sans broncher.
+ * C'est ce qui avait rendu l'application impossible à bundler pendant que sa porte de
+ * vérification restait verte.
  *
- * Le dossier natif est AUTONOME (AD-9) : il n'a pas de `workspaces` qui le relierait à la
- * racine, et lui en donner un pour un seul fichier serait payer très cher. La bonne réponse
- * est celle qu'AD-8 dicte déjà : les jetons sont GÉNÉRÉS depuis le CSS, donc on les génère
- * aux DEUX endroits qui les consomment. La source de vérité reste unique — c'est le CSS.
+ * `mobile/` a été supprimé : l'application est réécrite en Kotlin/Compose et en
+ * Swift/SwiftUI. La leçon, elle, ne change pas — et c'est ce qui rend la suite facile :
+ * AD-8 dit que les jetons sont GÉNÉRÉS depuis le CSS, donc on les génère à chaque endroit qui
+ * les consomme, quel que soit son langage. La source de vérité reste le CSS.
+ *
+ * ⚠️ DEUX CIBLES SONT À AJOUTER ICI (lot 1 de la réécriture) : un émetteur Kotlin et un
+ * émetteur Swift, à côté de la cible web. Elles se branchent sur les mêmes tables `L` et `D`
+ * résolues plus bas — rien d'autre à changer. Et il faudra traiter explicitement les 10
+ * chaînes `linear-gradient(...)` et les 21 ombres `box-shadow` : ce ne sont pas des couleurs.
  */
-const OUT_NATIF = join(root, 'mobile/ds/tokens.generated.ts');
 
 /**
  * Extrait les déclarations `--nom: valeur` d'un bloc de sélecteur donné.
@@ -151,7 +155,6 @@ export type Territory = (typeof TERRITORIES)[number];
 `;
 
 writeFileSync(OUT, CONTENU);
-writeFileSync(OUT_NATIF, CONTENU);
 
 /*
  * ── LES TRACÉS D'ICÔNES SUIVENT LE MÊME CHEMIN ────────────────────────────────────────
@@ -167,14 +170,11 @@ writeFileSync(OUT_NATIF, CONTENU);
  * pour le CSS du kit.
  */
 const ICONES_SRC = join(root, 'src/design-system/icons.ts');
-const ICONES_NATIF = join(root, 'mobile/ds/icons.generated.ts');
-writeFileSync(
-  ICONES_NATIF,
-  `/* GÉNÉRÉ PAR \`npm run ds:tokens\` DEPUIS src/design-system/icons.ts — NE PAS ÉDITER. */\n` +
-    readFileSync(ICONES_SRC, 'utf8'),
-);
+/* ⚠️ La copie native des 109 icônes est retirée avec `mobile/`. Elles reviendront en
+   `ImageVector` (Compose) et en `Path` (SwiftUI), générées d'ici même depuis `ICONES_SRC` :
+   les tracés sont des données pures, sans dépendance à React ni au DOM. */
 
 console.log(
   `ds:tokens — ${Object.keys(L).length} jetons clairs, ${Object.keys(D).length} jetons sombres ` +
-  `-> src/design-system/tokens.generated.ts + mobile/ds/tokens.generated.ts`,
+  '-> src/design-system/tokens.generated.ts',
 );

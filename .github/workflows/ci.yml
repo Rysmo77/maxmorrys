@@ -152,48 +152,20 @@ jobs:
   # (`Unable to resolve module ../../src/design-system/tokens.generated`). L'export est
   # la seule porte qui prouve que l'application se construit.
   # ══════════════════════════════════════════════════════════════════════════════════
-  mobile:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: mobile/package-lock.json
-
-      - run: npm ci
-        working-directory: mobile
-
-      - name: Typecheck natif
-        run: npm run typecheck
-        working-directory: mobile
-
-      # 21 vérifications sur 21 aujourd'hui. Un greffon déclaré sans son paquet est
-      # attrapé ICI plutôt qu'au `prebuild`, c'est-à-dire des minutes au lieu d'un build.
-      - name: expo-doctor
-        run: npx expo-doctor
-        working-directory: mobile
-
-      # AUCUNE variable EXPO_PUBLIC_* n'est posée : le paquet produit est donc celui de
-      # PRODUCTION, avec son contenu de démonstration éteint et son atelier fermé.
-      - name: Construire le paquet des deux plateformes
-        run: npx expo export --platform ios --platform android --output-dir dist
-        working-directory: mobile
-        env:
-          EXPO_NO_TELEMETRY: '1'
-
-      # ⚠️ CETTE PORTE ÉTAIT UN `grep`, ET ELLE ÉTAIT AVEUGLE SUR UN DE SES SEPT MARQUEURS.
-      # Hermes range les chaînes accentuées dans une table UTF-16 : mesuré le 05/09/2026,
-      # « Vendre sans budget pub » (ASCII) se trouve dans le `.hbc`, « elles sont comptées »
-      # ne s'y trouve pas en UTF-8. « planche de référence » ne pouvait donc PAS être
-      # détecté — la porte était verte parce qu'elle ne voyait rien.
-      # Le script cherche dans les deux encodages, et vérifie d'abord qu'il sait trouver un
-      # témoin accentué qu'il sait présent : une porte muette se confond avec une verte.
-      - name: Le paquet de production ne contient ni démonstration ni tunnel d'achat
-        working-directory: mobile
-        run: node ../scripts/paquet-natif-propre.mjs dist
+  # LE JOB `mobile` A ÉTÉ RETIRÉ LE 05/09/2026, avec le dossier qu'il vérifiait.
+  #
+  # Il faisait tourner `npm ci`, le typecheck natif, `expo-doctor` et surtout
+  # `expo export` — la seule porte qui prouvait que le paquet se CONSTRUIT, là où un
+  # typecheck vert avait déjà caché un projet impossible à bundler.
+  #
+  # L'application est réécrite en Kotlin/Compose et en Swift/SwiftUI. Deux jobs le
+  # remplaceront : un `./gradlew` sur runner ubuntu, un `xcodebuild` sur runner macos.
+  # Tant qu'ils n'existent pas, RIEN NE VÉRIFIE l'application mobile — c'est écrit ici
+  # pour que le silence de la CI ne se lise pas comme une absence de problème.
+  #
+  # Les garanties perdues sont inventoriées, une par une, dans
+  # `_bmad-output/implementation-artifacts/garanties-a-reconstruire.md`.
+  # ══════════════════════════════════════════════════════════════════════════════════
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
