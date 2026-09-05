@@ -55,14 +55,21 @@ l'application — en carte, sans Wave ni Orange Money. Sur une formation à 95 0
 **14 250 à 28 500 F par vente**. Et surtout : le paiement en monnaie électronique locale, qui
 est le seul vrai avantage du produit sur ce marché, disparaît de l'écran d'achat.
 
-Le tunnel natif s'arrête donc à la sélection du moyen de paiement, et **ouvre l'URL de
-paiement du web dans le navigateur système** (`expo-web-browser`). Le montant débité reste
-celui recalculé côté serveur, jamais celui transmis par le client.
+**Le repli a été appliqué, et cette section décrit désormais un état passé.** Le tunnel natif
+s'arrêtait à la sélection du moyen de paiement et ouvrait l'URL de paiement du web dans le
+navigateur système. Il n'existe plus : `paiement`, `attente`, `succes` et `echec` ont été
+supprimés (voir « LE TUNNEL DE PAIEMENT N'EXISTE PLUS », plus bas).
 
-> ⚠️ **Hypothèse non levée.** Ceci suppose que la revue Apple accepte ce renvoi au titre de
-> l'App Store Review Guideline 3.1.1. **Ce n'est pas vérifié.** À trancher avant toute
-> soumission. Le repli connu : retirer tout achat de l'application native et la cantonner à
-> la consultation — les leçons, le répétiteur, le certificat.
+> ✅ **La question 3.1.1 est TRANCHÉE, et par le retrait.** Elle supposait que la revue Apple
+> accepte le renvoi vers le web ; on ne l'a pas pariée. L'application ne vend plus rien, donc
+> la règle ne s'applique plus. Trois portes le tiennent : `tests/unit/mobile-store-achats.test.ts`
+> (cinq assertions, dont l'interdiction de nommer un magasin ou d'inviter à acheter), et un grep
+> du **paquet construit** dans la CI. Dividende : aucun accord « Paid Applications » à signer
+> chez Apple, et « financial features : non » chez Google.
+>
+> Deux exceptions assumées et nommées dans le test : `presence.tsx` et `devis.tsx` gardent leurs
+> prix, parce que Présence Digitale est une prestation du monde réel — que la règle 3.1.5(a)
+> exige justement de transacter hors du magasin.
 
 ## Ce que ce dossier contient aujourd'hui
 
@@ -310,8 +317,10 @@ documentation qui le niait.
 
 **Ce qui marche** : la connexion et la création de compte par e-mail, la réinitialisation du
 mot de passe, la déconnexion, la suppression de compte (App Store 5.1.1(v)), l'export RGPD, et
-sept vues de lecture — profil, reprise, catalogue, certificats, Club, notes, programme d'un
-module.
+**quatorze vues de lecture** — profil, reprise, catalogue, certificats, notes, programme d'un
+module, pôle média, répétiteur, console support, et les cinq du Club (bilan, fil, listes,
+agenda, classement) — plus **six écritures** : la note, la coche de leçon, la publication au
+Club, la réservation d'une séance, le signalement d'un membre, la création du profil.
 
 **Deux décisions structurent tout le reste :**
 
@@ -329,9 +338,21 @@ refait ses contrôles à la main, et `tests/unit/worker-vues-natives.test.ts` re
 Club qui ne revérifierait pas l'abonnement — sans quoi tout le contenu payant devient lisible
 par n'importe quel compte gratuit.
 
-**Ce qui reste à brancher** : le fil du Club et ses six onglets, le pôle média, le répétiteur,
-la console support, l'écriture (notes, progression). Le mécanisme est posé : un handler, un
-hook, un nom dans `MIGRATED`.
+**Ce qui reste à brancher** — cette liste a été refaite contre le code le 5 septembre 2026,
+l'ancienne était périmée et annonçait comme manquant ce qui était déjà livré :
+
+- **Le pôle média** — et c'est le seul cas de ce genre : le handler `appMedia` est servi, le hook
+  `useMedia()` est écrit, et **aucun écran ne l'appelle**. `media.tsx` et `episode.tsx` lisent
+  encore `contenu/demo` en direct. Il ne manque que le câble.
+- **Six écrans atteignables en production** qui lisent encore la démonstration, donc vides pour
+  un vrai utilisateur : `formation`, `certificat` (la pièce ; la liste est servie), `partage`,
+  `presence`, `devis`, `club/infos`, `club/parrainage`.
+- **`telechargements`**, qui dépend du ré-hébergement des médias, pas d'un handler.
+- Les cinq sous-écrans de la console support — mais ils sont derrière le drapeau `ATELIER`,
+  donc **inatteignables en production**.
+
+Le mécanisme reste celui-ci : un handler, son enregistrement, le nom dans les **deux** listes
+`MIGRATED`, un type, un hook, l'écran.
 
 `setTutorNom()` ne persiste pas, et **ne doit pas** persister localement : le nom du tuteur vit
 dans le profil (`users/<uid>.tutorName`), comme au web. Un magasin local créerait une seconde
@@ -367,7 +388,7 @@ Hors de la barre, **quarante-sept routes de pile**, groupées comme le transfert
 | Parcours | Routes |
 |---|---|
 | Propres au natif | `lancement` `onboarding` `permissions` `biometrie` `telechargements` `plein-ecran` `widget` `partage` |
-| Le chemin de l'argent | `formation` (le mur) `paiement` `attente` `succes` `echec` |
+| Le catalogue | `formation` — la fiche, sans mur ni montant depuis le retrait du tunnel |
 | Apprentissage | `lecon` `notes` `certificat` `certificats` |
 | Le répétiteur | `memoire` — la conversation est l'onglet |
 | Le Club | `club/` — `fil` `discussions` `agenda` `membre` `classement` `opportunites` `parrainage` `infos` |

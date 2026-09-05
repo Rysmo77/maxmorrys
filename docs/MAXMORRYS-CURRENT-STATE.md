@@ -6,6 +6,22 @@ c'est un point de départ.
 
 _Audit réalisé le 13 août 2026, sur la branche `feature/repositionnement-agency`._
 
+> ⛔ **PÉRIMÉ SUR AU MOINS TROIS POINTS — vérifié le 05/09/2026.** Ce document a déjà fait
+> écrire plusieurs faussetés à des agents qui l'ont pris pour l'état courant. Il reste ici
+> comme point de départ daté, **pas comme description du code d'aujourd'hui.** Ce qui a
+> changé depuis, et qu'il affirme encore à tort :
+>
+> - **Les paiements NE tournent PAS « encore sur Cloud Functions »** (§ État de la migration
+>   Cloudflare). Le répertoire `functions/` a été **supprimé** le 03/09/2026 : il n'existe
+>   plus aucune Cloud Function. Les quatre charges et le webhook sont servis par le Worker
+>   `api`, et sont bien dans la liste `MIGRATED` de production — vérifié dans
+>   `worker/apps/api/wrangler.jsonc`.
+> - **`createClubCharge` n'est pas « absent de la liste de préversion »** : les deux listes
+>   `MIGRATED` sont identiques, et `tests/unit/worker-routage-callables.test.ts` l'exige.
+> - Le dossier `mobile/` — l'application native — **n'existait pas** à la date de cet audit.
+>
+> Règle : **rejouer chaque constat de ce fichier contre le code avant de s'en servir.**
+
 ---
 
 ## 1. Stack et architecture

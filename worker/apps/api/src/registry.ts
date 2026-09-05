@@ -111,8 +111,12 @@ export const HANDLERS: Record<string, CallHandler> = {
   joinWaitlist,
   notifyOnPublish,
   notifyWaitlist,
-  // Paiement — implémenté, mais volontairement hors de MIGRATED tant que la
-  // fenêtre de dual-run avec Bictorys n'est pas calée.
+  // Paiement — SERVI. Le commentaire disait l'inverse (« volontairement hors de
+  // MIGRATED ») alors que `wrangler.jsonc` y met les quatre charges et le webhook :
+  // corrigé le 05/09/2026, après vérification des deux listes. Cette contradiction
+  // n'était pas anodine — c'est en croyant ces callables hors service qu'on a laissé
+  // TOUT LE CHEMIN DE L'ARGENT répondre 404 en production le 02/09, ce qui a donné
+  // naissance à `tests/unit/worker-routage-callables.test.ts`.
   // Devis : le MÊME calcul que la charge, pour que l'écran et le débit ne divergent pas.
   quoteCheckout,
   createBictorysCharge,

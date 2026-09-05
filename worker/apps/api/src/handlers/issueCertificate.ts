@@ -73,13 +73,48 @@ export async function issueCertificate(data: unknown, context: CallContext): Pro
   // `randomUUID` de node:crypto → équivalent natif du runtime Workers.
   const certificateCode = `MM-${crypto.randomUUID().replace(/-/g, '').substring(0, 10).toUpperCase()}`;
 
+  const issuedAt = new Date().toISOString();
+  const formationTitle = asText(formation.title) ?? '';
+  const holderName = await resolveHolderName(context, uid);
+
   await context.db.set(`certificates/${certificateId}`, {
     userId: uid,
     formationId,
-    formationTitle: formation.title ?? '',
-    issuedAt: new Date().toISOString(),
+    formationTitle,
+    issuedAt,
     certificateCode,
+    /* `userName` et `lessonsCompleted` : rétablis le 05/09/2026. `appCertificats` les lit
+       pour composer un document OPPOSABLE — quatre champs solidaires — et ne les trouvait
+       pas : sa liste `complets` était donc TOUJOURS vide, pour tout le monde, depuis le
+       port. Un écran de certificats définitivement vide, sans erreur nulle part. */
+    userName: holderName,
+    lessonsCompleted: allLessonIds.length,
   });
+
+  /*
+    LE MIROIR PUBLIC — perdu au retrait des Cloud Functions (e3a2775), rétabli ici.
+
+    La fonction supprimée écrivait DEUX documents ; le port n'en a gardé qu'un, et personne
+    ne l'a vu parce que rien n'échoue : la vérification publique lit simplement un document
+    qui n'existe pas. Résultat mesuré : tout certificat émis depuis le 03/09/2026 est
+    INVÉRIFIABLE sur `/verifier` et sur `/certificat/<code>`, alors que c'est précisément
+    ce que le produit promet — un certificat qui se vérifie.
+
+    ⚠️ Pourquoi une collection séparée plutôt qu'une lecture ouverte sur `certificates`.
+    Le document de certificat est identifié par `{uid}_{formationId}` : une page qui ne
+    connaît que le code ne peut pas le lire directement, elle devrait LISTER. Or
+    `certificates` porte l'UID du titulaire, et une lecture ouverte y permettrait d'énumérer
+    tous les certificats émis — donc de compter les clients. Le miroir ne porte que ce qu'un
+    certificat affiche déjà, et son identifiant EST le code : un `get` direct, jamais une
+    liste.
+  */
+  await context.db.set(`certificate_lookups/${certificateCode}`, {
+    certificateCode,
+    formationTitle,
+    issuedAt,
+    holderName,
+  });
+
   await context.db.update(`enrollments/${certificateId}`, { certificateIssued: true });
 
   /*
@@ -118,4 +153,18 @@ export async function issueCertificate(data: unknown, context: CallContext): Pro
   }
 
   return { certificateId, certificateCode };
+}
+
+/**
+ * Nom à porter sur le certificat. Retombe sur une chaîne vide plutôt que sur l'e-mail :
+ * le miroir est PUBLIC, et une adresse e-mail n'a rien à y faire.
+ */
+async function resolveHolderName(context: CallContext, uid: string): Promise<string> {
+  const profil = await context.db.get(`users/${uid}`);
+  if (!profil) return '';
+  const compose = [asText(profil.data.firstName), asText(profil.data.lastName)]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+  return compose || (asText(profil.data.displayName) ?? '');
 }

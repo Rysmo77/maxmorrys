@@ -29,17 +29,46 @@ export async function appCertificats(_data: unknown, context: CallContext): Prom
     context.db.get(`users/${auth.uid}`),
   ]);
 
+  /*
+    ⚠️ CETTE VUE A ÉTÉ TOUJOURS VIDE, POUR TOUT LE MONDE — corrigé le 05/09/2026.
+
+    Elle lisait `c.data.code` et `c.data.userName`. Le champ écrit s'appelle
+    `certificateCode` (c'est aussi celui que le web lit, `VerifyCertificate.tsx:171`), et
+    `userName` n'était écrit NULLE PART. Le filtre `complets` ne pouvait donc jamais retenir
+    une seule ligne : `incomplets` valait le total, et l'écran affichait son état vide de
+    façon permanente, sans qu'aucune erreur ne se produise.
+
+    Deux noms de champ contre un écran définitivement vide : c'est le mode d'échec le plus
+    silencieux qui soit, et c'est pourquoi `tests/unit/worker-certificats.test.ts` compare
+    désormais ce qui est ÉCRIT à ce qui est LU.
+  */
+
+  /* Le nom du titulaire est gravé sur le certificat au moment de l'émission. Pour les
+     certificats émis AVANT ce correctif, il n'y est pas : on retombe sur le profil, qui est
+     déjà chargé ici. C'est ce qui les rend visibles sans backfill. */
+  const nomDuProfil =
+    [asText(profil?.data.firstName), asText(profil?.data.lastName)].filter(Boolean).join(' ').trim() ||
+    (asText(profil?.data.displayName) ?? '');
+
+  /* Pas de repli sur `data.code` : ce champ n'a JAMAIS été écrit, ni par les Cloud
+     Functions, ni par le port. Un repli sur un nom qui n'a jamais existé donne l'illusion
+     d'une compatibilité et masque le vrai défaut. */
+  const codeDe = (c: DocSnapshot) => asText(c.data.certificateCode) ?? '';
+  const titulaireDe = (c: DocSnapshot) => asText(c.data.userName) ?? nomDuProfil;
+
   const complets = emis.filter((c: DocSnapshot) =>
-    asText(c.data.code) && asText(c.data.userName) && asText(c.data.formationTitle) && asText(c.data.issuedAt));
+    codeDe(c) && titulaireDe(c) && asText(c.data.formationTitle) && asText(c.data.issuedAt));
 
   return {
     vue: {
       ouvertureCompte: asText(profil?.data.createdAt) ?? null,
       certificats: complets.map((c: DocSnapshot) => ({
-        code: asText(c.data.code) ?? '',
-        titulaire: asText(c.data.userName) ?? '',
+        code: codeDe(c),
+        titulaire: titulaireDe(c),
         formation: asText(c.data.formationTitle) ?? '',
         emisLe: asText(c.data.issuedAt) ?? '',
+        /* 0 = « non relevé » pour l'écran, qui le rend par `<Num>`. Les certificats émis
+           avant le correctif n'ont pas ce compte, et il ne s'invente pas. */
         lecons: toNumber(c.data.lessonsCompleted, 0),
       })),
       /* Le compte des INCOMPLETS n'est pas montré à la personne, mais il part en trace :
