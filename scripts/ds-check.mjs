@@ -85,6 +85,19 @@ const lines = (p) => {
 
 const CSS = walk(join(root, 'src'), ['.css']);
 const TSX = walk(join(root, 'src'), ['.tsx', '.ts']).filter((p) => !p.endsWith('.generated.ts'));
+/*
+ * ⛔ CETTE LISTE EST VIDE DEPUIS LE 05/09/2026, ET IL FAUT LE SAVOIR EN LISANT LES RÉSULTATS.
+ *
+ * `mobile/` portait l'application React Native ; elle est réécrite en Kotlin/Compose et en
+ * Swift/SwiftUI. Les neuf contrôles ci-dessous qui parcourent `MOBILE` ne parcourent donc
+ * plus RIEN — le flou hors chrome, les couleurs écrites en dur, les rayons hors kit, tout
+ * cela n'est plus vérifié côté application.
+ *
+ * Le nom reste et la liste reste calculée : une porte qui disparaît ne se remarque pas, une
+ * porte qui rend zéro se remarque. Leurs équivalents Kotlin sont au lot 6
+ * (`_bmad-output/implementation-artifacts/garanties-a-reconstruire.md`) ; d'ici là, un
+ * `ds:check` vert ne dit rien de l'application native.
+ */
 const MOBILE = existsSync(join(root, 'mobile')) ? walk(join(root, 'mobile'), ['.tsx', '.ts']) : [];
 
 /* ── AD-1 · les copies sont littérales ─────────────────────────────────────── */
@@ -107,12 +120,35 @@ const MOBILE = existsSync(join(root, 'mobile')) ? walk(join(root, 'mobile'), ['.
 
 /* ── AD-8 · les jetons générés sont à jour ─────────────────────────────────── */
 {
-  const out = join(root, 'src/design-system/tokens.generated.ts');
-  if (!existsSync(out)) add('8 · jetons générés', 'AD-8', 'src/design-system/tokens.generated.ts', 0, 'absent — lancer npm run ds:tokens');
-  else {
-    const before = readFileSync(out, 'utf8');
-    execFileSync(process.execPath, [join(root, 'scripts/ds-tokens.mjs')], { stdio: 'pipe' });
-    if (readFileSync(out, 'utf8') !== before) add('8 · jetons générés', 'AD-8', 'src/design-system/tokens.generated.ts', 0, 'désynchronisé de sa source CSS — lancer npm run ds:tokens et committer');
+  /*
+   * ⚠️ CINQ CIBLES, PAS UNE. Ce contrôle ne regardait que le fichier TypeScript ; depuis que
+   * le générateur écrit aussi le Kotlin et trois fichiers de ressources Android, s'en tenir
+   * au premier laisserait l'application native dériver du CSS sans que rien ne le dise —
+   * exactement la panne qu'AD-8 existe pour empêcher, transposée d'une plateforme à l'autre.
+   *
+   * La méthode ne change pas : on relève l'état, on régénère, on compare. Un fichier absent
+   * compte comme une désynchronisation, pas comme une absence de contrôle.
+   */
+  const CIBLES = [
+    'src/design-system/tokens.generated.ts',
+    'android/app/src/main/java/me/maxmorrys/rysmo/ds/Jetons.generated.kt',
+    'android/app/src/main/res/values/couleurs.generated.xml',
+    'android/app/src/main/res/values-night/couleurs.generated.xml',
+    'android/app/src/main/res/values/marque.generated.xml',
+  ];
+  const avant = new Map();
+  for (const rel of CIBLES) {
+    const abs = join(root, rel);
+    avant.set(rel, existsSync(abs) ? readFileSync(abs, 'utf8') : null);
+  }
+  execFileSync(process.execPath, [join(root, 'scripts/ds-tokens.mjs')], { stdio: 'pipe' });
+  for (const rel of CIBLES) {
+    const abs = join(root, rel);
+    if (avant.get(rel) === null) {
+      add('8 · jetons générés', 'AD-8', rel, 0, 'absent — lancer npm run ds:tokens et committer');
+    } else if (readFileSync(abs, 'utf8') !== avant.get(rel)) {
+      add('8 · jetons générés', 'AD-8', rel, 0, 'désynchronisé de sa source CSS — lancer npm run ds:tokens et committer');
+    }
   }
 }
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GÉNÉRÉ PAR `npm run ds:tokens` — NE PAS ÉDITER.
+     Les teintes de la MARQUE, figées : elles ne basculent pas en mode sombre,
+     contrairement aux jetons `ds_mm_*` dont elles sont tirées. Aucun miroir
+     dans values-night/, et c'est la raison d'être de ce fichier. -->
+<resources>
+  <color name="marque_mm_bleu">#FF0057BC</color>
+  <color name="marque_mm_orange">#FFF38B0A</color>
+  <color name="marque_mm_violet">#FF6C23DD</color>
+  <color name="marque_mm_teal">#FF02AC9C</color>
+  <color name="marque_paper_fixed">#FFFFFFFF</color>
+</resources>

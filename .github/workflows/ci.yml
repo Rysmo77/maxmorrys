@@ -141,31 +141,68 @@ jobs:
   # ══════════════════════════════════════════════════════════════════════════════════
   # L'APPLICATION NATIVE — jusqu'ici, RIEN dans cette CI ne la regardait.
   #
-  # `mobile/` est un projet Expo autonome, avec son propre `package-lock.json`. Les deux
-  # suites `tests/unit/mobile-*.test.ts` tournaient bien, mais par accident : elles sont
-  # dans la suite de la racine et lisent des fichiers. Ni le typecheck de `mobile/`, ni
-  # sa construction n'étaient exécutés — une régression TypeScript ou un import cassé
-  # partait sans que rien ne le dise.
-  #
-  # ⚠️ ET LE TYPECHECK NE SUFFIT PAS. `tsc` résout des chemins que Metro refuse : le port
-  # a déjà connu un état où le typecheck était vert et le paquet impossible à construire
-  # (`Unable to resolve module ../../src/design-system/tokens.generated`). L'export est
-  # la seule porte qui prouve que l'application se construit.
   # ══════════════════════════════════════════════════════════════════════════════════
-  # LE JOB `mobile` A ÉTÉ RETIRÉ LE 05/09/2026, avec le dossier qu'il vérifiait.
+  # ANDROID — LE JOB QUI REMPLACE `mobile`, ET CE QU'IL NE COUVRE PAS ENCORE.
   #
-  # Il faisait tourner `npm ci`, le typecheck natif, `expo-doctor` et surtout
-  # `expo export` — la seule porte qui prouvait que le paquet se CONSTRUIT, là où un
-  # typecheck vert avait déjà caché un projet impossible à bundler.
+  # L'ancien job faisait `expo export`, la seule porte qui prouvait que le paquet se
+  # CONSTRUIT — un typecheck vert avait déjà caché un projet impossible à bundler.
+  # `assembleDebug` joue le même rôle ici, et il est le dernier mot : c'est la
+  # compilation qui prouve, pas l'analyse statique.
   #
-  # L'application est réécrite en Kotlin/Compose et en Swift/SwiftUI. Deux jobs le
-  # remplaceront : un `./gradlew` sur runner ubuntu, un `xcodebuild` sur runner macos.
-  # Tant qu'ils n'existent pas, RIEN NE VÉRIFIE l'application mobile — c'est écrit ici
-  # pour que le silence de la CI ne se lise pas comme une absence de problème.
-  #
-  # Les garanties perdues sont inventoriées, une par une, dans
+  # ⚠️ CE JOB NE VÉRIFIE QUE LE SOCLE. Les 110 cas perdus avec `mobile/` ne sont pas
+  # revenus : rien ne garde encore les contrôles morts, les liens vers des routes
+  # inexistantes, ni le rendu des écrans — ils n'existent pas. Voir
   # `_bmad-output/implementation-artifacts/garanties-a-reconstruire.md`.
+  #
+  # ⚠️ IL N'Y A PAS DE JOB iOS. Il attend une installation de Xcode, qui n'est pas
+  # automatisable ici. Un `xcodebuild` sur runner macos le remplacera.
   # ══════════════════════════════════════════════════════════════════════════════════
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # ⛔ LA DÉRIVE DES JETONS EST GARDÉE AILLEURS, ET C'EST VOULU.
+      #
+      # `Jetons.generated.kt` et les trois fichiers de ressources sont GÉNÉRÉS depuis le
+      # CSS (AD-8). Rien n'empêche de les modifier à la main — une teinte changée là
+      # compile, s'affiche, et ne redevient jamais celle du design. `ds:check` régénère
+      # les CINQ cibles et compare ; il tourne dans `lint-and-build`, dont dépend le
+      # déploiement. Le refaire ici coûterait un `npm ci` complet pour la même réponse.
+      #
+      # ⚠️ Si `ds:check` cessait un jour de connaître les cibles Android, ce job
+      # continuerait de passer au vert sur des jetons faux. C'est le seul point où ces
+      # deux fichiers doivent rester d'accord.
+
+      - name: Compiler l'application
+        working-directory: android
+        run: ./gradlew :app:assembleDebug --no-daemon
+
+      - name: Tests unitaires
+        working-directory: android
+        run: ./gradlew :app:testDebugUnitTest --no-daemon
+
+      - name: Lint Android
+        working-directory: android
+        run: ./gradlew :app:lintDebug --no-daemon
+
+      # `aapt2` sur le paquet construit, et non un grep du manifeste source : l'outil
+      # officiel a déjà corrigé ici une lecture par chaînes qu'on croyait juste.
+      - name: Permissions réellement demandées par le paquet
+        working-directory: android
+        run: |
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | tail -1)
+          "$AAPT" dump permissions app/build/outputs/apk/debug/app-debug.apk
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

@@ -9,9 +9,10 @@
  *
  * Le fichier émis est GÉNÉRÉ, jamais édité. `npm run ds:check` échoue s'il est désynchronisé.
  */
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { emettreKotlin } from './ds-emit-kotlin.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TOKENS = join(root, 'src/design-system/css/tokens');
@@ -46,10 +47,16 @@ const OUT = join(root, 'src/design-system/tokens.generated.ts');
  * AD-8 dit que les jetons sont GÉNÉRÉS depuis le CSS, donc on les génère à chaque endroit qui
  * les consomme, quel que soit son langage. La source de vérité reste le CSS.
  *
- * ⚠️ DEUX CIBLES SONT À AJOUTER ICI (lot 1 de la réécriture) : un émetteur Kotlin et un
- * émetteur Swift, à côté de la cible web. Elles se branchent sur les mêmes tables `L` et `D`
- * résolues plus bas — rien d'autre à changer. Et il faudra traiter explicitement les 10
- * chaînes `linear-gradient(...)` et les 21 ombres `box-shadow` : ce ne sont pas des couleurs.
+ * ✅ LA CIBLE KOTLIN EST BRANCHÉE (`ds-emit-kotlin.mjs`). Elle ne contourne rien : les 10
+ * `linear-gradient(...)`, les 19 ombres, les 2 bordures et les 4 écritures de couleur sont
+ * PARSÉES, et une valeur que l'émetteur ne sait pas classer arrête la génération.
+ *
+ * ⚠️ Ce n'était pas un détail. Le port React Native contournait les dégradés en relisant
+ * leurs teintes par leur jeton d'origine ; or `arc` part de #0057BC en clair et de #6FB1FF
+ * en sombre. Le contournement rendait donc la version claire dans les deux modes — un défaut
+ * que ni le typecheck ni la relecture ne pouvaient voir.
+ *
+ * ⚠️ RESTE LA CIBLE SWIFT (lot iOS), à écrire sur le même modèle.
  */
 
 /**
@@ -156,6 +163,36 @@ export type Territory = (typeof TERRITORIES)[number];
 
 writeFileSync(OUT, CONTENU);
 
+/* ── CIBLE KOTLIN / COMPOSE ─────────────────────────────────────────────────────────── */
+/*
+ * ⛔ AUCUN `slash-étoile` DANS CET EN-TÊTE, ET CE N'EST PAS UNE COQUETTERIE.
+ *
+ * Kotlin IMBRIQUE les commentaires de bloc, là où Java et C ne le font pas. Écrire le
+ * chemin des sources en glob — « css/tokens/ » suivi d'une étoile — ouvrait donc deux
+ * commentaires imbriqués que la fermeture finale ne refermait qu'à moitié, et TOUT le
+ * fichier de 546 lignes devenait un commentaire. Le compilateur ne signalait qu'« Unclosed
+ * comment » à la dernière ligne, et cinq erreurs de référence sans rapport apparent.
+ *
+ * ⚠️ Et le piège se referme sur qui l'explique : la première version de CE commentaire-ci
+ * citait la séquence de fermeture entre accents graves. En JavaScript, elle ne se cite pas :
+ * elle a fermé le commentaire au milieu de la phrase, et la suite est devenue du code.
+ */
+const ENTETE_KT = `/*
+ * GÉNÉRÉ PAR \`npm run ds:tokens\` — NE PAS ÉDITER.
+ * Source : les feuilles de src/design-system/css/tokens et css/overrides (AD-8).
+ *
+ * Modifier ce fichier à la main le fait diverger du CSS sans que rien ne le signale, et
+ * \`npm run ds:check\` échouera à la prochaine exécution.
+ */`;
+const KT_DIR = join(root, 'android/app/src/main/java/me/maxmorrys/rysmo/ds');
+const RES = join(root, 'android/app/src/main/res');
+const { kotlin, xmlClair, xmlSombre, xmlMarque } = emettreKotlin(L, D, ENTETE_KT);
+for (const d of [KT_DIR, join(RES, 'values'), join(RES, 'values-night')]) mkdirSync(d, { recursive: true });
+writeFileSync(join(KT_DIR, 'Jetons.generated.kt'), kotlin);
+writeFileSync(join(RES, 'values/couleurs.generated.xml'), xmlClair);
+writeFileSync(join(RES, 'values-night/couleurs.generated.xml'), xmlSombre);
+writeFileSync(join(RES, 'values/marque.generated.xml'), xmlMarque);
+
 /*
  * ── LES TRACÉS D'ICÔNES SUIVENT LE MÊME CHEMIN ────────────────────────────────────────
  *
@@ -174,7 +211,9 @@ const ICONES_SRC = join(root, 'src/design-system/icons.ts');
    `ImageVector` (Compose) et en `Path` (SwiftUI), générées d'ici même depuis `ICONES_SRC` :
    les tracés sont des données pures, sans dépendance à React ni au DOM. */
 
+const divergents = Object.keys(L).filter((k) => L[k] !== D[k]).length;
 console.log(
-  `ds:tokens — ${Object.keys(L).length} jetons clairs, ${Object.keys(D).length} jetons sombres ` +
-  '-> src/design-system/tokens.generated.ts',
+  `ds:tokens — ${Object.keys(L).length} jetons, dont ${divergents} qui changent en mode sombre\n`
+  + '  -> src/design-system/tokens.generated.ts\n'
+  + '  -> android/.../ds/Jetons.generated.kt + res/values{,-night}/couleurs.generated.xml',
 );

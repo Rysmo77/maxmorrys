@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!--
+    Le SEUL thème XML du projet, et il ne peint qu'un fond.
+
+    Tout le rendu appartient au design system en Compose ; ce thème n'existe que
+    pour la fenêtre AVANT que Compose ne prenne la main — sans lui, l'application
+    montre un rectangle blanc système, puis bascule, et le saut se voit.
+
+    ⚠️ `values-night/` porte la variante sombre. Le mode sombre du kit n'est PAS
+    une dérivation : 100 jetons sur 225 y changent de valeur, déclarés.
+  -->
+  <style name="Theme.Rysmo.Lancement" parent="android:Theme.Material.Light.NoActionBar">
+    <item name="android:windowBackground">@color/ds_surface_page</item>
+    <item name="android:statusBarColor">@android:color/transparent</item>
+    <item name="android:navigationBarColor">@android:color/transparent</item>
+    <item name="android:windowLightStatusBar">true</item>
+  </style>
+</resources>

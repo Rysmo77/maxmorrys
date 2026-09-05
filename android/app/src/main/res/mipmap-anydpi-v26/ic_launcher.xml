@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+  <background android:drawable="@color/marque_paper_fixed" />
+  <foreground android:drawable="@drawable/ic_launcher_foreground" />
+  <!-- Android 13+ : l'icône thématisée, que le système reteint selon le fond d'écran.
+       Elle DOIT être monochrome — servir le mot-symbole en couleurs ici donnerait quatre
+       chevrons repeints d'une seule teinte système, ce qui est pire qu'une silhouette. -->
+  <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
+</adaptive-icon>

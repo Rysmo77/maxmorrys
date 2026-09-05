@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <!-- Le réseau, et de quoi savoir qu'il est là. `ACCESS_NETWORK_STATE` porte
+       l'écran hors-connexion ; sans elle, l'application ment sur son état. -->
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+  <!-- Verrouillage de l'application. `USE_FINGERPRINT` ne sert qu'aux API < 28,
+       d'où le `maxSdkVersion` : la demander au-delà élargit la fiche Play pour rien. -->
+  <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+  <uses-permission
+      android:name="android.permission.USE_FINGERPRINT"
+      android:maxSdkVersion="27" />
+
+  <application
+      android:name=".RysmoApp"
+      android:allowBackup="false"
+      android:icon="@mipmap/ic_launcher"
+      android:label="@string/app_name"
+      android:supportsRtl="false"
+      android:theme="@style/Theme.Rysmo.Lancement">
+
+    <activity
+        android:name=".MainActivity"
+        android:exported="true"
+        android:launchMode="singleTask"
+        android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|density|fontScale"
+        android:windowSoftInputMode="adjustResize"
+        android:screenOrientation="portrait"
+        android:theme="@style/Theme.Rysmo.Lancement">
+
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+
+      <!-- Schéma propre à l'application, pour les retours d'onglet personnalisé. -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="rysmo" />
+      </intent-filter>
+
+      <!-- ⛔ App Links vérifiés. `autoVerify` n'aboutit que si l'empreinte de
+           signature du paquet installé figure dans
+           https://maxmorrys.me/.well-known/assetlinks.json — laquelle publie
+           celle du keystore EAS. Signer autrement casse la vérification en
+           silence : le lien s'ouvre alors dans le navigateur, sans erreur.
+           Les préfixes doivent rester identiques des deux côtés. -->
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https" android:host="maxmorrys.me" android:pathPrefix="/formations" />
+        <data android:scheme="https" android:host="maxmorrys.me" android:pathPrefix="/verifier" />
+        <data android:scheme="https" android:host="www.maxmorrys.me" android:pathPrefix="/formations" />
+        <data android:scheme="https" android:host="www.maxmorrys.me" android:pathPrefix="/verifier" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

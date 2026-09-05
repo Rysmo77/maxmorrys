@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  LE MOT-SYMBOLE AUX QUATRE CHEVRONS — un par territoire, dans leur ordre :
+  forme (bleu), informe (orange), transforme (violet), digitalise (teal).
+
+  Vectorisé depuis `mobile/assets/adaptive-icon.png` (1024 px) du port supprimé, par
+  MESURE et non à l'œil : boîtes des quatre aplats relevées au pixel, épaisseur de trait
+  lue à mi-hauteur (46 px), largeurs normalisées — les 2 px d'écart du chevron bleu
+  étaient de l'anticrénelage, pas du dessin.
+
+  ⚠️ Le repère 108x108 est celui des icônes adaptatives, dont Android ne garantit que le
+  disque central de 66 : le mot-symbole tient de 24,7 à 83,3 en x et de 47,4 à 60,6 en y,
+  soit dans la zone sûre à tout recadrage.
+
+  ⚠️ VARIANTE MONOCHROME (Android 13+). Le système reteint ce tracé selon le fond d'écran ;
+  la couleur écrite ici est donc REMPLACÉE, et n'a pas à venir des jetons. Les quatre
+  territoires disparaissent — c'est le prix des icônes thématisées, et il vaut mieux qu'un
+  mot-symbole dont les quatre chevrons seraient repeints d'une seule teinte au hasard.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+  <!-- forme -->
+  <path
+      android:pathData="M27.05,49.78 L31.69,58.22 L36.33,49.78"
+      android:strokeColor="#FF000000"
+      android:strokeWidth="4.85"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+  <!-- informe -->
+  <path
+      android:pathData="M41.92,49.78 L46.56,58.22 L51.21,49.78"
+      android:strokeColor="#FF000000"
+      android:strokeWidth="4.85"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+  <!-- transforme -->
+  <path
+      android:pathData="M56.79,49.78 L61.44,58.22 L66.08,49.78"
+      android:strokeColor="#FF000000"
+      android:strokeWidth="4.85"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+  <!-- digitalise -->
+  <path
+      android:pathData="M71.67,49.78 L76.31,58.22 L80.95,49.78"
+      android:strokeColor="#FF000000"
+      android:strokeWidth="4.85"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+</vector>
