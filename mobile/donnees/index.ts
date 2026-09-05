@@ -14,9 +14,7 @@
  */
 import type { Etat } from '../ds';
 import {
-  AGENDA, CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION,
-  FORMATION_2, MEMBRE, MEMOIRE, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, PROSPECT,
-  QUOTA, SUPPORT_COMPTES, VIDEO,
+  AGENDA, CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION, FORMATION_2, MEMBRE, MEMOIRE, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, PROSPECT, QUOTA, SUPPORT_COMPTES, TRANSCRIPTION, VIDEO,
 } from '../contenu/demo';
 import { composer, composerIdentite, composerListe } from './etat';
 export { provenance } from './etat';
@@ -191,6 +189,11 @@ export function useMedia(): Etat<VueMedia> {
       chapo: EPISODE.chapo,
       duree: EPISODE.duree,
       lien: null,
+      cout: [...EPISODE.cout],
+      /* Le transfert donne la transcription en lignes horodatées ; le serveur la donne en
+         texte. La réplique recompose donc le texte à partir des lignes, pour que l'écran
+         n'ait qu'une seule forme à rendre. */
+      transcription: TRANSCRIPTION.map((l) => `${l.t} — ${l.l}`).join('\n\n') || null,
     },
     video: VIDEO === null ? null : {
       titre: VIDEO.titre,

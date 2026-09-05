@@ -68,6 +68,19 @@ export async function appMedia(_data: unknown, context: CallContext): Promise<un
         chapo: asText(episode.data.description) ?? null,
         duree: asText(episode.data.duration) ?? null,
         lien: asText(episode.data.audioUrl) ?? null,
+        /* Le coût d'un épisode, sur le même principe que celui d'une vidéo : ce qui manque
+           est ABSENT, jamais arrondi. Aujourd'hui `podcasts` ne porte qu'une durée —
+           `audioUrl` pointe vers Spotify, donc il n'y a ni fichier ni poids à annoncer. Le
+           tableau ne portera un « 31 Mo » que le jour où l'audio sera ré-hébergé. */
+        cout: [asText(episode.data.duration)].filter((v): v is string => Boolean(v)),
+        /* La transcription telle qu'elle est écrite : du texte, éventuellement en markdown.
+           Le kit natif la dessinait en LIGNES HORODATÉES (« 00:42 · … ») — une forme que le
+           modèle ne porte pas et qui ne se déduit d'aucun champ. On envoie donc le texte, et
+           l'écran le rend en paragraphes plutôt que d'inventer des minutages.
+
+           C'est aussi ce qui rend l'épisode lisible SANS charger l'audio : sur un forfait
+           compté, la transcription n'est pas un complément, c'est une porte d'entrée. */
+        transcription: asText(episode.data.transcript) ?? null,
       } : null,
 
       video: video && titreVideo ? {

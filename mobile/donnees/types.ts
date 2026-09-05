@@ -125,6 +125,10 @@ export interface VueEpisode {
   chapo: string | null;
   duree: string | null;
   lien: string | null;
+  /** Durée, et poids quand il existe. Vide plutôt qu'estimé. */
+  cout: string[];
+  /** Le texte de la transcription. Pas de minutage : le modèle n'en porte aucun. */
+  transcription: string | null;
 }
 
 export interface VueVideo {

@@ -1,9 +1,8 @@
-import { useState } from 'react';
 import { router } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Icon, IconButton, MediaCard, MiniPlayer, SansDonnees, Screen, SubNav, Surface, Tag, useToken,
+  Body, Button, Display, Eyebrow, Icon, IconButton, MediaCard, SansDonnees, Screen, SubNav, Surface, Tag, useToken,
 } from '../ds';
-import { EPISODE, VIDEO } from '../contenu/demo';
+import { useMedia } from '../donnees';
 import { View } from 'react-native';
 
 /**
@@ -24,33 +23,43 @@ import { View } from 'react-native';
  * d'attendre le Wi-Fi ; le cacher, c'est décider à la place de quelqu'un.
  *
  * ⚠️ LA LECTURE AUDIO N'EST PAS BRANCHÉE : elle demande `expo-audio` et un mode de fond
- * déclaré (`UIBackgroundModes: audio` côté iOS, un service de premier plan côté Android). Le
- * mini-lecteur est donc rendu dans son état de repos, et il dit ce qu'il fera. C'est le
- * chantier n° 1 de ce pôle, et il est nommé dans le README.
+ * déclaré (`UIBackgroundModes: audio` côté iOS, un service de premier plan côté Android).
+ *
+ * LE MINI-LECTEUR A DONC ÉTÉ RETIRÉ DE CET ÉCRAN, et ce n'est pas un renoncement. Il exigeait
+ * `position` — « 08:12 » — une valeur que seul un lecteur peut produire, et qu'il prenait au
+ * contenu de démonstration. Un lecteur au repos affichant une position inventée n'est pas un
+ * état de repos : c'est une lecture en cours qui n'existe pas. Il revient avec le lecteur,
+ * chantier n° 1 de ce pôle.
+ *
+ * ── CET ÉCRAN LIT LE SERVEUR ─────────────────────────────────────────────────────────────
+ * `useMedia()` était défini, `appMedia` était servi, et AUCUN écran ne les appelait : le seul
+ * hook orphelin de toute la porte. L'écran lisait `contenu/demo` en direct, donc il était vide
+ * en production — et il se rendait vide sur un seul des deux médias manquant, alors que le
+ * podcast et la vidéo se publient indépendamment.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function Media() {
   const t = useToken();
-  const [enLecture, setEnLecture] = useState(false);
+  const media = useMedia();
+  const episode = media.valeur?.episode ?? null;
+  const video = media.valeur?.video ?? null;
 
-  if (EPISODE === null || VIDEO === null) {
+  /* Les deux médias se publient INDÉPENDAMMENT : un podcast sans vidéo de la semaine est un
+     état normal, pas une panne. On ne referme donc l'écran que si les DEUX manquent. */
+  if (episode === null && video === null) {
     return (
       <Screen territory="transforme" retour="Profil">
         <Display size={27} lines={['Rien à écouter', 'pour l’instant.']} style={{ marginTop: 10 }} />
         <SansDonnees
           quoi="le pôle média"
           degat="Un épisode inventé porte le nom d'un invité qui n'a rien enregistré, et un poids en mégaoctets qui déciderait de charger ou pas."
+          etat={media}
           style={{ marginTop: 20 }}
         />
       </Screen>
     );
   }
 
-  /* Le rétrécissement de type ne survit pas à une closure quand la liaison vient d'un
-     autre module : `onPress={() => X.y}` reperd le `non null` que la garde vient
-     d'établir. Une constante LOCALE le porte jusque dans les rappels. */
-  const episode = EPISODE;
-  const video = VIDEO;
   return (
     <Screen
       territory="transforme"
@@ -60,17 +69,6 @@ export default function Media() {
           <Icon name="search" size={17} color={t('textBody')} strokeWidth={2.4} />
         </IconButton>
       }
-      overlay={(
-        <MiniPlayer
-          titre={episode.titreCourt}
-          position={episode.position}
-          duree={episode.duree}
-          enLecture={enLecture}
-          tabbar={false}
-          onToggle={() => setEnLecture(!enLecture)}
-          onPress={() => router.push('/episode')}
-        />
-      )}
     >
       <SubNav
         items={[{ label: 'Écouter & regarder' }, { label: 'Le Club', color: t('mmViolet') }]}
@@ -90,33 +88,38 @@ export default function Media() {
         <Tag tone="ok">Continue écran verrouillé</Tag>
       </View>
 
-      <MediaCard
-        format="audio"
-        artHeight={150}
-        titleSize={20}
-        eyebrow={episode.eyebrow}
-        title={episode.titre}
-        body={episode.chapo}
-        cost={episode.cout}
-        style={{ marginTop: 18 }}
-        actions={(
-          <>
-            <Button tone="transforme" size="sm" label="Écouter" onPress={() => router.push('/episode')} />
-            <Button tone="quiet" size="sm" label="Transcription" onPress={() => router.push('/episode')} />
-          </>
-        )}
-      />
+      {episode === null ? null : (
+        <MediaCard
+          format="audio"
+          artHeight={150}
+          titleSize={20}
+          eyebrow={episode.eyebrow}
+          title={episode.titre}
+          body={episode.chapo ?? undefined}
+          cost={episode.cout}
+          style={{ marginTop: 18 }}
+          actions={(
+            <>
+              <Button tone="transforme" size="sm" label="Écouter" onPress={() => router.push('/episode')} />
+              <Button tone="quiet" size="sm" label="Transcription" onPress={() => router.push('/episode')} />
+            </>
+          )}
+        />
+      )}
 
-      <MediaCard
-        format="video"
-        badge={video.badge}
-        artHeight={126}
-        eyebrow={video.eyebrow}
-        title={video.titre}
-        cost={video.cout}
-        style={{ marginTop: 12 }}
-        actions={<Button tone="quiet" size="sm" label="Regarder" onPress={() => router.push('/video')} />}
-      />
+      {/* Pas de `badge` : le kit en dessinait un (« Vidéo · 16:9 ») que le modèle ne porte
+          nulle part. Un format d'image affirmé sans le connaître se trompe une fois sur deux. */}
+      {video === null ? null : (
+        <MediaCard
+          format="video"
+          artHeight={126}
+          eyebrow={video.eyebrow}
+          title={video.titre}
+          cost={video.cout}
+          style={{ marginTop: 12 }}
+          actions={<Button tone="quiet" size="sm" label="Regarder" onPress={() => router.push('/video')} />}
+        />
+      )}
 
       <Surface level="truth" style={{ marginTop: 16, marginBottom: 70, padding: 15 }}>
         <Eyebrow>Ce que l'app change ici</Eyebrow>

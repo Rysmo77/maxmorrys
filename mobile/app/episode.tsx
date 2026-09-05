@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, SansDonnees, Screen, Segmented, Surface, isIOS, useActionGradient, useToken, veil,
+  Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, Num, SansDonnees, Screen, Segmented, Surface, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
-import { EPISODE, RELEVE, SOURCE, TRANSCRIPTION } from '../contenu/demo';
+import { provenance, useMedia } from '../donnees';
 
 /**
  * ══ 2 · L'ÉPISODE ══
@@ -15,12 +15,27 @@ import { EPISODE, RELEVE, SOURCE, TRANSCRIPTION } from '../contenu/demo';
  * maintenant et le remettre à un Wi-Fi qu'on n'aura peut-être pas.
  *
  * CE QUE LE NATIF AJOUTE, ET QU'UN NAVIGATEUR NE GARDE PAS D'UNE SESSION À L'AUTRE :
- *   · LE TÉLÉCHARGEMENT, avec son poids écrit sur le bouton — 31 Mo, avant de le toucher.
+ *   · LE TÉLÉCHARGEMENT, avec son poids écrit sur le bouton — quand ce poids existera.
  *   · LA VITESSE DE LECTURE, qui reste choisie au prochain épisode.
  *
  * Et, surtout, la lecture qui SURVIT au verrouillage — c'est le sujet de tout le pôle.
+ *
+ * ── CE QUE CET ÉCRAN A CESSÉ D'AFFIRMER (05/09/2026) ─────────────────────────────────────
+ * Il lisait `contenu/demo` en direct, donc il était VIDE en production. Pire : son titre,
+ * son sourcil et son numéro d'épisode étaient écrits EN DUR — « Podcast · épisode 1 »,
+ * « Vendre sans / budget pub. » — c'est-à-dire le titre de l'épisode de démonstration,
+ * affiché quel que soit l'épisode réellement publié.
+ *
+ * ⚠️ L'ONGLET « CHAPITRES » A ÉTÉ RETIRÉ. Il réutilisait les lignes de la transcription en
+ * leur mettant une icône de lecture — donc il affirmait des chapitres qui n'existent nulle
+ * part, ni dans le modèle ni dans le kit. Un chapitrage se produit ; il ne se déduit pas
+ * d'une transcription.
+ *
+ * ⚠️ LA TRANSCRIPTION EST DU TEXTE, PAS DES LIGNES HORODATÉES. Le kit la dessinait en
+ * « 00:42 · … » ; `Podcast.transcript` est une chaîne markdown. On rend donc des paragraphes
+ * plutôt que d'inventer des minutages qu'aucun champ ne porte.
  */
-const VUES = ['Transcription', 'Chapitres', 'Notes'] as const;
+const VUES = ['Transcription', 'Notes'] as const;
 
 export default function Episode() {
   const t = useToken();
@@ -33,23 +48,37 @@ export default function Episode() {
      par un bouton éteint, et rien de plus. */
   const vitesse = 1;
 
-  if (EPISODE === null) {
+  const media = useMedia();
+  const episode = media.valeur?.episode ?? null;
+
+  if (episode === null) {
     return (
       <Screen territory="transforme" retour="Écouter">
         <Display size={27} lines={['Cet épisode', 'n’est pas chargé.']} style={{ marginTop: 10 }} />
         <SansDonnees
           quoi="cet épisode"
           degat="Une transcription fabriquée met des phrases dans la bouche de quelqu'un. C'est le seul contenu du produit où l'invention se lit comme une citation."
+          etat={media}
           style={{ marginTop: 20 }}
         />
       </Screen>
     );
   }
 
-  /* Le rétrécissement de type ne survit pas à une closure quand la liaison vient d'un
-     autre module : `onPress={() => X.y}` reperd le `non null` que la garde vient
-     d'établir. Une constante LOCALE le porte jusque dans les rappels. */
-  const episode = EPISODE;
+  /* Le titre se coupe en deux lignes sur le dernier espace de sa première moitié : le kit
+     dessine deux lignes, et un titre servi n'a aucune raison d'en faire une. */
+  const coupe = (titre: string): string[] => {
+    const mots = titre.split(' ');
+    if (mots.length < 3) return [titre];
+    const milieu = Math.ceil(mots.length / 2);
+    return [mots.slice(0, milieu).join(' '), mots.slice(milieu).join(' ')];
+  };
+
+  const paragraphes = (episode.transcription ?? '')
+    .split(/\n{2,}/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+
   return (
     <Screen
       territory="transforme"
@@ -61,12 +90,11 @@ export default function Episode() {
         </IconButton>
       }
     >
-      <Eyebrow style={{ marginTop: 6 }}>Podcast · épisode 1</Eyebrow>
-      <Display size={27} lines={['Vendre sans', 'budget pub.']} style={{ marginTop: 8 }} />
+      <Eyebrow style={{ marginTop: 6 }}>{episode.eyebrow}</Eyebrow>
+      <Display size={27} lines={coupe(episode.titre)} style={{ marginTop: 8 }} />
       <Num
-        value={`${episode.date} · ${episode.duree} · ${episode.invitee}`}
-        source={SOURCE}
-        asOf={RELEVE}
+        value={[episode.duree, episode.invitee].filter(Boolean).join(' · ') || null}
+        {...provenance(media)}
         style={{ fontSize: 11.5, color: t('textFaint'), marginTop: 10 }}
       />
 
@@ -105,13 +133,16 @@ export default function Episode() {
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 16 }}>
-          <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('paperFixed') }}>{episode.position}</Body>
-          <View style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: veil(t('paperFixed'), 0.35) }}>
-            <View style={{ width: '24%', height: '100%', borderRadius: 2, backgroundColor: t('paperFixed') }} />
+        {/* ⚠️ LA BARRE DE PROGRESSION A ÉTÉ RETIRÉE. Elle affichait une position (« 08:12 »)
+            et un remplissage de 24 % en dur, sans aucun lecteur derrière : une lecture en
+            cours qui n'existait pas. Seule la durée reste — c'est une donnée du modèle. */}
+        {episode.duree === null ? null : (
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 }}>
+            <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('paperFixed') }}>
+              {episode.duree}
+            </Body>
           </View>
-          <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('paperFixed') }}>{episode.duree}</Body>
-        </View>
+        )}
       </Gradient>
 
       {/* Ce que le navigateur ne garde pas d'une session à l'autre. */}
@@ -120,7 +151,10 @@ export default function Episode() {
           tone="quiet"
           size="sm"
           fullWidth
-          label={`Télécharger · ${episode.poids}`}
+          /* Le libellé portait « · 31 Mo », un poids que la base ne produit nulle part :
+             `podcasts` n'a ni fichier ni taille, `audioUrl` pointe vers Spotify. Un poids
+             annoncé sur un bouton décide d'un achat de crédit ; il ne s'estime pas. */
+          label="Télécharger"
           icon="download"
           disabled
           style={{ flex: 1 }}
@@ -141,36 +175,30 @@ export default function Episode() {
       {vue === 'Transcription' ? (
         <>
           <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 12 }}>
-            Affichée par défaut : elle se lit sans charger l'audio —{' '}
-            <Num value="0 Mo" source={SOURCE} asOf={RELEVE} style={{ fontSize: 12 }} /> contre{' '}
-            {episode.poids}.
+            Affichée par défaut : elle se lit sans charger l'audio.
           </Body>
-          <Surface level="flat" style={{ marginTop: 12, paddingHorizontal: 16 }}>
-            {TRANSCRIPTION.map((l, i) => (
-              <LessonRow
-                key={l.t}
-                meta={l.t}
-                title={l.l}
-                last={i === TRANSCRIPTION.length - 1}
-              />
-            ))}
-          </Surface>
-        </>
-      ) : null}
-
-      {vue === 'Chapitres' ? (
-        <Surface level="flat" style={{ marginTop: 12, paddingHorizontal: 16 }}>
-          {TRANSCRIPTION.map((l, i) => (
-            <LessonRow
-              key={l.t}
-              icon={<Icon name="play" size={12} color={t('mmVioletT')} />}
-              iconBackground={veil(t('mmViolet'), 0.12)}
-              title={l.l}
-              meta={l.t}
-              last={i === TRANSCRIPTION.length - 1}
+          {paragraphes.length === 0 ? (
+            <SansDonnees
+              quoi="la transcription de cet épisode"
+              degat="Une transcription fabriquée met des phrases dans la bouche de quelqu'un. C'est le seul contenu du produit où l'invention se lit comme une citation."
+              etat={media}
+              hauteur={3}
+              style={{ marginTop: 12 }}
             />
-          ))}
-        </Surface>
+          ) : (
+            <Surface level="flat" style={{ marginTop: 12, padding: 16 }}>
+              {paragraphes.map((bloc, i) => (
+                <Body
+                  key={bloc.slice(0, 40)}
+                  muted
+                  style={{ fontSize: 13.5, lineHeight: 21, marginTop: i === 0 ? 0 : 12 }}
+                >
+                  {bloc}
+                </Body>
+              ))}
+            </Surface>
+          )}
+        </>
       ) : null}
 
       {vue === 'Notes' ? (
