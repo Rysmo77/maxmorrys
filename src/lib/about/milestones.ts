@@ -107,17 +107,9 @@ export const MILESTONE_PROOFS: Partial<Record<string, string>> = {
  */
 export const MILESTONE_UNPROVABLE: ReadonlySet<string> = new Set(['m2014', 'm2018', 'm2021']);
 
-/** Les onze clés dans l'ordre de la frise. `CHAPTERS` est la seule liste — on ne la recopie pas. */
-export const MILESTONE_KEYS: readonly string[] = CHAPTERS.flatMap((c) => c.items as readonly string[]);
-
 /**
- * CE QUE L'ENCART RÉCLAME, ET RIEN D'AUTRE.
- *
- * Le compte se fait ici, pas dans une phrase : `about.json` ne connaît que `{{count}}` et
- * `{{total}}`, donc aucune copie ne peut affirmer le contraire de la donnée — et l'encart ne
- * se rend plus du tout quand la liste est vide. C'est la seule façon qu'il a de se fermer sans
- * que quelqu'un s'en souvienne.
+ * L'ENCART QUI RÉCAPITULAIT LES PREUVES DUES A ÉTÉ RETIRÉ LE 05/09/2026 (décision éditoriale).
+ * `MILESTONE_KEYS` et `MILESTONES_OWED` le comptaient : sans lui, ils ne comptent plus rien et
+ * sont partis avec. Les deux tables ci-dessus restent la source des états rendus ligne à ligne
+ * sur la frise — « Vérifier », « déclaré », « personnel » — et gardent leurs portes CI.
  */
-export const MILESTONES_OWED: readonly string[] = MILESTONE_KEYS.filter(
-  (key) => !MILESTONE_PROOFS[key] && !MILESTONE_UNPROVABLE.has(key),
-);

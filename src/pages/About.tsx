@@ -10,9 +10,7 @@ import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useFormat } from '../hooks/useFormat';
 import { HOUSE_AUTHOR_FULL_NAME, portrait } from '../lib/author';
-import {
-  CHAPTERS, DECLARED_AT, MILESTONE_KEYS, MILESTONE_PROOFS, MILESTONE_UNPROVABLE, MILESTONES_OWED,
-} from '../lib/about/milestones';
+import { CHAPTERS, DECLARED_AT, MILESTONE_PROOFS, MILESTONE_UNPROVABLE } from '../lib/about/milestones';
 import {
   legalEntity, pillars, PLATFORM_OPENED_AT, podcastPlatform, practices, publicProfiles,
 } from '../lib/brand';
@@ -57,18 +55,17 @@ import { queryKeys } from '../lib/queryClient';
  *    compétences et une rupture sombre de logos d'outils. Rien de vérifiable, et la page les
  *    répétait déjà en prose.
  *
- * DEUX EMPLACEMENTS DÉCLARÉS survivent à la place de ce qui manque — ils NOMMENT le manque au
- * lieu de le combler : les preuves de jalons, et les liens de profils à confirmer. Ils étaient
- * trois ; celui du portrait s'est fermé le 01/09/2026, ce qui est exactement ce qu'un
- * emplacement déclaré est censé finir par faire. Voir `SiteSlot` et le rapport de
- * recomposition pour les deux endroits où la copie du kit a dû être corrigée contre la donnée
- * réelle du dépôt.
+ * UN SEUL EMPLACEMENT DÉCLARÉ survit à la place de ce qui manque — il NOMME le manque au lieu
+ * de le combler : les liens de profils à confirmer. Ils étaient trois ; celui du portrait s'est
+ * fermé le 01/09/2026, celui des jalons a été retiré le 05/09/2026 sur décision éditoriale.
+ * Voir `SiteSlot` et le rapport de recomposition pour les deux endroits où la copie du kit a dû
+ * être corrigée contre la donnée réelle du dépôt.
  *
- * ⚠️ CELUI DES JALONS SE FERME SEUL DEPUIS LE 04/09/2026. Le portrait avait demandé qu'un
- * humain se souvienne de supprimer le bloc ET ses deux clés i18n le jour où la photo est
- * arrivée : un emplacement dont la fermeture dépend d'une mémoire ne se ferme pas. Celui des
- * jalons est désormais DÉRIVÉ de `MILESTONE_PROOFS` — il compte ce qu'il réclame et il
- * disparaît de lui-même à la dernière URL posée. Celui des profils ne l'est pas encore.
+ * ⚠️ LA FRISE NE COMMENTE PLUS SES PROPRES TROUS. Chaque jalon porte toujours son état ligne à
+ * ligne — un lien « Vérifier » quand `MILESTONE_PROOFS` en tient un, « déclaré » quand il en
+ * doit un, « personnel » quand aucun ne peut exister. Ce qui a disparu, c'est le paragraphe qui
+ * récapitulait le compte en bas de frise. N'en réintroduis pas de version « améliorée » : la
+ * décision est de laisser les états parler seuls.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -472,21 +469,6 @@ export default function About() {
               </section>
             ))}
           </div>
-
-          {/*
-            Emplacement déclaré nº 2 — ce que la frise ne peut toujours pas prouver, ET RIEN
-            DE PLUS. Il ne se rend qu'aussi longtemps qu'un lien est dû : la dernière URL posée
-            dans `MILESTONE_PROOFS` le fait disparaître, sans qu'aucune phrase soit à éditer.
-          */}
-          {MILESTONES_OWED.length > 0 && (
-            <SiteSlot title={t('page.slotPathTitle')} style={{ marginTop: '18px' }}>
-              {t('page.slotPathBody', {
-                count: MILESTONES_OWED.length,
-                total: MILESTONE_KEYS.length,
-              })}{' '}
-              <b className="text-ink">{t('page.slotPathStrong')}</b>
-            </SiteSlot>
-          )}
         </div>
       </PageSite>
 

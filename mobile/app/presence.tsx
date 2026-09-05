@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { View } from 'react-native';
-import { router } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
   Body, Button, Display, Eyebrow, Icon, IconButton, Num, PayOption, PriceBlock, SansDonnees, Screen, StepDots, Surface, TerritoryCard, isIOS, useToken,
 } from '../ds';
-import { PACK, QUESTION_TPE, RELEVE, SOURCE } from '../contenu/demo';
+import { PACK_PRESENCE, PRESENCE_ARRETEE, PRESENCE_SOURCE, QUESTION_PRESENCE } from '../contenu/engagement';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -40,7 +39,7 @@ const CONTACT = 'https://maxmorrys.me/contact';
 
 export default function Presence() {
   const t = useToken();
-  const [reponse, setReponse] = useState<string>(QUESTION_TPE?.reponses[0] ?? '');
+  const [reponse, setReponse] = useState<string>(QUESTION_PRESENCE.reponses[0]);
 
   return (
     <Screen
@@ -66,7 +65,7 @@ export default function Presence() {
       {/* ── L'ANCRAGE, DÉSAMORCÉ AVANT TOUT LE RESTE — et il ne se désamorce qu'avec un
              CHIFFRE. Sans prix, la question reste posée et la réponse manque : mieux vaut le
              dire que répondre « à partir de », qui rouvre exactement l'ancrage. ── */}
-      {PACK === null ? (
+      {PACK_PRESENCE === null ? (
         <SansDonnees
           quoi="le prix du pack"
           origine="du serveur"
@@ -78,12 +77,12 @@ export default function Presence() {
         <Eyebrow style={{ color: t('mmTealT') }}>La question que tout le monde pose</Eyebrow>
         <Body style={{ fontWeight: '700', fontSize: 15, lineHeight: 20, marginTop: 7 }}>
           « Une agence me vend un site{' '}
-          <Num value={PACK.ancrage} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 15 }} />
+          <Num value={PACK_PRESENCE.ancrage} source={PRESENCE_SOURCE} asOf={PRESENCE_ARRETEE} unit="F" style={{ fontSize: 15 }} />
           {' '}une fois. Toi c'est combien la première année ? »
         </Body>
         <Body muted style={{ fontSize: 13.5, lineHeight: 20, marginTop: 11 }}>
           Réponse avant que tu remplisses quoi que ce soit :{' '}
-          <Num value={PACK.prix} source={SOURCE} asOf={RELEVE} unit="F" style={{ fontSize: 13.5 }} />
+          <Num value={PACK_PRESENCE.prix} source={PRESENCE_SOURCE} asOf={PRESENCE_ARRETEE} unit="F" style={{ fontSize: 13.5 }} />
           {' '}pour le pack seul, une fois. L'accompagnement mensuel est une décision séparée,
           que tu prends après la mise en ligne — pas maintenant.
         </Body>
@@ -91,14 +90,14 @@ export default function Presence() {
       )}
 
       {/* ── TROIS QUESTIONS ────────────────────────────────────────────────────────────── */}
-      {QUESTION_TPE ? (
+      {QUESTION_PRESENCE ? (
       <>
       <Eyebrow style={{ marginTop: 24 }}>Trois questions, une recommandation</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, padding: 19 }}>
-        <StepDots total={QUESTION_TPE.total} current={QUESTION_TPE.etape} style={{ marginBottom: 16 }} />
-        <Body style={{ fontWeight: '700', fontSize: 15.5 }}>{QUESTION_TPE.question}</Body>
+        <StepDots total={QUESTION_PRESENCE.total} current={QUESTION_PRESENCE.etape} style={{ marginBottom: 16 }} />
+        <Body style={{ fontWeight: '700', fontSize: 15.5 }}>{QUESTION_PRESENCE.question}</Body>
         <View style={{ gap: 9, marginTop: 14 }}>
-          {QUESTION_TPE.reponses.map((o) => (
+          {QUESTION_PRESENCE.reponses.map((o) => (
             <PayOption
               key={o}
               title={o}
@@ -116,26 +115,33 @@ export default function Presence() {
       ) : null}
 
       {/* ── LA RECOMMANDATION ──────────────────────────────────────────────────────────── */}
-      {PACK === null ? null : (
+      {PACK_PRESENCE === null ? null : (
       <View style={{ marginTop: 18 }}>
-        <TerritoryCard first territory="digitalise" meta="Recommandé pour toi" title={PACK.nom}>
+        <TerritoryCard first territory="digitalise" meta="Recommandé pour toi" title={PACK_PRESENCE.nom}>
           <View style={{
             flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between',
             gap: 12, marginTop: 15,
           }}>
             <PriceBlock
-              amount={PACK.prix}
-              strike={PACK.prixBarre}
-              source={SOURCE}
-              asOf={RELEVE}
+              amount={PACK_PRESENCE.prix}
+              strike={PACK_PRESENCE.prixBarre}
+              source={PRESENCE_SOURCE}
+              asOf={PRESENCE_ARRETEE}
               size={25}
               note="Une fois · lancement"
             />
+            {/* ⚠️ CE BOUTON DISAIT « Mon devis » ET MENAIT À UNE IMPASSE. `/devis` affiche un
+                document opposable — référence, dates, montant figé à l'émission — et AUCUNE
+                collection ne stocke de devis : ni `quotes`, ni équivalent. L'écran retombait
+                donc toujours sur son état vide, en production comme ailleurs.
+                Le devis se demande, il ne se consulte pas encore. Le libellé le dit, et le
+                geste correspond — c'est d'ailleurs ce que la phrase sous cette carte annonce
+                depuis toujours : « Le devis part sur WhatsApp ». */}
             <Button
               tone="digitalise"
               size="sm"
-              label="Mon devis"
-              onPress={() => router.push('/devis')}
+              label="Demander mon devis"
+              onPress={() => { void openBrowserAsync(CONTACT); }}
             />
           </View>
         </TerritoryCard>

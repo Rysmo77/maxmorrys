@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { Share } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   Body, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, SansDonnees, Screen,
@@ -74,8 +75,20 @@ export default function Formation() {
       territory="forme"
       retour="Cours"
       titre={isIOS ? undefined : (f?.titreCourt ?? titre ?? 'Formation')}
+      /* ⚠️ CE BOUTON OUVRAIT `/partage`, QUI PARTAGE UN CERTIFICAT. « Partager cette
+         formation » menait donc à un écran qui compose un lien de VÉRIFICATION de diplôme —
+         et qui, faute de certificat, affichait « Rien à partager ». Deux objets différents
+         derrière un même verbe.
+         Une formation se partage par son adresse publique, et la feuille système suffit :
+         elle connaît les applications installées, ce qu'un écran à nous ne saurait pas. */
       droite={
-        <IconButton label="Partager cette formation" onPress={() => router.push('/partage')}>
+        <IconButton
+          label="Partager cette formation"
+          onPress={() => {
+            const url = `https://maxmorrys.me/formations/${slug ?? ''}`;
+            void Share.share({ message: `${nom ?? 'Une formation Max-Morrys'}\n${url}`, url });
+          }}
+        >
           <Icon name="share" size={17} color={t('textBody')} strokeWidth={2} />
         </IconButton>
       }

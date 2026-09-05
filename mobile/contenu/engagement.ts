@@ -37,3 +37,50 @@ export const CLUB_PAS_GARANTI = [
   'Une place à chaque atelier — elles sont comptées',
   'Une réponse dans l’heure : je réponds dans la journée ouvrée',
 ] as const;
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * L'OFFRE PRÉSENCE DIGITALE — MÊME NATURE, MÊME RAISON DE NE PAS ÊTRE SIMULÉE.
+ *
+ * Elle vivait aussi sous l'interrupteur de démonstration, donc l'écran `/presence` — atteignable
+ * depuis l'onglet Profil — était VIDE en production. Une offre commerciale n'est pas une donnée
+ * à simuler : c'est ce que l'entreprise vend, avec les mots et le prix qu'elle annonce.
+ *
+ * ⚠️ ET LE PRIX RESTE, DÉLIBÉRÉMENT. Présence Digitale est une prestation du MONDE RÉEL —
+ * une fiche Google, un site vitrine, des photos. La règle App Store 3.1.5(a) exige justement
+ * que ce type de prestation se transacte HORS du magasin, et `mobile-store-achats.test.ts`
+ * nomme `presence.tsx` et `devis.tsx` dans sa liste d'exceptions `PRESTATION_REELLE`.
+ *
+ * Ne pas confondre avec les formations et le Club : ceux-là sont du contenu numérique consommé
+ * dans l'application, et leurs montants ont quitté le paquet.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ */
+/**
+ * ⚠️ LA PROVENANCE D'UN PRIX N'EST PAS UNE FORMALITÉ. La règle 6 du système — « un nombre en
+ * monospace vient de la base ou d'une source citée, sinon il ne s'affiche pas » — vaut ici
+ * comme ailleurs. Ces montants ne viennent d'aucune base : ils viennent de l'OFFRE, telle
+ * qu'elle est publiée, et cette citation le dit. `PRESENCE_ARRETEE` porte la date à laquelle
+ * la grille a été arrêtée — la changer sans changer cette date ferait afficher un prix neuf
+ * sous une date ancienne, c'est-à-dire un relevé faux.
+ */
+export const PRESENCE_SOURCE = { cite: 'Offre Présence Digitale — grille publiée' } as const;
+export const PRESENCE_ARRETEE = new Date('2026-08-02T00:00:00Z');
+
+export const PACK_PRESENCE = {
+  nom: 'Pack Visible',
+  prix: 250000,
+  prixBarre: 295000,
+  ancrage: 400000,
+  lignes: [
+    'Fiche Google optimisée', 'Site vitrine · 5 pages', 'Photos et textes',
+    'Prise en main · 1 h', 'Nom de domaine · 1 an',
+  ],
+} as const;
+
+/** La question de qualification. Elle oriente la conversation, elle ne collecte rien. */
+export const QUESTION_PRESENCE = {
+  question: 'Tes clients te trouvent comment aujourd\u2019hui ?',
+  reponses: ['Bouche-à-oreille et passage', 'WhatsApp et Facebook', 'Je ne sais pas trop'],
+  etape: 2,
+  total: 3,
+} as const;

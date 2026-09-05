@@ -127,8 +127,18 @@ export default function Certificat() {
     <Screen
       territory="forme"
       retour="Espace"
+      /* ⚠️ LES PARAMÈTRES MANQUAIENT. `/partage` compose le lien de vérification à partir du
+         certificat ; sans eux il retombait sur la démonstration, donc sur RIEN en production
+         — l'écran de partage d'un certificat qu'on venait d'ouvrir affichait « Rien à
+         partager ». */
       droite={
-        <IconButton label="Partager mon certificat" onPress={() => router.push('/partage')}>
+        <IconButton
+          label="Partager mon certificat"
+          onPress={() => router.push({
+            pathname: '/partage',
+            params: { code: doc.code, titulaire: doc.titulaire, formation: doc.formation, emisLe: doc.emisLe },
+          })}
+        >
           <Icon name="share" size={17} color={t('textBody')} strokeWidth={2} />
         </IconButton>
       }

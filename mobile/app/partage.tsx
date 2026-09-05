@@ -1,10 +1,10 @@
 import { Alert, Share, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
   Body, Button, Display, Eyebrow, Gradient, Icon, LessonRow, Num, SansDonnees, Screen, Surface, useToken, veil,
 } from '../ds';
-import { CERTIFICAT, RELEVE, SOURCE } from '../contenu/demo';
+import { CERTIFICAT, RELEVE, SITE, SOURCE } from '../contenu/demo';
 
 /**
  * ══ 8 · PARTAGE SYSTÈME ══
@@ -27,9 +27,29 @@ import { CERTIFICAT, RELEVE, SOURCE } from '../contenu/demo';
 export default function Partage() {
   const t = useToken();
 
+  /* ⚠️ CET ÉCRAN NE RECEVAIT AUCUN PARAMÈTRE, et ses deux appelants ne lui en passaient pas.
+     Il retombait donc sur la démonstration — c'est-à-dire, en production, sur rien : « Rien à
+     partager » juste après avoir ouvert le certificat qu'on voulait partager.
+
+     Les paramètres viennent maintenant de la route, comme sur `/certificat`, et pour la même
+     raison : quatre champs solidaires. Le lien de vérification se compose du CODE, et un code
+     manquant produirait une adresse qui ne vérifie rien. */
+  const p = useLocalSearchParams<{
+    code?: string; titulaire?: string; formation?: string; emisLe?: string;
+  }>();
+
+  const recu = (p.code && p.formation)
+    ? { code: p.code, formation: p.formation, lien: `${SITE}/verifier/${p.code}` }
+    : null;
+  const certificat = recu ?? (CERTIFICAT === null ? null : {
+    code: CERTIFICAT.code,
+    formation: CERTIFICAT.formation,
+    lien: CERTIFICAT.lien,
+  });
+
   /* La garde vient AVANT la fonction qui compose le message : un partage bâti sur un
      certificat absent enverrait « undefined » à un employeur. */
-  if (CERTIFICAT === null) {
+  if (certificat === null) {
     return (
       <Screen territory="forme" retour="Certificat" titre="Partager">
         <Display size={27} lines={['Rien à partager', "pour l’instant."]} style={{ marginTop: 10 }} />
@@ -42,20 +62,23 @@ export default function Partage() {
       </Screen>
     );
   }
-  const certificat = CERTIFICAT;
+
+  /* Le rétrécissement ne survit pas aux closures : `partager()`, l'alerte et les deux
+     ouvertures de navigateur reperdraient le non-null que la garde vient d'établir. */
+  const doc = certificat;
 
   async function ouvrirLaFeuille() {
     try {
       await Share.share({
-        message: `Mon certificat — ${certificat.formation}\n${certificat.lien}`,
-        url: certificat.lien,
+        message: `Mon certificat — ${doc.formation}\n${doc.lien}`,
+        url: doc.lien,
         title: 'Certificat de fin de formation',
       });
     } catch {
       /* Le motif, la conséquence, la sortie — dans cet ordre, et jamais d'excuse. */
       Alert.alert(
         "Le partage n'a pas pu s'ouvrir",
-        `Ton certificat n'est pas touché. Son lien de vérification est ${certificat.lien} — il s'ouvre depuis n'importe quel navigateur, sans compte.`,
+        `Ton certificat n'est pas touché. Son lien de vérification est ${doc.lien} — il s'ouvre depuis n'importe quel navigateur, sans compte.`,
       );
     }
   }
@@ -90,10 +113,10 @@ export default function Partage() {
           </Gradient>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Body style={{ fontSize: 14, fontWeight: '600' }}>
-              Certificat · {certificat.formation}
+              Certificat · {doc.formation}
             </Body>
             <Num
-              value={certificat.lien.replace('https://', '')}
+              value={doc.lien.replace('https://', '')}
               source={SOURCE}
               asOf={RELEVE}
               style={{ fontSize: 11, color: t('textMuted') }}
@@ -120,7 +143,7 @@ export default function Partage() {
           title="Enregistrer le PDF"
           meta="il se fabrique sur le site, à la demande"
           trailing={<Icon name="external" size={16} color={t('ink3')} strokeWidth={2.4} />}
-          onPress={() => { void openBrowserAsync(`${certificat.lien}.pdf`); }}
+          onPress={() => { void openBrowserAsync(`${doc.lien}.pdf`); }}
         />
         <LessonRow
           icon={<Icon name="eye" size={15} color={t('ink2')} />}
@@ -128,7 +151,7 @@ export default function Partage() {
           title="Voir ce que verra la personne"
           meta="la page publique, sans compte"
           trailing={<Icon name="external" size={16} color={t('ink3')} strokeWidth={2.4} />}
-          onPress={() => { void openBrowserAsync(certificat.lien); }}
+          onPress={() => { void openBrowserAsync(doc.lien); }}
           last
         />
       </Surface>

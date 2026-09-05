@@ -259,16 +259,11 @@ const KIT_TRANSCRIPTION = [
 
 /* ─────────────────────────  PRÉSENCE DIGITALE (TPE)  ───────────────────────── */
 
-const KIT_PACK = {
-  nom: 'Pack Visible',
-  prix: 250000,
-  prixBarre: 295000,
-  ancrage: 400000,
-  lignes: [
-    'Fiche Google optimisée', 'Site vitrine · 5 pages', 'Photos et textes',
-    'Prise en main · 1 h', 'Nom de domaine · 1 an',
-  ],
-} as const;
+/* `KIT_PACK` a été RETIRÉ le 05/09/2026. L'offre Présence Digitale n'est pas un contenu à
+   simuler : c'est ce que l'entreprise vend. Elle vit désormais dans `contenu/engagement.ts`,
+   hors de l'interrupteur — sinon l'écran `/presence`, atteignable depuis l'onglet Profil,
+   était vide en production. Deux copies d'un prix finissent toujours par diverger ; il n'y
+   en a plus qu'une. */
 
 const KIT_DEVIS = {
   reference: 'MM-D-4831',
@@ -426,7 +421,6 @@ export const AGENDA: typeof KIT_AGENDA | readonly [] = DEMO ? KIT_AGENDA : [];
 export const EPISODE: typeof KIT_EPISODE | null = DEMO ? KIT_EPISODE : null;
 export const VIDEO: typeof KIT_VIDEO | null = DEMO ? KIT_VIDEO : null;
 export const TRANSCRIPTION: typeof KIT_TRANSCRIPTION | readonly [] = DEMO ? KIT_TRANSCRIPTION : [];
-export const PACK: typeof KIT_PACK | null = DEMO ? KIT_PACK : null;
 export const DEVIS: typeof KIT_DEVIS | null = DEMO ? KIT_DEVIS : null;
 export const QUESTION_TPE: typeof KIT_QUESTION_TPE | null = DEMO ? KIT_QUESTION_TPE : null;
 export const PROSPECT: typeof KIT_PROSPECT | null = DEMO ? KIT_PROSPECT : null;

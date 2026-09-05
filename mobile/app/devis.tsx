@@ -3,7 +3,8 @@ import { openBrowserAsync } from 'expo-web-browser';
 import {
   Body, Button, Display, DocLine, Eyebrow, Icon, IconButton, Num, PriceBlock, SansDonnees, Screen, Surface, Tag, isIOS, useToken,
 } from '../ds';
-import { DEVIS, PACK, RELEVE, SOURCE } from '../contenu/demo';
+import { DEVIS, RELEVE, SOURCE } from '../contenu/demo';
+import { PACK_PRESENCE, PRESENCE_ARRETEE, PRESENCE_SOURCE } from '../contenu/engagement';
 
 /**
  * ══ 5 · LE DEVIS PARTAGEABLE ══
@@ -35,7 +36,7 @@ export default function Devis() {
 
   /* La garde vient AVANT tout usage, y compris dans les props de la barre haute : un bouton
      de partage qui compose son message à partir d'un devis absent partagerait « undefined ». */
-  if (DEVIS === null || PACK === null) {
+  if (DEVIS === null) {
     return (
       <Screen territory="digitalise" retour="Offre" titre={isIOS ? undefined : 'Ton devis'}>
         <Display size={27} lines={['Aucun devis', 'à afficher.']} style={{ marginTop: 10 }} />
@@ -53,7 +54,7 @@ export default function Devis() {
      autre module : `onPress={() => X.y}` reperd le `non null` que la garde vient
      d'établir. Une constante LOCALE le porte jusque dans les rappels. */
   const devis = DEVIS;
-  const pack = PACK;
+  const pack = PACK_PRESENCE;
   return (
     <Screen
       territory="digitalise"
@@ -87,8 +88,8 @@ export default function Devis() {
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
           <PriceBlock
             amount={pack.prix}
-            source={SOURCE}
-            asOf={RELEVE}
+            source={PRESENCE_SOURCE}
+            asOf={PRESENCE_ARRETEE}
             size={28}
             note="Une fois · promotion de lancement"
           />

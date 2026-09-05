@@ -110,7 +110,6 @@ if (!declaree) {
    rendu inconditionnellement demande qu'un humain se souvienne de le supprimer — et c'est
    exactement ce que le portrait a demandé, une fois, avec succès, ce qui ne prouve rien. */
 const PORTES = [
-  ['src/pages/About.tsx', /\{MILESTONES_OWED\.length > 0 && \(/, 'l\'encart des jalons ne compte plus ce qu\'il réclame — il ne pourra plus se fermer'],
   ['src/pages/About.tsx', /\{podcastPlatform === null && \(/, 'l\'encart « Liens à confirmer » ne suit plus podcastPlatform'],
   ['src/pages/MediaPole.tsx', /\{podcastPlatform === null && \(/, 'la phrase « pas encore de page Spotify » ne suit plus podcastPlatform'],
   ['src/pages/MediaPole.tsx', /\{podcastPlatform !== null && \(/, 'la rangée d\'écoute n\'apparaîtra pas quand la plateforme sera déclarée'],
