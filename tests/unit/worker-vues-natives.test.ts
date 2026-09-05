@@ -108,11 +108,24 @@ describe('les vues natives refont les contrôles que les règles ne feront pas',
  * doit donc les refaire, et ces portes vérifient qu'il ne s'en dispense pas.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
+/*
+ * ⚠️ CETTE LISTE ÉTAIT INCOMPLÈTE, ET IL Y MANQUAIT LES DEUX PLUS SENSIBLES.
+ *
+ * `posterAuClub.ts` et `reserverSession.ts` sont les seules écritures qui touchent le
+ * contenu PAYANT, et les seules dont l'abus est visible par d'autres membres. Elles font
+ * les bons contrôles — vérifié à la lecture — mais RIEN ne les y obligeait : une liste
+ * codée en dur ne garde que ce qu'on a pensé à y mettre, et personne ne relit une
+ * constante.
+ *
+ * Ajoutées le 05/09/2026. Les quatre assertions de ce bloc s'y appliquent désormais.
+ */
 const ECRITURES = [
   'ecrireUneNote.ts',
   'marquerLecon.ts',
   'signalerMembre.ts',
   'creerMonProfil.ts',
+  'posterAuClub.ts',
+  'reserverSession.ts',
 ];
 
 describe("les écritures natives refont les règles qu'elles contournent", () => {

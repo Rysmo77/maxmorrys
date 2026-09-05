@@ -79,7 +79,11 @@ export default function Espace() {
       tabbar
       droite={
         <>
-          <IconButton disabled label="Notifications" badge>
+          {/* Pas de `badge` : il annonçait des non-lus alors qu'AUCUN canal de notification
+            n'existe — ni permission demandée, ni serveur qui envoie. La cloche éteinte
+            (opacité 0.4, `accessibilityState.disabled`) dit « pas encore » ; un badge
+            dessus disait « tu as des messages », et c'était faux. */}
+          <IconButton disabled label="Notifications">
             <Icon name="bell" size={17} color={t('textBody')} strokeWidth={2} />
           </IconButton>
           <Pressable

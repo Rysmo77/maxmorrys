@@ -5,6 +5,7 @@ import {
 
 import { appeler } from './appel';
 import { getAuthNatif } from './firebase';
+import { viderLesVues } from './vue';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -124,4 +125,21 @@ export async function reinitialiser(email: string): Promise<void> {
 export async function deconnexion(): Promise<void> {
   const a = getAuthNatif();
   if (a !== null) await signOut(a);
+
+  /*
+    LE CACHE DES VUES SE PURGE ICI, ET NULLE PART AILLEURS.
+
+    `viderLesVues()` existait, son commentaire annonçait « vider à la déconnexion », et
+    elle n'avait AUCUN APPELANT. Le cache vit en mémoire, sa clé porte l'uid — donc un
+    second compte ne pouvait pas lire les vues du premier —, mais les données du compte
+    quitté restaient là jusqu'à la fermeture de l'application, et lui étaient resservies
+    telles quelles s'il revenait dans les trente secondes.
+
+    La purge est posée DANS `deconnexion`, pas chez ses appelants : il y en a déjà deux
+    (`_layout.tsx` et `suppression.tsx`), et le troisième aurait oublié.
+
+    APRÈS `signOut`, jamais avant : une fenêtre entre la purge et la sortie laisserait un
+    rendu recharger avec un jeton encore valide, et le cache se remplirait à nouveau.
+  */
+  viderLesVues();
 }

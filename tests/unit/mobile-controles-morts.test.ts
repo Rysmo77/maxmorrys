@@ -100,6 +100,86 @@ describe('aucun contrôle natif ne fait semblant', () => {
     expect(fautes, 'contrôles qui annoncent une action sans en porter').toEqual([]);
   });
 
+  it("un composant à choix sans `onChange` ne pilote rien, et personne ne le voit", () => {
+    /*
+     * DEUX SÉLECTEURS ONT VÉCU DES MOIS SANS PILOTER QUOI QUE CE SOIT, sous les yeux de
+     * cette porte : la langue et l'apparence du profil, puis le filtre du catalogue.
+     *
+     * La porte précédente cherche un `onPress`. Un composant à CHOIX n'en a pas : il se
+     * pilote par `onChange`, et sans lui `ds/ChipRow` et `ds/Segmented` rendent des onglets
+     * qui s'affichent, se surlignent au premier, et n'obéissent à rien.
+     *
+     * C'est plus trompeur qu'un bouton mort : un bouton éteint se voit à son opacité, un
+     * onglet inerte a exactement l'allure d'un onglet vivant.
+     */
+    const A_CHOIX = ['ChipRow', 'Segmented'] as const;
+    const fautes: string[] = [];
+
+    for (const f of fichiers(APP)) {
+      const code = readFileSync(f, 'utf8');
+      for (const nom of A_CHOIX) {
+        for (const balise of balises(code, nom)) {
+          if (/\bonChange\b/.test(balise)) continue;
+          if (/\bdisabled\b/.test(balise)) continue;
+          fautes.push(`${relative(RACINE, f)} · <${nom}> sans onChange`);
+        }
+      }
+    }
+
+    expect(fautes, 'composants à choix qui ne pilotent rien').toEqual([]);
+  });
+
+  it("une fabrique de contrôles ne rend pas un bouton vivant sans gestionnaire", () => {
+    /*
+     * LE TROU LE PLUS FIN DE CE FICHIER, ET IL A LAISSÉ PASSER DEUX BOUTONS.
+     *
+     * `plein-ecran.tsx` construisait ses commandes par une fabrique locale :
+     *
+     *     const rond = (taille, label, contenu, onPress?) => (
+     *       <Pressable accessibilityLabel={label} onPress={onPress} … />
+     *     );
+     *
+     * La balise contient littéralement `onPress={onPress}` : le motif `AGIT` correspond,
+     * la porte est verte. Mais deux appels passaient TROIS arguments — « Reculer de 15
+     * secondes » et « Avancer de 15 secondes » recevaient `undefined`, gardaient leur rôle
+     * d'accessibilité, leur pleine opacité et leur animation de pression.
+     *
+     * Un test statique ne suit pas la valeur d'un paramètre optionnel. Il peut en revanche
+     * refuser la FORME : une fabrique qui rend un contrôle doit dériver son état éteint de
+     * l'absence de gestionnaire, plutôt que de compter sur ses appelants.
+     */
+    const fautes: string[] = [];
+
+    for (const f of fichiers(APP)) {
+      const code = readFileSync(f, 'utf8');
+      /* Une fabrique = une constante fléchée dont un paramètre s'appelle `onPress?`.
+         ⚠️ Ne PAS borner la liste de paramètres par `[^)]*` : une signature réaliste
+         contient elle-même des parenthèses (`onPress?: () => void`), et le motif s'arrête
+         à la première. C'est ce qui a rendu la première version de cette porte inoffensive
+         sur le cas même qu'elle devait attraper. */
+      for (const m of code.matchAll(/const\s+(\w+)\s*=\s*\([^;]{0,300}?onPress\?:/g)) {
+        const nom = m[1];
+        /* ⚠️ N'examiner QUE LE CORPS, après la flèche. Dans la signature, `onPress?:` est
+           le marqueur d'un paramètre optionnel — et il satisfaisait le motif de dérivation
+           ci-dessous, ce qui rendait cette porte verte sur le défaut exact qu'elle vise.
+           Une porte qui se laisse convaincre par la déclaration du problème ne garde rien. */
+        const fleche = code.indexOf('=>', (m.index ?? 0) + m[0].length);
+        if (fleche < 0) continue;
+        const corps = code.slice(fleche, fleche + 1400);
+        if (!/<Pressable/.test(corps)) continue;
+        /* Il faut que l'absence de gestionnaire décide de quelque chose : un `disabled`
+           dérivé, ou une opacité conditionnée. Sinon la fabrique fabrique des mensonges. */
+        const derive = /onPress\s*===\s*undefined|!\s*onPress|onPress\s*\?/.test(corps);
+        if (!derive) fautes.push(`${relative(RACINE, f)} · fabrique \`${nom}\``);
+      }
+    }
+
+    expect(
+      fautes,
+      'fabriques qui rendent un contrôle sans dériver son état éteint de `onPress`',
+    ).toEqual([]);
+  });
+
   it('aucune action destructive ne se referme sans rien faire', () => {
     /*
      * Le cas le plus coûteux, et le plus discret : une `Alert` dont le bouton

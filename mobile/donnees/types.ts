@@ -44,6 +44,8 @@ export interface VueCours {
   titre: string;
   titreCourt: string;
   meta: string;
+  /** Le niveau comme DONNÉE, pas fondu dans `meta` : c'est ce sur quoi le filtre compte. */
+  niveau: string | null;
   acquise: boolean;
 }
 

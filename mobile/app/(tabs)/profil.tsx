@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Avatar, Body, Button, Eyebrow, Field, Icon, LessonRow, SansDonnees, Screen, Segmented,
+  Avatar, Body, Button, Eyebrow, Field, Icon, LessonRow, SansDonnees, Screen,
   Surface, Switch, TUTOR_DEFAUT, isIOS, setTutorNom, useScheme, useToken, useTutorNom, veil,
 } from '../../ds';
 import { STOCKAGE } from '../../contenu/demo';
@@ -194,15 +194,22 @@ export default function Profil() {
         </View>
       </Surface>
 
-      {/* ── LANGUE ET APPARENCE ────────────────────────────────────────────────────────── */}
-      <Eyebrow style={{ marginTop: 22 }}>Langue et apparence</Eyebrow>
-      <Segmented options={['Français', 'English']} value="Français" style={{ marginTop: 10 }} />
-      <Segmented
-        options={['Clair', 'Sombre', 'Système']}
-        value="Système"
-        style={{ marginTop: 8 }}
-      />
-      <Body muted style={{ fontSize: 11.5, marginTop: 8, color: t('textFaint') }}>
+      {/* ── APPARENCE ──────────────────────────────────────────────────────────────────────
+         DEUX SÉLECTEURS ONT ÉTÉ RETIRÉS ICI, ET LE SECOND CONTREDISAIT LA PHRASE QUI LE SUIT.
+
+         · « Français / English » promettait une interface bilingue. L'application native n'a
+           AUCUN système de traduction : toutes ses chaînes sont écrites en français dans les
+           écrans. Le site est bilingue, pas elle. Le sélecteur annonçait donc une langue qui
+           n'existe nulle part dans le paquet.
+         · « Clair / Sombre / Système » n'avait pas d'`onChange` — et la phrase juste en dessous
+           disait déjà que l'affichage suit le téléphone. Un contrôle qui contredit le texte
+           qui l'explique est pire que son absence.
+
+         Ni l'un ni l'autre n'était visible pour `mobile-controles-morts.test.ts` : la porte
+         cherche un `onPress` manquant, pas un `onChange` absent sur un composant à choix.
+         Le test est étendu dans le même lot. */}
+      <Eyebrow style={{ marginTop: 22 }}>Apparence</Eyebrow>
+      <Body muted style={{ fontSize: 11.5, marginTop: 10, color: t('textFaint') }}>
         L'affichage suit ton téléphone, actuellement en mode {scheme === 'dark' ? 'sombre' : 'clair'}.
         L'application ne le contredit pas.
       </Body>

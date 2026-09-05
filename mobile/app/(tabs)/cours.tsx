@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
@@ -40,6 +41,37 @@ export default function Cours() {
   const espace = useEspace();
   const catalogue = cours.valeur ?? [];
 
+  /*
+    LE FILTRE SE DÉRIVE DU CATALOGUE, IL NE LE DÉCRIT PAS DE MÉMOIRE.
+
+    Un niveau n'apparaît dans les onglets que s'il existe au moins une formation qui le
+    porte, et son compte est celui qu'on obtient en comptant. Une formation dont le serveur
+    ne renvoie pas de niveau reste dans « Tout » et n'invente aucun onglet — elle n'est pas
+    rangée dans un niveau qu'on lui aurait prêté.
+
+    L'ordre des onglets suit celui du catalogue, pas un ordre alphabétique : c'est
+    l'administration qui décide de ce qui vient en premier, et un tri ici la contredirait.
+  */
+  const [filtre, setFiltre] = useState('Tout');
+  const niveaux = catalogue
+    .map((f) => f.niveau)
+    .filter((n): n is string => typeof n === 'string' && n.length > 0)
+    .filter((n, i, tous) => tous.indexOf(n) === i);
+  /* `combien`, pas `compte` : `compte` est déjà le paramètre de route qui porte le nombre
+     de formations annoncé par le serveur (ligne 32). Deux sens pour un mot dans la même
+     portée, et le second l'emporte en silence. */
+  const combien = (n: string) => catalogue.filter((f) => f.niveau === n).length;
+  const majuscule = (n: string) => n.charAt(0).toUpperCase() + n.slice(1);
+
+  /* ⚠️ L'ÉTAT PORTE LE NIVEAU NU, JAMAIS LE LIBELLÉ. Le libellé contient un COMPTE, et le
+     compte change : il vaut « Tout · 0 » pendant le chargement, puis « Tout · 2 » quand la
+     réponse arrive. Un état initialisé sur le libellé ne correspondrait alors plus à aucune
+     option, et la liste se viderait à l'instant précis où elle vient de se remplir. */
+  const cles = ['Tout', ...niveaux];
+  const etiquette = (n: string) => (n === 'Tout' ? `Tout · ${catalogue.length}` : `${majuscule(n)} · ${combien(n)}`);
+  const optionsFiltre = cles.map(etiquette);
+  const visibles = filtre === 'Tout' ? catalogue : catalogue.filter((f) => f.niveau === filtre);
+
   return (
     <Screen
       territory="forme"
@@ -50,7 +82,11 @@ export default function Cours() {
           <IconButton disabled label="Chercher une formation">
             <Icon name="search" size={17} color={t('textBody')} strokeWidth={2.4} />
           </IconButton>
-          <IconButton disabled label="Notifications" badge>
+          {/* Pas de `badge` : il annonçait des non-lus alors qu'AUCUN canal de notification
+            n'existe — ni permission demandée, ni serveur qui envoie. La cloche éteinte
+            (opacité 0.4, `accessibilityState.disabled`) dit « pas encore » ; un badge
+            dessus disait « tu as des messages », et c'était faux. */}
+          <IconButton disabled label="Notifications">
             <Icon name="bell" size={17} color={t('textBody')} strokeWidth={2} />
           </IconButton>
         </>
@@ -112,15 +148,26 @@ export default function Cours() {
           </Body>
 
           {/* Le filtre porte SON compte : « Tout · 2 » dit la taille du catalogue en même
-              temps qu'il propose de le réduire. */}
+              temps qu'il propose de le réduire.
+
+              ⚠️ CES TROIS COMPTES ÉTAIENT ÉCRITS EN DUR — « Tout · 2 », « Débutant · 1 »,
+              « Avancé · 1 » — à quinze lignes du titre dont le commentaire explique
+              justement pourquoi un nombre en dur est faux. Et le `ChipRow` n'avait pas
+              d'`onChange` : trois onglets qui ne filtraient rien, sous des comptes qui
+              n'auraient plus rien décrit dès la troisième formation.
+
+              `mobile-controles-morts.test.ts` ne pouvait pas le voir : la porte cherche un
+              `onPress` manquant, or un composant à choix se pilote par `onChange`. Le test
+              est étendu dans le même lot. */}
           <ChipRow
-            options={['Tout · 2', 'Débutant · 1', 'Avancé · 1']}
-            value="Tout · 2"
+            options={optionsFiltre}
+            value={etiquette(filtre)}
+            onChange={(choix) => setFiltre(cles[optionsFiltre.indexOf(choix)] ?? 'Tout')}
             style={{ marginTop: 18 }}
           />
 
           <View style={{ marginTop: 16 }}>
-            {catalogue.map((f, i) => (
+            {visibles.map((f, i) => (
               <TerritoryCard
                 key={f.slug}
                 first={i === 0}

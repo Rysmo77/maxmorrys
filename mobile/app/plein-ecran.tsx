@@ -43,21 +43,42 @@ export default function PleinEcran() {
      bouton de fermeture tombe dessous. `insets.left` vaut 0 en portrait, 44 sous l'encoche. */
   const cote = Math.max(insets.left, insets.right, 20) + 4;
 
-  const rond = (taille: number, label: string, contenu: React.ReactNode, onPress?: () => void) => (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={onPress}
-      style={({ pressed }: { pressed: boolean }) => ({
-        width: taille, height: taille, borderRadius: taille / 2,
-        alignItems: 'center', justifyContent: 'center',
-        backgroundColor: t('surfaceNight'),
-        transform: [{ scale: pressed ? 0.94 : 1 }],
-      })}
-    >
-      {contenu}
-    </Pressable>
-  );
+  /*
+    ⚠️ UN ROND SANS GESTIONNAIRE EST ÉTEINT — PAR CONSTRUCTION, PAS PAR DISCIPLINE.
+
+    Les deux appels « −15 » et « +15 » ci-dessous ont longtemps été passés SANS quatrième
+    argument. Résultat : `onPress` valait `undefined`, mais le bouton gardait son rôle
+    d'accessibilité, sa pleine opacité et son animation de pression. Deux commandes
+    parfaitement mortes qui répondaient au doigt.
+
+    Et `mobile-controles-morts.test.ts` ne pouvait PAS les voir : la porte cherche un
+    `onPress` absent du JSX, or la fabrique en écrit un — c'est sa VALEUR qui manquait.
+    Un test statique ne suit pas un paramètre optionnel.
+
+    D'où ce choix : l'absence de gestionnaire décide elle-même de l'état éteint. On ne peut
+    plus oublier de le déclarer, parce qu'il n'y a plus rien à déclarer.
+  */
+  const rond = (taille: number, label: string, contenu: React.ReactNode, onPress?: () => void) => {
+    const inerte = onPress === undefined;
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: inerte }}
+        disabled={inerte}
+        onPress={onPress}
+        style={({ pressed }: { pressed: boolean }) => ({
+          width: taille, height: taille, borderRadius: taille / 2,
+          alignItems: 'center', justifyContent: 'center',
+          backgroundColor: t('surfaceNight'),
+          opacity: inerte ? 0.4 : 1,
+          transform: [{ scale: pressed && !inerte ? 0.94 : 1 }],
+        })}
+      >
+        {contenu}
+      </Pressable>
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: t('night') }}>

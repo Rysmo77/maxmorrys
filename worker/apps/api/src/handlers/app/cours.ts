@@ -59,6 +59,12 @@ export async function appCours(_data: unknown, context: CallContext): Promise<un
           lecons > 0 ? `${lecons} leçons` : null,
           asText(f.data.level),
         ].filter(Boolean).join(' · '),
+        /* Le niveau sortait DÉJÀ, mais fondu dans `meta` — une chaîne d'affichage, dont on
+           ne peut ni compter les valeurs ni filtrer dessus. L'écran s'en tirait avec un
+           filtre aux comptes écrits en dur (« Tout · 2 · Débutant · 1 »), à quinze lignes
+           d'un titre dont le commentaire explique justement pourquoi un nombre en dur est
+           faux. Le niveau descend donc comme une DONNÉE, à côté de sa mise en forme. */
+        niveau: asText(f.data.level) ?? null,
         acquise: acquises.has(f.id),
       };
     }),

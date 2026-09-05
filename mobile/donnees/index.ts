@@ -92,6 +92,10 @@ export function useCours(): Etat<readonly VueCours[]> {
       titre: f.titre,
       titreCourt: 'titreCourt' in f ? f.titreCourt : f.titre,
       meta: f.meta,
+      /* Le niveau se DÉRIVE du dernier segment de `meta` (« SEO · 6 modules · 47 leçons ·
+         débutant »), il ne s'invente pas : la réplique dit ce que le transfert dit, et rien
+         de plus. Le serveur, lui, le renvoie comme un champ à part. */
+      niveau: f.meta.split(' · ').at(-1) ?? null,
       /* Le transfert ne disait pas ce qui est acquis. La première l'est — c'est elle que
          l'accueil propose de reprendre —, la seconde non : la différence entre les deux
          états EST l'information de cet écran, et l'aplatir la ferait disparaître. */

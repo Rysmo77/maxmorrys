@@ -60,8 +60,12 @@ export function ConsoleScreen({
       retour="Console"
       onRetour={() => (router.canGoBack() ? router.back() : router.replace('/console'))}
       titre={isIOS ? undefined : titre}
+      /* Pas de `badge` : il annonçait des non-lus alors qu'AUCUN canal de notification
+         n'existe — ni permission demandée, ni serveur qui envoie. La cloche éteinte
+         (opacité 0.4, `accessibilityState.disabled`) dit « pas encore » ; un badge
+         dessus disait « tu as des messages », et c'était faux. */
       droite={
-        <IconButton disabled label="Notifications" badge>
+        <IconButton disabled label="Notifications">
           <Icon name="bell" size={17} color={t('textBody')} strokeWidth={2} />
         </IconButton>
       }

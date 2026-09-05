@@ -53,20 +53,40 @@ function listesMigrated(): string[][] {
     .map((m) => m[1].split(',').map((n) => n.trim()).filter(Boolean));
 }
 
-/** Les callables que l'application NATIVE appelle, par sa porte unique. */
+/**
+ * Les callables que l'application NATIVE appelle.
+ *
+ * ⚠️ « PAR SA PORTE UNIQUE » ÉTAIT UNE HYPOTHÈSE, PAS UN FAIT. Cette fonction ne lisait que
+ * `mobile/donnees/`, sans récursion — au motif que tout appel passe par la porte des
+ * données. Or `mobile/app/suppression.tsx` appelle `appeler('deleteUserAccount', …)` en
+ * direct, depuis l'écran. Le nom est bien dans `MIGRATED`, donc rien ne casse aujourd'hui ;
+ * mais la garde censée attraper le nom oublié ne regardait pas cet appel-là, ni aucun futur
+ * appel direct. Une garde qui ne couvre pas tout le territoire garde une carte, pas le
+ * terrain.
+ *
+ * Les deux dossiers sont désormais parcourus, en profondeur.
+ */
 function appeleesParLeNatif(): string[] {
   const noms = new Set<string>();
-  const dossier = join(RACINE, 'mobile/donnees');
-  for (const e of readdirSync(dossier)) {
-    if (!/\.tsx?$/.test(e)) continue;
-    const code = readFileSync(join(dossier, e), 'utf8');
-    for (const m of code.matchAll(/(?:appeler|useVue)<[^>]*>?\(\s*'([A-Za-z0-9_]+)'/g)) {
-      noms.add(m[1]);
+  const parcourir = (dir: string) => {
+    for (const e of readdirSync(dir)) {
+      const chemin = join(dir, e);
+      if (statSync(chemin).isDirectory()) {
+        parcourir(chemin);
+        continue;
+      }
+      if (!/\.tsx?$/.test(e)) continue;
+      const code = readFileSync(chemin, 'utf8');
+      for (const m of code.matchAll(/(?:appeler|useVue)<[^>]*>?\(\s*'([A-Za-z0-9_]+)'/g)) {
+        noms.add(m[1]);
+      }
+      for (const m of code.matchAll(/(?:appeler|useVue)\(\s*'([A-Za-z0-9_]+)'/g)) {
+        noms.add(m[1]);
+      }
     }
-    for (const m of code.matchAll(/(?:appeler|useVue)\(\s*'([A-Za-z0-9_]+)'/g)) {
-      noms.add(m[1]);
-    }
-  }
+  };
+  parcourir(join(RACINE, 'mobile/donnees'));
+  parcourir(join(RACINE, 'mobile/app'));
   return [...noms];
 }
 
