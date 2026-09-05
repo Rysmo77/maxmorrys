@@ -25,12 +25,41 @@ import { RELEVE, SOURCE } from '../contenu/demo';
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 export function composer<T>(brut: Etat<T>, replique: T | null): Etat<T> {
+  return composerSelon(brut, replique, true);
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * UNE IDENTITÉ NE SE COMBLE PAS — et c'est la nuance qui manquait à la première version.
+ *
+ * Combler un CATALOGUE vide avec un exemple est utile : personne ne croit posséder les
+ * cours d'une planche de démonstration. Combler une IDENTITÉ vide avec un nom fait croire
+ * à une session ouverte — l'application affiche « Bonjour Aïssatou » à quelqu'un qui n'est
+ * connecté à rien, et il n'a aucun moyen de faire la différence.
+ *
+ * Le défaut a été trouvé en regardant le premier APK : la question posée était « est-ce
+ * que l'application est connectée à un compte Aïssatou ? ». Elle ne l'était pas. Mais la
+ * poser prouve que l'écran le laissait croire, et c'est le même genre de confusion que
+ * l'interrupteur de contenu avait été posé pour supprimer.
+ *
+ * `anonyme` n'est PAS un trou : c'est une réponse définitive — il n'y a personne. Une
+ * réplique comble ce qui manque, pas ce qui est nul par nature.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ */
+export function composerIdentite<T>(brut: Etat<T>, replique: T | null): Etat<T> {
+  return composerSelon(brut, replique, false);
+}
+
+function composerSelon<T>(brut: Etat<T>, replique: T | null, comblerAnonyme: boolean): Etat<T> {
   // Le serveur a parlé — même pour dire qu'il n'y a rien.
   if (brut.phase === 'servie' || brut.phase === 'vide') return brut;
 
   // Une panne reste une panne : masquer un échec par du contenu de démonstration
   // ferait croire l'application en bon état alors qu'elle ne lit rien.
   if (brut.phase === 'panne') return brut;
+
+  // Personne n'est connecté : sur une identité, on ne prête pas un nom à ce vide-là.
+  if (brut.phase === 'anonyme' && !comblerAnonyme) return brut;
 
   if (replique !== null) {
     return { phase: 'replique', valeur: replique, source: SOURCE, asOf: RELEVE };

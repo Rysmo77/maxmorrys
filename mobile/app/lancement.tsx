@@ -28,7 +28,7 @@ import { useSession } from '../donnees/session';
  *
  * ⚠️ CE N'EST PAS L'ÉCRAN DE LANCEMENT DU SYSTÈME. Celui-là est une IMAGE posée par l'OS
  * avant que le moteur JavaScript ne démarre — il se déclare dans `app.json` et demande
- * `expo-splash-screen`, qui n'est pas installé (voir README). Cet écran-ci est le premier
+ * `expo-splash-screen`, installé depuis le chantier des fontes. Cet écran-ci est le premier
  * rendu de l'application : il prend le relais de l'image système, sans couture visible parce
  * qu'il porte le même fond.
  */

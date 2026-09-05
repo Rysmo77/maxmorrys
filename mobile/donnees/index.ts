@@ -18,7 +18,7 @@ import {
   FORMATION_2, MEMBRE, MEMOIRE, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PROGRAMME, PROSPECT,
   QUOTA, SUPPORT_COMPTES, VIDEO,
 } from '../contenu/demo';
-import { composer, composerListe } from './etat';
+import { composer, composerIdentite, composerListe } from './etat';
 export { provenance } from './etat';
 import type {
   VueCertificats, VueClassement, VueClub, VueClubFil, VueConsole, VueCours, VueDiscussion,
@@ -44,11 +44,15 @@ export type {
 export function useMoi(): Etat<VueMoi> {
   const brut = useVue<VueMoi>('appMoi');
   /*
+   * ⚠️ `composerIdentite`, PAS `composer`. Un catalogue vide se comble d'un exemple ;
+   * une identité vide, non — prêter un nom à qui n'est connecté à rien fait croire à une
+   * session ouverte. Voir l'en-tête de `composerIdentite` dans `etat.ts`.
+   *
    * La réplique porte les mêmes champs que la vue, moins ceux que le transfert ne
    * connaissait pas. Le `null` de `tuteur` n'est pas un manque : le nom du répétiteur
    * vient du profil, et le kit n'en avait pas.
    */
-  return composer(brut, MOI === null ? null : {
+  return composerIdentite(brut, MOI === null ? null : {
     prenom: MOI.prenom,
     nom: MOI.nom,
     initiale: MOI.initiale,

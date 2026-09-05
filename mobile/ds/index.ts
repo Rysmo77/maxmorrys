@@ -30,6 +30,9 @@ export { TerritoryCard, type Territory, type CardLayout } from './TerritoryCard'
 
 /* Typographie et nombres */
 export { Display, Body, Eyebrow } from './Type';
+/* Les fontes elles-mêmes — la table des graisses, et leur chargement au démarrage.
+   `Type.tsx` les CITE ; c'est ici qu'elles arrivent, sans quoi tout retombe en police système. */
+export { FONTES, CARTE_DES_FONTES, GRAISSE_BASE, useFontesChargees, type Famille } from './Fontes';
 export { Num, type NumProps, type NumSource } from './Num';
 
 /* Actions */

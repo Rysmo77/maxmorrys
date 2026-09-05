@@ -8,7 +8,9 @@
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
     "primaryColor": "#0057BC",
-    "runtimeVersion": { "policy": "appVersion" },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "me.maxmorrys.rysmo",
@@ -19,7 +21,8 @@
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "CFBundleAllowMixedLocalizations": true
+        "CFBundleAllowMixedLocalizations": true,
+        "NSFaceIDUsageDescription": "Pour te laisser rouvrir Rysmo sans retaper ton mot de passe. Face ID reste sur ton iPhone : l'application ne le reçoit jamais, et ton mot de passe continue de fonctionner."
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,
@@ -28,19 +31,27 @@
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
-            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "C617.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
-            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "35F9.1"
+            ]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
-            "NSPrivacyAccessedAPITypeReasons": ["E174.1"]
+            "NSPrivacyAccessedAPITypeReasons": [
+              "E174.1"
+            ]
           }
         ]
       }
@@ -51,18 +62,45 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "permissions": [],
-      "blockedPermissions": [],
+      "permissions": [
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.ACCESS_WIFI_STATE",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
-          "category": ["BROWSABLE", "DEFAULT"],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ],
           "data": [
-            { "scheme": "https", "host": "maxmorrys.me", "pathPrefix": "/formations" },
-            { "scheme": "https", "host": "maxmorrys.me", "pathPrefix": "/verifier" },
-            { "scheme": "https", "host": "www.maxmorrys.me", "pathPrefix": "/formations" },
-            { "scheme": "https", "host": "www.maxmorrys.me", "pathPrefix": "/verifier" }
+            {
+              "scheme": "https",
+              "host": "maxmorrys.me",
+              "pathPrefix": "/formations"
+            },
+            {
+              "scheme": "https",
+              "host": "maxmorrys.me",
+              "pathPrefix": "/verifier"
+            },
+            {
+              "scheme": "https",
+              "host": "www.maxmorrys.me",
+              "pathPrefix": "/formations"
+            },
+            {
+              "scheme": "https",
+              "host": "www.maxmorrys.me",
+              "pathPrefix": "/verifier"
+            }
           ]
         }
       ]
@@ -81,7 +119,82 @@
             "backgroundColor": "#0B0E13"
           }
         }
-      ]
+      ],
+      [
+        "expo-font",
+        {
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Fraunces",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/Fraunces_400Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/fonts/Fraunces_700Bold.ttf",
+                    "weight": 700
+                  },
+                  {
+                    "path": "./assets/fonts/Fraunces_900Black.ttf",
+                    "weight": 900
+                  }
+                ]
+              },
+              {
+                "fontFamily": "SchibstedGrotesk",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/SchibstedGrotesk_400Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/fonts/SchibstedGrotesk_500Medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/fonts/SchibstedGrotesk_600SemiBold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/fonts/SchibstedGrotesk_700Bold.ttf",
+                    "weight": 700
+                  }
+                ]
+              },
+              {
+                "fontFamily": "JetBrainsMono",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/JetBrainsMono_400Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/fonts/JetBrainsMono_700Bold.ttf",
+                    "weight": 700
+                  }
+                ]
+              }
+            ]
+          },
+          "ios": {
+            "fonts": [
+              "./assets/fonts/Fraunces_400Regular.ttf",
+              "./assets/fonts/Fraunces_700Bold.ttf",
+              "./assets/fonts/Fraunces_900Black.ttf",
+              "./assets/fonts/SchibstedGrotesk_400Regular.ttf",
+              "./assets/fonts/SchibstedGrotesk_500Medium.ttf",
+              "./assets/fonts/SchibstedGrotesk_600SemiBold.ttf",
+              "./assets/fonts/SchibstedGrotesk_700Bold.ttf",
+              "./assets/fonts/JetBrainsMono_400Regular.ttf",
+              "./assets/fonts/JetBrainsMono_700Bold.ttf"
+            ]
+          }
+        }
+      ],
+      "expo-local-authentication",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
