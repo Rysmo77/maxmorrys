@@ -34,7 +34,11 @@ const ONGLETS: Array<{ href: string; icon: IconName; titre: string; ligne: strin
   { href: '/club/fil', icon: 'comment', titre: 'Le fil', ligne: 'Ce qui se passe cette semaine, et ton échéance en tête.' },
   { href: '/club/discussions', icon: 'chat', titre: 'Discussions', ligne: 'La question bête se pose ici, par catégorie.' },
   { href: '/club/agenda', icon: 'calendar', titre: 'Agenda', ligne: 'Sessions en ligne, ateliers à Dakar.' },
-  { href: '/club/membre', icon: 'user', titre: 'Membre', ligne: "La fiche de quelqu'un, et le signalement." },
+  /* ⚠️ « Membre » A ÉTÉ REMPLACÉ. Il menait à `/club/membre` sans désigner personne : une
+     fiche est un détail, pas une destination — elle s'ouvre en touchant l'auteur d'un
+     message. Les comptes bloqués, eux, sont bien une destination, et la guideline App Store
+     1.2 veut qu'elle soit trouvable. */
+  { href: '/club/bloques', icon: 'user', titre: 'Comptes bloqués', ligne: 'Ce que tu ne veux plus lire, et comment défaire.' },
   { href: '/club/classement', icon: 'medal', titre: 'Classement', ligne: "Par vague d'arrivée, jamais absolu." },
   { href: '/club/opportunites', icon: 'case', titre: 'Opportunités', ligne: "Missions et appels d'offres, budget annoncé." },
   { href: '/club/parrainage', icon: 'gift', titre: 'Parrainage', ligne: 'La remise va au filleul, pas à toi.' },

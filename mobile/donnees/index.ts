@@ -19,7 +19,7 @@ import {
 import { composer, composerIdentite, composerListe } from './etat';
 export { provenance } from './etat';
 import type {
-  VueCertificats, VueClassement, VueClub, VueClubFil, VueConsole, VueCours, VueFormation, VueParrainage, VueDiscussion,
+  VueCertificats, VueClassement, VueClub, VueClubFil, VueConsole, VueCours, VueFormation, VueBlocages, VueParrainage, VueDiscussion,
   VueEspace, VueLecon, VueMedia, VueMembre, VueMoi, VueNotes, VueOpportunite, VueRepetiteur,
   VueSeance,
 } from './types';
@@ -181,6 +181,17 @@ export function useParrainage(): Etat<VueParrainage> {
   });
 }
 
+/**
+ * Les comptes bloqués, et le geste pour défaire.
+ *
+ * Aucune réplique de démonstration : une liste de blocage inventée montrerait des noms de
+ * personnes qu'on n'a jamais bloquées. C'est le seul endroit du produit où une simulation
+ * accuserait quelqu'un.
+ */
+export function useBlocages(): Etat<VueBlocages> {
+  return composer(useVue<VueBlocages>('appClubBlocages'), null);
+}
+
 /** Le fil du Club, et la mission en tête. Vide tant que l'abonnement n'est pas actif. */
 export function useClubFil(): Etat<VueClubFil> {
   const brut = useVue<VueClubFil>('appClubFil');
@@ -269,8 +280,16 @@ export function useOpportunites(): Etat<readonly VueOpportunite[]> {
  * ⚠️ Ni téléphone ni adresse n'arrivent jamais ici : le serveur ne les envoie pas, même
  * s'il les connaît. Ce qui ne quitte pas le serveur ne fuite pas.
  */
-export function useMembre(id?: string): Etat<VueMembre> {
-  const brut = useVue<VueMembre>('appClubListe', id ? { onglet: 'membre', id } : { onglet: 'membre' });
+export function useMembre(id?: string, message?: string): Etat<VueMembre> {
+  /* ⚠️ DEUX FAÇONS DE DÉSIGNER, ET LA SECONDE EST CELLE QUI MANQUAIT. Aucun écran ne passait
+     d'`id` : le fil, l'onglet Club et la planche poussaient tous vers `/club/membre` nu. La
+     vue jetait `invalid-argument`, l'écran sortait par sa branche courte, et le bouton
+     « Signaler ce profil » n'était jamais rendu.
+     `message` désigne un CONTENU ; le serveur en résout l'auteur. L'uid ne circule pas. */
+  const params = id ? { onglet: 'membre', id }
+    : message ? { onglet: 'membre', message }
+      : { onglet: 'membre' };
+  const brut = useVue<VueMembre>('appClubListe', params);
   return composer(brut, MEMBRE === null ? null : {
     nom: MEMBRE.nom,
     initiales: MEMBRE.initiales,
@@ -280,6 +299,8 @@ export function useMembre(id?: string): Etat<VueMembre> {
     presentation: MEMBRE.presentation,
     formations: [...MEMBRE.formations],
     contributions: MEMBRE.contributions,
+    bloque: false,
+    id: 'demo',
   });
 }
 
@@ -388,6 +409,21 @@ export async function effacerLaMemoire(): Promise<void> {
  */
 export async function signalerLeMembre(membreId: string, motif?: string): Promise<void> {
   await appeler('signalerMembre', { membreId, motif });
+}
+
+/**
+ * Bloque ou débloque l'auteur d'un contenu — exigence App Store 1.2.
+ *
+ * ⚠️ ON DÉSIGNE UN CONTENU, PAS UNE PERSONNE. Le serveur résout l'auteur lui-même, pour que
+ * l'uid d'un auteur croisé dans une liste ne circule jamais côté client. La seule exception
+ * est la fiche qu'on regarde : elle porte son `id`, parce qu'on ne peut pas la débloquer sans
+ * la désigner.
+ */
+export async function bloquerLeMembre(
+  cible: { type: 'membre' | 'message' | 'discussion' | 'opportunite'; id: string },
+  bloquer: boolean,
+): Promise<{ bloque: boolean; combien: number }> {
+  return appeler('bloquerMembre', { cible, bloquer }) as Promise<{ bloque: boolean; combien: number }>;
 }
 
 /**

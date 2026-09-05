@@ -5,6 +5,7 @@ import { HttpsError } from '@mm/shared';
 import { type CallContext, requireAuth } from '../../context';
 import { asText, toNumber } from '../../lib/values';
 import { abonnementActif } from './club';
+import { listeDesBloques } from '../bloquerMembre';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -59,6 +60,10 @@ export async function appClubListe(data: unknown, context: CallContext): Promise
   const abonnement = await abonnementActif(context, auth.uid);
   if (!abonnement) return { vue: null, releveA };
 
+  /* Bloquer quelqu'un doit valoir sur TOUT le Club, pas seulement sur le fil : croiser le
+     même nom sur une discussion la minute d'après annulerait le geste. */
+  const bloques = await listeDesBloques(context, auth.uid);
+
   if (onglet === ('discussions' satisfies Onglet)) {
     const sujets = await context.db.query({
       collection: 'club_discussions',
@@ -68,6 +73,7 @@ export async function appClubListe(data: unknown, context: CallContext): Promise
     return {
       vue: sujets
         .filter((s: DocSnapshot) => asText(s.data.title) && asText(s.data.userName))
+        .filter((s: DocSnapshot) => !bloques.has(asText(s.data.userId) ?? ''))
         .map((s: DocSnapshot) => {
           const auteur = asText(s.data.userName) as string;
           return {
@@ -94,6 +100,7 @@ export async function appClubListe(data: unknown, context: CallContext): Promise
     return {
       vue: offres
         .filter((o: DocSnapshot) => asText(o.data.title))
+        .filter((o: DocSnapshot) => !bloques.has(asText(o.data.userId) ?? ''))
         .map((o: DocSnapshot) => ({
           id: o.id,
           type: asText(o.data.type) ?? 'Mission',
@@ -110,10 +117,27 @@ export async function appClubListe(data: unknown, context: CallContext): Promise
   }
 
   // ── `membre` ────────────────────────────────────────────────────────────────────────
-  if (typeof id !== 'string' || id === '') {
+  /*
+    ⚠️ CETTE FICHE ÉTAIT INATTEIGNABLE, ET LE SIGNALEMENT AVEC ELLE.
+    Elle exigeait un `id` — l'uid du membre — que AUCUN écran ne passait : le fil, l'onglet
+    Club et la planche poussaient tous vers `/club/membre` sans paramètre. La vue jetait
+    donc `invalid-argument`, l'écran sortait par sa branche courte, et le bouton « Signaler
+    ce profil » n'était jamais rendu. Sur les quatre exigences de la guideline 1.2, le
+    signalement comptait pour zéro.
+
+    On peut maintenant désigner la fiche par le CONTENU (`message`), et c'est le serveur qui
+    résout l'auteur — l'uid ne circule toujours pas.
+  */
+  const { message } = (data ?? {}) as { message?: unknown };
+  let cible = typeof id === 'string' && id !== '' ? id : null;
+  if (cible === null && typeof message === 'string' && message !== '' && !message.includes('/')) {
+    const post = await context.db.get(`club_posts/${message}`);
+    cible = post ? asText(post.data.userId) ?? null : null;
+  }
+  if (cible === null) {
     throw new HttpsError('invalid-argument', 'Membre non désigné.');
   }
-  const fiche = await context.db.get(`club_profiles/${id}`);
+  const fiche = await context.db.get(`club_profiles/${cible}`);
   const nom = fiche ? asText(fiche.data.userName) : null;
   if (!fiche || !nom) return { vue: null, releveA };
 
@@ -132,6 +156,14 @@ export async function appClubListe(data: unknown, context: CallContext): Promise
       formations: Array.isArray(fiche.data.formations)
         ? (fiche.data.formations as unknown[]).map(String) : [],
       contributions: toNumber(fiche.data.contributions, 0),
+      /* L'état du blocage, pour que l'écran propose « Débloquer » plutôt que « Bloquer ».
+         Un bouton qui rebloque quelqu'un de déjà bloqué ne dit rien de son effet. */
+      bloque: bloques.has(cible),
+      /* L'identifiant de la fiche, pour que le geste de blocage puisse la DÉSIGNER. C'est
+         l'exception assumée à « l'uid ne sort jamais » : il ne s'agit plus d'un auteur croisé
+         dans une liste mais de la personne dont on regarde la fiche, à sa demande explicite —
+         et sans lui, on ne peut ni bloquer ni débloquer depuis cet écran. */
+      id: cible,
       /* ⚠️ NI TÉLÉPHONE NI ADRESSE, jamais. Ils peuvent exister dans le document ; ils ne
          sortent pas d'ici. L'écran l'écrit déjà à ses lecteurs — le serveur le tient. */
     },

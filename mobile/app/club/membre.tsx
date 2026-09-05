@@ -4,7 +4,7 @@ import {
   Avatar, Body, Button, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
-import { ErreurAppel, provenance, signalerLeMembre, useMembre } from '../../donnees';
+import { ErreurAppel, bloquerLeMembre, provenance, signalerLeMembre, useMembre } from '../../donnees';
 
 /**
  * ── CLUB · LA FICHE D'UN MEMBRE ───────────────────────────────────────────────────────
@@ -24,8 +24,14 @@ import { ErreurAppel, provenance, signalerLeMembre, useMembre } from '../../donn
  */
 export default function ClubMembre() {
   const t = useToken();
-  const p = useLocalSearchParams<{ id?: string; nom?: string; metier?: string; ville?: string }>();
-  const fiche = useMembre(p.id);
+  const p = useLocalSearchParams<{
+    id?: string; message?: string; nom?: string; metier?: string; ville?: string;
+  }>();
+  /* ⚠️ `message` EST CE QUI RENDAIT CET ÉCRAN ATTEIGNABLE. Aucun appelant ne passait d'`id`,
+     donc la vue jetait `invalid-argument`, l'écran sortait par sa branche courte, et le
+     bouton « Signaler ce profil » n'était JAMAIS rendu — la guideline 1.2 comptait zéro. On
+     désigne désormais un message du fil, et le serveur en résout l'auteur. */
+  const fiche = useMembre(p.id, p.message);
 
   /* Les paramètres priment sur la fiche : quand une liste transmet déjà le nom, l'écran
      l'affiche avant même que la lecture aboutisse — c'est ce qui évite un titre vide
@@ -43,12 +49,13 @@ export default function ClubMembre() {
    * que c'est traité — et ne le refait pas.
    */
   async function envoyerLeSignalement() {
-    if (!p.id) {
+    const vise = fiche.valeur?.id ?? p.id;
+    if (!vise) {
       Alert.alert('Membre non identifié', "Ouvre la fiche depuis le fil ou l'annuaire.");
       return;
     }
     try {
-      await signalerLeMembre(p.id);
+      await signalerLeMembre(vise);
       Alert.alert('C\'est envoyé', 'Le support le regarde. La personne ne saura pas que ça vient de toi.');
     } catch (erreur: unknown) {
       Alert.alert(
@@ -65,6 +72,36 @@ export default function ClubMembre() {
       [
         { text: 'Annuler', style: 'cancel' },
         { text: 'Signaler', style: 'destructive', onPress: () => { void envoyerLeSignalement(); } },
+      ],
+    );
+  }
+
+  function basculerLeBlocage() {
+    const vise = fiche.valeur?.id;
+    const dejaBloque = fiche.valeur?.bloque === true;
+    if (!vise) {
+      Alert.alert('Membre non identifié', "Ouvre la fiche depuis le fil ou l'annuaire.");
+      return;
+    }
+    Alert.alert(
+      dejaBloque ? `Débloquer ${nom ?? 'ce membre'} ?` : `Bloquer ${nom ?? 'ce membre'} ?`,
+      dejaBloque
+        ? 'Ses publications réapparaîtront dans le fil, les discussions et les opportunités.'
+        : 'Ses publications disparaîtront du fil, des discussions et des opportunités. Elle n’en sera pas prévenue, et tu pourras défaire depuis « Comptes bloqués ».',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: dejaBloque ? 'Débloquer' : 'Bloquer',
+          style: dejaBloque ? 'default' : 'destructive',
+          onPress: () => {
+            void bloquerLeMembre({ type: 'membre', id: vise }, !dejaBloque)
+              .then(() => router.replace('/club/fil'))
+              .catch(() => Alert.alert(
+                dejaBloque ? 'Le déblocage n’a pas abouti' : 'Le blocage n’a pas abouti',
+                'Rien n’a changé. Réessaie dans un moment.',
+              ));
+          },
+        },
       ],
     );
   }
@@ -144,6 +181,23 @@ export default function ClubMembre() {
           toi. Je te demande le motif après, si tu veux le donner.
         </Body>
         <Button tone="quiet" size="sm" label="Signaler ce profil" style={{ marginTop: 12 }} onPress={signaler} />
+
+        {/* ── LE BLOCAGE — exigence App Store 1.2 ────────────────────────────────────────
+            Le signalement s'adresse à nous ; le blocage n'engage que toi. Les deux sont
+            demandés par la guideline, et confondre l'un avec l'autre laisse quelqu'un
+            attendre une modération alors qu'il voulait juste ne plus lire quelqu'un. */}
+        <Body muted style={{ marginTop: 14, fontSize: 12.5, lineHeight: 19 }}>
+          Le blocage, lui, ne nous concerne pas : il retire les publications de cette personne
+          du fil, des discussions et des opportunités — pour toi seul. Elle n’en est pas
+          prévenue.
+        </Body>
+        <Button
+          tone="quiet"
+          size="sm"
+          label={fiche.valeur.bloque ? 'Débloquer ce membre' : 'Bloquer ce membre'}
+          style={{ marginTop: 10 }}
+          onPress={basculerLeBlocage}
+        />
       </Surface>
     </ClubScreen>
   );

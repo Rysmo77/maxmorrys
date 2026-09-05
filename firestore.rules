@@ -1028,6 +1028,21 @@ service cloud.firestore {
     }
 
     // Club des Digitos — infos exclusives (lecture membres, like membres, écriture admin)
+    // ── LA LISTE DE BLOCAGE ─────────────────────────────────────────────────────────
+    // Exigée par la guideline App Store 1.2 : une application qui publie du contenu de
+    // membre à membre doit permettre de bloquer un compte abusif.
+    //
+    // ⚠️ LISIBLE PAR SON SEUL PROPRIÉTAIRE. Ce document dit qui quelqu'un évite. L'ouvrir
+    // en lecture au Club le retournerait contre la personne qu'il protège — et rendrait
+    // visible une décision qui n'a jamais été prise pour être vue.
+    //
+    // L'écriture passe par le Worker (compte de service), qui borne la liste et refuse
+    // l'auto-blocage ; la règle cliente reste fermée pour que rien ne contourne ce contrôle.
+    match /club_blocks/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false; // backend only — voir `bloquerMembre`
+    }
+
     match /club_infos/{infoId} {
       allow read: if hasActiveClubSub() || isAdmin();
       // Les membres peuvent liker — une bascule, sur leur propre identifiant.

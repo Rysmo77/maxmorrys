@@ -3,6 +3,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 import { type CallContext, requireAuth } from '../../context';
 import { asText, toNumber } from '../../lib/values';
 import { abonnementActif } from './club';
+import { listeDesBloques } from '../bloquerMembre';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -50,17 +51,26 @@ export async function appClubFil(_data: unknown, context: CallContext): Promise<
   const abonnement = await abonnementActif(context, auth.uid);
   if (!abonnement) return { vue: null, releveA };
 
-  const [messages, missions] = await Promise.all([
+  /*
+    ⚠️ ON LIT 60 POUR EN RENDRE 40, ET CE N'EST PAS UNE MARGE DE CONFORT.
+
+    Les messages des comptes bloqués sont retirés APRÈS la lecture — Firestore ne sait pas
+    filtrer sur « n'est pas dans cette liste ». Lire 40 pour en rendre 35 ferait rétrécir le
+    fil de quelqu'un qui bloque cinq comptes bavards, sans qu'il puisse relier les deux : un
+    filtre qui se lit comme une panne. On lit large, on filtre, on coupe à 40.
+  */
+  const [messages, missions, bloques] = await Promise.all([
     context.db.query({
       collection: 'club_posts',
       orderBy: [{ field: 'createdAt', direction: 'desc' }],
-      limit: 40,
+      limit: 60,
     }),
     context.db.query({
       collection: 'club_opportunities',
       orderBy: [{ field: 'createdAt', direction: 'desc' }],
       limit: 1,
     }),
+    listeDesBloques(context, auth.uid),
   ]);
 
   const mission = missions[0];
@@ -82,6 +92,8 @@ export async function appClubFil(_data: unknown, context: CallContext): Promise<
 
       fil: messages
         .filter((m: DocSnapshot) => asText(m.data.userName) && asText(m.data.text))
+        .filter((m: DocSnapshot) => !bloques.has(asText(m.data.userId) ?? ''))
+        .slice(0, 40)
         .map((m: DocSnapshot) => {
           const auteur = asText(m.data.userName) as string;
           return {

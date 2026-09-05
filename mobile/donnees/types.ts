@@ -64,6 +64,16 @@ export interface VueFormation {
   modules: VueModuleFiche[];
 }
 
+export interface VueCompteBloque {
+  id: string;
+  nom: string;
+  initiales: string;
+}
+
+export interface VueBlocages {
+  comptes: VueCompteBloque[];
+}
+
 export interface VueParrainage {
   code: string;
   lien: string;
@@ -195,6 +205,10 @@ export interface VueMembre {
   presentation: string | null;
   formations: string[];
   contributions: number;
+  /** L'état du blocage, pour que le bouton dise ce qu'il fera. */
+  bloque: boolean;
+  /** L'identifiant de la fiche — le seul uid qui sorte, et seulement sur demande explicite. */
+  id: string;
 }
 
 export interface VueClassement {

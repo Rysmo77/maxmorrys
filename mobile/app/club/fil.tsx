@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   Avatar, Body, Button, ChipRow, Field, Icon, LessonRow, Num, PriceBlock, SansDonnees, Surface, Tag, TerritoryCard, useToken,
@@ -60,12 +60,14 @@ export default function Fil() {
     <ClubScreen titre="Le fil">
       <Bilan />
 
+      {/* ⚠️ « Membres » A ÉTÉ RETIRÉ. Il poussait vers `/club/membre` SANS DÉSIGNER PERSONNE :
+          la fiche d'un membre est un détail, pas une destination. Elle s'ouvre maintenant en
+          touchant l'auteur d'un message. */}
       <ChipRow
-        options={['Fil', 'Discussions', 'Membres', 'Opportunités']}
+        options={['Fil', 'Discussions', 'Opportunités']}
         value="Fil"
         onChange={(v) => {
           if (v === 'Discussions') router.push('/club/discussions');
-          if (v === 'Membres') router.push('/club/membre');
           if (v === 'Opportunités') router.push('/club/opportunites');
         }}
         style={{ marginTop: 18 }}
@@ -129,8 +131,26 @@ export default function Fil() {
           style={{ marginTop: 14 }}
         />
       ) : fil.map((post) => (
-        <Surface key={post.auteur} level="flat" style={{ marginTop: 14, padding: 18 }}>
-          <View style={{ flexDirection: 'row', gap: 11, alignItems: 'center' }}>
+        /* ⚠️ LA CLÉ ÉTAIT `post.auteur`. Deux messages de la même personne portaient donc la
+           même clé : React en écrasait un au rendu, et le fil perdait des messages sans que
+           rien ne le signale. Le défaut devient franc dès qu'un filtre change la composition
+           de la liste — c'est-à-dire depuis le blocage. */
+        <Surface key={post.id} level="flat" style={{ marginTop: 14, padding: 18 }}>
+          {/* L'en-tête ouvre la fiche du membre. C'est le SEUL chemin vers elle, et donc vers
+              le signalement et le blocage : on désigne le MESSAGE, le serveur en résout
+              l'auteur, et aucun identifiant de personne ne circule côté client. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Voir la fiche de ${post.auteur}`}
+            onPress={() => router.push({
+              pathname: '/club/membre',
+              params: { message: post.id, nom: post.auteur },
+            })}
+            style={({ pressed }: { pressed: boolean }) => ({
+              flexDirection: 'row', gap: 11, alignItems: 'center',
+              opacity: pressed ? 0.72 : 1,
+            })}
+          >
             <Avatar initials={post.initiales} size={38} />
             <View style={{ flex: 1 }}>
               <Body style={{ fontSize: 14, fontWeight: '600' }}>{post.auteur}</Body>
@@ -139,7 +159,7 @@ export default function Fil() {
               </Body>
             </View>
             <Tag>{post.categorie}</Tag>
-          </View>
+          </Pressable>
 
           <Body style={{ marginTop: 12, lineHeight: 21 }}>{post.texte}</Body>
 

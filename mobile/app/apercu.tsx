@@ -90,7 +90,11 @@ const PLANCHE: Groupe[] = [
       { href: '/club/fil', titre: 'Le fil', note: 'le bilan d’abonnement, permanent' },
       { href: '/club/agenda', titre: 'Agenda', note: 'le seul écran qui GAGNE une action native' },
       { href: '/club/discussions', titre: 'Discussions', note: 'par catégorie, la question bête d’abord' },
-      { href: '/club/membre', titre: 'Membre', note: 'la fiche, et le signalement' },
+      { href: '/club/membre', titre: 'Membre', note: 'la fiche, le signalement et le blocage' },
+      /* La note ne NOMME PAS le magasin dont la règle impose cet écran : c'est un texte
+         d'écran, et `mobile-store-achats.test.ts` refuse qu'une revue y lise la règle qu'on
+         applique. Elle est verte, elle m'a attrapé en écrivant cette ligne. */
+      { href: '/club/bloques', titre: 'Comptes bloqués', note: 'exigé pour tout contenu de membre, et la porte pour défaire' },
       { href: '/club/classement', titre: 'Classement', note: 'par vague d’arrivée, jamais absolu' },
       { href: '/club/opportunites', titre: 'Opportunités', note: 'budget annoncé par qui publie' },
       { href: '/club/parrainage', titre: 'Parrainage', note: 'la remise va au filleul, pas à toi' },

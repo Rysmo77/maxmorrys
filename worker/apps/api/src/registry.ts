@@ -16,6 +16,8 @@ import { appNotes } from './handlers/app/notes';
 import { appCours } from './handlers/app/cours';
 import { appFormation } from './handlers/app/formation';
 import { appClubParrainage } from './handlers/app/clubParrainage';
+import { bloquerMembre } from './handlers/bloquerMembre';
+import { appClubBlocages } from './handlers/app/clubBlocages';
 import { appEspace } from './handlers/app/espace';
 import { appMoi } from './handlers/app/moi';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
@@ -97,6 +99,8 @@ export const HANDLERS: Record<string, CallHandler> = {
   appCours,
   appFormation,
   appClubParrainage,
+  bloquerMembre,
+  appClubBlocages,
   appLecon,
   appMedia,
   appNotes,

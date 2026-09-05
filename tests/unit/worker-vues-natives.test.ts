@@ -126,6 +126,7 @@ const ECRITURES = [
   'creerMonProfil.ts',
   'posterAuClub.ts',
   'reserverSession.ts',
+  'bloquerMembre.ts',
 ];
 
 describe("les écritures natives refont les règles qu'elles contournent", () => {
