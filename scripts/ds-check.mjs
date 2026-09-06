@@ -135,6 +135,13 @@ const MOBILE = existsSync(join(root, 'mobile')) ? walk(join(root, 'mobile'), ['.
     'android/app/src/main/res/values/couleurs.generated.xml',
     'android/app/src/main/res/values-night/couleurs.generated.xml',
     'android/app/src/main/res/values/marque.generated.xml',
+    /* ⚠️ DEUX CIBLES DE PLUS DEPUIS LE LOT 3. Les jetons ne suffisent pas à rendre le kit :
+       les quinze lobes du maillage, les sept voiles de verre `.andro` et les treize ombres
+       hors table vivent en littéral dans `DS_Final/`, et les 109 tracés d'icônes dans
+       `src/design-system/icons.ts`. S'ils n'étaient pas comptés ici, le seul endroit d'où
+       leur dérive se voit serait un écran, sur l'appareil de quelqu'un d'autre. */
+    'android/app/src/main/java/me/maxmorrys/rysmo/ds/Natif.generated.kt',
+    'android/app/src/main/java/me/maxmorrys/rysmo/ds/Icones.generated.kt',
   ];
   const avant = new Map();
   for (const rel of CIBLES) {

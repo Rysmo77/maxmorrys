@@ -3,6 +3,7 @@ import { HttpsError } from '@mm/shared';
 import { type CallContext, requireAuth } from '../context';
 import { asText } from '../lib/values';
 import { abonnementActif } from './app/club';
+import type { Sortie } from '../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -43,7 +44,7 @@ type TypeCible = keyof typeof CIBLES;
 /** Au-delà, ce n'est plus une liste de gens qu'on évite : c'est autre chose. */
 const PLAFOND = 200;
 
-export async function bloquerMembre(data: unknown, context: CallContext): Promise<unknown> {
+export async function bloquerMembre(data: unknown, context: CallContext): Promise<Sortie<'bloquerMembre'>> {
   const auth = requireAuth(context);
 
   const abonnement = await abonnementActif(context, auth.uid);

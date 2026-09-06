@@ -2,6 +2,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 
 import { type CallContext, requireAuth } from '../../context';
 import { asText, toNumber } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -30,7 +31,7 @@ function depuis(iso: string | undefined): string | null {
   return `Tu t'es arrêtée il y a ${jours} jours`;
 }
 
-export async function appEspace(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appEspace(_data: unknown, context: CallContext): Promise<Reponse<'appEspace'>> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 

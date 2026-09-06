@@ -3,6 +3,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 import { type CallContext, requireAuth } from '../../context';
 import { asText, toNumber } from '../../lib/values';
 import { abonnementActif } from './club';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -31,7 +32,7 @@ function initiales(nom: string): string {
   return nom.trim().split(/\s+/).map((m) => m.charAt(0)).join('').slice(0, 2).toUpperCase();
 }
 
-export async function appClubClassement(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appClubClassement(_data: unknown, context: CallContext): Promise<Reponse<'appClubClassement'>> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 

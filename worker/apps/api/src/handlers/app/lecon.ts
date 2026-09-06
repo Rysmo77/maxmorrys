@@ -1,5 +1,6 @@
 import { type CallContext, requireAuth } from '../../context';
 import { asText } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -19,7 +20,7 @@ import { asText } from '../../lib/values';
 interface Lecon { id?: string; title?: string; duration?: string; sizeMb?: number; isDocument?: boolean; }
 interface Module { id?: string; title?: string; lessons?: Lecon[]; }
 
-export async function appLecon(data: unknown, context: CallContext): Promise<unknown> {
+export async function appLecon(data: unknown, context: CallContext): Promise<Reponse<'appLecon'>> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 

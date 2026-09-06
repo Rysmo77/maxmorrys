@@ -3,6 +3,7 @@ import { HttpsError } from '@mm/shared';
 import { type CallContext, requireAuth } from '../context';
 import { abonnementActif } from './app/club';
 import { asText } from '../lib/values';
+import type { Sortie } from '../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -35,7 +36,7 @@ import { asText } from '../lib/values';
 const MAX = 2_000;
 const CATEGORIES = ['Entraide', 'Outils', 'Victoires', 'Questions'];
 
-export async function posterAuClub(data: unknown, context: CallContext): Promise<unknown> {
+export async function posterAuClub(data: unknown, context: CallContext): Promise<Sortie<'posterAuClub'>> {
   const auth = requireAuth(context);
 
   const abonnement = await abonnementActif(context, auth.uid);

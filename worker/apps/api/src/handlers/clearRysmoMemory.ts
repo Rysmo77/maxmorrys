@@ -1,4 +1,5 @@
 import { type CallContext, requireAuth } from '../context';
+import type { Sortie } from '../vues/contrat';
 
 /**
  * Port de `clearRysmoMemory` — efface la mémoire Rysmo d'un utilisateur
@@ -6,7 +7,7 @@ import { type CallContext, requireAuth } from '../context';
  *
  * Déclenché depuis « Ce que Rysmo sait de moi » (RGPD).
  */
-export async function clearRysmoMemory(_data: unknown, context: CallContext): Promise<unknown> {
+export async function clearRysmoMemory(_data: unknown, context: CallContext): Promise<Sortie<'clearRysmoMemory'>> {
   const { uid } = requireAuth(context);
 
   // La sous-collection d'engagement est supprimée par pages, pour rester borné

@@ -155,6 +155,91 @@ describe('les couleurs ne sont pas écrites à la main', () => {
   });
 });
 
+describe('la planche d’atelier ne peut pas atteindre la production', () => {
+  /*
+   * ⛔ LE DÉFAUT QUE CETTE PORTE EXISTE POUR EMPÊCHER A DÉJÀ ÉTÉ LIVRÉ UNE FOIS.
+   *
+   * Le port React Native embarquait sa planche d'atelier DANS LE PAQUET : elle avait sa
+   * route, ses données d'exemple et son entrée de menu. La porte censée l'attraper cherchait
+   * un nom de fichier qui n'existait plus. Une planche livrée n'est pas seulement du poids
+   * mort — c'est un écran de démonstration accessible, avec des chiffres inventés dessus.
+   *
+   * Ici la réponse est structurelle : `src/debug/` n'est pas compilé pour `release`. Cette
+   * porte vérifie qu'elle y RESTE, parce que déplacer un fichier est plus facile que
+   * d'expliquer pourquoi il ne fallait pas.
+   */
+  const walkKt = (d: string): string[] =>
+    readdirSync(d, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? walkKt(join(d, e.name)) : [join(d, e.name)]);
+
+  it('aucun @Preview dans la variante principale', () => {
+    /*
+     * ⚠️ CETTE PORTE A ÉTÉ AVEUGLE PENDANT SA PREMIÈRE MINUTE D'EXISTENCE, et pour la
+     * raison même qui a laissé passer la planche du port RN : elle cherchait `@Preview`,
+     * la forme courte. `@androidx.compose.ui.tooling.preview.Preview` passait dessous sans
+     * la toucher. Une porte qui ne connaît qu'une des deux façons d'écrire la même chose
+     * ne fait pas respecter la règle : elle fait respecter une orthographe.
+     */
+    const fautes = walkKt(join(ANDROID, 'java'))
+      .filter((f) => f.endsWith('.kt'))
+      .filter((f) => /@(?:[A-Za-z_][\w]*\.)*Preview\b/.test(readFileSync(f, 'utf8')))
+      .map((f) => f.slice(RACINE.length + 1));
+    expect(fautes, 'un aperçu embarque son échafaudage dans le paquet livré').toEqual([]);
+  });
+
+  it('le paquet `atelier` n’existe que dans la variante debug', () => {
+    expect(existsSync(join(ANDROID, 'java/me/maxmorrys/rysmo/atelier')),
+      'la planche doit vivre dans src/debug/, où Gradle ne la compile pas pour release').toBe(false);
+    expect(existsSync(join(RACINE,
+      'android/app/src/debug/java/me/maxmorrys/rysmo/atelier/Planche.kt')),
+      'la planche a disparu : elle est le seul endroit d’où les 45 composables se regardent').toBe(true);
+  });
+});
+
+describe('les 109 glyphes, et le voile qu’AD-18 impose', () => {
+  const icones = lire('android/app/src/main/java/me/maxmorrys/rysmo/ds/Icones.generated.kt');
+  const source = lire('src/design-system/icons.ts');
+  const natif = lire('android/app/src/main/java/me/maxmorrys/rysmo/ds/Natif.generated.kt');
+
+  it('chaque glyphe de la source est émis, et aucun de plus', () => {
+    /* Le compte de référence vient de la SOURCE, pas du fichier qu'on vérifie. */
+    const bloc = /export const MM_ICONS: Record<string, Glyph> = (\{[\s\S]*?\});/.exec(source);
+    expect(bloc, 'la table MM_ICONS a bougé de forme : l’émetteur ne la trouvera plus').not.toBeNull();
+    const attendus = Object.keys(JSON.parse(bloc![1])).sort();
+    const emis = [...icones.matchAll(/^ {4}"([^"]+)" to Glyphe\(/gm)].map((m) => m[1]).sort();
+    expect(emis).toEqual(attendus);
+    expect(emis.length).toBeGreaterThanOrEqual(109);
+  });
+
+  it('les cercles et les rectangles sont devenus des tracés', () => {
+    /* `PathParser` de Compose ne lit que des chaînes SVG. Un cercle laissé en données
+       nues ne rendrait RIEN, sans erreur — le glyphe manquerait, c'est tout. */
+    expect(icones).not.toMatch(/cercles|rectangles|\bc = listOf|\br = listOf/);
+    expect(icones).toContain('"search" to Glyphe(traits = listOf("M4,11a7,7 0 1,0 14,0');
+  });
+
+  it('le voile du maillage est celui d’AD-18, pas celui du kit', () => {
+    /*
+     * ⛔ CONTRADICTION TRANCHÉE, ET ELLE SE MESURE.
+     * `DS_Final/brand/mesh.css` pose le premier arrêt à .42 : l'encre secondaire #5A6472
+     * y tient 3,93:1 — échec. `overrides/ad-18-voile.css` le remonte à .60 : 4,51:1.
+     * 0x99 = 153/255 = 0,60. 0x6B serait le 0,42 du kit, et le défaut serait invisible.
+     */
+    const voile = /val voileClair: List<Pair<Float, Color>> = listOf\(([^)]*\)[^;]*?)\n/.exec(natif)?.[1] ?? '';
+    expect(voile).toContain('0.0f to Color(0x99FFFFFF)');
+    expect(voile, 'le voile du kit (0,42) est revenu — il échoue une mesure que le produit a faite').not.toContain('0x6B');
+  });
+
+  it('les quinze lobes sont des teintes FIXES, jamais relues par un jeton', () => {
+    /* Le contournement du port RN : `hue: 'mmBleu'`. En sombre, mmBleu vaut #6FB1FF et
+       tout le maillage changeait de couleur. Les quatre teintes du kit sont ici en dur. */
+    for (const t of ['0xFF0057BC', '0xFF6C23DD', '0xFFF38B0A', '0xFF02AC9C']) {
+      expect(natif, `la teinte ${t} manque au maillage`).toContain(t);
+    }
+    expect(natif).not.toMatch(/Lobe\([^)]*teinte = (?:jetons|p)\./);
+  });
+});
+
 describe('l’icône du lanceur', () => {
   const vecteur = lire('android/app/src/main/res/drawable/ic_launcher_foreground.xml');
   const marque = lire('android/app/src/main/res/values/marque.generated.xml');

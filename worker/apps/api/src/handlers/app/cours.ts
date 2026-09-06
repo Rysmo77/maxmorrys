@@ -2,6 +2,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 
 import { type CallContext, requireAuth } from '../../context';
 import { asText } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -21,7 +22,7 @@ import { asText } from '../../lib/values';
  * nous. Le filtre est refait ici, explicitement.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
-export async function appCours(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appCours(_data: unknown, context: CallContext): Promise<Reponse<'appCours'>> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 

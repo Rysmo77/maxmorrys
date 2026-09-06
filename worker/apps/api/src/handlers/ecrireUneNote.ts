@@ -2,6 +2,7 @@ import { HttpsError } from '@mm/shared';
 
 import { type CallContext, requireAuth } from '../context';
 import { asText } from '../lib/values';
+import type { Sortie } from '../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -30,7 +31,7 @@ import { asText } from '../lib/values';
 
 const MAX = 4_000;
 
-export async function ecrireUneNote(data: unknown, context: CallContext): Promise<unknown> {
+export async function ecrireUneNote(data: unknown, context: CallContext): Promise<Sortie<'ecrireUneNote'>> {
   const auth = requireAuth(context);
 
   const { texte, lessonId, lessonLabel } = (data ?? {}) as {

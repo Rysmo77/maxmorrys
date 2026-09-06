@@ -2,6 +2,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 
 import { type CallContext, requireAuth } from '../../context';
 import { asText, toNumber } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -43,7 +44,7 @@ const MOIS = [
   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
 ];
 
-export async function appClub(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appClub(_data: unknown, context: CallContext): Promise<Reponse<'appClub'>> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 

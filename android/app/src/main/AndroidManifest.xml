@@ -21,6 +21,16 @@
       android:supportsRtl="false"
       android:theme="@style/Theme.Rysmo.Lancement">
 
+    <!--
+      ⚠️ VERROUILLAGE EN PORTRAIT, ASSUMÉ — et `lint` a raison de le signaler
+      (`LockedOrientationActivity`) : il coûte le multi-fenêtre et les grands écrans.
+      Aucun des 42 écrans du kit n'a de mise en page en paysage ; déverrouiller ici les
+      ferait tous pivoter vers une disposition qui n'existe pas.
+
+      Le lecteur en plein écran, lui, EST en paysage : il pose `requestedOrientation` au
+      moment de l'exécution, ce qui prime sur cette valeur. La contradiction se résout donc
+      en code, écran par écran — pas en ouvrant l'activité entière.
+    -->
     <activity
         android:name=".MainActivity"
         android:exported="true"
@@ -53,10 +63,22 @@
         <action android:name="android.intent.action.VIEW" />
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
-        <data android:scheme="https" android:host="maxmorrys.me" android:pathPrefix="/formations" />
-        <data android:scheme="https" android:host="maxmorrys.me" android:pathPrefix="/verifier" />
-        <data android:scheme="https" android:host="www.maxmorrys.me" android:pathPrefix="/formations" />
-        <data android:scheme="https" android:host="www.maxmorrys.me" android:pathPrefix="/verifier" />
+        <!--
+          ⛔ ANDROID COMBINE CES ATTRIBUTS EN PRODUIT CROISÉ, il ne les apparie pas ligne à
+          ligne. Les valeurs de TOUTES les balises `data` d'un même filtre sont réunies par
+          catégorie, puis multipliées : 1 schéma × 2 hôtes × 2 préfixes = les 4 adresses
+          voulues, et pas une de plus.
+
+          C'est pour cela qu'elles sont écrites une par ligne plutôt que groupées par
+          adresse : la forme groupée SUGGÈRE un appariement qui n'existe pas. Quelqu'un qui
+          ajouterait une cinquième ligne « hôte X + préfixe Y » en croyant déclarer UNE
+          adresse en déclarerait en réalité six de plus, dont X sur tous les préfixes.
+        -->
+        <data android:scheme="https" />
+        <data android:host="maxmorrys.me" />
+        <data android:host="www.maxmorrys.me" />
+        <data android:pathPrefix="/formations" />
+        <data android:pathPrefix="/verifier" />
       </intent-filter>
     </activity>
   </application>

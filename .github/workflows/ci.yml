@@ -40,6 +40,25 @@ jobs:
       - name: Design system — six règles + copie littérale (AD-1)
         run: npm run ds:check
 
+      # ── Le contrat des vues, et ses deux consommateurs générés ───────────
+      # ⭐ MÊME MOTIF QUE `ds:check`, POUR LA MÊME RAISON : la porte qui mord est celle qui
+      # COMPARE DEUX ARTEFACTS, jamais celle qui affirme une constante. On régénère
+      # `contrat.ts` et `Vues.kt` dans un dossier temporaire et on diffère : une retouche à la
+      # main, ou un contrat modifié sans régénération, échoue ici.
+      #
+      # La même commande vérifie les ROUTES : l'ensemble des callables du contrat doit ÉGALER
+      # l'ensemble des clés `app*` de `HANDLERS`, et chacune doit figurer dans LES DEUX listes
+      # `MIGRATED`. Un nom absent de la liste ne tombe pas en erreur franche — il part au relais
+      # mort et reçoit la page HTML 404 de Google, ce qui se lit comme une panne de réseau. Sur
+      # un téléphone il n'y a pas de console : quelqu'un ira vérifier son forfait avant de
+      # soupçonner une liste de configuration. C'est ce défaut-là qui a coûté le paiement du Club.
+      #
+      # ⚠️ Les deux moitiés tournent ENSEMBLE, délibérément : `npm run vues:check --routes` ne
+      # passerait pas le drapeau (npm avale les options placées après le nom du script), et une
+      # porte qu'il faut penser à invoquer est une porte qui ne tourne pas.
+      - name: Contrat des vues — la source contre ses consommateurs
+        run: npm run vues:check
+
       # Les suites unitaires gardent la cohérence des prix (Club, offre TPE) entre le code,
       # les CGV et l'interface. Sans cette étape elles n'avaient AUCUNE couverture CI, et
       # c'est ainsi que les CGV ont pu annoncer un tarif que le code ne pratiquait plus.

@@ -29,7 +29,13 @@ import { join, resolve } from 'node:path';
  * au Club. Le correctif qui l'avait manqué nommait pourtant le défaut dans son propre
  * commentaire (« aucun abonnement Club ne pouvait être payé »).
  *
- * Les trois portes ci-dessous rendent ce silence impossible.
+ * Les portes ci-dessous rendent ce silence impossible.
+ *
+ * ⭐ L'ANGLE MORT DU NATIF EST REFERMÉ (lot 2). Le balayage ne connaissait que les motifs
+ * TypeScript du port supprimé, et parcourait donc deux dossiers vides : il passait au vert
+ * sans rien vérifier. Il lit maintenant l'objet `Callables` de
+ * `android/.../donnees/Vues.kt` — GÉNÉRÉ depuis `vues.contrat.json`, donc exhaustif par
+ * construction — plus les appels écrits à la main, et il compte ce qu'il a trouvé.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -68,6 +74,19 @@ function listesMigrated(): string[][] {
  */
 function appeleesParLeNatif(): string[] {
   const noms = new Set<string>();
+
+  /*
+   * ⛔ LE PIÈGE À NE PAS REPRODUIRE, ET IL A DÉJÀ COÛTÉ UNE GARANTIE ENTIÈRE.
+   * `mobile-routes.test.ts` cherchait toute chaîne commençant par `/` dans n'importe quel
+   * fichier — et la planche d'atelier citait les 48 adresses en dur. « Toute route y était donc
+   * "citée", et le test restait vert alors qu'aucun écran de production ne menait à onze
+   * d'entre elles. » Une planche de revue Compose citerait de la même façon les 19 noms de vue.
+   * Les fichiers d'aperçu sont donc EXCLUS avant de compter, par leur nom comme par leur
+   * contenu.
+   */
+  const estUnApercu = (nom: string, code: string) =>
+    /(Apercu|Preview|Planche)/i.test(nom) || /@Preview\b/.test(code) || /PreviewProvider\b/.test(code);
+
   const parcourir = (dir: string) => {
     for (const e of readdirSync(dir)) {
       const chemin = join(dir, e);
@@ -75,23 +94,36 @@ function appeleesParLeNatif(): string[] {
         parcourir(chemin);
         continue;
       }
-      if (!/\.tsx?$/.test(e)) continue;
+      if (!/\.(kt|swift)$/.test(e)) continue;
       const code = readFileSync(chemin, 'utf8');
-      for (const m of code.matchAll(/(?:appeler|useVue)<[^>]*>?\(\s*'([A-Za-z0-9_]+)'/g)) {
-        noms.add(m[1]);
+      if (estUnApercu(e, code)) continue;
+
+      /*
+       * ⭐ LA SOURCE PRINCIPALE : l'objet `Callables` de `Vues.kt`, GÉNÉRÉ depuis le contrat.
+       * Il porte tous les noms que la couche de données sait appeler, à un seul endroit et par
+       * construction — c'est ce qui rebranche cette porte que le dossier vide laissait au vert.
+       */
+      const bloc = /object Callables \{([\s\S]*?)\n\}/.exec(code);
+      if (bloc) {
+        for (const m of bloc[1].matchAll(/const val\s+[A-Z0-9_]+\s*=\s*"([A-Za-z0-9_]+)"/g)) {
+          noms.add(m[1]);
+        }
       }
-      for (const m of code.matchAll(/(?:appeler|useVue)\(\s*'([A-Za-z0-9_]+)'/g)) {
-        noms.add(m[1]);
+
+      /*
+       * ET LE FILET : un appel écrit à la main avec un littéral, hors de la porte des données.
+       * C'est exactement ce que faisait `mobile/app/suppression.tsx` avec `deleteUserAccount` —
+       * la garde ne regardait alors pas cet appel-là, ni aucun futur appel direct.
+       */
+      for (const m of code.matchAll(/(?:appeler|appelerBrut|lire)(?:<[^>]*>)?\(\s*"([A-Za-z0-9_.]+)"/g)) {
+        /* Un nom de VUE porte son discriminant (`appClubListe.membre`) ; la CALLABLE est son
+           préfixe. C'est elle, et elle seule, qui doit figurer dans `MIGRATED`. */
+        noms.add(m[1].split('.')[0]);
       }
     }
   };
-  /* ⚠️ `mobile/` a été supprimé le 05/09/2026 : l'application est réécrite en Kotlin et en
-     Swift. Cette porte ne peut donc plus vérifier qu'une callable appelée par le natif est
-     bien servie — c'est un ANGLE MORT ouvert, pas une garantie qui tient.
-     Elle se rebranchera sur les sources Kotlin puis Swift au lot 6. Les deux autres sens
-     (tout handler est déclaré dans MIGRATED, les deux listes sont identiques) continuent
-     de mordre, et ce sont eux qui ont attrapé la panne du chemin de l'argent. */
-  for (const dossier of ['android/app/src', 'ios/Rysmo']) {
+
+  for (const dossier of ['android/app/src/main', 'ios/Rysmo']) {
     const chemin = join(RACINE, dossier);
     if (existsSync(chemin)) parcourir(chemin);
   }
@@ -160,6 +192,18 @@ describe("aiguillage des callables du Worker api", () => {
     const connus = new Set([...handlers(), ...SERVIS_HORS_REGISTRE]);
     const fantomes = listesMigrated().flat().filter((n) => !connus.has(n));
     expect([...new Set(fantomes)], 'déclarés sans implémentation').toEqual([]);
+  });
+
+  it('la porte native regarde bien quelque chose', () => {
+    /*
+     * ⛔ CETTE ASSERTION EST LA RAISON D'ÊTRE DU BLOC. Le fichier déclarait lui-même son angle
+     * mort : le balayage parcourait `android/app/src` et `ios/Rysmo`, VIDES DE SOURCE, et
+     * passait donc au vert sans rien vérifier. Une porte qui ne peut pas rougir ne prouve rien.
+     * Sans ce compte minimal, le jour où `Vues.kt` change de nom ou de forme, la garde
+     * redeviendrait silencieuse au lieu d'échouer.
+     */
+    expect(appeleesParLeNatif().length, 'aucun nom de callable trouvé côté natif — la porte ne vérifie plus rien')
+      .toBeGreaterThan(20);
   });
 
   it("toute callable appelée par l'application native est servie par le Worker", () => {

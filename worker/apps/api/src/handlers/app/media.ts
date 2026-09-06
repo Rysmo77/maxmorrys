@@ -2,6 +2,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 
 import { type CallContext, requireAuth } from '../../context';
 import { asText } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -44,7 +45,7 @@ async function dernier(context: CallContext, collection: string): Promise<DocSna
   return trouves[0] ?? null;
 }
 
-export async function appMedia(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appMedia(_data: unknown, context: CallContext): Promise<Reponse<'appMedia'>> {
   requireAuth(context);
   const releveA = new Date().toISOString();
 

@@ -2,6 +2,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 
 import { type CallContext, requireAuth } from '../../context';
 import { asText } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -32,7 +33,7 @@ function quand(iso: string | undefined): string | null {
   return `${deux(d.getUTCDate())}/${deux(d.getUTCMonth() + 1)} · ${deux(d.getUTCHours())}:${deux(d.getUTCMinutes())}`;
 }
 
-export async function appNotes(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appNotes(_data: unknown, context: CallContext): Promise<Reponse<'appNotes'>> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 

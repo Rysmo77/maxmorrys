@@ -2,6 +2,7 @@ import { HttpsError } from '@mm/shared';
 
 import { type CallContext, requireAuth } from '../context';
 import { asText } from '../lib/values';
+import type { Sortie } from '../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -25,7 +26,7 @@ import { asText } from '../lib/values';
  * moyen le plus simple de polluer la file du support depuis un compte gratuit.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
-export async function signalerMembre(data: unknown, context: CallContext): Promise<unknown> {
+export async function signalerMembre(data: unknown, context: CallContext): Promise<Sortie<'signalerMembre'>> {
   const auth = requireAuth(context);
 
   const { membreId, motif } = (data ?? {}) as { membreId?: unknown; motif?: unknown };

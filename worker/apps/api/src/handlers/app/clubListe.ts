@@ -6,6 +6,7 @@ import { type CallContext, requireAuth } from '../../context';
 import { asText, toNumber } from '../../lib/values';
 import { abonnementActif } from './club';
 import { listeDesBloques } from '../bloquerMembre';
+import type { ReponseAppClubListe } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -48,7 +49,7 @@ function depuis(iso: string | undefined): string | null {
   return jours === 1 ? 'hier' : `il y a ${jours} j`;
 }
 
-export async function appClubListe(data: unknown, context: CallContext): Promise<unknown> {
+export async function appClubListe(data: unknown, context: CallContext): Promise<ReponseAppClubListe> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 

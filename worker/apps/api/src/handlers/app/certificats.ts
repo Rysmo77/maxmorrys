@@ -2,6 +2,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 
 import { type CallContext, requireAuth } from '../../context';
 import { asText, toNumber } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -17,7 +18,7 @@ import { asText, toNumber } from '../../lib/values';
  * un document au nom de quelqu'un avec le code d'un autre.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
-export async function appCertificats(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appCertificats(_data: unknown, context: CallContext): Promise<Reponse<'appCertificats'>> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 

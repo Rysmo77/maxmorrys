@@ -1,6 +1,16 @@
 ---
 releve: '2026-09-05'
 methode: 'lecture de worker/apps/api/src/handlers/**, mobile/donnees/**, mobile/package.json'
+
+> ⚠️ **LES CHEMINS `mobile/…` DE CE DOCUMENT NE RÉSOLVENT PLUS.** Le port React Native a été
+> supprimé le 05/09/2026 ; l'application est réécrite en Kotlin/Compose et Swift/SwiftUI. Ils
+> restent lisibles par `git show 9c22076:<chemin>`, et les CONSTATS qu'ils appuient sont
+> inchangés : ce document décrit ce que l'application collecte, pas ce qui la construit.
+>
+> ⛔ **Un point ne survit PAS tel quel : le manifeste de confidentialité iOS.** Il vivait dans
+> `mobile/app.json` (`ios.privacyManifests`), que le préconstruit d'Expo transformait en
+> `PrivacyInfo.xcprivacy`. Dans un projet Xcode natif, ce fichier doit être écrit et ajouté
+> à la cible À LA MAIN. Apple REFUSE la soumission sans lui. Il n'existe pas encore.
 ---
 
 # Ce que l'application collecte réellement
@@ -33,13 +43,24 @@ tableau, et `tests/unit/mobile-confidentialite.test.ts` refuse qu'ils divergent.
 Mesuré dans `mobile/package.json` : **aucun SDK d'analytique, de crash, de publicité ou
 d'attribution**. Ni Sentry, ni Firebase Analytics, ni identifiant publicitaire.
 
-`mobile/donnees/firebase.ts` initialise `firebase/app` et `firebase/auth` **uniquement** — le
-fichier interdit explicitement `firebase/firestore`. Il n'y a donc ni `@firebase/installations`
-ni Installation ID.
+⚠️ **Ce paragraphe décrivait le port React Native, supprimé le 05/09/2026.** Les faits qu'il
+énonce restent vrais — ils portent sur ce que l'application COLLECTE, pas sur la technologie qui
+la construit — mais les noms de fichiers et de paquets ont changé, et un formulaire de
+confidentialité qui cite un paquet absent se fait refuser.
 
-Aucune permission de localisation, contacts, photos, micro ou caméra n'est déclarée. Face ID
-(`expo-local-authentication`) ne transmet rien : la vérification a lieu sur l'appareil, et le
-résultat ne quitte jamais le téléphone. Aucun achat n'est possible dans l'application.
+L'application ne parle qu'à `api.maxmorrys.me` (Cloudflare Worker) en HTTP+JSON. **Aucun SDK
+Firebase côté client**, donc ni `@firebase/installations` ni Installation ID — c'était déjà la
+règle du port RN (AD-10) et la réécriture Kotlin/Swift la garde, le contrat étant HTTP.
+
+Aucune permission de localisation, contacts, photos, micro ou caméra n'est déclarée — vérifié
+sur le paquet CONSTRUIT par `aapt2 dump permissions`, pas sur le manifeste source. Les quatre
+permissions Android demandées sont `INTERNET`, `ACCESS_NETWORK_STATE`, `USE_BIOMETRIC` et
+`USE_FINGERPRINT` (celle-ci plafonnée à l'API 27, où elle cesse d'être utile).
+
+Le déverrouillage biométrique ne transmet rien : la vérification a lieu sur l'appareil, et le
+résultat ne quitte jamais le téléphone. Sur Android il passe par `androidx.biometric`, sur iOS
+par `LocalAuthentication` — deux cadres du système, sans service tiers. Aucun achat n'est
+possible dans l'application.
 
 ⚠️ **Tracking : NON, partout.** `NSPrivacyTracking: false` et `NSPrivacyTrackingDomains: []`
 sont cohérents avec l'absence totale de SDK tiers — ce n'est pas une déclaration de principe,

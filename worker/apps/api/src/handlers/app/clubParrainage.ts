@@ -1,6 +1,7 @@
 import { type CallContext, requireAuth } from '../../context';
 import { asText } from '../../lib/values';
 import { abonnementActif } from './club';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -29,7 +30,7 @@ function fabriquerCode(uid: string): string {
   return (uid.slice(0, 3) + Math.random().toString(36).slice(2, 7)).toUpperCase();
 }
 
-export async function appClubParrainage(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appClubParrainage(_data: unknown, context: CallContext): Promise<Reponse<'appClubParrainage'>> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 

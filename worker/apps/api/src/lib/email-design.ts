@@ -22,7 +22,8 @@
  * jeton à référencer. Le courrier n'a ni l'une ni l'autre : les clients de messagerie
  * suppriment `<style>`, ignorent `var()`, et seul le style EN LIGNE survit partout. Écrire le
  * littéral n'est pas ici un contournement, c'est le seul rendu qui arrive à destination.
- * `ds:check` ne lit de toute façon que `src/` et `mobile/` — `worker/` lui est étranger.
+ * `ds:check` ne lit de toute façon que `src/` et les cibles générées du natif —
+ * `worker/` lui est étranger. (Il lisait aussi `mobile/`, supprimé le 05/09/2026.)
  */
 
 /* ─────────────────────────────────────────────────────────────────────────────

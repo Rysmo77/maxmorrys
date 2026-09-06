@@ -3,6 +3,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 import { HttpsError } from '@mm/shared';
 import { type CallContext, requireAuth } from '../../context';
 import { asText } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -63,7 +64,7 @@ function enClair(total: number): string {
   return m === 0 ? `${h} h` : `${h} h ${String(m).padStart(2, '0')}`;
 }
 
-export async function appFormation(data: unknown, context: CallContext): Promise<unknown> {
+export async function appFormation(data: unknown, context: CallContext): Promise<Reponse<'appFormation'>> {
   requireAuth(context);
   const releveA = new Date().toISOString();
 

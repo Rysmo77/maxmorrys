@@ -97,3 +97,43 @@ Elles ne sont pas facultatives : ce sont des motifs de rejet, et rien ne les gar
    rien lire.
 
 Ces quatre-là doivent revenir **avant la première soumission**, pas avant la fin du lot 6.
+
+---
+
+## ✅ Ce qui est effectivement REVENU (mis à jour le 05/09/2026, lots 1 à 3)
+
+Ce registre ne vaut que s'il dit la vérité dans les deux sens. Une garantie rayée d'une
+liste sans être remplacée est pire qu'une garantie absente : elle laisse croire qu'elle
+tient. Voici donc ce qui est réellement gardé aujourd'hui, et par quoi.
+
+| Garantie perdue | Reprise par | Éprouvée en cassant |
+|---|---|---|
+| `mobile-ds` — aucune couleur écrite en dur | `tests/unit/natif-socle.test.ts` (Kotlin écrit à la main + le vectoriel de l'icône) | une couleur posée dans un écran, un chevron peint en littéral → refusés |
+| `mobile-ds` — les jetons ne dérivent pas de leur source | `ds:check`, **sept** cibles générées comparées après régénération | un dégradé sombre ramené à sa valeur claire, une couleur de nuit falsifiée → refusés |
+| `mobile-fontes` — les binaires ne divergent pas du kit | `natif-socle.test.ts`, dans les DEUX sens + légalité des noms `aapt2` | une fonte retirée → refusé |
+| `mobile-liens-profonds` — les deux côtés ouvrent les mêmes chemins | `natif-socle.test.ts` (manifeste ↔ `assetlinks.json`) | — |
+| `mobile-atelier-garde` — la planche est hors du paquet | **l'arborescence**, pas un test : `app/src/debug/` n'est pas compilé pour `release` | par construction |
+| `mobile-reseau` — l'échec de transport a plusieurs causes | `donnees/Erreurs.kt` + tests Kotlin ; **quatre** causes, pas trois | — |
+| `mobile-routes` — tout lien mène à un écran qui existe | le COMPILATEUR : destinations `@Serializable` typées | par construction |
+| ⭐ inédite — le mode sombre n'est pas un filtre | `natif-socle.test.ts` : les deux palettes divergent là où le CSS diverge | l'arc sombre ramené au clair → refusé |
+| ⭐ inédite — le contrat de vues ne dérive pas | `vues:check` + le typecheck TypeScript du Worker | vue retirée, route absente d'une liste `MIGRATED` → refusés |
+
+### ⛔ Ce qui N'EST TOUJOURS PAS gardé
+
+Écrit ici pour que le silence ne se lise pas comme une absence de problème.
+
+- **Les contrôles morts** (`mobile-controles-morts`, la porte qui a attrapé six boutons
+  inertes). Il n'y a pas encore d'écran à examiner ; la règle Detekt est au lot 6.
+- **Le second sens de la carte** — « tout écran est atteint par un lien ». Aucun type ne
+  peut le tenir : c'est le travail d'une porte, et c'est précisément le sens qui manquait
+  au port RN. Lot 4, avec le `NavHost`.
+- **Les six clés Firebase à l'export** (`mobile-app-config`). Sans objet en l'état : la
+  réécriture ne parle qu'au Worker par HTTP, il n'y a plus de SDK Firebase côté client.
+  ⚠️ À rouvrir si une clé revient dans le paquet.
+- **Le manifeste de confidentialité iOS.** Il vivait dans `mobile/app.json` ; dans un projet
+  Xcode natif, `PrivacyInfo.xcprivacy` doit être écrit et ajouté à la cible À LA MAIN.
+  Apple refuse la soumission sans lui. **Il n'existe pas.**
+- **Aucun achat dans l'application** (`mobile-store-achats`). ⚠️ Cette garantie est en
+  CONTRADICTION avec le kit, qui nomme le magasin sur quatre écrans — décision humaine
+  ouverte, voir `deferred-work.md`.
+- **Les textes légaux, l'identité, le verrou biométrique.** Leurs écrans n'existent pas encore.

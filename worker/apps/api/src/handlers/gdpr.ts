@@ -160,7 +160,10 @@ export async function deleteUserAccount(data: unknown, context: CallContext): Pr
    * ══════════════════════════════════════════════════════════════════════════════════
    * CE QUI PART, ET POURQUOI LA LISTE A DÛ S'ALLONGER.
    *
-   * L'écran `mobile/app/suppression.tsx` ÉNUMÈRE ce qui disparaît. Tant que le balayage
+   * L'écran de suppression du compte ÉNUMÈRE ce qui disparaît — c'était
+   * `mobile/app/suppression.tsx` (port React Native supprimé le 05/09/2026 ; lisible par
+   * `git show 9c22076:mobile/app/suppression.tsx`), ce sera `NatSuppression` en Compose
+   * puis en SwiftUI. Le lien à tenir n'est pas le fichier, c'est la LISTE. Tant que le balayage
    * était plus court que cette liste, l'écran promettait ce que le serveur ne faisait pas
    * — et le cas le plus visible n'était pas un chiffre mais un NOM : `club_posts` porte
    * `userName` en clair. Une personne supprimée gardait ses messages signés sur le mur du

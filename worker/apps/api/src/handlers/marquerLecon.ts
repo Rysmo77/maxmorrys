@@ -2,6 +2,7 @@ import { HttpsError } from '@mm/shared';
 
 import { type CallContext, requireAuth } from '../context';
 import { asText, toNumber } from '../lib/values';
+import type { Sortie } from '../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -35,7 +36,7 @@ import { asText, toNumber } from '../lib/values';
 interface Lecon { id?: string }
 interface Module { lessons?: Lecon[] }
 
-export async function marquerLecon(data: unknown, context: CallContext): Promise<unknown> {
+export async function marquerLecon(data: unknown, context: CallContext): Promise<Sortie<'marquerLecon'>> {
   const auth = requireAuth(context);
 
   const { formationId, leconId, faite } = (data ?? {}) as {

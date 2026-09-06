@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ⛔ CE MANIFESTE N'EXISTE QUE DANS LA VARIANTE `debug`.
+
+  Le port React Native livrait sa planche d'atelier DANS LE PAQUET, et la porte qui la
+  cherchait regardait ailleurs : elle est partie en production sans que rien ne la voie.
+  Ici, l'atelier vit dans `src/debug/` — Gradle ne le compile pas pour `release`, donc la
+  question ne se pose plus au moment du build, elle est déjà tranchée par l'arborescence.
+
+  `exported="true"` est nécessaire pour que `adb shell am start` l'atteigne : les captures
+  de vérification passent par là. C'est sans risque puisque la variante `debug` porte le
+  suffixe `.debug` sur son identifiant d'application et n'est jamais publiée.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="me.maxmorrys.rysmo.atelier.AtelierActivity"
+            android:exported="true"
+            android:label="Atelier DS"
+            android:theme="@style/Theme.Rysmo.Lancement" />
+    </application>
+</manifest>

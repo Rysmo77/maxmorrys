@@ -1,0 +1,735 @@
+{
+  "version": 1,
+
+  "doc": [
+    "LE CONTRAT DES VUES — le SEUL artefact de cette couche écrit à la main.",
+    "",
+    "La dépendance est inversée par rapport à ce qu'on imaginerait : le contrat n'est pas",
+    "extrait du serveur, c'est le serveur qui en est le PREMIER CONSOMMATEUR. Les 17 handlers",
+    "`app*` étaient typés `Promise<unknown>` et construisaient leur littéral en ligne : il n'y",
+    "avait rien à lire pour un générateur, et une extraction par expression régulière aurait",
+    "reproduit le mode d'échec déjà payé dans ce dépôt (la première version de",
+    "`worker-vues-natives.test.ts` cherchait `abonnementActif(`, motif que la DÉCLARATION de la",
+    "fonction satisfait elle-même : la porte passait au vert sur un fichier dont le contrôle",
+    "avait été retiré).",
+    "",
+    "Ici, `npm run vues:gen` produit `contrat.ts`, les 17 handlers annoncent",
+    "`Promise<Reponse<'appMoi'>>`, et c'est LE COMPILATEUR TypeScript qui les tient — dans le",
+    "job `workers` qui tourne déjà. `npm run vues:check` régénère dans un dossier temporaire et",
+    "diffère : une retouche à la main du Kotlin ou du TypeScript généré rougit.",
+    "",
+    "⛔ CE QUE LA PORTE NE PEUT PAS EMPÊCHER, et qu'il faut savoir : changer le JSON et le",
+    "handler dans le même commit fait mentir le contrat. Aucune porte ne l'attrape, et aucune ne",
+    "le peut. Ce qui est garanti, c'est qu'on ne peut pas le faire PAR ACCIDENT, ni sur une",
+    "seule des plateformes — le seul mode de dérive réel.",
+    "",
+    "⚠️ `entier` VS `decimal`, la règle appliquée ici : `entier` pour ce que le serveur COMPTE",
+    "lui-même (longueurs, agrégations, pourcentages bornés par `Math.round`) et pour les",
+    "compteurs que le produit tient pour entiers ; `decimal` pour les montants d'argent, qui",
+    "sont les seules valeurs dont la partie fractionnaire est légitime. Le risque résiduel est",
+    "nommé : `toNumber()` (worker/apps/api/src/lib/values.ts:21) N'ARRONDIT PAS, donc une valeur",
+    "fractionnaire écrite en base sur `xp` ou `progress` ferait échouer le décodage d'un `Int`",
+    "Kotlin. Aucune écriture du produit n'en fabrique ; c'est une dette nommée, pas une",
+    "hypothèse oubliée.",
+    "",
+    "⚠️ PAS DE DATE DANS CE FICHIER. `proof:check` interdit les dates écrites à la main, et un",
+    "horodatage rendrait chaque régénération diffante. `version` suffit."
+  ],
+
+  "enveloppe": { "vue": "<forme|null>", "releveA": "horodatage" },
+
+  "formes": {
+    "Moi": {
+      "doc": "Qui regarde. L'initiale est CALCULÉE côté serveur, jamais stockée : un nom qui change doit la changer.",
+      "champs": {
+        "prenom": { "type": "texte", "nul": false },
+        "nom": { "type": "texte", "nul": false },
+        "initiale": { "type": "texte", "nul": false },
+        "email": { "type": "texte", "nul": true },
+        "ouvertureCompte": { "type": "texte", "nul": true, "doc": "« 12 août » — DÉJÀ MIS EN FORME, pas une date à reformater. L'année est omise volontairement." },
+        "tuteur": { "type": "texte", "nul": true, "doc": "Le nom du répétiteur vit dans le profil, pas sur l'appareil : un stockage local en ferait une seconde source de vérité." },
+        "role": {
+          "type": { "union": ["student", "admin", "support"] },
+          "nul": false,
+          "ouvert": true,
+          "doc": "⚠️ ENSEMBLE FERMÉ CÔTÉ PRODUIT, OUVERT CÔTÉ SERVEUR. `moi.ts:57` rend `asText(document.data.role) ?? 'student'` : la valeur vient de la BASE, donc le serveur peut légitimement émettre n'importe quelle chaîne. Le client porte l'énumération plus son cas `inconnu` ; le TypeScript reste ouvert, sinon le compilateur exigerait du handler une garantie que son code ne donne pas — et la seule façon de la lui donner serait de NORMALISER la valeur, c'est-à-dire de changer la réponse servie."
+        },
+        "xp": { "type": "entier", "nul": false }
+      }
+    },
+
+    "Espace": {
+      "doc": "La reprise — ce que l'accueil propose de rouvrir. N'existe dans AUCUN document : c'est une jointure `enrollments` × `formations` plus deux calculs de dates.",
+      "champs": {
+        "slug": { "type": "texte", "nul": false },
+        "titre": { "type": "texte", "nul": false },
+        "titreCourt": { "type": "texte", "nul": false, "doc": "Premier segment avant « pour », « : » ou un tiret cadratin. L'écran a deux lignes ; un titre complet y déborde." },
+        "meta": { "type": "texte", "nul": false, "doc": "Chaîne d'affichage déjà jointe par ` · `. Ne pas la redécouper." },
+        "lecons": { "type": "entier", "nul": false },
+        "leconsFaites": { "type": "entier", "nul": false },
+        "progression": { "type": "entier", "nul": false, "doc": "Pourcentage 0-100, borné et arrondi par `marquerLecon`." },
+        "arret": { "type": "texte", "nul": true, "doc": "« Tu t'es arrêtée il y a 8 jours ». Une phrase, pas une durée." },
+        "moduleEnCours": { "type": "texte", "nul": true, "doc": "⚠️ `asText()` rend `undefined`, que `JSON.stringify` OMET : la clé est absente du corps, elle ne vaut pas `null`. C'est pourquoi tout champ nullable se génère aussi FACULTATIF des deux côtés." },
+        "leconEnCours": { "type": "texte", "nul": true, "doc": "Même absence possible que `moduleEnCours`." }
+      }
+    },
+
+    "Cours": {
+      "doc": "Une ligne du catalogue. ⛔ AUCUN PRIX N'EN SORT, et ce n'est pas un oubli : un catalogue qui affiche des montants EST une vitrine. `formations` porte un `price` ; il s'arrête au serveur.",
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "slug": { "type": "texte", "nul": false },
+        "titre": { "type": "texte", "nul": false },
+        "titreCourt": { "type": "texte", "nul": false },
+        "meta": { "type": "texte", "nul": false },
+        "niveau": { "type": "texte", "nul": true, "doc": "Le niveau descend comme une DONNÉE, à côté de sa mise en forme dans `meta` : sur une chaîne d'affichage on ne peut ni compter ni filtrer." },
+        "acquise": { "type": "booleen", "nul": false, "doc": "Calculé depuis les inscriptions de la personne, jamais depuis un paramètre." }
+      }
+    },
+
+    "ModuleFiche": {
+      "doc": "Un module dans la fiche d'une formation.",
+      "champs": {
+        "titre": { "type": "texte", "nul": false },
+        "meta": { "type": "texte", "nul": false, "doc": "« module 2 · 5 leçons · 54 min ». Le temps MANQUE quand une seule durée du module ne se laisse pas lire — un total amputé se lirait comme une mesure." },
+        "ouvert": { "type": "booleen", "nul": false, "doc": "Vrai si le module contient au moins une leçon `isFree`. On ne suppose PAS que c'est le premier : c'est l'administration qui décide." }
+      }
+    },
+    "Formation": {
+      "champs": {
+        "titre": { "type": "texte", "nul": false },
+        "titreCourt": { "type": "texte", "nul": false },
+        "meta": { "type": "texte", "nul": false },
+        "lecons": { "type": "entier", "nul": false },
+        "modules": { "type": { "liste": { "objet": "ModuleFiche" } }, "nul": false }
+      }
+    },
+
+    "LeconLigne": {
+      "doc": "Une ligne du programme du module en cours.",
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "titre": { "type": "texte", "nul": false },
+        "meta": { "type": "texte", "nul": true, "doc": "⚠️ NI DURÉE NI POIDS INVENTÉS. Sur ce marché un forfait est compté : le poids en mégaoctets décide de charger maintenant ou d'attendre le Wi-Fi. Le champ est ABSENT quand la base ne l'a pas." },
+        "etat": { "type": { "union": ["done", "current", "todo"] }, "nul": false, "doc": "Le seul ensemble fermé que le port React Native avait conservé." },
+        "doc": { "type": "booleen", "nul": false }
+      }
+    },
+    "Lecon": {
+      "champs": {
+        "moduleTitre": { "type": "texte", "nul": true },
+        "programme": { "type": { "liste": { "objet": "LeconLigne" } }, "nul": false }
+      }
+    },
+
+    "NotesTotal": {
+      "doc": "⚠️ NOMMÉE ICI : elle était anonyme des deux côtés (`notes.ts:51`, inline dans `VueNotes`). « 14 notes · 6 leçons » ne dit pas la même chose que « 14 notes » — le second nombre compte les leçons DISTINCTES annotées.",
+      "champs": {
+        "notes": { "type": "entier", "nul": false },
+        "lecons": { "type": "entier", "nul": false }
+      }
+    },
+    "Note": {
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "texte": { "type": "texte", "nul": false },
+        "date": {
+          "type": "texte",
+          "nul": true,
+          "doc": "⛔ DEUX FORMES POUR UN MÊME NOM, ET C'EST UNE CONTRADICTION DU SERVEUR. `appNotes` compose « 04/09 · 21:14 · <leçon> » (`notes.ts:58-60`) ; `ecrireUneNote` rend `asText(lessonLabel) ?? null` (`ecrireUneNote.ts:67`), c'est-à-dire LE LIBELLÉ DE LA LEÇON, pas une date. La trancher est une modification du Worker, donc hors du périmètre de ce lot : le contrat la NOMME, il ne la corrige pas. C'est pourquoi l'écriture porte sa propre forme `NoteEcrite` plutôt que de réutiliser `Note`."
+        }
+      }
+    },
+    "Notes": {
+      "champs": {
+        "total": { "type": { "objet": "NotesTotal" }, "nul": false },
+        "notes": { "type": { "liste": { "objet": "Note" } }, "nul": false }
+      }
+    },
+
+    "Certificat": {
+      "doc": "⚠️ Un certificat est un document OPPOSABLE : quatre champs solidaires — titulaire, formation, date, code. Le serveur ne rend que les jeux COMPLETS ; un jeu partiel produirait un document au nom de quelqu'un avec le code d'un autre.",
+      "champs": {
+        "code": { "type": "texte", "nul": false },
+        "titulaire": { "type": "texte", "nul": false },
+        "formation": { "type": "texte", "nul": false },
+        "emisLe": { "type": "texte", "nul": false, "doc": "Chaîne ISO brute de `issuedAt`, PAS mise en forme — contrairement à `Moi.ouvertureCompte`." },
+        "lecons": { "type": "entier", "nul": false, "doc": "0 = « non relevé » pour l'écran, qui le rend par `Num`. Les certificats émis avant le correctif du champ `certificateCode` n'ont pas ce compte, et il ne s'invente pas." }
+      }
+    },
+    "Certificats": {
+      "champs": {
+        "ouvertureCompte": { "type": "texte", "nul": true, "doc": "Chaîne ISO brute. Elle est là pour DATER LE ZÉRO : « zéro certificat depuis l'ouverture de ton compte » se lit, « — » ne se lit pas." },
+        "certificats": { "type": { "liste": { "objet": "Certificat" } }, "nul": false },
+        "incomplets": { "type": "entier", "nul": false, "doc": "Non montré à la personne : il part en trace. Un certificat amputé côté base est un défaut de données, pas un vide légitime." }
+      }
+    },
+
+    "ClubBilanTuile": {
+      "doc": "⚠️ NOMMÉE ICI parce qu'elle était anonyme des deux côtés (`club.ts:90-94`). Voir `n`.",
+      "champs": {
+        "n": {
+          "type": "entier",
+          "nul": false,
+          "doc": "⛔ NON NULLABLE, CONTRE LE COMMENTAIRE DE `club.ts:88-89`. Celui-ci affirme « Un `null` y reste `null` : trois tuiles qui affichent “non relevé” valent mieux qu'un zéro qu'on n'a pas mesuré. » LE CODE NE PEUT PAS LE TENIR : `count(...).catch(() => 0)` (`club.ts:63, 68`) et `toNumber(..., 0)` (`:93`) servent une agrégation REFUSÉE comme un zéro MESURÉ. Même motif dans `console.ts:49`. Le contrat dit la vérité du code, pas celle du commentaire ; faire passer `.catch(() => 0)` à `.catch(() => null)` est une décision produit, et elle n'a pas eu lieu."
+        },
+        "l": { "type": "texte", "nul": false }
+      }
+    },
+    "Club": {
+      "champs": {
+        "echeance": { "type": "texte", "nul": true, "doc": "JJ/MM/AAAA, déjà mis en forme." },
+        "depuis": { "type": "texte", "nul": true, "doc": "Nom du mois, en français, en minuscule." },
+        "bilan": { "type": { "liste": { "objet": "ClubBilanTuile" } }, "nul": false }
+      }
+    },
+
+    "Seance": {
+      "doc": "Une séance de l'agenda. `club_sessions` (les directs) et `club_events` (les ateliers) ont la même forme à l'écran et des règles distinctes en base : la fusion et le tri vivent au serveur, sinon ils se referaient dans chaque client.",
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "collection": {
+          "type": { "union": ["club_sessions", "club_events"] },
+          "nul": false,
+          "doc": "⚠️ CE JETON REPART AU SERVEUR. `reserverSession` le reçoit et le revalide contre la même liste fermée (`reserverSession.ts:42`). Le typer `texte` des deux côtés — ce que faisait le port — laissait un aller-retour de jeton non vérifié par le compilateur."
+        },
+        "jour": { "type": "texte", "nul": true, "doc": "« Mardi 9 septembre ». Déjà mis en forme." },
+        "titre": { "type": "texte", "nul": false, "doc": "Une séance sans titre n'est pas rendue." },
+        "horaire": { "type": "texte", "nul": true },
+        "glyphe": { "type": { "union": ["chat", "users"] }, "nul": false, "doc": "Nom d'icône, choisi par le serveur d'après la collection." },
+        "territoire": { "type": { "union": ["transforme", "digitalise"] }, "nul": false, "doc": "Un des quatre territoires de marque du design system. Chaque teinte porte un TERRITOIRE : les confondre change le sens, pas seulement la couleur." },
+        "inscrite": { "type": "booleen", "nul": false, "doc": "LU, pas deviné : l'existence de `registrations/{uid}`. Un compteur dirait combien, jamais QUI — et c'est « qui » que l'écran affiche." },
+        "places": { "type": "texte", "nul": true, "doc": "« 8 / 12 places », ou RIEN. Les deux nombres ou aucun : une jauge à moitié relevée sur un atelier à douze places décide à la place de quelqu'un." }
+      }
+    },
+
+    "CompteBloque": {
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "nom": { "type": "texte", "nul": false, "doc": "Un profil disparu est OMIS, jamais rendu « Membre inconnu » : une telle ligne dans une liste de blocage empêche de comprendre ce qu'on regarde." },
+        "initiales": { "type": "texte", "nul": false }
+      }
+    },
+    "Blocages": {
+      "doc": "La guideline App Store 1.2 demande de pouvoir bloquer. Elle n'exige pas de pouvoir débloquer — mais un geste irréversible pris dans un moment d'agacement, sur une plateforme où l'on se croise professionnellement, ne se répare plus.",
+      "champs": {
+        "comptes": { "type": { "liste": { "objet": "CompteBloque" } }, "nul": false }
+      }
+    },
+
+    "ClassementLigne": {
+      "doc": "⚠️ NOMMÉE ICI : anonyme des deux côtés (`clubClassement.ts:87-93`).",
+      "champs": {
+        "rang": { "type": "entier", "nul": false },
+        "nom": { "type": "texte", "nul": false, "doc": "« Toi » plutôt que son propre nom : c'est ce que l'écran cherche du regard. L'uid ne sort jamais d'ici." },
+        "initiales": { "type": "texte", "nul": false, "doc": "Chaîne VIDE sur sa propre ligne, pas `null` : l'écran n'a pas d'initiales à dessiner à côté de « Toi »." },
+        "points": { "type": "entier", "nul": false },
+        "moi": { "type": "booleen", "nul": false }
+      }
+    },
+    "Classement": {
+      "doc": "⚠️ LE CLASSEMENT EST PAR VAGUE D'ARRIVÉE, JAMAIS ABSOLU. Un classement absolu mesurerait l'ancienneté, et quelqu'un qui arrive en novembre ne rattraperait jamais quelqu'un arrivé en février. La règle est appliquée au serveur, pas devinée à l'écran.",
+      "champs": {
+        "vague": { "type": "texte", "nul": false, "doc": "« Arrivées en septembre »." },
+        "rang": { "type": "entier", "nul": true, "doc": "`null` quand la personne ne figure pas dans sa propre vague — un rang absent n'est pas un rang zéro." },
+        "surCombien": { "type": "entier", "nul": false },
+        "points": { "type": "entier", "nul": false },
+        "semaine": { "type": "entier", "nul": false },
+        "lignes": { "type": { "liste": { "objet": "ClassementLigne" } }, "nul": false, "doc": "Coupé à 10 par le serveur." }
+      }
+    },
+
+    "ClubMission": {
+      "champs": {
+        "meta": { "type": "texte", "nul": false },
+        "titre": { "type": "texte", "nul": false },
+        "budget": { "type": "decimal", "nul": true, "doc": "Un budget inventé fixe une attente de revenu chez quelqu'un qui organise son temps dessus. Absent tant qu'il n'est pas annoncé." },
+        "note": { "type": "texte", "nul": false, "doc": "Constante du serveur : « Budget annoncé par la personne qui publie ». L'écran ne doit pas la réécrire." }
+      }
+    },
+    "ClubMessage": {
+      "doc": "Un message du mur. ⚠️ MÊME FORME EXACTE que la sortie de `posterAuClub` — c'est délibéré : l'écran insère le message écrit sans relire la liste (contournement du défaut d'invalidation, voir `ecritures`).",
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "auteur": { "type": "texte", "nul": false, "doc": "Un message sans auteur nommé n'est PAS rendu — mieux vaut un fil plus court qu'une ligne signée « undefined »." },
+        "initiales": { "type": "texte", "nul": false },
+        "categorie": { "type": "texte", "nul": false, "doc": "⚠️ PAS UNE UNION, ET C'EST MESURÉ. En LECTURE le serveur rend `asText(m.data.category) ?? 'Entraide'` (`clubFil.ts:104`) : la valeur vient de la base, elle est libre. En ÉCRITURE seule, `posterAuClub` la compare à quatre valeurs fermées — c'est là, et là seulement, que l'union existe." },
+        "quand": { "type": "texte", "nul": true, "doc": "« il y a 2 h », « hier ». Déjà mis en forme ; une date ISO ne se lit pas dans un fil." },
+        "texte": { "type": "texte", "nul": false },
+        "aime": { "type": "entier", "nul": false },
+        "republie": { "type": "entier", "nul": false },
+        "commente": { "type": "entier", "nul": false }
+      }
+    },
+    "ClubFil": {
+      "champs": {
+        "mission": { "type": { "objet": "ClubMission" }, "nul": true },
+        "fil": { "type": { "liste": { "objet": "ClubMessage" } }, "nul": false, "doc": "Le serveur LIT 60 pour en rendre 40 : les messages des comptes bloqués sont retirés APRÈS la lecture, et lire 40 pour en rendre 35 ferait rétrécir le fil de quelqu'un qui bloque cinq comptes bavards — un filtre qui se lit comme une panne." }
+      }
+    },
+
+    "Discussion": {
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "categorie": { "type": "texte", "nul": false },
+        "titre": { "type": "texte", "nul": false },
+        "auteur": { "type": "texte", "nul": false },
+        "initiales": { "type": "texte", "nul": false },
+        "quand": { "type": "texte", "nul": true },
+        "reponses": { "type": "entier", "nul": false },
+        "resolu": { "type": "booleen", "nul": false }
+      }
+    },
+
+    "Opportunite": {
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "type": { "type": "texte", "nul": false, "doc": "Valeur libre de la base, défaut « Mission »." },
+        "titre": { "type": "texte", "nul": false },
+        "lieu": { "type": "texte", "nul": true },
+        "quand": { "type": "texte", "nul": true },
+        "budget": { "type": "decimal", "nul": true },
+        "par": { "type": "texte", "nul": true }
+      }
+    },
+
+    "Membre": {
+      "doc": "⛔ NI TÉLÉPHONE NI ADRESSE, JAMAIS. `club_profiles` peut les porter ; ils ne sortent pas d'ici (`clubListe.ts:26-29`). Un champ transmis « au cas où » finit toujours par s'afficher quelque part.",
+      "champs": {
+        "nom": { "type": "texte", "nul": false },
+        "initiales": { "type": "texte", "nul": false },
+        "metier": { "type": "texte", "nul": true },
+        "ville": { "type": "texte", "nul": true },
+        "depuis": { "type": "texte", "nul": true, "doc": "« membre il y a 3 j ». Déjà mis en forme." },
+        "presentation": { "type": "texte", "nul": true },
+        "formations": { "type": { "liste": "texte" }, "nul": false },
+        "contributions": { "type": "entier", "nul": false },
+        "bloque": { "type": "booleen", "nul": false, "doc": "Pour que l'écran propose « Débloquer » plutôt que « Bloquer » : un bouton qui rebloque quelqu'un de déjà bloqué ne dit rien de son effet." },
+        "id": { "type": "texte", "nul": false, "doc": "⚠️ LA SEULE SORTIE D'UID DU PRODUIT, ASSUMÉE. Sans elle on ne peut ni bloquer ni débloquer depuis la fiche (`clubListe.ts:162-165`). Il ne s'agit plus d'un auteur croisé dans une liste, mais de la personne dont on regarde la fiche, à sa demande explicite." }
+      }
+    },
+
+    "Parrainage": {
+      "doc": "⚠️ LE CODE SE CRÉE À LA PREMIÈRE LECTURE — une écriture dans une vue, délibérée : c'est ce que fait déjà le web, avec le MÊME format, pour que les deux plateformes délivrent le même code à la même personne. L'opération est idempotente.",
+      "champs": {
+        "code": { "type": "texte", "nul": false },
+        "lien": { "type": "texte", "nul": false, "doc": "Composé au SERVEUR pour qu'un changement de domaine ne laisse pas une version installée partager des liens morts pendant des mois." },
+        "filleuls": { "type": "entier", "nul": false, "doc": "COMBIEN, jamais QUI. Un parrain n'a pas à connaître la liste de gens qu'on n'a pas prévenus qu'ils y figuraient." }
+      }
+    },
+
+    "ConsoleComptes": {
+      "doc": "⚠️ NOMMÉE ICI, ET SES CINQ CLÉS SONT FIXES. Le port la typait `Record<string, number>` : un dictionnaire perd l'ordre d'affichage et rend les clés invérifiables. Les clés sont en français, avec accent et trait d'union — le générateur Kotlin leur adjoint donc un `@SerialName`.",
+      "champs": {
+        "Messages": { "type": "entier", "nul": false },
+        "Témoignages": { "type": "entier", "nul": false },
+        "Rendez-vous": { "type": "entier", "nul": false },
+        "Prospects": { "type": "entier", "nul": false },
+        "Projets": { "type": "entier", "nul": false }
+      }
+    },
+    "ConsoleProspect": {
+      "doc": "⚠️ NOMMÉE ICI : anonyme des deux côtés (`console.ts:78-83`). Le PLUS ANCIEN non traité, pas le plus récent — une file de support se prend par le bout qui attend depuis le plus longtemps.",
+      "champs": {
+        "titre": { "type": "texte", "nul": false },
+        "meta": { "type": "texte", "nul": true },
+        "statut": { "type": "texte", "nul": false, "doc": "Constante du serveur : « à traiter »." }
+      }
+    },
+    "Console": {
+      "champs": {
+        "comptes": { "type": { "objet": "ConsoleComptes" }, "nul": false },
+        "prospect": { "type": { "objet": "ConsoleProspect" }, "nul": true }
+      }
+    },
+
+    "Episode": {
+      "champs": {
+        "titre": { "type": "texte", "nul": false },
+        "titreCourt": { "type": "texte", "nul": false },
+        "invitee": { "type": "texte", "nul": true },
+        "eyebrow": { "type": "texte", "nul": false },
+        "chapo": { "type": "texte", "nul": true },
+        "duree": { "type": "texte", "nul": true },
+        "lien": { "type": "texte", "nul": true },
+        "cout": { "type": { "liste": "texte" }, "nul": false, "doc": "Durée et poids, DÉJÀ MIS EN FORME. Ce qui manque est ABSENT de la liste, jamais arrondi : sur un forfait compté, un poids inventé décide à la place de quelqu'un." },
+        "transcription": { "type": "texte", "nul": true, "doc": "Texte brut, éventuellement en markdown. Le kit la dessinait en lignes horodatées (« 00:42 · … ») — une forme qu'aucun champ ne porte. L'écran la rend en paragraphes plutôt que d'inventer des minutages." }
+      }
+    },
+    "Video": {
+      "champs": {
+        "titre": { "type": "texte", "nul": false },
+        "eyebrow": { "type": "texte", "nul": false },
+        "lien": { "type": "texte", "nul": true },
+        "cout": { "type": { "liste": "texte" }, "nul": false }
+      }
+    },
+    "Media": {
+      "champs": {
+        "episode": { "type": { "objet": "Episode" }, "nul": true },
+        "video": { "type": { "objet": "Video" }, "nul": true }
+      }
+    },
+
+    "RepetiteurQuota": {
+      "doc": "⚠️ NOMMÉE ICI : anonyme des deux côtés (`repetiteur.ts:64`). `utilise` et `total` sont ceux du SERVEUR, pas une soustraction faite au client : le plafond dépend du forfait, et un client qui le déduirait se tromperait au premier changement d'offre.",
+      "champs": {
+        "utilise": { "type": "entier", "nul": false },
+        "total": { "type": "entier", "nul": false }
+      }
+    },
+    "RepetiteurFait": {
+      "doc": "⚠️ NOMMÉE ICI : anonyme des deux côtés (`repetiteur.ts:66-73`). Chaque ligne est ce que le répétiteur a RETENU de quelqu'un — « tu vends des cosmétiques aux Almadies ». En inventer une seule serait dire à quelqu'un qu'on a retenu de lui une chose qu'il n'a jamais dite.",
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "fait": { "type": "texte", "nul": false },
+        "depuis": { "type": "texte", "nul": true, "doc": "« depuis le 12 août ». Un fait sans date ne se conteste pas." }
+      }
+    },
+    "RepetiteurEchange": {
+      "doc": "⚠️ NOMMÉE ICI : anonyme des deux côtés (`repetiteur.ts:76-84`). L'ordre est INVERSÉ par le serveur : la requête descend pour prendre les plus récents, l'écran monte pour lire dans le sens d'une conversation.",
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "de": {
+          "type": { "union": ["me", "ai"] },
+          "nul": false,
+          "doc": "⛔ DEUX VOCABULAIRES POUR LE MÊME AXE, ET LE CONTRAT LES NOMME TOUS LES DEUX. La LECTURE parle `me`/`ai` (`repetiteur.ts:81`) ; l'ÉCRITURE `rysmo` parle `user`/`assistant`. Le port traduisait dans un écran ; sans contrat, la traduction se réinvente dans chaque plateforme. Voir `ecritures.rysmo.entree.conversationHistory` pour l'autre moitié."
+        },
+        "texte": { "type": "texte", "nul": false }
+      }
+    },
+    "Repetiteur": {
+      "champs": {
+        "quota": { "type": { "objet": "RepetiteurQuota" }, "nul": false },
+        "memoire": { "type": { "liste": { "objet": "RepetiteurFait" } }, "nul": false },
+        "echange": { "type": { "liste": { "objet": "RepetiteurEchange" } }, "nul": false }
+      }
+    },
+
+    "NoteEcrite": {
+      "doc": "La note TELLE QU'ÉCRITE. Renvoyée plutôt qu'un accusé pour que l'écran l'insère sans relire la liste — voir `ecritures.ecrireUneNote.perime`. ⚠️ FORME DISTINCTE de `Note` : son champ `date` ne porte pas la même chose (voir `Note.date`).",
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "texte": { "type": "texte", "nul": false },
+        "date": { "type": "texte", "nul": true, "doc": "⛔ LE LIBELLÉ DE LA LEÇON, pas une date. Contradiction du serveur, nommée dans `Note.date`." },
+        "createdAt": { "type": "horodatage", "nul": false }
+      }
+    },
+    "BilanLecon": {
+      "doc": "Ce que `marquerLecon` recalcule. Le pourcentage est DÉDUIT au serveur, jamais transmis : un `progress` envoyé par l'appelant serait un curseur qu'on lui tend — il n'aurait qu'à écrire 100 pour obtenir son certificat.",
+      "champs": {
+        "progression": { "type": "entier", "nul": false },
+        "leconsFaites": { "type": "entier", "nul": false },
+        "lecons": { "type": "entier", "nul": false },
+        "complete": { "type": "booleen", "nul": false, "doc": "L'écran a besoin de SAVOIR si le certificat est atteignable, pas de le décider." },
+        "titre": { "type": "texte", "nul": true }
+      }
+    },
+    "NoteEnveloppe": {
+      "champs": { "note": { "type": { "objet": "NoteEcrite" }, "nul": false } }
+    },
+    "MessageEnveloppe": {
+      "champs": { "message": { "type": { "objet": "ClubMessage" }, "nul": false } }
+    },
+    "Inscription": {
+      "champs": { "inscrite": { "type": "booleen", "nul": false } }
+    },
+    "AccuseSignalement": {
+      "champs": { "recu": { "type": "booleen", "nul": false } }
+    },
+    "BilanBlocage": {
+      "champs": {
+        "bloque": { "type": "booleen", "nul": false },
+        "combien": { "type": "entier", "nul": false, "doc": "Plafonné à 200 par le serveur, qui lève `resource-exhausted` au-delà." }
+      }
+    },
+    "ProfilCree": {
+      "doc": "⚠️ IDEMPOTENT : `cree` vaut `false` quand le profil existait déjà, et ce n'est PAS une erreur.",
+      "champs": {
+        "cree": { "type": "booleen", "nul": false },
+        "uid": { "type": "texte", "nul": false }
+      }
+    },
+    "Succes": {
+      "champs": { "success": { "type": "booleen", "nul": false } }
+    }
+  },
+
+  "vues": {
+    "appMoi": {
+      "forme": { "objet": "Moi" },
+      "vueNulle": "sansDonnee",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/moi.ts:46"
+    },
+    "appEspace": {
+      "forme": { "objet": "Espace" },
+      "vueNulle": "sansDonnee",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/espace.ts:68"
+    },
+    "appCours": {
+      "forme": { "liste": { "objet": "Cours" } },
+      "vueNulle": "jamais",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/cours.ts:43"
+    },
+    "appFormation": {
+      "forme": { "objet": "Formation" },
+      "vueNulle": "sansDonnee",
+      "entree": {
+        "slug": {
+          "type": "texte",
+          "obligatoire": true,
+          "doc": "⚠️ OBLIGATOIRE, ET LE SERVEUR LÈVE SANS LUI (`formation.ts:70-71`). Le hook du port passait `{}` quand le paramètre manquait : c'est le même défaut que celui qui rendait la fiche de membre inatteignable et le bouton « Signaler » jamais rendu. Un paramètre obligatoire se génère NON-OPTIONNEL des deux côtés."
+        }
+      },
+      "erreurs": ["invalid-argument"],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/formation.ts:115"
+    },
+    "appLecon": {
+      "forme": { "objet": "Lecon" },
+      "vueNulle": "sansDonnee",
+      "entree": {
+        "formationId": { "type": "texte", "obligatoire": false, "doc": "Absent : le serveur prend la dernière inscription touchée. Il ne sert QU'À CHOISIR parmi SES inscriptions — il ne peut pas désigner celle de quelqu'un d'autre." }
+      },
+      "erreurs": [],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/lecon.ts:62"
+    },
+    "appNotes": {
+      "forme": { "objet": "Notes" },
+      "vueNulle": "jamais",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/notes.ts:49"
+    },
+    "appCertificats": {
+      "forme": { "objet": "Certificats" },
+      "vueNulle": "jamais",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/certificats.ts:62"
+    },
+    "appClub": {
+      "forme": { "objet": "Club" },
+      "vueNulle": "sansAcces",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire+club",
+      "source": "worker/apps/api/src/handlers/app/club.ts:84"
+    },
+    "appClubAgenda": {
+      "forme": { "liste": { "objet": "Seance" } },
+      "vueNulle": "sansAcces",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire+club",
+      "source": "worker/apps/api/src/handlers/app/clubAgenda.ts:79"
+    },
+    "appClubBlocages": {
+      "forme": { "objet": "Blocages" },
+      "vueNulle": "sansAcces",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire+club",
+      "source": "worker/apps/api/src/handlers/app/clubBlocages.ts:36"
+    },
+    "appClubClassement": {
+      "forme": { "objet": "Classement" },
+      "vueNulle": "sansAcces",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire+club",
+      "doc": "⚠️ UN TROISIÈME SENS DE `vue: null` PASSE ICI, ET LE CONTRAT NE SAIT PAS LE PORTER : `clubClassement.ts:43` rend aussi `null` quand l'abonnement n'a pas de `startedAt` lisible — un DÉFAUT DE DONNÉES, ni une absence d'accès ni une absence de contenu. `vueNulle` ne prend qu'une valeur par vue ; la distinguer demanderait un changement serveur.",
+      "source": "worker/apps/api/src/handlers/app/clubClassement.ts:80"
+    },
+    "appClubFil": {
+      "forme": { "objet": "ClubFil" },
+      "vueNulle": "sansAcces",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire+club",
+      "source": "worker/apps/api/src/handlers/app/clubFil.ts:78"
+    },
+    "appClubListe.discussions": {
+      "discriminant": { "champ": "onglet", "valeur": "discussions" },
+      "forme": { "liste": { "objet": "Discussion" } },
+      "vueNulle": "sansAcces",
+      "entree": {
+        "onglet": { "type": { "union": ["discussions", "opportunites", "membre"] }, "obligatoire": true, "constante": "discussions" }
+      },
+      "erreurs": ["invalid-argument"],
+      "session": "obligatoire+club",
+      "source": "worker/apps/api/src/handlers/app/clubListe.ts:73"
+    },
+    "appClubListe.opportunites": {
+      "discriminant": { "champ": "onglet", "valeur": "opportunites" },
+      "forme": { "liste": { "objet": "Opportunite" } },
+      "vueNulle": "sansAcces",
+      "entree": {
+        "onglet": { "type": { "union": ["discussions", "opportunites", "membre"] }, "obligatoire": true, "constante": "opportunites" }
+      },
+      "erreurs": ["invalid-argument"],
+      "session": "obligatoire+club",
+      "source": "worker/apps/api/src/handlers/app/clubListe.ts:100"
+    },
+    "appClubListe.membre": {
+      "discriminant": { "champ": "onglet", "valeur": "membre" },
+      "forme": { "objet": "Membre" },
+      "vueNulle": "sansAcces",
+      "entree": {
+        "onglet": { "type": { "union": ["discussions", "opportunites", "membre"] }, "obligatoire": true, "constante": "membre" },
+        "id": { "type": "texte", "obligatoire": false, "doc": "L'uid du membre. L'un des deux — `id` ou `message` — est nécessaire, sinon `invalid-argument`." },
+        "message": { "type": "texte", "obligatoire": false, "doc": "Désigne un CONTENU ; le serveur en résout l'auteur. L'uid ne circule pas dans ce sens." }
+      },
+      "erreurs": ["invalid-argument"],
+      "session": "obligatoire+club",
+      "doc": "⛔ DEUX SENS DE `vue: null` SUR UNE MÊME BRANCHE, ET UN SEUL TIENT DANS `vueNulle`. `clubListe.ts:61` rend `null` sans abonnement (absence d'ACCÈS) et `:142` rend `null` quand la fiche n'existe pas ou n'a pas de nom (absence de DONNÉE). Le client ne peut pas les distinguer sur la réponse. `sansAcces` est retenu parce que c'est le cas majoritaire et le seul qui doive mener ailleurs qu'à un écran vide ; la nuance demanderait un changement serveur.",
+      "source": "worker/apps/api/src/handlers/app/clubListe.ts:144"
+    },
+    "appClubParrainage": {
+      "forme": { "objet": "Parrainage" },
+      "vueNulle": "sansAcces",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire+club",
+      "source": "worker/apps/api/src/handlers/app/clubParrainage.ts:51"
+    },
+    "appConsole": {
+      "forme": { "objet": "Console" },
+      "vueNulle": "jamais",
+      "entree": {},
+      "erreurs": ["permission-denied"],
+      "session": "obligatoire+role",
+      "doc": "⚠️ L'ASYMÉTRIE AVEC LE CLUB EST UN CHOIX PRODUIT, ET LE CONTRAT LE PORTE. Le Club rend `vue: null` — l'écran n'est pas interdit, il est vide pour cette personne, et il doit pouvoir dire « réservé aux membres ». La console lève `permission-denied` — c'est une zone où l'on n'a rien à faire. Une invitation contre une porte.",
+      "source": "worker/apps/api/src/handlers/app/console.ts:67"
+    },
+    "appMedia": {
+      "forme": { "objet": "Media" },
+      "vueNulle": "jamais",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/media.ts:59"
+    },
+    "appRepetiteur": {
+      "forme": { "objet": "Repetiteur" },
+      "vueNulle": "jamais",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/repetiteur.ts:59"
+    }
+  },
+
+  "ecritures": {
+    "ecrireUneNote": {
+      "entree": {
+        "texte": { "type": "texte", "obligatoire": true, "doc": "Non vide, tronqué à 4 000 caractères par le serveur." },
+        "lessonId": { "type": "texte", "obligatoire": false },
+        "lessonLabel": { "type": "texte", "obligatoire": false, "doc": "Tronqué à 200 caractères en base." }
+      },
+      "sortie": { "objet": "NoteEnveloppe" },
+      "erreurs": ["invalid-argument"],
+      "session": "obligatoire",
+      "perime": ["appNotes"],
+      "source": "worker/apps/api/src/handlers/ecrireUneNote.ts:63"
+    },
+    "marquerLecon": {
+      "entree": {
+        "formationId": { "type": "texte", "obligatoire": true },
+        "leconId": { "type": "texte", "obligatoire": true },
+        "faite": { "type": "booleen", "obligatoire": true }
+      },
+      "sortie": { "objet": "BilanLecon" },
+      "erreurs": ["invalid-argument", "not-found"],
+      "session": "obligatoire",
+      "perime": ["appEspace", "appLecon", "appCours", "appCertificats"],
+      "source": "worker/apps/api/src/handlers/marquerLecon.ts:100"
+    },
+    "posterAuClub": {
+      "entree": {
+        "texte": { "type": "texte", "obligatoire": true, "doc": "Non vide, 2 000 caractères au plus — au-delà le serveur REFUSE, il ne tronque pas." },
+        "categorie": { "type": { "union": ["Entraide", "Outils", "Victoires", "Questions"] }, "obligatoire": false, "doc": "⚠️ C'EST LA SEULE MOITIÉ FERMÉE DE `ClubMessage.categorie`. Une valeur hors liste n'est pas refusée : elle retombe sur « Entraide » (`posterAuClub.ts:55`)." }
+      },
+      "sortie": { "objet": "MessageEnveloppe" },
+      "erreurs": ["invalid-argument", "permission-denied", "failed-precondition"],
+      "session": "obligatoire+club",
+      "perime": ["appClubFil"],
+      "source": "worker/apps/api/src/handlers/posterAuClub.ts:82"
+    },
+    "reserverSession": {
+      "entree": {
+        "collection": { "type": { "union": ["club_sessions", "club_events"] }, "obligatoire": true, "doc": "Le jeton reçu dans `Seance.collection`, revalidé ici." },
+        "seanceId": { "type": "texte", "obligatoire": true },
+        "inscrite": { "type": "booleen", "obligatoire": true }
+      },
+      "sortie": { "objet": "Inscription" },
+      "erreurs": ["invalid-argument", "permission-denied", "not-found"],
+      "session": "obligatoire+club",
+      "perime": ["appClubAgenda"],
+      "source": "worker/apps/api/src/handlers/reserverSession.ts:73"
+    },
+    "signalerMembre": {
+      "entree": {
+        "membreId": { "type": "texte", "obligatoire": true },
+        "motif": { "type": "texte", "obligatoire": false, "doc": "Tronqué à 500 caractères." }
+      },
+      "sortie": { "objet": "AccuseSignalement" },
+      "erreurs": ["invalid-argument", "failed-precondition", "not-found"],
+      "session": "obligatoire",
+      "perime": [],
+      "source": "worker/apps/api/src/handlers/signalerMembre.ts:61"
+    },
+    "bloquerMembre": {
+      "entree": {
+        "cible": { "type": { "objet": "CibleBlocage" }, "obligatoire": true },
+        "bloquer": { "type": "booleen", "obligatoire": true }
+      },
+      "sortie": { "objet": "BilanBlocage" },
+      "erreurs": ["invalid-argument", "permission-denied", "not-found", "failed-precondition", "resource-exhausted"],
+      "session": "obligatoire+club",
+      "perime": ["appClubBlocages", "appClubFil", "appClubListe.discussions", "appClubListe.opportunites", "appClubListe.membre"],
+      "doc": "⚠️ BLOQUER VAUT SUR TOUT LE CLUB, DONC IL PÉRIME CINQ VUES. Croiser le même nom sur une discussion la minute d'après annulerait le geste — et le cache de 30 s le ferait, sans invalidation.",
+      "source": "worker/apps/api/src/handlers/bloquerMembre.ts:107"
+    },
+    "creerMonProfil": {
+      "entree": {
+        "displayName": { "type": "texte", "obligatoire": true }
+      },
+      "sortie": { "objet": "ProfilCree" },
+      "erreurs": ["invalid-argument"],
+      "session": "obligatoire",
+      "perime": ["appMoi"],
+      "source": "worker/apps/api/src/handlers/creerMonProfil.ts:65"
+    },
+    "clearRysmoMemory": {
+      "entree": {},
+      "sortie": { "objet": "Succes" },
+      "erreurs": [],
+      "session": "obligatoire",
+      "perime": ["appRepetiteur"],
+      "source": "worker/apps/api/src/handlers/clearRysmoMemory.ts:24"
+    }
+  },
+
+  "formesEntree": {
+    "CibleBlocage": {
+      "doc": "⚠️ ON DÉSIGNE UN CONTENU, PAS UNE PERSONNE — sauf pour `membre`. Le serveur résout l'auteur : l'uid ne circule pas depuis une liste.",
+      "champs": {
+        "type": { "type": { "union": ["membre", "message", "discussion", "opportunite"] }, "nul": false },
+        "id": { "type": "texte", "nul": false, "doc": "Refusé s'il contient un `/` : ce n'est jamais un chemin de collection." }
+      }
+    }
+  }
+}

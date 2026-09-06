@@ -2,6 +2,7 @@ import { HttpsError } from '@mm/shared';
 
 import { type CallContext, requireAuth } from '../context';
 import { abonnementActif } from './app/club';
+import type { Sortie } from '../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -31,7 +32,7 @@ import { abonnementActif } from './app/club';
 
 const COLLECTIONS = ['club_sessions', 'club_events'] as const;
 
-export async function reserverSession(data: unknown, context: CallContext): Promise<unknown> {
+export async function reserverSession(data: unknown, context: CallContext): Promise<Sortie<'reserverSession'>> {
   const auth = requireAuth(context);
 
   const { collection, seanceId, inscrite } = (data ?? {}) as {

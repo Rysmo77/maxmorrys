@@ -13,6 +13,8 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { emettreKotlin } from './ds-emit-kotlin.mjs';
+import { emettreNatif } from './ds-emit-natif.mjs';
+import { emettreIcones } from './ds-emit-icones.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TOKENS = join(root, 'src/design-system/css/tokens');
@@ -201,19 +203,37 @@ writeFileSync(join(RES, 'values/marque.generated.xml'), xmlMarque);
  * d'éviter la dérive glyphe par glyphe que ce fichier explique en tête.
  *
  * Mais `mobile/ds/Icon.tsx` l'atteignait par `../../src/design-system/icons`, hors de la
- * racine du projet natif : même panne que pour les jetons, Metro ne résout pas. On le RECOPIE
- * donc, au lieu de le pointer — la copie est générée, jamais éditée, et la source reste
- * unique. Recopier une source unique n'est pas dupliquer : c'est ce que fait déjà `ds:sync`
- * pour le CSS du kit.
+ * racine du projet natif : même panne que pour les jetons, Metro ne résout pas. On le
+ * TRADUIT donc, au lieu de le pointer — la traduction est générée, jamais éditée, et la
+ * source reste unique. Traduire une source unique n'est pas dupliquer : c'est ce que fait
+ * déjà `ds:sync` pour le CSS du kit.
  */
-const ICONES_SRC = join(root, 'src/design-system/icons.ts');
-/* ⚠️ La copie native des 109 icônes est retirée avec `mobile/`. Elles reviendront en
-   `ImageVector` (Compose) et en `Path` (SwiftUI), générées d'ici même depuis `ICONES_SRC` :
-   les tracés sont des données pures, sans dépendance à React ni au DOM. */
+/* ✅ LA CIBLE KOTLIN DES ICÔNES EST BRANCHÉE (`ds-emit-icones.mjs`). Les cercles et les
+   rectangles du kit y sont traduits en tracés SVG par un calcul déterministe, parce que
+   `PathParser` de Compose ne lit que des chaînes. Reste la cible SwiftUI, sur le même
+   modèle. */
+const { kotlin: icones, compte } = emettreIcones(root, ENTETE_KT);
+writeFileSync(join(KT_DIR, 'Icones.generated.kt'), icones);
+
+/*
+ * ── CINQUIÈME CIBLE : CE QUE LE KIT ÉCRIT EN DUR ──────────────────────────────────────
+ *
+ * Les jetons ne suffisent pas à rendre le kit. Quinze lobes de maillage, sept voiles de
+ * verre Android, treize ombres et quatre dégradés vivent en hexadécimal LITTÉRAL dans
+ * `DS_Final/brand/*` et dans les composants — délibérément pour les lobes (une peinture n'a
+ * pas de plancher de contraste à tenir), par omission pour les ombres.
+ *
+ * Le port React Native les recopiait à la main, et c'est par là que la dérive est entrée.
+ * `ds-emit-natif.mjs` les EXTRAIT : un motif qui n'apparie plus arrête la génération.
+ */
+const natif = emettreNatif(root, ENTETE_KT, L, D);
+writeFileSync(join(KT_DIR, 'Natif.generated.kt'), natif);
 
 const divergents = Object.keys(L).filter((k) => L[k] !== D[k]).length;
 console.log(
   `ds:tokens — ${Object.keys(L).length} jetons, dont ${divergents} qui changent en mode sombre\n`
   + '  -> src/design-system/tokens.generated.ts\n'
-  + '  -> android/.../ds/Jetons.generated.kt + res/values{,-night}/couleurs.generated.xml',
+  + '  -> android/.../ds/Jetons.generated.kt + res/values{,-night}/couleurs.generated.xml\n'
+  + `  -> android/.../ds/Icones.generated.kt (${compte} glyphes)\n`
+  + '  -> android/.../ds/Natif.generated.kt (maillage, verre .andro, valeurs hors table)',
 );

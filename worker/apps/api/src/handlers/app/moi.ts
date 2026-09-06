@@ -1,5 +1,6 @@
 import { type CallContext, requireAuth } from '../../context';
 import { asText, toNumber } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -34,7 +35,7 @@ function enClair(iso: string | undefined): string | null {
   return `${d.getUTCDate()} ${MOIS[d.getUTCMonth()]}`;
 }
 
-export async function appMoi(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appMoi(_data: unknown, context: CallContext): Promise<Reponse<'appMoi'>> {
   const auth = requireAuth(context);
 
   const document = await context.db.get(`users/${auth.uid}`);

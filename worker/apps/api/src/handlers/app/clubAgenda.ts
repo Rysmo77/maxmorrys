@@ -3,6 +3,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 import { type CallContext, requireAuth } from '../../context';
 import { asText, toNumber } from '../../lib/values';
 import { abonnementActif } from './club';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -41,7 +42,7 @@ function enJour(iso: string | undefined): string | null {
   return `${jour.charAt(0).toUpperCase()}${jour.slice(1)} ${d.getUTCDate()} ${MOIS[d.getUTCMonth()]}`;
 }
 
-export async function appClubAgenda(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appClubAgenda(_data: unknown, context: CallContext): Promise<Reponse<'appClubAgenda'>> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 
@@ -61,9 +62,19 @@ export async function appClubAgenda(_data: unknown, context: CallContext): Promi
     aVenir('club_events'),
   ]);
 
+  /*
+   * ⚠️ `as const` N'EST PAS DÉCORATIF, ET IL NE CHANGE RIEN AU CORPS SERVI.
+   *
+   * `collection`, `territoire` et `glyphe` sont des ENSEMBLES FERMÉS du contrat des vues, et
+   * `collection` REPART au serveur : `reserverSession` le reçoit et le revalide. Sans ces
+   * annotations, TypeScript élargit les trois littéraux en `string`, et la vue ne tient plus
+   * son propre contrat — c'est le compilateur qui l'a dit, pas une relecture.
+   *
+   * Les annotations de type sont effacées à la construction : les octets servis sont les mêmes.
+   */
   const toutes = [
-    ...sessions.map((d) => ({ doc: d, collection: 'club_sessions', territoire: 'transforme', glyphe: 'chat' })),
-    ...evenements.map((d) => ({ doc: d, collection: 'club_events', territoire: 'digitalise', glyphe: 'users' })),
+    ...sessions.map((d) => ({ doc: d, collection: 'club_sessions', territoire: 'transforme', glyphe: 'chat' } as const)),
+    ...evenements.map((d) => ({ doc: d, collection: 'club_events', territoire: 'digitalise', glyphe: 'users' } as const)),
   ]
     .filter(({ doc }) => asText(doc.data.title))
     .sort((a, b) => (asText(a.doc.data.startsAt) ?? '').localeCompare(asText(b.doc.data.startsAt) ?? ''));

@@ -3,6 +3,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 import { type CallContext, requireAuth } from '../../context';
 import { readQuotaUsage, resolveQuotaLimits } from '../../lib/rysmo-quota';
 import { asText } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -37,7 +38,7 @@ function depuisLe(iso: string | undefined): string | null {
     : `depuis le ${d.getUTCDate()} ${MOIS[d.getUTCMonth()]}`;
 }
 
-export async function appRepetiteur(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appRepetiteur(_data: unknown, context: CallContext): Promise<Reponse<'appRepetiteur'>> {
   const { uid } = requireAuth(context);
   const releveA = new Date().toISOString();
 

@@ -1,6 +1,7 @@
 import { HttpsError } from '@mm/shared';
 
 import { type CallContext, requireAuth } from '../context';
+import type { Sortie } from '../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -31,7 +32,7 @@ import { type CallContext, requireAuth } from '../context';
  * (préférences changées, nom mis à jour). Elle répond `{ cree: false }` pour le dire.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
-export async function creerMonProfil(data: unknown, context: CallContext): Promise<unknown> {
+export async function creerMonProfil(data: unknown, context: CallContext): Promise<Sortie<'creerMonProfil'>> {
   const auth = requireAuth(context);
 
   const { displayName } = (data ?? {}) as { displayName?: unknown };

@@ -4,6 +4,7 @@ import { HttpsError } from '@mm/shared';
 
 import { type CallContext, requireAuth } from '../../context';
 import { asText } from '../../lib/values';
+import type { Reponse } from '../../vues/contrat';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -26,7 +27,7 @@ import { asText } from '../../lib/values';
 
 const ROLES_ADMIS = ['admin', 'support'];
 
-export async function appConsole(_data: unknown, context: CallContext): Promise<unknown> {
+export async function appConsole(_data: unknown, context: CallContext): Promise<Reponse<'appConsole'>> {
   const auth = requireAuth(context);
   const releveA = new Date().toISOString();
 
