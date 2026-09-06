@@ -108,6 +108,7 @@ tient. Voici donc ce qui est réellement gardé aujourd'hui, et par quoi.
 
 | Garantie perdue | Reprise par | Éprouvée en cassant |
 |---|---|---|
+| ⭐ `mobile-controles-morts` — aucun contrôle n'annonce une action sans en porter | `ds/Actions.kt` : les trois contrôles REFUSENT de se dessiner sans action + `tests/unit/natif-controles-morts.test.ts` | garde de `Button` retirée, lambda vide glissée dans un écran → les deux refusés |
 | `mobile-ds` — aucune couleur écrite en dur | `tests/unit/natif-socle.test.ts` (Kotlin écrit à la main + le vectoriel de l'icône) | une couleur posée dans un écran, un chevron peint en littéral → refusés |
 | `mobile-ds` — les jetons ne dérivent pas de leur source | `ds:check`, **sept** cibles générées comparées après régénération | un dégradé sombre ramené à sa valeur claire, une couleur de nuit falsifiée → refusés |
 | `mobile-fontes` — les binaires ne divergent pas du kit | `natif-socle.test.ts`, dans les DEUX sens + légalité des noms `aapt2` | une fonte retirée → refusé |
@@ -123,8 +124,6 @@ tient. Voici donc ce qui est réellement gardé aujourd'hui, et par quoi.
 
 Écrit ici pour que le silence ne se lise pas comme une absence de problème.
 
-- **Les contrôles morts** (`mobile-controles-morts`, la porte qui a attrapé six boutons
-  inertes). Il n'y a pas encore d'écran à examiner ; la règle Detekt est au lot 6.
 - **Les six clés Firebase à l'export** (`mobile-app-config`). Sans objet en l'état : la
   réécriture ne parle qu'au Worker par HTTP, il n'y a plus de SDK Firebase côté client.
   ⚠️ À rouvrir si une clé revient dans le paquet.

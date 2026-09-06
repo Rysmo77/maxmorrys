@@ -99,6 +99,28 @@ fun Button(
     glypheQueue: String? = null,
     pleineLargeur: Boolean? = null,
 ) {
+    /*
+     * ⛔ UN CONTRÔLE SANS ACTION N'EST PAS DESSINÉ. C'est la règle, et elle est ici pour
+     * qu'aucun appelant n'ait à y penser.
+     *
+     * Sans ce retour, `Button(…, onPress = null)` rendait un contrôle COMPLET — fond, libellé,
+     * glyphes — simplement non cliquable, et sans même la sémantique « désactivé » (qui
+     * n'est posée que si `desactive` est vrai). Un lecteur d'écran l'annonçait comme un
+     * contrôle ordinaire ; un œil le voyait vivant. C'est la définition exacte du contrôle
+     * mort, et `mobile-controles-morts.test.ts` en avait attrapé SIX dans le port React
+     * Native : l'oubli unitaire de la mémoire, le téléchargement d'un épisode, la vitesse
+     * de lecture, « Postuler », et deux réglages de téléchargement.
+     *
+     * ⚠️ `desactive = true` RESTE RENDU, et c'est une autre intention : montrer qu'un geste
+     * existe mais n'est pas disponible maintenant. Le couple « pas d'action ET pas
+     * désactivé » ne décrit rien d'autre qu'un oubli.
+     *
+     * Les écrans qui gardaient déjà leurs appels (`if (reserver != null) { Button(…) }`)
+     * continuent de fonctionner — ils font simplement, en amont, ce que le contrôle refuse
+     * désormais de laisser passer.
+     */
+    if (onPress == null && !desactive) return
+
     val petit = taille == TailleBouton.SM
     val r = recetteTon(ton, desactive)
     val forme: Shape = RoundedCornerShape(Metrique.rPill)
@@ -153,6 +175,11 @@ fun IconButton(
     pastille: Boolean = false,
     contenu: @Composable () -> Unit,
 ) {
+    /* ⛔ Un contrôle sans action n'est pas dessiné — la raison complète est sur `Button`.
+       `desactive = true` reste rendu : montrer qu'un geste existe mais n'est pas disponible
+       est une intention ; « pas d'action et pas désactivé » n'en est pas une. */
+    if (onPress == null && !desactive) return
+
     val p = jetons
     Box(
         modifier
@@ -196,6 +223,10 @@ fun PillButton(
     onPress: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
+    /* ⛔ Un contrôle sans action n'est pas dessiné — la raison complète est sur `Button`.
+       Celui-ci n'a pas d'état désactivé : sans action, il n'a aucune raison d'exister. */
+    if (onPress == null) return
+
     val p = jetons
     val forme = RoundedCornerShape(Metrique.rPill)
     Box(

@@ -248,7 +248,13 @@ export default function AdminAgencyLeads() {
                 label={t('agencyLeads.docQuote')}
                 value={
                   <a
-                    href={`/agence/devis/${sheet.quoteRef}`}
+                    /* ⚠️ `/agence/devis/:ref` EXISTE ENCORE, MAIS PAS POUR ÇA. C'est une
+                       redirection conservée parce que des liens de devis circulent déjà
+                       sur WhatsApp (`App.tsx:430`). Un lien INTERNE écrit aujourd'hui doit
+                       viser la route courante : la redirection est une dette qu'on veut
+                       pouvoir retirer, pas un alias qu'on entretient. `LeadPanel.tsx:138`
+                       pointait déjà la bonne. */
+                    href={`/presence-digitale/devis/${sheet.quoteRef}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-digitalise-txt hover:underline"
