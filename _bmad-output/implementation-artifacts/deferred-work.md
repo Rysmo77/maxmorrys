@@ -57,3 +57,25 @@ ou de conformité magasin. Elles sont listées ici pour être VUES, plutôt qu'e
 - source_spec: —
   summary: La lecture audio en fond — l'argument MÊME du virage natif — n'a rien à lire.
   evidence: Les médias ne sont pas hébergés : la vidéo de leçon est une intégration tierce, l'audio est sur Spotify. La décision de ré-hébergement (R2) est prise, le contenu n'est pas déposé. `MediaSession` sur un lecteur qui ne lit rien n'est pas une fonction.
+
+## Constats du groupe Club (06/09/2026) — mesurés, pas tous graves
+
+- source_spec: spec-ecrans-natif.md § A.6
+  summary: ⛔ Deux des huit onglets du Club n'ont AUCUN producteur côté serveur.
+  evidence: `appClubListe` sert `discussions`, `opportunites` et `membre` (UNE fiche) — pas d'annuaire des membres. Et aucune vue ne sert le digest hebdomadaire. Le kit dessine les deux. Les onglets restent en place — l'ordre de la bande est porteur, l'utilisateur l'apprend par la position — et disent ce qui manque. Les brancher demande DEUX vues serveur de plus, pas du travail d'écran.
+
+- source_spec: —
+  summary: « Ajouter à mon agenda » est impossible avec le contrat actuel — et c'était la seule action native GAGNÉE par le portage.
+  evidence: `Seance.jour` et `Seance.horaire` arrivent déjà mis en forme en français (« Mardi 12 août », « 18 h »), sans horodatage. Aucun `Intent` d'agenda ne se construit d'une chaîne localisée. Il manque un champ ISO à la vue, pas un bouton à l'écran.
+
+- source_spec: spec-ecrans-natif.md § D
+  summary: ⚠️ Les blocages sont invisibles sans abonnement actif — moins grave qu'il n'y paraît.
+  evidence: `appClubBlocages` et `bloquerMembre` exigent tous deux un abonnement actif. Un membre dont l'abonnement expire ne peut ni voir ni défaire ses blocages. MAIS ils restent STOCKÉS et reviennent au réabonnement, et pendant l'expiration ils n'ont de toute façon aucun effet puisque le Club est inaccessible. Le seul défaut réel est de confusion : l'écran est atteint depuis le PROFIL, hors du Club, et affiche l'écran verrouillé sur les choix de modération de la personne elle-même.
+
+- source_spec: —
+  summary: Les deux phrases de canal du digest sont périmées, en sens contraire.
+  evidence: L'une annonce des notifications que rien ne pousse (la permission n'est même pas déclarée) ; l'autre ignore que la plateforme a un canal e-mail depuis le 03/09/2026 (`worker/apps/api/src/lib/email.ts`). Non reprises dans l'écran.
+
+- source_spec: —
+  summary: ⚠️ La copie du kit porte des relevés qui ne sont mesurés nulle part.
+  evidence: « Sept publications et quarante-et-une réponses », « DEUX SESSIONS », « TROIS MISSIONS » sont écrits dans le kit comme du texte. Sortis de la copie et redescendus dans les compteurs (`Num(null)` → « non relevé ») : un nombre sans source est exactement ce que le dispositif de preuves existe pour empêcher.
