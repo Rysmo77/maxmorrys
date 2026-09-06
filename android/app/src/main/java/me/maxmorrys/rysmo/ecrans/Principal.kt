@@ -20,6 +20,9 @@ import me.maxmorrys.rysmo.ds.TonBouton
 import me.maxmorrys.rysmo.navigation.Certificats
 import me.maxmorrys.rysmo.navigation.ClubBloques
 import me.maxmorrys.rysmo.navigation.ClubOnglet
+import me.maxmorrys.rysmo.navigation.Console
+import me.maxmorrys.rysmo.navigation.Media
+import me.maxmorrys.rysmo.navigation.Presence
 import me.maxmorrys.rysmo.navigation.Legal
 import me.maxmorrys.rysmo.navigation.Memoire
 import me.maxmorrys.rysmo.navigation.OngletClub
@@ -178,9 +181,21 @@ private fun CorpsOnglet(onglet: OngletPrincipal, onAller: (Any) -> Unit) {
         OngletPrincipal.REPETITEUR -> listOf("Ce que le répétiteur retient" to Memoire)
         OngletPrincipal.CLUB -> listOf("Entrer dans le Club" to ClubOnglet(OngletClub.Fil))
         OngletPrincipal.PROFIL -> listOf(
+            "Le pôle médias" to Media,
+            "Présence digitale" to Presence,
             "Comptes bloqués" to ClubBloques,
             "Vérifier un certificat" to Verification(),
             "Mentions légales" to Legal,
+            /*
+             * ⚠️ LA CONSOLE EST MONTRÉE À TOUT LE MONDE, ET C'EST CE QUE LE KIT VEUT.
+             *
+             * « Un garde de route est du code client : il cache, il n'interdit pas »
+             * (`NatInterdit`). C'est le SERVEUR qui refuse — `appConsole` est servie sous
+             * `obligatoire+role` — et l'écran d'accès refusé existe précisément pour ce
+             * moment-là. Masquer le lien donnerait l'illusion d'une protection que le
+             * client ne peut pas fournir, et laisserait l'écran orphelin.
+             */
+            "Console du support" to Console,
         )
         OngletPrincipal.COURS -> emptyList()
     }

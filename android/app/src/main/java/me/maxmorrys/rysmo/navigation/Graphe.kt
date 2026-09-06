@@ -29,6 +29,13 @@ import me.maxmorrys.rysmo.ecrans.club.EcranClubBloques
 import me.maxmorrys.rysmo.ecrans.club.EcranClubMembre
 import me.maxmorrys.rysmo.ecrans.club.EcranClubOnglet
 import me.maxmorrys.rysmo.ecrans.compte.EcranConnexion
+import me.maxmorrys.rysmo.ecrans.media.EcranConsole
+import me.maxmorrys.rysmo.ecrans.media.EcranConsoleEcran
+import me.maxmorrys.rysmo.ecrans.media.EcranDevis
+import me.maxmorrys.rysmo.ecrans.media.EcranEpisode
+import me.maxmorrys.rysmo.ecrans.media.EcranMedia
+import me.maxmorrys.rysmo.ecrans.media.EcranPresence
+import me.maxmorrys.rysmo.ecrans.media.EcranVideo
 import me.maxmorrys.rysmo.ecrans.compte.EcranCreation
 import me.maxmorrys.rysmo.ecrans.compte.EcranErreur
 import me.maxmorrys.rysmo.ecrans.compte.EcranInterdit
@@ -233,13 +240,49 @@ fun GrapheRysmo(
         composable<MotDePasse> { EcranMotDePasse(navController::popBackStack) }
         composable<Suppression> { EcranSuppression(navController::popBackStack) }
         composable<Legal> { EcranLegal(navController::popBackStack) }
-        composable<Media> { EnChantier("Le pôle médias", "lot 4", navController::popBackStack) }
-        composable<Episode> { EnChantier("Un épisode", "lot 4", navController::popBackStack) }
-        composable<Video> { EnChantier("Une vidéo", "lot 4", navController::popBackStack) }
-        composable<Presence> { EnChantier("Présence digitale", "lot 4", navController::popBackStack) }
-        composable<Devis> { EnChantier("Un devis", "lot 4", navController::popBackStack) }
-        composable<Console> { EnChantier("La console du support", "lot 4", navController::popBackStack) }
-        composable<ConsoleEcran> { EnChantier("Un écran du support", "lot 4", navController::popBackStack) }
+        composable<Media> {
+            EcranMedia(
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
+        composable<Episode> { pile ->
+            EcranEpisode(
+                episodeId = pile.toRoute<Episode>().episodeId,
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
+        composable<Video> { pile ->
+            EcranVideo(
+                videoId = pile.toRoute<Video>().videoId,
+                onRetour = navController::popBackStack,
+            )
+        }
+        composable<Presence> {
+            EcranPresence(
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
+        composable<Devis> { pile ->
+            EcranDevis(
+                code = pile.toRoute<Devis>().code,
+                onRetour = navController::popBackStack,
+            )
+        }
+        composable<Console> {
+            EcranConsole(
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
+        composable<ConsoleEcran> { pile ->
+            EcranConsoleEcran(
+                ecran = pile.toRoute<ConsoleEcran>().ecran,
+                onRetour = navController::popBackStack,
+            )
+        }
         composable<Interdit> {
             EcranInterdit(
                 onRetour = navController::popBackStack,

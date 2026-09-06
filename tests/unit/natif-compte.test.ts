@@ -241,3 +241,37 @@ describe('aucun contrôle mort dans les écrans du compte', () => {
     expect(fautes, 'un contrôle qui ne fait rien se lit comme un produit cassé, pas comme un chantier').toEqual([]);
   });
 });
+
+describe('les textes légaux existent AUSSI en anglais', () => {
+  /*
+   * ⛔ LE SITE TRADUIT SES SEGMENTS, PAS SEULEMENT SON TEXTE.
+   *
+   * `/legal/cgu` devient `/en/legal/terms-of-use` (`src/i18n/segments.ts`). L'application
+   * servait l'adresse française à tout le monde : quelqu'un dont l'appareil est en anglais
+   * atterrissait sur des conditions générales qu'il ne peut pas lire — le pire endroit
+   * possible pour supposer que « ça se comprend quand même ».
+   *
+   * La porte apparie les segments anglais de l'écran à la TABLE du site, jamais à une liste
+   * recopiée : c'est la table qui fait autorité, et elle peut changer.
+   */
+  const legal = readFileSync(
+    resolve(__dirname, '../../android/app/src/main/java/me/maxmorrys/rysmo/ecrans/compte/Legal.kt'),
+    'utf8',
+  );
+  const segments = readFileSync(resolve(__dirname, '../../src/i18n/segments.ts'), 'utf8');
+
+  it('chaque chemin français a son équivalent anglais, et c’est celui du site', () => {
+    const paires = [...legal.matchAll(/chemin\s*=\s*"\/([^"]+)",\s*\n\s*cheminEn\s*=\s*"\/([^"]+)"/g)];
+    expect(paires.length, 'aucune paire FR/EN extraite — l’extracteur est cassé').toBe(4);
+    for (const [, fr, en] of paires) {
+      const attendu = new RegExp(`['"]?${fr}['"]?:\\s*\\{\\s*fr:\\s*'${fr}',\\s*en:\\s*'([^']+)'`).exec(segments);
+      expect(attendu, `« ${fr} » n’est plus dans la table de segments du site`).not.toBeNull();
+      expect(en, `l’application ouvrirait /en/legal/${en} quand le site sert /en/legal/${attendu![1]}`)
+        .toBe(attendu![1]);
+    }
+  });
+
+  it('la racine anglaise est bien préfixée comme le site le fait', () => {
+    expect(legal).toMatch(/SITE_LEGAL_EN[^=]*=\s*"\$SITE_PUBLIC\/en\/legal"/);
+  });
+});

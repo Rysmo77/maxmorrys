@@ -19,6 +19,10 @@ import { regimeDe, ventilerDepuisHT, type Ventilation } from '../tax/senegal';
  *   - `worker/apps/site/src/prerender/static-pages.ts` (`/presence-digitale` : les cinq
  *     montants sont écrits en toutes lettres dans `description` ET `bodyText`, c'est-à-dire
  *     dans ce qu'un moteur lit. Ce miroir se déploie à la main, séparément du front.)
+ *   - `android/app/src/main/java/me/maxmorrys/rysmo/ecrans/media/Commun.kt` (`TermesDeLOffre` :
+ *     l'application native affiche le pack d'entrée, son prix et sa ventilation de taxe. Un
+ *     module Gradle ne peut pas importer ce fichier ; ⭐ c'est le SEUL miroir de cette liste
+ *     qui soit gardé — `tests/unit/natif-miroirs.test.ts` rougit si les deux divergent.)
  *
  * ⚠️ La ligne `functions/src/prerender.ts` a été retirée de cette liste : le répertoire
  * `functions/` n'existe plus depuis le 03/09/2026 et le prérendu vit dans le Worker. Un

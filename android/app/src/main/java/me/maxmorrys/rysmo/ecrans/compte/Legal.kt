@@ -27,6 +27,7 @@ import me.maxmorrys.rysmo.ds.IconButton
 import me.maxmorrys.rysmo.ds.LessonRow
 import me.maxmorrys.rysmo.ds.Niveau
 import me.maxmorrys.rysmo.ds.Screen
+import me.maxmorrys.rysmo.ds.localeCourante
 import me.maxmorrys.rysmo.ds.Surface
 import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.Typo
@@ -71,9 +72,33 @@ import me.maxmorrys.rysmo.ecrans.apprentissage.SITE_PUBLIC
  */
 internal const val SITE_LEGAL: String = "$SITE_PUBLIC/legal"
 
+/** La même racine, préfixée comme le site préfixe son arbre anglais. */
+internal const val SITE_LEGAL_EN: String = "$SITE_PUBLIC/en/legal"
+
+/**
+ * L'adresse à ouvrir, dans la langue de l'appareil.
+ *
+ * ⚠️ LA LANGUE VIENT DE L'APPAREIL, PAS D'UNE PRÉFÉRENCE DE COMPTE — parce qu'il n'y a pas
+ * encore de compte. Le jour où le profil en portera une, c'est elle qui devra primer : quelqu'un
+ * qui a choisi le français dans l'application ne veut pas des CGU en anglais parce qu'il voyage
+ * avec un téléphone emprunté.
+ */
+internal fun TexteLegal.adresse(anglais: Boolean): String =
+    if (anglais) "$SITE_LEGAL_EN$cheminEn" else "$SITE_LEGAL$chemin"
+
 /** Un texte légal : son chemin sous `legal/`, son titre, et ce qu'il règle. */
 internal data class TexteLegal(
     val chemin: String,
+    /**
+     * Le même texte, à son adresse ANGLAISE.
+     *
+     * ⛔ LE SITE TRADUIT SES SEGMENTS, PAS SEULEMENT SON TEXTE. `/legal/cgu` devient
+     * `/en/legal/terms-of-use` (`src/i18n/segments.ts`). Servir l'adresse française à
+     * quelqu'un dont l'appareil est en anglais l'envoie sur une page qu'il ne peut pas
+     * lire — et sur des conditions générales, c'est le pire endroit possible pour
+     * supposer que « ça se comprend quand même ».
+     */
+    val cheminEn: String,
     val titre: String,
     val meta: String,
 )
@@ -87,21 +112,25 @@ internal data class TexteLegal(
 internal val TEXTES_LEGAUX: List<TexteLegal> = listOf(
     TexteLegal(
         chemin = "/confidentialite",
+        cheminEn = "/privacy",
         titre = "Politique de confidentialité",
         meta = "ce qui est collecté, pourquoi, et pour combien de temps",
     ),
     TexteLegal(
         chemin = "/cgu",
+        cheminEn = "/terms-of-use",
         titre = "Conditions générales d'utilisation",
         meta = "ce que tu acceptes en créant un compte",
     ),
     TexteLegal(
         chemin = "/cgv",
+        cheminEn = "/terms-of-sale",
         titre = "Conditions générales de vente",
         meta = "les achats se font sur le site, pas ici",
     ),
     TexteLegal(
         chemin = "/mentions-legales",
+        cheminEn = "/legal-notice",
         titre = "Mentions légales",
         meta = "qui édite ce service, et comment le joindre",
     ),
@@ -113,6 +142,10 @@ fun EcranLegal(
     modifier: Modifier = Modifier,
 ) {
     val contexte = LocalContext.current
+    /* `localeCourante()` est OBSERVABLE : changer la langue du téléphone recompose l'écran
+       et les liens suivent. Lire `Locale.getDefault()` ici les figerait sur la langue du
+       démarrage — le défaut que `ds/Locale.kt` existe pour empêcher. */
+    val enAnglais = localeCourante().language == "en"
     /* L'adresse qu'aucun navigateur n'a pu ouvrir. `null` tant que tout va bien. */
     var adresseOrpheline by remember { mutableStateOf<String?>(null) }
 
@@ -146,7 +179,7 @@ fun EcranLegal(
                                 Icon("external", description = null, taille = 15.dp, couleur = jetons.ink2)
                             },
                             onPress = {
-                                val adresse = "$SITE_LEGAL${texte.chemin}"
+                                val adresse = texte.adresse(enAnglais)
                                 adresseOrpheline = if (ouvrirDansLeNavigateur(contexte, adresse)) {
                                     null
                                 } else {

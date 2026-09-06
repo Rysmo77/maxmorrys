@@ -24,6 +24,11 @@
  * liste est affichée à deux endroits — le menu de l'espace d'administration, et l'écran /403
  * qui dit à quelqu'un ce que son rôle atteint. Deux déclarations, c'est deux occasions de
  * mentir à la personne sur ce qu'elle a le droit de faire.
+ *
+ * ⚠️ TROIS DEPUIS L'APPLICATION NATIVE. `android/app/src/main/java/me/maxmorrys/rysmo/ecrans/
+ * media/Console.kt` porte les cinq libellés et `.../ecrans/media/ConsoleEcran.kt` les cinq
+ * chemins — un module Gradle ne peut pas importer ce fichier. ⭐ Ce troisième miroir est GARDÉ :
+ * `tests/unit/natif-miroirs.test.ts` compare les libellés, les chemins et leur ORDRE.
  */
 export const SUPPORT_SCOPE = [
   { to: '/admin/messages', label: 'Messages' },
