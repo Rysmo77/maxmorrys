@@ -115,6 +115,7 @@ tient. Voici donc ce qui est réellement gardé aujourd'hui, et par quoi.
 | `mobile-atelier-garde` — la planche est hors du paquet | **l'arborescence**, pas un test : `app/src/debug/` n'est pas compilé pour `release` | par construction |
 | `mobile-reseau` — l'échec de transport a plusieurs causes | `donnees/Erreurs.kt` + tests Kotlin ; **quatre** causes, pas trois | — |
 | `mobile-routes` — tout lien mène à un écran qui existe | le COMPILATEUR : destinations `@Serializable` typées | par construction |
+| ⭐ `mobile-routes` — **tout écran est ATTEINT par un lien** (le sens qui manquait) | `tests/unit/natif-navigation.test.ts` : déclarations appariées aux `composable<…>`, pas des chaînes cherchées au hasard | destination désenregistrée, point d'entrée déplacé, onglet réduit à un écriteau, lancement laissé dans la pile → les quatre refusés |
 | ⭐ inédite — le mode sombre n'est pas un filtre | `natif-socle.test.ts` : les deux palettes divergent là où le CSS diverge | l'arc sombre ramené au clair → refusé |
 | ⭐ inédite — le contrat de vues ne dérive pas | `vues:check` + le typecheck TypeScript du Worker | vue retirée, route absente d'une liste `MIGRATED` → refusés |
 
@@ -124,9 +125,6 @@ tient. Voici donc ce qui est réellement gardé aujourd'hui, et par quoi.
 
 - **Les contrôles morts** (`mobile-controles-morts`, la porte qui a attrapé six boutons
   inertes). Il n'y a pas encore d'écran à examiner ; la règle Detekt est au lot 6.
-- **Le second sens de la carte** — « tout écran est atteint par un lien ». Aucun type ne
-  peut le tenir : c'est le travail d'une porte, et c'est précisément le sens qui manquait
-  au port RN. Lot 4, avec le `NavHost`.
 - **Les six clés Firebase à l'export** (`mobile-app-config`). Sans objet en l'état : la
   réécriture ne parle qu'au Worker par HTTP, il n'y a plus de SDK Firebase côté client.
   ⚠️ À rouvrir si une clé revient dans le paquet.
