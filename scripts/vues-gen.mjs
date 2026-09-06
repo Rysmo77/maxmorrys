@@ -55,7 +55,24 @@ const CIBLES = {
 
 const SCALAIRES = new Set(['texte', 'entier', 'decimal', 'booleen', 'horodatage']);
 const SENS_DU_VIDE = new Set(['jamais', 'sansAcces', 'sansDonnee']);
-const SESSIONS = new Set(['obligatoire', 'obligatoire+club', 'obligatoire+role', 'anonyme']);
+/*
+ * ⭐ `aucune` EST LE QUATRIÈME NIVEAU, ET IL A ÉTÉ AJOUTÉ POUR UNE SEULE VUE.
+ *
+ * Les dix-neuf premières vues sont personnelles : `obligatoire`, `obligatoire+club`,
+ * `obligatoire+role`. Le vocabulaire ne prévoyait donc rien pour une lecture PUBLIQUE, et
+ * `appVerifierCertificat` en est une par nature — un certificat se vérifie par quelqu'un qui
+ * n'a pas de compte, c'est tout ce que le document promet.
+ *
+ * ⚠️ `anonyme` EXISTAIT DÉJÀ ET NE CONVENAIT PAS : il décrit une vue qui doit FONCTIONNER
+ * sans compte (le catalogue se parcourt sans être inscrit), pas une vue que le serveur sert
+ * sans jeton. Aucune vue ne le porte à ce jour ; les confondre aurait fait passer une lecture
+ * publique pour une lecture personnelle tolérante, ce qui est exactement l'inverse.
+ *
+ * Le niveau n'est pas décoratif : il est ÉMIS des deux côtés (`Vues.SANS_SESSION`,
+ * `VUES_SANS_SESSION`), il décide du court-circuit de `LectureDeVue.lire`, et il dispense du
+ * `requireAuth` que `worker-vues-natives.test.ts` exige partout ailleurs.
+ */
+const SESSIONS = new Set(['obligatoire', 'obligatoire+club', 'obligatoire+role', 'anonyme', 'aucune']);
 /* Les neuf codes que `worker/apps/api/src` lève RÉELLEMENT, comptés sur `new HttpsError('…')`.
    Les huit autres de `HttpsErrorCode` ne sont jamais levés ; les nommer dans le contrat
    ferait croire à un cas que le client devrait traiter. */

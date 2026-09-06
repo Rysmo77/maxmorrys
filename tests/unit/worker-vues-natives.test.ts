@@ -15,8 +15,12 @@ import { join, resolve } from 'node:path';
  *
  * Deux conséquences, et la seconde est la plus grave.
  *
- * 1 · SANS `requireAuth`, la vue répond à un appel ANONYME. Toutes ces vues sont
- *     personnelles ; il n'en existe pas une seule qui doive répondre sans jeton.
+ * 1 · SANS `requireAuth`, la vue répond à un appel ANONYME. Dix-sept de ces vues sont
+ *     personnelles ; UNE SEULE doit répondre sans jeton — `appVerifierCertificat`, parce
+ *     qu'un certificat se vérifie par quelqu'un qui n'a pas de compte. ⚠️ Cette exception
+ *     n'est pas écrite ici : elle se DÉRIVE du champ `session` du contrat (voir plus bas),
+ *     et elle s'accompagne d'une contrepartie — une vue publique ne doit rien lire qui
+ *     dépende de qui appelle.
  *
  * 2 · SANS LE CONTRÔLE D'ABONNEMENT, LE CLUB DEVIENT PUBLIC. `firestore.rules` garde
  *     `club_posts`, `club_events`, `club_infos` et `club_opportunities` derrière
@@ -40,15 +44,102 @@ function fichiers(): string[] {
 
 const lire = (f: string) => readFileSync(join(VUES, f), 'utf8');
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * ⭐ L'EXEMPTION VIENT DU CONTRAT, PAS D'UNE LISTE ÉCRITE ICI.
+ *
+ * Une vue et une seule est servie SANS jeton : `appVerifierCertificat`. Un certificat se
+ * vérifie par quelqu'un qui n'a pas de compte — employeur, client, jury — et exiger une
+ * session reviendrait à demander à cette personne de s'inscrire chez celui qu'elle
+ * contrôle, c'est-à-dire à supprimer ce que le document promet.
+ *
+ * ⛔ CETTE EXCEPTION AURAIT PU S'ÉCRIRE `const PUBLIQUES = ['verifierCertificat.ts']`, ET
+ * C'EST EXACTEMENT LE DÉFAUT QUE CE DÉPÔT A DÉJÀ PAYÉ PLUSIEURS FOIS : une liste recopiée
+ * d'un fichier à l'autre se désynchronise SANS QUE RIEN N'ÉCHOUE. Ajouter un handler public
+ * sans penser à la liste le laisserait refusé ; RETIRER `session: "aucune"` du contrat sans
+ * penser à la liste laisserait une vue authentifiée dispensée de `requireAuth` — et c'est le
+ * sens qui coûte cher.
+ *
+ * La dispense se dérive donc du champ `session` du contrat, qui est aussi ce qui produit
+ * `Vues.SANS_SESSION` (Kotlin) et `VUES_SANS_SESSION` (TypeScript). Une seule déclaration,
+ * trois consommateurs.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+interface Contrat {
+  vues: Record<string, { session: string }>;
+}
+
+const CONTRAT: Contrat = JSON.parse(
+  readFileSync(join(RACINE, 'worker/apps/api/src/vues/vues.contrat.json'), 'utf8'),
+) as Contrat;
+
+/** `verifierCertificat.ts` -> `appVerifierCertificat`, la convention des 18 fichiers. */
+const nomDeVue = (fichier: string) => {
+  const base = fichier.replace(/\.ts$/, '');
+  return `app${base.charAt(0).toUpperCase()}${base.slice(1)}`;
+};
+
+/** Les fichiers dont le contrat dit qu'ils répondent sans jeton. */
+function publiques(): string[] {
+  return fichiers().filter((f) => {
+    const nom = nomDeVue(f);
+    /* Une callable discriminée porte plusieurs noms de vue (`appClubListe.membre`) : elle est
+       publique seulement si TOUTES ses formes le sont. Aucune ne l'est aujourd'hui, et cette
+       formulation évite qu'un seul discriminant public ouvre la callable entière. */
+    const formes = Object.entries(CONTRAT.vues).filter(([n]) => n.split('.')[0] === nom);
+    return formes.length > 0 && formes.every(([, v]) => v.session === 'aucune');
+  });
+}
+
 describe('les vues natives refont les contrôles que les règles ne feront pas', () => {
   it('il y a des vues à vérifier', () => {
     // Sans ce garde, tout le fichier passerait au vert sur un dossier vide.
     expect(fichiers().length).toBeGreaterThan(0);
   });
 
-  it('chaque vue exige un appel authentifié', () => {
-    const sans = fichiers().filter((f) => !/requireAuth\(/.test(lire(f)));
-    expect(sans, 'répondraient à un appel anonyme').toEqual([]);
+  it('chaque vue du contrat correspond à un fichier, et réciproquement', () => {
+    /*
+     * Le garde-fou de l'extracteur : si la convention de nommage change, `publiques()` ne
+     * reconnaîtrait plus rien et la dispense s'évaporerait — silencieusement, en RENFORÇANT
+     * la porte, donc sans rougir. Une porte qui se durcit toute seule ment aussi.
+     */
+    const orphelins = fichiers().filter(
+      (f) => !Object.keys(CONTRAT.vues).some((n) => n.split('.')[0] === nomDeVue(f)),
+    );
+    expect(orphelins, 'handlers `app/` absents du contrat — la convention de nommage a changé').toEqual([]);
+  });
+
+  it('chaque vue exige un appel authentifié, sauf celles que le contrat déclare publiques', () => {
+    const dispensees = new Set(publiques());
+    const sans = fichiers()
+      .filter((f) => !dispensees.has(f))
+      .filter((f) => !/requireAuth\(/.test(lire(f)));
+    expect(sans, 'répondraient à un appel anonyme sans l’avoir déclaré').toEqual([]);
+  });
+
+  it('la dispense est ÉTROITE : une seule vue publique, et elle est nommée', () => {
+    /*
+     * Le compte est écrit ici parce qu'il doit être DÉFENDU, pas constaté. Ouvrir une
+     * deuxième vue au public est une décision produit : elle doit faire rougir cette porte
+     * et obliger à écrire pourquoi, plutôt que de se glisser dans un `session` changé.
+     */
+    expect(publiques()).toEqual(['verifierCertificat.ts']);
+  });
+
+  it('une vue publique ne lit RIEN qui dépende de qui appelle', () => {
+    /*
+     * ⛔ C'EST LA CONTREPARTIE DE LA DISPENSE, ET ELLE COMPTE PLUS QU'ELLE.
+     *
+     * Sans `requireAuth`, `context.auth` vaut `null` pour un appel anonyme — mais il vaut
+     * un jeton DÉCODÉ dès que l'appelant en présente un. Un handler public qui lirait
+     * `auth.uid` servirait donc deux réponses différentes selon la présence d'un en-tête
+     * que personne n'est censé envoyer : le comportement le plus difficile à reproduire, et
+     * celui qu'aucune relecture ne voit.
+     *
+     * Une vue publique lit ce que son PARAMÈTRE désigne, et rien d'autre.
+     */
+    const fautes = publiques().filter((f) => /\bcontext\.auth\b|\bauth\.uid\b|requireAuth\(/.test(lire(f)));
+    expect(fautes, 'une vue publique qui regarde l’appelant sert deux produits différents').toEqual([]);
   });
 
   it("chaque vue borne ses requêtes sur l'uid du JETON", () => {

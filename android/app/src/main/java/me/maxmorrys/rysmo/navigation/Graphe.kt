@@ -12,10 +12,22 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.map
 import me.maxmorrys.rysmo.donnees.Session
 import me.maxmorrys.rysmo.ecrans.EcranLancement
+import me.maxmorrys.rysmo.ecrans.apprentissage.EcranCertificat
+import me.maxmorrys.rysmo.ecrans.apprentissage.EcranCertificats
+import me.maxmorrys.rysmo.ecrans.apprentissage.EcranFormation
+import me.maxmorrys.rysmo.ecrans.apprentissage.EcranLecon
+import me.maxmorrys.rysmo.ecrans.apprentissage.EcranMemoire
+import me.maxmorrys.rysmo.ecrans.apprentissage.EcranNotes
+import me.maxmorrys.rysmo.ecrans.apprentissage.EcranTelechargements
+import me.maxmorrys.rysmo.ecrans.apprentissage.EcranVerification
+import me.maxmorrys.rysmo.ecrans.club.EcranClubBloques
+import me.maxmorrys.rysmo.ecrans.club.EcranClubMembre
+import me.maxmorrys.rysmo.ecrans.club.EcranClubOnglet
 import me.maxmorrys.rysmo.ecrans.EcranOnboarding
 import me.maxmorrys.rysmo.ecrans.EcranPermissions
 import me.maxmorrys.rysmo.ecrans.EnChantier
@@ -111,18 +123,82 @@ fun GrapheRysmo(
         /* ── Le reste du graphe ──────────────────────────────────────────────────────── */
 
         composable<Biometrie> { EnChantier("Verrouillage biométrique", "lot 5", navController::popBackStack) }
-        composable<Formation> { EnChantier("La fiche de formation", "lot 4", navController::popBackStack) }
-        composable<Lecon> { EnChantier("Le lecteur de leçon", "lot 4", navController::popBackStack) }
+        composable<Formation> { pile ->
+            val a = pile.toRoute<Formation>()
+            EcranFormation(a.slug, a.titre, navController::popBackStack)
+        }
+        composable<Lecon> { pile ->
+            val a = pile.toRoute<Lecon>()
+            EcranLecon(
+                slug = a.slug,
+                leconId = a.leconId,
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
         composable<PleinEcran> { EnChantier("Le lecteur en plein écran", "lot 5", navController::popBackStack) }
-        composable<Notes> { EnChantier("Tes notes", "lot 4", navController::popBackStack) }
-        composable<Certificats> { EnChantier("Tes certificats", "lot 4", navController::popBackStack) }
-        composable<Certificat> { EnChantier("Un certificat", "lot 4", navController::popBackStack) }
-        composable<Verification> { EnChantier("La vérification d'un certificat", "lot 4", navController::popBackStack) }
-        composable<Memoire> { EnChantier("La mémoire du répétiteur", "lot 4", navController::popBackStack) }
-        composable<Telechargements> { EnChantier("Tes téléchargements", "lot 5", navController::popBackStack) }
-        composable<ClubOnglet> { EnChantier("Un onglet du Club", "lot 4", navController::popBackStack) }
-        composable<ClubMembre> { EnChantier("La fiche d'un membre", "lot 4", navController::popBackStack) }
-        composable<ClubBloques> { EnChantier("Les comptes que tu as bloqués", "lot 4", navController::popBackStack) }
+        composable<Notes> { pile ->
+            EcranNotes(pile.toRoute<Notes>().leconId, navController::popBackStack)
+        }
+        composable<Certificats> {
+            EcranCertificats(
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
+        composable<Certificat> { pile ->
+            val a = pile.toRoute<Certificat>()
+            EcranCertificat(
+                code = a.code,
+                titulaire = a.titulaire,
+                formation = a.formation,
+                emisLe = a.emisLe,
+                lecons = a.lecons,
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
+        composable<Verification> { pile ->
+            EcranVerification(pile.toRoute<Verification>().code, navController::popBackStack)
+        }
+        composable<Memoire> { EcranMemoire(navController::popBackStack) }
+        composable<Telechargements> { EcranTelechargements(navController::popBackStack) }
+        composable<ClubOnglet> { pile ->
+            EcranClubOnglet(
+                onglet = pile.toRoute<ClubOnglet>().onglet,
+                onRetour = navController::popBackStack,
+                /* ⚠️ LA BANDE REMPLACE, ELLE N'EMPILE PAS. Sans `popUpTo`, chaque passage
+                   d'un onglet à l'autre allonge la pile, et le retour système remonte
+                   l'historique des onglets au lieu de sortir du Club. C'est le graphe qui
+                   en décide, pas l'écran — d'où ce bloc ici et pas dans `ClubScaffold`. */
+                onOngletClub = { cible ->
+                    navController.navigate(ClubOnglet(cible)) {
+                        popUpTo(ClubRoot) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onOngletPrincipal = { navController.navigate(it.destination()) },
+                onAller = { navController.navigate(it) },
+            )
+        }
+        composable<ClubMembre> { pile ->
+            val a = pile.toRoute<ClubMembre>()
+            EcranClubMembre(
+                membreId = a.membreId,
+                messageId = a.messageId,
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+                onSignaler = { uid, motif -> navController.navigate(gesteImpossible("Signaler", uid, motif)) },
+                onBloquer = { uid, _ -> navController.navigate(gesteImpossible("Bloquer", uid, null)) },
+            )
+        }
+        composable<ClubBloques> {
+            EcranClubBloques(
+                onRetour = navController::popBackStack,
+                onDebloquer = { navController.navigate(gesteImpossible("Débloquer", it.id, null)) },
+            )
+        }
         composable<Connexion> { EnChantier("La connexion", "lot 4", navController::popBackStack) }
         composable<Creation> { EnChantier("La création de compte", "lot 4", navController::popBackStack) }
         composable<MotDePasse> { EnChantier("Le mot de passe oublié", "lot 4", navController::popBackStack) }
@@ -171,3 +247,29 @@ private fun OngletPrincipal.destination(): Any = when (this) {
     OngletPrincipal.CLUB -> ClubRoot
     OngletPrincipal.PROFIL -> Profil
 }
+
+/**
+ * ⛔ UN GESTE DE MODÉRATION QUI NE PEUT PAS PARTIR DOIT LE DIRE, PAS SE TAIRE.
+ *
+ * `signalerMembre` et `bloquerMembre` sont au contrat et le serveur les sert. Mais aucun
+ * producteur de jeton d'identité n'est branché : l'appel ne peut pas être authentifié, donc
+ * il ne peut pas partir.
+ *
+ * ⚠️ La tentation était de passer `{}` — le bouton s'affiche, le geste ne fait rien.
+ * C'est exactement le défaut que la porte des contrôles morts du port RN avait attrapé six
+ * fois, et ici il coûterait plus cher qu'ailleurs : la règle 1.2 de l'App Store exige un
+ * signalement FONCTIONNEL sur du contenu généré par les utilisateurs, et un bouton muet la
+ * remet à zéro tout en ayant l'air de la satisfaire.
+ *
+ * Le geste mène donc à l'écran d'erreur, qui NOMME ce qui manque et la conséquence.
+ */
+private fun gesteImpossible(geste: String, uid: String, motif: String?) = Erreur(
+    titre = "$geste : pas encore possible",
+    motif = "L'identification n'est pas branchée — aucun producteur de jeton n'est choisi — "
+        + "donc cet appel ne peut pas être authentifié auprès du serveur.",
+    consequence = "Ton geste n'a PAS été enregistré. La personne n'a été ni signalée ni "
+        + "bloquée, et l'équipe n'a rien reçu."
+        + (motif?.let { " Ton motif n'a pas été transmis." } ?: ""),
+    reference = uid,
+    libelle = "Revenir",
+)

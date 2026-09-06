@@ -17,6 +17,14 @@ import me.maxmorrys.rysmo.ds.Screen
 import me.maxmorrys.rysmo.ds.TabBar
 import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.TonBouton
+import me.maxmorrys.rysmo.navigation.Certificats
+import me.maxmorrys.rysmo.navigation.ClubBloques
+import me.maxmorrys.rysmo.navigation.ClubOnglet
+import me.maxmorrys.rysmo.navigation.Legal
+import me.maxmorrys.rysmo.navigation.Memoire
+import me.maxmorrys.rysmo.navigation.OngletClub
+import me.maxmorrys.rysmo.navigation.Telechargements
+import me.maxmorrys.rysmo.navigation.Verification
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -29,11 +37,28 @@ import me.maxmorrys.rysmo.ds.TonBouton
  * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 enum class OngletPrincipal(val libelle: String, val glyphe: String, val territoire: Territoire) {
-    ESPACE("Espace", "home", Territoire.FORME),
-    COURS("Cours", "book", Territoire.DIGITALISE),
+    /*
+     * ⛔ LES TERRITOIRES SONT RELEVÉS DANS LE KIT, PAS RÉPARTIS POUR FAIRE JOLI.
+     *
+     * Ma première version en donnait un différent à chaque onglet — c'était une supposition,
+     * et elle était fausse sur quatre des cinq. Le kit met QUATRE écrans sur cinq en
+     * `transforme` et n'en distingue qu'un :
+     *
+     *   NatEspace       transforme   (ScreensNatifApp.js)
+     *   NatCatalogue    forme        (ScreensNatif.js — le seul qui change)
+     *   NatRepetiteur   transforme   (ScreensNatifEtats.js)
+     *   NatClubMur      transforme   (ScreensNatifCompte.js:244)
+     *   NatPreferences  transforme   (ScreensNatifCompte.js)
+     *
+     * ⚠️ Le maillage n'est pas une décoration par onglet : c'est ce qui dit à quel
+     * territoire de marque on se trouve. Le faire tourner à chaque bascule d'onglet
+     * transforme un repère en clignotement.
+     */
+    ESPACE("Espace", "home", Territoire.TRANSFORME),
+    COURS("Cours", "book", Territoire.FORME),
     REPETITEUR("Répétiteur", "chat", Territoire.TRANSFORME),
-    CLUB("Club", "users", Territoire.INFORME),
-    PROFIL("Profil", "user", Territoire.FORME),
+    CLUB("Club", "users", Territoire.TRANSFORME),
+    PROFIL("Profil", "user", Territoire.TRANSFORME),
 }
 
 private val ONGLETS = OngletPrincipal.entries.map { Onglet(it.libelle, it.glyphe) }
@@ -133,6 +158,40 @@ private fun CorpsOnglet(onglet: OngletPrincipal, onAller: (Any) -> Unit) {
         grain = GrainCorps.CORPS,
         attenue = true,
     )
+
+    /*
+     * ⛔ CES LIENS NE SONT PAS DÉCORATIFS : SANS EUX, DES ÉCRANS CONSTRUITS NE SONT ATTEINTS
+     * PAR RIEN.
+     *
+     * C'est le défaut du port React Native, à la lettre : 14 routes sur 51 existaient,
+     * fonctionnaient, et n'étaient ouvertes par aucun écran de production. Les huit onglets
+     * du Club, les certificats, les textes légaux sont dans le même cas ici tant qu'aucun
+     * contrôle n'y mène.
+     *
+     * ⚠️ La porte `natif-navigation.test.ts` ne voit PAS ce défaut : elle garde que toute
+     * destination déclarée est enregistrée au graphe, pas qu'un écran l'ouvre. C'est la
+     * limite connue de cette porte, et la raison pour laquelle ces liens sont écrits ici
+     * plutôt que remis à plus tard.
+     */
+    val portes: List<Pair<String, Any>> = when (onglet) {
+        OngletPrincipal.ESPACE -> listOf("Mes certificats" to Certificats, "Mes téléchargements" to Telechargements)
+        OngletPrincipal.REPETITEUR -> listOf("Ce que le répétiteur retient" to Memoire)
+        OngletPrincipal.CLUB -> listOf("Entrer dans le Club" to ClubOnglet(OngletClub.Fil))
+        OngletPrincipal.PROFIL -> listOf(
+            "Comptes bloqués" to ClubBloques,
+            "Vérifier un certificat" to Verification(),
+            "Mentions légales" to Legal,
+        )
+        OngletPrincipal.COURS -> emptyList()
+    }
+    portes.forEach { (libelle, cible) ->
+        Button(
+            libelle,
+            { onAller(cible) },
+            Modifier.padding(top = 10.dp),
+            ton = TonBouton.QUIET,
+        )
+    }
 }
 
 /**

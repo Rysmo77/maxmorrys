@@ -231,6 +231,10 @@ ${noms.map((n) => `        "${n}" to "${n.split('.')[0]}",`).join('\n')}
 ${kdoc('Ce que `vue: null` veut dire, vue par vue. Clé : le nom du contrat, discriminant compris.', '    ')}    val SENS_DU_VIDE: Map<String, SensDuVide> = mapOf(
 ${noms.map((n) => `        "${n}" to SensDuVide.${sens[contrat.vues[n].vueNulle]},`).join('\n')}
     )
+
+${kdoc("⭐ LES VUES QUE LE SERVEUR SERT SANS JETON — `session: \"aucune\"` dans le contrat. ⛔ SANS CETTE TABLE, `LectureDeVue.lire` COURT-CIRCUITE AVANT L'APPEL : une session `Anonyme` rend `Etat.Anonyme`, une session `NonConfiguree` rend une panne — et la vérification d'un certificat, qui est faite PAR QUELQU'UN QUI N'A PAS DE COMPTE, n'aurait jamais atteint le réseau. C'est le contrat qui décide, pas l'écran : un écran qui aurait dû savoir contourner le court-circuit l'aurait oublié une fois sur deux, et le défaut se serait lu comme « ce certificat est introuvable ».", '    ')}    val SANS_SESSION: Set<String> = setOf(
+${noms.filter((n) => contrat.vues[n].session === 'aucune').map((n) => `        "${n}",`).join('\n')}
+    )
 }`,
     '',
   );

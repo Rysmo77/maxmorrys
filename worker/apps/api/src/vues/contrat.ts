@@ -135,6 +135,16 @@ export interface Certificats {
   incomplets: number;
 }
 
+/** Le miroir PUBLIC d'un certificat, tel que `certificate_lookups` le porte. ⛔ QUATRE CHAMPS, ET PAS UN DE PLUS : cette forme est servie SANS SESSION, donc tout champ ajouté ici est une donnée personnelle publiée sans le vouloir — le miroir ne porte d'ailleurs ni UID ni adresse, et `worker-certificats.test.ts` le garde. ⚠️ Elle NE PORTE PAS `lecons`, contrairement à `Certificat` : l'émission ne l'écrit pas dans le miroir (`issueCertificate.ts:110-115`), et le « 47 / 47 » du kit est une donnée de démonstration. La page web l'omet déjà pour cette raison exacte (`VerifyCertificate.tsx:39-45`). */
+export interface CertificatPublic {
+  /** Le code ÉCRIT EN BASE, jamais celui reçu de l'appelant : réafficher ce qu'on vient de taper ne prouve rien. */
+  code: string;
+  formation: string;
+  titulaire: string;
+  /** Chaîne ISO brute de `issuedAt`, PAS mise en forme — comme `Certificat.emisLe`. */
+  emisLe: string;
+}
+
 /** ⚠️ NOMMÉE ICI parce qu'elle était anonyme des deux côtés (`club.ts:90-94`). Voir `n`. */
 export interface ClubBilanTuile {
   /** ⛔ NON NULLABLE, CONTRE LE COMMENTAIRE DE `club.ts:88-89`. Celui-ci affirme « Un `null` y reste `null` : trois tuiles qui affichent “non relevé” valent mieux qu'un zéro qu'on n'a pas mesuré. » LE CODE NE PEUT PAS LE TENIR : `count(...).catch(() => 0)` (`club.ts:63, 68`) et `toNumber(..., 0)` (`:93`) servent une agrégation REFUSÉE comme un zéro MESURÉ. Même motif dans `console.ts:49`. Le contrat dit la vérité du code, pas celle du commentaire ; faire passer `.catch(() => 0)` à `.catch(() => null)` est une décision produit, et elle n'a pas eu lieu. */
@@ -429,6 +439,7 @@ export type NomDeVue =
   | "appLecon"
   | "appNotes"
   | "appCertificats"
+  | "appVerifierCertificat"
   | "appClub"
   | "appClubAgenda"
   | "appClubBlocages"
@@ -451,6 +462,7 @@ export interface FormeDeVue {
   appLecon: Lecon;
   appNotes: Notes;
   appCertificats: Certificats;
+  appVerifierCertificat: CertificatPublic;
   appClub: Club;
   appClubAgenda: Seance[];
   appClubBlocages: Blocages;
@@ -483,6 +495,7 @@ export interface VueNulleDe {
   appLecon: "sansDonnee";
   appNotes: "jamais";
   appCertificats: "jamais";
+  appVerifierCertificat: "sansDonnee";
   appClub: "sansAcces";
   appClubAgenda: "sansAcces";
   appClubBlocages: "sansAcces";
@@ -496,6 +509,20 @@ export interface VueNulleDe {
   appMedia: "jamais";
   appRepetiteur: "jamais";
 }
+
+/**
+ * ⭐ LES VUES SERVIES SANS JETON — `session: "aucune"` dans le contrat.
+ *
+ * Une seule à ce jour, et c'est voulu : `appVerifierCertificat`. Un certificat se vérifie
+ * par quelqu'un qui n'a pas de compte, sinon il ne prouve rien. Toutes les autres vues
+ * sont personnelles et appellent `requireAuth`.
+ *
+ * ⚠️ CETTE LISTE EST LA SOURCE DE L'EXEMPTION, pas un commentaire sur elle.
+ * `tests/unit/worker-vues-natives.test.ts` en dérive les handlers dispensés de
+ * `requireAuth` : un handler qu'on oublierait d'authentifier sans l'avoir déclaré ici
+ * reste refusé par la porte.
+ */
+export const VUES_SANS_SESSION: readonly NomDeVue[] = ["appVerifierCertificat"] as const;
 
 /**
  * L'ENVELOPPE, et la seule chose que les 19 formes de réponse ont en commun.

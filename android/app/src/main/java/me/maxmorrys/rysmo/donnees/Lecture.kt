@@ -41,6 +41,20 @@ class LectureDeVue(
      * ⚠️ UN SUCCÈS DE CACHE NE PASSE PAS PAR `Charge`. C'est ce qui évite le clignotement :
      * l'écran ne vide pas son contenu pour le remplir avec le même.
      *
+     * ⭐ UNE VUE PUBLIQUE NE COURT-CIRCUITE PAS. `Vues.SANS_SESSION` — généré depuis le champ
+     * `session: "aucune"` du contrat — nomme les vues que le serveur sert sans jeton. Pour
+     * celles-là, l'absence de session n'est pas un obstacle : c'est la situation NORMALE.
+     *
+     * ⛔ SANS CETTE BRANCHE, LA VÉRIFICATION D'UN CERTIFICAT ÉTAIT MORTE AVANT DE PARTIR.
+     * Elle se fait par quelqu'un qui n'a PAS de compte — un employeur, un jury. La session
+     * vaut donc `Anonyme`, l'ancien code rendait `Etat.Anonyme`, et l'écran affichait « porte
+     * fermée » sur le seul chemin du produit qui doit rester ouvert. Le lien profond
+     * `/verifier` est vérifié en ligne : il aurait ouvert un écran qui refuse de répondre.
+     *
+     * ⚠️ ET LA DÉCISION EST DANS LE CONTRAT, PAS DANS L'ÉCRAN. Un écran qui aurait dû savoir
+     * contourner le court-circuit l'aurait oublié une fois sur deux, et le défaut se serait lu
+     * comme « ce certificat est introuvable » — le pire des trois verdicts possibles.
+     *
      * @param forcer vrai pour une reprise explicite — le seul cas où l'on repart alors qu'une
      *   entrée fraîche existe.
      */
@@ -50,18 +64,39 @@ class LectureDeVue(
         params: JsonObject = JsonObject(emptyMap()),
         forcer: Boolean = false,
     ): Etat<T> {
-        when (session) {
-            is Session.Restauration -> return Etat.Restauration
-            is Session.Anonyme -> return Etat.Anonyme
-            /* ⛔ PANNE SANS REPRISE. Le port posait ici une lambda vide : l'écran affichait
-               « Réessayer » et le geste ne faisait RIEN. Le drapeau est dans l'état. */
-            is Session.NonConfiguree ->
-                return Etat.Panne(session.motif, CodeErreur.FAILED_PRECONDITION, reprenable = false)
-            is Session.Connectee -> Unit
+        val publique = nomDeVue in Vues.SANS_SESSION
+
+        /*
+         * L'uid de la CLÉ DE CACHE, et rien d'autre.
+         *
+         * ⭐ `null` POUR UNE VUE PUBLIQUE, MÊME QUAND QUELQU'UN EST CONNECTÉ. Le document
+         * qu'un code de certificat désigne est le MÊME pour tout le monde ; le ranger sous un
+         * uid en ferait autant de copies que de comptes, sans qu'aucune ne serve à l'autre.
+         * `CacheDesVues.cle` accepte déjà `null` — la clé porte « - », ce qui la sépare
+         * proprement des entrées d'un compte.
+         *
+         * ⚠️ Une vue publique passe outre le court-circuit de session, mais PAS celui
+         * d'`Appel` : tant que la configuration de construction est incomplète, `appelerBrut`
+         * refuse avant tout réseau, avec son motif nommé. La dette est donc dite deux fois
+         * plutôt qu'à moitié levée — et une `Configuration` qui n'exige rien de manquant, ce
+         * qui est le cas d'un appel sans jeton, la traverse sans encombre.
+         */
+        val uid: String? = if (publique) {
+            null
+        } else {
+            when (session) {
+                is Session.Restauration -> return Etat.Restauration
+                is Session.Anonyme -> return Etat.Anonyme
+                /* ⛔ PANNE SANS REPRISE. Le port posait ici une lambda vide : l'écran affichait
+                   « Réessayer » et le geste ne faisait RIEN. Le drapeau est dans l'état. */
+                is Session.NonConfiguree ->
+                    return Etat.Panne(session.motif, CodeErreur.FAILED_PRECONDITION, reprenable = false)
+                is Session.Connectee -> session.uid
+            }
         }
 
         val complets = LectureDeVue.parametresComplets(nomDeVue, params)
-        val cle = CacheDesVues.cle(session.uid, nomDeVue, complets)
+        val cle = CacheDesVues.cle(uid, nomDeVue, complets)
 
         if (!forcer) {
             cache.lire(cle)?.let { entree ->

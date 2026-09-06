@@ -76,7 +76,18 @@ export default function VerifyCertificate() {
      * fin, ou saisit en minuscules : normaliser ici évite un « introuvable » qui serait une
      * erreur de saisie présentée comme un verdict sur le document.
      */
-    const cleaned = code.trim().toUpperCase().replace(/\s+/g, '');
+    /*
+     * ⛔ ON RETIRE AUSSI LES TIRETS SURNUMÉRAIRES, et ce n'est pas de la coquetterie.
+     *
+     * Le code émis est « MM- » suivi de DIX caractères d'un seul tenant. Mais l'indication
+     * sous ce champ annonçait « quatre groupes, séparés par des tirets, tels qu'ils
+     * figurent sur le document » : quelqu'un qui recopiait COMME INDIQUÉ obtenait « aucun
+     * certificat à ce code » SUR UN DOCUMENT AUTHENTIQUE. L'indication est corrigée dans
+     * l'i18n ; cette normalisation rattrape ceux qui l'ont déjà lue, et les groupements
+     * que le kit dessine.
+     */
+    const nu = code.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const cleaned = nu.startsWith('MM') ? `MM-${nu.slice(2)}` : nu;
     if (!cleaned) {
       setError(t('verify.emptyError'));
       setResult({ kind: 'idle' });

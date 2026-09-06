@@ -33,7 +33,19 @@
     "hypothèse oubliée.",
     "",
     "⚠️ PAS DE DATE DANS CE FICHIER. `proof:check` interdit les dates écrites à la main, et un",
-    "horodatage rendrait chaque régénération diffante. `version` suffit."
+    "horodatage rendrait chaque régénération diffante. `version` suffit.",
+    "",
+    "⭐ `session: \"aucune\"` — LE QUATRIÈME NIVEAU, ajouté pour UNE vue et pas une de plus.",
+    "Les dix-neuf premières exigent toutes un jeton, et le vocabulaire ne connaissait donc que",
+    "`obligatoire`, `obligatoire+club` et `obligatoire+role`. Or un certificat se vérifie par",
+    "quelqu'un qui n'a pas de compte : `appVerifierCertificat` répond sans session, et le",
+    "déclarer est ce qui rend cette exception LISIBLE plutôt que tacite. Trois conséquences",
+    "s'en dérivent, toutes générées ou vérifiées :",
+    "  · `Vues.SANS_SESSION` (Kotlin) et `VUES_SANS_SESSION` (TypeScript) sortent d'ici ;",
+    "  · `LectureDeVue.lire` ne court-circuite plus sur une session absente pour ces vues-là ;",
+    "  · `worker-vues-natives.test.ts` dérive de CE champ la liste des handlers dispensés de",
+    "    `requireAuth`, au lieu de porter une exception écrite à la main. Un handler qu'on",
+    "    oublierait d'authentifier sans l'avoir déclaré public reste refusé."
   ],
 
   "enveloppe": { "vue": "<forme|null>", "releveA": "horodatage" },
@@ -162,6 +174,16 @@
         "ouvertureCompte": { "type": "texte", "nul": true, "doc": "Chaîne ISO brute. Elle est là pour DATER LE ZÉRO : « zéro certificat depuis l'ouverture de ton compte » se lit, « — » ne se lit pas." },
         "certificats": { "type": { "liste": { "objet": "Certificat" } }, "nul": false },
         "incomplets": { "type": "entier", "nul": false, "doc": "Non montré à la personne : il part en trace. Un certificat amputé côté base est un défaut de données, pas un vide légitime." }
+      }
+    },
+
+    "CertificatPublic": {
+      "doc": "Le miroir PUBLIC d'un certificat, tel que `certificate_lookups` le porte. ⛔ QUATRE CHAMPS, ET PAS UN DE PLUS : cette forme est servie SANS SESSION, donc tout champ ajouté ici est une donnée personnelle publiée sans le vouloir — le miroir ne porte d'ailleurs ni UID ni adresse, et `worker-certificats.test.ts` le garde. ⚠️ Elle NE PORTE PAS `lecons`, contrairement à `Certificat` : l'émission ne l'écrit pas dans le miroir (`issueCertificate.ts:110-115`), et le « 47 / 47 » du kit est une donnée de démonstration. La page web l'omet déjà pour cette raison exacte (`VerifyCertificate.tsx:39-45`).",
+      "champs": {
+        "code": { "type": "texte", "nul": false, "doc": "Le code ÉCRIT EN BASE, jamais celui reçu de l'appelant : réafficher ce qu'on vient de taper ne prouve rien." },
+        "formation": { "type": "texte", "nul": false },
+        "titulaire": { "type": "texte", "nul": false },
+        "emisLe": { "type": "texte", "nul": false, "doc": "Chaîne ISO brute de `issuedAt`, PAS mise en forme — comme `Certificat.emisLe`." }
       }
     },
 
@@ -519,6 +541,17 @@
       "erreurs": [],
       "session": "obligatoire",
       "source": "worker/apps/api/src/handlers/app/certificats.ts:62"
+    },
+    "appVerifierCertificat": {
+      "doc": "⛔ LA SEULE VUE SANS SESSION DU CONTRAT, et c'est son OBJET, pas une tolérance. Un certificat se vérifie par quelqu'un qui n'a PAS de compte — employeur, client, jury ; exiger un jeton reviendrait à demander à cette personne de s'inscrire chez celui qu'elle contrôle. Le web y arrive en lisant `certificate_lookups` directement par le SDK Firebase (`src/lib/firestore/certificates.ts:38`, règle `allow read: if true`) ; l'application native n'a aucun SDK Firebase (AD-10), donc sans cette vue le lien profond `/verifier` — déclaré `autoVerify` au manifeste ET dans `assetlinks.json` — n'a aucune destination capable de répondre. ⚠️ `vue: null` dit « aucun certificat à ce code » : c'est une RÉPONSE, pas une panne. Les confondre ferait conclure à un faux document sur une simple coupure réseau, et c'est le seul défaut de ce chemin qui puisse coûter un emploi à quelqu'un.",
+      "forme": { "objet": "CertificatPublic" },
+      "vueNulle": "sansDonnee",
+      "entree": {
+        "code": { "type": "texte", "obligatoire": true, "doc": "Normalisé PAR LE SERVEUR (capitales, espaces retirées partout, comme `VerifyCertificate.tsx:74`) : sans quoi une erreur de SAISIE se présenterait comme un verdict sur le DOCUMENT." }
+      },
+      "erreurs": ["invalid-argument"],
+      "session": "aucune",
+      "source": "worker/apps/api/src/handlers/app/verifierCertificat.ts:86"
     },
     "appClub": {
       "forme": { "objet": "Club" },

@@ -20,6 +20,7 @@ import { bloquerMembre } from './handlers/bloquerMembre';
 import { appClubBlocages } from './handlers/app/clubBlocages';
 import { appEspace } from './handlers/app/espace';
 import { appMoi } from './handlers/app/moi';
+import { appVerifierCertificat } from './handlers/app/verifierCertificat';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
 import { backfillLigne } from './handlers/backfillLigne';
 import { backfillSlugEn } from './handlers/backfillSlugEn';
@@ -106,6 +107,12 @@ export const HANDLERS: Record<string, CallHandler> = {
   appNotes,
   appEspace,
   appMoi,
+  // ⛔ LA SEULE VUE PUBLIQUE. Un certificat se vérifie par quelqu'un qui n'a pas de
+  // compte — c'est tout son objet. Sans elle, le lien profond `/verifier`, déclaré
+  // `autoVerify` au manifeste ET dans `assetlinks.json`, n'avait aucune destination
+  // capable de répondre : l'application native n'a pas de SDK Firebase, donc pas
+  // l'accès direct à `certificate_lookups` dont le web se sert.
+  appVerifierCertificat,
   adminManageRysmoQuota,
   adminManageEnrollment,
   reindexSearch,

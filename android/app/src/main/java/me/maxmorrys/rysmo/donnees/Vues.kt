@@ -435,6 +435,28 @@ data class Certificats(
     val incomplets: Int,
 )
 
+/**
+ * Le miroir PUBLIC d'un certificat, tel que `certificate_lookups` le porte. ⛔ QUATRE CHAMPS, ET
+ * PAS UN DE PLUS : cette forme est servie SANS SESSION, donc tout champ ajouté ici est une donnée
+ * personnelle publiée sans le vouloir — le miroir ne porte d'ailleurs ni UID ni adresse, et
+ * `worker-certificats.test.ts` le garde. ⚠️ Elle NE PORTE PAS `lecons`, contrairement à
+ * `Certificat` : l'émission ne l'écrit pas dans le miroir (`issueCertificate.ts:110-115`), et le «
+ * 47 / 47 » du kit est une donnée de démonstration. La page web l'omet déjà pour cette raison
+ * exacte (`VerifyCertificate.tsx:39-45`).
+ */
+@Serializable
+data class CertificatPublic(
+    /**
+     * Le code ÉCRIT EN BASE, jamais celui reçu de l'appelant : réafficher ce qu'on vient de taper ne
+     * prouve rien.
+     */
+    val code: String,
+    val formation: String,
+    val titulaire: String,
+    /** Chaîne ISO brute de `issuedAt`, PAS mise en forme — comme `Certificat.emisLe`. */
+    val emisLe: String,
+)
+
 /** ⚠️ NOMMÉE ICI parce qu'elle était anonyme des deux côtés (`club.ts:90-94`). Voir `n`. */
 @Serializable
 data class ClubBilanTuile(
@@ -934,6 +956,7 @@ object Callables {
     const val APP_LECON = "appLecon"
     const val APP_NOTES = "appNotes"
     const val APP_CERTIFICATS = "appCertificats"
+    const val APP_VERIFIER_CERTIFICAT = "appVerifierCertificat"
     const val APP_CLUB = "appClub"
     const val APP_CLUB_AGENDA = "appClubAgenda"
     const val APP_CLUB_BLOCAGES = "appClubBlocages"
@@ -978,6 +1001,7 @@ object Vues {
         const val APP_LECON = "appLecon"
         const val APP_NOTES = "appNotes"
         const val APP_CERTIFICATS = "appCertificats"
+        const val APP_VERIFIER_CERTIFICAT = "appVerifierCertificat"
         const val APP_CLUB = "appClub"
         const val APP_CLUB_AGENDA = "appClubAgenda"
         const val APP_CLUB_BLOCAGES = "appClubBlocages"
@@ -1018,6 +1042,7 @@ object Vues {
         "appLecon" to "appLecon",
         "appNotes" to "appNotes",
         "appCertificats" to "appCertificats",
+        "appVerifierCertificat" to "appVerifierCertificat",
         "appClub" to "appClub",
         "appClubAgenda" to "appClubAgenda",
         "appClubBlocages" to "appClubBlocages",
@@ -1041,6 +1066,7 @@ object Vues {
         "appLecon" to SensDuVide.SANS_DONNEE,
         "appNotes" to SensDuVide.JAMAIS,
         "appCertificats" to SensDuVide.JAMAIS,
+        "appVerifierCertificat" to SensDuVide.SANS_DONNEE,
         "appClub" to SensDuVide.SANS_ACCES,
         "appClubAgenda" to SensDuVide.SANS_ACCES,
         "appClubBlocages" to SensDuVide.SANS_ACCES,
@@ -1053,6 +1079,19 @@ object Vues {
         "appConsole" to SensDuVide.JAMAIS,
         "appMedia" to SensDuVide.JAMAIS,
         "appRepetiteur" to SensDuVide.JAMAIS,
+    )
+
+    /**
+     * ⭐ LES VUES QUE LE SERVEUR SERT SANS JETON — `session: "aucune"` dans le contrat. ⛔ SANS CETTE
+     * TABLE, `LectureDeVue.lire` COURT-CIRCUITE AVANT L'APPEL : une session `Anonyme` rend
+     * `Etat.Anonyme`, une session `NonConfiguree` rend une panne — et la vérification d'un certificat,
+     * qui est faite PAR QUELQU'UN QUI N'A PAS DE COMPTE, n'aurait jamais atteint le réseau. C'est le
+     * contrat qui décide, pas l'écran : un écran qui aurait dû savoir contourner le court-circuit
+     * l'aurait oublié une fois sur deux, et le défaut se serait lu comme « ce certificat est
+     * introuvable ».
+     */
+    val SANS_SESSION: Set<String> = setOf(
+        "appVerifierCertificat",
     )
 }
 
