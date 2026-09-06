@@ -37,6 +37,7 @@ tableau, et `tests/unit/mobile-confidentialite.test.ts` refuse qu'ils divergent.
 | Échanges avec le répétiteur | `rysmoConversations/{uid}`, `rysmoProfiles/{uid}` | `lib/rysmo-context.ts` | OtherUserContent |
 | Signalements de profils | `reports/{id}` | `signalerMembre.ts` | CustomerSupport |
 | Comptes bloqués | `club_blocks/{uid}` | `bloquerMembre.ts` | OtherUserContent |
+| ⛔ **Nom du titulaire d'un certificat** | `certificate_lookups/{code}` — **miroir PUBLIC** | `issueCertificate.ts:111` | Name |
 
 ## Ce qui n'est PAS collecté — et c'est aussi une réponse
 
@@ -65,6 +66,30 @@ possible dans l'application.
 ⚠️ **Tracking : NON, partout.** `NSPrivacyTracking: false` et `NSPrivacyTrackingDomains: []`
 sont cohérents avec l'absence totale de SDK tiers — ce n'est pas une déclaration de principe,
 c'est un constat.
+
+## ⛔ Ce qui SURVIT à la suppression du compte
+
+`deleteUserAccount` balaie onze collections : `certificates`, `club_posts`, `club_profiles`,
+`conversations`, `data_exports`, `enrollments`, `internal`, `messages`, `referrals`,
+`testimonials`, `transactions`.
+
+**`certificate_lookups` n'en fait pas partie**, et ce miroir garde quatre champs : le code,
+le titre de la formation, la date d'émission, **et le NOM du titulaire**. Après suppression
+du compte, ce nom reste donc lisible par quiconque possède le code.
+
+⚠️ **Ce n'est pas un oubli, c'est le prix d'un certificat opposable.** Un document qu'on peut
+faire disparaître ne prouve rien : l'employeur qui vérifie doit obtenir une réponse, y compris
+si la personne a fermé son compte depuis. Le miroir ne porte d'ailleurs AUCUN identifiant de
+compte, précisément pour qu'il ne relie à rien d'autre.
+
+⛔ **Mais ce n'est déclaré nulle part.** La politique de confidentialité dit que les
+certificats sont « vérifiables publiquement via un code unique » — elle ne dit pas que le nom
+survit à la suppression. Le formulaire de confidentialité des magasins demande la durée de
+conservation par type de donnée : celle-ci est ILLIMITÉE, et doit être annoncée comme telle.
+
+**Décision humaine en attente** : soit assumer et écrire la conservation dans la politique et
+dans les deux fiches de magasin, soit rendre le miroir effaçable — ce qui change la nature de
+ce qu'un certificat Max-Morrys garantit.
 
 ## Deux points qui appellent une décision humaine
 

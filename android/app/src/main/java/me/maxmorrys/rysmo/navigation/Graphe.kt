@@ -28,6 +28,13 @@ import me.maxmorrys.rysmo.ecrans.apprentissage.EcranVerification
 import me.maxmorrys.rysmo.ecrans.club.EcranClubBloques
 import me.maxmorrys.rysmo.ecrans.club.EcranClubMembre
 import me.maxmorrys.rysmo.ecrans.club.EcranClubOnglet
+import me.maxmorrys.rysmo.ecrans.compte.EcranConnexion
+import me.maxmorrys.rysmo.ecrans.compte.EcranCreation
+import me.maxmorrys.rysmo.ecrans.compte.EcranErreur
+import me.maxmorrys.rysmo.ecrans.compte.EcranInterdit
+import me.maxmorrys.rysmo.ecrans.compte.EcranLegal
+import me.maxmorrys.rysmo.ecrans.compte.EcranMotDePasse
+import me.maxmorrys.rysmo.ecrans.compte.EcranSuppression
 import me.maxmorrys.rysmo.ecrans.EcranOnboarding
 import me.maxmorrys.rysmo.ecrans.EcranPermissions
 import me.maxmorrys.rysmo.ecrans.EnChantier
@@ -53,6 +60,18 @@ import me.maxmorrys.rysmo.session.SourceDeSession
  * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 
+/*
+ * ⚠️ TOUS LES APPELS D'ÉCRAN SONT EN ARGUMENTS NOMMÉS, ET CE N'EST PAS DU STYLE.
+ *
+ * Les composables du dépôt finissent par `modifier: Modifier = Modifier`. Une lambda
+ * finale — `EcranX(onRetour) { … }` — se lie donc au DERNIER paramètre, c'est-à-dire au
+ * modificateur, jamais à `onAller`. Le compilateur le refuse, mais avec un message qui
+ * désigne le modificateur et non la cause : « Argument type mismatch: actual type is
+ * '() -> Unit', but 'Modifier' was expected ».
+ *
+ * Je m'y suis repris à trois fois dans ce fichier. Les arguments nommés coûtent deux
+ * lignes et suppriment la question.
+ */
 @Composable
 fun GrapheRysmo(
     session: SourceDeSession,
@@ -199,11 +218,21 @@ fun GrapheRysmo(
                 onDebloquer = { navController.navigate(gesteImpossible("Débloquer", it.id, null)) },
             )
         }
-        composable<Connexion> { EnChantier("La connexion", "lot 4", navController::popBackStack) }
-        composable<Creation> { EnChantier("La création de compte", "lot 4", navController::popBackStack) }
-        composable<MotDePasse> { EnChantier("Le mot de passe oublié", "lot 4", navController::popBackStack) }
-        composable<Suppression> { EnChantier("La suppression du compte", "lot 4", navController::popBackStack) }
-        composable<Legal> { EnChantier("Les textes légaux", "lot 4", navController::popBackStack) }
+        composable<Connexion> {
+            EcranConnexion(
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
+        composable<Creation> {
+            EcranCreation(
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
+        composable<MotDePasse> { EcranMotDePasse(navController::popBackStack) }
+        composable<Suppression> { EcranSuppression(navController::popBackStack) }
+        composable<Legal> { EcranLegal(navController::popBackStack) }
         composable<Media> { EnChantier("Le pôle médias", "lot 4", navController::popBackStack) }
         composable<Episode> { EnChantier("Un épisode", "lot 4", navController::popBackStack) }
         composable<Video> { EnChantier("Une vidéo", "lot 4", navController::popBackStack) }
@@ -211,8 +240,25 @@ fun GrapheRysmo(
         composable<Devis> { EnChantier("Un devis", "lot 4", navController::popBackStack) }
         composable<Console> { EnChantier("La console du support", "lot 4", navController::popBackStack) }
         composable<ConsoleEcran> { EnChantier("Un écran du support", "lot 4", navController::popBackStack) }
-        composable<Interdit> { EnChantier("Accès refusé", "lot 4", navController::popBackStack) }
-        composable<Erreur> { EnChantier("Une erreur", "lot 4", navController::popBackStack) }
+        composable<Interdit> {
+            EcranInterdit(
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
+        composable<Erreur> { pile ->
+            val a = pile.toRoute<Erreur>()
+            EcranErreur(
+                titre = a.titre,
+                motif = a.motif,
+                consequence = a.consequence,
+                reference = a.reference,
+                libelle = a.libelle,
+                sortie = a.sortie,
+                onRetour = navController::popBackStack,
+                onAller = { navController.navigate(it) },
+            )
+        }
     }
 }
 

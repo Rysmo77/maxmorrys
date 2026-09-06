@@ -79,3 +79,21 @@ ou de conformité magasin. Elles sont listées ici pour être VUES, plutôt qu'e
 - source_spec: —
   summary: ⚠️ La copie du kit porte des relevés qui ne sont mesurés nulle part.
   evidence: « Sept publications et quarante-et-une réponses », « DEUX SESSIONS », « TROIS MISSIONS » sont écrits dans le kit comme du texte. Sortis de la copie et redescendus dans les compteurs (`Num(null)` → « non relevé ») : un nombre sans source est exactement ce que le dispositif de preuves existe pour empêcher.
+
+## ⛔ Constats du groupe Compte (06/09/2026)
+
+- source_spec: —
+  summary: ⭐ Le NOM du titulaire d'un certificat survit à la suppression du compte, et ce n'est déclaré nulle part.
+  evidence: `certificate_lookups/{code}` garde `holderName` et n'est PAS dans les onze collections balayées par `deleteUserAccount`. C'est défendable — un certificat effaçable ne prouve rien, et l'employeur qui vérifie doit obtenir une réponse même après fermeture du compte — mais la durée de conservation est ILLIMITÉE et le formulaire de confidentialité des deux magasins la demande. La politique du site dit « vérifiables publiquement via un code unique » sans dire que le nom persiste. Consigné dans `store/confidentialite/inventaire-collecte.md`. **Décision : assumer et l'écrire dans la politique et les deux fiches, ou rendre le miroir effaçable — ce qui change la nature de ce qu'un certificat garantit.**
+
+- source_spec: —
+  summary: Les liens légaux de l'application ouvrent toujours les URL françaises.
+  evidence: Le site sert un arbre `/en` (`localizeRouteTree`), mais l'application n'a pas de constructeur d'URL sensible à la langue : un anglophone tombe sur le texte français. Les quatre adresses existent bien côté site — c'est la LANGUE qui manque, pas la route.
+
+- source_spec: spec-donnees-natif.md § B.1
+  summary: ⚠️ `deleteUserAccount` et `exportUserData` ne sont pas dans le contrat généré.
+  evidence: La spécification les compte parmi les 28 callables appelées par le natif ; `Vues.kt` ne les porte pas. Le contrat et la spec divergent — à trancher au moment où l'identification sera branchée, puisque ces deux gestes en dépendent.
+
+- source_spec: —
+  summary: ⚠️ Le bouton de connexion Apple du kit est mort par construction sur Android, et sa marque est un emplacement réservé.
+  evidence: Le kit le place sous `os === 'ios'`. Et `ds/AppleMark` est un disque plein : les recommandations d'Apple interdisent de redessiner la marque, l'asset officiel est obligatoire avant soumission. À livrer avec la dépendance de connexion tierce — App Store 4.8 exige une option de connexion privée dès qu'une connexion sociale est proposée.

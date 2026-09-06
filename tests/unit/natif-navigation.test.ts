@@ -139,7 +139,7 @@ describe('les écrans restant à construire sont comptés', () => {
    * livré, et tomber à zéro : un chiffre qu'on ne peut que descendre est la seule
    * forme de dette qui se rembourse.
    */
-  const PLAFOND = 16;
+  const PLAFOND = 9;
 
   it(`il en reste au plus ${PLAFOND}, et ce nombre ne doit que descendre`, () => {
     const restants = [...graphe.matchAll(/EnChantier\(/g)].length;
