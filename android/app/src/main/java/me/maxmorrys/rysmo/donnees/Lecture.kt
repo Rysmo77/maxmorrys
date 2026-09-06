@@ -150,7 +150,7 @@ class LectureDeVue(
     @PublishedApi
     internal inline fun <reified T> decoder(nomDeVue: String, charge: JsonElement, releveA: String): Etat<T> {
         val provenance = Provenance(Source.SERVEUR, releveA)
-        if (estVide(charge)) return Etat.Vide(provenance, sensDuVide(nomDeVue))
+        sensDuVideServi(nomDeVue, charge)?.let { return Etat.Vide(provenance, it) }
         return Etat.Servie(Appel.JSON.decodeFromJsonElement<T>(charge), provenance)
     }
 

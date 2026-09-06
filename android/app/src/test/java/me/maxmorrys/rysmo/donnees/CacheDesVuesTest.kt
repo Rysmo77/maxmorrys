@@ -168,6 +168,29 @@ class CacheDesVuesTest {
         assertTrue(!estVide(buildJsonObject { put("a", JsonPrimitive(1)) }))
     }
 
+    /**
+     * ⛔ LE DÉFAUT QUE CETTE VÉRIFICATION EXISTE POUR EMPÊCHER FERMAIT LA PORTE À QUELQU'UN
+     * QUI A LA CLÉ.
+     *
+     * Les neuf vues du Club déclarent `vueNulle: sansAcces` — juste, parce que chacune
+     * commence par « pas d'abonnement, `vue: null` ». Mais le MÊME handler rend `vue: []`
+     * quelques lignes plus bas quand l'abonnement est actif et la liste vide. Appliquer là
+     * le sens du refus affichait l'écran verrouillé sur l'agenda d'un membre sans séance à
+     * venir, sur son fil au premier jour, sur ses discussions avant la première.
+     */
+    @Test
+    fun `un tableau vide n'est jamais un refus d'acces`() {
+        assertEquals(
+            SensDuVide.SANS_ACCES,
+            sensDuVideServi("appClubAgenda", JsonNull),
+        )
+        assertEquals(
+            SensDuVide.SANS_DONNEE,
+            sensDuVideServi("appClubAgenda", JsonArray(emptyList())),
+        )
+        assertNull(sensDuVideServi("appClubAgenda", buildJsonObject { put("a", JsonPrimitive(1)) }))
+    }
+
     @Test
     fun `les trois sens du vide viennent du contrat, pas de l ecran`() {
         /* ⛔ Le port aplatissait les trois en une phase unique. « Le Club est réservé aux

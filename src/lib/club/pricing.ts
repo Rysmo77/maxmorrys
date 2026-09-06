@@ -19,6 +19,9 @@
  *   src/i18n/locales/{fr,en}/legal.json   → CGV art. 3.4 — TEXTE CONTRACTUEL
  *   finance/model.py                      → projections
  *   BUSINESS_MODEL.md · BUSINESS_PLAN.md · docs/STRATEGIE_COMMUNICATION_2026.md
+ *   android/…/ecrans/club/Termes.kt       → REMISE_FILLEUL_PCT, REVISE_LE, OUVERT_EN
+ *                                           (5ᵉ langage du dépôt ; ⚠️ celui-ci, au moins,
+ *                                            est gardé — `tests/unit/club-termes-miroir.test.ts`)
  *
  * `tests/unit/club-pricing.test.ts` vérifie que les CGV et l'interface portent bien la valeur
  * ci-dessous. Il ne peut pas atteindre les miroirs serveur : ceux-là restent sous votre garde.

@@ -195,9 +195,36 @@ fun sensDuVide(nomDeVue: String): SensDuVide =
 /**
  * Vrai quand la charge servie doit produire `Vide` plutôt que `Servie`.
  *
- * Deux cas, et un seul est une absence : `null`, et le TABLEAU VIDE. Un tableau vide relevé
- * est une information — « zéro certificat depuis l'ouverture de ton compte » — à condition
- * d'être daté, ce que `Provenance` garantit.
+ * Deux cas : `null`, et le TABLEAU VIDE. Un tableau vide relevé est une information —
+ * « zéro certificat depuis l'ouverture de ton compte » — à condition d'être daté, ce que
+ * `Provenance` garantit.
+ *
+ * ⚠️ CETTE FONCTION NE DIT PAS LE SENS, et c'est tout le sujet de `sensDuVideServi`.
  */
 fun estVide(charge: JsonElement): Boolean =
     charge is JsonNull || (charge is JsonArray && charge.isEmpty())
+
+/**
+ * ⛔ `vue: null` ET `vue: []` NE VEULENT PAS DIRE LA MÊME CHOSE — et les confondre dit à
+ * quelqu'un QUI PAIE que le Club est réservé aux membres.
+ *
+ * Le contrat qualifie le REFUS du serveur (`vueNulle`) : pour les neuf vues du Club il vaut
+ * `sansAcces`, parce que chacune commence par `if (!abonnement) return { vue: null }`. C'est
+ * juste — pour ce cas-là.
+ *
+ * Mais le même handler rend `vue: []` quelques lignes plus bas, quand l'abonnement EST actif
+ * et que la liste est simplement vide. Appliquer là le sens du refus produit l'écran
+ * verrouillé sur l'agenda d'un membre qui n'a pas de séance à venir, sur son fil au premier
+ * jour, sur ses discussions avant la première. Aucune erreur, aucun signal : juste une porte
+ * fermée à quelqu'un qui a la clé.
+ *
+ * Un tableau vide est donc TOUJOURS `SANS_DONNEE`, quelle que soit la vue. Le serveur a
+ * regardé et a répondu — c'est le contraire d'un refus.
+ *
+ * @return le sens à afficher, ou `null` si la charge porte quelque chose.
+ */
+fun sensDuVideServi(nomDeVue: String, charge: JsonElement): SensDuVide? = when {
+    charge is JsonNull -> sensDuVide(nomDeVue)
+    charge is JsonArray && charge.isEmpty() -> SensDuVide.SANS_DONNEE
+    else -> null
+}
