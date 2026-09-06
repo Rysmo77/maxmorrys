@@ -6,12 +6,50 @@
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-  <!-- Verrouillage de l'application. `USE_FINGERPRINT` ne sert qu'aux API < 28,
-       d'où le `maxSdkVersion` : la demander au-delà élargit la fiche Play pour rien. -->
+  <!--
+    Verrouillage de l'application. `USE_FINGERPRINT` ne sert qu'aux API < 28, d'où le
+    `maxSdkVersion` : la demander au-delà élargit la fiche Play pour rien.
+
+    ⛔ ELLES SERAIENT LÀ MÊME SANS CES DEUX LIGNES, ET C'EST LA RAISON DE LES ÉCRIRE.
+    `biometric-1.2.0-alpha05.aar` déclare `USE_BIOMETRIC` ET `USE_FINGERPRINT` dans son propre
+    manifeste — vérifié dans l'archive, pas supposé. C'est le constat que le port React Native
+    avait payé : un tableau de permissions ne contrôle QUE ce qu'on ajoute, jamais ce que la
+    fusion apporte, et vide il donnait une assurance fausse.
+
+    ⚠️ Le plafond, lui, EST à nous : la bibliothèque déclare `USE_FINGERPRINT` sans
+    `maxSdkVersion`, et c'est la valeur de ce manifeste-ci qui l'emporte à la fusion — relu
+    dans `build/intermediates/merged_manifests/`, qui est le seul endroit où ça se voit.
+  -->
   <uses-permission android:name="android.permission.USE_BIOMETRIC" />
   <uses-permission
       android:name="android.permission.USE_FINGERPRINT"
       android:maxSdkVersion="27" />
+
+  <!--
+    ⛔ CE N'EST PAS UNE PERMISSION, ET C'EST LA RAISON POUR LAQUELLE ELLE EST ÉCRITE ICI.
+
+    Depuis l'API 30, une application ne VOIT pas les autres par défaut. `CustomTabsClient.
+    getPackageName` commence par demander qui sait ouvrir une adresse `https` ; sans cette
+    déclaration, la réponse est « personne » MÊME QUAND UN NAVIGATEUR EST INSTALLÉ, et
+    `systeme/Sortie.kt` retomberait toujours sur son chemin de repli — donc jamais d'onglet
+    personnalisé, sur les appareils récents seulement, et sans aucune erreur.
+
+    ⚠️ Elle n'ouvre AUCUN accès : elle rend un ensemble de paquets interrogeable, elle ne lit
+    rien de ce qu'ils contiennent. Elle n'a donc pas de ligne au formulaire de confidentialité
+    — mais elle est inscrite à `store/confidentialite/inventaire-collecte.md`, parce que la
+    question « qu'est-ce que cette application peut voir du téléphone » se pose des deux côtés.
+
+    ⛔ ET `androidx.browser` N'EN APPORTE AUCUNE. Vérifié dans l'archive elle-même — le
+    manifeste de `browser-1.8.0.aar` ne contient qu'un `uses-sdk`, ni permission ni `queries`.
+    La visibilité vient donc D'ICI, en entier ; supposer que la bibliothèque s'en charge est
+    exactement le genre de constat qu'on écrit de mémoire et qui est faux.
+  -->
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="https" />
+    </intent>
+  </queries>
 
   <application
       android:name=".RysmoApp"

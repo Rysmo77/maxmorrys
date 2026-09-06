@@ -25,6 +25,7 @@ import me.maxmorrys.rysmo.ds.SansDonnees
 import me.maxmorrys.rysmo.ds.Screen
 import me.maxmorrys.rysmo.ds.Surface
 import me.maxmorrys.rysmo.ds.Territoire
+import me.maxmorrys.rysmo.systeme.partagerUnTexte
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
 
@@ -83,7 +84,7 @@ fun EcranFormation(
             IconButton(
                 libelle = "Partager cette formation",
                 onPress = {
-                    partagerUnLien(
+                    partagerUnTexte(
                         contexte = contexte,
                         titre = titre ?: "Une formation Max-Morrys",
                         texte = titre ?: "Une formation Max-Morrys",

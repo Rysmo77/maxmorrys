@@ -93,6 +93,23 @@ dependencies {
   implementation(libs.okhttp)
   implementation(libs.datastore.preferences)
 
+  /*
+   * ⛔ CES DEUX-LÀ ÉTAIENT AU CATALOGUE SANS ÊTRE DÉCLARÉES, et la différence n'est pas
+   * cosmétique : un catalogue de versions ne met RIEN sur le chemin de compilation. Trois
+   * fichiers du lot 4 expliquent en commentaire qu'ils ne peuvent pas ouvrir d'onglet
+   * personnalisé « parce qu'androidx.browser est au catalogue et pas en dépendance ». Ces
+   * commentaires deviennent faux avec cette ligne — ils sont réécrits dans les mêmes fichiers.
+   *
+   * ⚠️ `biometric` FAIT FUSIONNER `USE_BIOMETRIC` ET `USE_FINGERPRINT` DEPUIS SON PROPRE
+   * MANIFESTE, quoi qu'on écrive dans le nôtre. C'est le constat que le port React Native a
+   * payé (`spec-biometrie.md`, journal de spécification) : le tableau des permissions ne
+   * contrôle que ce qu'on AJOUTE, jamais ce que la fusion apporte. Les deux sont déjà
+   * déclarées explicitement dans `AndroidManifest.xml` — donc visibles à la relecture — et
+   * `USE_FINGERPRINT` y est plafonnée à l'API 27, où elle cesse de servir.
+   */
+  implementation(libs.biometric)
+  implementation(libs.browser)
+
   debugImplementation(libs.compose.ui.tooling)
   debugImplementation(libs.compose.ui.test.manifest)
 

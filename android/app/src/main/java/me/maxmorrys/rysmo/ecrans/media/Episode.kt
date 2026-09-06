@@ -31,6 +31,7 @@ import me.maxmorrys.rysmo.ds.jetons
 import me.maxmorrys.rysmo.ecrans.apprentissage.EncartDeVerite
 import me.maxmorrys.rysmo.donnees.Media as VueMedia
 import me.maxmorrys.rysmo.navigation.Notes as DestinationNotes
+import me.maxmorrys.rysmo.systeme.partagerUnTexte
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════

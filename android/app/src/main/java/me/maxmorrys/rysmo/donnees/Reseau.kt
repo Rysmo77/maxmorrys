@@ -2,7 +2,12 @@ package me.maxmorrys.rysmo.donnees
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.os.Handler
+import android.os.Looper
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -80,5 +85,98 @@ class DiagnosticSysteme(private val context: Context) : DiagnosticReseau {
         EtatReseau.INDETERMINE
     } catch (erreur: RuntimeException) {
         EtatReseau.INDETERMINE
+    }
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * ⭐ LE RETOUR DU RÉSEAU — la SEULE chose qu'une lecture ponctuelle ne peut pas faire.
+ *
+ * ⛔ ET CE N'EST PAS UNE ENTORSE À LA RÈGLE 1 CI-DESSUS, C'EST SON REVERS. La règle interdit
+ * de GARDER un état réseau pour en tirer un verdict plus tard — parce qu'un verdict périmé
+ * accuse le forfait de quelqu'un qui vient de retrouver la 4G. Ici, rien n'est gardé et rien
+ * n'est affirmé : on ne mémorise pas « il n'y a pas de réseau », on demande au système de
+ * nous PRÉVENIR quand il y en a. La différence est celle entre une photo qu'on ressort et
+ * une sonnette.
+ *
+ * ── ⛔ TROIS BORNES, ET CHACUNE EMPÊCHE UN DÉFAUT PRÉCIS ────────────────────────────
+ *
+ * 1 · ELLE NE S'OUVRE QUE SUR UN ÉCHEC DÉJÀ ATTRIBUÉ À L'ABSENCE DE RÉSEAU, et elle se
+ *     referme dès que l'écran quitte cet état. Une veille permanente redeviendrait le
+ *     bandeau que la spécification refuse : « un bandeau qui clignote sur un réseau instable
+ *     coûte plus d'attention qu'il n'en économise ».
+ *
+ * 2 · ELLE NE DIT RIEN, ELLE REFAIT. Le geste offert à l'écran est « on réessaie tout seul
+ *     dès que le réseau revient » — une phrase qui doit être VRAIE, donc branchée sur un
+ *     appel réel, sinon c'est le contrôle mort d'une promesse au lieu d'un bouton.
+ *
+ * 3 · ELLE RAPPELLE SUR UN FIL DE SERVICE. `onAvailable` n'arrive PAS sur le fil principal :
+ *     écrire un état Compose depuis là est une écriture concurrente que rien ne signale et
+ *     que tout le monde finit par voir une fois, en production. Le saut est fait ici, une
+ *     fois, plutôt que dans chaque appelant.
+ *
+ * ⚠️ ET « DISPONIBLE » N'EST PAS « QUI SORT ». Un Wi-Fi de portail captif déclenche
+ * `onAvailable`. La reprise repartira, échouera peut-être encore, et `Appel` relira l'état au
+ * moment de CET échec-là : c'est le bon endroit pour trancher, pas ici.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ */
+fun interface VeilleDuReseau {
+    /** Referme la veille. ⚠️ Ne jamais oublier : une veille orpheline survit à l'écran. */
+    fun arreter()
+}
+
+/**
+ * Prévient UNE fois, sur le fil principal, quand un réseau redevient disponible.
+ *
+ * @return de quoi refermer la veille. Rend une veille inerte si le système refuse
+ *   l'enregistrement — sans jamais lever : cette fonction est appelée depuis un écran en
+ *   panne, et une exception y remplacerait la panne d'origine par la sienne.
+ */
+fun veillerLeRetourDuReseau(contexte: Context, quandIlRevient: () -> Unit): VeilleDuReseau {
+    val gestionnaire = contexte.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+        ?: return VeilleDuReseau { /* rien à refermer */ }
+
+    val principal = Handler(Looper.getMainLooper())
+    /* ⛔ UNE SEULE FOIS. Sans ce drapeau, un réseau qui bat — courant sur une cellule en
+       limite de couverture — relancerait l'appel à chaque bascule, et la reprise deviendrait
+       une boucle que personne n'a demandée. */
+    val dejaPrevenu = AtomicBoolean(false)
+
+    val rappel = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(reseau: Network) {
+            if (dejaPrevenu.compareAndSet(false, true)) principal.post(quandIlRevient)
+        }
+    }
+
+    val demande = NetworkRequest.Builder()
+        /*
+         * ⚠️ `NET_CAPABILITY_INTERNET` SEULEMENT, PAS `VALIDATED`. La capacité « validé » est
+         * lisible sur un réseau existant, mais elle ne se DEMANDE pas de la même façon selon
+         * la version d'Android : la poser ici donnerait une veille qui ne se déclenche jamais
+         * sur une partie du parc, sans erreur et sans trace. On demande donc le moins
+         * exigeant, et c'est `DiagnosticSysteme` — au moment de l'échec suivant — qui garde la
+         * lecture fine.
+         */
+        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        .build()
+
+    return try {
+        gestionnaire.registerNetworkCallback(demande, rappel)
+        VeilleDuReseau {
+            try {
+                gestionnaire.unregisterNetworkCallback(rappel)
+            } catch (_: IllegalArgumentException) {
+                /* Déjà retiré : Android lève sur un double retrait. Ce n'est pas une erreur
+                   à faire remonter — c'est l'idempotence qu'on voulait. */
+            }
+        }
+    } catch (_: SecurityException) {
+        /* `ACCESS_NETWORK_STATE` retirée par une politique d'entreprise : pas de veille, et
+           le bouton « Réessayer » reste, lui, toujours là. */
+        VeilleDuReseau { /* rien à refermer */ }
+    } catch (_: RuntimeException) {
+        /* Trop de veilles enregistrées par le processus (le système en plafonne le nombre).
+           Perdre la reprise automatique est acceptable ; faire tomber l'écran ne l'est pas. */
+        VeilleDuReseau { /* rien à refermer */ }
     }
 }

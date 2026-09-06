@@ -63,13 +63,31 @@ class SourceDeSession(private val configuration: Configuration = CONFIGURATION_A
     }
 
     /**
+     * ⛔ LA SORTIE DU SAS BIOMÉTRIQUE, ET LA SEULE RAISON POUR LAQUELLE ELLE EXISTE DÉJÀ.
+     *
+     * L'écran verrouillé doit offrir un chemin qui ne passe PAS par le capteur — « un échec
+     * d'authentification ne doit JAMAIS enfermer » (`spec-biometrie.md`). Ce chemin est « me
+     * déconnecter », pas « ouvrir quand même » : le second viderait le verrou de tout sens,
+     * puisque n'importe qui le toucherait. Sans cette méthode, le bouton du sas serait une
+     * lambda vide — exactement le contrôle mort que ce dépôt attrape par test.
+     *
+     * ⚠️ ELLE NE FAIT RIEN AUJOURD'HUI, ET C'EST LA MACHINE À ÉTATS QUI LE DIT. `Anonyme` ne
+     * s'atteint que depuis `Restauration` ou `Connectee` ; l'état courant est `NonConfiguree`,
+     * qui est TERMINALE. Passer par `poser()` sans ce garde ferait échouer son `require` et
+     * arrêterait l'application — c'est-à-dire que le geste de secours du verrou serait le seul
+     * geste de l'application qui plante.
+     */
+    fun deconnecter() {
+        if (_etat.value !is Session.Connectee) return
+        poser(Session.Anonyme)
+    }
+
+    /**
      * Les transitions illégales sont refusées par la couche de données, pas ignorées ici.
      *
-     * ⚠️ Personne ne l'appelle encore — c'est voulu, et c'est le point d'accroche du
-     * producteur de jeton à venir. La supprimer en attendant obligerait à retrouver, le jour
-     * venu, que la vérification doit exister ; or c'est elle qui a déjà arrêté une erreur.
+     * ⚠️ `deconnecter()` est son premier appelant réel ; elle reste le point d'accroche du
+     * producteur de jeton à venir, qui posera `Connectee`.
      */
-    @Suppress("UnusedPrivateMember")
     private fun poser(suivante: Session) {
         require(_etat.value.autorise(suivante)) {
             "Transition de session interdite : ${_etat.value} -> $suivante"

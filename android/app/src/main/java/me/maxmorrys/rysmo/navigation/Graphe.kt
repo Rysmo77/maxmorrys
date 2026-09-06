@@ -16,6 +16,7 @@ import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.map
 import me.maxmorrys.rysmo.donnees.Session
+import me.maxmorrys.rysmo.ecrans.EcranBiometrie
 import me.maxmorrys.rysmo.ecrans.EcranLancement
 import me.maxmorrys.rysmo.ecrans.apprentissage.EcranCertificat
 import me.maxmorrys.rysmo.ecrans.apprentissage.EcranCertificats
@@ -148,7 +149,7 @@ fun GrapheRysmo(
 
         /* ── Le reste du graphe ──────────────────────────────────────────────────────── */
 
-        composable<Biometrie> { EnChantier("Verrouillage biométrique", "lot 5", navController::popBackStack) }
+        composable<Biometrie> { EcranBiometrie(onRetour = navController::popBackStack) }
         composable<Formation> { pile ->
             val a = pile.toRoute<Formation>()
             EcranFormation(a.slug, a.titre, navController::popBackStack)

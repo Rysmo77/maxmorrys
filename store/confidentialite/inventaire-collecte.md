@@ -1,6 +1,8 @@
 ---
-releve: '2026-09-05'
-methode: 'lecture de worker/apps/api/src/handlers/**, mobile/donnees/**, mobile/package.json'
+releve: '2026-09-06'
+methode: >-
+  lecture de worker/apps/api/src/handlers/**, android/app/src/main/**, et
+  `aapt2 dump permissions` sur le paquet CONSTRUIT (app-debug.apk)
 
 > ⚠️ **LES CHEMINS `mobile/…` DE CE DOCUMENT NE RÉSOLVENT PLUS.** Le port React Native a été
 > supprimé le 05/09/2026 ; l'application est réécrite en Kotlin/Compose et Swift/SwiftUI. Ils
@@ -58,10 +60,43 @@ sur le paquet CONSTRUIT par `aapt2 dump permissions`, pas sur le manifeste sourc
 permissions Android demandées sont `INTERNET`, `ACCESS_NETWORK_STATE`, `USE_BIOMETRIC` et
 `USE_FINGERPRINT` (celle-ci plafonnée à l'API 27, où elle cesse d'être utile).
 
+⭐ **Relevé le 06/09/2026 sur `app-debug.apk`, après l'entrée d'`androidx.biometric` et
+d'`androidx.browser` :** la liste est INCHANGÉE. Ces deux bibliothèques n'apportent aucune
+permission nouvelle — `browser-1.8.0.aar` n'en déclare aucune, et les deux que
+`biometric-1.2.0-alpha05.aar` fait fusionner (`USE_BIOMETRIC`, `USE_FINGERPRINT`) étaient déjà
+écrites en clair dans notre manifeste. Le plafond `maxSdkVersion="27"` est bien celui du
+paquet livré : la bibliothèque déclare `USE_FINGERPRINT` sans plafond, et c'est notre valeur
+qui l'emporte à la fusion.
+
+⛔ **Une permission déclarée depuis le lot 1 est enfin exercée.** `USE_BIOMETRIC` l'était pour
+un dispositif qui n'existait pas — c'est la faute symétrique de celle qu'on refuse pour
+`POST_NOTIFICATIONS`. Le verrou est construit depuis le lot 5
+(`android/…/systeme/Biometrie.kt`), et `tests/unit/natif-capacites.test.ts` apparie désormais
+chaque permission du manifeste à un symbole d'API que le code doit contenir.
+
 Le déverrouillage biométrique ne transmet rien : la vérification a lieu sur l'appareil, et le
 résultat ne quitte jamais le téléphone. Sur Android il passe par `androidx.biometric`, sur iOS
 par `LocalAuthentication` — deux cadres du système, sans service tiers. Aucun achat n'est
 possible dans l'application.
+
+**Ce que le verrou enregistre :** un booléen, dans le magasin de préférences non chiffré
+(`verrou_biometrique`). Rien d'identifiant, rien de biométrique — l'empreinte ne quitte jamais
+l'enclave du téléphone, et l'application n'y a pas accès. Ce drapeau ne part sur aucun réseau.
+
+## Ce que l'application peut VOIR du téléphone
+
+⚠️ **Ce n'est pas une permission, et ça se lit quand même dans le manifeste.** Depuis l'API 30,
+une application ne voit pas les autres par défaut. `AndroidManifest.xml` déclare un bloc
+`<queries>` pour une seule question : « qui sait ouvrir une adresse `https` ? ». Elle sert à
+choisir le navigateur qui rendra l'onglet personnalisé, et elle ne lit rien de ce que ces
+applications contiennent. Sans elle, l'onglet personnalisé ne s'ouvrirait jamais sur les
+appareils récents — silencieusement.
+
+**Les onglets personnalisés ne sont pas un navigateur intégré.** La page s'ouvre DANS le
+navigateur de la personne, avec ses témoins de connexion, son historique et ses réglages ;
+l'application ne voit ni l'URL visitée ensuite, ni le contenu, ni les témoins. C'est aussi
+pourquoi la politique de cookies du site n'est toujours pas citée dans l'application : elle ne
+pose aucun témoin elle-même.
 
 ⚠️ **Tracking : NON, partout.** `NSPrivacyTracking: false` et `NSPrivacyTrackingDomains: []`
 sont cohérents avec l'absence totale de SDK tiers — ce n'est pas une déclaration de principe,

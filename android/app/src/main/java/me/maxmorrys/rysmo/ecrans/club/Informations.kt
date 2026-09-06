@@ -3,7 +3,6 @@ package me.maxmorrys.rysmo.ecrans.club
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -33,6 +32,7 @@ import me.maxmorrys.rysmo.ds.TonBouton
 import me.maxmorrys.rysmo.ds.TonCoche
 import me.maxmorrys.rysmo.ecrans.OngletPrincipal
 import me.maxmorrys.rysmo.navigation.OngletClub
+import me.maxmorrys.rysmo.systeme.partagerUnTexte
 
 /**
  * ══ 7 · INFORMATIONS ══ — LE DIGEST HEBDOMADAIRE.
@@ -277,11 +277,10 @@ private fun copierLeCode(contexte: Context, code: String) {
  * ⚠️ LE LIEN EST COMPOSÉ AU SERVEUR, ET C'EST TOUT LE POINT. `Parrainage.lien` existe pour
  * qu'un changement de domaine ne laisse pas une version installée partager des liens morts
  * pendant des mois. Le recomposer ici à partir du code annulerait exactement cette garantie.
+ *
+ * ⚠️ ET LE GESTE LUI-MÊME A QUITTÉ CE FICHIER. Il y était écrit une quatrième fois ; il vit
+ * maintenant dans `systeme/Sortie.kt`. Ce qui reste ici est la seule chose qui appartienne au
+ * Club : QUOI partager, et sous quel intitulé.
  */
-private fun partagerLeCode(contexte: Context, code: String, lien: String) {
-    val envoi = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, "$code\n$lien")
-    }
-    contexte.startActivity(Intent.createChooser(envoi, "Partager ton code"))
-}
+private fun partagerLeCode(contexte: Context, code: String, lien: String) =
+    partagerUnTexte(contexte, titre = "Partager ton code", texte = code, lien = lien)

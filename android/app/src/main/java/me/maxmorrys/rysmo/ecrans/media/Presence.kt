@@ -35,6 +35,8 @@ import me.maxmorrys.rysmo.ds.jetons
 import me.maxmorrys.rysmo.ecrans.apprentissage.EncartDeVerite
 import me.maxmorrys.rysmo.ecrans.apprentissage.SITE_PUBLIC
 import me.maxmorrys.rysmo.navigation.Devis as DestinationDevis
+import me.maxmorrys.rysmo.systeme.aOuvert
+import me.maxmorrys.rysmo.systeme.ouvrirUneAdresse
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -82,7 +84,7 @@ fun EcranPresence(
     var adresseOrpheline by remember { mutableStateOf<String?>(null) }
 
     val sortir: (String) -> Unit = { adresse ->
-        adresseOrpheline = if (ouvrirUneAdresse(contexte, adresse)) null else adresse
+        adresseOrpheline = if (ouvrirUneAdresse(contexte, adresse).aOuvert) null else adresse
     }
 
     val prix = TermesDeLOffre.PACK_PRIX_PRATIQUE

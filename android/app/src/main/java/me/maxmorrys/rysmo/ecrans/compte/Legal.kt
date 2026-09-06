@@ -1,8 +1,6 @@
 package me.maxmorrys.rysmo.ecrans.compte
 
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import me.maxmorrys.rysmo.ds.Body
 import me.maxmorrys.rysmo.ds.EtatLecon
 import me.maxmorrys.rysmo.ds.Eyebrow
@@ -34,6 +31,8 @@ import me.maxmorrys.rysmo.ds.Typo
 import me.maxmorrys.rysmo.ds.jetons
 import me.maxmorrys.rysmo.ecrans.apprentissage.EncartDeVerite
 import me.maxmorrys.rysmo.ecrans.apprentissage.SITE_PUBLIC
+import me.maxmorrys.rysmo.systeme.aOuvert
+import me.maxmorrys.rysmo.systeme.ouvrirUneAdresse
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -174,17 +173,21 @@ fun EcranLegal(
                             derniere = index == TEXTES_LEGAUX.lastIndex,
                             queue = {
                                 /* Le glyphe « sortant » n'est pas décoratif : il prévient que
-                                   le geste QUITTE l'application. Sans lui, un retour arrière
-                                   qui ne ramène pas au même endroit passe pour un défaut. */
+                                   le geste QUITTE l'écran. Sans lui, un retour arrière qui ne
+                                   ramène pas au même endroit passe pour un défaut — et un
+                                   onglet personnalisé, qui se ferme par SON bouton et non par
+                                   le retour système, ne lève pas la surprise, il la déplace. */
                                 Icon("external", description = null, taille = 15.dp, couleur = jetons.ink2)
                             },
                             onPress = {
                                 val adresse = texte.adresse(enAnglais)
-                                adresseOrpheline = if (ouvrirDansLeNavigateur(contexte, adresse)) {
-                                    null
-                                } else {
-                                    adresse
-                                }
+                                /* ⚠️ `/legal` n'est déclaré dans AUCUN filtre d'intention :
+                                   ces quatre adresses SORTENT vraiment, onglet personnalisé
+                                   ou navigateur. Le garde des App Links de
+                                   `systeme/Sortie.kt` ne s'applique qu'à `/formations` et
+                                   `/verifier`. */
+                                adresseOrpheline =
+                                    if (ouvrirUneAdresse(contexte, adresse).aOuvert) null else adresse
                             },
                         )
                     }
@@ -241,33 +244,6 @@ fun EcranLegal(
             modifier = Modifier.padding(top = 18.dp),
         )
     }
-}
-
-/**
- * Ouvre une adresse dans le navigateur du système. Rend `false` si personne ne sait le faire.
- *
- * ⛔ `ACTION_VIEW` EST SÛR SUR CES QUATRE ADRESSES, ET IL NE L'EST PAS SUR TOUTES. Cette
- * application déclare `maxmorrys.me/formations` et `maxmorrys.me/verifier` en App Links
- * vérifiés (`AndroidManifest.xml`, `autoVerify="true"`) : un `ACTION_VIEW` sur ces
- * préfixes-là se résoudrait SUR NOUS, et l'écran rouvrirait l'écran. `/legal` n'est déclaré
- * nulle part, donc il sort vraiment.
- *
- * ⚠️ Et ce n'est pas un onglet intégré : `androidx.browser` est au catalogue de versions
- * mais PAS en dépendance (`app/build.gradle.kts`). Le geste quitte donc l'application pour
- * de bon — d'où le glyphe « sortant » sur chaque ligne.
- */
-private fun ouvrirDansLeNavigateur(contexte: Context, adresse: String): Boolean = try {
-    contexte.startActivity(
-        Intent(Intent.ACTION_VIEW, adresse.toUri())
-            /* Le contexte peut être celui de l'application selon l'hôte de la composition ;
-               sans ce drapeau, `startActivity` lève sur un contexte non-activité. */
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-    )
-    true
-} catch (_: ActivityNotFoundException) {
-    /* ⚠️ On ne se tait pas : on REND l'échec, et l'écran l'affiche. Une exception
-       avalée ici ferait d'une ligne cliquable une ligne inerte. */
-    false
 }
 
 /**

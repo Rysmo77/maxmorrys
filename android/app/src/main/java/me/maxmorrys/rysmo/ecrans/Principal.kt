@@ -17,6 +17,7 @@ import me.maxmorrys.rysmo.ds.Screen
 import me.maxmorrys.rysmo.ds.TabBar
 import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.TonBouton
+import me.maxmorrys.rysmo.navigation.Biometrie
 import me.maxmorrys.rysmo.navigation.Certificats
 import me.maxmorrys.rysmo.navigation.ClubBloques
 import me.maxmorrys.rysmo.navigation.ClubOnglet
@@ -181,6 +182,7 @@ private fun CorpsOnglet(onglet: OngletPrincipal, onAller: (Any) -> Unit) {
         OngletPrincipal.REPETITEUR -> listOf("Ce que le répétiteur retient" to Memoire)
         OngletPrincipal.CLUB -> listOf("Entrer dans le Club" to ClubOnglet(OngletClub.Fil))
         OngletPrincipal.PROFIL -> listOf(
+            "Verrouillage biométrique" to Biometrie,
             "Le pôle médias" to Media,
             "Présence digitale" to Presence,
             "Comptes bloqués" to ClubBloques,

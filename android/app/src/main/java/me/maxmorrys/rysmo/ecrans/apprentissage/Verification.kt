@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -24,9 +26,12 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import me.maxmorrys.rysmo.donnees.CertificatPublic
+import me.maxmorrys.rysmo.donnees.DiagnosticSysteme
+import me.maxmorrys.rysmo.donnees.EtatReseau
 import me.maxmorrys.rysmo.donnees.Etat
 import me.maxmorrys.rysmo.donnees.Session
 import me.maxmorrys.rysmo.donnees.Vues
+import me.maxmorrys.rysmo.donnees.veillerLeRetourDuReseau
 import me.maxmorrys.rysmo.ds.Body
 import me.maxmorrys.rysmo.ds.Button
 import me.maxmorrys.rysmo.ds.CranDisplay
@@ -258,6 +263,14 @@ private fun Reponse(
                     grain = GrainCorps.CHAPO,
                 )
                 /*
+                 * ⛔ L'ÉTAT HORS-CONNEXION EST ICI, ET C'EST UN ÉTAT — PAS UNE DESTINATION.
+                 * `spec-etat-reseau.md` l'interdit explicitement : router vers un écran
+                 * `/hors-connexion` montrerait deux listes vides (des téléchargements et une
+                 * file d'envoi qui n'existent pas, voir `constat-hors-ligne.md`). Ce qui
+                 * change quand le réseau manque, c'est ce que cette carte-ci propose.
+                 */
+                RepriseAuRetourDuReseau(etat, onReprise)
+                /*
                  * ⛔ LA PHRASE QUI EMPÊCHE DE CONCLURE. Sans elle, un échec technique se lit
                  * comme « ce certificat n'existe pas » — et c'est la lecture qui coûte le plus
                  * cher de tout le produit.
@@ -360,4 +373,57 @@ private fun Authentique(
             )
         }
     }
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ * ⭐ QUAND C'EST LE RÉSEAU QUI MANQUE, ON N'ATTEND PAS UN GESTE — ON ATTEND LE RÉSEAU.
+ *
+ * ⛔ ET LA LECTURE SE FAIT AU MOMENT DE L'ÉCHEC, PAS AVANT. C'est la règle de
+ * `spec-etat-reseau.md`, et elle vaut ici à la lettre : l'état n'est interrogé qu'une fois
+ * la panne à l'écran, jamais gardé, jamais utilisé pour REFUSER un appel. Il ne décide que
+ * d'une chose — faut-il, en plus du bouton, guetter le retour ?
+ *
+ * ⚠️ ET LA PHRASE DOIT ÊTRE VRAIE. « On réessaie tout seul » n'est pas une formule
+ * rassurante : c'est une promesse branchée sur `veillerLeRetourDuReseau`, qui relance le
+ * MÊME appel. L'écrire sans la brancher serait le contrôle mort d'une promesse — la version
+ * la plus difficile à voir, parce qu'il n'y a même pas de bouton à toucher.
+ *
+ * ⛔ LA VEILLE MEURT AVEC LA CARTE. `DisposableEffect` la referme dès que l'écran quitte cet
+ * état — donc dès que la reprise part, puisque `Etat.Charge` fait disparaître cette branche.
+ * Une veille orpheline survivrait à l'écran et rappellerait dans le vide.
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ */
+@Composable
+private fun RepriseAuRetourDuReseau(panne: Etat.Panne, onReprise: () -> Unit) {
+    val contexte = LocalContext.current
+
+    /*
+     * ⚠️ `remember(panne)` ET PAS `remember` TOUT COURT : la question se repose à chaque
+     * nouvelle panne, jamais entre deux recompositions. Sans clé, l'écran garderait le
+     * diagnostic de la PREMIÈRE panne — c'est-à-dire exactement l'état mémorisé que la
+     * spécification interdit, réintroduit par la porte de derrière.
+     */
+    val reseau = remember(panne) { DiagnosticSysteme(contexte.applicationContext).etat() }
+
+    /* Une panne non reprenable ne se répare par aucun geste, et le réseau n'y changera rien :
+       guetter son retour promettrait une reprise qui n'aurait pas lieu. */
+    if (!panne.reprenable || reseau != EtatReseau.ABSENT) return
+
+    /* ⚠️ `rememberUpdatedState` : la veille est enregistrée UNE fois et vit plus longtemps
+       qu'une recomposition. Capturer `onReprise` directement rejouerait la lambda du moment
+       de l'enregistrement — donc, ici, une vérification du code tel qu'il était alors. */
+    val reprise by rememberUpdatedState(onReprise)
+
+    DisposableEffect(panne) {
+        val veille = veillerLeRetourDuReseau(contexte.applicationContext) { reprise() }
+        onDispose { veille.arreter() }
+    }
+
+    Body(
+        "Ton téléphone n'a pas de réseau : la vérification n'est pas partie. Tu n'as rien à "
+            + "surveiller — elle repart toute seule dès que le réseau revient.",
+        Modifier.padding(top = 8.dp),
+        couleur = jetons.textFaint,
+    )
 }

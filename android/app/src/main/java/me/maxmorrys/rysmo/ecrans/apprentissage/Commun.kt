@@ -1,7 +1,5 @@
 package me.maxmorrys.rysmo.ecrans.apprentissage
 
-import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -67,34 +65,23 @@ fun EncartDeVerite(
     }
 }
 
-/**
- * ⭐ LA FEUILLE DE PARTAGE SYSTÈME — la seule action native que ce lot gagne réellement.
+/*
+ * ⭐ LA FEUILLE DE PARTAGE ET L'OUVERTURE D'UNE ADRESSE ONT QUITTÉ CE FICHIER.
  *
- * `Intent.ACTION_SEND` n'exige aucune dépendance : `androidx.browser` est au catalogue de
- * versions mais PAS en dépendance (`app/build.gradle.kts`), et media3 non plus. Le partage,
- * lui, est du système pur.
+ * Elles vivaient ici, dans `ecrans/media/Commun.kt`, dans `ecrans/compte/Legal.kt` et dans
+ * `ecrans/club/Informations.kt` — quatre copies du même geste, dont trois seulement portaient
+ * le garde des App Links. Elles sont maintenant dans `systeme/Sortie.kt`, et
+ * `natif-capacites.test.ts` refuse qu'une cinquième réapparaisse.
  *
- * ⛔ CE QUI PART EST UN LIEN, JAMAIS UNE IMAGE. Une capture d'écran de certificat ne se
- * vérifie pas ; le lien, si. C'est la décision du kit (`ScreensNatifApp.js:335`) et elle
- * survit telle quelle.
+ * ⚠️ CE QUE DISAIT LE COMMENTAIRE D'ORIGINE ET QUI N'EST PLUS VRAI : « un bouton "voir la
+ * page publique" demanderait un onglet personnalisé (`androidx.browser`, non déclaré) …
+ * donc ce bouton n'existe pas ». `androidx.browser` EST déclaré depuis le lot 5. Un tel
+ * bouton est désormais possible — il n'est pas ajouté ici pour autant, parce que le kit ne
+ * le dessine pas et qu'une page publique de certificat s'atteint déjà par le lien partagé.
  *
- * ⛔ ET ON N'OUVRE PAS `ACTION_VIEW` SUR CES ADRESSES. Les chemins `/verifier` et
- * `/formations` sont des App Links que CETTE application déclare et vérifie
- * (`AndroidManifest.xml`, `autoVerify="true"`). Un `ACTION_VIEW` s'y résoudrait sur nous —
- * l'écran rouvrirait l'écran. Un bouton « voir la page publique » demanderait donc soit un
- * onglet personnalisé (`androidx.browser`, non déclaré), soit une sélection explicite de
- * navigateur ; aucun des deux n'existe ici, donc ce bouton n'existe pas non plus.
+ * ⛔ CE QUI RESTE VRAI, ET QUI EST LA RAISON DU GARDE : `/verifier` et `/formations` sont des
+ * App Links que CETTE application vérifie. Un `ACTION_VIEW` nu s'y résoudrait sur nous.
  */
-fun partagerUnLien(contexte: Context, titre: String, texte: String, lien: String) {
-    val envoi = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_SUBJECT, titre)
-        putExtra(Intent.EXTRA_TEXT, "$texte\n$lien")
-    }
-    /* Le sélecteur est explicite : sans lui, Android peut mémoriser une cible par défaut et
-       le geste cesse d'en proposer d'autres — ce qui n'est pas ce qu'un partage promet. */
-    contexte.startActivity(Intent.createChooser(envoi, titre))
-}
 
 /**
  * Une date ISO rendue en `JJ/MM/AAAA`, sans jamais passer par une horloge.

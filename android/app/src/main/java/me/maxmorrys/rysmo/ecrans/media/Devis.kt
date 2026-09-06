@@ -28,6 +28,9 @@ import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.TonBouton
 import me.maxmorrys.rysmo.ecrans.apprentissage.EncartDeVerite
 import me.maxmorrys.rysmo.ecrans.apprentissage.SITE_PUBLIC
+import me.maxmorrys.rysmo.systeme.aOuvert
+import me.maxmorrys.rysmo.systeme.ouvrirUneAdresse
+import me.maxmorrys.rysmo.systeme.partagerUnTexte
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -138,7 +141,7 @@ fun EcranDevis(
         Button(
             "Ouvrir le devis sur le site",
             {
-                adresseOrpheline = if (ouvrirUneAdresse(contexte, adresse)) null else adresse
+                adresseOrpheline = if (ouvrirUneAdresse(contexte, adresse).aOuvert) null else adresse
             },
             Modifier.padding(top = 16.dp),
             ton = TonBouton.DIGITALISE,
@@ -175,7 +178,7 @@ fun EcranDevis(
             {
                 val message = "Bonjour Max-Morrys, je te contacte à propos du devis $code."
                 adresseWhatsApp(message).let { url ->
-                    adresseOrpheline = if (ouvrirUneAdresse(contexte, url)) null else url
+                    adresseOrpheline = if (ouvrirUneAdresse(contexte, url).aOuvert) null else url
                 }
             },
             Modifier.padding(top = 16.dp),

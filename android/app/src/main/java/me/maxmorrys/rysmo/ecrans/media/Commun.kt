@@ -1,8 +1,5 @@
 package me.maxmorrys.rysmo.ecrans.media
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,7 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import me.maxmorrys.rysmo.ds.Body
 import me.maxmorrys.rysmo.ds.Eyebrow
 import me.maxmorrys.rysmo.ds.Niveau
@@ -39,6 +35,10 @@ import me.maxmorrys.rysmo.ds.jetons
  *   2 · AUCUN LECTEUR N'EST DÉCLARÉ. `media3-exoplayer` et `media3-session` sont au catalogue
  *       de versions, et `app/build.gradle.kts` ne les déclare PAS en dépendance. Il n'existe
  *       donc ni lecture, ni session média, ni écran verrouillé, ni mini-lecteur persistant.
+ *       ⚠️ C'ÉTAIT AUSSI LE CAS D'`androidx.browser`, ET CE NE L'EST PLUS : le lot 5 l'a
+ *       déclaré, et l'ouverture d'une adresse passe désormais par `systeme/Sortie.kt`, en
+ *       onglet personnalisé quand le téléphone en sert un. `media3` reste dehors, lui, parce
+ *       qu'un lecteur qui ne lit rien n'est pas une fonction.
  *
  * ⚠️ LA CONSÉQUENCE EST UNE DÉCISION DE RENDU, PAS UN OUBLI. Un rond de pause, un « −15 » et
  * un curseur de piste qui ne bougent pas ne sont pas une fonction dégradée : ce sont
@@ -169,59 +169,21 @@ internal fun montantXof(valeur: Int): String =
     valeur.toString().reversed().chunked(3).joinToString(" ").reversed()
 
 /**
- * Ouvre une adresse dans le navigateur du système. Rend `false` si personne ne sait le faire.
- *
- * ⛔ `ACTION_VIEW` N'EST PAS SÛR SUR TOUTES LES ADRESSES DU SITE. Cette application déclare
- * `maxmorrys.me/formations` et `maxmorrys.me/verifier` en liens applicatifs vérifiés : un
- * `ACTION_VIEW` sur ces préfixes-là se résoudrait SUR NOUS, et l'écran rouvrirait l'écran.
- * Les adresses de ce paquet — l'offre, un devis, `wa.me` — ne sont déclarées nulle part,
- * donc elles sortent vraiment.
- *
- * ⚠️ CE N'EST PAS UN ONGLET INTÉGRÉ : `androidx.browser` est au catalogue de versions et
- * n'est pas en dépendance. Le geste QUITTE l'application, d'où le glyphe sortant partout où
- * il est proposé.
- *
- * ⚠️ DUPLICATION CONNUE. `ecrans/compte/Legal.kt` porte la même fonction, en `private`. Les
- * deux devraient se rejoindre dans un seul utilitaire de sortie ; ce paquet ne peut pas
- * l'écrire sans toucher un fichier qu'un autre chantier tient. C'est une dette nommée, pas
- * une copie faite par confort.
- */
-internal fun ouvrirUneAdresse(contexte: Context, adresse: String): Boolean = try {
-    contexte.startActivity(
-        Intent(Intent.ACTION_VIEW, adresse.toUri())
-            /* Le contexte peut être celui de l'application selon l'hôte de la composition ;
-               sans ce drapeau, `startActivity` lève sur un contexte non-activité. */
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-    )
-    true
-} catch (_: ActivityNotFoundException) {
-    /* On ne se tait pas : on REND l'échec, et l'écran l'affiche. Une exception avalée ferait
-       d'un bouton une surface inerte, ce qui se lit comme une panne de l'application. */
-    false
-}
-
-/**
  * L'adresse `wa.me`, avec un message pré-rempli.
  *
- * ⚠️ ELLE PEUT N'OUVRIR AUCUNE APPLICATION. `wa.me` est une adresse web : si WhatsApp n'est
- * pas installé, c'est le navigateur qui la sert, et il propose l'installation. Si aucun
- * navigateur n'existe non plus, `ouvrirUneAdresse` rend `false` et l'écran le dit.
+ * ⛔ ET C'EST WHATSAPP QUI DOIT LA RECEVOIR, PAS UN ONGLET. `wa.me` est une adresse web, et
+ * WhatsApp la déclare en lien applicatif : un onglet personnalisé — qui porte le paquet d'un
+ * NAVIGATEUR — servirait la page web à la place de la conversation. `systeme/Sortie.kt`
+ * essaie donc l'application installée AVANT l'onglet, et c'est pour ce geste-ci que cet
+ * ordre existe.
+ *
+ * ⚠️ ELLE PEUT N'OUVRIR AUCUNE APPLICATION. Si WhatsApp n'est pas installé, c'est le
+ * navigateur qui sert `wa.me` et qui propose l'installation. Si aucun navigateur n'existe non
+ * plus, `ouvrirUneAdresse` ne rend rien d'ouvert, et l'écran le dit.
  */
 internal fun adresseWhatsApp(message: String): String =
     "https://wa.me/${TermesDeLOffre.WHATSAPP_NUMERO}?text=" +
         java.net.URLEncoder.encode(message, "UTF-8")
-
-/** La feuille de partage du système. Ce qui part est un LIEN, jamais une capture. */
-internal fun partagerUnTexte(contexte: Context, titre: String, texte: String) {
-    val envoi = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_SUBJECT, titre)
-        putExtra(Intent.EXTRA_TEXT, texte)
-    }
-    /* Le sélecteur est explicite : sans lui, Android peut mémoriser une cible par défaut et
-       le geste cesse d'en proposer d'autres — ce qui n'est pas ce qu'un partage promet. */
-    contexte.startActivity(Intent.createChooser(envoi, titre))
-}
 
 /**
  * L'encart de vérité du kit, en portée NUIT.

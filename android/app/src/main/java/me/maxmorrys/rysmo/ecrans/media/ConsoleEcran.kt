@@ -26,6 +26,8 @@ import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.TonBouton
 import me.maxmorrys.rysmo.ecrans.apprentissage.SITE_PUBLIC
 import me.maxmorrys.rysmo.navigation.PorteeSupport
+import me.maxmorrys.rysmo.systeme.aOuvert
+import me.maxmorrys.rysmo.systeme.ouvrirUneAdresse
 
 /**
  * ⛔ LE CHEMIN DE BUREAU DE CHAQUE PORTÉE — CINQUIÈME ET DERNIER MIROIR DE CE LOT.
@@ -163,7 +165,7 @@ fun EcranConsoleEcran(
         Button(
             "Ouvrir au tableau de bord",
             {
-                adresseOrpheline = if (ouvrirUneAdresse(contexte, adresse)) null else adresse
+                adresseOrpheline = if (ouvrirUneAdresse(contexte, adresse).aOuvert) null else adresse
             },
             Modifier.padding(top = 16.dp),
             ton = TonBouton.QUIET,

@@ -28,6 +28,8 @@ import me.maxmorrys.rysmo.ds.TonBouton
 import me.maxmorrys.rysmo.ds.jetons
 import me.maxmorrys.rysmo.ecrans.apprentissage.EncartDeVerite
 import me.maxmorrys.rysmo.donnees.Media as VueMedia
+import me.maxmorrys.rysmo.systeme.aOuvert
+import me.maxmorrys.rysmo.systeme.ouvrirUneAdresse
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -134,7 +136,7 @@ fun EcranVideo(
                 Button(
                     "Regarder sur la plateforme",
                     {
-                        adresseOrpheline = if (ouvrirUneAdresse(contexte, lien)) null else lien
+                        adresseOrpheline = if (ouvrirUneAdresse(contexte, lien).aOuvert) null else lien
                     },
                     Modifier.padding(top = 16.dp),
                     ton = TonBouton.TRANSFORME,

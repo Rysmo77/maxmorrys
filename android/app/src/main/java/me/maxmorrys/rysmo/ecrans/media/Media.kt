@@ -37,6 +37,8 @@ import me.maxmorrys.rysmo.donnees.Media as VueMedia
 import me.maxmorrys.rysmo.navigation.ClubRoot
 import me.maxmorrys.rysmo.navigation.Episode as DestinationEpisode
 import me.maxmorrys.rysmo.navigation.Video as DestinationVideo
+import me.maxmorrys.rysmo.systeme.aOuvert
+import me.maxmorrys.rysmo.systeme.ouvrirUneAdresse
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -205,7 +207,7 @@ private fun CartesDuPole(
 
     /* Ouvre une adresse et retient celle qu'aucune application n'a su servir. */
     val sortir: (String) -> Unit = { adresse ->
-        adresseOrpheline = if (ouvrirUneAdresse(contexte, adresse)) null else adresse
+        adresseOrpheline = if (ouvrirUneAdresse(contexte, adresse).aOuvert) null else adresse
     }
 
     Column(Modifier.fillMaxWidth()) {
@@ -249,6 +251,12 @@ private fun CartesDuPole(
                  * le seul sens qu'il puisse avoir tant qu'aucune bibliothèque de lecture
                  * n'est déclarée — et il vaut mieux qu'il quitte l'application franchement
                  * que de tourner sur place.
+                 *
+                 * ⛔ ET C'EST L'APPLICATION SPOTIFY QUI DOIT L'AVOIR, pas un onglet
+                 * personnalisé : `open.spotify.com` est un lien applicatif que Spotify
+                 * revendique, et l'ouvrir en onglet donnerait la page web — sans reprise de
+                 * lecture, sans file d'attente, souvent derrière un mur de connexion.
+                 * `systeme/Sortie.kt` essaie l'application installée en premier.
                  */
                 onLecture = { sortir(lienEpisode) },
                 actions = {

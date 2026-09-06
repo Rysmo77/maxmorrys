@@ -37,6 +37,7 @@ import me.maxmorrys.rysmo.ds.Typo
 import me.maxmorrys.rysmo.ds.Wordmark
 import me.maxmorrys.rysmo.ds.jetons
 import me.maxmorrys.rysmo.navigation.Verification
+import me.maxmorrys.rysmo.systeme.partagerUnTexte
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -114,7 +115,7 @@ fun EcranCertificat(
             IconButton(
                 libelle = "Partager mon certificat",
                 onPress = {
-                    partagerUnLien(
+                    partagerUnTexte(
                         contexte = contexte,
                         titre = "Mon certificat — $formation",
                         texte = "Mon certificat — $formation",
@@ -195,7 +196,7 @@ fun EcranCertificat(
         Button(
             libelle = "Partager mon certificat",
             onPress = {
-                partagerUnLien(
+                partagerUnTexte(
                     contexte = contexte,
                     titre = "Mon certificat — $formation",
                     texte = "Mon certificat — $formation",
