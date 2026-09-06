@@ -113,8 +113,8 @@ fun EcranClubInformations(
  *
  * ⚠️ COPIER ET PARTAGER SONT BRANCHÉS POUR DE BON, ET SANS SERVEUR. Ils n'ont besoin que du
  * code et du lien, que la vue porte déjà. Ce sont les deux seuls gestes de tout ce lot qui
- * fonctionnent aujourd'hui de bout en bout — les autres attendent un producteur de jeton
- * d'identité, pas une implémentation.
+ * fonctionnent aujourd'hui de bout en bout SANS RIEN DEMANDER AU SERVEUR — les autres
+ * attendent un chemin d'écriture, pas l'identité, qui est branchée depuis le 06/09.
  */
 @Composable
 fun EcranClubParrainage(
@@ -124,6 +124,12 @@ fun EcranClubParrainage(
     onOngletPrincipal: (OngletPrincipal) -> Unit,
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * De quoi redemander la vue. ⛔ PAS UN CHAMP DE L'ÉTAT : une fonction dans `Etat` casserait
+     * son égalité structurelle, et deux `Panne` identiques ne seraient jamais égales. `Panne`
+     * dit si la reprise a un SENS ; c'est `SansDonnees` qui décide de la proposer.
+     */
+    reprise: (() -> Unit)? = null,
 ) {
     ClubScaffold(
         onglet = OngletClub.Parrainage,
@@ -154,6 +160,7 @@ fun EcranClubParrainage(
                 degat = "Un code inventé serait partagé à de vraies personnes, qui ne "
                     + "toucheraient aucune remise en s'inscrivant avec.",
                 modifier = Modifier.padding(top = 18.dp),
+                reprise = reprise,
             )
             return@ClubScaffold
         }

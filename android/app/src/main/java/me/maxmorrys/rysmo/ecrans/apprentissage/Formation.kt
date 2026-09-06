@@ -6,28 +6,40 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import me.maxmorrys.rysmo.donnees.Etat
+import me.maxmorrys.rysmo.donnees.Session
 import me.maxmorrys.rysmo.donnees.Vues
 import me.maxmorrys.rysmo.ds.Body
 import me.maxmorrys.rysmo.ds.CranDisplay
 import me.maxmorrys.rysmo.ds.Display
+import me.maxmorrys.rysmo.ds.EtatLecon
 import me.maxmorrys.rysmo.ds.Eyebrow
 import me.maxmorrys.rysmo.ds.GrainCorps
 import me.maxmorrys.rysmo.ds.Icon
 import me.maxmorrys.rysmo.ds.IconButton
+import me.maxmorrys.rysmo.ds.LessonRow
 import me.maxmorrys.rysmo.ds.Mesh
 import me.maxmorrys.rysmo.ds.Metrique
 import me.maxmorrys.rysmo.ds.Niveau
+import me.maxmorrys.rysmo.ds.Num
 import me.maxmorrys.rysmo.ds.SansDonnees
 import me.maxmorrys.rysmo.ds.Screen
 import me.maxmorrys.rysmo.ds.Surface
+import me.maxmorrys.rysmo.ds.Tag
 import me.maxmorrys.rysmo.ds.Territoire
+import me.maxmorrys.rysmo.ecrans.LocalSession
+import me.maxmorrys.rysmo.ecrans.vue
 import me.maxmorrys.rysmo.systeme.partagerUnTexte
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
+import me.maxmorrys.rysmo.donnees.Formation as FicheFormation
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -62,15 +74,36 @@ fun EcranFormation(
     titre: String?,
     onRetour: () -> Unit,
     modifier: Modifier = Modifier,
+    session: Session = LocalSession.current,
 ) {
     val contexte = LocalContext.current
+
+    /*
+     * ⚠️ `slug` EST OBLIGATOIRE, ET LE SERVEUR LÈVE SANS LUI. Le contrat l'écrit à sa
+     * définition : « Le hook du port passait `{}` quand le paramètre manquait : c'est le même
+     * défaut que celui qui rendait la fiche de membre inatteignable. » Ici il vient de la
+     * destination, qui ne se construit pas sans lui — le paramètre ne peut donc pas manquer.
+     */
+    val lu = vue<FicheFormation>(
+        Vues.Noms.APP_FORMATION,
+        session,
+        buildJsonObject { put("slug", JsonPrimitive(slug)) },
+    )
+    val etat = lu.etat
+    /*
+     * ⭐ LE TITRE SERVI PASSE DEVANT CELUI DE LA NAVIGATION. L'argument de route est le
+     * `titreCourt` que le CATALOGUE portait au moment où on a touché la ligne ; celui-ci vient
+     * de la formation elle-même, à l'instant. Les deux se ressemblent tant que rien ne change,
+     * et le second est le seul qui se corrige quand un titre est réécrit en base.
+     */
+    val fiche: FicheFormation? = if (etat is Etat.Servie) etat.valeur else null
 
     Screen(
         territoire = Territoire.FORME,
         modifier = modifier,
         retour = "Cours",
         onRetour = onRetour,
-        titre = titre ?: "Formation",
+        titre = fiche?.titreCourt ?: titre ?: "Formation",
         droite = {
             /*
              * ⚠️ CE BOUTON MENAIT À L'ÉCRAN DE PARTAGE D'UN CERTIFICAT dans le port. « Partager
@@ -84,10 +117,11 @@ fun EcranFormation(
             IconButton(
                 libelle = "Partager cette formation",
                 onPress = {
+                    val quoi = fiche?.titre ?: titre ?: "Une formation Max-Morrys"
                     partagerUnTexte(
                         contexte = contexte,
-                        titre = titre ?: "Une formation Max-Morrys",
-                        texte = titre ?: "Une formation Max-Morrys",
+                        titre = quoi,
+                        texte = quoi,
                         lien = "$SITE_PUBLIC/formations/$slug",
                     )
                 },
@@ -108,9 +142,16 @@ fun EcranFormation(
                 .clip(RoundedCornerShape(Metrique.rMedia)),
         ) { Mesh(Territoire.FORME) }
 
-        Eyebrow("La fiche", Modifier.padding(top = 20.dp))
+        /* La méta du serveur — « Vente · 3 modules · 47 leçons · Débutant » — remplace le
+           sourcil générique dès qu'elle arrive : elle dit la même chose en disant quelque
+           chose. Tant qu'elle n'est pas là, le sourcil n'affirme rien de mesurable. */
+        Eyebrow(fiche?.meta ?: "La fiche", Modifier.padding(top = 20.dp))
         Display(
-            if (titre == null) listOf("UNE", "FORMATION.") else deuxLignes(titre),
+            when {
+                fiche != null -> deuxLignes(fiche.titre)
+                titre != null -> deuxLignes(titre)
+                else -> listOf("UNE", "FORMATION.")
+            },
             cran = CranDisplay.SM,
             modifier = Modifier.padding(top = 8.dp),
         )
@@ -133,16 +174,69 @@ fun EcranFormation(
          * cadenassés — avec leurs comptes de leçons et leurs durées. Ce sont des valeurs de
          * maquette : un module inventé promet un contenu qui n'existe pas, et son « 1 h 08 »
          * déciderait à la place de quelqu'un de commencer maintenant ou d'attendre.
+         *
+         * ⭐ IL VIENT MAINTENANT DE `appFormation`, et le kit lui-même n'aurait pas pu le
+         * fournir : chaque `meta` de module — « module 2 · 5 leçons · 54 min » — est composée
+         * AU SERVEUR, qui n'annonce un temps que si TOUTES les durées du module se sont
+         * laissées lire. Un total amputé d'une leçon se lirait comme une mesure.
          */
-        SansDonnees(
-            etat = Etat.NonBranche,
-            quoi = "Le programme de cette formation",
-            origine = "La vue « ${Vues.Noms.APP_FORMATION} » du serveur, appelée avec le slug « $slug »",
-            degat = "Un module inventé promet un contenu qui n'existe pas — et c'est justement "
-                + "ce que le module d'ouverture, gratuit, sert à éviter : juger sur pièce.",
-            modifier = Modifier.padding(top = 18.dp),
-            hauteur = 3,
-        )
+        if (fiche != null && etat is Etat.Servie) {
+            Eyebrow("Le programme", Modifier.padding(top = 22.dp))
+            Surface(
+                Niveau.FLAT,
+                Modifier.padding(top = 10.dp).fillMaxWidth(),
+                rembourrage = 16.dp,
+            ) {
+                Column {
+                    fiche.modules.forEachIndexed { rang, module ->
+                        /*
+                         * ⛔ CETTE LISTE N'A PAS D'IDENTIFIANT, ET C'EST UN MANQUE DU CONTRAT.
+                         * `ModuleFiche` porte `titre`, `meta` et `ouvert` — rien qui désigne.
+                         * Le titre seul se répète (« Module 1 » est le repli du serveur quand
+                         * la base n'en nomme pas), et deux modules homonymes s'effondreraient
+                         * l'un sur l'autre : c'est le défaut mesuré sur les publications
+                         * d'auteurs homonymes de ce dépôt. Le rang seul est une POSITION, pas
+                         * une identité. La paire lève l'ambiguïté sans en inventer une ; le
+                         * vrai correctif est un champ `id` dans `ModuleFiche`.
+                         */
+                        key(rang, module.titre) {
+                            LessonRow(
+                                titre = module.titre,
+                                etat = EtatLecon.PLAIN,
+                                meta = module.meta,
+                                derniere = rang == fiche.modules.lastIndex,
+                                /* ⛔ PAS DE CADENAS SUR LES AUTRES MODULES. Le kit en dessine
+                                   deux ; ils affirmeraient un achat à faire, et cette
+                                   application ne vend pas — elle ne saurait donc pas dire
+                                   comment les ouvrir. `ouvert` dit une chose vraie et étroite :
+                                   ce module contient au moins une leçon libre. */
+                                queue = { if (module.ouvert) Tag("Leçon libre") },
+                            )
+                        }
+                    }
+                }
+            }
+            /* Le compte total est un RELEVÉ : il vient de la vue, à la date de la vue. */
+            Num(
+                valeur = fiche.lecons.toString(),
+                source = Vues.Noms.APP_FORMATION,
+                asOf = etat.provenance.asOf,
+                modifier = Modifier.padding(top = 12.dp),
+                unite = "leçons en tout",
+                taille = 15.sp,
+            )
+        } else {
+            SansDonnees(
+                etat = etat,
+                quoi = "Le programme de cette formation",
+                origine = "La vue « ${Vues.Noms.APP_FORMATION} » du serveur, appelée avec le slug « $slug »",
+                degat = "Un module inventé promet un contenu qui n'existe pas — et c'est justement "
+                    + "ce que le module d'ouverture, gratuit, sert à éviter : juger sur pièce.",
+                modifier = Modifier.padding(top = 18.dp),
+                hauteur = 3,
+                reprise = lu.reprendre,
+            )
+        }
 
         EncartDeVerite(
             sourcil = "Ce que cet écran ne fait pas",
@@ -153,33 +247,4 @@ fun EcranFormation(
             modifier = Modifier.padding(top = 12.dp),
         )
     }
-}
-
-/**
- * Un titre venu de la base, équilibré sur deux lignes.
- *
- * ⛔ UN TITRE D'AFFICHAGE NE SE REPLIE JAMAIS TOUT SEUL — `Display` rend une ligne par
- * élément, sans césure, et laisse DÉBORDER plutôt que tronquer. C'est voulu : un titre coupé
- * par des points de suspension est un défaut qu'on ne voit plus, un titre qui déborde est un
- * défaut qu'on voit. Mais un titre qui vient du serveur n'a pas de coupe écrite à la main :
- * on l'équilibre au mot le plus proche du milieu, ce qui est ce qu'un typographe ferait.
- */
-private fun deuxLignes(titre: String): List<String> {
-    val mots = titre.trim().split(" ").filter { it.isNotEmpty() }
-    if (mots.size < 3) return listOf(titre)
-    var meilleur = 1
-    var ecart = Int.MAX_VALUE
-    for (i in 1 until mots.size) {
-        val gauche = mots.subList(0, i).joinToString(" ").length
-        val droite = mots.subList(i, mots.size).joinToString(" ").length
-        val delta = kotlin.math.abs(gauche - droite)
-        if (delta < ecart) {
-            ecart = delta
-            meilleur = i
-        }
-    }
-    return listOf(
-        mots.subList(0, meilleur).joinToString(" "),
-        mots.subList(meilleur, mots.size).joinToString(" "),
-    )
 }

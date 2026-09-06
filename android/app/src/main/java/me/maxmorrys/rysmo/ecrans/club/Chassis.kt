@@ -22,6 +22,8 @@ import me.maxmorrys.rysmo.donnees.Parrainage
 import me.maxmorrys.rysmo.donnees.Provenance
 import me.maxmorrys.rysmo.donnees.Seance
 import me.maxmorrys.rysmo.donnees.SensDuVide
+import me.maxmorrys.rysmo.donnees.Session
+import me.maxmorrys.rysmo.donnees.Vues
 import me.maxmorrys.rysmo.ds.BandeClub
 import me.maxmorrys.rysmo.ds.CLUB_ORDRE
 import me.maxmorrys.rysmo.ds.Fab
@@ -34,7 +36,9 @@ import me.maxmorrys.rysmo.ds.TabBar
 import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.basDuFab
 import me.maxmorrys.rysmo.ds.plateforme
+import me.maxmorrys.rysmo.ecrans.LocalSession
 import me.maxmorrys.rysmo.ecrans.OngletPrincipal
+import me.maxmorrys.rysmo.ecrans.vue
 import me.maxmorrys.rysmo.navigation.OngletClub
 
 /*
@@ -86,31 +90,6 @@ val OngletClub.libelle: String get() = CLUB_ORDRE[ordinal]
 /** L'onglet d'une pilule de la bande. `null` si la bande a été changée sans cette table. */
 fun ongletDepuisLibelle(libelle: String): OngletClub? =
     CLUB_ORDRE.indexOf(libelle).takeIf { it >= 0 }?.let { OngletClub.entries[it] }
-
-/**
- * CE QUE LES HUIT ONGLETS LISENT — et les DEUX qui n'ont rien à lire.
- *
- * ⛔ `Membres` ET `Informations` N'ONT AUCUN PRODUCTEUR, ET C'EST MESURÉ CONTRE LE CONTRAT.
- * `worker/apps/api/src/vues/vues.contrat.json` sert `appClubListe` en trois formes seulement
- * — `discussions`, `opportunites`, `membre` (UNE fiche) — et aucune vue ne rend l'annuaire ni
- * le digest hebdomadaire. Le kit dessine pourtant les deux (`ScreensNatifClub.js:135-172` et
- * `:282-333`). Les deux onglets existent donc, portent la bande, et DISENT ce qui manque.
- *
- * ⚠️ Aucun champ ici n'a de valeur d'exemple : `Etat.NonBranche` est l'état honnête tant
- * qu'aucun producteur de jeton d'identité n'est choisi (`session/SourceDeSession.kt`). Le
- * jour où il l'est, c'est le graphe — ou son modèle de vue — qui remplit cette structure.
- */
-@Immutable
-data class EtatsDuClub(
-    /** `appClub` — le bilan d'abonnement, en tête du fil. Une vue de plus que le fil. */
-    val bilan: Etat<Club> = Etat.NonBranche,
-    val fil: Etat<ClubFil> = Etat.NonBranche,
-    val discussions: Etat<List<Discussion>> = Etat.NonBranche,
-    val agenda: Etat<List<Seance>> = Etat.NonBranche,
-    val classement: Etat<Classement> = Etat.NonBranche,
-    val opportunites: Etat<List<Opportunite>> = Etat.NonBranche,
-    val parrainage: Etat<Parrainage> = Etat.NonBranche,
-)
 
 /**
  * LES GESTES QUI EXIGENT UN SERVEUR — nuls tant que rien ne les porte.
@@ -302,12 +281,32 @@ fun ClubScaffold(
 }
 
 /**
- * LE POINT D'ENTRÉE DU GRAPHE — une destination, huit corps.
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ * LE POINT D'ENTRÉE DU GRAPHE — une destination, huit corps, et SIX VUES SEULEMENT.
  *
  * ⛔ NE PAS EN FAIRE HUIT DESTINATIONS. `ClubOnglet(onglet)` porte déjà l'onglet ; huit
  * destinations obligeraient à repasser l'information et à espérer qu'on ne l'oublie pas.
  * C'est le mode de panne exact de la fiche de membre, restée INATTEIGNABLE parce que les
  * écrans poussaient vers elle sans le paramètre qu'elle exige.
+ *
+ * ⭐ CHAQUE ONGLET LIT SA VUE — ET UNE SEULE FOIS, DANS SA BRANCHE. Lire les six en tête
+ * enverrait six appels à chaque bascule d'onglet, dont cinq pour un écran qu'on ne regarde
+ * pas ; sur un forfait compté, c'est une facture, pas une optimisation manquée. Compose
+ * autorise l'appel conditionnel : chaque branche est son propre groupe de composition, et
+ * `vue(…)` y garde son état comme partout ailleurs.
+ *
+ * ⛔ `Membres` ET `Informations` N'ONT AUCUN PRODUCTEUR, ET C'EST MESURÉ CONTRE LE CONTRAT.
+ * `worker/apps/api/src/vues/vues.contrat.json` sert `appClubListe` en trois formes seulement
+ * — `discussions`, `opportunites`, `membre` (UNE fiche) — et aucune vue ne rend l'annuaire ni
+ * le digest hebdomadaire. Le kit dessine pourtant les deux (`ScreensNatifClub.js:135-172` et
+ * `:282-333`). Les deux onglets existent donc, portent la bande, et DISENT ce qui manque —
+ * `Etat.NonBranche` y est l'état JUSTE, et il ne le sera pas moins le jour où les six autres
+ * liront : ce qui leur manque est une VUE, pas un branchement.
+ *
+ * ⚠️ ET C'EST POURQUOI CES DEUX-LÀ NE MONTRENT PAS LE CADENAS. `ClubScaffold` ne verrouille
+ * que sur `SANS_ACCES`, qui est une RÉPONSE du serveur. Sans vue, on ne sait pas si l'accès
+ * manque ou si la donnée manque, et le cadenas affirmerait le premier.
+ * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 @Composable
 fun EcranClubOnglet(
@@ -317,37 +316,108 @@ fun EcranClubOnglet(
     onOngletPrincipal: (OngletPrincipal) -> Unit,
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
-    etats: EtatsDuClub = EtatsDuClub(),
     actions: ActionsDuClub = ActionsDuClub(),
+    session: Session = LocalSession.current,
 ) {
     when (onglet) {
-        OngletClub.Fil -> EcranClubFil(
-            etats.fil, etats.bilan, onRetour, onOngletClub, onOngletPrincipal, onAller,
-            modifier, actions,
-        )
-        OngletClub.Discussions -> EcranClubDiscussions(
-            etats.discussions, onRetour, onOngletClub, onOngletPrincipal, onAller,
-            modifier, actions,
-        )
+        OngletClub.Fil -> {
+            /*
+             * ⚠️ DEUX VUES POUR UN ÉCRAN, ET C'EST LE SEUL CAS DU CLUB. `appClubFil` sert le
+             * fil et la mission ; `appClub` sert le bilan d'abonnement qui le surmonte. Le kit
+             * les montre ensemble (`ScreensNatifCompte.js:287-354`), et les fusionner côté
+             * serveur ferait relire le fil entier chaque fois qu'on veut une échéance.
+             */
+            val fil = vue<ClubFil>(Vues.Noms.APP_CLUB_FIL, session)
+            val bilan = vue<Club>(Vues.Noms.APP_CLUB, session)
+            EcranClubFil(
+                etat = fil.etat,
+                etatBilan = bilan.etat,
+                onRetour = onRetour,
+                onOngletClub = onOngletClub,
+                onOngletPrincipal = onOngletPrincipal,
+                onAller = onAller,
+                modifier = modifier,
+                actions = actions,
+                reprise = fil.reprendre,
+            )
+        }
+        OngletClub.Discussions -> {
+            val lu = vue<List<Discussion>>(Vues.Noms.APP_CLUB_LISTE_DISCUSSIONS, session)
+            EcranClubDiscussions(
+                etat = lu.etat,
+                onRetour = onRetour,
+                onOngletClub = onOngletClub,
+                onOngletPrincipal = onOngletPrincipal,
+                onAller = onAller,
+                modifier = modifier,
+                actions = actions,
+                reprise = lu.reprendre,
+            )
+        }
         OngletClub.Membres -> EcranClubMembres(
-            onRetour, onOngletClub, onOngletPrincipal, onAller, modifier,
+            onRetour = onRetour,
+            onOngletClub = onOngletClub,
+            onOngletPrincipal = onOngletPrincipal,
+            onAller = onAller,
+            modifier = modifier,
         )
-        OngletClub.Agenda -> EcranClubAgenda(
-            etats.agenda, onRetour, onOngletClub, onOngletPrincipal, onAller, modifier, actions,
-        )
-        OngletClub.Classement -> EcranClubClassement(
-            etats.classement, onRetour, onOngletClub, onOngletPrincipal, onAller, modifier,
-        )
-        OngletClub.Opportunites -> EcranClubOpportunites(
-            etats.opportunites, onRetour, onOngletClub, onOngletPrincipal, onAller,
-            modifier, actions,
-        )
+        OngletClub.Agenda -> {
+            val lu = vue<List<Seance>>(Vues.Noms.APP_CLUB_AGENDA, session)
+            EcranClubAgenda(
+                etat = lu.etat,
+                onRetour = onRetour,
+                onOngletClub = onOngletClub,
+                onOngletPrincipal = onOngletPrincipal,
+                onAller = onAller,
+                modifier = modifier,
+                actions = actions,
+                reprise = lu.reprendre,
+            )
+        }
+        OngletClub.Classement -> {
+            val lu = vue<Classement>(Vues.Noms.APP_CLUB_CLASSEMENT, session)
+            EcranClubClassement(
+                etat = lu.etat,
+                onRetour = onRetour,
+                onOngletClub = onOngletClub,
+                onOngletPrincipal = onOngletPrincipal,
+                onAller = onAller,
+                modifier = modifier,
+                reprise = lu.reprendre,
+            )
+        }
+        OngletClub.Opportunites -> {
+            val lu = vue<List<Opportunite>>(Vues.Noms.APP_CLUB_LISTE_OPPORTUNITES, session)
+            EcranClubOpportunites(
+                etat = lu.etat,
+                onRetour = onRetour,
+                onOngletClub = onOngletClub,
+                onOngletPrincipal = onOngletPrincipal,
+                onAller = onAller,
+                modifier = modifier,
+                actions = actions,
+                reprise = lu.reprendre,
+            )
+        }
         OngletClub.Informations -> EcranClubInformations(
-            onRetour, onOngletClub, onOngletPrincipal, onAller, modifier,
+            onRetour = onRetour,
+            onOngletClub = onOngletClub,
+            onOngletPrincipal = onOngletPrincipal,
+            onAller = onAller,
+            modifier = modifier,
         )
-        OngletClub.Parrainage -> EcranClubParrainage(
-            etats.parrainage, onRetour, onOngletClub, onOngletPrincipal, onAller, modifier,
-        )
+        OngletClub.Parrainage -> {
+            val lu = vue<Parrainage>(Vues.Noms.APP_CLUB_PARRAINAGE, session)
+            EcranClubParrainage(
+                etat = lu.etat,
+                onRetour = onRetour,
+                onOngletClub = onOngletClub,
+                onOngletPrincipal = onOngletPrincipal,
+                onAller = onAller,
+                modifier = modifier,
+                reprise = lu.reprendre,
+            )
+        }
     }
 }
 

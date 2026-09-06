@@ -122,8 +122,9 @@ fun EcranDevis(
         SansDonnees(
             etat = Etat.NonBranche,
             quoi = "Le contenu de ce devis",
-            origine = "Aucune vue du contrat ne sert un devis — le site lit le document "
-                + "directement dans la base, ce que l'application ne sait pas faire",
+            origine = "Aucune vue par identifiant n'est servie — le contrat n'a pas de "
+                + "vue de devis du tout, et le site lit le document directement dans la "
+                + "base, ce que l'application ne sait pas faire",
             degat = "Des lignes et un montant fabriqués formeraient un document commercial "
                 + "inventé, présenté à quelqu'un qui s'apprête à s'engager dessus. C'est le "
                 + "seul écran de ce lot où une donnée d'exemple coûterait de l'argent réel à "

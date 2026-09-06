@@ -18,14 +18,16 @@ import { join, resolve } from 'node:path';
  *       — sur l'écran qui porte l'engagement juridique, et sans que personne ne le voie. »
  *       Un lien sortant échoue en SILENCE : c'est la définition même du défaut invisible.
  *
- *   2 · LA SUPPRESSION SUPPRIME VRAIMENT — et ici la garantie a CHANGÉ DE FORME, parce que
- *       le monde a changé. Le port pouvait vérifier que l'écran appelait `deleteUserAccount`.
- *       Aucun producteur de jeton d'identité n'étant branché, la version Compose ne peut pas
- *       appeler quoi que ce soit, et l'écran le dit au lieu d'afficher un bouton muet. Ce qui
- *       reste vérifiable — et qui est en réalité la garantie la plus dure — est le LIEN ENTRE
- *       LA PROMESSE ET LE BALAYAGE : `worker/apps/api/src/handlers/gdpr.ts` écrit lui-même
- *       que « l'écran de suppression ÉNUMÈRE ce qui disparaît » et que « le lien à tenir
- *       n'est pas le fichier, c'est la LISTE ». Cette porte-là tient la liste.
+ *   2 · LA SUPPRESSION SUPPRIME VRAIMENT — et la garantie du port est RENDUE, augmentée.
+ *       Le port vérifiait que l'écran appelait `deleteUserAccount` ; la version Compose l'a
+ *       fait dès que le producteur de jeton a été branché, et cette porte le vérifie de
+ *       nouveau — avec deux choses que le port ne gardait pas : que la confirmation ÉCRITE
+ *       est exigée avant l'envoi, et que le mot exigé est celui que le serveur compare.
+ *
+ *       ⭐ Et la garantie la plus dure reste la même : le LIEN ENTRE LA PROMESSE ET LE
+ *       BALAYAGE. `worker/apps/api/src/handlers/gdpr.ts` écrit lui-même que « l'écran de
+ *       suppression ÉNUMÈRE ce qui disparaît » et que « le lien à tenir n'est pas le
+ *       fichier, c'est la LISTE ». Cette porte-là tient la liste.
  *
  * ⚠️ Comme le reste de la suite native, ces portes lisent des FICHIERS. Elles attrapent une
  * correspondance rompue, pas une erreur de logique — c'est la compilation Gradle qui prouve
@@ -189,17 +191,118 @@ describe('ce que l’écran promet d’effacer est ce que le serveur efface', ()
     expect(new Set(titres).size, 'deux lignes de la liste portent le même titre').toBe(titres.length);
   });
 
-  it('⛔ l’écran ne dessine ni champ de confirmation ni bouton, tant que rien ne part', () => {
+  /* ───────────────────────────────────────────────────────────────────────────
+     LA CÉRÉMONIE, MAINTENANT QU'ELLE EXISTE
+
+     ⛔ CETTE PORTE A CHANGÉ DE FORME PARCE QUE LE MONDE A CHANGÉ, PAS PARCE QU'ELLE GÊNAIT.
+
+     Elle interdisait `Field(` et `Button(` dans cet écran, et elle avait raison : tant
+     qu'aucun appel ne pouvait être authentifié, un champ « SUPPRIMER » et un bouton rouge
+     auraient fait repartir quelqu'un en croyant avoir disparu. Le producteur de jeton est
+     branché ; l'interdit protégerait maintenant l'inverse de ce qu'il visait — un écran de
+     suppression qui ne supprime pas.
+
+     ⭐ CE QU'ELLE GARDE À LA PLACE EST PLUS DUR, ET C'EST LA MÊME CHOSE : que le geste PARTE
+     vraiment, et qu'il exige la confirmation écrite. Une réécriture qui remettrait un bouton
+     décoratif échoue ici, comme avant.
+     ─────────────────────────────────────────────────────────────────────────── */
+
+  it('la porte de la cérémonie regarde vraiment quelque chose', () => {
+    /* Le garde-fou habituel : un extracteur qui ne trouve plus rien passe au vert sans
+       avoir rien gardé. Si l'écran est renommé ou vidé, on veut le savoir ici. */
+    expect(suppression.length, 'Suppression.kt est vide ou introuvable').toBeGreaterThan(2000);
+    expect(suppression, 'le mot de confirmation a disparu du fichier').toMatch(/MOT_DE_CONFIRMATION/);
+  });
+
+  it('⛔ le geste part vraiment — la callable est appelée depuis l’écran', () => {
     /*
-     * La cérémonie complète — le mot à taper, le bouton rouge, « j'exporte d'abord » — est
-     * écrite dans le kit et elle est belle. Tant que l'appel ne peut pas être authentifié,
-     * la dessiner ferait repartir quelqu'un en croyant avoir disparu. C'est la seule page du
-     * produit où l'illusion du succès coûte plus cher que l'aveu de la panne.
+     * Le port appelait `deleteUserAccount` depuis son écran, et c'est ce qui rendait la
+     * garantie vérifiable. Elle l'est de nouveau. ⚠️ Le littéral doit rester AU SITE
+     * D'APPEL : `worker-routage-callables.test.ts` le lit là, et une constante intermédiaire
+     * le rendrait invisible à la porte qui vérifie que le Worker sert bien ce nom.
      */
-    expect(suppression, 'un champ de saisie est revenu sans que le geste puisse partir')
-      .not.toMatch(/\bField\(/);
-    expect(suppression, 'un bouton est revenu sans que le geste puisse partir')
-      .not.toMatch(/\bButton\(/);
+    expect(
+      suppression,
+      'plus rien n’appelle `deleteUserAccount` : l’écran promet une suppression qu’il ne '
+      + 'demande pas',
+    ).toMatch(/appelerBrut\(\s*"deleteUserAccount"/);
+  });
+
+  it('⛔ la confirmation écrite est exigée, et c’est la CONSTANTE qui part', () => {
+    /* 1 · le champ existe : sans lui, un seul appui suffirait à tout effacer. */
+    expect(suppression, 'le champ de confirmation a disparu').toMatch(/\bField\(/);
+
+    /* 2 · la frappe est comparée à la constante — la friction est réelle, pas décorative. */
+    expect(
+      suppression,
+      'plus rien ne compare la saisie au mot de confirmation : le bouton partirait sur '
+      + 'n’importe quelle frappe',
+    ).toMatch(/==\s*MOT_DE_CONFIRMATION/);
+
+    /*
+     * 3 · ce qui PART est la constante, jamais la saisie. Le serveur compare
+     * `confirmation.toUpperCase()` à « SUPPRIMER » : envoyer la frappe brute ferait refuser
+     * un geste voulu sur un espace de fin, et la personne recommencerait sans comprendre.
+     */
+    expect(
+      suppression,
+      'la charge envoyée ne porte plus la constante — une frappe brute se ferait refuser '
+      + 'par le serveur sur un simple espace',
+    ).toMatch(/put\(\s*"confirmation",\s*JsonPrimitive\(MOT_DE_CONFIRMATION\)\s*\)/);
+  });
+
+  it('⛔ l’envoi est sous la garde de la confirmation, pas seulement grisé', () => {
+    /*
+     * ⚠️ UN BOUTON DÉSACTIVÉ N'EST PAS UNE GARDE. `desactive` est une information pour l'œil ;
+     * la lambda reste composée, et une refonte de la mise en page peut la déclencher sans
+     * passer par l'état visuel. On exige donc que la garde soit DANS l'action, avant l'appel.
+     */
+    /* ⚠️ ON VISE L'APPEL DE SUPPRESSION, PAS LE PREMIER `appelerBrut` DU FICHIER. L'export
+       le précède, et une porte qui inspectait « le premier appel » gardait la garde de
+       l'export — c'est-à-dire rien de ce qu'elle prétend garder. */
+    const envoi = suppression.search(/appelerBrut\(\s*"deleteUserAccount"/);
+    expect(envoi, 'l’appel de suppression est introuvable — l’extracteur est cassé').toBeGreaterThan(0);
+    const geste = suppression.lastIndexOf('onPress', envoi);
+    expect(geste, 'aucune action ne précède l’appel — l’extracteur est cassé').toBeGreaterThan(0);
+    const avantLEnvoi = suppression.slice(geste, envoi);
+    expect(
+      avantLEnvoi,
+      'l’appel part sans vérifier la confirmation dans l’action elle-même',
+    ).toMatch(/\bconfirme\b/);
+  });
+
+  it('⛔ le mot que l’écran exige est celui que le serveur compare', () => {
+    /*
+     * ⭐ LE MIROIR QUI MANQUAIT. Les deux valeurs vivent dans deux mondes qui ne se
+     * connaissent pas : si le serveur passait à « EFFACER », l'écran continuerait de demander
+     * « SUPPRIMER », le serveur répondrait `failed-precondition`, et la personne lirait
+     * « Confirmation incorrecte » après avoir écrit exactement ce qu'on lui demandait. Aucune
+     * compilation ne voit ça.
+     */
+    const cote = /MOT_DE_CONFIRMATION:\s*String\s*=\s*"([^"]+)"/.exec(suppression)?.[1];
+    const serveur = /confirmation\s*!==\s*'([^']+)'/
+      .exec(sansCommentaires(lire('worker/apps/api/src/handlers/gdpr.ts')))?.[1];
+
+    expect(cote, 'le mot de confirmation est introuvable dans l’écran').toBeDefined();
+    expect(serveur, 'le mot comparé est introuvable dans `deleteUserAccount`').toBeDefined();
+    expect(
+      cote,
+      `l’écran fait écrire « ${cote} » et le serveur attend « ${serveur} » : la suppression `
+      + 'serait refusée à quelqu’un qui a écrit exactement ce qu’on lui demandait',
+    ).toBe(serveur);
+  });
+
+  it('⛔ l’export part aussi — c’était le second bouton mort du port', () => {
+    /*
+     * `mobile-controles-morts.test.ts` comptait « l'export de données » parmi ses six
+     * contrôles éteints, sur l'écran où l'on vient précisément récupérer ce qu'on a écrit
+     * avant de tout perdre. Le proposer sans qu'il parte serait pire ici qu'ailleurs : on
+     * supprime ensuite.
+     */
+    expect(
+      suppression,
+      'l’écran parle d’export sans le demander — c’est le bouton mort du port, à l’identique',
+    ).toMatch(/appelerBrut\(\s*"exportUserData"/);
   });
 });
 

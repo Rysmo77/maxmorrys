@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import me.maxmorrys.rysmo.donnees.Blocages
 import me.maxmorrys.rysmo.donnees.CompteBloque
-import me.maxmorrys.rysmo.donnees.Etat
+import me.maxmorrys.rysmo.donnees.Session
 import me.maxmorrys.rysmo.donnees.Vues
 import me.maxmorrys.rysmo.ds.Body
 import me.maxmorrys.rysmo.ds.Button
@@ -23,6 +23,8 @@ import me.maxmorrys.rysmo.ds.Surface
 import me.maxmorrys.rysmo.ds.TailleBouton
 import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.TonBouton
+import me.maxmorrys.rysmo.ecrans.LocalSession
+import me.maxmorrys.rysmo.ecrans.vue
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -57,8 +59,10 @@ fun EcranClubBloques(
     onRetour: () -> Unit,
     onDebloquer: (CompteBloque) -> Unit,
     modifier: Modifier = Modifier,
-    etat: Etat<Blocages> = Etat.NonBranche,
+    session: Session = LocalSession.current,
 ) {
+    val lu = vue<Blocages>(Vues.Noms.APP_CLUB_BLOCAGES, session)
+    val etat = lu.etat
     val blocages = etat.valeurServie()
     val provenance = etat.provenanceOuNull()
 
@@ -78,6 +82,7 @@ fun EcranClubBloques(
                     + "vue exige un abonnement actif, les gestes pris pendant l'abonnement ne "
                     + "se défont plus après.",
                 modifier = Modifier.padding(top = 12.dp),
+                reprise = lu.reprendre,
             )
             return@Screen
         }
@@ -90,6 +95,7 @@ fun EcranClubBloques(
                 degat = "Une liste d'exemple ferait croire à quelqu'un qu'il a bloqué des "
                     + "gens qu'il n'a jamais croisés.",
                 modifier = Modifier.padding(top = 12.dp),
+                reprise = lu.reprendre,
             )
             return@Screen
         }

@@ -98,11 +98,12 @@ private val PorteeSupport.quoi: String
  * données ni le rendu attendus, et la spécification le compte parmi ce qu'elle n'a pas pu
  * déterminer.
  *
- * ⛔ ET LE CONTRAT NE LES SERT PAS NON PLUS. `appConsole` rend CINQ COMPTEURS et le plus
- * ancien prospect non traité — pas les listes. Aucune vue ne rend les messages, les
- * témoignages, les rendez-vous, les projets, ni même la liste des prospects. Il n'y a donc
- * rien à afficher, et surtout rien à inventer : ces cinq écrans portent du travail réel sur
- * des personnes réelles, avec leurs demandes et leurs budgets.
+ * ⛔ ET LE CONTRAT NE LES SERT PAS NON PLUS — CE QUI N'EST PLUS UN DÉFAUT DE CÂBLAGE.
+ * `appConsole` est branchée, et la console d'à côté affiche ses compteurs : celui de cette
+ * portée y est, daté par le serveur. Ce qu'elle ne rend pas, c'est la LISTE. Aucune vue ne
+ * sert les messages, les témoignages, les rendez-vous, les projets, ni même la liste des
+ * prospects. Il n'y a donc rien à afficher, et surtout rien à inventer : ces cinq écrans
+ * portent du travail réel sur des personnes réelles, avec leurs demandes et leurs budgets.
  *
  * ⭐ CE QUE CET ÉCRAN FAIT DONC, ET QUI EST VRAI : il nomme la portée, dit ce qu'elle
  * contient, et OUVRE l'écran de bureau correspondant. C'est le seul geste utile qu'un
@@ -142,13 +143,15 @@ fun EcranConsoleEcran(
             etat = Etat.NonBranche,
             quoi = "La file de « ${ecran.libelle} »",
             /*
-             * ⛔ ON NOMME CE QUI MANQUE VRAIMENT. `appConsole` existe et sert des COMPTEURS ;
-             * ce qui n'existe pas, c'est une vue qui rende la LISTE. Écrire « la vue
-             * appConsole » tout court enverrait chercher un défaut de branchement là où il y
-             * a un trou de contrat.
+             * ⛔ ON NOMME CE QUI MANQUE VRAIMENT, ET CE N'EST PAS UN BRANCHEMENT. `appConsole`
+             * est branchée — la console d'à côté la lit et affiche ses compteurs, dont CELUI
+             * de cette portée. Ce qui n'existe pas, c'est une vue qui rende la LISTE : le
+             * contrat n'en a aucune pour les messages, les témoignages, les rendez-vous, les
+             * projets, ni même les prospects. Écrire « pas encore branché » enverrait chercher
+             * un fil débranché là où il y a un trou de contrat.
              */
-            origine = "Aucune vue du contrat ne rend cette liste — « ${Vues.Noms.APP_CONSOLE} » "
-                + "n'en sert que le compteur",
+            origine = "Aucune vue par identifiant n'est servie — « ${Vues.Noms.APP_CONSOLE} » "
+                + "est lue par la console et n'en rend que le COMPTEUR, jamais la liste",
             degat = "Une file d'exemple ferait travailler quelqu'un sur des demandes qui "
                 + "n'existent pas, et lui ferait manquer celles qui existent. Ce sont des "
                 + "personnes qui attendent une réponse.",

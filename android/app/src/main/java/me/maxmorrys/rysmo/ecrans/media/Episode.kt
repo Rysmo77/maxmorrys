@@ -72,10 +72,18 @@ fun EcranEpisode(
     val contexte = LocalContext.current
 
     /*
-     * ⚠️ `Etat.NonBranche` EST UN ARGUMENT. Et pour cet écran-là, il recouvre DEUX manques
-     * distincts, qu'il ne faut pas confondre : l'identification n'est pas branchée (comme
-     * partout dans ce lot), ET le contrat n'a aucune vue par épisode (ce qui est propre à
-     * cet écran). Le second ne se lèvera pas en choisissant un producteur de jeton.
+     * ⛔ CE QUI MANQUE ICI N'EST PLUS UN CÂBLAGE, ET LA NUANCE DÉCIDE DE CE QU'ON VA CHERCHER.
+     *
+     * L'identité est branchée : le pôle média lit `appMedia` et rend son contenu. Cet
+     * écran-ci ne lit rien parce qu'AUCUNE VUE PAR IDENTIFIANT N'EST SERVIE — le contrat
+     * énumère ses vues, et pas une n'accepte une référence d'épisode. `appMedia` sert LE
+     * DERNIER épisode publié, sans identifiant dans sa réponse.
+     *
+     * ⛔ ET ON NE LIT PAS `appMedia` ICI POUR AUTANT. Elle rendrait le dernier épisode publié
+     * quel que soit l'identifiant demandé : on afficherait la transcription de l'épisode B
+     * sous la référence de l'épisode A. Sur un écran dont tout le contenu est la parole de
+     * quelqu'un d'autre, c'est la pire donnée fausse possible — pire qu'un vide, parce qu'elle
+     * est plausible. Le manque se DIT ; il ne se comble pas avec le voisin.
      */
     val etat: Etat<VueMedia> = Etat.NonBranche
 
@@ -158,8 +166,9 @@ private fun CorpsDeLEpisode(
                  * identifiant. C'est ce manque-là qu'il faut lire ici, sinon on ira chercher
                  * un défaut de branchement là où il y a un trou de contrat.
                  */
-                origine = "La vue « ${Vues.Noms.APP_MEDIA} » du serveur, qui sert le dernier "
-                    + "épisode publié — le contrat n'a aucune vue par épisode",
+                origine = "Aucune vue par identifiant n'est servie — le contrat n'en a "
+                    + "pas, et « ${Vues.Noms.APP_MEDIA} » ne sert que le DERNIER épisode "
+                    + "publié, sans identifiant",
                 degat = "Une transcription d'exemple attribuerait à une invitée réelle des "
                     + "propos qu'elle n'a pas tenus. C'est le pire mensonge possible sur un "
                     + "écran dont tout le contenu est la parole de quelqu'un d'autre.",

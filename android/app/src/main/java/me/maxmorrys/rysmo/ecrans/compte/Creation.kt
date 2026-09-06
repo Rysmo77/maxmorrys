@@ -53,10 +53,10 @@ import me.maxmorrys.rysmo.navigation.Legal
  * elle coûte le plus cher. Ici la ligne des textes est un bouton à elle seule, et elle ouvre
  * vraiment.
  *
- * ⚠️ CE QUE LE SERVEUR SAIT DÉJÀ FAIRE, ET CE QUI MANQUE. `creerMonProfil` est au contrat,
- * le Worker la sert, elle est IDEMPOTENTE. Ce qui manque n'est pas la création : c'est
- * l'identification qui doit la précéder — le compte d'authentification, que seul un
- * producteur de jeton peut créer, et qu'aucune dépendance de ce module ne fournit.
+ * ⚠️ DEUX ÉTAPES, ET LA SECONDE EST CELLE DU SERVEUR. `creerMonProfil` est au contrat, le
+ * Worker la sert, elle est IDEMPOTENTE — et elle ne peut partir qu'APRÈS le compte
+ * d'authentification, qui la précède et qui l'identifie. Les deux sont branchées ; c'est
+ * leur ORDRE qui n'est pas rattrapable, et le bloc ci-dessous dit pourquoi.
  * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 

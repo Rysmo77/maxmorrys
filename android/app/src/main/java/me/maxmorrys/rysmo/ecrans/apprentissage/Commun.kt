@@ -114,3 +114,32 @@ fun dateLisible(iso: String): String {
  * personne exactement ce qui va partir.
  */
 fun codeNormalise(brut: String): String = brut.replace(Regex("\\s+"), "").uppercase()
+
+/**
+ * Un titre venu de la base, équilibré sur deux lignes.
+ *
+ * ⛔ UN TITRE D'AFFICHAGE NE SE REPLIE JAMAIS TOUT SEUL — `Display` rend une ligne par
+ * élément, sans césure, et laisse DÉBORDER plutôt que tronquer. C'est voulu : un titre coupé
+ * par des points de suspension est un défaut qu'on ne voit plus, un titre qui déborde est un
+ * défaut qu'on voit. Mais un titre qui vient du serveur n'a pas de coupe écrite à la main :
+ * on l'équilibre au mot le plus proche du milieu, ce qui est ce qu'un typographe ferait.
+ */
+internal fun deuxLignes(titre: String): List<String> {
+    val mots = titre.trim().split(" ").filter { it.isNotEmpty() }
+    if (mots.size < 3) return listOf(titre)
+    var meilleur = 1
+    var ecart = Int.MAX_VALUE
+    for (i in 1 until mots.size) {
+        val gauche = mots.subList(0, i).joinToString(" ").length
+        val droite = mots.subList(i, mots.size).joinToString(" ").length
+        val delta = kotlin.math.abs(gauche - droite)
+        if (delta < ecart) {
+            ecart = delta
+            meilleur = i
+        }
+    }
+    return listOf(
+        mots.subList(0, meilleur).joinToString(" "),
+        mots.subList(meilleur, mots.size).joinToString(" "),
+    )
+}

@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.maxmorrys.rysmo.donnees.Etat
+import me.maxmorrys.rysmo.donnees.Session
 import me.maxmorrys.rysmo.donnees.Vues
 import me.maxmorrys.rysmo.ds.Body
 import me.maxmorrys.rysmo.ds.CranDisplay
@@ -27,6 +28,8 @@ import me.maxmorrys.rysmo.ds.StatTile
 import me.maxmorrys.rysmo.ds.Surface
 import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.jetons
+import me.maxmorrys.rysmo.ecrans.LocalSession
+import me.maxmorrys.rysmo.ecrans.vue
 import me.maxmorrys.rysmo.donnees.Console as VueConsole
 import me.maxmorrys.rysmo.navigation.ConsoleEcran as DestinationConsoleEcran
 import me.maxmorrys.rysmo.navigation.PorteeSupport
@@ -123,8 +126,10 @@ private fun VueConsole.compte(portee: PorteeSupport): Int = when (portee) {
 fun EcranConsole(
     onRetour: () -> Unit,
     onAller: (Any) -> Unit,
+    session: Session = LocalSession.current,
     modifier: Modifier = Modifier,
 ) {
+    val lu = vue<VueConsole>(Vues.Noms.APP_CONSOLE, session)
     val portees = PorteeSupport.entries
     val ailleurs = PorteeDuRole.ECRANS_CONSOLE - portees.size
 
@@ -149,13 +154,21 @@ fun EcranConsole(
         )
 
         /*
-         * ⚠️ `Etat.NonBranche` EST UN ARGUMENT. Le jour où la lecture d'`appConsole` a son
-         * chemin, c'est cette ligne qui change — et le refus de rôle arrivera alors par
-         * `Etat.Panne`, avec le motif que le serveur aura écrit.
+         * ⭐ LE REFUS DE RÔLE ARRIVE PAR `Etat.Panne`, AVEC LE MOTIF DU SERVEUR — et c'est
+         * exactement ce que cet écran devait devenir. `appConsole` est servie sous
+         * `session: "obligatoire+role"` et lève `permission-denied` hors des rôles admis ; le
+         * contrat la déclare seule à porter cette erreur. `SansDonnees` affiche alors le motif
+         * tel que le serveur l'a écrit, sans reprise — `estReprenable` refuse de rejouer un
+         * refus, qui rendrait la même réponse.
+         *
+         * ⚠️ IL N'Y A TOUJOURS AUCUN TEST DE RÔLE ICI, ET C'EST LA MÊME RAISON QU'AVANT :
+         * un garde de route est du code client, il CACHE, il n'interdit pas. Le rôle qu'on
+         * lirait chez le client serait en plus une valeur que le serveur n'a pas confirmée.
          */
         CorpsDeLaConsole(
-            etat = Etat.NonBranche,
+            etat = lu.etat,
             onAller = onAller,
+            reprise = lu.reprendre,
             modifier = Modifier.padding(top = 20.dp),
         )
 
@@ -174,6 +187,7 @@ fun EcranConsole(
 private fun CorpsDeLaConsole(
     etat: Etat<VueConsole>,
     onAller: (Any) -> Unit,
+    reprise: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val servie = etat as? Etat.Servie<VueConsole>
@@ -189,6 +203,7 @@ private fun CorpsDeLaConsole(
                     + "qui n'existe pas — et un « 0 » inventé lui ferait fermer l'application "
                     + "alors que la file est pleine. Les deux se paient sur du travail réel.",
                 hauteur = 3,
+                reprise = reprise,
             )
         } else {
             /*

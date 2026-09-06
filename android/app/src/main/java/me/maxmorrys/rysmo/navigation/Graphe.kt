@@ -13,6 +13,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
+import me.maxmorrys.rysmo.donnees.Callables
+import me.maxmorrys.rysmo.ecrans.ecrivain
+import me.maxmorrys.rysmo.ecrans.motifDe
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.map
 import me.maxmorrys.rysmo.donnees.Session
@@ -88,6 +95,9 @@ fun GrapheRysmo(
 ) {
     val contexte = LocalContext.current
     val preferences = remember(contexte) { Preferences(contexte) }
+    /* Un seul écrivain pour tout le graphe : il porte l'invalidation des vues périmées,
+       que le contrat déclare écriture par écriture. */
+    val ecrire = ecrivain()
     /* ⚠️ COLLECTÉ UNE FOIS, ICI. Chaque onglet le relit ; le collecter dans chacun ferait
        autant d'abonnements au même flux, et rien ne garantirait qu'ils voient la même
        phase au même moment. */
@@ -220,14 +230,43 @@ fun GrapheRysmo(
                 messageId = a.messageId,
                 onRetour = navController::popBackStack,
                 onAller = { navController.navigate(it) },
-                onSignaler = { uid, motif -> navController.navigate(gesteImpossible("Signaler", uid, motif)) },
-                onBloquer = { uid, _ -> navController.navigate(gesteImpossible("Bloquer", uid, null)) },
+                /*
+                 * ⛔ LES DEUX GESTES PARTENT VRAIMENT DEPUIS QUE L'IDENTITÉ EST BRANCHÉE.
+                 * Ils menaient auparavant à un écran d'erreur qui nommait l'identité
+                 * manquante — c'était honnête alors, et c'est faux maintenant.
+                 *
+                 * ⚠️ LE RETOUR EST LA SEULE CONFIRMATION QUE CET ÉCRAN SAIT DONNER : ses
+                 * rappels ne rendent rien, donc il ne peut pas afficher l'issue lui-même.
+                 * Refermer la fiche dit « c'est fait » sans le prétendre en toutes lettres ;
+                 * un échec, lui, est NOMMÉ. Une confirmation en place reste due — elle
+                 * demande de changer la signature de l'écran.
+                 */
+                onSignaler = { uid, motif ->
+                    ecrire(
+                        Callables.SIGNALER_MEMBRE,
+                        buildJsonObject {
+                            put("membreId", JsonPrimitive(uid))
+                            if (motif.isNotBlank()) put("motif", JsonPrimitive(motif))
+                        },
+                    ) { echec -> apresLeGeste("Signaler", uid, echec, navController) }
+                },
+                onBloquer = { uid, bloquer ->
+                    ecrire(Callables.BLOQUER_MEMBRE, cibleMembre(uid, bloquer)) { echec ->
+                        apresLeGeste("Bloquer", uid, echec, navController)
+                    }
+                },
             )
         }
         composable<ClubBloques> {
             EcranClubBloques(
                 onRetour = navController::popBackStack,
-                onDebloquer = { navController.navigate(gesteImpossible("Débloquer", it.id, null)) },
+                /* ⚠️ `false` DÉBLOQUE : c'est la même écriture dans les deux sens, et elle
+                   périme les mêmes cinq vues. */
+                onDebloquer = { compte ->
+                    ecrire(Callables.BLOQUER_MEMBRE, cibleMembre(compte.id, false)) { echec ->
+                        apresLeGeste("Débloquer", compte.id, echec, navController)
+                    }
+                },
             )
         }
         composable<Connexion> {
@@ -362,13 +401,41 @@ private fun OngletPrincipal.destination(): Any = when (this) {
  *
  * Le geste mène donc à l'écran d'erreur, qui NOMME ce qui manque et la conséquence.
  */
-private fun gesteImpossible(geste: String, uid: String, motif: String?) = Erreur(
-    titre = "$geste : pas encore possible",
-    motif = "L'identification n'est pas branchée — aucun producteur de jeton n'est choisi — "
-        + "donc cet appel ne peut pas être authentifié auprès du serveur.",
-    consequence = "Ton geste n'a PAS été enregistré. La personne n'a été ni signalée ni "
-        + "bloquée, et l'équipe n'a rien reçu."
-        + (motif?.let { " Ton motif n'a pas été transmis." } ?: ""),
-    reference = uid,
-    libelle = "Revenir",
-)
+/** La cible d'un blocage, telle que le contrat la décrit. */
+private fun cibleMembre(uid: String, bloquer: Boolean) = buildJsonObject {
+    putJsonObject("cible") {
+        put("type", JsonPrimitive("membre"))
+        put("id", JsonPrimitive(uid))
+    }
+    put("bloquer", JsonPrimitive(bloquer))
+}
+
+/**
+ * Ce qui se passe après un geste de modération.
+ *
+ * ⛔ UN ÉCHEC EST NOMMÉ, JAMAIS AVALÉ. Le pire résultat possible ici n'est pas l'échec :
+ * c'est le silence. Quelqu'un qui croit avoir signalé un harceleur et dont le geste n'est
+ * pas parti ne réessaiera pas — il attendra.
+ */
+private fun apresLeGeste(
+    geste: String,
+    reference: String,
+    echec: Throwable?,
+    nav: NavHostController,
+) {
+    val motif = motifDe(echec)
+    if (motif == null) {
+        nav.popBackStack()
+        return
+    }
+    nav.navigate(
+        Erreur(
+            titre = "$geste : le geste n'est pas parti",
+            motif = motif,
+            consequence = "Rien n'a été enregistré. La personne n'a été ni signalée ni "
+                + "bloquée, et l'équipe n'a rien reçu. Tu peux réessayer.",
+            reference = reference,
+            libelle = "Revenir",
+        ),
+    )
+}

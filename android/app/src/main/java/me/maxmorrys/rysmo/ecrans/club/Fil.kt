@@ -60,6 +60,12 @@ fun EcranClubFil(
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
     actions: ActionsDuClub = ActionsDuClub(),
+    /**
+     * De quoi redemander la vue. ⛔ PAS UN CHAMP DE L'ÉTAT : une fonction dans `Etat` casserait
+     * son égalité structurelle, et deux `Panne` identiques ne seraient jamais égales. `Panne`
+     * dit si la reprise a un SENS ; c'est `SansDonnees` qui décide de la proposer.
+     */
+    reprise: (() -> Unit)? = null,
 ) {
     ClubScaffold(
         onglet = OngletClub.Fil,
@@ -91,6 +97,7 @@ fun EcranClubFil(
                 degat = "Un fil d'exemple mettrait dans la bouche de membres réels des mots "
                     + "qu'ils n'ont pas écrits.",
                 modifier = Modifier.padding(top = 14.dp),
+                reprise = reprise,
             )
         }
     }

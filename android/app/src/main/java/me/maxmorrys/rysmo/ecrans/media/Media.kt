@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import me.maxmorrys.rysmo.donnees.Etat
+import me.maxmorrys.rysmo.donnees.Session
 import me.maxmorrys.rysmo.donnees.Vues
 import me.maxmorrys.rysmo.ds.Body
 import me.maxmorrys.rysmo.ds.Button
@@ -32,7 +33,9 @@ import me.maxmorrys.rysmo.ds.Surface
 import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.TonBouton
 import me.maxmorrys.rysmo.ds.jetons
+import me.maxmorrys.rysmo.ecrans.LocalSession
 import me.maxmorrys.rysmo.ecrans.apprentissage.EncartDeVerite
+import me.maxmorrys.rysmo.ecrans.vue
 import me.maxmorrys.rysmo.donnees.Media as VueMedia
 import me.maxmorrys.rysmo.navigation.ClubRoot
 import me.maxmorrys.rysmo.navigation.Episode as DestinationEpisode
@@ -75,8 +78,11 @@ import me.maxmorrys.rysmo.systeme.ouvrirUneAdresse
 fun EcranMedia(
     onRetour: () -> Unit,
     onAller: (Any) -> Unit,
+    session: Session = LocalSession.current,
     modifier: Modifier = Modifier,
 ) {
+    val lu = vue<VueMedia>(Vues.Noms.APP_MEDIA, session)
+
     Screen(
         territoire = Territoire.TRANSFORME,
         modifier = modifier,
@@ -113,14 +119,19 @@ fun EcranMedia(
         )
 
         /*
-         * ⚠️ `Etat.NonBranche` EST UN ARGUMENT, PAS UNE CONSTANTE ENFOUIE. Le corps ci-dessous
-         * traite les huit phases ; le jour où la lecture d'`appMedia` a son chemin — c'est-à-dire
-         * le jour où un producteur de jeton d'identité est choisi —, c'est cette ligne, et elle
-         * seule, qui change.
+         * ⭐ L'ÉTAT VIENT DE `appMedia`, ET LES HUIT PHASES SONT TRAITÉES PLUS BAS. La lecture
+         * est centralisée par `vue(…)` : le fil d'exécution, la reprise et la construction
+         * incomplète n'ont pas à être refaits ici — « ce qui est recopié dérive, puis manque ».
+         *
+         * ⚠️ `appMedia` EXIGE UNE SESSION (`session: "obligatoire"` au contrat), et son
+         * en-tête le dit : « pas d'abonnement à vérifier, seulement une session ». Le pôle est
+         * GRATUIT, il n'est pas anonyme — c'est l'étiquette « Écoute gratuite, sans compte »
+         * du kit qui est fausse, pas ce court-circuit.
          */
         CorpsDuPole(
-            etat = Etat.NonBranche,
+            etat = lu.etat,
             onAller = onAller,
+            reprise = lu.reprendre,
             modifier = Modifier.padding(top = 20.dp),
         )
 
@@ -140,6 +151,7 @@ fun EcranMedia(
 private fun CorpsDuPole(
     etat: Etat<VueMedia>,
     onAller: (Any) -> Unit,
+    reprise: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxWidth()) {
@@ -161,6 +173,7 @@ private fun CorpsDuPole(
                     + "personne n'a mesurés — sur un forfait compté, un poids inventé décide "
                     + "à la place de quelqu'un.",
                 hauteur = 3,
+                reprise = reprise,
             )
         }
 

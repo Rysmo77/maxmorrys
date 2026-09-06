@@ -67,6 +67,12 @@ fun EcranClubAgenda(
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
     actions: ActionsDuClub = ActionsDuClub(),
+    /**
+     * De quoi redemander la vue. ⛔ PAS UN CHAMP DE L'ÉTAT : une fonction dans `Etat` casserait
+     * son égalité structurelle, et deux `Panne` identiques ne seraient jamais égales. `Panne`
+     * dit si la reprise a un SENS ; c'est `SansDonnees` qui décide de la proposer.
+     */
+    reprise: (() -> Unit)? = null,
 ) {
     var vue by rememberSaveable { mutableStateOf(VUE_A_VENIR) }
 
@@ -106,6 +112,7 @@ fun EcranClubAgenda(
                 origine = "La vue « ${Vues.Noms.APP_CLUB_AGENDA} »",
                 degat = "Une session inventée ferait déplacer quelqu'un, un samedi, à Dakar.",
                 modifier = Modifier.padding(top = 16.dp),
+                reprise = reprise,
             )
             return@ClubScaffold
         }
@@ -226,9 +233,11 @@ private fun ColumnScope.CarteSeance(
                     )
                 }
                 Spacer(Modifier.weight(1f))
-                /* ⛔ LE BOUTON N'EXISTE QUE SI QUELQU'UN PEUT LE RECEVOIR : `reserverSession`
-                   est au contrat, mais aucun producteur de jeton d'identité n'est branché. Un
-                   bouton `disabled` serait le défaut mesuré du port. */
+                /* ⛔ LE BOUTON N'EXISTE QUE SI QUELQU'UN PEUT LE RECEVOIR. `reserverSession`
+                   est au contrat et l'identité est branchée depuis le 06/09 ; ce qui manque
+                   est le chemin d'ÉCRITURE, et l'appelant qui relira `appClubAgenda` après —
+                   la réservation la périme. Un bouton `disabled` serait le défaut mesuré du
+                   port ; ici il n'est pas rendu tant que `actions.reserver` est nul. */
                 if (reserver != null) {
                     Button(
                         if (seance.inscrite) "Me désinscrire" else "Je réserve",

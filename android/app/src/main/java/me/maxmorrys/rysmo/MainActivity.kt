@@ -3,6 +3,7 @@ package me.maxmorrys.rysmo
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -10,6 +11,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.flow.map
 import me.maxmorrys.rysmo.ds.RysmoTheme
+import me.maxmorrys.rysmo.ecrans.LocalSession
 import me.maxmorrys.rysmo.ecrans.SasBiometrique
 import me.maxmorrys.rysmo.navigation.GrapheRysmo
 import me.maxmorrys.rysmo.session.Preferences
@@ -81,7 +83,21 @@ class MainActivity : FragmentActivity() {
                      */
                     onDeconnexion = session::deconnecter,
                 ) {
-                    GrapheRysmo(session)
+                    /*
+                     * ⛔ LA SESSION EST POSÉE ICI, ET C'EST CE QUI BRANCHE LES VINGT ÉCRANS QUE
+                     * LE GRAPHE POUSSE. Ils lisent des vues qui exigent un jeton, et le graphe
+                     * ne leur en passe aucune : seuls les cinq onglets la reçoivent en
+                     * paramètre. La distribuer par le contexte de composition évite vingt
+                     * paramètres de plus — donc vingt occasions d'en oublier un, sans qu'aucune
+                     * porte ne le voie (`ecrans/SessionCourante.kt`).
+                     *
+                     * ⚠️ ELLE EST POSÉE SOUS LE SAS, PAS AU-DESSUS, parce que rien au-dessus
+                     * n'en a besoin : `SasBiometrique` reçoit déjà la sienne en paramètre, et ce
+                     * qu'il protège n'est pas composé tant qu'il n'a pas rendu la main.
+                     */
+                    CompositionLocalProvider(LocalSession provides etatDeSession) {
+                        GrapheRysmo(session)
+                    }
                 }
             }
         }

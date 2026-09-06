@@ -59,6 +59,12 @@ fun EcranClubClassement(
     onOngletPrincipal: (OngletPrincipal) -> Unit,
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * De quoi redemander la vue. ⛔ PAS UN CHAMP DE L'ÉTAT : une fonction dans `Etat` casserait
+     * son égalité structurelle, et deux `Panne` identiques ne seraient jamais égales. `Panne`
+     * dit si la reprise a un SENS ; c'est `SansDonnees` qui décide de la proposer.
+     */
+    reprise: (() -> Unit)? = null,
 ) {
     var vue by rememberSaveable { mutableStateOf(VUE_COHORTE) }
 
@@ -82,6 +88,7 @@ fun EcranClubClassement(
                 degat = "Un rang inventé se compare à des personnes réelles : il dirait à "
                     + "quelqu'un qu'il est quatrième de gens qui n'ont rien fait de tel.",
                 modifier = Modifier.padding(top = 16.dp),
+                reprise = reprise,
             )
             return@ClubScaffold
         }

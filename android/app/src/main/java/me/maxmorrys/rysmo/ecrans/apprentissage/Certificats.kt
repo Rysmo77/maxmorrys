@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.maxmorrys.rysmo.donnees.Certificats
 import me.maxmorrys.rysmo.donnees.Etat
+import me.maxmorrys.rysmo.donnees.Session
 import me.maxmorrys.rysmo.donnees.Vues
 import me.maxmorrys.rysmo.ds.Body
 import me.maxmorrys.rysmo.ds.CranDisplay
@@ -24,6 +25,8 @@ import me.maxmorrys.rysmo.ds.Screen
 import me.maxmorrys.rysmo.ds.Surface
 import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.jetons
+import me.maxmorrys.rysmo.ecrans.LocalSession
+import me.maxmorrys.rysmo.ecrans.vue
 import me.maxmorrys.rysmo.navigation.Certificat as DestinationCertificat
 
 /**
@@ -60,7 +63,14 @@ fun EcranCertificats(
     onRetour: () -> Unit,
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
+    session: Session = LocalSession.current,
 ) {
+    /*
+     * ⭐ ET C'EST BIEN CETTE LIGNE — ET ELLE SEULE — QUI A CHANGÉ. Le corps ci-dessous
+     * traitait déjà les huit phases ; il attendait une lecture au lieu de `Etat.NonBranche`.
+     */
+    val lu = vue<Certificats>(Vues.Noms.APP_CERTIFICATS, session)
+
     Screen(
         territoire = Territoire.TRANSFORME,
         modifier = modifier,
@@ -71,15 +81,11 @@ fun EcranCertificats(
         Eyebrow("Ce que tu as terminé", Modifier.padding(top = 6.dp))
         Display(listOf("TES", "CERTIFICATS."), cran = CranDisplay.SM, modifier = Modifier.padding(top = 8.dp))
 
-        /*
-         * ⚠️ `Etat.NonBranche` EST UN ARGUMENT, PAS UNE CONSTANTE ENFOUIE. Le corps ci-dessous
-         * traite les huit phases ; le jour où la lecture de `appCertificats` a son chemin,
-         * c'est cette ligne — et elle seule — qui change.
-         */
         CorpsDesCertificats(
-            etat = Etat.NonBranche,
+            etat = lu.etat,
             onAller = onAller,
             modifier = Modifier.padding(top = 20.dp),
+            reprise = lu.reprendre,
         )
     }
 }
@@ -89,6 +95,7 @@ private fun CorpsDesCertificats(
     etat: Etat<Certificats>,
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
+    reprise: (() -> Unit)? = null,
 ) {
     /*
      * Seule la réponse SERVIE peut affirmer quelque chose. Les sept autres phases passent par
@@ -109,12 +116,13 @@ private fun CorpsDesCertificats(
                 + "un zéro supposé n'en est pas une.",
             modifier = modifier,
             hauteur = 3,
+            reprise = reprise,
         )
         return
     }
 
-    val vue = etat.valeur
-    val liste = vue.certificats
+    val servie = etat.valeur
+    val liste = servie.certificats
 
     Column(modifier.fillMaxWidth()) {
         if (liste.isEmpty()) {
@@ -166,7 +174,7 @@ private fun CorpsDesCertificats(
          * elle, vient de la même réponse : l'écran n'a pas à faire un second appel pour dater
          * son zéro, et sans elle la phrase se raccourcit au lieu d'inventer.
          */
-        val ouverture = vue.ouvertureCompte
+        val ouverture = servie.ouvertureCompte
         Column(Modifier.padding(top = 16.dp).fillMaxWidth()) {
             Num(
                 valeur = liste.size.toString(),

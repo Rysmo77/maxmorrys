@@ -56,17 +56,16 @@ import me.maxmorrys.rysmo.ecrans.apprentissage.EncartDeVerite
  * dans un `try` dont le `catch` est vide et le `finally` unique. Ce n'est pas une
  * négligence, c'est la mesure.
  *
- * ── POURQUOI RIEN N'EST DESSINÉ AUJOURD'HUI ─────────────────────────────────────────────
- * L'envoi du lien est le travail du fournisseur d'identité — dans le port, Firebase
- * Authentication, depuis son propre domaine. Aucun n'est en dépendance ici, et aucun
- * producteur de jeton n'est choisi.
+ * ── ⚠️ C'EST L'ÉCRAN OÙ UN FAUX ACCUSÉ DE RÉCEPTION COÛTE LE PLUS CHER ─────────────────
+ * L'envoi du lien est le travail du fournisseur d'identité, depuis son propre domaine ; il
+ * est branché (`identite/Identite.kt`). Tant qu'il ne l'était pas, le champ et le bouton
+ * n'étaient PAS dessinés, et c'était juste : « Si un compte existe à cette adresse, le lien
+ * y est déjà » alors que rien n'est parti fait attendre un message qui ne viendra jamais,
+ * fouiller ses indésirables, recommencer — puis conclure que son compte n'existe plus.
  *
- * ⚠️ ET C'EST L'ÉCRAN OÙ UN FAUX ACCUSÉ DE RÉCEPTION COÛTE LE PLUS CHER. Dessiner le champ
- * et le bouton donnerait « Si un compte existe à cette adresse, le lien y est déjà » alors
- * que rien n'est parti : quelqu'un attendrait un message qui ne viendra jamais, vérifierait
- * ses indésirables, recommencerait — et conclurait que son compte n'existe plus. Le seul
- * état de sortie de cet écran étant un accusé de réception, un écran non branché ne peut
- * rien afficher d'autre qu'un aveu.
+ * ⛔ L'ACCUSÉ N'EST DONC POSÉ QUE SI RIEN N'A ÉCHOUÉ EN TRANSPORT, et c'est le seul `if` que
+ * cet écran s'autorise : `reinitialiser` avale délibérément tout le reste, y compris
+ * « cette adresse n'existe pas ».
  * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 
@@ -101,8 +100,7 @@ fun EcranMotDePasse(
             modifier = Modifier.padding(top = 10.dp),
         )
         Body(
-            "Le jour où cet écran enverra, il demandera ton e-mail et rien d'autre, et le "
-                + "lien de réinitialisation vaudra une heure.",
+            "Ton e-mail, et rien d'autre. Le lien de réinitialisation vaut une heure.",
             Modifier.padding(top = 12.dp),
             grain = GrainCorps.CHAPO,
         )

@@ -78,6 +78,12 @@ fun EcranClubDiscussions(
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
     actions: ActionsDuClub = ActionsDuClub(),
+    /**
+     * De quoi redemander la vue. ⛔ PAS UN CHAMP DE L'ÉTAT : une fonction dans `Etat` casserait
+     * son égalité structurelle, et deux `Panne` identiques ne seraient jamais égales. `Panne`
+     * dit si la reprise a un SENS ; c'est `SansDonnees` qui décide de la proposer.
+     */
+    reprise: (() -> Unit)? = null,
 ) {
     var filtre by rememberSaveable { mutableStateOf(TOUTES) }
 
@@ -109,6 +115,7 @@ fun EcranClubDiscussions(
                 degat = "Des sujets d'exemple feraient croire à des conversations que "
                     + "personne n'a eues, et à des réponses que personne n'a écrites.",
                 modifier = Modifier.padding(top = 16.dp),
+                reprise = reprise,
             )
             return@ClubScaffold
         }
@@ -252,6 +259,12 @@ fun EcranClubOpportunites(
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
     actions: ActionsDuClub = ActionsDuClub(),
+    /**
+     * De quoi redemander la vue. ⛔ PAS UN CHAMP DE L'ÉTAT : une fonction dans `Etat` casserait
+     * son égalité structurelle, et deux `Panne` identiques ne seraient jamais égales. `Panne`
+     * dit si la reprise a un SENS ; c'est `SansDonnees` qui décide de la proposer.
+     */
+    reprise: (() -> Unit)? = null,
 ) {
     var filtre by rememberSaveable { mutableStateOf(TOUTES) }
 
@@ -283,6 +296,7 @@ fun EcranClubOpportunites(
                 degat = "Un budget inventé fixe une attente de revenu chez quelqu'un qui "
                     + "organise son temps dessus.",
                 modifier = Modifier.padding(top = 16.dp),
+                reprise = reprise,
             )
             return@ClubScaffold
         }

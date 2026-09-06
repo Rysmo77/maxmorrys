@@ -42,17 +42,18 @@ import me.maxmorrys.rysmo.navigation.MotDePasse
  * ═══════════════════════════════════════════════════════════════════════════════════════
  * LA CONNEXION — kit `NatConnexion` (`ScreensNatifCompte.js:24-74`).
  *
- * ⛔ NI CHAMPS NI BOUTON DE CONNEXION, ET CE N'EST PAS UNE PARESSE DE MISE EN PAGE.
- *
- * Aucun producteur de jeton d'identité n'est branché : ni SDK Firebase Android ni client
- * REST contre Identity Toolkit n'est en dépendance (`app/build.gradle.kts`), et
- * `SourceDeSession` rend `NonConfiguree` en le nommant. Rien ne peut authentifier personne.
+ * ⭐ LES CHAMPS N'EXISTENT QUE PARCE QUE LE GESTE PART — ET ILS N'ONT PAS TOUJOURS EXISTÉ.
  *
  * ⚠️ UN CHAMP DE MOT DE PASSE N'EST PAS UN CONTRÔLE MORT ORDINAIRE. Un bouton éteint ne
  * prend rien ; un champ secret, si. Il fait taper à quelqu'un son vrai mot de passe dans un
  * écran qui ne peut ni le vérifier, ni le transmettre, ni rien en faire d'utile — et le
- * clavier du système en garde le contexte. Le port en avait six, de contrôles morts ; celui-
- * ci aurait coûté plus cher que les six autres réunis.
+ * clavier du système en garde le contexte. Le port avait six contrôles morts ; celui-ci
+ * aurait coûté plus cher que les six autres réunis. Tant qu'aucun producteur de jeton
+ * n'était branché, cet écran n'en dessinait donc aucun.
+ *
+ * ⛔ LA CONDITION N'A PAS DISPARU, ELLE EST DEVENUE UN `if`. `authOuNull` rend `null` quand
+ * les clés de construction manquent, et l'écran retombe alors sur l'aveu — qui NOMME la clé
+ * absente. Le formulaire n'est jamais dessiné au-dessus de rien.
  *
  * ── POURQUOI NI APPLE NI GOOGLE, ET DEUX RAISONS QUI NE SE RECOUVRENT PAS ─────────────
  * 1 · App Store 4.8 rend « Se connecter avec Apple » OBLIGATOIRE dès qu'une connexion tierce

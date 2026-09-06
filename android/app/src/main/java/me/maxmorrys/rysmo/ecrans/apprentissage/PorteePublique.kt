@@ -13,11 +13,14 @@ import me.maxmorrys.rysmo.donnees.LectureDeVue
  * LE SEUL POINT DE MONTAGE DU PRODUIT, ET IL NE SERT QU'À CE QUI N'A PAS BESOIN DE COMPTE.
  *
  * ⚠️ CE FICHIER EST PROVISOIRE ET IL LE DIT. L'application n'a pas d'injection de
- * dépendances : les cinq onglets et les sept autres écrans de ce lot rendent l'état honnête
- * de leur vue sans jamais toucher le réseau, parce qu'aucun producteur de jeton d'identité
- * n'est choisi et que toutes leurs vues en exigent un. Le jour où ce choix est fait, la
- * lecture se fournit d'en haut et ce fichier disparaît — il ne doit surtout pas devenir
- * l'endroit d'où l'application lit ses données.
+ * dépendances ; les écrans identifiés passent par `PorteeIdentifiee`, montée depuis le
+ * 06/09. Le jour où la lecture se fournit d'en haut, ce fichier disparaît — il ne doit
+ * surtout pas devenir l'endroit d'où l'application lit ses données.
+ *
+ * ⚠️ ET CE QUE DISAIT LA VERSION PRÉCÉDENTE N'EST PLUS VRAI : « les cinq onglets et les sept
+ * autres écrans de ce lot rendent l'état honnête de leur vue sans jamais toucher le réseau,
+ * parce qu'aucun producteur de jeton d'identité n'est choisi ». Le producteur existe, et ces
+ * écrans lisent.
  *
  * ⭐ POURQUOI IL EXISTE MALGRÉ TOUT : `appVerifierCertificat` n'a besoin de RIEN de ce qui
  * manque. Elle est la seule vue du contrat déclarée `session: "aucune"`, elle ne pose pas

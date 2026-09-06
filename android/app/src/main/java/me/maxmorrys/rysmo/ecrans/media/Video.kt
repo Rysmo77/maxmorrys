@@ -61,8 +61,12 @@ fun EcranVideo(
     val contexte = LocalContext.current
     var adresseOrpheline by remember { mutableStateOf<String?>(null) }
 
-    /* Même remarque que pour l'épisode : le contrat n'a pas de vue par vidéo. `appMedia`
-       sert la DERNIÈRE vidéo publiée, et sa réponse ne porte pas d'identifiant. */
+    /*
+     * ⛔ MÊME MANQUE QUE POUR L'ÉPISODE, ET IL N'EST PAS DE CÂBLAGE : aucune vue par
+     * identifiant n'est servie. `appMedia` sert la DERNIÈRE vidéo publiée et sa réponse ne
+     * porte pas d'identifiant, donc la lire ici annoncerait les poids d'une vidéo sous la
+     * référence d'une autre — à quelqu'un qui compte ses mégaoctets avant de regarder.
+     */
     val etat: Etat<VueMedia> = Etat.NonBranche
     val video = (etat as? Etat.Servie<VueMedia>)?.valeur?.video
 
@@ -84,8 +88,9 @@ fun EcranVideo(
             SansDonnees(
                 etat = etat,
                 quoi = "Cette vidéo",
-                origine = "La vue « ${Vues.Noms.APP_MEDIA} » du serveur, qui sert la dernière "
-                    + "vidéo publiée — le contrat n'a aucune vue par vidéo",
+                origine = "Aucune vue par identifiant n'est servie — le contrat n'en a "
+                    + "pas, et « ${Vues.Noms.APP_MEDIA} » ne sert que la DERNIÈRE vidéo "
+                    + "publiée, sans identifiant",
                 degat = "Annoncer un poids « en HD » et un poids « en 480p » qu'on n'a pas "
                     + "mesurés déciderait à la place de quelqu'un qui compte ses mégaoctets.",
                 modifier = Modifier.padding(top = 20.dp),

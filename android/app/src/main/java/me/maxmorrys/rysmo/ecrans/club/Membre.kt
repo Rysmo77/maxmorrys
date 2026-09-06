@@ -17,8 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import me.maxmorrys.rysmo.donnees.Etat
 import me.maxmorrys.rysmo.donnees.Membre
+import me.maxmorrys.rysmo.donnees.Session
 import me.maxmorrys.rysmo.donnees.Vues
 import me.maxmorrys.rysmo.ds.Avatar
 import me.maxmorrys.rysmo.ds.Body
@@ -36,6 +39,8 @@ import me.maxmorrys.rysmo.ds.Tag
 import me.maxmorrys.rysmo.ds.Territoire
 import me.maxmorrys.rysmo.ds.TonBouton
 import me.maxmorrys.rysmo.ds.TonTag
+import me.maxmorrys.rysmo.ecrans.LocalSession
+import me.maxmorrys.rysmo.ecrans.vue
 import me.maxmorrys.rysmo.navigation.ClubBloques
 
 /*
@@ -85,8 +90,38 @@ fun EcranClubMembre(
     onSignaler: (String, String) -> Unit,
     onBloquer: (String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    etat: Etat<Membre> = Etat.NonBranche,
+    session: Session = LocalSession.current,
 ) {
+    /*
+     * ⛔ LA VUE N'EST APPELÉE QUE SI ON PEUT LA DÉSIGNER. Sans `id` ni `message`, `appClubListe`
+     * jette `invalid-argument` — c'est exactement le défaut qui a rendu cette fiche
+     * INATTEIGNABLE dans le port, et il ne se répare pas en partant quand même : on paierait un
+     * aller-retour pour recevoir une panne qu'on savait déjà. L'appel conditionnel est légal en
+     * Compose ; chaque branche est son propre groupe de composition.
+     *
+     * ⚠️ `id` PASSE DEVANT `message`, comme au serveur (`clubListe.ts:133-137`) : l'uid désigne
+     * la personne, le message ne fait que la faire résoudre. Poser les deux ne changerait rien
+     * au verdict, mais ferait circuler un identifiant de contenu sans utilité.
+     *
+     * ⚠️ LE DISCRIMINANT `onglet=membre` N'EST PAS ÉCRIT ICI : `LectureDeVue` le pose depuis le
+     * contrat. C'est la moitié structurelle du correctif — un écran ne peut plus l'oublier.
+     */
+    val lu = if (membreId != null || messageId != null) {
+        vue<Membre>(
+            Vues.Noms.APP_CLUB_LISTE_MEMBRE,
+            session,
+            buildJsonObject {
+                if (membreId != null) {
+                    put("id", JsonPrimitive(membreId))
+                } else if (messageId != null) {
+                    put("message", JsonPrimitive(messageId))
+                }
+            },
+        )
+    } else {
+        null
+    }
+    val etat: Etat<Membre> = lu?.etat ?: Etat.NonBranche
     val membre = etat.valeurServie()
     val provenance = etat.provenanceOuNull()
 
@@ -113,15 +148,39 @@ fun EcranClubMembre(
             return@Screen
         }
 
+        /*
+         * ═══════════════════════════════════════════════════════════════════════════════
+         * ⛔ SUR CETTE VUE, `vue: null` PORTE DEUX SENS ET LE CONTRAT NE PEUT EN NOMMER QU'UN.
+         *
+         * `appClubListe` rend `vue: null` quand l'abonnement n'est pas actif
+         * (`clubListe.ts:62`) ET quand le profil demandé n'existe pas ou n'a pas de nom
+         * (`:141-142`). Le contrat déclare `vueNulle: "sansAcces"` pour les trois formes, donc
+         * `Etat.Vide` arrive ici avec `SANS_ACCES` dans les deux cas.
+         *
+         * Écrire « le Club est réservé aux membres » serait donc faux une fois sur deux — et
+         * faux pour quelqu'un QUI PAIE, ce qui est précisément la faute que la correction du
+         * 06/09 a écartée ailleurs. Cet écran refuse donc de trancher : il nomme les deux
+         * lectures possibles. Le correctif est côté serveur — il faudrait une erreur distincte
+         * pour « profil introuvable » —, et l'écran le rend visible plutôt que muet.
+         * ═══════════════════════════════════════════════════════════════════════════════
+         */
         if (membre == null || provenance == null) {
+            val deuxLectures = "La vue « ${Vues.Noms.APP_CLUB_LISTE_MEMBRE} » n'a rien rendu — " +
+                "soit ton abonnement au Club n'est pas actif, soit cette personne n'a pas de " +
+                "fiche. Le serveur répond la même chose dans les deux cas"
             SansDonnees(
                 etat = etat,
                 quoi = "La fiche de ce membre",
-                origine = "La vue « ${Vues.Noms.APP_CLUB_LISTE_MEMBRE} »",
+                origine = if (etat.estSansAcces()) {
+                    deuxLectures
+                } else {
+                    "La vue « ${Vues.Noms.APP_CLUB_LISTE_MEMBRE} »"
+                },
                 degat = "Une fiche d'exemple donnerait un métier et un quartier à quelqu'un "
                     + "qui ne les a pas renseignés — et laisserait signaler la mauvaise "
                     + "personne.",
                 modifier = Modifier.padding(top = 12.dp),
+                reprise = lu?.reprendre,
             )
             return@Screen
         }
