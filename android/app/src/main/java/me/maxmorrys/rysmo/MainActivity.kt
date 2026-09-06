@@ -54,7 +54,7 @@ class MainActivity : FragmentActivity() {
         installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        session.demarrer()
+        session.demarrer(applicationContext)
         setContent {
             RysmoTheme {
                 val preferences = remember { Preferences(applicationContext) }
@@ -85,5 +85,12 @@ class MainActivity : FragmentActivity() {
                 }
             }
         }
+    }
+
+    /* ⚠️ L'écouteur d'identité retient son contexte : oublié ici, il ferait fuir l'activité
+       à chaque rotation. `SourceDeSession` sait se détacher, encore faut-il le lui dire. */
+    override fun onDestroy() {
+        session.arreter()
+        super.onDestroy()
     }
 }

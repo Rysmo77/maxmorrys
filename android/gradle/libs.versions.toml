@@ -18,6 +18,7 @@ biometric          = "1.2.0-alpha05"
 media3             = "1.5.1"
 browser            = "1.8.0"
 splashscreen       = "1.0.1"
+firebaseBom        = "34.18.0"
 junit              = "4.13.2"
 androidxJunit      = "1.2.1"
 espresso           = "3.6.1"
@@ -47,6 +48,22 @@ media3-exoplayer         = { group = "androidx.media3", name = "media3-exoplayer
 media3-session           = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
 browser                  = { group = "androidx.browser", name = "browser", version.ref = "browser" }
 splashscreen             = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
+
+# ⛔ LA NOMENCLATURE FIREBASE FIXE LES VERSIONS DE TOUTE LA FAMILLE, et c'est le seul
+# usage sain : `firebase-auth` entraîne une douzaine d'artefacts Google qui doivent
+# s'accorder entre eux. En épingler un seul à la main, c'est signer une incompatibilité
+# pour dans six mois.
+#
+# ⚠️ `firebase-auth` N'ENTRAÎNE PAS `firebase-installations` — vérifié sur les POM de
+# `firebase-auth:24.2.0` et `firebase-common:22.2.0`, pas supposé. Aucun Installation ID
+# n'est donc fabriqué, et la phrase de l'inventaire de collecte à ce sujet reste vraie.
+#
+# ⚠️ Il entraîne EN REVANCHE `com.google.android.play:integrity` et
+# `com.google.android.recaptcha` — deux dispositifs de prévention d'abus qui lisent des
+# signaux d'appareil. Ce ne sont pas des permissions, donc aucune porte de manifeste ne
+# les voit : ils sont déclarés à la main dans `store/confidentialite/inventaire-collecte.md`.
+firebase-bom             = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-auth            = { group = "com.google.firebase", name = "firebase-auth" }
 
 junit                    = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit           = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }

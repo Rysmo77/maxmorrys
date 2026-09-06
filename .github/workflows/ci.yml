@@ -203,8 +203,23 @@ jobs:
       # continuerait de passer au vert sur des jetons faux. C'est le seul point où ces
       # deux fichiers doivent rester d'accord.
 
+      # ⛔ LES TROIS CLÉS DE CONSTRUCTION FIREBASE, ET RIEN D'AUTRE.
+      #
+      # `providers.gradleProperty` les lit sous le préfixe `ORG_GRADLE_PROJECT_` — c'est la
+      # seule façon config-cache-safe de les faire entrer, et elle évite tout fichier dans le
+      # dépôt : ni `google-services.json`, ni greffon Gradle.
+      #
+      # ⚠️ UNE CLÉ ABSENTE NE CASSE PAS LA CONSTRUCTION, délibérément : elle rend une chaîne
+      # vide, `Configuration.motifManquant()` la NOMME à l'exécution, et l'application le dit
+      # à l'écran. Un binaire incomplet se construit donc — c'est précisément ce que
+      # `mobile-app-config.test.ts` empêchait d'atteindre un magasin, et cette garantie doit
+      # revenir avant la première soumission.
       - name: Compiler l'application
         working-directory: android
+        env:
+          ORG_GRADLE_PROJECT_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          ORG_GRADLE_PROJECT_FIREBASE_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          ORG_GRADLE_PROJECT_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
         run: ./gradlew :app:assembleDebug --no-daemon
 
       - name: Tests unitaires
@@ -231,15 +246,43 @@ jobs:
       # qu'il est publiable.
       - name: Construire la version de production (R8)
         working-directory: android
+        env:
+          ORG_GRADLE_PROJECT_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          ORG_GRADLE_PROJECT_FIREBASE_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          ORG_GRADLE_PROJECT_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
         run: ./gradlew :app:assembleRelease --no-daemon
 
-      # `aapt2` sur le paquet construit, et non un grep du manifeste source : l'outil
-      # officiel a déjà corrigé ici une lecture par chaînes qu'on croyait juste.
-      - name: Permissions réellement demandées par le paquet
+      # ⛔ CETTE ÉTAPE AFFICHAIT SANS RIEN VÉRIFIER, ET C'ÉTAIT UN ANGLE MORT.
+      #
+      # `tests/unit/natif-capacites.test.ts` compte les permissions du manifeste SOURCE — où
+      # nous écrivons — et n'en voit donc AUCUNE de celles qu'une bibliothèque apporte à la
+      # fusion. Firebase Auth en apporte une (`READ_GSERVICES`, par `play-services-basement`).
+      # La porte restait verte pendant que le paquet livré en demandait davantage, ce que les
+      # deux magasins affichent sur la fiche.
+      #
+      # La liste ci-dessous est la vérité du PAQUET. Toute entrée de plus doit être un geste
+      # délibéré : on l'ajoute ici ET dans `store/confidentialite/inventaire-collecte.md`,
+      # d'où sont dérivés les deux formulaires de confidentialité.
+      - name: Les permissions du paquet CONSTRUIT sont exactement celles déclarées
         working-directory: android
         run: |
           AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | tail -1)
-          "$AAPT" dump permissions app/build/outputs/apk/debug/app-debug.apk
+          ATTENDU=$(printf '%s\n' \
+            'android.permission.ACCESS_NETWORK_STATE' \
+            'android.permission.INTERNET' \
+            'android.permission.USE_BIOMETRIC' \
+            'android.permission.USE_FINGERPRINT' \
+            'com.google.android.providers.gsf.permission.READ_GSERVICES' | sort)
+          OBTENU=$("$AAPT" dump permissions app/build/outputs/apk/debug/app-debug.apk \
+            | sed -n "s/^uses-permission: name='\([^']*\)'.*/\1/p" \
+            | grep -v DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION | sort)
+          if [ "$ATTENDU" != "$OBTENU" ]; then
+            echo "⛔ Les permissions du paquet ont changé."
+            diff <(echo "$ATTENDU") <(echo "$OBTENU") || true
+            echo "Si c'est voulu : mettre à jour CETTE liste ET l'inventaire de collecte."
+            exit 1
+          fi
+          echo "✅ toutes les permissions du paquet sont déclarées."
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

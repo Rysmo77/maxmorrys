@@ -51,9 +51,12 @@ d'attribution**. Ni Sentry, ni Firebase Analytics, ni identifiant publicitaire.
 la construit — mais les noms de fichiers et de paquets ont changé, et un formulaire de
 confidentialité qui cite un paquet absent se fait refuser.
 
-L'application ne parle qu'à `api.maxmorrys.me` (Cloudflare Worker) en HTTP+JSON. **Aucun SDK
-Firebase côté client**, donc ni `@firebase/installations` ni Installation ID — c'était déjà la
-règle du port RN (AD-10) et la réécriture Kotlin/Swift la garde, le contrat étant HTTP.
+L'application ne parle qu'à `api.maxmorrys.me` (Cloudflare Worker) en HTTP+JSON. **Aucune lecture
+Firestore côté client** : le SDK Firebase de l'application se limite à l'IDENTITÉ, et
+`firebase-auth` n'entraîne pas `firebase-installations` — vérifié sur les POM le 06/09/2026,
+donc aucun Installation ID n'est fabriqué. C'était déjà la règle du port React Native, et
+elle tient : tout ce qui est LU passe par le Worker, qui refait ses propres contrôles parce
+que l'accès REST par compte de service contourne `firestore.rules`.
 
 Aucune permission de localisation, contacts, photos, micro ou caméra n'est déclarée — vérifié
 sur le paquet CONSTRUIT par `aapt2 dump permissions`, pas sur le manifeste source. Les quatre
@@ -101,6 +104,38 @@ pose aucun témoin elle-même.
 ⚠️ **Tracking : NON, partout.** `NSPrivacyTracking: false` et `NSPrivacyTrackingDomains: []`
 sont cohérents avec l'absence totale de SDK tiers — ce n'est pas une déclaration de principe,
 c'est un constat.
+
+## ⛔ Ce que le SDK Firebase Auth apporte, et qui n'est pas de nous
+
+Relevé le **06/09/2026** sur les POM de `firebase-auth:24.2.0` et `firebase-common:22.2.0`,
+et sur le paquet CONSTRUIT — pas supposé.
+
+**Une permission de plus, apportée par la fusion des manifestes :**
+
+| Permission | Origine | Ce qu'elle fait |
+|---|---|---|
+| `com.google.android.providers.gsf.permission.READ_GSERVICES` | `play-services-basement`, entraîné par `firebase-auth` | Lit les réglages des services Google de l'appareil. Niveau `normal` : aucune demande n'est faite à l'utilisateur. |
+
+⚠️ **La porte `natif-capacites.test.ts` ne la voit PAS**, et c'est structurel : elle lit le
+manifeste SOURCE, où nous n'avons rien écrit. Une permission apportée par une bibliothèque
+n'apparaît qu'après fusion. **Seul `aapt2 dump permissions` sur le paquet construit dit la
+vérité** — c'est pourquoi l'étape de CI l'exécute maintenant en ASSERTION, plus en simple
+affichage.
+
+**Deux dispositifs de prévention d'abus, entraînés eux aussi :**
+
+- `com.google.android.play:integrity` — Play Integrity, qui atteste que l'application n'a pas
+  été modifiée et tourne sur un appareil sain.
+- `com.google.android.recaptcha` — reCAPTCHA, contre les créations de compte automatisées.
+
+⚠️ **Ce ne sont pas des permissions, donc aucune porte de manifeste ne les verra jamais.**
+Ils lisent des signaux d'appareil et les envoient à Google. Les deux formulaires de
+confidentialité les couvrent sous **« identifiants d'appareil ou autres identifiants »**, et
+c'est à déclarer ainsi. Ils sont actifs dès qu'une connexion ou une création est tentée — pas
+au démarrage.
+
+⭐ **`firebase-installations` N'EST PAS entraîné**, vérifié sur les deux POM. Aucun
+Installation ID n'est donc fabriqué, et la phrase de ce document à ce sujet reste vraie.
 
 ## ⛔ Ce qui SURVIT à la suppression du compte
 

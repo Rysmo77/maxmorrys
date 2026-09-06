@@ -1,5 +1,22 @@
 package me.maxmorrys.rysmo.ecrans.compte
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.maxmorrys.rysmo.donnees.CodeErreur
+import me.maxmorrys.rysmo.ds.Field
+import me.maxmorrys.rysmo.identite.ErreurIdentite
+import me.maxmorrys.rysmo.identite.PorteeIdentifiee
+import me.maxmorrys.rysmo.identite.authOuNull
+import me.maxmorrys.rysmo.identite.configurationDIdentite
+import me.maxmorrys.rysmo.identite.creationEmail
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -54,6 +71,14 @@ fun EcranCreation(
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val contexte = LocalContext.current
+    val portee = rememberCoroutineScope()
+    var nom by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var motDePasse by remember { mutableStateOf("") }
+    var erreur by remember { mutableStateOf<String?>(null) }
+    var enCours by remember { mutableStateOf(false) }
+
     Screen(
         territoire = Territoire.FORME,
         modifier = modifier,
@@ -67,18 +92,82 @@ fun EcranCreation(
             modifier = Modifier.padding(top = 10.dp),
         )
 
-        SansDonnees(
-            etat = Etat.NonBranche,
-            quoi = "Créer ton compte",
-            origine = "La création du profil existe côté serveur — « "
-                + "${Callables.CREER_MON_PROFIL} » — mais elle suppose un compte "
-                + "d'authentification déjà créé, et aucun producteur de jeton d'identité "
-                + "n'est branché dans l'application",
-            degat = "Trois champs, une case et un bouton « Crée mon compte » qui ne crée "
-                + "rien font saisir un nom, une adresse et un mot de passe pour rien — et "
-                + "font croire à un compte qui n'existe pas.",
-            modifier = Modifier.padding(top = 20.dp),
-        )
+        /*
+         * ⛔ L'ORDRE DE CE QUI SE PASSE N'EST PAS RATTRAPABLE DANS L'AUTRE SENS.
+         *
+         * `creationEmail` crée le compte d'authentification, PUIS demande au serveur le
+         * profil `users/{uid}`. Si la seconde étape échoue, la personne a un compte qui se
+         * connecte et aucun profil à lire — et on ne peut pas défaire la première, car
+         * supprimer un compte tout juste créé exige une ré-authentification.
+         *
+         * On ne fait donc pas semblant : la callable est IDEMPOTENTE côté serveur, et le
+         * prochain lancement la rappellera sans rien écraser.
+         */
+        val auth = authOuNull(contexte)
+        val appel = PorteeIdentifiee.appelOuNull(contexte)
+        if (auth == null || appel == null) {
+            SansDonnees(
+                etat = Etat.Panne(
+                    motif = configurationDIdentite().motifManquant()
+                        ?: "L'identification n'est pas disponible.",
+                    code = CodeErreur.FAILED_PRECONDITION,
+                    reprenable = false,
+                ),
+                quoi = "Créer ton compte",
+                origine = "Les clés de construction Firebase",
+                degat = "Trois champs et un bouton qui ne crée rien font saisir un nom, une "
+                    + "adresse et un mot de passe pour rien — et font croire à un compte qui "
+                    + "n'existe pas.",
+                modifier = Modifier.padding(top = 20.dp),
+            )
+        } else {
+            Field(
+                libelle = "Ton prénom",
+                valeur = nom,
+                onChange = { nom = it; erreur = null },
+                modifier = Modifier.padding(top = 20.dp),
+                aide = "C'est le nom qui sera gravé sur tes certificats.",
+            )
+            Field(
+                libelle = "Adresse e-mail",
+                valeur = email,
+                onChange = { email = it; erreur = null },
+                modifier = Modifier.padding(top = 12.dp),
+                clavier = KeyboardType.Email,
+            )
+            Field(
+                libelle = "Mot de passe",
+                valeur = motDePasse,
+                onChange = { motDePasse = it; erreur = null },
+                modifier = Modifier.padding(top = 12.dp),
+                aide = "Six caractères au minimum.",
+                erreur = erreur,
+                secret = true,
+            )
+            Button(
+                libelle = if (enCours) "Un instant…" else "Créer mon compte",
+                onPress = {
+                    if (!enCours) {
+                        enCours = true
+                        erreur = null
+                        portee.launch {
+                            val echec = withContext(Dispatchers.IO) {
+                                runCatching { creationEmail(auth, appel, nom, email, motDePasse) }
+                                    .exceptionOrNull()
+                            }
+                            enCours = false
+                            /* Rien à faire en cas de succès : l'écouteur d'identité pose
+                               `Connectee`, et le graphe referme cet écran. */
+                            erreur = (echec as? ErreurIdentite)?.motif
+                                ?: echec?.let { "La création a échoué." }
+                        }
+                    }
+                },
+                modifier = Modifier.padding(top = 16.dp),
+                ton = TonBouton.FORME,
+                desactive = nom.isBlank() || email.isBlank() || motDePasse.isBlank() || enCours,
+            )
+        }
 
         EncartDeVerite(
             sourcil = "Pourquoi la case n'est pas dessinée",

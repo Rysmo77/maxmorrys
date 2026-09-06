@@ -63,7 +63,7 @@ import me.maxmorrys.rysmo.ds.jetons
  *
  * ── CE QUI A DÛ ÊTRE CONSTRUIT SOUS CET ÉCRAN ───────────────────────────────────────────
  * Le web lit `certificate_lookups` DIRECTEMENT dans Firestore par le SDK, sous une règle
- * `allow read: if true`. L'application native n'a aucun SDK Firebase (AD-10), et les
+ * `allow read: if true`. L'application native ne lit RIEN dans Firestore — son SDK Firebase se limite à l'identité —, et les
  * dix-neuf vues du contrat exigeaient TOUTES une session — alors qu'un certificat se vérifie
  * par quelqu'un qui n'a pas de compte. Il a donc fallu : un niveau `aucune` au vocabulaire du
  * contrat, un handler public dans le Worker, son inscription au registre et dans les DEUX

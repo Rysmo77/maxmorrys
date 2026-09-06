@@ -88,6 +88,10 @@ fun GrapheRysmo(
 ) {
     val contexte = LocalContext.current
     val preferences = remember(contexte) { Preferences(contexte) }
+    /* ⚠️ COLLECTÉ UNE FOIS, ICI. Chaque onglet le relit ; le collecter dans chacun ferait
+       autant d'abonnements au même flux, et rien ne garantirait qu'ils voient la même
+       phase au même moment. */
+    val etatDeSession by session.etat.collectAsState()
 
     NavHost(
         navController = navController,
@@ -141,11 +145,11 @@ fun GrapheRysmo(
 
         /* ── Les cinq onglets ────────────────────────────────────────────────────────── */
 
-        composable<Espace> { OngletHote(navController, OngletPrincipal.ESPACE) }
-        composable<Catalogue> { OngletHote(navController, OngletPrincipal.COURS) }
-        composable<Repetiteur> { OngletHote(navController, OngletPrincipal.REPETITEUR) }
-        composable<ClubRoot> { OngletHote(navController, OngletPrincipal.CLUB) }
-        composable<Profil> { OngletHote(navController, OngletPrincipal.PROFIL) }
+        composable<Espace> { OngletHote(navController, OngletPrincipal.ESPACE, etatDeSession) }
+        composable<Catalogue> { OngletHote(navController, OngletPrincipal.COURS, etatDeSession) }
+        composable<Repetiteur> { OngletHote(navController, OngletPrincipal.REPETITEUR, etatDeSession) }
+        composable<ClubRoot> { OngletHote(navController, OngletPrincipal.CLUB, etatDeSession) }
+        composable<Profil> { OngletHote(navController, OngletPrincipal.PROFIL, etatDeSession) }
 
         /* ── Le reste du graphe ──────────────────────────────────────────────────────── */
 
@@ -314,9 +318,14 @@ fun GrapheRysmo(
  * onglets au lieu de sortir de l'application.
  */
 @Composable
-private fun OngletHote(nav: NavHostController, actif: OngletPrincipal) {
+private fun OngletHote(
+    nav: NavHostController,
+    actif: OngletPrincipal,
+    session: Session,
+) {
     SquelettePrincipal(
         actif = actif,
+        session = session,
         onOnglet = { cible ->
             if (cible != actif) {
                 nav.navigate(cible.destination()) {

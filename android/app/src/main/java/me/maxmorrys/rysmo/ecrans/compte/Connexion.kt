@@ -1,5 +1,21 @@
 package me.maxmorrys.rysmo.ecrans.compte
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.maxmorrys.rysmo.donnees.CodeErreur
+import me.maxmorrys.rysmo.ds.Field
+import me.maxmorrys.rysmo.identite.ErreurIdentite
+import me.maxmorrys.rysmo.identite.authOuNull
+import me.maxmorrys.rysmo.identite.configurationDIdentite
+import me.maxmorrys.rysmo.identite.connexionEmail
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -72,6 +88,13 @@ fun EcranConnexion(
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val contexte = LocalContext.current
+    val portee = rememberCoroutineScope()
+    var email by remember { mutableStateOf("") }
+    var motDePasse by remember { mutableStateOf("") }
+    var erreur by remember { mutableStateOf<String?>(null) }
+    var enCours by remember { mutableStateOf(false) }
+
     Screen(
         territoire = Territoire.FORME,
         modifier = modifier,
@@ -92,17 +115,77 @@ fun EcranConnexion(
             modifier = Modifier.padding(top = 18.dp),
         )
 
-        SansDonnees(
-            etat = Etat.NonBranche,
-            quoi = "Te reconnaître",
-            origine = "Aucun producteur de jeton d'identité n'est choisi — ni SDK Firebase "
-                + "Android, ni client REST contre Identity Toolkit — et `SourceDeSession` "
-                + "rend `NonConfiguree` en le nommant",
-            degat = "Un champ de mot de passe ici récolterait un vrai secret dans un écran "
-                + "qui ne peut rien en faire. Un formulaire qui ne connecte pas est pire "
-                + "qu'un formulaire absent : il fait essayer, puis recommencer.",
-            modifier = Modifier.padding(top = 20.dp),
-        )
+        /*
+         * ⛔ LE FORMULAIRE N'EXISTE QUE PARCE QUE LE GESTE PART VRAIMENT.
+         *
+         * Il n'y en avait aucun jusqu'ici, et c'était juste : « un champ de mot de passe
+         * ferait taper à quelqu'un son vrai secret dans un écran qui ne peut ni le vérifier
+         * ni le transmettre ». Le producteur de jeton est maintenant branché
+         * (`identite/JetonFirebase.kt`) ; la raison de s'abstenir a disparu avec lui.
+         *
+         * ⚠️ LA CONFIGURATION EST VÉRIFIÉE AVANT DE DESSINER QUOI QUE CE SOIT. Sans clés de
+         * construction, `authOuNull` rend `null` : le formulaire récolterait un secret que
+         * rien ne peut envoyer. On retombe alors sur l'aveu, qui NOMME les clés absentes.
+         */
+        val auth = authOuNull(contexte)
+        if (auth == null) {
+            SansDonnees(
+                etat = Etat.Panne(
+                    motif = configurationDIdentite().motifManquant()
+                        ?: "L'identification n'est pas disponible.",
+                    code = CodeErreur.FAILED_PRECONDITION,
+                    reprenable = false,
+                ),
+                quoi = "Te reconnaître",
+                origine = "Les clés de construction Firebase",
+                degat = "Un champ de mot de passe ici récolterait un vrai secret dans un "
+                    + "écran qui ne peut rien en faire. Un formulaire qui ne connecte pas "
+                    + "est pire qu'un formulaire absent : il fait essayer, puis recommencer.",
+                modifier = Modifier.padding(top = 20.dp),
+            )
+        } else {
+            Field(
+                libelle = "Adresse e-mail",
+                valeur = email,
+                onChange = { email = it; erreur = null },
+                modifier = Modifier.padding(top = 20.dp),
+                clavier = KeyboardType.Email,
+            )
+            Field(
+                libelle = "Mot de passe",
+                valeur = motDePasse,
+                onChange = { motDePasse = it; erreur = null },
+                modifier = Modifier.padding(top = 12.dp),
+                erreur = erreur,
+                secret = true,
+            )
+            Button(
+                libelle = if (enCours) "Un instant…" else "Me connecter",
+                onPress = {
+                    if (!enCours) {
+                        enCours = true
+                        erreur = null
+                        portee.launch {
+                            /* ⛔ `Tasks.await` LÈVE SUR LE FIL PRINCIPAL, délibérément : une
+                               erreur de fil devient une panne nommée, pas un gel silencieux. */
+                            val echec = withContext(Dispatchers.IO) {
+                                runCatching { connexionEmail(auth, email, motDePasse) }
+                                    .exceptionOrNull()
+                            }
+                            enCours = false
+                            /* ⚠️ Rien à faire en cas de SUCCÈS : l'écouteur d'identité pose
+                               `Session.Connectee`, et c'est le graphe qui referme cet écran.
+                               Naviguer ici créerait un second chemin pour la même conclusion. */
+                            erreur = (echec as? ErreurIdentite)?.motif
+                                ?: echec?.let { "La connexion a échoué." }
+                        }
+                    }
+                },
+                modifier = Modifier.padding(top = 16.dp),
+                ton = TonBouton.FORME,
+                desactive = email.isBlank() || motDePasse.isBlank() || enCours,
+            )
+        }
 
         EncartDeVerite(
             sourcil = "Un seul compte, ici et sur le site",

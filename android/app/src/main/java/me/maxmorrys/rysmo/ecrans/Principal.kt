@@ -29,6 +29,28 @@ import me.maxmorrys.rysmo.navigation.Memoire
 import me.maxmorrys.rysmo.navigation.OngletClub
 import me.maxmorrys.rysmo.navigation.Telechargements
 import me.maxmorrys.rysmo.navigation.Verification
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.runtime.key
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.sp
+import me.maxmorrys.rysmo.donnees.Club
+import me.maxmorrys.rysmo.donnees.Cours
+import me.maxmorrys.rysmo.donnees.Espace
+import me.maxmorrys.rysmo.donnees.Moi
+import me.maxmorrys.rysmo.donnees.Repetiteur
+import me.maxmorrys.rysmo.donnees.Session
+import me.maxmorrys.rysmo.donnees.Vues
+import me.maxmorrys.rysmo.ds.Avatar
+import me.maxmorrys.rysmo.ds.EtatLecon
+import me.maxmorrys.rysmo.ds.LessonRow
+import me.maxmorrys.rysmo.ds.Niveau
+import me.maxmorrys.rysmo.ds.Num
+import me.maxmorrys.rysmo.ds.ProgressBar
+import me.maxmorrys.rysmo.ds.QuotaMeter
+import me.maxmorrys.rysmo.ds.Surface
+import me.maxmorrys.rysmo.navigation.Formation
+import me.maxmorrys.rysmo.navigation.Lecon
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -79,6 +101,7 @@ private val ONGLETS = OngletPrincipal.entries.map { Onglet(it.libelle, it.glyphe
 @Composable
 fun SquelettePrincipal(
     actif: OngletPrincipal,
+    session: Session,
     onOnglet: (OngletPrincipal) -> Unit,
     onAller: (Any) -> Unit,
     modifier: Modifier = Modifier,
@@ -96,89 +119,254 @@ fun SquelettePrincipal(
             )
         },
     ) {
-        CorpsOnglet(actif, onAller)
+        CorpsOnglet(actif, session, onAller)
     }
 }
 
 /**
- * ⛔ CES CINQ CORPS SONT VIDES, ET ILS LE DISENT.
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ * LES CINQ ONGLETS LISENT LEUR VUE.
  *
- * Chacun devrait lire sa vue (`appEspace`, `appCours`, `appRepetiteur`, `appClub`, `appMoi`)
- * — la couche de données les sert déjà, le contrat les décrit, mais aucun producteur de
- * jeton d'identité n'est encore choisi : la session rend `NonConfiguree`, et une lecture
- * rendrait une panne non reprenable.
+ * ⛔ ET AUCUN N'INVENTE RIEN QUAND IL N'A PAS LA RÉPONSE. C'est ce que le port React Native
+ * a fait, et le résultat a été un écran d'accueil affichant « Série 3 j » et « Niveau 4 » à
+ * de vraies personnes connectées — des chiffres fabriqués, restés en production jusqu'au
+ * 05/09/2026. `SansDonnees` rend l'attente VISIBLE plutôt que confortable, et `Num` refuse
+ * d'afficher un nombre sans sa provenance.
  *
- * ⚠️ LA TENTATION, ICI, EST DE GARNIR AVEC DES DONNÉES D'EXEMPLE en attendant. C'est ce que
- * le port React Native a fait, et le résultat a été un écran d'accueil qui affichait
- * « Série 3 j » et « Niveau 4 » à de vraies personnes connectées — des chiffres inventés,
- * restés en production jusqu'au 05/09/2026. `SansDonnees` existe pour rendre cette attente
- * VISIBLE plutôt que confortable.
+ * ⚠️ Chaque corps traite `Servie` À PART et laisse tout le reste à `SansDonnees` : les huit
+ * phases y ont chacune leur rendu, et les fondre afficherait une porte fermée comme une
+ * panne, ou une panne comme un vide.
+ * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 @Composable
-private fun CorpsOnglet(onglet: OngletPrincipal, onAller: (Any) -> Unit) {
-    val (titre, vue, degat) = when (onglet) {
-        OngletPrincipal.ESPACE -> Triple(
-            listOf("BONJOUR.", "REPRENDS", "OÙ TU T'ES ARRÊTÉE."),
-            "appEspace",
-            "Une progression inventée est pire qu'une progression absente : elle se croit, "
-                + "puis elle se contredit au premier chargement réel.",
-        )
-        OngletPrincipal.COURS -> Triple(
-            listOf("LE", "CATALOGUE."),
-            "appCours",
-            "Un catalogue d'exemple donne à croire que l'offre existe telle quelle.",
-        )
-        OngletPrincipal.REPETITEUR -> Triple(
-            listOf("TON", "RÉPÉTITEUR."),
-            "appRepetiteur",
-            "Un échange simulé ferait passer pour une réponse ce qui n'en est pas une.",
-        )
-        OngletPrincipal.CLUB -> Triple(
-            listOf("LE CLUB."),
-            "appClub",
-            "Un fil d'exemple mettrait dans la bouche de membres réels des mots qu'ils "
-                + "n'ont pas écrits.",
-        )
-        OngletPrincipal.PROFIL -> Triple(
-            listOf("TOI."),
-            "appMoi",
-            "Un profil d'exemple ferait croire à un compte qui n'existe pas.",
+private fun CorpsOnglet(onglet: OngletPrincipal, session: Session, onAller: (Any) -> Unit) {
+    Eyebrow(onglet.libelle, Modifier.padding(top = 6.dp))
+    when (onglet) {
+        OngletPrincipal.ESPACE -> OngletEspace(session, onAller)
+        OngletPrincipal.COURS -> OngletCours(session, onAller)
+        OngletPrincipal.REPETITEUR -> OngletRepetiteur(session)
+        OngletPrincipal.CLUB -> OngletClubRacine(session, onAller)
+        OngletPrincipal.PROFIL -> OngletProfil(session, onAller)
+    }
+    Portes(onglet, onAller)
+}
+
+/** Ce que la formation en cours dit, et le geste pour la reprendre. */
+@Composable
+private fun OngletEspace(session: Session, onAller: (Any) -> Unit) {
+    val lu = vue<Espace>(Vues.Noms.APP_ESPACE, session)
+    val e = lu.etat
+    Display(listOf("BONJOUR.", "REPRENDS", "OÙ TU T'ES ARRÊTÉE."), cran = CranDisplay.SM,
+        modifier = Modifier.padding(top = 8.dp))
+    if (e is Etat.Servie) {
+        val v = e.valeur
+        Surface(Niveau.CHROME, Modifier.padding(top = 20.dp)) {
+            Column {
+                Eyebrow(v.meta)
+                Body(v.titre, Modifier.padding(top = 6.dp), grain = GrainCorps.CHAPO)
+                ProgressBar(
+                    valeur = v.progression.coerceIn(0, 100) / 100f,
+                    modifier = Modifier.padding(top = 14.dp),
+                )
+                Num(
+                    valeur = "${v.leconsFaites} / ${v.lecons}",
+                    source = "Ta progression",
+                    asOf = e.provenance.asOf,
+                    modifier = Modifier.padding(top = 8.dp),
+                    unite = "leçons",
+                )
+                /* ⚠️ Le bouton n'existe QUE si le serveur a nommé la leçon en cours : sans
+                   elle, « Reprendre » n'aurait aucune destination et serait un contrôle mort. */
+                v.leconEnCours?.let { lecon ->
+                    Button(
+                        libelle = "Reprendre",
+                        onPress = { onAller(Lecon(slug = v.slug, leconId = lecon)) },
+                        modifier = Modifier.padding(top = 14.dp),
+                        ton = TonBouton.TRANSFORME,
+                    )
+                }
+            }
+        }
+        v.arret?.let { Body(it, Modifier.padding(top = 12.dp), attenue = true) }
+    } else {
+        SansDonnees(
+            etat = e,
+            quoi = "Ta formation en cours",
+            origine = "La vue « appEspace » du serveur",
+            degat = "Une progression inventée est pire qu'une progression absente : elle se "
+                + "croit, puis elle se contredit au premier chargement réel.",
+            modifier = Modifier.padding(top = 22.dp),
+            reprise = lu.reprendre,
         )
     }
+}
 
-    Eyebrow(onglet.libelle, Modifier.padding(top = 6.dp))
-    Display(titre, cran = CranDisplay.SM, modifier = Modifier.padding(top = 8.dp))
-    SansDonnees(
-        etat = Etat.NonBranche,
-        quoi = "Le contenu de cet onglet",
-        origine = "La vue « $vue » du serveur",
-        degat = degat,
-        modifier = Modifier.padding(top = 22.dp),
-    )
-    Body(
-        "Le catalogue et le Club se parcourent sans compte. C'est l'identification qui "
-            + "manque, pas le contenu.",
-        Modifier.padding(top = 14.dp),
-        grain = GrainCorps.CORPS,
-        attenue = true,
-    )
+/** Le catalogue. ⚠️ Il se parcourt sans compte — quand le serveur l'acceptera. */
+@Composable
+private fun OngletCours(session: Session, onAller: (Any) -> Unit) {
+    val lu = vue<List<Cours>>(Vues.Noms.APP_COURS, session)
+    val e = lu.etat
+    Display(listOf("LE", "CATALOGUE."), cran = CranDisplay.SM, modifier = Modifier.padding(top = 8.dp))
+    if (e is Etat.Servie) {
+        Surface(Niveau.CHROME, Modifier.padding(top = 20.dp)) {
+            Column {
+                e.valeur.forEachIndexed { rang, cours ->
+                    /* ⚠️ La clé est l'IDENTIFIANT, jamais le titre : deux formations
+                       homonymes se sont déjà effondrées l'une sur l'autre dans ce dépôt. */
+                    key(cours.id) {
+                        LessonRow(
+                            titre = cours.titre,
+                            etat = if (cours.acquise) EtatLecon.DONE else EtatLecon.TODO,
+                            meta = cours.meta,
+                            derniere = rang == e.valeur.lastIndex,
+                            onPress = { onAller(Formation(slug = cours.slug, titre = cours.titreCourt)) },
+                        )
+                    }
+                }
+            }
+        }
+    } else {
+        SansDonnees(
+            etat = e,
+            quoi = "Le catalogue",
+            origine = "La vue « appCours » du serveur",
+            degat = "Un catalogue d'exemple donne à croire que l'offre existe telle quelle.",
+            modifier = Modifier.padding(top = 22.dp),
+            reprise = lu.reprendre,
+        )
+    }
+}
 
-    /*
-     * ⛔ CES LIENS NE SONT PAS DÉCORATIFS : SANS EUX, DES ÉCRANS CONSTRUITS NE SONT ATTEINTS
-     * PAR RIEN.
-     *
-     * C'est le défaut du port React Native, à la lettre : 14 routes sur 51 existaient,
-     * fonctionnaient, et n'étaient ouvertes par aucun écran de production. Les huit onglets
-     * du Club, les certificats, les textes légaux sont dans le même cas ici tant qu'aucun
-     * contrôle n'y mène.
-     *
-     * ⚠️ La porte `natif-navigation.test.ts` ne voit PAS ce défaut : elle garde que toute
-     * destination déclarée est enregistrée au graphe, pas qu'un écran l'ouvre. C'est la
-     * limite connue de cette porte, et la raison pour laquelle ces liens sont écrits ici
-     * plutôt que remis à plus tard.
-     */
+/** Le quota du jour, et ce que le répétiteur retient. */
+@Composable
+private fun OngletRepetiteur(session: Session) {
+    val lu = vue<Repetiteur>(Vues.Noms.APP_REPETITEUR, session)
+    val e = lu.etat
+    Display(listOf("TON", "RÉPÉTITEUR."), cran = CranDisplay.SM, modifier = Modifier.padding(top = 8.dp))
+    if (e is Etat.Servie) {
+        QuotaMeter(
+            consomme = e.valeur.quota.utilise,
+            modifier = Modifier.padding(top = 20.dp),
+            total = e.valeur.quota.total,
+            libelle = "questions aujourd'hui",
+        )
+    } else {
+        SansDonnees(
+            etat = e,
+            quoi = "Ton répétiteur",
+            origine = "La vue « appRepetiteur » du serveur",
+            degat = "Un échange simulé ferait passer pour une réponse ce qui n'en est pas une.",
+            modifier = Modifier.padding(top = 22.dp),
+            reprise = lu.reprendre,
+        )
+    }
+}
+
+/**
+ * La racine du Club.
+ *
+ * ⚠️ SON VIDE A TROIS SENS, et `SansDonnees` les distingue : « le Club est réservé aux
+ * membres » n'est pas « tu n'as encore rien ici ». C'est la correction du 06/09 — un membre
+ * dont une liste est vide recevait l'écran verrouillé.
+ */
+@Composable
+private fun OngletClubRacine(session: Session, onAller: (Any) -> Unit) {
+    val lu = vue<Club>(Vues.Noms.APP_CLUB, session)
+    val e = lu.etat
+    Display(listOf("LE CLUB."), cran = CranDisplay.SM, modifier = Modifier.padding(top = 8.dp))
+    if (e is Etat.Servie) {
+        Surface(Niveau.CHROME, Modifier.padding(top = 20.dp)) {
+            Column {
+                e.valeur.bilan.forEachIndexed { rang, tuile ->
+                    key(tuile.l) {
+                        LessonRow(
+                            titre = tuile.l,
+                            etat = EtatLecon.PLAIN,
+                            derniere = rang == e.valeur.bilan.lastIndex,
+                            queue = {
+                                Num(
+                                    valeur = tuile.n.toString(),
+                                    source = "Le Club",
+                                    asOf = e.provenance.asOf,
+                                    taille = 13.sp,
+                                )
+                            },
+                        )
+                    }
+                }
+            }
+        }
+        e.valeur.echeance?.let {
+            Body("Ton abonnement court jusqu'au $it.", Modifier.padding(top = 12.dp), attenue = true)
+        }
+    } else {
+        SansDonnees(
+            etat = e,
+            quoi = "Le Club",
+            origine = "La vue « appClub » du serveur",
+            degat = "Un fil d'exemple mettrait dans la bouche de membres réels des mots "
+                + "qu'ils n'ont pas écrits.",
+            modifier = Modifier.padding(top = 22.dp),
+            reprise = lu.reprendre,
+        )
+    }
+}
+
+/** Le profil. ⚠️ Le nom vient du serveur, jamais d'un cache local — AD-11. */
+@Composable
+private fun OngletProfil(session: Session, onAller: (Any) -> Unit) {
+    val lu = vue<Moi>(Vues.Noms.APP_MOI, session)
+    val e = lu.etat
+    Display(listOf("TOI."), cran = CranDisplay.SM, modifier = Modifier.padding(top = 8.dp))
+    if (e is Etat.Servie) {
+        val v = e.valeur
+        Surface(Niveau.CHROME, Modifier.padding(top = 20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Avatar(v.initiale)
+                Column(Modifier.padding(start = 12.dp)) {
+                    Body("${v.prenom} ${v.nom}".trim(), grain = GrainCorps.CHAPO)
+                    v.email?.let { Body(it, attenue = true) }
+                }
+            }
+        }
+        Num(
+            valeur = v.xp.toString(),
+            source = "Ta progression",
+            asOf = e.provenance.asOf,
+            modifier = Modifier.padding(top = 14.dp),
+            unite = "XP",
+        )
+    } else {
+        SansDonnees(
+            etat = e,
+            quoi = "Ton profil",
+            origine = "La vue « appMoi » du serveur",
+            degat = "Un profil d'exemple ferait croire à un compte qui n'existe pas.",
+            modifier = Modifier.padding(top = 22.dp),
+            reprise = lu.reprendre,
+        )
+    }
+}
+
+/**
+ * ⛔ CES LIENS NE SONT PAS DÉCORATIFS : SANS EUX, DES ÉCRANS CONSTRUITS NE SONT ATTEINTS
+ * PAR RIEN.
+ *
+ * C'est le défaut du port React Native, à la lettre : 14 routes sur 51 existaient,
+ * fonctionnaient, et n'étaient ouvertes par aucun écran de production.
+ *
+ * ⚠️ La porte `natif-navigation.test.ts` ne voit PAS ce défaut : elle garde que toute
+ * destination déclarée est enregistrée au graphe, pas qu'un écran l'ouvre. C'est la limite
+ * connue de cette porte, et la raison pour laquelle ces liens sont écrits plutôt que remis
+ * à plus tard.
+ */
+@Composable
+private fun Portes(onglet: OngletPrincipal, onAller: (Any) -> Unit) {
     val portes: List<Pair<String, Any>> = when (onglet) {
-        OngletPrincipal.ESPACE -> listOf("Mes certificats" to Certificats, "Mes téléchargements" to Telechargements)
+        OngletPrincipal.ESPACE -> listOf(
+            "Mes certificats" to Certificats,
+            "Mes téléchargements" to Telechargements,
+        )
         OngletPrincipal.REPETITEUR -> listOf("Ce que le répétiteur retient" to Memoire)
         OngletPrincipal.CLUB -> listOf("Entrer dans le Club" to ClubOnglet(OngletClub.Fil))
         OngletPrincipal.PROFIL -> listOf(
@@ -190,24 +378,17 @@ private fun CorpsOnglet(onglet: OngletPrincipal, onAller: (Any) -> Unit) {
             "Mentions légales" to Legal,
             /*
              * ⚠️ LA CONSOLE EST MONTRÉE À TOUT LE MONDE, ET C'EST CE QUE LE KIT VEUT.
-             *
-             * « Un garde de route est du code client : il cache, il n'interdit pas »
-             * (`NatInterdit`). C'est le SERVEUR qui refuse — `appConsole` est servie sous
-             * `obligatoire+role` — et l'écran d'accès refusé existe précisément pour ce
-             * moment-là. Masquer le lien donnerait l'illusion d'une protection que le
-             * client ne peut pas fournir, et laisserait l'écran orphelin.
+             * « Un garde de route est du code client : il cache, il n'interdit pas. » C'est
+             * le SERVEUR qui refuse — `appConsole` est servie sous `obligatoire+role` — et
+             * l'écran d'accès refusé existe pour ce moment-là. Masquer le lien donnerait
+             * l'illusion d'une protection que le client ne peut pas fournir.
              */
             "Console du support" to Console,
         )
         OngletPrincipal.COURS -> emptyList()
     }
     portes.forEach { (libelle, cible) ->
-        Button(
-            libelle,
-            { onAller(cible) },
-            Modifier.padding(top = 10.dp),
-            ton = TonBouton.QUIET,
-        )
+        Button(libelle, { onAller(cible) }, Modifier.padding(top = 10.dp), ton = TonBouton.QUIET)
     }
 }
 

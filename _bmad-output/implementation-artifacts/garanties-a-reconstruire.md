@@ -127,9 +127,14 @@ tient. Voici donc ce qui est réellement gardé aujourd'hui, et par quoi.
 
 Écrit ici pour que le silence ne se lise pas comme une absence de problème.
 
-- **Les six clés Firebase à l'export** (`mobile-app-config`). Sans objet en l'état : la
-  réécriture ne parle qu'au Worker par HTTP, il n'y a plus de SDK Firebase côté client.
-  ⚠️ À rouvrir si une clé revient dans le paquet.
+- ⛔ **Les clés Firebase à l'export** (`mobile-app-config`). **ROUVERTE le 06/09/2026** :
+  les clés sont revenues dans le paquet avec le SDK Firebase Auth
+  (`FIREBASE_API_KEY`, `FIREBASE_APP_ID`, `FIREBASE_PROJECT_ID`, par `buildConfigField`).
+  Une clé absente ne casse PAS la construction — elle rend une chaîne vide, et
+  `Configuration.motifManquant()` la nomme à l'exécution. C'est le bon comportement à
+  l'écran, et exactement le mauvais avant une soumission : un binaire incomplet se construit
+  et s'installe. **La porte doit revenir avant la première mise en magasin**, et elle doit
+  lire le paquet CONSTRUIT, pas la source.
 - **Le manifeste de confidentialité iOS.** Il vivait dans `mobile/app.json` ; dans un projet
   Xcode natif, `PrivacyInfo.xcprivacy` doit être écrit et ajouté à la cible À LA MAIN.
   Apple refuse la soumission sans lui. **Il n'existe pas.**

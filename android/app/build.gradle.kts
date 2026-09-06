@@ -1,3 +1,37 @@
+/**
+ * ⛔ AUCUNE CLÉ N'ENTRE DANS LE DÉPÔT, ET AUCUN GREFFON `google-services` NON PLUS.
+ *
+ * Le chemin standard de Firebase sur Android — le greffon `com.google.gms.google-services`
+ * plus un `google-services.json` — pose ici deux risques mesurés :
+ *
+ *   1. LA CI CASSERAIT. Le greffon échoue à la CONFIGURATION quand le fichier manque, et
+ *      ce fichier n'existe nulle part dans ce dépôt. `ci.yml` ne le fournit pas.
+ *   2. SA COMPATIBILITÉ AVEC AGP 9.4 N'EST PAS ÉTABLIE. Ce n'est pas une crainte
+ *      gratuite : AGP 9 a déjà REFUSÉ le greffon `kotlin.android` dans ce projet même,
+ *      avec un message qui ne laissait pas d'échappatoire.
+ *
+ * `FirebaseOptions` est donc construit à la main (`identite/Firebase.kt`), et ses trois
+ * clés arrivent par `buildConfigField` — exactement comme le site reçoit ses six
+ * `VITE_FIREBASE_*` par des secrets de CI.
+ *
+ * ⚠️ `providers.gradleProperty` PLUTÔT QU'UN FICHIER LU À LA MAIN. Le cache de
+ * configuration est ACTIF (`gradle.properties`) : lire un fichier au moment de la
+ * configuration produirait un cache que ce fichier n'invalide pas — les clés changeraient
+ * sans que la construction s'en aperçoive. L'API des `providers`, elle, est suivie.
+ *
+ * Où poser les valeurs :
+ *   · en local  → `~/.gradle/gradle.properties`, HORS du dépôt
+ *   · en CI     → variables `ORG_GRADLE_PROJECT_FIREBASE_*`, depuis les secrets
+ *
+ * Une clé absente rend une chaîne VIDE, jamais une erreur de construction : c'est
+ * `Configuration.motifManquant()` qui la nomme à l'exécution, et l'application le dit à
+ * l'écran plutôt que d'échouer là où personne ne lit.
+ */
+fun cleDeConstruction(nom: String): String =
+  providers.gradleProperty(nom).orNull
+    ?: providers.environmentVariable(nom).orNull
+    ?: ""
+
 plugins {
   alias(libs.plugins.android.application)
   /*
@@ -42,6 +76,19 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     vectorDrawables { useSupportLibrary = true }
+
+    /*
+     * Les trois seules valeurs dont Firebase Auth a besoin. `storageBucket`,
+     * `messagingSenderId` et `databaseUrl` du site ne servent qu'à Storage, FCM et Realtime
+     * Database — dont aucun n'est utilisé ici.
+     *
+     * ⚠️ `FIREBASE_APP_ID` est de la forme `1:<sender>:android:<hash>` et n'existe QUE si
+     * une application Android est enregistrée dans la console Firebase sous le paquet
+     * `me.maxmorrys.rysmo`. C'est le seul geste qui ne peut pas être fait depuis ici.
+     */
+    buildConfigField("String", "FIREBASE_API_KEY", "\"${cleDeConstruction("FIREBASE_API_KEY")}\"")
+    buildConfigField("String", "FIREBASE_APP_ID", "\"${cleDeConstruction("FIREBASE_APP_ID")}\"")
+    buildConfigField("String", "FIREBASE_PROJECT_ID", "\"${cleDeConstruction("FIREBASE_PROJECT_ID")}\"")
   }
 
   buildTypes {
@@ -64,7 +111,12 @@ android {
   }
   kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 
-  buildFeatures { compose = true }
+  /* ⚠️ `buildConfig` est éteint par défaut depuis AGP 8 : sans cette ligne, les
+     `buildConfigField` ci-dessus ne produisent rien et `BuildConfig` n'existe pas. */
+  buildFeatures {
+    compose = true
+    buildConfig = true
+  }
 
   packaging {
     resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
@@ -109,6 +161,22 @@ dependencies {
    */
   implementation(libs.biometric)
   implementation(libs.browser)
+
+  /*
+   * ⛔ FIREBASE AUTH — LE PRODUCTEUR DE JETON, ET RIEN D'AUTRE DE FIREBASE.
+   *
+   * Pas de Firestore : toutes les lectures passent par le Worker, qui refait ses propres
+   * contrôles parce que l'accès REST par compte de service CONTOURNE `firestore.rules`.
+   * Pas de Storage : les médias vivent sur R2. Pas de Messaging : aucune notification
+   * n'est envoyée, et déclarer `POST_NOTIFICATIONS` pour une fonction absente est le
+   * défaut qu'on refuse ailleurs.
+   *
+   * ⚠️ IL ENTRAÎNE `androidx.browser`, QU'ON DÉCLARE DÉJÀ. La nomenclature n'aligne que
+   * les artefacts Google : c'est notre version qui gagne, et c'est voulu — l'onglet
+   * personnalisé est à nous, pas à Firebase.
+   */
+  implementation(platform(libs.firebase.bom))
+  implementation(libs.firebase.auth)
 
   debugImplementation(libs.compose.ui.tooling)
   debugImplementation(libs.compose.ui.test.manifest)

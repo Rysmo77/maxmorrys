@@ -1,5 +1,23 @@
 package me.maxmorrys.rysmo.ecrans.compte
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.maxmorrys.rysmo.donnees.CodeErreur
+import me.maxmorrys.rysmo.ds.Button
+import me.maxmorrys.rysmo.ds.Field
+import me.maxmorrys.rysmo.ds.TonBouton
+import me.maxmorrys.rysmo.identite.ErreurIdentite
+import me.maxmorrys.rysmo.identite.authOuNull
+import me.maxmorrys.rysmo.identite.configurationDIdentite
+import me.maxmorrys.rysmo.identite.reinitialiser
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -62,6 +80,13 @@ fun EcranMotDePasse(
     onRetour: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val contexte = LocalContext.current
+    val portee = rememberCoroutineScope()
+    var email by remember { mutableStateOf("") }
+    var erreur by remember { mutableStateOf<String?>(null) }
+    var enCours by remember { mutableStateOf(false) }
+    var envoye by remember { mutableStateOf(false) }
+
     Screen(
         territoire = Territoire.FORME,
         modifier = modifier,
@@ -82,17 +107,74 @@ fun EcranMotDePasse(
             grain = GrainCorps.CHAPO,
         )
 
-        SansDonnees(
-            etat = Etat.NonBranche,
-            quoi = "T'envoyer un lien de réinitialisation",
-            origine = "L'envoi appartient au fournisseur d'identité, et aucun n'est en "
-                + "dépendance de ce module — ni SDK Firebase Android, ni client REST contre "
-                + "Identity Toolkit",
-            degat = "Un champ et un bouton afficheraient « le lien y est déjà » sans que "
-                + "rien ne parte. On attendrait un message qui ne vient pas, on fouillerait "
-                + "ses indésirables, et on finirait par croire son compte disparu.",
-            modifier = Modifier.padding(top = 20.dp),
-        )
+        /*
+         * ⛔ LA MÊME RÉPONSE POUR UNE ADRESSE CONNUE ET POUR UNE INCONNUE.
+         *
+         * Firebase ne lève pas d'erreur sur une adresse inexistante, et c'est voulu :
+         * répondre différemment ferait de cet écran un outil pour savoir qui est inscrit.
+         * `reinitialiser` avale donc tout SAUF la panne de transport, et l'accusé ci-dessous
+         * s'affiche dans les deux cas.
+         */
+        val auth = authOuNull(contexte)
+        if (auth == null) {
+            SansDonnees(
+                etat = Etat.Panne(
+                    motif = configurationDIdentite().motifManquant()
+                        ?: "L'identification n'est pas disponible.",
+                    code = CodeErreur.FAILED_PRECONDITION,
+                    reprenable = false,
+                ),
+                quoi = "T'envoyer un lien de réinitialisation",
+                origine = "Les clés de construction Firebase",
+                degat = "Un champ et un bouton afficheraient « le lien y est déjà » sans que "
+                    + "rien ne parte. On attendrait un message qui ne vient pas, on "
+                    + "fouillerait ses indésirables, et on finirait par croire son compte "
+                    + "disparu.",
+                modifier = Modifier.padding(top = 20.dp),
+            )
+        } else if (envoye) {
+            EncartDeVerite(
+                sourcil = "C'est parti",
+                texte = "Si un compte existe avec cette adresse, le lien vient d'y être "
+                    + "envoyé. Regarde aussi tes indésirables — et sache qu'on ne te dira "
+                    + "pas si l'adresse est inscrite : ce serait un moyen de le découvrir "
+                    + "pour n'importe qui.",
+                modifier = Modifier.padding(top = 20.dp),
+            )
+        } else {
+            Field(
+                libelle = "Adresse e-mail",
+                valeur = email,
+                onChange = { email = it; erreur = null },
+                modifier = Modifier.padding(top = 20.dp),
+                erreur = erreur,
+                clavier = KeyboardType.Email,
+            )
+            Button(
+                libelle = if (enCours) "Un instant…" else "M'envoyer le lien",
+                onPress = {
+                    if (!enCours) {
+                        enCours = true
+                        erreur = null
+                        portee.launch {
+                            val echec = withContext(Dispatchers.IO) {
+                                runCatching { reinitialiser(auth, email) }.exceptionOrNull()
+                            }
+                            enCours = false
+                            val motif = (echec as? ErreurIdentite)?.motif
+                            erreur = motif
+                            /* ⚠️ On n'affiche l'accusé QUE si rien n'a échoué en transport.
+                               L'afficher malgré une panne de réseau ferait attendre un
+                               message qui n'est jamais parti. */
+                            envoye = motif == null
+                        }
+                    }
+                },
+                modifier = Modifier.padding(top = 16.dp),
+                ton = TonBouton.FORME,
+                desactive = email.isBlank() || enCours,
+            )
+        }
 
         EncartDeVerite(
             sourcil = "Pourquoi ce « si »",
