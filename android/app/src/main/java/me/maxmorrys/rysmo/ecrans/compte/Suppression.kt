@@ -250,10 +250,26 @@ fun EcranSuppression(
 
         EncartDeVerite(
             sourcil = "Pourquoi tout doit se passer ici",
+            /*
+             * ⚠️ CE TEXTE NOMMAIT UN MAGASIN ET L'ÉTAT DE SOUMISSION DU PROJET.
+             *
+             * « Cette version ne peut pas être soumise à l'App Store, dont la règle
+             * 5.1.1(v) l'exige » — affiché à quelqu'un qui veut supprimer son compte, sur
+             * un téléphone Android. Deux fautes en une phrase : c'est de l'état de
+             * chantier interne, et ça cite un magasin qui n'est même pas celui de
+             * l'appareil qu'on tient.
+             *
+             * La règle du dépôt vaut aussi dans l'autre sens : `natif-store-achats.test.ts`
+             * refuse qu'un écran nomme un magasin dans son TEXTE, parce que citer une règle
+             * de magasin est un signal aussi net qu'un lien d'achat — pour une revue comme
+             * pour quelqu'un qui lit.
+             *
+             * Ce qui reste est ce qui LE concerne : où le geste se fait, et pourquoi il ne
+             * part pas encore.
+             */
             texte = "La suppression se fait dans l'application, sans lien vers le site et "
-                + "sans écrire au support. C'était notre règle avant d'être celle des "
-                + "magasins — et tant qu'elle n'est pas branchée, cette version ne peut pas "
-                + "être soumise à l'App Store, dont la règle 5.1.1(v) l'exige.",
+                + "sans écrire au support. C'était notre règle avant d'être celle de qui "
+                + "que ce soit d'autre — et elle n'est pas encore branchée.",
             modifier = Modifier.padding(top = 16.dp),
         )
 

@@ -114,11 +114,22 @@ fun EcranConnexion(
 
         EncartDeVerite(
             sourcil = "Pourquoi il n'y a pas de bouton Apple ou Google",
-            texte = "La règle 4.8 de l'App Store rend « Se connecter avec Apple » obligatoire "
-                + "dès qu'une connexion tierce existe : les deux doivent partir ensemble, ou "
-                + "la version est refusée. Et la connexion Google demande une dépendance qui "
-                + "n'est pas déclarée ici. Deux boutons qui ne connectent pas ne valent pas "
-                + "mieux qu'aucun.",
+            /*
+             * ⚠️ CE TEXTE CITAIT UNE RÈGLE DE MAGASIN À LA PERSONNE QUI SE CONNECTE.
+             *
+             * Le RAISONNEMENT est juste et il reste — ici, en commentaire, là où il sert :
+             * la règle 4.8 de l'App Store rend « Se connecter avec Apple » obligatoire dès
+             * qu'une connexion tierce existe, donc les deux boutons partent ensemble ou pas
+             * du tout ; et la connexion Google demande une dépendance non déclarée.
+             *
+             * Mais quelqu'un qui essaie de se connecter n'a pas à lire nos contraintes de
+             * soumission. Ce qui le concerne, c'est qu'il n'y a pas de raccourci et
+             * pourquoi ça ne l'empêche de rien.
+             */
+            texte = "Ils arriveront ensemble ou pas du tout : une connexion par Apple ou "
+                + "Google n'a de sens que si les deux existent, et aucune n'est branchée "
+                + "aujourd'hui. Deux boutons qui ne connectent pas ne valent pas mieux "
+                + "qu'aucun.",
             modifier = Modifier.padding(top = 12.dp),
         )
 

@@ -108,6 +108,9 @@ tient. Voici donc ce qui est réellement gardé aujourd'hui, et par quoi.
 
 | Garantie perdue | Reprise par | Éprouvée en cassant |
 |---|---|---|
+| ⭐ `mobile-store-achats` — l'application ne vend rien, et ne nomme aucun magasin | `tests/unit/natif-store-achats.test.ts` ; l'exception « prestation du monde réel » est NOMMÉE, pas glissée | magasin cité dans du texte affiché, invitation à souscrire, sortie vers un panier → les trois refusés |
+| ⭐ `mobile-verrou` — le verrou biométrique tient de bout en bout | `tests/unit/natif-capacites.test.ts` (33 cas) | 17 épreuves, dont l'armement déplacé hors de l'invite |
+| `mobile-legal` — les textes légaux existent VRAIMENT côté site | `tests/unit/natif-compte.test.ts`, adresses appariées aux routes ET aux segments anglais | `/cgu` renommé, segment anglais inventé → refusés |
 | ⭐ `mobile-controles-morts` — aucun contrôle n'annonce une action sans en porter | `ds/Actions.kt` : les trois contrôles REFUSENT de se dessiner sans action + `tests/unit/natif-controles-morts.test.ts` | garde de `Button` retirée, lambda vide glissée dans un écran → les deux refusés |
 | `mobile-ds` — aucune couleur écrite en dur | `tests/unit/natif-socle.test.ts` (Kotlin écrit à la main + le vectoriel de l'icône) | une couleur posée dans un écran, un chevron peint en littéral → refusés |
 | `mobile-ds` — les jetons ne dérivent pas de leur source | `ds:check`, **sept** cibles générées comparées après régénération | un dégradé sombre ramené à sa valeur claire, une couleur de nuit falsifiée → refusés |
@@ -130,7 +133,8 @@ tient. Voici donc ce qui est réellement gardé aujourd'hui, et par quoi.
 - **Le manifeste de confidentialité iOS.** Il vivait dans `mobile/app.json` ; dans un projet
   Xcode natif, `PrivacyInfo.xcprivacy` doit être écrit et ajouté à la cible À LA MAIN.
   Apple refuse la soumission sans lui. **Il n'existe pas.**
-- **Aucun achat dans l'application** (`mobile-store-achats`). ⚠️ Cette garantie est en
-  CONTRADICTION avec le kit, qui nomme le magasin sur quatre écrans — décision humaine
-  ouverte, voir `deferred-work.md`.
-- **Les textes légaux, l'identité, le verrou biométrique.** Leurs écrans n'existent pas encore.
+- **L'identité.** L'écran existe, la garantie non : aucun producteur de jeton n'étant
+  choisi, il n'y a pas de chemin d'identité à garder.
+- **Ce qu'on ne verra qu'à l'écran.** Les 40 écrans compilent et passent leurs portes ;
+  aucun n'a été VU tourner depuis le lot 4. La machine ne peut plus faire tourner
+  l'émulateur (`emulateur-ressources` en mémoire). Une porte statique ne remplace pas ça.

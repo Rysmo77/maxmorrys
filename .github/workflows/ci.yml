@@ -215,6 +215,24 @@ jobs:
         working-directory: android
         run: ./gradlew :app:lintDebug --no-daemon
 
+      # ⛔ LA CONSTRUCTION DE PRODUCTION EST UNE AUTRE PREUVE QUE CELLE DE DÉBOGAGE.
+      #
+      # `release` passe par R8 : rétrécissement, obscurcissement, retrait des ressources
+      # inutilisées. R8 retire ce qu'il croit inatteignable — et il se trompe sur ce qui
+      # n'est atteint que par réflexion, c'est-à-dire précisément la sérialisation des
+      # destinations de navigation et une partie de Compose. Le paquet de débogage ne
+      # verra jamais ce défaut : il ne rétrécit rien.
+      #
+      # `lintVitalRelease` tourne dans la foulée, et lui seul refuse les fautes qui
+      # bloquent une publication.
+      #
+      # ⚠️ Le paquet sort NON SIGNÉ, et c'est voulu : la clé de production vit chez EAS et
+      # ne doit jamais entrer dans le dépôt. Ce job prouve que le paquet se CONSTRUIT, pas
+      # qu'il est publiable.
+      - name: Construire la version de production (R8)
+        working-directory: android
+        run: ./gradlew :app:assembleRelease --no-daemon
+
       # `aapt2` sur le paquet construit, et non un grep du manifeste source : l'outil
       # officiel a déjà corrigé ici une lecture par chaînes qu'on croyait juste.
       - name: Permissions réellement demandées par le paquet
