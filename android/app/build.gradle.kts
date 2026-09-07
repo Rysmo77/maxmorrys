@@ -87,7 +87,6 @@ android {
      * `me.maxmorrys.rysmo`. C'est le seul geste qui ne peut pas être fait depuis ici.
      */
     buildConfigField("String", "FIREBASE_API_KEY", "\"${cleDeConstruction("FIREBASE_API_KEY")}\"")
-    buildConfigField("String", "FIREBASE_APP_ID", "\"${cleDeConstruction("FIREBASE_APP_ID")}\"")
     buildConfigField("String", "FIREBASE_PROJECT_ID", "\"${cleDeConstruction("FIREBASE_PROJECT_ID")}\"")
   }
 
@@ -95,11 +94,24 @@ android {
     debug {
       applicationIdSuffix = ".debug"
       versionNameSuffix = "-debug"
+      /*
+       * ⛔ UN IDENTIFIANT D'APPLICATION PAR VARIANTE, PARCE QUE CE SONT DEUX PAQUETS.
+       *
+       * `applicationIdSuffix` fait de la variante de débogage un paquet DISTINCT —
+       * `me.maxmorrys.rysmo.debug` — et Firebase indexe ses applications par nom de paquet.
+       * Servir l'identifiant de production à la variante de débogage ferait échouer
+       * l'authentification avec un message qui ne désigne pas la cause : le jeton serait
+       * demandé pour une application qui ne correspond pas au paquet qui le demande.
+       *
+       * Les deux sont enregistrées dans la console, et chacune a le sien.
+       */
+      buildConfigField("String", "FIREBASE_APP_ID", "\"${cleDeConstruction("FIREBASE_APP_ID_DEBUG")}\"")
     }
     release {
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      buildConfigField("String", "FIREBASE_APP_ID", "\"${cleDeConstruction("FIREBASE_APP_ID")}\"")
       /* ⚠️ Pas de `signingConfig` ici : la clé de production vit chez EAS et ne doit
          jamais entrer dans le dépôt. Une build locale de release sort donc NON signée. */
     }
