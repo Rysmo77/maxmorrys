@@ -95,7 +95,7 @@ describe('parité avec le port du Worker', () => {
   it('partage les mêmes constantes', () => {
     for (const line of [
       "export const VIA_PREFIX = '/via/';",
-      "export const VIA_FALLBACK = '/agence';",
+      "export const VIA_FALLBACK = '/conception';",
       'const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;',
     ]) {
       expect(APP, line).toContain(line);
@@ -115,6 +115,6 @@ describe('parité avec le port du Worker', () => {
 
   it('vise la même destination de repli', () => {
     expect(VIA_PREFIX).toBe('/via/');
-    expect(VIA_FALLBACK).toBe('/agence');
+    expect(VIA_FALLBACK).toBe('/conception');
   });
 });

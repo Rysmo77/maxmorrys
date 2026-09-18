@@ -7,16 +7,19 @@ import { regimeDe, ventilerDepuisHT, type Ventilation } from '../tax/senegal';
  * Consommée par la page publique (`src/pages/PresenceDigitale.tsx`), le devis partageable
  * (`src/pages/PresenceDevis.tsx`) et la vue admin (`src/pages/admin/AdminAgencyLeads.tsx`).
  *
- * ⚠️ Cette offre n'est PAS Max-Morrys Agency. Elle vit sur `/presence-digitale` et cible les
- * commerces de proximité ; `/agence` porte la practice BUILD de MY ONOMA, high-ticket et sans
- * grille tarifaire publique. Voir `docs/AGENCY-POSITIONING.md §9`.
+ * ⚠️ Cette offre est le PREMIER des deux niveaux de la piste Conception, pas le second. Elle
+ * vit sur `/conception/commerces-et-tpe` (ex-`/presence-digitale`, 301) et cible les commerces
+ * de proximité : grille publique, paiement mobile, ton direct. Les projets sur mesure vivent
+ * sur `/conception/projets-sur-mesure` — sur devis, sans aucun montant affiché. Les deux sont
+ * montrés ensemble par la sous-navigation de piste, et aucun ne cache l'autre (CDC §4.2).
+ * Voir `docs/AGENCY-POSITIONING.md §9`.
  *
  * ⚠️ Toute modification de montant doit être répercutée dans :
  *   - `CATALOGUE_REVISED_AT` ci-dessous (la date de relevé de TOUS les montants affichés)
  *   - `docs/OFFRE_AGENCE_TPE.md`        (référence commerciale)
  *   - `skills/commercial-kit/SKILL.md`  (mémoire des agents Sales)
  *   - `finance/model.py`                (projections 5 ans)
- *   - `worker/apps/site/src/prerender/static-pages.ts` (`/presence-digitale` : les cinq
+ *   - `worker/apps/site/src/prerender/static-pages.ts` (`/conception/commerces-et-tpe` : les cinq
  *     montants sont écrits en toutes lettres dans `description` ET `bodyText`, c'est-à-dire
  *     dans ce qu'un moteur lit. Ce miroir se déploie à la main, séparément du front.)
  *   - `android/app/src/main/java/me/maxmorrys/rysmo/ecrans/media/Commun.kt` (`TermesDeLOffre` :
@@ -126,7 +129,14 @@ export const PACK_FEATURE_COUNT: Record<PackDefinition['key'], number> = {
 
 export const PLAN_FEATURE_COUNT: Record<PlanDefinition['key'], number> = {
   croissance: 6,
-  commerce360: 6,
+  /*
+   * CINQ depuis le 17/09/2026, et c'est un retrait assumé : la sixième puce vendait « un
+   * accompagnement commercial, pas seulement technique ». maxmorrys.me ne vend plus de
+   * direction marketing — c'est MY ONOMA qui la porte (CDC, objectif O3). Le montant, lui,
+   * n'a pas bougé : la formule perd un argument sans perdre un franc, et c'est une décision
+   * commerciale à prendre, pas un ajustement d'implémentation.
+   */
+  commerce360: 5,
 };
 
 /** Étapes du process commercial — clés i18n `process.<key>`. */

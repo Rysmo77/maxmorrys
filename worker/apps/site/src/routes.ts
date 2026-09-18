@@ -25,8 +25,22 @@ const PRERENDER_EXACT = new Set([
   '/faq',
   '/a-propos',
   '/contact',
-  '/agence',
-  '/presence-digitale',
+  /*
+   * LA PISTE CONCEPTION ET LA PISTE APPRENDRE (CDC §3.3).
+   *
+   * ⚠️ `/agence` et `/presence-digitale` ne sont PLUS ici, et c'est le cœur du travail :
+   * tant qu'une source figure dans cette liste, `resolveRoute` la sert depuis le bord et
+   * la requête n'atteint jamais la règle de redirection. Ces deux adresses sont désormais
+   * des 301 (`./static-redirects.ts`) ; leur pré-rendu ferait taire la redirection.
+   *
+   * Les pages neuves, elles, n'existent pour les moteurs QUE parce qu'elles sont déclarées
+   * ici : `SEOHead` écrit après hydratation, dans un DOM qu'aucun robot ne construit.
+   */
+  '/conception',
+  '/conception/commerces-et-tpe',
+  '/conception/projets-sur-mesure',
+  '/conception/realisations',
+  '/apprendre',
   '/en',
   '/en/blog',
   '/en/courses',
@@ -38,8 +52,13 @@ const PRERENDER_EXACT = new Set([
   '/en/faq',
   '/en/about',
   '/en/contact',
-  '/en/agency',
-  '/en/local-presence',
+  /* Les jumelles anglaises des cinq routes ci-dessus — `tests/unit/segments-sync.test.ts`
+     exige que chaque route FR prérendue en ait une, produite par la table des segments. */
+  '/en/design',
+  '/en/design/shops-and-small-business',
+  '/en/design/custom-projects',
+  '/en/design/work',
+  '/en/learning',
 ]);
 
 /** Sources en `/xxx/**` — comparées en préfixe. */
@@ -59,6 +78,9 @@ const PRERENDER_PREFIXES = [
   */
   '/certificat/',
   '/en/certificate/',
+  /* Une fiche de réalisation par slug — le portfolio technique du CDC §4.2. */
+  '/conception/realisations/',
+  '/en/design/work/',
   '/en/blog/',
   '/en/courses/',
   '/en/podcasts/',
@@ -111,8 +133,21 @@ const NOINDEX_EXACT = new Set([
   '/en/forgot-password',
 ]);
 
-/** Un devis porte une référence client dans son URL : rien de tout ça n'a à être indexé. */
-const NOINDEX_PREFIXES = ['/presence-digitale/devis/', '/en/local-presence/quote/'];
+/**
+ * Un devis porte une référence client dans son URL : rien de tout ça n'a à être indexé.
+ *
+ * Les deux adresses de la piste Conception remplacent les deux anciennes. Celles-ci restent
+ * déclarées : elles sont couvertes par une 301 avant d'arriver ici, mais retirer la route
+ * Cloudflare rend la main à l'hébergement (point 3 de l'en-tête de `index.ts`) — et dans
+ * cet état, `/presence-digitale/devis/<ref>` redevient une adresse servie. La garde ne doit
+ * pas disparaître avec la redirection qui la rend provisoirement inutile.
+ */
+const NOINDEX_PREFIXES = [
+  '/conception/commerces-et-tpe/devis/',
+  '/en/design/shops-and-small-business/quote/',
+  '/presence-digitale/devis/',
+  '/en/local-presence/quote/',
+];
 
 /** Ce chemin doit-il être servi avec `X-Robots-Tag: noindex, nofollow` ? */
 export function shouldNoIndex(pathname: string): boolean {

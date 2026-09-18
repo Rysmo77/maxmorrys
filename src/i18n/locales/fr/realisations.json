@@ -1,0 +1,124 @@
+{
+  "seo": {
+    "title": "Réalisations",
+    "description": "Les plateformes que nous avons construites pour des clients : le rôle que nous avons tenu, le périmètre technique, la stack employée et l'adresse publique pour aller voir.",
+    "detailTitle": "{{name}} — réalisation",
+    "detailDescription": "{{name}} — {{category}}. Le rôle que nous avons tenu, le périmètre technique et la stack employée. Le produit appartient à son client."
+  },
+  "index": {
+    "eyebrow": "Réalisations",
+    "titleLines": ["Ce que nous avons", "[construit].", "Et pour qui."],
+    "lede": "Ces produits appartiennent à leurs clients. Nous n'indiquons que le rôle que nous avons tenu, la stack employée et l'adresse où aller voir. Un lien que vous pouvez ouvrir vaut mieux qu'un chiffre qu'il faut croire.",
+    "filterAll": "Toutes",
+    "filterEyebrow": "Filtrer par catégorie",
+    "filterAria": "Filtrer les réalisations par catégorie",
+    "resultCount_one": "{{count}} réalisation",
+    "resultCount_other": "{{count}} réalisations",
+    "gridAria": "Réalisations clientes",
+    "cardCta": "Voir la fiche",
+    "emptyTitle": "Aucune réalisation dans cette catégorie",
+    "emptyBody": "Le filtre ne renvoie rien. Retirez-le pour retrouver l'ensemble des réalisations.",
+    "emptyAction": "Retirer le filtre",
+    "exitTitle": "Un produit comme ceux-là, mais le vôtre ?",
+    "exitBody": "Ces réalisations disent ce que le studio sait construire. La suite s'écrit à partir de votre problème, pas de celui d'un autre.",
+    "exitCta": "Décrire votre projet"
+  },
+  "fiche": {
+    "eyebrow": "Réalisation",
+    "breadcrumbAria": "Fil d'Ariane",
+    "breadcrumbRoot": "Conception",
+    "breadcrumbIndex": "Réalisations",
+    "contextTitle": "Contexte",
+    "contextMissing": "Le dépôt ne porte pas de description validée pour cette réalisation. Nous préférons cette ligne à une phrase écrite pour remplir le blanc.",
+    "roleTitle": "Notre rôle",
+    "roleNote": "Chaque rôle listé est établi depuis le dépôt du projet. Ce qui ne s'y établit pas n'est pas revendiqué.",
+    "scopeTitle": "Périmètre technique",
+    "scopeNote": "Relevé dans le dépôt du projet : fichiers de dépendances, configuration, règles de sécurité.",
+    "durationTitle": "Durée de la mission",
+    "outcomeTitle": "Résultat mesurable",
+    "visitLabel": "Ouvrir le site",
+    "visitAria": "Ouvrir {{name}} dans un nouvel onglet",
+    "previewAlt": "Aperçu de {{name}} en production",
+    "previewChromeAria": "Aperçu du site {{name}}",
+    "navAria": "Réalisation précédente et suivante",
+    "prev": "Précédente",
+    "next": "Suivante",
+    "backToIndex": "Toutes les réalisations",
+    "nextStepTitle": "Un projet de cette nature ?",
+    "nextStepBody": "Décrivez-nous ce que vous voulez construire. Nous répondons par un cadrage écrit avant toute proposition.",
+    "nextStepCta": "Parler de votre projet"
+  },
+  "authorization": {
+    "eyebrow": "Autorisation de publication",
+    "title": "Ce que le client nous autorise à publier",
+    "body": "Cette fiche paraît avec l'accord de son client. L'accord porte sur ce qui se vérifie de l'extérieur, et sur rien d'autre.",
+    "provenTitle": "Ce que l'accord couvre",
+    "withheldTitle": "Ce qu'il ne couvre pas",
+    "granted": {
+      "name": "Le nom du produit et son secteur",
+      "role": "Le rôle que nous avons tenu",
+      "stack": "La stack employée, relevée dans le dépôt",
+      "liveLink": "L'adresse publique, que vous pouvez ouvrir"
+    },
+    "withheld": {
+      "results": "Aucun résultat obtenu — l'accord ne le couvre pas",
+      "growthFigures": "Aucun chiffre de croissance, de trafic ni d'audience",
+      "testimonials": "Aucun témoignage, aucune citation de client",
+      "contractTerms": "Aucune information contractuelle : montant, calendrier, périmètre négocié"
+    }
+  },
+  "debt": {
+    "title": "Deux informations manquent sur cette fiche",
+    "body": "Le cahier des charges demande la durée de la mission et un résultat mesurable. Le dépôt ne documente ni l'une ni l'autre, et l'accord de publication ne couvre pas le second. Nous ne les inventons pas : leurs emplacements existent dans les données, vides, et la fiche les affichera dès qu'une durée sera relevée et qu'un résultat sera publiquement vérifiable, sourcé et autorisé.",
+    "footer": "Cet encart disparaît avec son objet. C'est ce qui lui donne une fin."
+  },
+  "units": {
+    "weeks": "semaines",
+    "months": "mois",
+    "days": "jours",
+    "percent": "%"
+  },
+  "capabilities": {
+    "productStrategy": "Stratégie produit",
+    "productDesign": "Design produit",
+    "uxui": "UX / UI",
+    "engineering": "Ingénierie",
+    "platformArchitecture": "Architecture de plateforme",
+    "designSystem": "Design system",
+    "aiAutomation": "IA & automatisation",
+    "securityRules": "Règles de sécurité",
+    "seo": "SEO"
+  },
+  "projects": {
+    "khanouss": {
+      "description": "Plateforme e-commerce full stack — catalogue, panier et paiement."
+    },
+    "holycash": {
+      "description": "Plateforme web orientée services financiers et paiement."
+    },
+    "english-lab": {
+      "description": "Plateforme d'accompagnement en anglais pour professionnels et étudiants africains francophones."
+    },
+    "resho-konnexion": {
+      "description": "Plateforme communautaire et professionnelle : emplois, événements, incubateur et annuaire."
+    },
+    "loma": {
+      "description": "Plateforme multi-services : transport, livraison et restaurants, avec espaces client, chauffeur, restaurant et administration."
+    },
+    "klio-pro": {
+      "description": "Site public, billetterie et back-office d'un cabinet de conseil et de formation en achats, à Dakar."
+    },
+    "je-temoigne": {
+      "description": "Recueil, modération et publication de témoignages en vidéo, audio ou texte, depuis le téléphone."
+    },
+    "lauraverse": {
+      "description": "Plateforme média et agenda des événements chrétiens en Afrique francophone."
+    },
+    "dunamis-holydays": {
+      "description": "Site d'événement : présentation, programme et inscriptions."
+    },
+    "in-senegal": {
+      "description": "Site institutionnel d'un événement national — présentation, programme et contact."
+    }
+  }
+}

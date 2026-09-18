@@ -1,6 +1,6 @@
 {
   "seoTitle": "Contact",
-  "seoDescription": "Contacte Max-Morrys pour du coaching personnalisé, des formations en marketing digital, ou un partenariat. Basé à Dakar, Sénégal.",
+  "seoDescription": "Écris à Max-Morrys : une formation et la communauté, ou un projet de site et de plateforme. Les missions de direction marketing sont contractées par MY ONOMA. Dakar, Sénégal.",
   "eyebrow": "CONTACT",
   "heroTitle1": "Parlons de",
   "heroTitle2": "ta stratégie",
@@ -14,10 +14,12 @@
     "whatsappValue": "Discutons sur WhatsApp"
   },
   "subjects": {
-    "coaching": "Coaching personnalisé",
     "formationInfo": "Informations sur une formation",
+    "club": "Le Club des Digitos",
+    "coaching": "Coaching personnalisé",
     "partnership": "Partenariat / Collaboration",
-    "strategy": "Conseil en stratégie marketing",
+    "shopSite": "Mettre mon commerce en ligne",
+    "customProject": "Un projet sur mesure",
     "other": "Autre"
   },
   "form": {
@@ -80,7 +82,24 @@
       "Écris-moi.",
       "[Je réponds.]"
     ],
-    "lede": "Une question sur une formation, un problème de paiement, une idée d'épisode. C'est moi qui lis, et c'est moi qui réponds — compte deux jours ouvrés.",
+    "lede": "Une question sur une formation, un commerce à mettre en ligne, une idée d'épisode. C'est moi qui lis, et c'est moi qui réponds — compte deux jours ouvrés.",
+    "route": {
+      "eyebrow": "Première question",
+      "question": "De quoi s'agit-il ?",
+      "learnTitle": "Une formation, ou la communauté",
+      "learnBody": "Un cours, un accès, le Club des Digitos, le blog, un épisode.",
+      "buildTitle": "Un site, ou une plateforme",
+      "buildBody": "Un commerce à mettre en ligne, un projet sur mesure à cadrer.",
+      "growTitle": "Une direction marketing",
+      "growBody": "De l'acquisition, du revenu, une stratégie de marque à piloter."
+    },
+    "myonoma": {
+      "eyebrow": "Ce n'est pas ici",
+      "title": "Cette demande part chez MY ONOMA.",
+      "body": "La direction marketing, l'acquisition et le revenu ne sont pas portés par Max-Morrys : c'est MY ONOMA qui les contracte, avec sa propre practice. Je ne recueille donc pas ta demande ici pour la recopier à la main là-bas — tu l'écris directement au bon endroit, et tu gardes une seule conversation.",
+      "cta": "Ouvrir le formulaire MY ONOMA",
+      "note": "Lien sortant : tu quittes maxmorrys.me."
+    },
     "triage": {
       "title": "Avant d'écrire",
       "paymentBefore": "Un paiement qui n'apparaît pas ? Regarde d'abord",
@@ -89,12 +108,6 @@
       "faqBefore": "Une question générale ? Elle est peut-être déjà dans la",
       "faqLink": "FAQ",
       "faqAfter": "et sa réponse y est en entier."
-    },
-    "agency": {
-      "title": "Pour un projet sur mesure",
-      "before": "Ce formulaire n'est pas le bon. Passe par",
-      "link": "Max-Morrys Agency",
-      "after": ": le formulaire y demande le budget et le périmètre, ce qui évite trois allers-retours."
     },
     "channels": {
       "title": "Me joindre autrement",
@@ -108,11 +121,13 @@
     "form": {
       "subjectLabel": "De quoi veux-tu parler ?",
       "subjectPlaceholder": "Choisis un sujet",
+      "messagePlaceholderLearn": "Dis-moi où tu en es et ce que tu cherches à faire…",
+      "messagePlaceholderBuild": "Décris le commerce ou le projet, et ce qui existe déjà en ligne…",
       "note": "Tu peux aussi écrire sans compte — mais je ne pourrai pas te répondre dans l'application."
     },
     "truth": {
-      "title": "Pourquoi cette carte est en tête",
-      "body": "Aujourd'hui un message envoyé depuis un compte connecté n'est pas rattaché à son auteur : il n'apparaît jamais dans sa boîte, et la réponse part dans le vide. Les messages anonymes restent possibles, et restent anonymes."
+      "title": "Ce qui arrive à ton message",
+      "body": "Depuis un compte connecté, le message est rattaché à ce compte : il reste dans ta boîte, et ma réponse arrive au même endroit. Sans compte, il reste anonyme dans l'application — je réponds alors à la main, à l'adresse laissée dans le formulaire."
     },
     "facts": {
       "replyLabel": "Réponse",

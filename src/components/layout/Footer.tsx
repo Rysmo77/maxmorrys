@@ -64,12 +64,27 @@ const socialIcons: Record<string, ComponentType<{ className?: string }>> = {
 
 const footerLinks = {
   plateforme: [
+    /*
+     * LES DEUX PISTES, CHACUNE PAR SA PAGE MÈRE (CDC du 14/09/2026, §3.2).
+     *
+     * Les deux mères ouvrent leur piste ; les entrées qui suivent sont les portes qu'on
+     * cherche directement, depuis un signet ou un moteur.
+     *
+     * ⚠️ LE LIBELLÉ DE L'OFFRE TPE N'A PAS CHANGÉ AVEC SON ADRESSE. Elle reste « Présence
+     * Digitale » en français et « I'll get you online » en anglais — c'est le VERBE, et
+     * `tests/unit/voix-anglaise.test.ts` épingle la valeur anglaise : le pied de page avait
+     * déjà dérivé une fois vers « Digital Presence », le mot de plaquette que `segments.ts`
+     * refuse jusque dans l'URL. Renommer commercialement l'offre est une décision qui se
+     * prend ailleurs qu'ici.
+     *
+     * L'offre TPE est entrée dans la navigation principale le 13/08/2026 ; elle a changé
+     * d'adresse le 17/09/2026 (`/presence-digitale` → `/conception/commerces-et-tpe`), et
+     * l'ancienne part en 301. Voir docs/AGENCY-POSITIONING.md §9.
+     */
+    { labelKey: 'links.conception', path: '/conception' },
+    { labelKey: 'links.presence', path: '/conception/commerces-et-tpe' },
+    { labelKey: 'links.learn', path: '/apprendre' },
     { labelKey: 'links.formations', path: '/formations' },
-    // L'offre TPE est entrée dans la navigation principale le 13/08/2026, sous « Je te
-    // digitalise » ; elle s'atteint aussi par ici, par la page d'accueil et par le bas de
-    // /agence. Le libellé du pied de page reste « Présence Digitale » — c'est un index de
-    // destinations, pas la voix de la marque. Voir docs/AGENCY-POSITIONING.md §9.
-    { labelKey: 'links.presence', path: '/presence-digitale' },
     { labelKey: 'links.blog', path: '/blog' },
     /*
      * LE TERRITOIRE VIOLET, SES DEUX ÉTAGES, DANS L'ORDRE. Le pied de page listait deux
@@ -80,12 +95,28 @@ const footerLinks = {
      */
     { labelKey: 'links.pole', path: '/podcast-et-videos' },
     { labelKey: 'links.club', path: '/club-des-digitos' },
-    { labelKey: 'links.faq', path: '/faq' },
   ],
   apropos: [
     { labelKey: 'links.about', path: '/a-propos' },
+    /* La FAQ descend ici depuis la colonne « Plateforme », qui a gagné les deux pages mères.
+       Onze liens à la verticale y étiraient déjà les quatre cellules une fois — c'est une
+       grille, et sa hauteur est celle de sa plus haute cellule. */
+    { labelKey: 'links.faq', path: '/faq' },
     { labelKey: 'links.contact', path: '/contact' },
-    { labelKey: 'links.booking', path: '/contact' },
+    /*
+     * ⚠️ « Contact » ET « Prendre rendez-vous » VISAIENT LA MÊME URL, SANS RIEN QUI LES
+     * DISTINGUE. Deux entrées voisines, une seule destination : le second lien ne tenait pas
+     * sa promesse — le dialogue de rendez-vous n'est atteignable qu'APRÈS avoir choisi une
+     * branche sur `/contact`, et rien ne le disait à qui cliquait « Prendre rendez-vous ».
+     *
+     * `?rdv=1` est lu par `Contact.tsx` : il présélectionne la branche « une formation, ou la
+     * communauté » et ouvre le dialogue au montage. Les deux entrées mènent donc à deux
+     * ÉTATS de la même page, ce qui est exactement ce que leurs libellés annoncent.
+     *
+     * `localizedPath` préserve la chaîne de requête (`tests/unit/localized-path-query.test.ts`) :
+     * sous `/en`, l'entrée donne bien `/en/contact?rdv=1`.
+     */
+    { labelKey: 'links.booking', path: '/contact?rdv=1' },
     /*
      * « Vérifier un certificat » est au pied de page du kit depuis le début, et la page
      * n'existait pas : le lien manquait ici, faute de destination. Son lecteur n'est pas
@@ -102,10 +133,12 @@ const footerLinks = {
     { labelKey: 'rss', path: '/rss.xml', external: true },
   ],
   legal: [
-    // L'AGENCE EST ICI, ET PAS DANS « PLATEFORME ». Elle vit hors des quatre verbes : autre
-    // promesse, autre client, aucune grille tarifaire publique. Le kit la range avec l'entité
-    // qui l'opère, et lui donne le corail — la seule entrée colorée du pied de page.
-    { labelKey: 'links.agency', path: '/agence', accent: true },
+    /*
+     * L'AGENCE VIVAIT ICI, et pas dans « Plateforme » : elle vivait hors des quatre verbes, et
+     * le kit la rangeait avec l'entité qui l'opère, en corail — la seule entrée colorée du
+     * pied de page. Elle est devenue une PISTE : « Conception » ouvre la colonne Plateforme,
+     * à poids égal avec « Apprendre ». `/agence` part en 301 vers `/conception`.
+     */
     { labelKey: 'links.legalNotice', path: '/legal/mentions-legales' },
     { labelKey: 'links.privacy', path: '/legal/confidentialite' },
     { labelKey: 'links.cgu', path: '/legal/cgu' },

@@ -43,6 +43,7 @@ import {
   type RedirectHit,
 } from './redirects';
 import { resolveRoute, shouldNoIndex, type Route } from './routes';
+import { resolveStaticRedirect } from './static-redirects';
 import { buildCatalog } from './seo/catalog';
 import { buildRss } from './seo/rss';
 import { buildPodcastRss } from './seo/podcast-rss';
@@ -151,6 +152,24 @@ export default {
         // Table indisponible : on poursuit le routage normal. Une attribution
         // perdue est un moindre mal ; une page d'accueil en erreur, non.
         console.error('Table de redirections indisponible :', error);
+      }
+
+      /*
+       * Les 301 ÉCRITES de la refonte (CDC §3.4), après la table administrée et avant le
+       * routage. L'ordre porte deux décisions :
+       *
+       *   · après Firestore, parce qu'une entrée saisie à l'admin doit pouvoir recouvrir
+       *     une de ces règles le jour où une ancienne adresse doit partir ailleurs ;
+       *   · avant `resolveRoute`, parce qu'une page prérendue n'atteint jamais l'origine —
+       *     la redirection déclarée dans `firebase.json` ne serait alors jamais lue.
+       *
+       * La query est préservée : c'est elle qui porte `?via=<slug>` quand le repli des
+       * liens d'attribution vient d'envoyer quelqu'un sur `/agence`, et les `utm_*` de
+       * toute campagne qui pointe encore une ancienne adresse.
+       */
+      const moved = resolveStaticRedirect(url.pathname);
+      if (moved) {
+        return redirectResponse({ location: `${moved}${url.search}`, code: 301, rule: null });
       }
     }
 

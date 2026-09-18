@@ -76,7 +76,14 @@ export function isCheckoutPath(path: string): boolean {
  *
  * Un devis est un document contractuel qu'on lit sur WhatsApp. Rien ne s'y superpose.
  */
-const QUOTE_PATHS: readonly string[] = ['/presence-digitale/devis', '/agence/devis'];
+/* Les deux anciennes adresses restent listées : elles sont redirigées, mais un devis partagé
+   en WhatsApp voyage longtemps, et pendant le vol de la redirection le chemin est encore
+   l'ancien. Une pop-up par-dessus un devis est précisément ce que cette liste interdit. */
+const QUOTE_PATHS: readonly string[] = [
+  '/conception/commerces-et-tpe/devis',
+  '/presence-digitale/devis',
+  '/agence/devis',
+];
 
 export function isQuotePath(path: string): boolean {
   return QUOTE_PATHS.some((root) => isUnder(path, root));
@@ -104,6 +111,9 @@ const DISCOVERY_SOURCES: readonly EntrySource[] = ['search', 'clientFooter', 'so
  */
 const FORMATIONS_ENTRY_EXCLUDED: readonly string[] = [
   '/formations',
+  /* Toute la piste Conception d'un coup — `isUnder` couvre ses quatre pages. C'était deux
+     lignes, `/agence` et `/presence-digitale`, quand les deux offres vivaient à la racine. */
+  '/conception',
   '/agence',
   '/presence-digitale',
 ];
@@ -153,14 +163,19 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
   },
 
   /*
-    Aiguilleur d'audience sur /agence. Voir `AudienceRouterPopup` : ce n'est pas une mise en avant
-    d'offre mais une question d'audience, pour ne pas abîmer un positionnement high-ticket.
+    Aiguilleur d'audience sur la page mère de la piste Conception (ex-/agence). Voir
+    `AudienceRouterPopup` : ce n'est pas une mise en avant d'offre mais une question d'audience,
+    pour ne pas abîmer un positionnement high-ticket.
+
+    ⚠️ Elle vise la page MÈRE, pas la piste entière : `/conception/commerces-et-tpe` a déjà ses
+    deux fenêtres, et `/conception/projets-sur-mesure` est elle-même la réponse que
+    l'aiguilleur donnerait.
   */
   {
     id: 'agencyExit',
     trigger: 'exitIntent',
     mobileSurface: 'modal',
-    eligible: (c) => c.path === '/agence',
+    eligible: (c) => c.path === '/conception',
   },
 
   /*
@@ -180,7 +195,7 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
     id: 'quoteAbandon',
     trigger: 'exitIntent',
     mobileSurface: 'modal',
-    eligible: (c) => c.path === '/presence-digitale' && c.hasStartedQuote,
+    eligible: (c) => c.path === '/conception/commerces-et-tpe' && c.hasStartedQuote,
   },
 
   /*
@@ -191,7 +206,7 @@ export const POPUP_REGISTRY: readonly PopupDefinition[] = [
     id: 'presenceExit',
     trigger: 'exitIntent',
     mobileSurface: 'modal',
-    eligible: (c) => c.path === '/presence-digitale',
+    eligible: (c) => c.path === '/conception/commerces-et-tpe',
   },
 
   /*

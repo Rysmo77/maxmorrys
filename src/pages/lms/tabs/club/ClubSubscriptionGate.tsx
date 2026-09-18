@@ -67,6 +67,9 @@ const FEATURES: { icon: IconName; titleKey: string; descKey: string }[] = [
  */
 export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubSubscriptionGateProps) {
   const { t } = useTranslation('club');
+  /* Le vocabulaire d'appel partagé : « Voir les formations » vivait dans huit clés de huit
+     catalogues avant le 18/09/2026. */
+  const { t: tc } = useTranslation('common');
   /* La même clé que la page publique, donc la même valeur : deux écrans, une seule date. */
   const { formatMonth } = useFormat();
   const {
@@ -175,7 +178,7 @@ export default function ClubSubscriptionGate({ data, enrolledFormations }: ClubS
               <p className="mt-0.5 text-meta-2 text-ink-2">
                 {t('subscriptionGate.tipText')}{' '}
                 <LocalizedLink to="/formations" className="font-semibold text-transforme underline">
-                  {t('subscriptionGate.seeFormations')}
+                  {tc('cta.formations')}
                 </LocalizedLink>
               </p>
             </div>

@@ -282,13 +282,16 @@ export default function ClubDigitos() {
               </p>
             </GlassPanel>
           </div>
+          {/*
+            LE TROISIÈME PANNEAU DE VÉRITÉ DE CETTE PAGE A ÉTÉ RETIRÉ ICI, PAS PERDU.
 
-          <GlassPanel level="truth" className="rv mt-5 max-w-[74ch]" style={{ ['--i' as string]: 3 }}>
-            <SiteEyebrow style={{ margin: '0 0 7px' }}>{t('publicPage.guaranteeTruthTitle')}</SiteEyebrow>
-            <p className="m-0 text-meta-2 leading-[1.6] text-ink-2">
-              {t('publicPage.guaranteeTruthBody', { opened: clubOpened })}
-            </p>
-          </GlassPanel>
+            Il disait « Le Club a ouvert en … , je ne t'annoncerai pas un nombre de membres » —
+            c'est-à-dire, mot pour mot, le fait que le panneau final porte déjà par
+            `subscriptionGate.truth.withheld1`. Une page qui convertit ne gagne rien à jurer
+            deux fois ; elle perd la force du serment. Sa seule phrase que le panneau final
+            n'avait pas — « je préfère que tu entres en sachant ce que tu achètes » — est
+            descendue là-bas, en `publicPage.truthProvenPurchase`.
+          */}
         </div>
 
         {/* ── 3 · Les huit onglets ─────────────────────────────────────────────── */}
@@ -409,7 +412,9 @@ export default function ClubDigitos() {
               </CheckLine>
               <CheckLine tone="neutre" dash>
                 {t('publicPage.fitNo2')}{' '}
-                <a className="font-semibold text-digitalise-txt underline" href={path('/presence-digitale')}>{tNav('presence')}</a>
+                {/* L'offre a changé d'adresse le 17/09/2026 ; le LIBELLÉ, lui, reste le verbe
+                    « Je te digitalise » — la piste Conception a renommé la route, pas la voix. */}
+                <a className="font-semibold text-digitalise-txt underline" href={path('/conception/commerces-et-tpe')}>{tNav('presence')}</a>
               </CheckLine>
               <CheckLine tone="neutre" dash>
                 {t('publicPage.fitNo3')}{' '}
@@ -465,19 +470,39 @@ export default function ClubDigitos() {
               </p>
             )}
 
-            <GlassPanel level="truth" className="rv" style={{ ['--i' as string]: 6 }}>
-              <SiteEyebrow style={{ margin: '0 0 7px' }}>{t('publicPage.listenTruthTitle')}</SiteEyebrow>
-              <p className="m-0 text-meta leading-[1.6] text-ink-2">{t('publicPage.listenTruthBody')}</p>
-            </GlassPanel>
+            {/*
+              CE N'EST PAS UNE VÉRITÉ RETENUE, C'EST UNE FRONTIÈRE D'OFFRE — elle dit où
+              s'arrête le gratuit posé juste à côté. Le voile `truth` lui donnait le poids
+              d'un aveu et faisait trois surfaces de vérité sur une même page ; il n'en reste
+              qu'une, le panneau final. Le texte, lui, n'a pas bougé d'un mot.
+            */}
+            <p className="rv m-0 text-meta leading-[1.6] text-ink-2" style={{ ['--i' as string]: 6 }}>
+              {t('publicPage.listenBoundary')}
+            </p>
           </div>
         </div>
 
-        {/* ── 8 · Ce que la page n'affiche pas, nommé ──────────────────────────── */}
+        {/* ── 8 · LE PANNEAU DE VÉRITÉ DE LA PAGE — le seul, désormais ─────────────
+            Il porte SES propres sourcils et non plus ceux du mur d'abonnement : les deux
+            écrans disaient « Ce que je peux te prouver » / « Ce que je n'affiche pas », des
+            titres qui coiffaient aussi bien trois autres panneaux du site. Le mur garde les
+            siens — il n'est pas une page publique, il est une porte — et cette page nomme ce
+            qu'elle retient : l'abonnement.
+
+            Les FAITS, eux, restent ceux du mur, et c'est délibéré : « deux rédactions du même
+            engagement, c'est une occasion de le contredire ». */}
         <TruthPanel
           className="mt-[22px]"
           provenTitle={t('publicPage.truthProvenTitle')}
-          withheldTitle={t('subscriptionGate.truth.withheldTitle')}
-          proven={[t('subscriptionGate.truth.proven2'), t('subscriptionGate.truth.proven3')]}
+          withheldTitle={t('publicPage.truthWithheldTitle')}
+          proven={[
+            t('subscriptionGate.truth.proven2'),
+            t('subscriptionGate.truth.proven3'),
+            /* La phrase sauvée du panneau retiré plus haut. Elle est du côté PROUVÉ parce
+               qu'elle nomme l'objet de la vente — une année d'accès à ce qui existe — et non
+               un chiffre qu'on refuse d'afficher. */
+            t('publicPage.truthProvenPurchase'),
+          ]}
           withheld={[
             t('subscriptionGate.truth.withheld1', { opened: clubOpened }),
             t('subscriptionGate.truth.withheld2'),

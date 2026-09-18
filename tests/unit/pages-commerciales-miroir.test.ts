@@ -11,9 +11,11 @@ import { legalEntity, legalName, corporateUrl } from '../../src/lib/brand/compan
  * LES DEUX PAGES COMMERCIALES SONT DÉCRITES DEUX FOIS, DANS DEUX BUILDS.
  *
  * `src/pages/Agence.tsx` et `src/pages/PresenceDigitale.tsx` posaient leurs données
- * structurées via Helmet. Sur une route prérendue, c'est le Worker qui écrit le `<head>`
- * lu par les moteurs, et React ne repasse qu'après hydratation : ce balisage n'était vu
- * par AUCUN crawler. Les deux pages les plus chères du site n'avaient, pour Google,
+ * structurées via Helmet. (`Agence.tsx` a été supprimée par la refonte en deux pistes du
+ * 14/09/2026 : la page mère de la piste est `src/pages/conception/Conception.tsx`, et
+ * `/agence` part en 301 vers `/conception`.) Sur une route prérendue, c'est le Worker qui
+ * écrit le `<head>` lu par les moteurs, et React ne repasse qu'après hydratation : ce
+ * balisage n'était vu par AUCUN crawler. Les deux pages les plus chères du site n'avaient, pour Google,
  * aucune donnée structurée.
  *
  * Le porter dans `worker/apps/site/src/prerender/static-pages.ts` le rend visible — et
@@ -33,13 +35,23 @@ const source = readFileSync(
   'utf8',
 );
 
-/** L'entrée d'une page, des accolades ouvrantes à la page suivante. */
-function entree(chemin: string, suivante: string): string {
+/**
+ * L'entrée d'une page, de ses accolades ouvrantes à l'entrée suivante, quelle qu'elle soit.
+ *
+ * ⚠️ CETTE FONCTION PRENAIT LE NOM DE LA ROUTE SUIVANTE EN ARGUMENT, et c'est ce qui l'a fait
+ * tomber : la refonte en deux pistes a renommé `/agence` et `/presence-digitale`, donc les
+ * bornes ont changé, donc la suite entière a cessé de se collecter — sans qu'aucun de ses
+ * invariants ne soit en cause. Un test qui dépend de l'ORDRE d'une table qu'il ne possède pas
+ * rougit à chaque réorganisation, et on finit par le lire comme du bruit.
+ *
+ * La borne est désormais la prochaine clé de route, trouvée par sa forme.
+ */
+function entree(chemin: string): string {
   const debut = source.indexOf(`'${chemin}': {`);
   expect(debut, `entrée ${chemin} introuvable dans static-pages.ts`).toBeGreaterThan(-1);
-  const fin = source.indexOf(`'${suivante}': {`, debut);
-  expect(fin, `entrée ${suivante} introuvable après ${chemin}`).toBeGreaterThan(debut);
-  return source.slice(debut, fin);
+  const reste = source.slice(debut + chemin.length + 6);
+  const suivante = reste.search(/\n {2}'\/[^']*': \{/);
+  return suivante === -1 ? source.slice(debut) : source.slice(debut, debut + chemin.length + 6 + suivante);
 }
 
 /**
@@ -53,8 +65,8 @@ function sansEspaces(texte: string): string {
   return texte.replace(/[\s\u00a0\u202f]/g, '');
 }
 
-describe('/presence-digitale — les montants prérendus sont ceux de l’offre', () => {
-  const bloc = entree('/presence-digitale', '/contact');
+describe('/conception/commerces-et-tpe — les montants prérendus sont ceux de l’offre', () => {
+  const bloc = entree('/conception/commerces-et-tpe');
 
   it('chaque `Offer.price` est le prix EFFECTIF d’un pack, et les trois y sont', () => {
     const emis = [...bloc.matchAll(/'@type':\s*'Offer'[^}]*?price:\s*(\d+)/g)]
@@ -77,14 +89,14 @@ describe('/presence-digitale — les montants prérendus sont ceux de l’offre'
     for (const pack of PACKS) {
       expect(
         texte.includes(`${pack.price}FCFA`),
-        `bodyText de /presence-digitale ne cite plus ${pack.price} FCFA (pack « ${pack.key} »)`,
+        `bodyText de /conception/commerces-et-tpe ne cite plus ${pack.price} FCFA (pack « ${pack.key} »)`,
       ).toBe(true);
     }
   });
 });
 
-describe('/agence — la marque et la personne morale ne dérivent pas', () => {
-  const bloc = entree('/agence', '/presence-digitale');
+describe('/conception — la marque et la personne morale ne dérivent pas', () => {
+  const bloc = entree('/conception');
 
   it('le `provider` est la raison sociale, à son adresse déclarée', () => {
     expect(bloc).toContain(legalName);
@@ -107,11 +119,8 @@ describe('/agence — la marque et la personne morale ne dérivent pas', () => {
 
 describe('les deux pages sont bien balisées pour les moteurs', () => {
   it('chacune porte un `Service` dans son JSON-LD prérendu', () => {
-    for (const [chemin, suivante] of [
-      ['/agence', '/presence-digitale'],
-      ['/presence-digitale', '/contact'],
-    ] as const) {
-      const bloc = entree(chemin, suivante);
+    for (const chemin of ['/conception', '/conception/commerces-et-tpe'] as const) {
+      const bloc = entree(chemin);
       expect(bloc, `${chemin} n'a plus de jsonLd`).toContain('jsonLd:');
       expect(bloc, `${chemin} ne se décrit plus comme un Service`).toMatch(
         /'@type':\s*'Service'/,

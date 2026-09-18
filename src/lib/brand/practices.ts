@@ -47,7 +47,7 @@ export const practices: Record<PracticeId, Practice> = {
     pillar: 'BUILD',
     brand: 'Max-Morrys Agency',
     discipline: 'Digital Product · AI · Technology · Brand',
-    path: '/agence',
+    path: '/conception',
     corporatePath: '/services/max-morrys-agency',
     capabilities: [
       { key: 'product' },

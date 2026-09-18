@@ -1,12 +1,16 @@
 {
   "seoTitle": "I Digitalize Your Business — Website, Google Maps, WhatsApp | Max-Morrys",
-  "seoDescription": "Websites, product catalogues, Google listing, analytics, SEO and content automation for local businesses in Senegal. Packs from 250,000 FCFA.",
+  "seoDescription": "Websites, product catalogues, Google listing, analytics, local search and content automation for shops and small businesses in West Africa. Packs from 250,000 FCFA.",
   "eyebrow": "I'll get you online",
   "heroTitle1": "Your shop,",
   "heroTitle2": "[findable]",
   "heroSubtitle": "Right now they're finding your competitors. I set up everything you need to be found, to be contacted, and to finally know what it brings you.",
   "heroCta": "Find your pack in 3 questions",
   "stickyCta": "Ask my question on WhatsApp",
+  "segmentBand": {
+    "label": "Shops and small business offer — Dakar, Abidjan, Cotonou",
+    "switch": "Corporate site, platform or business portal: that's the other floor of this track."
+  },
   "proof": {
     "title": "Try it right now",
     "text": "Type your trade and your neighbourhood. I'll open the real Google Maps search. Look at who comes up first — if it isn't you, your competitors are getting those calls.",
@@ -89,7 +93,7 @@
       }
     },
     "reasons": {
-      "online": "Getting paid online needs a real store: cart, orders and sales tracking. I add the monthly support, because a store without visitors sells nothing.",
+      "online": "Getting paid online needs a real store: cart, orders and sales tracking. I add the monthly support, because a store nobody can find sells nothing.",
       "many": "With more than twenty products, your catalogue is your best argument. It needs to live on WhatsApp, Facebook, Instagram and in Google.",
       "working": "Your site holds up — no need to rebuild it. What you're missing is consistency: being found and posting every week.",
       "outdated": "An outdated site does more harm than no site at all. We start again with a credible storefront and your catalogue.",
@@ -160,7 +164,11 @@
     "onceNote": "Once",
     "htSuffix": "excl. tax",
     "ttcPrefix": "That is, with {{rate}}% VAT:",
-    "taxCite": "price list and current VAT rate"
+    "taxCite": "price list and current VAT rate",
+    "titleLines": [
+      "Three packs.",
+      "The prices are [shown.]"
+    ]
   },
   "plans": {
     "title": "Monthly support",
@@ -185,14 +193,13 @@
     },
     "commerce360": {
       "name": "Commerce 360",
-      "for": "You're ambitious and you want real steering over six months.",
+      "for": "You want your online presence handled end to end for six months.",
       "features": [
         "Your advanced site or catalogue",
         "Google, Facebook, Instagram and WhatsApp handled together",
         "Your products distributed everywhere they can be seen",
         "Full measurement and a commented report every month",
-        "Ongoing local search and content work",
-        "Commercial guidance, not just technical delivery"
+        "Ongoing local search and content work"
       ],
       "note": "Advertising budget not included. We shape the plan together before signing."
     },
@@ -414,8 +421,7 @@
   },
   "agencyBridge": {
     "title": "Is your project bigger than a storefront?",
-    "body": "If you are not after an online presence but a product to build — a platform, an app, an AI system — that is the job of Max-Morrys Agency, the product and technology practice of MY ONOMA.",
-    "cta": "Explore Max-Morrys Agency"
+    "body": "If you are not after an online presence but a product to build — a platform, an app, an AI system — this is no longer the right offer. Custom projects are scoped separately, with no price list and no packs."
   },
   "anchor": {
     "eyebrow": "The question everyone asks",
@@ -430,8 +436,8 @@
     "cta": "See both plans"
   },
   "truth": {
-    "title": "What I don't show",
-    "provenTitle": "What I can prove to you",
+    "title": "What I don't show about this offer",
+    "provenTitle": "What you can check from your phone",
     "proven": [
       "The price list above, as of {{asOf}}. Every amount comes from the catalogue, not from a sentence.",
       "The Google Maps search on the first screen: you ran it yourself, in a tool that isn't mine.",
@@ -441,7 +447,11 @@
       "No star rating, no client count, no testimonial: none of them is something you could verify from this page.",
       "No guaranteed number of clients. It also depends on your offer and your prices, which aren't mine to set."
     ],
-    "sectionTitle": "Why there are no star ratings here"
+    "sectionTitle": "Why there are no star ratings here",
+    "sectionTitleLines": [
+      "Why there are no",
+      "[star ratings here.]"
+    ]
   },
   "heroTitle3": "[on Google.]",
   "details": {

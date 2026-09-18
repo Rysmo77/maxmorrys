@@ -130,13 +130,26 @@ export function buildMetaInjection(meta: PageMeta): string {
 /** Chemin FR canonique + libellé dans les deux langues. Miroir de l'en-tête et du pied de page. */
 const SEO_NAV: ReadonlyArray<{ path: string; fr: string; en: string }> = [
   { path: '/', fr: 'Accueil', en: 'Home' },
-  { path: '/a-propos', fr: 'Je suis Max-Morrys', en: "I'm Max-Morrys" },
+  /*
+   * LA NAVIGATION À DEUX NIVEAUX (CDC §3.2). Les deux pistes en tête, puis leurs entrées.
+   *
+   * ⚠️ `/agence` et `/presence-digitale` ne sont PLUS ici : ce sont des 301. Un maillage
+   * interne qui pointe une redirection dilue le signal qu'il est censé porter — le robot
+   * paie un saut de plus par lien et par page, sur toutes les pages du site.
+   *
+   * Les intitulés à la première personne sont conservés, mais À L'INTÉRIEUR de leur piste,
+   * où ils s'adressent au bon public : c'est le sujet même de la refonte.
+   */
+  { path: '/conception', fr: 'Conception', en: 'Design' },
+  { path: '/conception/commerces-et-tpe', fr: 'Commerces et TPE', en: 'Shops and small business' },
+  { path: '/conception/projets-sur-mesure', fr: 'Projets sur mesure', en: 'Custom projects' },
+  { path: '/conception/realisations', fr: 'Réalisations', en: 'Work' },
+  { path: '/apprendre', fr: 'Apprendre', en: 'Learning' },
   { path: '/formations', fr: 'Je te forme', en: "I'll train you" },
   { path: '/blog', fr: "Je t'informe", en: "I'll keep you posted" },
   { path: '/podcast-et-videos', fr: 'Je te transforme', en: "I'll push you further" },
   { path: '/club-des-digitos', fr: 'Le Club des Digitos', en: 'The Digitos Club' },
-  { path: '/presence-digitale', fr: 'Je te digitalise', en: "I'll get you online" },
-  { path: '/agence', fr: 'Agence', en: 'Agency' },
+  { path: '/a-propos', fr: 'À propos', en: 'About' },
   { path: '/faq', fr: 'FAQ', en: 'Frequently asked questions' },
   { path: '/contact', fr: 'Contact', en: 'Talk to me' },
   { path: '/verifier', fr: 'Vérifier un certificat', en: 'Verify a certificate' },

@@ -394,6 +394,66 @@ describe('transactions — client creation restricted to free courses', () => {
   });
 });
 
+describe('messages — la question d aiguillage de /contact (CDC 14/09/2026)', () => {
+  /**
+   * Le formulaire de contact s ouvre desormais sur une question d aiguillage a trois
+   * branches, et la charge ecrite gagne un champ : `branch`.
+   *
+   * POURQUOI UN CHAMP DE PLUS PLUTOT QUE DE TRIER SUR `subject`. Le sujet part TRADUIT —
+   * « Informations sur une formation » ou « Information about a course » selon la langue de
+   * qui ecrit. La console ne peut pas trier sur du texte qui change avec la langue de
+   * l expediteur. `branch` est une cle stable, la meme dans les deux langues.
+   *
+   * CE QUE CE TEST GARDE VRAIMENT : la borne `keys().size() <= 12`. La charge passe de sept
+   * a huit cles, donc elle tient — mais c est exactement le genre d invariant qu on suppose
+   * au lieu de le verifier, et un depassement echouerait EN SILENCE cote client, dans un
+   * `catch` de formulaire, sans que personne ne sache pourquoi un message ne part plus.
+   *
+   * La troisieme branche — direction marketing — n ecrit rien ici : elle renvoie chez
+   * MY ONOMA. Elle n a donc aucun cas, et c est le comportement voulu.
+   */
+  const MESSAGE = (extra: Record<string, unknown> = {}) => ({
+    name: 'Awa Ndiaye',
+    email: 'awa@example.sn',
+    message: 'Bonjour, je voudrais des informations sur la formation SEO.',
+    subject: 'formationInfo',
+    branch: 'learn',
+    locale: 'fr',
+    status: 'new',
+    createdAt: '2026-09-17T10:00:00.000Z',
+    ...extra,
+  });
+
+  function asVisitor() {
+    return testEnv.unauthenticatedContext().firestore();
+  }
+
+  it('un visiteur anonyme depose un message aiguille', async () => {
+    await assertSucceeds(setDoc(doc(asVisitor(), 'messages', 'm1'), MESSAGE()));
+  });
+
+  it('la branche « projet de site » passe par le meme chemin', async () => {
+    await assertSucceeds(
+      setDoc(doc(asVisitor(), 'messages', 'm2'), MESSAGE({ branch: 'build', subject: 'customProject' })),
+    );
+  });
+
+  it('une personne connectee ecrit son propre UID, jamais celui d un tiers', async () => {
+    await assertSucceeds(
+      setDoc(doc(asUser(ALICE), 'messages', 'm3'), MESSAGE({ userId: ALICE })),
+    );
+    await assertFails(
+      setDoc(doc(asUser(ALICE), 'messages', 'm4'), MESSAGE({ userId: BOB })),
+    );
+  });
+
+  it('le traitement du message appartient a la console, pas a son expediteur', async () => {
+    await assertFails(
+      setDoc(doc(asVisitor(), 'messages', 'm5'), MESSAGE({ status: 'replied' })),
+    );
+  });
+});
+
 describe('engagement_leads — formulaire de qualification /agence', () => {
   /** Demande valide type. Le formulaire est public : aucune authentification requise. */
   const LEAD = (extra: Record<string, unknown> = {}) => ({

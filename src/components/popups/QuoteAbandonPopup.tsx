@@ -52,7 +52,7 @@ export default function QuoteAbandonPopup({ onResume, onWhatsapp, onDismiss }: Q
       <div className={ACTIONS}>
         {/* Le formulaire est sur cette page : l'ancre y ramène sans rien perdre de ce qui
             a déjà été saisi. */}
-        <LocalizedLink to="/presence-digitale#devis" onClick={onResume} className={CTA_LAGOON}>
+        <LocalizedLink to="/conception/commerces-et-tpe#devis" onClick={onResume} className={CTA_LAGOON}>
           {t('popups.quoteAbandon.cta')}
           <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
         </LocalizedLink>

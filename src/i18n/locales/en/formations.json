@@ -253,7 +253,7 @@
     "c1": "Lifetime access, updates included",
     "c2": "Certificate verifiable by its code",
     "c3": "Wave, Orange Money or your card",
-    "truthTitle": "What I can prove to you",
+    "truthTitle": "What I can prove about this course",
     "truthBody": "{{lessons}} lessons, {{modules}} modules, a certificate whose code checks out without an account. I show no rating and no student count: the platform just opened, I have nothing honest to say about it.",
     "forWhoTitle": [
       "Who it's for."

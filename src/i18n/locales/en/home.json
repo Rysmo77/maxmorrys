@@ -1,129 +1,46 @@
 {
   "hero": {
-    "eyebrow": "Hi, I'm Max-Morrys",
+    "eyebrow": "Dakar · Senegal",
     "titleLines": [
-      "I'LL TRAIN YOU",
-      "TO GO [DIGITAL].",
-      "FROM DAKAR."
+      "MAX-MORRYS,",
+      "[WEB] DESIGN",
+      "AND TRAINING."
     ],
-    "lede": "SEO, marketing and artificial intelligence, explained for the West African market. You pay with Wave, Orange Money or with your card, in CFA francs.",
-    "ctaCourses": "See the courses",
-    "ctaBlog": "Read the blog",
-    "ctaBlogCount_one": "Read the blog — {{count}} article",
-    "ctaBlogCount_other": "Read the blog — {{count}} articles",
-    "truthTitle": "What I don't show",
-    "truthBody": "No ratings, no student count, no pass rate, no revenue figures. The platform just opened. What I can prove sits on each course page."
+    "lede": "I design websites and web platforms, and I train people in digital — search, marketing, artificial intelligence. I work alone, from Dakar, for the West African market. Whatever you buy here is paid in CFA francs, with Wave, Orange Money or a card.",
+    "cta": "Who I am, in full"
   },
-  "territories": {
-    "formeMeta": "SEO, marketing, AI",
-    "formeLabel": "published",
-    "informeMeta": "Free blog",
-    "informeLabel": "articles",
-    "transformeMeta": "Podcast, videos, Club",
-    "transformeLabel": "media",
-    "digitaliseMeta": "Local businesses",
-    "digitaliseLabel": "packs",
-    "footForme_one": "course",
-    "footForme_other": "courses",
-    "footInforme_one": "article published",
-    "footInforme_other": "articles published",
-    "footTransforme_one": "title",
-    "footTransforme_other": "titles",
-    "footDigitalise_one": "pack",
-    "footDigitalise_other": "packs",
-    "footFrom": "from",
-    "footPerMonth": "F/month",
-    "digitaliseCite": "offer catalogue"
-  },
-  "me": {
-    "eyebrow": "Trainer · consultant · Dakar",
+  "pistes": {
     "titleLines": [
-      "I'm Max-Morrys.",
-      "One person only."
+      "Two tracks,",
+      "and they are nothing alike."
     ],
-    "lede": "Trainer, consultant and digital content creator, based in Dakar. I write the articles, I build the courses, I run the Club, and I answer the messages.",
-    "alone": "There is nobody else behind this platform.",
-    "portraitAlt": "Max-Morrys",
-    "c1Title": "I train",
-    "c1Body": "Courses on local search and AI applied to prospecting. Written, filmed and graded by me.",
-    "c2Title": "I publish",
-    "c2Body": "A blog, a podcast, videos. In French, with examples taken from here and nowhere else.",
-    "c3Title": "I take it on",
-    "c3Body": "Local businesses I make findable online, and custom projects on the Agency side.",
-    "cta": "The whole story"
+    "lede": "One is done for you, the other is done by you. Neither is the waiting room of the other: you can take one and never meet the second.",
+    "conceptionTitle": "Design",
+    "conceptionMeta": "Shops and small business · Custom projects · Work",
+    "conceptionBody": "The track for websites and web platforms, at two levels of engagement: a fixed-price offer for shops and small businesses, and a scoped custom engagement for wider projects. The work already shipped is listed there.",
+    "apprendreTitle": "Learning",
+    "apprendreMeta": "Courses · Blog · Podcast and videos · The Digitos Club",
+    "apprendreBody": "You learn to do it yourself: local search, marketing, applied AI. The blog, the podcast and the videos open with no account and nothing to pay."
   },
-  "all": {
+  "proof": {
     "titleLines": [
-      "Everything you can",
-      "do here."
+      "What I've published,",
+      "and when."
     ],
-    "lede": "Six doors, from free to fully custom. Each one names its price before you click.",
-    "formationsTitle": "The courses",
-    "formationsMeta": "SEO, marketing, AI — lifetime access",
-    "blogTitle": "The blog",
-    "blogMeta": "What I write every week",
-    "mediaTitle": "Podcast & videos",
-    "mediaMeta": "People from here telling what they did",
-    "clubTitle": "The Digitos Club",
-    "clubMeta": "One year, in a closed group",
-    "presenceTitle": "Digital Presence",
-    "presenceMeta": "For local businesses",
-    "agencyTitle": "Max-Morrys Agency",
-    "agencyMeta": "Product · AI · Technology · Brand",
-    "agencyFoot": "On a written scope, no public rate card",
-    "footFree": "free, no account",
-    "footOnce": "one-off payment"
+    "lede": "One fact is recorded here, and it is read in the database the moment this page loads: the date of my latest publication. Nothing about audience, nothing I couldn't reopen in front of you.",
+    "lastLabel": "Latest publication",
+    "lastNone": "nothing published yet",
+    "truthTitle": "Where the numbers are",
+    "truthBody": "The count of what I have published — articles, episodes, videos, courses — is read in the database, with its date, on the « I'm Max-Morrys » page. The home page keeps only the date of the latest publication. No followers, no views, no student count anywhere: I have nothing honest to say about them."
   },
-  "why": {
-    "title": [
-      "Why here, and not elsewhere."
-    ],
-    "r1Title": "You pay the way you already pay",
-    "r1Body": "Wave, Orange Money or your card, in CFA francs. The card stays optional, no conversion, no account abroad.",
-    "r2Title": "The examples are from here",
-    "r2Body": "« Almadies cosmetics », not « organic skincare Brooklyn ». What your customers actually type, in the words they use.",
-    "r3Title": "Built for a metered data plan",
-    "r3Body": "Every video's weight is shown before you start it. Every lesson has a transcript that costs nothing."
-  },
-  "presence": {
-    "eyebrow": "Run a local business?",
+  "latest": {
     "titleLines": [
-      "I'll get it online",
-      "for you."
-    ],
-    "desc": "No time to learn all that? I'll handle it. Site, Google listing, WhatsApp catalogue, result tracking — I install them and I run them for your business.",
-    "cta": "See the packs and pricing",
-    "from": "from",
-    "once": "one-off payment, at setup",
-    "cite": "offer catalogue",
-    "points": {
-      "foundTitle": "Be found",
-      "foundBody": "On Google Maps, when people search your trade in your neighbourhood.",
-      "presentTitle": "Show your offer",
-      "presentBody": "Your site and your products, orderable on WhatsApp.",
-      "convertTitle": "Convert",
-      "convertBody": "Buttons that turn a visitor into a message.",
-      "measureTitle": "Measure",
-      "measureBody": "Finally know what your online presence brings you."
-    }
-  },
-  "free": {
-    "title": [
-      "Start for free."
+      "The three latest",
+      "publications."
     ],
     "all": "The whole blog",
-    "empty": "Nothing's published here yet. The blog opens first — it's the one place I write every week.",
     "metaArticle": "Article · free",
-    "metaPodcast": "Podcast · free",
-    "metaCourse": "Opening module · free"
-  },
-  "end": {
-    "titleLines": [
-      "Where you start",
-      "is up to you."
-    ],
-    "lede": "The blog is open, no account and nothing to pay. For everything else, write to me — I'm the one who answers.",
-    "ctaCourses": "See the courses",
-    "ctaContact": "Write to me"
+    "metaEpisode": "Episode · free",
+    "empty": "Nothing is published here yet. The blog opens first: it reads with no account and nothing to pay."
   }
 }

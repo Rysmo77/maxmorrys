@@ -72,6 +72,18 @@ export interface GlassPanelProps {
   role?: string;
   'aria-label'?: string;
   'aria-labelledby'?: string;
+  /*
+   * DE QUOI RENDRE UN VRAI BOUTON, puisque `as` le promettait déjà.
+   *
+   * `as="button"` existait mais ne transmettait que les attributs d'accessibilité : une
+   * surface cliquable devait donc être écrite à la main, en reprenant la classe CSS
+   * `glass-flat` — ce que l'en-tête du barrel interdit nommément. Quatre props, aucun export
+   * nouveau, et `/contact` cesse de court-circuiter le système.
+   */
+  onClick?: () => void;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  'aria-pressed'?: boolean;
 }
 
 export function GlassPanel({

@@ -13,6 +13,12 @@
  * jour. Voir `docs/CONTENT-TODO.md §5`.
  *
  * Miroir de `My-onoma/apps/web/src/lib/brand/clients.ts`.
+ *
+ * ⚠️ ÉCART ASSUMÉ AVEC LE MIROIR (14/09/2026) : `duration`, `outcome`, `ClientEvidence` et les
+ * deux listes `CLIENT_PUBLICATION_*` n'existent pas côté My-onoma. Ce sont des STRUCTURES, pas
+ * des données — aucune valeur nouvelle n'est entrée dans ce fichier. Elles servent la fiche
+ * `/conception/realisations/:slug` demandée par le CDC du 14/09/2026 §4.2 ; sur une divergence
+ * de donnée corporate, My-onoma fait toujours foi.
  */
 
 /** Capabilities mobilisables sur une mission. Clés i18n sous `work.capabilities.<key>`. */
@@ -48,11 +54,95 @@ export interface ClientProject {
   /** Stack réellement employée, vérifiable. Absente quand elle n'est pas documentée. */
   stack?: readonly string[];
   /**
-   * Clé i18n de la description, sous `work.projects.<slug>.description` du namespace `agency`.
-   * Absente quand aucune description validée n'existe.
+   * Clé i18n de la description, sous `projects.<slug>.description` du namespace
+   * `realisations`. Absente quand aucune description validée n'existe.
+   *
+   * ⚠️ Elle vivait sous `work.projects.<slug>.description` du namespace `agency`, supprimé
+   * avec `/agence` le 17/09/2026. Le préfixe `work.` est parti avec lui : le namespace
+   * `realisations` ne sert QUE cette page, il n'a plus besoin de se cloisonner.
    */
   descriptionKey?: string;
+  /**
+   * Durée réelle de la mission.
+   *
+   * ⚠️ **Aucun projet n'en porte à ce jour, et c'est le point.** Le CDC du 14/09/2026 (§4.2)
+   * demande une durée sur chaque fiche ; le dépôt ne la documente nulle part — ni dans les
+   * dépôts git d'où `stack` et `capabilities` ont été déduites, ni dans un contrat, qui serait
+   * de toute façon une information contractuelle interdite ici.
+   *
+   * Le champ existe quand même, VIDE, pour trois raisons : il donne à la donnée manquante un
+   * emplacement au lieu d'une intention ; il rend l'absence greppable (`grep -n 'duration'`) ;
+   * et il oblige la valeur future à passer par `ClientEvidence`, donc par une source citée —
+   * ce qu'AD-5 exige de tout chiffre affiché. Voir `docs/CONTENT-TODO.md §5`.
+   */
+  duration?: ClientEvidence;
+  /**
+   * Résultat mesurable de la mission.
+   *
+   * ⚠️ Vide partout, pour la même raison que `duration` — plus une seconde, plus dure :
+   * l'accord de publication obtenu des clients ne couvre AUCUN résultat et AUCUN chiffre de
+   * croissance (voir `CLIENT_PUBLICATION_WITHHELD`). Une valeur ne pourra donc entrer ici
+   * qu'à deux conditions cumulées : être publiquement vérifiable — un relevé qu'un tiers peut
+   * refaire, pas un chiffre d'analytics — et être couverte par un accord écrit élargi.
+   *
+   * `cite` est obligatoire dans `ClientEvidence` précisément pour que la première condition
+   * ne puisse pas être oubliée en chemin.
+   */
+  outcome?: ClientEvidence;
 }
+
+/**
+ * Un chiffre affichable sur une fiche de réalisation : sa valeur, son unité, sa source et
+ * sa date de relevé.
+ *
+ * C'est la forme d'appel de `<Num source asOf>` (`@ds`), rendue obligatoire par le type :
+ * AD-5 pose que « un nombre en monospace vient de la base ou d'une source citée », et que
+ * celui qui ne peut pas citer la sienne ne s'affiche pas. Un chiffre de réalisation ne vient
+ * d'aucune base — il vient donc forcément d'une citation, d'où `cite` en champ requis.
+ */
+export interface ClientEvidence {
+  value: number;
+  /** Clé i18n de l'unité, sous `units.<clé>` du namespace `realisations`. */
+  unitKey: string;
+  /** La source, telle qu'elle s'affichera au survol du nombre. */
+  cite: string;
+  /** Date du relevé, en ISO `AAAA-MM-JJ`. */
+  asOf: string;
+}
+
+/**
+ * CE QUE L'ACCORD DE PUBLICATION COUVRE — et ce qu'il ne couvre pas.
+ *
+ * Les accords clients ont été obtenus ; leur périmètre était écrit en tête de
+ * `src/pages/Agence.tsx`, page supprimée par la refonte en deux pistes : « ces produits
+ * appartiennent à leurs clients. La page nomme le
+ * rôle tenu et donne un lien qu'on peut ouvrir. Aucun résultat, aucun chiffre de croissance,
+ * aucun témoignage — les interdits du § 13 ne dépendaient pas de l'accord. »
+ *
+ * Cette phrase vivait dans un commentaire, donc nulle part : aucune surface ne pouvait la
+ * rendre, et rien n'empêchait une fiche d'afficher plus que ce qui est autorisé. Les deux
+ * listes ci-dessous en font une donnée — `/conception/realisations/:slug` les rend, et la
+ * mention d'autorisation cesse d'être une promesse tenue par la discipline de qui écrit.
+ *
+ * Les libellés vivent en i18n (`authorization.granted.*` / `authorization.withheld.*`) ;
+ * ici ne vit que le FAIT.
+ */
+export type ClientPublicationGranted = 'name' | 'role' | 'stack' | 'liveLink';
+export type ClientPublicationWithheld = 'results' | 'growthFigures' | 'testimonials' | 'contractTerms';
+
+export const CLIENT_PUBLICATION_GRANTED: readonly ClientPublicationGranted[] = [
+  'name',
+  'role',
+  'stack',
+  'liveLink',
+];
+
+export const CLIENT_PUBLICATION_WITHHELD: readonly ClientPublicationWithheld[] = [
+  'results',
+  'growthFigures',
+  'testimonials',
+  'contractTerms',
+];
 
 /**
  * Mention affichée sur les cartes client, en opposition à `VENTURE_RELATION`.
@@ -234,8 +324,13 @@ export function getClientProject(slug: string): ClientProject | undefined {
 }
 
 /**
- * Convertit une `category` (stockée en français) en clé i18n stable,
- * sous `work.categories.<clé>` du namespace `agency`.
+ * Convertit une `category` (stockée en français) en clé i18n stable, sous
+ * `realisations.categories.<clé>` du namespace `shared`.
+ *
+ * ⚠️ Les deux copies précédentes — `realisations:categories.*` et `conception:work.categories.*`
+ * — portaient les sept mêmes paires clé/valeur à l'octet près. `shared` est un namespace
+ * toujours chargé : la page mère de la piste peut donc lire les libellés sans avoir à déclarer
+ * un namespace paresseux de plus.
  *
  * Les catégories vivent en clair dans les données parce qu'elles décrivent un marché ;
  * l'affichage passe par i18n plutôt que par le service de traduction à l'exécution,

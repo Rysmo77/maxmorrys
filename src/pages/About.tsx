@@ -6,13 +6,14 @@ import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SOCIAL_URLS } from '../components/seo/seo-config';
 import DsNavHost from '../components/layout/DsNavHost';
-import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { GlyphTile, PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
 import { useLocalizedPath } from '../contexts/LanguageContext';
 import { useFormat } from '../hooks/useFormat';
 import { HOUSE_AUTHOR_FULL_NAME, portrait } from '../lib/author';
 import { CHAPTERS, DECLARED_AT, MILESTONE_PROOFS, MILESTONE_UNPROVABLE } from '../lib/about/milestones';
 import {
-  legalEntity, pillars, PLATFORM_OPENED_AT, podcastPlatform, practices, publicProfiles,
+  legalEntity, legalName, pillars, PLATFORM_OPENED_AT, podcastPlatform, positioning, practices,
+  publicProfiles,
 } from '../lib/brand';
 import { getPublicCounts, type PublicCounts } from '../lib/firestore';
 import { queryKeys } from '../lib/queryClient';
@@ -69,11 +70,26 @@ import { queryKeys } from '../lib/queryClient';
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-/** Les trois panneaux de « Ce que je fais ». Une teinte de territoire chacun, jamais un hex. */
-const DOES: { key: 'Train' | 'Publish' | 'Support'; glyph: IconName; tint: string; ink: string }[] = [
-  { key: 'Train', glyph: 'book', tint: 'var(--mm-bleu)', ink: 'var(--mm-bleu)' },
-  { key: 'Publish', glyph: 'list', tint: 'var(--mm-orange)', ink: 'var(--mm-orange-t)' },
-  { key: 'Support', glyph: 'bars', tint: 'var(--mm-teal)', ink: 'var(--mm-teal-t)' },
+/**
+ * LES DEUX PISTES, ET LE PONT VERS CHACUNE (CDC § 4.4).
+ *
+ * La section disait « Je forme · Je publie · J'accompagne » — trois verbes qui recoupaient les
+ * deux pistes sans en nommer aucune : « J'accompagne » couvrait à la fois les commerces
+ * (conception) et le Club (apprendre), et rien sur cette page ne disait qu'il y a DEUX façons
+ * de travailler avec moi. Deux panneaux, donc, un par piste, et chacun porte son pont.
+ *
+ * L'ordre est celui du CDC — conception d'abord — et les deux panneaux sont de même dessin :
+ * même géométrie, même `GlyphTile` de 38 px, même bouton fantôme. Aucun des deux n'est
+ * l'appoint de l'autre.
+ *
+ * ⚠️ LE CORAIL DE CONCEPTION N'EST PAS UN CHOIX ESTHÉTIQUE. La piste vit hors des quatre
+ * verbes — `universeFromPath('/conception')` rend l'univers `agency` — et le teal est réservé
+ * à son seul étage productisé, `/conception/commerces-et-tpe`. Le corail plein fait 2,70:1 et
+ * ne porte jamais de texte : c'est sa variante `-t` qui encre le glyphe (AD-20).
+ */
+const PISTES: { key: 'Conception' | 'Apprendre'; glyph: IconName; tint: string; ink: string; to: string }[] = [
+  { key: 'Conception', glyph: 'globe', tint: 'var(--mm-corail)', ink: 'var(--mm-corail-t)', to: '/conception' },
+  { key: 'Apprendre', glyph: 'book', tint: 'var(--mm-bleu)', ink: 'var(--mm-bleu)', to: '/apprendre' },
 ];
 
 /**
@@ -113,6 +129,13 @@ function SiteSlot({
 
 export default function About() {
   const { t } = useTranslation('about');
+  /* Les six libellés de destination sont partagés (`common:cta.*`) : « Voir la piste
+     Conception », « Voir les formations » et leurs jumeaux étaient écrits au caractère près
+     ici ET dans `home.json`. Un libellé recopié dérive ; une porte n'a qu'un nom. */
+  const { t: tc } = useTranslation('common');
+  /* Le texte alternatif du portrait est unique : la MÊME photographie est servie ici et sur
+     l'accueil, et deux descriptions de la même image finissent par ne plus décrire la même. */
+  const { t: tShared } = useTranslation('shared');
   const path = useLocalizedPath();
   const { formatDate, formatMonth } = useFormat();
 
@@ -221,7 +244,7 @@ export default function About() {
                 {t('page.ctaContact')}
               </Button>
               <Button href={path('/formations')} tone="ghost" fullWidth={false}>
-                {t('page.ctaFormations')}
+                {tc('cta.formations')}
               </Button>
             </div>
           </div>
@@ -250,7 +273,7 @@ export default function About() {
                du chapô et des deux boutons, tous alignés à gauche : entre 700 et 1080 px, le
                portrait flottait seul au milieu d'une pile ferrée à gauche. La marge de
                `<figure>` est déjà remise à zéro par le préflet Tailwind. */
-            className="rv-s w-full max-w-[380px] rounded-xl p-[14px]"
+            className="rv-s w-full max-w-[380px] rounded-card p-[14px]"
             style={{
               background:
                 'linear-gradient(150deg,var(--mm-orange-c),var(--mm-rose-c) 48%,var(--mm-violet-c))',
@@ -266,13 +289,13 @@ export default function About() {
               sizes="352px"
               width={portrait.width}
               height={portrait.height}
-              alt={t('page.portraitAlt')}
+              alt={tShared('portrait.alt')}
               /* Le portrait est au-dessus de la ligne de flottaison : ni `lazy`, ni différé.
                  `fetchPriority` le sort de la file d'attente des images ordinaires — il entre
                  en concurrence avec la police d'affichage, et c'est lui qu'on veut d'abord. */
               fetchPriority="high"
               decoding="async"
-              className="block w-full rounded-[18px] object-cover"
+              className="block w-full rounded-xs object-cover"
               /* La proportion en style plutôt qu'en classe : sans elle, `w-full` laisserait
                  l'image retomber sur ses 800 × 1000 intrinsèques et casserait le cadre. */
               style={{ aspectRatio: '4 / 5' }}
@@ -281,25 +304,36 @@ export default function About() {
         </div>
       </PageSite>
 
-      {/* ── 2 · Ce que je fais, concrètement ─────────────────────────────────── */}
+      {/* ── 2 · Les deux pistes, et ce que j'y fais ──────────────────────────── */}
       <SiteBand>
         <SiteDisplay as="h2" lines={t('page.doesTitle', { returnObjects: true }) as string[]} size={34} />
-        <div className="mt-6 grid gap-4 stack:grid-cols-3">
-          {DOES.map((item, i) => (
-            <GlassPanel level="flat" padding={24} key={item.key} className="rv" style={{ ['--i' as string]: i + 1 }}>
-              <span
-                aria-hidden="true"
-                className="grid h-[38px] w-[38px] place-items-center rounded-[12px]"
-                style={{ background: `color-mix(in srgb, ${item.tint} 16%, transparent)` }}
-              >
-                <Icon name={item.glyph} size={19} color={item.ink} />
-              </span>
+        <p
+          className="mm-prose rv mt-[11px] max-w-[58ch] text-[15.5px] leading-[1.6] text-ink-2"
+          style={{ ['--i' as string]: 1 }}
+        >
+          {t('page.doesLede')}
+        </p>
+        <div className="mt-6 grid gap-4 stack:grid-cols-2">
+          {PISTES.map((item, i) => (
+            <GlassPanel level="flat" padding={24} key={item.key} className="rv" style={{ ['--i' as string]: i + 2 }}>
+              {/* La pastille passait par une géométrie écrite à la main — 38 px de côté,
+                  rayon 12, voile à 16 %. `GlyphTile` DÉRIVE son rayon de son côté
+                  (0,32 × 38 = 12) : la valeur cesse d'être une constante à retaper, et la
+                  jumelle de `/contact`, qui avait dérivé à 34/10, rentre dans la famille. */}
+              <GlyphTile icon={item.glyph} size={38} tint={item.tint} ink={item.ink} />
               <p className="mt-[13px] mb-0 font-display text-[18px] font-black tracking-[-.03em] text-ink">
                 {t(`page.does${item.key}Title`)}
               </p>
-              <p className="mm-prose mt-2 mb-0 max-w-[42ch] text-[14px] leading-[1.55] text-ink-2">
+              <p className="mm-prose mt-2 mb-0 max-w-[46ch] text-[14px] leading-[1.55] text-ink-2">
                 {t(`page.does${item.key}Body`)}
               </p>
+              {/* LE PONT. Il vit DANS le panneau de sa piste : une rangée de deux boutons sous
+                  la grille aurait demandé au lecteur de refaire l'appariement lui-même. */}
+              <div className="mt-4">
+                <Button href={path(item.to)} tone="ghost" size="sm" fullWidth={false}>
+                  {tc(item.key === 'Conception' ? 'cta.pisteConception' : 'cta.pisteApprendre')}
+                </Button>
+              </div>
             </GlassPanel>
           ))}
         </div>
@@ -422,7 +456,7 @@ export default function About() {
                       >
                         <span
                           aria-hidden="true"
-                          className="absolute left-[-29px] top-[5px] h-3 w-3 rounded-full"
+                          className="absolute left-[-29px] top-[5px] h-3 w-3 rounded-pill"
                           style={{ background: 'var(--surface-page)', border: '2.5px solid var(--mm-orange)' }}
                         />
                         <p className="m-0 flex flex-wrap items-baseline gap-x-[6px] text-[11px] text-ink-2">
@@ -475,9 +509,23 @@ export default function About() {
       {/* ── 4 · Où tout ça se range — l'arbre de marque ──────────────────────── */}
       <SiteBand>
         <SiteDisplay as="h2" lines={t('page.treeTitle', { returnObjects: true }) as string[]} size={34} />
+        {/*
+          LA PHRASE QUI RANGE LES DEUX NOMS (CDC § 4.4), et les deux noms n'y sont PAS retapés.
+
+          `positioning.name` et `legalName` viennent de `lib/brand/company.ts`, le module qui
+          porte l'avis d'immatriculation. Une raison sociale recopiée dans un catalogue de
+          traduction se désynchronise du jour où l'entité change de forme — en silence, et dans
+          deux langues à la fois, sur la page dont le métier est justement d'être vérifiable.
+        */}
         <p
-          className="mm-prose rv mt-[10px] max-w-[60ch] text-[15.5px] leading-[1.6] text-ink-2"
+          className="mm-prose rv mt-[10px] max-w-[62ch] text-[15.5px] leading-[1.6] text-ink"
           style={{ ['--i' as string]: 1 }}
+        >
+          {t('page.treeSentence', { brand: positioning.name, company: legalName })}
+        </p>
+        <p
+          className="mm-prose rv mt-[10px] max-w-[62ch] text-[15.5px] leading-[1.6] text-ink-2"
+          style={{ ['--i' as string]: 2 }}
         >
           {t('page.treeLede')}
         </p>
@@ -490,7 +538,7 @@ export default function About() {
               key={branch.name}
               className="rv"
               style={{
-                ['--i' as string]: i + 2,
+                ['--i' as string]: i + 3,
                 borderColor: branch.accent ? 'color-mix(in srgb, var(--mm-corail) 32%, transparent)' : undefined,
               }}
             >
@@ -510,7 +558,7 @@ export default function About() {
         </div>
 
         {/* Les trois faits corporate. Ils viennent de `legalEntity`, qui porte les pièces. */}
-        <GlassPanel level="flat" padding={22} className="rv mt-[18px]" style={{ ['--i' as string]: 5 }}>
+        <GlassPanel level="flat" padding={22} className="rv mt-[18px]" style={{ ['--i' as string]: 6 }}>
           <div className="grid gap-6 stack:grid-cols-3">
             <div>
               <p className="m-0 text-[12.5px] text-ink-2">{t('page.treeRegistered')}</p>

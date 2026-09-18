@@ -1,129 +1,46 @@
 {
   "hero": {
-    "eyebrow": "Bonjour, moi c'est Max-Morrys",
+    "eyebrow": "Dakar · Sénégal",
     "titleLines": [
-      "JE TE FORME",
-      "AU [DIGITAL].",
-      "DEPUIS DAKAR."
+      "MAX-MORRYS,",
+      "CONCEPTION [WEB]",
+      "ET FORMATION."
     ],
-    "lede": "SEO, marketing et intelligence artificielle, expliqués pour le marché ouest-africain. Tu paies avec Wave, Orange Money ou avec ta carte, en francs CFA.",
-    "ctaCourses": "Voir les formations",
-    "ctaBlog": "Lire le blog",
-    "ctaBlogCount_one": "Lire le blog — {{count}} article",
-    "ctaBlogCount_other": "Lire le blog — {{count}} articles",
-    "truthTitle": "Ce que je n'affiche pas",
-    "truthBody": "Ni note, ni nombre d'élèves, ni taux de réussite, ni chiffre d'affaires. La plateforme vient d'ouvrir. Ce que je peux prouver est sur chaque fiche."
+    "lede": "Je conçois des sites et des plateformes web, et je forme au digital — référencement, marketing, intelligence artificielle. Je travaille seul, depuis Dakar, pour le marché ouest-africain. Ce qui s'achète ici se paie en francs CFA, avec Wave, Orange Money ou une carte.",
+    "cta": "Qui je suis, en entier"
   },
-  "territories": {
-    "formeMeta": "SEO, marketing, IA",
-    "formeLabel": "publiée",
-    "informeMeta": "Blog gratuit",
-    "informeLabel": "articles",
-    "transformeMeta": "Podcast, vidéos, Club",
-    "transformeLabel": "médias",
-    "digitaliseMeta": "Commerces de proximité",
-    "digitaliseLabel": "packs",
-    "footForme_one": "formation",
-    "footForme_other": "formations",
-    "footInforme_one": "article publié",
-    "footInforme_other": "articles publiés",
-    "footTransforme_one": "média",
-    "footTransforme_other": "médias",
-    "footDigitalise_one": "pack",
-    "footDigitalise_other": "packs",
-    "footFrom": "dès",
-    "footPerMonth": "F/mois",
-    "digitaliseCite": "catalogue de l'offre"
-  },
-  "me": {
-    "eyebrow": "Formateur · consultant · Dakar",
+  "pistes": {
     "titleLines": [
-      "Je suis Max-Morrys.",
-      "Une seule personne."
+      "Deux pistes,",
+      "et elles ne se ressemblent pas."
     ],
-    "lede": "Formateur, consultant et créateur de contenu digital, basé à Dakar. J'écris les articles, je monte les formations, j'anime le Club, et je réponds aux messages.",
-    "alone": "Il n'y a personne d'autre derrière cette plateforme.",
-    "portraitAlt": "Max-Morrys",
-    "c1Title": "Je forme",
-    "c1Body": "Des formations sur le référencement local et l'IA appliquée à la prospection. Écrites, filmées et corrigées par moi.",
-    "c2Title": "Je publie",
-    "c2Body": "Un blog, un podcast, des vidéos. En français, avec des exemples pris ici et pas ailleurs.",
-    "c3Title": "J'accompagne",
-    "c3Body": "Des commerces de proximité que je rends trouvables en ligne, et des projets sur mesure côté Agency.",
-    "cta": "Mon parcours en entier"
+    "lede": "L'une se fait pour toi, l'autre se fait par toi. Aucune des deux n'est l'antichambre de l'autre : tu peux n'en emprunter qu'une, et ne jamais croiser la seconde.",
+    "conceptionTitle": "Conception",
+    "conceptionMeta": "Commerces et TPE · Projets sur mesure · Réalisations",
+    "conceptionBody": "La piste des sites et des plateformes web, à deux niveaux d'engagement : une offre au forfait pour les commerces et les TPE, et un cadrage sur mesure pour les projets plus larges. Les réalisations s'y consultent.",
+    "apprendreTitle": "Apprendre",
+    "apprendreMeta": "Formations · Blog · Podcast et vidéos · Club des Digitos",
+    "apprendreBody": "Tu apprends à le faire toi-même : référencement local, marketing, IA appliquée. Le blog, le podcast et les vidéos s'ouvrent sans compte et sans rien payer."
   },
-  "all": {
+  "proof": {
     "titleLines": [
-      "Tout ce que tu peux",
-      "faire ici."
+      "Ce que j'ai publié,",
+      "et à quelle date."
     ],
-    "lede": "Six portes, du gratuit au sur-mesure. Chacune annonce son prix avant que tu cliques.",
-    "formationsTitle": "Les formations",
-    "formationsMeta": "SEO, marketing, IA — accès à vie",
-    "blogTitle": "Le blog",
-    "blogMeta": "Ce que j'écris chaque semaine",
-    "mediaTitle": "Podcast & vidéos",
-    "mediaMeta": "Des gens d'ici racontent ce qu'ils ont fait",
-    "clubTitle": "Le Club des Digitos",
-    "clubMeta": "Une année, en groupe fermé",
-    "presenceTitle": "Présence Digitale",
-    "presenceMeta": "Pour les commerces de proximité",
-    "agencyTitle": "Max-Morrys Agency",
-    "agencyMeta": "Product · AI · Technology · Brand",
-    "agencyFoot": "Sur cadrage écrit, sans grille publique",
-    "footFree": "gratuit, sans compte",
-    "footOnce": "paiement unique"
+    "lede": "Un seul fait est relevé ici, et il est lu en base au moment où cette page s'affiche : la date de ma dernière publication. Rien sur l'audience, rien que je ne puisse rouvrir devant toi.",
+    "lastLabel": "Dernière publication",
+    "lastNone": "rien encore publié",
+    "truthTitle": "Où sont les chiffres",
+    "truthBody": "Le décompte de ce que j'ai publié — articles, épisodes, vidéos, formations — est relevé en base, avec sa date, sur la page « Je suis Max-Morrys ». L'accueil n'en garde que la date de la dernière parution. Ni abonnés, ni vues, ni nombre d'élèves nulle part : je n'ai rien d'honnête à en dire."
   },
-  "why": {
-    "title": [
-      "Pourquoi ici, et pas ailleurs."
-    ],
-    "r1Title": "Tu paies comme tu paies déjà",
-    "r1Body": "Wave, Orange Money ou ta carte, en francs CFA. La carte reste facultative, pas de conversion, pas de compte à l'étranger.",
-    "r2Title": "Les exemples sont d'ici",
-    "r2Body": "« Cosmétique Almadies », pas « organic skincare Brooklyn ». Ce que tapent tes clients, dans les mots qu'ils emploient.",
-    "r3Title": "Pensé pour un forfait compté",
-    "r3Body": "Le poids de chaque vidéo est annoncé avant que tu la lances. Toutes les leçons ont une transcription qui ne coûte rien."
-  },
-  "presence": {
-    "eyebrow": "Tu as un commerce ?",
+  "latest": {
     "titleLines": [
-      "Je le digitalise",
-      "pour toi."
-    ],
-    "desc": "Tu n'as pas le temps d'apprendre tout ça ? Je m'en charge. Site, fiche Google, catalogue WhatsApp, mesure des résultats — je les installe et je les pilote pour ton commerce.",
-    "cta": "Voir les packs et les tarifs",
-    "from": "dès",
-    "once": "paiement unique, à l'installation",
-    "cite": "catalogue de l'offre",
-    "points": {
-      "foundTitle": "Être trouvé",
-      "foundBody": "Sur Google Maps, quand on cherche ton métier dans ton quartier.",
-      "presentTitle": "Présenter",
-      "presentBody": "Ton site et tes produits commandables sur WhatsApp.",
-      "convertTitle": "Convertir",
-      "convertBody": "Des boutons qui transforment un visiteur en message.",
-      "measureTitle": "Mesurer",
-      "measureBody": "Savoir enfin ce que ta présence en ligne te rapporte."
-    }
-  },
-  "free": {
-    "title": [
-      "Commence gratuitement."
+      "Les trois dernières",
+      "publications."
     ],
     "all": "Tout le blog",
-    "empty": "Rien n'est encore publié ici. Le blog ouvre le premier — c'est le seul endroit où j'écris toutes les semaines.",
     "metaArticle": "Article · gratuit",
-    "metaPodcast": "Podcast · gratuit",
-    "metaCourse": "Module d'ouverture · gratuit"
-  },
-  "end": {
-    "titleLines": [
-      "Par où tu commences,",
-      "c'est toi qui vois."
-    ],
-    "lede": "Le blog est ouvert, sans compte et sans rien à payer. Pour tout le reste, écris-moi : c'est moi qui réponds.",
-    "ctaCourses": "Voir les formations",
-    "ctaContact": "Écris-moi"
+    "metaEpisode": "Épisode · gratuit",
+    "empty": "Rien n'est encore publié ici. Le blog ouvre le premier : il se lit sans compte et sans rien payer."
   }
 }

@@ -106,7 +106,7 @@ export default function PresenceDevis() {
           <p className="mm-prose mt-4 max-w-[46ch] text-[15px] leading-[1.6] text-ink-2">
             {t('quote.notFound.text')}
           </p>
-          <Button href={path('/presence-digitale')} tone="digitalise" size="sm" fullWidth={false} className="mt-5">
+          <Button href={path('/conception/commerces-et-tpe')} tone="digitalise" size="sm" fullWidth={false} className="mt-5">
             {t('quote.notFound.cta')}
           </Button>
         </PageSite>
@@ -144,7 +144,7 @@ export default function PresenceDevis() {
   const packFeatures = pack ? (t(`packs.${quote.pack}.features`, { returnObjects: true }) as string[]) : [];
   const planFeatures = plan ? (t(`plans.${quote.plan}.features`, { returnObjects: true }) as string[]) : [];
 
-  const quotePath = path(`/presence-digitale/devis/${quote.ref}`);
+  const quotePath = path(`/conception/commerces-et-tpe/devis/${quote.ref}`);
   const quoteUrl = `${SITE_URL}${quotePath}`;
   const whatsappHref = whatsappUrl(`${t('whatsapp.quoteIntro')} ${quote.ref} — ${quote.businessName}`);
 
@@ -377,7 +377,7 @@ export default function PresenceDevis() {
           </p>
 
           <Button
-            href={path('/presence-digitale')}
+            href={path('/conception/commerces-et-tpe')}
             tone="quiet"
             size="sm"
             fullWidth={false}

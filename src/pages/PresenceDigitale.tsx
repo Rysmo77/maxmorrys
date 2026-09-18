@@ -5,6 +5,8 @@ import {
 } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
+import { ConceptionSubNav } from '../components/navigation/PisteSubNav';
+import LocalizedLink from '../components/shared/LocalizedLink';
 import MapsProof from '../components/presence/MapsProof';
 import PackSelector from '../components/presence/PackSelector';
 import StickyWhatsApp from '../components/presence/StickyWhatsApp';
@@ -121,6 +123,9 @@ const UNIT_SUFFIX: Record<string, string | undefined> = {
 
 export default function PresenceDigitale() {
   const { t } = useTranslation('presence');
+  /* Les six libellés partagés entre les pistes vivent dans `common:cta`. Les deux portes de
+     cette page vers « projets sur mesure » les recopiaient chacune, mot pour mot. */
+  const { t: tc } = useTranslation('common');
   const { formatPrice, formatApprox, locale } = useFormat();
 
   /*
@@ -179,7 +184,10 @@ export default function PresenceDigitale() {
         name: t('seoTitle'),
         description: t('seoDescription'),
         areaServed: 'Afrique de l\'Ouest',
-        url: `${SITE_URL}/presence-digitale`,
+        /* L'URL du service suit la langue ET la nouvelle adresse de la piste : elle était
+           écrite en dur sur `/presence-digitale`, qui n'est plus qu'une redirection. Un
+           `url` qui renvoie vers un 301 fait décrire au balisage une page qui n'existe plus. */
+        url: `${SITE_URL}${path('/conception/commerces-et-tpe')}`,
         /*
           Les trois packs sont des offres au sens de schema.org — un prix, une devise, une
           disponibilité. Aucun `aggregateRating` : le produit n'a pas d'avis collectés, et en
@@ -198,6 +206,44 @@ export default function PresenceDigitale() {
       }} />
 
       <PageSite>
+        {/* La sous-navigation de la piste Conception. Elle est DANS le `PageSite` et non
+            autour : c'est une primitive de PAGE, cf. l'en-tête de `SubNav.tsx`. */}
+        <ConceptionSubNav active="commerces" />
+
+        {/* ── LE BANDEAU DE SEGMENT — UNE LIGNE, ET ELLE TRAVAILLE POUR DEUX PUBLICS ──
+            Cette page tutoie, chiffre en francs CFA et parle de boutiques de quartier. C'est
+            voulu et ça ne change pas ; mais le visiteur qui cherche une plateforme d'entreprise
+            arrive désormais ici par la piste Conception, et rien ne lui disait qu'il s'était
+            trompé d'étage. Le bandeau NOMME le segment, puis donne la sortie — sans la sortie
+            il ne ferait qu'éconduire, ce qui coûte le contact au lieu de l'orienter.
+
+            Il se pose AVANT le héros, parce qu'il est lu par quelqu'un qui vient d'arriver et
+            qui n'a pas encore décidé s'il lit la suite. En pied, il arriverait après le doute.
+
+            ⚠️ ET IL NE POSE PLUS DE QUESTION. Il en posait une — « Un projet d'entreprise à
+            construire ? » — et le pont du bas de page en posait une jumelle, avec le MÊME
+            bouton vers la MÊME destination. La distinction que défend le commentaire du pont
+            est juste (ici on éconduit à l'arrivée, là-bas on suit un besoin qui a grandi en
+            lisant), mais deux questions identiques ne la portent pas : elles se lisent comme
+            un doublon. Le bandeau redevient donc un PANNEAU INDICATEUR — il nomme ce qui se
+            trouve à l'autre étage, sans rien demander. La question reste au pont, une fois.
+
+            ⚠️ LES TROIS VILLES NOMMENT UN MARCHÉ, PAS DES BUREAUX. C'est déjà ce que le miroir
+            SEO sert aux robots (`worker/apps/site/src/prerender/static-pages.ts` : « les
+            commerces de Dakar, Abidjan et Cotonou ») ; la seule adresse du dépôt est Dakar
+            (`src/lib/brand/company.ts`). Le libellé dit « offre » et doit le rester : écrire
+            une implantation à Abidjan ou à Cotonou serait une affirmation que rien ne soutient. */}
+        <div className="mb-6 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-[color:var(--border-hair)] pb-3 text-meta-2 leading-[1.5]">
+          <span className="font-bold text-ink">{t('segmentBand.label')}</span>
+          <span className="text-ink-3">{t('segmentBand.switch')}</span>
+          <LocalizedLink
+            to="/conception/projets-sur-mesure"
+            className="mm-touch-extend font-semibold text-digitalise-txt underline underline-offset-2"
+          >
+            {tc('cta.projetsSurMesure')}
+          </LocalizedLink>
+        </div>
+
         {/* ── HÉROS — 1.05fr .95fr, la PREUVE posée à côté du titre ──
             L'aside portait l'encart de prix. Il porte maintenant le test Google Maps, et
             l'échange n'est pas une préférence de mise en page : le titre affirme « ils
@@ -354,7 +400,14 @@ export default function PresenceDigitale() {
             ressortir de la gouttière de 40 px, là où les onze autres sont déjà de premier
             niveau et n'ont rien à annuler. */}
         <SiteBand bleed className="mm-section">
-          <SiteDisplay as="h2" lines={[t('packs.title')]} size={34} />
+          {/*
+            AD-13 : les COUPURES sont écrites, pas calculées — et `SiteDisplay` rend chaque
+            ligne en `nowrap`. Mesuré à 375 px le 18/09/2026 : la chaîne d'un seul tenant
+            réclamait 359 px dans une colonne de 339, et poussait la fenêtre.
+            `packs.title` reste plat : il sert de `name` au balisage `Offer`, qui ne veut
+            pas de lignes.
+          */}
+          <SiteDisplay as="h2" lines={t('packs.titleLines', { returnObjects: true }) as string[]} size={34} />
           <p className="rv mt-[10px] max-w-[56ch] text-meta leading-[1.6] text-ink-2" style={{ ['--i' as string]: 1 }}>
             {t('packs.subtitle')}
           </p>
@@ -646,16 +699,25 @@ export default function PresenceDigitale() {
             légale. Or c'est la position de la page tout entière, et le kit porte le composant
             qui la dit — `TruthPanel`, deux moitiés, déjà en service sur six écrans du Club.
 
-            « Ce que je peux te prouver » n'était pas écrit faute de matière. La matière est
-            là : une grille datée, une recherche que le visiteur a lancée lui-même, un devis
-            qui relit la grille à chaque ouverture. Trois choses vérifiables par lui, depuis
-            son téléphone. C'est ce qui autorise l'autre moitié à refuser les étoiles. */}
+            La moitié positive n'était pas écrite faute de matière. La matière est là : une
+            grille datée, une recherche que le visiteur a lancée lui-même, un devis qui relit
+            la grille à chaque ouverture. Trois choses vérifiables par lui, DEPUIS SON
+            TÉLÉPHONE — et c'est exactement ce que son sourcil dit maintenant, au lieu du
+            « Ce que je peux te prouver » générique qui coiffait aussi trois autres panneaux
+            du site. C'est ce qui autorise l'autre moitié à refuser les étoiles.
+
+            ⚠️ C'EST LE SEUL PANNEAU DE VÉRITÉ DE CETTE PAGE, et c'est une invariante à tenir :
+            deux autres surfaces portaient le voile `truth` sans rien retenir — le
+            récapitulatif du formulaire et le pont vers l'autre étage. Les deux sont passées à
+            `flat`. Une surface qui désigne tout ne désigne plus rien. */}
         <div className="mm-section">
           {/* Le titre de section ne REPREND pas l'un des deux sourcils du panneau — il les
-              encadre. `TruthPanel` porte déjà « Ce que je peux te prouver » et « Ce que je
-              n'affiche pas » en `mm-eyebrow` : un h2 qui répète le premier mot pour mot
-              donnait le même titre deux fois de suite, à deux tailles différentes. */}
-          <SiteDisplay as="h2" lines={[t('truth.sectionTitle')]} size={34} />
+              encadre. `TruthPanel` porte déjà les deux en `mm-eyebrow` : un h2 qui répète le
+              premier mot pour mot donnait le même titre deux fois de suite, à deux tailles
+              différentes. */}
+          {/* Même mesure : 356 px demandés dans 339 en anglais. La chaîne plate reste pour
+              ce qui n'accepte pas de lignes. */}
+          <SiteDisplay as="h2" lines={t('truth.sectionTitleLines', { returnObjects: true }) as string[]} size={34} />
           <div className="rv mt-4 mm-prose" style={{ ['--i' as string]: 2 }}>
             <TruthPanel
               provenTitle={t('truth.provenTitle')}
@@ -694,7 +756,12 @@ export default function PresenceDigitale() {
               listes déroulantes ferait passer une déduction pour une question ; les cacher
               sans les montrer serait pire. Ils sont donc ÉCRITS, et modifiables d'un clic.
             */}
-            <GlassPanel level="truth" className="rv mt-5" style={{ ['--i' as string]: 3 }}>
+            {/* `flat`, et surtout pas `truth` : la surface de vérité DÉSIGNE quelque chose sur
+                cette page — le panneau juste au-dessus, celui qui nomme ce qui se vérifie et
+                ce qui ne s'affiche pas. Ce bloc-ci relit les choix du visiteur ; le peindre du
+                même voile faisait passer un récapitulatif de formulaire pour une preuve, et
+                diluait la seule surface à qui cette page confie ce rôle. */}
+            <GlassPanel level="flat" className="rv mt-5" style={{ ['--i' as string]: 3 }}>
               <SiteEyebrow style={{ marginBottom: '6px' }}>{t('form.knownLabel')}</SiteEyebrow>
               <div className="grid gap-[2px]">
                 <DocLine label={t('form.sector')} value={t(`form.sectors.${q.form.sector}`)} />
@@ -732,7 +799,7 @@ export default function PresenceDigitale() {
                     {t('success.whatsappCta')}
                   </Button>
                   {q.quoteRef && (
-                    <Button href={path(`/presence-digitale/devis/${q.quoteRef}`)} tone="ghost">
+                    <Button href={path(`/conception/commerces-et-tpe/devis/${q.quoteRef}`)} tone="ghost">
                       {t('success.viewQuote')}
                     </Button>
                   )}
@@ -986,13 +1053,26 @@ export default function PresenceDigitale() {
           </div>
         </div>
 
-        {/* ── LA PASSERELLE VERS L'AGENCE — l'autre offre, nommée, pas cachée ── */}
-        <GlassPanel level="truth" className="mm-section">
+        {/* ── LA PASSERELLE VERS L'AUTRE ÉTAGE DE LA PISTE — l'autre offre, nommée, pas cachée ──
+            Elle visait `/agence`, qui n'est plus qu'une redirection vers `/conception`. La
+            destination juste est l'étage FRÈRE, pas l'index : la phrase parle d'un produit à
+            construire, et c'est exactement ce que porte « projets sur mesure ».
+
+            Elle ne fait pas doublon avec le bandeau de segment du haut : le bandeau éconduit
+            quelqu'un qui s'est trompé de page, celle-ci s'adresse à quelqu'un qui a tout lu et
+            dont le besoin a grandi en chemin. C'est elle qui garde la QUESTION, parce qu'elle
+            est la seule des deux à être lue par quelqu'un en état de se la poser ; le bandeau,
+            lui, est passé au constat.
+
+            `flat` et non `truth` : un pont vers l'autre étage de la piste n'est pas une vérité
+            retenue. Sur cette page, la surface de vérité ne désigne plus qu'une chose — le
+            panneau qui nomme ce qui se vérifie et ce qui ne s'affiche pas. */}
+        <GlassPanel level="flat" className="mm-section">
           <SiteEyebrow style={{ marginBottom: '6px' }}>{t('agencyBridge.title')}</SiteEyebrow>
           <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('agencyBridge.body')}</p>
           <div className="mt-3">
-            <Button href={path('/agence')} tone="quiet" size="sm" fullWidth={false}>
-              {t('agencyBridge.cta')}
+            <Button href={path('/conception/projets-sur-mesure')} tone="quiet" size="sm" fullWidth={false}>
+              {tc('cta.projetsSurMesure')}
             </Button>
           </div>
         </GlassPanel>

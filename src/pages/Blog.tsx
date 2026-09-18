@@ -497,8 +497,12 @@ export default function Blog() {
               <b className="text-[14px]">{t('index.alert')}</b>
               <Button href={path('/inscription')} tone="quiet" size="sm" fullWidth={false}>{t('index.alertAction')}</Button>
             </div>
-            {/* La contrainte, nommée. Ne jamais promettre un canal que le produit n'a pas. */}
-            <p className="mt-2 mb-0 text-small leading-[1.5] text-ink-2">{t('index.noEmail')}</p>
+            {/*
+              LA PHRASE QUI VIVAIT ICI EST CELLE DU PIED DE PAGE, MOT POUR MOT.
+              Le pied est rendu sur toutes les routes, celle-ci comprise : un visiteur de
+              `/blog` lisait donc deux fois la même phrase sur un seul écran, à trois cents
+              pixels d'écart. La contrainte reste nommée — elle l'est en bas, une fois.
+            */}
           </GlassPanel>
         </div>
       </SiteBand>

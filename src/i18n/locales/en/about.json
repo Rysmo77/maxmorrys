@@ -1,7 +1,7 @@
 {
   "seo": {
-    "title": "Max-Morrys Eyoum — Marketing & Growth Manager | AI, Automation, Web Platforms",
-    "description": "Hybrid marketing-tech profile based in Dakar: 360° strategy, growth, SEO, AI, automation, full-stack web platforms and partnership management across French-speaking Africa."
+    "title": "Max-Morrys Eyoum — Web design & digital training, from Dakar",
+    "description": "Who I am, my dated journey, what I do on the design track and on the learning track, and how Max-Morrys sits under MY ONOMA."
   },
   "values": {
     "passion": {
@@ -341,26 +341,24 @@
     "ctaAgency": "See Max-Morrys Agency"
   },
   "page": {
-    "eyebrow": "Trainer · consultant · Dakar",
+    "eyebrow": "Web design · Training · Dakar",
     "titleLines": [
       "I'm",
       "[Max-Morrys.]"
     ],
-    "lede": "I help you get a grip on digital marketing, SEO and AI — for French-speaking West Africa, with the means you actually have.",
-    "aloneBody": "Trainer, consultant and digital content creator based in Dakar. I write the articles, I build the courses, I run the Club, and I answer the messages.",
+    "lede": "I design websites and web platforms, and I train people in digital. Two tracks, one person to talk to, from Dakar — for French-speaking West Africa, with the means you actually have.",
+    "aloneBody": "Web designer, trainer and digital content creator based in Dakar. I scope the projects, I write the articles, I build the courses, I run the Club, and I answer the messages.",
     "aloneStrong": "There is nobody else behind this platform.",
     "ctaContact": "Talk to me",
-    "ctaFormations": "See the courses",
     "doesTitle": [
-      "What I do,",
-      "concretely."
+      "The two tracks,",
+      "and what I do on each."
     ],
-    "doesTrainTitle": "I train",
-    "doesTrainBody": "Online courses on local search and on AI applied to prospecting. Written, filmed and corrected by me.",
-    "doesPublishTitle": "I publish",
-    "doesPublishBody": "A free blog, a podcast, videos. All of it in French, with examples taken from here and nowhere else.",
-    "doesSupportTitle": "I support",
-    "doesSupportBody": "Neighbourhood businesses I make findable online, and bespoke projects on the Agency side.",
+    "doesLede": "This site leads to two places, and I don't do the same thing in each.",
+    "doesConceptionTitle": "Design",
+    "doesConceptionBody": "I design and put online the site, the Google listing and the catalogue of a shop, or the platform of an organisation. I scope in writing, I build, I ship, and I stay reachable afterwards.",
+    "doesApprendreTitle": "Learning",
+    "doesApprendreBody": "Online courses on local search and on AI applied to prospecting, a free blog, a podcast, videos and the Digitos Club. Written, filmed and corrected by me.",
     "pathTitle": [
       "The journey."
     ],
@@ -380,12 +378,13 @@
       "Where all this",
       "belongs."
     ],
-    "treeLede": "Max-Morrys is a brand of MY ONOMA SARL. Two other practices sit alongside it, and they don't do the same thing.",
-    "treeLearnBadge": "Track LEARN",
-    "treeLearnBody": "The platform you're reading. Courses, blog, podcast, Club, and the Digital Presence offer for local businesses.",
+    "treeSentence": "{{brand}} is the web design and training brand; {{company}} is the company that contracts marketing-direction engagements.",
+    "treeLede": "So the two names don't cover the same work, and this site only sells the first. Two practices sit alongside it, and they don't do the same thing.",
+    "treeLearnBadge": "This site",
+    "treeLearnBody": "The platform you're reading, and its two tracks: web design on one side, training and media on the other.",
     "treePillarBadge": "{{pillar}} pillar",
-    "treeBuildBody": "Bespoke projects, no public price list, on a written brief. A sister practice, not a catalogue offer.",
-    "treeGrowBody": "Acquisition and growth. If your request belongs there, it gets passed on — never turned away.",
+    "treeBuildBody": "The name under which design engagements are contracted. On this site, the Design track is the door to it.",
+    "treeGrowBody": "Marketing direction, acquisition and revenue. None of it is sold here: if your request belongs there, it goes there — never turned away.",
     "treeRegistered": "Registered",
     "treeSeat": "Head office",
     "treePillars": "Pillars",
@@ -403,7 +402,6 @@
     "closingAfter": "articles. Or write to me directly: I'm the one who reads.",
     "closingBlog": "Read the blog",
     "closingContact": "Talk to me",
-    "portraitAlt": "Max-Morrys Eyoum, waist-up portrait: round glasses, green shirt, arms folded, in a bright interior.",
     "slotFindTitle": "Links to confirm",
     "slotFindBody": "The profiles opposite are declared and verified one by one. What is missing: the listening platform for the podcast, which is declared nowhere.",
     "slotFindStrong": "I'd rather leave it empty than guess an address — and no account shows its follower count.",

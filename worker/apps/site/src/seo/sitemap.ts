@@ -104,8 +104,23 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
    */
   { path: '/club-des-digitos', changefreq: 'monthly', priority: '0.8' },
   { path: '/faq', changefreq: 'monthly', priority: '0.5' },
-  { path: '/agence', changefreq: 'monthly', priority: '0.8' },
-  { path: '/presence-digitale', changefreq: 'monthly', priority: '0.8' },
+  /*
+   * LA PISTE CONCEPTION — ET PAS SES DEUX ANCÊTRES. `/agence` et `/presence-digitale` sont
+   * désormais des 301 (CDC §3.4) : les laisser ici déclarerait deux redirections comme des
+   * pages, ce que Google signale en « page avec redirection » et n'indexe jamais. C'est
+   * exactement ce qui avait été corrigé pour `/podcasts` et `/videos` au-dessus, et
+   * `npm run seo:check` le voit — il demande chaque URL du sitemap et échoue sur un 3xx.
+   *
+   * ⚠️ `/conception/realisations/<slug>` n'est PAS listé : les fiches vivent en base, comme
+   * les articles, et seront poussées par `pushDynamic` quand la collection existera. Une
+   * fiche publiée sans entrée au sitemap n'est pas en erreur, elle est seulement plus lente
+   * à être découverte — la déclarer en dur, elle, mentirait au premier ajout.
+   */
+  { path: '/conception', changefreq: 'monthly', priority: '0.9' },
+  { path: '/conception/commerces-et-tpe', changefreq: 'monthly', priority: '0.8' },
+  { path: '/conception/projets-sur-mesure', changefreq: 'monthly', priority: '0.8' },
+  { path: '/conception/realisations', changefreq: 'monthly', priority: '0.7' },
+  { path: '/apprendre', changefreq: 'weekly', priority: '0.8' },
   { path: '/contact', changefreq: 'monthly', priority: '0.5' },
   /*
    * La vérification d'un code. Elle se cherche depuis un moteur par quelqu'un qui a un

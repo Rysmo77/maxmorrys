@@ -42,8 +42,8 @@ describe('priorité du registre', () => {
 });
 
 describe('règles par page', () => {
-  it('l’aiguilleur ne vit que sur /agence', () => {
-    expect(findEligible(ctx({ path: '/agence' }))?.id).toBe('agencyExit');
+  it('l’aiguilleur ne vit que sur la page mère de la piste Conception', () => {
+    expect(findEligible(ctx({ path: '/conception' }))?.id).toBe('agencyExit');
     expect(findEligible(ctx({ path: '/a-propos' }))).toBeNull();
   });
 
@@ -68,7 +68,7 @@ describe('règles par page', () => {
   });
 
   it('la découverte ne détourne pas d’un tunnel commercial concurrent', () => {
-    for (const path of ['/formations', '/agence', '/presence-digitale']) {
+    for (const path of ['/formations', '/conception', '/conception/commerces-et-tpe', '/conception/projets-sur-mesure']) {
       const found = findEligible(ctx({ path, entrySource: 'search' }));
       expect(found?.id).not.toBe('formationsEntry');
     }
@@ -78,21 +78,21 @@ describe('règles par page', () => {
 describe('devis commencé — la priorité sur la retenue générique', () => {
   it('l’emporte sur `presenceExit`, qui vise la même page', () => {
     /*
-      Les deux se déclenchent à la sortie de /presence-digitale. Sans cette priorité, la
+      Les deux se déclenchent à la sortie de /conception/commerces-et-tpe. Sans cette priorité, la
       fenêtre générique gagnerait toujours et parlerait à quelqu'un qui a déjà rempli la
       moitié du formulaire comme au premier venu.
     */
-    const engage = ctx({ path: '/presence-digitale', hasStartedQuote: true });
+    const engage = ctx({ path: '/conception/commerces-et-tpe', hasStartedQuote: true });
     expect(findEligible(engage)?.id).toBe('quoteAbandon');
   });
 
   it('laisse la place à `presenceExit` quand le simulateur n’a pas été touché', () => {
-    expect(findEligible(ctx({ path: '/presence-digitale' }))?.id).toBe('presenceExit');
+    expect(findEligible(ctx({ path: '/conception/commerces-et-tpe' }))?.id).toBe('presenceExit');
   });
 
   it('ne suit pas le visiteur ailleurs', () => {
     // Le marqueur est global au navigateur ; la fenêtre, elle, ne vit que sur sa page.
-    expect(findEligible(ctx({ path: '/agence', hasStartedQuote: true }))?.id).toBe('agencyExit');
+    expect(findEligible(ctx({ path: '/conception', hasStartedQuote: true }))?.id).toBe('agencyExit');
     expect(findEligible(ctx({ path: '/blog/un-article', hasStartedQuote: true }))?.id).toBe('blogEnd');
   });
 
@@ -102,7 +102,7 @@ describe('devis commencé — la priorité sur la retenue générique', () => {
 
   it('ne passe jamais devant une reprise de panier', () => {
     // Un paiement laissé en route reste ce qui approche le plus de l'achat.
-    const deux = ctx({ path: '/presence-digitale', hasStartedQuote: true, hasPendingCart: true });
+    const deux = ctx({ path: '/conception/commerces-et-tpe', hasStartedQuote: true, hasPendingCart: true });
     expect(findEligible(deux)?.id).toBe('cartRecovery');
   });
 });
@@ -121,9 +121,12 @@ describe('surfaces mobiles', () => {
 
 describe('devis nominatifs — la fuite inter-territoires', () => {
   it('reconnaît les chemins de devis', () => {
+    expect(isQuotePath('/conception/commerces-et-tpe/devis/ABC123')).toBe(true);
+    /* Les deux anciennes adresses restent couvertes : un devis partagé en WhatsApp voyage
+       longtemps, et pendant le vol de la redirection le chemin est encore l'ancien. */
     expect(isQuotePath('/presence-digitale/devis/ABC123')).toBe(true);
     expect(isQuotePath('/agence/devis/ABC123')).toBe(true);
-    expect(isQuotePath('/presence-digitale')).toBe(false);
+    expect(isQuotePath('/conception/commerces-et-tpe')).toBe(false);
   });
 
   it('un panier FORMATION ne s’invite pas sur un devis AGENCE', () => {
@@ -133,7 +136,7 @@ describe('devis nominatifs — la fuite inter-territoires', () => {
       d'une formation en marketing digital — deux territoires sur un même écran, sur un document
       contractuel qui se lit sur WhatsApp.
     */
-    const reading = ctx({ path: '/presence-digitale/devis/ABC123', hasPendingCart: true, entrySource: 'search' });
+    const reading = ctx({ path: '/conception/commerces-et-tpe/devis/ABC123', hasPendingCart: true, entrySource: 'search' });
     expect(findEligible(reading)).toBeNull();
   });
 });

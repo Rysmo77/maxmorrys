@@ -268,7 +268,11 @@ if (MOYENS.size > 0) {
    côté, et ça tombe. */
 const STATIC_PAGES = lire('worker/apps/site/src/prerender/static-pages.ts');
 const MIROIRS = [
-  ['/', 'src/i18n/locales/fr/home.json', ['hero.lede', 'why.r1Body']],
+  /* `why.r1Body` a disparu avec la bande « Pourquoi ici, et pas ailleurs » : l'accueil du CDC
+     ne vend plus, il aiguille. La phrase de paiement vit désormais dans le seul `hero.lede`.
+     Une clé morte laissée ici ne casse rien — `auChemin` rend `undefined` — et c'est bien le
+     problème : la règle aurait continué de comparer un ensemble amputé, en silence. */
+  ['/', 'src/i18n/locales/fr/home.json', ['hero.lede']],
   ['/club-des-digitos', 'src/i18n/locales/fr/club.json',
     ['publicPage.payWave', 'publicPage.payOrange', 'publicPage.payCard']],
 ];
@@ -316,11 +320,50 @@ const NIÉS = [
       /only way to follow/i,
     ],
   },
+  /*
+   * LE CAS INVERSE, ET IL A COÛTÉ AUSSI CHER : une PROMESSE que le produit refuse de tenir.
+   *
+   * Relevé le 18/09/2026. Le miroir SEO affirmait aux moteurs, à QUATRE endroits, « chaque
+   * leçon a une transcription » et « le poids de chaque vidéo est annoncé avant lecture ».
+   * Au même moment, `fr/media.json` disait l'inverse à l'écran, de son plein gré : « Il n'est
+   * pas encore mesuré à l'enregistrement » et « La transcription n'est pas encore produite
+   * pour cet épisode ».
+   *
+   * La règle lit donc l'aveu comme preuve : TANT QUE le produit reconnaît que la mesure
+   * n'existe pas, aucune surface ne peut promettre qu'elle existe. Le jour où le poids est
+   * relevé à l'enregistrement, l'aveu disparaît du catalogue et cette entrée se désarme
+   * d'elle-même — c'est ce qui lui donne une fin.
+   */
+  {
+    quoi: "la transcription et le poids systématiques",
+    preuve: ['src/i18n/locales/fr/media.json', /n'est pas encore (mesuré|produite)/i],
+    interdits: [
+      /chaque leçon a une transcription/i,
+      /every lesson has a transcript/i,
+      /poids de chaque (vidéo|épisode) est annoncé/i,
+      /avec transcription\b/i,
+      /with transcripts?\b/i,
+    ],
+  },
+];
+
+/*
+ * ⚠️ LE MIROIR SEO ENTRE DANS LA PORTÉE DE CETTE RÈGLE.
+ *
+ * Elle ne balayait que les catalogues i18n — c'est-à-dire ce que lisent les humains. La
+ * promesse de transcription, elle, vivait dans `static-pages.ts` : ce que lisent les ROBOTS,
+ * et le seul texte que `SEOHead` ne peut pas corriger après coup. Une règle qui garde une
+ * moitié des surfaces laisse l'autre dériver sans témoin.
+ */
+const SURFACES = [
+  ...CHAINES,
+  ...[...lire('worker/apps/site/src/prerender/static-pages.ts').matchAll(/"((?:[^"\\]|\\.){40,})"/g)]
+    .map((m, i) => ['worker/apps/site/src/prerender/static-pages.ts', `chaîne ${i + 1}`, m[1]]),
 ];
 
 for (const { quoi, preuve: [fichierPreuve, motifPreuve], interdits } of NIÉS) {
   if (!motifPreuve.test(lire(fichierPreuve))) continue;
-  for (const [fichier, chemin, valeur] of CHAINES) {
+  for (const [fichier, chemin, valeur] of SURFACES) {
     const touche = interdits.find((re) => re.test(valeur));
     if (touche) {
       add('10 · négations périmées', fichier,

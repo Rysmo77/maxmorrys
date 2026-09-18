@@ -52,7 +52,7 @@ export default function PresenceExitPopup({ onAccept, onSecondary, onDismiss }: 
           <Icon name="forward" size={16} className="group-hover:translate-x-1 transition-transform" />
         </a>
         <LocalizedLink
-          to="/presence-digitale#packs"
+          to="/conception/commerces-et-tpe#packs"
           onClick={onSecondary}
           className={LINK_LAGOON}
         >

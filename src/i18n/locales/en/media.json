@@ -142,7 +142,7 @@
     "filterAll": "All",
     "filterListen": "To listen",
     "filterWatch": "To watch",
-    "truthTitle": "What I don't show yet",
+    "truthTitle": "What this hub doesn't count yet",
     "truthBody": "Each episode's and each video's weight should be written here — it's what lets you decide when your data plan is metered. It isn't measured at upload yet, and I'd rather tell you than announce a made-up number. No play counts either: with one episode, they'd say nothing useful.",
     "clubTitle": [
       "You've just heard",
@@ -185,7 +185,7 @@
     "transcript": "Transcript",
     "chapters": "Chapters",
     "about": "The episode",
-    "weightTitle": "What I don't show yet",
+    "weightTitle": "What I can't tell you about this file yet",
     "weightBody": "The file's weight should be written here — it's what lets you decide when your data plan is metered. It isn't measured at upload, and I'd rather tell you than announce a made-up number.",
     "weightBodyVideo": "The file's weight should be written here — it's what lets you decide when your data plan is metered. It isn't measured at upload, and I'd rather tell you than announce a made-up number. What I can promise meanwhile: nothing loads until you ask for it.",
     "gateEyebrow": "Before you start",

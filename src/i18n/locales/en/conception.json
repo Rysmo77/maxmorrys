@@ -1,0 +1,329 @@
+{
+  "seo": {
+    "title": "Website and digital platform design",
+    "description": "The studio frames, designs and builds websites and digital platforms. Two levels of engagement, both on show: a productised offer for shops and small businesses, and custom projects, quoted per brief. From Dakar.",
+    "customTitle": "Custom projects — websites, platforms and business portals",
+    "customDescription": "Corporate and bilingual websites, platforms, business portals, design systems and integrations. Quoted per brief: a written scope, delivered milestones, formal acceptance, maintenance and a documented exit."
+  },
+  "page": {
+    "eyebrow": "Design · {{brand}}",
+    "titleLines": [
+      "We design",
+      "[websites]",
+      "[and platforms.]"
+    ],
+    "lede": "We frame, design and build the websites and platforms an organisation needs in order to work. One studio, two levels of engagement: you pick the one that fits the project, not the one that suits us.",
+    "studioEyebrow": "What the studio does",
+    "studioLede": "People who design and people who write the code, in the same room. Interface decisions and technical decisions are taken together, because each one settles the other.",
+    "studioItems": [
+      "Framing: the problem, the scope, what is not included.",
+      "Interface design, user journeys and design systems.",
+      "Web engineering: applications, platforms, business portals.",
+      "Architecture, data, integrations and release to production."
+    ],
+    "truthTitle": "What we do not sell here",
+    "truthStart": "No marketing direction, no brand strategy, no acquisition. Those disciplines are carried by ",
+    "truthStrong": "{{company}}",
+    "truthEnd": ", the company the studio belongs to, and run by its growth practice. We point you to it; we do not sell it."
+  },
+  "levels": {
+    "eyebrow": "The two levels of engagement",
+    "titleLines": [
+      "Two levels,",
+      "[neither hidden.]"
+    ],
+    "lede": "One posts its prices, the other is framed before it is priced. Both are on this page: recognising which one is yours is your call, not ours.",
+    "shops": {
+      "tag": "Public rate card",
+      "title": "Shops and small business",
+      "body": "A productised offer, installed and run for you: the site, the business listing, the catalogue, regular publishing. The scope is fixed, the prices are posted, and the go-live date is set the moment you order.",
+      "points": [
+        "Fixed scope, bounded delivery",
+        "Public prices, no call required first",
+        "Built for a shop that wants to be found"
+      ],
+      "cta": "See the shops and small business offer"
+    },
+    "custom": {
+      "tag": "Quoted per brief",
+      "title": "Custom projects",
+      "body": "Corporate and bilingual websites, platforms, business portals, design systems, integrations. The scope is written before it is priced, and that document is what binds both sides.",
+      "points": [
+        "A written scope before any pricing",
+        "Delivered milestones, formal acceptance",
+        "Documented maintenance and exit"
+      ],
+      "cta": "See custom projects"
+    }
+  },
+  "method": {
+    "eyebrow": "How we work",
+    "titleLines": [
+      "The way",
+      "we [work.]"
+    ],
+    "lede": "The same method at both levels of engagement. What changes is how long each step takes — never whether it happens.",
+    "steps": [
+      {
+        "n": "01",
+        "title": "Frame",
+        "body": "We start from the problem and the decision it carries, not from a feature list. The scope, the assumptions and what is not included are written down before anything is priced."
+      },
+      {
+        "n": "02",
+        "title": "Design",
+        "body": "Journeys, information architecture, interface. Designs are reviewed with you on the screens that carry the decision, not on the ones that are easiest to draw."
+      },
+      {
+        "n": "03",
+        "title": "Build",
+        "body": "Milestones delivered one by one, each on an address you can open. You watch the product move rather than read a progress report."
+      },
+      {
+        "n": "04",
+        "title": "Run",
+        "body": "Release, measurement, fixes and changes. A delivered product is not a finished product: running it is part of the engagement, not a line added afterwards."
+      }
+    ]
+  },
+  "guarantees": {
+    "eyebrow": "Technical guarantees",
+    "titleLines": [
+      "What we",
+      "[stand behind.]"
+    ],
+    "lede": "Commitments you can check on the deliverable itself, without having to take our word for any of them.",
+    "items": [
+      {
+        "title": "Performance",
+        "body": "Performance budgets set at framing and measured at delivery: render time, visual stability, weight of the first view. A site that misses them is not delivered."
+      },
+      {
+        "title": "Accessibility",
+        "body": "Contrast, keyboard navigation, form labels, heading structure. The interface stays usable without a mouse, and readable when the system is in dark mode."
+      },
+      {
+        "title": "Code ownership",
+        "body": "The code written for you is yours, on the terms of the contract. The repository, the hosting accounts and the domain names are in your name, not ours."
+      },
+      {
+        "title": "Documentation",
+        "body": "A handover manual ships with the product: how it deploys, where its data lives, and what another team needs in order to take it over."
+      }
+    ]
+  },
+  "work": {
+    "eyebrow": "Selected work",
+    "titleLines": [
+      "What we",
+      "have [built.]"
+    ],
+    "lede": "Three projects, in catalogue order. The full index holds the others, each with the role we held and its address.",
+    "visit": "Open the case",
+    "listAria": "A preview of client work"
+  },
+  "ventures": {
+    "eyebrow": "Studio products",
+    "titleLines": [
+      "Products built",
+      "inside MY ONOMA"
+    ],
+    "lede": "Products the studio designs, owns and runs inside MY ONOMA. Each is a brand of its own: they are neither client references nor services the agency sells.",
+    "visit": "Open the product",
+    "listAria": "Products owned and run by MY ONOMA"
+  },
+  "custom": {
+    "eyebrow": "Custom projects",
+    "titleLines": [
+      "Projects built",
+      "[to the brief.]"
+    ],
+    "lede": "Every engagement starts from a problem, a scope and a calendar, and is written down before it is priced. The studio takes on five families of them, each named in turn with what it covers.",
+    "truthTitle": "Why there is no price on this page",
+    "truthStart": "Because none of these projects sells off a shelf: what gets priced is a written scope, never a hunch. If you want a public rate card and a posted price, ",
+    "truthStrong": "the shops and small business offer",
+    "truthEnd": " is the one you want — it posts its prices, and it is built for exactly that."
+  },
+  "scope": {
+    "eyebrow": "Scope of an engagement",
+    "titleLines": [
+      "What we",
+      "[build.]"
+    ],
+    "items": [
+      {
+        "title": "Corporate and bilingual websites",
+        "body": "Institutional sites, brand sites, event sites. Two languages served from a single back office, each with its own addresses."
+      },
+      {
+        "title": "Platforms",
+        "body": "Business products, client areas, marketplaces, learning spaces. Accounts, roles, permissions, payment and dashboards."
+      },
+      {
+        "title": "Business portals",
+        "body": "Internal tools, back offices, member or partner portals. What your team redoes by hand every week becomes a screen."
+      },
+      {
+        "title": "Design systems",
+        "body": "Tokens, components, documentation and automated guardrails, so your interfaces stay coherent without depending on one person."
+      },
+      {
+        "title": "Integrations",
+        "body": "Programming interfaces, links between the tools you already run, automation, and artificial intelligence plugged into a flow that already exists."
+      }
+    ]
+  },
+  "steps": {
+    "eyebrow": "The engagement path",
+    "titleLines": [
+      "Framed first,",
+      "[priced after.]"
+    ],
+    "lede": "From the first conversation to the contract: four steps, and none of them commits you to the next. Nothing gets built before the scope is written, and nothing gets invoiced on a hunch.",
+    "items": [
+      {
+        "n": "01",
+        "title": "A conversation",
+        "body": "No commitment. We look at the problem together, at what already exists, and at whether the studio is the right party. If it is not, we say so there and then."
+      },
+      {
+        "n": "02",
+        "title": "A written scope",
+        "body": "The perimeter, the assumptions, the milestones, what is not included and what would take a change order. That document is what gets priced, and it stays yours even if the project does not happen."
+      },
+      {
+        "n": "03",
+        "title": "A priced proposal",
+        "body": "The written scope is priced exactly as it stands: what is included, what would take a change order, and how long the proposal holds. No line enters the price without appearing in the document."
+      },
+      {
+        "n": "04",
+        "title": "A contract, then the start",
+        "body": "The contract carries the scope over without rewriting it, sets the start date and names who speaks for each side. Design work begins from there."
+      }
+    ]
+  },
+  "delivery": {
+    "eyebrow": "Acceptance, maintenance, exit",
+    "titleLines": [
+      "What happens",
+      "[after delivery.]"
+    ],
+    "lede": "The part that proposals leave blank, and the part that decides what the rest is worth.",
+    "acceptance": {
+      "title": "Acceptance",
+      "body": "A signed record per milestone, against the written scope.",
+      "points": [
+        "Acceptance criteria are written at framing, not at acceptance time.",
+        "An acceptance address kept separate from production, open for the whole engagement.",
+        "Fixes raised during acceptance are not billed: they are part of the milestone."
+      ]
+    },
+    "maintenance": {
+      "title": "Maintenance",
+      "body": "Settled before delivery, never improvised afterwards.",
+      "points": [
+        "Corrective work, changes and security updates are told apart in writing.",
+        "A response time per severity level, stated in the contract.",
+        "No mandatory retainer: you can take it back in house whenever you decide to."
+      ]
+    },
+    "reversibility": {
+      "title": "Exit",
+      "body": "Leaving has to be possible without asking us first.",
+      "points": [
+        "Repository, hosting and domain name in your name from day one.",
+        "Your data exports in an open format, with no action needed from us.",
+        "A handover manual lets another team pick the work up."
+      ]
+    }
+  },
+  "form": {
+    "eyebrow": "Tell us about the project",
+    "titleLines": [
+      "Tell us",
+      "what you're [after.]"
+    ],
+    "lede": "A few questions to understand the need. If we are not the right party, we say so plainly.",
+    "typeLabel": "What is it about?",
+    "typePlaceholder": "Pick a kind of project",
+    "engagementLabel": "What shape of engagement do you have in mind?",
+    "engagementPlaceholder": "Pick a shape of engagement",
+    "engagementHint": "We ask for a shape of engagement — a duration, a team — rather than a sum: no price is posted on this page, and none is asked of you.",
+    "timelineLabel": "By when?",
+    "timelinePlaceholder": "Pick a timeline",
+    "descriptionLabel": "The project in a few lines",
+    "descriptionPlaceholder": "What you want to get, what already exists, and what is blocking you today.",
+    "replyEyebrow": "So that we can answer you",
+    "nameLabel": "Your name",
+    "namePlaceholder": "Awa Ndiaye",
+    "companyLabel": "Your organisation",
+    "companyPlaceholder": "The name you work under",
+    "emailLabel": "Your work email",
+    "emailPlaceholder": "you@your-organisation.com",
+    "submit": "Send the request",
+    "submitting": "Sending…",
+    "reply": "A written answer, within two working days.",
+    "projectTypes": {
+      "product": "Digital product",
+      "platform": "Web platform",
+      "application": "Application",
+      "ai": "Artificial intelligence and automation",
+      "internalTool": "Internal tool or business portal",
+      "transformation": "Rebuild of an existing site",
+      "brand": "Corporate or brand website",
+      "growth": "Growth, acquisition, revenue",
+      "other": "Something else"
+    },
+    "engagements": {
+      "exploring": "Still open — we'd rather talk it through",
+      "small": "A short piece of work, one scope",
+      "medium": "A framed project, over a quarter",
+      "large": "A platform, over several quarters",
+      "xlarge": "A programme, with a dedicated team"
+    },
+    "timelines": {
+      "urgent": "As soon as possible",
+      "quarter": "Within the quarter",
+      "halfYear": "Within the half year",
+      "flexible": "No fixed date"
+    },
+    "errors": {
+      "projectType": "Pick a kind of project. It is what decides whether the request belongs with design or with the growth practice.",
+      "engagement": "Pick a shape of engagement. Without it we cannot tell you straight away whether we can work together.",
+      "timeline": "Give us a timeline, even a rough one. It is what says whether we can take the project on.",
+      "description": "The project in a few lines is what lets us answer with something other than a template proposal. Write them here.",
+      "descriptionShort": "Under {{min}} characters we cannot judge whether the project is for us. Add what you want to get, and by when.",
+      "name": "We need a name to answer. Yours will do.",
+      "company": "Tell us the name you work under: it is what tells us who we are talking to.",
+      "email": "Without an address your request arrives and stays unanswered. Add yours.",
+      "emailInvalid": "That address isn't shaped like an email. Check what comes before and after the @.",
+      "sendFailed": "It didn't go through and nothing was saved. Your request is still in the form: try again in a moment."
+    }
+  },
+  "exit": {
+    "title": "A question before you pick a level?",
+    "body": "Write us two lines about what you want to build. We answer in writing, and we say so when it is not for us.",
+    "cta": "Write to us"
+  },
+  "sent": {
+    "titleLines": [
+      "It's in.",
+      "We'll [answer.]"
+    ],
+    "lede": "No automated sequence, no sales follow-up. A written answer, within two working days.",
+    "recapEyebrow": "Your request",
+    "recapType": "Kind of project",
+    "recapEngagement": "Shape of engagement",
+    "recapEngagementValue": "Given",
+    "recapStatus": "Status",
+    "recapStatusValue": "New",
+    "growTitle": "This one belongs with Cléa",
+    "growStart": "Growth, acquisition and revenue are carried by ",
+    "growStrong": "Cléa Growth Office",
+    "growEnd": ", the sister practice inside MY ONOMA. We pass your request on exactly as it is — you have nothing to redo, and nobody sends you back to another form.",
+    "growCta": "See Cléa Growth Office",
+    "back": "Back to the form",
+    "footer": "No request is turned away. It is redirected."
+  }
+}

@@ -11,9 +11,24 @@ export const SITE_NAME = 'Max-Morrys';
  * de l'accueil dit déjà « Maîtrise le digital, accélère ta croissance ». Un titre de
  * résultat de recherche qui ne parle pas comme la page qu'il annonce se paie au clic.
  */
-export const DEFAULT_TITLE = 'Max-Morrys | Maîtrise le digital, accélère ta croissance';
+/*
+ * ── LA REFONTE EN DEUX PISTES A CHANGÉ CE QUE LA PAGE D'ACCUEIL EST ──────────────────
+ *
+ * « Maîtrise le digital, accélère ta croissance » annonçait une plateforme de formation, et
+ * une seule. L'accueil présente désormais une personne et DEUX pistes de poids égal — la
+ * conception web et la formation (CDC du 14/09/2026, §4.1) : un titre qui n'en nomme qu'une
+ * envoie la moitié des visiteurs se demander s'ils sont au bon endroit.
+ *
+ * 51 caractères : sous les 60 que Google affiche. C'est la chaîne LA PLUS VUE du
+ * site, et l'ancienne avait déjà été raccourcie une fois pour cette raison.
+ *
+ * ⚠️ MIROIR EXACT de `worker/apps/site/src/constants.ts`, que le frontend ne peut pas
+ * importer. Les deux se modifient ensemble, sinon les moteurs et les humains lisent deux
+ * titres différents pour la même page.
+ */
+export const DEFAULT_TITLE = 'Max-Morrys | Conception web et formation au digital';
 export const DEFAULT_DESCRIPTION =
-  'Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l\'IA. Par Max-Morrys depuis Dakar.';
+  "Conception de sites et de plateformes web, et formations au digital — référencement, marketing, IA. Depuis Dakar, pour l'Afrique de l'Ouest.";
 // Image OG par défaut, servie depuis Cloudflare R2 (média migré depuis Firebase Storage).
 export const DEFAULT_OG_IMAGE = 'https://media.maxmorrys.me/Je-te-forme/2252.jpg';
 export const TWITTER_HANDLE = '@max_morrys';

@@ -21,8 +21,14 @@ export const VIA_PREFIX = '/via/';
  *
  * Un crédit posé chez un client ne doit jamais tomber en 404 : au pire on perd
  * le comptage par client, jamais la visite.
+ *
+ * ⚠️ `/conception` depuis le 17/09/2026, et pas `/agence` : la page mère de la
+ * piste a changé d'adresse. L'ancienne part bien en 301, mais un repli qui vise
+ * une redirection coûte deux sauts à CHAQUE crédit déjà posé chez un client —
+ * des liens qu'on ne peut plus modifier, sur des sites qui ne nous appartiennent
+ * pas. La valeur est recopiée à l'identique dans le Worker.
  */
-export const VIA_FALLBACK = '/agence';
+export const VIA_FALLBACK = '/conception';
 
 /** Taille maximale d'un slug — alignée sur la validation des règles Firestore. */
 export const SLUG_MAX_LENGTH = 64;
