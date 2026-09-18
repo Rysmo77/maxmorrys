@@ -88,9 +88,19 @@ export const staticPages: Record<string, PageMeta> = {
     ],
   },
   '/a-propos': {
-    title: `À propos de Max-Morrys — Formateur en Marketing Digital | ${SITE_NAME}`,
+    /*
+     * ⚠️ CE TITRE DISAIT « Formateur en Marketing Digital » PENDANT QUE L'ONGLET DISAIT
+     * « Conception web & formation » — relevé en production le 18/09/2026. Deux titres pour une
+     * page : l'un pour les humains (`about:seo.title`, écrit par React après hydratation), l'autre
+     * pour les robots (celui-ci, le seul que Google lise). La refonte en deux pistes avait changé
+     * l'identité de la page sans toucher à ce qu'elle annonce aux moteurs.
+     *
+     * Il ne reprend PAS le titre de l'accueil (« Max-Morrys | Conception web et formation au
+     * digital ») : deux pages du même site au même titre, Google en écarte une.
+     */
+    title: `À propos — Conception web et formation à Dakar | ${SITE_NAME}`,
     description:
-      "Découvrez le parcours de Max-Morrys, formateur et consultant en marketing digital basé à Dakar. Expertise SEO, growth marketing et stratégie digitale pour l'Afrique.",
+      "Max-Morrys, concepteur web et formateur à Dakar : son parcours daté, ce qu'il fait dans la conception et dans la formation, et son rattachement à MY ONOMA.",
     ogType: 'profile',
     ogImage: DEFAULT_OG_IMAGE,
     canonical: `${SITE_URL}/a-propos`,
@@ -106,7 +116,7 @@ export const staticPages: Record<string, PageMeta> = {
       name: 'Max-Morrys',
       url: `${SITE_URL}/a-propos`,
       image: DEFAULT_OG_IMAGE,
-      jobTitle: 'Formateur et consultant en marketing digital',
+      jobTitle: 'Concepteur web et formateur au digital',
       worksFor: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
       address: { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
       sameAs: SOCIAL_URLS,

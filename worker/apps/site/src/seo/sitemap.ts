@@ -3,6 +3,7 @@ import type { Firestore } from '@mm/firestore-rest';
 import { SITE_URL } from '../constants';
 import { getFaqSlugs } from '../prerender/faq';
 import { enPath } from '../prerender/segments';
+import { REALISATIONS } from '../prerender/realisations';
 import { asIsoDate, asText, escapeXml } from './values';
 
 /** Port fidèle de `functions/src/sitemap.ts`. */
@@ -111,10 +112,8 @@ const STATIC_PAGES: Array<{ path: string; changefreq: string; priority: string }
    * exactement ce qui avait été corrigé pour `/podcasts` et `/videos` au-dessus, et
    * `npm run seo:check` le voit — il demande chaque URL du sitemap et échoue sur un 3xx.
    *
-   * ⚠️ `/conception/realisations/<slug>` n'est PAS listé : les fiches vivent en base, comme
-   * les articles, et seront poussées par `pushDynamic` quand la collection existera. Une
-   * fiche publiée sans entrée au sitemap n'est pas en erreur, elle est seulement plus lente
-   * à être découverte — la déclarer en dur, elle, mentirait au premier ajout.
+   * Les FICHES `/conception/realisations/<slug>` ne sont pas dans cette liste : elles sont
+   * poussées plus bas, DÉRIVÉES de `REALISATIONS` — voir la boucle qui suit les pages statiques.
    */
   { path: '/conception', changefreq: 'monthly', priority: '0.9' },
   { path: '/conception/commerces-et-tpe', changefreq: 'monthly', priority: '0.8' },
@@ -188,6 +187,30 @@ export async function buildSitemap(db: Firestore): Promise<string> {
       enFullPath: enPath(page.path),
       changefreq: page.changefreq,
       priority: page.priority,
+    });
+  }
+
+  /*
+   * ── LES FICHES DE RÉALISATION, DÉRIVÉES DE LA TABLE QUE LE PRÉ-RENDU LIT ───────────────────
+   *
+   * Absentes du sitemap à la mise en ligne du 18/09/2026. Le commentaire qui l'expliquait
+   * affirmait qu'elles « vivent en base » et seraient poussées « quand la collection existera » :
+   * c'était faux. Elles vivent dans `REALISATIONS`, et `prerender/realisations.ts` s'en sert déjà
+   * pour servir chaque fiche aux robots. Les onze étaient donc pré-rendues, et annoncées à
+   * personne — Google ne pouvait les découvrir qu'en suivant les liens de l'index.
+   *
+   * Dérivées, pas écrites : l'objection du commentaire d'origine — « la déclarer en dur mentirait
+   * au premier ajout » — était juste, et c'est pourquoi la liste vient de la table. Une fiche
+   * ajoutée entre dans le sitemap ET dans le pré-rendu au même geste ; elle ne peut exister dans
+   * l'un sans l'autre.
+   */
+  for (const fiche of REALISATIONS) {
+    const chemin = `/conception/realisations/${fiche.slug}`;
+    pushPair({
+      frPath: chemin,
+      enFullPath: enPath(chemin),
+      changefreq: 'yearly',
+      priority: '0.5',
     });
   }
 
