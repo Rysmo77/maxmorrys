@@ -78,8 +78,8 @@
     "like": "Like",
     "share": "Share",
     "truth": {
-      "provenTitle": "What I can prove here",
-      "withheldTitle": "What I don't show",
+      "provenTitle": "What this news feed proves",
+      "withheldTitle": "What this feed doesn't count",
       "proven1": "Every post carries its publication date and category, exactly as stored.",
       "proven2": "Publishing here depends on me alone: the schedule is kept, or it isn't, and the dates show it.",
       "withheld1": "No read or share counts: nothing measures them, and an invented counter is caught at a glance."
@@ -184,7 +184,6 @@
     "theyTalk": "What they say",
     "tipTitle": "Tip",
     "tipText": "Combine the Club with a course to get the most out of the platform. ",
-    "seeFormations": "See the courses",
     "pendingTitle": "Payment being processed",
     "pendingText": "Your payment is awaiting confirmation. Your access will be activated automatically once received. If you run into an issue, ",
     "contactUs": "write to me",
@@ -380,8 +379,6 @@
       "What I can't",
       "promise you yet."
     ],
-    "guaranteeTruthTitle": "Why I'm telling you this instead of selling you a dream",
-    "guaranteeTruthBody": "The Club opened in {{opened}}. I won't quote you a member count, because it would be false, and because you'd check it on the first screen after paying. I'd rather you came in knowing what you're buying: a year of access to what already exists, and a seat in what's being built.",
     "tabsTitle": [
       "Eight tabs.",
       "Here's what they're for."
@@ -453,8 +450,7 @@
     "listenLede": "The podcast and the videos sit on this same territory, one floor down: free, no account. People from here telling what they did. The Club is when you want to talk to them instead of listening.",
     "listenCta": "Listen first",
     "listenEmpty": "No episode is online yet. When there is one, it'll be here, free and without an account.",
-    "listenTruthTitle": "What the free floor doesn't give you",
-    "listenTruthBody": "Listening is free and will stay free. What the subscription adds is elsewhere: the live sessions, the gigs that circulate, and an answer from me. The Club itself can't be toured — that's the price of keeping it closed.",
+    "listenBoundary": "Listening is free and will stay free. What the subscription adds is elsewhere: the live sessions, the gigs that circulate, and an answer from me. The Club itself can't be toured — that's the price of keeping it closed.",
     "finalPre": "One year.",
     "finalPost": "a month.",
     "finalSecondLine": "And someone on the other end.",
@@ -462,7 +458,9 @@
     "finalCtaSecondary": "Talk to me first",
     "sessionsCite": "the Club's stated commitment",
     "sessionsHeldPre": "Held over the past {{days}} days:",
-    "truthProvenTitle": "What I can prove to you"
+    "truthProvenTitle": "What I can prove about the subscription",
+    "truthProvenPurchase": "I'd rather you came in knowing what you're buying: a year of access to what already exists, and a seat in what's being built.",
+    "truthWithheldTitle": "What this page won't show you"
   },
   "panel": {
     "upcomingEyebrow": "Coming up",

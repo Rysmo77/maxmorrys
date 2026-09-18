@@ -23,5 +23,16 @@
   "accountMenu": "Account menu for {{name}}",
   "skipToContent": "Skip to main content",
   "transformFree": "Listen & watch",
-  "transformClub": "The Digitos Club"
+  "transformClub": "The Digitos Club",
+  "conception": "Design",
+  "learn": "Learn",
+  "aboutNeutral": "About",
+  "contactNeutral": "Contact",
+  "conceptionAria": "Design — websites and digital platforms",
+  "learnAria": "Learn — blog, podcast, courses and the Club",
+  "conceptionSubnavLabel": "Design track navigation",
+  "conceptionCommerces": "Shops & small business",
+  "conceptionSurMesure": "Custom projects",
+  "conceptionRealisations": "Work",
+  "learnSubnavLabel": "Learn track navigation"
 }

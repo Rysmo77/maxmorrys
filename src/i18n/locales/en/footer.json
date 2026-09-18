@@ -24,7 +24,9 @@
     "presence": "I'll get you online",
     "pole": "I'll push you further",
     "club": "The Digitos Club",
-    "verify": "Verify a certificate"
+    "verify": "Verify a certificate",
+    "conception": "Design",
+    "learn": "Learn"
   },
   "copyright": "© {{year}} Max-Morrys. All rights reserved.",
   "operatedByPrefix": "Max-Morrys is a brand operated by",

@@ -142,7 +142,7 @@
     "filterAll": "Tout",
     "filterListen": "À écouter",
     "filterWatch": "À regarder",
-    "truthTitle": "Ce que je n'affiche pas encore",
+    "truthTitle": "Ce que ce pôle ne compte pas encore",
     "truthBody": "Le poids de chaque épisode et de chaque vidéo devrait être écrit ici — c'est ce qui permet de décider quand le forfait est compté. Il n'est pas encore mesuré à l'enregistrement, et je préfère te le dire que t'annoncer un chiffre inventé. Aucun compteur d'écoute non plus : à un épisode, il ne dirait rien d'utile.",
     "clubTitle": [
       "Tu viens d'écouter",
@@ -185,7 +185,7 @@
     "transcript": "Transcription",
     "chapters": "Chapitres",
     "about": "L'épisode",
-    "weightTitle": "Ce que je n'affiche pas encore",
+    "weightTitle": "Ce que je ne sais pas encore te dire sur ce fichier",
     "weightBody": "Le poids du fichier devrait être écrit ici — c'est ce qui permet de décider quand le forfait est compté. Il n'est pas relevé à l'enregistrement, et je préfère te le dire que t'annoncer un chiffre inventé.",
     "weightBodyVideo": "Le poids du fichier devrait être écrit ici — c'est ce qui permet de décider quand le forfait est compté. Il n'est pas relevé à l'enregistrement, et je préfère te le dire que t'annoncer un chiffre inventé. Ce que je peux te garantir en attendant : rien ne se charge avant que tu le demandes.",
     "gateEyebrow": "Avant de lancer",

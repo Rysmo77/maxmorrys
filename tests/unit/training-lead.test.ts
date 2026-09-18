@@ -22,7 +22,7 @@ describe('le type « training » est accepté, jamais proposé', () => {
    * `EngagementProjectType` est ce que la collection ACCEPTE. Les fusionner ferait apparaître
    * « Formation d'équipe » dans le menu d'une page qui vend des plateformes.
    */
-  it('n’apparaît pas dans la liste déroulante de /agence', () => {
+  it('n’apparaît pas dans la liste déroulante des projets sur mesure', () => {
     expect(PROJECT_TYPES).not.toContain(TRAINING_PROJECT_TYPE);
     expect(agencyLeadConfig.projectTypes).not.toContain(TRAINING_PROJECT_TYPE);
   });
@@ -32,13 +32,26 @@ describe('le type « training » est accepté, jamais proposé', () => {
   });
 
   /*
-   * `AdminMissions` rend `t('form.projectTypes.<key>')` — une clé CONSTRUITE, que
-   * `i18n-keys.test.ts` ne sait pas suivre. Sans ces deux entrées, la console afficherait la
-   * chaîne brute sur chaque demande B2B, et personne ne le verrait avant de l'ouvrir.
+   * `AdminMissions` rend `t(`missions.projectTypes.${l.projectType}`)` — une clé CONSTRUITE,
+   * que `i18n-keys.test.ts` ne sait pas suivre. Sans ces deux entrées, la console affiche la
+   * chaîne brute sur chaque demande B2B, et personne ne le voit avant de l'ouvrir.
+   *
+   * ⚠️ CE TEST GARDAIT LE MAUVAIS CATALOGUE, ET C'EST LUI QUI A MASQUÉ LE DÉFAUT.
+   *
+   * Il épinglait `agency.json → form.projectTypes.training`, et son commentaire affirmait que
+   * `AdminMissions` lisait cette table. C'était faux : la console lit `useTranslation('admin')`
+   * et rend `admin.missions.projectTypes.*` — où `training` MANQUAIT, dans les deux langues.
+   * Chaque demande de formation d'équipe déposée depuis `/formations` s'affichait donc en
+   * « missions.projectTypes.training » à l'écran, pendant que ce test restait vert.
+   *
+   * Le défaut n'a rien à voir avec la refonte en deux pistes : il est antérieur, et il a
+   * seulement été découvert en vérifiant qui lisait encore `agency.json` avant de le
+   * supprimer. Un test qui garde un catalogue que plus personne ne rend est exactement la
+   * famille de défauts qu'il prétend fermer.
    */
   it.each(['fr', 'en'])('a son libellé de console en %s', (langue) => {
-    const agency = JSON.parse(readFileSync(`src/i18n/locales/${langue}/agency.json`, 'utf8'));
-    expect(agency.form.projectTypes[TRAINING_PROJECT_TYPE]).toBeTruthy();
+    const admin = JSON.parse(readFileSync(`src/i18n/locales/${langue}/admin.json`, 'utf8'));
+    expect(admin.missions.projectTypes[TRAINING_PROJECT_TYPE]).toBeTruthy();
   });
 });
 

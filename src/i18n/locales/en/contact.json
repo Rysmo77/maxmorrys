@@ -1,6 +1,6 @@
 {
   "seoTitle": "Contact",
-  "seoDescription": "Get in touch with Max-Morrys for personalized coaching, digital marketing courses, or a partnership. Based in Dakar, Senegal.",
+  "seoDescription": "Write to Max-Morrys: a course and the community, or a website and platform project. Marketing-direction engagements are contracted by MY ONOMA. Dakar, Senegal.",
   "eyebrow": "CONTACT",
   "heroTitle1": "Let's talk about",
   "heroTitle2": "your strategy",
@@ -14,10 +14,12 @@
     "whatsappValue": "Let's chat on WhatsApp"
   },
   "subjects": {
-    "coaching": "Personalized coaching",
     "formationInfo": "Information about a course",
+    "club": "The Digitos Club",
+    "coaching": "Personalized coaching",
     "partnership": "Partnership / Collaboration",
-    "strategy": "Marketing strategy advice",
+    "shopSite": "Get my shop online",
+    "customProject": "A custom project",
     "other": "Other"
   },
   "form": {
@@ -80,7 +82,24 @@
       "Write to me.",
       "[I answer.]"
     ],
-    "lede": "A question about a course, a payment gone wrong, an idea for an episode. I'm the one who reads, and I'm the one who answers — give it two working days.",
+    "lede": "A question about a course, a shop to put online, an idea for an episode. I'm the one who reads, and I'm the one who answers — give it two working days.",
+    "route": {
+      "eyebrow": "First question",
+      "question": "What is this about?",
+      "learnTitle": "A course, or the community",
+      "learnBody": "A course, an access problem, the Digitos Club, the blog, an episode.",
+      "buildTitle": "A website, or a platform",
+      "buildBody": "A shop to put online, a custom project to scope.",
+      "growTitle": "Marketing direction",
+      "growBody": "Acquisition, revenue, a brand strategy to run."
+    },
+    "myonoma": {
+      "eyebrow": "This isn't the place",
+      "title": "This request goes to MY ONOMA.",
+      "body": "Marketing direction, acquisition and revenue are not carried by Max-Morrys: MY ONOMA contracts them, through its own practice. So I don't collect your request here to copy it over there by hand — you write it straight to the right place, and you keep a single conversation.",
+      "cta": "Open the MY ONOMA form",
+      "note": "Outbound link: you are leaving maxmorrys.me."
+    },
     "triage": {
       "title": "Before you write",
       "paymentBefore": "A payment that isn't showing? Check",
@@ -89,12 +108,6 @@
       "faqBefore": "A general question? It may already be in the",
       "faqLink": "FAQ",
       "faqAfter": "with the full answer."
-    },
-    "agency": {
-      "title": "For custom work",
-      "before": "This form is the wrong one. Go through",
-      "link": "Max-Morrys Agency",
-      "after": "— its form asks for budget and scope, which saves three rounds of back-and-forth."
     },
     "channels": {
       "title": "Other ways to reach me",
@@ -108,11 +121,13 @@
     "form": {
       "subjectLabel": "What do you want to talk about?",
       "subjectPlaceholder": "Pick a topic",
+      "messagePlaceholderLearn": "Tell me where you are and what you're trying to do…",
+      "messagePlaceholderBuild": "Describe the shop or the project, and what already exists online…",
       "note": "You can write without an account too — but then I can't answer you inside the app."
     },
     "truth": {
-      "title": "Why that card sits on top",
-      "body": "Today a message sent from a signed-in account is not attached to its author: it never shows up in their inbox, and the answer goes nowhere. Anonymous messages stay possible, and stay anonymous."
+      "title": "What happens to your message",
+      "body": "From a signed-in account, the message is attached to that account: it stays in your inbox, and my answer lands in the same place. Without an account it stays anonymous inside the app — I then answer by hand, at the address left in the form."
     },
     "facts": {
       "replyLabel": "Reply",

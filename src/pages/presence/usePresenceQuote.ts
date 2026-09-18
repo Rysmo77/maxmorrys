@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@ds';
 import { saveAgencyLead } from '../../lib/firestore';
 import { useFormat } from '../../hooks/useFormat';
+import { useLocalizedPath } from '../../contexts/LanguageContext';
 import { captureError } from '../../lib/sentry';
 import { trackGenerateLead } from '../../lib/tracking';
 import { markQuoteStarted, clearQuoteStarted } from '../../lib/popups/quote';
@@ -43,6 +44,7 @@ export function usePresenceQuote() {
   const { t } = useTranslation('presence');
   const { formatPrice, language } = useFormat();
   const { addToast } = useToast();
+  const path = useLocalizedPath();
   const formRef = useRef<HTMLDivElement>(null);
   /**
    * Le SÉLECTEUR, qui n'avait aucune ancre et n'était donc atteignable par aucun lien.
@@ -102,9 +104,15 @@ export function usePresenceQuote() {
     setForm((prev) => ({ ...prev, pack: 'undecided', plan: 'undecided' }));
   }, []);
 
-  const quoteUrl = quoteRef
-    ? `${SITE_URL}${language === 'en' ? '/en/local-presence/quote/' : '/presence-digitale/devis/'}${quoteRef}`
-    : '';
+  /*
+   * ⚠️ LE CHEMIN NE S'ÉCRIT PLUS À LA MAIN, DANS AUCUNE DES DEUX LANGUES. Cette ligne portait
+   * les deux adresses en dur — `/presence-digitale/devis/` et `/en/local-presence/quote/` —
+   * c'est-à-dire une troisième copie de la table des segments, dans un fichier qu'on n'ouvre
+   * pas quand une route bouge. Elle a survécu au déménagement vers `/conception/commerces-et-tpe`
+   * sans rien dire, et l'URL partie sur WhatsApp aurait pointé vers une redirection.
+   * `useLocalizedPath()` relit `segments.ts` : une seule source pour les deux langues.
+   */
+  const quoteUrl = quoteRef ? `${SITE_URL}${path(`/conception/commerces-et-tpe/devis/${quoteRef}`)}` : '';
 
   /** Libellés du message WhatsApp, traduits et formatés ici, assemblés par le module dédié. */
   const messageLabels = useMemo(() => ({

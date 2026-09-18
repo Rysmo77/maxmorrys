@@ -1,0 +1,88 @@
+{
+  "seo": {
+    "title": "Learn digital",
+    "description": "Four ways in to learn digital from Dakar: the blog, the podcast and videos, the courses, the Digitos Club. What's open comes before what's paid for.",
+    "jsonLdName": "Learning with Max-Morrys",
+    "jsonLdDescription": "Max-Morrys's learning track: articles, podcast and videos, courses and the Digitos Club.",
+    "breadcrumbHome": "Max-Morrys",
+    "breadcrumbCurrent": "Learning"
+  },
+  "hero": {
+    "eyebrow": "Learning with me · free first",
+    "titleLines": [
+      "YOU READ.",
+      "YOU LISTEN.",
+      "YOU TRAIN,",
+      "[THEN YOU JOIN.]"
+    ],
+    "lede": "Four ways in, and one rule that doesn't move: what's open comes before what's paid for. You can read and listen to everything with no account and nothing handed over. The rest comes after, if you want to go further.",
+    "tagFree": "Two doors open, no account",
+    "tagPaid": "What's paid for is named as such",
+    "ctaFree": "Start with the blog",
+    "note": "I don't ask for your address to let you read or listen. You'll need one the day you enrol in a course, not before."
+  },
+  "entries": {
+    "titleLines": [
+      "WHAT SITS BEHIND",
+      "[EACH ONE OF THEM.]"
+    ],
+    "intro": "They're in this order on purpose. What opens without you handing anything over comes first, what costs money comes next — and I'd rather tell you now than halfway through.",
+    "accessOpen": "Free · no account",
+    "accessPaid": "Paid · per course",
+    "accessClosed": "Paid · closed",
+    "forWho": "Who it's for",
+    "cost": "What it costs",
+    "blog": {
+      "body": "Methods, written down. How a Dakar shop shows up on Google Maps, what to do with a page that sells nothing, how a product listing holds together. The examples are taken from here: “Cosmétique Almadies”, not “organic skincare Brooklyn” — what your own customers type, in the words they use.",
+      "who": "For you if you want to do it yourself, without buying anything first.",
+      "cost": "Nothing. It all reads without an account.",
+      "cta": "Read the blog"
+    },
+    "media": {
+      "body": "People from here telling you what they actually did — what worked, and what cost them dearly. No tutorials: voices, and their transcript when there is one.",
+      "who": "For you if you want to hear someone out before making up your mind.",
+      "cost": "Nothing. Listening asks for no account and no subscription.",
+      "cta": "Listen and watch"
+    },
+    "formations": {
+      "body": "Guided paths: lessons in order, missions to hand in, and a certificate at the end — the very one that gets checked further down.",
+      "who": "For you if you want a progression, not pieces picked up at random.",
+      "cost": "Paid, per course, no subscription. What opens without paying is written on each course's page."
+    },
+    "club": {
+      "title": "The Digitos Club",
+      "body": "Where the people you hear on the podcast are. Live sessions, mutual help, and the things that don't go on a public page.",
+      "who": "For you if you've already started and going it alone is starting to weigh.",
+      "costPrefix": "Subscription, that is",
+      "costBilled": "Billed",
+      "costBilledSuffix": "once a year. It can't be toured — that's the price of keeping it closed.",
+      "cta": "See the Club"
+    }
+  },
+  "verify": {
+    "eyebrow": "The proof",
+    "titleLines": [
+      "ONE CODE,",
+      "[ONE ANSWER.]"
+    ],
+    "body": "A certificate issued here can be checked publicly. An employer, a client, a panel types in the code printed on the document and gets an answer — no account, no need to contact me, nothing to pay. The lookup leads back to no profile: it's a code that answers, not a person.",
+    "note": "It's the cheapest proof I know of, and the rarest: it happens without me, and it can prove me wrong.",
+    "cta": "Check a certificate",
+    "provenTitle": "What you can check here without an account",
+    "withheldTitle": "What this page puts no figure on",
+    "proven": [
+      "A certificate code can be checked publicly, with no account and no link handed to you first.",
+      "The blog and the media hub open without signing up: you can check for yourself before believing me.",
+      "The Club's price is written on this page, by the month and by the year."
+    ],
+    "withheld": [
+      "No rating, no reviews, no member count: the platform has just opened and I have nothing honest to say about it.",
+      "No completion rate: you'd need finished paths to work one out, and I'm not going to invent the figure meanwhile."
+    ]
+  },
+  "end": {
+    "title": "Not sure where to start?",
+    "body": "Write to me. I answer myself, and I'll tell you whether what I do answers your question — or whether it isn't worth it.",
+    "cta": "Ask me the question"
+  }
+}

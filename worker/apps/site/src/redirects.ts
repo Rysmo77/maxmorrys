@@ -19,7 +19,15 @@ import { cached } from './cache';
 import type { Env } from './env';
 
 export const VIA_PREFIX = '/via/';
-export const VIA_FALLBACK = '/agence';
+/**
+ * ⚠️ `/conception` DEPUIS LA REFONTE, ET C'EST UN SAUT ÉCONOMISÉ À CHAQUE CRÉDIT DÉJÀ POSÉ.
+ *
+ * `/agence` est devenue une 301 vers `/conception` (`./static-redirects.ts`). Laisser le
+ * repli dessus aurait fait, pour chaque slug inconnu, un 302 suivi d'un 301 : deux
+ * aller-retours pour un lien imprimé au pied de sites clients que nous ne redéployons pas.
+ * Miroir de `src/lib/redirects.ts`, épinglé par `tests/unit/redirects.test.ts`.
+ */
+export const VIA_FALLBACK = '/conception';
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
 

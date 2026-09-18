@@ -55,10 +55,27 @@ export const LAZY_NAMESPACES = [
   'about',
   'admin',
   'adminClub',
-  'agency',
+  /*
+   * ⚠️ `agency` A ÉTÉ RETIRÉ LE 17/09/2026, avec ses deux catalogues.
+   *
+   * La refonte en deux pistes a supprimé `/agence` et les cinq composants de
+   * `src/components/agency/` qui étaient ses seuls lecteurs. Le catalogue n'avait
+   * plus AUCUN lecteur à l'exécution — vérifié par `useTranslation('agency')`, zéro
+   * occurrence de code. Un namespace mort ne coûte rien à l'exécution (il est chargé
+   * à la demande, donc jamais), et c'est bien le problème : rien ne l'aurait signalé.
+   *
+   * Le seul libellé qui lui survivait utilement, « Formation d'équipe », a été porté
+   * dans `admin.missions.projectTypes.training` — où la console le cherchait déjà, et
+   * où il manquait.
+   */
+  /* La piste APPRENDRE et la piste CONCEPTION du CDC du 14/09/2026 : trois namespaces, six
+     fichiers. Rien n'est auto-découvert ici — un JSON créé sans sa ligne dans cette liste ne
+     serait jamais enregistré auprès d'i18next, et la page rendrait ses clés brutes. */
+  'apprendre',
   'auth',
   'blog',
   'club',
+  'conception',
   'contact',
   'faq',
   'legal',
@@ -66,6 +83,7 @@ export const LAZY_NAMESPACES = [
   'lmsTabs',
   'media',
   'presence',
+  'realisations',
   'rysmo',
 ] as const;
 

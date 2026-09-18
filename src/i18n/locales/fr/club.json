@@ -78,8 +78,8 @@
     "like": "J'aime",
     "share": "Partager",
     "truth": {
-      "provenTitle": "Ce que je peux te prouver ici",
-      "withheldTitle": "Ce que je n'affiche pas",
+      "provenTitle": "Ce que ce fil d'infos prouve",
+      "withheldTitle": "Ce que ce fil ne compte pas",
       "proven1": "Chaque info porte sa date de publication et sa catégorie, telles qu'elles sont enregistrées.",
       "proven2": "Publier ici ne dépend que de moi : l'agenda de publication est tenu, ou il ne l'est pas, et ça se voit aux dates.",
       "withheld1": "Aucun nombre de lectures ni de partages : rien ne les mesure, et un compteur inventé se prend en défaut au premier coup d'œil."
@@ -184,7 +184,6 @@
     "theyTalk": "Ils en parlent",
     "tipTitle": "Conseil",
     "tipText": "Combine le Club avec une formation pour tirer le maximum de la plateforme. ",
-    "seeFormations": "Voir les formations",
     "pendingTitle": "Paiement en cours de traitement",
     "pendingText": "Ton paiement est en attente de confirmation. Ton accès sera activé automatiquement dès réception. Si tu as un souci, ",
     "contactUs": "écris-moi",
@@ -380,8 +379,6 @@
       "Ce que je ne peux pas",
       "encore te garantir."
     ],
-    "guaranteeTruthTitle": "Pourquoi je te dis ça au lieu de te vendre du rêve",
-    "guaranteeTruthBody": "Le Club a ouvert en {{opened}}. Je ne t'annoncerai pas un nombre de membres, parce qu'il serait faux, et parce que tu le vérifieras au premier écran après avoir payé. Je préfère que tu entres en sachant ce que tu achètes : une année d'accès à ce qui existe déjà, et une place dans ce qui se construit.",
     "tabsTitle": [
       "Huit onglets.",
       "Voilà à quoi ils servent."
@@ -453,8 +450,7 @@
     "listenLede": "Le podcast et les vidéos sont sur ce même territoire, à l'étage du dessous : gratuits, sans compte. Des gens d'ici racontent ce qu'ils ont fait. Le Club, c'est quand tu veux leur parler au lieu de les écouter.",
     "listenCta": "Écouter d'abord",
     "listenEmpty": "Aucun épisode n'est encore en ligne. Quand il y en aura un, il sera ici, gratuit et sans compte.",
-    "listenTruthTitle": "Ce que le gratuit ne donne pas",
-    "listenTruthBody": "Écouter est gratuit et le restera. Ce que l'abonnement ajoute est ailleurs : les sessions en direct, les missions qui circulent, et une réponse de moi. Le Club, lui, ne se visite pas — c'est la contrepartie de le garder fermé.",
+    "listenBoundary": "Écouter est gratuit et le restera. Ce que l'abonnement ajoute est ailleurs : les sessions en direct, les missions qui circulent, et une réponse de moi. Le Club, lui, ne se visite pas — c'est la contrepartie de le garder fermé.",
     "finalPre": "Une année.",
     "finalPost": "par mois.",
     "finalSecondLine": "Et quelqu'un au bout du fil.",
@@ -462,7 +458,9 @@
     "finalCtaSecondary": "Écris-moi d'abord",
     "sessionsCite": "engagement du Club, annoncé",
     "sessionsHeldPre": "Tenues sur les {{days}} derniers jours :",
-    "truthProvenTitle": "Ce que je peux te prouver"
+    "truthProvenTitle": "Ce que je peux prouver sur l'abonnement",
+    "truthProvenPurchase": "Je préfère que tu entres en sachant ce que tu achètes : une année d'accès à ce qui existe déjà, et une place dans ce qui se construit.",
+    "truthWithheldTitle": "Ce que cette page ne te montrera pas"
   },
   "panel": {
     "upcomingEyebrow": "À venir",

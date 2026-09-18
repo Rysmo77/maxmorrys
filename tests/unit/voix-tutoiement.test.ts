@@ -23,9 +23,26 @@
  * il désigne deux parties — « vos échanges » entre la personne et son répétiteur en est le
  * seul cas du dépôt. Et « rendez-vous » est un nom commun. Les deux sont exemptés nommément :
  * une règle qui crie au loup finit ignorée, ce qui coûte plus cher que de ne pas l'avoir.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────────────────
+ * LA PISTE CONCEPTION VOUVOIE, ET C'EST UNE DÉCISION, PAS UNE FUITE.  (CDC du 14/09/2026)
+ *
+ * Le cahier des charges de la refonte en deux pistes ne demande pas d'aplatir la voix vers le
+ * corporate — il dit l'inverse, mot pour mot : « ce serait détruire ce qui fonctionne ». Il
+ * constate autre chose : « un seul registre sert deux publics qui n'achètent pas la même
+ * chose, à des prix séparés par un facteur vingt ». Le tutoiement reste la voix de Max-Morrys
+ * pour l'audience qui l'a construite ; la piste Conception s'adresse à une direction qui
+ * signe un lot technique, et elle vouvoie.
+ *
+ * D'où DEUX règles au lieu d'une, et surtout pas une exemption. Une exemption aurait laissé
+ * ces deux catalogues sans aucune garde — c'est-à-dire libres de dériver vers le tutoiement à
+ * la première recopie depuis une page voisine, qui est exactement le mode de dérive que ce
+ * fichier documente en tête. La seconde règle est la symétrique de la première, et la recette
+ * du CDC la réclame nommément : « la page Projets sur mesure ne contient aucun tutoiement ».
+ * ─────────────────────────────────────────────────────────────────────────────────────────
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 const FR = 'src/i18n/locales/fr';
@@ -53,13 +70,60 @@ function parcourir(o: unknown, chemin: string, fichier: string, out: Trouvaille[
   }
 }
 
+/**
+ * Les catalogues de la PISTE CONCEPTION — les deux seuls du dépôt qui vouvoient.
+ *
+ * `agency.json` n'en est PAS, et c'est délibéré : ses chaînes sont rendues par les composants
+ * de `src/components/agency/`, écrits au tutoiement et repris tels quels. Le jour où l'un
+ * d'eux passe au vouvoiement, sa chaîne doit déménager dans un de ces deux fichiers — la
+ * règle le dira.
+ */
+const PISTE_CONCEPTION = new Set(['conception.json', 'realisations.json']);
+
+/**
+ * Le tutoiement : pronom, possessifs, et l'élision qui porte les verbes de la marque
+ * (« je t'informe », « ça t'aide »). `toi` compris — « chez toi » est la forme qui passait.
+ */
+const TUTOIEMENT = /\b(tu|te|toi|ton|ta|tes)\b|\bt'/i;
+
+/**
+ * Les exemptions du tutoiement, nommées une par une.
+ *
+ * `TPE` porte un `\bt` sans apostrophe, donc il ne déclenche rien — mais « ta » et « ton »
+ * sont aussi des mots anglais et italiens, et un nom propre les contient parfois. Rien de tel
+ * dans le dépôt à ce jour : la liste est vide, et elle est écrite pour que le prochain ajout
+ * soit un ajout nommé, pas une famille.
+ */
+const EXEMPT_TU = /$^/;
+
 describe('voix de marque — tutoiement', () => {
-  it('aucun catalogue français ne vouvoie', () => {
+  it('aucun catalogue français ne vouvoie, hors piste Conception', () => {
     const trouvailles: Trouvaille[] = [];
-    for (const f of readdirSync(FR).filter((n) => n.endsWith('.json'))) {
+    for (const f of readdirSync(FR).filter((n) => n.endsWith('.json') && !PISTE_CONCEPTION.has(n))) {
       parcourir(JSON.parse(readFileSync(join(FR, f), 'utf8')), '', f, trouvailles);
     }
     const rapport = trouvailles.map((t) => `  ${t.fichier} → ${t.chemin}\n    « ${t.valeur} »`).join('\n');
     expect(trouvailles, `Vouvoiement dans ${trouvailles.length} chaîne(s) :\n${rapport}`).toEqual([]);
+  });
+
+  it('la piste Conception ne tutoie jamais', () => {
+    const trouvailles: Trouvaille[] = [];
+    const chercher = (o: unknown, chemin: string, fichier: string) => {
+      if (typeof o === 'string') {
+        if (TUTOIEMENT.test(o.replace(EXEMPT_TU, ''))) trouvailles.push({ fichier, chemin, valeur: o });
+      } else if (Array.isArray(o)) {
+        o.forEach((v, i) => chercher(v, `${chemin}[${i}]`, fichier));
+      } else if (o && typeof o === 'object') {
+        for (const [k, v] of Object.entries(o)) chercher(v, chemin ? `${chemin}.${k}` : k, fichier);
+      }
+    };
+
+    for (const f of PISTE_CONCEPTION) {
+      const chemin = join(FR, f);
+      if (!existsSync(chemin)) continue;
+      chercher(JSON.parse(readFileSync(chemin, 'utf8')), '', f);
+    }
+    const rapport = trouvailles.map((t) => `  ${t.fichier} → ${t.chemin}\n    « ${t.valeur} »`).join('\n');
+    expect(trouvailles, `Tutoiement dans ${trouvailles.length} chaîne(s) de la piste Conception :\n${rapport}`).toEqual([]);
   });
 });

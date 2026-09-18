@@ -58,6 +58,11 @@ export {
   getClientProject,
   categoryKey,
   CLIENT_RELATION,
+  CLIENT_PUBLICATION_GRANTED,
+  CLIENT_PUBLICATION_WITHHELD,
   type ClientProject,
   type ClientCapability,
+  type ClientEvidence,
+  type ClientPublicationGranted,
+  type ClientPublicationWithheld,
 } from './clients';

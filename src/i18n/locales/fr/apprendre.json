@@ -1,0 +1,87 @@
+{
+  "seo": {
+    "title": "Apprendre le digital",
+    "description": "Quatre entrées pour apprendre le digital depuis Dakar : blog, podcast et vidéos, formations, Club des Digitos. L'ouvert passe devant le payant.",
+    "jsonLdName": "Apprendre avec Max-Morrys",
+    "jsonLdDescription": "La piste d'apprentissage de Max-Morrys : articles, podcast et vidéos, formations et Club des Digitos.",
+    "breadcrumbHome": "Max-Morrys",
+    "breadcrumbCurrent": "Apprendre"
+  },
+  "hero": {
+    "eyebrow": "Apprendre avec moi · le gratuit d'abord",
+    "titleLines": [
+      "TU LIS. TU ÉCOUTES.",
+      "TU TE FORMES,",
+      "[PUIS TU REJOINS.]"
+    ],
+    "lede": "Quatre portes, et une règle qui ne bouge pas : ce qui est ouvert passe devant ce qui est payant. Tu peux tout lire et tout écouter sans compte et sans rien donner. Le reste vient après, si tu veux aller plus loin.",
+    "tagFree": "Deux portes ouvertes, sans compte",
+    "tagPaid": "Le payant est dit comme tel",
+    "ctaFree": "Commence par le blog",
+    "note": "Je ne te demande pas ton adresse pour lire ou pour écouter. Tu en auras besoin le jour où tu t'inscris à une formation, pas avant."
+  },
+  "entries": {
+    "titleLines": [
+      "CE QU'IL Y A",
+      "[DERRIÈRE CHAQUE PORTE.]"
+    ],
+    "intro": "Elles sont rangées dans cet ordre exprès. Ce qui s'ouvre sans rien donner vient en premier, ce qui se paie vient ensuite — et je préfère te le dire maintenant plutôt qu'à mi-parcours.",
+    "accessOpen": "Gratuit · sans compte",
+    "accessPaid": "Payant · au cours",
+    "accessClosed": "Payant · fermé",
+    "forWho": "Pour qui",
+    "cost": "Ce que ça coûte",
+    "blog": {
+      "body": "Des méthodes, écrites. Comment une boutique de Dakar apparaît sur Google Maps, ce qu'on fait d'une page qui ne vend rien, comment se tient une fiche produit. Les exemples sont pris ici : « Cosmétique Almadies », pas « organic skincare Brooklyn » — ce que tapent tes clients, dans les mots qu'ils emploient.",
+      "who": "Pour toi si tu veux faire toi-même, sans rien acheter d'abord.",
+      "cost": "Rien. Tout se lit sans compte.",
+      "cta": "Lire le blog"
+    },
+    "media": {
+      "body": "Des gens d'ici qui racontent ce qu'ils ont fait — ce qui a marché, et ce qui leur a coûté cher. Pas de tutoriel : des voix, et leur transcription quand elle existe.",
+      "who": "Pour toi si tu veux entendre quelqu'un avant de te décider.",
+      "cost": "Rien. L'écoute ne demande ni compte ni abonnement.",
+      "cta": "Écouter et regarder"
+    },
+    "formations": {
+      "body": "Des parcours suivis : des leçons dans l'ordre, des missions à rendre, et un certificat au bout — celui-là même qui se vérifie plus bas.",
+      "who": "Pour toi si tu veux une progression, pas des morceaux ramassés au hasard.",
+      "cost": "Payant, au cours, sans abonnement. Ce qui s'ouvre sans payer est écrit sur la fiche de chaque formation."
+    },
+    "club": {
+      "title": "Le Club des Digitos",
+      "body": "Là où sont ceux que tu entends dans le podcast. Des sessions en direct, de l'entraide, et ce qui ne se met pas sur une page publique.",
+      "who": "Pour toi si tu as déjà commencé et que travailler seul commence à peser.",
+      "costPrefix": "Abonnement, soit",
+      "costBilled": "Facturé",
+      "costBilledSuffix": "une fois par an. Il ne se visite pas — c'est la contrepartie de le garder fermé.",
+      "cta": "Voir le Club"
+    }
+  },
+  "verify": {
+    "eyebrow": "La preuve",
+    "titleLines": [
+      "UN CODE,",
+      "[UNE RÉPONSE.]"
+    ],
+    "body": "Un certificat délivré ici se vérifie publiquement. Un employeur, un client, un jury recopie le code lu sur le document et obtient une réponse — sans compte, sans me contacter, sans rien payer. La recherche ne remonte à aucun profil : c'est un code qui répond, pas une personne.",
+    "note": "C'est la preuve la moins chère que je connaisse, et la plus rare : elle se fait sans moi, et elle peut me contredire.",
+    "cta": "Vérifier un certificat",
+    "provenTitle": "Ce qui se vérifie ici sans compte",
+    "withheldTitle": "Ce que cette page ne chiffre pas",
+    "proven": [
+      "Un code de certificat se vérifie publiquement, sans compte et sans lien préalable.",
+      "Le blog et le pôle média s'ouvrent sans inscription : tu peux vérifier par toi-même avant de me croire.",
+      "Le tarif du Club est écrit sur cette page, au mois et à l'année."
+    ],
+    "withheld": [
+      "Ni note, ni avis, ni nombre d'inscrits : la plateforme vient d'ouvrir et je n'ai rien d'honnête à en dire.",
+      "Aucun taux de réussite : il faudrait des parcours terminés pour en calculer un, et je ne vais pas inventer le chiffre en attendant."
+    ]
+  },
+  "end": {
+    "title": "Tu ne sais pas par où commencer ?",
+    "body": "Écris-moi. Je réponds moi-même, et je te dirai si ce que je fais répond à ta question — ou si ce n'est pas la peine.",
+    "cta": "Me poser la question"
+  }
+}

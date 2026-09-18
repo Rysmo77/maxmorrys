@@ -259,5 +259,27 @@ export function universeFromPath(rawPath: string): Universe {
   // pas une raison de leur donner la même promesse à l'écran.
   if (path.startsWith('/presence-digitale')) return 'presence';
   if (path.startsWith('/agence')) return 'agency';
+  /*
+   * ── LES DEUX PISTES DU CDC DU 14/09/2026 ─────────────────────────────────────────────
+   *
+   * La piste CONCEPTION hérite de l'univers de l'agence : corail en version texte, AUCUN
+   * maillage. C'est la continuité exacte de ce que `/agence` portait — même promesse, même
+   * client, autre adresse — et c'est aussi ce que demande le CDC §7 pour cette piste :
+   * « sobre, éditoriale, factuelle ».
+   *
+   * ⚠️ L'ORDRE DES DEUX PREMIERS TESTS EST PORTEUR. `/conception/commerces-et-tpe` est
+   * l'ancienne présence digitale : elle reste le territoire TEAL, « Je te digitalise », avec
+   * sa grille de prix publique et son ton direct. Le CDC ne la corporatise pas, il la BORNE
+   * — d'où son bandeau de segment. Tester `/conception` d'abord lui aurait pris son
+   * territoire au passage, sans que rien ne le signale.
+   */
+  if (path.startsWith('/conception/commerces-et-tpe')) return 'presence';
+  if (path.startsWith('/conception')) return 'agency';
+  /*
+   * La piste APPRENDRE prend le bleu de « Je te forme » : c'est le territoire d'entrée, et
+   * déjà le défaut de cette fonction. Le test est écrit quand même, parce qu'une page mère
+   * qui dépend du repli est une page dont personne ne sait qu'elle en dépend.
+   */
+  if (path.startsWith('/apprendre')) return 'formations';
   return 'formations';
 }

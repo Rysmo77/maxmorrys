@@ -5,6 +5,7 @@ import { asText } from '../seo/values';
 import { stripMarkdown } from './html';
 import { enPath } from './segments';
 import { getCertificateMeta } from './certificat';
+import { getRealisationMeta } from './realisations';
 import { getFaqQuestionMeta } from './faq';
 import type { PageMeta } from './types';
 
@@ -106,6 +107,17 @@ export async function getContentMeta(
    */
   const certMatch = path.match(/^\/certificat\/([^/?#]+)$/);
   if (certMatch) return getCertificateMeta(db, certMatch[1], lang);
+
+  /*
+   * Fiche de réalisation : /conception/realisations/:slug
+   *
+   * Même motif que la FAQ et les certificats — une route routée vers le pré-rendu sans
+   * producteur au bout repart en `noindex` sous le titre de l'accueil. La donnée ne vit pas
+   * en base mais dans `src/lib/brand/clients.ts` : voir `realisations.ts` pour la copie et
+   * ce qu'elle a le droit d'affirmer.
+   */
+  const realisationMatch = path.match(/^\/conception\/realisations\/([^/?#]+)$/);
+  if (realisationMatch) return getRealisationMeta(realisationMatch[1], lang);
 
   // Article : /blog/:slug
   const blogMatch = path.match(/^\/blog\/([^/?#]+)$/);

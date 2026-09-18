@@ -1,7 +1,7 @@
 {
   "seo": {
-    "title": "Max-Morrys Eyoum — Marketing & Growth Manager | IA, Automatisation, Plateformes Web",
-    "description": "Profil hybride marketing-tech basé à Dakar : stratégie 360°, growth, SEO, IA, automatisation, plateformes web full stack et pilotage de partenariats en Afrique francophone."
+    "title": "Max-Morrys Eyoum — Conception web & formation au digital, depuis Dakar",
+    "description": "Qui je suis, mon parcours daté, ce que je fais dans la conception web et dans la formation, et comment Max-Morrys se range sous MY ONOMA."
   },
   "values": {
     "passion": {
@@ -341,26 +341,24 @@
     "ctaAgency": "Voir Max-Morrys Agency"
   },
   "page": {
-    "eyebrow": "Formateur · consultant · Dakar",
+    "eyebrow": "Conception web · Formation · Dakar",
     "titleLines": [
       "Je suis",
       "[Max-Morrys.]"
     ],
-    "lede": "Je t'aide à maîtriser le marketing digital, le SEO et l'IA — pour le marché francophone d'Afrique de l'Ouest, avec les moyens que tu as vraiment.",
-    "aloneBody": "Formateur, consultant et créateur de contenu digital basé à Dakar. J'écris les articles, je monte les formations, j'anime le Club, et je réponds aux messages.",
+    "lede": "Je conçois des sites et des plateformes web, et je forme au digital. Deux pistes, un seul interlocuteur, depuis Dakar — pour le marché francophone d'Afrique de l'Ouest, avec les moyens que tu as vraiment.",
+    "aloneBody": "Concepteur web, formateur et créateur de contenu digital basé à Dakar. Je cadre les projets, j'écris les articles, je monte les formations, j'anime le Club, et je réponds aux messages.",
     "aloneStrong": "Il n'y a personne d'autre derrière cette plateforme.",
     "ctaContact": "Contacte-moi",
-    "ctaFormations": "Voir les formations",
     "doesTitle": [
-      "Ce que je fais,",
-      "concrètement."
+      "Les deux pistes,",
+      "et ce que j'y fais."
     ],
-    "doesTrainTitle": "Je forme",
-    "doesTrainBody": "Des formations en ligne sur le référencement local et l'IA appliquée à la prospection. Écrites, filmées et corrigées par moi.",
-    "doesPublishTitle": "Je publie",
-    "doesPublishBody": "Un blog gratuit, un podcast, des vidéos. Le tout en français, avec des exemples pris ici et pas ailleurs.",
-    "doesSupportTitle": "J'accompagne",
-    "doesSupportBody": "Des commerces de proximité que je rends trouvables en ligne, et des projets sur mesure côté Agency.",
+    "doesLede": "Ce site mène à deux endroits, et je ne fais pas la même chose dans chacun.",
+    "doesConceptionTitle": "Conception",
+    "doesConceptionBody": "Je conçois et je mets en ligne le site, la fiche Google et le catalogue d'un commerce, ou la plateforme d'une organisation. Je cadre par écrit, je construis, je livre et je reste joignable après.",
+    "doesApprendreTitle": "Apprendre",
+    "doesApprendreBody": "Des formations en ligne sur le référencement local et l'IA appliquée à la prospection, un blog gratuit, un podcast, des vidéos et le Club des Digitos. Écrits, filmés et corrigés par moi.",
     "pathTitle": [
       "Le parcours."
     ],
@@ -380,12 +378,13 @@
       "Où tout ça",
       "se range."
     ],
-    "treeLede": "Max-Morrys est une marque de MY ONOMA SARL. Deux autres practices existent à côté, et elles ne font pas la même chose.",
-    "treeLearnBadge": "Track LEARN",
-    "treeLearnBody": "La plateforme que tu lis. Formations, blog, podcast, Club, et l'offre Présence Digitale pour les commerces.",
+    "treeSentence": "{{brand}} est la marque de conception web et de formation ; {{company}} est la société qui contracte les missions de direction marketing.",
+    "treeLede": "Les deux noms ne recouvrent donc pas le même travail, et ce site ne vend que le premier. Deux practices existent à côté, et elles ne font pas la même chose.",
+    "treeLearnBadge": "Ce site",
+    "treeLearnBody": "La plateforme que tu lis, et ses deux pistes : la conception web d'un côté, la formation et les médias de l'autre.",
     "treePillarBadge": "Pilier {{pillar}}",
-    "treeBuildBody": "Les projets sur mesure, sans grille publique, sur cadrage écrit. Une practice sœur, pas une offre du catalogue.",
-    "treeGrowBody": "L'acquisition et le growth. Si ta demande relève de là, elle y est transmise — jamais rejetée.",
+    "treeBuildBody": "Le nom sous lequel les missions de conception sont contractées. Sur ce site, la piste Conception en est la porte.",
+    "treeGrowBody": "La direction marketing, l'acquisition et le revenu. Ça ne se vend pas ici : si ta demande relève de là, elle part là-bas — jamais rejetée.",
     "treeRegistered": "Immatriculée",
     "treeSeat": "Siège",
     "treePillars": "Piliers",
@@ -403,7 +402,6 @@
     "closingAfter": "articles. Ou écris-moi directement — c'est moi qui lis.",
     "closingBlog": "Lire le blog",
     "closingContact": "Contacte-moi",
-    "portraitAlt": "Max-Morrys Eyoum, portrait en buste : lunettes rondes, chemise verte, bras croisés, dans un intérieur clair.",
     "slotFindTitle": "Liens à confirmer",
     "slotFindBody": "Les profils ci-contre sont déclarés et vérifiés un par un. Ce qui manque : la plateforme d'écoute du podcast, qui n'est déclarée nulle part.",
     "slotFindStrong": "Je préfère laisser vide plutôt que de deviner une adresse — et aucun compte n'affiche son nombre d'abonnés.",

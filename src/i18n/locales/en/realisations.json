@@ -1,0 +1,124 @@
+{
+  "seo": {
+    "title": "Client work",
+    "description": "The platforms we built for clients: the role we held, the technical scope, the stack we used, and the public address you can open.",
+    "detailTitle": "{{name}} — client work",
+    "detailDescription": "{{name}} — {{category}}. The role we held, the technical scope and the stack we used. The product belongs to its client."
+  },
+  "index": {
+    "eyebrow": "Client work",
+    "titleLines": ["What we have", "[built].", "And for whom."],
+    "lede": "These products belong to their clients. We state only the role we held, the stack we used and the address where you can see for yourself. A link you can open beats a number you have to take on faith.",
+    "filterAll": "All",
+    "filterEyebrow": "Filter by category",
+    "filterAria": "Filter client work by category",
+    "resultCount_one": "{{count}} project",
+    "resultCount_other": "{{count}} projects",
+    "gridAria": "Client work",
+    "cardCta": "Open the case",
+    "emptyTitle": "Nothing in this category",
+    "emptyBody": "The filter returns nothing. Clear it to get the full list back.",
+    "emptyAction": "Clear the filter",
+    "exitTitle": "A product like these, but yours?",
+    "exitBody": "This work shows what the studio can build. What comes next starts from your problem, not someone else's.",
+    "exitCta": "Describe your project"
+  },
+  "fiche": {
+    "eyebrow": "Client work",
+    "breadcrumbAria": "Breadcrumb",
+    "breadcrumbRoot": "Design",
+    "breadcrumbIndex": "Client work",
+    "contextTitle": "Context",
+    "contextMissing": "The repository holds no approved description for this project. We prefer this line to a sentence written to fill the gap.",
+    "roleTitle": "Our role",
+    "roleNote": "Every role listed is established from the project repository. What cannot be established there is not claimed.",
+    "scopeTitle": "Technical scope",
+    "scopeNote": "Read from the project repository: dependency files, configuration, security rules.",
+    "durationTitle": "Engagement length",
+    "outcomeTitle": "Measurable outcome",
+    "visitLabel": "Open the site",
+    "visitAria": "Open {{name}} in a new tab",
+    "previewAlt": "Preview of {{name}} in production",
+    "previewChromeAria": "Preview of the {{name}} website",
+    "navAria": "Previous and next project",
+    "prev": "Previous",
+    "next": "Next",
+    "backToIndex": "All client work",
+    "nextStepTitle": "A project of this kind?",
+    "nextStepBody": "Tell us what you want to build. We answer with a written scope before any proposal.",
+    "nextStepCta": "Talk about your project"
+  },
+  "authorization": {
+    "eyebrow": "Publication consent",
+    "title": "What the client lets us publish",
+    "body": "This page is published with its client's consent. That consent covers what can be checked from the outside, and nothing else.",
+    "provenTitle": "What the consent covers",
+    "withheldTitle": "What it does not cover",
+    "granted": {
+      "name": "The product name and its sector",
+      "role": "The role we held",
+      "stack": "The stack we used, read from the repository",
+      "liveLink": "The public address, which you can open"
+    },
+    "withheld": {
+      "results": "No outcome achieved — the consent does not cover it",
+      "growthFigures": "No growth, traffic or audience figure",
+      "testimonials": "No testimonial, no client quote",
+      "contractTerms": "No contractual information: amount, schedule, negotiated scope"
+    }
+  },
+  "debt": {
+    "title": "Two things are missing from this page",
+    "body": "The specification asks for the engagement length and a measurable outcome. The repository documents neither, and the publication consent does not cover the second. We do not invent them: their slots exist in the data, empty, and this page will show them as soon as a length is recorded and an outcome is publicly verifiable, sourced and cleared.",
+    "footer": "This panel disappears with the gap it names. That is what gives it an end."
+  },
+  "units": {
+    "weeks": "weeks",
+    "months": "months",
+    "days": "days",
+    "percent": "%"
+  },
+  "capabilities": {
+    "productStrategy": "Product strategy",
+    "productDesign": "Product design",
+    "uxui": "UX / UI",
+    "engineering": "Engineering",
+    "platformArchitecture": "Platform architecture",
+    "designSystem": "Design system",
+    "aiAutomation": "AI & automation",
+    "securityRules": "Security rules",
+    "seo": "SEO"
+  },
+  "projects": {
+    "khanouss": {
+      "description": "Full-stack e-commerce platform — catalogue, cart and payment."
+    },
+    "holycash": {
+      "description": "Web platform geared towards financial services and payment."
+    },
+    "english-lab": {
+      "description": "English coaching platform for French-speaking African professionals and students."
+    },
+    "resho-konnexion": {
+      "description": "Community and professional platform: jobs, events, incubator and directory."
+    },
+    "loma": {
+      "description": "Multi-service platform: transport, delivery and restaurants, with customer, driver, restaurant and admin areas."
+    },
+    "klio-pro": {
+      "description": "Public site, ticketing and back-office for a procurement consulting and training firm in Dakar."
+    },
+    "je-temoigne": {
+      "description": "Collection, moderation and publication of video, audio or text testimonies, straight from the phone."
+    },
+    "lauraverse": {
+      "description": "Media platform and listings for Christian events across French-speaking Africa."
+    },
+    "dunamis-holydays": {
+      "description": "Event site: overview, programme and registration."
+    },
+    "in-senegal": {
+      "description": "Institutional site for a national event — overview, programme and contact."
+    }
+  }
+}

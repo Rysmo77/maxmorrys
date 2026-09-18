@@ -15,6 +15,22 @@ import type { EngagementProjectType } from '../../types';
 /**
  * LA DEMANDE DE MISSION — toute sa logique, sortie du rendu.
  *
+ * ⚠️ DÉPLACÉ DE `src/pages/agence/` LE 17/09/2026, avec la refonte en deux pistes (CDC §4.2).
+ * `/agence` est absorbée par `/conception`, et le formulaire vit désormais sur
+ * `/conception/projets-sur-mesure`. Trois choses ne bougent pas, et c'est délibéré :
+ *
+ *   · LA COLLECTION. `saveEngagementLead` écrit toujours dans `engagement_leads`, que
+ *     `pages/admin/AdminAgencyLeads` lit. Renommer la piste ne renomme pas la base.
+ *   · LES NOMS D'ÉVÉNEMENTS. `agency_view`, `agency_form_start`, `agency_form_submit` et
+ *     `agency_engagement` restent écrits ainsi : ce sont des séries historiques, et les
+ *     renommer couperait la courbe en deux sans rien apprendre à personne.
+ *   · `markSuppressed('agencyExit')`. L'identifiant de la pop-up de sortie vit dans le
+ *     registre (`lib/popups`) et a ses propres miroirs — il ne se renomme pas d'ici.
+ *
+ * CE QUI BOUGE : le namespace i18n. Les libellés étaient lus dans `agency`, qui TUTOIE ;
+ * la piste Conception vouvoie (CDC, règle de registre). Les messages d'erreur viennent donc
+ * de `conception.form.errors.*`. `agency` reste vivant pour `components/agency/*`.
+ *
  * `/agence` faisait 856 lignes, et l'état du formulaire y vivait au milieu de neuf sections
  * de mise en page. Deux choses en découlaient, qu'un déplacement suffit à réparer :
  *
@@ -76,7 +92,7 @@ export interface AgencyLeadReceipt {
 }
 
 export function useAgencyEngagement() {
-  const { t } = useTranslation('agency');
+  const { t } = useTranslation('conception');
   const { language } = useLanguage();
   const { addToast } = useToast();
   const [searchParams] = useSearchParams();
@@ -166,21 +182,21 @@ export function useAgencyEngagement() {
 
   const validate = (): boolean => {
     const errs: AgencyLeadErrors = {};
-    if (!projectType) errs.projectType = t('panel.errors.projectType');
-    if (!budget) errs.budget = t('panel.errors.budget');
-    if (!timeline) errs.timeline = t('panel.errors.timeline');
+    if (!projectType) errs.projectType = t('form.errors.projectType');
+    if (!budget) errs.budget = t('form.errors.engagement');
+    if (!timeline) errs.timeline = t('form.errors.timeline');
 
-    if (!form.description.trim()) errs.description = t('panel.errors.description');
+    if (!form.description.trim()) errs.description = t('form.errors.description');
     else if (form.description.trim().length < DESCRIPTION_MIN) {
       // Le plancher est NOMMÉ dans le message, et lu à sa source : une borne qu'on
       // découvre par un refus est une borne invisible.
-      errs.description = t('panel.errors.descriptionShort', { min: DESCRIPTION_MIN });
+      errs.description = t('form.errors.descriptionShort', { min: DESCRIPTION_MIN });
     }
 
-    if (form.name.trim().length < NAME_MIN) errs.name = t('panel.errors.name');
-    if (form.company.trim().length < COMPANY_MIN) errs.company = t('panel.errors.company');
-    if (!form.email.trim()) errs.email = t('panel.errors.email');
-    else if (!EMAIL_RE.test(form.email.trim())) errs.email = t('panel.errors.emailInvalid');
+    if (form.name.trim().length < NAME_MIN) errs.name = t('form.errors.name');
+    if (form.company.trim().length < COMPANY_MIN) errs.company = t('form.errors.company');
+    if (!form.email.trim()) errs.email = t('form.errors.email');
+    else if (!EMAIL_RE.test(form.email.trim())) errs.email = t('form.errors.emailInvalid');
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -225,7 +241,7 @@ export function useAgencyEngagement() {
       setErrors({});
     } catch (error: unknown) {
       captureError(error, { context: 'Agency engagement form submit failed' });
-      addToast('error', t('panel.errors.sendFailed'));
+      addToast('error', t('form.errors.sendFailed'));
     } finally {
       setLoading(false);
     }

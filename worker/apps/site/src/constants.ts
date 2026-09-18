@@ -8,9 +8,12 @@
 export const SITE_URL = 'https://maxmorrys.me';
 export const SITE_NAME = 'Max-Morrys';
 
-export const DEFAULT_TITLE = 'Max-Morrys | Maîtrise le digital, accélère ta croissance';
+/* ⚠️ Miroir exact de `src/components/seo/seo-config.ts`, qui porte le pourquoi de ces deux
+   chaînes : l'accueil présente deux pistes depuis le 17/09/2026, pas une plateforme de
+   formation. Les deux fichiers se modifient ensemble. */
+export const DEFAULT_TITLE = 'Max-Morrys | Conception web et formation au digital';
 export const DEFAULT_DESCRIPTION =
-  "Formations, articles, podcasts et vidéos pour maîtriser le marketing digital, le SEO et l'IA. Par Max-Morrys depuis Dakar.";
+  "Conception de sites et de plateformes web, et formations au digital — référencement, marketing, IA. Depuis Dakar, pour l'Afrique de l'Ouest.";
 export const DEFAULT_OG_IMAGE = 'https://media.maxmorrys.me/Je-te-forme/2252.jpg';
 /**
  * Dimensions MESURÉES de l'image ci-dessus (`curl` + `sips`, 03/09/2026) : 1500×1000, soit

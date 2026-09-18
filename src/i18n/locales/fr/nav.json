@@ -23,5 +23,16 @@
   "accountMenu": "Menu du compte de {{name}}",
   "skipToContent": "Aller au contenu principal",
   "transformFree": "Écouter & regarder",
-  "transformClub": "Le Club des Digitos"
+  "transformClub": "Le Club des Digitos",
+  "conception": "Conception",
+  "learn": "Apprendre",
+  "aboutNeutral": "À propos",
+  "contactNeutral": "Contact",
+  "conceptionAria": "Conception — sites web et plateformes numériques",
+  "learnAria": "Apprendre — blog, podcast, formations et Club",
+  "conceptionSubnavLabel": "Navigation de la piste Conception",
+  "conceptionCommerces": "Commerces et TPE",
+  "conceptionSurMesure": "Projets sur mesure",
+  "conceptionRealisations": "Réalisations",
+  "learnSubnavLabel": "Navigation de la piste Apprendre"
 }

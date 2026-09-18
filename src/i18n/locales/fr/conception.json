@@ -1,0 +1,329 @@
+{
+  "seo": {
+    "title": "Conception de sites web et de plateformes numériques",
+    "description": "Le studio cadre, conçoit et construit des sites web et des plateformes numériques. Deux niveaux d'engagement, montrés tous les deux : une offre productisée pour les commerces et les TPE, et des projets sur mesure, sur devis. Depuis Dakar.",
+    "customTitle": "Projets sur mesure — sites, plateformes et portails métier",
+    "customDescription": "Sites corporate et bilingues, plateformes, portails métier, systèmes de design et intégrations. Sur devis : un cadrage écrit, des jalons livrés, une recette, une maintenance et une réversibilité documentées."
+  },
+  "page": {
+    "eyebrow": "Conception · {{brand}}",
+    "titleLines": [
+      "Nous concevons",
+      "[des sites]",
+      "[et des plateformes.]"
+    ],
+    "lede": "Nous cadrons, concevons et construisons les sites et les plateformes dont une organisation a besoin pour travailler. Un seul studio, deux niveaux d'engagement : vous choisissez celui qui correspond à votre projet, pas celui qui nous arrange.",
+    "studioEyebrow": "Ce que fait le studio",
+    "studioLede": "Une équipe qui conçoit et qui code. Les arbitrages d'interface et les arbitrages techniques se prennent au même moment, parce qu'ils décident l'un de l'autre.",
+    "studioItems": [
+      "Cadrage : le problème, le périmètre, ce qui n'est pas inclus.",
+      "Conception d'interface, parcours et système de design.",
+      "Ingénierie web : application, plateforme, portail métier.",
+      "Architecture, données, intégrations et mise en production."
+    ],
+    "truthTitle": "Ce que nous ne vendons pas ici",
+    "truthStart": "Ni direction marketing, ni stratégie de marque, ni acquisition. Ces métiers sont portés par ",
+    "truthStrong": "{{company}}",
+    "truthEnd": ", la société à laquelle le studio appartient, et opérés par sa practice croissance. Nous renvoyons, nous ne vendons pas."
+  },
+  "levels": {
+    "eyebrow": "Les deux niveaux d'engagement",
+    "titleLines": [
+      "Deux niveaux,",
+      "[aucun caché.]"
+    ],
+    "lede": "L'un affiche ses prix, l'autre se cadre avant d'être chiffré. Les deux sont sur cette page : c'est à vous de reconnaître le vôtre, pas à nous de le décider pour vous.",
+    "shops": {
+      "tag": "Grille publique",
+      "title": "Commerces et TPE",
+      "body": "Une offre productisée, installée et pilotée : le site, la fiche d'établissement, le catalogue, la publication régulière. Le périmètre est arrêté, les prix sont affichés, la mise en ligne est datée dès la commande.",
+      "points": [
+        "Périmètre fixe et livraison encadrée",
+        "Prix publics, sans échange préalable",
+        "Faite pour un commerce qui veut être trouvable"
+      ],
+      "cta": "Voir l'offre commerces et TPE"
+    },
+    "custom": {
+      "tag": "Sur devis",
+      "title": "Projets sur mesure",
+      "body": "Sites corporate et bilingues, plateformes, portails métier, systèmes de design, intégrations. Le périmètre s'écrit avant d'être chiffré, et c'est ce document qui engage les deux parties.",
+      "points": [
+        "Cadrage écrit avant tout chiffrage",
+        "Jalons livrés, recette contradictoire",
+        "Maintenance et réversibilité documentées"
+      ],
+      "cta": "Voir les projets sur mesure"
+    }
+  },
+  "method": {
+    "eyebrow": "Notre méthode",
+    "titleLines": [
+      "Comment",
+      "nous [travaillons.]"
+    ],
+    "lede": "La même méthode aux deux niveaux d'engagement. Ce qui change, c'est la durée de chaque étape — jamais le fait qu'elle ait lieu.",
+    "steps": [
+      {
+        "n": "01",
+        "title": "Cadrer",
+        "body": "Nous partons du problème et de la décision qu'il engage, pas d'une liste de fonctionnalités. Le périmètre, les hypothèses et ce qui n'est pas inclus sont écrits avant que quoi que ce soit soit chiffré."
+      },
+      {
+        "n": "02",
+        "title": "Concevoir",
+        "body": "Parcours, architecture de l'information, interface. Les maquettes sont revues avec vous sur les écrans qui portent la décision, pas sur les plus faciles à dessiner."
+      },
+      {
+        "n": "03",
+        "title": "Construire",
+        "body": "Des jalons livrés, vérifiables un par un, sur une adresse que vous pouvez ouvrir. Vous voyez le produit avancer plutôt qu'un rapport d'avancement."
+      },
+      {
+        "n": "04",
+        "title": "Exploiter",
+        "body": "Mise en production, mesure, corrections et évolutions. Un produit livré n'est pas un produit terminé : l'exploitation fait partie de la mission, pas d'une ligne ajoutée après coup."
+      }
+    ]
+  },
+  "guarantees": {
+    "eyebrow": "Garanties techniques",
+    "titleLines": [
+      "Ce sur quoi",
+      "nous nous [engageons.]"
+    ],
+    "lede": "Des engagements qui se vérifient sur le livrable lui-même, sans avoir à nous croire sur parole.",
+    "items": [
+      {
+        "title": "Performance",
+        "body": "Des budgets de performance posés au cadrage et mesurés à la livraison : temps d'affichage, stabilité visuelle, poids de la première vue. Un site qui ne les tient pas n'est pas livré."
+      },
+      {
+        "title": "Accessibilité",
+        "body": "Contrastes, navigation au clavier, libellés de formulaire, structure de titres. L'interface reste utilisable sans souris, et lisible quand le système est en mode sombre."
+      },
+      {
+        "title": "Propriété du code",
+        "body": "Le code produit pour vous vous appartient, dans les termes du contrat. Le dépôt, les accès d'hébergement et les noms de domaine sont à votre nom, pas au nôtre."
+      },
+      {
+        "title": "Documentation",
+        "body": "Un manuel de reprise livré avec le produit : comment il se déploie, où vivent ses données, ce qu'il faut savoir pour qu'une autre équipe prenne la suite."
+      }
+    ]
+  },
+  "work": {
+    "eyebrow": "Réalisations",
+    "titleLines": [
+      "Ce que nous",
+      "avons [construit.]"
+    ],
+    "lede": "Trois réalisations, dans l'ordre du catalogue. L'index complet porte les autres, chacune avec le rôle tenu et son adresse.",
+    "visit": "Voir la réalisation",
+    "listAria": "Aperçu de réalisations clientes"
+  },
+  "ventures": {
+    "eyebrow": "Produits du studio",
+    "titleLines": [
+      "Products built",
+      "inside MY ONOMA"
+    ],
+    "lede": "Produits que le studio conçoit, détient et opère au sein de MY ONOMA. Chacun est une marque autonome : ce ne sont ni des références clientes, ni des prestations vendues par l'agence.",
+    "visit": "Voir le produit",
+    "listAria": "Produits détenus et opérés par MY ONOMA"
+  },
+  "custom": {
+    "eyebrow": "Projets sur mesure",
+    "titleLines": [
+      "Des projets",
+      "[sur mesure.]"
+    ],
+    "lede": "Chaque mission part d'un problème, d'un périmètre et d'un calendrier, et se cadre par écrit avant d'être chiffrée. Le studio en prend cinq familles, nommées une par une avec ce que chacune recouvre.",
+    "truthTitle": "Pourquoi aucun prix sur cette page",
+    "truthStart": "Parce qu'aucun de ces projets ne se vend au catalogue : ce qui est chiffré, c'est un cadrage écrit, jamais une intuition. Si vous cherchez une grille publique et un prix affiché, c'est ",
+    "truthStrong": "l'offre commerces et TPE",
+    "truthEnd": " qu'il vous faut — elle affiche ses prix, et elle est faite pour ça."
+  },
+  "scope": {
+    "eyebrow": "Périmètres de mission",
+    "titleLines": [
+      "Ce que nous",
+      "[construisons.]"
+    ],
+    "items": [
+      {
+        "title": "Sites corporate et bilingues",
+        "body": "Site institutionnel, site de marque, site d'événement. Deux langues servies depuis une seule administration, avec des adresses propres à chacune."
+      },
+      {
+        "title": "Plateformes",
+        "body": "Produit métier, espace client, marketplace, espace d'apprentissage. Comptes, rôles, droits, paiement et tableaux de bord."
+      },
+      {
+        "title": "Portails métier",
+        "body": "Outils internes, back-offices, portails d'adhérents ou de partenaires. Ce que vos équipes refont à la main chaque semaine devient un écran."
+      },
+      {
+        "title": "Systèmes de design",
+        "body": "Jetons, composants, documentation et garde-fous automatisés, pour que vos interfaces restent cohérentes sans dépendre d'une seule personne."
+      },
+      {
+        "title": "Intégrations",
+        "body": "Interfaces de programmation, connexions entre outils existants, automatisations, systèmes assistés par l'intelligence artificielle branchés dans un flux qui existe déjà."
+      }
+    ]
+  },
+  "steps": {
+    "eyebrow": "Le parcours d'engagement",
+    "titleLines": [
+      "Le cadrage",
+      "avant le [chiffrage.]"
+    ],
+    "lede": "De la première conversation au contrat : quatre étapes, et aucune n'engage la suivante. Rien ne se construit avant que le périmètre soit écrit, et rien ne se facture sur une intuition.",
+    "items": [
+      {
+        "n": "01",
+        "title": "Une conversation",
+        "body": "Sans engagement. Nous regardons ensemble le problème, ce qui existe déjà, et si le studio est le bon interlocuteur. Si ce n'est pas le cas, nous le disons à ce moment-là."
+      },
+      {
+        "n": "02",
+        "title": "Un cadrage écrit",
+        "body": "Le périmètre, les hypothèses, les jalons, ce qui n'est pas inclus et ce qui relève d'un avenant. C'est ce document qui est chiffré, et il vous reste même si le projet ne se fait pas."
+      },
+      {
+        "n": "03",
+        "title": "Une proposition chiffrée",
+        "body": "Le cadrage est chiffré tel qu'il est écrit : ce qui est inclus, ce qui relève d'un avenant, et la durée de validité de la proposition. Aucune ligne n'entre dans le prix sans figurer dans le document."
+      },
+      {
+        "n": "04",
+        "title": "Un contrat, puis le démarrage",
+        "body": "Le contrat reprend le cadrage sans le réécrire, fixe la date de démarrage et nomme les interlocuteurs des deux côtés. C'est à partir de là que la conception commence."
+      }
+    ]
+  },
+  "delivery": {
+    "eyebrow": "Recette, maintenance, réversibilité",
+    "titleLines": [
+      "Ce qui se passe",
+      "[après la livraison.]"
+    ],
+    "lede": "La partie que les propositions commerciales laissent en blanc, et qui décide de ce que vaut le reste.",
+    "acceptance": {
+      "title": "La recette",
+      "body": "Un procès-verbal par jalon, adossé au cadrage.",
+      "points": [
+        "Les critères de recette sont écrits au cadrage, pas au moment de recetter.",
+        "Une adresse de recette séparée de la production, ouverte pendant toute la mission.",
+        "Les corrections de recette ne se facturent pas : elles font partie du jalon."
+      ]
+    },
+    "maintenance": {
+      "title": "La maintenance",
+      "body": "Décidée avant la livraison, jamais improvisée après.",
+      "points": [
+        "Correctif, évolutif et mises à jour de sécurité se distinguent par écrit.",
+        "Un délai de prise en charge par niveau de gravité, énoncé dans le contrat.",
+        "Aucun abonnement obligatoire : vous pouvez reprendre la main quand vous voulez."
+      ]
+    },
+    "reversibility": {
+      "title": "La réversibilité",
+      "body": "Partir doit être possible sans nous le demander.",
+      "points": [
+        "Dépôt de code, hébergement et nom de domaine à votre nom dès le premier jour.",
+        "Vos données s'exportent dans un format ouvert, sans intervention de notre part.",
+        "Un manuel de reprise permet à une autre équipe de prendre la suite."
+      ]
+    }
+  },
+  "form": {
+    "eyebrow": "Parlons de votre projet",
+    "titleLines": [
+      "Dites-nous",
+      "ce que vous [cherchez.]"
+    ],
+    "lede": "Quelques questions pour comprendre le besoin. Si nous ne sommes pas les bons interlocuteurs, nous le disons franchement.",
+    "typeLabel": "De quoi s'agit-il ?",
+    "typePlaceholder": "Choisissez un type de projet",
+    "engagementLabel": "Quelle forme d'engagement envisagez-vous ?",
+    "engagementPlaceholder": "Choisissez une forme d'engagement",
+    "engagementHint": "Nous demandons une forme d'engagement — une durée, une équipe — et non une somme : aucun prix n'est annoncé sur cette page, et aucun ne vous est demandé.",
+    "timelineLabel": "Pour quand ?",
+    "timelinePlaceholder": "Choisissez une échéance",
+    "descriptionLabel": "Le projet en quelques lignes",
+    "descriptionPlaceholder": "Ce que vous cherchez à obtenir, ce qui existe déjà, et ce qui vous bloque aujourd'hui.",
+    "replyEyebrow": "Pour que nous puissions vous répondre",
+    "nameLabel": "Votre nom",
+    "namePlaceholder": "Awa Ndiaye",
+    "companyLabel": "Votre organisation",
+    "companyPlaceholder": "Le nom sous lequel vous travaillez",
+    "emailLabel": "Votre adresse professionnelle",
+    "emailPlaceholder": "vous@votre-organisation.com",
+    "submit": "Envoyer la demande",
+    "submitting": "Envoi en cours…",
+    "reply": "Une réponse écrite, sous deux jours ouvrés.",
+    "projectTypes": {
+      "product": "Produit numérique",
+      "platform": "Plateforme web",
+      "application": "Application",
+      "ai": "Intelligence artificielle et automatisation",
+      "internalTool": "Outil interne ou portail métier",
+      "transformation": "Refonte d'un site existant",
+      "brand": "Site corporate ou site de marque",
+      "growth": "Croissance, acquisition, revenus",
+      "other": "Autre"
+    },
+    "engagements": {
+      "exploring": "À définir — nous aimerions en parler",
+      "small": "Une intervention courte, sur un seul périmètre",
+      "medium": "Un projet cadré, sur un trimestre",
+      "large": "Une plateforme, sur plusieurs trimestres",
+      "xlarge": "Un programme, avec une équipe dédiée"
+    },
+    "timelines": {
+      "urgent": "Le plus tôt possible",
+      "quarter": "Dans le trimestre",
+      "halfYear": "Dans le semestre",
+      "flexible": "Pas de date arrêtée"
+    },
+    "errors": {
+      "projectType": "Choisissez un type de projet. C'est ce qui décide si la demande relève de la conception ou de la practice croissance.",
+      "engagement": "Choisissez une forme d'engagement. Sans elle, nous ne pouvons pas vous dire tout de suite si nous pouvons travailler ensemble.",
+      "timeline": "Donnez-nous une échéance, même approximative. C'est ce qui dit si nous pouvons prendre le projet.",
+      "description": "Le projet en quelques lignes, c'est ce qui nous permet de répondre autre chose qu'une proposition type. Écrivez-les ici.",
+      "descriptionShort": "Sous {{min}} caractères, nous ne pouvons pas juger si le projet est pour nous. Ajoutez ce que vous cherchez à obtenir, et pour quand.",
+      "name": "Il nous faut un nom pour vous répondre. Le vôtre suffit.",
+      "company": "Dites-nous sous quel nom vous travaillez : c'est ce qui nous dit à qui nous parlons.",
+      "email": "Sans adresse, votre demande arrive et reste sans réponse. Ajoutez la vôtre.",
+      "emailInvalid": "Cette adresse n'a pas la forme d'un e-mail. Vérifiez ce qu'il y a avant et après l'arobase.",
+      "sendFailed": "L'envoi n'est pas passé et rien n'a été enregistré. Votre demande est toujours dans le formulaire : réessayez dans un instant."
+    }
+  },
+  "exit": {
+    "title": "Une question avant de choisir un niveau ?",
+    "body": "Écrivez-nous en deux lignes ce que vous cherchez à construire. Nous répondons par écrit, et nous disons quand ce n'est pas pour nous.",
+    "cta": "Nous écrire"
+  },
+  "sent": {
+    "titleLines": [
+      "C'est reçu.",
+      "Nous vous [répondons.]"
+    ],
+    "lede": "Pas de séquence automatique, pas de relance commerciale. Une réponse écrite, sous deux jours ouvrés.",
+    "recapEyebrow": "Votre demande",
+    "recapType": "Type de projet",
+    "recapEngagement": "Forme d'engagement",
+    "recapEngagementValue": "Communiquée",
+    "recapStatus": "Statut",
+    "recapStatusValue": "Nouvelle",
+    "growTitle": "Ce besoin relève de Cléa",
+    "growStart": "La croissance, l'acquisition et les revenus sont portés par ",
+    "growStrong": "Cléa Growth Office",
+    "growEnd": ", la practice sœur au sein de MY ONOMA. Nous transmettons votre demande telle quelle — vous n'avez rien à refaire, et personne ne vous renvoie vers un autre formulaire.",
+    "growCta": "Voir Cléa Growth Office",
+    "back": "Revenir au formulaire",
+    "footer": "Aucune demande n'est rejetée. Elle est réorientée."
+  }
+}

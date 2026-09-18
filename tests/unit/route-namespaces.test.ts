@@ -20,10 +20,26 @@
  * Ni le typecheck, ni le lint, ni les autres suites ne pouvaient le voir : `t()` est typé
  * comme renvoyant `string`, et le `as string[]` du code le contredit sans que rien ne vérifie.
  * Le seul témoin était le navigateur, sur cette route-là.
+ *
+ * ── LE SCANNER SUIT LES IMPORTS LOCAUX, SUR UN NIVEAU  (17/09/2026) ──────────────────────
+ *
+ * Il ne lisait QUE le fichier de route. Un composant monté par la page pouvait donc lire un
+ * namespace que la route ne déclare pas, et le test passait — pendant que la production
+ * rendait des clés brutes. Le défaut est réel et il a une adresse : `components/agency/`
+ * fixait `useTranslation('agency')` en dur, et deux composants de la piste Conception
+ * n'existent que parce qu'on ne pouvait pas les monter sur `/conception/realisations` sans
+ * charger `agency` avec eux.
+ *
+ * Un seul niveau, et c'est délibéré. Il attrape le cas réel — une page qui monte un
+ * composant — sans avoir à résoudre un graphe complet, et sans faire dépendre le résultat
+ * d'un barrel qui ne lit, lui, aucun namespace. Un composant profond qui lit un namespace
+ * paresseux reste donc invisible : la parade est de ne lire AUCUN namespace dans un
+ * composant partagé, et de recevoir ses chaînes déjà traduites — c'est ce que font
+ * `SiteExit` et les cartes de `components/conception/`.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
-import { join, dirname, resolve } from 'path';
+import { join, dirname, resolve, relative } from 'path';
 
 const ROOT = new URL('../..', import.meta.url).pathname;
 const APP = join(ROOT, 'src/App.tsx');
@@ -67,9 +83,28 @@ function routeDeclarations(): RouteDecl[] {
   return out;
 }
 
+/**
+ * Retire commentaires de bloc et de ligne avant analyse.
+ *
+ * ⚠️ SANS ÇA, EXPLIQUER POURQUOI ON N'UTILISE PAS UN NAMESPACE SUFFISAIT À FAIRE ÉCHOUER LE
+ * TEST. Une page de la piste Conception portait, en commentaire, la phrase « il appelle
+ * `useTranslation('agency')` en dur » — pour dire précisément qu'elle ne le fait PAS. Le
+ * scanner lisait la citation comme un usage et réclamait la déclaration du namespace, ce qui
+ * aurait chargé un catalogue mort sur la route.
+ *
+ * C'est le mode d'échec classique d'un nettoyage : ce qui reste, c'est un commentaire qui CITE
+ * ce qu'on a retiré. `interdits-preuve-sociale.test.ts` s'en protège de la même façon, pour la
+ * même raison — le `(^|[^:])` du second motif évite de couper `https://` en deux.
+ */
+function stripComments(src: string): string {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+}
+
 /** Les namespaces qu'un fichier lit réellement, par `useTranslation('x')` ou `ns="x"`. */
 function namespacesUsedBy(file: string): string[] {
-  const src = readFileSync(file, 'utf8');
+  const src = stripComments(readFileSync(file, 'utf8'));
   const found = new Set<string>();
   for (const m of src.matchAll(/useTranslation\(\s*'([^']+)'/g)) found.add(m[1]);
   for (const m of src.matchAll(/useTranslation\(\s*\[([^\]]+)\]/g)) {
@@ -79,10 +114,33 @@ function namespacesUsedBy(file: string): string[] {
   return [...found];
 }
 
-function resolveImport(importPath: string): string | null {
-  const base = resolve(dirname(APP), importPath);
-  for (const ext of ['.tsx', '.ts']) if (existsSync(base + ext)) return base + ext;
+/** Résout un spécificateur relatif : fichier, puis `index` du dossier. */
+function resolveFrom(fromFile: string, spec: string): string | null {
+  const base = resolve(dirname(fromFile), spec);
+  for (const candidat of [`${base}.tsx`, `${base}.ts`, join(base, 'index.tsx'), join(base, 'index.ts')]) {
+    if (existsSync(candidat)) return candidat;
+  }
   return null;
+}
+
+/**
+ * Les imports LOCAUX d'un fichier (`./`, `../`), résolus — un seul niveau.
+ *
+ * Les imports de paquets et l'alias `@ds` sont hors sujet : le premier ne lit pas nos
+ * catalogues, le second est le design system, à qui il est interdit d'en lire un.
+ */
+function localImports(file: string): string[] {
+  const src = stripComments(readFileSync(file, 'utf8'));
+  const out = new Set<string>();
+  for (const m of src.matchAll(/from\s+'(\.[^']*)'/g)) {
+    const resolu = resolveFrom(file, m[1]);
+    if (resolu) out.add(resolu);
+  }
+  return [...out];
+}
+
+function resolveImport(importPath: string): string | null {
+  return resolveFrom(APP, importPath);
 }
 
 describe('namespaces i18n des routes', () => {
@@ -102,13 +160,17 @@ describe('namespaces i18n des routes', () => {
     for (const d of decls) {
       const file = resolveImport(d.importPath);
       if (!file) continue;
-      for (const ns of namespacesUsedBy(file)) {
-        if (!lazyNs.has(ns)) continue;              // namespace de base : toujours chargé
-        if (d.declared.includes(ns)) continue;      // déclaré : rien à dire
-        manquants.push(
-          `${d.name} (${d.importPath}) lit « ${ns} »` +
-          (d.raw ? ' et passe par `lazy` nu — utiliser `lazyWithReload`' : ' sans le déclarer'),
-        );
+      // La route ET ce qu'elle monte : un composant importé lit dans la même route.
+      for (const lu of [file, ...localImports(file)]) {
+        for (const ns of namespacesUsedBy(lu)) {
+          if (!lazyNs.has(ns)) continue;              // namespace de base : toujours chargé
+          if (d.declared.includes(ns)) continue;      // déclaré : rien à dire
+          const ou = lu === file ? d.importPath : relative(ROOT, lu);
+          manquants.push(
+            `${d.name} (${ou}) lit « ${ns} »` +
+            (d.raw ? ' et passe par `lazy` nu — utiliser `lazyWithReload`' : ' sans le déclarer'),
+          );
+        }
       }
     }
 

@@ -18,6 +18,11 @@ import { trackGenerateLead } from '../../lib/tracking';
  * Rien n'est retouché sur le fond : c'est un déplacement. Les deux seuls écarts assumés
  * sont nommés là où ils se produisent — le plancher de deux caractères sur le nom, et le
  * pré-remplissage depuis le compte.
+ *
+ * ── CE QUI A CHANGÉ AVEC LA QUESTION D'AIGUILLAGE (CDC § 4.5) ────────────────────────────
+ * Le hook prend désormais la BRANCHE choisie, et elle n'est pas décorative : elle décide du
+ * catalogue de sujets, elle part en base à côté du libellé traduit, et `null` signifie « rien
+ * n'est encore choisi » — état dans lequel la page ne monte pas le formulaire du tout.
  */
 
 export const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -25,8 +30,41 @@ export const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 /**
  * Clés de sujet STABLES. Le libellé affiché est traduit au rendu, et c'est le libellé qui
  * part en base — l'administration lit `subject` comme du texte depuis toujours.
+ *
+ * ⚠️ `strategy` (« Conseil en stratégie marketing ») A ÉTÉ RETIRÉ, et ce n'est pas un
+ * nettoyage. La direction marketing n'est pas portée par cette marque : elle est contractée
+ * par MY ONOMA, et le CDC § 4.5 tranche que cette demande-là SORT du site au lieu d'être
+ * collectée ici puis transférée à la main. La branche `grow` de la première question la
+ * reçoit et renvoie ; aucun sujet du formulaire ne la nomme plus.
  */
-export const SUBJECT_KEYS = ['coaching', 'formationInfo', 'partnership', 'strategy', 'other'] as const;
+export const SUBJECT_KEYS = [
+  'formationInfo', 'club', 'coaching', 'partnership', 'shopSite', 'customProject', 'other',
+] as const;
+
+/**
+ * ── LES TROIS BRANCHES DE LA PREMIÈRE QUESTION (CDC § 4.5) ──────────────────────────────
+ *
+ * `/contact` recevait TOUT dans un seul formulaire, puis expliquait en trois encarts ce qui
+ * n'aurait pas dû y entrer — un paiement en attente, une question de FAQ, un projet d'agence.
+ * Trois avertissements à lire avant d'écrire, et rien n'empêchait d'écrire quand même.
+ *
+ * La question d'aiguillage inverse l'ordre : on choisit d'abord, et le reste de la page
+ * découle du choix. Deux branches écrivent ici ; la troisième n'écrit RIEN.
+ */
+export const BRANCHES = ['learn', 'build', 'grow'] as const;
+export type Branch = (typeof BRANCHES)[number];
+
+/** Les deux branches qui déposent un message. `grow` n'en fait pas partie, par construction. */
+export type WritingBranch = Exclude<Branch, 'grow'>;
+
+/**
+ * Le sujet dépend de la branche : un catalogue unique reposait la question déjà tranchée, et
+ * laissait choisir « Informations sur une formation » à quelqu'un venu pour un site.
+ */
+export const SUBJECTS_BY_BRANCH: Record<WritingBranch, readonly string[]> = {
+  learn: ['formationInfo', 'club', 'coaching', 'partnership', 'other'],
+  build: ['shopSite', 'customProject', 'other'],
+};
 
 /**
  * Ces trois bornes ne sont pas des préférences : ce sont les CONDITIONS DE `firestore.rules`
@@ -61,7 +99,7 @@ function initialsOf(name: string, email: string): string {
   return (parts.length > 1 ? parts[0][0] + parts[1][0] : source.slice(0, 2)).toUpperCase();
 }
 
-export function useContactMessage() {
+export function useContactMessage(branch: WritingBranch | null) {
   const { t } = useTranslation('contact');
   const { userData, user } = useAuth();
   const { addToast } = useToast();
@@ -95,6 +133,20 @@ export function useContactMessage() {
       email: prev.email || email,
     }));
   }, [user, name, email]);
+
+  /**
+   * CHANGER DE BRANCHE VIDE LE SUJET, ET LUI SEUL.
+   *
+   * Les deux catalogues de sujets sont disjoints : une clé choisie dans `learn` n'existe pas
+   * dans `build`. La garder ferait rendre au `<select>` une valeur absente de ses options —
+   * il retomberait silencieusement sur le premier libellé, et la personne enverrait un sujet
+   * qu'elle n'a pas choisi. Le nom, l'adresse et le message, eux, restent : on ne fait pas
+   * retaper un message parce qu'on s'est trompé de porte.
+   */
+  useEffect(() => {
+    setForm((prev) => (prev.subjectKey ? { ...prev, subjectKey: '' } : prev));
+    setErrors((prev) => (prev.subjectKey ? { ...prev, subjectKey: '' } : prev));
+  }, [branch]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -154,6 +206,19 @@ export function useContactMessage() {
          * puisse distinguer « écrit sans compte » de « champ jamais posé ».
          */
         userId: user?.uid ?? null,
+        /*
+         * LA BRANCHE D'AIGUILLAGE, telle que la personne l'a choisie — pas déduite du sujet.
+         *
+         * `subject` part en toutes lettres et TRADUIT : c'est ce que l'administration lit
+         * depuis toujours, et c'est aussi ce qui le rend impropre au tri (« Informations sur
+         * une formation » et « Information about a course » sont la même demande). La branche
+         * est une clé stable, la même dans les deux langues.
+         *
+         * ⚠️ `firestore.rules` ne borne QUE le nombre de clés (≤ 12) et les champs `status` et
+         * `userId`. Celui-ci porte le compte à huit : il passe. Un neuvième champ se vérifie
+         * au même endroit avant d'être ajouté — l'écriture échouerait en silence.
+         */
+        branch,
       });
       trackGenerateLead('contact_form');
       addToast('success', t('toast.messageSuccess'));

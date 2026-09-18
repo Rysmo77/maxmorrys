@@ -98,7 +98,7 @@ export default function AudienceRouterPopup({ onChoose, onContinue }: AudienceRo
         </motion.div>
 
         <motion.div {...itemProps}>
-          <LocalizedLink to="/presence-digitale" onClick={() => onChoose('presence')} className={doorCls}>
+          <LocalizedLink to="/conception/commerces-et-tpe" onClick={() => onChoose('presence')} className={doorCls}>
             <span className={`${iconBoxCls} ${PRESENCE_TILE}`}>
               <Icon name="store" size={20} />
             </span>

@@ -130,13 +130,89 @@
     ],
     "redirects": [
       {
+        "//": [
+          "LES 301 DE LA REFONTE EN DEUX PISTES (CDC 3.4). MIROIR EXACT de",
+          "worker/apps/site/src/static-redirects.ts, que worker/apps/site/test/redirects.test.ts",
+          "compare a ce fichier. Les deux tables existent pour deux raisons differentes :",
+          "le Worker sert la redirection au bord (une page prerendue n'atteint jamais",
+          "l'origine, et la Location de Firebase designerait max-morrys.web.app) ; celle-ci",
+          "est le filet du jour ou la route Cloudflare est retiree.",
+          "L'ORDRE COMPTE : Hosting applique la PREMIERE regle qui correspond, donc les deux",
+          "regles de devis passent avant /agence/**, sinon la reference client est perdue.",
+          "Et '**' ne matche PAS la chaine vide : chaque source a besoin de ses deux lignes."
+        ],
+        "source": "/agence/devis",
+        "destination": "/conception/commerces-et-tpe/devis",
+        "type": 301
+      },
+      {
+        "source": "/agence/devis/**",
+        "destination": "/conception/commerces-et-tpe/devis/:splat",
+        "type": 301
+      },
+      {
+        "source": "/en/agency/quote",
+        "destination": "/en/design/shops-and-small-business/quote",
+        "type": 301
+      },
+      {
+        "source": "/en/agency/quote/**",
+        "destination": "/en/design/shops-and-small-business/quote/:splat",
+        "type": 301
+      },
+      {
+        "source": "/presence-digitale",
+        "destination": "/conception/commerces-et-tpe",
+        "type": 301
+      },
+      {
+        "source": "/presence-digitale/**",
+        "destination": "/conception/commerces-et-tpe/:splat",
+        "type": 301
+      },
+      {
+        "source": "/agence",
+        "destination": "/conception",
+        "type": 301
+      },
+      {
+        "source": "/agence/**",
+        "destination": "/conception",
+        "type": 301
+      },
+      {
+        "source": "/en/local-presence",
+        "destination": "/en/design/shops-and-small-business",
+        "type": 301
+      },
+      {
+        "source": "/en/local-presence/**",
+        "destination": "/en/design/shops-and-small-business/:splat",
+        "type": 301
+      },
+      {
+        "source": "/en/agency",
+        "destination": "/en/design",
+        "type": 301
+      },
+      {
+        "source": "/en/agency/**",
+        "destination": "/en/design",
+        "type": 301
+      },
+      {
+        "//": [
+          "Ces deux lignes visaient /en/local-presence, qui redirige desormais lui-meme.",
+          "Elles pointent la cible FINALE : deux sauts se tolerent, trois font perdre a",
+          "Google le signal de la 301 et coutent un aller-retour de plus au visiteur."
+        ],
         "source": "/en/digital-presence",
-        "destination": "/en/local-presence",
+        "destination": "/en/design/shops-and-small-business",
         "type": 301
       },
       {
         "source": "/en/digital-presence/**",
-        "destination": "/en/local-presence/:splat",
+        "destination": "/en/design/shops-and-small-business/:splat",
         "type": 301
       },
       {

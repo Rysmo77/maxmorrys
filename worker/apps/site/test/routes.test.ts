@@ -15,14 +15,58 @@ describe('routage — miroir des rewrites Firebase', () => {
   });
 
   it('prerend les pages statiques déclarées', () => {
-    for (const path of ['/', '/blog', '/formations', '/podcasts', '/videos', '/faq', '/a-propos', '/contact', '/agence']) {
+    for (const path of ['/', '/blog', '/formations', '/podcasts', '/videos', '/faq', '/a-propos', '/contact']) {
       expect(resolveRoute(path), path).toBe('prerender');
     }
   });
 
   it('prerend les équivalents anglais', () => {
-    for (const path of ['/en', '/en/blog', '/en/courses', '/en/podcasts', '/en/videos', '/en/faq', '/en/about', '/en/contact', '/en/agency']) {
+    for (const path of ['/en', '/en/blog', '/en/courses', '/en/podcasts', '/en/videos', '/en/faq', '/en/about', '/en/contact']) {
       expect(resolveRoute(path), path).toBe('prerender');
+    }
+  });
+
+  /*
+   * LES PAGES NEUVES N'EXISTENT POUR LES MOTEURS QUE PARCE QU'ELLES SONT ICI.
+   *
+   * `SEOHead.tsx` écrit après hydratation, dans un DOM qu'aucun robot social ne construit
+   * et que Googlebot ne voit qu'au second passage. Une route de la refonte absente de
+   * cette table n'est pas « moins bien référencée » : elle est servie sous le titre, la
+   * description et l'`og:url` de la page d'accueil — c'est-à-dire en doublon contre `/`.
+   */
+  it('prerend les cinq routes de la refonte, et leurs jumelles anglaises', () => {
+    for (const path of [
+      '/conception',
+      '/conception/commerces-et-tpe',
+      '/conception/projets-sur-mesure',
+      '/conception/realisations',
+      '/apprendre',
+      '/en/design',
+      '/en/design/shops-and-small-business',
+      '/en/design/custom-projects',
+      '/en/design/work',
+      '/en/learning',
+    ]) {
+      expect(resolveRoute(path), path).toBe('prerender');
+    }
+  });
+
+  it('prerend une fiche de réalisation, dans les deux langues', () => {
+    expect(resolveRoute('/conception/realisations/une-plateforme')).toBe('prerender');
+    expect(resolveRoute('/en/design/work/a-platform')).toBe('prerender');
+  });
+
+  /*
+   * ⚠️ LE PIÈGE DU LOT, ET IL EST SILENCIEUX.
+   *
+   * `resolveRoute` décide AVANT tout relais vers l'origine. Tant que `/agence` figurait
+   * dans `PRERENDER_EXACT`, le Worker servait la page et la 301 déclarée dans
+   * `firebase.json` n'était jamais lue : les deux fichiers auraient été justes séparément,
+   * et la redirection obligatoire du CDC n'aurait existé pour personne.
+   */
+  it('ne prerend plus les deux adresses devenues des 301', () => {
+    for (const path of ['/agence', '/presence-digitale', '/en/agency', '/en/local-presence']) {
+      expect(resolveRoute(path), `${path} est prérendue : sa 301 ne partira jamais`).toBe('origin');
     }
   });
 
@@ -87,21 +131,38 @@ describe('shouldNoIndex', () => {
   });
 
   it('couvre les devis, qui portent une référence client dans l URL', () => {
+    expect(shouldNoIndex('/conception/commerces-et-tpe/devis/ABC123')).toBe(true);
+    expect(shouldNoIndex('/en/design/shops-and-small-business/quote/ABC123')).toBe(true);
+    // Les deux anciennes adresses restent couvertes : elles sont redirigées AUJOURD'HUI,
+    // mais retirer la route Cloudflare les rend à nouveau servies par l'hébergement.
     expect(shouldNoIndex('/presence-digitale/devis/ABC123')).toBe(true);
     expect(shouldNoIndex('/en/local-presence/quote/ABC123')).toBe(true);
   });
 
   it('ne touche à aucune page publique', () => {
-    for (const path of ['/', '/blog', '/formations', '/agence', '/presence-digitale', '/en', '/faq']) {
+    for (const path of [
+      '/',
+      '/blog',
+      '/formations',
+      '/conception',
+      '/conception/commerces-et-tpe',
+      '/conception/projets-sur-mesure',
+      '/conception/realisations',
+      '/apprendre',
+      '/en',
+      '/en/design',
+      '/en/learning',
+      '/faq',
+    ]) {
       expect(shouldNoIndex(path), path).toBe(false);
     }
   });
 
   it('n attrape pas une page dont le nom commence comme un devis', () => {
-    // `/presence-digitale` est publique et vendeuse : la confondre avec un devis la
-    // ferait désindexer, ce qui est exactement l'inverse du but.
-    expect(shouldNoIndex('/presence-digitale')).toBe(false);
-    expect(shouldNoIndex('/presence-digitale/devis')).toBe(false);
+    // `/conception/commerces-et-tpe` est publique et vendeuse : la confondre avec un devis
+    // la ferait désindexer, ce qui est exactement l'inverse du but.
+    expect(shouldNoIndex('/conception/commerces-et-tpe')).toBe(false);
+    expect(shouldNoIndex('/conception/commerces-et-tpe/devis')).toBe(false);
   });
 
   it('tolère le slash final, comme le reste du routage', () => {

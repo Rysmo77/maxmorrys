@@ -284,5 +284,26 @@
     "on": "Share on {{network}}",
     "copy": "Copy link",
     "copied": "Link copied"
+  },
+  "myonoma": {
+    "line": "For marketing leadership, brand strategy and acquisition:",
+    "panelTitle": "For an integrated project",
+    "panelBody": "{{company}} coordinates the marketing strategy and the technical workstream when the two ship together.",
+    "cta": "Visit {{company}}",
+    "ctaAria": "Visit {{company}} — opens in a new tab"
+  },
+  "portrait": {
+    "alt": "Max-Morrys Eyoum, head-and-shoulders portrait: round glasses, green shirt, arms crossed, in a bright interior."
+  },
+  "realisations": {
+    "categories": {
+      "consumer-product": "Consumer Product",
+      "e-commerce": "E-commerce",
+      "fintech": "Fintech",
+      "education": "Education",
+      "communaute": "Community",
+      "media": "Media",
+      "evenementiel": "Events"
+    }
   }
 }

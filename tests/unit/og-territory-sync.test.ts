@@ -9,56 +9,81 @@ import { ogTerritory } from '../../worker/apps/site/src/prerender/og-url';
  * Les quatre teintes du système portent chacune un verbe de la marque — `colors.css` les
  * annote une par une. Deux endroits décident laquelle s'applique à une route :
  *
- *   · `SITE_NAV` et `TRANSFORME_PATHS` (`src/components/layout/Header.tsx`), qui allument
- *     l'onglet dans la barre haute ;
+ *   · les deux sous-navigations de piste (`src/components/navigation/PisteSubNav.tsx`), qui
+ *     posent une pastille de territoire par entrée ;
  *   · `TERRITORIES` (`worker/apps/site/src/prerender/og-url.ts`), qui colore la carte
  *     d'aperçu — le Worker ne peut pas importer le code de l'application.
  *
- * Si les deux divergent, la fiche d'un épisode s'annonce violette dans la barre et bleue au
- * partage. Rien ne casse, aucun test ne rougit, et le défaut n'est visible que par quelqu'un
+ * Si les deux divergent, la fiche d'un épisode s'annonce violette dans la navigation et bleue
+ * au partage. Rien ne casse, aucun test ne rougit, et le défaut n'est visible que par quelqu'un
  * qui regarde les deux surfaces en même temps — c'est-à-dire personne.
+ *
+ * ⚠️ CE TEST LISAIT `SITE_NAV` ET `TRANSFORME_PATHS` DANS LA BARRE HAUTE. La refonte en deux
+ * pistes (CDC du 14/09/2026) a vidé la barre de ses territoires : ses quatre entrées sont des
+ * PISTES — « Conception » vit hors des quatre verbes, « Apprendre » les contient tous les
+ * quatre — et le type `Territory` interdit d'en inventer un. Les verbes sont descendus d'un
+ * étage, dans les deux `SubNav` de piste : c'est là que vit désormais la correspondance
+ * route ↔ territoire, et c'est donc là que ce test la lit.
  */
 
-const HEADER = 'src/components/layout/Header.tsx';
+const SUBNAV = 'src/components/navigation/PisteSubNav.tsx';
 
-/** Les entrées `{ path: '…', territory: '…' }` de `SITE_NAV`. */
-function navTerritories(): Array<[string, string]> {
-  const source = readFileSync(HEADER, 'utf8');
-  const nav = source.match(/const SITE_NAV: NavEntry\[\] = \[([\s\S]*?)\n\];/);
-  if (!nav) throw new Error(`SITE_NAV introuvable dans ${HEADER}`);
-  return [...nav[1].matchAll(/path: '([^']+)',\s*territory: '([^']+)'/g)].map((m) => [m[1], m[2]]);
+/** Les entrées `path('/…'), territory: '…'` des deux sous-navigations de piste. */
+function subNavTerritories(): Array<[string, string]> {
+  const source = readFileSync(SUBNAV, 'utf8');
+  const pairs = [...source.matchAll(/path\('([^']+)'\),\s*territory: '([^']+)'/g)];
+  if (pairs.length === 0) throw new Error(`Aucune entrée à territoire dans ${SUBNAV}`);
+  return pairs.map((m) => [m[1], m[2]]);
 }
 
-/** Les routes que la barre range sous « Je te transforme ». */
-function transformePaths(): string[] {
-  const source = readFileSync(HEADER, 'utf8');
-  const list = source.match(/const TRANSFORME_PATHS = \[([\s\S]*?)\];/);
-  if (!list) throw new Error(`TRANSFORME_PATHS introuvable dans ${HEADER}`);
-  return [...list[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
-}
+describe('le territoire d’une carte suit celui de la navigation de piste', () => {
+  const nav = subNavTerritories();
 
-describe('le territoire d’une carte suit celui de la navigation', () => {
-  const nav = navTerritories();
-
-  it('la barre déclare bien ses quatre territoires', () => {
+  it('les deux pistes déclarent bien les quatre territoires', () => {
     // Garde-fou du test : une expression rationnelle qui ne matche plus rendrait tout vert.
-    expect(nav.length).toBe(4);
+    expect(new Set(nav.map(([, t]) => t))).toEqual(
+      new Set(['forme', 'informe', 'transforme', 'digitalise']),
+    );
   });
 
   it.each(nav)('%s est en territoire « %s » des deux côtés', (path, territory) => {
     expect(ogTerritory(path)).toBe(territory);
   });
 
-  const transforme = transformePaths();
+  /**
+   * Le territoire violet s'étend aux fiches, pas seulement aux index : une fiche d'épisode et
+   * une page de vidéo partagent la teinte de leur territoire.
+   */
+  const TRANSFORME = ['/podcast-et-videos', '/podcasts', '/videos', '/club-des-digitos'];
 
-  it('les routes de « Je te transforme » sont bien listées', () => {
-    expect(transforme.length).toBeGreaterThan(2);
+  it.each(TRANSFORME)('%s est en « transforme » jusque dans ses fiches', (path) => {
+    expect(ogTerritory(path)).toBe('transforme');
+    expect(ogTerritory(`${path}/une-fiche`)).toBe('transforme');
   });
 
-  it.each(transforme)('%s est en « transforme » des deux côtés', (path) => {
-    expect(ogTerritory(path)).toBe('transforme');
-    // Et sur une fiche de cette famille, pas seulement sur son index.
-    expect(ogTerritory(`${path}/une-fiche`)).toBe('transforme');
+  /**
+   * ⚠️ LA PISTE CONCEPTION N'EST PAS UN TERRITOIRE, SAUF SUR UNE PAGE.
+   *
+   * `/conception/commerces-et-tpe` EST « Je te digitalise » : c'est l'ancienne présence
+   * digitale, elle garde son teal, sa grille publique et son ton direct (`universeFromPath`
+   * le câble dans l'application). Les deux autres pages de la piste vivent hors des quatre
+   * verbes — « autre promesse, autre client » — et leur carte doit rester neutre.
+   *
+   * C'est le seul endroit du dépôt où le territoire dépend du DEUXIÈME segment. Une table
+   * qui ne lit que le premier donnerait le teal aux projets sur mesure, c'est-à-dire la
+   * couleur d'une grille de prix à la page qui n'en affiche aucun.
+   */
+  it('la piste Conception ne prend le teal que sur son étage productisé', () => {
+    expect(ogTerritory('/conception/commerces-et-tpe')).toBe('digitalise');
+    expect(ogTerritory('/en/design/shops-and-small-business')).toBe('digitalise');
+    for (const path of ['/conception', '/conception/projets-sur-mesure', '/conception/realisations']) {
+      expect(ogTerritory(path), path).toBe('neutre');
+    }
+  });
+
+  it('la piste Apprendre prend le bleu du verbe qui l’ouvre', () => {
+    expect(ogTerritory('/apprendre')).toBe('forme');
+    expect(ogTerritory('/en/learning')).toBe('forme');
   });
 
   it('une route hors navigation ne prend aucune teinte de territoire', () => {

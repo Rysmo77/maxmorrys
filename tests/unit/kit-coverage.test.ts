@@ -38,7 +38,10 @@ const COUVERTURE: Record<string, string> = {
   'Article': 'src/pages/BlogPost.tsx',
   'ArticleEN': 'src/pages/BlogPost.tsx',
   'Presence': 'src/pages/PresenceDigitale.tsx',
-  'Agence (site)': 'src/pages/Agence.tsx',
+  /* Les deux écrans « Agence » du kit vivent désormais sur la piste Conception : la planche
+     de présentation est la page mère, celle du formulaire et de son état envoyé est la page
+     des projets sur mesure. `/agence` part en 301 (CDC §3.4). */
+  'Agence (site)': 'src/pages/conception/Conception.tsx',
   'Apropos (site)': 'src/pages/About.tsx',
   'Formations': 'src/pages/Formations.tsx',
   'FicheFormation': 'src/pages/FormationDetail.tsx',
@@ -101,7 +104,7 @@ const COUVERTURE: Record<string, string> = {
   // ── Présence Digitale et agence ──────────────────────────────────────────────────────
   'PresenceOffre / GrilleComplete': 'src/pages/PresenceDigitale.tsx',
   'DevisPartageable': 'src/pages/PresenceDevis.tsx',
-  'Agence / AgenceEnvoye': 'src/pages/Agence.tsx',
+  'Agence / AgenceEnvoye': 'src/pages/conception/ProjetsSurMesure.tsx',
 
   // ── Console ──────────────────────────────────────────────────────────────────────────
   'DashboardOps': 'src/pages/admin/AdminDashboard.tsx',

@@ -170,6 +170,8 @@ export default function VideoDetail() {
           className="mb-[18px]"
           label={t('pole.eyebrow')}
           active={t('pole.subnavFree')}
+          /* Une FICHE, pas l'index du pôle : l'étage est allumé, la page n'est pas celle-là. */
+          activeKind="section"
           items={[
             { label: t('pole.subnavFree'), href: path('/podcast-et-videos'), territory: 'transforme' },
             { label: t('pole.subnavClub'), href: path('/club-des-digitos'), territory: 'transforme' },

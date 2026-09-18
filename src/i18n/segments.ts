@@ -32,6 +32,29 @@ const SEGMENTS: Record<string, { fr: string; en: string }> = {
   'club-des-digitos': { fr: 'club-des-digitos', en: 'digitos-club' },
   podcasts: { fr: 'podcasts', en: 'podcasts' },
   videos: { fr: 'videos', en: 'videos' },
+  /*
+   * ── LA PISTE CONCEPTION (CDC du 14/09/2026, §3.3) ────────────────────────────────────
+   *
+   * `design`, et non `web-design` : le segment nomme la PISTE, pas une prestation. La piste
+   * couvre le site d'un commerce de quartier ET la plateforme d'un groupe ; « web-design »
+   * aurait rétréci la seconde à une affaire de maquettes.
+   *
+   * `shops-and-small-business` reprend le choix déjà tranché pour `presence-digitale →
+   * local-presence` : on nomme le CLIENT tel qu'il se reconnaît, pas la prestation vendue.
+   *
+   * `work` pour les réalisations : c'est le mot du métier en anglais, et il reste court dans
+   * une URL déjà à trois segments.
+   */
+  conception: { fr: 'conception', en: 'design' },
+  'commerces-et-tpe': { fr: 'commerces-et-tpe', en: 'shops-and-small-business' },
+  'projets-sur-mesure': { fr: 'projets-sur-mesure', en: 'custom-projects' },
+  realisations: { fr: 'realisations', en: 'work' },
+  /*
+   * LA PISTE APPRENDRE. `learning` et non `learn` : `cours → learn` est déjà pris par le
+   * lecteur de cours, et deux segments français ne peuvent pas traduire vers la même valeur
+   * anglaise — `assertEnglishSegmentsAreUnique()`, plus bas, échoue en développement.
+   */
+  apprendre: { fr: 'apprendre', en: 'learning' },
   faq: { fr: 'faq', en: 'faq' },
   contact: { fr: 'contact', en: 'contact' },
   agence: { fr: 'agence', en: 'agency' },

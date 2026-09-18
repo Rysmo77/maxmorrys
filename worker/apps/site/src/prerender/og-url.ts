@@ -1,4 +1,5 @@
 import { SITE_URL } from '../constants';
+import { canonicalizeSegments } from './segments';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -127,12 +128,49 @@ const TERRITORIES: Record<string, OgTerritory> = {
   'local-presence': 'digitalise',
 };
 
+/**
+ * ⚠️ LE SEUL ENDROIT DU DÉPÔT OÙ LE TERRITOIRE DÉPEND DU DEUXIÈME SEGMENT.
+ *
+ * La refonte en deux pistes a vidé la barre haute de ses territoires : « Conception » vit
+ * hors des quatre verbes, « Apprendre » les contient tous les quatre. Les verbes sont
+ * descendus d'un étage, dans les deux `SubNav` de piste — et l'un d'eux ne se lit plus au
+ * premier segment.
+ *
+ * `/conception/commerces-et-tpe` EST « Je te digitalise » : c'est l'ancienne présence
+ * digitale, elle garde son teal, sa grille publique et son ton direct. Ses deux sœurs, non.
+ * Une table qui ne lirait que `conception` donnerait donc le teal à
+ * `/conception/projets-sur-mesure` — la couleur d'une grille de prix, sur la page qui
+ * n'affiche aucun montant, et dont le CDC interdit qu'elle en affiche.
+ *
+ * `/apprendre` prend le bleu du verbe qui l'ouvre : la piste commence par « Je te forme ».
+ *
+ * ⚠️ MIROIR DE `PisteSubNav.tsx`, tenu par `tests/unit/og-territory-sync.test.ts`.
+ * Les chemins sont écrits en FR CANONIQUE : un chemin anglais est ramené par
+ * `canonicalizeSegments` avant d'être cherché ici, sinon `/en/design/shops-and-small-business`
+ * n'aurait pas la teinte de la page dont il EST la traduction.
+ */
+const PATH_TERRITORIES: Record<string, OgTerritory> = {
+  '/conception/commerces-et-tpe': 'digitalise',
+  '/apprendre': 'forme',
+};
+
 export function ogTerritory(path: string): OgTerritory {
   const segments = path.split('/').filter(Boolean);
-  const first = segments[0] === 'en' ? segments[1] : segments[0];
+  const own = segments[0] === 'en' ? segments.slice(1) : segments;
+
+  /*
+   * Le chemin FR canonique, testé d'abord — et en PRÉFIXE, pour qu'une sous-page hérite de
+   * la teinte de sa page. La règle par chemin l'emporte sur la règle par famille : elle est
+   * plus précise, et c'est tout ce qu'elle a à dire.
+   */
+  const canonique = canonicalizeSegments(`/${own.join('/')}`);
+  for (const [prefixe, territoire] of Object.entries(PATH_TERRITORIES)) {
+    if (canonique === prefixe || canonique.startsWith(`${prefixe}/`)) return territoire;
+  }
+
+  const first = own[0];
   return (first && TERRITORIES[first]) || 'neutre';
 }
-
 /**
  * Les libellés du sourcil, par famille.
  *
@@ -171,6 +209,16 @@ const SECTIONS: Record<string, SectionLabel> = {
   'local-presence': { index: { fr: 'Commerce', en: 'Local business' } },
   agence: { index: { fr: 'Agence', en: 'Agency' } },
   agency: { index: { fr: 'Agence', en: 'Agency' } },
+  /*
+   * Les deux pistes. PAS d'`item` : toute la piste s'annonce « Conception », y compris
+   * `/conception/commerces-et-tpe` et les fiches de réalisation. C'est exactement ce que
+   * le sourcil doit dire — de quel étage du site vient ce lien — et la piste EST l'étage.
+   * Un sourcil « Réalisation » par fiche découperait une famille qui n'en est qu'une.
+   */
+  conception: { index: { fr: 'Conception', en: 'Design' } },
+  design: { index: { fr: 'Conception', en: 'Design' } },
+  apprendre: { index: { fr: 'Apprendre', en: 'Learning' } },
+  learning: { index: { fr: 'Apprendre', en: 'Learning' } },
 };
 
 export function ogEyebrow(path: string, lang: 'fr' | 'en'): string {

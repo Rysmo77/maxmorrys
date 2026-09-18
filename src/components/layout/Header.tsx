@@ -29,21 +29,34 @@ import {
  * ─────────────────────────────────────────────────────────────────────────────
  * CE QUI A CHANGÉ, ET POURQUOI
  *
- * 1. LES SIX LIBELLÉS SONT LES SIX VERBES, dans l'ordre du système : Je suis Max-Morrys ·
- *    Je te forme · Je t'informe · Je te transforme · Je te digitalise · Contacte-moi. Chacun
- *    porte le FILET DE SA COULEUR en permanence, pas seulement à l'état actif : c'est ce filet
- *    qui apprend la correspondance entre un verbe et un maillage.
+ * 1. QUATRE ENTRÉES NEUTRES, ET LES SIX VERBES DESCENDUS D'UN ÉTAGE (CDC du 14/09/2026).
+ *    La barre porte désormais : Conception · Apprendre · À propos · Contact. Les verbes —
+ *    « Je te forme », « Je t'informe », « Je te transforme », « Je te digitalise » — ne
+ *    disparaissent PAS : ils deviennent les entrées de la sous-navigation de leur piste, où
+ *    ils s'adressent au bon public.
  *
- * 2. L'AGENCE SORT DE LA LISTE. Elle vivait dans la barre comme une pastille teal pleine, au
- *    milieu des verbes. Elle est désormais DERRIÈRE UN SÉPARATEUR, en corail texte : « elle ne
- *    se range pas sous Je te digitalise — c'est une autre promesse et un autre client ». Le
- *    type `Territory` l'empêche d'en gagner un par accident, et le séparateur le dit à l'œil.
+ *    Le CDC dit pourquoi, et ce n'est pas une affaire de goût : « Le problème n'est pas le
+ *    ton. Le problème est qu'un seul registre sert deux publics qui n'achètent pas la même
+ *    chose, à des prix séparés par un facteur vingt. » Un directeur financier qui vérifie un
+ *    dossier avant signature arrivait sur « Je te digitalise ton commerce ». Rien n'était
+ *    faux ; l'écart de registre suffisait à installer un doute.
  *
- * 3. LE MENU DÉROULANT DE « JE TE TRANSFORME » DEVIENT UNE SOUS-NAVIGATION. Le système a une
- *    primitive pour ça, et une raison commerciale de l'avoir : ce territoire abrite du contenu
- *    GRATUIT ET OUVERT (podcast, vidéos) et du contenu PAYANT ET FERMÉ (le Club). Un menu qui
- *    s'ouvre au survol ne dit pas cette séparation ; une sous-navigation en tête de page, si —
- *    et elle existe aux trois largeurs, là où un survol n'existe pas sur mobile.
+ *    CE QUE ÇA COÛTE ICI : les entrées de la barre ne portent plus de filet de territoire.
+ *    Ni « Conception » ni « Apprendre » n'EST un territoire — la première vit hors des quatre
+ *    verbes, la seconde les contient tous les quatre — et le type `Territory` interdit
+ *    heureusement d'en inventer un. La correspondance couleur ↔ territoire, elle, n'est pas
+ *    perdue : elle est rendue par les deux `SubNav` de piste, une pastille par verbe.
+ *
+ * 2. L'AGENCE A QUITTÉ LA BARRE, PUIS LE SITE. Elle y vivait derrière un séparateur, en
+ *    corail texte. `/agence` part maintenant en 301 vers `/conception`, dont elle est devenue
+ *    la page mère : le CDC supprime le doublon avec My Onoma (objectif O3), et maxmorrys.me
+ *    ne vend plus de direction marketing, de stratégie de marque ni d'acquisition.
+ *
+ * 3. AUCUN MENU DÉROULANT AU SURVOL, et c'est une règle du CDC : « les deux entrées mènent à
+ *    des pages mères qui présentent leur piste. Un visiteur doit pouvoir comprendre l'offre en
+ *    arrivant sur la page mère, sans avoir à explorer le menu. » Le système a la primitive
+ *    qu'il faut pour le second niveau — `SubNav`, en tête de page, à toutes les largeurs, là
+ *    où un survol n'existe pas sur mobile.
  *
  * 4. LE HEADER TRANSPARENT AU-DESSUS D'UN HÉROS A DISPARU. Il existait parce qu'une barre
  *    blanche opaque créait une couture franche sur `/` et `/agence`. Une pilule de verre
@@ -51,7 +64,7 @@ import {
  *    soit. Avec lui partent `transparentAccent`, `FOCUS_RING_ON_HERO` et le second anneau de
  *    focus — le système n'en a qu'un, bleu, câblé sur `:focus-visible` dans les jetons.
  *
- * 5. LES TROIS POINTS DE RUPTURE. Sous 1080 px, les six verbes passent dans un TIROIR de
+ * 5. LES TROIS POINTS DE RUPTURE. Sous 1080 px, les entrées passent dans un TIROIR de
  *    250 px en faux verre (la primitive `SideNav`, ses pastilles de territoire comprises), et
  *    la barre garde son verre, son mot-symbole et ses utilitaires. Au-delà, la barre
  *    supérieure flottante porte les six libellés soulignés.
@@ -68,37 +81,64 @@ interface NavEntry {
   /** Chemin CANONIQUE FR — `useLocalizedPath` le préfixe selon la langue. */
   path: string;
   /**
-   * Les quatre territoires, et seulement eux. « Je suis Max-Morrys » est une PERSONNE et
-   * « Contacte-moi » une action : ni l'un ni l'autre n'est une ligne de revenu, donc ni l'un
-   * ni l'autre ne porte de filet permanent.
+   * Les quatre territoires, et seulement eux. Aucune des quatre entrées de la barre n'en est
+   * un depuis la refonte en deux pistes : une PISTE regroupe des territoires ou vit hors
+   * d'eux. Le champ reste, parce que le type le décrit correctement et qu'il documente ce
+   * qu'il ne faut pas y mettre.
    */
   territory?: Territory;
+  /**
+   * Les chemins qui allument cette entrée, en plus du sien. Une piste est active sur toutes
+   * les pages qu'elle contient : sans ça, la barre n'indique plus où l'on est dès qu'on entre
+   * dans une piste — et c'est TOUT le site qui est dans une piste.
+   */
+  owns?: readonly string[];
 }
 
+/*
+ * ⚠️ `owns` PORTE AUSSI LES ANCIENNES ADRESSES. `/agence` et `/presence-digitale` sont
+ * redirigées, donc personne ne devrait s'y trouver — mais la redirection est une navigation,
+ * et pendant son temps de vol la barre rend déjà. Les y laisser coûte deux chaînes ; les
+ * retirer ferait clignoter l'entrée active.
+ */
 const SITE_NAV: NavEntry[] = [
-  { key: 'about', path: '/a-propos' },
-  { key: 'formations', path: '/formations', territory: 'forme' },
-  { key: 'blog', path: '/blog', territory: 'informe' },
-  { key: 'transform', path: '/podcast-et-videos', territory: 'transforme' },
-  { key: 'presence', path: '/presence-digitale', territory: 'digitalise' },
-  { key: 'contact', path: '/contact' },
+  {
+    key: 'conception',
+    path: '/conception',
+    owns: ['/conception', '/agence', '/presence-digitale'],
+  },
+  {
+    key: 'learn',
+    path: '/apprendre',
+    /* Les quatre territoires de la piste, plus les deux anciens index de média qui
+       redirigent vers le pôle. Le CDC ne touche à AUCUNE de ces URL : ce sont des années de
+       référencement et de liens entrants. */
+    owns: [
+      '/apprendre',
+      '/formations',
+      '/blog',
+      '/podcast-et-videos',
+      '/podcasts',
+      '/videos',
+      '/club-des-digitos',
+    ],
+  },
+  { key: 'aboutNeutral', path: '/a-propos' },
+  { key: 'contactNeutral', path: '/contact' },
 ];
 
 /**
- * Les routes qui appartiennent au territoire « Je te transforme » — c'est ce qui allume
- * « Je te transforme » dans la barre haute, y compris sur une fiche d'épisode.
+ * ⚠️ `TRANSFORME_PATHS` A DISPARU D'ICI, et ce n'est pas un oubli.
  *
- * ⚠️ LA SOUS-NAVIGATION DES DEUX ÉTAGES N'EST PLUS ICI, et ce n'est pas un oubli.
- * Le chrome en posait une rangée sur les fiches de détail. Elle y était fausse deux fois :
- * `px-[18px]` sur toute la fenêtre la faisait ouvrir à x=18 quand la colonne de la page
- * ouvre à x=120, et, n'ayant aucune surface derrière elle dans un en-tête `fixed`, elle
- * laissait le corps de l'article lui passer au travers au premier défilement.
+ * Il servait à allumer « Je te transforme » dans la barre depuis une fiche d'épisode. Les
+ * quatre routes du territoire sont désormais dans le `owns` de la piste Apprendre : une
+ * seule liste, au même endroit que les trois autres entrées, au lieu d'une constante à part
+ * que rien ne rattachait à la table de navigation.
  *
- * `SubNav` est une primitive de PAGE — « elle est en tête de page, elle défile avec elle »,
- * dit son propre en-tête. Les quatre routes du territoire la posent donc toutes au même
- * endroit, dans leur `PageSite` : `MediaPole`, `ClubDigitos`, `PodcastDetail`, `VideoDetail`.
+ * La sous-navigation des deux étages, elle, n'a jamais vécu ici : `SubNav` est une primitive
+ * de PAGE — « elle est en tête de page, elle défile avec elle ». Les quatre routes du
+ * territoire la posent dans leur `PageSite`.
  */
-const TRANSFORME_PATHS = ['/podcast-et-videos', '/podcasts', '/videos', '/club-des-digitos'];
 
 /** Sélecteur des éléments focusables, pour le piège de focus du tiroir. */
 const FOCUSABLE =
@@ -189,8 +229,6 @@ export default function Header({ onSearchOpen }: HeaderProps) {
     };
   }, []);
 
-  const isTransforme = TRANSFORME_PATHS.some((p) => path === p || path.startsWith(p + '/'));
-
   useEffect(() => {
     setDrawerOpen(false);
     setProfileOpen(false);
@@ -272,10 +310,9 @@ export default function Header({ onSearchOpen }: HeaderProps) {
     return () => document.removeEventListener('keydown', handler);
   }, [drawerOpen]);
 
+  /** Une entrée est active sur son chemin et sur tout ce que sa piste possède. */
   const isEntryActive = (entry: NavEntry) =>
-    entry.key === 'transform'
-      ? isTransforme
-      : path === entry.path || path.startsWith(entry.path + '/');
+    (entry.owns ?? [entry.path]).some((p) => path === p || path.startsWith(p + '/'));
 
   const activeEntry = SITE_NAV.find(isEntryActive);
   const activeLabel = activeEntry ? t(activeEntry.key) : undefined;
@@ -286,7 +323,7 @@ export default function Header({ onSearchOpen }: HeaderProps) {
     territory: entry.territory,
   }));
 
-  /** Le tiroir reprend les six mêmes entrées, pastille de territoire comprise. */
+  /** Le tiroir reprend les mêmes entrées, dans le même ordre. */
   const drawerItems: SideNavItem[] = SITE_NAV.map((entry) => ({
     label: t(entry.key),
     href: localize(entry.path),
@@ -343,21 +380,15 @@ export default function Header({ onSearchOpen }: HeaderProps) {
     </button>
   );
 
-  /**
-   * L'ENTRÉE AGENCE — hors des quatre verbes, derrière un séparateur, en corail TEXTE.
-   * `--mm-corail` fait 2,70:1 sur blanc : c'est `--mm-corail-t` qui s'écrit, jamais la teinte
-   * pleine (AD-20). Elle bascule seule sous `.dk`.
+  /*
+   * L'ENTRÉE AGENCE VIVAIT ICI, derrière un séparateur, en corail texte — « elle ne se range
+   * pas sous Je te digitalise : c'est une autre promesse et un autre client ». La refonte en
+   * deux pistes lui donne mieux qu'une place dans la barre : une PISTE. `/agence` part en 301
+   * vers `/conception`, et c'est l'entrée « Conception » qui la porte, à poids égal avec
+   * « Apprendre ».
+   *
+   * Le séparateur reste : il sépare toujours la navigation des utilitaires.
    */
-  const agencyLink = (
-    <LocalizedLink
-      to="/agence"
-      aria-current={path === '/agence' ? 'page' : undefined}
-      className="mm-touch-extend inline-flex items-center h-9 px-1 text-meta font-semibold text-corail-txt"
-    >
-      {t('agency')}
-    </LocalizedLink>
-  );
-
   const separator = (
     <span aria-hidden="true" className="w-px h-5 bg-[color:var(--border-hair)]" />
   );
@@ -516,11 +547,8 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                 {searchButton}
                 {languageButton}
                 {themeButton('hidden stack:inline-flex')}
-                {/* Le séparateur, puis l'agence : la frontière est visible avant d'être lue. */}
-                <span className="hidden wide:flex items-center gap-3">
-                  {separator}
-                  {agencyLink}
-                </span>
+                {/* La frontière entre la navigation et les utilitaires, visible avant d'être lue. */}
+                <span className="hidden wide:flex items-center">{separator}</span>
                 {accountControl}
                 <button
                   ref={burgerRef}
@@ -566,7 +594,6 @@ export default function Header({ onSearchOpen }: HeaderProps) {
                 footer={
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-3">
-                      {agencyLink}
                       {/* Le thème quitte la barre sous 700 px : il doit rester atteignable
                           ici, sinon un visiteur sur petit écran n'a plus aucun moyen d'en
                           changer. */}

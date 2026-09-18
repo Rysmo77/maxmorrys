@@ -24,7 +24,9 @@
     "presence": "Présence Digitale",
     "pole": "Je te transforme",
     "club": "Le Club des Digitos",
-    "verify": "Vérifier un certificat"
+    "verify": "Vérifier un certificat",
+    "conception": "Conception",
+    "learn": "Apprendre"
   },
   "copyright": "© {{year}} Max-Morrys. Tous droits réservés.",
   "operatedByPrefix": "Max-Morrys est une marque opérée par",

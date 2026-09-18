@@ -284,5 +284,26 @@
     "on": "Partager sur {{network}}",
     "copy": "Copier le lien",
     "copied": "Lien copié"
+  },
+  "myonoma": {
+    "line": "Pour la direction marketing, la stratégie de marque et l'acquisition :",
+    "panelTitle": "Pour un projet intégré",
+    "panelBody": "{{company}} coordonne la stratégie marketing et le lot technique quand les deux partent ensemble.",
+    "cta": "Voir {{company}}",
+    "ctaAria": "Voir {{company}} — nouvel onglet"
+  },
+  "portrait": {
+    "alt": "Max-Morrys Eyoum, portrait en buste : lunettes rondes, chemise verte, bras croisés, dans un intérieur clair."
+  },
+  "realisations": {
+    "categories": {
+      "consumer-product": "Consumer Product",
+      "e-commerce": "E-commerce",
+      "fintech": "Fintech",
+      "education": "Éducation",
+      "communaute": "Communauté",
+      "media": "Média",
+      "evenementiel": "Événementiel"
+    }
   }
 }

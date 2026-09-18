@@ -24,5 +24,13 @@
     "footnote": "Prices are in CFA francs — that is the amount charged. The US dollar figure is indicative, converted through the fixed euro parity.",
     "fixedParity": "Indicative equivalent. Fixed parity: 1 EUR = {{rate}} XOF. Payment is charged in CFA francs.",
     "floatingRate": "Indicative equivalent, at the rate recorded on {{date}}. Payment is charged in CFA francs."
+  },
+  "cta": {
+    "formations": "See the courses",
+    "realisations": "See all our work",
+    "projetsSurMesure": "See custom projects",
+    "pisteConception": "See the Design track",
+    "pisteApprendre": "See the Learn track",
+    "club": "See the Digitos Club"
   }
 }

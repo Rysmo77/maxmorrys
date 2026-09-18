@@ -17,6 +17,17 @@ const SEGMENTS: Record<string, string> = {
   contact: 'contact',
   agence: 'agency',
   'presence-digitale': 'local-presence',
+  /*
+   * LES DEUX PISTES (CDC §3.3). `agence` et `presence-digitale` restent au-dessus : leurs
+   * adresses sont des 301, mais `canonicalizeSegments()` doit encore savoir ramener
+   * `/en/local-presence` sur `/presence-digitale` — sinon une ancienne URL anglaise ne
+   * trouve plus sa règle de redirection et repart à l'origine, sans méta.
+   */
+  conception: 'design',
+  'commerces-et-tpe': 'shops-and-small-business',
+  'projets-sur-mesure': 'custom-projects',
+  realisations: 'work',
+  apprendre: 'learning',
   legal: 'legal',
   'mentions-legales': 'legal-notice',
   confidentialite: 'privacy',

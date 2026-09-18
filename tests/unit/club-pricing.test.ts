@@ -195,6 +195,9 @@ describe('aucun montant du Club en dur dans le code client', () => {
      * ne protège plus rien.
      */
     'src/pages/MediaPole.tsx',
+    /* La page mère de la piste Apprendre cite le tarif du Club dans sa carte « on rejoint ».
+       Elle le DÉRIVE de `CLUB_PRICE_XOF` — cette ligne est ce qui l'y oblige. */
+    'src/pages/Apprendre.tsx',
     'src/pages/lms/tabs/club/ClubSubscriptionGate.tsx',
     'src/pages/admin/hooks/useAdminClub.ts',
     'src/lib/firestore/club.ts',

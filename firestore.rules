@@ -405,7 +405,13 @@ service cloud.firestore {
             || request.resource.data.userId == null
             || request.resource.data.userId == request.auth.uid)
         // Meme borne que les autres formulaires publics : name, email, message, subject,
-        // phone, userId, status, locale, createdAt, et un peu de marge.
+        // branch, phone, userId, status, locale, createdAt, et un peu de marge.
+        //
+        // `branch` est arrive le 17/09/2026 avec la question d'aiguillage de /contact
+        // (CDC §4.5) : 'learn' ou 'build'. C'est une CLE STABLE, identique dans les deux
+        // langues, la ou `subject` part deja traduit — la console ne peut pas trier sur du
+        // texte qui change avec la langue de l'expediteur. La troisieme branche, direction
+        // marketing, n'ecrit rien ici : elle renvoie chez MY ONOMA.
         && request.resource.data.keys().size() <= 12
         // Le traitement d'un message appartient a la console, pas a son expediteur.
         && (!('status' in request.resource.data)
@@ -418,13 +424,15 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Engagement leads — demandes de mission Max-Morrys Agency (page /agence)
+    // Engagement leads — demandes de mission Max-Morrys Agency
+    // (page /conception/projets-sur-mesure, ex-/agence)
     //
     // A ne pas confondre avec agency_leads plus bas : ce sont deux offres distinctes.
     // Ici, missions produit/IA/technologie high-ticket ; la-bas, packs "Digital Commerce
     // Local" pour commerces de proximite. Cf. docs/AGENCY-POSITIONING.md
     match /engagement_leads/{leadId} {
-      // Le formulaire public /agence est accessible sans compte — validation stricte des champs
+      // Le formulaire public des projets sur mesure est accessible sans compte — validation
+      // stricte des champs
       allow create: if request.resource.data.keys().hasAll(
           ['name', 'company', 'email', 'projectType', 'budget', 'timeline', 'description', 'status'])
         && request.resource.data.name is string
@@ -475,7 +483,7 @@ service cloud.firestore {
 
     // Agency leads collection — demandes de devis "Presence Digitale" (cf. docs/OFFRE_AGENCE_TPE.md)
     match /agency_leads/{leadId} {
-      // Le formulaire public /presence-digitale est accessible sans compte — validation stricte
+      // Le formulaire public /conception/commerces-et-tpe est accessible sans compte — validation stricte
       allow create: if request.resource.data.keys().hasAll(['businessName', 'contactName', 'phone', 'city', 'status'])
         && request.resource.data.businessName is string
         && request.resource.data.businessName.size() >= 2

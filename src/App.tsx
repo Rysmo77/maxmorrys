@@ -79,7 +79,20 @@ const FAQPage = lazyWithReload(() => import('./pages/FAQ'), ['faq']);
  */
 const FAQQuestion = lazyWithReload(() => import('./pages/FAQQuestion'), ['faq']);
 const Contact = lazyWithReload(() => import('./pages/Contact'), ['contact']);
-const Agence = lazyWithReload(() => import('./pages/Agence'), ['agency']);
+/*
+  ── LA PISTE CONCEPTION (CDC du 14/09/2026) ────────────────────────────────────────────────
+  `/agence` n'existe plus comme page : elle part en 301 vers `/conception`, dont elle est
+  devenue la page mère. Le CDC en donne la raison, et ce n'est pas une affaire d'URL — c'est
+  l'objectif O3 : « Faire disparaître le doublon avec My Onoma. La page agence ne propose plus
+  de direction marketing ; elle renvoie. »
+*/
+const Conception = lazyWithReload(() => import('./pages/conception/Conception'), ['conception']);
+const ProjetsSurMesure = lazyWithReload(() => import('./pages/conception/ProjetsSurMesure'), ['conception']);
+const Realisations = lazyWithReload(() => import('./pages/conception/Realisations'), ['realisations']);
+const RealisationDetail = lazyWithReload(() => import('./pages/conception/RealisationDetail'), ['realisations']);
+/* La page mère de l'autre piste. Elle ne rejoue pas le catalogue : elle présente les quatre
+   entrées et leur logique — on lit, on écoute, on se forme, on rejoint. */
+const Apprendre = lazyWithReload(() => import('./pages/Apprendre'), ['apprendre']);
 const PresenceDigitale = lazyWithReload(() => import('./pages/PresenceDigitale'), ['presence']);
 const PresenceDevis = lazyWithReload(() => import('./pages/PresenceDevis'), ['presence']);
 const MentionsLegales = lazyWithReload(() => import('./pages/legal/MentionsLegales'), ['legal']);
@@ -342,7 +355,7 @@ function MonEspaceIndexRedirect() {
 }
 
 /**
- * Ancienne URL de devis `/agence/devis/:ref` → `/presence-digitale/devis/:ref`.
+ * Ancienne URL de devis `/agence/devis/:ref` → `/conception/commerces-et-tpe/devis/:ref`.
  *
  * L'offre « Digital Commerce Local » a quitté `/agence`, mais des récapitulatifs ont déjà
  * été partagés en WhatsApp : ces liens doivent continuer de résoudre.
@@ -350,7 +363,30 @@ function MonEspaceIndexRedirect() {
 function LegacyQuoteRedirect() {
   const { language } = useLanguage();
   const { ref } = useParams<{ ref: string }>();
-  return <Navigate to={localizedPath(`/presence-digitale/devis/${ref ?? ''}`, language)} replace />;
+  return <Navigate to={localizedPath(`/conception/commerces-et-tpe/devis/${ref ?? ''}`, language)} replace />;
+}
+
+/**
+ * ── LES TROIS REDIRECTIONS DE LA REFONTE EN DEUX PISTES (CDC §3.4) ───────────────────────
+ *
+ * Elles sont montées ICI en plus des 301 de l'hébergement, et ce n'est pas un doublon : le
+ * 301 du bord répond à une requête de DOCUMENT — un lien cliqué depuis l'extérieur, un robot.
+ * Une navigation interne à la SPA, elle, ne sort jamais vers le réseau : sans ces routes, un
+ * `LocalizedLink` oublié vers `/agence` tomberait sur la page 404 sans qu'aucune 301 ne soit
+ * jamais consultée.
+ *
+ * ⚠️ `/presence-digitale` est « très probablement liée depuis l'extérieur : la redirection est
+ * obligatoire, pas optionnelle » — ce sont les mots du CDC. Elle est aussi dans les mains des
+ * commerçants, en WhatsApp, sur des cartes de visite.
+ */
+function ConceptionRedirect() {
+  const { language } = useLanguage();
+  return <Navigate to={localizedPath('/conception', language)} replace />;
+}
+
+function CommercesRedirect() {
+  const { language } = useLanguage();
+  return <Navigate to={localizedPath('/conception/commerces-et-tpe', language)} replace />;
 }
 
 /**
@@ -423,9 +459,33 @@ function appChildren() {
         { path: 'faq', element: <Suspense fallback={<PageLoader />}><FAQPage /></Suspense> },
         { path: 'faq/:slug', element: <Suspense fallback={<PageLoader />}><FAQQuestion /></Suspense> },
         { path: 'contact', element: <Suspense fallback={<PageLoader />}><Contact /></Suspense> },
-        { path: 'agence', element: <Suspense fallback={<PageLoader />}><Agence /></Suspense> },
-        { path: 'presence-digitale', element: <Suspense fallback={<PageLoader />}><PresenceDigitale /></Suspense> },
-        { path: 'presence-digitale/devis/:ref', element: <Suspense fallback={<PageLoader />}><PresenceDevis /></Suspense> },
+        /*
+         * ── LA PISTE CONCEPTION ────────────────────────────────────────────────────────
+         * Trois niveaux d'engagement sous une page mère : l'offre productisée qu'on achète
+         * en ligne, les projets sur mesure qui passent par un devis, et les réalisations qui
+         * prouvent les deux. Le CDC les veut tous les trois VISIBLES : « elle présente deux
+         * niveaux d'engagement et n'en cache aucun ».
+         */
+        { path: 'conception', element: <Suspense fallback={<PageLoader />}><Conception /></Suspense> },
+        /*
+         * L'ancienne présence digitale, à sa nouvelle adresse. Le FICHIER ne change pas de nom
+         * — `PresenceDigitale` — parce que le contenu, lui, ne change pas de promesse : c'est
+         * toujours le territoire teal, le ton direct et la grille en francs CFA. Ce qui change
+         * est son rangement, et le bandeau de segment qui dit au visiteur corporate qu'il
+         * n'est pas sur la bonne page.
+         */
+        { path: 'conception/commerces-et-tpe', element: <Suspense fallback={<PageLoader />}><PresenceDigitale /></Suspense> },
+        { path: 'conception/commerces-et-tpe/devis/:ref', element: <Suspense fallback={<PageLoader />}><PresenceDevis /></Suspense> },
+        { path: 'conception/projets-sur-mesure', element: <Suspense fallback={<PageLoader />}><ProjetsSurMesure /></Suspense> },
+        { path: 'conception/realisations', element: <Suspense fallback={<PageLoader />}><Realisations /></Suspense> },
+        { path: 'conception/realisations/:slug', element: <Suspense fallback={<PageLoader />}><RealisationDetail /></Suspense> },
+        /* La page mère de la piste Apprendre. Les quatre territoires gardent leurs URL : elles
+           portent des années de référencement, et le CDC interdit d'y toucher. */
+        { path: 'apprendre', element: <Suspense fallback={<PageLoader />}><Apprendre /></Suspense> },
+        /* Les anciennes adresses, en redirection. Aucune ne disparaît. */
+        { path: 'agence', element: <ConceptionRedirect /> },
+        { path: 'presence-digitale', element: <CommercesRedirect /> },
+        { path: 'presence-digitale/devis/:ref', element: <LegacyQuoteRedirect /> },
         // Legacy : des liens de devis circulent déjà sur WhatsApp, ils doivent continuer de résoudre.
         { path: 'agence/devis/:ref', element: <LegacyQuoteRedirect /> },
         { path: 'legal/mentions-legales', element: <Suspense fallback={<PageLoader />}><MentionsLegales /></Suspense> },
