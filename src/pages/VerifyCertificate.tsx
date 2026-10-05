@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, DocLine, Field, GlassPanel, Icon, Num } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
@@ -66,9 +67,33 @@ export default function VerifyCertificate() {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [result, setResult] = useState<Result>({ kind: 'idle' });
+  const [params] = useSearchParams();
+  const lienSuivi = useRef(false);
+
+  /*
+   * ⛔ LE LIEN PARTAGÉ DEPUIS L'APPLICATION VÉRIFIE TOUT DE SUITE. L'application partage
+   * `/verifier?code=…` : le préfixe `/verifier` est celui que déclarent les liens profonds
+   * (`assetlinks.json`, `apple-app-site-association`), donc le lien ouvre l'application chez
+   * qui l'a, et CETTE page chez qui ne l'a pas — un employeur, un jury. Elle partageait
+   * `/verifier/<code>`, que le routeur ne sert pas : la personne qui contrôlait un certificat
+   * tombait sur une page 404, c'est-à-dire sur ce qui ressemble le plus à un faux document.
+   */
+  useEffect(() => {
+    const recu = params.get('code');
+    if (!recu || lienSuivi.current) return;
+    lienSuivi.current = true;
+    setCode(recu);
+    void verifier(recu);
+    // Une seule fois, à l'arrivée par un lien : la saisie suivante passe par le formulaire.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
+    await verifier(code);
+  }
+
+  async function verifier(brut: string) {
 
     /*
      * Les codes sont émis en capitales et sans espace (`crypto` puis mise en forme, voir
@@ -86,7 +111,7 @@ export default function VerifyCertificate() {
      * l'i18n ; cette normalisation rattrape ceux qui l'ont déjà lue, et les groupements
      * que le kit dessine.
      */
-    const nu = code.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const nu = brut.toUpperCase().replace(/[^A-Z0-9]/g, '');
     const cleaned = nu.startsWith('MM') ? `MM-${nu.slice(2)}` : nu;
     if (!cleaned) {
       setError(t('verify.emptyError'));

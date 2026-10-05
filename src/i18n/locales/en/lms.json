@@ -212,7 +212,9 @@
     "failedFoot": "Nothing was charged. Your order stays open, you can pick it up where you left it.",
     "retry": "Try the payment again",
     "waitingAria": "Payment awaiting confirmation",
-    "backToFormation": "Back to the course"
+    "backToFormation": "Back to the course",
+    "openApp": "Open in the Rysmo app",
+    "openAppHint": "If the app is installed on this phone, it confirms your access and takes you there."
   },
   "onboarding": {
     "stepWelcomeSubtitle": "Personalize your profile",

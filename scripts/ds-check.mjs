@@ -86,17 +86,12 @@ const lines = (p) => {
 const CSS = walk(join(root, 'src'), ['.css']);
 const TSX = walk(join(root, 'src'), ['.tsx', '.ts']).filter((p) => !p.endsWith('.generated.ts'));
 /*
- * ⛔ CETTE LISTE EST VIDE DEPUIS LE 05/09/2026, ET IL FAUT LE SAVOIR EN LISANT LES RÉSULTATS.
+ * L'application React Native (`mobile/`). Neuf contrôles ci-dessous la parcourent : le flou
+ * hors chrome, les couleurs écrites en dur, les rayons hors kit.
  *
- * `mobile/` portait l'application React Native ; elle est réécrite en Kotlin/Compose et en
- * Swift/SwiftUI. Les neuf contrôles ci-dessous qui parcourent `MOBILE` ne parcourent donc
- * plus RIEN — le flou hors chrome, les couleurs écrites en dur, les rayons hors kit, tout
- * cela n'est plus vérifié côté application.
- *
- * Le nom reste et la liste reste calculée : une porte qui disparaît ne se remarque pas, une
- * porte qui rend zéro se remarque. Leurs équivalents Kotlin sont au lot 6
- * (`_bmad-output/implementation-artifacts/garanties-a-reconstruire.md`) ; d'ici là, un
- * `ds:check` vert ne dit rien de l'application native.
+ * ⓘ Du 05/09 au 04/10/2026, `mobile/` n'existait pas (réécriture Kotlin, abandonnée) et cette
+ * liste rendait zéro. Elle reste calculée sous `existsSync` : une porte qui rend zéro se
+ * remarque, une porte qui disparaît ne se remarque pas.
  */
 const MOBILE = existsSync(join(root, 'mobile')) ? walk(join(root, 'mobile'), ['.tsx', '.ts']) : [];
 
@@ -121,27 +116,18 @@ const MOBILE = existsSync(join(root, 'mobile')) ? walk(join(root, 'mobile'), ['.
 /* ── AD-8 · les jetons générés sont à jour ─────────────────────────────────── */
 {
   /*
-   * ⚠️ CINQ CIBLES, PAS UNE. Ce contrôle ne regardait que le fichier TypeScript ; depuis que
-   * le générateur écrit aussi le Kotlin et trois fichiers de ressources Android, s'en tenir
-   * au premier laisserait l'application native dériver du CSS sans que rien ne le dise —
-   * exactement la panne qu'AD-8 existe pour empêcher, transposée d'une plateforme à l'autre.
+   * ⚠️ TROIS CIBLES, PAS UNE. Le générateur écrit aussi la copie native des jetons et des
+   * icônes (AD-9 : Metro ne lit rien hors de `mobile/`). S'en tenir au fichier web laisserait
+   * l'application dériver du CSS sans que rien ne le dise — exactement la panne qu'AD-8 existe
+   * pour empêcher, transposée d'une plateforme à l'autre.
    *
    * La méthode ne change pas : on relève l'état, on régénère, on compare. Un fichier absent
    * compte comme une désynchronisation, pas comme une absence de contrôle.
    */
   const CIBLES = [
     'src/design-system/tokens.generated.ts',
-    'android/app/src/main/java/me/maxmorrys/rysmo/ds/Jetons.generated.kt',
-    'android/app/src/main/res/values/couleurs.generated.xml',
-    'android/app/src/main/res/values-night/couleurs.generated.xml',
-    'android/app/src/main/res/values/marque.generated.xml',
-    /* ⚠️ DEUX CIBLES DE PLUS DEPUIS LE LOT 3. Les jetons ne suffisent pas à rendre le kit :
-       les quinze lobes du maillage, les sept voiles de verre `.andro` et les treize ombres
-       hors table vivent en littéral dans `DS_Final/`, et les 109 tracés d'icônes dans
-       `src/design-system/icons.ts`. S'ils n'étaient pas comptés ici, le seul endroit d'où
-       leur dérive se voit serait un écran, sur l'appareil de quelqu'un d'autre. */
-    'android/app/src/main/java/me/maxmorrys/rysmo/ds/Natif.generated.kt',
-    'android/app/src/main/java/me/maxmorrys/rysmo/ds/Icones.generated.kt',
+    'mobile/ds/tokens.generated.ts',
+    'mobile/ds/icons.generated.ts',
   ];
   const avant = new Map();
   for (const rel of CIBLES) {

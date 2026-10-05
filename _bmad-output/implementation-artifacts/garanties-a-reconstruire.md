@@ -1,7 +1,61 @@
 ---
 date: '2026-09-05'
-statut: 'dette ouverte — à solder au lot 6 de la réécriture native'
+revise: '2026-10-04'
+statut: 'SOLDÉ côté React Native — les 13 suites sont revenues avec `mobile/` ; dette résiduelle ci-dessous'
 ---
+
+> ## ⭐ 04/10/2026 — RETOUR À REACT NATIVE. Ce registre est SOLDÉ, lisez d'abord ceci.
+>
+> Décision utilisateur : la réécriture Kotlin/Swift est abandonnée. `mobile/` est restauré depuis
+> `9c22076`, `android/` est supprimé (lisible par `git show 09f2ceb:android/…`). **Les treize
+> suites listées plus bas sont revenues telles quelles** (`tests/unit/mobile-*.test.ts`), avec le
+> job CI `mobile` (`npm ci`, typecheck, `expo-doctor`, `expo export`, paquet propre).
+>
+> Ce que la phase Kotlin avait trouvé, et qui est REPORTÉ sur React Native — chacun gardé :
+>
+> | Défaut du port d'origine | Corrigé dans | Gardé par |
+> |---|---|---|
+> | La chaîne de première ouverture n'était atteinte par rien (`/` = onglet Espace) | `app/index.tsx` → `/lancement`, onglet à `/espace`, drapeau `donnees/accueil.ts` | `mobile-routes.test.ts` (« `/` mène au lancement ») |
+> | Le test d'atteignabilité était aveugle (la planche citait tout) | planche exclue, `contenu/` lu | `mobile-routes.test.ts` + `ORPHELINS_CONNUS` qui ne peut que descendre |
+> | Dégradés reconstruits par leurs teintes : faux en sombre ; angle faux hors carré | `ds/degrade.ts` parse la chaîne du mode actif ; ligne CSS en pixels | `mobile-degrades.test.ts` |
+> | Cache : clé non triée, relevé à l'heure du téléphone, aucune écriture ne périmait | `donnees/cache.ts` (`canonique`, `releveA` serveur, `ecrire()` + `VUES_PERIMEES`) | `mobile-cache-vues.test.ts` |
+> | « 5 écrans sur 19 », « Pack Visible » au prix de `presence`, lignes du pack fausses, prix barré ambigu | `contenu/termes.ts`, seul miroir de la grille et de la portée | `mobile-miroirs.test.ts` |
+>
+> **05/10/2026 — deuxième lot, reporté et gardé :**
+>
+> | Ce qui manquait | Corrigé dans | Gardé par |
+> |---|---|---|
+> | Bande des 8 onglets du Club (ordre du kit), onglet Membres honnête | `contenu/club.ts`, `club/_layout.tsx` (`BandeClub`), `club/membres.tsx` | `mobile-club.test.ts` |
+> | Corps verrouillé du Club (non-membre) au lieu d'un vide générique | `contenu/verrous.ts`, `CorpsVerrouille` ; `VUE_NULLE` généré, `vide.ferme` | `mobile-club.test.ts` |
+> | « Le Club a ouvert cette année » ; remise du filleul | `CLUB_OUVERT_EN`, `REMISE_FILLEUL_PCT` (`termes.ts`) | `mobile-club.test.ts` |
+> | `/devis` montrait un devis inventé | référence saisie sur `/presence` → lien vers le vrai document | `mobile-miroirs.test.ts` (forme `DV-…`) |
+> | `/chargement` orphelin | devenu l'état de chargement d'Espace (`ecrans/ChargementEspace.tsx`) | `mobile-routes.test.ts` |
+> | Vérification publique d'un certificat sans écran | `app/verifier.tsx`, trois réponses distinctes | `worker-routage-callables`, `mobile-routes` |
+> | ⛔ Lien partagé `/verifier/<code>` = 404 sur le site | `lienDeVerification` → `/verifier?code=` ; `VerifyCertificate.tsx` lit `?code=` | `mobile-miroirs.test.ts` |
+> | Types écrits à la main : 39 champs nullables typés « toujours présents » | `donnees/conformite.ts` (contrat ⊂ types, à la compilation) ; 3 tests `=== null` corrigés | `mobile-cache-vues.test.ts` + `tsc` |
+> | Clés Firebase absentes d'un binaire de magasin | crochet `eas-build-pre-install` → `scripts/exiger-cles.mjs` | `mobile-app-config.test.ts` |
+>
+> **05/10/2026 — troisième lot (hors-ligne, retour de paiement, compteurs), fait et gardé :**
+>
+> | Ce qui a été construit | Où | Gardé par |
+> |---|---|---|
+> | Hors-ligne : leçons gardées (texte, plafond 5 Mo, Wi-Fi seul), file d'envoi rejouable, bandeau de coupure | `donnees/{file,garde,hors-ligne,veille-reseau}.ts`, `ecrans/BandeauHorsLigne.tsx`, `/telechargements`, `/hors-connexion` | `mobile-hors-ligne.test.ts` |
+> | L'écran de leçon enfin branché (titre, texte, vidéo, ressources) | vue `appLeconContenu`, `ecrans/contenu.ts` | `lecon-contenu.test.ts` (Worker) |
+> | Retour de paiement : `rysmo://acces` depuis la page de retour du site ; « C'est à toi » sur accès CONSTATÉ | vue `appTransaction`, `app/acces.tsx`, `PaymentReturn.tsx` | `transaction-app.test.ts`, `mobile-miroirs.test.ts` |
+> | Compteurs réels derrière les cadenas du Club | vue `appApercuClub` (seule vue Club sans abonnement, nommément dispensée) | `apercu-club.test.ts`, `worker-vues-natives.test.ts` |
+> | ⛔ `club_posts` et `notes` écrits en deux formats (site ≠ app) — un message mobile faisait tomber le fil du site | `lib/club-posts.ts`, `lib/notes-format.ts`, `src/lib/club/posts.ts`, `getUserNotes` | `club-notes-formats.test.ts` |
+> | `marquerLecon` recevait le slug au lieu de l'identifiant de formation | `Espace.formationId` | `mobile-cache-vues.test.ts` (conformité) |
+>
+> ⛔ **CE QUI RESTE** :
+> - La vidéo ne se garde pas hors connexion : c'est une intégration. Le lecteur plein écran du kit
+>   (un faux lecteur sans vidéo) a été RETIRÉ, le navigateur gère le plein écran.
+> - Les quiz et missions renvoient au site : l'application ne les rejoue pas.
+> - **Le Worker `api` doit être DÉPLOYÉ** (`wrangler deploy`, manuel) avant de publier l'application :
+>   trois vues neuves et deux corrections de format en dépendent.
+> - Rien n'a été VU tourner : Expo Go avant soumission.
+
+> Le reste de ce document décrit l'état du 05/09 au 04/10/2026 et n'est conservé que pour l'histoire.
+
 
 # Les garanties perdues avec React Native, et ce qu'elles tenaient
 

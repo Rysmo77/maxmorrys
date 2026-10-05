@@ -91,6 +91,9 @@ function publiques(): string[] {
   });
 }
 
+/** Les seules vues du Club servies SANS abonnement — et elles ne servent que des comptes. */
+const APERCUS_SANS_ABONNEMENT = ['apercuClub.ts'];
+
 describe('les vues natives refont les contrôles que les règles ne feront pas', () => {
   it('il y a des vues à vérifier', () => {
     // Sans ce garde, tout le fichier passerait au vert sur un dossier vide.
@@ -166,8 +169,26 @@ describe('les vues natives refont les contrôles que les règles ne feront pas',
      * retiré : vérifié en le retirant pour de bon, et il n'a rien dit. Une porte qui ne
      * rougit jamais ne prouve rien, et celle-ci gardait le contenu payant.
      */
-    const sans = duClub.filter((f) => !/await abonnementActif\(/.test(lire(f)));
+    const sans = duClub
+      .filter((f) => !APERCUS_SANS_ABONNEMENT.includes(f))
+      .filter((f) => !/await abonnementActif\(/.test(lire(f)));
     expect(sans, 'exposeraient le contenu payant à tout compte connecté').toEqual([]);
+  });
+
+  it('la dispense d’abonnement est ÉTROITE, et la vue dispensée ne lit aucun contenu', () => {
+    /*
+     * `apercuClub.ts` sert à quelqu'un qui n'est PAS membre ce qu'il y a derrière chaque
+     * cadenas : des COMPTES, rien d'autre. La dispense est nommée ici ; elle ne vaut que si la
+     * vue ne lit ni texte, ni nom, ni identifiant de membre — c'est-à-dire si elle n'expose
+     * rien du contenu payant.
+     */
+    expect(APERCUS_SANS_ABONNEMENT).toEqual(['apercuClub.ts']);
+    /* Commentaires RETIRÉS : l'en-tête qui explique l'interdit le cite, et déclencherait la garde. */
+    const code = lire('apercuClub.ts').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    expect(code, 'la vue dispensée appellerait un handler membre').not.toMatch(/abonnementActif/);
+    for (const interdit of ['content', 'text', 'userName', 'userId', 'title', 'bio', 'job']) {
+      expect(code, `lirait le champ « ${interdit} »`).not.toMatch(new RegExp(`(select:[^\\]]*'${interdit}'|data\\.${interdit}\\b)`));
+    }
   });
 
   it('chaque vue estampille sa réponse', () => {

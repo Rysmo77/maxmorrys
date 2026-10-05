@@ -1,6 +1,5 @@
 import {
   collection, doc, getDocs, addDoc, setDoc, deleteDoc,
-  query, orderBy,
 } from 'firebase/firestore';
 import { db } from './helpers';
 
@@ -15,11 +14,31 @@ export interface Note {
   updatedAt: string;
 }
 
+/**
+ * ⛔ PAS DE `orderBy('updatedAt')` CÔTÉ SERVEUR, ET C'EST VOULU. Firestore EXCLUT d'une requête
+ * triée tout document qui n'a pas le champ de tri — et l'application écrivait ses notes sans
+ * `updatedAt` (ni `content`, mais `text`). Elles n'apparaissaient donc jamais ici. On lit
+ * tout (une personne a quelques dizaines de notes), on rattrape l'ancien format, on trie ici.
+ */
 export async function getUserNotes(userId: string): Promise<Note[]> {
-  const snap = await getDocs(
-    query(collection(db, 'users', userId, 'notes'), orderBy('updatedAt', 'desc')),
-  );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Note));
+  const snap = await getDocs(collection(db, 'users', userId, 'notes'));
+  return snap.docs
+    .map((d) => normaliserNote(d.id, d.data()))
+    .sort((a, b) => (b.updatedAt || b.createdAt).localeCompare(a.updatedAt || a.createdAt));
+}
+
+/** Une note du site ou de l'application, ramenée au format du site. */
+export function normaliserNote(id: string, data: Record<string, unknown>): Note {
+  const texte = (k: string) => (typeof data[k] === 'string' ? (data[k] as string) : '');
+  const contenu = texte('content') || texte('text');
+  return {
+    ...(data as Partial<Note>),
+    id,
+    content: contenu,
+    title: texte('title') || texte('lessonLabel') || contenu.split('\n')[0].slice(0, 80),
+    createdAt: texte('createdAt'),
+    updatedAt: texte('updatedAt') || texte('createdAt'),
+  };
 }
 
 export async function saveNote(userId: string, note: Omit<Note, 'id'>, id?: string): Promise<string> {

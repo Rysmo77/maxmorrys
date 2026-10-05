@@ -69,6 +69,7 @@ export async function appEspace(_data: unknown, context: CallContext): Promise<R
   return {
     vue: {
       slug: asText(formation.data.slug) ?? '',
+      formationId: formation.id,
       titre,
       /* Le titre court est le premier segment avant « pour », « : » ou un tiret cadratin.
          L'écran a deux lignes ; un titre complet y déborde et se fait couper au hasard. */

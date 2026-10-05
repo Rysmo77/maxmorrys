@@ -1,8 +1,9 @@
 import type { DocSnapshot } from '@mm/firestore-rest';
 
 import { type CallContext, requireAuth } from '../../context';
-import { asText, toNumber } from '../../lib/values';
+import { asText } from '../../lib/values';
 import { abonnementActif } from './club';
+import { commentairesDuMessage, compte, libelleDeCategorie, texteDuMessage } from '../../lib/club-posts';
 import { listeDesBloques } from '../bloquerMembre';
 import type { Reponse } from '../../vues/contrat';
 
@@ -92,7 +93,9 @@ export async function appClubFil(_data: unknown, context: CallContext): Promise<
       } : null,
 
       fil: messages
-        .filter((m: DocSnapshot) => asText(m.data.userName) && asText(m.data.text))
+        /* `content` (site) OU `text` (ancien format de l'application) : filtrer sur `text`
+           seul écartait tout message publié depuis le site. */
+        .filter((m: DocSnapshot) => asText(m.data.userName) && texteDuMessage(m.data))
         .filter((m: DocSnapshot) => !bloques.has(asText(m.data.userId) ?? ''))
         .slice(0, 40)
         .map((m: DocSnapshot) => {
@@ -101,12 +104,12 @@ export async function appClubFil(_data: unknown, context: CallContext): Promise<
             id: m.id,
             auteur,
             initiales: initiales(auteur),
-            categorie: asText(m.data.category) ?? 'Entraide',
+            categorie: libelleDeCategorie(m.data.category),
             quand: depuis(asText(m.data.createdAt)),
-            texte: asText(m.data.text) as string,
-            aime: toNumber(m.data.likes, 0),
-            republie: toNumber(m.data.reposts, 0),
-            commente: toNumber(m.data.comments, 0),
+            texte: texteDuMessage(m.data) as string,
+            aime: compte(m.data.likes),
+            republie: compte(m.data.reposts),
+            commente: commentairesDuMessage(m.data),
           };
         }),
     },

@@ -23,10 +23,10 @@ import type { IconName } from '@ds';
  * ici sans y être ajouté là-bas est admin-only, et c'est le bon défaut.
  *
  * ⛔ UNE TROISIÈME SURFACE LE COMPTE : la console du support de l'application native
- * (`android/app/src/main/java/me/maxmorrys/rysmo/ecrans/media/Console.kt`) affiche
- * « 5 écrans sur N ». Le kit natif y écrivait « sur 19 » et « les quatorze autres » —
- * deux nombres que cette table a déjà démentis. ⭐ Le miroir Kotlin est GARDÉ par
- * `tests/unit/natif-miroirs.test.ts`, qui le compare à `ADMIN_SCREEN_COUNT`.
+ * (`mobile/contenu/termes.ts`, `ECRANS_CONSOLE`) affiche « 5 écrans sur N ». Le kit natif
+ * y écrivait « sur 19 » et « les quatorze autres » — deux nombres que cette table a déjà
+ * démentis. ⭐ Le miroir est GARDÉ par `tests/unit/mobile-miroirs.test.ts`, qui le compare à
+ * `ADMIN_SCREEN_COUNT`.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 export interface AdminNavItem {

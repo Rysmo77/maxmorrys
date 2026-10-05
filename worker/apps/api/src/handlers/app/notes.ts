@@ -2,6 +2,7 @@ import type { DocSnapshot } from '@mm/firestore-rest';
 
 import { type CallContext, requireAuth } from '../../context';
 import { asText } from '../../lib/values';
+import { texteDeNote } from '../../lib/notes-format';
 import type { Reponse } from '../../vues/contrat';
 
 /**
@@ -55,7 +56,7 @@ export async function appNotes(_data: unknown, context: CallContext): Promise<Re
         const lecon = asText(n.data.lessonLabel);
         return {
           id: n.id,
-          texte: asText(n.data.text) ?? '',
+          texte: texteDeNote(n.data),
           // La date affichée porte la leçon quand on la connaît : une note sans son
           // contexte oblige à ouvrir chaque leçon pour retrouver de quoi elle parle.
           date: [heure, lecon].filter(Boolean).join(' · ') || null,

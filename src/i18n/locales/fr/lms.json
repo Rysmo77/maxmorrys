@@ -212,7 +212,9 @@
     "failedFoot": "Rien n'a été débité. Ta commande reste ouverte, tu peux reprendre où tu en étais.",
     "retry": "Réessayer le paiement",
     "waitingAria": "Paiement en attente de confirmation",
-    "backToFormation": "Revenir à la formation"
+    "backToFormation": "Revenir à la formation",
+    "openApp": "Ouvrir dans l'application Rysmo",
+    "openAppHint": "Si l'application est installée sur ce téléphone, elle confirme ton accès et t'y emmène."
   },
   "onboarding": {
     "stepWelcomeSubtitle": "Personnalise ton profil",

@@ -9,6 +9,10 @@
 /* ── Les ensembles fermés ─────────────────────────────────────────── */
 export type MoiRole = "student" | "admin" | "support";
 export type LeconLigneEtat = "done" | "current" | "todo";
+export type ApercuOngletOnglet = "Fil" | "Discussions" | "Membres" | "Agenda" | "Classement" | "Opportunités" | "Informations" | "Parrainage";
+export type TransactionVueStatut = "completed" | "pending" | "failed";
+export type TransactionVueLigne = "formation" | "club" | "rysmoPack" | "rysmoSubscription" | "autre";
+export type LeconContenuType = "video" | "text" | "quiz" | "resource" | "mission";
 export type SeanceCollection = "club_sessions" | "club_events";
 export type SeanceGlyphe = "chat" | "users";
 export type SeanceTerritoire = "transforme" | "digitalise";
@@ -35,6 +39,8 @@ export interface Moi {
 /** La reprise — ce que l'accueil propose de rouvrir. N'existe dans AUCUN document : c'est une jointure `enrollments` × `formations` plus deux calculs de dates. */
 export interface Espace {
   slug: string;
+  /** ⛔ L'IDENTIFIANT DU DOCUMENT, PAS LE SLUG. `marquerLecon` cherche l'inscription par `formationId` ; l'écran de leçon lui passait le slug, ce qui ne marchait que si les deux coïncidaient. */
+  formationId: string;
   titre: string;
   /** Premier segment avant « pour », « : » ou un tiret cadratin. L'écran a deux lignes ; un titre complet y déborde. */
   titreCourt: string;
@@ -150,6 +156,65 @@ export interface ClubBilanTuile {
   /** ⛔ NON NULLABLE, CONTRE LE COMMENTAIRE DE `club.ts:88-89`. Celui-ci affirme « Un `null` y reste `null` : trois tuiles qui affichent “non relevé” valent mieux qu'un zéro qu'on n'a pas mesuré. » LE CODE NE PEUT PAS LE TENIR : `count(...).catch(() => 0)` (`club.ts:63, 68`) et `toNumber(..., 0)` (`:93`) servent une agrégation REFUSÉE comme un zéro MESURÉ. Même motif dans `console.ts:49`. Le contrat dit la vérité du code, pas celle du commentaire ; faire passer `.catch(() => 0)` à `.catch(() => null)` est une décision produit, et elle n'a pas eu lieu. */
   n: number;
   l: string;
+}
+
+/** Un compte derrière un cadenas. ⭐ NULLABLE, À LA DIFFÉRENCE DE `ClubBilanTuile` : un compte qui échoue vaut `null`, et l'écran écrit « non relevé » — jamais un zéro qu'on n'a pas mesuré. */
+export interface CompteurApercu {
+  n?: number | null;
+  /** Le libellé vient du SERVEUR, avec le nombre : il ne promet que ce qui est mesuré. */
+  l: string;
+}
+
+export interface ApercuOnglet {
+  /** Les huit onglets du kit (`CLUB_ORDRE`), dans leur ordre. */
+  onglet: ApercuOngletOnglet;
+  compteurs: CompteurApercu[];
+}
+
+export interface ApercuClub {
+  onglets: ApercuOnglet[];
+}
+
+/** Une transaction de LA personne connectée, vue depuis l'application après un paiement fait sur le site. */
+export interface TransactionVue {
+  id: string;
+  statut: TransactionVueStatut;
+  ligne: TransactionVueLigne;
+  /** ⛔ L'accès CONSTATÉ (inscription existante, abonnement actif), pas déduit du statut. L'écran n'écrit « C'est à toi » que s'il est vrai. */
+  acces: boolean;
+  titre?: string | null;
+  slug?: string | null;
+  /** Écrit par le serveur à la création de la charge : c'est le montant débité. */
+  montant?: number | null;
+  devise?: string | null;
+  creeLe?: string | null;
+}
+
+export interface Ressource {
+  titre: string;
+  /** pdf, template, link, file — libre en base. */
+  type: string;
+  url: string;
+  /** Telle qu'écrite en base (« 180 Ko »). Absente quand la base ne l'a pas : jamais inventée. */
+  taille?: string | null;
+}
+
+/** UNE leçon, entière : ce qui se lit hors connexion une fois gardé sur le téléphone. */
+export interface LeconContenu {
+  formationId: string;
+  id: string;
+  titre: string;
+  type: LeconContenuType;
+  moduleTitre?: string | null;
+  duree?: string | null;
+  /** Markdown, tel que le site le rend (`markdownToHtml`). Pour un quiz ou une mission, la structure brute — l'application ne la rejoue pas, elle renvoie au site. */
+  contenu?: string | null;
+  /** ⚠️ UNE ADRESSE D'INTÉGRATION (`iframe` côté site), pas un fichier : elle ne se télécharge pas. Une leçon vidéo gardée hors connexion garde son texte, pas sa vidéo — et l'écran le dit. */
+  video?: string | null;
+  ressources: Ressource[];
+  faite: boolean;
+  precedente?: string | null;
+  suivante?: string | null;
 }
 
 export interface Club {
@@ -440,6 +505,9 @@ export type NomDeVue =
   | "appNotes"
   | "appCertificats"
   | "appVerifierCertificat"
+  | "appApercuClub"
+  | "appTransaction"
+  | "appLeconContenu"
   | "appClub"
   | "appClubAgenda"
   | "appClubBlocages"
@@ -463,6 +531,9 @@ export interface FormeDeVue {
   appNotes: Notes;
   appCertificats: Certificats;
   appVerifierCertificat: CertificatPublic;
+  appApercuClub: ApercuClub;
+  appTransaction: TransactionVue;
+  appLeconContenu: LeconContenu;
   appClub: Club;
   appClubAgenda: Seance[];
   appClubBlocages: Blocages;
@@ -496,6 +567,9 @@ export interface VueNulleDe {
   appNotes: "jamais";
   appCertificats: "jamais";
   appVerifierCertificat: "sansDonnee";
+  appApercuClub: "jamais";
+  appTransaction: "sansDonnee";
+  appLeconContenu: "sansAcces";
   appClub: "sansAcces";
   appClubAgenda: "sansAcces";
   appClubBlocages: "sansAcces";
@@ -509,6 +583,33 @@ export interface VueNulleDe {
   appMedia: "jamais";
   appRepetiteur: "jamais";
 }
+
+/** La même table, LISIBLE À L'EXÉCUTION : le client en tire « porte fermée » contre « rien ». */
+export const VUE_NULLE: Readonly<VueNulleDe> = {
+  appMoi: "sansDonnee",
+  appEspace: "sansDonnee",
+  appCours: "jamais",
+  appFormation: "sansDonnee",
+  appLecon: "sansDonnee",
+  appNotes: "jamais",
+  appCertificats: "jamais",
+  appVerifierCertificat: "sansDonnee",
+  appApercuClub: "jamais",
+  appTransaction: "sansDonnee",
+  appLeconContenu: "sansAcces",
+  appClub: "sansAcces",
+  appClubAgenda: "sansAcces",
+  appClubBlocages: "sansAcces",
+  appClubClassement: "sansAcces",
+  appClubFil: "sansAcces",
+  "appClubListe.discussions": "sansAcces",
+  "appClubListe.opportunites": "sansAcces",
+  "appClubListe.membre": "sansAcces",
+  appClubParrainage: "sansAcces",
+  appConsole: "jamais",
+  appMedia: "jamais",
+  appRepetiteur: "jamais",
+} as const;
 
 /**
  * ⭐ LES VUES SERVIES SANS JETON — `session: "aucune"` dans le contrat.

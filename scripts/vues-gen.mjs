@@ -23,7 +23,7 @@
  *
  * DEUX PORTES, UNE COMMANDE :
  *   · la RÉGÉNÉRATION : on relance les émetteurs dans un dossier temporaire et on diffère
- *     avec le commité. Une retouche à la main du Kotlin ou du TypeScript rougit. C'est le
+ *     avec le commité. Une retouche à la main d'une des deux copies TypeScript rougit. C'est le
  *     motif exact de `og:cards --check`, et l'histoire du dépôt dit que c'est la forme de
  *     porte qui mord : celle qui compare deux artefacts, jamais celle qui affirme.
  *   · les ROUTES : l'ensemble des callables du contrat doit ÉGALER l'ensemble des clés
@@ -41,16 +41,16 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { emettreTs } from './vues-emit-ts.mjs';
-import { emettreKotlin } from './vues-emit-kotlin.mjs';
 
 const RACINE = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CONTRAT = 'worker/apps/api/src/vues/vues.contrat.json';
 const CIBLES = {
   ts: 'worker/apps/api/src/vues/contrat.ts',
-  /* ⚠️ `src/main/java`, PAS `src/main/kotlin`. Le jeu de sources Gradle du projet est
-     `java/` (le socle du lot 1 y met déjà `ds/`), et ouvrir un second répertoire de sources
-     demanderait de toucher `app/build.gradle.kts` pour rien. */
-  kotlin: 'android/app/src/main/java/me/maxmorrys/rysmo/donnees/Vues.kt',
+  /* La copie de l'application React Native. Même contenu, deux endroits : Metro ne résout
+     rien hors de `mobile/` (AD-9), donc le client ne peut pas importer le fichier du Worker.
+     Une copie GÉNÉRÉE n'est pas une duplication — `vues:check` refuse qu'elle diverge.
+     ⓘ Du 05/09 au 04/10/2026, cette cible était un `Vues.kt` (réécriture Kotlin abandonnée). */
+  natif: 'mobile/donnees/contrat.generated.ts',
 };
 
 const SCALAIRES = new Set(['texte', 'entier', 'decimal', 'booleen', 'horodatage']);
@@ -88,7 +88,7 @@ const enPascal = (s) =>
 
 /* ═══════════════════════════════════════════════════════════════════════════════════════
  * LA VALIDATION — un générateur qui rate sans se plaindre est pire qu'un générateur qui
- * échoue. C'est la règle de `ds-emit-kotlin.mjs`, reprise telle quelle.
+ * échoue.
  * ═══════════════════════════════════════════════════════════════════════════════════════ */
 function valider(contrat) {
   const formes = { ...contrat.formes, ...(contrat.formesEntree ?? {}) };
@@ -120,7 +120,7 @@ function valider(contrat) {
 
   for (const [nom, def] of Object.entries(formes)) {
     if (!def.champs || Object.keys(def.champs).length === 0) {
-      throw new Error(`formes.${nom} : une forme sans champ ne se génère pas (Kotlin refuse une data class vide).`);
+      throw new Error(`formes.${nom} : une forme sans champ ne se génère pas (elle ne décrit rien).`);
     }
     for (const [champ, d] of Object.entries(def.champs)) {
       if (typeof d.nul !== 'boolean') throw new Error(`formes.${nom}.${champ} : « nul » est obligatoire, sans valeur par défaut.`);
@@ -226,14 +226,6 @@ const ENTETE_TS = `/*
  * \`npm run vues:check\` la refuse avant.
  */`;
 
-const ENTETE_KT = `/*
- * ⛔ FICHIER GÉNÉRÉ PAR \`npm run vues:gen\` — NE PAS ÉDITER.
- *
- * La source est \`${CONTRAT}\`, seul artefact de cette couche
- * écrit à la main. Kotlin et Swift ne sont écrits ni l'un ni l'autre à la main : c'est ce qui
- * rend leur dérive IMPOSSIBLE, et pas seulement improbable.
- */`;
-
 function produire() {
   const contrat = JSON.parse(readFileSync(join(RACINE, CONTRAT), 'utf8'));
   contrat.__unions = valider(contrat);
@@ -241,7 +233,7 @@ function produire() {
     contrat,
     fichiers: {
       [CIBLES.ts]: `${emettreTs(contrat, ENTETE_TS).trimEnd()}\n`,
-      [CIBLES.kotlin]: `${emettreKotlin(contrat, ENTETE_KT).trimEnd()}\n`,
+      [CIBLES.natif]: `${emettreTs(contrat, ENTETE_TS).trimEnd()}\n`,
     },
   };
 }
@@ -298,7 +290,7 @@ function main() {
     process.exit(1);
   }
 
-  console.log(`vues:check — contrat, TypeScript et Kotlin d’accord ; `
+  console.log(`vues:check — contrat, Worker et application d’accord ; `
     + `${[...new Set(Object.keys(contrat.vues).map((n) => n.split('.')[0]))].length} vues et `
     + `${Object.keys(contrat.ecritures).length} écritures servies et déclarées dans les deux listes MIGRATED.`);
 }

@@ -43,7 +43,7 @@ jobs:
       # ── Le contrat des vues, et ses deux consommateurs générés ───────────
       # ⭐ MÊME MOTIF QUE `ds:check`, POUR LA MÊME RAISON : la porte qui mord est celle qui
       # COMPARE DEUX ARTEFACTS, jamais celle qui affirme une constante. On régénère
-      # `contrat.ts` et `Vues.kt` dans un dossier temporaire et on diffère : une retouche à la
+      # `contrat.ts` et sa copie `mobile/donnees/contrat.generated.ts` dans un dossier temporaire et on diffère : une retouche à la
       # main, ou un contrat modifié sans régénération, échoue ici.
       #
       # La même commande vérifie les ROUTES : l'ensemble des callables du contrat doit ÉGALER
@@ -160,129 +160,59 @@ jobs:
   # ══════════════════════════════════════════════════════════════════════════════════
   # L'APPLICATION NATIVE — jusqu'ici, RIEN dans cette CI ne la regardait.
   #
+  # `mobile/` est un projet Expo autonome, avec son propre `package-lock.json`. Les deux
+  # suites `tests/unit/mobile-*.test.ts` tournaient bien, mais par accident : elles sont
+  # dans la suite de la racine et lisent des fichiers. Ni le typecheck de `mobile/`, ni
+  # sa construction n'étaient exécutés — une régression TypeScript ou un import cassé
+  # partait sans que rien ne le dise.
+  #
+  # ⚠️ ET LE TYPECHECK NE SUFFIT PAS. `tsc` résout des chemins que Metro refuse : le port
+  # a déjà connu un état où le typecheck était vert et le paquet impossible à construire
+  # (`Unable to resolve module ../../src/design-system/tokens.generated`). L'export est
+  # la seule porte qui prouve que l'application se construit.
   # ══════════════════════════════════════════════════════════════════════════════════
-  # ANDROID — LE JOB QUI REMPLACE `mobile`, ET CE QU'IL NE COUVRE PAS ENCORE.
-  #
-  # L'ancien job faisait `expo export`, la seule porte qui prouvait que le paquet se
-  # CONSTRUIT — un typecheck vert avait déjà caché un projet impossible à bundler.
-  # `assembleDebug` joue le même rôle ici, et il est le dernier mot : c'est la
-  # compilation qui prouve, pas l'analyse statique.
-  #
-  # ⚠️ CE JOB NE VÉRIFIE QUE LE SOCLE. Les 110 cas perdus avec `mobile/` ne sont pas
-  # revenus : rien ne garde encore les contrôles morts, les liens vers des routes
-  # inexistantes, ni le rendu des écrans — ils n'existent pas. Voir
-  # `_bmad-output/implementation-artifacts/garanties-a-reconstruire.md`.
-  #
-  # ⚠️ IL N'Y A PAS DE JOB iOS. Il attend une installation de Xcode, qui n'est pas
-  # automatisable ici. Un `xcodebuild` sur runner macos le remplacera.
-  # ══════════════════════════════════════════════════════════════════════════════════
-  android:
+  mobile:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-node@v4
         with:
-          distribution: temurin
-          java-version: 21
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
 
-      - uses: android-actions/setup-android@v3
+      - run: npm ci
+        working-directory: mobile
 
-      - name: Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Typecheck natif
+        run: npm run typecheck
+        working-directory: mobile
 
-      # ⛔ LA DÉRIVE DES JETONS EST GARDÉE AILLEURS, ET C'EST VOULU.
-      #
-      # `Jetons.generated.kt` et les trois fichiers de ressources sont GÉNÉRÉS depuis le
-      # CSS (AD-8). Rien n'empêche de les modifier à la main — une teinte changée là
-      # compile, s'affiche, et ne redevient jamais celle du design. `ds:check` régénère
-      # les CINQ cibles et compare ; il tourne dans `lint-and-build`, dont dépend le
-      # déploiement. Le refaire ici coûterait un `npm ci` complet pour la même réponse.
-      #
-      # ⚠️ Si `ds:check` cessait un jour de connaître les cibles Android, ce job
-      # continuerait de passer au vert sur des jetons faux. C'est le seul point où ces
-      # deux fichiers doivent rester d'accord.
+      # 21 vérifications sur 21 aujourd'hui. Un greffon déclaré sans son paquet est
+      # attrapé ICI plutôt qu'au `prebuild`, c'est-à-dire des minutes au lieu d'un build.
+      - name: expo-doctor
+        run: npx expo-doctor
+        working-directory: mobile
 
-      # ⛔ LES TROIS CLÉS DE CONSTRUCTION FIREBASE, ET RIEN D'AUTRE.
-      #
-      # `providers.gradleProperty` les lit sous le préfixe `ORG_GRADLE_PROJECT_` — c'est la
-      # seule façon config-cache-safe de les faire entrer, et elle évite tout fichier dans le
-      # dépôt : ni `google-services.json`, ni greffon Gradle.
-      #
-      # ⚠️ UNE CLÉ ABSENTE NE CASSE PAS LA CONSTRUCTION, délibérément : elle rend une chaîne
-      # vide, `Configuration.motifManquant()` la NOMME à l'exécution, et l'application le dit
-      # à l'écran. Un binaire incomplet se construit donc — c'est précisément ce que
-      # `mobile-app-config.test.ts` empêchait d'atteindre un magasin, et cette garantie doit
-      # revenir avant la première soumission.
-      - name: Compiler l'application
-        working-directory: android
+      # AUCUNE variable EXPO_PUBLIC_* n'est posée : le paquet produit est donc celui de
+      # PRODUCTION, avec son contenu de démonstration éteint et son atelier fermé.
+      - name: Construire le paquet des deux plateformes
+        run: npx expo export --platform ios --platform android --output-dir dist
+        working-directory: mobile
         env:
-          ORG_GRADLE_PROJECT_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          ORG_GRADLE_PROJECT_FIREBASE_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
-          ORG_GRADLE_PROJECT_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-        run: ./gradlew :app:assembleDebug --no-daemon
+          EXPO_NO_TELEMETRY: '1'
 
-      - name: Tests unitaires
-        working-directory: android
-        run: ./gradlew :app:testDebugUnitTest --no-daemon
-
-      - name: Lint Android
-        working-directory: android
-        run: ./gradlew :app:lintDebug --no-daemon
-
-      # ⛔ LA CONSTRUCTION DE PRODUCTION EST UNE AUTRE PREUVE QUE CELLE DE DÉBOGAGE.
-      #
-      # `release` passe par R8 : rétrécissement, obscurcissement, retrait des ressources
-      # inutilisées. R8 retire ce qu'il croit inatteignable — et il se trompe sur ce qui
-      # n'est atteint que par réflexion, c'est-à-dire précisément la sérialisation des
-      # destinations de navigation et une partie de Compose. Le paquet de débogage ne
-      # verra jamais ce défaut : il ne rétrécit rien.
-      #
-      # `lintVitalRelease` tourne dans la foulée, et lui seul refuse les fautes qui
-      # bloquent une publication.
-      #
-      # ⚠️ Le paquet sort NON SIGNÉ, et c'est voulu : la clé de production vit chez EAS et
-      # ne doit jamais entrer dans le dépôt. Ce job prouve que le paquet se CONSTRUIT, pas
-      # qu'il est publiable.
-      - name: Construire la version de production (R8)
-        working-directory: android
-        env:
-          ORG_GRADLE_PROJECT_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          ORG_GRADLE_PROJECT_FIREBASE_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
-          ORG_GRADLE_PROJECT_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-        run: ./gradlew :app:assembleRelease --no-daemon
-
-      # ⛔ CETTE ÉTAPE AFFICHAIT SANS RIEN VÉRIFIER, ET C'ÉTAIT UN ANGLE MORT.
-      #
-      # `tests/unit/natif-capacites.test.ts` compte les permissions du manifeste SOURCE — où
-      # nous écrivons — et n'en voit donc AUCUNE de celles qu'une bibliothèque apporte à la
-      # fusion. Firebase Auth en apporte une (`READ_GSERVICES`, par `play-services-basement`).
-      # La porte restait verte pendant que le paquet livré en demandait davantage, ce que les
-      # deux magasins affichent sur la fiche.
-      #
-      # La liste ci-dessous est la vérité du PAQUET. Toute entrée de plus doit être un geste
-      # délibéré : on l'ajoute ici ET dans `store/confidentialite/inventaire-collecte.md`,
-      # d'où sont dérivés les deux formulaires de confidentialité.
-      - name: Les permissions du paquet CONSTRUIT sont exactement celles déclarées
-        working-directory: android
-        run: |
-          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | tail -1)
-          ATTENDU=$(printf '%s\n' \
-            'android.permission.ACCESS_NETWORK_STATE' \
-            'android.permission.INTERNET' \
-            'android.permission.USE_BIOMETRIC' \
-            'android.permission.USE_FINGERPRINT' \
-            'com.google.android.providers.gsf.permission.READ_GSERVICES' | sort)
-          OBTENU=$("$AAPT" dump permissions app/build/outputs/apk/debug/app-debug.apk \
-            | sed -n "s/^uses-permission: name='\([^']*\)'.*/\1/p" \
-            | grep -v DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION | sort)
-          if [ "$ATTENDU" != "$OBTENU" ]; then
-            echo "⛔ Les permissions du paquet ont changé."
-            diff <(echo "$ATTENDU") <(echo "$OBTENU") || true
-            echo "Si c'est voulu : mettre à jour CETTE liste ET l'inventaire de collecte."
-            exit 1
-          fi
-          echo "✅ toutes les permissions du paquet sont déclarées."
+      # ⚠️ CETTE PORTE ÉTAIT UN `grep`, ET ELLE ÉTAIT AVEUGLE SUR UN DE SES SEPT MARQUEURS.
+      # Hermes range les chaînes accentuées dans une table UTF-16 : mesuré le 05/09/2026,
+      # « Vendre sans budget pub » (ASCII) se trouve dans le `.hbc`, « elles sont comptées »
+      # ne s'y trouve pas en UTF-8. « planche de référence » ne pouvait donc PAS être
+      # détecté — la porte était verte parce qu'elle ne voyait rien.
+      # Le script cherche dans les deux encodages, et vérifie d'abord qu'il sait trouver un
+      # témoin accentué qu'il sait présent : une porte muette se confond avec une verte.
+      - name: Le paquet de production ne contient ni démonstration ni tunnel d'achat
+        working-directory: mobile
+        run: node ../scripts/paquet-natif-propre.mjs dist
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

@@ -231,6 +231,32 @@ export default function PaymentReturn() {
     );
   }
 
+  /*
+   * ── LE RETOUR VERS L'APPLICATION ─────────────────────────────────────────────────────
+   * Quelqu'un qui règle depuis son téléphone revient ICI, dans le navigateur. L'application
+   * ne lit rien dans Firestore : `rysmo://acces` lui fait relire la transaction par
+   * `appTransaction`, et elle n'annonce l'accès que si le serveur le constate.
+   *
+   * Un schéma propre, pas un lien universel : iOS n'ouvre pas une application depuis un lien
+   * du MÊME domaine que la page affichée. Montré sur téléphone seulement, et jamais après un
+   * échec — il n'y aurait rien à ouvrir.
+   */
+  const surTelephone = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const lienApp = transactionId && surTelephone && status !== 'failed'
+    ? `rysmo://acces?transactionId=${encodeURIComponent(transactionId)}`
+    : null;
+  if (lienApp) {
+    actions = (
+      <>
+        {actions}
+        <Button tone="quiet" fullWidth href={lienApp} className="rv" style={{ ['--i' as string]: 8, marginTop: '10px' }}>
+          {t('paymentReturn.openApp')}
+        </Button>
+        <p className="text-meta-2 text-ink-3 mt-2 mb-0">{t('paymentReturn.openAppHint')}</p>
+      </>
+    );
+  }
+
   return (
     <div className="relative min-h-screen isolate overflow-hidden flex items-center justify-center px-[18px] py-16">
       <Mesh territory="forme" />

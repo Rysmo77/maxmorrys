@@ -10,6 +10,7 @@ import type {
   ClubDigitosSession, ClubDigitosInfo, ClubDigitosComment, ClubDigitosChallenge,
   ClubEventRegistration, ClubSessionRegistration, ClubMemberProfile, ClubOpportunity,
 } from '../../types';
+import { normaliserPostClub } from '../club/posts';
 
 /**
  * ── LE MIROIR PUBLIC DES CHIFFRES DU CLUB ───────────────────────────────────────────────
@@ -86,7 +87,12 @@ export async function getAllClubSubscriptions(): Promise<ClubDigitosSubscription
 
 // Club Posts
 export async function getClubPosts(limitN = 50): Promise<ClubDigitosPost[]> {
-  return getCollection<ClubDigitosPost>('club_posts', orderBy('createdAt', 'desc'), firestoreLimit(limitN));
+  /* Lecture TOLÉRANTE : des messages écrits par l'application à l'ancien format existent
+     peut-être (`src/lib/club/posts.ts`). Sans elle, un `likes: 0` fait tomber le fil. */
+  const bruts = await getCollection<Record<string, unknown> & { id: string }>(
+    'club_posts', orderBy('createdAt', 'desc'), firestoreLimit(limitN),
+  );
+  return bruts.map(normaliserPostClub);
 }
 
 export async function createClubPost(

@@ -31,11 +31,10 @@ import { join, resolve } from 'node:path';
  *
  * Les portes ci-dessous rendent ce silence impossible.
  *
- * ⭐ L'ANGLE MORT DU NATIF EST REFERMÉ (lot 2). Le balayage ne connaissait que les motifs
- * TypeScript du port supprimé, et parcourait donc deux dossiers vides : il passait au vert
- * sans rien vérifier. Il lit maintenant l'objet `Callables` de
- * `android/.../donnees/Vues.kt` — GÉNÉRÉ depuis `vues.contrat.json`, donc exhaustif par
- * construction — plus les appels écrits à la main, et il compte ce qu'il a trouvé.
+ * ⭐ L'ANGLE MORT DU NATIF EST REFERMÉ. Le balayage lit les deux unions `NomDeVue` et
+ * `NomDEcriture` de `mobile/donnees/contrat.generated.ts` — GÉNÉRÉ depuis
+ * `vues.contrat.json`, donc exhaustif par construction — plus les appels écrits à la main
+ * dans `mobile/`, et il compte ce qu'il a trouvé.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -74,59 +73,52 @@ function listesMigrated(): string[][] {
  */
 function appeleesParLeNatif(): string[] {
   const noms = new Set<string>();
+  const MOBILE = join(RACINE, 'mobile');
+  if (!existsSync(MOBILE)) return [];
+
+  /*
+   * ⭐ LA SOURCE PRINCIPALE : les unions `NomDeVue` et `NomDEcriture` du contrat GÉNÉRÉ.
+   * Elles portent tous les noms que la couche de données sait appeler, à un seul endroit et
+   * par construction.
+   */
+  const contrat = readFileSync(join(MOBILE, 'donnees/contrat.generated.ts'), 'utf8');
+  for (const union of ['NomDeVue', 'NomDEcriture']) {
+    const bloc = new RegExp(`export type ${union}\\s*=([^;]*);`).exec(contrat);
+    for (const m of bloc?.[1].matchAll(/"([A-Za-z0-9_.]+)"/g) ?? []) {
+      /* Un nom de VUE porte son discriminant (`appClubListe.membre`) ; la CALLABLE est son
+         préfixe. C'est elle, et elle seule, qui doit figurer dans `MIGRATED`. */
+      noms.add(m[1].split('.')[0]);
+    }
+  }
 
   /*
    * ⛔ LE PIÈGE À NE PAS REPRODUIRE, ET IL A DÉJÀ COÛTÉ UNE GARANTIE ENTIÈRE.
    * `mobile-routes.test.ts` cherchait toute chaîne commençant par `/` dans n'importe quel
    * fichier — et la planche d'atelier citait les 48 adresses en dur. « Toute route y était donc
    * "citée", et le test restait vert alors qu'aucun écran de production ne menait à onze
-   * d'entre elles. » Une planche de revue Compose citerait de la même façon les 19 noms de vue.
-   * Les fichiers d'aperçu sont donc EXCLUS avant de compter, par leur nom comme par leur
-   * contenu.
+   * d'entre elles. » La planche est donc EXCLUE avant de compter.
    */
-  const estUnApercu = (nom: string, code: string) =>
-    /(Apercu|Preview|Planche)/i.test(nom) || /@Preview\b/.test(code) || /PreviewProvider\b/.test(code);
-
   const parcourir = (dir: string) => {
     for (const e of readdirSync(dir)) {
+      if (e === 'node_modules' || e.startsWith('.')) continue;
       const chemin = join(dir, e);
       if (statSync(chemin).isDirectory()) {
         parcourir(chemin);
         continue;
       }
-      if (!/\.(kt|swift)$/.test(e)) continue;
+      if (!/\.tsx?$/.test(e) || e.endsWith('.generated.ts') || /^apercu\.tsx$/.test(e)) continue;
       const code = readFileSync(chemin, 'utf8');
-      if (estUnApercu(e, code)) continue;
-
-      /*
-       * ⭐ LA SOURCE PRINCIPALE : l'objet `Callables` de `Vues.kt`, GÉNÉRÉ depuis le contrat.
-       * Il porte tous les noms que la couche de données sait appeler, à un seul endroit et par
-       * construction — c'est ce qui rebranche cette porte que le dossier vide laissait au vert.
-       */
-      const bloc = /object Callables \{([\s\S]*?)\n\}/.exec(code);
-      if (bloc) {
-        for (const m of bloc[1].matchAll(/const val\s+[A-Z0-9_]+\s*=\s*"([A-Za-z0-9_]+)"/g)) {
-          noms.add(m[1]);
-        }
-      }
 
       /*
        * ET LE FILET : un appel écrit à la main avec un littéral, hors de la porte des données.
-       * C'est exactement ce que faisait `mobile/app/suppression.tsx` avec `deleteUserAccount` —
-       * la garde ne regardait alors pas cet appel-là, ni aucun futur appel direct.
+       * `mobile/app/suppression.tsx` appelle `deleteUserAccount` en direct, depuis l'écran.
        */
-      for (const m of code.matchAll(/(?:appeler|appelerBrut|lire)(?:<[^>]*>)?\(\s*"([A-Za-z0-9_.]+)"/g)) {
-        /* Un nom de VUE porte son discriminant (`appClubListe.membre`) ; la CALLABLE est son
-           préfixe. C'est elle, et elle seule, qui doit figurer dans `MIGRATED`. */
+      for (const m of code.matchAll(/\b(?:appeler|useVue)(?:<[^>]*>)?\(\s*'([A-Za-z0-9_.]+)'/g)) {
         noms.add(m[1].split('.')[0]);
       }
     }
   };
-
-  for (const dossier of ['android/app/src/main', 'ios/Rysmo']) {
-    const chemin = join(RACINE, dossier);
-    if (existsSync(chemin)) parcourir(chemin);
-  }
+  parcourir(MOBILE);
   return [...noms];
 }
 
@@ -197,10 +189,10 @@ describe("aiguillage des callables du Worker api", () => {
   it('la porte native regarde bien quelque chose', () => {
     /*
      * ⛔ CETTE ASSERTION EST LA RAISON D'ÊTRE DU BLOC. Le fichier déclarait lui-même son angle
-     * mort : le balayage parcourait `android/app/src` et `ios/Rysmo`, VIDES DE SOURCE, et
-     * passait donc au vert sans rien vérifier. Une porte qui ne peut pas rougir ne prouve rien.
-     * Sans ce compte minimal, le jour où `Vues.kt` change de nom ou de forme, la garde
-     * redeviendrait silencieuse au lieu d'échouer.
+     * mort : le balayage a parcouru des dossiers VIDES DE SOURCE, et passait donc au vert sans
+     * rien vérifier. Une porte qui ne peut pas rougir ne prouve rien. Sans ce compte minimal,
+     * le jour où le contrat généré change de nom ou de forme, la garde redeviendrait
+     * silencieuse au lieu d'échouer.
      */
     expect(appeleesParLeNatif().length, 'aucun nom de callable trouvé côté natif — la porte ne vérifie plus rien')
       .toBeGreaterThan(20);

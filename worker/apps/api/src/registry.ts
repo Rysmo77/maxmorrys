@@ -21,6 +21,9 @@ import { appClubBlocages } from './handlers/app/clubBlocages';
 import { appEspace } from './handlers/app/espace';
 import { appMoi } from './handlers/app/moi';
 import { appVerifierCertificat } from './handlers/app/verifierCertificat';
+import { appLeconContenu } from './handlers/app/leconContenu';
+import { appTransaction } from './handlers/app/transaction';
+import { appApercuClub } from './handlers/app/apercuClub';
 import { adminCreateUser, adminManageEnrollment, adminManageRysmoQuota } from './handlers/admin';
 import { backfillLigne } from './handlers/backfillLigne';
 import { backfillSlugEn } from './handlers/backfillSlugEn';
@@ -113,6 +116,9 @@ export const HANDLERS: Record<string, CallHandler> = {
   // capable de répondre : l'application native n'a pas de SDK Firebase, donc pas
   // l'accès direct à `certificate_lookups` dont le web se sert.
   appVerifierCertificat,
+  appLeconContenu,
+  appTransaction,
+  appApercuClub,
   adminManageRysmoQuota,
   adminManageEnrollment,
   reindexSearch,

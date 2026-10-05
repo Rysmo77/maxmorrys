@@ -2,6 +2,7 @@ import { HttpsError } from '@mm/shared';
 
 import { type CallContext, requireAuth } from '../context';
 import { asText } from '../lib/values';
+import { FORME_ID_CLIENT, noteEnBase } from '../lib/notes-format';
 import type { Sortie } from '../vues/contrat';
 
 /**
@@ -34,8 +35,8 @@ const MAX = 4_000;
 export async function ecrireUneNote(data: unknown, context: CallContext): Promise<Sortie<'ecrireUneNote'>> {
   const auth = requireAuth(context);
 
-  const { texte, lessonId, lessonLabel } = (data ?? {}) as {
-    texte?: unknown; lessonId?: unknown; lessonLabel?: unknown;
+  const { texte, lessonId, lessonLabel, idClient } = (data ?? {}) as {
+    texte?: unknown; lessonId?: unknown; lessonLabel?: unknown; idClient?: unknown;
   };
   if (typeof texte !== 'string' || texte.trim() === '') {
     throw new HttpsError('invalid-argument', 'Une note vide ne se range nulle part.');
@@ -46,16 +47,26 @@ export async function ecrireUneNote(data: unknown, context: CallContext): Promis
     }
   }
 
-  const id = crypto.randomUUID();
+  if (idClient !== undefined && (typeof idClient !== 'string' || !FORME_ID_CLIENT.test(idClient))) {
+    throw new HttpsError('invalid-argument', 'idClient doit être un UUID.');
+  }
+
+  /*
+   * ⭐ `idClient` REND L'ÉCRITURE REJOUABLE. La file d'envoi hors ligne de l'application
+   * renvoie une note dont la première tentative a pu ARRIVER sans que la réponse revienne.
+   * Le même identifiant réécrit le même document : rejouer ne duplique rien. Le chemin reste
+   * sous `users/{uid du jeton}` — un identifiant fourni ne peut pas viser la note d'autrui.
+   */
+  const id = typeof idClient === 'string' ? idClient : crypto.randomUUID();
   const maintenant = new Date().toISOString();
 
   await context.db.commit([
-    context.db.buildWrite(`users/${auth.uid}/notes/${id}`, {
-      text: texte.trim().slice(0, MAX),
+    context.db.buildWrite(`users/${auth.uid}/notes/${id}`, noteEnBase({
+      texte: texte.trim().slice(0, MAX),
       lessonId: typeof lessonId === 'string' ? lessonId : null,
       lessonLabel: typeof lessonLabel === 'string' ? lessonLabel.slice(0, 200) : null,
-      createdAt: maintenant,
-    }, { mask: false }),
+      maintenant,
+    }), { mask: false }),
   ]);
 
   /* On renvoie la note TELLE QU'ÉCRITE plutôt qu'un simple accusé : l'écran peut l'insérer

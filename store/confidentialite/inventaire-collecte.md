@@ -1,18 +1,9 @@
 ---
-releve: '2026-09-06'
-methode: >-
-  lecture de worker/apps/api/src/handlers/**, android/app/src/main/**, et
-  `aapt2 dump permissions` sur le paquet CONSTRUIT (app-debug.apk)
-
-> ⚠️ **LES CHEMINS `mobile/…` DE CE DOCUMENT NE RÉSOLVENT PLUS.** Le port React Native a été
-> supprimé le 05/09/2026 ; l'application est réécrite en Kotlin/Compose et Swift/SwiftUI. Ils
-> restent lisibles par `git show 9c22076:<chemin>`, et les CONSTATS qu'ils appuient sont
-> inchangés : ce document décrit ce que l'application collecte, pas ce qui la construit.
->
-> ⛔ **Un point ne survit PAS tel quel : le manifeste de confidentialité iOS.** Il vivait dans
-> `mobile/app.json` (`ios.privacyManifests`), que le préconstruit d'Expo transformait en
-> `PrivacyInfo.xcprivacy`. Dans un projet Xcode natif, ce fichier doit être écrit et ajouté
-> à la cible À LA MAIN. Apple REFUSE la soumission sans lui. Il n'existe pas encore.
+releve: '2026-09-05'
+methode: 'lecture de worker/apps/api/src/handlers/**, mobile/donnees/**, mobile/package.json'
+# ⓘ Du 05/09 au 04/10/2026, ce relevé décrivait la réécriture Kotlin (abandonnée) : READ_GSERVICES,
+#   Play Integrity et reCAPTCHA venaient du SDK Android natif `firebase-auth`. Le SDK JavaScript
+#   `firebase/auth` du port React Native n'entraîne pas `play-services`. Version Kotlin : `git show 09f2ceb:store/…`.
 ---
 
 # Ce que l'application collecte réellement
@@ -46,96 +37,35 @@ tableau, et `tests/unit/mobile-confidentialite.test.ts` refuse qu'ils divergent.
 Mesuré dans `mobile/package.json` : **aucun SDK d'analytique, de crash, de publicité ou
 d'attribution**. Ni Sentry, ni Firebase Analytics, ni identifiant publicitaire.
 
-⚠️ **Ce paragraphe décrivait le port React Native, supprimé le 05/09/2026.** Les faits qu'il
-énonce restent vrais — ils portent sur ce que l'application COLLECTE, pas sur la technologie qui
-la construit — mais les noms de fichiers et de paquets ont changé, et un formulaire de
-confidentialité qui cite un paquet absent se fait refuser.
+`mobile/donnees/firebase.ts` initialise `firebase/app` et `firebase/auth` **uniquement** — le
+fichier interdit explicitement `firebase/firestore`. Il n'y a donc ni `@firebase/installations`
+ni Installation ID.
 
-L'application ne parle qu'à `api.maxmorrys.me` (Cloudflare Worker) en HTTP+JSON. **Aucune lecture
-Firestore côté client** : le SDK Firebase de l'application se limite à l'IDENTITÉ, et
-`firebase-auth` n'entraîne pas `firebase-installations` — vérifié sur les POM le 06/09/2026,
-donc aucun Installation ID n'est fabriqué. C'était déjà la règle du port React Native, et
-elle tient : tout ce qui est LU passe par le Worker, qui refait ses propres contrôles parce
-que l'accès REST par compte de service contourne `firestore.rules`.
-
-Aucune permission de localisation, contacts, photos, micro ou caméra n'est déclarée — vérifié
-sur le paquet CONSTRUIT par `aapt2 dump permissions`, pas sur le manifeste source. Les quatre
-permissions Android demandées sont `INTERNET`, `ACCESS_NETWORK_STATE`, `USE_BIOMETRIC` et
-`USE_FINGERPRINT` (celle-ci plafonnée à l'API 27, où elle cesse d'être utile).
-
-⭐ **Relevé le 06/09/2026 sur `app-debug.apk`, après l'entrée d'`androidx.biometric` et
-d'`androidx.browser` :** la liste est INCHANGÉE. Ces deux bibliothèques n'apportent aucune
-permission nouvelle — `browser-1.8.0.aar` n'en déclare aucune, et les deux que
-`biometric-1.2.0-alpha05.aar` fait fusionner (`USE_BIOMETRIC`, `USE_FINGERPRINT`) étaient déjà
-écrites en clair dans notre manifeste. Le plafond `maxSdkVersion="27"` est bien celui du
-paquet livré : la bibliothèque déclare `USE_FINGERPRINT` sans plafond, et c'est notre valeur
-qui l'emporte à la fusion.
-
-⛔ **Une permission déclarée depuis le lot 1 est enfin exercée.** `USE_BIOMETRIC` l'était pour
-un dispositif qui n'existait pas — c'est la faute symétrique de celle qu'on refuse pour
-`POST_NOTIFICATIONS`. Le verrou est construit depuis le lot 5
-(`android/…/systeme/Biometrie.kt`), et `tests/unit/natif-capacites.test.ts` apparie désormais
-chaque permission du manifeste à un symbole d'API que le code doit contenir.
-
-Le déverrouillage biométrique ne transmet rien : la vérification a lieu sur l'appareil, et le
-résultat ne quitte jamais le téléphone. Sur Android il passe par `androidx.biometric`, sur iOS
-par `LocalAuthentication` — deux cadres du système, sans service tiers. Aucun achat n'est
-possible dans l'application.
-
-**Ce que le verrou enregistre :** un booléen, dans le magasin de préférences non chiffré
-(`verrou_biometrique`). Rien d'identifiant, rien de biométrique — l'empreinte ne quitte jamais
-l'enclave du téléphone, et l'application n'y a pas accès. Ce drapeau ne part sur aucun réseau.
-
-## Ce que l'application peut VOIR du téléphone
-
-⚠️ **Ce n'est pas une permission, et ça se lit quand même dans le manifeste.** Depuis l'API 30,
-une application ne voit pas les autres par défaut. `AndroidManifest.xml` déclare un bloc
-`<queries>` pour une seule question : « qui sait ouvrir une adresse `https` ? ». Elle sert à
-choisir le navigateur qui rendra l'onglet personnalisé, et elle ne lit rien de ce que ces
-applications contiennent. Sans elle, l'onglet personnalisé ne s'ouvrirait jamais sur les
-appareils récents — silencieusement.
-
-**Les onglets personnalisés ne sont pas un navigateur intégré.** La page s'ouvre DANS le
-navigateur de la personne, avec ses témoins de connexion, son historique et ses réglages ;
-l'application ne voit ni l'URL visitée ensuite, ni le contenu, ni les témoins. C'est aussi
-pourquoi la politique de cookies du site n'est toujours pas citée dans l'application : elle ne
-pose aucun témoin elle-même.
+Aucune permission de localisation, contacts, photos, micro ou caméra n'est déclarée. Face ID
+(`expo-local-authentication`) ne transmet rien : la vérification a lieu sur l'appareil, et le
+résultat ne quitte jamais le téléphone. Aucun achat n'est possible dans l'application.
 
 ⚠️ **Tracking : NON, partout.** `NSPrivacyTracking: false` et `NSPrivacyTrackingDomains: []`
 sont cohérents avec l'absence totale de SDK tiers — ce n'est pas une déclaration de principe,
 c'est un constat.
 
-## ⛔ Ce que le SDK Firebase Auth apporte, et qui n'est pas de nous
+## Ce que le téléphone GARDE pour le hors-connexion (depuis le 05/10/2026)
 
-Relevé le **06/09/2026** sur les POM de `firebase-auth:24.2.0` et `firebase-common:22.2.0`,
-et sur le paquet CONSTRUIT — pas supposé.
+Rien de ceci n'est COLLECTÉ — rien ne quitte l'appareil de plus qu'avant — mais un formulaire
+de magasin demande ce qui est stocké, et la réponse doit être exacte.
 
-**Une permission de plus, apportée par la fusion des manifestes :**
-
-| Permission | Origine | Ce qu'elle fait |
+| Ce qui est gardé | Où | Quand ça s'efface |
 |---|---|---|
-| `com.google.android.providers.gsf.permission.READ_GSERVICES` | `play-services-basement`, entraîné par `firebase-auth` | Lit les réglages des services Google de l'appareil. Niveau `normal` : aucune demande n'est faite à l'utilisateur. |
+| Le texte des leçons que la personne a choisi de garder (« Télécharger ») | AsyncStorage, clés `rysmo.horsligne.<uid>.lecon.*` | à sa demande, au plafond (5 Mo, la plus ancienne d'abord), ou à la suppression du compte |
+| La file d'envoi : leçons cochées et notes écrites sans réseau | AsyncStorage, `rysmo.horsligne.<uid>.file` | dès l'envoi réussi ; à la suppression du compte |
+| Les gestes refusés par le serveur, avec leur motif | `rysmo.horsligne.<uid>.ecartees` | quand la personne touche « J'ai vu » ; à la suppression du compte |
+| Le réglage « Wi-Fi seulement » | `rysmo.horsligne.<uid>.wifi` | à la suppression du compte |
 
-⚠️ **La porte `natif-capacites.test.ts` ne la voit PAS**, et c'est structurel : elle lit le
-manifeste SOURCE, où nous n'avons rien écrit. Une permission apportée par une bibliothèque
-n'apparaît qu'après fusion. **Seul `aapt2 dump permissions` sur le paquet construit dit la
-vérité** — c'est pourquoi l'étape de CI l'exécute maintenant en ASSERTION, plus en simple
-affichage.
-
-**Deux dispositifs de prévention d'abus, entraînés eux aussi :**
-
-- `com.google.android.play:integrity` — Play Integrity, qui atteste que l'application n'a pas
-  été modifiée et tourne sur un appareil sain.
-- `com.google.android.recaptcha` — reCAPTCHA, contre les créations de compte automatisées.
-
-⚠️ **Ce ne sont pas des permissions, donc aucune porte de manifeste ne les verra jamais.**
-Ils lisent des signaux d'appareil et les envoient à Google. Les deux formulaires de
-confidentialité les couvrent sous **« identifiants d'appareil ou autres identifiants »**, et
-c'est à déclarer ainsi. Ils sont actifs dès qu'une connexion ou une création est tentée — pas
-au démarrage.
-
-⭐ **`firebase-installations` N'EST PAS entraîné**, vérifié sur les deux POM. Aucun
-Installation ID n'est donc fabriqué, et la phrase de ce document à ce sujet reste vraie.
+⚠️ **La déconnexion ne les efface PAS**, délibérément : une note écrite sans réseau est un
+geste de la personne, la perdre à la déconnexion serait la faute que ce dispositif existe pour
+éviter. Les clés portent l'uid : un second compte sur le même téléphone ne les voit pas. Les
+notes en attente sont donc stockées en clair sur l'appareil jusqu'à leur envoi — comme la
+session Firebase elle-même (`firebase.ts`).
 
 ## ⛔ Ce qui SURVIT à la suppression du compte
 

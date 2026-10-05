@@ -74,6 +74,7 @@
       "doc": "La reprise — ce que l'accueil propose de rouvrir. N'existe dans AUCUN document : c'est une jointure `enrollments` × `formations` plus deux calculs de dates.",
       "champs": {
         "slug": { "type": "texte", "nul": false },
+        "formationId": { "type": "texte", "nul": false, "doc": "⛔ L'IDENTIFIANT DU DOCUMENT, PAS LE SLUG. `marquerLecon` cherche l'inscription par `formationId` ; l'écran de leçon lui passait le slug, ce qui ne marchait que si les deux coïncidaient." },
         "titre": { "type": "texte", "nul": false },
         "titreCourt": { "type": "texte", "nul": false, "doc": "Premier segment avant « pour », « : » ou un tiret cadratin. L'écran a deux lignes ; un titre complet y déborde." },
         "meta": { "type": "texte", "nul": false, "doc": "Chaîne d'affichage déjà jointe par ` · `. Ne pas la redécouper." },
@@ -196,6 +197,63 @@
           "doc": "⛔ NON NULLABLE, CONTRE LE COMMENTAIRE DE `club.ts:88-89`. Celui-ci affirme « Un `null` y reste `null` : trois tuiles qui affichent “non relevé” valent mieux qu'un zéro qu'on n'a pas mesuré. » LE CODE NE PEUT PAS LE TENIR : `count(...).catch(() => 0)` (`club.ts:63, 68`) et `toNumber(..., 0)` (`:93`) servent une agrégation REFUSÉE comme un zéro MESURÉ. Même motif dans `console.ts:49`. Le contrat dit la vérité du code, pas celle du commentaire ; faire passer `.catch(() => 0)` à `.catch(() => null)` est une décision produit, et elle n'a pas eu lieu."
         },
         "l": { "type": "texte", "nul": false }
+      }
+    },
+    "CompteurApercu": {
+      "doc": "Un compte derrière un cadenas. ⭐ NULLABLE, À LA DIFFÉRENCE DE `ClubBilanTuile` : un compte qui échoue vaut `null`, et l'écran écrit « non relevé » — jamais un zéro qu'on n'a pas mesuré.",
+      "champs": {
+        "n": { "type": "entier", "nul": true },
+        "l": { "type": "texte", "nul": false, "doc": "Le libellé vient du SERVEUR, avec le nombre : il ne promet que ce qui est mesuré." }
+      }
+    },
+    "ApercuOnglet": {
+      "champs": {
+        "onglet": { "type": { "union": ["Fil", "Discussions", "Membres", "Agenda", "Classement", "Opportunités", "Informations", "Parrainage"] }, "nul": false, "doc": "Les huit onglets du kit (`CLUB_ORDRE`), dans leur ordre." },
+        "compteurs": { "type": { "liste": { "objet": "CompteurApercu" } }, "nul": false }
+      }
+    },
+    "ApercuClub": {
+      "champs": {
+        "onglets": { "type": { "liste": { "objet": "ApercuOnglet" } }, "nul": false }
+      }
+    },
+    "TransactionVue": {
+      "doc": "Une transaction de LA personne connectée, vue depuis l'application après un paiement fait sur le site.",
+      "champs": {
+        "id": { "type": "texte", "nul": false },
+        "statut": { "type": { "union": ["completed", "pending", "failed"] }, "nul": false },
+        "ligne": { "type": { "union": ["formation", "club", "rysmoPack", "rysmoSubscription", "autre"] }, "nul": false },
+        "acces": { "type": "booleen", "nul": false, "doc": "⛔ L'accès CONSTATÉ (inscription existante, abonnement actif), pas déduit du statut. L'écran n'écrit « C'est à toi » que s'il est vrai." },
+        "titre": { "type": "texte", "nul": true },
+        "slug": { "type": "texte", "nul": true },
+        "montant": { "type": "entier", "nul": true, "doc": "Écrit par le serveur à la création de la charge : c'est le montant débité." },
+        "devise": { "type": "texte", "nul": true },
+        "creeLe": { "type": "texte", "nul": true }
+      }
+    },
+    "Ressource": {
+      "champs": {
+        "titre": { "type": "texte", "nul": false },
+        "type": { "type": "texte", "nul": false, "doc": "pdf, template, link, file — libre en base." },
+        "url": { "type": "texte", "nul": false },
+        "taille": { "type": "texte", "nul": true, "doc": "Telle qu'écrite en base (« 180 Ko »). Absente quand la base ne l'a pas : jamais inventée." }
+      }
+    },
+    "LeconContenu": {
+      "doc": "UNE leçon, entière : ce qui se lit hors connexion une fois gardé sur le téléphone.",
+      "champs": {
+        "formationId": { "type": "texte", "nul": false },
+        "id": { "type": "texte", "nul": false },
+        "titre": { "type": "texte", "nul": false },
+        "type": { "type": { "union": ["video", "text", "quiz", "resource", "mission"] }, "nul": false },
+        "moduleTitre": { "type": "texte", "nul": true },
+        "duree": { "type": "texte", "nul": true },
+        "contenu": { "type": "texte", "nul": true, "doc": "Markdown, tel que le site le rend (`markdownToHtml`). Pour un quiz ou une mission, la structure brute — l'application ne la rejoue pas, elle renvoie au site." },
+        "video": { "type": "texte", "nul": true, "doc": "⚠️ UNE ADRESSE D'INTÉGRATION (`iframe` côté site), pas un fichier : elle ne se télécharge pas. Une leçon vidéo gardée hors connexion garde son texte, pas sa vidéo — et l'écran le dit." },
+        "ressources": { "type": { "liste": { "objet": "Ressource" } }, "nul": false },
+        "faite": { "type": "booleen", "nul": false },
+        "precedente": { "type": "texte", "nul": true },
+        "suivante": { "type": "texte", "nul": true }
       }
     },
     "Club": {
@@ -553,6 +611,38 @@
       "session": "aucune",
       "source": "worker/apps/api/src/handlers/app/verifierCertificat.ts:86"
     },
+    "appApercuClub": {
+      "doc": "⛔ LA SEULE VUE DU CLUB SANS ABONNEMENT, et elle ne sert QUE des comptes agrégés : ce qu'il y a derrière chaque cadenas, pour quelqu'un qui n'est pas membre. Aucun texte, aucun nom, aucun identifiant. Dispensée nommément de `abonnementActif` par `worker-vues-natives.test.ts`, qui lui interdit de lire un champ de contenu.",
+      "forme": { "objet": "ApercuClub" },
+      "vueNulle": "jamais",
+      "entree": {},
+      "erreurs": [],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/apercuClub.ts:44"
+    },
+    "appTransaction": {
+      "doc": "Le retour de paiement dans l'application. Une transaction d'autrui ou inexistante rend `vue: null` — on ne confirme même pas qu'un identifiant existe.",
+      "forme": { "objet": "TransactionVue" },
+      "vueNulle": "sansDonnee",
+      "entree": {
+        "transactionId": { "type": "texte", "obligatoire": true, "doc": "Celui de l'URL de retour Bictorys, transmis par `rysmo://paiement?transactionId=`." }
+      },
+      "erreurs": ["invalid-argument"],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/transaction.ts:33"
+    },
+    "appLeconContenu": {
+      "doc": "Le contenu d'UNE leçon. Réservé à une inscription de la personne connectée, cherchée par l'uid du JETON : un `formationId` reçu ne sert qu'à choisir parmi SES inscriptions.",
+      "forme": { "objet": "LeconContenu" },
+      "vueNulle": "sansAcces",
+      "entree": {
+        "formationId": { "type": "texte", "obligatoire": true },
+        "leconId": { "type": "texte", "obligatoire": false, "doc": "Absent : la leçon en cours, sinon la première qui reste à faire." }
+      },
+      "erreurs": ["invalid-argument"],
+      "session": "obligatoire",
+      "source": "worker/apps/api/src/handlers/app/leconContenu.ts:40"
+    },
     "appClub": {
       "forme": { "objet": "Club" },
       "vueNulle": "sansAcces",
@@ -670,7 +760,8 @@
       "entree": {
         "texte": { "type": "texte", "obligatoire": true, "doc": "Non vide, tronqué à 4 000 caractères par le serveur." },
         "lessonId": { "type": "texte", "obligatoire": false },
-        "lessonLabel": { "type": "texte", "obligatoire": false, "doc": "Tronqué à 200 caractères en base." }
+        "lessonLabel": { "type": "texte", "obligatoire": false, "doc": "Tronqué à 200 caractères en base." },
+        "idClient": { "type": "texte", "obligatoire": false, "doc": "UUID fourni par l'application : il devient l'identifiant du document, ce qui rend l'écriture REJOUABLE par la file d'envoi hors ligne sans dupliquer. Toute autre forme est refusée (`invalid-argument`)." }
       },
       "sortie": { "objet": "NoteEnveloppe" },
       "erreurs": ["invalid-argument"],

@@ -3,6 +3,7 @@ import { HttpsError } from '@mm/shared';
 import { type CallContext, requireAuth } from '../context';
 import { abonnementActif } from './app/club';
 import { asText } from '../lib/values';
+import { CATEGORIE_EN_BASE, messageEnBase, type CategorieApp } from '../lib/club-posts';
 import type { Sortie } from '../vues/contrat';
 
 /**
@@ -34,7 +35,6 @@ import type { Sortie } from '../vues/contrat';
  */
 
 const MAX = 2_000;
-const CATEGORIES = ['Entraide', 'Outils', 'Victoires', 'Questions'];
 
 export async function posterAuClub(data: unknown, context: CallContext): Promise<Sortie<'posterAuClub'>> {
   const auth = requireAuth(context);
@@ -53,8 +53,8 @@ export async function posterAuClub(data: unknown, context: CallContext): Promise
   }
   /* La catégorie est comparée à une liste fermée : elle sert de filtre à l'écran, et une
      valeur libre créerait des catégories fantômes que personne ne peut plus sélectionner. */
-  const rubrique = typeof categorie === 'string' && CATEGORIES.includes(categorie)
-    ? categorie : 'Entraide';
+  const rubrique: CategorieApp = typeof categorie === 'string' && categorie in CATEGORIE_EN_BASE
+    ? (categorie as CategorieApp) : 'Entraide';
 
   const profil = await context.db.get(`users/${auth.uid}`);
   const nom = asText(profil?.data.displayName);
@@ -68,16 +68,11 @@ export async function posterAuClub(data: unknown, context: CallContext): Promise
   const maintenant = new Date().toISOString();
 
   await context.db.commit([
-    context.db.buildWrite(`club_posts/${id}`, {
-      userId: auth.uid,
-      userName: nom,
-      text: texte.trim(),
-      category: rubrique,
-      likes: 0,
-      reposts: 0,
-      comments: 0,
-      createdAt: maintenant,
-    }, { mask: false }),
+    /* ⛔ AU FORMAT DU SITE (`lib/club-posts.ts`). L'ancien `likes: 0` faisait tomber le fil
+       du site, qui appelle `likes.includes(uid)`. */
+    context.db.buildWrite(`club_posts/${id}`, messageEnBase({
+      uid: auth.uid, nom, texte: texte.trim(), categorie: rubrique, maintenant,
+    }), { mask: false }),
   ]);
 
   return {
