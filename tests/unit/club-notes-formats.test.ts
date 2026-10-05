@@ -4,7 +4,7 @@ import {
 } from '../../worker/apps/api/src/lib/club-posts';
 import { FORME_ID_CLIENT, noteEnBase, texteDeNote } from '../../worker/apps/api/src/lib/notes-format';
 import { normaliserPostClub } from '../../src/lib/club/posts';
-import { normaliserNote } from '../../src/lib/firestore/notes';
+import { normaliserNote } from '../../src/lib/notes/format';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════

@@ -2,6 +2,7 @@ import {
   collection, doc, getDocs, addDoc, setDoc, deleteDoc,
 } from 'firebase/firestore';
 import { db } from './helpers';
+import { normaliserNote } from '../notes/format';
 
 // ── Notes (user subcollection) ────────────────────────────────────────────────
 
@@ -27,19 +28,6 @@ export async function getUserNotes(userId: string): Promise<Note[]> {
     .sort((a, b) => (b.updatedAt || b.createdAt).localeCompare(a.updatedAt || a.createdAt));
 }
 
-/** Une note du site ou de l'application, ramenée au format du site. */
-export function normaliserNote(id: string, data: Record<string, unknown>): Note {
-  const texte = (k: string) => (typeof data[k] === 'string' ? (data[k] as string) : '');
-  const contenu = texte('content') || texte('text');
-  return {
-    ...(data as Partial<Note>),
-    id,
-    content: contenu,
-    title: texte('title') || texte('lessonLabel') || contenu.split('\n')[0].slice(0, 80),
-    createdAt: texte('createdAt'),
-    updatedAt: texte('updatedAt') || texte('createdAt'),
-  };
-}
 
 export async function saveNote(userId: string, note: Omit<Note, 'id'>, id?: string): Promise<string> {
   const now = new Date().toISOString();
