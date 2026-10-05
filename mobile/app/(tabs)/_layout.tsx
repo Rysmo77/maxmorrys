@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Icon, navBarElevation, px, translucentTabBar, useScheme, useToken, useTutorNom } from '../../ds';
+import { COURBE, Icon, navBarElevation, px, translucentTabBar, useMouvement, useScheme, useToken, useTutorNom } from '../../ds';
 
 /**
  * ── LA BARRE D'ONGLETS ────────────────────────────────────────────────────────────────
@@ -50,11 +50,17 @@ export default function TabsLayout() {
   const tuteur = useTutorNom();
   const insets = useSafeAreaInsets();
   const height = px(t('tabbarH'));
+  const { reduit } = useMouvement();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
+        /* CHANGER D'ONGLET — fondu croisé de 180 ms, AUCUNE translation (planche des
+           transitions) : « une barre d'onglets qui fait glisser latéralement crée une
+           géographie fausse ». Les onglets sont cinq entrées d'un même niveau. */
+        animation: 'fade',
+        transitionSpec: { animation: 'timing', config: { duration: reduit ? 0 : 180, easing: COURBE.standard } },
         tabBarActiveTintColor: t('ink'),
         tabBarInactiveTintColor: t('ink3'),
         tabBarStyle: {

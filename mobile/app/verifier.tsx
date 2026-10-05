@@ -65,7 +65,6 @@ export default function Verifier() {
      a déjà donné le code, le lui redemander serait un geste de trop. */
   useEffect(() => {
     if (recu) void verifier(recu);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recu]);
 
   return (

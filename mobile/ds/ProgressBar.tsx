@@ -1,4 +1,6 @@
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, View, type StyleProp, type ViewStyle } from 'react-native';
+import { COURBE, DUREE, duree, useMouvement } from './mouvement';
 import { useToken } from './theme';
 
 /**
@@ -33,13 +35,42 @@ export function ProgressBar({
     transforme: t('mmViolet'), digitalise: t('mmTeal'),
   }[territory];
 
+  /*
+   * LA BARRE REJOINT SA VALEUR — 700 ms à l'arrivée (« la page se met en place »), 380 ms
+   * quand elle change (cocher une leçon : « la barre dit ce que ça change »).
+   *
+   * ⛔ PAS SA LARGEUR : le système interdit d'animer `width`. Le remplissage a la largeur
+   * PLEINE et glisse depuis la gauche (`translateX`), sous le masque du rail — pilote natif,
+   * et le rayon des extrémités n'est pas écrasé comme il le serait par un `scaleX`.
+   */
+  const { reduit } = useMouvement();
+  const [largeur, setLargeur] = useState(0);
+  const p = useRef(new Animated.Value(reduit ? pct : 0)).current;
+  const premier = useRef(true);
+  useEffect(() => {
+    Animated.timing(p, {
+      toValue: pct,
+      duration: duree(premier.current ? DUREE.scene : DUREE.enter, reduit),
+      easing: COURBE.sortie,
+      useNativeDriver: true,
+    }).start();
+    premier.current = false;
+  }, [pct, reduit, p]);
+
   return (
     <View
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }}
+      onLayout={(e) => setLargeur(e.nativeEvent.layout.width)}
       style={[{ height, borderRadius: 5, backgroundColor: t('fill2'), overflow: 'hidden' }, style]}
     >
-      <View style={{ height: '100%', width: `${pct}%`, borderRadius: 5, backgroundColor: ink }} />
+      <Animated.View style={{
+        height: '100%', width: '100%', borderRadius: 5, backgroundColor: ink,
+        /* Invisible tant que le rail n'est pas mesuré : sans largeur, la translation vaut 0
+           et la barre paraîtrait PLEINE le temps d'une image — une progression mensongère. */
+        opacity: largeur > 0 ? 1 : 0,
+        transform: [{ translateX: p.interpolate({ inputRange: [0, 100], outputRange: [-largeur, 0] }) }],
+      }} />
     </View>
   );
 }

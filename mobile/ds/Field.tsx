@@ -1,5 +1,6 @@
-import { Text, TextInput, View, type KeyboardTypeOptions, type StyleProp, type ViewStyle } from 'react-native';
-import type { ReactNode } from 'react';
+import { Animated, Text, TextInput, View, type KeyboardTypeOptions, type StyleProp, type ViewStyle } from 'react-native';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { COURBE, DUREE, duree, useMouvement } from './mouvement';
 import { useToken, px } from './theme';
 
 /**
@@ -75,14 +76,30 @@ export function Field({
         />
         {trailing}
       </View>
-      {(error ?? hint) ? (
-        <Text style={{
-          fontFamily: 'SchibstedGrotesk', fontSize: 11.5, marginTop: 6,
-          color: bad ? t('stop') : t('textMuted'),
-        }}>
-          {error ?? hint}
+      {/* L'erreur apparaît en FONDU, 220 ms — « pas de secousse : une secousse ajoute du stress
+          à un moment déjà raté, et elle ne dit pas ce qui est faux. Le message le dit. » */}
+      {error ? (
+        <MessageDErreur texte={error} />
+      ) : hint ? (
+        <Text style={{ fontFamily: 'SchibstedGrotesk', fontSize: 11.5, marginTop: 6, color: t('textMuted') }}>
+          {hint}
         </Text>
       ) : null}
     </View>
   );
 }
+
+function MessageDErreur({ texte }: { texte: string }) {
+  const t = useToken();
+  const { reduit } = useMouvement();
+  const p = useRef(new Animated.Value(reduit ? 1 : 0)).current;
+  useEffect(() => {
+    Animated.timing(p, { toValue: 1, duration: duree(DUREE.ui, reduit), easing: COURBE.standard, useNativeDriver: true }).start();
+  }, [p, reduit]);
+  return (
+    <Animated.Text style={{ fontFamily: 'SchibstedGrotesk', fontSize: 11.5, marginTop: 6, color: t('stop'), opacity: p }}>
+      {texte}
+    </Animated.Text>
+  );
+}
+

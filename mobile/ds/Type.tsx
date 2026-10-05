@@ -1,4 +1,6 @@
-import { Text, type StyleProp, type TextStyle } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Text, View, type StyleProp, type TextStyle } from 'react-native';
+import { COURBE, DUREE, duree, useMouvement } from './mouvement';
 import type { ReactNode } from 'react';
 import { useToken, px } from './theme';
 
@@ -62,7 +64,7 @@ export function Display({ children, size = 'md', lines, style }: DisplayProps) {
     return (
       <>
         {lines.map((l, i) => (
-          <Text key={i} numberOfLines={1} style={[base, style]}>{l}</Text>
+          <LigneDeTitre key={i} i={i} base={base} style={style}>{l}</LigneDeTitre>
         ))}
       </>
     );
@@ -103,3 +105,51 @@ export function Eyebrow({ children, style }: Props) {
     </Text>
   );
 }
+
+/**
+ * ══ 700 ms — « la page se met en place » ══ — le titre MONTE SOUS UN MASQUE, ligne par
+ * ligne, à 90 ms d'écart (`.rv-l` du kit). C'est l'un des deux seuls usages de `--t-scene`.
+ *
+ * Le masque est le conteneur à débordement caché : la ligne part d'une hauteur de ligne plus
+ * bas, invisible, et monte à sa place. Transform et opacité seulement — le pilote natif.
+ *
+ * ⛔ UNE LIGNE NE SE TRONQUE PLUS. `numberOfLines={1}` seul coupait « HORS RÉSEAU AUSSI. » en
+ * « HORS RÉSEAU AUS.. » sur un écran de 1080 px (TECNO CK6, 05/10/2026). La ligne RÉTRÉCIT
+ * pour tenir (jusqu'à 65 %), et reste la chaîne décidée à l'écriture — jamais repliée.
+ */
+function LigneDeTitre({ i, base, style, children }: {
+  i: number; base: TextStyle; style?: StyleProp<TextStyle>; children: string;
+}) {
+  const { reduit } = useMouvement();
+  const p = useRef(new Animated.Value(reduit ? 1 : 0)).current;
+  const hauteur = (typeof base.lineHeight === 'number' ? base.lineHeight : 30) * 1.1;
+
+  useEffect(() => {
+    Animated.timing(p, {
+      toValue: 1,
+      duration: duree(DUREE.scene, reduit),
+      delay: reduit ? 0 : i * DUREE.decalageLigne,
+      easing: COURBE.sortie,
+      useNativeDriver: true,
+    }).start();
+    // Une seule fois, à l'arrivée de l'écran.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <View style={{ overflow: 'hidden' }}>
+      <Animated.Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.65}
+        style={[base, style, {
+          opacity: p,
+          transform: [{ translateY: p.interpolate({ inputRange: [0, 1], outputRange: [hauteur, 0] }) }],
+        }]}
+      >
+        {children}
+      </Animated.Text>
+    </View>
+  );
+}
+

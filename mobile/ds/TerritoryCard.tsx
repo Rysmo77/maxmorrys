@@ -1,4 +1,5 @@
-import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressoir } from './Pressoir';
 import type { ReactNode } from 'react';
 import { useToken, px } from './theme';
 
@@ -110,14 +111,8 @@ export function TerritoryCard({
 
   if (!onPress) return body;
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }: { pressed: boolean }) => ({
-        transform: [{ scale: pressed ? Number.parseFloat(t('pressScale')) || 0.975 : 1 }],
-      })}
-    >
+    <Pressoir accessibilityRole="button" onPress={onPress}>
       {body}
-    </Pressable>
+    </Pressoir>
   );
 }

@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Body, Button, Display, DocLine, Eyebrow, Gradient, Icon, Num, SansDonnees, Screen, Surface, useToken } from '../ds';
+import { Anneaux, Body, Button, Display, DocLine, Eyebrow, Gradient, Icon, Num, SansDonnees, Screen, Surface, useToken } from '../ds';
 import { useAcces } from '../donnees';
 import type { TransactionVue } from '../donnees/contrat.generated';
 
@@ -77,7 +77,16 @@ export default function Acces() {
   if (suivi.etape === 'attente') {
     return (
       <Screen territory="forme" center>
-        <Display size={29} lines={suivi.abandon ? ['TOUJOURS', 'EN ATTENTE.'] : ['ON VÉRIFIE', "L'ACCÈS."]} style={{ marginTop: 10 }} />
+        {/* MOMENT SCÉNARISÉ Nº1 — les deux anneaux : « la transaction est vivante ». Ils
+            s'arrêtent avec la relecture (`abandon`) : plus rien ne vit, ils mentiraient. */}
+        {suivi.abandon ? null : (
+          <Anneaux couleur={t('mmBleu')} rayon={22} style={{ width: 68, height: 68 }}>
+            <Gradient colors={[t('mmBleu'), t('mmViolet')]} radius={22} style={{ width: 68, height: 68, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="clock" size={28} color={t('paperFixed')} strokeWidth={2.2} />
+            </Gradient>
+          </Anneaux>
+        )}
+        <Display size={29} lines={suivi.abandon ? ['TOUJOURS', 'EN ATTENTE.'] : ['ON VÉRIFIE', "L'ACCÈS."]} style={{ marginTop: 24 }} />
         <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
           {suivi.abandon
             ? "La confirmation n'est pas encore arrivée. Elle peut prendre quelques minutes : ton accès s'ouvrira tout seul, et tu le retrouveras dans tes cours sans rien refaire."

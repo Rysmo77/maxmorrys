@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
+import { Pressoir } from './Pressoir';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { Gradient, useActionGradient } from './Gradient';
@@ -59,16 +60,16 @@ export function MiniPlayer({
           {position} / {duree}
         </Text>
       </View>
-      <Pressable
+      <Pressoir
+        echelle="sm"
         accessibilityRole="button"
         accessibilityLabel={enLecture ? 'Mettre en pause' : 'Reprendre la lecture'}
         onPress={onToggle}
         hitSlop={6}
-        style={({ pressed }: { pressed: boolean }) => ({
+        style={{
           width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
           backgroundColor: t('actionPrimary'),
-          transform: [{ scale: pressed ? Number.parseFloat(t('pressScaleSm')) || 0.94 : 1 }],
-        })}
+        }}
       >
         {enLecture ? (
           <View style={{ flexDirection: 'row', gap: 3 }}>
@@ -83,7 +84,7 @@ export function MiniPlayer({
             borderLeftColor: t('textOnPrimary'),
           }} />
         )}
-      </Pressable>
+      </Pressoir>
     </View>
   );
 

@@ -1,4 +1,6 @@
-import { Pressable, ScrollView, Text, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useBascule } from './mouvement';
+import { Pressoir } from './Pressoir';
 import { useToken, px } from './theme';
 
 /**
@@ -21,7 +23,6 @@ export function ChipRow({
   height?: number;
   style?: StyleProp<ViewStyle>;
 }) {
-  const t = useToken();
   return (
     <ScrollView
       horizontal
@@ -32,28 +33,46 @@ export function ChipRow({
       {options.map((o, i) => {
         const on = value === undefined ? i === 0 : value === o;
         return (
-          <Pressable
-            key={o}
-            accessibilityRole="button"
-            accessibilityState={{ selected: on }}
-            onPress={onChange ? () => onChange(o) : undefined}
-            style={{
-              height, paddingHorizontal: 16, justifyContent: 'center',
-              borderRadius: px(t('rPill')), borderWidth: 1,
-              backgroundColor: on ? t('ink') : t('ctlOffBg'),
-              borderColor: on ? t('ink') : t('ctlOffBrd'),
-            }}
-          >
-            <Text style={{
-              fontFamily: 'SchibstedGrotesk', fontSize: 13,
-              fontWeight: on ? '600' : '500',
-              color: on ? t('textOnPrimary') : t('textMuted'),
-            }}>
-              {o}
-            </Text>
-          </Pressable>
+          <Pilule key={o} libelle={o} on={on} height={height} onPress={onChange ? () => onChange(o) : undefined} />
         );
       })}
     </ScrollView>
   );
 }
+
+/**
+ * UNE PILULE — 220 ms, « l'état a changé ». Le fond actif apparaît en fondu ; le libellé
+ * bascule par DEUX couches superposées, parce qu'une couleur de texte ne s'anime pas sur le
+ * pilote natif — et qu'un changement sec laisserait, le temps du fondu, un texte blanc sur un
+ * fond encore clair. Enfoncement .94 : celui des pilules.
+ */
+function Pilule({ libelle, on, height, onPress }: { libelle: string; on: boolean; height: number; onPress?: () => void }) {
+  const t = useToken();
+  const b = useBascule(on);
+  const texte = { fontFamily: 'SchibstedGrotesk', fontSize: 13 } as const;
+  return (
+    <Pressoir
+      echelle="sm"
+      accessibilityRole="button"
+      accessibilityState={{ selected: on }}
+      onPress={onPress}
+      style={{
+        height, paddingHorizontal: 16, justifyContent: 'center', overflow: 'hidden',
+        borderRadius: px(t('rPill')), borderWidth: 1,
+        backgroundColor: t('ctlOffBg'),
+        borderColor: on ? t('ink') : t('ctlOffBrd'),
+      }}
+    >
+      <Animated.View style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: t('ink'), opacity: b }} />
+      <View>
+        <Animated.Text style={[texte, { fontWeight: '500', color: t('textMuted'), opacity: b.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }]}>
+          {libelle}
+        </Animated.Text>
+        <Animated.Text style={[texte, { position: 'absolute', left: 0, fontWeight: '600', color: t('textOnPrimary'), opacity: b }]}>
+          {libelle}
+        </Animated.Text>
+      </View>
+    </Pressoir>
+  );
+}
+

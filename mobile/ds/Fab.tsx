@@ -1,4 +1,4 @@
-import { Pressable } from 'react-native';
+import { Pressoir } from './Pressoir';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ReactNode } from 'react';
 import { isIOS, ripple } from './platform';
@@ -32,20 +32,20 @@ export function Fab({
   const bas = (tabbar ? px(t('tabbarH')) : 0) + insets.bottom + 18;
 
   return (
-    <Pressable
+    <Pressoir
+      echelle="sm"
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
       android_ripple={ripple(t('paperFixed'), true)}
-      style={({ pressed }: { pressed: boolean }) => ({
+      style={{
         position: 'absolute', right: 18, bottom: bas,
         width: 56, height: 56,
-        transform: [{ scale: pressed ? Number.parseFloat(t('pressScaleSm')) || 0.94 : 1 }],
         // L'ombre portée du kit, convertie : React Native compte le flou en rayon.
         shadowColor: t(territory === 'forme' ? 'mmBleu' : territory === 'transforme' ? 'mmViolet' : territory === 'digitalise' ? 'mmTeal' : 'mmOrange'),
         shadowOpacity: 0.38, shadowRadius: 13, shadowOffset: { width: 0, height: 10 },
         elevation: 6,
-      })}
+      }}
     >
       <Gradient
         colors={g[territory]}
@@ -54,6 +54,6 @@ export function Fab({
       >
         {children}
       </Gradient>
-    </Pressable>
+    </Pressoir>
   );
 }

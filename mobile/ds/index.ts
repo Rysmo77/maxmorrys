@@ -73,3 +73,6 @@ export { MiniPlayer } from './MiniPlayer';
 
 /* Le nom du répétiteur — un réglage, jamais une constante recopiée. */
 export { tutorNom, useTutorNom, setTutorNom, TUTOR_DEFAUT } from './tutor';
+export { APPAREIL_MODESTE, COURBE, DUREE, ENFONCEMENT, duree, mouvementReduit, useBascule, useMouvement } from './mouvement';
+export { Pressoir, Revele } from './Pressoir';
+export { Anneaux } from './Anneaux';

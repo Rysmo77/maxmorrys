@@ -61,3 +61,28 @@ describe("l'identité ne se comble pas d'une réplique", () => {
     expect(code).toMatch(/composerListe\(/);
   });
 });
+
+describe('continuer avec Google — et la règle App Store 4.8', () => {
+  const lireMobile = (f: string) => readFileSync(resolve(__dirname, '../../mobile', f), 'utf8');
+
+  it('Google n’est offert que sur Android tant que « Se connecter avec Apple » n’existe pas', () => {
+    const identite = lireMobile('donnees/identite.ts');
+    const appleExiste = /signInAsync|AppleAuthentication|OAuthProvider\(['"]apple\.com/.test(identite);
+    if (!appleExiste) {
+      expect(identite, 'Google sur iOS sans Apple fait rejeter la version').toMatch(/export const avecGoogle = Platform\.OS === 'android';/);
+    }
+    const bouton = lireMobile('ecrans/BoutonGoogle.tsx');
+    expect(bouton).toMatch(/if \(!avecGoogle\) return null;/);
+  });
+
+  it('la connexion Google aboutit au MÊME compte que le site, et crée le profil s’il manque', () => {
+    const identite = lireMobile('donnees/identite.ts');
+    expect(identite).toMatch(/signInWithCredential\(a, GoogleAuthProvider\.credential\(jeton\)\)/);
+    expect(identite).toMatch(/await ecrire\('creerMonProfil'/);
+  });
+
+  it('l’identifiant client est celui du projet `max-morrys`', () => {
+    expect(lireMobile('donnees/config.ts')).toMatch(/'1020618870179-[a-z0-9]+\.apps\.googleusercontent\.com'/);
+  });
+});
+

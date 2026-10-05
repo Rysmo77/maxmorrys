@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, Share, View } from 'react-native';
+import { Animated, Share, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import {
+  COURBE, mouvementReduit,
   Body, Button, Display, DocLine, Eyebrow, Icon, IconButton, Num, SansDonnees, Screen, Surface, Tag, Wordmark, useToken,
 } from '../ds';
 import { CERTIFICAT, RELEVE, SOURCE } from '../contenu/demo';
@@ -78,16 +79,16 @@ export default function Certificat() {
       `prefers-reduced-motion` — la traduction CSS de « n'anime pas ». Reproduire le chiffre
       ferait tourner un pilote à plein régime pour un résultat immobile.
     */
-    void AccessibilityInfo.isReduceMotionEnabled().then((reduit) => {
+    void mouvementReduit().then((reduit) => {
       if (annule || reduit) return;
       setBrille(true);
       Animated.sequence([
         Animated.delay(DEPART_MS),
-        Animated.timing(balayage, { toValue: 1, duration: PASSAGE_MS, useNativeDriver: true }),
+        Animated.timing(balayage, { toValue: 1, duration: PASSAGE_MS, easing: COURBE.sortie, useNativeDriver: true }),
         // Retour instantané hors cadre : aux deux bornes la bande est invisible, donc le saut
         // ne se voit pas — et il évite un troisième passage de retour.
         Animated.timing(balayage, { toValue: 0, duration: 0, useNativeDriver: true }),
-        Animated.timing(balayage, { toValue: 1, duration: PASSAGE_MS, useNativeDriver: true }),
+        Animated.timing(balayage, { toValue: 1, duration: PASSAGE_MS, easing: COURBE.sortie, useNativeDriver: true }),
       ]).start(() => { if (!annule) setBrille(false); });
     });
 

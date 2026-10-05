@@ -21,7 +21,7 @@ const PAS = [
   {
     eyebrow: '1 sur 3',
     titre: ['APPRENDS', 'QUAND TU PEUX.', 'HORS RÉSEAU AUSSI.'],
-    chapo: "Télécharge une leçon en Wi-Fi, regarde-la dans le taxi. Ta progression part toute seule au retour du réseau — tu n'as rien à relancer.",
+    chapo: "Garde une leçon en Wi-Fi, lis-la dans le taxi. Ta progression part toute seule au retour du réseau — tu n'as rien à relancer.",
   },
   {
     eyebrow: '2 sur 3',

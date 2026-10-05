@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import {
-  Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View,
+  Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TextInput, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
+  Pressoir,
   Body, Button, ChatBubble, Eyebrow, Gradient, Icon, IconButton, Mesh, NavBar, QuotaMeter,
   SansDonnees, Surface, isIOS, px, useActionGradient, useToken, useTutorNom,
 } from '../../ds';
@@ -207,16 +208,15 @@ export default function Repetiteur() {
               }}
             />
           </View>
-          <Pressable
+          <Pressoir
+            echelle="sm"
+            desactive={bloque || question.trim() === ''}
             accessibilityRole="button"
             accessibilityLabel="Envoyer ta question"
             accessibilityState={{ disabled: bloque || question.trim() === '' }}
             disabled={bloque || question.trim() === ''}
             onPress={() => { void envoyer(); }}
-            style={({ pressed }: { pressed: boolean }) => ({
-              opacity: bloque || question.trim() === '' ? 0.4 : 1,
-              transform: [{ scale: pressed ? 0.94 : 1 }],
-            })}
+            style={{ opacity: bloque || question.trim() === '' ? 0.4 : 1 }}
           >
             <Gradient
               colors={g.transforme}
@@ -225,7 +225,7 @@ export default function Repetiteur() {
             >
               <Icon name="send" size={18} color={t('paperFixed')} strokeWidth={2.6} />
             </Gradient>
-          </Pressable>
+          </Pressoir>
         </View>
       </KeyboardAvoidingView>
     </View>

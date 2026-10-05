@@ -5,7 +5,8 @@ import {
   Body, Button, Display, Eyebrow, Field, Icon, Screen,
   Surface, isIOS, useToken,
 } from '../ds';
-import { ErreurIdentite, creationEmail } from '../donnees/identite';
+import { ErreurIdentite, avecGoogle, creationEmail } from '../donnees/identite';
+import { BoutonGoogle } from '../ecrans/BoutonGoogle';
 
 /**
  * ══ 2 · LA CRÉATION DE COMPTE ══
@@ -139,6 +140,14 @@ export default function Creation() {
           onPress={() => { void creer(); }}
         />
       </Surface>
+
+      {/* Android seulement : sur iOS, Google attend « Se connecter avec Apple » (App Store 4.8). */}
+      {avecGoogle ? (
+        <>
+          <Body muted style={{ textAlign: 'center', marginTop: 16, fontSize: 12.5 }}>ou</Body>
+          <BoutonGoogle style={{ marginTop: 10 }} />
+        </>
+      ) : null}
 
       <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
         <Eyebrow>Cette case n'est jamais pré-cochée</Eyebrow>

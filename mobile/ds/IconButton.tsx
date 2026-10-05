@@ -1,4 +1,5 @@
-import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
+import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressoir } from './Pressoir';
 import type { ReactNode } from 'react';
 import { ripple } from './platform';
 import { useToken, px } from './theme';
@@ -42,7 +43,9 @@ export function IconButton({
   const taille = px(t('touchMin'));
 
   return (
-    <Pressable
+    <Pressoir
+      echelle="sm"
+      desactive={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: disabled === true }}
@@ -50,13 +53,12 @@ export function IconButton({
       disabled={disabled}
       hitSlop={4}
       android_ripple={ripple(t('ink3'), true)}
-      style={({ pressed }: { pressed: boolean }) => [{
+      style={[{
         width: taille, height: taille, borderRadius: taille / 2,
         alignItems: 'center', justifyContent: 'center',
         backgroundColor: t('chromeBg'),
         borderWidth: 1, borderColor: t('chromeBrd'),
         opacity: disabled ? 0.4 : 1,
-        transform: [{ scale: pressed && !disabled ? Number.parseFloat(t('pressScaleSm')) || 0.94 : 1 }],
       }, style]}
     >
       {children}
@@ -73,6 +75,6 @@ export function IconButton({
           }}
         />
       ) : null}
-    </Pressable>
+    </Pressoir>
   );
 }

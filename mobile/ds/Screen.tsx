@@ -1,7 +1,9 @@
 import { ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import type { ReactNode } from 'react';
+import { Children, isValidElement, type ReactNode } from 'react';
+import { Revele } from './Pressoir';
+import { Display } from './Type';
 import { Mesh } from './Mesh';
 import { NavBar } from './NavBar';
 import { ThemeScope, useToken, px } from './theme';
@@ -158,7 +160,7 @@ function Corps({
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
           >
-            {children}
+            {enCascade(children)}
           </ScrollView>
         ) : (
           <View style={[{ flex: 1 }, contenu, contentStyle]}>{children}</View>
@@ -169,3 +171,26 @@ function Corps({
     </View>
   );
 }
+
+/**
+ * ══ 380 ms — « ceci vient d'arriver » ══ — L'ENTRÉE EN CASCADE, POSÉE UNE FOIS ICI.
+ *
+ * Chaque bloc d'un écran défilant entre à +16 px et en opacité, 70 ms après son voisin
+ * (`.rv` du kit, `--i` = sa place). « Le décalage suffit à faire lire la liste dans l'ordre,
+ * sans jamais donner l'impression d'attendre » : au-delà du huitième, plus de décalage.
+ *
+ * Une seule fois, à l'arrivée du bloc. Un bloc qui arrive PLUS TARD — la donnée chargée qui
+ * remplace son squelette — entre à son tour : c'est exactement « ceci vient d'arriver ».
+ *
+ * Les titres d'affichage ne sont pas enveloppés : ils ont leur propre montée sous masque
+ * (`LigneDeTitre`, 700 ms). Deux mouvements sur le même titre en feraient un tic.
+ * Les écrans non défilants (`scroll={false}`) gardent leur mise en page flexible intacte.
+ */
+function enCascade(children: ReactNode): ReactNode {
+  return Children.toArray(children).map((c, i) => (
+    isValidElement(c) && c.type === Display
+      ? c
+      : <Revele key={isValidElement(c) && c.key !== null ? c.key : i} i={i}>{c}</Revele>
+  ));
+}
+

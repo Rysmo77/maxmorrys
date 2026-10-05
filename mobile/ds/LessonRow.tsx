@@ -1,6 +1,8 @@
-import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { COURBE, DUREE, duree, useMouvement } from './mouvement';
+import { Pressoir } from './Pressoir';
 import { ripple } from './platform';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { useToken, veil } from './theme';
 import { Icon } from './Icon';
 
@@ -45,6 +47,11 @@ export function LessonRow({
   style?: StyleProp<ViewStyle>;
 }) {
   const t = useToken();
+  /* « Cocher une leçon : la pastille dit "c'est enregistré" » — 220 ms, au PASSAGE à fait,
+     jamais au simple affichage d'une liste déjà cochée (la cascade s'en charge déjà). */
+  const avant = useRef(state);
+  const vientDEtreCochee = state === 'done' && avant.current !== 'done';
+  useEffect(() => { avant.current = state; }, [state]);
 
   let left: ReactNode = null;
   if (icon !== undefined) {
@@ -58,14 +65,14 @@ export function LessonRow({
     );
   } else if (state === 'done') {
     left = (
-      <View style={{
+      <PastilleFaite anime={vientDEtreCochee} style={{
         width: 25, height: 25, borderRadius: 999, alignItems: 'center', justifyContent: 'center',
         // Un VOILE de l'encre verte, pas l'encre pleine : un disque vert saturé sous une
         // coche verte ne se lit pas. Le voile suit son encre quand le mode bascule.
         backgroundColor: veil(t('ok'), 0.16),
       }}>
         <Icon name="check" size={13} color={t('ok')} strokeWidth={3.4} />
-      </View>
+      </PastilleFaite>
     );
   } else if (state === 'todo') {
     left = <View style={{ width: 26, height: 26, borderRadius: 999, borderWidth: 2.5, borderColor: t('fill3') }} />;
@@ -114,18 +121,30 @@ export function LessonRow({
   if (!onPress) return body;
 
   return (
-    <Pressable
+    <Pressoir
       accessibilityRole="button"
       onPress={onPress}
       /* L'onde reste DANS la ligne (`borderless: false`) : débordante, dans une liste
          dense, elle donne l'impression d'avoir touché la ligne voisine. */
       android_ripple={ripple(t('ink3'))}
-      // `scale(.975)` — la valeur du système. Ni rebond, ni couleur : le geste est arrivé.
-      style={({ pressed }: { pressed: boolean }) => ({
-        transform: [{ scale: pressed ? Number.parseFloat(t('pressScale')) || 0.975 : 1 }],
-      })}
+      // `scale(.975)` en 120 ms (`Pressoir`). Ni rebond, ni couleur : le geste est arrivé.
     >
       {body}
-    </Pressable>
+    </Pressoir>
   );
 }
+
+function PastilleFaite({ anime, style, children }: { anime: boolean; style: ViewStyle; children: ReactNode }) {
+  const { reduit } = useMouvement();
+  const p = useRef(new Animated.Value(anime && !reduit ? 0 : 1)).current;
+  useEffect(() => {
+    if (!anime) return;
+    Animated.timing(p, { toValue: 1, duration: duree(DUREE.ui, reduit), easing: COURBE.sortie, useNativeDriver: true }).start();
+  }, [anime, p, reduit]);
+  return (
+    <Animated.View style={[style, { opacity: p, transform: [{ scale: p.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }]}>
+      {children}
+    </Animated.View>
+  );
+}
+

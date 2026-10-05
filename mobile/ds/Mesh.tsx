@@ -1,4 +1,6 @@
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useMouvement } from './mouvement';
 import Svg, { Defs, RadialGradient, Rect, Stop, LinearGradient } from 'react-native-svg';
 import { useToken } from './theme';
 import type { TokenName } from './tokens.generated';
@@ -52,21 +54,74 @@ const LOBES: Record<Territory, Array<{ hue: TokenName; cx: number; cy: number; r
   ],
 };
 
-export function Mesh({ territory = 'forme', style }: { territory?: Territory; style?: StyleProp<ViewStyle> }) {
-  const t = useToken();
-  const night = territory === 'nuit';
-  const veil = night ? t('night') : t('surfacePage');
+/**
+ * LA DÉRIVE — « Trois lobes en dérive désynchronisée sur 25 à 38 secondes, animés en transform
+ * uniquement. C'est la seule animation en boucle du produit, et elle ne demande jamais
+ * l'attention. » (planche du mouvement)
+ *
+ * Chaque lobe est une COUCHE à part, rastérisée une fois ; seul son `transform` bouge, sur le
+ * pilote natif. Figée quand la personne réduit les animations, et sur un appareil modeste
+ * (`APPAREIL_MODESTE`) — le profil du marché visé, où le maillage reste mais ne dérive pas.
+ */
+const DERIVE = [
+  { periode: 26_000, dx: 22, dy: 14 },
+  { periode: 33_000, dx: -18, dy: 20 },
+  { periode: 38_000, dx: 16, dy: -16 },
+] as const;
 
+function Lobe({ l, i, fige }: { l: (typeof LOBES)[Territory][number]; i: number; fige: boolean }) {
+  const t = useToken();
+  const p = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (fige) { p.setValue(0); return; }
+    const d = DERIVE[i % DERIVE.length];
+    const boucle = Animated.loop(Animated.sequence([
+      Animated.timing(p, { toValue: 1, duration: d.periode / 2, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(p, { toValue: 0, duration: d.periode / 2, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+    ]));
+    boucle.start();
+    return () => boucle.stop();
+  }, [fige, i, p]);
+  const d = DERIVE[i % DERIVE.length];
   return (
-    <View pointerEvents="none" style={[{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }, style]}>
+    <Animated.View
+      style={{
+        position: 'absolute',
+        left: `${(l.cx - l.r) * 100}%`,
+        top: `${(l.cy - l.r) * 100}%`,
+        width: `${l.r * 200}%`,
+        height: `${l.r * 200}%`,
+        transform: [
+          { translateX: p.interpolate({ inputRange: [0, 1], outputRange: [0, d.dx] }) },
+          { translateY: p.interpolate({ inputRange: [0, 1], outputRange: [0, d.dy] }) },
+        ],
+      }}
+    >
       <Svg width="100%" height="100%" preserveAspectRatio="none">
         <Defs>
-          {LOBES[territory].map((l, i) => (
-            <RadialGradient key={`g${i}`} id={`lobe${i}`} cx="50%" cy="50%" r="50%">
-              <Stop offset="0%" stopColor={t(l.hue)} stopOpacity={l.opacity} />
-              <Stop offset="100%" stopColor={t(l.hue)} stopOpacity={0} />
-            </RadialGradient>
-          ))}
+          <RadialGradient id={`lobe${i}`} cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor={t(l.hue)} stopOpacity={l.opacity} />
+            <Stop offset="100%" stopColor={t(l.hue)} stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill={`url(#lobe${i})`} />
+      </Svg>
+    </Animated.View>
+  );
+}
+
+export function Mesh({ territory = 'forme', style }: { territory?: Territory; style?: StyleProp<ViewStyle> }) {
+  const t = useToken();
+  const { reduit, modeste } = useMouvement();
+  const night = territory === 'nuit';
+  const veil = night ? t('night') : t('surfacePage');
+  const fond = night ? t('night') : t('paper');
+
+  return (
+    <View pointerEvents="none" style={[{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: fond }, style]}>
+      {LOBES[territory].map((l, i) => <Lobe key={i} l={l} i={i} fige={reduit || modeste} />)}
+      <Svg width="100%" height="100%" preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0 }}>
+        <Defs>
           {/*
             Le voile de lisibilité. Sans lui, le maillage remonte sous le texte.
             Valeurs d'AD-18 : 60 % en haut, 78 % à mi-hauteur, 90 % en bas — remontées après
@@ -78,18 +133,6 @@ export function Mesh({ territory = 'forme', style }: { territory?: Territory; st
             <Stop offset="100%" stopColor={veil} stopOpacity={night ? 0.94 : 0.9} />
           </LinearGradient>
         </Defs>
-
-        <Rect x="0" y="0" width="100%" height="100%" fill={night ? t('night') : t('paper')} />
-        {LOBES[territory].map((l, i) => (
-          <Rect
-            key={`r${i}`}
-            x={`${(l.cx - l.r) * 100}%`}
-            y={`${(l.cy - l.r) * 100}%`}
-            width={`${l.r * 200}%`}
-            height={`${l.r * 200}%`}
-            fill={`url(#lobe${i})`}
-          />
-        ))}
         <Rect x="0" y="0" width="100%" height="100%" fill="url(#veil)" />
       </Svg>
     </View>

@@ -74,7 +74,7 @@ const ANNONCE = /\b(accessibilityLabel|label)=/;
 /** Une action, sous n'importe quelle forme. */
 const AGIT = /\b(onPress|onChange|onChangeText|onValueChange|href|onLongPress)=/;
 
-const CONTROLES = ['Button', 'IconButton', 'LessonRow', 'Pressable', 'Fab', 'PayOption'];
+const CONTROLES = ['Button', 'IconButton', 'LessonRow', 'Pressable', 'Pressoir', 'Fab', 'PayOption'];
 
 describe('aucun contrôle natif ne fait semblant', () => {
   it('tout contrôle qui annonce une action en porte une', () => {

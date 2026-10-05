@@ -1,6 +1,7 @@
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import {
+  Pressoir,
   Avatar, Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num,
   ProgressBar, QuotaMeter, SansDonnees, Screen, Surface, TerritoryCard, useActionGradient,
   useToken, useTutorNom,
@@ -214,11 +215,11 @@ export default function Espace() {
             <Body style={{ fontWeight: '700' }}>Demande à ton {tuteur.toLowerCase()}</Body>
             <Body muted style={{ fontSize: 12.5, marginTop: 2 }}>Il sait où tu t'es arrêtée.</Body>
           </View>
-          <Pressable
+          <Pressoir
+            echelle="sm"
             accessibilityRole="button"
             accessibilityLabel={`Ouvrir ${tuteur}`}
             onPress={() => router.push('/(tabs)/repetiteur')}
-            style={({ pressed }: { pressed: boolean }) => ({ transform: [{ scale: pressed ? 0.94 : 1 }] })}
           >
             <Gradient
               colors={g.transforme}
@@ -227,7 +228,7 @@ export default function Espace() {
             >
               <Icon name="chat" size={19} color={t('paperFixed')} strokeWidth={2.2} />
             </Gradient>
-          </Pressable>
+          </Pressoir>
         </View>
         {/* Le quota est ANNONCÉ avant d'être atteint : un refus au plafond est vécu comme une
             panne s'il n'a pas été dit. */}

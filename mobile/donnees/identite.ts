@@ -1,7 +1,11 @@
 import {
-  createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword,
-  signOut, updateProfile,
+  GoogleAuthProvider, createUserWithEmailAndPassword, sendPasswordResetEmail,
+  signInWithCredential, signInWithEmailAndPassword, signOut, updateProfile,
 } from 'firebase/auth';
+import { Platform } from 'react-native';
+import { GoogleSignin, isErrorWithCode, statusCodes } from '@react-native-google-signin/google-signin';
+
+import { GOOGLE_WEB_CLIENT_ID } from './config';
 
 import { ecrire } from './cache';
 import { getAuthNatif } from './firebase';
@@ -103,6 +107,62 @@ export async function creationEmail(
 }
 
 /**
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * CONTINUER AVEC GOOGLE — ANDROID SEULEMENT, POUR L'INSTANT, ET C'EST UNE RÈGLE DE MAGASIN.
+ *
+ * Le site propose Google depuis toujours ; quelqu'un qui s'y est inscrit ainsi n'a jamais choisi
+ * de mot de passe, et ne pouvait PAS entrer dans l'application. C'est la dette que ceci solde.
+ *
+ * ⛔ PAS SUR iOS. App Store 4.8 : dès qu'une application propose une connexion tierce, « Se
+ * connecter avec Apple » devient OBLIGATOIRE — livrer Google seul sur iOS fait rejeter. Et
+ * l'application iOS ne peut pas encore être construite (aucune adhésion Apple Developer). Les
+ * deux partiront ensemble ; `avecGoogle` est le seul interrupteur.
+ *
+ * La séquence : le compte Google du téléphone → un jeton d'identité émis pour le client web du
+ * projet → `signInWithCredential`, le MÊME compte Firebase que sur le site (même uid, mêmes
+ * cours). Puis `creerMonProfil`, rejouable : il ne recrée pas un profil qui existe.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ */
+export const avecGoogle = Platform.OS === 'android';
+
+let googleConfigure = false;
+
+/** Rend `false` si la personne a fermé la fenêtre de Google : ce n'est pas une erreur. */
+export async function connexionGoogle(): Promise<boolean> {
+  const a = auth();
+  if (!googleConfigure) {
+    GoogleSignin.configure({ webClientId: GOOGLE_WEB_CLIENT_ID });
+    googleConfigure = true;
+  }
+  try {
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    const reponse = await GoogleSignin.signIn();
+    if (reponse.type !== 'success') return false;
+    const jeton = reponse.data.idToken;
+    if (!jeton) throw new ErreurIdentite("Google n'a pas transmis d'identité. Réessaie.", 'google-sans-jeton');
+
+    const identifiants = await signInWithCredential(a, GoogleAuthProvider.credential(jeton));
+    const nom = identifiants.user.displayName ?? reponse.data.user.name ?? identifiants.user.email?.split('@')[0] ?? 'Membre';
+    await ecrire('creerMonProfil', { displayName: nom.slice(0, 120) });
+    return true;
+  } catch (erreur: unknown) {
+    if (erreur instanceof ErreurIdentite) throw erreur;
+    if (isErrorWithCode(erreur)) {
+      if (erreur.code === statusCodes.IN_PROGRESS) return false;
+      if (erreur.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        throw new ErreurIdentite('Les services Google de ce téléphone sont absents ou trop anciens. Utilise ton e-mail.', 'google-play-services');
+      }
+      /* `DEVELOPER_ERROR` (10) : le paquet ou l'empreinte de signature ne sont pas déclarés
+         dans le projet. Ce n'est pas la faute de la personne — on le dit sans jargon. */
+      if (String(erreur.code) === '10' || erreur.code === 'DEVELOPER_ERROR') {
+        throw new ErreurIdentite("La connexion Google n'est pas encore ouverte pour cette version de l'application. Utilise ton e-mail.", 'google-configuration');
+      }
+    }
+    traduire(erreur);
+  }
+}
+
+/**
  * Envoie le lien de réinitialisation.
  *
  * ⚠️ NE JAMAIS DISTINGUER un e-mail inconnu d'un e-mail connu. Firebase ne lève pas d'erreur
@@ -125,6 +185,9 @@ export async function reinitialiser(email: string): Promise<void> {
 export async function deconnexion(): Promise<void> {
   const a = getAuthNatif();
   if (a !== null) await signOut(a);
+  /* Le compte Google du téléphone reste choisi tant qu'on ne le relâche pas : sans ceci, la
+     connexion suivante reprendrait le même compte sans proposer d'en choisir un autre. */
+  if (avecGoogle && googleConfigure) await GoogleSignin.signOut().catch(() => {});
 
   /*
     LE CACHE DES VUES SE PURGE ICI, ET NULLE PART AILLEURS.

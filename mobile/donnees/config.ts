@@ -44,6 +44,18 @@ const BRUT = {
 /** L'origine des callables. Le Worker sert le protocole `onCall` sur son domaine propre. */
 export const API_BASE = process.env.EXPO_PUBLIC_API_BASE ?? 'https://api.maxmorrys.me';
 
+/**
+ * L'identifiant client OAuth « web » du projet `max-morrys` — celui que Google met dans
+ * l'adresse de connexion du site, donc PUBLIC. La connexion Google native le demande pour
+ * émettre un jeton d'identité que Firebase accepte (`GoogleAuthProvider.credential`).
+ *
+ * ⚠️ Sur Android, Google vérifie AUSSI le paquet et l'empreinte SHA-1 de la clé de signature :
+ * l'empreinte EAS (`47:4E:5E:80:…:A4:29`) doit être déclarée sur l'application Android
+ * `me.maxmorrys.rysmo` dans Firebase. Sans elle, la connexion échoue en `DEVELOPER_ERROR`.
+ */
+export const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+  ?? '1020618870179-t57liq3vjo8kcvjkcjph6m9oluumtfdv.apps.googleusercontent.com';
+
 const MANQUANTES = (Object.keys(BRUT) as (keyof typeof BRUT)[]).filter((k) => !BRUT[k]);
 
 /** `null` quand la construction est incomplète — et le dire vaut mieux que le taire. */

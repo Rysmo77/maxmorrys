@@ -1,4 +1,5 @@
-import { Pressable, Text, type StyleProp, type ViewStyle } from 'react-native';
+import { Text, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressoir } from './Pressoir';
 import { ripple } from './platform';
 import type { ReactNode } from 'react';
 import { useToken, px } from './theme';
@@ -100,7 +101,8 @@ export function Button({
   );
 
   return (
-    <Pressable
+    <Pressoir
+      desactive={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled }}
@@ -112,14 +114,13 @@ export function Button({
         une salissure.
       */
       android_ripple={disabled ? undefined : ripple(c.fg)}
-      style={({ pressed }: { pressed: boolean }) => [
+      style={[
         arrets ? { alignSelf: forme.alignSelf } : forme,
         arrets ? null : {
           backgroundColor: c.bg,
           borderWidth: c.brd ? (tone === 'ghost' ? 1.5 : 1) : 0,
           borderColor: c.brd,
         },
-        { transform: [{ scale: pressed && !disabled ? Number.parseFloat(t('pressScale')) || 0.975 : 1 }] },
         style,
       ]}
     >
@@ -138,6 +139,6 @@ export function Button({
           {trailing ? <Icon name={trailing} size={sm ? 15 : 16} color={c.fg} strokeWidth={2.6} /> : null}
         </>
       )}
-    </Pressable>
+    </Pressoir>
   );
 }

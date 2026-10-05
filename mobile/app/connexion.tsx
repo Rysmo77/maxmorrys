@@ -4,7 +4,8 @@ import {
   Body, Button, Display, Eyebrow, Field, Icon, IconButton, Screen,
   Surface, Wordmark, useToken,
 } from '../ds';
-import { ErreurIdentite, connexionEmail } from '../donnees/identite';
+import { ErreurIdentite, avecGoogle, connexionEmail } from '../donnees/identite';
+import { BoutonGoogle } from '../ecrans/BoutonGoogle';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -115,12 +116,21 @@ export default function Connexion() {
         />
       </Surface>
 
+      {/* Android seulement : sur iOS, Google attend « Se connecter avec Apple » (App Store 4.8). */}
+      {avecGoogle ? (
+        <>
+          <Body muted style={{ textAlign: 'center', marginTop: 16, fontSize: 12.5 }}>ou</Body>
+          <BoutonGoogle style={{ marginTop: 10 }} />
+        </>
+      ) : null}
+
       <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
         <Eyebrow>Un seul compte, ici et sur le site</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
           C'est le même compte que sur maxmorrys.me : les mêmes cours, la même progression,
-          les mêmes certificats. Si tu t'es inscrit par Google sur le site, tu n'as pas encore
-          de mot de passe — passe par « mot de passe oublié » pour t'en donner un.
+          les mêmes certificats.{avecGoogle
+            ? ' Si tu t’es inscrit par Google sur le site, continue avec Google : c’est le même compte.'
+            : ' Si tu t’es inscrit par Google sur le site, tu n’as pas encore de mot de passe — passe par « mot de passe oublié » pour t’en donner un.'}
         </Body>
       </Surface>
 

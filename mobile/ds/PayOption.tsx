@@ -1,4 +1,5 @@
-import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressoir } from './Pressoir';
 import type { ReactNode } from 'react';
 import { useToken, px } from './theme';
 
@@ -27,19 +28,18 @@ export function PayOption({
   const t = useToken();
 
   return (
-    <Pressable
+    <Pressoir
       accessibilityRole="radio"
       accessibilityState={{ selected: !!on }}
       accessibilityLabel={note ? `${title} — ${note}` : title}
       onPress={onPress}
-      style={({ pressed }: { pressed: boolean }) => [{
+      style={[{
         flexDirection: 'row', alignItems: 'center', gap: 13,
         padding: 15, minHeight: 68,
         borderRadius: px(t('rM')),
         backgroundColor: t('ctlOffBg'),
         borderWidth: 1.5,
         borderColor: on ? t('ctlSelBrd') : t('ctlOffBrd'),
-        transform: [{ scale: pressed ? Number.parseFloat(t('pressScale')) || 0.975 : 1 }],
       }, style]}
     >
       {logo !== undefined && (
@@ -63,6 +63,6 @@ export function PayOption({
         borderWidth: on ? 7 : 2,
         borderColor: on ? t('ink') : t('ctlRadioBrd'),
       }} />
-    </Pressable>
+    </Pressoir>
   );
 }
