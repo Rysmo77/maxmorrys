@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import {
-  Body, CheckLine, Display, Eyebrow, Icon, LessonRow, Screen,
+  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, SansDonnees, Screen, Skeleton,
   Surface, type IconName, isIOS, useToken,
 } from '../../ds';
 import { QUOTA } from '../../contenu/demo';
 import { ONGLETS_CLUB } from '../../contenu/club';
 import { CLUB_OUVERT_EN } from '../../contenu/termes';
-import { useClub } from '../../donnees';
+import { useClub, useRafraichir } from '../../donnees';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -45,9 +45,21 @@ const ENTREES: ReadonlyArray<{ href: string; icon: IconName; titre: string; lign
 export default function Club() {
   const t = useToken();
   const club = useClub();
+  const { enRafraichissement, rafraichir } = useRafraichir();
+  /* ⚠️ L'ÉTAT D'ADHÉSION SE DÉCIDE SUR LA PHASE, PAS SUR L'ABSENCE DE VALEUR. `club.valeur
+     === null` valait aussi pendant le chargement et en panne : un membre lisait « réservé aux
+     membres » à chaque ouverture, le temps que la réponse arrive. */
+  const enLecture = club.phase === 'charge' || club.phase === 'restauration';
+  const ferme = club.phase === 'vide' && club.ferme === true;
 
   return (
-    <Screen territory="transforme" tabbar titre={isIOS ? undefined : 'Le Club'}>
+    <Screen
+      territory="transforme"
+      tabbar
+      titre={isIOS ? undefined : 'Le Club'}
+      onRefresh={rafraichir}
+      enRafraichissement={enRafraichissement}
+    >
       <Eyebrow style={{ marginTop: 6 }}>Je te transforme · réservé aux membres</Eyebrow>
       <Display size={29} lines={['LE CLUB DES', 'DIGITOS.']} style={{ marginTop: 8 }} />
       <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
@@ -65,14 +77,39 @@ export default function Club() {
           Ce qui le remplace ne dit ni combien ni où : l'application OUVRE ce qui est déjà
           acquis. Membre, les huit onglets vivent ; non-membre, ils restent visibles et
           cadenassés — voir ce à quoi on n'a pas accès n'est pas une vente, c'est une carte. */}
-      <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
-        <Display size={19}>{club.valeur === null ? 'Le Club est réservé aux membres.' : 'Tu es membre.'}</Display>
-        <Body muted style={{ marginTop: 9, fontSize: 13.5, lineHeight: 21 }}>
-          {club.valeur === null
-            ? "Ton accès s'ouvre ici dès qu'il est actif — les sessions, le fil, les opportunités, tout arrive dans cette application, sans rien à faire de plus."
-            : 'Tout ce qui suit est ouvert. Les sessions en direct, le fil, les opportunités et le classement se rejoignent depuis les onglets ci-dessous.'}
-        </Body>
-      </Surface>
+      {enLecture ? (
+        <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
+          <Skeleton width="58%" height={20} label="Lecture de ton adhésion" />
+          <Skeleton width="92%" height={13} style={{ marginTop: 12 }} />
+          <Skeleton width="70%" height={13} style={{ marginTop: 8 }} />
+        </Surface>
+      ) : club.phase === 'servie' || club.phase === 'replique' ? (
+        <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
+          <Display size={19}>Tu es membre.</Display>
+          <Body muted style={{ marginTop: 9, fontSize: 13.5, lineHeight: 21 }}>
+            Tout ce qui suit est ouvert. Les sessions en direct, le fil, les opportunités et le
+            classement se rejoignent depuis les onglets ci-dessous.
+          </Body>
+        </Surface>
+      ) : ferme ? (
+        <Surface level="hero" style={{ marginTop: 18, padding: 20 }}>
+          <Display size={19}>Le Club est réservé aux membres.</Display>
+          <Body muted style={{ marginTop: 9, fontSize: 13.5, lineHeight: 21 }}>
+            Ton accès s'ouvre ici dès qu'il est actif — les sessions, le fil, les opportunités,
+            tout arrive dans cette application, sans rien à faire de plus.
+          </Body>
+        </Surface>
+      ) : (
+        <SansDonnees
+          quoi="ton adhésion"
+          etat={club}
+          hauteur={2}
+          style={{ marginTop: 18 }}
+          action={club.phase === 'anonyme'
+            ? <Button tone="transforme" label="Me connecter" onPress={() => router.push('/connexion')} />
+            : undefined}
+        />
+      )}
 
       {/* ── CE QUE LE CLUB DONNE ───────────────────────────────────────────────────────
           Le titre disait « Ce que tu paies, précisément ». Le verbe « payer » n'a plus sa
@@ -114,7 +151,7 @@ export default function Club() {
         <Eyebrow>Ce que je ne te promets pas</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
           Le Club a ouvert en {CLUB_OUVERT_EN}. Je ne t'annonce pas un nombre de membres, parce qu'il
-          serait faux — et parce que tu le vérifierais au premier écran après avoir payé. Ni des
+          serait faux — et parce que tu le vérifierais dès le premier écran. Ni des
           clients, ni un revenu : l'abonnement donne l'accès, le reste dépend de ce que tu y mets.
         </Body>
       </Surface>

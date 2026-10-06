@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useIsFocused } from 'expo-router';
 import { useMouvement } from './mouvement';
 import Svg, { Defs, RadialGradient, Rect, Stop, LinearGradient } from 'react-native-svg';
 import { useToken } from './theme';
@@ -110,16 +111,34 @@ function Lobe({ l, i, fige }: { l: (typeof LOBES)[Territory][number]; i: number;
   );
 }
 
+/**
+ * L'ÉCRAN EST-IL AU PREMIER PLAN ? La pile native garde les écrans précédents MONTÉS : leurs
+ * maillages continuaient de dériver sous l'écran visible — trois, quatre boucles payées pour
+ * rien sur un appareil à 2 Go. Hors d'un navigateur (l'écran verrouillé, posé avant la pile),
+ * il n'y a pas de pile : on est au premier plan.
+ *
+ * L'appel est TOUJOURS fait, au même rang : s'il lève, il lève à chaque rendu de la même
+ * instance, et l'ordre des hooks ne change pas.
+ */
+function useAuPremierPlan(): boolean {
+  try {
+    return useIsFocused();
+  } catch {
+    return true;
+  }
+}
+
 export function Mesh({ territory = 'forme', style }: { territory?: Territory; style?: StyleProp<ViewStyle> }) {
   const t = useToken();
   const { reduit, modeste } = useMouvement();
+  const visible = useAuPremierPlan();
   const night = territory === 'nuit';
   const veil = night ? t('night') : t('surfacePage');
   const fond = night ? t('night') : t('paper');
 
   return (
     <View pointerEvents="none" style={[{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', backgroundColor: fond }, style]}>
-      {LOBES[territory].map((l, i) => <Lobe key={i} l={l} i={i} fige={reduit || modeste} />)}
+      {LOBES[territory].map((l, i) => <Lobe key={i} l={l} i={i} fige={reduit || modeste || !visible} />)}
       <Svg width="100%" height="100%" preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0 }}>
         <Defs>
           {/*

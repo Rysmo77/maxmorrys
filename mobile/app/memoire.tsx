@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 import {
-  Body, Button, Display, Eyebrow, Field, Icon, IconButton, LessonRow, Screen, Surface,
-  TUTOR_DEFAUT, isIOS, setTutorNom, useToken, useTutorNom, veil,
+  Body, Button, ChipRow, Display, Eyebrow, Field, Icon, IconButton, LessonRow, SansDonnees, Screen, Surface, Switch,
+  TUTOR_DEFAUT, haptique, isIOS, useBandeau, useConfirmation, useToken, useTutorNom, veil,
 } from '../ds';
-import { ErreurAppel, effacerLaMemoire, useRepetiteur } from '../donnees';
+import { ErreurAppel, effacerLaMemoire, reglerLeRepetiteur, useRepetiteur } from '../donnees';
+import { useSession } from '../donnees/session';
 import { router } from 'expo-router';
 
 /**
@@ -31,24 +32,62 @@ const PROPOSITIONS = ['Répétiteur', 'Prof', 'Coach', 'Tonton'] as const;
 
 export default function Memoire() {
   const rep = useRepetiteur();
+  const session = useSession();
   const [efface, setEfface] = useState(false);
   const [enCours, setEnCours] = useState(false);
   const memoire = efface ? [] : rep.valeur?.memoire ?? [];
   const t = useToken();
   const tuteur = useTutorNom();
-  const [brouillon, setBrouillon] = useState(tuteur);
+  const { bandeau, montrer } = useBandeau();
+  const enregistre = useConfirmation();
 
-  function renommer(nom: string) {
+  /*
+   * LE NOM SE TAPE LIBREMENT ET S'ENREGISTRE DANS LE PROFIL. Il était recalculé à chaque
+   * frappe — un espace disparaissait aussitôt — et oublié au redémarrage.
+   */
+  const [brouillon, setBrouillon] = useState(tuteur);
+  useEffect(() => { setBrouillon(tuteur); }, [tuteur]);
+  const aEnregistrer = brouillon.trim() !== tuteur && !(brouillon.trim() === '' && tuteur === TUTOR_DEFAUT);
+
+  async function enregistrer(nom: string) {
     setBrouillon(nom);
-    setTutorNom(nom);
+    if (session.phase !== 'connectee') {
+      montrer('info', 'Connecte-toi pour le renommer', "Le nom vit dans ton profil, pour te suivre d'un appareil à l'autre.");
+      return;
+    }
+    try {
+      await reglerLeRepetiteur({ nom: nom.trim() });
+      enregistre.confirmer(`${nom.trim() || TUTOR_DEFAUT} enregistré`);
+    } catch (erreur: unknown) {
+      setBrouillon(tuteur);
+      montrer('stop', "Le nom n'a pas été enregistré", erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.');
+    }
+  }
+
+  /*
+   * ── LA MÉMOIRE SE COUPE ICI ──────────────────────────────────────────────────────────
+   * Elle était ACTIVE PAR DÉFAUT côté serveur, et rien dans l'application ne permettait de
+   * l'arrêter : on pouvait l'effacer, pas l'empêcher de recommencer. L'interrupteur dit
+   * l'état réel, et il l'écrit dans le profil.
+   */
+  const [memoireActive, setMemoireActive] = useState<boolean | null>(null);
+  useEffect(() => { if (rep.valeur) setMemoireActive(rep.valeur.memoireActive); }, [rep.valeur]);
+  async function basculerMemoire() {
+    if (memoireActive === null) return;
+    const suivante = !memoireActive;
+    setMemoireActive(suivante);
+    try {
+      await reglerLeRepetiteur({ memoire: suivante });
+    } catch (erreur: unknown) {
+      setMemoireActive(!suivante);
+      montrer('stop', "Le réglage n'a pas changé", erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.');
+    }
   }
 
   /*
    * ⚠️ CE BOUTON N'AVAIT AUCUN GESTIONNAIRE. L'alerte s'ouvrait, on touchait « Tout
    * effacer », et elle se fermait sans rien effacer. Sur une action DESTRUCTIVE, c'est la
-   * pire forme de contrôle mort : celui qui la touche croit avoir effacé, et repart en
-   * pensant que le produit ne sait plus rien de lui. La callable `clearRysmoMemory`
-   * existait pourtant déjà côté serveur.
+   * pire forme de contrôle mort. La callable `clearRysmoMemory` existait pourtant déjà.
    */
   async function effacerVraiment() {
     setEnCours(true);
@@ -57,8 +96,11 @@ export default function Memoire() {
       /* On vide l'affichage tout de suite : relire pour constater un vide qu'on vient de
          provoquer ferait clignoter la liste, et coûterait un aller-retour pour rien. */
       setEfface(true);
+      haptique.succes();
+      montrer('ok', 'Mémoire effacée', 'Il ne sait plus rien de toi. Il réapprendra seulement si sa mémoire reste active.');
     } catch (erreur: unknown) {
-      Alert.alert(
+      montrer(
+        'stop',
         "La mémoire n'a pas été effacée",
         erreur instanceof ErreurAppel
           ? `${erreur.motif} Rien n'a été supprimé à moitié.`
@@ -70,9 +112,10 @@ export default function Memoire() {
   }
 
   function toutEffacer() {
+    haptique.attention();
     Alert.alert(
       'Effacer toute la mémoire ?',
-      "Immédiat, et sans passer par le support. Elle se reconstitue à partir des seuls échanges suivants. Le nom que tu lui as donné ne s'efface pas avec.",
+      "Immédiat, et sans passer par le support. Le nom que tu lui as donné ne s'efface pas avec.",
       [
         { text: 'Annuler', style: 'cancel' },
         { text: 'Tout effacer', style: 'destructive', onPress: () => { void effacerVraiment(); } },
@@ -91,6 +134,7 @@ export default function Memoire() {
         </IconButton>
       }
     >
+      {bandeau}
       <Eyebrow style={{ marginTop: 6 }}>Ton répétiteur</Eyebrow>
       <Display size={29} lines={['DONNE-LUI', 'UN NOM.']} style={{ marginTop: 8 }} />
 
@@ -98,89 +142,81 @@ export default function Memoire() {
         <Field
           label="Comment tu l'appelles"
           value={brouillon}
-          onChangeText={renommer}
+          onChangeText={setBrouillon}
           autoCapitalize="words"
-          hint={`Par défaut, il s'appelle ${TUTOR_DEFAUT}.`}
+          autoCorrect={false}
+          maxLength={40}
+          returnKeyType="done"
+          onSubmitEditing={() => { if (aEnregistrer) void enregistrer(brouillon); }}
+          hint={enregistre.confirme ? 'Enregistré dans ton profil.' : `Par défaut, il s'appelle ${TUTOR_DEFAUT}.`}
           style={{ marginTop: 0 }}
         />
-        <View style={{ flexDirection: 'row', gap: 7, marginTop: 13, flexWrap: 'wrap' }}>
-          {PROPOSITIONS.map((p) => {
-            const on = p === brouillon;
-            return (
-              <Pressable
-                key={p}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}
-                onPress={() => renommer(p)}
-                style={{
-                  height: 40, paddingHorizontal: 15, justifyContent: 'center',
-                  borderRadius: 999, borderWidth: 1,
-                  backgroundColor: on ? t('ink') : t('ctlOffBg'),
-                  borderColor: on ? t('ink') : t('ctlOffBrd'),
-                }}
-              >
-                <Body style={{
-                  fontSize: 13, fontWeight: on ? '600' : '500',
-                  color: on ? t('textOnPrimary') : t('textMuted'),
-                }}>
-                  {p}
-                </Body>
-              </Pressable>
-            );
-          })}
-        </View>
-        <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
-          Le nom ne change que pour toi. <Body style={{ fontWeight: '700', fontSize: 11.5 }}>Rysmo</Body> reste
+        <ChipRow
+          options={PROPOSITIONS}
+          value={PROPOSITIONS.find((p) => p === brouillon) ?? ''}
+          onChange={(p) => { void enregistrer(p); }}
+          style={{ marginTop: 13 }}
+        />
+        {aEnregistrer ? (
+          <Button tone="transforme" size="sm" label="Enregistrer le nom" style={{ marginTop: 12 }} onPress={() => { void enregistrer(brouillon); }} />
+        ) : null}
+        <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 12 }}>
+          Le nom ne change que pour toi. <Body style={{ fontWeight: '700', fontSize: 12 }}>Rysmo</Body> reste
           le nom de l'application.
         </Body>
       </Surface>
 
-      <Eyebrow style={{ marginTop: 24 }}>Ce qu'il a retenu</Eyebrow>
+      <Eyebrow style={{ marginTop: 24 }}>Sa mémoire</Eyebrow>
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
-        {memoire.map((m, i) => (
-          <LessonRow
-            key={m.fait}
-            icon={<Icon name="chat" size={14} color={t('mmVioletT')} />}
-            iconBackground={veil(t('mmViolet'), 0.12)}
-            title={m.fait}
-            meta={m.depuis}
-            last={i === memoire.length - 1}
-            trailing={
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Oublier : ${m.fait}`}
-                disabled
-                hitSlop={4}
-                style={{
-                  width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: veil(t('stop'), 0.1),
-                }}
-              >
-                <Icon name="trash" size={14} color={t('stop')} strokeWidth={2.2} />
-              </Pressable>
-            }
-          />
-        ))}
+        <LessonRow
+          icon={<Icon name="brain" size={14} color={t('mmVioletT')} />}
+          iconBackground={veil(t('mmViolet'), 0.12)}
+          title="Retenir ce que je lui dis"
+          meta={memoireActive === false
+            ? "il ne retient rien de nouveau"
+            : 'tes objectifs, ton activité, tes difficultés'}
+          trailing={memoireActive === null
+            ? <Switch disabled label="Retenir ce que je lui dis — en lecture" />
+            : <Switch on={memoireActive} label="Retenir ce que je lui dis" onPress={() => { void basculerMemoire(); }} />}
+          last
+        />
       </Surface>
 
+      <Eyebrow style={{ marginTop: 24 }}>Ce qu'il a retenu</Eyebrow>
+      {memoire.length === 0 ? (
+        /* Pendant la lecture, « rien de gardé » clignotait avant la liste : l'état décide. */
+        <SansDonnees
+          quoi="ce qu'il a retenu"
+          etat={efface ? { phase: 'vide', valeur: null, source: 'server', asOf: new Date() } : rep}
+          hauteur={3}
+          degat="Un souvenir inventé ferait croire qu'il sait de toi une chose que tu ne lui as jamais dite."
+          style={{ marginTop: 10 }}
+        />
+      ) : (
+        <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
+          {/* Les poubelles par ligne sont parties : elles étaient rouges, désactivées, et ne
+              faisaient rien — l'oubli ligne par ligne n'existe pas côté serveur. */}
+          {memoire.map((m, i) => (
+            <LessonRow
+              key={m.id}
+              icon={<Icon name="chat" size={14} color={t('mmVioletT')} />}
+              iconBackground={veil(t('mmViolet'), 0.12)}
+              title={m.fait}
+              meta={m.depuis ?? undefined}
+              last={i === memoire.length - 1}
+            />
+          ))}
+        </Surface>
+      )}
+
       <Button
-        tone="quiet"
+        tone="danger"
         label={enCours ? 'Effacement…' : 'Tout effacer'}
+        icon="trash"
         disabled={enCours || memoire.length === 0}
         style={{ marginTop: 14 }}
         onPress={toutEffacer}
       />
-
-      <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
-        <Eyebrow>Ce que l'effacement fait</Eyebrow>
-        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Immédiat, et il ne passe pas par le support. La mémoire se reconstitue à partir des
-          seuls échanges suivants.{' '}
-          <Body style={{ fontWeight: '700', fontSize: 12.5 }}>
-            Le nom que tu lui as donné ne s'efface pas avec.
-          </Body>
-        </Body>
-      </Surface>
     </Screen>
   );
 }

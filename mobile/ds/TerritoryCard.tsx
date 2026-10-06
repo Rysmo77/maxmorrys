@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import { Pressoir } from './Pressoir';
 import type { ReactNode } from 'react';
 import { useToken, px } from './theme';
@@ -78,7 +79,7 @@ export function TerritoryCard({
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <View style={{ flex: 1 }}>
           {meta ? (
-            <Text style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('textMuted') }}>{meta}</Text>
+            <Text style={{ fontFamily: POLICE.mono, fontSize: 11.5, color: t('textMuted') }}>{meta}</Text>
           ) : null}
           {title !== undefined && (
             typeof title === 'string' ? (
@@ -96,7 +97,7 @@ export function TerritoryCard({
             {big}
             {bigLabel ? (
               <Text style={{
-                fontFamily: 'SchibstedGrotesk', fontSize: 10, fontWeight: '600',
+                fontFamily: POLICE.corps, fontSize: 11.5, fontWeight: '600',
                 letterSpacing: 1, textTransform: 'uppercase', color: t('textMuted'), marginTop: 3,
               }}>
                 {bigLabel}

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import {
-  Body, Button, EmptyState, Icon, LessonRow, Num, Screen, Surface, isIOS, useToken, veil,
+  Body, Button, EmptyState, Icon, LessonRow, Num, Screen, Surface, isIOS, useToken, veil, SansDonnees,
 } from '../ds';
 import { provenance, useCertificats } from '../donnees';
 
@@ -38,7 +38,6 @@ export default function Certificats() {
   return (
     <Screen
       territory="transforme"
-      tabbar
       retour="Espace"
       titre={isIOS ? undefined : 'Mes certificats'}
       center
@@ -52,7 +51,11 @@ export default function Certificats() {
           C'est aussi ce qui rendait `/certificat` INATTEIGNABLE en production : la seule
           autre porte est la planche d'atelier, coupée du paquet. Quelqu'un pouvait obtenir
           un certificat sans jamais pouvoir l'ouvrir. */}
-      {liste.length === 0 ? (
+      {/* Le vide ne se dit qu'APRÈS lecture : il s'affichait pendant le chargement et en
+          panne, sous un « Aucun certificat » que personne n'avait compté. */}
+      {liste.length === 0 && certificats.phase !== 'vide' && certificats.phase !== 'servie' ? (
+        <SansDonnees quoi="tes certificats" etat={certificats} hauteur={2} />
+      ) : liste.length === 0 ? (
         <Surface level="flat" style={{ padding: 6 }}>
           <EmptyState
             glyph={<Icon name="doc" size={26} color={t('mmVioletT')} />}
@@ -65,8 +68,8 @@ export default function Certificats() {
             action={
               <Button
                 tone="transforme"
-                label="Reprendre une leçon"
-                onPress={() => router.push('/lecon')}
+                label="Voir mes cours"
+                onPress={() => router.push('/cours')}
               />
             }
           />
@@ -102,17 +105,18 @@ export default function Certificats() {
       {/* LE ZÉRO EST COMPTÉ, plus écrit. Il valait `0` en dur — juste au-dessus d'une phrase
           expliquant qu'un zéro daté est une information. Un zéro qu'on n'a pas compté n'en
           est pas une, et c'était précisément le cas. */}
-      <Body muted style={{ fontSize: 11.5, textAlign: 'center', lineHeight: 18, marginTop: 16, color: t('textFaint') }}>
-        <Num
-          value={certificats.valeur ? certificats.valeur.certificats.length : null}
-          {...provenance(certificats)}
-          fallback="—"
-          style={{ fontSize: 11.5, color: t('textMuted') }}
-        />
-        {' '}émis{ouverture ? ` depuis l'ouverture de ton compte, le ${ouverture}` : ''}. Un
-        zéro daté est une information ; un tiret n'en est pas une — et sans date d'ouverture,
-        ce zéro en dit déjà moins.
-      </Body>
+      {/* La phrase sur « un zéro daté » est partie : c'était la règle de conception, écrite
+          pour la personne qui regarde. Le compte reste, avec sa date. */}
+      {certificats.valeur ? (
+        <Body muted style={{ fontSize: 12, textAlign: 'center', lineHeight: 18, marginTop: 16 }}>
+          <Num
+            value={certificats.valeur.certificats.length}
+            {...provenance(certificats)}
+            style={{ fontSize: 12, color: t('textMuted') }}
+          />
+          {' '}émis{ouverture ? ` depuis l'ouverture de ton compte, le ${ouverture}` : ''}.
+        </Body>
+      ) : null}
 
       {/* Le chemin inverse : vérifier le certificat de QUELQU'UN D'AUTRE. C'est aussi la
           destination du lien profond `/verifier`, que n'importe qui peut ouvrir sans compte. */}

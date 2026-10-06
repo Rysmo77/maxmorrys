@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import { useToken, px } from './theme';
 import { Num, type NumSource } from './Num';
 
@@ -29,7 +30,7 @@ export function StatTile({
       backgroundColor: t('surfaceCardFlat'),
       borderWidth: 1, borderColor: t('borderGlass'),
     }, style]}>
-      <Text style={{ fontFamily: 'SchibstedGrotesk', fontSize: 11, color: t('textMuted') }}>{label}</Text>
+      <Text style={{ fontFamily: POLICE.corps, fontSize: 12, color: t('textMuted') }}>{label}</Text>
       {/*
         PAS DE DATE, PAS DE NOMBRE. `asOf` est nulle tant qu'aucune lecture n'a abouti : la
         case affiche alors « non relevé », jamais une estimation ni un zéro qu'on prendrait
@@ -40,7 +41,7 @@ export function StatTile({
         ? <Num value={null} source={source} asOf={new Date(0)} style={{ fontSize: 27, marginTop: 3 }} />
         : <Num value={value} source={source} asOf={asOf} style={{ fontSize: 27, marginTop: 3 }} />}
       {foot ? (
-        <Text style={{ fontFamily: 'SchibstedGrotesk', fontSize: 11, color: t('textMuted') }}>{foot}</Text>
+        <Text style={{ fontFamily: POLICE.corps, fontSize: 12, color: t('textMuted') }}>{foot}</Text>
       ) : null}
     </View>
   );

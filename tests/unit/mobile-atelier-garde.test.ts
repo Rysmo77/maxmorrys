@@ -31,10 +31,10 @@ const APP = join(RACINE, 'mobile/app');
 const lire = (p: string) => readFileSync(join(APP, p), 'utf8');
 
 /** Les trois modules qui portent le drapeau : les deux gardés, et leur point d'entrée. */
-const PORTEURS = ['apercu.tsx', 'console/_layout.tsx', '(tabs)/profil.tsx'];
+const PORTEURS = ['apercu.tsx', 'console/_layout.tsx', 'widget.tsx', 'verrouille.tsx', 'permissions.tsx', '(tabs)/profil.tsx'];
 
 describe("l'atelier reste hors de la production", () => {
-  it('les trois modules déclarent le drapeau, littéralement', () => {
+  it('les modules gardés déclarent le drapeau, littéralement', () => {
     for (const module of PORTEURS) {
       const code = lire(module);
       expect(code, `${module} ne déclare pas ATELIER`).toMatch(/const ATELIER = /);
@@ -50,7 +50,9 @@ describe("l'atelier reste hors de la production", () => {
   });
 
   it('les deux surfaces gardées redirigent quand le drapeau est fermé', () => {
-    for (const module of ['apercu.tsx', 'console/_layout.tsx']) {
+    /* Le widget et l'écran verrouillé ont rejoint l'atelier le 06/10/2026 : ce sont des
+       maquettes de surfaces natives que le binaire ne contient pas encore. */
+    for (const module of ['apercu.tsx', 'console/_layout.tsx', 'widget.tsx', 'verrouille.tsx', 'permissions.tsx']) {
       const code = lire(module);
       expect(code, `${module} ne redirige pas`).toMatch(/if \(!ATELIER\) return <Redirect/);
     }
@@ -69,7 +71,7 @@ describe("l'atelier reste hors de la production", () => {
     const debut = profil.search(garde);
     const fin = profil.indexOf('] : []', debut);
     const bloc = profil.slice(debut, fin);
-    for (const route of ['/console', '/apercu']) {
+    for (const route of ['/console', '/apercu', '/widget', '/verrouille', '/permissions']) {
       expect(bloc, `${route} est cité hors de la garde`).toContain(route);
     }
   });

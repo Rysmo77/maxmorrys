@@ -29,6 +29,7 @@ import { backfillLigne } from './handlers/backfillLigne';
 import { backfillSlugEn } from './handlers/backfillSlugEn';
 import { clearRysmoMemory } from './handlers/clearRysmoMemory';
 import { creerMonProfil } from './handlers/creerMonProfil';
+import { reglerLeRepetiteur } from './handlers/reglerLeRepetiteur';
 import { ecrireUneNote } from './handlers/ecrireUneNote';
 import { deleteUserAccount, exportUserData } from './handlers/gdpr';
 import { getRysmoQuota } from './handlers/getRysmoQuota';
@@ -86,6 +87,7 @@ export const HANDLERS: Record<string, CallHandler> = {
   resendTransactionMail,
   clearRysmoMemory,
   creerMonProfil,
+  reglerLeRepetiteur,
   importSpotifyEpisodesManual,
   issueCertificate,
   translateContent,

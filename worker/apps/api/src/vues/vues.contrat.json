@@ -105,11 +105,13 @@
       "champs": {
         "titre": { "type": "texte", "nul": false },
         "meta": { "type": "texte", "nul": false, "doc": "« module 2 · 5 leçons · 54 min ». Le temps MANQUE quand une seule durée du module ne se laisse pas lire — un total amputé se lirait comme une mesure." },
-        "ouvert": { "type": "booleen", "nul": false, "doc": "Vrai si le module contient au moins une leçon `isFree`. On ne suppose PAS que c'est le premier : c'est l'administration qui décide." }
+        "ouvert": { "type": "booleen", "nul": false, "doc": "Vrai si le module contient au moins une leçon `isFree`. On ne suppose PAS que c'est le premier : c'est l'administration qui décide." },
+        "leconOuverte": { "type": "texte", "nul": true, "doc": "L'identifiant de la première leçon `isFree` du module — celle que la ligne ouvre. Nul quand le module est fermé." }
       }
     },
     "Formation": {
       "champs": {
+        "id": { "type": "texte", "nul": false, "doc": "L'identifiant du document — ce que `appLeconContenu` attend comme `formationId`. Le slug ne suffit pas." },
         "titre": { "type": "texte", "nul": false },
         "titreCourt": { "type": "texte", "nul": false },
         "meta": { "type": "texte", "nul": false },
@@ -243,6 +245,7 @@
       "doc": "UNE leçon, entière : ce qui se lit hors connexion une fois gardé sur le téléphone.",
       "champs": {
         "formationId": { "type": "texte", "nul": false },
+        "slug": { "type": "texte", "nul": true, "doc": "Le slug de la formation — l'adresse du lecteur du site (`/cours/:slug`), où se font les quiz et les missions." },
         "id": { "type": "texte", "nul": false },
         "titre": { "type": "texte", "nul": false },
         "type": { "type": { "union": ["video", "text", "quiz", "resource", "mission"] }, "nul": false },
@@ -480,6 +483,7 @@
     },
     "Repetiteur": {
       "champs": {
+        "memoireActive": { "type": "booleen", "nul": false, "doc": "`preferences.aiMemoryConsent !== false` — le défaut du site, rendu visible pour être réglable." },
         "quota": { "type": { "objet": "RepetiteurQuota" }, "nul": false },
         "memoire": { "type": { "liste": { "objet": "RepetiteurFait" } }, "nul": false },
         "echange": { "type": { "liste": { "objet": "RepetiteurEchange" } }, "nul": false }
@@ -532,6 +536,12 @@
     },
     "Succes": {
       "champs": { "success": { "type": "booleen", "nul": false } }
+    },
+    "ReglagesRepetiteur": {
+      "champs": {
+        "nom": { "type": "texte", "nul": true },
+        "memoire": { "type": "booleen", "nul": false }
+      }
     }
   },
 
@@ -713,7 +723,9 @@
       "entree": {
         "onglet": { "type": { "union": ["discussions", "opportunites", "membre"] }, "obligatoire": true, "constante": "membre" },
         "id": { "type": "texte", "obligatoire": false, "doc": "L'uid du membre. L'un des deux — `id` ou `message` — est nécessaire, sinon `invalid-argument`." },
-        "message": { "type": "texte", "obligatoire": false, "doc": "Désigne un CONTENU ; le serveur en résout l'auteur. L'uid ne circule pas dans ce sens." }
+        "message": { "type": "texte", "obligatoire": false, "doc": "Désigne un CONTENU ; le serveur en résout l'auteur. L'uid ne circule pas dans ce sens." },
+        "discussion": { "type": "texte", "obligatoire": false, "doc": "Une discussion (`club_discussions`) : le serveur en résout l'auteur, comme pour `message`." },
+        "opportunite": { "type": "texte", "obligatoire": false, "doc": "Une offre (`club_opportunities`) : le serveur en résout l'auteur." }
       },
       "erreurs": ["invalid-argument"],
       "session": "obligatoire+club",
@@ -784,7 +796,8 @@
     "posterAuClub": {
       "entree": {
         "texte": { "type": "texte", "obligatoire": true, "doc": "Non vide, 2 000 caractères au plus — au-delà le serveur REFUSE, il ne tronque pas." },
-        "categorie": { "type": { "union": ["Entraide", "Outils", "Victoires", "Questions"] }, "obligatoire": false, "doc": "⚠️ C'EST LA SEULE MOITIÉ FERMÉE DE `ClubMessage.categorie`. Une valeur hors liste n'est pas refusée : elle retombe sur « Entraide » (`posterAuClub.ts:55`)." }
+        "categorie": { "type": { "union": ["Entraide", "Outils", "Victoires", "Questions"] }, "obligatoire": false, "doc": "⚠️ C'EST LA SEULE MOITIÉ FERMÉE DE `ClubMessage.categorie`. Une valeur hors liste n'est pas refusée : elle retombe sur « Entraide » (`posterAuClub.ts:55`)." },
+        "idClient": { "type": "texte", "obligatoire": false, "doc": "UUID fourni par l'application : il devient l'identifiant du message, ce qui rend la publication REJOUABLE par la file hors ligne. Un message déjà présent est rendu tel quel, jamais réécrit — il porte les cœurs des autres." }
       },
       "sortie": { "objet": "MessageEnveloppe" },
       "erreurs": ["invalid-argument", "permission-denied", "failed-precondition"],
@@ -844,6 +857,18 @@
       "session": "obligatoire",
       "perime": ["appRepetiteur"],
       "source": "worker/apps/api/src/handlers/clearRysmoMemory.ts:24"
+    },
+    "reglerLeRepetiteur": {
+      "entree": {
+        "nom": { "type": "texte", "obligatoire": false, "doc": "Le nom du tuteur. Vide : retour au défaut. Tronqué à 40 caractères." },
+        "memoire": { "type": "booleen", "obligatoire": false, "doc": "`preferences.aiMemoryConsent`. Faux : le répétiteur ne retient plus rien et n'injecte plus rien." }
+      },
+      "sortie": { "objet": "ReglagesRepetiteur" },
+      "erreurs": ["invalid-argument", "not-found"],
+      "session": "obligatoire",
+      "perime": ["appMoi", "appRepetiteur"],
+      "doc": "⚠️ LA MÉMOIRE ÉTAIT ACTIVE PAR DÉFAUT et l'application n'offrait aucun moyen de la couper. Le nom, lui, ne survivait pas à un redémarrage.",
+      "source": "worker/apps/api/src/handlers/reglerLeRepetiteur.ts:28"
     }
   },
 

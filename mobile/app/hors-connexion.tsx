@@ -1,4 +1,3 @@
-import { View } from 'react-native';
 import { router } from 'expo-router';
 import { Body, Button, Display, Eyebrow, Icon, LessonRow, Screen, Surface, Tag, useToken, veil } from '../ds';
 import { envoyerLaFile, oublierEcartees, useHorsLigne } from '../donnees/hors-ligne';
@@ -42,15 +41,16 @@ export default function HorsConnexion() {
   const reseau = useReseau();
   const { gardees, file, ecartees, envoi } = useHorsLigne();
   const coupe = reseau === 'absent';
+  /* Tant que le système n'a pas répondu, on ne dit ni « pas de réseau » ni « il est là ». */
+  const inconnu = reseau === 'indetermine';
 
   return (
     <Screen
       territory="informe"
-      tabbar
       retour="Retour"
-      droite={coupe ? <Tag tone="stop">Hors connexion</Tag> : <Tag tone="ok">Réseau revenu</Tag>}
+      droite={inconnu ? <Tag>Vérification…</Tag> : coupe ? <Tag tone="stop">Hors connexion</Tag> : <Tag tone="ok">Réseau revenu</Tag>}
     >
-      <Display size={29} lines={[coupe ? 'Pas de réseau.' : 'Le réseau est là.']} style={{ marginTop: 6 }} />
+      <Display size={29} lines={[inconnu ? 'Vérification du réseau…' : coupe ? 'Pas de réseau.' : 'Le réseau est là.']} style={{ marginTop: 6 }} />
       <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
         {gardees.length === 0
           ? "Aucune leçon n'est gardée sur ce téléphone. Dans une leçon, la flèche en haut à droite la garde : son texte se lit ensuite sans réseau."
@@ -84,11 +84,11 @@ export default function HorsConnexion() {
           {file.map((f, i) => (
             <LessonRow
               key={f.id}
-              icon={<Icon name={f.operation.type === 'ecrireUneNote' ? 'pencil' : 'check'} size={13} color={t('mmOrangeT')} strokeWidth={2.2} />}
+              icon={<Icon name={f.operation.type === 'ecrireUneNote' ? 'pencil' : f.operation.type === 'posterAuClub' ? 'comment' : 'check'} size={13} color={t('mmOrangeT')} strokeWidth={2.2} />}
               iconBackground={veil(t('mmOrange'), 0.18)}
               title={f.titre}
               meta={`fait le ${heure(f.faitLe)}`}
-              trailing={<Tag tone="warn">en file</Tag>}
+              trailing={<Icon name="clock" size={16} color={t('mmOrangeT')} strokeWidth={2.2} />}
               last={i === file.length - 1}
             />
           ))}
@@ -122,22 +122,12 @@ export default function HorsConnexion() {
         </>
       ) : null}
 
-      <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
-        La file part au retour du réseau, sans rien te demander — et au retour dans
-        l'application. Cocher puis décocher la même leçon n'envoie que le dernier état.
+      {/* L'encart « ce que l'app sait, et que le site ignorait » est parti : il expliquait la
+          conception à la personne qui n'a pas de réseau. */}
+      <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 12 }}>
+        La file part au retour du réseau, sans rien te demander. Cocher puis décocher la même
+        leçon n'envoie que le dernier état.
       </Body>
-
-      <View style={{ marginTop: 14 }}>
-        <Surface level="truth" style={{ padding: 15 }}>
-          <Eyebrow>Ce que l'app sait, et que le site ignorait</Eyebrow>
-          <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-            Le système annonce la perte de réseau{' '}
-            <Body style={{ fontWeight: '700', fontSize: 12.5 }}>avant</Body> qu'une requête
-            échoue. Cet écran est donc juste dès la première image, au lieu d'apparaître après
-            trente secondes d'attente.
-          </Body>
-        </Surface>
-      </View>
     </Screen>
   );
 }

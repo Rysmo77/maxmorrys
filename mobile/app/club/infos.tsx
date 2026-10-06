@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import {
-  Body, Button, CheckLine, Display, Eyebrow, LessonRow, Num, Surface, useToken,
+  Body, CheckLine, Display, Eyebrow, LessonRow, Num, Surface,
 } from '../../ds';
 import { ClubScreen } from './_layout';
 import { CLUB_GARANTI, CLUB_PAS_GARANTI } from '../../contenu/engagement';
@@ -26,7 +26,6 @@ import { provenance, useClub } from '../../donnees';
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function ClubInfos() {
-  const t = useToken();
   const club = useClub();
   const echeance = club.valeur?.echeance ?? null;
 
@@ -51,7 +50,7 @@ export default function ClubInfos() {
         {CLUB_PAS_GARANTI.map((g, i) => (
           <CheckLine key={g} tone="neutre" dash style={i === 0 ? { marginTop: 0 } : undefined}>{g}</CheckLine>
         ))}
-        <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 14, color: t('textFaint') }}>
+        <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 14 }}>
           Cette seconde liste est la raison d'être de cette page. Une page d'informations qui
           n'énumère que des promesses vend une deuxième fois quelqu'un qui a déjà payé.
         </Body>
@@ -88,16 +87,12 @@ export default function ClubInfos() {
         <Eyebrow>Et pas de nombre de membres</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
           Le Club a ouvert en {CLUB_OUVERT_EN}. Je ne t'annonce pas un nombre de membres, parce qu'il
-          serait faux — et parce que tu le vérifierais au premier écran après avoir payé.
+          serait faux — et parce que tu le vérifierais dès le premier écran.
         </Body>
       </Surface>
 
-      <Button
-        tone="quiet"
-        label="Voir ce que le Club coûte"
-        style={{ marginTop: 16 }}
-        onPress={() => router.push('/(tabs)/club')}
-      />
+      {/* « Voir ce que le Club coûte » est parti : un bouton qui parle de prix, dans une
+          application qui ne vend rien, se lit en revue comme une porte vers l'achat. */}
     </ClubScreen>
   );
 }

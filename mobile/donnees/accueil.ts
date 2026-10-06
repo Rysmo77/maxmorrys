@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { capaciteDuVerrou, chargerDrapeau } from './verrou';
 
 /**
  * « L'ACCUEIL A ÉTÉ VU » — le seul drapeau qui décide de la première ouverture.
@@ -29,5 +30,27 @@ export async function marquerAccueilVu(): Promise<void> {
     await AsyncStorage.setItem(CLE, '1');
   } catch {
     /* Au pire, l'accueil se reverra au prochain démarrage. */
+  }
+}
+
+/* ── Après la première connexion ─────────────────────────────────────────────────────── */
+
+const CLE_BIOMETRIE = 'rysmo.biometrie.proposee';
+
+/**
+ * OÙ ALLER APRÈS UNE CONNEXION. La proposition d'entrer sans mot de passe arrive ICI, une
+ * seule fois — pas à la première ouverture, où elle demandait une empreinte à quelqu'un qui
+ * n'avait encore aucun compte à protéger. Elle ne revient pas si l'appareil ne peut pas, si
+ * le verrou est déjà posé, ou si elle a déjà été faite.
+ */
+export async function apresConnexion(): Promise<'/biometrie' | '/espace'> {
+  try {
+    if ((await AsyncStorage.getItem(CLE_BIOMETRIE)) === '1') return '/espace';
+    const [capacite, actif] = await Promise.all([capaciteDuVerrou(), chargerDrapeau()]);
+    if (capacite.etat !== 'pret' || actif) return '/espace';
+    await AsyncStorage.setItem(CLE_BIOMETRIE, '1');
+    return '/biometrie';
+  } catch {
+    return '/espace';
   }
 }

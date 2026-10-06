@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
-import { router } from 'expo-router';
+import { View } from 'react-native';
 import {
-  Body, Button, ChipRow, Display, Eyebrow, Fab, Field, Icon, IconButton, LessonRow, Num, SansDonnees, Screen, Surface, Tag, isIOS, useToken,
+  Body, Button, Display, Eyebrow, Fab, Feuille, Field, Icon, LessonRow, Num, Revele, SansDonnees, Screen, Surface, Tag,
+  haptique, isIOS, useBandeau, useToken,
 } from '../ds';
 import { ErreurAppel, ecrireUneNote, provenance, useEspace, useNotes } from '../donnees';
 import { BandeauHorsLigne } from '../ecrans/BandeauHorsLigne';
@@ -26,8 +26,9 @@ export default function Notes() {
   const t = useToken();
   const notes = useNotes();
   const espace = useEspace();
-  const [ajoutees, setAjoutees] = useState<Array<{ id: string; texte: string; date: string | null }>>([]);
+  const [ajoutees, setAjoutees] = useState<Array<{ id: string; texte: string; date: string | null; enFile?: true }>>([]);
   const [redaction, setRedaction] = useState<string | null>(null);
+  const { bandeau, montrer } = useBandeau();
   const [enCours, setEnCours] = useState(false);
   const liste = [...ajoutees, ...(notes.valeur?.notes ?? [])];
 
@@ -70,12 +71,12 @@ export default function Notes() {
          afficher ce qu'on connaît déjà. */
       setAjoutees((a: typeof ajoutees) => [note, ...a]);
       setRedaction(null);
+      haptique.succes();
     } catch (erreur: unknown) {
-      Alert.alert(
+      montrer(
+        'stop',
         "Ta note n'est pas enregistrée",
-        erreur instanceof ErreurAppel
-          ? `${erreur.motif} Recopie-la avant de quitter l'écran.`
-          : "Recopie-la avant de quitter l'écran, elle n'est nulle part.",
+        erreur instanceof ErreurAppel ? `${erreur.motif} Elle est encore dans le champ.` : 'Elle est encore dans le champ.',
       );
     } finally {
       setEnCours(false);
@@ -85,14 +86,8 @@ export default function Notes() {
   return (
     <Screen
       territory="forme"
-      tabbar
-      retour="Leçon"
+      retour="Retour"
       titre={isIOS ? undefined : 'Mes notes'}
-      droite={
-        <IconButton disabled label="Chercher dans mes notes">
-          <Icon name="search" size={17} color={t('textBody')} strokeWidth={2.4} />
-        </IconButton>
-      }
       /*
         LE BOUTON FLOTTANT PASSE PAR `overlay`, PAS PAR LE CORPS. Dans le corps, il vivrait
         dans le conteneur défilant : il s'en irait vers le haut au premier glissement, sur
@@ -119,53 +114,13 @@ export default function Notes() {
           fallback="compte non relevé"
           style={{ fontSize: 12, color: t('textMuted') }}
         />
-        <Tag>Toi seule les lis</Tag>
+        <Tag>Visibles par toi uniquement</Tag>
       </View>
 
-      <ChipRow
-        options={['Vidéo', 'Transcription', 'Mes notes', 'Ressources']}
-        value="Mes notes"
-        onChange={(v) => { if (v !== 'Mes notes') router.back(); }}
-        height={36}
-        style={{ marginTop: 16 }}
-      />
-
-      {/* ── LA SAISIE, DANS L'ÉCRAN ────────────────────────────────────────────────────
-          Elle s'ouvre au-dessus de la liste plutôt que sur un écran à part : une note se
-          prend au milieu d'autre chose, et changer d'écran fait perdre le fil de ce qu'on
-          voulait noter. C'est aussi la seule forme qui marche sur les DEUX plateformes —
-          `Alert.prompt` est iOS uniquement. */}
-      {redaction === null ? null : (
-        <Surface level="flat" style={{ marginTop: 14, padding: 16 }}>
-          <Field
-            label="Ta note"
-            value={redaction}
-            onChangeText={setRedaction}
-            placeholder="Ce que tu veux retenir de cette leçon."
-            multiline
-            autoCapitalize="sentences"
-            style={{ marginTop: 0 }}
-          />
-          <View style={{ flexDirection: 'row', gap: 9, marginTop: 12 }}>
-            <Button
-              tone="quiet"
-              size="sm"
-              label="Annuler"
-              disabled={enCours}
-              style={{ flex: 1 }}
-              onPress={() => setRedaction(null)}
-            />
-            <Button
-              tone="forme"
-              size="sm"
-              label={enCours ? 'Enregistrement…' : 'Enregistrer'}
-              disabled={enCours || redaction.trim() === ''}
-              style={{ flex: 1 }}
-              onPress={() => { void enregistrer(redaction); }}
-            />
-          </View>
-        </Surface>
-      )}
+      {/* La rangée « Vidéo · Transcription · Mes notes · Ressources » est partie : trois
+          onglets sur quatre faisaient « retour », et ils ne correspondaient pas à ceux de la
+          leçon. La saisie, elle, s'ouvre dans une FEUILLE — la liste reste derrière. */}
+      {bandeau}
 
       {/* La liste ne se distingue plus d'un vide par sa longueur mais par sa PHASE : une
           liste jamais lue et une liste vraiment vide n'ont pas la même chose à dire. */}
@@ -179,15 +134,17 @@ export default function Notes() {
         />
       ) : (
         <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
+          {/* Pas de chevron : une note ne s'ouvre pas sur un autre écran, et un chevron
+              promettait une navigation qui n'existait pas. Une note EN FILE porte l'horloge. */}
           {liste.map((n, i) => (
-            <LessonRow
-              key={n.id}
-              icon={<Icon name="comment" size={14} color={t('ink2')} />}
-              title={n.texte}
-              meta={n.date ?? undefined}
-              trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
-              last={i === liste.length - 1}
-            />
+            <Revele key={n.id} i={i < 6 ? i : 0}>
+              <LessonRow
+                icon={<Icon name={'enFile' in n && n.enFile ? 'clock' : 'comment'} size={14} color={'enFile' in n && n.enFile ? t('mmOrangeT') : t('ink2')} />}
+                title={n.texte}
+                meta={n.date ?? undefined}
+                last={i === liste.length - 1}
+              />
+            </Revele>
           ))}
         </Surface>
       )}
@@ -195,10 +152,31 @@ export default function Notes() {
       <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
         <Eyebrow>Ce qu'elles deviennent</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Elles survivent à la fin du cours et te suivent d'un appareil à l'autre. Écrire une
-          note rapporte de l'expérience ; la rééditer n'en rapporte pas.
+          Elles survivent à la fin du cours et te suivent d'un appareil à l'autre. Écrite hors
+          réseau, une note part au retour.
         </Body>
       </Surface>
+
+      <Feuille visible={redaction !== null} onFermer={() => setRedaction(null)} titre="Écrire une note">
+        <Field
+          label="Ta note"
+          value={redaction ?? ''}
+          onChangeText={setRedaction}
+          placeholder="Ce que tu veux retenir de cette leçon."
+          multiline
+          autoFocus
+          maxLength={4000}
+          autoCapitalize="sentences"
+          style={{ marginTop: 0 }}
+        />
+        <Button
+          tone="forme"
+          label={enCours ? 'Enregistrement…' : 'Enregistrer'}
+          disabled={enCours || (redaction ?? '').trim() === ''}
+          style={{ marginTop: 16, marginBottom: 8 }}
+          onPress={() => { void enregistrer(redaction ?? ''); }}
+        />
+      </Feuille>
 
     </Screen>
   );

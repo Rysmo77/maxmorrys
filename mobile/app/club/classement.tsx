@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import {
-  Avatar, Body, Display, Eyebrow, Num, ProgressBar, SansDonnees, Surface, Tag, useToken, veil,
+  Avatar, Body, Display, Eyebrow, Num, ProgressBar, SansDonnees, Surface, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
 import { provenance, useClassement } from '../../donnees';
@@ -29,14 +29,18 @@ export default function ClubClassement() {
 
   const vue = useClassement();
   if (vue.valeur === null) {
+    /* Pendant la lecture, ni titre qui affirme « pas calculé », ni texte « pas encore
+       branché » : le squelette, et c'est tout. */
+    const enLecture = vue.phase === 'charge' || vue.phase === 'restauration';
     return (
       <ClubScreen titre="Classement">
-        <Display size={24} lines={['Ton rang', "n'est pas calculé."]} />
+        {enLecture ? null : <Display size={24} lines={['Ton rang', "n'est pas calculé."]} />}
         <SansDonnees
           quoi="ton classement"
           origine="du serveur, qui compte les contributions"
           degat="Un rang inventé classe des gens les uns par rapport aux autres. Il n'y a pas de version approximative d'une position."
-          style={{ marginTop: 20 }}
+          etat={vue}
+          style={{ marginTop: enLecture ? 4 : 20 }}
         />
         <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
           <Eyebrow>La règle, elle, ne dépend d'aucun relevé</Eyebrow>
@@ -65,7 +69,12 @@ export default function ClubClassement() {
               </Body>
             </View>
           </View>
-          <Tag tone="ok">+{classement.semaine} cette semaine</Tag>
+          {/* Le gain de la semaine est un nombre vérifiable : il passe par `Num`, avec sa
+              date. Écrit dans une étiquette, il s'affichait sans provenance. */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Num value={classement.semaine == null ? null : `+${classement.semaine}`} {...provenance(vue)} style={{ fontSize: 13, color: t('ok') }} />
+            <Body muted style={{ fontSize: 12.5 }}>cette semaine</Body>
+          </View>
         </View>
         {/* ⚠️ LE RANG PEUT MANQUER, et ce n'est pas une panne : quelqu'un dont la vague
             n'a pas encore été calculée n'a pas de position. Une barre à zéro dirait « tu es
@@ -77,9 +86,9 @@ export default function ClubClassement() {
             style={{ marginTop: 14 }}
           />
         )}
-        <Body muted style={{ fontSize: 11.5, marginTop: 8, color: t('textFaint') }}>
-          Tu es comparée aux <Num value={classement.surCombien} {...provenance(vue)} style={{ fontSize: 11.5 }} />
-          {' '}personnes arrivées en même temps que toi — pas à tout le Club.
+        <Body muted style={{ fontSize: 12, marginTop: 8 }}>
+          Ta place parmi les <Num value={classement.surCombien} {...provenance(vue)} style={{ fontSize: 12 }} />
+          {' '}personnes arrivées en même temps que toi — pas dans tout le Club.
         </Body>
       </Surface>
 

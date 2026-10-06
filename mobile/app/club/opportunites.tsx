@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { View } from 'react-native';
+import { router } from 'expo-router';
 import {
-  Body, Button, ChipRow, EmptyState, Eyebrow, Icon, Num, PriceBlock, Surface, Tag, TerritoryCard, useToken,
+  Body, Button, ChipRow, EmptyState, Eyebrow, Fondu, Icon, Num, PriceBlock, Revele, SansDonnees, Surface, Tag, TerritoryCard, useToken,
 } from '../../ds';
-import { Bilan, ClubScreen } from './_layout';
+import { BilanPlie, ClubScreen } from './_layout';
 import { provenance, useOpportunites } from '../../donnees';
 
 /**
@@ -33,34 +34,40 @@ export default function ClubOpportunites() {
     if (filtre === 'Toutes') return true;
     if (filtre === 'Missions') return o.type === 'Mission';
     if (filtre === "Appels d'offres") return o.type === "Appel d'offres";
-    return false;
+    /* « Recrutement » renvoyait `false` pour TOUT : le filtre était toujours vide, sous une
+       phrase qui jurait que « le filtre marche ». */
+    return o.type === 'Recrutement';
   });
+  const servi = offres.phase === 'servie' || offres.phase === 'replique' || offres.phase === 'vide';
 
   return (
     <ClubScreen titre="Opportunités">
       {/* Le même bilan qu'en tête du fil, pour la même raison. */}
-      <Bilan />
+      <BilanPlie />
 
       <View style={{ marginTop: 20 }}>
         <ChipRow options={FILTRES} value={filtre} onChange={setFiltre} />
       </View>
 
-      {visibles.length === 0 ? (
+      <Fondu cle={filtre}>
+      {!servi ? (
+        <SansDonnees quoi="les opportunités" etat={offres} hauteur={4} style={{ marginTop: 18 }} />
+      ) : visibles.length === 0 ? (
         <Surface level="flat" style={{ marginTop: 18, paddingVertical: 6 }}>
           <EmptyState
             glyph={<Icon name="case" size={24} color={t('mmVioletT')} />}
-            title={`Rien dans « ${filtre} »`}
-            body="Le filtre marche : cette catégorie est vide au relevé du jour. Je ne fabrique pas d'annonce pour meubler — un budget inventé fixe une attente de revenu."
+            title={filtre === 'Toutes' ? 'Aucune opportunité pour l’instant' : `Rien dans « ${filtre} »`}
+            body="Les missions arrivent quand des membres en publient. Je ne fabrique pas d'annonce pour meubler."
           />
         </Surface>
       ) : (
         <View style={{ marginTop: 16 }}>
           {visibles.map((o, i) => (
+            <Revele key={o.id} i={i}>
             <TerritoryCard
-              key={o.titre}
               first={i === 0}
               territory="transforme"
-              meta={`${o.type} · ${o.lieu} · ${o.quand}`}
+              meta={[o.type, o.lieu, o.quand].filter(Boolean).join(' · ')}
               title={o.titre}
               titleSize={20}
             >
@@ -87,12 +94,21 @@ export default function ClubOpportunites() {
                     note={o.par ? `Budget annoncé par ${o.par}` : 'Budget annoncé'}
                   />
                 )}
-                <Button tone="transforme" size="sm" label="Postuler" disabled />
+                {/* « Postuler » était éteint : aucune candidature n'existe dans l'application.
+                    La fiche de qui publie, elle, existe — et on peut lui écrire dans le fil. */}
+                <Button
+                  tone="transforme"
+                  size="sm"
+                  label="Voir qui publie"
+                  onPress={() => router.push({ pathname: '/club/membre', params: { opportunite: o.id, ...(o.par ? { nom: o.par } : {}) } })}
+                />
               </View>
             </TerritoryCard>
+            </Revele>
           ))}
         </View>
       )}
+      </Fondu>
 
       <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: 16 }}>
         <Tag tone="warn">Budgets non vérifiés</Tag>

@@ -13,6 +13,7 @@ import {
 } from '../lib/rysmo-context';
 import { PLATFORM_KNOWLEDGE } from '../lib/rysmo-knowledge';
 import { reserveRequest } from '../lib/rysmo-quota';
+import { catalogueSansPrix, lireCanal, reglesDeRecommandation, retirerLesPrix } from '../lib/rysmo-canal';
 
 /**
  * Port de `rysmo` — le tuteur IA de la plateforme.
@@ -32,6 +33,8 @@ interface RysmoRequest {
   conversationHistory?: HistoryMessage[];
   userContext?: { displayName?: string };
   language?: string;
+  /** `app` : l'application mobile, qui ne vend rien. Absent : le site. */
+  canal?: string;
 }
 
 /** Le message est borné à 2000 caractères, l'historique aux 10 derniers tours. */
@@ -41,8 +44,9 @@ const MAX_HISTORY = 10;
 export async function rysmo(data: unknown, context: CallContext): Promise<unknown> {
   const { uid } = requireAuth(context, 'Authentification requise pour utiliser Rysmo.');
 
-  const { message, conversationHistory = [], userContext, language } = (data ?? {}) as RysmoRequest;
+  const { message, conversationHistory = [], userContext, language, canal: canalBrut } = (data ?? {}) as RysmoRequest;
   const isEn = language === 'en';
+  const canal = lireCanal(canalBrut);
 
   if (!message?.trim()) {
     throw new HttpsError('invalid-argument', 'Le message ne peut pas être vide.');
@@ -66,8 +70,8 @@ export async function rysmo(data: unknown, context: CallContext): Promise<unknow
     memoryConsent ? getProfileText(context.db, uid) : Promise.resolve(''),
     memoryConsent ? getEngagementText(context.db, uid) : Promise.resolve(''),
   ]);
-  const catalogText = catalog.text;
-  const enrolledText = enrolled.text;
+  const catalogText = canal === 'app' ? catalogueSansPrix(catalog.text) : catalog.text;
+  const enrolledText = canal === 'app' ? catalogueSansPrix(enrolled.text) : enrolled.text;
   /** Liens internes autorisés : contenus publiés + formations possédées. */
   const validPaths = new Set<string>([...catalog.paths, ...enrolled.paths]);
 
@@ -115,20 +119,11 @@ export async function rysmo(data: unknown, context: CallContext): Promise<unknow
   "(/blog/slug, /podcasts/slug, /videos/slug, /formations/slug) dès que c'est pertinent",
   "et naturel — pas en forçant à chaque message.",
   "",
-  "Quand tu recommandes un contenu, respecte cette hiérarchie :",
-  "1. Si l'utilisateur a déjà acheté une formation qui couvre le sujet → renvoie-le dedans",
-  "   (« Tu as déjà la formation X qui traite exactement ça : /formations/slug »)",
-  "2. Sinon, contenu GRATUIT pertinent en premier (article, podcast, vidéo)",
-  "3. Puis, si la question mérite un approfondissement structuré, suggère la formation",
-  "   payante qui correspond (« Pour creuser ce sujet de façon structurée, la formation",
-  "   \"Titre\" (X FCFA) le couvre en profondeur : /formations/slug »)",
+  ...reglesDeRecommandation(canal),
   "",
   "Sujet vraiment éloigné du périmètre (cuisine, politique, médecine, sport, etc.) :",
   "réponse courte et polie, puis pont naturel vers un contenu Max-Morrys lié si possible",
   "(« Si tu veux apprendre à promouvoir ton activité dans ce domaine, regarde... »).",
-  "",
-  "Ne révèle JAMAIS le contenu intégral d'une formation payante à un utilisateur non-inscrit :",
-  "donne un aperçu pédagogique, puis renvoie vers /formations/slug pour l'achat.",
   "",
   userContext?.displayName ? `L'étudiant s'appelle ${userContext.displayName}.` : '',
   profileText,
@@ -154,7 +149,8 @@ export async function rysmo(data: unknown, context: CallContext): Promise<unknow
   });
 
   // Anti-hallucination : tout lien interne non vérifié perd son URL.
-  const reply = sanitizeInternalLinks(raw, validPaths);
+  const verifiee = sanitizeInternalLinks(raw, validPaths);
+  const reply = canal === 'app' ? retirerLesPrix(verifiee) : verifiee;
 
   if (memoryConsent) {
     // Hors du chemin critique : la réponse est déjà prête et déjà décomptée.

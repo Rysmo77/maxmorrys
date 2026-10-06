@@ -129,12 +129,18 @@ export async function appClubListe(data: unknown, context: CallContext): Promise
     On peut maintenant désigner la fiche par le CONTENU (`message`), et c'est le serveur qui
     résout l'auteur — l'uid ne circule toujours pas.
   */
-  const { message } = (data ?? {}) as { message?: unknown };
+  const { message, discussion, opportunite } = (data ?? {}) as { message?: unknown; discussion?: unknown; opportunite?: unknown };
   let cible = typeof id === 'string' && id !== '' ? id : null;
-  if (cible === null && typeof message === 'string' && message !== '' && !message.includes('/')) {
-    const post = await context.db.get(`club_posts/${message}`);
-    cible = post ? asText(post.data.userId) ?? null : null;
-  }
+  /* Un CONTENU désigne son auteur : un message du fil, une discussion, une offre. Chaque
+     identifiant est comparé à une forme simple — jamais un chemin — avant d'être lu. */
+  const auteurDe = async (collection: string, v: unknown): Promise<string | null> => {
+    if (typeof v !== 'string' || v === '' || v.includes('/')) return null;
+    const doc = await context.db.get(`${collection}/${v}`);
+    return doc ? asText(doc.data.userId) ?? null : null;
+  };
+  if (cible === null) cible = await auteurDe('club_posts', message);
+  if (cible === null) cible = await auteurDe('club_discussions', discussion);
+  if (cible === null) cible = await auteurDe('club_opportunities', opportunite);
   if (cible === null) {
     throw new HttpsError('invalid-argument', 'Membre non désigné.');
   }

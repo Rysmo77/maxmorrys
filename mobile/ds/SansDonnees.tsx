@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Body, Eyebrow } from './Type';
 import { Button } from './Button';
 import { Surface } from './Surface';
-import { Skeleton } from './Skeleton';
+import { Skeleton, SqueletteGroupe } from './Skeleton';
 import { Icon } from './Icon';
 import type { Etat } from './Etat';
 import { useToken } from './theme';
@@ -72,16 +72,20 @@ export function SansDonnees({
    * va arriver et où, donc la page ne saute pas quand le contenu se pose.
    */
   if (phase === 'charge' || phase === 'restauration') {
+    /* Une annonce pour le bloc entier, pas une par ligne : trois arrêts du lecteur d'écran
+       sur « chargement » ne disent rien de plus qu'un seul. */
     return (
-      <Surface level="flat" style={[{ padding: 20, gap: 10 }, style]}>
-        {Array.from({ length: hauteur }, (_, i) => (
-          <Skeleton
-            key={i}
-            height={i === 0 ? 18 : 13}
-            width={i === 0 ? '62%' : i === hauteur - 1 ? '45%' : '100%'}
-            label={i === 0 ? `${quoi} arrive` : undefined}
-          />
-        ))}
+      <Surface level="flat" style={[{ padding: 20 }, style]}>
+        <SqueletteGroupe label={`Chargement de ${quoi}`} style={{ gap: 10 }}>
+          {Array.from({ length: hauteur }, (_, i) => (
+            <Skeleton
+              key={i}
+              height={i === 0 ? 18 : 13}
+              width={i === 0 ? '62%' : i === hauteur - 1 ? '45%' : '100%'}
+              style={i > 0 ? { marginTop: 10 } : undefined}
+            />
+          ))}
+        </SqueletteGroupe>
       </Surface>
     );
   }
@@ -98,7 +102,7 @@ export function SansDonnees({
           </Body>
         </View>
         <Body muted style={{ marginTop: 10, lineHeight: 22 }}>
-          Tu n'es pas connectée sur ce téléphone. Rien n'est perdu : tout est sur ton compte.
+          Aucun compte n'est ouvert sur ce téléphone. Rien n'est perdu : tout est sur ton compte.
         </Body>
         <View style={{ marginTop: 16 }}>{action}</View>
       </Surface>

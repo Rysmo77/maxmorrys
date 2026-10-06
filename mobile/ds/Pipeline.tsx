@@ -1,4 +1,5 @@
 import { Pressable, ScrollView, Text, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import { useToken, px } from './theme';
 
 /**
@@ -42,7 +43,7 @@ export function Pipeline({
             }}
           >
             <Text style={{
-              fontFamily: 'SchibstedGrotesk', fontSize: 11, fontWeight: '600',
+              fontFamily: POLICE.corps, fontSize: 11.5, fontWeight: '600',
               color: on ? t('ink') : t('textMuted'),
             }}>
               {s}

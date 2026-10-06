@@ -35,9 +35,8 @@ import { Platform } from 'react-native';
  * · **L'ONDULATION.** Android répond au toucher par une onde partant du doigt ; iOS
  *   par un changement d'opacité. Les deux disent « j'ai senti », dans deux langues.
  *
- * ⚠️ LE RETOUR HAPTIQUE MANQUE ENCORE, et il n'est pas ici : il demande `expo-haptics`,
- * donc une dépendance de plus dans `package.json` — un fichier en cours de modification
- * pour le passage aux builds natifs. À ajouter quand ce chantier sera posé.
+ * · **LE RETOUR HAPTIQUE** vit dans `ds/haptique.ts` : il est identique dans son intention
+ *   sur les deux systèmes, et c'est chaque OS qui le traduit dans sa propre vibration.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 

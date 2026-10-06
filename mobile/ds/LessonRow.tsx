@@ -1,4 +1,5 @@
 import { Animated, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import { COURBE, DUREE, duree, useMouvement } from './mouvement';
 import { Pressoir } from './Pressoir';
 import { ripple } from './platform';
@@ -101,14 +102,14 @@ export function LessonRow({
       <View style={{ flex: 1, minWidth: 0 }}>
         {typeof title === 'string' ? (
           <Text style={{
-            fontFamily: 'SchibstedGrotesk', fontWeight: '600', fontSize: 14, color: t('textBody'),
+            fontFamily: POLICE.corps, fontWeight: '600', fontSize: 14, color: t('textBody'),
           }}>
             {title}
           </Text>
         ) : title}
         {meta !== undefined && meta !== null && (
           typeof meta === 'string' ? (
-            <Text style={{ fontFamily: 'JetBrainsMono', fontSize: 12, color: t('textMuted'), marginTop: 2 }}>
+            <Text style={{ fontFamily: POLICE.mono, fontSize: 12, color: t('textMuted'), marginTop: 2 }}>
               {meta}
             </Text>
           ) : <View style={{ marginTop: 2 }}>{meta}</View>
@@ -118,11 +119,26 @@ export function LessonRow({
     </View>
   );
 
-  if (!onPress) return body;
+  /*
+   * L'ÉTAT SE DIT. Une ligne cochée, en cours ou à faire se distinguait à l'œil (pastille,
+   * voile) et pas à l'oreille : un lecteur d'écran lisait trois lignes identiques. L'état est
+   * ajouté au libellé, en clair, quand la ligne en porte un.
+   */
+  const etat = state === 'done' ? 'terminée' : state === 'current' ? 'en cours' : state === 'todo' ? 'à faire' : null;
+  const libelle = typeof title === 'string'
+    ? [title, etat, typeof meta === 'string' ? meta : null].filter(Boolean).join(', ')
+    : undefined;
+
+  /* Une ligne qui porte un contrôle (interrupteur, bouton) ne se regroupe PAS : le
+     regroupement rendrait le contrôle inatteignable au lecteur d'écran. */
+  if (!onPress) {
+    return libelle && trailing === undefined ? <View accessible accessibilityLabel={libelle}>{body}</View> : body;
+  }
 
   return (
     <Pressoir
       accessibilityRole="button"
+      accessibilityLabel={libelle}
       onPress={onPress}
       /* L'onde reste DANS la ligne (`borderless: false`) : débordante, dans une liste
          dense, elle donne l'impression d'avoir touché la ligne voisine. */

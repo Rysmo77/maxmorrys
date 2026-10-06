@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Icon, IconButton, MediaCard, SansDonnees, Screen, SubNav, Surface, Tag, useToken,
+  Body, Button, Display, Eyebrow, MediaCard, SansDonnees, Screen, SubNav, Tag, useToken,
 } from '../ds';
 import { useMedia } from '../donnees';
 import { View } from 'react-native';
@@ -61,31 +61,25 @@ export default function Media() {
   }
 
   return (
-    <Screen
-      territory="transforme"
-      retour="Profil"
-      droite={
-        <IconButton disabled label="Chercher un épisode">
-          <Icon name="search" size={17} color={t('textBody')} strokeWidth={2.4} />
-        </IconButton>
-      }
-    >
+    <Screen territory="transforme" retour="Profil">
       <SubNav
         items={[{ label: 'Écouter & regarder' }, { label: 'Le Club', color: t('mmViolet') }]}
         active="Écouter & regarder"
         onSelect={(l) => { if (l === 'Le Club') router.push('/(tabs)/club'); }}
       />
 
-      <Eyebrow style={{ marginTop: 18 }}>Je te transforme · gratuit</Eyebrow>
+      <Eyebrow style={{ marginTop: 18 }}>Je te transforme</Eyebrow>
       <Display size={27} lines={["DES GENS D'ICI", 'QUI RACONTENT']} style={{ marginTop: 8 }} />
       <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
         Pas de méthode, pas de tutoriel — ça, c'est le blog. Ici, des gens qui vendent vraiment
         quelque chose racontent ce qui a marché.
       </Body>
 
+      {/* « Continue écran verrouillé » est parti : le binaire n'a aucun lecteur audio. Et
+          « sans compte » était faux — la vue exige une session. */}
       <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
-        <Tag tone="ok">Écoute gratuite, sans compte</Tag>
-        <Tag tone="ok">Continue écran verrouillé</Tag>
+        <Tag tone="ok">Inclus avec ton compte</Tag>
+        <Tag>Transcription lisible sans charger l'audio</Tag>
       </View>
 
       {episode === null ? null : (
@@ -100,8 +94,7 @@ export default function Media() {
           style={{ marginTop: 18 }}
           actions={(
             <>
-              <Button tone="transforme" size="sm" label="Écouter" onPress={() => router.push('/episode')} />
-              <Button tone="quiet" size="sm" label="Transcription" onPress={() => router.push('/episode')} />
+              <Button tone="transforme" size="sm" label="Ouvrir l'épisode" onPress={() => router.push('/episode')} />
             </>
           )}
         />
@@ -117,26 +110,25 @@ export default function Media() {
           title={video.titre}
           cost={video.cout}
           style={{ marginTop: 12 }}
-          actions={<Button tone="quiet" size="sm" label="Regarder" onPress={() => router.push('/video')} />}
+          /* La fiche vidéo reçoit ce qu'elle affiche. Ouverte sans paramètre, elle ne savait
+             ni quoi lancer ni comment s'appelait ce qu'on venait de toucher : un cul-de-sac. */
+          actions={(
+            <Button
+              tone="quiet"
+              size="sm"
+              label="Regarder"
+              onPress={() => router.push({
+                pathname: '/video',
+                params: {
+                  titre: video.titre,
+                  ...(video.lien ? { video: video.lien } : {}),
+                  ...(media.phase === 'servie' ? { releve: media.asOf.toISOString() } : {}),
+                },
+              })}
+            />
+          )}
         />
       )}
-
-      <Surface level="truth" style={{ marginTop: 16, marginBottom: 70, padding: 15 }}>
-        <Eyebrow>Ce que l'app change ici</Eyebrow>
-        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Sur le site, un épisode{' '}
-          <Body style={{ fontWeight: '700', fontSize: 12.5 }}>s'arrête quand tu verrouilles ton téléphone</Body>.
-          {' '}Ici il continue, et les commandes restent sur l'écran verrouillé. Pour 34 minutes
-          écoutées dans un taxi, c'est la seule chose qui compte.
-        </Body>
-        <Button
-          tone="quiet"
-          size="sm"
-          label="Voir l'écran verrouillé"
-          style={{ marginTop: 12 }}
-          onPress={() => router.push('/verrouille')}
-        />
-      </Surface>
     </Screen>
   );
 }

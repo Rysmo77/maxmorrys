@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Share, View } from 'react-native';
 import { router } from 'expo-router';
+import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, Num, SansDonnees, Screen, Segmented, Surface, isIOS, useActionGradient, useToken, veil,
+  Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, Num, SansDonnees, Screen, Segmented, Surface, isIOS, useActionGradient, useToken, veil, POLICE,
 } from '../ds';
 import { provenance, useMedia } from '../donnees';
 
@@ -42,11 +43,6 @@ export default function Episode() {
   const g = useActionGradient();
   const [vue, setVue] = useState<string>('Transcription');
 
-  /* La vitesse n'est plus un ÉTAT : rien ne la lit, et un état qui ne pilote rien finit par
-     se faire brancher sur autre chose. Elle redeviendra un état le jour où un lecteur la
-     recevra — `expo-audio` expose `setPlaybackRate`. En attendant, c'est la valeur affichée
-     par un bouton éteint, et rien de plus. */
-  const vitesse = 1;
 
   const media = useMedia();
   const episode = media.valeur?.episode ?? null;
@@ -54,7 +50,7 @@ export default function Episode() {
   if (episode === null) {
     return (
       <Screen territory="transforme" retour="Écouter">
-        <Display size={27} lines={['Cet épisode', 'n’est pas chargé.']} style={{ marginTop: 10 }} />
+        <Display size={27} lines={media.phase === 'charge' || media.phase === 'restauration' ? ['Cet épisode.'] : ['Cet épisode', 'n’est pas chargé.']} style={{ marginTop: 10 }} />
         <SansDonnees
           quoi="cet épisode"
           degat="Une transcription fabriquée met des phrases dans la bouche de quelqu'un. C'est le seul contenu du produit où l'invention se lit comme une citation."
@@ -83,22 +79,29 @@ export default function Episode() {
     <Screen
       territory="transforme"
       retour="Écouter"
-      titre={isIOS ? undefined : 'Épisode 1'}
-      droite={
-        <IconButton disabled label="Partager cet épisode">
+      titre={isIOS ? undefined : 'Épisode'}
+      droite={episode.lien ? (
+        <IconButton
+          label="Partager cet épisode"
+          onPress={() => { void Share.share({ message: `${episode.titre}\n${episode.lien}`, url: episode.lien ?? undefined }); }}
+        >
           <Icon name="share" size={17} color={t('textBody')} strokeWidth={2} />
         </IconButton>
-      }
+      ) : undefined}
     >
       <Eyebrow style={{ marginTop: 6 }}>{episode.eyebrow}</Eyebrow>
       <Display size={27} lines={coupe(episode.titre)} style={{ marginTop: 8 }} />
       <Num
         value={[episode.duree, episode.invitee].filter(Boolean).join(' · ') || null}
         {...provenance(media)}
-        style={{ fontSize: 11.5, color: t('textFaint'), marginTop: 10 }}
+        style={{ fontSize: 12, color: t('textMuted'), marginTop: 10 }}
       />
 
-      {/* ── LE LECTEUR ─────────────────────────────────────────────────────────────────── */}
+      {/* ── L'ÉCOUTE ───────────────────────────────────────────────────────────────────
+          ⚠️ UN FAUX LECTEUR A ÉTÉ RETIRÉ ICI : un bouton pause dessiné, « −15 » et « +15 »,
+          « Télécharger » et « 1× » éteints — cinq contrôles qui ne pilotaient rien, en état
+          « lecture en cours ». L'application n'a pas de lecteur audio (`expo-audio` n'est
+          pas installé). L'épisode s'écoute là où il est publié, et l'écran le dit. */}
       <Gradient
         colors={g.media}
         angle={140}
@@ -109,66 +112,35 @@ export default function Episode() {
           shadowOffset: { width: 0, height: 14 }, elevation: 6,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
           <View style={{
-            width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
+            width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center',
             backgroundColor: veil(t('paperFixed'), 0.22),
           }}>
-            <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10, fontWeight: '700', color: t('paperFixed') }}>−15</Body>
+            <Icon name="mic" size={22} color={t('paperFixed')} strokeWidth={2.2} />
           </View>
-          <View style={{
-            width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center',
-            backgroundColor: t('paperFixed'),
-          }}>
-            <View style={{ flexDirection: 'row', gap: 4 }}>
-              <View style={{ width: 5, height: 21, borderRadius: 2, backgroundColor: t('inkFixed') }} />
-              <View style={{ width: 5, height: 21, borderRadius: 2, backgroundColor: t('inkFixed') }} />
-            </View>
-          </View>
-          <View style={{
-            width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
-            backgroundColor: veil(t('paperFixed'), 0.22),
-          }}>
-            <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10, fontWeight: '700', color: t('paperFixed') }}>+15</Body>
+          <View style={{ flex: 1 }}>
+            <Body style={{ color: t('paperFixed'), fontWeight: '700' }}>
+              {episode.lien ? "S'écoute sur Spotify" : "L'audio n'est pas encore en ligne"}
+            </Body>
+            {episode.duree ? (
+              <Body style={{ fontFamily: POLICE.mono, fontSize: 12, color: t('paperFixed'), marginTop: 2 }}>
+                {episode.duree}
+              </Body>
+            ) : null}
           </View>
         </View>
-
-        {/* ⚠️ LA BARRE DE PROGRESSION A ÉTÉ RETIRÉE. Elle affichait une position (« 08:12 »)
-            et un remplissage de 24 % en dur, sans aucun lecteur derrière : une lecture en
-            cours qui n'existait pas. Seule la durée reste — c'est une donnée du modèle. */}
-        {episode.duree == null ? null : (
-          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 }}>
-            <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('paperFixed') }}>
-              {episode.duree}
-            </Body>
-          </View>
-        )}
+        {episode.lien ? (
+          <Button
+            tone="quiet"
+            size="sm"
+            label="Écouter"
+            trailing="external"
+            style={{ marginTop: 14 }}
+            onPress={() => { void openBrowserAsync(episode.lien as string); }}
+          />
+        ) : null}
       </Gradient>
-
-      {/* Ce que le navigateur ne garde pas d'une session à l'autre. */}
-      <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
-        <Button
-          tone="quiet"
-          size="sm"
-          fullWidth
-          /* Le libellé portait « · 31 Mo », un poids que la base ne produit nulle part :
-             `podcasts` n'a ni fichier ni taille, `audioUrl` pointe vers Spotify. Un poids
-             annoncé sur un bouton décide d'un achat de crédit ; il ne s'estime pas. */
-          label="Télécharger"
-          icon="download"
-          disabled
-          style={{ flex: 1 }}
-        />
-        {/* ⚠️ CE BOUTON RÉPONDAIT AU DOIGT ET NE PILOTAIT RIEN. Il faisait tourner son
-            libellé 1× → 1,25× → 1,5× → 2× sur un état local, sans lecteur derrière — le
-            contrôle le plus trompeur du pôle média, parce qu'un bouton qui RÉAGIT se lit
-            comme un bouton qui AGIT. Et il était invisible pour la porte des contrôles
-            morts, qui cherche un `onPress` absent : celui-ci en avait un.
-
-            Éteint jusqu'à ce qu'`expo-audio` arrive. Il garde sa place et sa valeur —
-            l'écran continue de dire ce qu'il proposera — mais il ne fait plus semblant. */}
-        <Button tone="quiet" size="sm" label={`${vitesse}×`} disabled />
-      </View>
 
       <Segmented options={VUES} value={vue} onChange={setVue} style={{ marginTop: 16 }} />
 

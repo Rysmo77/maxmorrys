@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import type { ReactNode } from 'react';
 import { useToken, px, veil } from './theme';
 import { Gradient, useActionGradient } from './Gradient';
@@ -87,7 +88,7 @@ export function MediaCard({
             position: 'absolute', left: 14, bottom: 14, height: 25, paddingHorizontal: 10,
             borderRadius: px(t('rPill')), justifyContent: 'center', backgroundColor: t('surfaceInk'),
           }}>
-            <Text style={{ fontFamily: 'SchibstedGrotesk', fontSize: 10.5, fontWeight: '600', color: t('paperFixed') }}>
+            <Text style={{ fontFamily: POLICE.corps, fontSize: 11.5, fontWeight: '600', color: t('paperFixed') }}>
               {badge}
             </Text>
           </View>
@@ -97,7 +98,7 @@ export function MediaCard({
       <View style={{ padding: 18 }}>
         {eyebrow ? (
           <Text style={{
-            fontFamily: 'JetBrainsMono', fontSize: 10.5, letterSpacing: 1.5,
+            fontFamily: POLICE.mono, fontSize: 10.5, letterSpacing: 1.5,
             textTransform: 'uppercase', color: t('textMuted'),
           }}>
             {eyebrow}
@@ -111,7 +112,7 @@ export function MediaCard({
         </Text>
         {body ? (
           <Text style={{
-            fontFamily: 'SchibstedGrotesk', fontSize: 13.5, lineHeight: 20,
+            fontFamily: POLICE.corps, fontSize: 13.5, lineHeight: 20,
             marginTop: 9, color: t('textMuted'),
           }}>
             {body}
@@ -120,7 +121,7 @@ export function MediaCard({
         {cost.length > 0 ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 13 }}>
             {cost.map((c) => (
-              <Text key={c} style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('textMuted') }}>{c}</Text>
+              <Text key={c} style={{ fontFamily: POLICE.mono, fontSize: 11.5, color: t('textMuted') }}>{c}</Text>
             ))}
           </View>
         ) : null}

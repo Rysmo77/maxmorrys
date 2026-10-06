@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Text, View, type StyleProp, type TextStyle } from 'react-native';
+import { Animated, StyleSheet, Text, View, type AccessibilityRole, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { COURBE, DUREE, duree, useMouvement } from './mouvement';
 import type { ReactNode } from 'react';
 import { useToken, px } from './theme';
+import { POLICE } from './police';
 
 /**
  * LA TYPOGRAPHIE. Trois familles, trois rôles — et le troisième n'est pas un style.
@@ -16,12 +17,25 @@ import { useToken, px } from './theme';
  * lisible, et ça ne casse aucune mise en page. Ne pas bloquer le démarrage pour ça — sur le
  * réseau visé, un écran blanc en attendant une police est pire que la police système.
  */
-type Props = { children: ReactNode; style?: StyleProp<TextStyle>; numberOfLines?: number };
+type Props = {
+  children: ReactNode;
+  style?: StyleProp<TextStyle>;
+  numberOfLines?: number;
+  accessibilityRole?: AccessibilityRole;
+  selectable?: boolean;
+};
+
+/*
+ * LES PLAFONDS DE POLICE SYSTÈME, PAR RÔLE. Sans plafond, un titre d'affichage à 200 % sort
+ * de l'écran ; avec le MÊME plafond partout, le corps de texte ne grossit plus assez pour
+ * qui en a besoin. Le titre s'arrête à 1,3 ; le corps va jusqu'au double.
+ */
+const PLAFOND = { display: 1.3, body: 2, eyebrow: 1.4 } as const;
 /* Un titre d'affichage se donne SOIT en enfants, SOIT en lignes écrites — jamais les deux.
    L'union le rend impossible à confondre, plutôt que de rendre `children` optionnel partout. */
 type DisplayProps =
-  | { children: ReactNode; lines?: never; size?: DisplaySize; style?: StyleProp<TextStyle> }
-  | { children?: never; lines: readonly string[]; size?: DisplaySize; style?: StyleProp<TextStyle> };
+  | { children: ReactNode; lines?: never; size?: DisplaySize; style?: StyleProp<TextStyle>; maxLignes?: number }
+  | { children?: never; lines: readonly string[]; size?: DisplaySize; style?: StyleProp<TextStyle>; maxLignes?: never };
 /**
  * Les cinq crans de l'échelle, OU une taille en pixels.
  *
@@ -35,7 +49,7 @@ type DisplayProps =
 type DisplaySize = 'xxl' | 'xl' | 'md' | 'sm' | 'xs' | number;
 
 /** Titre d'affichage. `lines` rend chaque ligne séparément — voir la note plus bas. */
-export function Display({ children, size = 'md', lines, style }: DisplayProps) {
+export function Display({ children, size = 'md', lines, style, maxLignes }: DisplayProps) {
   const t = useToken();
   const key = { xxl: 'fsDspXxl', xl: 'fsDspXl', md: 'fsDsp', sm: 'fsDspSm', xs: 'fsDspXs' } as const;
   const taille = typeof size === 'number' ? size : px(t(key[size]));
@@ -61,24 +75,67 @@ export function Display({ children, size = 'md', lines, style }: DisplayProps) {
    *   EN : I'LL TRAIN YOU (14) / TO GO DIGITAL. (14) / FROM DAKAR. (11)
    */
   if (lines) {
+    /*
+     * UN TITRE, PAS TROIS. Chaque ligne était un élément lu séparément, et aucune n'était
+     * annoncée comme un titre : la navigation par titres des lecteurs d'écran ne trouvait
+     * rien. Le bloc porte le rôle et la phrase entière ; les lignes se taisent.
+     *
+     * LA MISE EN PAGE VA SUR LE BLOC. Un `marginTop` posé sur chaque ligne écartait les
+     * lignes entre elles — l'interligne devenait irrégulier dès qu'un écran poussait son
+     * titre vers le bas.
+     */
+    const { bloc, texte } = separer(style);
     return (
-      <>
+      <View
+        accessible
+        accessibilityRole="header"
+        accessibilityLabel={lines.join(' ')}
+        style={bloc}
+      >
         {lines.map((l, i) => (
-          <LigneDeTitre key={i} i={i} base={base} style={style}>{l}</LigneDeTitre>
+          <LigneDeTitre key={i} i={i} base={base} style={texte}>{l}</LigneDeTitre>
         ))}
-      </>
+      </View>
     );
   }
-  return <Text style={[base, style]}>{children}</Text>;
+  return (
+    <Text
+      accessibilityRole="header"
+      maxFontSizeMultiplier={PLAFOND.display}
+      numberOfLines={maxLignes}
+      adjustsFontSizeToFit={maxLignes !== undefined}
+      minimumFontScale={0.7}
+      style={[base, style]}
+    >
+      {children}
+    </Text>
+  );
 }
 
-export function Body({ children, muted, style, numberOfLines }: Props & { muted?: boolean }) {
+/** Ce qui place le bloc (marges, alignement) d'un côté, ce qui dessine le texte de l'autre. */
+function separer(style: StyleProp<TextStyle>): { bloc: ViewStyle; texte: TextStyle } {
+  const plat = StyleSheet.flatten(style) ?? {};
+  const bloc: Record<string, unknown> = {};
+  const texte: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(plat)) {
+    if (/^margin|^alignSelf$|^flex/.test(k)) bloc[k] = v;
+    else texte[k] = v;
+  }
+  return { bloc: bloc as ViewStyle, texte: texte as TextStyle };
+}
+
+export function Body({
+  children, muted, style, numberOfLines, accessibilityRole, selectable,
+}: Props & { muted?: boolean }) {
   const t = useToken();
   return (
     <Text
       numberOfLines={numberOfLines}
+      accessibilityRole={accessibilityRole}
+      selectable={selectable}
+      maxFontSizeMultiplier={PLAFOND.body}
       style={[{
-        fontFamily: 'SchibstedGrotesk',
+        fontFamily: POLICE.corps,
         // `textMuted`, jamais `textFaint` : l'encre tertiaire ne porte pas de texte (AD-18).
         color: muted ? t('textMuted') : t('textBody'),
         fontSize: px(t('fsBody')),
@@ -94,8 +151,8 @@ export function Body({ children, muted, style, numberOfLines }: Props & { muted?
 export function Eyebrow({ children, style }: Props) {
   const t = useToken();
   return (
-    <Text style={[{
-      fontFamily: 'JetBrainsMono',
+    <Text maxFontSizeMultiplier={PLAFOND.eyebrow} style={[{
+      fontFamily: POLICE.mono,
       color: t('textEyebrow'),
       fontSize: px(t('fsEyebrow')),
       letterSpacing: 1.5,
@@ -140,6 +197,7 @@ function LigneDeTitre({ i, base, style, children }: {
     <View style={{ overflow: 'hidden' }}>
       <Animated.Text
         numberOfLines={1}
+        maxFontSizeMultiplier={PLAFOND.display}
         adjustsFontSizeToFit
         minimumFontScale={0.65}
         style={[base, style, {

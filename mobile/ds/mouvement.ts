@@ -74,6 +74,14 @@ function brancher(): Promise<boolean> {
   return premiereLecture;
 }
 
+/*
+ * ⚠️ LA LECTURE PART AU CHARGEMENT DU MODULE, pas au premier rendu. Lue au premier
+ * `useMouvement()`, la réponse arrivait APRÈS que le premier écran avait lancé sa cascade :
+ * quelqu'un qui a demandé moins de mouvement voyait quand même l'écran d'ouverture bouger.
+ * Le module est importé par le châssis bien avant le premier écran ; la réponse est là à temps.
+ */
+void brancher();
+
 /**
  * La préférence, une fois RÉELLEMENT lue. Pour un moment qui ne doit jamais partir à tort (la
  * brillance du certificat ne se rejoue pas) : on attend la réponse au lieu de supposer.
@@ -83,9 +91,20 @@ export async function mouvementReduit(): Promise<boolean> {
   return reduit;
 }
 
-/** 2 Go de mémoire vive ou moins : le profil d'appareil du marché visé. Lu une fois. */
-export const APPAREIL_MODESTE = typeof Device.totalMemory === 'number' && Device.totalMemory > 0
-  && Device.totalMemory <= 2 * 1024 * 1024 * 1024;
+/**
+ * Le profil d'appareil du marché visé. Lu une fois.
+ *
+ * 2 Go laissaient passer les TECNO et itel à 3 Go dont le processeur graphique, lui, est
+ * d'entrée de gamme. La mémoire seule ne dit pas tout : l'année de conception de l'appareil
+ * (`deviceYearClass`) rattrape ceux qui ont de la mémoire mais pas de puissance de rendu.
+ */
+const GO = 1024 * 1024 * 1024;
+export const APPAREIL_MODESTE = (typeof Device.totalMemory === 'number' && Device.totalMemory > 0
+  && Device.totalMemory <= 3 * GO)
+  || (typeof Device.deviceYearClass === 'number' && Device.deviceYearClass <= 2017);
+
+/** Lu sans attendre : vrai dès que la réponse du système est arrivée. Pour les décisions hors rendu. */
+export const reduitMaintenant = () => reduit;
 
 export function useMouvement(): { reduit: boolean; modeste: boolean } {
   void brancher();

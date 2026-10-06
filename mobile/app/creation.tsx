@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
+import { apresConnexion } from '../donnees/accueil';
 import {
-  Body, Button, Display, Eyebrow, Field, Icon, Screen,
-  Surface, isIOS, useToken,
+  Body, Button, Display, Field, Icon, Screen,
+  Surface, haptique, isIOS, useBandeau, useToken,
 } from '../ds';
 import { ErreurIdentite, avecGoogle, creationEmail } from '../donnees/identite';
 import { BoutonGoogle } from '../ecrans/BoutonGoogle';
@@ -36,21 +37,39 @@ export default function Creation() {
   const [nom, setNom] = useState('');
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
+  const [visible, setVisible] = useState(false);
   const [lettre, setLettre] = useState(false);
   const [enCours, setEnCours] = useState(false);
-  const [echec, setEchec] = useState<string | null>(null);
+  /* L'ERREUR VA SOUS LE CHAMP QU'ELLE CONCERNE. « Un compte existe déjà avec cette adresse »
+     s'affichait sous le MOT DE PASSE — on corrigeait le mauvais champ. */
+  const [erreurs, setErreurs] = useState<{ email?: string; motDePasse?: string }>({});
+  const { bandeau, montrer, effacer } = useBandeau();
+  const champEmail = useRef<TextInput>(null);
+  const champMotDePasse = useRef<TextInput>(null);
 
-  const complet = nom.trim() !== '' && email.trim() !== '' && motDePasse.length >= 8;
+  const manque = Math.max(0, 8 - motDePasse.length);
+  const complet = nom.trim() !== '' && email.trim() !== '' && manque === 0;
+  /* LE BOUTON ÉTEINT DIT POURQUOI. Il restait gris sans un mot : on ne savait pas qu'il
+     manquait deux caractères au mot de passe. */
+  const raison = nom.trim() === '' ? 'Il manque ton nom.'
+    : email.trim() === '' ? 'Il manque ton e-mail.'
+      : manque > 0 ? `Encore ${manque} caractère${manque > 1 ? 's' : ''} au mot de passe.`
+        : null;
 
   async function creer() {
     if (!complet || enCours) return;
     setEnCours(true);
-    setEchec(null);
+    setErreurs({});
+    effacer();
     try {
       await creationEmail(nom, email, motDePasse);
-      router.replace('/espace');
+      haptique.succes();
+      router.replace(await apresConnexion());
     } catch (erreur: unknown) {
-      setEchec(erreur instanceof ErreurIdentite ? erreur.motif : 'La création a échoué.');
+      const e = erreur instanceof ErreurIdentite ? erreur : null;
+      if (e && (e.code === 'auth/email-already-in-use' || e.code === 'auth/invalid-email')) setErreurs({ email: e.motif });
+      else if (e && e.code === 'auth/weak-password') setErreurs({ motDePasse: e.motif });
+      else montrer('stop', "Le compte n'a pas été créé", e ? e.motif : 'Réessaie dans un moment.');
     } finally {
       setEnCours(false);
     }
@@ -59,10 +78,11 @@ export default function Creation() {
   return (
     <Screen
       territory="forme"
-      retour="Connexion"
+      retour="Retour"
       titre={isIOS ? undefined : 'Créer un compte'}
     >
       <Display size={29} lines={['ON COMMENCE', 'PAR TOI.']} style={{ marginTop: 10 }} />
+      {bandeau}
 
       <Surface level="hero" style={{ marginTop: 20, padding: 20 }}>
         <Field
@@ -72,24 +92,48 @@ export default function Creation() {
           placeholder="Prénom Nom"
           autoCapitalize="words"
           textContentType="name"
+          autoComplete="name"
+          returnKeyType="next"
+          onSubmitEditing={() => champEmail.current?.focus()}
           style={{ marginTop: 0 }}
         />
         <Field
+          ref={champEmail}
           label="Ton e-mail"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(v) => { setEmail(v); if (erreurs.email) setErreurs({}); }}
           placeholder="ton@adresse.sn"
           keyboardType="email-address"
           textContentType="emailAddress"
+          autoComplete="email"
+          autoCorrect={false}
+          returnKeyType="next"
+          onSubmitEditing={() => champMotDePasse.current?.focus()}
+          error={erreurs.email}
         />
+        {/* `newPassword` : iOS propose un mot de passe fort et l'enregistre au trousseau. */}
         <Field
+          ref={champMotDePasse}
           label="Ton mot de passe"
           value={motDePasse}
-          onChangeText={setMotDePasse}
-          secureTextEntry
-          textContentType="password"
-          hint="Huit caractères au minimum."
-          error={echec ?? undefined}
+          onChangeText={(v) => { setMotDePasse(v); if (erreurs.motDePasse) setErreurs({}); }}
+          secureTextEntry={!visible}
+          textContentType="newPassword"
+          autoComplete="new-password"
+          returnKeyType="done"
+          onSubmitEditing={() => { void creer(); }}
+          hint={manque > 0 ? `Huit caractères au minimum — encore ${manque}.` : 'Huit caractères au minimum.'}
+          error={erreurs.motDePasse}
+          trailing={(
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              onPress={() => setVisible(!visible)}
+              hitSlop={10}
+            >
+              <Icon name={visible ? 'eye-off' : 'eye'} size={18} color={t('ink2')} />
+            </Pressable>
+          )}
         />
 
         {/* ── LA CASE. Jamais pré-cochée, et sa cible fait toute la ligne. ─────────────── */}
@@ -97,8 +141,8 @@ export default function Creation() {
           accessibilityRole="checkbox"
           accessibilityState={{ checked: lettre }}
           accessibilityLabel="Recevoir la lettre d'information"
-          onPress={() => setLettre(!lettre)}
-          style={{ flexDirection: 'row', gap: 11, alignItems: 'flex-start', marginTop: 16 }}
+          onPress={() => { haptique.selection(); setLettre(!lettre); }}
+          style={{ flexDirection: 'row', gap: 11, alignItems: 'flex-start', marginTop: 16, minHeight: 44 }}
         >
           <View style={{
             width: 24, height: 24, borderRadius: 7, marginTop: 1,
@@ -114,19 +158,17 @@ export default function Creation() {
           </Body>
         </Pressable>
 
-        {/* ── LES TEXTES, HORS DE LA CASE. ────────────────────────────────────────────────
-            Leur place est ici — App Store 5.1.1(i) les veut au point d'inscription — et
-            SURTOUT pas à l'intérieur du `Pressable` au-dessus : un lien qui coche une case
-            n'est pas un lien. Cette ligne-ci ouvre vraiment. */}
+        {/* ── LES TEXTES, HORS DE LA CASE — App Store 5.1.1(i) les veut au point
+            d'inscription, et un lien qui coche une case n'est pas un lien. */}
         <Pressable
           accessibilityRole="link"
           accessibilityLabel="Lire les textes légaux"
           onPress={() => router.push('/legal')}
           style={{ marginTop: 14 }}
         >
-          <Body muted style={{ fontSize: 12, lineHeight: 18 }}>
+          <Body muted style={{ fontSize: 12.5, lineHeight: 18 }}>
             En créant un compte, tu acceptes les{' '}
-            <Body style={{ fontSize: 12, color: t('mmBleu'), fontWeight: '700' }}>
+            <Body style={{ fontSize: 12.5, color: t('mmBleu'), fontWeight: '700' }}>
               conditions d'utilisation et la politique de confidentialité
             </Body>.
           </Body>
@@ -134,11 +176,14 @@ export default function Creation() {
 
         <Button
           tone="forme"
-          label={enCours ? 'Création…' : 'Crée mon compte'}
+          label={enCours ? 'Création…' : 'Créer mon compte'}
           disabled={!complet || enCours}
           style={{ marginTop: 17 }}
           onPress={() => { void creer(); }}
         />
+        {raison && !enCours ? (
+          <Body muted style={{ fontSize: 12.5, textAlign: 'center', marginTop: 8 }}>{raison}</Body>
+        ) : null}
       </Surface>
 
       {/* Android seulement : sur iOS, Google attend « Se connecter avec Apple » (App Store 4.8). */}
@@ -149,19 +194,13 @@ export default function Creation() {
         </>
       ) : null}
 
-      <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
-        <Eyebrow>Cette case n'est jamais pré-cochée</Eyebrow>
-        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Le consentement est horodaté, et la règle de la base refuse une inscription sans lui.
-          Créer un compte n'inscrit à rien d'autre.
-        </Body>
-      </Surface>
-
+      {/* L'encart « cette case n'est jamais pré-cochée » est parti : il expliquait la règle
+          de la base à la personne qui s'inscrit. La case, elle, le montre. */}
       <Button
         tone="quiet"
         label="J'ai déjà un compte"
         style={{ marginTop: 16 }}
-        onPress={() => router.back()}
+        onPress={() => router.replace('/connexion')}
       />
     </Screen>
   );

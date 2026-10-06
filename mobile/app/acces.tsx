@@ -1,5 +1,8 @@
+import { useEffect } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Anneaux, Body, Button, Display, DocLine, Eyebrow, Gradient, Icon, Num, SansDonnees, Screen, Surface, useToken } from '../ds';
+import {
+  Anneaux, Body, Button, Display, DocLine, Eyebrow, Gradient, Heros, Icon, Num, SansDonnees, Screen, Surface, haptique, useToken,
+} from '../ds';
 import { useAcces } from '../donnees';
 import type { TransactionVue } from '../donnees/contrat.generated';
 
@@ -49,14 +52,33 @@ export default function Acces() {
   const { transactionId } = useLocalSearchParams<{ transactionId?: string }>();
   const id = (Array.isArray(transactionId) ? transactionId[0] : transactionId) ?? null;
   const suivi = useAcces(id);
+  const ouvert = suivi.etape === 'ouvert';
+  /* Le passage à « ouvert » se SENT : les anneaux s'éteignent, la coche apparaît, et le
+     téléphone vibre une fois. */
+  useEffect(() => { if (ouvert) haptique.succes(); }, [ouvert]);
+
+  if (suivi.etape === 'anonyme') {
+    return (
+      <Screen territory="forme" center>
+        <Display size={29} lines={['CONNECTE-TOI', 'POUR VOIR TON ACCÈS.']} style={{ marginTop: 10 }} />
+        <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
+          Ton règlement est rattaché à ton compte. Connecte-toi avec le même compte que sur le
+          site : l'accès t'y attend.
+        </Body>
+        <Button tone="forme" label="Me connecter" style={{ marginTop: 20 }} onPress={() => router.push('/connexion')} />
+      </Screen>
+    );
+  }
 
   if (suivi.etape === 'ouvert') {
     const aller = destination(suivi.transaction);
     return (
       <Screen territory="forme" center>
-        <Gradient colors={[t('mmTeal'), t('mmBleu')]} radius={22} style={{ width: 68, height: 68, alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name="check" size={29} color={t('paperFixed')} strokeWidth={3.4} />
-        </Gradient>
+        <Heros>
+          <Gradient colors={[t('mmTeal'), t('mmBleu')]} radius={22} style={{ width: 68, height: 68, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="check" size={29} color={t('paperFixed')} strokeWidth={3.4} />
+          </Gradient>
+        </Heros>
         <Display size={31} lines={["C'EST À TOI."]} style={{ marginTop: 24 }} />
         <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
           {suivi.transaction.ligne === 'club' ? 'Ton accès au Club est ouvert.' : 'Ton accès est ouvert.'}
@@ -94,8 +116,16 @@ export default function Acces() {
               ? "Le règlement est confirmé. L'accès s'ouvre — cet écran se met à jour tout seul."
               : 'La confirmation est attendue. Cet écran se met à jour tout seul.'}
         </Body>
+        {suivi.coupure && !suivi.abandon ? (
+          <Body muted style={{ marginTop: 10, fontSize: 12.5 }}>Le réseau a coupé un instant — on continue de vérifier.</Body>
+        ) : null}
         <Detail t={suivi.transaction} />
-        <Button tone="quiet" label="Revenir à mon espace" style={{ marginTop: 18 }} onPress={() => router.replace('/espace')} />
+        {/* Après l'abandon, une relance À LA DEMANDE : l'écran disait « ça s'ouvrira tout
+            seul » sans donner de quoi vérifier. */}
+        {suivi.abandon ? (
+          <Button tone="forme" label="Vérifier à nouveau" style={{ marginTop: 18 }} onPress={suivi.relancer} />
+        ) : null}
+        <Button tone="quiet" label="Revenir à mon espace" style={{ marginTop: suivi.abandon ? 9 : 18 }} onPress={() => router.replace('/espace')} />
       </Screen>
     );
   }
@@ -124,8 +154,11 @@ export default function Acces() {
           style={{ marginTop: 20 }}
         />
       )}
+      {suivi.etape === 'panne' ? (
+        <Button tone="forme" label="Réessayer" style={{ marginTop: 18 }} onPress={suivi.relancer} />
+      ) : null}
       {suivi.etape === 'lecture' ? null : (
-        <Button tone="quiet" label="Revenir à mon espace" style={{ marginTop: 18 }} onPress={() => router.replace('/espace')} />
+        <Button tone="quiet" label="Revenir à mon espace" style={{ marginTop: suivi.etape === 'panne' ? 9 : 18 }} onPress={() => router.replace('/espace')} />
       )}
     </Screen>
   );

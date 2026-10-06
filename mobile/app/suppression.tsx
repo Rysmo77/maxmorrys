@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Field, LessonRow, Screen, Surface, isIOS, useToken, veil,
+  Body, Button, Display, Field, Heros, Icon, LessonRow, SansDonnees, Screen, Surface, haptique, isIOS, useBandeau, useToken, veil,
 } from '../ds';
-import { CLUB, NOTES_TOTAL } from '../contenu/demo';
+import { useSession } from '../donnees/session';
 import { effacerHorsLigne } from '../donnees/hors-ligne';
 import { getAuthNatif } from '../donnees/firebase';
 import { ErreurAppel, appeler } from '../donnees/appel';
@@ -34,11 +34,13 @@ import { deconnexion } from '../donnees/identite';
  * personnelles » reste vrai sans savoir combien ; « Tes 14 notes » ne l'est que si on a compté.
  * C'est l'écran où un chiffre faux coûte le plus : on décide de supprimer d'après lui.
  */
+/* La liste dit ce qui part, sans chiffre de démonstration : « Tes 14 notes » venait du
+   contenu d'exemple, et « accès à vie perdu » parlait d'achat. */
 const CE_QUI_PART = [
-  { titre: 'Tes inscriptions et leur progression', meta: 'accès à vie perdu, sans remboursement' },
-  { titre: NOTES_TOTAL ? `Tes ${NOTES_TOTAL.notes} notes personnelles` : 'Tes notes personnelles', meta: "elles ne sont nulle part ailleurs" },
+  { titre: 'Tes inscriptions et leur progression', meta: 'les formations ouvertes sur ce compte' },
+  { titre: 'Tes notes personnelles', meta: 'elles ne sont nulle part ailleurs' },
   { titre: 'La mémoire de ton répétiteur', meta: 'effaçable seule, sans supprimer le compte' },
-  { titre: 'Ton abonnement au Club', meta: CLUB ? `échéance au ${CLUB.echeance}, non remboursée` : 'non remboursée' },
+  { titre: 'Ton abonnement au Club, s’il est actif', meta: 'il s’arrête avec le compte' },
   /* La déconnexion GARDE les leçons et la file (une file non envoyée est un geste de la
      personne) ; la suppression du compte efface tout (`effacerHorsLigne`). */
   { titre: 'Les leçons gardées et la file d’envoi de ce téléphone', meta: 'effacées avec le compte' },
@@ -50,6 +52,9 @@ export default function Suppression() {
   const t = useToken();
   const [saisie, setSaisie] = useState('');
   const [enCours, setEnCours] = useState(false);
+  const [supprime, setSupprime] = useState(false);
+  const session = useSession();
+  const { bandeau, montrer } = useBandeau();
   const correspond = saisie.trim().toUpperCase() === MOT;
 
   /**
@@ -72,10 +77,13 @@ export default function Suppression() {
       await appeler('deleteUserAccount', { confirmation: MOT });
       if (uid) await effacerHorsLigne(uid);
       await deconnexion();
-      router.replace('/connexion');
+      /* UN ÉCRAN D'ADIEU, pas l'écran de connexion : la personne qui venait de supprimer son
+         compte lisait « CONTENT DE TE REVOIR ». */
+      setSupprime(true);
     } catch (erreur: unknown) {
       setEnCours(false);
-      Alert.alert(
+      montrer(
+        'stop',
         "La suppression n'a pas abouti",
         erreur instanceof ErreurAppel
           ? `${erreur.motif} Ton compte n'est pas touché — rien n'a été supprimé à moitié.`
@@ -97,16 +105,14 @@ export default function Suppression() {
     try {
       await exporterMesDonnees();
     } catch (erreur: unknown) {
-      Alert.alert(
-        "L'export n'a pas abouti",
-        erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
-      );
+      montrer('stop', "L'export n'a pas abouti", erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.');
     } finally {
       setEnCours(false);
     }
   }
 
   function supprimer() {
+    haptique.attention();
     Alert.alert(
       'Supprimer définitivement ton compte ?',
       "C'est immédiat et sans retour. Tes certificats déjà émis restent vérifiables par leur code.",
@@ -121,6 +127,38 @@ export default function Suppression() {
     );
   }
 
+  if (supprime) {
+    return (
+      <Screen territory="transforme" center>
+        <Heros>
+          <View style={{ width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center', backgroundColor: veil(t('ink'), 0.08) }}>
+            <Icon name="check" size={26} color={t('ink2')} strokeWidth={2.6} />
+          </View>
+        </Heros>
+        <Display size={29} lines={['TON COMPTE', 'EST SUPPRIMÉ.']} style={{ marginTop: 22 }} />
+        <Body muted style={{ marginTop: 12, fontSize: 15, lineHeight: 22 }}>
+          Tout ce qui lui était rattaché est effacé, sur le serveur comme sur ce téléphone. Tes
+          certificats déjà émis restent vérifiables par leur code. Merci pour ce bout de chemin.
+        </Body>
+        <Button tone="quiet" label="Fermer" style={{ marginTop: 22 }} onPress={() => router.replace('/espace')} />
+      </Screen>
+    );
+  }
+
+  /* Sans session, il n'y a rien à supprimer : le formulaire n'a pas lieu d'être. */
+  if (session.phase !== 'connectee') {
+    return (
+      <Screen territory="transforme" retour="Profil" titre={isIOS ? undefined : 'Supprimer mon compte'}>
+        <SansDonnees
+          quoi="ton compte"
+          etat={session.phase === 'restauration' ? { phase: 'restauration', valeur: null } : { phase: 'anonyme', valeur: null }}
+          action={<Button tone="forme" label="Me connecter" onPress={() => router.push('/connexion')} />}
+          style={{ marginTop: 10 }}
+        />
+      </Screen>
+    );
+  }
+
   return (
     <Screen
       territory="transforme"
@@ -128,6 +166,7 @@ export default function Suppression() {
       titre={isIOS ? undefined : 'Supprimer mon compte'}
     >
       <Display size={27} lines={['Ce qui part', 'avec ton compte.']} style={{ marginTop: 10 }} />
+      {bandeau}
 
       <Surface level="flat" style={{ marginTop: 20, paddingHorizontal: 16 }}>
         {CE_QUI_PART.map((l, i) => (
@@ -149,12 +188,14 @@ export default function Suppression() {
           value={saisie}
           onChangeText={setSaisie}
           placeholder={MOT}
-          autoCapitalize="none"
+          autoCapitalize="characters"
+          autoCorrect={false}
           error={saisie.length > 0 && !correspond ? 'Le texte ne correspond pas encore.' : undefined}
           style={{ marginTop: 0 }}
         />
         <Button
-          tone="primary"
+          tone="danger"
+          icon="trash"
           label={enCours ? 'Suppression…' : 'Supprimer définitivement'}
           disabled={!correspond || enCours}
           style={{ marginTop: 16 }}
@@ -167,15 +208,6 @@ export default function Suppression() {
           style={{ marginTop: 9 }}
           onPress={() => { void exporter(); }}
         />
-      </Surface>
-
-      <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
-        <Eyebrow>Pourquoi tout se passe ici</Eyebrow>
-        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          La suppression se fait <Body style={{ fontWeight: '700', fontSize: 12.5 }}>dans l'app</Body>,
-          sans lien vers le site et sans écrire au support. C'était déjà notre règle avant
-          d'être celle des magasins.
-        </Body>
       </Surface>
     </Screen>
   );

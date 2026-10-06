@@ -127,7 +127,9 @@ describe('le verrou biométrique — l’écran qui le propose', () => {
      * un bouton libellé « Activer Face ID ». Il agissait — mais pas comme il l'annonçait.
      */
     expect(ecran).toMatch(/from '\.\.\/donnees\/verrou'/);
-    const bouton = /<Button[^>]*label=\{isIOS \? 'Activer[\s\S]*?\/>/.exec(ecran)?.[0] ?? '';
+    /* Le libellé nomme le geste RÉEL de l'appareil (« Activer Touch ID »), plus « Face ID »
+       écrit en dur. */
+    const bouton = /<Button[^>]*label=\{`Activer \$\{geste\}`\}[\s\S]*?\/>/.exec(ecran)?.[0] ?? '';
     expect(bouton, "le bouton « Activer » est introuvable").not.toBe('');
     expect(bouton, "le bouton « Activer » navigue au lieu d'activer")
       .not.toMatch(/router\.(replace|push)/);

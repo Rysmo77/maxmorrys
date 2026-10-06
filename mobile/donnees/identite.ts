@@ -63,7 +63,7 @@ function traduire(erreur: unknown): never {
         return 'Cette adresse et ce mot de passe ne vont pas ensemble.';
       case 'auth/invalid-email': return "Cette adresse e-mail n'est pas valide.";
       case 'auth/email-already-in-use': return 'Un compte existe déjà avec cette adresse.';
-      case 'auth/weak-password': return 'Ce mot de passe est trop court — six caractères au minimum.';
+      case 'auth/weak-password': return 'Ce mot de passe est trop court — huit caractères au minimum.';
       case 'auth/too-many-requests': return 'Trop de tentatives. Réessaie dans quelques minutes.';
       case 'auth/network-request-failed': return 'Pas de connexion.';
       case 'auth/user-disabled': return 'Ce compte est désactivé.';

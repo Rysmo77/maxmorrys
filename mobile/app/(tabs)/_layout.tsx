@@ -1,8 +1,11 @@
 import { Tabs } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { StyleSheet } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COURBE, Icon, navBarElevation, px, translucentTabBar, useMouvement, useScheme, useToken, useTutorNom } from '../../ds';
+import {
+  COURBE, Icon, isAndroid, navBarElevation, px, translucentTabBar, useBascule, useMouvement,
+  useScheme, useToken, useTutorNom, veil, type IconName, POLICE,
+} from '../../ds';
 
 /**
  * ── LA BARRE D'ONGLETS ────────────────────────────────────────────────────────────────
@@ -51,6 +54,9 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const height = px(t('tabbarH'));
   const { reduit } = useMouvement();
+  /* L'onglet actif prend l'encre de SON territoire — bleu pour les cours, violet ailleurs. */
+  const bleu = t('mmBleu');
+  const violet = t('mmVioletT');
 
   return (
     <Tabs
@@ -63,12 +69,23 @@ export default function TabsLayout() {
         transitionSpec: { animation: 'timing', config: { duration: reduit ? 0 : 180, easing: COURBE.standard } },
         tabBarActiveTintColor: t('ink'),
         tabBarInactiveTintColor: t('ink3'),
+        /* Sur Android la fenêtre se redimensionne avec le clavier : sans ça, la barre
+           d'onglets remonte au-dessus de lui et mange la place du champ. */
+        tabBarHideOnKeyboard: isAndroid,
         tabBarStyle: {
+          /*
+            ⚠️ LE FLOU N'AVAIT RIEN À FLOUTER. La barre n'était pas en position absolue : le
+            contenu s'arrêtait AU-DESSUS d'elle, et les écrans ajoutaient encore sa hauteur
+            en marge — la dernière rangée flottait à 80 px du bas sur Android. Absolue sur
+            iOS (le contenu glisse dessous, `Screen tabbar` le rembourre) ; dans le flux sur
+            Android, où elle est opaque et où le rembourrage n'a donc pas lieu d'être.
+          */
+          position: translucentTabBar ? 'absolute' : 'relative',
           height: height + insets.bottom,
           paddingBottom: insets.bottom,
           /* Opaque sur Android — la surface de la page, pas le fond translucide de la
              barre — et l'élévation prend le relais du filet pour détacher la barre. */
-          backgroundColor: translucentTabBar ? t('tabbarBg') : t('surfacePage'),
+          backgroundColor: translucentTabBar ? 'transparent' : t('surfacePage'),
           borderTopColor: t('tabbarBrd'),
           borderTopWidth: translucentTabBar ? 1 : 0,
           elevation: navBarElevation,
@@ -80,33 +97,68 @@ export default function TabsLayout() {
             <BlurView
               intensity={24}
               tint={scheme === 'dark' ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
+              style={[StyleSheet.absoluteFill, { backgroundColor: t('tabbarBg') }]}
             />
           )
           : undefined,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarLabelStyle: { fontFamily: POLICE.corps, fontSize: 11.5, fontWeight: '600' },
+        tabBarAllowFontScaling: false,
       }}
     >
       <Tabs.Screen
         name="espace"
-        options={{ title: 'Espace', tabBarIcon: ({ color }) => <Icon name="home" size={21} color={color} /> }}
+        options={{ title: 'Espace', tabBarActiveTintColor: violet, tabBarIcon: ({ focused }) => <IconeOnglet nom="home" actif={focused} teinte={violet} /> }}
       />
       <Tabs.Screen
         name="cours"
-        options={{ title: 'Cours', tabBarIcon: ({ color }) => <Icon name="book" size={21} color={color} /> }}
+        options={{ title: 'Cours', tabBarActiveTintColor: bleu, tabBarIcon: ({ focused }) => <IconeOnglet nom="book" actif={focused} teinte={bleu} /> }}
       />
       <Tabs.Screen
         name="repetiteur"
-        options={{ title: tuteur, tabBarIcon: ({ color }) => <Icon name="chat" size={21} color={color} /> }}
+        options={{ title: tuteur, tabBarActiveTintColor: violet, tabBarIcon: ({ focused }) => <IconeOnglet nom="chat" actif={focused} teinte={violet} /> }}
       />
       <Tabs.Screen
         name="club"
-        options={{ title: 'Club', tabBarIcon: ({ color }) => <Icon name="users" size={21} color={color} /> }}
+        options={{ title: 'Club', tabBarActiveTintColor: violet, tabBarIcon: ({ focused }) => <IconeOnglet nom="users" actif={focused} teinte={violet} /> }}
       />
       <Tabs.Screen
         name="profil"
-        options={{ title: 'Profil', tabBarIcon: ({ color }) => <Icon name="user" size={21} color={color} /> }}
+        options={{ title: 'Profil', tabBarActiveTintColor: violet, tabBarIcon: ({ focused }) => <IconeOnglet nom="user" actif={focused} teinte={violet} /> }}
       />
     </Tabs>
+  );
+}
+
+/**
+ * L'ICÔNE D'ONGLET — 220 ms, « l'état a changé ».
+ *
+ * Deux icônes superposées, l'une à l'encre neutre, l'autre à la teinte du territoire, en
+ * fondu croisé : une couleur ne s'anime pas sur le pilote natif. Sur Android, la pilule
+ * d'indicateur de Material 3 s'ouvre derrière l'icône active.
+ *
+ * L'onglet du répétiteur garde son glyphe de bulle : l'onde vit dans SON écran, pas dans la
+ * barre, où elle deviendrait une boucle permanente sans attente derrière.
+ */
+function IconeOnglet({ nom, actif, teinte }: { nom: IconName; actif: boolean; teinte: string }) {
+  const t = useToken();
+  const b = useBascule(actif);
+  return (
+    <View style={{ width: 56, height: 30, alignItems: 'center', justifyContent: 'center' }}>
+      {isAndroid ? (
+        <Animated.View
+          style={{
+            position: 'absolute', width: 56, height: 30, borderRadius: 15,
+            backgroundColor: veil(teinte, 0.16),
+            opacity: b, transform: [{ scaleX: b.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }) }],
+          }}
+        />
+      ) : null}
+      <Animated.View style={{ opacity: b.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }}>
+        <Icon name={nom} size={21} color={t('ink3')} />
+      </Animated.View>
+      <Animated.View style={{ position: 'absolute', opacity: b }}>
+        <Icon name={nom} size={21} color={teinte} />
+      </Animated.View>
+    </View>
   );
 }

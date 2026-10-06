@@ -3,10 +3,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Etat, Provenance } from '../ds';
 import { ErreurAppel, appeler } from './appel';
 import { useSession } from './session';
-import { cleDeVue, ecrireCache, lireCache, type Entree } from './cache';
+import {
+  abonnerPeremption, cleDeVue, relireLesVues, ecrireCache, hydratation, lireCache, lireCachePerime, type Entree,
+} from './cache';
 import { VUE_NULLE } from './contrat.generated';
 
-export { viderLesVues } from './cache';
+export { relireLesVues, viderLesVues } from './cache';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -68,6 +70,7 @@ export function useVue<T>(nom: string, params: Record<string, unknown> = {}, act
       return;
     }
 
+    await hydratation;
     const garde = lireCache(cle);
     if (!forcer && garde) {
       setEtat(depuisCache<T>(garde, porteFermee(nom, derniersParams.current)));
@@ -75,7 +78,11 @@ export function useVue<T>(nom: string, params: Record<string, unknown> = {}, act
     }
 
     const mien = ++tour.current;
-    setEtat({ phase: 'charge', valeur: null });
+    /* CE QU'ON SAIT RESTE AFFICHÉ PENDANT QU'ON RELIT. Un squelette à la place d'un contenu
+       qu'on venait de lire se lit comme une perte ; sa date de relevé dit déjà son âge. */
+    const perime = lireCachePerime(cle);
+    if (perime) setEtat(depuisCache<T>(perime, porteFermee(nom, derniersParams.current)));
+    else setEtat({ phase: 'charge', valeur: null });
     try {
       const reponse = await appeler<Reponse<T>>(nom, derniersParams.current);
       if (mien !== tour.current) return;
@@ -89,6 +96,8 @@ export function useVue<T>(nom: string, params: Record<string, unknown> = {}, act
       setEtat(etatDe<T>(reponse.vue, provenance, porteFermee(nom, derniersParams.current)));
     } catch (erreur: unknown) {
       if (mien !== tour.current) return;
+      /* Hors réseau, une copie datée vaut mieux qu'une panne : on la garde. */
+      if (perime) return;
       setEtat({
         phase: 'panne',
         valeur: null,
@@ -99,6 +108,12 @@ export function useVue<T>(nom: string, params: Record<string, unknown> = {}, act
   }, [actif, cle, nom, session]);
 
   useEffect(() => { void lire(false); }, [lire]);
+
+  /* Une écriture qui rend cette vue fausse la relit — ici, tout de suite, sur l'écran
+     ouvert. Tirer pour rafraîchir relit tout ce qui est monté. */
+  useEffect(() => abonnerPeremption((callables) => (
+    callables === 'toutes' || callables.has(nom) ? lire(true) : undefined
+  )), [lire, nom]);
 
   return etat;
 }
@@ -127,4 +142,18 @@ function etatDe<T>(valeur: unknown, provenance: Provenance, fermeSiNul: boolean)
   }
   if (Array.isArray(valeur) && valeur.length === 0) return { phase: 'vide', valeur: null, ...provenance };
   return { phase: 'servie', valeur: valeur as T, ...provenance };
+}
+
+/**
+ * TIRER POUR RAFRAÎCHIR, pour un écran : `<Screen onRefresh={rafraichir} enRafraichissement={…}>`.
+ * L'indicateur tourne tant que la DERNIÈRE vue montée n'a pas répondu — pas un délai fixe,
+ * qui s'arrêterait avant la réponse sur un réseau lent.
+ */
+export function useRafraichir(): { enRafraichissement: boolean; rafraichir: () => void } {
+  const [enRafraichissement, setEn] = useState(false);
+  const rafraichir = useCallback(() => {
+    setEn(true);
+    void relireLesVues().finally(() => setEn(false));
+  }, []);
+  return { enRafraichissement, rafraichir };
 }

@@ -163,6 +163,9 @@ describe('port natif — la carte de navigation se referme', () => {
     expect(existsSync(join(APP, '(tabs)', 'index.tsx')), "un onglet reprendrait `/` au lancement").toBe(false);
     expect(liens(join(APP, 'index.tsx'))).toEqual(['/lancement']);
     expect(liens(join(APP, 'lancement.tsx'))).toEqual(expect.arrayContaining(['/onboarding', '/espace']));
-    expect(liens(join(APP, 'onboarding.tsx'))).toContain('/permissions');
+    /* L'accueil finit sur le CHOIX DE COMPTE (06/10/2026) : `/permissions` ne demandait
+       rien au système, il a rejoint l'atelier. La biométrie, elle, se propose APRÈS la
+       première connexion (`donnees/accueil.ts`). */
+    expect(liens(join(APP, 'onboarding.tsx'))).toEqual(expect.arrayContaining(['/creation', '/connexion']));
   });
 });

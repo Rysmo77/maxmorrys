@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
-  Avatar, Body, Button, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useToken, veil,
+  Avatar, Body, Button, ChipRow, Display, Eyebrow, Feuille, Field, Icon, LessonRow, Num, SansDonnees, Surface, Tag,
+  haptique, useBandeau, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
 import { ErreurAppel, bloquerLeMembre, provenance, signalerLeMembre, useMembre } from '../../donnees';
@@ -25,13 +27,20 @@ import { ErreurAppel, bloquerLeMembre, provenance, signalerLeMembre, useMembre }
 export default function ClubMembre() {
   const t = useToken();
   const p = useLocalSearchParams<{
-    id?: string; message?: string; nom?: string; metier?: string; ville?: string;
+    id?: string; message?: string; discussion?: string; opportunite?: string;
+    nom?: string; metier?: string; ville?: string;
   }>();
   /* ⚠️ `message` EST CE QUI RENDAIT CET ÉCRAN ATTEIGNABLE. Aucun appelant ne passait d'`id`,
      donc la vue jetait `invalid-argument`, l'écran sortait par sa branche courte, et le
      bouton « Signaler ce profil » n'était JAMAIS rendu — la guideline 1.2 comptait zéro. On
      désigne désormais un message du fil, et le serveur en résout l'auteur. */
-  const fiche = useMembre(p.id, p.message);
+  const fiche = useMembre(p.id, p.message, { discussion: p.discussion, opportunite: p.opportunite });
+  const { bandeau, montrer } = useBandeau();
+  /* Le motif se demande APRÈS l'envoi, dans une feuille : l'écran le promettait, et rien ne
+     le demandait jamais. Il reste facultatif. */
+  const [motifOuvert, setMotifOuvert] = useState(false);
+  const [motif, setMotif] = useState('');
+  const [raison, setRaison] = useState('');
 
   /* Les paramètres priment sur la fiche : quand une liste transmet déjà le nom, l'écran
      l'affiche avant même que la lecture aboutisse — c'est ce qui évite un titre vide
@@ -51,24 +60,41 @@ export default function ClubMembre() {
   async function envoyerLeSignalement() {
     const vise = fiche.valeur?.id ?? p.id;
     if (!vise) {
-      Alert.alert('Membre non identifié', "Ouvre la fiche depuis le fil ou l'annuaire.");
+      montrer('stop', 'Membre non identifié', "Ouvre la fiche depuis le fil ou l'annuaire.");
       return;
     }
     try {
       await signalerLeMembre(vise);
-      Alert.alert('C\'est envoyé', 'Le support le regarde. La personne ne saura pas que ça vient de toi.');
+      haptique.succes();
+      setMotifOuvert(true);
     } catch (erreur: unknown) {
-      Alert.alert(
-        "Le signalement n'est pas parti",
-        erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
-      );
+      montrer('stop', "Le signalement n'est pas parti", erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.');
+    }
+  }
+
+  /* Le serveur écrit un document déterministe : renvoyer avec le motif COMPLÈTE le même
+     signalement, il n'en crée pas un second. */
+  async function envoyerLeMotif() {
+    const vise = fiche.valeur?.id ?? p.id;
+    const texte = [raison, motif.trim()].filter(Boolean).join(' — ');
+    setMotifOuvert(false);
+    if (!vise || texte === '') {
+      montrer('ok', 'Signalement envoyé', 'Le support le regarde. La personne ne saura pas que ça vient de toi.');
+      return;
+    }
+    try {
+      await signalerLeMembre(vise, texte);
+      montrer('ok', 'Signalement envoyé, avec ton motif', 'Le support le regarde. La personne ne saura pas que ça vient de toi.');
+    } catch {
+      montrer('ok', 'Signalement envoyé', "Ton motif n'est pas parti, mais le signalement, lui, est bien arrivé.");
     }
   }
 
   function signaler() {
+    haptique.attention();
     Alert.alert(
       'Signaler ce profil',
-      "Le signalement part tout de suite, sans que tu aies à expliquer pourquoi. Je te demanderai le motif ensuite, si tu veux le donner — et la personne ne saura pas que ça vient de toi.",
+      "Le signalement part tout de suite. Tu pourras ensuite dire pourquoi, si tu veux — et la personne ne saura pas que ça vient de toi.",
       [
         { text: 'Annuler', style: 'cancel' },
         { text: 'Signaler', style: 'destructive', onPress: () => { void envoyerLeSignalement(); } },
@@ -80,23 +106,32 @@ export default function ClubMembre() {
     const vise = fiche.valeur?.id;
     const dejaBloque = fiche.valeur?.bloque === true;
     if (!vise) {
-      Alert.alert('Membre non identifié', "Ouvre la fiche depuis le fil ou l'annuaire.");
+      montrer('stop', 'Membre non identifié', "Ouvre la fiche depuis le fil ou l'annuaire.");
       return;
     }
+    haptique.attention();
     Alert.alert(
       dejaBloque ? `Débloquer ${nom ?? 'ce membre'} ?` : `Bloquer ${nom ?? 'ce membre'} ?`,
       dejaBloque
         ? 'Ses publications réapparaîtront dans le fil, les discussions et les opportunités.'
-        : 'Ses publications disparaîtront du fil, des discussions et des opportunités. Elle n’en sera pas prévenue, et tu pourras défaire depuis « Comptes bloqués ».',
+        : 'Ses publications disparaîtront du fil, des discussions et des opportunités. Cette personne n’en sera pas prévenue, et tu pourras défaire depuis « Comptes bloqués ».',
       [
         { text: 'Annuler', style: 'cancel' },
         {
           text: dejaBloque ? 'Débloquer' : 'Bloquer',
           style: dejaBloque ? 'default' : 'destructive',
           onPress: () => {
+            /* RETOUR AU FIL, RELU. `replace` empilait un second fil par-dessus le premier, qui
+               montrait encore la personne bloquée au retour. L'écriture périme les vues ; le
+               fil déjà monté se relit, et la pile se referme dessus. */
             void bloquerLeMembre({ type: 'membre', id: vise }, !dejaBloque)
-              .then(() => router.replace('/club/fil'))
-              .catch(() => Alert.alert(
+              .then(() => {
+                haptique.succes();
+                if (router.canDismiss()) router.dismissTo('/club/fil');
+                else router.replace('/club/fil');
+              })
+              .catch(() => montrer(
+                'stop',
                 dejaBloque ? 'Le déblocage n’a pas abouti' : 'Le blocage n’a pas abouti',
                 'Rien n’a changé. Réessaie dans un moment.',
               ));
@@ -107,14 +142,16 @@ export default function ClubMembre() {
   }
 
   if (nom === null || initiales === null || fiche.valeur === null) {
+    const enLecture = fiche.phase === 'charge' || fiche.phase === 'restauration';
     return (
       <ClubScreen titre="Membre">
-        <Display size={24} lines={['Cette fiche', "n'est pas chargée."]} />
+        {enLecture ? null : <Display size={24} lines={['Cette fiche', "n'est pas chargée."]} />}
         <SansDonnees
           quoi="cette fiche"
           origine="du compte de la personne"
           degat="Une fiche inventée attribue un métier et un quartier à quelqu'un. Et ce qui n'y figure jamais — ni numéro, ni adresse — vaut aussi pour une fiche fabriquée."
-          style={{ marginTop: 20 }}
+          etat={fiche}
+          style={{ marginTop: enLecture ? 4 : 20 }}
         />
       </ClubScreen>
     );
@@ -123,20 +160,19 @@ export default function ClubMembre() {
 
   return (
     <ClubScreen titre="Membre">
-      <Surface level="flat" style={{ padding: 20 }}>
+      {bandeau}
+      <Surface level="flat" style={{ padding: 20, marginTop: bandeau ? 12 : 0 }}>
         <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          <Avatar initials={initiales} size={58} />
+          <Avatar initials={initiales} size={58} decoratif />
           <View style={{ flex: 1 }}>
             <Display size={20}>{nom}</Display>
             <Body muted style={{ fontSize: 13, marginTop: 4 }}>{metier}</Body>
-            <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('textFaint'), marginTop: 2 }}>
-              {ville}
-            </Body>
+            {ville ? <Body muted style={{ fontSize: 12.5, marginTop: 2 }}>{ville}</Body> : null}
           </View>
         </View>
 
         <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
-          <Tag tone="ok">{membre.depuis}</Tag>
+          {membre.depuis ? <Tag tone="ok">{membre.depuis}</Tag> : null}
           {membre.formations.map((f) => <Tag key={f}>{f}</Tag>)}
         </View>
 
@@ -178,9 +214,9 @@ export default function ClubMembre() {
         <Eyebrow>Un problème avec ce profil</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
           Le signalement part sans motif obligatoire, et la personne ne saura pas qu'il vient de
-          toi. Je te demande le motif après, si tu veux le donner.
+          toi. Le motif se donne après, si tu veux.
         </Body>
-        <Button tone="quiet" size="sm" label="Signaler ce profil" style={{ marginTop: 12 }} onPress={signaler} />
+        <Button tone="danger" size="sm" label="Signaler ce profil" icon="flag" style={{ marginTop: 12 }} onPress={signaler} />
 
         {/* ── LE BLOCAGE — exigence App Store 1.2 ────────────────────────────────────────
             Le signalement s'adresse à nous ; le blocage n'engage que toi. Les deux sont
@@ -188,17 +224,31 @@ export default function ClubMembre() {
             attendre une modération alors qu'il voulait juste ne plus lire quelqu'un. */}
         <Body muted style={{ marginTop: 14, fontSize: 12.5, lineHeight: 19 }}>
           Le blocage, lui, ne nous concerne pas : il retire les publications de cette personne
-          du fil, des discussions et des opportunités — pour toi seul. Elle n’en est pas
-          prévenue.
+          du fil, des discussions et des opportunités — pour toi uniquement. Cette personne n’en
+          est pas prévenue.
         </Body>
         <Button
-          tone="quiet"
           size="sm"
+          tone={fiche.valeur.bloque ? 'quiet' : 'danger'}
           label={fiche.valeur.bloque ? 'Débloquer ce membre' : 'Bloquer ce membre'}
           style={{ marginTop: 10 }}
           onPress={basculerLeBlocage}
         />
       </Surface>
+
+      <Feuille visible={motifOuvert} onFermer={() => { void envoyerLeMotif(); }} titre="Signalement envoyé">
+        <Body muted style={{ fontSize: 14, lineHeight: 21 }}>
+          Tu veux dire pourquoi ? C'est facultatif : le signalement est déjà arrivé.
+        </Body>
+        <ChipRow
+          options={['Démarchage', 'Propos blessants', 'Faux profil', 'Autre']}
+          value={raison}
+          onChange={(r) => setRaison(r === raison ? '' : r)}
+          style={{ marginTop: 14 }}
+        />
+        <Field label="En quelques mots (facultatif)" value={motif} onChangeText={setMotif} multiline maxLength={500} autoCapitalize="sentences" />
+        <Button tone="transforme" label={raison || motif.trim() ? 'Envoyer le motif' : 'Fermer'} style={{ marginTop: 16, marginBottom: 8 }} onPress={() => { void envoyerLeMotif(); }} />
+      </Feuille>
     </ClubScreen>
   );
 }

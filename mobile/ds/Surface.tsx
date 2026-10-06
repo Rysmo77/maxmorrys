@@ -1,6 +1,7 @@
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { ThemeScope, useScheme, useToken, px } from './theme';
+import { useTransparenceReduite } from './transparence';
 import type { ReactNode } from 'react';
 
 /**
@@ -33,6 +34,7 @@ export function Surface({
 }: { level?: Level; children?: ReactNode; style?: StyleProp<ViewStyle> }) {
   const t = useToken();
   const scheme = useScheme();
+  const dense = useTransparenceReduite();
 
   const base: ViewStyle = {
     borderRadius: px(t(level === 'truth' ? 'rM' : level === 'hero' ? 'rXl' : 'rL')),
@@ -65,6 +67,11 @@ export function Surface({
     );
   }
 
+  /* « Réduire la transparence » : ni voile ni flou, la surface de la page, cernée. */
+  if (dense && level !== 'night') {
+    return <View style={[base, { backgroundColor: t('surfacePage'), borderColor: t('borderHair') }, style]}>{children}</View>;
+  }
+
   if (level === 'chrome') {
     /* La seule surface floutée. `intensity` reprend les 24–26 px du système : expo-blur
        compte sur une échelle de 0 à 100, et 24 y correspond au même rendu perçu. */
@@ -78,13 +85,17 @@ export function Surface({
   // Le voile du système, converti en couleur opaque : `--glass-a-flat` vaut .78, donc du
   // blanc à 78 % — ou, sous `.dk`, du blanc à 7 %, parce que sur fond sombre un voile léger
   // suffit à détacher une surface et qu'un voile épais la fait flotter comme un carton.
+  /* Les surfaces « à plat » lisent leur JETON (`surfaceCardFlat`), qui bascule seul en
+     nuit ; seuls le héros et la carte nuit gardent leur voile calculé. */
   const alpha = Number.parseFloat(t(VEIL[level])) || 0.78;
   const white = scheme === 'dark';
-  const surface = white
-    ? `rgba(255,255,255,${level === 'flat' ? 0.07 : 0.08})`
-    : level === 'night'
-      ? `rgba(14,17,22,${alpha})`
-      : `rgba(255,255,255,${alpha})`;
+  const surface = level === 'flat' || level === 'truth'
+    ? t('surfaceCardFlat')
+    : white
+      ? `rgba(255,255,255,0.08)`
+      : level === 'night'
+        ? `rgba(14,17,22,${alpha})`
+        : `rgba(255,255,255,${alpha})`;
 
   return <View style={[base, { backgroundColor: surface }, style]}>{children}</View>;
 }

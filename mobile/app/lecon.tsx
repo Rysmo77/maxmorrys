@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Button, ChipRow, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num, ProgressBar, SansDonnees, Screen, Surface, Tag, isIOS, useActionGradient, useToken,
+  Bandeau, Body, Button, ChipRow, Display, Eyebrow, Gradient, Heros, Icon, IconButton, LessonRow, Num, ProgressBar, Revele,
+  SansDonnees, Screen, Surface, Tag, haptique, isIOS, useActionGradient, useBandeau, useMouvement, useToken,
 } from '../ds';
 import { ErreurAppel, marquerLecon, provenance, useEspace, useLecon, useLeconContenu } from '../donnees';
 import type { LeconContenu } from '../donnees/contrat.generated';
@@ -68,14 +69,36 @@ export default function Lecon() {
   const gardee = contenu ? gardees.find((x) => x.cle === cleDeLecon(contenu.formationId, contenu.id)) : undefined;
   const faite = contenu ? (bascules[contenu.id] ?? contenu.faite) : false;
 
+  const { bandeau, montrer, effacer } = useBandeau();
+  const { reduit } = useMouvement();
+  const defilement = useRef<ScrollView>(null);
+  /* Le moment de fin : la leçon qu'on vient de cocher, le temps de proposer la suivante. */
+  const [terminee, setTerminee] = useState<string | null>(null);
+  /* Retirer une leçon du téléphone s'annule pendant 4 s — le geste est discret, l'erreur
+     coûte un téléchargement sur un forfait compté. */
+  const [retrait, setRetrait] = useState<{ cle: string; minuteur: ReturnType<typeof setTimeout> } | null>(null);
+  useEffect(() => () => { if (retrait) clearTimeout(retrait.minuteur); }, [retrait]);
+
+  /* CHANGER DE LEÇON SUR PLACE REMONTE EN HAUT. Le contenu changeait sous le doigt, et on
+     arrivait au milieu de la leçon suivante, à la hauteur où l'on avait lu la précédente. */
+  function ouvrir(id: string | null) {
+    setLeconId(id);
+    setTerminee(null);
+    effacer();
+    defilement.current?.scrollTo({ y: 0, animated: !reduit });
+  }
+
   async function basculer(id: string, titre: string, suivante: boolean) {
     if (!formationId) return;
     setBascules((b) => ({ ...b, [id]: suivante }));
+    if (suivante) { setTerminee(id); haptique.succes(); } else setTerminee(null);
     try {
       await marquerLecon(formationId, id, suivante, titre);
     } catch (erreur: unknown) {
       setBascules((b) => ({ ...b, [id]: !suivante }));
-      Alert.alert(
+      setTerminee(null);
+      montrer(
+        'stop',
         "Ça n'a pas été enregistré",
         erreur instanceof ErreurAppel ? `${erreur.motif} Ta progression n'a pas changé.` : "Ta progression n'a pas changé.",
       );
@@ -85,34 +108,58 @@ export default function Lecon() {
   async function telecharger() {
     if (!contenu) return;
     try {
-      if (gardee) { await retirerLecon(gardee.cle); return; }
+      if (gardee) {
+        const cle = gardee.cle;
+        if (retrait) clearTimeout(retrait.minuteur);
+        setRetrait({ cle, minuteur: setTimeout(() => { setRetrait(null); void retirerLecon(cle); }, 4000) });
+        return;
+      }
       if (servi.phase !== 'servie') return;
       const { evincees } = await garderLecon(contenu, servi.asOf.toISOString());
+      haptique.succes();
       if (evincees.length > 0) {
-        Alert.alert('Gardée sur ton téléphone', `Pour tenir sous le plafond, ${evincees.length > 1 ? 'les plus anciennes ont été retirées' : 'la plus ancienne a été retirée'} : ${evincees.map((e) => e.titre).join(', ')}.`);
+        montrer('info', 'Gardée sur ton téléphone', `Pour tenir sous le plafond, ${evincees.length > 1 ? 'les plus anciennes ont été retirées' : 'la plus ancienne a été retirée'} : ${evincees.map((e) => e.titre).join(', ')}.`);
       }
     } catch (e: unknown) {
-      Alert.alert("La leçon n'est pas gardée", e instanceof RefusDeGarde ? e.message : "L'écriture sur le téléphone a échoué.");
+      montrer('stop', "La leçon n'est pas gardée", e instanceof RefusDeGarde ? e.message : "L'écriture sur le téléphone a échoué.");
     }
+  }
+
+  function annulerRetrait() {
+    if (!retrait) return;
+    clearTimeout(retrait.minuteur);
+    setRetrait(null);
   }
 
   return (
     <Screen
       territory="forme"
-      tabbar
-      retour="Cours"
+      /* « Cours » était faux une fois sur deux : on arrive ici depuis la fiche d'une
+         formation, l'Espace ou le répétiteur. */
+      retour="Retour"
+      refDefilement={defilement}
       titre={isIOS ? undefined : (contenu?.moduleTitre ?? 'Leçon')}
       droite={contenu ? (
         <IconButton
-          label={gardee ? 'Retirer cette leçon du téléphone' : 'Garder cette leçon pour le hors connexion'}
-          disabled={!gardee && servi.phase !== 'servie'}
+          label={gardee && !retrait ? 'Retirer cette leçon du téléphone' : 'Garder cette leçon pour le hors connexion'}
+          disabled={(!gardee && servi.phase !== 'servie') || retrait !== null}
           onPress={() => { void telecharger(); }}
         >
-          <Icon name={gardee ? 'check-circle' : 'download'} size={17} color={gardee ? t('mmTealT') : t('textBody')} strokeWidth={2.2} />
+          <Icon name={gardee && !retrait ? 'check-circle' : 'download'} size={17} color={gardee && !retrait ? t('mmTealT') : t('textBody')} strokeWidth={2.2} />
         </IconButton>
       ) : undefined}
     >
       <BandeauHorsLigne />
+      {bandeau}
+      {retrait ? (
+        <Bandeau
+          ton="info"
+          titre="Retirée de ce téléphone"
+          corps="Elle ne se lira plus sans réseau."
+          action={<Button tone="quiet" size="sm" label="Annuler" onPress={annulerRetrait} />}
+          style={{ marginTop: 12 }}
+        />
+      ) : null}
       <Eyebrow style={{ marginTop: 6 }}>{contenu?.moduleTitre ?? 'Ta leçon'}</Eyebrow>
 
       {contenu === null ? (
@@ -120,16 +167,20 @@ export default function Lecon() {
           quoi="cette leçon"
           origine={enEchec ? 'du serveur — et elle n\'a pas été gardée sur ce téléphone' : undefined}
           degat="Une leçon inventée est une leçon qu'on croit avoir lue."
-          etat={enEchec ? undefined : servi}
+          etat={servi}
           hauteur={6}
           style={{ marginTop: 14 }}
         />
       ) : (
         <>
-          <Display size={26} lines={[contenu.titre]} style={{ marginTop: 8 }} />
+          {/* Le titre tient sur DEUX lignes et rétrécit au besoin : sur une seule, les titres
+              longs du catalogue tombaient à 65 % et devenaient illisibles. */}
+          <Display size={26} maxLignes={2} style={{ marginTop: 8 }}>{contenu.titre}</Display>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
             {contenu.duree ? <Tag>{contenu.duree}</Tag> : null}
-            {gardee ? <Tag tone="ok">{`Sur ce téléphone · ${poids(gardee.octets)}`}</Tag> : null}
+            {gardee && !retrait ? (
+              <Revele echelle><Tag tone="ok">{`Sur ce téléphone · ${poids(gardee.octets)}`}</Tag></Revele>
+            ) : null}
             {depuisLeTelephone && garde ? (
               <Num value={`Copie gardée · relevée le ${new Date(garde.releveA).toLocaleDateString('fr-FR')}`} source="server" asOf={new Date(garde.releveA)} style={{ fontSize: 11.5 }} />
             ) : null}
@@ -157,9 +208,24 @@ export default function Lecon() {
           {vue === 'Leçon' ? (
             <Surface level="flat" style={{ marginTop: 14, padding: 18 }}>
               {contenu.type === 'quiz' || contenu.type === 'mission' ? (
-                <Body muted style={{ fontSize: 14, lineHeight: 22 }}>
-                  {contenu.type === 'quiz' ? 'Ce quiz' : 'Cette mission'} se fait sur le site, où tes réponses sont comptées.
-                </Body>
+                <>
+                  <Body muted style={{ fontSize: 14, lineHeight: 22 }}>
+                    {contenu.type === 'quiz' ? 'Ce quiz' : 'Cette mission'} se fait sur le site, où tes réponses sont comptées.
+                  </Body>
+                  {/* L'écran le disait sans y mener : un cul-de-sac poli. */}
+                  <Button
+                    tone="quiet"
+                    size="sm"
+                    label="Ouvrir sur le site"
+                    trailing="external"
+                    style={{ marginTop: 12 }}
+                    onPress={() => {
+                      void openBrowserAsync(contenu.slug
+                        ? `https://maxmorrys.me/cours/${contenu.slug}`
+                        : 'https://maxmorrys.me/mon-espace/cours');
+                    }}
+                  />
+                </>
               ) : contenu.contenu ? (
                 <TexteDeLecon contenu={contenu.contenu} />
               ) : (
@@ -188,15 +254,42 @@ export default function Lecon() {
             )
           ) : null}
 
-          <Button
-            tone={faite ? 'quiet' : 'forme'}
-            label={faite ? 'Marquer à refaire' : "J'ai terminé cette leçon"}
-            style={{ marginTop: 16 }}
-            onPress={() => { void basculer(contenu.id, contenu.titre, !faite); }}
-          />
+          {/* ── LE MOMENT DE FIN ── « C'est enregistré ? Qu'est-ce que ça change ? » La coche
+              apparaît, et la leçon suivante se propose à l'endroit où le doigt vient de
+              toucher. Pas de confettis : le certificat porte le seul moment de fête. */}
+          {terminee === contenu.id && faite ? (
+            <Revele echelle>
+              <Surface level="flat" style={{ marginTop: 16, padding: 16 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <Heros>
+                    <View style={{ width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: t('ok') }}>
+                      <Icon name="check" size={18} color={t('paperFixed')} strokeWidth={3} />
+                    </View>
+                  </Heros>
+                  <View style={{ flex: 1 }}>
+                    <Body style={{ fontWeight: '700' }}>Leçon terminée</Body>
+                    <Body muted style={{ fontSize: 13, marginTop: 2 }}>
+                      {contenu.suivante ? 'La suivante est prête.' : 'Tu as fini ce module.'}
+                    </Body>
+                  </View>
+                </View>
+                {contenu.suivante ? (
+                  <Button tone="forme" label="Leçon suivante" trailing="forward" style={{ marginTop: 14 }} onPress={() => ouvrir(contenu.suivante ?? null)} />
+                ) : null}
+              </Surface>
+            </Revele>
+          ) : (
+            <Button
+              tone={faite ? 'quiet' : 'forme'}
+              label={faite ? 'Marquer à refaire' : "J'ai terminé cette leçon"}
+              icon={faite ? 'check' : undefined}
+              style={{ marginTop: 16 }}
+              onPress={() => { void basculer(contenu.id, contenu.titre, !faite); }}
+            />
+          )}
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-            {contenu.precedente ? <Button tone="quiet" size="sm" label="Précédente" onPress={() => setLeconId(contenu.precedente ?? null)} /> : null}
-            {contenu.suivante ? <Button tone="quiet" size="sm" label="Suivante" onPress={() => setLeconId(contenu.suivante ?? null)} /> : null}
+            {contenu.precedente ? <Button tone="quiet" size="sm" label="Précédente" icon="back" onPress={() => ouvrir(contenu.precedente ?? null)} /> : null}
+            {contenu.suivante && terminee !== contenu.id ? <Button tone="quiet" size="sm" label="Suivante" trailing="forward" onPress={() => ouvrir(contenu.suivante ?? null)} /> : null}
           </View>
         </>
       )}
@@ -229,7 +322,7 @@ export default function Lecon() {
                 iconBackground={l.id === contenu?.id ? t('mmBleu') : undefined}
                 title={l.titre}
                 meta={[l.meta, surTelephone ? 'sur ce téléphone' : null].filter(Boolean).join(' · ') || undefined}
-                onPress={() => setLeconId(l.id)}
+                onPress={() => ouvrir(l.id)}
                 last={i === programme.length - 1}
               />
             );
@@ -237,7 +330,7 @@ export default function Lecon() {
         </Surface>
       )}
 
-      <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
+      <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 12 }}>
         Une leçon gardée se lit sans réseau : son texte et ses ressources nommées, pas sa vidéo.
         Le poids affiché est celui qui est réellement écrit sur ton téléphone.
       </Body>

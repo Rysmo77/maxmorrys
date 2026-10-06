@@ -127,7 +127,13 @@ function chargeur(): Map<string, Map<number, string>> {
 
 /** Toutes les familles citées par un fichier natif, dans son code. */
 function famillesCitees(file: string): string[] {
-  return [...new Set([...code(file).matchAll(/fontFamily:\s*'([^']+)'/g)].map((m) => m[1]))];
+  /* Depuis le 06/10/2026, les écrans citent `POLICE.corps` / `POLICE.mono` (`ds/police.ts`) :
+     sur iOS, la vraie famille porte toutes ses graisses, l'alias n'en porte qu'une. Le rôle se
+     résout ici en son nom ANDROID, qui est la clé du chargeur. */
+  const ROLE: Record<string, string> = { affichage: 'Fraunces', corps: 'SchibstedGrotesk', mono: 'JetBrainsMono' };
+  const litterales = [...code(file).matchAll(/fontFamily:\s*'([^']+)'/g)].map((m) => m[1]);
+  const roles = [...code(file).matchAll(/fontFamily:\s*POLICE\.(\w+)/g)].map((m) => ROLE[m[1]] ?? `POLICE.${m[1]}`);
+  return [...new Set([...litterales, ...roles])];
 }
 
 /** Le sous-chemin de paquet d'où le chargeur tire une constante : `…/900Black`. */
@@ -248,6 +254,14 @@ describe('fontes natives — les familles citées sont celles qui sont chargées
     const citees = famillesCitees(join(MOBILE, 'ds/Type.tsx')).sort();
     const chargees = [...chargeur().keys()].sort();
     expect(citees, `familles citées par ds/Type.tsx : ${citees.join(', ')}`).toEqual(chargees);
+  });
+
+  it('`ds/police.ts` nomme, sur Android, exactement les familles du chargeur — et la vraie famille sur iOS', () => {
+    const police = code(join(MOBILE, 'ds/police.ts'));
+    for (const [role, android, ios] of [['corps', 'SchibstedGrotesk', 'Schibsted Grotesk'], ['mono', 'JetBrainsMono', 'JetBrains Mono']] as const) {
+      expect(police, role).toContain(`${role}: Platform.OS === 'ios' ? '${ios}' : '${android}'`);
+      expect(chargeur().has(android), `${android} n'est pas chargé`).toBe(true);
+    }
   });
 
   it('aucun écran natif ne cite une famille absente du chargeur', () => {

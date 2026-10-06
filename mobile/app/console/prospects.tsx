@@ -68,7 +68,7 @@ export default function Prospects() {
 
       <Surface level="night" style={{ marginTop: 12, padding: 17 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <Eyebrow style={{ fontSize: 10 }}>Depuis combien de temps</Eyebrow>
+          <Eyebrow>Depuis combien de temps</Eyebrow>
           {PROSPECT ? <Tag tone="warn">{PROSPECT.statut}</Tag> : null}
         </View>
         <Body muted style={{ fontSize: 12.5, lineHeight: 19, marginTop: 8 }}>

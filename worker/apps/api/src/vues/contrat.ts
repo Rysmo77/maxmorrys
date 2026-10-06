@@ -78,9 +78,13 @@ export interface ModuleFiche {
   meta: string;
   /** Vrai si le module contient au moins une leçon `isFree`. On ne suppose PAS que c'est le premier : c'est l'administration qui décide. */
   ouvert: boolean;
+  /** L'identifiant de la première leçon `isFree` du module — celle que la ligne ouvre. Nul quand le module est fermé. */
+  leconOuverte?: string | null;
 }
 
 export interface Formation {
+  /** L'identifiant du document — ce que `appLeconContenu` attend comme `formationId`. Le slug ne suffit pas. */
+  id: string;
   titre: string;
   titreCourt: string;
   meta: string;
@@ -202,6 +206,8 @@ export interface Ressource {
 /** UNE leçon, entière : ce qui se lit hors connexion une fois gardé sur le téléphone. */
 export interface LeconContenu {
   formationId: string;
+  /** Le slug de la formation — l'adresse du lecteur du site (`/cours/:slug`), où se font les quiz et les missions. */
+  slug?: string | null;
   id: string;
   titre: string;
   type: LeconContenuType;
@@ -431,6 +437,8 @@ export interface RepetiteurEchange {
 }
 
 export interface Repetiteur {
+  /** `preferences.aiMemoryConsent !== false` — le défaut du site, rendu visible pour être réglable. */
+  memoireActive: boolean;
   quota: RepetiteurQuota;
   memoire: RepetiteurFait[];
   echange: RepetiteurEchange[];
@@ -485,6 +493,11 @@ export interface ProfilCree {
 
 export interface Succes {
   success: boolean;
+}
+
+export interface ReglagesRepetiteur {
+  nom?: string | null;
+  memoire: boolean;
 }
 
 /* ── Les formes d'entrée ──────────────────────────────────────────── */
@@ -658,7 +671,8 @@ export type NomDEcriture =
   | "signalerMembre"
   | "bloquerMembre"
   | "creerMonProfil"
-  | "clearRysmoMemory";
+  | "clearRysmoMemory"
+  | "reglerLeRepetiteur";
 
 export interface SortieDEcriture {
   ecrireUneNote: NoteEnveloppe;
@@ -669,6 +683,7 @@ export interface SortieDEcriture {
   bloquerMembre: BilanBlocage;
   creerMonProfil: ProfilCree;
   clearRysmoMemory: Succes;
+  reglerLeRepetiteur: ReglagesRepetiteur;
 }
 
 export type Sortie<N extends NomDEcriture> = SortieDEcriture[N];
@@ -691,4 +706,5 @@ export const VUES_PERIMEES: Readonly<Record<NomDEcriture, readonly NomDeVue[]>> 
   bloquerMembre: ["appClubBlocages", "appClubFil", "appClubListe.discussions", "appClubListe.opportunites", "appClubListe.membre"],
   creerMonProfil: ["appMoi"],
   clearRysmoMemory: ["appRepetiteur"],
+  reglerLeRepetiteur: ["appMoi", "appRepetiteur"],
 } as const;

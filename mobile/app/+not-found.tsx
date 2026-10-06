@@ -26,7 +26,8 @@ export default function NotFound() {
           motif: "Le lien que tu as ouvert désigne un écran qui n'existe pas dans l'application — soit il a changé d'adresse, soit il a été recopié en partie.",
           consequence: "Rien n'est perdu : tes cours, tes notes et ta progression vivent sur ton compte, pas dans ce lien.",
           libelle: 'Revenir à mon espace',
-          sortie: '/',
+          /* `/espace` et non `/` : la racine rejouait l'écran de lancement. */
+          sortie: '/espace',
         },
       }}
     />

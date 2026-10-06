@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
+import { POLICE } from './police';
 import { Pressoir } from './Pressoir';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
@@ -52,11 +53,11 @@ export function MiniPlayer({
       <Gradient colors={g.media} angle={140} radius={10} style={{ width: 38, height: 38 }} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text numberOfLines={1} style={{
-          fontFamily: 'SchibstedGrotesk', fontSize: 13, fontWeight: '600', color: t('textBody'),
+          fontFamily: POLICE.corps, fontSize: 13, fontWeight: '600', color: t('textBody'),
         }}>
           {titre}
         </Text>
-        <Text style={{ fontFamily: 'JetBrainsMono', fontSize: 10.5, color: t('textMuted') }}>
+        <Text style={{ fontFamily: POLICE.mono, fontSize: 11.5, color: t('textMuted') }}>
           {position} / {duree}
         </Text>
       </View>

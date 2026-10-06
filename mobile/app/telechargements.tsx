@@ -1,8 +1,11 @@
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Icon, LessonRow, Num, ProgressBar, Screen, Surface, Switch, useToken, veil,
+  Body, Button, Display, Eyebrow, Icon, LessonRow, Num, ProgressBar, Screen, Skeleton, SqueletteGroupe, Surface, Switch,
+  haptique, useToken, veil,
 } from '../ds';
+import { useSession } from '../donnees/session';
 import { reglerWifiSeul, retirerLecon, useHorsLigne } from '../donnees/hors-ligne';
 import { PLAFOND_OCTETS, poids, totalOctets } from '../donnees/garde';
 
@@ -28,8 +31,35 @@ import { PLAFOND_OCTETS, poids, totalOctets } from '../donnees/garde';
  */
 export default function Telechargements() {
   const t = useToken();
-  const { uid, gardees, wifiSeul } = useHorsLigne();
-  const total = totalOctets(gardees);
+  const { uid, gardees: toutes, wifiSeul } = useHorsLigne();
+  const session = useSession();
+  /* Tant que le téléphone n'a pas relu ses copies, « Rien de gardé » serait affirmé avant
+     d'avoir regardé — il clignotait à chaque ouverture. */
+  const enLecture = uid === null && session.phase !== 'anonyme';
+
+  /*
+   * RETIRER S'ANNULE PENDANT 4 S. La poubelle effaçait sur-le-champ : un doigt qui glisse, et
+   * la leçon est à retélécharger — sur un forfait compté. La ligne s'estompe, propose
+   * « Annuler », puis s'efface vraiment.
+   */
+  const [enRetrait, setEnRetrait] = useState<Record<string, true>>({});
+  const minuteurs = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  useEffect(() => () => { Object.values(minuteurs.current).forEach(clearTimeout); }, []);
+  function retirer(cleLecon: string) {
+    haptique.leger();
+    setEnRetrait((r) => ({ ...r, [cleLecon]: true }));
+    minuteurs.current[cleLecon] = setTimeout(() => {
+      delete minuteurs.current[cleLecon];
+      void retirerLecon(cleLecon).finally(() => setEnRetrait((r) => { const c = { ...r }; delete c[cleLecon]; return c; }));
+    }, 4000);
+  }
+  function annuler(cleLecon: string) {
+    clearTimeout(minuteurs.current[cleLecon]);
+    delete minuteurs.current[cleLecon];
+    setEnRetrait((r) => { const c = { ...r }; delete c[cleLecon]; return c; });
+  }
+  const gardees = toutes;
+  const total = totalOctets(gardees.filter((g) => !enRetrait[g.cle]));
   /* L'appareil est la SOURCE de ces nombres : ils sont mesurés à l'écriture, maintenant. */
   const maintenant = new Date();
 
@@ -41,7 +71,17 @@ export default function Telechargements() {
   }
 
   return (
-    <Screen territory="forme" retour="Profil" titre="Téléchargements">
+    /* « Retour » : on arrive ici depuis l'Espace comme depuis le Profil. */
+    <Screen territory="forme" retour="Retour" titre="Téléchargements">
+      {enLecture ? (
+        <SqueletteGroupe label="Lecture de ce qui est gardé sur ce téléphone">
+          <Skeleton width={150} height={11} style={{ marginTop: 10 }} />
+          <Skeleton width="60%" height={28} style={{ marginTop: 14 }} />
+          <Skeleton height={64} radius={18} style={{ marginTop: 22 }} />
+          <Skeleton height={120} radius={18} style={{ marginTop: 24 }} />
+        </SqueletteGroupe>
+      ) : null}
+      {enLecture ? null : <>
       <Eyebrow style={{ marginTop: 6 }}>
         {gardees.length === 0 ? 'Aucune leçon hors connexion' : `${gardees.length} ${gardees.length > 1 ? 'leçons' : 'leçon'} hors connexion`}
       </Eyebrow>
@@ -66,25 +106,30 @@ export default function Telechargements() {
       ) : (
         <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
           {[...gardees].sort((a, b) => b.gardeeLe.localeCompare(a.gardeeLe)).map((l, i, liste) => (
-            <LessonRow
-              key={l.cle}
-              state="done"
-              title={l.titre}
-              meta={[poids(l.octets), l.videoEnLigne ? 'vidéo en ligne seulement' : null].filter(Boolean).join(' · ')}
-              onPress={() => router.push({ pathname: '/lecon', params: { formationId: l.formationId, leconId: l.leconId } })}
-              last={i === liste.length - 1}
-              trailing={
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Retirer du téléphone : ${l.titre}`}
-                  onPress={() => { void retirerLecon(l.cle); }}
-                  hitSlop={4}
-                  style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: veil(t('stop'), 0.1) }}
-                >
-                  <Icon name="trash" size={14} color={t('stop')} strokeWidth={2.2} />
-                </Pressable>
-              }
-            />
+            <View key={l.cle} style={{ opacity: enRetrait[l.cle] ? 0.5 : 1 }}>
+              <LessonRow
+                state="done"
+                title={l.titre}
+                meta={enRetrait[l.cle]
+                  ? 'retirée dans un instant'
+                  : [poids(l.octets), l.videoEnLigne ? 'vidéo en ligne seulement' : null].filter(Boolean).join(' · ')}
+                onPress={enRetrait[l.cle] ? undefined : () => router.push({ pathname: '/lecon', params: { formationId: l.formationId, leconId: l.leconId } })}
+                last={i === liste.length - 1}
+                trailing={enRetrait[l.cle] ? (
+                  <Button tone="quiet" size="sm" label="Annuler" onPress={() => annuler(l.cle)} />
+                ) : (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Retirer du téléphone : ${l.titre}`}
+                    onPress={() => retirer(l.cle)}
+                    hitSlop={4}
+                    style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: veil(t('stop'), 0.1) }}
+                  >
+                    <Icon name="trash" size={14} color={t('stop')} strokeWidth={2.2} />
+                  </Pressable>
+                )}
+              />
+            </View>
           ))}
         </Surface>
       )}
@@ -95,11 +140,11 @@ export default function Telechargements() {
           <Num value={poids(total)} source={{ cite: 'mesuré sur cet appareil' }} asOf={maintenant} style={{ fontSize: 21 }} />
         </View>
         <ProgressBar value={Math.min(100, (total / PLAFOND_OCTETS) * 100)} style={{ marginTop: 12 }} />
-        <Body muted style={{ fontSize: 11.5, marginTop: 8, color: t('textFaint') }}>
+        <Body muted style={{ fontSize: 12, marginTop: 8 }}>
           sur {poids(PLAFOND_OCTETS)} que l'app s'autorise. Au-delà, elle retire d'abord la leçon
           gardée depuis le plus longtemps — et te dit laquelle.
         </Body>
-        {gardees.length > 0 ? <Button tone="quiet" label="Tout retirer" style={{ marginTop: 14 }} onPress={toutRetirer} /> : null}
+        {gardees.length > 0 ? <Button tone="danger" label="Tout retirer" icon="trash" style={{ marginTop: 14 }} onPress={toutRetirer} /> : null}
       </Surface>
 
       <Surface level="truth" style={{ marginTop: 12, padding: 15 }}>
@@ -109,6 +154,7 @@ export default function Telechargements() {
           téléphone. Retirer une leçon ne fait que la retélécharger plus tard.
         </Body>
       </Surface>
+      </>}
     </Screen>
   );
 }

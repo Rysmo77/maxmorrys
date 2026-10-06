@@ -1,6 +1,9 @@
-import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import type { ReactNode } from 'react';
-import { useToken } from './theme';
+import { Onde } from './Onde';
+import { Revele } from './Pressoir';
+import { useScheme, useToken } from './theme';
 
 /**
  * LA BULLE DE CONVERSATION — et la raison pour laquelle elle n'a AUCUN flou.
@@ -10,15 +13,29 @@ import { useToken } from './theme';
  * qui coûtait un recompositing par bulle et par image. Elle a perdu le flou, et son voile a
  * été relevé pour compenser.
  *
- * `typing` rend les trois points. Ils ne CLIGNOTENT pas ici : `prefers-reduced-motion` est
- * câblé une fois pour toutes au web, et le natif n'a pas d'équivalent global — animer trois
- * points sur un appareil à 2 Go, pour dire « ça arrive », coûte plus que le repos ne coûte de
- * clarté. Les trois points statiques disent la même chose.
+ * `typing` rend l'ONDE DE RÉFLEXION (`ds/Onde.tsx`) et le nom de qui écrit. Les trois points
+ * statiques qui la précédaient disaient « en attente » sans dire « ça travaille ».
+ *
+ * ── CE QUE LIT UN LECTEUR D'ÉCRAN ─────────────────────────────────────────────────────
+ * Une bulle sans locuteur se lit comme une phrase sans auteur : on ne sait plus qui a dit
+ * quoi. `auteur` est annoncé en tête. L'appui long ouvre « Copier » (`onAppuiLong`).
+ *
+ * ⚠️ EN SOMBRE, la bulle « moi » prend l'encre SOMBRE fixe : du blanc sur le violet nuit
+ * (#B98CFF) tombait à 2,5:1.
  */
 export function ChatBubble({
-  from = 'ai', typing, children, style,
-}: { from?: 'me' | 'ai'; typing?: boolean; children?: ReactNode; style?: StyleProp<ViewStyle> }) {
+  from = 'ai', typing, auteur, onAppuiLong, children, style,
+}: {
+  from?: 'me' | 'ai';
+  typing?: boolean;
+  /** Qui parle — « Toi », ou le nom du répétiteur. Annoncé en tête de la bulle. */
+  auteur?: string;
+  onAppuiLong?: () => void;
+  children?: ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
   const t = useToken();
+  const scheme = useScheme();
   const me = from === 'me';
 
   const base: ViewStyle = {
@@ -30,23 +47,35 @@ export function ChatBubble({
 
   if (typing) {
     return (
-      <View
-        accessibilityLabel="Réponse en cours d'écriture"
-        style={[base, {
-          width: 64, borderBottomLeftRadius: 7,
-          backgroundColor: t('bubbleBg'), borderWidth: 1, borderColor: t('bubbleBrd'),
-          flexDirection: 'row', alignItems: 'center', gap: 4,
-        }, style]}
-      >
-        {[0, 1, 2].map((i) => (
-          <View key={i} style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: t('mmViolet'), opacity: 0.35 }} />
-        ))}
-      </View>
+      <Revele>
+        <View
+          accessible
+          accessibilityLabel={`${auteur ?? 'Le répétiteur'} écrit une réponse`}
+          accessibilityLiveRegion="polite"
+          style={[base, {
+            alignSelf: 'flex-start', borderBottomLeftRadius: 7,
+            backgroundColor: t('bubbleBg'), borderWidth: 1, borderColor: t('bubbleBrd'),
+            flexDirection: 'row', alignItems: 'center', gap: 10,
+          }, style]}
+        >
+          <Onde actif taille={16} />
+          <Text style={{ fontFamily: POLICE.corps, fontSize: 13.5, color: t('textMuted') }}>
+            {auteur ?? 'Le répétiteur'} réfléchit…
+          </Text>
+        </View>
+      </Revele>
     );
   }
 
+  const encreMoi = scheme === 'dark' ? t('inkFixed') : t('paperFixed');
+
   return (
-    <View
+    <Pressable
+      accessible
+      accessibilityLabel={auteur && typeof children === 'string' ? `${auteur} : ${children}` : undefined}
+      accessibilityHint={onAppuiLong ? 'Appui long pour copier' : undefined}
+      onLongPress={onAppuiLong}
+      delayLongPress={350}
       style={[base, me
         ? { alignSelf: 'flex-end', backgroundColor: t('mmViolet'), borderBottomRightRadius: 7 }
         : { alignSelf: 'flex-start', backgroundColor: t('bubbleBg'), borderWidth: 1, borderColor: t('bubbleBrd'), borderBottomLeftRadius: 7 },
@@ -54,12 +83,12 @@ export function ChatBubble({
     >
       {typeof children === 'string' ? (
         <Text style={{
-          fontFamily: 'SchibstedGrotesk', fontSize: 14, lineHeight: 20,
-          color: me ? t('paperFixed') : t('textBody'),
+          fontFamily: POLICE.corps, fontSize: 14, lineHeight: 20,
+          color: me ? encreMoi : t('textBody'),
         }}>
           {children}
         </Text>
       ) : children}
-    </View>
+    </Pressable>
   );
 }

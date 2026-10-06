@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import type { ReactNode } from 'react';
 import { useToken } from './theme';
 
@@ -28,10 +29,10 @@ export function DocLine({
       }, style]}
     >
       {typeof label === 'string'
-        ? <Text style={{ fontFamily: 'SchibstedGrotesk', fontSize: 13.5, color: t('textMuted'), flex: 1 }}>{label}</Text>
+        ? <Text style={{ fontFamily: POLICE.corps, fontSize: 13.5, color: t('textMuted'), flex: 1 }}>{label}</Text>
         : <View style={{ flex: 1 }}>{label}</View>}
       {typeof value === 'string'
-        ? <Text style={{ fontFamily: 'JetBrainsMono', fontWeight: '700', fontSize: 13.5, color: t('textBody') }}>{value}</Text>
+        ? <Text style={{ fontFamily: POLICE.mono, fontWeight: '700', fontSize: 13.5, color: t('textBody') }}>{value}</Text>
         : value}
     </View>
   );

@@ -18,7 +18,7 @@ export { Mesh } from './Mesh';
 export { Surface } from './Surface';
 export { Gradient, useActionGradient, useDegrade } from './Gradient';
 export { analyserDegrade, ligneDeDegrade, type Degrade } from './degrade';
-export { Skeleton } from './Skeleton';
+export { Skeleton, SqueletteGroupe } from './Skeleton';
 export { EmptyState } from './EmptyState';
 /* Le vide HONNÊTE de la production : ce qui manque, d'où ça vient, pourquoi rien n'est inventé. */
 export { SansDonnees } from './SansDonnees';
@@ -35,6 +35,8 @@ export { Display, Body, Eyebrow } from './Type';
    `Type.tsx` les CITE ; c'est ici qu'elles arrivent, sans quoi tout retombe en police système. */
 export { FONTES, CARTE_DES_FONTES, GRAISSE_BASE, useFontesChargees, type Famille } from './Fontes';
 export { Num, type NumProps, type NumSource } from './Num';
+/* Le nom de famille par plateforme : sur iOS, la vraie famille, qui porte toutes ses graisses. */
+export { POLICE } from './police';
 
 /* Actions */
 export { Button } from './Button';
@@ -73,6 +75,24 @@ export { MiniPlayer } from './MiniPlayer';
 
 /* Le nom du répétiteur — un réglage, jamais une constante recopiée. */
 export { tutorNom, useTutorNom, setTutorNom, TUTOR_DEFAUT } from './tutor';
-export { APPAREIL_MODESTE, COURBE, DUREE, ENFONCEMENT, duree, mouvementReduit, useBascule, useMouvement } from './mouvement';
-export { Pressoir, Revele } from './Pressoir';
+export {
+  APPAREIL_MODESTE, COURBE, DUREE, ENFONCEMENT, duree, mouvementReduit, reduitMaintenant, useBascule, useMouvement,
+} from './mouvement';
+export { Fondu, Heros, Pressoir, Revele } from './Pressoir';
 export { Anneaux } from './Anneaux';
+
+/* Les retours d'action — sur place, jamais flottants (le kit interdit la notification
+   flottante : « elle apparaît là où la personne ne regarde pas »). */
+export { haptique } from './haptique';
+export { useConfirmation } from './useConfirmation';
+export { Bandeau, type BandeauTon } from './Bandeau';
+export { useBandeau } from './useBandeau';
+export { Feuille } from './Feuille';
+/* La signature du répétiteur : trois barres, animées seulement pendant qu'il réfléchit. */
+export { Onde } from './Onde';
+/* « Réduire la transparence » (iOS) : lu une fois, comme le mouvement. */
+export { useTransparenceReduite } from './transparence';
+/* La typographie par rôle et l'espacement par intention (audit du 05/10/2026, DS-02/03/04). */
+export { Texte, type RoleTexte, type TonTexte } from './Texte';
+export { ECART, Pile, Rangee, Section, type Ecart } from './Pile';
+export { elevation } from './elevation';

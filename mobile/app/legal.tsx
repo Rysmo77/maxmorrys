@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Eyebrow, Icon, IconButton, LessonRow, Screen, Surface, isIOS, useToken,
+  Body, Eyebrow, Icon, IconButton, LessonRow, Screen, Surface, isIOS, useToken, POLICE,
 } from '../ds';
 
 /**
@@ -67,7 +67,7 @@ export default function Legal() {
   return (
     <Screen
       territory="forme"
-      retour="Profil"
+      retour="Retour"
       titre={isIOS ? undefined : 'Textes légaux'}
       droite={
         <IconButton label="Fermer" onPress={() => router.back()}>
@@ -102,8 +102,8 @@ export default function Legal() {
       <Body
         muted
         style={{
-          fontFamily: 'JetBrainsMono', fontSize: 11, marginTop: 18,
-          color: t('textFaint'), textAlign: 'center',
+          fontFamily: POLICE.mono, fontSize: 11.5, marginTop: 18,
+          color: t('textMuted'), textAlign: 'center',
         }}
       >
         Rysmo {version}

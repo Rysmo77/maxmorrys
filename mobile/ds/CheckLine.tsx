@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import type { ReactNode } from 'react';
 import { useToken, veil } from './theme';
 import { Icon } from './Icon';
@@ -50,7 +51,7 @@ export function CheckLine({
       </View>
       <View style={{ flex: 1 }}>
         {typeof children === 'string' ? (
-          <Text style={{ fontFamily: 'SchibstedGrotesk', fontSize: 14.5, lineHeight: 22, color: t('textBody') }}>
+          <Text style={{ fontFamily: POLICE.corps, fontSize: 14.5, lineHeight: 22, color: t('textBody') }}>
             {children}
           </Text>
         ) : children}

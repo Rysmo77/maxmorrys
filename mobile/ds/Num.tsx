@@ -1,4 +1,5 @@
 import { Text, type StyleProp, type TextStyle } from 'react-native';
+import { POLICE } from './police';
 import { useToken, px } from './theme';
 
 /**
@@ -40,7 +41,7 @@ export function Num({ value, source, asOf, unit, fallback, locale = 'fr', style 
 
   if (value === null || value === undefined || value === '') {
     return (
-      <Text style={[{ fontFamily: 'SchibstedGrotesk', color: t('textMuted'), fontSize: px(t('fsMeta2')), fontStyle: 'italic' }, style]}>
+      <Text style={[{ fontFamily: POLICE.corps, color: t('textMuted'), fontSize: px(t('fsMeta2')), fontStyle: 'italic' }, style]}>
         {fallback ?? (locale === 'en' ? 'not measured' : 'non relevé')}
       </Text>
     );
@@ -48,14 +49,14 @@ export function Num({ value, source, asOf, unit, fallback, locale = 'fr', style 
 
   return (
     <Text style={[{
-      fontFamily: 'JetBrainsMono',
+      fontFamily: POLICE.mono,
       fontWeight: '700',
       color: t('textNum'),
       // `fontVariant` tabulaire : sans lui, une colonne de nombres qui se met à jour tressaute.
       fontVariant: ['tabular-nums'],
     }, style]}>
       {typeof value === 'number' ? group(value, locale) : value}
-      {unit ? <Text style={{ fontFamily: 'SchibstedGrotesk', fontWeight: '400' }}>{` ${unit}`}</Text> : null}
+      {unit ? <Text style={{ fontFamily: POLICE.corps, fontWeight: '400' }}>{` ${unit}`}</Text> : null}
     </Text>
   );
 }

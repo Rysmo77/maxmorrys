@@ -27,7 +27,8 @@
 
 export type Operation =
   | { type: 'marquerLecon'; params: { formationId: string; leconId: string; faite: boolean } }
-  | { type: 'ecrireUneNote'; params: { texte: string; lessonId?: string; lessonLabel?: string; idClient: string } };
+  | { type: 'ecrireUneNote'; params: { texte: string; lessonId?: string; lessonLabel?: string; idClient: string } }
+  | { type: 'posterAuClub'; params: { texte: string; categorie?: string; idClient: string } };
 
 export interface EnFile {
   id: string;
@@ -44,9 +45,8 @@ export interface Ecartee extends EnFile {
 
 /** La clé de fusion : deux gestes sur la même leçon n'en font qu'un. Une note est unique. */
 function cleDeFusion(op: Operation): string {
-  return op.type === 'marquerLecon'
-    ? `lecon:${op.params.formationId}:${op.params.leconId}`
-    : `note:${op.params.idClient}`;
+  if (op.type === 'marquerLecon') return `lecon:${op.params.formationId}:${op.params.leconId}`;
+  return op.type === 'posterAuClub' ? `club:${op.params.idClient}` : `note:${op.params.idClient}`;
 }
 
 /** Ajoute un geste ; un geste plus ancien sur la même leçon est REMPLACÉ, à sa place. */

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
+import { apresConnexion } from '../donnees/accueil';
 import { Body, Button, GoogleMark, useToken } from '../ds';
 import { ErreurIdentite, avecGoogle, connexionGoogle } from '../donnees/identite';
 
@@ -22,7 +23,7 @@ export function BoutonGoogle({ style }: { style?: object }) {
     setEnCours(true);
     setEchec(null);
     try {
-      if (await connexionGoogle()) router.replace('/espace');
+      if (await connexionGoogle()) router.replace(await apresConnexion());
     } catch (e: unknown) {
       setEchec(e instanceof ErreurIdentite ? e.motif : 'La connexion avec Google a échoué.');
     } finally {

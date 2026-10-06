@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   Avatar, Body, Button, Eyebrow, Field, Icon, LessonRow, SansDonnees, Screen,
-  Surface, Switch, TUTOR_DEFAUT, isIOS, setTutorNom, useScheme, useToken, useTutorNom, veil,
+  Surface, Switch, TUTOR_DEFAUT, isIOS, useBandeau, useConfirmation, useScheme, useToken, useTutorNom, veil,
 } from '../../ds';
 import { useResumeTelechargements } from '../../donnees/hors-ligne';
 import { PORTEE_RESUMEE } from '../../contenu/termes';
 import { ErreurAppel } from '../../donnees/appel';
 import { deconnexion } from '../../donnees/identite';
 import { useSession } from '../../donnees/session';
-import { useMoi } from '../../donnees';
+import { reglerLeRepetiteur, useMoi, useRafraichir } from '../../donnees';
+import { usePreference } from '../../donnees/preferences';
 import { exporterMesDonnees } from '../../donnees/rgpd';
 import { useVerrou } from '../../donnees/verrou';
 
@@ -36,10 +37,16 @@ import { useVerrou } from '../../donnees/verrou';
  * contredirait le réglage du téléphone la moitié du temps. Il se pose le jour où le choix est
  * persisté dans le profil, pas avant.
  */
-const COMPTE = [
-  { href: '/connexion', glyphe: 'login' as const, titre: 'Connexion', meta: 'ton e-mail et ton mot de passe' },
+/* Les lignes de compte DÉPENDENT DE LA SESSION. Connecté, « Connexion » ouvrait un écran de
+   connexion par-dessus une session ouverte, et « Entrer sans mot de passe » doublonnait
+   l'interrupteur biométrique de « Sur cet appareil ». */
+const COMPTE_ANONYME = [
+  { href: '/connexion', glyphe: 'login' as const, titre: 'Me connecter', meta: 'ton e-mail et ton mot de passe' },
+  { href: '/creation', glyphe: 'user' as const, titre: 'Créer mon compte', meta: 'gratuit, en une minute' },
   { href: '/mot-de-passe', glyphe: 'lock' as const, titre: 'Mot de passe oublié', meta: 'un lien de réinitialisation' },
-  { href: '/biometrie', glyphe: 'shield' as const, titre: 'Entrer sans mot de passe', meta: 'un raccourci, pas un remplacement' },
+] as const;
+const COMPTE_CONNECTE = [
+  { href: '/mot-de-passe', glyphe: 'lock' as const, titre: 'Changer mon mot de passe', meta: 'un lien par e-mail' },
 ] as const;
 
 /*
@@ -59,6 +66,11 @@ const AILLEURS = [
   ...(ATELIER ? [
     { href: '/console', glyphe: 'dashboard' as const, titre: 'Console support', meta: PORTEE_RESUMEE },
     { href: '/apercu', glyphe: 'layers' as const, titre: 'Tous les écrans', meta: 'la planche de référence du kit' },
+    /* Deux surfaces natives que le binaire ne contient pas encore : leur maquette reste
+       consultable en atelier, jamais en production. */
+    { href: '/widget', glyphe: 'smartphone' as const, titre: 'Maquette du widget', meta: 'pas encore dans le binaire' },
+    { href: '/verrouille', glyphe: 'lock' as const, titre: "Maquette de l'écran verrouillé", meta: 'pas encore dans le binaire' },
+    { href: '/permissions', glyphe: 'bell' as const, titre: 'Maquette des notifications', meta: 'pas encore dans le binaire' },
   ] : []),
 ] as const;
 
@@ -67,10 +79,33 @@ export default function Profil() {
   const scheme = useScheme();
   const tuteur = useTutorNom();
   const telechargements = useResumeTelechargements();
-  const [reprise, setReprise] = useState(true);
+  const [reprise, setReprise] = usePreference('notif.reprise', true);
   const [exportEnCours, setExportEnCours] = useState(false);
   const session = useSession();
   const moi = useMoi();
+  const { bandeau, montrer } = useBandeau();
+  const { enRafraichissement, rafraichir } = useRafraichir();
+  const COMPTE = session.phase === 'connectee' ? COMPTE_CONNECTE : COMPTE_ANONYME;
+
+  /*
+   * LE NOM SE TAPE LIBREMENT, ET S'ENREGISTRE À LA SORTIE DU CHAMP. Il était recalculé à
+   * chaque frappe (`trim`), si bien qu'un espace tapé disparaissait aussitôt : « Mon Coach »
+   * était impossible à écrire. Il est maintenant écrit dans le PROFIL, et suit la personne.
+   */
+  const [brouillon, setBrouillon] = useState(tuteur);
+  useEffect(() => { setBrouillon(tuteur); }, [tuteur]);
+  const nomEnregistre = useConfirmation();
+  async function enregistrerNom() {
+    const net = brouillon.trim();
+    if (net === tuteur || (net === '' && tuteur === TUTOR_DEFAUT)) return;
+    if (session.phase !== 'connectee') { montrer('info', 'Connecte-toi pour renommer ton répétiteur', 'Le nom vit dans ton profil, pour te suivre d\'un appareil à l\'autre.'); setBrouillon(tuteur); return; }
+    try {
+      await reglerLeRepetiteur({ nom: net });
+      nomEnregistre.confirmer(`${net || TUTOR_DEFAUT} enregistré`);
+    } catch (erreur: unknown) {
+      montrer('stop', "Le nom n'a pas été enregistré", erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.');
+    }
+  }
 
   async function quitter() {
     await deconnexion();
@@ -83,16 +118,13 @@ export default function Profil() {
     try {
       await exporterMesDonnees();
     } catch (erreur: unknown) {
-      Alert.alert(
-        "L'export n'a pas abouti",
-        erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
-      );
+      montrer('stop', "L'export n'a pas abouti", erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.');
     } finally {
       setExportEnCours(false);
     }
   }
-  const [serie, setSerie] = useState(true);
-  const [club, setClub] = useState(true);
+  const [serie, setSerie] = usePreference('notif.serie', true);
+  const [club, setClub] = usePreference('notif.club', true);
   /*
    * ⚠️ CET INTERRUPTEUR ÉTAIT UN `useState(true)`. Il s'affichait ALLUMÉ au premier rendu,
    * pour un verrou que rien ne posait et que rien ne lisait — le même mensonge que le bouton
@@ -108,7 +140,7 @@ export default function Profil() {
       return;
     }
     const verdict = await verrou.activer();
-    if (!verdict.ok) Alert.alert("Le verrou n'a pas été posé", verdict.motif);
+    if (!verdict.ok) montrer('stop', "Le verrou n'a pas été posé", verdict.motif);
   }
 
   return (
@@ -116,7 +148,10 @@ export default function Profil() {
       territory="transforme"
       tabbar
       titre={isIOS ? undefined : 'Mon profil'}
+      onRefresh={rafraichir}
+      enRafraichissement={enRafraichissement}
     >
+      {bandeau}
       {/* L'identité vient du compte, et elle ne s'invente pas : un nom affiché ici est le nom
           que la personne croira connecté. Les réglages, eux, tiennent sans elle. */}
       {moi.valeur === null ? (
@@ -132,12 +167,14 @@ export default function Profil() {
       ) : (
         <Surface level="flat" style={{ marginTop: 8, padding: 18 }}>
           <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-            <Avatar initials={moi.valeur.initiale} size={54} />
+            <Avatar initials={moi.valeur.initiale} size={54} decoratif />
             <View style={{ flex: 1 }}>
               <Body style={{ fontSize: 16, fontWeight: '700' }}>{moi.valeur.nom}</Body>
-              <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 12, marginTop: 2 }}>{moi.valeur.email}</Body>
+              {/* Le courriel n'est pas un nombre vérifiable : il prend la police du corps. */}
+              <Body muted style={{ fontSize: 13, marginTop: 2 }}>{moi.valeur.email}</Body>
             </View>
-            <Button tone="quiet" size="sm" label="Modifier" onPress={() => router.push('/connexion')} />
+            {/* « Modifier » ouvrait l'écran de CONNEXION : il n'existe aucun écran d'édition du
+                profil dans l'application. Le bouton est parti plutôt que de mentir. */}
           </View>
         </Surface>
       )}
@@ -157,11 +194,11 @@ export default function Profil() {
         />
         <LessonRow
           title="Session du Club"
-          meta="1 h avant, si tu es inscrite"
+          meta="1 h avant, si tu as réservé ta place"
           trailing={<Switch on={club} label="Session du Club" onPress={() => setClub(!club)} />}
         />
         <LessonRow
-          title={<Body style={{ fontWeight: '600', fontSize: 14, color: t('textFaint') }}>Par e-mail</Body>}
+          title={<Body style={{ fontWeight: '600', fontSize: 14 }}>Par e-mail</Body>}
           meta="aucun canal d'envoi n'existe encore"
           trailing={<Switch disabled label="Par e-mail — indisponible" />}
           last
@@ -187,10 +224,10 @@ export default function Profil() {
           </View>
           <View style={{ flex: 1 }}>
             <Body style={{ fontSize: 13.5, fontWeight: '600' }}>Rien n'est encore envoyé</Body>
-            <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 3 }}>
-              Ces trois réglages sont enregistrés, mais le canal d'envoi n'existe pas encore :
-              l'application n'a demandé aucune autorisation à {isIOS ? 'iOS' : 'Android'}, et
-              elle ne t'enverra rien tant qu'elle ne l'aura pas fait.
+            <Body muted style={{ fontSize: 12.5, lineHeight: 18, marginTop: 3 }}>
+              Ces trois choix sont gardés sur ce téléphone. Les notifications n'existent pas
+              encore : rien ne t'est envoyé pour l'instant, et {isIOS ? 'iOS' : 'Android'} ne
+              t'a rien demandé.
             </Body>
           </View>
         </View>
@@ -211,7 +248,7 @@ export default function Profil() {
          cherche un `onPress` manquant, pas un `onChange` absent sur un composant à choix.
          Le test est étendu dans le même lot. */}
       <Eyebrow style={{ marginTop: 22 }}>Apparence</Eyebrow>
-      <Body muted style={{ fontSize: 11.5, marginTop: 10, color: t('textFaint') }}>
+      <Body muted style={{ fontSize: 11.5, marginTop: 10 }}>
         L'affichage suit ton téléphone, actuellement en mode {scheme === 'dark' ? 'sombre' : 'clair'}.
         L'application ne le contredit pas.
       </Body>
@@ -221,12 +258,19 @@ export default function Profil() {
       <Surface level="flat" style={{ marginTop: 10, padding: 17 }}>
         <Field
           label="Comment tu l'appelles"
-          value={tuteur}
-          onChangeText={setTutorNom}
+          value={brouillon}
+          onChangeText={setBrouillon}
           autoCapitalize="words"
-          hint={`Par défaut : ${TUTOR_DEFAUT}. Le nom ne change que pour toi.`}
+          autoCorrect={false}
+          maxLength={40}
+          returnKeyType="done"
+          onSubmitEditing={() => { void enregistrerNom(); }}
+          hint={nomEnregistre.confirme ? 'Enregistré dans ton profil.' : `Par défaut : ${TUTOR_DEFAUT}. Le nom ne change que pour toi.`}
           style={{ marginTop: 0 }}
         />
+        {brouillon.trim() !== tuteur && !(brouillon.trim() === '' && tuteur === TUTOR_DEFAUT) ? (
+          <Button tone="transforme" size="sm" label="Enregistrer le nom" style={{ marginTop: 10 }} onPress={() => { void enregistrerNom(); }} />
+        ) : null}
         <Button
           tone="quiet"
           size="sm"
@@ -241,7 +285,9 @@ export default function Profil() {
       <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
         <LessonRow
           icon={<Icon name="lock" size={14} color={t('ink2')} />}
-          title={isIOS ? 'Entrer avec Face ID' : "Entrer avec l'empreinte"}
+          /* Le geste RÉEL de l'appareil : « Face ID » était écrit en dur, faux sur un iPhone
+             à capteur d'empreinte comme sur Android. */
+          title={verrou.capacite?.etat === 'pret' ? `Entrer avec ${verrou.capacite.geste}` : 'Entrer sans mot de passe'}
           /* Quand l'appareil ne peut pas, la ligne DIT pourquoi plutôt que de rester
              muette : un réglage éteint sans raison se lit comme une panne. */
           meta={verrou.capacite === null || verrou.capacite.etat === 'pret'
@@ -263,15 +309,10 @@ export default function Profil() {
           meta={telechargements}
           trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
           onPress={() => router.push('/telechargements')}
-        />
-        <LessonRow
-          icon={<Icon name="smartphone" size={14} color={t('ink2')} />}
-          title="Le widget d'écran d'accueil"
-          meta="la relance qui n'interrompt rien"
-          trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
-          onPress={() => router.push('/widget')}
           last
         />
+        {/* La ligne du widget est partie : il n'existe pas dans le binaire. L'annoncer dans
+            les réglages, c'était promettre une fonction à la revue comme à la personne. */}
       </Surface>
 
       {/* ── LES DONNÉES ────────────────────────────────────────────────────────────────── */}

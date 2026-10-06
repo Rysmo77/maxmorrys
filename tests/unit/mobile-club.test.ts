@@ -47,8 +47,8 @@ describe('la bande des huit onglets', () => {
   it('l’enveloppe pose la bande, et la bande remplace au lieu d’empiler', () => {
     const layout = lire(join(CLUB, '_layout.tsx'));
     const coquille = layout.slice(layout.indexOf('export function ClubScreen'), layout.indexOf('function BandeClub'));
-    expect(coquille).toContain('<BandeClub />');
-    const bande = layout.slice(layout.indexOf('function BandeClub'));
+    expect(coquille).toMatch(/<BandeClub\b/);
+    const bande = layout.slice(layout.indexOf('function BandeClub'), layout.indexOf('function CorpsVerrouille'));
     expect(bande).toMatch(/router\.replace\(/);
     expect(bande).not.toMatch(/router\.push\(/);
   });

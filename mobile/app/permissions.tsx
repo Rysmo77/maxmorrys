@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import {
   Body, Button, Display, Eyebrow, Gradient, Icon, isIOS, LessonRow, Screen, Surface,
   useToken, veil,
@@ -23,10 +23,24 @@ import {
 const ENVOIS = [
   { titre: 'Reprise de cours', meta: 'après 5 jours sans activité', glyphe: 'book' as const, teinte: 'mmVioletT' as const, voile: 'mmViolet' as const },
   { titre: 'Ta série va se casser', meta: 'le soir du 5e jour, une fois', glyphe: 'star' as const, teinte: 'mmOrangeT' as const, voile: 'mmOrange' as const },
-  { titre: 'Session du Club dans 1 h', meta: 'seulement si tu es inscrite', glyphe: 'users' as const, teinte: 'mmTealT' as const, voile: 'mmTeal' as const },
+  { titre: 'Session du Club dans 1 h', meta: 'seulement si tu as réservé ta place', glyphe: 'users' as const, teinte: 'mmTealT' as const, voile: 'mmTeal' as const },
 ];
 
+/*
+ * L'ATELIER — cet écran ne demande RIEN au système (`expo-notifications` n'est pas installé).
+ * Il a quitté la chaîne d'accueil le 06/10/2026 : une page « autorise les notifications »
+ * qui n'ouvre aucun dialogue est une promesse de plus. Sa maquette reste en atelier. Le
+ * drapeau est LITTÉRAL ici (voir `tests/unit/mobile-atelier-garde.test.ts`).
+ */
+const ATELIER = process.env.EXPO_PUBLIC_CONTENU_DEMO === '1' || __DEV__;
+
 export default function Permissions() {
+  /* La garde passe AVANT tout hook : le corps vit dans son propre composant. */
+  if (!ATELIER) return <Redirect href="/espace" />;
+  return <PermissionsAtelier />;
+}
+
+function PermissionsAtelier() {
   const t = useToken();
 
   /*
@@ -95,7 +109,7 @@ export default function Permissions() {
       <Button tone="transforme" label="Continuer" style={{ marginTop: 18 }} onPress={accepter} />
       <Button tone="quiet" label="Pas maintenant" style={{ marginTop: 9 }} onPress={() => router.replace('/espace')} />
 
-      <Body muted style={{ fontSize: 11.5, textAlign: 'center', lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
+      <Body muted style={{ fontSize: 11.5, textAlign: 'center', lineHeight: 18, marginTop: 12 }}>
         {isIOS
           ? 'iOS ne me laisse poser la question qu’une seule fois. « Pas maintenant » la garde pour plus tard ; un refus système, lui, ne se rattrape que dans les Réglages.'
           : 'Android me laisse redemander une fois. Au second refus, ça ne se rattrape que dans les paramètres du téléphone.'}

@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
-  Avatar, Body, Button, ChipRow, Display, Eyebrow, Icon, IconButton, Num,
-  SansDonnees, Screen, Surface, TerritoryCard, isIOS, useToken,
+  Avatar, Body, Button, ChipRow, Display, Eyebrow, Fondu, Num,
+  SansDonnees, Screen, Surface, TerritoryCard, isIOS,
 } from '../../ds';
-import { useCours, useEspace, useMoi } from '../../donnees';
+import { provenance, useCours, useEspace, useMoi, useRafraichir } from '../../donnees';
 import { BandeauHorsLigne } from '../../ecrans/BandeauHorsLigne';
 
 /**
@@ -29,7 +29,6 @@ import { BandeauHorsLigne } from '../../ecrans/BandeauHorsLigne';
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function Cours() {
-  const t = useToken();
   const { compte } = useLocalSearchParams<{ compte?: string }>();
   const compteServeur = compte ? Number(compte) : Number.NaN;
   const videConfirme = Number.isFinite(compteServeur) && compteServeur === 0;
@@ -41,6 +40,8 @@ export default function Cours() {
   const moi = useMoi();
   const espace = useEspace();
   const catalogue = cours.valeur ?? [];
+  const { enRafraichissement, rafraichir } = useRafraichir();
+  const enLecture = cours.phase === 'charge' || cours.phase === 'restauration';
 
   /*
     LE FILTRE SE DÉRIVE DU CATALOGUE, IL NE LE DÉCRIT PAS DE MÉMOIRE.
@@ -78,20 +79,10 @@ export default function Cours() {
       territory="forme"
       tabbar
       titre={isIOS ? undefined : 'Mes cours'}
-      droite={
-        <>
-          <IconButton disabled label="Chercher une formation">
-            <Icon name="search" size={17} color={t('textBody')} strokeWidth={2.4} />
-          </IconButton>
-          {/* Pas de `badge` : il annonçait des non-lus alors qu'AUCUN canal de notification
-            n'existe — ni permission demandée, ni serveur qui envoie. La cloche éteinte
-            (opacité 0.4, `accessibilityState.disabled`) dit « pas encore » ; un badge
-            dessus disait « tu as des messages », et c'était faux. */}
-          <IconButton disabled label="Notifications">
-            <Icon name="bell" size={17} color={t('textBody')} strokeWidth={2} />
-          </IconButton>
-        </>
-      }
+      /* La loupe et la cloche ÉTEINTES sont parties : deux affordances qui ne répondent pas,
+         sur l'écran qu'on ouvre le plus, se lisent comme une application inachevée. */
+      onRefresh={rafraichir}
+      enRafraichissement={enRafraichissement}
     >
       <BandeauHorsLigne />
       {videConfirme ? (
@@ -105,21 +96,18 @@ export default function Cours() {
             </Body>
             <Num
               value={0}
-              source="server"
-              asOf={new Date()}
+              {...provenance(cours)}
               unit="formation en ligne"
               style={{ fontSize: 15, marginTop: 12 }}
             />
           </Surface>
-          <Body muted style={{ marginTop: 18, fontSize: 12.5, color: t('textFaint') }}>
-            Je ne te propose pas de te prévenir par e-mail : je n'ai aucun canal d'envoi. Le
-            widget et la notification, eux, existent — ils se règlent dans ton profil.
-          </Body>
         </>
       ) : catalogue.length === 0 ? (
         <>
           <Eyebrow style={{ marginTop: 6 }}>Je te forme</Eyebrow>
-          <Display size={29} lines={['LE CATALOGUE', "N'EST PAS ARRIVÉ."]} style={{ marginTop: 8 }} />
+          {/* Le titre n'affirme l'absence qu'APRÈS la lecture : « N'EST PAS ARRIVÉ » pendant
+              le chargement se lisait comme une panne. */}
+          <Display size={29} lines={enLecture ? ['LE CATALOGUE.'] : ['LE CATALOGUE', "N'EST PAS ARRIVÉ."]} style={{ marginTop: 8 }} />
           <SansDonnees
             quoi="le catalogue"
             origine="du serveur"
@@ -131,7 +119,7 @@ export default function Cours() {
         </>
       ) : (
         <>
-          <Eyebrow style={{ marginTop: 6 }}>Je te forme · accès à vie</Eyebrow>
+          <Eyebrow style={{ marginTop: 6 }}>Je te forme</Eyebrow>
           {/* ⚠️ CE TITRE DISAIT « 2 FORMATIONS. » EN DUR. Il l'affirmait avant toute lecture,
               et il serait resté faux le jour où le catalogue en compte trois — ou une. Un
               nombre écrit dans un titre est un nombre que personne ne rectifie, parce qu'il
@@ -140,13 +128,13 @@ export default function Cours() {
             size={29}
             lines={[
               catalogue.length === 1 ? '1 FORMATION.' : `${catalogue.length} FORMATIONS.`,
-              'ACCÈS À VIE.',
+              'À TON RYTHME.',
             ]}
             style={{ marginTop: 8 }}
           />
           <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
-            Le module d'ouverture de chacune se regarde ici, tout de suite et sans compte. Tu juges
-            avant de sortir de l'application.
+            Ouvre une fiche pour voir son programme. Quand une formation a un module
+            d'ouverture, il se lit ici, tout de suite.
           </Body>
 
           {/* Le filtre porte SON compte : « Tout · 2 » dit la taille du catalogue en même
@@ -168,7 +156,7 @@ export default function Cours() {
             style={{ marginTop: 18 }}
           />
 
-          <View style={{ marginTop: 16 }}>
+          <Fondu cle={filtre} style={{ marginTop: 16 }}>
             {visibles.map((f, i) => (
               <TerritoryCard
                 key={f.slug}
@@ -203,16 +191,7 @@ export default function Cours() {
                 </View>
               </TerritoryCard>
             ))}
-          </View>
-
-          <Surface level="truth" style={{ marginTop: 18, padding: 15 }}>
-            <Eyebrow>Pourquoi il n'y a que deux titres</Eyebrow>
-            <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-              Parce que je les monte moi-même, une par une, et que je préfère deux formations
-              finies à dix annoncées. Ni note, ni nombre d'inscrits : la plateforme vient
-              d'ouvrir.
-            </Body>
-          </Surface>
+          </Fondu>
         </>
       )}
 
@@ -221,12 +200,19 @@ export default function Cours() {
       {moi.valeur && espace.valeur?.moduleEnCours ? (
         <Surface level="flat" style={{ marginTop: 14, padding: 18 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Avatar initials={moi.valeur.initiale} size={38} />
+            <Avatar initials={moi.valeur.initiale} size={38} decoratif />
             <View style={{ flex: 1 }}>
-              <Body style={{ fontWeight: '700' }}>Reprendre où tu t'es arrêtée</Body>
+              <Body style={{ fontWeight: '700' }}>Reprendre là où tu en étais</Body>
               <Body muted style={{ fontSize: 12.5, marginTop: 2 }}>{espace.valeur.moduleEnCours}</Body>
             </View>
-            <Button tone="quiet" size="sm" label="Ouvrir" onPress={() => router.push('/lecon')} />
+            <Button
+              tone="quiet"
+              size="sm"
+              label="Reprendre"
+              onPress={() => router.push(espace.valeur?.formationId
+                ? { pathname: '/lecon', params: { formationId: espace.valeur.formationId } }
+                : '/lecon')}
+            />
           </View>
         </Surface>
       ) : null}

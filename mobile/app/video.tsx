@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Alert, Image, View } from 'react-native';
+import { Image, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Icon, Num, PayOption, Screen, Surface, Tag, isIOS, useToken,
+  Body, Button, Display, Eyebrow, Icon, Num, PayOption, Screen, Surface, Tag, isIOS, useBandeau, useToken,
 } from '../ds';
 
 /**
@@ -53,6 +53,7 @@ export default function Video() {
   const [choix, setChoix] = useState<Choix | null>(null);
   const [vignette, setVignette] = useState(false);
   const [ouverture, setOuverture] = useState(false);
+  const { bandeau, montrer } = useBandeau();
 
   const brut = releve ? new Date(releve) : null;
   const lu = brut !== null && !Number.isNaN(brut.getTime()) ? brut : null;
@@ -68,10 +69,7 @@ export default function Video() {
     try {
       await WebBrowser.openBrowserAsync(video);
     } catch {
-      Alert.alert(
-        "Le lecteur n'a pas pu s'ouvrir",
-        "Rien n'a été téléchargé, et ton forfait n'a pas bougé. La fiche reste lisible ici.",
-      );
+      montrer('stop', "Le lecteur n'a pas pu s'ouvrir", "Rien n'a été téléchargé, et ton forfait n'a pas bougé.");
     } finally {
       setOuverture(false);
     }
@@ -79,6 +77,7 @@ export default function Video() {
 
   return (
     <Screen territory="transforme" retour="Écouter" titre={isIOS ? undefined : 'Vidéo'}>
+        {bandeau}
         <Eyebrow>Je te transforme · Vidéo</Eyebrow>
         <View style={{ marginTop: 8 }}>
           <Display size="sm">{titre ?? 'Cette vidéo'}</Display>
@@ -119,7 +118,7 @@ export default function Video() {
                 <Icon name="play" size={20} color={t('ink2')} />
               </View>
               <Body muted style={{ marginTop: 12, fontSize: 12 }}>
-                {apercu ? "L'aperçu n'est pas chargé." : "Aucun aperçu n'est arrivé avec cette route."}
+                {apercu ? "L'aperçu n'est pas chargé." : "Pas d'aperçu pour cette vidéo."}
               </Body>
             </>
           )}
@@ -172,27 +171,9 @@ export default function Video() {
           />
         </Surface>
 
-        {/* ── LA VÉRITÉ SUR LA QUALITÉ ────────────────────────────────────────────────── */}
-        <Surface level="truth" style={{ marginTop: 16, padding: 18 }}>
-          <Eyebrow>Pourquoi il n'y a pas de 480p ni de 720p</Eyebrow>
-          <Body muted style={{ marginTop: 6, fontSize: 12.5 }}>
-            La fiche vidéo ne porte qu'une seule URL, sans variante de qualité ni taille de
-            fichier — c'est le type Video, dans src/types/index.ts, et tu peux le vérifier. Un menu
-            « 480p · 24 Mo / 720p · 96 Mo » serait donc quatre nombres inventés, sur lesquels
-            tu déciderais de dépenser ton forfait. Je préfère te dire que je ne sais pas.
-          </Body>
-        </Surface>
-
-        {/* ── CE QU'IL Y A DEDANS ─────────────────────────────────────────────────────── */}
-        <Eyebrow style={{ marginTop: 22 }}>Ce qu'il y a dedans</Eyebrow>
-        <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
-          <Body muted style={{ fontSize: 13 }}>
-            La fiche vidéo ne porte pas de chapitres : il n'y a pas de champ pour eux. Les
-            chapitres se liraient sans lancer la vidéo, et c'est souvent tout ce qu'on cherche —
-            raison de plus pour ne pas en fabriquer : quelqu'un lancerait la vidéo pour y
-            chercher un passage qui n'y est pas.
-          </Body>
-        </Surface>
+        {/* Les deux encarts « pourquoi il n'y a pas de 480p » et « pas de chapitres » sont
+            partis : ils citaient `src/types/index.ts` à la personne qui regarde. Le manque
+            est réel, mais il se corrige dans le modèle de données, pas en l'expliquant ici. */}
     </Screen>
   );
 }

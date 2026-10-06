@@ -1,7 +1,9 @@
-import { Alert } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, Button, CheckLine, Display, Eyebrow, Gradient, Icon, isIOS, Screen, Surface, useToken,
+  Body, Button, CheckLine, Display, Eyebrow, Gradient, Heros, Icon, Revele, Screen, Surface, haptique,
+  isIOS, useBandeau, useToken,
 } from '../ds';
 import { useVerrou } from '../donnees/verrou';
 
@@ -32,20 +34,52 @@ import { useVerrou } from '../donnees/verrou';
 export default function Biometrie() {
   const t = useToken();
   const { actif, capacite, occupe, activer, desactiver } = useVerrou();
+  const { bandeau, montrer } = useBandeau();
+  /* Le geste RÉEL de l'appareil — « Face ID », « Touch ID », « ton empreinte ». Il était
+     écrit en dur : Face ID sur un iPhone à capteur d'empreinte. */
+  const geste = capacite?.etat === 'pret' ? capacite.geste : isIOS ? 'Face ID' : 'ton empreinte';
+
+  /* ── LA CONFIRMATION. Le verrou posé, l'écran partait aussitôt : on ne savait pas si
+     c'était fait. La coche apparaît, le téléphone vibre, et l'Espace suit. ── */
+  const [pose, setPose] = useState(false);
+  useEffect(() => {
+    if (!pose) return undefined;
+    const m = setTimeout(() => router.replace('/espace'), 1100);
+    return () => clearTimeout(m);
+  }, [pose]);
 
   async function poser() {
     const verdict = await activer();
     if (verdict.ok) {
-      router.replace('/espace');
+      haptique.succes();
+      setPose(true);
       return;
     }
-    /* Le motif est DIT. Un échec silencieux laisserait croire que le bouton est mort — le
-       défaut qu'on vient précisément de corriger. */
-    Alert.alert("Le verrou n'a pas été posé", verdict.motif);
+    /* Le motif est DIT. Un échec silencieux laisserait croire que le bouton est mort. */
+    montrer('stop', "Le verrou n'a pas été posé", verdict.motif);
+  }
+
+  if (pose) {
+    return (
+      <Screen territory="transforme" center>
+        <Heros>
+          <View style={{ width: 66, height: 66, borderRadius: 33, alignItems: 'center', justifyContent: 'center', backgroundColor: t('ok') }}>
+            <Icon name="check" size={30} color={t('paperFixed')} strokeWidth={3} />
+          </View>
+        </Heros>
+        <Display size={29} lines={["C'EST POSÉ."]} style={{ marginTop: 22 }} />
+        <Revele i={1}>
+          <Body muted style={{ marginTop: 12, fontSize: 15, lineHeight: 22 }}>
+            {`La prochaine fois, ${geste} suffit. Ton mot de passe reste valable.`}
+          </Body>
+        </Revele>
+      </Screen>
+    );
   }
 
   return (
     <Screen territory="transforme" center>
+      {bandeau}
       <Gradient
         colors={[t('mmTealN'), t('mmBleu')]}
         radius={21}
@@ -60,7 +94,7 @@ export default function Biometrie() {
 
       <Display
         size={29}
-        lines={isIOS ? ['ENTRER AVEC', 'FACE ID ?'] : ['ENTRER AVEC', 'TON EMPREINTE ?']}
+        lines={['ENTRER AVEC', `${geste.toUpperCase()} ?`]}
         style={{ marginTop: 22 }}
       />
       <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
@@ -71,9 +105,7 @@ export default function Biometrie() {
       <Surface level="flat" style={{ marginTop: 20, padding: 20 }}>
         <CheckLine tone="ok" style={{ marginTop: 0 }}>Ton mot de passe continue de fonctionner</CheckLine>
         <CheckLine tone="ok">
-          {isIOS
-            ? 'Face ID reste sur ton iPhone : je ne le reçois jamais'
-            : 'Ton empreinte reste dans le téléphone : je ne la reçois jamais'}
+          {`${geste.charAt(0).toUpperCase()}${geste.slice(1)} reste dans ton téléphone : l'application ne le reçoit jamais`}
         </CheckLine>
         <CheckLine tone="ok">Désactivable à tout moment dans ton profil</CheckLine>
         <CheckLine tone="neutre" dash>
@@ -114,7 +146,7 @@ export default function Biometrie() {
           />
           <Button
             tone="quiet"
-            label={isIOS ? 'Désactiver Face ID' : "Désactiver l’empreinte"}
+            label={`Ne plus utiliser ${geste}`}
             style={{ marginTop: 9 }}
             disabled={occupe}
             onPress={() => { void desactiver(); }}
@@ -124,7 +156,7 @@ export default function Biometrie() {
         <>
           <Button
             tone="digitalise"
-            label={isIOS ? 'Activer Face ID' : "Activer l’empreinte"}
+            label={`Activer ${geste}`}
             style={{ marginTop: 18 }}
             disabled={capacite === null || occupe}
             onPress={() => { void poser(); }}
@@ -132,15 +164,6 @@ export default function Biometrie() {
           <Button tone="quiet" label="Non merci" style={{ marginTop: 9 }} onPress={() => router.replace('/espace')} />
         </>
       )}
-
-      <Surface level="truth" style={{ marginTop: 16, padding: 15 }}>
-        <Eyebrow>Pourquoi cette question arrive maintenant</Eyebrow>
-        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Parce que tu viens de te connecter, et que c'est le seul moment où la proposition a
-          un sens. La poser à l'ouverture de l'app, avant même un compte, c'est demander une
-          empreinte pour rien.
-        </Body>
-      </Surface>
     </Screen>
   );
 }

@@ -1,4 +1,5 @@
 import { Pressable, ScrollView, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import { useToken, px } from './theme';
 
 /**
@@ -43,7 +44,7 @@ export function SubNav({
           >
             <View style={{ width: 8, height: 8, borderRadius: 3, backgroundColor: it.color ?? t('fill5') }} />
             <Text style={{
-              fontFamily: 'SchibstedGrotesk', fontSize: 13.5, fontWeight: '600',
+              fontFamily: POLICE.corps, fontSize: 13.5, fontWeight: '600',
               color: on ? t('textBody') : t('textMuted'),
             }}>
               {it.label}

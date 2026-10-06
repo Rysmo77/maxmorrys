@@ -1,4 +1,5 @@
 import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import type { ReactNode } from 'react';
 import { isIOS, ripple } from './platform';
 import { useToken } from './theme';
@@ -29,7 +30,7 @@ import { Icon } from './Icon';
 export const NAVBAR_H = isIOS ? 44 : 64;
 
 export function NavBar({
-  retour, onRetour, titre, droite, style,
+  retour, onRetour, titre, glyphe, droite, style,
 }: {
   /**
    * Le libellé de retour. Sur iOS il s'AFFICHE à côté du chevron ; sur Android il ne sert
@@ -38,6 +39,8 @@ export function NavBar({
   retour?: string;
   onRetour?: () => void;
   titre?: string;
+  /** Un glyphe devant le titre — l'onde au repos du répétiteur, sa signature. */
+  glyphe?: ReactNode;
   droite?: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -67,7 +70,7 @@ export function NavBar({
               <Icon name="back" size={19} color={t('mmBleu')} strokeWidth={2.6} />
               <Text
                 numberOfLines={1}
-                style={{ fontFamily: 'SchibstedGrotesk', fontSize: 16, fontWeight: '500', color: t('mmBleu') }}
+                style={{ fontFamily: POLICE.corps, fontSize: 16, fontWeight: '500', color: t('mmBleu') }}
               >
                 {retour}
               </Text>
@@ -75,13 +78,17 @@ export function NavBar({
           ) : null}
         </View>
         {titre ? (
-          <Text
-            numberOfLines={1}
-            accessibilityRole="header"
-            style={{ fontFamily: 'SchibstedGrotesk', fontSize: 16, fontWeight: '600', color: t('textBody'), flexShrink: 1 }}
-          >
-            {titre}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, flexShrink: 1 }}>
+            {glyphe}
+            <Text
+              numberOfLines={1}
+              accessibilityRole="header"
+              maxFontSizeMultiplier={1.3}
+              style={{ fontFamily: POLICE.corps, fontSize: 16, fontWeight: '600', color: t('textBody'), flexShrink: 1 }}
+            >
+              {titre}
+            </Text>
+          </View>
         ) : null}
         <View style={{ minWidth: 88, flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
           {droite}
@@ -108,16 +115,20 @@ export function NavBar({
           <Icon name="back" size={22} color={t('textBody')} strokeWidth={2.4} />
         </Pressable>
       ) : null}
-      <Text
-        numberOfLines={1}
-        accessibilityRole="header"
-        style={{
-          flex: 1, fontFamily: 'SchibstedGrotesk', fontSize: 19, fontWeight: '600',
-          color: t('textBody'), paddingLeft: bouton ? 4 : 12,
-        }}
-      >
-        {titre ?? ''}
-      </Text>
+      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: bouton ? 4 : 12 }}>
+        {glyphe}
+        <Text
+          numberOfLines={1}
+          accessibilityRole="header"
+          maxFontSizeMultiplier={1.3}
+          style={{
+            flexShrink: 1, fontFamily: POLICE.corps, fontSize: 19, fontWeight: '600',
+            color: t('textBody'),
+          }}
+        >
+          {titre ?? ''}
+        </Text>
+      </View>
       <View style={{ flexDirection: 'row', gap: 6 }}>{droite}</View>
     </View>
   );

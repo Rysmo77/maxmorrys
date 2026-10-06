@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Share, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import {
-  COURBE, mouvementReduit,
+  COURBE, haptique, mouvementReduit,
   Body, Button, Display, DocLine, Eyebrow, Icon, IconButton, Num, SansDonnees, Screen, Surface, Tag, Wordmark, useToken,
 } from '../ds';
 import { CERTIFICAT, RELEVE, SOURCE } from '../contenu/demo';
@@ -30,14 +31,34 @@ import { lienDeVerification } from '../contenu/termes';
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 const DEPART_MS = 900;
-const PASSAGE_MS = 2400;
+/* Le rythme du kit (`planche-moments`) : 1 320 ms de traversée, 1 080 ms de pause, deux
+   passages. La traversée de 2 400 ms se lisait comme un chargement, pas comme un éclat. */
+const PASSAGE_MS = 1320;
+const PAUSE_MS = 1080;
 /** L'angle du DÉGRADÉ au web. La bande, elle, est perpendiculaire : 102 − 90 = 12° d'inclinaison. */
 const ANGLE_DEG = 102;
 const LARGEUR_BANDE = 0.12;
 const BLANC_A = 0.85;
 
-/** Les certificats déjà fêtés dans cette session : la brillance ne se rejoue pas au retour. */
+/**
+ * LES CERTIFICATS DÉJÀ FÊTÉS, SUR LE DISQUE. La mémoire n'était qu'en session : chaque
+ * redémarrage rejouait la brillance et « C'EST FAIT » sur un certificat obtenu il y a un
+ * mois. Une célébration rejouée cesse d'en être une — le moment nº 2 du kit ne se répète pas.
+ */
 const DEJA_CELEBRES = new Set<string>();
+const CLE_CELEBRES = 'rysmo.certificats.celebres';
+async function dejaCelebre(code: string): Promise<boolean> {
+  if (DEJA_CELEBRES.has(code)) return true;
+  try {
+    const liste = JSON.parse((await AsyncStorage.getItem(CLE_CELEBRES)) ?? '[]') as string[];
+    liste.forEach((c) => DEJA_CELEBRES.add(c));
+  } catch { /* au pire, la fête se rejoue une fois */ }
+  return DEJA_CELEBRES.has(code);
+}
+function marquerCelebre(code: string) {
+  DEJA_CELEBRES.add(code);
+  AsyncStorage.setItem(CLE_CELEBRES, JSON.stringify([...DEJA_CELEBRES].slice(-50))).catch(() => undefined);
+}
 
 export default function Certificat() {
   const t = useToken();
@@ -67,33 +88,47 @@ export default function Certificat() {
 
   const [taille, setTaille] = useState({ l: 0, h: 0 });
   const [brille, setBrille] = useState(false);
+  /* `null` tant que le disque n'a pas répondu : le titre ne choisit pas avant de savoir. */
+  const [premiereFois, setPremiereFois] = useState<boolean | null>(null);
   const balayage = useRef(new Animated.Value(0)).current;
+  const codeDoc = doc?.code ?? null;
 
   useEffect(() => {
-    if (doc === null || taille.l === 0 || DEJA_CELEBRES.has(doc.code)) return;
-    DEJA_CELEBRES.add(doc.code);
+    if (codeDoc === null) return undefined;
+    let vivant = true;
+    void dejaCelebre(codeDoc).then((deja) => { if (vivant) setPremiereFois(!deja); });
+    return () => { vivant = false; };
+  }, [codeDoc]);
+
+  useEffect(() => {
+    if (codeDoc === null || taille.l === 0 || premiereFois !== true) return undefined;
+    marquerCelebre(codeDoc);
 
     let annule = false;
     /*
       MOUVEMENT RÉDUIT : ON NE LANCE RIEN. Le système ramène ses durées à 1 ms sous
-      `prefers-reduced-motion` — la traduction CSS de « n'anime pas ». Reproduire le chiffre
-      ferait tourner un pilote à plein régime pour un résultat immobile.
+      `prefers-reduced-motion` — la traduction CSS de « n'anime pas ».
     */
     void mouvementReduit().then((reduit) => {
-      if (annule || reduit) return;
+      if (annule) return;
+      haptique.succes();
+      if (reduit) return;
       setBrille(true);
       Animated.sequence([
         Animated.delay(DEPART_MS),
         Animated.timing(balayage, { toValue: 1, duration: PASSAGE_MS, easing: COURBE.sortie, useNativeDriver: true }),
-        // Retour instantané hors cadre : aux deux bornes la bande est invisible, donc le saut
-        // ne se voit pas — et il évite un troisième passage de retour.
+        // Retour instantané hors cadre : aux deux bornes la bande est invisible.
         Animated.timing(balayage, { toValue: 0, duration: 0, useNativeDriver: true }),
+        Animated.delay(PAUSE_MS),
         Animated.timing(balayage, { toValue: 1, duration: PASSAGE_MS, easing: COURBE.sortie, useNativeDriver: true }),
       ]).start(() => { if (!annule) setBrille(false); });
     });
 
     return () => { annule = true; };
-  }, [doc, taille.l, balayage]);
+  }, [codeDoc, taille.l, premiereFois, balayage]);
+  /* D'où vient le document : du serveur s'il arrive par la route, de la démonstration sinon. */
+  const source = code ? 'server' as const : SOURCE;
+  const releve = code ? new Date() : RELEVE;
 
   async function partager() {
     if (doc === null || lien === null) return;
@@ -147,11 +182,16 @@ export default function Certificat() {
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
         <Eyebrow>Formation terminée ·</Eyebrow>
-        <Num value={doc.emisLe} source={SOURCE} asOf={RELEVE} style={{ fontSize: 11 }} />
+        <Num value={doc.emisLe} source={source} asOf={releve} style={{ fontSize: 11.5 }} />
       </View>
       {/* Le PRÉNOM seul sur sa ligne : un titre d'affichage ne se replie jamais tout seul, et
           un nom complet déborderait d'un écran de 360 px sans que rien ne le signale. */}
-      <Display size={31} lines={["C'EST FAIT,", `${prenom.toUpperCase()}.`]} style={{ marginTop: 8 }} />
+      {/* « C'EST FAIT » se dit UNE fois. Ensuite, c'est un document qu'on rouvre. */}
+      <Display
+        size={31}
+        lines={premiereFois === true ? ["C'EST FAIT,", `${prenom.toUpperCase()}.`] : ['TON CERTIFICAT,', `${prenom.toUpperCase()}.`]}
+        style={{ marginTop: 8 }}
+      />
 
       <Surface level="hero" style={{ marginTop: 20, padding: 20, overflow: 'hidden' }}>
         {/* La mesure sert au balayage : sans largeur, la bande n'a pas de course à faire. */}
@@ -174,7 +214,7 @@ export default function Certificat() {
         <Body muted style={{ marginTop: 10, fontSize: 13 }}>
           Délivré à <Body style={{ fontWeight: '700', fontSize: 13 }}>{doc.titulaire}</Body>
         </Body>
-        <Num value={doc.code} source={SOURCE} asOf={RELEVE} style={{ fontSize: 16, letterSpacing: 1.1, marginTop: 14 }} />
+        <Num value={doc.code} source={source} asOf={releve} style={{ fontSize: 16, letterSpacing: 1.1, marginTop: 14 }} />
 
         {brille && taille.l > 0 ? (
           <Animated.View
@@ -210,7 +250,7 @@ export default function Certificat() {
         style={{ marginTop: 18 }}
         onPress={() => void partager()}
       />
-      <Body muted style={{ fontSize: 11.5, textAlign: 'center', marginTop: 10, color: t('textFaint') }}>
+      <Body muted style={{ fontSize: 12, textAlign: 'center', marginTop: 10 }}>
         Ce qui part est le lien de vérification, pas une image.
       </Body>
 
@@ -230,11 +270,11 @@ export default function Certificat() {
         />
         <DocLine
           label="Émis le"
-          value={<Num value={doc.emisLe} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13.5 }} />}
+          value={<Num value={doc.emisLe} source={source} asOf={releve} style={{ fontSize: 13.5 }} />}
         />
         <DocLine
           label="Leçons validées"
-          value={<Num value={`${doc.lecons} / ${doc.lecons}`} source={SOURCE} asOf={RELEVE} style={{ fontSize: 13.5 }} />}
+          value={<Num value={`${doc.lecons} / ${doc.lecons}`} source={source} asOf={releve} style={{ fontSize: 13.5 }} />}
           last
         />
       </Surface>

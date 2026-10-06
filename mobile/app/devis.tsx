@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Share, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
-import { Body, Button, Display, Eyebrow, Icon, IconButton, Screen, Surface, isIOS, useToken } from '../ds';
+import { Body, Button, Display, Eyebrow, Icon, IconButton, Screen, Surface, isIOS, useToken, POLICE } from '../ds';
 import { FORME_REFERENCE, OFFRE, SITE_PUBLIC } from '../contenu/termes';
 
 /**
@@ -65,7 +65,7 @@ export default function Devis() {
         <>
           <Surface level="flat" style={{ marginTop: 16, padding: 17 }}>
             <Eyebrow>Référence</Eyebrow>
-            <Body style={{ marginTop: 6, fontFamily: 'JetBrainsMono', fontSize: 15 }}>{reference}</Body>
+            <Body style={{ marginTop: 6, fontFamily: POLICE.mono, fontSize: 15 }}>{reference}</Body>
             <Body muted style={{ marginTop: 8, fontSize: 12, lineHeight: 18 }}>{adresse}</Body>
           </Surface>
           <Button tone="digitalise" label="Ouvrir le devis" style={{ marginTop: 18 }} onPress={() => { void ouvrir(); }} />

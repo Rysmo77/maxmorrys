@@ -60,17 +60,6 @@ export default function Interdit() {
           />
         ))}
       </Surface>
-
-      <Surface level="night" style={{ marginTop: 16, padding: 17 }}>
-        <Eyebrow>Ce que cette page est, exactement</Eyebrow>
-        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Un garde de route est du code client : il{' '}
-          <Body style={{ fontWeight: '700', fontSize: 12.5 }}>cache</Body>, il n'interdit pas.
-          Le vrai cloisonnement est dans les règles de la base — cette page dit simplement ce
-          qu'elles ont déjà refusé.
-        </Body>
-      </Surface>
-
       <Button
         tone="quiet"
         label="Revenir à la console"

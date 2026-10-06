@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Animated, Pressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
-import { COURBE, DUREE, ENFONCEMENT, duree, useMouvement } from './mouvement';
+import { APPAREIL_MODESTE, COURBE, DUREE, ENFONCEMENT, duree, useMouvement } from './mouvement';
 
 /*
  * Les deux COMPOSANTS du mouvement — l'enfoncement et l'entrée. Les durées, les courbes et
@@ -63,7 +63,9 @@ export function Revele({
     Animated.timing(p, {
       toValue: 1,
       duration: duree(DUREE.enter, r),
-      delay: r ? 0 : Math.min(i, 8) * DUREE.decalage,
+      /* Six voisins décalés, pas huit : au-delà, l'écran met près d'une seconde à se poser,
+         et le dernier bloc arrive quand on a déjà commencé à lire. */
+      delay: r ? 0 : Math.min(i, PLAFOND_CASCADE) * DUREE.decalage,
       easing: COURBE.sortie,
       useNativeDriver: true,
     }).start();
@@ -71,9 +73,43 @@ export function Revele({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const transform = echelle
-    ? [{ scale: p.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] }) }]
-    : [{ translateY: p.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }];
+  /* Sur un appareil modeste, l'entrée n'est plus qu'un fondu : la translation de chaque bloc
+     se paie en recomposition, l'opacité presque pas. L'information « ceci arrive » reste. */
+  const transform = APPAREIL_MODESTE
+    ? []
+    : echelle
+      ? [{ scale: p.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] }) }]
+      : [{ translateY: p.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }];
   return <Animated.View style={[style, { opacity: p, transform }]}>{children}</Animated.View>;
 }
 
+const PLAFOND_CASCADE = 6;
+
+/**
+ * UN OBJET-HÉROS — la tuile d'icône, le cadenas, la coche d'un succès. Il n'entre pas en
+ * montant comme un paragraphe : il APPARAÎT, `scale .94 → 1` (`.rv-s` du kit). Le châssis le
+ * reconnaît dans sa cascade ; ailleurs, c'est un simple conteneur.
+ */
+export function Heros({ children }: { children?: ReactNode }) {
+  return <>{children}</>;
+}
+
+
+/* ── 180 ms — « la liste a changé, pas la page » ───────────────────────────────────── */
+
+/**
+ * LE CONTENU QUI CHANGE SUR PLACE — une liste filtrée, une vue basculée. Il ne glisse pas
+ * (on n'a pas changé de page) : il se fond, 180 ms, à chaque nouvelle `cle`. Sans lui, la
+ * liste se remplaçait d'un coup sous le doigt qui venait de toucher le filtre.
+ */
+export function Fondu({ cle, style, children }: { cle: string; style?: StyleProp<ViewStyle>; children?: ReactNode }) {
+  const { reduit: r } = useMouvement();
+  const p = useRef(new Animated.Value(1)).current;
+  const premier = useRef(true);
+  useEffect(() => {
+    if (premier.current) { premier.current = false; return; }
+    p.setValue(0);
+    Animated.timing(p, { toValue: 1, duration: duree(180, r), easing: COURBE.standard, useNativeDriver: true }).start();
+  }, [cle, p, r]);
+  return <Animated.View style={[style, { opacity: p }]}>{children}</Animated.View>;
+}

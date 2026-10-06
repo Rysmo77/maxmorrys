@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Alert } from 'react-native';
+import { Alert, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
-  Body, Button, Display, Gradient, Icon, Screen, Surface,
-  edgeSwipeBack, screenAnimation, screenAnimationDuration, useFontesChargees, useScheme, useToken,
+  Body, Button, Display, Gradient, Icon, Screen, Surface, Wordmark,
+  edgeSwipeBack, screenAnimation, screenAnimationDuration, setTutorNom, useFontesChargees, useMouvement, useScheme, useToken,
 } from '../ds';
+import { useMoi } from '../donnees';
 import { SessionProvider, useSession } from '../donnees/session';
 import { chargerHorsLigne, envoyerLaFile, oublierHorsLigneAffiche } from '../donnees/hors-ligne';
 import { useRetourDuReseau } from '../donnees/veille-reseau';
@@ -26,6 +27,9 @@ import { retirerVerrou, useVerrouDeDemarrage, type Porte } from '../donnees/verr
  * inconfort, mais une promesse rejetée au chargement du module ferait tomber l'application.
  */
 SplashScreen.preventAutoHideAsync().catch(() => {});
+/* L'écran de lancement s'EFFACE en 220 ms au lieu de disparaître d'un coup : le mot-symbole
+   de `/lancement` apparaît dessous, et les deux se lisent comme un seul geste. */
+SplashScreen.setOptions({ duration: 220, fade: true });
 
 /**
  * La racine. Elle ne fait que cinq choses, et c'est délibéré.
@@ -59,6 +63,7 @@ export default function RootLayout() {
    * qu'une police de repli : voir `ds/Fontes.ts`.
    */
   const fontesPretes = useFontesChargees();
+  const { reduit } = useMouvement();
 
   /* Rien du tout tant que la question n'est pas tranchée — l'écran de lancement couvre. */
   if (!fontesPretes) return null;
@@ -69,6 +74,7 @@ export default function RootLayout() {
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <SessionProvider>
         <VeilleHorsLigne />
+        <SynchroTuteur />
         <Porte>
           <Stack
             screenOptions={{
@@ -84,7 +90,7 @@ export default function RootLayout() {
                 Le maillage, lui, NE BOUGE PAS sur aucune des deux — c'est le repère de
                 continuité entre une liste et son détail.
               */
-              animation: screenAnimation,
+              animation: reduit ? 'none' : screenAnimation,
               animationDuration: screenAnimationDuration,
               /* Le geste de bord est attendu sur iOS, où il n'existe aucun bouton système.
                  Sur Android il entre en concurrence avec le retour prédictif. */
@@ -124,8 +130,19 @@ function VeilleHorsLigne() {
   return null;
 }
 
+/**
+ * LE NOM DU TUTEUR VIENT DU PROFIL. Il était tenu en mémoire et retombait à « Répétiteur » à
+ * chaque redémarrage ; il est lu ici, une fois par session, et chaque écran le suit.
+ */
+function SynchroTuteur() {
+  const moi = useMoi();
+  const nom = moi.phase === 'servie' ? (moi.valeur.tuteur ?? null) : undefined;
+  useEffect(() => { if (nom !== undefined) setTutorNom(nom); }, [nom]);
+  return null;
+}
+
 function Porte({ children }: { children: ReactNode }) {
-  const { porte, extinction } = useVerrouDeDemarrage();
+  const { porte, extinction, masque } = useVerrouDeDemarrage();
   const dit = useRef(false);
 
   useEffect(() => {
@@ -146,7 +163,27 @@ function Porte({ children }: { children: ReactNode }) {
 
   if (porte.etat === 'attente') return null;
   if (porte.etat === 'verrouille') return <EcranVerrouille porte={porte} />;
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {masque ? <Voile /> : null}
+    </>
+  );
+}
+
+/** Ce que photographie le sélecteur d'applications quand le verrou est posé : la marque, rien d'autre. */
+function Voile() {
+  const t = useToken();
+  return (
+    <View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: t('surfacePage'), alignItems: 'center', justifyContent: 'center' }}
+    >
+      <Wordmark brand="rysmo" size={40} />
+    </View>
+  );
 }
 
 /**

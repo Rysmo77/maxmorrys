@@ -12,7 +12,7 @@
  * à savoir de tout ça : il teste `valeur === null`, exactement comme avant.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
-import type { Etat } from '../ds';
+import { setTutorNom, tutorNom, type Etat } from '../ds';
 import {
   AGENDA, CLASSEMENT, CLUB, CLUB_FIL, CLUB_MISSION, DISCUSSIONS, ECHANGE, EPISODE, FORMATION, FORMATION_2, MEMBRE, MEMOIRE, MODULES_MUR, MOI, NOTES, NOTES_TOTAL, OPPORTUNITES, PARRAINAGE, PROGRAMME, PROSPECT, QUOTA, SUPPORT_COMPTES, TRANSCRIPTION, VIDEO,
 } from '../contenu/demo';
@@ -26,6 +26,7 @@ import type {
 import { useVue } from './vue';
 
 export { SessionProvider, useSession, useUid } from './session';
+import { useSession } from './session';
 export { connexionEmail, creationEmail, deconnexion, reinitialiser, ErreurIdentite } from './identite';
 export { exporterMesDonnees } from './rgpd';
 export { appeler, ErreurAppel } from './appel';
@@ -34,7 +35,7 @@ import { ErreurAppel, appeler } from './appel';
 import { ecrire, perimerVues } from './cache';
 import { identifiant } from './file';
 import { estUnEchecDeTransport, mettreEnFile } from './hors-ligne';
-export { viderLesVues } from './vue';
+export { relireLesVues, useRafraichir, viderLesVues } from './vue';
 export type {
   VueCertificat, VueCertificats, VueClub, VueClubFil, VueClubMessage, VueClubMission,
   VueClassement, VueConsole, VueCours, VueDiscussion, VueEpisode, VueEspace, VueLecon,
@@ -167,11 +168,12 @@ export function useLecon(formationId?: string): Etat<VueLecon> {
 export function useFormation(slug?: string): Etat<VueFormation> {
   const brut = useVue<VueFormation>('appFormation', slug ? { slug } : {});
   const replique = FORMATION === null ? null : {
+    id: 'demo',
     titre: FORMATION.titre,
     titreCourt: FORMATION.titreCourt,
     meta: FORMATION.meta,
     lecons: FORMATION.lecons,
-    modules: MODULES_MUR.map((m) => ({ titre: m.titre, meta: m.meta, ouvert: m.ouvert })),
+    modules: MODULES_MUR.map((m) => ({ titre: m.titre, meta: m.meta, ouvert: m.ouvert, leconOuverte: null })),
   };
   return composer(brut, replique);
 }
@@ -285,7 +287,9 @@ export function useOpportunites(): Etat<readonly VueOpportunite[]> {
  * ⚠️ Ni téléphone ni adresse n'arrivent jamais ici : le serveur ne les envoie pas, même
  * s'il les connaît. Ce qui ne quitte pas le serveur ne fuite pas.
  */
-export function useMembre(id?: string, message?: string): Etat<VueMembre> {
+export function useMembre(
+  id?: string, message?: string, autre?: { discussion?: string; opportunite?: string },
+): Etat<VueMembre> {
   /* ⚠️ DEUX FAÇONS DE DÉSIGNER, ET LA SECONDE EST CELLE QUI MANQUAIT. Aucun écran ne passait
      d'`id` : le fil, l'onglet Club et la planche poussaient tous vers `/club/membre` nu. La
      vue jetait `invalid-argument`, l'écran sortait par sa branche courte, et le bouton
@@ -293,7 +297,9 @@ export function useMembre(id?: string, message?: string): Etat<VueMembre> {
      `message` désigne un CONTENU ; le serveur en résout l'auteur. L'uid ne circule pas. */
   const params = id ? { onglet: 'membre', id }
     : message ? { onglet: 'membre', message }
-      : { onglet: 'membre' };
+      : autre?.discussion ? { onglet: 'membre', discussion: autre.discussion }
+        : autre?.opportunite ? { onglet: 'membre', opportunite: autre.opportunite }
+          : { onglet: 'membre' };
   const brut = useVue<VueMembre>('appClubListe', params);
   return composer(brut, MEMBRE === null ? null : {
     nom: MEMBRE.nom,
@@ -334,6 +340,7 @@ export function useClassement(): Etat<VueClassement> {
 export function useRepetiteur(): Etat<VueRepetiteur> {
   const brut = useVue<VueRepetiteur>('appRepetiteur');
   return composer(brut, QUOTA === null ? null : {
+    memoireActive: true,
     quota: { utilise: QUOTA.utilise, total: QUOTA.total },
     memoire: MEMOIRE.map((m, i) => ({ id: String(i), fait: m.fait, depuis: m.depuis })),
     echange: ECHANGE.map((e, i) => ({ id: String(i), de: e.de, texte: e.texte })),
@@ -397,12 +404,30 @@ export async function demanderAuRepetiteur(
     })),
     userContext: prenom ? { displayName: prenom } : undefined,
     language: 'fr',
+    /* L'application ne vend rien : le serveur retire prix et achats de la réponse. */
+    canal: 'app',
   });
 }
 
 /** Efface ce que le répétiteur a retenu. Irréversible, et l'écran le dit avant. */
 export async function effacerLaMemoire(): Promise<void> {
   await ecrire('clearRysmoMemory');
+}
+
+/**
+ * Le nom du tuteur et sa mémoire, ÉCRITS DANS LE PROFIL — la seule source qui vaille d'un
+ * appareil à l'autre. Le nom change d'abord sur l'écran (`setTutorNom`), puis part au
+ * serveur ; un échec le ramène à l'ancien, pour ne pas afficher un nom que le profil n'a pas.
+ */
+export async function reglerLeRepetiteur(reglages: { nom?: string; memoire?: boolean }): Promise<{ nom: string | null; memoire: boolean }> {
+  const avant = tutorNom();
+  if (reglages.nom !== undefined) setTutorNom(reglages.nom);
+  try {
+    return await ecrire<{ nom: string | null; memoire: boolean }>('reglerLeRepetiteur', reglages);
+  } catch (erreur: unknown) {
+    if (reglages.nom !== undefined) setTutorNom(avant);
+    throw erreur;
+  }
 }
 
 /**
@@ -496,11 +521,21 @@ export async function marquerLecon(
  */
 export async function posterAuClub(
   texte: string, categorie?: string,
-): Promise<import('./types').VueClubMessage> {
-  const { message } = await ecrire<{ message: import('./types').VueClubMessage }>(
-    'posterAuClub', { texte, categorie },
-  );
-  return message;
+): Promise<import('./types').VueClubMessage & { enFile?: true }> {
+  /* `idClient` TOUJOURS : hors réseau, le message attend dans la file et part au retour —
+     sans doublon, parce que le serveur rend le document déjà présent au lieu de le réécrire. */
+  const params = { texte, categorie, idClient: identifiant() };
+  try {
+    const { message } = await ecrire<{ message: import('./types').VueClubMessage }>('posterAuClub', params);
+    return message;
+  } catch (e: unknown) {
+    if (!estUnEchecDeTransport(e)) throw e;
+    await mettreEnFile(`Message au Club · ${texte.slice(0, 40)}`, { type: 'posterAuClub', params });
+    return {
+      id: params.idClient, auteur: 'Toi', initiales: '·', categorie: categorie ?? 'Entraide',
+      quand: 'en attente d’envoi', texte, aime: 0, republie: 0, commente: 0, enFile: true,
+    };
+  }
 }
 
 /** Les séances à venir — directs et ateliers fusionnés, triés par date. */
@@ -577,7 +612,8 @@ export function useApercuClub(): Etat<import('./contrat.generated').ApercuClub> 
  */
 export type SuiviAcces =
   | { etape: 'lecture' }
-  | { etape: 'attente'; transaction: import('./contrat.generated').TransactionVue; abandon: boolean }
+  | { etape: 'anonyme' }
+  | { etape: 'attente'; transaction: import('./contrat.generated').TransactionVue; abandon: boolean; coupure: boolean }
   | { etape: 'ouvert'; transaction: import('./contrat.generated').TransactionVue }
   | { etape: 'echec'; transaction: import('./contrat.generated').TransactionVue }
   | { etape: 'inconnue' }
@@ -586,14 +622,31 @@ export type SuiviAcces =
 const RELIRE_MS = 4_000;
 const ABANDON_MS = 120_000;
 
-export function useAcces(transactionId: string | null): SuiviAcces {
+/*
+ * ⚠️ AU DÉMARRAGE À FROID, LA SESSION N'EST PAS ENCORE LÀ. Le site ouvre `rysmo://acces` :
+ * l'application démarre, et la lecture partait AVANT que Firebase ait restauré la session —
+ * la personne qui venait de payer lisait « session expirée ». On attend la restauration ;
+ * sans compte sur ce téléphone, on le DIT, avec la porte de connexion.
+ *
+ * ⚠️ ET UNE COUPURE PENDANT LA RELECTURE N'EST PAS UNE PANNE. Sur le réseau visé, une
+ * requête sur dix peut tomber pendant les deux minutes d'attente : la première erreur
+ * figeait l'écran en « panne » alors que la transaction suivait son cours. On garde le
+ * dernier état connu et on continue ; seule une erreur à la PREMIÈRE lecture est une panne.
+ */
+export function useAcces(transactionId: string | null): SuiviAcces & { relancer: () => void } {
+  const session = useSession();
   const [suivi, setSuivi] = useState<SuiviAcces>({ etape: 'lecture' });
+  const [tour, setTour] = useState(0);
+  const phase = session.phase;
 
   useEffect(() => {
-    if (!transactionId) { setSuivi({ etape: 'inconnue' }); return; }
+    if (!transactionId) { setSuivi({ etape: 'inconnue' }); return undefined; }
+    if (phase === 'restauration') { setSuivi({ etape: 'lecture' }); return undefined; }
+    if (phase !== 'connectee') { setSuivi({ etape: 'anonyme' }); return undefined; }
     let vivant = true;
     let minuteur: ReturnType<typeof setTimeout> | null = null;
     const debut = Date.now();
+    let dernier: import('./contrat.generated').TransactionVue | null = null;
 
     const lire = async () => {
       try {
@@ -603,6 +656,7 @@ export function useAcces(transactionId: string | null): SuiviAcces {
         if (!vivant) return;
         const t = r.vue;
         if (t === null) { setSuivi({ etape: 'inconnue' }); return; }
+        dernier = t;
         if (t.statut === 'failed') { setSuivi({ etape: 'echec', transaction: t }); return; }
         if (t.statut === 'completed' && t.acces) {
           perimerVues(['appMoi', 'appEspace', 'appCours', 'appFormation', 'appLecon', 'appClub', 'appCertificats']);
@@ -610,17 +664,25 @@ export function useAcces(transactionId: string | null): SuiviAcces {
           return;
         }
         const abandon = Date.now() - debut > ABANDON_MS;
-        setSuivi({ etape: 'attente', transaction: t, abandon });
+        setSuivi({ etape: 'attente', transaction: t, abandon, coupure: false });
         if (!abandon) minuteur = setTimeout(() => { void lire(); }, RELIRE_MS);
       } catch (e: unknown) {
-        if (vivant) setSuivi({ etape: 'panne', motif: e instanceof ErreurAppel ? e.motif : 'La lecture a échoué.' });
+        if (!vivant) return;
+        if (dernier === null) {
+          setSuivi({ etape: 'panne', motif: e instanceof ErreurAppel ? e.motif : 'La lecture a échoué.' });
+          return;
+        }
+        const abandon = Date.now() - debut > ABANDON_MS;
+        setSuivi({ etape: 'attente', transaction: dernier, abandon, coupure: true });
+        if (!abandon) minuteur = setTimeout(() => { void lire(); }, RELIRE_MS);
       }
     };
+    setSuivi({ etape: 'lecture' });
     void lire();
     return () => { vivant = false; if (minuteur) clearTimeout(minuteur); };
-  }, [transactionId]);
+  }, [transactionId, phase, tour]);
 
-  return suivi;
+  return { ...suivi, relancer: () => setTour((n) => n + 1) };
 }
 
 /**

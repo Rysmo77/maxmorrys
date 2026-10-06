@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import { Pressoir } from './Pressoir';
 import type { ReactNode } from 'react';
 import { useToken, px } from './theme';
@@ -30,7 +31,9 @@ export function PayOption({
   return (
     <Pressoir
       accessibilityRole="radio"
-      accessibilityState={{ selected: !!on }}
+      /* Un bouton radio se dit « coché », pas « sélectionné » : c'est `checked` que les
+         lecteurs d'écran annoncent pour ce rôle. */
+      accessibilityState={{ checked: !!on, disabled: !onPress }}
       accessibilityLabel={note ? `${title} — ${note}` : title}
       onPress={onPress}
       style={[{
@@ -51,11 +54,11 @@ export function PayOption({
         </View>
       )}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: 'SchibstedGrotesk', fontWeight: '600', fontSize: 14.5, color: t('textBody') }}>
+        <Text style={{ fontFamily: POLICE.corps, fontWeight: '600', fontSize: 14.5, color: t('textBody') }}>
           {title}
         </Text>
         {note ? (
-          <Text style={{ fontFamily: 'SchibstedGrotesk', fontSize: 12, color: t('textMuted') }}>{note}</Text>
+          <Text style={{ fontFamily: POLICE.corps, fontSize: 12, color: t('textMuted') }}>{note}</Text>
         ) : null}
       </View>
       <View style={{

@@ -3,9 +3,9 @@ import { View } from 'react-native';
 import { router } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Field, Icon, IconButton, Num, PayOption, PriceBlock, SansDonnees, Screen, StepDots, Surface, TerritoryCard, isIOS, useToken,
+  Body, Button, Display, Eyebrow, Field, Icon, IconButton, Num, PriceBlock, SansDonnees, Screen, Surface, TerritoryCard, isIOS, useToken,
 } from '../ds';
-import { PACK_PRESENCE, PRESENCE_ARRETEE, PRESENCE_SOURCE, QUESTION_PRESENCE } from '../contenu/engagement';
+import { PACK_PRESENCE, PRESENCE_ARRETEE, PRESENCE_SOURCE } from '../contenu/engagement';
 import { FORME_REFERENCE, OFFRE } from '../contenu/termes';
 
 /**
@@ -41,7 +41,6 @@ const CONTACT = 'https://maxmorrys.me/contact';
 
 export default function Presence() {
   const t = useToken();
-  const [reponse, setReponse] = useState<string>(QUESTION_PRESENCE.reponses[0]);
   const [saisie, setSaisie] = useState('');
   /* Les espaces d'un copier-coller et la casse ne font pas une autre référence. */
   const reference = saisie.replace(/\s+/g, '').toUpperCase();
@@ -95,35 +94,14 @@ export default function Presence() {
       </Surface>
       )}
 
-      {/* ── TROIS QUESTIONS ────────────────────────────────────────────────────────────── */}
-      {QUESTION_PRESENCE ? (
-      <>
-      <Eyebrow style={{ marginTop: 24 }}>Trois questions, une recommandation</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 19 }}>
-        <StepDots total={QUESTION_PRESENCE.total} current={QUESTION_PRESENCE.etape} style={{ marginBottom: 16 }} />
-        <Body style={{ fontWeight: '700', fontSize: 15.5 }}>{QUESTION_PRESENCE.question}</Body>
-        <View style={{ gap: 9, marginTop: 14 }}>
-          {QUESTION_PRESENCE.reponses.map((o) => (
-            <PayOption
-              key={o}
-              title={o}
-              on={reponse === o}
-              onPress={() => setReponse(o)}
-              style={{ minHeight: 56 }}
-            />
-          ))}
-        </View>
-        <Body muted style={{ fontSize: 11.5, marginTop: 13, color: t('textFaint') }}>
-          « Je ne sais pas » est une réponse valable : elle mène aussi à une recommandation.
-        </Body>
-      </Surface>
-      </>
-      ) : null}
-
+      {/* ⚠️ LE QUESTIONNAIRE EST PARTI. « Trois questions, une recommandation » : une seule
+          question s'affichait, ses réponses ne changeaient RIEN à la carte d'en dessous, et la
+          recommandation était la même pour tout le monde. Une interaction sans effet, sur
+          l'écran qui précède un devis, se lit comme une manipulation. */}
       {/* ── LA RECOMMANDATION ──────────────────────────────────────────────────────────── */}
       {PACK_PRESENCE === null ? null : (
       <View style={{ marginTop: 18 }}>
-        <TerritoryCard first territory="digitalise" meta="Recommandé pour toi" title={PACK_PRESENCE.nom}>
+        <TerritoryCard first territory="digitalise" meta="Le pack de lancement" title={PACK_PRESENCE.nom}>
           <View style={{
             flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between',
             gap: 12, marginTop: 15,
@@ -169,7 +147,8 @@ export default function Presence() {
           value={saisie}
           onChangeText={setSaisie}
           placeholder="DV-XXXXXXXXXXXX"
-          autoCapitalize="none"
+          autoCapitalize="characters"
+          autoCorrect={false}
           hint={`Imprimée en haut du document. Il se consulte sans compte, et reste valable ${OFFRE.validiteJours} jours.`}
           error={saisie.trim() !== '' && !referenceValide ? 'DV- puis douze caractères, chiffres et lettres de A à F.' : undefined}
         />
@@ -182,9 +161,12 @@ export default function Presence() {
         />
       </Surface>
 
-      <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 14, color: t('textFaint') }}>
-        Un pack se contracte hors de l'application : ce n'est pas du contenu numérique consommé
-        dedans, donc aucune règle de magasin ne s'y applique. Le devis part sur WhatsApp.
+      {/* La phrase citait « les règles de magasin » — le relecteur lit les chaînes autant
+          que les contrôles — et promettait WhatsApp, alors que le bouton ouvre le formulaire
+          de contact du site. */}
+      <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 14 }}>
+        Le pack se met en place avec toi, hors de l'application. La demande de devis ouvre le
+        formulaire de contact du site.
       </Body>
     </Screen>
   );

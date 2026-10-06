@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Avatar, Body, Button, ChipRow, Field, Icon, LessonRow, Num, PriceBlock, SansDonnees, Surface, Tag, TerritoryCard, useToken,
+  Avatar, Body, Button, ChipRow, Feuille, Field, Icon, LessonRow, Num, PriceBlock, Pressoir, Revele, SansDonnees,
+  Surface, Tag, TerritoryCard, haptique, isAndroid, useBandeau, useToken,
 } from '../../ds';
-import { Bilan, ClubScreen } from './_layout';
-import { ErreurAppel, posterAuClub, provenance, useClubFil } from '../../donnees';
+import { BilanPlie, ClubScreen } from './_layout';
+import { ErreurAppel, posterAuClub, provenance, useAgenda, useClubFil } from '../../donnees';
 import type { VueClubMessage } from '../../donnees';
 
 /**
@@ -25,102 +26,68 @@ import type { VueClubMessage } from '../../donnees';
  * en a une, avec son budget ANNONCÉ PAR LA PERSONNE QUI PUBLIE. Ce dernier point est écrit
  * sur la carte : un budget qui aurait l'air de venir de nous fixerait une attente de revenu.
  */
+const RUBRIQUES = ['Entraide', 'Questions', 'Outils', 'Victoires'] as const;
+
 export default function Fil() {
   const t = useToken();
   const club = useClubFil();
-  const [publies, setPublies] = useState<VueClubMessage[]>([]);
-  const [redaction, setRedaction] = useState<string | null>(null);
+  const agenda = useAgenda();
+  const { bandeau, montrer } = useBandeau();
+  const [publies, setPublies] = useState<Array<VueClubMessage & { enFile?: true }>>([]);
+  const [ouverte, setOuverte] = useState(false);
+  const [redaction, setRedaction] = useState('');
+  const [rubrique, setRubrique] = useState<string>(RUBRIQUES[0]);
   const [enCours, setEnCours] = useState(false);
-  const fil = [...publies, ...(club.valeur?.fil ?? [])];
+  const fil: Array<VueClubMessage & { enFile?: true }> = [...publies, ...(club.valeur?.fil ?? [])];
 
-  async function publier(texte: string) {
-    if (texte.trim() === '' || enCours) return;
+  /*
+   * ── PUBLIER, DANS UNE FEUILLE ──────────────────────────────────────────────────────
+   * La saisie s'ouvrait DANS le fil et poussait tout vers le bas. La feuille garde le fil
+   * derrière elle — c'est lui, le repère — et la confirmation est le message lui-même, qui
+   * entre en tête quand la feuille se referme. Hors réseau, il attend dans la file et part
+   * au retour, avec la mention « en attente d'envoi ».
+   */
+  async function publier() {
+    const texte = redaction.trim();
+    if (texte === '' || enCours) return;
     setEnCours(true);
     try {
-      const message = await posterAuClub(texte);
-      /* En TÊTE, et sans relire : le fil est trié du plus récent au plus ancien, et
-         redemander le serveur pour voir ce qu'on vient d'écrire coûterait un aller-retour
-         pour afficher ce qu'on connaît déjà. */
-      setPublies((p: VueClubMessage[]) => [message, ...p]);
-      setRedaction(null);
+      const message = await posterAuClub(texte, rubrique);
+      haptique.succes();
+      setPublies((p) => [message, ...p]);
+      setRedaction('');
+      setOuverte(false);
     } catch (erreur: unknown) {
-      Alert.alert(
-        "Ton message n'est pas parti",
-        erreur instanceof ErreurAppel
-          ? `${erreur.motif} Recopie-le avant de quitter l'écran.`
-          : "Recopie-le avant de quitter l'écran, il n'est nulle part.",
-      );
+      montrer('stop', "Ton message n'est pas parti", erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment : il est encore dans le champ.');
     } finally {
       setEnCours(false);
     }
   }
   const mission = club.valeur?.mission ?? null;
+  /* La prochaine séance VIENT DE L'AGENDA. Elle était écrite en dur — « jeudi 10 septembre ·
+     20:00 » — et restait affichée des semaines après la date. */
+  const prochaine = agenda.valeur?.[0] ?? null;
+
+  const ecrire = (
+    <Button
+      tone="transforme"
+      size="sm"
+      label="Écrire au Club"
+      icon="pencil"
+      onPress={() => setOuverte(true)}
+    />
+  );
 
   return (
     <ClubScreen titre="Le fil">
-      <Bilan />
+      <BilanPlie />
+      {bandeau}
 
-      {/* ⚠️ « Membres » A ÉTÉ RETIRÉ. Il poussait vers `/club/membre` SANS DÉSIGNER PERSONNE :
-          la fiche d'un membre est un détail, pas une destination. Elle s'ouvre maintenant en
-          touchant l'auteur d'un message. */}
-      <ChipRow
-        options={['Fil', 'Discussions', 'Opportunités']}
-        value="Fil"
-        onChange={(v) => {
-          if (v === 'Discussions') router.push('/club/discussions');
-          if (v === 'Opportunités') router.push('/club/opportunites');
-        }}
-        style={{ marginTop: 18 }}
-      />
-
-      {/* ── ÉCRIRE, DANS L'ÉCRAN ──────────────────────────────────────────────────────
-          Le fil n'avait aucun moyen d'y contribuer : on pouvait le lire, pas y répondre.
-          La saisie s'ouvre ici plutôt que sur un écran à part — et c'est aussi la seule
-          forme qui marche sur les deux plateformes. */}
-      {redaction === null ? (
-        <Button
-          tone="quiet"
-          size="sm"
-          label="Écrire au Club"
-          icon="comment"
-          style={{ marginTop: 14 }}
-          onPress={() => setRedaction('')}
-        />
-      ) : (
-        <Surface level="flat" style={{ marginTop: 14, padding: 16 }}>
-          <Field
-            label="Ton message"
-            value={redaction}
-            onChangeText={setRedaction}
-            placeholder="Ce que tu as essayé, et ce que ça a donné."
-            multiline
-            autoCapitalize="sentences"
-            style={{ marginTop: 0 }}
-          />
-          <View style={{ flexDirection: 'row', gap: 9, marginTop: 12 }}>
-            <Button
-              tone="quiet"
-              size="sm"
-              label="Annuler"
-              disabled={enCours}
-              style={{ flex: 1 }}
-              onPress={() => setRedaction(null)}
-            />
-            <Button
-              tone="transforme"
-              size="sm"
-              label={enCours ? 'Publication…' : 'Publier'}
-              disabled={enCours || redaction.trim() === ''}
-              style={{ flex: 1 }}
-              onPress={() => { void publier(redaction); }}
-            />
-          </View>
-          <Body muted style={{ fontSize: 11.5, lineHeight: 17, marginTop: 10, color: t('textFaint') }}>
-            Ton message part signé de ton nom d'affichage — celui de ton profil, pas un
-            pseudonyme choisi ici.
-          </Body>
-        </Surface>
-      )}
+      {/* La seconde rangée « Fil · Discussions · Opportunités » est partie : elle doublait
+          la bande des onglets juste au-dessus. */}
+      <View style={{ flexDirection: 'row', justifyContent: isAndroid ? 'flex-start' : 'flex-end', marginTop: 14 }}>
+        {ecrire}
+      </View>
 
       {fil.length === 0 ? (
         <SansDonnees
@@ -130,63 +97,64 @@ export default function Fil() {
           hauteur={4}
           style={{ marginTop: 14 }}
         />
-      ) : fil.map((post) => (
-        /* ⚠️ LA CLÉ ÉTAIT `post.auteur`. Deux messages de la même personne portaient donc la
-           même clé : React en écrasait un au rendu, et le fil perdait des messages sans que
-           rien ne le signale. Le défaut devient franc dès qu'un filtre change la composition
-           de la liste — c'est-à-dire depuis le blocage. */
-        <Surface key={post.id} level="flat" style={{ marginTop: 14, padding: 18 }}>
-          {/* L'en-tête ouvre la fiche du membre. C'est le SEUL chemin vers elle, et donc vers
-              le signalement et le blocage : on désigne le MESSAGE, le serveur en résout
-              l'auteur, et aucun identifiant de personne ne circule côté client. */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Voir la fiche de ${post.auteur}`}
-            onPress={() => router.push({
-              pathname: '/club/membre',
-              params: { message: post.id, nom: post.auteur },
-            })}
-            style={({ pressed }: { pressed: boolean }) => ({
-              flexDirection: 'row', gap: 11, alignItems: 'center',
-              opacity: pressed ? 0.72 : 1,
-            })}
-          >
-            <Avatar initials={post.initiales} size={38} />
-            <View style={{ flex: 1 }}>
-              <Body style={{ fontSize: 14, fontWeight: '600' }}>{post.auteur}</Body>
-              <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: t('textFaint') }}>
-                {post.categorie} · {post.quand}
-              </Body>
-            </View>
-            <Tag>{post.categorie}</Tag>
-          </Pressable>
-
-          <Body style={{ marginTop: 12, lineHeight: 21 }}>{post.texte}</Body>
-
-          {/* Trois compteurs, et aucun n'est un score : ils disent ce que d'autres ont FAIT
-              de ce message, pas ce qu'il « vaut ». */}
-          <View style={{ flexDirection: 'row', gap: 18, marginTop: 14, alignItems: 'center' }}>
-            {([
-              ['heart', post.aime, `${post.aime} personnes ont aimé`],
-              ['repeat', post.republie, `${post.republie} republications`],
-              ['comment', post.commente, `${post.commente} réponses`],
-            ] as const).map(([glyphe, n, label]) => (
-              <View
-                key={glyphe}
-                accessible
-                accessibilityLabel={label}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-              >
-                <Icon name={glyphe} size={16} color={glyphe === 'heart' ? t('mmVioletT') : t('ink2')} />
-                <Num value={n} {...provenance(club)} style={{ fontSize: 12.5 }} />
+      ) : fil.map((post, i) => (
+        /* ⚠️ LA CLÉ EST L'IDENTIFIANT, jamais l'auteur : deux messages d'une même personne
+           s'écrasaient au rendu. */
+        <Revele key={post.id} i={i}>
+          <Surface level="flat" style={{ marginTop: 14, padding: 18, opacity: post.enFile ? 0.75 : 1 }}>
+            {/* L'en-tête ouvre la fiche du membre — le seul chemin vers le signalement et le
+                blocage. On désigne le MESSAGE ; le serveur en résout l'auteur. */}
+            <Pressoir
+              accessibilityRole="button"
+              accessibilityLabel={`Voir la fiche de ${post.auteur}`}
+              desactive={post.enFile}
+              onPress={post.enFile ? undefined : () => router.push({
+                pathname: '/club/membre',
+                params: { message: post.id, nom: post.auteur },
+              })}
+              style={{ flexDirection: 'row', gap: 11, alignItems: 'center', minHeight: 44 }}
+            >
+              <Avatar initials={post.initiales} size={38} decoratif />
+              <View style={{ flex: 1 }}>
+                <Body style={{ fontSize: 14, fontWeight: '600' }}>{post.auteur}</Body>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                  {post.enFile ? <Icon name="clock" size={12} color={t('textMuted')} /> : null}
+                  <Body muted style={{ fontSize: 12 }}>{post.quand}</Body>
+                </View>
               </View>
-            ))}
-          </View>
-        </Surface>
+              <Tag>{post.categorie}</Tag>
+            </Pressoir>
+
+            <Body style={{ marginTop: 12, lineHeight: 21 }}>{post.texte}</Body>
+
+            {/* Trois compteurs, et aucun n'est un score. Ils ne se touchent pas : aucune
+                réaction ne s'écrit depuis l'application, donc le cœur n'est plus coloré
+                comme un bouton qu'on aurait pu presser. */}
+            {post.enFile ? null : (
+              <View style={{ flexDirection: 'row', gap: 18, marginTop: 14, alignItems: 'center' }}>
+                {([
+                  ['heart', post.aime, `${post.aime} personnes ont aimé`],
+                  ['repeat', post.republie, `${post.republie} republications`],
+                  ['comment', post.commente, `${post.commente} réponses`],
+                ] as const).map(([glyphe, n, label]) => (
+                  <View
+                    key={glyphe}
+                    accessible
+                    accessibilityLabel={label}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                  >
+                    <Icon name={glyphe} size={16} color={t('ink2')} />
+                    <Num value={n} {...provenance(club)} style={{ fontSize: 12.5 }} />
+                  </View>
+                ))}
+              </View>
+            )}
+          </Surface>
+        </Revele>
       ))}
 
-      {/* Une annonce, ou rien : un budget inventé fixe une attente de revenu chez quelqu'un
-          qui organise son temps dessus. */}
+      {/* Une annonce, ou rien. Son budget peut manquer : « 0 F » se lisait comme une mission
+          bénévole, alors qu'il n'était simplement pas annoncé. */}
       {mission === null ? null : (
       <View style={{ marginTop: 12 }}>
         <TerritoryCard
@@ -200,16 +168,15 @@ export default function Fil() {
             flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between',
             gap: 12, marginTop: 14,
           }}>
-            <PriceBlock
-              amount={mission.budget ?? 0}
-              {...provenance(club)}
-              size={21}
-              note={mission.note}
-            />
+            {mission.budget == null ? (
+              <Num value={null} {...provenance(club)} fallback="budget non annoncé" style={{ fontSize: 13 }} />
+            ) : (
+              <PriceBlock amount={mission.budget} {...provenance(club)} size={21} note={mission.note} />
+            )}
             <Button
               tone="transforme"
               size="sm"
-              label="Postuler"
+              label="Voir les opportunités"
               onPress={() => router.push('/club/opportunites')}
             />
           </View>
@@ -217,16 +184,40 @@ export default function Fil() {
       </View>
       )}
 
-      <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
-        <LessonRow
-          icon={<Icon name="calendar" size={14} color={t('ink2')} />}
-          title="La prochaine session"
-          meta="jeudi 10 septembre · 20:00"
-          trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
-          onPress={() => router.push('/club/agenda')}
-          last
+      {prochaine ? (
+        <Surface level="flat" style={{ marginTop: 14, paddingHorizontal: 16 }}>
+          <LessonRow
+            icon={<Icon name="calendar" size={14} color={t('ink2')} />}
+            title="La prochaine session"
+            meta={[prochaine.jour, prochaine.horaire].filter(Boolean).join(' · ')}
+            trailing={<Icon name="forward" size={16} color={t('ink3')} strokeWidth={2.4} />}
+            onPress={() => router.push('/club/agenda')}
+            last
+          />
+        </Surface>
+      ) : null}
+
+      <Feuille visible={ouverte} onFermer={() => setOuverte(false)} titre="Écrire au Club">
+        <ChipRow options={RUBRIQUES} value={rubrique} onChange={setRubrique} />
+        <Field
+          label="Ton message"
+          value={redaction}
+          onChangeText={setRedaction}
+          placeholder="Ce que tu as essayé, et ce que ça a donné."
+          multiline
+          autoFocus
+          maxLength={2000}
+          autoCapitalize="sentences"
+          hint="Signé de ton nom d'affichage, celui de ton profil. Hors réseau, il part au retour."
         />
-      </Surface>
+        <Button
+          tone="transforme"
+          label={enCours ? 'Publication…' : 'Publier'}
+          disabled={enCours || redaction.trim() === ''}
+          style={{ marginTop: 16, marginBottom: 8 }}
+          onPress={() => { void publier(); }}
+        />
+      </Feuille>
     </ClubScreen>
   );
 }

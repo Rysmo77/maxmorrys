@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import type { ReactNode } from 'react';
 import { useToken } from './theme';
 
@@ -44,7 +45,7 @@ export function EmptyState({
       {body !== undefined && (
         typeof body === 'string' ? (
           <Text style={{
-            fontFamily: 'SchibstedGrotesk', fontSize: 13.5, lineHeight: 20, marginTop: 9,
+            fontFamily: POLICE.corps, fontSize: 13.5, lineHeight: 20, marginTop: 9,
             textAlign: 'center', maxWidth: 300, color: t('textMuted'),
           }}>
             {body}

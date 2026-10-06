@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { AppState } from 'react-native';
 import * as Systeme from 'expo-local-authentication';
 import * as Coffre from 'expo-secure-store';
 
@@ -353,8 +354,12 @@ export type Porte =
  * verrouillerait l'application juste après une déconnexion volontaire — c'est-à-dire au
  * moment précis où il n'y a plus rien à garder.
  */
-export function useVerrouDeDemarrage(): { porte: Porte; extinction: string | null } {
+/** Au-delà, un retour au premier plan redemande le geste. Moins, ce serait une gêne. */
+const REVERROUILLER_MS = 5 * 60 * 1000;
+
+export function useVerrouDeDemarrage(): { porte: Porte; extinction: string | null; masque: boolean } {
   const session = useSession();
+  const verrouActif = useVerrouActif();
   const [drapeau, setDrapeau] = useState<boolean | null>(null);
   const [etat, setEtat] = useState<'attente' | 'ouvert' | 'verrouille'>('attente');
   const [motif, setMotif] = useState('');
@@ -412,7 +417,37 @@ export function useVerrouDeDemarrage(): { porte: Porte; extinction: string | nul
     void tenter();
   }, [enCours, tenter]);
 
-  if (etat === 'attente') return { porte: { etat: 'attente' }, extinction };
-  if (etat === 'ouvert') return { porte: { etat: 'ouvert' }, extinction };
-  return { porte: { etat: 'verrouille', motif, geste, enCours, reessayer }, extinction };
+  /*
+   * ── ET LE VERROU REVIENT APRÈS CINQ MINUTES EN ARRIÈRE-PLAN ───────────────────────────
+   * Il ne gardait que le démarrage à froid : un téléphone posé ouvert sur une table, repris
+   * une heure plus tard, rouvrait l'application sans rien demander — tant que le système ne
+   * l'avait pas tuée. Le geste est redemandé au retour, au-delà de cinq minutes.
+   *
+   * ── LE CONTENU SE VOILE DÈS QUE L'APPLICATION PERD LE PREMIER PLAN ────────────────────
+   * Le sélecteur d'applications photographie l'écran : sans voile, l'aperçu montrait les
+   * cours et les messages du Club d'un téléphone qu'on croyait verrouillé.
+   */
+  const [masque, setMasque] = useState(false);
+  const parti = useRef<number | null>(null);
+  useEffect(() => {
+    const abonnement = AppState.addEventListener('change', (suivant) => {
+      const garde = verrouActif && session.phase === 'connectee';
+      setMasque(garde && suivant !== 'active');
+      if (suivant === 'background') parti.current = Date.now();
+      if (suivant === 'active' && parti.current !== null) {
+        const absence = Date.now() - parti.current;
+        parti.current = null;
+        if (garde && etat === 'ouvert' && absence >= REVERROUILLER_MS) {
+          setEtat('verrouille');
+          setMotif('Rysmo est resté en arrière-plan plus de cinq minutes.');
+          void tenter();
+        }
+      }
+    });
+    return () => abonnement.remove();
+  }, [verrouActif, session.phase, etat, tenter]);
+
+  if (etat === 'attente') return { porte: { etat: 'attente' }, extinction, masque };
+  if (etat === 'ouvert') return { porte: { etat: 'ouvert' }, extinction, masque };
+  return { porte: { etat: 'verrouille', motif, geste, enCours, reessayer }, extinction, masque };
 }

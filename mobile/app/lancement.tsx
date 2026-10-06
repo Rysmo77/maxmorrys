@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Body, Mesh, Wordmark, useToken } from '../ds';
+import { Body, Mesh, Revele, Wordmark, useToken, POLICE } from '../ds';
 import { useSession } from '../donnees/session';
 import { accueilVu } from '../donnees/accueil';
 
@@ -67,17 +67,23 @@ export default function Lancement() {
   return (
     <View style={{ flex: 1, backgroundColor: t('surfacePage') }}>
       <Mesh territory="transforme" />
+      {/* Le mot-symbole APPARAÎT (`rv-s`, 380 ms) au lieu d'être déjà là : l'écran de
+          lancement natif s'efface sur lui, et l'enchaînement se lit comme un seul geste. */}
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 18 }}>
-        <Wordmark brand="rysmo" size={44} />
-        <Body
-          muted
-          style={{
-            fontFamily: 'JetBrainsMono', fontSize: 10.5, letterSpacing: 1.7,
-            textTransform: 'uppercase', color: t('textFaint'),
-          }}
-        >
-          par Max-Morrys · Dakar
-        </Body>
+        <Revele echelle>
+          <Wordmark brand="rysmo" size={44} />
+        </Revele>
+        <Revele i={2}>
+          <Body
+            muted
+            style={{
+              fontFamily: POLICE.mono, fontSize: 11, letterSpacing: 1.7,
+              textTransform: 'uppercase',
+            }}
+          >
+            par Max-Morrys · Dakar
+          </Body>
+        </Revele>
       </View>
     </View>
   );

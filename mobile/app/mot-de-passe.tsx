@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import {
-  Body, Button, Display, Eyebrow, Field, Icon, Screen, Surface, isIOS, useToken, veil,
+  Body, Button, Display, Eyebrow, Field, Icon, Revele, Screen, Surface, haptique, isIOS, useBandeau, useToken, veil,
 } from '../ds';
-import { reinitialiser } from '../donnees/identite';
+import { ErreurIdentite, reinitialiser } from '../donnees/identite';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════
@@ -33,26 +33,39 @@ export default function MotDePasse() {
   const t = useToken();
   const [email, setEmail] = useState('');
   const [accuse, setAccuse] = useState(false);
+  const [envoi, setEnvoi] = useState(false);
+  const { bandeau, montrer, effacer } = useBandeau();
 
   async function accuseReception() {
     /*
-      ── L'INVARIANT, TENU. NE PAS BRANCHER D'EMBRANCHEMENT ICI. ──
-      L'envoi est arrivé, exactement à la ligne que ce fichier avait prévue pour lui, et
-      SON RÉSULTAT N'EST PAS LU. Le `catch` vide n'est pas une négligence, c'est la mesure :
-      distinguer « adresse inconnue » de « lien envoyé » rendrait cet écran capable de
-      répondre « inscrit / pas inscrit » à qui lui soumet une liste d'adresses. Le seul état
-      de sortie reste celui-ci.
+      ── L'INVARIANT, TENU : CET ÉCRAN NE DIT JAMAIS QUI EST INSCRIT. ──
+      Distinguer « adresse inconnue » de « lien envoyé » permettrait de tester une liste
+      d'adresses. `reinitialiser()` étouffe cette différence au plus près de sa source.
 
-      `reinitialiser()` ne jette d'ailleurs que sur un défaut de TRANSPORT, jamais sur une
-      adresse inconnue — la distinction est étouffée au plus près de sa source, pas ici.
+      ⚠️ MAIS UNE COUPURE N'EST PAS UNE RÉPONSE. Le `catch` vide affichait « C'est parti »
+      même hors réseau : quelqu'un attendait un e-mail qui n'était jamais parti. Le seul
+      échec que `reinitialiser()` laisse remonter est le TRANSPORT — le dire ne révèle rien
+      du compte, puisque rien n'a atteint le serveur.
     */
-    try { await reinitialiser(email); }
-    catch { /* volontairement vide — voir ci-dessus */ }
-    finally { setAccuse(true); }
+    if (envoi) return;
+    setEnvoi(true);
+    effacer();
+    try {
+      await reinitialiser(email);
+      haptique.succes();
+      setAccuse(true);
+    } catch (erreur: unknown) {
+      setAccuse(false);
+      montrer('stop', "Rien n'est parti", erreur instanceof ErreurIdentite
+        ? 'Pas de connexion. Réessaie quand le réseau revient : ton adresse est encore dans le champ.'
+        : 'Réessaie dans un moment.');
+    } finally {
+      setEnvoi(false);
+    }
   }
 
   return (
-    <Screen territory="forme" retour="Connexion" titre={isIOS ? undefined : 'Mot de passe oublié'}>
+    <Screen territory="forme" retour="Retour" titre={isIOS ? undefined : 'Mot de passe oublié'}>
         <Eyebrow>Ton compte</Eyebrow>
         <View style={{ marginTop: 10 }}>
           <Display size="sm" lines={['On te remet', 'dedans.']} />
@@ -69,21 +82,28 @@ export default function MotDePasse() {
             placeholder="ton@adresse.sn"
             keyboardType="email-address"
             textContentType="emailAddress"
+            autoComplete="email"
+            autoCorrect={false}
+            autoFocus
+            returnKeyType="send"
+            onSubmitEditing={() => { if (email.trim()) void accuseReception(); }}
             style={{ marginTop: 0 }}
           />
           <Button
             tone="forme"
-            label="Envoie-moi le lien"
+            label={envoi ? 'Envoi…' : accuse ? 'Renvoyer le lien' : 'Envoie-moi le lien'}
             // Le champ vide désactive le bouton — c'est une vérification de FORME, faite ici,
             // qui ne consulte rien et ne révèle donc rien. La seule frontière qu'on ne
             // franchit pas est celle qui dirait quelque chose sur le compte lui-même.
-            disabled={!email.trim()}
+            disabled={!email.trim() || envoi}
             onPress={() => { void accuseReception(); }}
             style={{ marginTop: 16 }}
           />
         </Surface>
+        {bandeau}
 
         {accuse && (
+          <Revele echelle>
           <Surface level="flat" style={{ marginTop: 16, padding: 18, borderColor: t('ok') }}>
             <View style={{ flexDirection: 'row', gap: 11 }}>
               <View style={{
@@ -108,26 +128,21 @@ export default function MotDePasse() {
                   accusé de réception qui ment le temps d'un écran.
                 */}
                 <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: t('borderHair') }}>
-                  <Body muted style={{ fontSize: 12 }}>
-                    Le message vient de Firebase, pas d'une adresse en maxmorrys.me — cherche
-                    « noreply » si tu ne le trouves pas. Et si cette adresse n'a pas de compte,
-                    tu lis exactement la même phrase : cet écran ne dit jamais qui est inscrit.
+                  <Body muted style={{ fontSize: 12.5 }}>
+                    Le message vient d'une adresse « noreply » — cherche-la si tu ne le trouves
+                    pas. Et si cette adresse n'a pas de compte, tu lis exactement la même phrase.
                   </Body>
                 </View>
               </View>
             </View>
           </Surface>
+          </Revele>
         )}
 
-        <Surface level="truth" style={{ marginTop: 16, padding: 18 }}>
-          <Eyebrow>Pourquoi ce « si »</Eyebrow>
-          <Body muted style={{ marginTop: 6, fontSize: 12.5 }}>
-            Je ne te dirai jamais si une adresse a un compte ou non. Ça paraît moins
-            serviable, mais ça évite qu'un inconnu puisse tester des adresses pour savoir qui
-            est inscrit. Une adresse sans compte reçoit ici la même réponse, au mot près, que
-            la tienne.
-          </Body>
-        </Surface>
+        <Body muted style={{ marginTop: 16, fontSize: 12.5, lineHeight: 19 }}>
+          Je ne dis jamais si une adresse a un compte : ça évite qu'un inconnu teste des
+          adresses pour savoir qui est inscrit.
+        </Body>
     </Screen>
   );
 }

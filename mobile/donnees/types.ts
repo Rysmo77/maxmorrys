@@ -58,9 +58,13 @@ export interface VueModuleFiche {
   meta: string;
   /** Un module est ouvert s'il contient au moins une leçon gratuite — un FAIT, pas le rang. */
   ouvert: boolean;
+  /** La leçon que la ligne ouvre — la première leçon gratuite du module. */
+  leconOuverte?: string | null;
 }
 
 export interface VueFormation {
+  /** L'identifiant du document — le `formationId` de la leçon. */
+  id: string;
   titre: string;
   titreCourt: string;
   meta: string;
@@ -231,6 +235,8 @@ export interface VueClassement {
 }
 
 export interface VueRepetiteur {
+  /** La mémoire du répétiteur est-elle active ? Le défaut du site est « oui ». */
+  memoireActive: boolean;
   quota: { utilise: number; total: number };
   memoire: ReadonlyArray<{ id: string; fait: string; depuis?: string | null }>;
   echange: ReadonlyArray<{ id: string; de: string; texte: string }>;

@@ -3,7 +3,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import {
   Body, Button, Display, Eyebrow, Gradient, Icon, Num, Screen, Surface, useToken,
 } from '../ds';
-import { RELEVE, SOURCE } from '../contenu/demo';
 
 /**
  * ══ 5 · L'ERREUR ══ — MOTIF, CONSÉQUENCE, SORTIE. DANS CET ORDRE, ET JAMAIS D'EXCUSE.
@@ -32,9 +31,11 @@ export default function Erreur() {
    * — qui n'est pas celui d'une vidéo qui n'a pas répondu. Un écran d'erreur qui affiche
    * toujours le même motif est un écran qui n'en donne aucun.
    */
-  const { titre, motif, consequence, reference, libelle, sortie } = useLocalSearchParams<{
+  const { titre, motif, consequence, reference, libelle, sortie, formationId, leconId } = useLocalSearchParams<{
     titre?: string; motif?: string; consequence?: string;
     reference?: string; libelle?: string; sortie?: string;
+    /* La leçon d'où l'on vient : sans elle, « revenir à la leçon » rouvrait une leçon devinée. */
+    formationId?: string; leconId?: string;
   }>();
 
   /* Un titre d'affichage ne se replie jamais tout seul : celui qui arrive par la route est
@@ -45,10 +46,10 @@ export default function Erreur() {
       const mi = Math.ceil(mots.length / 2);
       return [mots.slice(0, mi).join(' '), mots.slice(mi).join(' ')];
     })()
-    : ["La leçon ne s'est", 'pas chargée.'];
+    : ['Ça ne s’est', 'pas chargé.'];
 
   return (
-    <Screen territory="forme" retour="Cours" center>
+    <Screen territory="forme" retour="Retour" center>
       <Gradient
         colors={[t('mmCorail'), t('stop')]}
         radius={21}
@@ -66,12 +67,14 @@ export default function Erreur() {
       <Surface level="flat" style={{ marginTop: 18, padding: 18 }}>
         <Eyebrow>Le motif</Eyebrow>
         <Body style={{ marginTop: 7, fontSize: 13.5, lineHeight: 20 }}>
-          {motif ?? 'La vidéo a mis plus de 30 secondes à répondre. Le réseau a coupé pendant le transfert.'}
+          {/* Le motif par défaut était INVENTÉ — « la vidéo a mis plus de 30 secondes » — et
+              s'affichait pour n'importe quelle erreur. Sans motif transmis, on dit ce qu'on sait. */}
+          {motif ?? "La réponse n'est pas arrivée. Le réseau a pu couper pendant le transfert."}
         </Body>
         <View style={{ height: 1, marginVertical: 14, backgroundColor: t('borderHair') }} />
         <Eyebrow>La conséquence</Eyebrow>
         <Body style={{ marginTop: 7, fontSize: 13.5, lineHeight: 20 }}>
-          {consequence ?? "Ta progression est intacte : elle est enregistrée sur ton inscription, pas sur le téléphone. Rien n'est perdu."}
+          {consequence ?? "Ta progression est enregistrée sur ton compte, pas sur le téléphone : rien n'est perdu."}
         </Body>
       </Surface>
 
@@ -82,22 +85,16 @@ export default function Erreur() {
         onPress={() => (sortie ? router.replace(sortie as never) : router.back())}
       />
 
-      {/* LA SORTIE DE SECOURS DU NATIF EST MEILLEURE QUE CELLE DU WEB — mais elle n'a de sens
-          que sur une leçon. Un lien mort n'a pas de transcription à proposer. */}
-      {sortie ? null : (
-        <>
-          <Button
-            tone="quiet"
-            label="Lire la transcription à la place"
-            style={{ marginTop: 9 }}
-            onPress={() => router.replace('/lecon')}
-          />
-          <Body muted style={{ fontSize: 11.5, textAlign: 'center', lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
-            La transcription est déjà sur ton téléphone :{' '}
-            <Num value="0 Mo" source={SOURCE} asOf={RELEVE} style={{ fontSize: 11.5, color: t('textMuted') }} />
-            {' '}à charger.
-          </Body>
-        </>
+      {/* La sortie vers la leçon n'existe que si l'on sait DE QUELLE leçon on vient. Elle
+          promettait « une transcription déjà sur ton téléphone, 0 Mo » — un chiffre de
+          démonstration, affiché en production. */}
+      {sortie || !formationId ? null : (
+        <Button
+          tone="quiet"
+          label="Revenir à la leçon"
+          style={{ marginTop: 9 }}
+          onPress={() => router.replace({ pathname: '/lecon', params: { formationId, ...(leconId ? { leconId } : {}) } })}
+        />
       )}
 
       {/* La référence ne s'invente pas : sans elle, la ligne n'existe pas. */}
@@ -106,7 +103,7 @@ export default function Erreur() {
           value={`Référence de l'incident : ${reference}`}
           source="server"
           asOf={new Date()}
-          style={{ fontSize: 11, textAlign: 'center', marginTop: 10, color: t('textFaint') }}
+          style={{ fontSize: 12, textAlign: 'center', marginTop: 10, color: t('textMuted') }}
         />
       ) : null}
     </Screen>

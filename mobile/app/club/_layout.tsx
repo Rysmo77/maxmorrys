@@ -1,7 +1,10 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { Stack, useLocalSearchParams, usePathname, useRouter } from 'expo-router';
-import { Body, ChipRow, Display, Eyebrow, Gradient, Icon, Num, Screen, Surface, useToken } from '../../ds';
+import {
+  Body, Button, ChipRow, Display, Eyebrow, Gradient, Heros, Icon, Num, Pressoir, Screen, Surface,
+  screenAnimation, useMouvement, useToken,
+} from '../../ds';
 import { RELEVE as REFERENCE_ASOF, SOURCE as REFERENCE_SOURCE } from '../../contenu/demo';
 import { provenance, useApercuClub, useClub } from '../../donnees';
 import { ONGLETS_CLUB, ongletDe, type OngletClub } from '../../contenu/club';
@@ -33,7 +36,18 @@ import { VERROUS } from '../../contenu/verrous';
  * ═══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function ClubLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  const { reduit } = useMouvement();
+  /*
+   * PASSER D'UN ONGLET À L'AUTRE EST UN FONDU, 180 ms — comme la barre d'onglets. La bande
+   * remplace l'écran : un glissé latéral y créait une « géographie fausse », comme si
+   * Agenda était À DROITE de Fil. La fiche d'un membre, elle, est un DÉTAIL : elle pousse.
+   */
+  return (
+    <Stack screenOptions={{ headerShown: false, animation: reduit ? 'none' : 'fade', animationDuration: 180 }}>
+      <Stack.Screen name="membre" options={{ animation: reduit ? 'none' : screenAnimation }} />
+      <Stack.Screen name="bloques" options={{ animation: reduit ? 'none' : screenAnimation }} />
+    </Stack>
+  );
 }
 
 /** L'époque, quand aucune date de relevé n'est arrivée. `<Num>` écrira « non relevé ». */
@@ -107,7 +121,7 @@ export function ClubScreen({ titre, children }: { titre: string; children: React
   */
   return (
     <Screen territory="transforme" retour="Club" onRetour={retour} titre={titre}>
-      <BandeClub />
+      <BandeClub ferme={verrou} />
       {verrou ? <CorpsVerrouille onglet={onglet} /> : children}
     </Screen>
   );
@@ -125,14 +139,19 @@ export function ClubScreen({ titre, children }: { titre: string; children: React
  * `height={44}` est le plancher de cible tactile, pas une esthétique. Sur une fiche de membre
  * ou les comptes bloqués, aucun onglet n'est actif — la bande reste, pour repartir.
  */
-function BandeClub() {
+function BandeClub({ ferme }: { ferme: boolean }) {
   const router = useRouter();
   const actif = ongletDe(usePathname());
+  /* La bande DÉBORDE jusqu'aux bords de l'écran (la coupe dit « il y a une suite »), défile
+     jusqu'à l'onglet ouvert, et porte un cadenas sur chaque onglet quand le Club est fermé :
+     on sait avant de toucher ce qui s'ouvrira. */
   return (
     <ChipRow
       options={ONGLETS_CLUB.map((o) => o.libelle)}
       value={actif?.libelle ?? ''}
       height={44}
+      debord={18}
+      icones={ferme ? Object.fromEntries(ONGLETS_CLUB.map((o) => [o.libelle, 'lock' as const])) : undefined}
       onChange={(libelle) => {
         const cible = ONGLETS_CLUB.find((o) => o.libelle === libelle);
         if (cible && cible !== actif) router.replace(cible.href);
@@ -156,6 +175,7 @@ function BandeClub() {
  */
 function CorpsVerrouille({ onglet }: { onglet: OngletClub | null }) {
   const t = useToken();
+  const router = useRouter();
   const v = onglet ? VERROUS[onglet.libelle] : null;
   /* Les compteurs RÉELS, avec LEURS libellés : c'est le serveur qui sait ce qu'il mesure.
      Tant qu'il n'a pas répondu, les libellés du kit restent, chacun « non relevé ». */
@@ -164,9 +184,11 @@ function CorpsVerrouille({ onglet }: { onglet: OngletClub | null }) {
   const compteurs = servis ?? v?.compteurs.map((l) => ({ l, n: null })) ?? [];
   return (
     <>
-      <Gradient colors={[t('mmVioletN'), t('mmViolet')]} radius={18} style={{ width: 54, height: 54, marginTop: 20, alignItems: 'center', justifyContent: 'center' }}>
-        <Icon name="lock" size={23} color={t('paperFixed')} strokeWidth={2.3} />
-      </Gradient>
+      <Heros>
+        <Gradient colors={[t('mmVioletN'), t('mmViolet')]} radius={18} style={{ width: 54, height: 54, marginTop: 20, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="lock" size={23} color={t('paperFixed')} strokeWidth={2.3} />
+        </Gradient>
+      </Heros>
       <Display size={27} lines={v ? [...v.titre] : ['RÉSERVÉ', 'AUX MEMBRES.']} style={{ marginTop: 16 }} />
       <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
         {v ? v.quoi : "Cette partie du Club s'ouvre aux membres. Les onglets ci-dessus restent visitables."}
@@ -175,12 +197,17 @@ function CorpsVerrouille({ onglet }: { onglet: OngletClub | null }) {
       {v ? (
         <>
           <Surface level="flat" style={{ marginTop: 18, padding: 18 }}>
-            <Eyebrow>Derrière ce cadenas, en ce moment</Eyebrow>
+            {/* La date du relevé est DITE : « en ce moment » sans date se lit comme un direct. */}
+            <Eyebrow>
+              {apercu.phase === 'servie'
+                ? `Derrière ce cadenas, relevé le ${apercu.asOf.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`
+                : 'Derrière ce cadenas'}
+            </Eyebrow>
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
               {compteurs.map((c) => (
                 <View key={c.l} style={{ flex: 1 }}>
                   <Num value={c.n ?? null} {...provenance(apercu)} style={{ fontSize: c.n == null ? 12.5 : 21 }} />
-                  <Body muted style={{ fontSize: 10.5, lineHeight: 14, marginTop: 4 }}>{c.l}</Body>
+                  <Body muted style={{ fontSize: 11.5, lineHeight: 15, marginTop: 4 }}>{c.l}</Body>
                 </View>
               ))}
             </View>
@@ -193,14 +220,12 @@ function CorpsVerrouille({ onglet }: { onglet: OngletClub | null }) {
         </>
       ) : null}
 
-      <Surface level="truth" style={{ marginTop: 14, padding: 15 }}>
-        <Eyebrow>Pourquoi aucun prix ici</Eyebrow>
-        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          L'application ne vend rien. Ton accès s'ouvre ici dès qu'il est actif — les onglets
-          restent visitables en attendant, pour que tu voies ce qu'il y a derrière avant de
-          décider.
-        </Body>
-      </Surface>
+      <Body muted style={{ marginTop: 16, fontSize: 13, lineHeight: 20 }}>
+        Ton accès s'ouvre ici dès qu'il est actif. En attendant, les onglets restent visitables,
+        et le pôle média reste ouvert avec ton compte.
+      </Body>
+      {/* Une SORTIE, pas un mur : ce qui est ouvert sans le Club. */}
+      <Button tone="quiet" size="sm" label="Écouter & regarder" icon="mic" style={{ marginTop: 12 }} onPress={() => router.push('/media')} />
     </>
   );
 }
@@ -224,6 +249,47 @@ function CorpsVerrouille({ onglet }: { onglet: OngletClub | null }) {
  * relevé, ou ils disent « non relevé ». Un bilan est exactement l'endroit où un chiffre
  * flatteur inventé se paierait le plus cher : c'est celui qu'on regarde avant de renoncer.
  */
+/**
+ * LE BILAN, PLIÉ PAR DÉFAUT EN TÊTE DU FIL ET DES OPPORTUNITÉS. Déplié, il poussait le
+ * premier message sous le pli : on ouvrait le fil pour lire le fil, et on lisait d'abord son
+ * abonnement. Plié, il tient sur une ligne — l'échéance — et se déplie d'un geste.
+ */
+export function BilanPlie() {
+  const t = useToken();
+  const club = useClub();
+  const [ouvert, setOuvert] = useState(false);
+  const echeance = club.valeur?.echeance ?? null;
+  if (ouvert) {
+    return (
+      <View>
+        <Bilan />
+        <Button tone="quiet" size="sm" label="Replier le bilan" icon="chevron-up" style={{ marginTop: 10 }} onPress={() => setOuvert(false)} />
+      </View>
+    );
+  }
+  return (
+    <Pressoir
+      accessibilityRole="button"
+      accessibilityLabel="Voir le bilan de ton abonnement"
+      onPress={() => setOuvert(true)}
+    >
+      <Surface level="flat" style={{ paddingVertical: 13, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Icon name="calendar" size={15} color={t('mmVioletT')} />
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
+          <Body style={{ fontSize: 13.5, fontWeight: '600' }}>Ton abonnement</Body>
+          {echeance ? (
+            <Body muted style={{ fontSize: 12.5 }}>
+              échéance <Num value={echeance} {...provenance(club)} style={{ fontSize: 12.5 }} />
+            </Body>
+          ) : null}
+        </View>
+        <Body muted style={{ fontSize: 12.5 }}>Bilan</Body>
+        <Icon name="chevron" size={15} color={t('ink3')} strokeWidth={2.4} />
+      </Surface>
+    </Pressoir>
+  );
+}
+
 export function Bilan() {
   const club = useClub();
   const p = useLocalSearchParams<{
@@ -281,7 +347,7 @@ export function Bilan() {
               asOf={s.asOf}
               style={{ fontSize: s.value === null ? 12.5 : 23 }}
             />
-            <Body muted style={{ fontSize: 10.5, lineHeight: 14, marginTop: 2 }}>{s.label}</Body>
+            <Body muted style={{ fontSize: 11.5, lineHeight: 15, marginTop: 2 }}>{s.label}</Body>
           </View>
         ))}
       </View>

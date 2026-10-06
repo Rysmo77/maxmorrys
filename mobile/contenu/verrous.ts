@@ -1,4 +1,3 @@
-import { REMISE_FILLEUL_PCT } from './termes';
 import type { OngletClub } from './club';
 
 /**
@@ -44,10 +43,10 @@ export const VERROUS: Readonly<Record<OngletClub['libelle'], Verrou>> = {
   },
   Membres: {
     titre: ['QUI FAIT QUOI,', 'ET OÙ.'],
-    quoi: "Le métier et le quartier, parce qu'ils servent à se trouver. Jamais le numéro de téléphone : on s'écrit dans le Club.",
+    quoi: "L'annuaire arrive. En attendant, la fiche d'un membre s'ouvre en touchant son nom dans le fil : son métier, son quartier — jamais son numéro.",
     compteurs: ['fiches remplies', 'dans ta vague', 'quartiers'],
     apercuTitre: 'Une fiche, en entier',
-    apercuQuoi: "Une fiche de membre : le nom, le métier, le quartier, la vague d'arrivée et le niveau.",
+    apercuQuoi: "Une fiche de membre : le nom, le métier, le quartier, depuis quand il est membre, et ses contributions au fil.",
   },
   Agenda: {
     titre: ['LES SESSIONS', 'DU MOIS.'],
@@ -58,10 +57,10 @@ export const VERROUS: Readonly<Record<OngletClub['libelle'], Verrou>> = {
   },
   Classement: {
     titre: ['TA VAGUE,', 'PAS UN PALMARÈS.'],
-    quoi: "Tu serais comparée aux personnes arrivées en même temps que toi. Pas à celles qui ont deux ans d'avance — il n'y a aucun classement général, et il n'y en aura pas.",
+    quoi: "Ta place parmi les personnes arrivées en même temps que toi. Pas face à celles qui ont deux ans d'avance — il n'y a aucun classement général, et il n'y en aura pas.",
     compteurs: ['dans ta vague', 'vues de progression', 'classement absolu'],
     apercuTitre: 'Ce que tu verrais',
-    apercuQuoi: 'Ta place dans ta vague d’arrivée, et une seconde vue qui ne te compare qu’à toi-même, semaine après semaine.',
+    apercuQuoi: 'Ta place dans ta vague d’arrivée, et ce que tu as gagné cette semaine.',
   },
   Opportunités: {
     titre: ['LES MISSIONS', 'OUVERTES.'],
@@ -71,17 +70,17 @@ export const VERROUS: Readonly<Record<OngletClub['libelle'], Verrou>> = {
     apercuQuoi: 'Une mission avec son lieu, sa date de publication et son budget annoncé.',
   },
   Informations: {
-    titre: ['LE DIGEST', 'DE LA SEMAINE.'],
-    quoi: "Ce qui s'est passé, ce qui arrive, et ce que je n'ai pas fait. Un par semaine, quand il y a de quoi le remplir — pas un calendrier tenu à vide.",
+    titre: ['CE QUI EST', 'GARANTI.'],
+    quoi: "Ce que le Club garantit, ce qu'il ne garantit pas, et comment se passe l'échéance — écrit avant d'entrer, pas en bas de page.",
     compteurs: ['digests publiés', 'par semaine', 'e-mail envoyé'],
-    apercuTitre: 'Un extrait, en entier',
-    apercuQuoi: 'Un extrait du digest de la semaine, section comprise.',
+    apercuTitre: 'Ce que tu lirais',
+    apercuQuoi: "Les engagements du Club, ligne par ligne, et la date de ton échéance avec ce qui se passe ce jour-là.",
   },
   Parrainage: {
-    titre: ['FAIS-LUI', `GAGNER ${REMISE_FILLEUL_PCT} %.`],
-    quoi: "Un code à toi, qui fait baisser le prix du Club pour la personne que tu parraines. Toi, tu ne gagnes rien en argent — et c'est écrit dans l'onglet, pas en bas de page.",
+    titre: ['UN CODE', 'À PARTAGER.'],
+    quoi: "Un code à toi. La remise va à la personne que tu parraines ; toi, tu gagnes un mois de Club par filleul qui reste, jamais de l'argent.",
     compteurs: ['partages', 'inscrits', 'commission pour toi'],
     apercuTitre: 'Ce que tu aurais',
-    apercuQuoi: 'Ton code, et la phrase qui dit que la remise est calculée côté serveur : elle ne dépend pas du lien sur lequel la personne a cliqué.',
+    apercuQuoi: 'Ton code, un bouton pour le copier, un autre pour le partager, et le nombre de personnes qui l’ont utilisé.',
   },
 };

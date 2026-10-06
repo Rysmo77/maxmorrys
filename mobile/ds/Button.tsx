@@ -1,8 +1,12 @@
-import { Text, type StyleProp, type ViewStyle } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { POLICE } from './police';
+import { Animated, Text, type StyleProp, type ViewStyle } from 'react-native';
 import { Pressoir } from './Pressoir';
+import { COURBE, DUREE, duree, useMouvement } from './mouvement';
 import { ripple } from './platform';
 import type { ReactNode } from 'react';
-import { useToken, px } from './theme';
+import { useToken, px, veil } from './theme';
+import { tokens } from './tokens.generated';
 import { Gradient, useActionGradient } from './Gradient';
 import { Icon, type IconName } from './Icon';
 
@@ -25,10 +29,11 @@ import { Icon, type IconName } from './Icon';
  * d'un écran), un `sm` se dimensionne sur son texte (c'est une action de ligne). `fullWidth`
  * tranche quand le cas particulier existe — deux `sm` côte à côte, chacun à `flex: 1`.
  */
-type Tone = 'primary' | 'forme' | 'informe' | 'transforme' | 'digitalise' | 'ghost' | 'quiet' | 'ink';
+type Tone = 'primary' | 'forme' | 'informe' | 'transforme' | 'digitalise' | 'ghost' | 'quiet' | 'ink' | 'danger';
 
 export function Button({
   tone = 'primary', size = 'md', label, onPress, disabled, icon, trailing, leading, fullWidth, style,
+  confirmation, confirme,
 }: {
   tone?: Tone;
   size?: 'sm' | 'md';
@@ -47,14 +52,31 @@ export function Button({
   leading?: ReactNode;
   fullWidth?: boolean;
   style?: StyleProp<ViewStyle>;
+  /**
+   * LA CONFIRMATION SUR PLACE — « Copié », « Place réservée ». Tant que `confirme` est vrai
+   * (`useConfirmation`), le libellé devient celui-ci, précédé d'une coche, en fondu 220 ms ;
+   * il revient seul. Pas de notification flottante : le résultat s'affiche là où est le doigt.
+   */
+  confirmation?: string;
+  confirme?: boolean;
 }) {
   const t = useToken();
   const g = useActionGradient();
   const sm = size === 'sm';
+  const enConfirmation = !!confirme && confirmation !== undefined;
+  const libelle = enConfirmation ? confirmation : label;
+  const glyphe: IconName | undefined = enConfirmation ? 'check' : icon;
 
   /* Les quatre territoires portent un dégradé ; les quatre autres tons, un aplat de jeton. */
+  /*
+   * ⚠️ LE DÉGRADÉ « DIGITALISE » PART D'UN TURQUOISE PLUS SOMBRE. Le kit le fait partir de
+   * #02AC9C, où le libellé blanc tombe à 2,84:1 — sous le seuil, sur le bouton de réservation
+   * et d'activation. Il part ici de l'encre de texte turquoise (`mmTealT`, 6,6:1), FIXE dans
+   * les deux modes comme le dégradé lui-même : la teinte reste celle du territoire.
+   */
   const degrade: Partial<Record<Tone, readonly string[]>> = disabled ? {} : {
-    forme: g.forme, informe: g.informe, transforme: g.transforme, digitalise: g.digitalise,
+    forme: g.forme, informe: g.informe, transforme: g.transforme,
+    digitalise: [tokens.light.mmTealT, tokens.light.mmBleu],
   };
 
   const aplat: Record<Tone, { bg: string; fg: string; brd?: string }> = {
@@ -72,6 +94,9 @@ export function Button({
     ghost: { bg: t('btnGhostBg'), fg: t('ink'), brd: t('ink') },
     quiet: { bg: t('surfaceQuiet'), fg: t('ink'), brd: t('borderHair') },
     ink: { bg: t('surfaceInk'), fg: t('paperFixed') },
+    /* Le ton DESTRUCTIF — « Supprimer mon compte », « Bloquer ». Un voile de `stop` et son
+       encre : lisible dans les deux modes, et distinct d'une action ordinaire avant d'être lu. */
+    danger: { bg: veil(t('stop'), 0.1), fg: t('stop'), brd: veil(t('stop'), 0.45) },
   };
 
   const c = disabled ? { bg: t('btnOffBg'), fg: t('ink3'), brd: undefined } : aplat[tone];
@@ -91,22 +116,39 @@ export function Button({
   const texte = (
     <Text
       numberOfLines={1}
+      adjustsFontSizeToFit
+      minimumFontScale={0.8}
+      maxFontSizeMultiplier={1.5}
       style={{
-        fontFamily: 'SchibstedGrotesk', fontWeight: '700',
+        flexShrink: 1,
+        fontFamily: POLICE.corps, fontWeight: '700',
         fontSize: sm ? 13.5 : 15, color: c.fg,
       }}
     >
-      {label}
+      {libelle}
     </Text>
+  );
+
+  /* Le contenu change en fondu quand la confirmation arrive ou repart : la clé rejoue
+     l'apparition, sans démonter le bouton (l'enfoncement en cours n'est pas coupé). */
+  const contenu = (
+    <Fondu cle={enConfirmation ? 'ok' : 'repos'}>
+      {enConfirmation ? null : leading}
+      {glyphe ? <Icon name={glyphe} size={sm ? 15 : 17} color={c.fg} strokeWidth={enConfirmation ? 2.8 : 2.2} /> : null}
+      {texte}
+      {trailing && !enConfirmation ? <Icon name={trailing} size={sm ? 15 : 16} color={c.fg} strokeWidth={2.6} /> : null}
+    </Fondu>
   );
 
   return (
     <Pressoir
       desactive={disabled}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={libelle}
       accessibilityState={{ disabled: !!disabled }}
       onPress={disabled ? undefined : onPress}
+      /* Le dessin d'un `sm` fait 42 ; la cible, elle, atteint le plancher de 44. */
+      hitSlop={sm ? { top: 2, bottom: 2 } : undefined}
       /*
         L'ONDULATION EST LE « J'AI SENTI TON DOIGT » D'ANDROID, comme l'enfoncement est celui
         d'iOS. `ripple()` rend `undefined` sur iOS : le `scale(.975)` y reste le seul retour.
@@ -126,19 +168,25 @@ export function Button({
     >
       {arrets ? (
         <Gradient colors={arrets} radius={px(t('rPill'))} style={forme}>
-          {leading}
-          {icon ? <Icon name={icon} size={sm ? 15 : 17} color={c.fg} strokeWidth={2.2} /> : null}
-          {texte}
-          {trailing ? <Icon name={trailing} size={sm ? 15 : 16} color={c.fg} strokeWidth={2.6} /> : null}
+          {contenu}
         </Gradient>
-      ) : (
-        <>
-          {leading}
-          {icon ? <Icon name={icon} size={sm ? 15 : 17} color={c.fg} strokeWidth={2.2} /> : null}
-          {texte}
-          {trailing ? <Icon name={trailing} size={sm ? 15 : 16} color={c.fg} strokeWidth={2.6} /> : null}
-        </>
-      )}
+      ) : contenu}
     </Pressoir>
+  );
+}
+
+function Fondu({ cle, children }: { cle: string; children: ReactNode }) {
+  const { reduit } = useMouvement();
+  const premier = useRef(true);
+  const o = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (premier.current) { premier.current = false; return; }
+    o.setValue(0);
+    Animated.timing(o, { toValue: 1, duration: duree(DUREE.ui, reduit), easing: COURBE.standard, useNativeDriver: true }).start();
+  }, [cle, o, reduit]);
+  return (
+    <Animated.View style={{ opacity: o, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, flexShrink: 1 }}>
+      {children}
+    </Animated.View>
   );
 }

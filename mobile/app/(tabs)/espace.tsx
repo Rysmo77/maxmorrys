@@ -2,12 +2,12 @@ import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   Pressoir,
-  Avatar, Body, Button, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, Num,
+  Avatar, Body, Button, Display, Eyebrow, Gradient, Icon, LessonRow, Num, Onde,
   ProgressBar, QuotaMeter, SansDonnees, Screen, Surface, TerritoryCard, useActionGradient,
   useToken, useTutorNom,
 } from '../../ds';
 import { QUOTA } from '../../contenu/demo';
-import { provenance, useEspace, useMoi } from '../../donnees';
+import { provenance, useEspace, useMoi, useRafraichir } from '../../donnees';
 import { ChargementEspace } from '../../ecrans/ChargementEspace';
 import { BandeauHorsLigne } from '../../ecrans/BandeauHorsLigne';
 import { useResumeTelechargements } from '../../donnees/hors-ligne';
@@ -69,12 +69,18 @@ export default function Espace() {
   const tuteur = useTutorNom();
   const telechargements = useResumeTelechargements();
   const maintenant = new Date();
+  const { enRafraichissement, rafraichir } = useRafraichir();
 
   /* Tant qu'aucune des deux lectures n'est tranchée, le squelette À LA FORME de cet écran :
      quand le contenu arrive, rien ne saute. Dès qu'une réponse arrive — même vide, même en
      panne — l'écran réel prend le relais et dit lui-même ce qui manque. */
   const enAttente = (e: { phase: string }) => e.phase === 'restauration' || e.phase === 'charge';
   if (enAttente(moi) && enAttente(espace)) return <ChargementEspace />;
+
+  /* La reprise nomme SA formation : sans paramètre, la leçon se devinait côté écran. */
+  const reprise = espace.valeur?.formationId
+    ? { pathname: '/lecon' as const, params: { formationId: espace.valeur.formationId } }
+    : '/lecon' as const;
 
   /*
    * ⚠️ CE CHOIX NE SURVIT PAS À LA SESSION, ET C'EST DÉLIBÉRÉ tant que Firebase n'est pas là.
@@ -87,23 +93,19 @@ export default function Espace() {
     <Screen
       territory="transforme"
       tabbar
+      onRefresh={rafraichir}
+      enRafraichissement={enRafraichissement}
+      /* La cloche ÉTEINTE est partie : aucun canal de notification n'existe, et une icône qui
+         ne répond pas, en haut du premier écran, dit « inachevé » avant tout le reste. */
       droite={
-        <>
-          {/* Pas de `badge` : il annonçait des non-lus alors qu'AUCUN canal de notification
-            n'existe — ni permission demandée, ni serveur qui envoie. La cloche éteinte
-            (opacité 0.4, `accessibilityState.disabled`) dit « pas encore » ; un badge
-            dessus disait « tu as des messages », et c'était faux. */}
-          <IconButton disabled label="Notifications">
-            <Icon name="bell" size={17} color={t('textBody')} strokeWidth={2} />
-          </IconButton>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ton profil"
-            onPress={() => router.push('/(tabs)/profil')}
-          >
-            <Avatar initials={moi.valeur?.initiale ?? ''} size={38} />
-          </Pressable>
-        </>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Ton profil"
+          onPress={() => router.push('/(tabs)/profil')}
+          hitSlop={4}
+        >
+          <Avatar initials={moi.valeur?.initiale ?? ''} size={38} decoratif />
+        </Pressable>
       }
     >
       <BandeauHorsLigne />
@@ -134,7 +136,7 @@ export default function Espace() {
           meta={espace.valeur.arret ?? undefined}
           title={espace.valeur.leconEnCours ?? espace.valeur.titreCourt}
           titleSize={21}
-          onPress={() => router.push('/lecon')}
+          onPress={() => router.push(reprise)}
         >
           <ProgressBar value={espace.valeur.progression} style={{ marginTop: 14 }} />
           <View style={{
@@ -149,7 +151,7 @@ export default function Espace() {
               asOf={espace.asOf}
               style={{ fontSize: 12.5, color: t('textMuted') }}
             />
-            <Button tone="primary" size="sm" label="Reprendre" onPress={() => router.push('/lecon')} />
+            <Button tone="primary" size="sm" label="Reprendre" onPress={() => router.push(reprise)} />
           </View>
         </TerritoryCard>
       </View>
@@ -184,23 +186,23 @@ export default function Espace() {
       {espace.valeur === null ? null : (
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
         <Surface level="flat" style={{ flex: 1, padding: 16 }}>
-          <Eyebrow style={{ fontSize: 10 }}>Expérience</Eyebrow>
+          <Eyebrow>Expérience</Eyebrow>
           <Num
             value={moi.valeur?.xp ?? null}
             {...provenance(moi)}
             unit="XP"
             style={{ fontSize: 25, marginTop: 4 }}
           />
-          <Body muted style={{ fontSize: 11.5, color: t('textFaint') }}>gagnée en terminant des leçons</Body>
+          <Body muted style={{ fontSize: 11.5 }}>gagnée en terminant des leçons</Body>
         </Surface>
         <Surface level="flat" style={{ flex: 1, padding: 16 }}>
-          <Eyebrow style={{ fontSize: 10 }}>Ta reprise</Eyebrow>
+          <Eyebrow>Ta reprise</Eyebrow>
           <Num
             value={espace.valeur.leconsFaites}
             {...provenance(espace)}
             style={{ fontSize: 25, marginTop: 4 }}
           />
-          <Body muted style={{ fontSize: 11.5, color: t('textFaint') }}>
+          <Body muted style={{ fontSize: 11.5 }}>
             leçons sur {espace.valeur.lecons}
           </Body>
           <ProgressBar value={espace.valeur.progression} height={5} territory="transforme" style={{ marginTop: 7 }} />
@@ -212,8 +214,13 @@ export default function Espace() {
       <Surface level="flat" style={{ marginTop: 14, padding: 17 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <Body style={{ fontWeight: '700' }}>Demande à ton {tuteur.toLowerCase()}</Body>
-            <Body muted style={{ fontSize: 12.5, marginTop: 2 }}>Il sait où tu t'es arrêtée.</Body>
+            {/* « Demande à ton coach » cassait les noms propres : un tuteur renommé « Awa »
+                devenait « ton awa ». Le nom s'écrit tel quel. */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+              <Onde taille={13} />
+              <Body style={{ flex: 1, fontWeight: '700' }}>Pose ta question à {tuteur}</Body>
+            </View>
+            <Body muted style={{ fontSize: 12.5, marginTop: 2 }}>Il sait où tu en es.</Body>
           </View>
           <Pressoir
             echelle="sm"

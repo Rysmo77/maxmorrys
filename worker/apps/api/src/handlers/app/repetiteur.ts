@@ -42,7 +42,7 @@ export async function appRepetiteur(_data: unknown, context: CallContext): Promi
   const { uid } = requireAuth(context);
   const releveA = new Date().toISOString();
 
-  const [limites, usage, memoire, echanges] = await Promise.all([
+  const [limites, usage, memoire, echanges, profil] = await Promise.all([
     resolveQuotaLimits(context.db, uid),
     readQuotaUsage(context.db, uid),
     context.db.query({
@@ -55,10 +55,13 @@ export async function appRepetiteur(_data: unknown, context: CallContext): Promi
       orderBy: [{ field: 'createdAt', direction: 'desc' }],
       limit: 30,
     }).catch(() => [] as DocSnapshot[]),
+    context.db.get(`users/${uid}`).catch(() => null),
   ]);
+  const preferences = (profil?.data.preferences ?? {}) as { aiMemoryConsent?: unknown };
 
   return {
     vue: {
+      memoireActive: preferences.aiMemoryConsent !== false,
       /* `utilise` et `total` sont ceux du serveur, pas une soustraction faite ici : le
          plafond dépend du forfait, et un client qui le déduirait se tromperait au premier
          changement d'offre. */

@@ -80,10 +80,10 @@ import { JetBrainsMono_700Bold } from '@expo-google-fonts/jetbrains-mono/700Bold
  * est le POIDS — sur Android les mêmes octets partent deux fois, une fois dans `res/font` et
  * une fois dans les ressources du paquet JS, soit environ 848 Ko.
  *
- * CE QUI RESTE APPROXIMÉ, et il faut le savoir : sur iOS, les deux familles dont le vrai nom
- * porte une espace passent par l'alias, qui ne rend QU'UNE fonte. Leurs 500/600/700 s'y
- * ramènent au 400. Le fermer demanderait de renommer la famille dans les trente-neuf
- * fichiers, ce qui est un tout autre chantier.
+ * ⭐ FERMÉ LE 06/10/2026 : sur iOS, l'alias ne rendait QU'UNE fonte, et les 500/600/700 des
+ * deux familles à espace retombaient au 400. Les écrans citent désormais `POLICE.corps` et
+ * `POLICE.mono` (`ds/police.ts`), qui donnent la VRAIE famille sur iOS — celle qu'embarque
+ * `UIAppFonts`, graisses comprises — et l'alias sur Android, où le greffon les porte toutes.
  *
  * ── LES BINAIRES SONT DANS LE DÉPÔT, ET LA DÉRIVE EST GARDÉE ────────────────────────────
  *

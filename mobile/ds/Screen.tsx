@@ -1,8 +1,10 @@
-import { ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
+import { KeyboardAvoidingView, RefreshControl, ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Children, isValidElement, type ReactNode } from 'react';
-import { Revele } from './Pressoir';
+import { Children, isValidElement, type ReactNode, type Ref } from 'react';
+import { Heros, Revele } from './Pressoir';
+import { haptique } from './haptique';
+import { isIOS, translucentTabBar } from './platform';
 import { Display } from './Type';
 import { Mesh } from './Mesh';
 import { NavBar } from './NavBar';
@@ -52,6 +54,9 @@ export function Screen({
   gutter = 18,
   contentStyle,
   overlay,
+  onRefresh,
+  enRafraichissement,
+  refDefilement,
   children,
 }: {
   territory?: ScreenTerritory;
@@ -79,6 +84,11 @@ export function Screen({
    * C'est le pendant exact du piège de `safeBottom` sur la barre d'onglets.
    */
   overlay?: ReactNode;
+  /** Tirer pour rafraîchir. Le contenu RESTE affiché pendant la relecture. */
+  onRefresh?: () => void;
+  enRafraichissement?: boolean;
+  /** Pour remonter en haut quand le contenu change sur place (leçon suivante). */
+  refDefilement?: Ref<ScrollView>;
   children: ReactNode;
 }) {
   const corps = (
@@ -94,6 +104,9 @@ export function Screen({
       gutter={gutter}
       contentStyle={contentStyle}
       overlay={overlay}
+      onRefresh={onRefresh}
+      enRafraichissement={enRafraichissement}
+      refDefilement={refDefilement}
     >
       {children}
     </Corps>
@@ -106,7 +119,7 @@ export function Screen({
    téléphone : un hook appelé dans le composant qui pose le fournisseur ne le voit pas. */
 function Corps({
   territory, retour, onRetour, titre, droite, tabbar, center, scroll, gutter, contentStyle,
-  overlay, children,
+  overlay, onRefresh, enRafraichissement, refDefilement, children,
 }: {
   territory: ScreenTerritory;
   retour?: string;
@@ -119,6 +132,9 @@ function Corps({
   gutter: number;
   contentStyle?: StyleProp<ViewStyle>;
   overlay?: ReactNode;
+  onRefresh?: () => void;
+  enRafraichissement?: boolean;
+  refDefilement?: Ref<ScrollView>;
   children: ReactNode;
 }) {
   const t = useToken();
@@ -127,7 +143,11 @@ function Corps({
 
   /* La barre d'onglets est rendue par le routeur, PAR-DESSUS le corps. Sa hauteur et la zone
      de geste s'ajoutent : `--tabbar-h` est la barre seule, l'encoche du bas vient en plus. */
-  const bas = (tabbar ? px(t('tabbarH')) : 0) + insets.bottom + 24;
+  /* ⚠️ COMPTÉ UNE SEULE FOIS. Sur Android la barre est opaque et DANS le flux : le corps
+     s'arrête déjà au-dessus d'elle, zone de geste comprise. Lui ajouter sa hauteur laissait
+     80 px de vide sous la dernière ligne. Sur iOS elle flotte, et le corps passe dessous. */
+  const sousLaBarre = tabbar && translucentTabBar;
+  const bas = (sousLaBarre ? px(t('tabbarH')) + insets.bottom : tabbar ? 0 : insets.bottom) + 24;
 
   const contenu: ViewStyle = {
     /* La zone sûre HAUTE est déjà creusée par l'enveloppe ci-dessous : la répéter ici la
@@ -136,6 +156,11 @@ function Corps({
     paddingTop: barre ? 6 : 22,
     paddingHorizontal: gutter,
     paddingBottom: bas,
+    /* LA COLONNE S'ARRÊTE À 600 dp. Sur une tablette Android, une ligne de 1 100 dp ne se
+       lit plus : l'œil perd le début de la suivante. Au-delà, elle se centre. */
+    width: '100%',
+    maxWidth: 600 + gutter * 2,
+    alignSelf: 'center',
     ...(center ? { flexGrow: 1, justifyContent: 'center' } : null),
   };
 
@@ -151,20 +176,37 @@ function Corps({
             droite={droite}
           />
         ) : null}
-        {scroll ? (
-          <ScrollView
-            contentContainerStyle={[contenu, contentStyle]}
-            showsVerticalScrollIndicator={false}
-            /* Le clavier ne doit pas cacher ce qu'on tape : un appui hors champ le referme,
-               et le défilement reste possible clavier ouvert. */
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-          >
-            {enCascade(children)}
-          </ScrollView>
-        ) : (
-          <View style={[{ flex: 1 }, contenu, contentStyle]}>{children}</View>
-        )}
+        {/* LE CLAVIER NE DOIT PAS CACHER CE QU'ON TAPE, NI LE BOUTON QUI L'ENVOIE. iOS ne
+            redimensionne pas la fenêtre : le corps se rembourre de la hauteur du clavier, et
+            le défilement suit le champ actif. Android la redimensionne déjà (`adjustResize`) :
+            rejouer le décalage par-dessus ferait monter le champ deux fois trop haut. */}
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={isIOS ? 'padding' : undefined}>
+          {scroll ? (
+            <ScrollView
+              ref={refDefilement}
+              contentContainerStyle={[contenu, contentStyle]}
+              showsVerticalScrollIndicator={false}
+              /* Un appui hors champ referme le clavier, et le défilement reste possible
+                 clavier ouvert. */
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              automaticallyAdjustKeyboardInsets
+              refreshControl={onRefresh ? (
+                <RefreshControl
+                  refreshing={!!enRafraichissement}
+                  onRefresh={() => { haptique.selection(); onRefresh(); }}
+                  tintColor={t(TEINTE[territory])}
+                  colors={[t(TEINTE[territory])]}
+                  progressBackgroundColor={t('surfacePage')}
+                />
+              ) : undefined}
+            >
+              {enCascade(children)}
+            </ScrollView>
+          ) : (
+            <View style={[{ flex: 1 }, contenu, contentStyle]}>{children}</View>
+          )}
+        </KeyboardAvoidingView>
       </View>
       {/* Hors du conteneur défilant, et hors de la zone sûre haute : il se place lui-même. */}
       {overlay}
@@ -190,7 +232,20 @@ function enCascade(children: ReactNode): ReactNode {
   return Children.toArray(children).map((c, i) => (
     isValidElement(c) && c.type === Display
       ? c
-      : <Revele key={isValidElement(c) && c.key !== null ? c.key : i} i={i}>{c}</Revele>
+      : (
+        <Revele
+          key={isValidElement(c) && c.key !== null ? c.key : i}
+          i={i}
+          echelle={isValidElement(c) && c.type === Heros}
+        >
+          {c}
+        </Revele>
+      )
   ));
 }
+
+/** La teinte de l'indicateur de rafraîchissement — celle du territoire de l'écran. */
+const TEINTE = {
+  forme: 'mmBleu', informe: 'mmOrange', transforme: 'mmViolet', digitalise: 'mmTeal', nuit: 'mmBleu',
+} as const;
 

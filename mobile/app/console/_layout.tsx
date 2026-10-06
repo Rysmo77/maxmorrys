@@ -82,7 +82,7 @@ export function ConsoleScreen({
 export function PiedDePortee({ quoi }: { quoi: string }) {
   return (
     <Surface level="night" style={{ marginTop: 14, padding: 16 }}>
-      <Eyebrow style={{ fontSize: 10 }}>Ce que cet écran ne couvre pas</Eyebrow>
+      <Eyebrow>Ce que cet écran ne couvre pas</Eyebrow>
       <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
         {quoi} Les {ECRANS_HORS_PORTEE} autres écrans d'administration restent au{' '}
         <Body style={{ fontWeight: '700', fontSize: 12.5 }}>tableau de bord desktop</Body> : ils

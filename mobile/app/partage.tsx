@@ -1,8 +1,8 @@
-import { Alert, Share, View } from 'react-native';
+import { Share, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Button, Display, Eyebrow, Gradient, Icon, LessonRow, Num, SansDonnees, Screen, Surface, useToken, veil,
+  Body, Button, Display, Eyebrow, Gradient, Icon, LessonRow, Num, SansDonnees, Screen, Surface, useBandeau, useToken, veil,
 } from '../ds';
 import { CERTIFICAT, RELEVE, SOURCE } from '../contenu/demo';
 import { lienDeVerification } from '../contenu/termes';
@@ -27,6 +27,7 @@ import { lienDeVerification } from '../contenu/termes';
  */
 export default function Partage() {
   const t = useToken();
+  const { bandeau, montrer } = useBandeau();
 
   /* ⚠️ CET ÉCRAN NE RECEVAIT AUCUN PARAMÈTRE, et ses deux appelants ne lui en passaient pas.
      Il retombait donc sur la démonstration — c'est-à-dire, en production, sur rien : « Rien à
@@ -77,10 +78,7 @@ export default function Partage() {
       });
     } catch {
       /* Le motif, la conséquence, la sortie — dans cet ordre, et jamais d'excuse. */
-      Alert.alert(
-        "Le partage n'a pas pu s'ouvrir",
-        `Ton certificat n'est pas touché. Son lien de vérification est ${doc.lien} — il s'ouvre depuis n'importe quel navigateur, sans compte.`,
-      );
+      montrer('stop', "Le partage n'a pas pu s'ouvrir", `Ton certificat n'est pas touché. Son lien de vérification est ${doc.lien}.`);
     }
   }
 
@@ -100,6 +98,7 @@ export default function Partage() {
 
   return (
     <Screen territory="forme" retour="Certificat" titre="Partager">
+      {bandeau}
       <Eyebrow style={{ marginTop: 6 }}>Ce qui va partir</Eyebrow>
       <Display size={27} lines={['UN LIEN,', 'PAS UNE IMAGE.']} style={{ marginTop: 8 }} />
 
@@ -120,7 +119,7 @@ export default function Partage() {
               value={doc.lien.replace('https://', '')}
               source={SOURCE}
               asOf={RELEVE}
-              style={{ fontSize: 11, color: t('textMuted') }}
+              style={{ fontSize: 12, color: t('textMuted') }}
             />
           </View>
         </View>
@@ -133,7 +132,7 @@ export default function Partage() {
           icon="share"
           onPress={() => void ouvrirLaFeuille()}
         />
-        <Body muted style={{ fontSize: 11.5, textAlign: 'center', marginTop: 10, color: t('textFaint') }}>
+        <Body muted style={{ fontSize: 11.5, textAlign: 'center', marginTop: 10 }}>
           La liste des applications est celle de ton téléphone. « Copier le lien » y figure.
         </Body>
       </Surface>

@@ -1,9 +1,9 @@
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
-  Body, Button, Display, Gradient, SansDonnees, Screen, ThemeScope, Wordmark, isIOS, useActionGradient, useToken, veil,
+  Body, Button, Display, Gradient, SansDonnees, Screen, ThemeScope, Wordmark, isIOS, useActionGradient, useToken, veil, POLICE,
 } from '../ds';
 import { EPISODE } from '../contenu/demo';
 
@@ -32,7 +32,21 @@ import { EPISODE } from '../contenu/demo';
  * imitation qui se ferait passer pour la chose.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
+/*
+ * L'ATELIER — cet écran ne sort pas en production. Il décrit une surface native (widget,
+ * écran verrouillé) que le binaire ne contient pas encore : l'ouvrir en revue, c'est
+ * montrer une fonction promise. Le drapeau est LITTÉRAL ici, pour que Metro replie la
+ * branche (voir `tests/unit/mobile-atelier-garde.test.ts`).
+ */
+const ATELIER = process.env.EXPO_PUBLIC_CONTENU_DEMO === '1' || __DEV__;
+
 export default function Verrouille() {
+  /* La garde passe AVANT tout hook : le corps vit dans son propre composant. */
+  if (!ATELIER) return <Redirect href="/espace" />;
+  return <VerrouilleAtelier />;
+}
+
+function VerrouilleAtelier() {
   if (EPISODE === null) {
     return (
       <Screen territory="transforme" retour="Écouter" titre="Écran verrouillé">
@@ -90,12 +104,12 @@ function Corps({ episode }: { episode: NonNullable<typeof EPISODE> }) {
         {/* ── L'HORLOGE ──────────────────────────────────────────────────────────────── */}
         <View style={{ alignItems: isIOS ? 'center' : 'flex-start' }}>
           {isIOS ? null : (
-            <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 15, color: blanc2 }}>
+            <Body style={{ fontFamily: POLICE.mono, fontSize: 15, color: blanc2 }}>
               vendredi 4 septembre
             </Body>
           )}
           <Body style={{
-            fontFamily: 'JetBrainsMono',
+            fontFamily: POLICE.mono,
             fontSize: isIOS ? 82 : 62,
             fontWeight: isIOS ? '600' : '400',
             lineHeight: isIOS ? 86 : 68,
@@ -128,20 +142,20 @@ function Corps({ episode }: { episode: NonNullable<typeof EPISODE> }) {
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16 }}>
-              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: blanc2 }}>{episode.position}</Body>
+              <Body style={{ fontFamily: POLICE.mono, fontSize: 11, color: blanc2 }}>{episode.position}</Body>
               <View style={{ flex: 1, height: 7, borderRadius: 4, backgroundColor: veil(blanc, 0.24) }}>
                 <View style={{ width: '24%', height: '100%', borderRadius: 4, backgroundColor: blanc }} />
               </View>
-              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: blanc2 }}>{episode.restant}</Body>
+              <Body style={{ fontFamily: POLICE.mono, fontSize: 11, color: blanc2 }}>{episode.restant}</Body>
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', marginTop: 16 }}>
-              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 13, fontWeight: '700', color: blanc }}>−15</Body>
+              <Body style={{ fontFamily: POLICE.mono, fontSize: 13, fontWeight: '700', color: blanc }}>−15</Body>
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 <View style={{ width: 6, height: 30, borderRadius: 2, backgroundColor: blanc }} />
                 <View style={{ width: 6, height: 30, borderRadius: 2, backgroundColor: blanc }} />
               </View>
-              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 13, fontWeight: '700', color: blanc }}>+15</Body>
+              <Body style={{ fontFamily: POLICE.mono, fontSize: 13, fontWeight: '700', color: blanc }}>+15</Body>
             </View>
           </View>
         ) : (
@@ -173,11 +187,11 @@ function Corps({ episode }: { episode: NonNullable<typeof EPISODE> }) {
               </View>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 13 }}>
-              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10.5, color: blanc2 }}>{episode.position}</Body>
+              <Body style={{ fontFamily: POLICE.mono, fontSize: 10.5, color: blanc2 }}>{episode.position}</Body>
               <View style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: veil(blanc, 0.24) }}>
                 <View style={{ width: '24%', height: '100%', borderRadius: 2, backgroundColor: blanc }} />
               </View>
-              <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10.5, color: blanc2 }}>{episode.duree}</Body>
+              <Body style={{ fontFamily: POLICE.mono, fontSize: 10.5, color: blanc2 }}>{episode.duree}</Body>
             </View>
           </View>
         )}

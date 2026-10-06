@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import type { ReactNode } from 'react';
 import { useToken } from './theme';
 import { Num, type NumSource } from './Num';
@@ -32,7 +33,7 @@ export function PriceBlock({
     <View style={style}>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
         <Num value={amount} source={source} asOf={asOf} style={{ fontSize: size, letterSpacing: -1.2 }} />
-        <Text style={{ fontFamily: 'SchibstedGrotesk', fontWeight: '600', fontSize: 14, color: t('textBody') }}>
+        <Text style={{ fontFamily: POLICE.corps, fontWeight: '600', fontSize: 14, color: t('textBody') }}>
           {currency}
         </Text>
         {strike !== undefined && (
@@ -40,13 +41,13 @@ export function PriceBlock({
             value={strike}
             source={source}
             asOf={asOf}
-            style={{ fontSize: 14, color: t('textFaint'), textDecorationLine: 'line-through' }}
+            style={{ fontSize: 14, color: t('textMuted'), textDecorationLine: 'line-through' }}
           />
         )}
       </View>
       {note !== undefined && (
         typeof note === 'string'
-          ? <Text style={{ fontFamily: 'SchibstedGrotesk', fontSize: 12.5, color: t('textMuted'), marginTop: 4 }}>{note}</Text>
+          ? <Text style={{ fontFamily: POLICE.corps, fontSize: 12.5, color: t('textMuted'), marginTop: 4 }}>{note}</Text>
           : <View style={{ marginTop: 4 }}>{note}</View>
       )}
     </View>

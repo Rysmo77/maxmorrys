@@ -1,4 +1,5 @@
 import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { POLICE } from './police';
 import type { ReactNode } from 'react';
 import { useToken, px, veil } from './theme';
 
@@ -46,7 +47,7 @@ export function Tag({
         backgroundColor: bg,
       }, style]}
     >
-      <Text style={{ fontFamily: 'SchibstedGrotesk', fontWeight: '600', fontSize: 11, color: ink }}>
+      <Text style={{ fontFamily: POLICE.corps, fontWeight: '600', fontSize: 11.5, color: ink }}>
         {children}
       </Text>
     </View>

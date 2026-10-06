@@ -1,6 +1,7 @@
+import { Redirect } from 'expo-router';
 import { View } from 'react-native';
 import {
-  Body, Display, Eyebrow, Gradient, Icon, LessonRow, Num, SansDonnees, Screen, Surface, Wordmark, isIOS, useActionGradient, useToken, veil,
+  Body, Display, Eyebrow, Gradient, Icon, LessonRow, Num, SansDonnees, Screen, Surface, Wordmark, isIOS, useActionGradient, useToken, veil, POLICE,
 } from '../ds';
 import { FORMATION, RELEVE, SOURCE } from '../contenu/demo';
 
@@ -21,7 +22,21 @@ import { FORMATION, RELEVE, SOURCE } from '../contenu/demo';
  * LE CONTENU DU WIDGET EST LA CARTE DE REPRISE, RÉDUITE À CE QUI RESTE VRAI SANS RÉSEAU :
  * le titre, la progression, une action. Rien qui demande une requête pour s'afficher.
  */
+/*
+ * L'ATELIER — cet écran ne sort pas en production. Il décrit une surface native (widget,
+ * écran verrouillé) que le binaire ne contient pas encore : l'ouvrir en revue, c'est
+ * montrer une fonction promise. Le drapeau est LITTÉRAL ici, pour que Metro replie la
+ * branche (voir `tests/unit/mobile-atelier-garde.test.ts`).
+ */
+const ATELIER = process.env.EXPO_PUBLIC_CONTENU_DEMO === '1' || __DEV__;
+
 export default function Widget() {
+  /* La garde passe AVANT tout hook : le corps vit dans son propre composant. */
+  if (!ATELIER) return <Redirect href="/espace" />;
+  return <WidgetAtelier />;
+}
+
+function WidgetAtelier() {
   const t = useToken();
   const g = useActionGradient();
 
@@ -73,12 +88,12 @@ export default function Widget() {
         }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
             <Wordmark brand="rysmo" size={15} night tail={surFond} /> {/* ok-ds — posé sur le verre du widget, pas en mode sombre */}
-            <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 10, color: surFond2 }}>il y a 8 jours</Body>
+            <Body style={{ fontFamily: POLICE.mono, fontSize: 10, color: surFond2 }}>il y a 8 jours</Body>
           </View>
           <Body style={{ fontSize: 15, fontWeight: '600', color: surFond, lineHeight: 20, marginTop: 10 }}>
             {formation.leconEnCours}
           </Body>
-          <Body style={{ fontFamily: 'JetBrainsMono', fontSize: 11, color: surFond2, marginTop: 3 }}>
+          <Body style={{ fontFamily: POLICE.mono, fontSize: 11, color: surFond2, marginTop: 3 }}>
             {formation.leconsFaites} / {formation.lecons} leçons · {formation.progression} %
           </Body>
           <View style={{ height: 6, borderRadius: 4, backgroundColor: veil(surFond, 0.18), marginTop: 12, overflow: 'hidden' }}>
@@ -104,7 +119,7 @@ export default function Widget() {
             backgroundColor: verre, borderWidth: 1, borderColor: liseré,
           }}>
             <Body style={{
-              fontFamily: 'JetBrainsMono', fontSize: 9.5, letterSpacing: 1.4,
+              fontFamily: POLICE.mono, fontSize: 9.5, letterSpacing: 1.4,
               textTransform: 'uppercase', color: surFond2,
             }}>
               Série
@@ -157,7 +172,7 @@ export default function Widget() {
         ).map(([titre, meta], i, a) => (
           <LessonRow
             key={titre}
-            icon={<Body style={{ fontFamily: 'JetBrainsMono', fontSize: 12, color: t('mmVioletT') }}>{i + 1}</Body>}
+            icon={<Body style={{ fontFamily: POLICE.mono, fontSize: 12, color: t('mmVioletT') }}>{i + 1}</Body>}
             iconBackground={veil(t('mmViolet'), 0.12)}
             title={titre}
             meta={meta}

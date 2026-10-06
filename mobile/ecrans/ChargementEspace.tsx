@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { Body, Screen, Skeleton, useToken } from '../ds';
+import { Screen, Skeleton, SqueletteGroupe } from '../ds';
 
 /**
  * ══ 3 · LE CHARGEMENT ══ — LE SQUELETTE A LA FORME EXACTE DU CONTENU RÉEL.
@@ -9,62 +9,42 @@ import { Body, Screen, Skeleton, useToken } from '../ds';
  * le rend tant que ses lectures ne sont pas tranchées. Il vit hors de `app/`, où tout
  * fichier devient une adresse.
  *
- * C'est toute la règle, et elle est mesurable : quand le contenu arrive, RIEN NE SAUTE. Un
- * squelette générique — trois rectangles gris de tailles arbitraires — coûte plus qu'il ne
- * rapporte : il annonce une mise en page, puis une autre arrive, et le saut se lit comme une
- * erreur de chargement.
+ * C'est toute la règle, et elle est mesurable : quand le contenu arrive, RIEN NE SAUTE.
  *
- * Ce squelette-ci est celui de MON ESPACE, dans son ordre : le sourcil de date, le titre sur
- * deux lignes, la carte de reprise, les deux cases de fait, la carte du répétiteur, puis la
- * liste « dans ton espace ». Chaque bloc a la hauteur de son homologue réel.
+ * ⚠️ IL NE SAUTAIT PAS — IL CHANGEAIT DE COULEUR. Le squelette était posé sur le maillage
+ * `forme` (bleu), l'Espace sur `transforme` (violet) : le fond basculait à l'arrivée des
+ * données. Il portait aussi une cloche que l'Espace n'a plus, et trois lignes de liste pour
+ * deux. Il suit maintenant l'écran réel, bloc pour bloc.
  *
- * AUCUNE ANIMATION DE MIROITEMENT. Le web en pose une (`shim`, 1,5 s) ; ici elle coûterait un
- * pilote d'animation par bloc — neuf blocs — sur le profil d'appareil visé. Le squelette dit
- * déjà « ça charge » par sa forme ; le miroitement n'ajoute qu'une raison de chauffer.
+ * La respiration est celle de `ds/Skeleton.tsx` — une seule valeur animée pour tous les blocs,
+ * et une seule annonce pour le lecteur d'écran.
  */
 export function ChargementEspace() {
-  const t = useToken();
-
   return (
-    <Screen
-      territory="forme"
-      tabbar
-      droite={
-        <>
-          <Skeleton width={40} height={40} radius={20} label="Chargement" />
-          <Skeleton width={40} height={40} radius={20} />
-        </>
-      }
-    >
-      <Skeleton width={110} height={11} label="Chargement de ton espace" style={{ marginTop: 10 }} />
+    <Screen territory="transforme" tabbar droite={<Skeleton width={38} height={38} radius={19} />}>
+      <SqueletteGroupe label="Chargement de ton espace">
+        <Skeleton width={110} height={11} style={{ marginTop: 10 }} />
 
-      <View style={{ marginTop: 14, gap: 10 }}>
-        <Skeleton height={32} width="82%" />
-        <Skeleton height={32} width="58%" />
-      </View>
+        <View style={{ marginTop: 14, gap: 8 }}>
+          <Skeleton height={30} width="62%" />
+          <Skeleton height={30} width="44%" />
+        </View>
 
-      <Skeleton height={124} radius={24} style={{ marginTop: 22 }} />
+        <Skeleton height={124} radius={24} style={{ marginTop: 22 }} />
 
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-        <Skeleton height={86} radius={18} style={{ flex: 1 }} />
-        <Skeleton height={86} radius={18} style={{ flex: 1 }} />
-      </View>
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+          <Skeleton height={92} radius={18} style={{ flex: 1 }} />
+          <Skeleton height={92} radius={18} style={{ flex: 1 }} />
+        </View>
 
-      <Skeleton height={92} radius={18} style={{ marginTop: 14 }} />
+        <Skeleton height={80} radius={18} style={{ marginTop: 14 }} />
 
-      <Skeleton width={130} height={11} style={{ marginTop: 24 }} />
-      <View style={{ gap: 9, marginTop: 12 }}>
-        <Skeleton height={46} radius={14} />
-        <Skeleton height={46} radius={14} />
-        <Skeleton height={46} radius={14} />
-      </View>
-
-      <Body
-        muted
-        style={{ fontFamily: 'JetBrainsMono', fontSize: 11, marginTop: 20, color: t('textFaint') }}
-      >
-        Quand le contenu arrive, rien ne saute.
-      </Body>
+        <Skeleton width={130} height={11} style={{ marginTop: 24 }} />
+        <View style={{ gap: 9, marginTop: 12 }}>
+          <Skeleton height={56} radius={14} />
+          <Skeleton height={56} radius={14} />
+        </View>
+      </SqueletteGroupe>
     </Screen>
   );
 }

@@ -1,16 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TextInput, View,
+  AccessibilityInfo, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TextInput, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
+import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Pressoir,
-  Body, Button, ChatBubble, Eyebrow, Gradient, Icon, IconButton, Mesh, NavBar, QuotaMeter,
-  SansDonnees, Surface, isIOS, px, useActionGradient, useToken, useTutorNom,
+  Pressoir, Revele,
+  Bandeau, Body, Button, ChatBubble, ChipRow, Eyebrow, Gradient, Icon, IconButton, Mesh, NavBar, Onde,
+  QuotaMeter, SansDonnees, Skeleton, SqueletteGroupe, Surface, haptique, isIOS, px, translucentTabBar,
+  useActionGradient, useBandeau, useMouvement, useToken, useTutorNom, POLICE,
 } from '../../ds';
 import { RENVOI_COURS } from '../../contenu/demo';
 import { ErreurAppel, demanderAuRepetiteur, useMoi, useRepetiteur } from '../../donnees';
+import { TexteDeLecon } from '../../ecrans/TexteDeLecon';
+import { BandeauHorsLigne } from '../../ecrans/BandeauHorsLigne';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -22,37 +27,50 @@ import { ErreurAppel, demanderAuRepetiteur, useMoi, useRepetiteur } from '../../
  *
  *   **LA BARRE DE QUOTA DOIT RESTER VISIBLE.** Elle est ÉPINGLÉE sous la barre haute, hors du
  *   conteneur défilant, précisément pour ça. Un refus au-delà du plafond est vécu comme une
- *   panne s'il n'a pas été annoncé — et un quota caché par le clavier n'a pas été annoncé. On
- *   tape sa question sans voir qu'il n'en reste qu'une.
+ *   panne s'il n'a pas été annoncé — et un quota caché par le clavier n'a pas été annoncé.
  *
- * ── LE COMPORTEMENT DU CLAVIER DIFFÈRE, ET C'EST NORMAL ──────────────────────────────────
- * iOS ne redimensionne pas la fenêtre : il faut décaler la vue soi-même (`padding`). Android
- * la redimensionne déjà (`adjustResize`), et rejouer le décalage par-dessus doublerait la
- * course — le champ monterait deux fois trop haut. D'où deux comportements, une seule
- * disposition.
+ * ── CE QUE LA PERSONNE VOIT PENDANT QU'IL RÉFLÉCHIT ───────────────────────────────────
+ * Entre l'envoi et la réponse, rien ne bougeait pendant jusqu'à vingt secondes, et le champ
+ * affichait « Plus de question aujourd'hui » — faux : on attendait une réponse, on n'avait
+ * pas épuisé le quota. Désormais :
+ *   · la question part et s'affiche tout de suite ; le segment du quota se RÉSERVE ;
+ *   · passé 220 ms, une bulle du tuteur porte l'ONDE (`ds/Onde.tsx`) — pas avant, pour ne pas
+ *     clignoter sur une réponse rapide ;
+ *   · la réponse prend sa place, mise en forme, et le fil défile jusqu'à elle.
  *
  * ── LE NOM N'EST PAS « RYSMO » ────────────────────────────────────────────────────────────
  * « Rysmo » nomme CETTE APPLICATION ; le tuteur qu'elle contient s'appelle « Répétiteur » par
  * défaut, et chaque personne peut le renommer. La barre haute lit donc `useTutorNom()`.
+ *
+ * ── L'APPLICATION NE VEND RIEN ───────────────────────────────────────────────────────────
+ * La question part sur le canal `app` : le serveur retire tout prix et tout « achat » de la
+ * réponse (`worker/…/lib/rysmo-canal.ts`). Les liens internes s'ouvrent dans l'application.
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
+const SUGGESTIONS = [
+  'Explique-moi le SEO local simplement',
+  'Fais-moi un quiz sur ma leçon en cours',
+  'Par quoi commencer pour vendre en ligne ?',
+] as const;
+
+/** Sous ce délai, une réponse arrive sans qu'on montre l'attente — pas de clignotement. */
+const SEUIL_ATTENTE = 220;
+
 export default function Repetiteur() {
   const t = useToken();
   const g = useActionGradient();
   const insets = useSafeAreaInsets();
   const tuteur = useTutorNom();
+  const { reduit } = useMouvement();
   const [question, setQuestion] = useState('');
+  const { bandeau, montrer, effacer } = useBandeau();
+  const fil = useRef<ScrollView>(null);
 
   /*
    * LA BARRE D'ONGLETS PASSE SOUS LE CLAVIER, DONC SA PLACE DOIT DISPARAÎTRE AVEC ELLE.
-   *
-   * La saisie est posée au-dessus de la barre — une marge de `--tabbar-h` plus la zone de
-   * geste. Clavier ouvert, cette barre est recouverte : garder sa marge laisserait 104 px de
-   * vide entre le champ et le clavier, c'est-à-dire exactement la hauteur qu'on venait de
-   * libérer. On écoute donc le clavier, et la marge tombe à zéro tant qu'il est là.
-   *
-   * `keyboardWillShow` sur iOS (l'événement part AVANT l'animation, donc le champ monte avec
-   * elle) et `keyboardDidShow` sur Android, qui n'émet pas le premier.
+   * Sur iOS elle flotte : la saisie se pose au-dessus d'elle, et la marge tombe quand le
+   * clavier la recouvre. Sur Android elle est dans le flux et se masque avec le clavier :
+   * aucune marge à réserver.
    */
   const [clavier, setClavier] = useState(false);
   useEffect(() => {
@@ -61,50 +79,72 @@ export default function Repetiteur() {
     return () => { ouvre.remove(); ferme.remove(); };
   }, []);
 
-  /* Sans relevé, on ne connaît pas le plafond — et on ne bloque donc pas la saisie sur un
-     chiffre qu'on ignore. Le champ reste ouvert ; c'est le serveur qui refusera, avec sa
-     raison. Bloquer sur une supposition ferait passer une limite inventée pour une règle. */
   const rep = useRepetiteur();
   const moi = useMoi();
 
   /*
    * LA CONVERSATION VIT DANS L'ÉCRAN, pas seulement sur le serveur. Ce que la vue renvoie
    * est l'historique déjà enregistré ; les tours de la session en cours s'y ajoutent ici.
-   * Sans cet état local, chaque question ferait disparaître la précédente le temps d'une
-   * relecture — et le fil de la discussion avec.
    */
   const [tours, setTours] = useState<Array<{ id: string; de: string; texte: string }>>([]);
   const [enVol, setEnVol] = useState(false);
+  const [attente, setAttente] = useState(false);
   const [depense, setDepense] = useState<{ utilise: number; total: number } | null>(null);
+  const [copie, setCopie] = useState<string | null>(null);
 
   const quota = depense ?? rep.valeur?.quota ?? null;
   const echange = [...(rep.valeur?.echange ?? []), ...tours];
   const reste = quota === null ? null : quota.total - quota.utilise;
-  const bloque = (reste !== null && reste <= 0) || enVol;
+  /* DEUX RAISONS DE NE PAS ÉCRIRE, ET ELLES NE SE DISENT PAS PAREIL. */
+  const epuise = reste !== null && reste <= 0;
+  const bloque = epuise || enVol;
+  const anonyme = rep.phase === 'anonyme';
 
-  async function envoyer() {
-    const texte = question.trim();
-    if (texte === '' || bloque) return;
+  /* La bulle d'attente n'apparaît qu'au-delà du seuil. */
+  useEffect(() => {
+    if (!enVol) { setAttente(false); return undefined; }
+    const m = setTimeout(() => setAttente(true), SEUIL_ATTENTE);
+    return () => clearTimeout(m);
+  }, [enVol]);
+
+  /* « Copié » s'efface seul, à 1,4 s. */
+  useEffect(() => {
+    if (copie === null) return undefined;
+    const m = setTimeout(() => setCopie(null), 1400);
+    return () => clearTimeout(m);
+  }, [copie]);
+
+  function descendre() {
+    requestAnimationFrame(() => fil.current?.scrollToEnd({ animated: !reduit }));
+  }
+
+  async function envoyer(texteImpose?: string) {
+    const texte = (texteImpose ?? question).trim();
+    if (texte === '' || bloque || anonyme) return;
+    effacer();
 
     /* La question s'affiche IMMÉDIATEMENT, avant la réponse. Sur un réseau lent, voir sa
-       propre phrase partir est ce qui distingue « c'est en route » de « ça n'a pas marché » —
-       et c'est ce qui empêche de la retaper. */
+       propre phrase partir est ce qui distingue « c'est en route » de « ça n'a pas marché ». */
     const mien = { id: `local-${Date.now()}`, de: 'me', texte };
-    setTours((t) => [...t, mien]);
+    setTours((x) => [...x, mien]);
     setQuestion('');
     setEnVol(true);
+    haptique.leger();
+    descendre();
     try {
       const reponse = await demanderAuRepetiteur(texte, echange, moi.valeur?.prenom);
-      setTours((t) => [...t, { id: `${mien.id}-r`, de: 'ai', texte: reponse.reply }]);
+      setTours((x) => [...x, { id: `${mien.id}-r`, de: 'ai', texte: reponse.reply }]);
       // Le compte vient du SERVEUR, qui a réservé la requête. On ne le décrémente pas ici.
       setDepense({ utilise: reponse.quota.dayCount, total: reponse.quota.dailyLimit });
+      AccessibilityInfo.announceForAccessibility(`${tuteur} a répondu`);
+      descendre();
     } catch (erreur: unknown) {
-      /* On RETIRE la question envoyée. La laisser afficherait une phrase qui a l'air posée
-         alors que personne ne l'a reçue — et on la remet dans le champ, parce que la
-         retaper est le vrai coût de l'échec. */
-      setTours((t) => t.filter((m) => m.id !== mien.id));
+      /* On RETIRE la question envoyée, et on la remet dans le champ : la retaper est le vrai
+         coût de l'échec. Le segment réservé se libère avec elle. */
+      setTours((x) => x.filter((m) => m.id !== mien.id));
       setQuestion(texte);
-      Alert.alert(
+      montrer(
+        'stop',
         "Ta question n'est pas partie",
         erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
       );
@@ -113,6 +153,26 @@ export default function Repetiteur() {
     }
   }
 
+  async function copier(id: string, texte: string) {
+    await Clipboard.setStringAsync(texte);
+    setCopie(id);
+    haptique.succes();
+    AccessibilityInfo.announceForAccessibility('Réponse copiée');
+  }
+
+  /* Les liens internes de la réponse ouvrent les écrans de l'application. */
+  function ouvrirLien(chemin: string) {
+    const m = /^\/formations\/([^/?#]+)/.exec(chemin);
+    if (m) router.push({ pathname: '/formation', params: { slug: m[1] } });
+    else void openBrowserAsync(`https://maxmorrys.me${chemin}`);
+  }
+
+  const libelleQuota = quota === null
+    ? null
+    : epuise
+      ? `Plus de question aujourd'hui (sur ${quota.total})`
+      : `Il te reste ${reste} question${(reste ?? 0) > 1 ? 's' : ''} aujourd'hui (sur ${quota.total})`;
+
   return (
     <View style={{ flex: 1, backgroundColor: t('surfacePage') }}>
       <Mesh territory="transforme" />
@@ -120,112 +180,196 @@ export default function Repetiteur() {
       <KeyboardAvoidingView
         style={{ flex: 1, paddingTop: insets.top }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        /* La barre d'onglets reste sous le clavier : son décalage ne doit pas être compté. */
         keyboardVerticalOffset={0}
       >
         <NavBar
           retour="Espace"
           onRetour={() => router.push('/espace')}
           titre={tuteur}
+          /* La signature du répétiteur, au repos. Elle ne s'anime ici que si la bulle
+             d'attente est remontée hors du champ — jamais deux ondes à la fois. */
+          glyphe={<Onde taille={14} />}
           droite={
-            <IconButton label="Mémoire de profil" onPress={() => router.push('/memoire')}>
-              <Icon name="dots" size={17} color={t('textBody')} strokeWidth={2} />
+            <IconButton label="Ce qu'il a retenu de toi" onPress={() => router.push('/memoire')}>
+              <Icon name="brain" size={17} color={t('textBody')} strokeWidth={2} />
             </IconButton>
           }
         />
 
         {/* ── ÉPINGLÉ. Hors du défilement, hors de portée du clavier. ──────────────────── */}
         <View style={{ paddingHorizontal: 18, paddingBottom: 10 }}>
-          {quota ? (
-            <QuotaMeter
-              used={quota.utilise}
-              total={quota.total}
-              label={`${quota.utilise} / ${quota.total} questions aujourd'hui`}
-            />
+          {quota && libelleQuota ? (
+            <QuotaMeter used={quota.utilise} total={quota.total} reserve={enVol} label={libelleQuota} />
           ) : (
-            <Body muted style={{ fontFamily: 'JetBrainsMono', fontSize: 11.5 }}>
-              plafond du jour non relevé
+            <Body muted style={{ fontFamily: POLICE.mono, fontSize: 11.5 }}>
+              {anonyme ? 'connecte-toi pour poser tes questions' : 'plafond du jour non relevé'}
             </Body>
           )}
+          <BandeauHorsLigne />
+          {bandeau}
         </View>
 
         <ScrollView
+          ref={fil}
           contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 4, paddingBottom: 16, gap: 11 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
+          accessibilityLabel={`Conversation avec ${tuteur}`}
         >
-          {echange.length === 0 ? (
+          {anonyme ? (
             <SansDonnees
-              quoi="cet échange"
-              origine="de ton compte"
-              degat="Une réponse inventée ici serait attribuée à ton répétiteur, et elle porterait sur un cours que tu n'as peut-être pas. C'est le seul écran où une phrase fabriquée se lit comme un conseil."
+              quoi="ta conversation"
+              etat={rep}
+              action={<Button tone="transforme" label="Me connecter" onPress={() => router.push('/connexion')} />}
             />
-          ) : echange.map((m, i) => (
-            <ChatBubble key={i} from={m.de === 'me' ? 'me' : 'ai'}>{m.texte}</ChatBubble>
-          ))}
+          ) : rep.phase === 'charge' || rep.phase === 'restauration' ? (
+            <SqueletteGroupe label="Chargement de la conversation" style={{ gap: 11 }}>
+              <Skeleton width="70%" height={58} radius={20} />
+              <Skeleton width="55%" height={42} radius={20} style={{ alignSelf: 'flex-end' }} />
+              <Skeleton width="78%" height={74} radius={20} />
+            </SqueletteGroupe>
+          ) : rep.phase === 'panne' && echange.length === 0 ? (
+            <SansDonnees quoi="ta conversation" etat={rep} />
+          ) : echange.length === 0 ? (
+            /* ── PREMIER USAGE ── une bulle d'accueil et trois questions prêtes à partir. Le
+               vide « cette application ne l'interroge pas encore » ne disait pas quoi faire. */
+            <>
+              <Revele>
+                <ChatBubble from="ai" auteur={tuteur}>
+                  {`Salut${moi.valeur?.prenom ? ` ${moi.valeur.prenom}` : ''} ! Je suis ${tuteur}. Pose-moi une question sur ta leçon, ou sur ce que tu veux lancer — je te réponds avec du concret.`}
+                </ChatBubble>
+              </Revele>
+              <Revele i={1}>
+                <Eyebrow style={{ marginTop: 6 }}>Pour commencer</Eyebrow>
+              </Revele>
+              {SUGGESTIONS.map((s, i) => (
+                <Revele key={s} i={i + 2}>
+                  <Pressoir
+                    accessibilityRole="button"
+                    accessibilityLabel={`Demander : ${s}`}
+                    desactive={bloque}
+                    onPress={() => { void envoyer(s); }}
+                    style={{
+                      alignSelf: 'flex-start', paddingVertical: 11, paddingHorizontal: 15,
+                      borderRadius: px(t('rPill')), borderWidth: 1, borderColor: t('fill4'),
+                      backgroundColor: t('surfaceCardFlat'),
+                    }}
+                  >
+                    <Body style={{ fontSize: 13.5, fontWeight: '600' }}>{s}</Body>
+                  </Pressoir>
+                </Revele>
+              ))}
+            </>
+          ) : echange.map((m) => {
+            const de = m.de === 'me' ? 'me' : 'ai';
+            return (
+              <Revele key={m.id}>
+                <ChatBubble
+                  from={de}
+                  auteur={de === 'me' ? 'Toi' : tuteur}
+                  onAppuiLong={de === 'ai' ? () => { void copier(m.id, m.texte); } : undefined}
+                >
+                  {de === 'ai' ? <TexteDeLecon contenu={m.texte} taille={14} onLien={ouvrirLien} /> : m.texte}
+                </ChatBubble>
+                {copie === m.id ? (
+                  <Revele>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6, marginLeft: 6 }}>
+                      <Icon name="check" size={13} color={t('ok')} strokeWidth={2.8} />
+                      <Body style={{ fontSize: 12, fontWeight: '600', color: t('ok') }}>Copié</Body>
+                    </View>
+                  </Revele>
+                ) : null}
+              </Revele>
+            );
+          })}
+
+          {attente ? <ChatBubble typing auteur={tuteur} /> : null}
 
           {/* Le renvoi vers le cours : la réponse cite SA source, et elle est atteignable. */}
           {RENVOI_COURS ? (
             <Surface level="flat" style={{ padding: 14, maxWidth: '86%' }}>
-              <Eyebrow style={{ fontSize: 9.5 }}>{RENVOI_COURS.eyebrow}</Eyebrow>
+              <Eyebrow>{RENVOI_COURS.eyebrow}</Eyebrow>
               <Body style={{ fontSize: 13, fontWeight: '600', marginTop: 6 }}>{RENVOI_COURS.titre}</Body>
               <Button
                 tone="quiet"
                 size="sm"
                 label="Ouvrir la leçon"
                 style={{ marginTop: 10 }}
-                onPress={() => router.push('/lecon')}
+                onPress={() => router.push('/cours')}
               />
             </Surface>
           ) : null}
         </ScrollView>
 
-        {/* ── LA SAISIE. Elle monte avec le clavier ; la barre d'onglets reste dessous. ── */}
+        {/* ── LA SAISIE, OU CE QUI LA REMPLACE ─────────────────────────────────────────────
+            Quota épuisé : le champ grisé disait « non » sans dire jusqu'à quand. L'encart dit
+            quand les questions reviennent, et ce qu'on peut faire en attendant. */}
         <View style={{
-          flexDirection: 'row', alignItems: 'center', gap: 10,
           paddingHorizontal: 14, paddingVertical: 10,
-          marginBottom: clavier ? 0 : px(t('tabbarH')) + insets.bottom,
+          marginBottom: translucentTabBar && !clavier ? px(t('tabbarH')) + insets.bottom : 0,
           backgroundColor: t('tabbarBg'),
           borderTopWidth: 1, borderTopColor: t('tabbarBrd'),
         }}>
-          <View style={{
-            flex: 1, minHeight: 46, justifyContent: 'center', paddingHorizontal: 16,
-            borderRadius: 999, backgroundColor: t('fieldBg'),
-            borderWidth: 1.5, borderColor: t('borderField'),
-          }}>
-            <TextInput
-              accessibilityLabel={`Ta question à ${tuteur}`}
-              value={question}
-              onChangeText={setQuestion}
-              placeholder={bloque ? "Plus de question aujourd'hui" : 'Pose ta question'}
-              placeholderTextColor={t('textFaint')}
-              editable={!bloque}
-              multiline
-              style={{
-                fontFamily: 'SchibstedGrotesk', fontSize: 15, color: t('textBody'),
-                paddingVertical: 12, maxHeight: 110,
-              }}
-            />
-          </View>
-          <Pressoir
-            echelle="sm"
-            desactive={bloque || question.trim() === ''}
-            accessibilityRole="button"
-            accessibilityLabel="Envoyer ta question"
-            accessibilityState={{ disabled: bloque || question.trim() === '' }}
-            disabled={bloque || question.trim() === ''}
-            onPress={() => { void envoyer(); }}
-            style={{ opacity: bloque || question.trim() === '' ? 0.4 : 1 }}
-          >
-            <Gradient
-              colors={g.transforme}
-              radius={23}
-              style={{ width: 46, height: 46, alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Icon name="send" size={18} color={t('paperFixed')} strokeWidth={2.6} />
-            </Gradient>
-          </Pressoir>
+          {epuise ? (
+            <Revele>
+              <Bandeau
+                ton="info"
+                titre={`Tes ${quota?.total ?? ''} questions du jour sont utilisées`}
+                corps="Elles reviennent à minuit, heure de Dakar. En attendant, ta leçon et tes notes restent ouvertes."
+                action={(
+                  <ChipRow
+                    options={['Reprendre mes cours', 'Mes notes']}
+                    value=""
+                    onChange={(o) => router.push(o === 'Mes notes' ? '/notes' : '/cours')}
+                  />
+                )}
+              />
+            </Revele>
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View style={{
+                flex: 1, minHeight: 46, justifyContent: 'center', paddingHorizontal: 16,
+                borderRadius: 999, backgroundColor: t('fieldBg'),
+                borderWidth: 1.5, borderColor: t('borderField'),
+              }}>
+                <TextInput
+                  accessibilityLabel={`Ta question à ${tuteur}`}
+                  value={question}
+                  onChangeText={setQuestion}
+                  placeholder={enVol ? `${tuteur} te répond…` : anonyme ? 'Connecte-toi pour poser ta question' : `Pose ta question à ${tuteur}`}
+                  placeholderTextColor={t('textMuted')}
+                  editable={!bloque && !anonyme}
+                  multiline
+                  maxLength={2000}
+                  maxFontSizeMultiplier={1.6}
+                  style={{
+                    fontFamily: POLICE.corps, fontSize: 15, color: t('textBody'),
+                    paddingVertical: 12, maxHeight: 110,
+                  }}
+                />
+              </View>
+              <Pressoir
+                echelle="sm"
+                desactive={bloque || anonyme || question.trim() === ''}
+                accessibilityRole="button"
+                accessibilityLabel="Envoyer ta question"
+                accessibilityState={{ disabled: bloque || anonyme || question.trim() === '', busy: enVol }}
+                disabled={bloque || anonyme || question.trim() === ''}
+                onPress={() => { void envoyer(); }}
+                hitSlop={4}
+                style={{ opacity: bloque || anonyme || question.trim() === '' ? 0.4 : 1 }}
+              >
+                <Gradient
+                  colors={g.transforme}
+                  radius={23}
+                  style={{ width: 46, height: 46, alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Icon name="send" size={18} color={t('paperFixed')} strokeWidth={2.6} />
+                </Gradient>
+              </Pressoir>
+            </View>
+          )}
         </View>
       </KeyboardAvoidingView>
     </View>

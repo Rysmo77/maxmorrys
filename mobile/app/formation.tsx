@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import { Share } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
-  Body, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, SansDonnees, Screen,
+  Body, Display, Eyebrow, Gradient, Icon, IconButton, LessonRow, SansDonnees, Screen, Skeleton,
   Surface, Tag, isIOS, useActionGradient, useToken, veil,
 } from '../ds';
 import { useFormation } from '../donnees';
@@ -103,15 +103,23 @@ export default function Formation() {
           shadowOffset: { width: 0, height: 14 }, elevation: 6,
         }}
       >
-        <Tag tone="art">Aperçu · 4 min gratuit</Tag>
+        {/* L'étiquette ne se pose que si elle est vraie : « Aperçu · 4 min gratuit » était
+            écrit en dur, sur toutes les formations, y compris celles sans module ouvert. */}
+        {modules.some((m) => m.ouvert) ? <Tag tone="art">Module d'ouverture</Tag> : null}
       </Gradient>
 
       {f === null ? null : <Eyebrow style={{ marginTop: 20 }}>{f.meta}</Eyebrow>}
-      <Display
-        size={26}
-        lines={nom === null ? ['Cette formation', "n'est pas chargée."] : deuxLignes(nom)}
-        style={{ marginTop: 8 }}
-      />
+      {/* Le titre n'affirme rien pendant la lecture : « n'est pas chargée » se lisait comme
+          une panne alors que la réponse arrivait. */}
+      {nom === null && (fiche.phase === 'charge' || fiche.phase === 'restauration') ? (
+        <Skeleton width="80%" height={58} radius={10} label="Chargement de la formation" style={{ marginTop: 14 }} />
+      ) : (
+        <Display
+          size={26}
+          lines={nom === null ? ['Formation', 'introuvable.'] : deuxLignes(nom)}
+          style={{ marginTop: 8 }}
+        />
+      )}
 
       {/* ── LE PROGRAMME ───────────────────────────────────────────────────────────────
           Ce bloc était LE MUR : un prix, un bouton « Ouvrir sur maxmorrys.me », et trois
@@ -129,17 +137,16 @@ export default function Formation() {
         <Display size={19}>Ce que tu vas apprendre.</Display>
         <Body muted style={{ marginTop: 9, fontSize: 13.5, lineHeight: 21 }}>
           {f === null
-            ? "Le module d'ouverture se regarde ici, tout de suite, sans compte."
-            : `${f.lecons} leçons réparties en modules, à ton rythme. Le module d'ouverture se regarde ici, tout de suite, sans compte.`}
+            ? 'Des leçons réparties en modules, à ton rythme.'
+            : `${f.lecons} leçons réparties en modules, à ton rythme.${modules.some((m) => m.ouvert) ? " Le module d'ouverture se lit ici, tout de suite." : ''}`}
         </Body>
 
         <View style={{ height: 1, backgroundColor: t('borderHair'), marginVertical: 16 }} />
 
-        <Eyebrow>Ce que tu gardes</Eyebrow>
+        <Eyebrow>Ce qui te suit</Eyebrow>
         <Body muted style={{ marginTop: 7, fontSize: 13, lineHeight: 20 }}>
-          L'accès est <Body style={{ fontWeight: '700', fontSize: 13 }}>à vie</Body> : une fois
-          la formation ouverte sur ton compte, elle le reste, ici comme sur le site. Tes notes
-          et ta progression te suivent d'un appareil à l'autre.
+          Une formation ouverte sur ton compte l'est ici comme sur le site. Tes notes et ta
+          progression te suivent d'un appareil à l'autre.
         </Body>
       </Surface>
 
@@ -167,16 +174,21 @@ export default function Formation() {
             title={m.titre}
             meta={m.meta}
             last={i === modules.length - 1}
-            onPress={m.ouvert ? () => router.push('/lecon') : undefined}
+            /* La leçon DE CETTE formation, nommément : sans paramètre, l'écran ouvrait la
+               leçon de la formation en cours, quelle qu'elle soit. */
+            onPress={m.ouvert && f !== null && m.leconOuverte
+              ? () => router.push({ pathname: '/lecon', params: { formationId: f.id, leconId: m.leconOuverte as string } })
+              : undefined}
           />
         ))}
       </Surface>
       )}
 
-      <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
-        Le module d'ouverture se regarde ici, maintenant, sans compte. Les suivants s'ouvrent
-        avec ton accès.
-      </Body>
+      {modules.some((m) => m.ouvert) ? (
+        <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 12 }}>
+          Le module d'ouverture se lit ici, maintenant. Les suivants s'ouvrent avec ton accès.
+        </Body>
+      ) : null}
     </Screen>
   );
 }

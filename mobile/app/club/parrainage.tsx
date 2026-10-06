@@ -1,6 +1,7 @@
 import { Share, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import {
-  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useToken, veil,
+  Body, Button, CheckLine, Display, Eyebrow, Icon, LessonRow, Num, SansDonnees, Surface, Tag, useConfirmation, useToken, veil,
 } from '../../ds';
 import { ClubScreen } from './_layout';
 import { provenance, useParrainage } from '../../donnees';
@@ -23,6 +24,9 @@ import { provenance, useParrainage } from '../../donnees';
  * ══════════════════════════════════════════════════════════════════════════════════════
  */
 export default function ClubParrainage() {
+  /* Le code se COPIE : on le recopiait à la main, lettre par lettre, pour le coller dans
+     une conversation WhatsApp. « Copié » s'affiche sur le bouton, 1,4 s. */
+  const copie = useConfirmation();
   const t = useToken();
 
   const etat = useParrainage();
@@ -57,6 +61,11 @@ export default function ClubParrainage() {
      valeur venue du serveur. */
   const fiche = parrainage;
 
+  async function copier() {
+    await Clipboard.setStringAsync(fiche.code);
+    copie.confirmer('Code copié');
+  }
+
   async function partager() {
     await Share.share({
       message: `Le Club des Digitos, avec mon code : ${fiche.code}\n${fiche.lien}`,
@@ -75,10 +84,22 @@ export default function ClubParrainage() {
             reste entière : c'est le FILLEUL qui gagne, et c'est ce qu'il faut savoir pour
             décider de partager son code. */}
         <Body muted style={{ fontSize: 12.5, lineHeight: 19, marginTop: 8 }}>
-          Qui l'utilise entre au Club à tarif réduit — la remise va à ton filleul, pas à toi.
-          Toi, tu gagnes un mois par filleul qui reste quatre-vingt-dix jours.
+          La remise va à ton filleul, pas à toi. Toi, tu gagnes un mois par filleul qui reste
+          quatre-vingt-dix jours.
         </Body>
-        <Button tone="transforme" label="Partager mon code" icon="share" style={{ marginTop: 16 }} onPress={() => void partager()} />
+        <View style={{ flexDirection: 'row', gap: 9, marginTop: 16 }}>
+          <Button
+            tone="quiet"
+            label="Copier"
+            icon="copy"
+            confirmation="Copié"
+            confirme={copie.confirme}
+            fullWidth
+            style={{ flex: 1 }}
+            onPress={() => { void copier(); }}
+          />
+          <Button tone="transforme" label="Partager" icon="share" fullWidth style={{ flex: 1 }} onPress={() => void partager()} />
+        </View>
       </Surface>
 
       <View style={{ marginTop: 20 }}>
@@ -98,7 +119,7 @@ export default function ClubParrainage() {
         <CheckLine tone="neutre" dash>
           Aucune commission, aucun paiement — le temps, pas l'argent
         </CheckLine>
-        <Body muted style={{ fontSize: 11.5, lineHeight: 18, marginTop: 12, color: t('textFaint') }}>
+        <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 12 }}>
           Les quatre-vingt-dix jours ne sont pas une astuce anti-fraude : quelqu'un qui reste
           trois mois est quelqu'un pour qui c'était utile. C'est ça qu'on récompense.
         </Body>
@@ -136,8 +157,7 @@ export default function ClubParrainage() {
         <Eyebrow>Ce que ton code ne fait pas</Eyebrow>
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
           Il ne t'envoie aucune liste de contacts à relancer, et il ne dit à personne que tu as
-          partagé. La personne qui l'utilise décide seule, et elle voit le prix normal à côté du
-          prix remisé.
+          partagé. La personne qui l'utilise décide, sans relance de ta part ni de la nôtre.
         </Body>
       </Surface>
     </ClubScreen>

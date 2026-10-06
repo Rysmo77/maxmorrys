@@ -1,11 +1,12 @@
 import { Alert, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import {
-  Body, Button, Eyebrow, Gradient, Icon, Num, Segmented, Surface, Tag, useActionGradient,
-  useToken,
+  Body, Button, EmptyState, Eyebrow, Fondu, Gradient, Icon, Num, Revele, SansDonnees, Segmented, Surface, Tag,
+  haptique, useActionGradient, useBandeau, useToken,
 } from '../../ds';
 import { ClubScreen } from './_layout';
 import { ErreurAppel, provenance, reserverSession, useAgenda } from '../../donnees';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * ══════════════════════════════════════════════════════════════════════════════════════
@@ -32,30 +33,46 @@ import { useState } from 'react';
 export default function Agenda() {
   const t = useToken();
   const g = useActionGradient();
+  /* « Passées » est parti : la vue ne sert que les séances à venir, l'onglet était toujours
+     vide. Et le sélecteur ne filtrait RIEN — `vue` n'était jamais lue. */
   const [vue, setVue] = useState('À venir');
+  const { bandeau, montrer } = useBandeau();
 
   const agenda = useAgenda();
   const seances = agenda.valeur ?? [];
-  /* L'état affiché est celui du serveur, sauf pour les séances qu'on vient de basculer.
-     Une réservation qui met une seconde à se voir se re-touche, et on se désinscrit sans
-     l'avoir voulu. */
+  /* L'état affiché est celui du serveur, sauf pour les séances qu'on vient de basculer —
+     PARTOUT : le ton du bouton et l'offre de copier l'horaire lisaient encore le serveur. */
   const [bascules, setBascules] = useState<Record<string, boolean>>({});
   const [enVol, setEnVol] = useState<string | null>(null);
+  const inscrite = (s: { id: string; inscrite: boolean }) => bascules[s.id] ?? s.inscrite;
+  const visibles = vue === 'Mes inscriptions' ? seances.filter(inscrite) : seances;
+  const servi = agenda.phase === 'servie' || agenda.phase === 'replique' || agenda.phase === 'vide';
 
-  async function basculer(
-    s: { id: string; collection: string }, inscrite: boolean,
-  ) {
+  /* « Place réservée » s'affiche SUR le bouton touché, 1,4 s, puis le bouton redevient
+     « Me désinscrire ». */
+  const [confirmee, setConfirmee] = useState<string | null>(null);
+  const [copiee, setCopiee] = useState<string | null>(null);
+  useEffect(() => {
+    if (confirmee === null && copiee === null) return undefined;
+    const m = setTimeout(() => { setConfirmee(null); setCopiee(null); }, 1400);
+    return () => clearTimeout(m);
+  }, [confirmee, copiee]);
+
+  async function basculer(s: { id: string; collection: string; titre: string }, suivante: boolean) {
     if (enVol !== null) return;
     setEnVol(s.id);
-    setBascules((b: Record<string, boolean>) => ({ ...b, [s.id]: inscrite }));
+    setBascules((b: Record<string, boolean>) => ({ ...b, [s.id]: suivante }));
     try {
-      await reserverSession(s.collection, s.id, inscrite);
+      await reserverSession(s.collection, s.id, suivante);
+      haptique.succes();
+      if (suivante) setConfirmee(s.id);
     } catch (erreur: unknown) {
       /* On REMET l'état d'avant. Une place qui reste affichée comme réservée alors que le
          serveur l'ignore, c'est quelqu'un qui se présente à un atelier complet. */
-      setBascules((b: Record<string, boolean>) => ({ ...b, [s.id]: !inscrite }));
-      Alert.alert(
-        inscrite ? "Ta place n'est pas réservée" : "Tu n'as pas été désinscrite",
+      setBascules((b: Record<string, boolean>) => ({ ...b, [s.id]: !suivante }));
+      montrer(
+        'stop',
+        suivante ? "Ta place n'est pas réservée" : "Ta désinscription n'est pas passée",
         erreur instanceof ErreurAppel ? erreur.motif : 'Réessaie dans un moment.',
       );
     } finally {
@@ -63,104 +80,121 @@ export default function Agenda() {
     }
   }
 
-  /*
-   * ⚠️ CE BOUTON OUVRAIT UN FICHIER QUI N'EXISTE PAS. Il pointait sur
-   * `maxmorrys.me/club/agenda.ics` — mesuré : la réponse est un `200` avec
-   * `content-type: text/html`, c'est-à-dire la coquille de l'application web servie par le
-   * fourre-tout de l'hébergement. Le téléphone n'y voit aucun calendrier : il ouvre la page
-   * d'accueil du site. Une action principale qui fait autre chose que ce qu'elle annonce est
-   * un rejet en revue, et c'est un défaut qui survit parce que le lien RÉPOND.
-   *
-   * On ne remplace pas par un `expo-calendar` improvisé : écrire dans l'agenda demande une
-   * permission, une chaîne d'usage dans `app.json`, et une ligne au formulaire de
-   * confidentialité des deux magasins. Ça se décide, ça ne se bricole pas ici.
-   *
-   * En attendant, l'alerte dit l'horaire — ce qui est utile et vrai — et ne promet rien
-   * d'autre. C'est moins que prévu ; ce n'est pas faux.
-   */
-  function ajouterALAgenda(titre: string, horaire: string) {
+  /* Se désinscrire libère une place qu'un autre membre peut prendre : on le confirme. */
+  function desinscrire(s: { id: string; collection: string; titre: string }) {
+    haptique.attention();
     Alert.alert(
-      titre,
-      `${horaire}.\n\nNote-la dans ton agenda : le lien de connexion arrive par e-mail le jour même.`,
-      [{ text: "J'ai noté" }],
+      'Libérer ta place ?',
+      `${s.titre}. Un autre membre pourra la prendre.`,
+      [
+        { text: 'Garder ma place', style: 'cancel' },
+        { text: 'Me désinscrire', style: 'destructive', onPress: () => { void basculer(s, false); } },
+      ],
     );
+  }
+
+  /*
+   * ⚠️ « AJOUTER À MON AGENDA » N'AJOUTAIT RIEN. Il ouvrait une alerte qui disait l'horaire,
+   * sous un encart qui vantait « l'agenda système, qui survit à la désinstallation ». Écrire
+   * dans l'agenda demande `expo-calendar`, une permission et une ligne aux formulaires de
+   * confidentialité : ça se décide. En attendant, l'horaire se COPIE — c'est vrai, et c'est
+   * ce qu'on fait pour le coller dans son agenda.
+   */
+  async function copierHoraire(s: { id: string; titre: string; horaire?: string | null }) {
+    await Clipboard.setStringAsync(`${s.titre} — ${s.horaire ?? ''}`);
+    haptique.succes();
+    setCopiee(s.id);
   }
 
   return (
     <ClubScreen titre="Agenda">
-      <Segmented
-        options={['À venir', 'Mes inscriptions', 'Passées']}
-        value={vue}
-        onChange={setVue}
-      />
+      <Segmented options={['À venir', 'Mes inscriptions']} value={vue} onChange={setVue} />
+      {bandeau}
 
-      {seances.map((s) => (
-        <View key={s.titre}>
-          <Eyebrow style={{ marginTop: 22 }}>{s.jour}</Eyebrow>
-          <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
-            <View style={{ flexDirection: 'row', gap: 13 }}>
-              <Gradient
-                colors={g[s.territoire as keyof typeof g]}
-                radius={14}
-                style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Icon name={s.glyphe} size={20} color={t('paperFixed')} />
-              </Gradient>
-              <View style={{ flex: 1 }}>
-                <Body style={{ fontSize: 15, fontWeight: '700' }}>{s.titre}</Body>
-                <Num
-                  value={s.horaire}
-                  {...provenance(agenda)}
-                  style={{ fontSize: 11.5, color: t('textMuted'), marginTop: 3 }}
+      <Fondu cle={vue}>
+      {!servi ? (
+        <SansDonnees quoi="l'agenda du Club" etat={agenda} hauteur={4} style={{ marginTop: 18 }} />
+      ) : visibles.length === 0 ? (
+        <Surface level="flat" style={{ marginTop: 18, paddingVertical: 6 }}>
+          <EmptyState
+            glyph={<Icon name="calendar" size={24} color={t('mmVioletT')} />}
+            title={vue === 'Mes inscriptions' ? 'Aucune place réservée' : 'Aucune séance annoncée'}
+            body={vue === 'Mes inscriptions'
+              ? 'Les séances que tu réserves se retrouvent ici.'
+              : 'Les prochaines sessions et ateliers apparaissent ici dès qu’ils sont annoncés.'}
+          />
+        </Surface>
+      ) : visibles.map((s, i) => {
+        const place = inscrite(s);
+        return (
+          <Revele key={s.id} i={i}>
+            <Eyebrow style={{ marginTop: 22 }}>{s.jour}</Eyebrow>
+            <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
+              <View style={{ flexDirection: 'row', gap: 13 }}>
+                <Gradient
+                  colors={g[s.territoire as keyof typeof g]}
+                  radius={14}
+                  style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Icon name={s.glyphe} size={20} color={t('paperFixed')} />
+                </Gradient>
+                <View style={{ flex: 1 }}>
+                  <Body style={{ fontSize: 15, fontWeight: '700' }}>{s.titre}</Body>
+                  <Num
+                    value={s.horaire}
+                    {...provenance(agenda)}
+                    style={{ fontSize: 12, color: t('textMuted'), marginTop: 3 }}
+                  />
+                </View>
+              </View>
+
+              <View style={{
+                flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+                gap: 10, marginTop: 14,
+              }}>
+                {place ? <Revele echelle><Tag tone="ok">Place réservée</Tag></Revele> : (
+                  <Num value={s.places ?? null} {...provenance(agenda)} fallback="places non relevées" style={{ fontSize: 12.5, color: t('mmTealT') }} />
+                )}
+                <Button
+                  tone={place ? 'quiet' : 'digitalise'}
+                  size="sm"
+                  label={place ? 'Me désinscrire' : 'Je réserve'}
+                  confirmation="Place réservée"
+                  confirme={confirmee === s.id}
+                  disabled={enVol !== null}
+                  onPress={() => { if (place) desinscrire(s); else void basculer(s, true); }}
                 />
               </View>
-            </View>
 
-            <View style={{
-              flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-              gap: 10, marginTop: 14,
-            }}>
-              {(bascules[s.id] ?? s.inscrite) ? <Tag tone="ok">Tu es inscrite</Tag> : (
-                <Num value={s.places ?? null} {...provenance(agenda)} fallback="places non relevées" style={{ fontSize: 12.5, color: t('mmTealT') }} />
-              )}
-              <Button
-                tone={s.inscrite ? 'quiet' : 'digitalise'}
-                size="sm"
-                label={enVol === s.id
-                  ? '…'
-                  : (bascules[s.id] ?? s.inscrite) ? 'Me désinscrire' : 'Je réserve'}
-                disabled={enVol !== null}
-                onPress={() => { void basculer(s, !(bascules[s.id] ?? s.inscrite)); }}
-              />
-            </View>
+              {place ? (
+                <>
+                  <Button
+                    tone="ghost"
+                    label="Copier l'horaire"
+                    icon="copy"
+                    confirmation="Horaire copié"
+                    confirme={copiee === s.id}
+                    style={{ marginTop: 10 }}
+                    onPress={() => { void copierHoraire(s); }}
+                  />
+                  {/* Seule la session en ligne a un lien qui part par e-mail ; pour un atelier,
+                      on n'invente pas un envoi qu'on ne connaît pas. */}
+                  {s.collection === 'club_sessions' ? (
+                    <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 8 }}>
+                      Le lien de connexion arrive par e-mail le jour même.
+                    </Body>
+                  ) : null}
+                </>
+              ) : null}
+            </Surface>
+          </Revele>
+        );
+      })}
+      </Fondu>
 
-            {/* L'ACTION QUE LE WEB NE POUVAIT PAS OFFRIR. Elle n'apparaît que sur ce à quoi on
-                est inscrit : proposer d'agender ce qu'on n'a pas réservé n'a pas de sens. */}
-            {s.inscrite ? (
-              <Button
-                tone="ghost"
-                label="Ajouter à mon agenda"
-                icon="calendar"
-                style={{ marginTop: 10 }}
-                onPress={() => ajouterALAgenda(s.titre, s.horaire ?? '')}
-              />
-            ) : null}
-          </Surface>
-        </View>
-      ))}
-
-      <Surface level="truth" style={{ marginTop: 18, padding: 15 }}>
-        <Eyebrow>Pourquoi l'agenda système, et pas une notification</Eyebrow>
-        <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
-          Une session dans ton agenda{' '}
-          <Body style={{ fontWeight: '700', fontSize: 12.5 }}>survit à la désinstallation de l'app</Body>
-          {' '}et ne dépend d'aucune permission de notification. C'est le meilleur rappel
-          possible, et il ne me coûte rien.
-        </Body>
-        <Body muted style={{ marginTop: 10, fontSize: 12.5, lineHeight: 19 }}>
-          Te réinscrire ne crée pas de doublon, et personne ne peut t'inscrire à ta place.
-        </Body>
-      </Surface>
+      <Body muted style={{ marginTop: 18, fontSize: 12.5, lineHeight: 19 }}>
+        Te réinscrire ne crée pas de doublon, et personne ne peut t'inscrire à ta place.
+      </Body>
     </ClubScreen>
   );
 }

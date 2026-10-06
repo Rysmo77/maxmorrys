@@ -32,6 +32,7 @@ import type { Reponse } from '../../vues/contrat';
  */
 
 interface Lecon {
+  id?: unknown;
   duration?: unknown;
   isFree?: unknown;
 }
@@ -110,11 +111,18 @@ export async function appFormation(data: unknown, context: CallContext): Promise
         lisibles === null ? null : enClair(lisibles),
       ].filter(Boolean).join(' · '),
       ouvert: lecons.some((l) => l.isFree === true),
+      /* La leçon que la ligne OUVRE. Sans elle, l'écran poussait `/lecon` sans paramètre,
+         et la leçon affichée était celle de la formation en cours — pas de celle-ci. */
+      leconOuverte: (() => {
+        const libre = lecons.find((l) => l.isFree === true && l.id !== undefined && l.id !== null);
+        return libre ? String(libre.id) : null;
+      })(),
     };
   });
 
   return {
     vue: {
+      id: formation.id,
       titre,
       titreCourt: titre.split(/\s+(?:pour|—|:)\s+/)[0] ?? titre,
       meta: [

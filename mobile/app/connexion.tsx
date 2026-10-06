@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { TextInput } from 'react-native';
 import { router } from 'expo-router';
+import { apresConnexion } from '../donnees/accueil';
 import {
-  Body, Button, Display, Eyebrow, Field, Icon, IconButton, Screen,
+  Bandeau, Body, Button, Display, Eyebrow, Field, Icon, IconButton, Screen,
   Surface, Wordmark, useToken,
 } from '../ds';
 import { ErreurIdentite, avecGoogle, connexionEmail } from '../donnees/identite';
@@ -38,6 +40,9 @@ export default function Connexion() {
   const [visible, setVisible] = useState(false);
   const [enCours, setEnCours] = useState(false);
   const [echec, setEchec] = useState<string | null>(null);
+  /* Au DEUXIÈME échec, l'écran propose les deux issues qui règlent neuf cas sur dix. */
+  const [echecs, setEchecs] = useState(0);
+  const champMotDePasse = useRef<TextInput>(null);
 
   const complet = email.trim() !== '' && motDePasse !== '';
 
@@ -50,9 +55,10 @@ export default function Connexion() {
       /* On ne route PAS ici. `onAuthStateChanged` change la session, et c'est elle qui décide
          où l'on va — router depuis les deux endroits produirait deux navigations pour une
          seule connexion. */
-      router.replace('/espace');
+      router.replace(await apresConnexion());
     } catch (erreur: unknown) {
       setEchec(erreur instanceof ErreurIdentite ? erreur.motif : 'La connexion a échoué.');
+      setEchecs((n) => n + 1);
     } finally {
       setEnCours(false);
     }
@@ -63,7 +69,7 @@ export default function Connexion() {
       territory="forme"
       center
       droite={
-        <IconButton label="Fermer" onPress={() => router.back()}>
+        <IconButton label="Fermer" onPress={() => { if (router.canGoBack()) router.back(); else router.replace('/espace'); }}>
           <Icon name="close" size={17} color={t('textBody')} strokeWidth={2.4} />
         </IconButton>
       }
@@ -79,9 +85,14 @@ export default function Connexion() {
           placeholder="ton@adresse.sn"
           keyboardType="email-address"
           textContentType="emailAddress"
+          autoComplete="email"
+          autoCorrect={false}
+          returnKeyType="next"
+          onSubmitEditing={() => champMotDePasse.current?.focus()}
           style={{ marginTop: 0 }}
         />
         <Field
+          ref={champMotDePasse}
           label="Ton mot de passe"
           value={motDePasse}
           onChangeText={setMotDePasse}
@@ -90,13 +101,16 @@ export default function Connexion() {
           error={echec ?? undefined}
           secureTextEntry={!visible}
           textContentType="password"
+          autoComplete="current-password"
+          returnKeyType="go"
+          onSubmitEditing={() => { void seConnecter(); }}
           trailing={
             <IconButton
               label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
               onPress={() => setVisible(!visible)}
               style={{ backgroundColor: 'transparent', borderWidth: 0 }}
             >
-              <Icon name="eye" size={18} color={t('ink2')} />
+              <Icon name={visible ? 'eye-off' : 'eye'} size={18} color={t('ink2')} />
             </IconButton>
           }
         />
@@ -114,7 +128,26 @@ export default function Connexion() {
           style={{ marginTop: 10 }}
           onPress={() => router.push('/mot-de-passe')}
         />
+        {echecs >= 2 ? (
+          <Bandeau
+            ton="info"
+            titre="Ça ne passe toujours pas ?"
+            corps={avecGoogle
+              ? 'Si ton compte a été créé avec Google, continue avec Google. Sinon, « Mot de passe oublié » t’envoie un lien.'
+              : 'Si ton compte a été créé avec Google sur le site, il n’a pas de mot de passe : « Mot de passe oublié » t’en donne un.'}
+            style={{ marginTop: 14 }}
+          />
+        ) : null}
       </Surface>
+
+      {/* L'inscription REMONTE : elle était sous l'encart d'explication, à deux écrans du
+          champ — la personne sans compte devait faire défiler pour trouver sa porte. */}
+      <Button
+        tone="quiet"
+        label="Créer mon compte"
+        style={{ marginTop: 12 }}
+        onPress={() => router.push('/creation')}
+      />
 
       {/* Android seulement : sur iOS, Google attend « Se connecter avec Apple » (App Store 4.8). */}
       {avecGoogle ? (
@@ -129,17 +162,11 @@ export default function Connexion() {
         <Body muted style={{ marginTop: 6, fontSize: 12.5, lineHeight: 19 }}>
           C'est le même compte que sur maxmorrys.me : les mêmes cours, la même progression,
           les mêmes certificats.{avecGoogle
-            ? ' Si tu t’es inscrit par Google sur le site, continue avec Google : c’est le même compte.'
-            : ' Si tu t’es inscrit par Google sur le site, tu n’as pas encore de mot de passe — passe par « mot de passe oublié » pour t’en donner un.'}
+            ? ' Un compte créé avec Google sur le site : continue avec Google, c’est le même.'
+            : ' Un compte créé avec Google sur le site n’a pas encore de mot de passe — « Mot de passe oublié » t’en donne un.'}
         </Body>
       </Surface>
 
-      <Button
-        tone="quiet"
-        label="Créer un compte, c'est gratuit"
-        style={{ marginTop: 18 }}
-        onPress={() => router.push('/creation')}
-      />
 
       {/* Les textes sont atteignables SANS compte : quelqu'un doit pouvoir lire ce à quoi il
           s'engage avant de s'engager, pas après. */}

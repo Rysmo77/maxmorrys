@@ -69,12 +69,32 @@ describe('ce que le système s’interdit', () => {
     const anneaux = sources().filter((f) => /<Anneaux\b/.test(sansCommentaires(readFileSync(f, 'utf8'))));
     expect(anneaux.map((f) => f.slice(MOBILE.length + 1)), 'les anneaux ne servent qu’à l’attente de règlement').toEqual(['app/acces.tsx']);
     const boucles = sources().filter((f) => /Animated\.loop\(/.test(sansCommentaires(readFileSync(f, 'utf8'))));
-    /* Deux boucles seulement : la dérive du maillage (ambiance) et les anneaux (moment nº1). */
-    expect(boucles.map((f) => f.slice(MOBILE.length + 1)).sort()).toEqual(['ds/Anneaux.tsx', 'ds/Mesh.tsx']);
+    /*
+     * Quatre boucles, et pas une de plus :
+     *   · la dérive du maillage (ambiance) et les anneaux (moment nº1) ;
+     *   · deux INDICATEURS D'ATTENTE — l'onde du répétiteur et la respiration du squelette.
+     *     Ce ne sont pas des moments : elles ne tournent que pendant une attente réelle, et
+     *     s'arrêtent avec elle (audit du 05/10/2026, motion § 6 et § 7).
+     */
+    expect(boucles.map((f) => f.slice(MOBILE.length + 1)).sort())
+      .toEqual(['ds/Anneaux.tsx', 'ds/Mesh.tsx', 'ds/Onde.tsx', 'ds/Skeleton.tsx']);
+  });
+
+  it("l'onde ne tourne que pendant la génération, et jamais dans la barre d'onglets", () => {
+    const onde = sansCommentaires(lire('ds/Onde.tsx'));
+    expect(onde).toMatch(/if \(actif && !reduit\)/);
+    expect(onde).toMatch(/boucle\?\.stop\(\)/);
+    expect(sansCommentaires(lire('app/(tabs)/_layout.tsx'))).not.toMatch(/<Onde\b/);
+  });
+
+  it('le squelette respire avec UNE valeur partagée, arrêtée sous « réduire »', () => {
+    const sq = sansCommentaires(lire('ds/Skeleton.tsx'));
+    expect(sq.match(/new Animated\.Value\(/g)).toHaveLength(1);
+    expect(sq).toMatch(/if \(reduit\) return undefined;/);
   });
 
   it('la dérive du maillage se fige sous « réduire » et sur un appareil modeste', () => {
-    expect(sansCommentaires(lire('ds/Mesh.tsx'))).toMatch(/fige=\{reduit \|\| modeste\}/);
+    expect(sansCommentaires(lire('ds/Mesh.tsx'))).toMatch(/fige=\{reduit \|\| modeste( \|\| !visible)?\}/);
   });
 });
 

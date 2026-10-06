@@ -57,7 +57,7 @@ export default function Temoignages() {
       </Surface>
 
       <Surface level="night" style={{ marginTop: 12, padding: 16 }}>
-        <Eyebrow style={{ fontSize: 10 }}>La règle de publication</Eyebrow>
+        <Eyebrow>La règle de publication</Eyebrow>
         <Body muted style={{ fontSize: 12.5, lineHeight: 19, marginTop: 6 }}>
           Un témoignage se publie avec le nom que la personne a autorisé, sur une formation
           qu'elle a réellement suivie — la règle de la base recoupe l'inscription. Et un refus
