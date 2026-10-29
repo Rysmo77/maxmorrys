@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { updateProfile } from 'firebase/auth';
-import { Avatar, Button, Field, GlassPanel, Icon, IconButton, LessonRow, Num, useToast } from '@ds';
+import { Avatar, Button, Field, Icon, IconButton, LessonRow, Num, useToast } from '@ds';
 import PhoneInput from '@/components/forms/PhoneInput';
 import { SiteEyebrow, useReveal } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
@@ -11,6 +11,7 @@ import { uploadMedia } from '../../../lib/storage';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import { captureError } from '../../../lib/sentry';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * LE PROFIL (`ScreensCompte.js` · en-tête de `Preferences`).
  *
@@ -198,7 +199,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
     <div ref={reveal} className="wide:grid wide:grid-cols-2 wide:items-start wide:gap-6">
       <div className="min-w-0 max-w-2xl">
       {/* ── L'identité ─────────────────────────────────────────────────────── */}
-      <GlassPanel level="flat" padding={18}>
+      <Bento padding={18}>
         <div className="flex items-center gap-3.5">
           <div className="relative flex-shrink-0">
             {photoURL
@@ -224,11 +225,11 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
             <p className="text-small text-ink-2 m-0 mt-0.5">{t('profile.photoHint')}</p>
           </div>
         </div>
-      </GlassPanel>
+      </Bento>
 
       {/* ── Les informations ───────────────────────────────────────────────── */}
       <SiteEyebrow style={{ marginTop: '22px' }}>{t('profile.personalInfo')}</SiteEyebrow>
-      <GlassPanel level="flat" padding={18} as="section" aria-label={t('profile.formLabel')}>
+      <Bento padding={18} as="section" aria-label={t('profile.formLabel')}>
         <div className="grid stack:grid-cols-2 gap-x-4">
           <Field label={t('profile.firstName')} value={profileForm.firstName} onChange={set('firstName')} placeholder={t('profile.firstNamePlaceholder')} autoComplete="given-name" style={{ marginTop: 0 }} />
           <Field label={t('profile.lastName')} value={profileForm.lastName} onChange={set('lastName')} placeholder={t('profile.lastNamePlaceholder')} autoComplete="family-name" style={{ marginTop: 0 }} />
@@ -282,7 +283,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
             {savingProfile ? t('profile.saving') : t('profile.saveProfile')}
           </Button>
         </div>
-      </GlassPanel>
+      </Bento>
 
       </div>
 
@@ -292,7 +293,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
       {/* ── La communauté ──────────────────────────────────────────────────── */}
       <SiteEyebrow>{t('profile.communityTitle')}</SiteEyebrow>
       <p className="text-small text-ink-2 mb-2.5">{t('profile.communitySubtitle')}</p>
-      <GlassPanel level="flat" padding="6px 18px" as="nav" aria-label={t('profile.socialsLabel')}>
+      <Bento padding="6px 18px" as="nav" aria-label={t('profile.socialsLabel')}>
         {SOCIAL_LINKS.map((link, i) => (
           <LessonRow
             key={link.url}
@@ -305,11 +306,11 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
             last={i === SOCIAL_LINKS.length - 1}
           />
         ))}
-      </GlassPanel>
+      </Bento>
 
       {/* ── Mon parcours ───────────────────────────────────────────────────── */}
       <SiteEyebrow style={{ marginTop: '22px' }}>{t('profile.journeyTitle')}</SiteEyebrow>
-      <GlassPanel level="flat" padding="6px 18px">
+      <Bento padding="6px 18px">
         <LessonRow
           state="plain"
           title={t('profile.enrolled')}
@@ -328,7 +329,7 @@ export default function ProfileTab({ enrolledFormations, completedCount }: Profi
           trailing={<Num value={userData?.createdAt ? formatDate(userData.createdAt) : null} source="db" asOf={readAt} />}
           last
         />
-      </GlassPanel>
+      </Bento>
       </div>
     </div>
   );

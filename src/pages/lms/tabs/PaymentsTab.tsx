@@ -9,6 +9,7 @@ import { useFormat } from '../../../hooks/useFormat';
 import { getUserTransactions } from '../../../lib/firestore';
 import type { Transaction } from '../../../types';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * L'ÉCRAN « MES PAIEMENTS » — le bout manquant du chemin de l'argent.
@@ -189,7 +190,7 @@ export default function PaymentsTab({ userId }: PaymentsTabProps) {
           ))}
         </div>
       ) : readFailed ? (
-        <GlassPanel level="hero" padding={22} className="mt-[14px]">
+        <Bento tone="hero" padding={22} className="mt-[14px]">
           <EmptyState
             glyph={<Icon name="alert" size={26} style={{ color: 'var(--stop)' }} />}
             glyphBackground="color-mix(in srgb, var(--stop) 14%, transparent)"
@@ -197,9 +198,9 @@ export default function PaymentsTab({ userId }: PaymentsTabProps) {
             body={t('payments.errorBody')}
             action={<Button tone="forme" onClick={load}>{t('payments.errorRetry')}</Button>}
           />
-        </GlassPanel>
+        </Bento>
       ) : transactions.length === 0 ? (
-        <GlassPanel level="hero" padding={22} className="mt-[14px]">
+        <Bento tone="hero" padding={22} className="mt-[14px]">
           <EmptyState
             glyph={<Icon name="card" size={26} style={{ color: 'var(--mm-bleu)' }} />}
             glyphBackground="color-mix(in srgb, var(--mm-bleu) 14%, transparent)"
@@ -211,9 +212,9 @@ export default function PaymentsTab({ userId }: PaymentsTabProps) {
               </Button>
             }
           />
-        </GlassPanel>
+        </Bento>
       ) : (
-        <GlassPanel level="flat" padding="6px 18px" className="mt-[14px]">
+        <Bento padding="6px 18px" className="mt-[14px]">
           {transactions.map((tx, i) => (
             <LessonRow
               key={tx.id}
@@ -246,7 +247,7 @@ export default function PaymentsTab({ userId }: PaymentsTabProps) {
               last={i === transactions.length - 1}
             />
           ))}
-        </GlassPanel>
+        </Bento>
       )}
       </SpaceSplit>
     </div>

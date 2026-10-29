@@ -122,7 +122,7 @@
     "processing": "Processing...",
     "confirmFree": "Confirm free enrollment",
     "payAmount": "Pay {{amount}}",
-    "secureGuarantee": "Secure payment · 14-day guarantee",
+    "secureGuarantee": "Instant access, yours for good · The T&Cs apply",
     "summary": "Summary",
     "lessonsCount": "{{count}} lessons",
     "certificateIncluded": "Certificate included",
@@ -326,7 +326,8 @@
     "previewCta": "See the course",
     "comingSoonTitle": "This course isn’t open yet.",
     "comingSoonBody": "Your pre-order went through — it’s yours. The lessons are coming, and I’ll let you know the moment they’re live.",
-    "comingSoonBodyDated": "Your pre-order went through — it’s yours. It opens {{date}}, and I’ll let you know that day."
+    "comingSoonBodyDated": "Your pre-order went through — it’s yours. It opens {{date}}, and I’ll let you know that day.",
+    "quizAnswered": "{{done}} / {{total}} answered"
   },
   "rysmoPage": {
     "tabTokens": "Tokens & subscriptions",

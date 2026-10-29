@@ -7,6 +7,7 @@ import { createDoc, getUserMessages } from '../../../lib/firestore';
 import type { ContactMessage } from '../../../types';
 import { captureError } from '../../../lib/sentry';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * L'ÉCRAN « MES MESSAGES » — un écran de PILE, pas un des cinq à barre d'onglets.
@@ -142,7 +143,7 @@ export default function MessagesTab({
       </div>
 
       {showMsgForm ? (
-        <GlassPanel level="hero" padding={22} className="mt-[18px]">
+        <Bento tone="hero" padding={22} className="mt-[18px]">
           <p className="mm-eyebrow m-0">{t('messages.from')}</p>
           <p className="m-0 mt-[3px] text-meta" style={{ color: 'var(--text-muted)' }}>
             {displayName} · {userEmail}
@@ -174,13 +175,13 @@ export default function MessagesTab({
               {sendingMsg ? t('messages.sending') : t('messages.send')}
             </Button>
           </div>
-        </GlassPanel>
+        </Bento>
       ) : loadingMessages ? (
         <div className="mt-[18px] grid gap-[8px]">
           {[0, 1, 2].map((i) => <Skeleton key={i} height={62} radius="var(--r-m)" label={t('messages.loadingLabel')} />)}
         </div>
       ) : sentMessages.length === 0 ? (
-        <GlassPanel level="hero" padding={22} className="mt-[18px]">
+        <Bento tone="hero" padding={22} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="send" size={26} style={{ color: 'var(--mm-bleu)' }} />}
             glyphBackground="color-mix(in srgb, var(--mm-bleu) 14%, transparent)"
@@ -188,9 +189,9 @@ export default function MessagesTab({
             body={t('messages.emptyText')}
             action={<Button tone="forme" onClick={() => setShowMsgForm(true)}>{t('messages.sendMessage')}</Button>}
           />
-        </GlassPanel>
+        </Bento>
       ) : (
-        <GlassPanel level="flat" padding="6px 18px" className="mt-[18px]">
+        <Bento padding="6px 18px" className="mt-[18px]">
           {sentMessages.map((msg, i) => (
             <div key={msg.id}>
               <LessonRow
@@ -223,7 +224,7 @@ export default function MessagesTab({
               )}
             </div>
           ))}
-        </GlassPanel>
+        </Bento>
       )}
       </SpaceSplit>
     </div>

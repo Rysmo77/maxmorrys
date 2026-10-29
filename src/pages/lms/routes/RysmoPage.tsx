@@ -1,6 +1,6 @@
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Icon, Segmented } from '@ds';
+import { Icon } from '@ds';
 import RysmoStoreTab from '../tabs/RysmoStoreTab';
 import RysmoMemoryTab from '../tabs/RysmoMemoryTab';
 import SpaceSplit from '../components/SpaceSplit';
@@ -84,20 +84,27 @@ export default function RysmoPage() {
 
             Le glyphe et le sous-titre restent : ils situent l'écran sans le renommer.
           */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[image:var(--action-digitalise)] shadow-md">
-              <Icon name="bot" size={24} className="text-white" />
-            </div>
-            <p className="text-meta text-ink-2">{t('rysmoPage.subtitle')}</p>
+          <div className="mm-promo flex items-center gap-4" style={{ padding: '22px' }}>
+            <span
+              aria-hidden="true"
+              className="grid h-12 w-12 shrink-0 place-items-center rounded-m bg-[image:var(--action-digitalise)] text-[color:var(--paper-fixed)]"
+            >
+              <Icon name="bot" size={24} />
+            </span>
+            <p className="m-0 text-body text-[color:var(--ink-fixed)]">{t('rysmoPage.subtitle')}</p>
           </div>
-
-          <Segmented
-            className="max-w-md"
-            label={t('rysmoPage.tabsLabel', { tutor })}
-            options={OPTIONS}
-            value={active === 'memoire' ? OPTIONS[1] : OPTIONS[0]}
-            onChange={setActive}
-          />
+          <div className="mm-tabs max-w-full overflow-x-auto" role="group" aria-label={t('rysmoPage.tabsLabel', { tutor })}>
+            {OPTIONS.map((label, i) => (
+              <button
+                key={label}
+                type="button"
+                aria-pressed={(active === 'memoire') === (i === 1)}
+                onClick={() => setActive(label)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
           {active === 'tokens' ? (
             <RysmoStoreTab />

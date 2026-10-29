@@ -1,7 +1,7 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
-import { Breadcrumb, Button, CheckLine, GlassPanel, Icon, LessonRow, PriceBlock, Skeleton, Tag, TranslationNotice } from '@ds';
+import { Breadcrumb, Button, CheckLine, GlassPanel, Icon, Num, PriceBlock, Skeleton, TranslationNotice } from '@ds';
 import DsNavHost from '../components/layout/DsNavHost';
 import { PageSite, SiteBand, SiteDisplay, SiteEyebrow } from '../components/site';
 import ShareButtons from '../components/shared/ShareButtons';
@@ -21,7 +21,7 @@ import SEOHead from '../components/seo/SEOHead';
 import { contentPath } from '../lib/contentPath';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
-import FormationArt from '../components/formations/FormationArt';
+import CourseCover from '../components/formations/CourseCover';
 
 
 
@@ -31,7 +31,6 @@ export default function FormationDetail() {
   const { slug } = useParams();
   const { language } = useLanguage();
   const { formatDate } = useFormat();
-  const [expandedModules, setExpandedModules] = useState<string[]>([]);
   const [formation, setFormation] = useState<Formation | null | undefined>(undefined);
 
   useEffect(() => {
@@ -127,10 +126,12 @@ export default function FormationDetail() {
    * ses leçons. C'est voulu — la promesse « le module d'ouverture est gratuit, tu juges avant
    * de payer » est SUSPENDUE jusqu'à l'ouverture, pas cassée, et la fiche le dit.
    */
-  const hasFreeLesson = modules.some((m) => (m.lessons ?? []).some((l) => l.isFree));
+  const freeLessons = modules.reduce((n, m) => n + (m.lessons ?? []).filter((l) => l.isFree).length, 0);
+  const hasFreeLesson = freeLessons > 0;
   const lessons = modules.reduce((n, m) => n + (m.lessons?.length ?? 0), 0);
   const price = formation.promoPrice ?? formation.price;
   const asOf = new Date();
+  const onBuy = () => trackAddToCart({ id: formation.id, name: formation.title, category: formation.category, price, currency: 'XOF' });
 
   const precommande = estPrecommandable(formation);
   const dateOuverture = ouverture(formation);
@@ -169,192 +170,203 @@ export default function FormationDetail() {
         },
       }} />
 
-      <PageSite>
-        <Breadcrumb
-          label={t('sheet.eyebrow')}
-          items={[
-            { label: t('sheet.eyebrow'), href: path('/formations') },
-            { label: formation.category },
-          ]}
-        />
+      {/*
+        ── LE HÉROS DE LA FICHE (kit v3 `EduHero` + `CourseCover`) ──────────────────────
+        Bande sombre en portée `.dk` locale. À gauche : catégorie en italique orange, titre
+        en capitales, promesse, trois faits COMPTÉS dans la formation (leçons, modules,
+        leçons libres) — aucun n'est saisi à la main — et l'action. À droite, la couverture
+        « livre » de la formation (la photo `coverImage` y entre sous un voile, AD-24).
 
-        <div className="mt-4 grid items-start gap-11 wide:grid-cols-[1.1fr_.9fr]">
-          <div>
-            {/* L'étiquette est posée AVANT le titre : c'est la première chose à savoir sur
-                cette fiche, avant même de lire ce qu'elle vend. */}
-            {aVenir && (
-              <p className="m-0 mb-3">
-                <Tag tone="warn">
-                  {ouvertureTexte ? t('comingSoon.tagWithDate', { date: ouvertureTexte }) : t('comingSoon.tag')}
-                </Tag>
-              </p>
-            )}
-            <SiteDisplay wrap lines={[tFormation?.title || formation.title]} size={48} style={{ maxWidth: '18ch' }} />
-            <p className="rv mt-4 max-w-[48ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 3 }}>
-              {tFormation?.description || formation.description}
-            </p>
-
-            {/*
-              PARTAGER UNE FORMATION — le geste manquait sur la page où l'on décide d'acheter.
-
-              Une formation se recommande de personne à personne, et sur ce marché cela veut
-              dire WhatsApp. La fiche possédait déjà tout ce qu'il faut pour un bel aperçu
-              (titre, description, `coverImage` en image Open Graph) et n'offrait aucun moyen
-              de l'envoyer.
-            */}
-            <ShareButtons
-              className="rv mt-4"
-              url={`/formations/${formation.slug}`}
-              title={formation.title}
-              contentType="formation"
-              contentId={formation.id}
-            />
-
-            {/*
-              ── L'EMPLACEMENT D'APERÇU PORTE LA CRÉA, QUAND IL Y EN A UNE ────────────────
-              Il disait : « un dégradé de marque, pas une photographie. Le dépôt n'en
-              contient aucune, et c'est ce qui tient le budget de première vue. » L'argument
-              valait quand aucune formation n'existait. Depuis, `coverImage` est saisi dans
-              la console, part au flux Meta et sert d'image Open Graph : la fiche était le
-              seul endroit qui possédait l'image et refusait de la montrer — sur la page
-              même où l'on décide d'acheter.
-
-              Le dégradé ne disparaît pas, il devient le REPLI (AD-24) : couverture absente,
-              URL cassée, image encore en vol — c'est lui qu'on voit, jamais un trou.
-
-              `priority` : cette zone est au-dessus de la ligne de flottaison et candidate au
-              LCP. La hauteur reste figée à 210 px, donc l'arrivée de l'image ne décale rien.
-            */}
-            <FormationArt
-              src={formation.coverImage}
-              height={210}
-              fallback="var(--action-forme)"
-              priority
-              veil
-              className="rv-s mt-5 p-4"
-              style={{ boxShadow: 'var(--sh-bleu)', ['--i' as string]: 4 }}
-            >
-              {/*
-                LA BALISE NE S'AFFICHE QUE SI ELLE EST VRAIE. Elle annonce « aperçu · module
-                d'ouverture gratuit » et se posait INCONDITIONNELLEMENT — sur une formation
-                dont aucune leçon ne porte `isFree`, elle promettait un accès libre qui
-                n'existe pas. C'est le même défaut que les lignes de module corrigeaient
-                trente lignes plus bas : la gratuité est une donnée, pas un décor.
-
-                Sur une formation à venir, elle ne se pose pas non plus — l'étiquette
-                « bientôt » est déjà posée au-dessus du titre, et la redire ici doublerait
-                l'annonce sans rien ajouter.
-              */}
-              {hasFreeLesson && !aVenir && (
-                <Tag style={{ background: 'rgba(255,255,255,.9)', color: 'var(--ink-fixed)' }}>
-                  {t('sheet.preview')}
-                </Tag>
+        L'étiquette « bientôt » reste posée AVANT le titre : c'est la première chose à
+        savoir sur cette fiche, avant même de lire ce qu'elle vend.
+      */}
+      <section className="dk relative overflow-hidden bg-night text-[color:var(--text-body)]">
+        <PageSite style={{ paddingBottom: '56px' }}>
+          <Breadcrumb
+            label={t('sheet.eyebrow')}
+            items={[
+              { label: t('sheet.eyebrow'), href: path('/formations') },
+              { label: formation.category },
+            ]}
+          />
+          <div className="mt-6 grid items-center gap-10 wide:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)]">
+            <div>
+              {aVenir && (
+                <p className="m-0 mb-3">
+                  <span className="mm-tag is-soon">
+                    {ouvertureTexte ? t('comingSoon.tagWithDate', { date: ouvertureTexte }) : t('comingSoon.tag')}
+                  </span>
+                </p>
               )}
-            </FormationArt>
+              <span className="mm-script block text-[22px]">{tFormation?.category || formation.category}</span>
+              <SiteDisplay
+                wrap
+                lines={[tFormation?.title || formation.title]}
+                size={60}
+                style={{ maxWidth: '16ch', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '-.045em', lineHeight: 0.9 }}
+              />
+              <p className="rv mt-5 max-w-[50ch] text-lede leading-[1.5] text-ink-2" style={{ ['--i' as string]: 3 }}>
+                {tFormation?.description || formation.description}
+              </p>
 
+              {/* ⚠️ Sur une formation à venir, les leçons sont retirées à la lecture : on ne
+                  compte que les modules, jamais « 0 leçon ». */}
+              <dl className="rv m-0 mt-6 flex flex-wrap gap-x-8 gap-y-3" style={{ ['--i' as string]: 4 }}>
+                {!aVenir && (
+                  <div>
+                    <dt className="sr-only">{t('sheet.factLessons')}</dt>
+                    <dd className="m-0 flex items-baseline gap-2">
+                      <b className="text-[28px] font-semibold text-ink"><Num value={lessons} source="db" asOf={asOf} /></b>
+                      <span className="text-small text-ink-2">{t('sheet.factLessons')}</span>
+                    </dd>
+                  </div>
+                )}
+                <div>
+                  <dt className="sr-only">{t('sheet.factModules')}</dt>
+                  <dd className="m-0 flex items-baseline gap-2">
+                    <b className="text-[28px] font-semibold text-ink"><Num value={modules.length} source="db" asOf={asOf} /></b>
+                    <span className="text-small text-ink-2">{t('sheet.factModules')}</span>
+                  </dd>
+                </div>
+                {freeLessons > 0 && !aVenir && (
+                  <div>
+                    <dt className="sr-only">{t('sheet.factFree')}</dt>
+                    <dd className="m-0 flex items-baseline gap-2">
+                      <b className="text-[28px] font-semibold text-ink"><Num value={freeLessons} source="db" asOf={asOf} /></b>
+                      <span className="text-small text-ink-2">{t('sheet.factFree')}</span>
+                    </dd>
+                  </div>
+                )}
+              </dl>
+
+              {!aVenir && (
+                <div className="rv mt-7 flex flex-wrap items-center gap-4" style={{ ['--i' as string]: 5 }}>
+                  {/* Le prix du bouton est celui de la base, promotionnel s'il existe ; le
+                      montant débité reste recalculé côté serveur au paiement. */}
+                  <Link className="mm-pill" to={path(`/checkout/${formation.slug}`)} onClick={onBuy}>
+                    {t('sheet.buy')} · <Num value={price} source="db" asOf={asOf} unit="F" />
+                    <i aria-hidden="true"><Icon name="arrow-up-right" size={16} /></i>
+                  </Link>
+                  {hasFreeLesson && (
+                    <Link className="mm-ulink text-[14px] font-semibold text-ink" to={path(`/cours/${formation.slug}`)}>
+                      {t('sheet.startFree')}
+                    </Link>
+                  )}
+                </div>
+              )}
+
+              {/*
+                PARTAGER UNE FORMATION — une formation se recommande de personne à personne,
+                et sur ce marché cela veut dire WhatsApp.
+              */}
+              <ShareButtons
+                className="rv mt-6"
+                url={`/formations/${formation.slug}`}
+                title={formation.title}
+                contentType="formation"
+                contentId={formation.id}
+              />
+            </div>
+
+            <CourseCover
+              title={tFormation?.title || formation.title}
+              category={formation.category}
+              slug={formation.slug}
+              id={formation.id}
+              coverImage={formation.coverImage}
+              kicker={`${t('sheet.coverKicker')} · ${tFormation?.category || formation.category}`}
+              tag={hasFreeLesson && !aVenir ? t('sheet.preview') : undefined}
+              size="lg"
+              transitionName={`course-${formation.slug}`}
+              className="rv-s"
+              style={{ ['--i' as string]: 4 }}
+            />
+          </div>
+        </PageSite>
+      </section>
+
+      <PageSite>
+        <div className="grid items-start gap-11 wide:grid-cols-[1.1fr_.9fr]">
+          <div>
             {/*
               LE BANDEAU EST OBLIGATOIRE SUR TOUT CORPS TRADUIT À LA MACHINE.
-
-              `longDescription` passe par `useTranslatedText()` — donc par une traduction
-              générée au pré-rendu ET MISE EN CACHE, sans invalidation manuelle : une
-              correction du français n'atteint cette page qu'à l'expiration du cache.
-              L'article, le podcast et la vidéo le disent ; la fiche formation était la
-              seule surface à servir un corps traduit sans l'annoncer. La date est celle de
-              la dernière révision de la fiche — la seule que le modèle porte.
+              `updatedAt ?? publishedAt` : les deux seules dates que le modèle porte. Sans ni
+              l'une ni l'autre, PAS de bandeau — un bandeau daté d'aujourd'hui serait le
+              nombre inventé que la règle 6 refuse.
             */}
-            {/* `updatedAt ?? publishedAt` : les deux seules dates que le modèle porte. Sans
-                ni l'une ni l'autre, PAS de bandeau — un bandeau daté d'aujourd'hui serait le
-                nombre inventé que la règle 6 refuse, exactement le raisonnement que
-                `FAQQuestion` tient pour ne pas en poser du tout. */}
             {language === 'en' && formation.longDescription && (formation.updatedAt ?? formation.publishedAt) && (
               <TranslationNotice
                 date={formatDate((formation.updatedAt ?? formation.publishedAt) as string)}
                 href={`/formations/${formation.slug}`}
                 originalLabel={t('sheet.translatedOriginal')}
-                style={{ marginTop: '18px', maxWidth: 'var(--measure-prose)' }}
+                style={{ marginBottom: '18px', maxWidth: 'var(--measure-prose)' }}
               />
             )}
 
             {formation.longDescription && (
-              /* La description longue, en prose bornée à 68 caractères. Elle portait le
-                 détail de la promesse ; la perdre aurait vidé la page de son argument. */
               <div
-                className="mm-prose prose-article mt-7"
+                className="mm-prose prose-article"
                 dangerouslySetInnerHTML={{ __html: markdownToHtml(longDescriptionBody || formation.longDescription) }}
               />
             )}
 
-            <SiteEyebrow style={{ marginTop: '28px' }}>{t('sheet.program')}</SiteEyebrow>
-            <GlassPanel level="flat" padding="6px 22px">
+            {/*
+              ── LE PROGRAMME (kit v3 `mm-acc`) ─────────────────────────────────────────
+              LA GRATUITÉ EST UNE DONNÉE, PAS UN RANG : l'étiquette « libre » ne se pose que
+              sur un module dont une leçon porte `isFree`.
+
+              UNE FORMATION À VENIR MONTRE SES MODULES, ET RIEN DE PLUS : pas de dépliage (la
+              couche d'accès a retiré les leçons), pas de « N leçons » en méta — le compte y
+              vaut zéro et l'afficher annoncerait « 0 leçon » sur une formation qu'on vend.
+
+              La durée n'est pas additionnée : `Lesson.duration` est une chaîne libre, et la
+              somme serait un nombre que personne ne pourrait sourcer (règle 6).
+            */}
+            <h2 className="mm-d mb-5 mt-10 text-[34px] text-ink">{t('sheet.program')}</h2>
+            <div className="mm-acc">
               {modules.map((module, mi) => {
-                const open = expandedModules.includes(module.id);
-                /*
-                  LA GRATUITÉ EST UNE DONNÉE, PAS UN RANG.
-
-                  C'était `mi === 0` : le premier module portait l'étiquette « Gratuit » et
-                  le glyphe de lecture SANS que rien ne soit consulté. `Lesson.isFree` existe
-                  pourtant au modèle. Une promesse d'avant-achat — « le module d'ouverture est
-                  en accès libre, tu juges avant de payer » — était donc affichée pour toutes
-                  les formations, y compris celles dont aucune leçon n'est marquée gratuite.
-                  C'est la donnée factice de la maquette reprise telle quelle, que
-                  `MAQUETTES.md` demande explicitement de ne pas rejouer.
-                */
                 const moduleFree = (module.lessons ?? []).some((l) => l.isFree);
-                /*
-                  UNE FORMATION À VENIR MONTRE SES MODULES, ET RIEN DE PLUS.
-
-                  Pas de dépliage — il n'y aurait rien dessous, la couche d'accès aux données
-                  a retiré les leçons. Pas d'étiquette « Gratuit » non plus : elle promettrait
-                  un aperçu qui n'ouvrira qu'à la mise en ligne. Le cadenas dit l'état juste.
-
-                  Et surtout : PAS de « N leçons » en méta. Le compte est à zéro ici, et
-                  l'afficher annoncerait « 0 leçon » sur une formation qu'on vend — un chiffre
-                  faux, exactement ce que la règle des relevés datés existe pour empêcher.
-                */
+                const n = String(mi + 1).padStart(2, '0');
+                if (aVenir) {
+                  return (
+                    <div key={module.id} className="mm-acc__item">
+                      <div className="flex items-center gap-4 px-5 py-[18px] font-semibold">
+                        <span className="mm-acc__n">{n}</span>
+                        <span className="min-w-0 flex-1">{module.title}</span>
+                        <Icon name="lock" size={15} color="var(--ink-2)" />
+                      </div>
+                    </div>
+                  );
+                }
                 return (
-                  <div key={module.id}>
-                    <LessonRow
-                      state="plain"
-                      title={<b className="font-semibold">{module.title}</b>}
-                      /* Il rendait « 11 · Le programme » : le nombre de leçons collé au TITRE
-                         DE SECTION, faute d'une clé qui compte. Le kit écrit « 11 leçons ·
-                         1 h 08 » (`PagesFormations.js:62`) ; la durée n'est pas reprise parce
-                         que `Lesson.duration` est une chaîne libre — l'additionner produirait
-                         un nombre que personne ne pourrait sourcer, ce que la règle 6 interdit. */
-                      meta={aVenir ? undefined : t('sheet.moduleMeta', { count: module.lessons?.length ?? 0 })}
-                      onClick={aVenir ? undefined : () =>
-                        setExpandedModules((prev) =>
-                          prev.includes(module.id) ? prev.filter((id) => id !== module.id) : [...prev, module.id],
-                        )
-                      }
-                      icon={
-                        moduleFree && !aVenir
-                          ? <Icon name="play" size={13} color="var(--paper-fixed)" />
-                          : <Icon name="lock" size={14} color="var(--ink-2)" strokeWidth={2.4} />
-                      }
-                      iconBackground={moduleFree && !aVenir ? 'var(--action-forme)' : 'var(--fill-2)'}
-                      trailing={moduleFree && !aVenir ? <Tag tone="ok">{t('sheet.free')}</Tag> : undefined}
-                      last={mi === modules.length - 1 && !open}
-                    />
-                    {open && !aVenir && (
-                      <ul className="list-none m-0 pb-3 pl-[46px]">
-                        {(module.lessons ?? []).map((lesson) => (
-                          <li key={lesson.id} className="flex items-baseline justify-between gap-3 py-[5px]">
-                            <span className="text-meta-2 text-ink-2">{lesson.title}</span>
-                            <span className="mm-num text-small text-ink-2">{lesson.duration}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                  <details key={module.id} className="mm-acc__item" open={mi === 0 ? true : undefined}>
+                    <summary>
+                      <span className="mm-acc__n">{n}</span>
+                      <span className="min-w-0 flex-1">{module.title}</span>
+                      {moduleFree && <span className="mm-tag is-ok">{t('sheet.free')}</span>}
+                      <span className="text-[12px] opacity-70">{t('sheet.moduleMeta', { count: module.lessons?.length ?? 0 })}</span>
+                      <span className="mm-acc__plus" aria-hidden="true"><Icon name="plus" size={15} /></span>
+                    </summary>
+                    <ul className="mm-acc__body m-0 list-none">
+                      {(module.lessons ?? []).map((lesson, li) => (
+                        <li key={lesson.id} className="flex items-baseline gap-3 py-[6px]">
+                          <span className="text-[12px] opacity-60">{`${mi + 1}.${li + 1}`}</span>
+                          <span className="min-w-0 flex-1">{lesson.title}</span>
+                          {lesson.isFree && <span className="mm-tag is-ok">{t('sheet.free')}</span>}
+                          {lesson.duration ? <span className="text-[12px] opacity-70">{lesson.duration}</span> : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                 );
               })}
-            </GlassPanel>
+            </div>
           </div>
 
           {/* LA CARTE DE PRIX, COLLANTE — le seul `hero` de la page. */}
           <aside className="grid gap-[14px] wide:sticky wide:top-[calc(var(--header-h)+1rem)]">
-            <GlassPanel level="hero" padding={26} className="rv" style={{ ['--i' as string]: 4 }}>
+            <div className="mm-card rv" style={{ ['--i' as string]: 4, padding: '26px' }}>
+              <p className="mm-eyebrow m-0 mb-3">{t('sheet.cardKicker')}</p>
               <PriceBlock
                 size={36}
                 amount={{ value: price, source: 'db', asOf }}
@@ -397,7 +409,7 @@ export default function FormationDetail() {
                 <Button
                   href={path(`/checkout/${formation.slug}`)}
                   tone="forme"
-                  onClick={() => trackAddToCart({ id: formation.id, name: formation.title, category: formation.category, price, currency: 'XOF' })}
+                  onClick={onBuy}
                   style={{ marginTop: '15px' }}
                 >
                   {t('sheet.enroll')}
@@ -424,7 +436,7 @@ export default function FormationDetail() {
                     <Button
                       href={path(`/checkout/${formation.slug}`)}
                       tone="forme"
-                      onClick={() => trackAddToCart({ id: formation.id, name: formation.title, category: formation.category, price, currency: 'XOF' })}
+                      onClick={onBuy}
                       style={{ marginTop: '13px' }}
                     >
                       {t('comingSoon.preorder')}
@@ -500,7 +512,7 @@ export default function FormationDetail() {
                   {t('comingSoon.freeLater')}
                 </CheckLine>
               )}
-            </GlassPanel>
+            </div>
 
             {/*
               L'ENCART DE VÉRITÉ — ce qui remplace la note et le nombre d'inscrits. Ses deux
@@ -526,33 +538,33 @@ export default function FormationDetail() {
         <SiteDisplay as="h2" lines={t('sheet.forWhoTitle', { returnObjects: true }) as string[]} size={34} />
         {/* Marge 22, pas 24 — `PagesFormations.js:109`. */}
         <div className="mt-[22px] grid gap-4 stack:grid-cols-2">
-          <GlassPanel level="flat" padding={24}>
+          <div className="mm-card" style={{ padding: '24px' }}>
             <p className="m-0 mb-3 font-display text-[19px] font-black tracking-[-.03em] text-ink">{t('sheet.forYes')}</p>
             {(['y1', 'y2', 'y3'] as const).map((k) => <CheckLine key={k} tone="ok">{t(`sheet.${k}`)}</CheckLine>)}
-          </GlassPanel>
-          <GlassPanel level="flat" padding={24}>
+          </div>
+          <div className="mm-card" style={{ padding: '24px' }}>
             <p className="m-0 mb-3 font-display text-[19px] font-black tracking-[-.03em] text-ink">{t('sheet.forNo')}</p>
             {(['n1', 'n2', 'n3'] as const).map((k) => (
               <CheckLine key={k} tone="neutre" dash>{t(`sheet.${k}`)}</CheckLine>
             ))}
-          </GlassPanel>
+          </div>
         </div>
       </SiteBand>
 
       <PageSite>
         <SiteDisplay as="h2" lines={t('sheet.faqTitle', { returnObjects: true }) as string[]} size={34} />
-        <GlassPanel level="flat" padding="8px 26px" className="rv mt-5" style={{ ['--i' as string]: 2 }}>
+        <div className="mm-acc rv mt-5" style={{ ['--i' as string]: 2 }}>
           {(['1', '2', '3'] as const).map((n, i) => (
-            <div
-              key={n}
-              className="py-4"
-              style={i > 0 ? { borderTop: '1px solid var(--border-hair)' } : undefined}
-            >
-              <p className="m-0 text-[14.5px] font-bold text-ink">{t(`sheet.q${n}`)}</p>
-              <p className="m-0 mt-1 max-w-prose text-meta leading-[1.6] text-ink-2">{t(`sheet.a${n}`)}</p>
-            </div>
+            <details key={n} className="mm-acc__item" open={i === 0 ? true : undefined}>
+              <summary>
+                <span className="mm-acc__n">{`0${n}`}</span>
+                <span className="min-w-0 flex-1">{t(`sheet.q${n}`)}</span>
+                <span className="mm-acc__plus" aria-hidden="true"><Icon name="plus" size={15} /></span>
+              </summary>
+              <div className="mm-acc__body max-w-prose">{t(`sheet.a${n}`)}</div>
+            </details>
           ))}
-        </GlassPanel>
+        </div>
       </PageSite>
     </DsNavHost>
   );

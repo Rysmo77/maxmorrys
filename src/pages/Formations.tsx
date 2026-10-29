@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Button, CheckLine, ChipRow, EmptyState, GlassPanel, Icon, PriceBlock, Skeleton, TerritoryCard } from '@ds';
+import { Link } from 'react-router-dom';
+import { Button, CheckLine, EmptyState, Icon, Num, Skeleton, TerritoryCard } from '@ds';
 import SEOHead from '../components/seo/SEOHead';
 import JsonLd from '../components/seo/JsonLd';
 import { SITE_URL, SITE_NAME } from '../components/seo/seo-config';
@@ -13,8 +14,9 @@ import { PriceApprox, PriceFootnote } from '../components/shared/PriceApprox';
 import { getPublishedFormations } from '../lib/firestore';
 import { estAVenir, ouverture } from '../types/formationRelease';
 import { queryKeys } from '../lib/queryClient';
-import FormationArt from '../components/formations/FormationArt';
+import CourseCover from '../components/formations/CourseCover';
 
+import Bento from '../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * /formations — LE CATALOGUE, dans ses deux états.
@@ -47,6 +49,7 @@ export default function Formations() {
   const { t } = useTranslation('formations');
   const path = useLocalizedPath();
   const [level, setLevel] = useState<Level | ''>('');
+  const [category, setCategory] = useState('');
 
   const { data: formations = [], isLoading } = useQuery({
     queryKey: queryKeys.publishedFormations,
@@ -82,16 +85,23 @@ export default function Formations() {
     const counts = LEVELS.map((l) => [l, formations.filter((f) => f.level === l).length] as const)
       .filter(([, n]) => n > 0);
     return [
-      `${t('index.filterAll')} · ${formations.length}`,
-      ...counts.map(([l, n]) => `${levelLabel[l]} · ${n}`),
+      { id: '' as Level | '', label: `${t('index.filterAll')} · ${formations.length}` },
+      ...counts.map(([l, n]) => ({ id: l as Level | '', label: `${levelLabel[l]} · ${n}` })),
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formations, t]);
+
+  /* Les catégories sont celles des formations réelles, dans l'ordre où elles paraissent. */
+  const categories = useMemo(
+    () => [...new Set(formations.map((f) => f.category).filter(Boolean))],
+    [formations],
+  );
 
   const listed = useMemo(
     () =>
       formations
         .filter((f) => !level || f.level === level)
+        .filter((f) => !category || f.category === category)
         /*
          * CE QUI EST OUVERT PASSE DEVANT. Le tri par date placerait les annonces en tête —
          * elles sont les plus récentes par construction — et la première chose que verrait
@@ -103,7 +113,7 @@ export default function Formations() {
           if (rang !== 0) return rang;
           return (b.publishedAt ?? '').localeCompare(a.publishedAt ?? '');
         }),
-    [formations, level],
+    [formations, level, category],
   );
 
   /**
@@ -149,58 +159,76 @@ export default function Formations() {
         }} />
       )}
 
+      {/*
+        ── LE HÉROS D'EDU (kit v3 `EduHero`) ────────────────────────────────────────────
+        Bande sombre (portée `.dk` locale, jamais une prop de thème), ligne en italique
+        orange, titre en capitales. Les crochets de `lifetimeLine` restent PORTEURS (AD-23) :
+        le titre passe toujours par `SiteDisplay arc`, seule sa casse change.
+
+        ⚠️ LE TITRE N'ANNONCE PAS « 0 » TANT QUE LA BASE N'A PAS RÉPONDU : pendant le
+        chargement, la première ligne ne porte aucun compte (règle 6 — un zéro de chargement
+        n'est pas une valeur).
+
+        Les couvertures flottantes sont celles des VRAIES formations (trois au plus) : sans
+        formation, la colonne disparaît plutôt que de montrer des titres d'exemple.
+      */}
+      <section className="dk relative overflow-hidden bg-night text-[color:var(--text-body)]">
+        <PageSite style={{ paddingBottom: '64px' }}>
+          <div className="grid items-center gap-8 wide:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
+            <div className="mm-arc-host">
+              <span className="mm-script block text-[22px]">{t('index.eyebrow')}</span>
+              <SiteDisplay
+                arc
+                lines={[
+                  isLoading ? t('index.loadingLine') : t('index.countLine', { count: formations.length }),
+                  t('index.lifetimeLine'),
+                ]}
+                size={64}
+                from={1}
+                style={{ textTransform: 'uppercase', letterSpacing: '-.045em', lineHeight: 0.88, marginTop: '10px' }}
+              />
+              <p className="rv mt-[18px] max-w-[52ch] text-lede leading-[1.5] text-ink-2" style={{ ['--i' as string]: 4 }}>
+                {t('index.lede')}
+              </p>
+            </div>
+            {listed.length > 0 && (
+              <div aria-hidden="true" className="relative hidden h-[300px] wide:block">
+                {listed.slice(0, 3).map((f, i) => (
+                  <CourseCover
+                    key={f.id}
+                    title={f.title}
+                    category={f.category}
+                    slug={f.slug}
+                    id={f.id}
+                    kicker={f.category}
+                    size="sm"
+                    className="mm-floaty w-[210px]"
+                    style={{
+                      top: `${[10, 70, 150][i]}px`,
+                      left: `${[4, 38, 14][i]}%`,
+                      ['--r' as string]: `${[-6, 5, -2][i]}deg`,
+                      animationDelay: `${i * -2}s`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </PageSite>
+      </section>
+
       <PageSite>
-        {/*
-          LE HÉROS A BESOIN D'UNE FRONTIÈRE, ET IL N'EN AVAIT PAS.
-
-          Sourcil, titre et chapô étaient des enfants DIRECTS de `PageSite`, comme la liste
-          qui suit : rien dans le DOM ne disait où le héros s'arrête. Le remplissage de l'arc
-          (AD-23) répond au survol du héros — posé sur `PageSite`, il aurait fait de la page
-          ENTIÈRE la cible, et le fragment serait resté peint en permanence.
-
-          Ce conteneur est neutre à la mise en page : `PageSite` ne déclare aucun `display`,
-          c'est donc un bloc, et trois blocs enveloppés dans un bloc tombent au même endroit.
-        */}
-        <div className="mm-arc-host">
-          <SiteEyebrow>{t('index.eyebrow')}</SiteEyebrow>
-          {/*
-            ⚠️ LE TITRE N'ANNONCE PAS « 0 » TANT QUE LA BASE N'A PAS RÉPONDU.
-
-            Ici le zéro finit par être VRAI. Mais il était produit par le même mécanisme que
-            sur `/blog`, où la base publie 46 articles et où le titre affirmait quand même
-            « 0 article » pendant tout le chargement, au-dessus de ses propres squelettes. Un
-            zéro juste par accident reste un nombre affiché sans avoir été mesuré, et c'est
-            exactement ce que la règle 6 refuse — le zéro DATÉ est une valeur, le zéro d'un
-            chargement n'en est pas une.
-
-            Le repli ne porte donc pas de compte, et la seconde ligne ne bouge pas : quand la
-            vraie ligne prend sa place, rien ne saute.
-          */}
-          <SiteDisplay
-            arc
-            lines={[
-              isLoading ? t('index.loadingLine') : t('index.countLine', { count: formations.length }),
-              t('index.lifetimeLine'),
-            ]}
-            size={52}
-            from={1}
-          />
-          <p className="rv mt-[14px] max-w-[56ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 4 }}>
-            {t('index.lede')}
-          </p>
-        </div>
-
         {isLoading ? (
-          <div className="mt-[22px] grid gap-4 stack:grid-cols-2">
-            {[0, 1].map((i) => <Skeleton key={i} height={220} radius="var(--r-l)" />)}
+          <div className="grid gap-4 stack:grid-cols-2 wide:grid-cols-3">
+            {[0, 1, 2].map((i) => <Skeleton key={i} height={380} radius="var(--r-xl)" />)}
           </div>
         ) : formations.length === 0 ? (
           /*
             L'ÉTAT VIDE. Il dit ce qui manque, propose la seule action utile, et nomme la
             contrainte plutôt que de promettre un e-mail qui ne partira pas.
           */
-          <div className="mt-[22px]">
-            <GlassPanel level="hero" padding={22}>
+          <div>
+            <div className="mm-card">
               <EmptyState
                 glyph={<Icon name="book" size={26} color="var(--mm-bleu)" />}
                 glyphBackground="color-mix(in srgb, var(--mm-bleu) 14%, transparent)"
@@ -210,23 +238,12 @@ export default function Formations() {
                   <Button href={path('/inscription')} tone="primary">{t('index.emptyCta')}</Button>
                 }
               />
-            </GlassPanel>
+            </div>
             <p className="mt-4 text-center text-small leading-[1.5] text-ink-2">{t('index.emptyNote')}</p>
 
             {/*
-              ── CE QUI EXISTE, PROPOSÉ LÀ OÙ IL N'Y A RIEN ────────────────────────────────
-              L'état vide s'arrêtait ici et laissait environ trois cents pixels de rien avant
-              le pied de page. C'est pourtant l'endroit du site où la question « et
-              maintenant ? » se pose le plus fort : la personne a suivi le premier appel de
-              l'accueil et elle est arrivée dans une pièce vide.
-
-              La seule action offerte était « crée ton compte » — c'est-à-dire un formulaire,
-              pour quelqu'un qui venait chercher à LIRE. Le blog paraît chaque semaine et
-              publie quarante-six articles : c'est la réponse, et elle est gratuite.
-
-              Trois seulement, et jamais de titre inventé : `posts` sort de la base, et si la
-              lecture ne rend rien, tout ce bloc disparaît plutôt que de laisser une grille
-              vide sous une invitation à lire.
+              CE QUI EXISTE, PROPOSÉ LÀ OÙ IL N'Y A RIEN : trois articles réels du blog, et
+              le bloc disparaît si la lecture ne rend rien.
             */}
             {posts.length > 0 && (
               <div className="mt-10">
@@ -251,126 +268,114 @@ export default function Formations() {
           </div>
         ) : (
           <>
-            <div className="rv mt-[26px] flex flex-wrap items-center justify-between gap-4" style={{ ['--i' as string]: 5 }}>
-              <div className="min-w-0 max-w-[420px] flex-1">
-                <ChipRow
-                  label={t('index.eyebrow')}
-                  options={chips}
-                  value={level ? chips.find((c) => c.startsWith(levelLabel[level])) : chips[0]}
-                  onChange={(option) => {
-                    const found = LEVELS.find((l) => option.startsWith(levelLabel[l]));
-                    setLevel(found ?? '');
-                  }}
-                />
+            {/* Filtres : catégories (onglets du kit) puis niveau (puces). Les compteurs
+                dérivent de la liste — ce ne sont pas des compteurs libres. */}
+            <div className="rv flex flex-wrap items-center justify-between gap-4" style={{ ['--i' as string]: 5 }}>
+              {categories.length > 1 ? (
+                <div className="mm-tabs max-w-full overflow-x-auto" role="group" aria-label={t('index.categoriesLabel')}>
+                  <button type="button" aria-pressed={!category} onClick={() => setCategory('')}>
+                    {`${t('index.filterAll')} · ${formations.length}`}
+                  </button>
+                  {categories.map((c) => (
+                    <button key={c} type="button" aria-pressed={category === c} onClick={() => setCategory(c)}>
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              ) : <span />}
+              <div className="mm-chips" role="group" aria-label={t('index.levelLabel')}>
+                {chips.map((chip) => (
+                  <button
+                    key={chip.id || 'all'}
+                    type="button"
+                    className="mm-chip"
+                    aria-pressed={level === chip.id}
+                    onClick={() => setLevel(chip.id)}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
               </div>
-              <span className="text-small text-ink-2">{t('index.sortNote')}</span>
             </div>
+            <p className="mt-3 text-small text-ink-2">{t('index.sortNote')}</p>
 
             {/*
               ── LE TROISIÈME ÉTAT ────────────────────────────────────────────────────────
-              Le catalogue n'est pas vide, et il n'est pas ouvert. Sans ce bandeau, la page
-              se présenterait exactement comme une boutique en activité : des cartes, des
-              prix, un bouton — et rien derrière. Le dire une fois en haut vaut mieux que de
-              le faire deviner carte par carte.
+              Le catalogue n'est pas vide, et il n'est pas ouvert : le dire une fois en haut
+              vaut mieux que de le faire deviner carte par carte.
             */}
             {riencOuvert && (
-              <GlassPanel level="hero" padding={22} className="mt-5">
+              <div className="mm-card mt-5">
                 <p className="m-0 font-display text-[18px] font-black leading-tight tracking-[-.03em] text-ink">
                   {t('comingSoon.catalogTitle')}
                 </p>
                 <p className="m-0 mt-2 max-w-[62ch] text-[14.5px] leading-[1.55] text-ink-2">
                   {t('comingSoon.catalogBody')}
                 </p>
-              </GlassPanel>
+              </div>
             )}
 
-            <div className="mt-5 grid gap-4 stack:grid-cols-2">
+            <div className="mt-6 grid gap-5 stack:grid-cols-2 wide:grid-cols-3">
               {listed.map((formation, i) => {
                 const aVenir = estAVenir(formation);
                 const quand = ouverture(formation);
+                const lessons = (formation.modules ?? []).reduce((n, m) => n + (m.lessons?.length ?? 0), 0);
+                const free = (formation.modules ?? []).reduce(
+                  (n, m) => n + (m.lessons ?? []).filter((l) => l.isFree).length, 0);
+                const href = path(`/formations/${formation.slug}`);
+                const price = formation.promoPrice ?? formation.price;
                 return (
-                <div key={formation.id} className="rv" style={{ ['--i' as string]: 6 + i }}>
-                  <TerritoryCard
-                    layout="plain"
-                    /* Deux titres, deux territoires — le kit alterne pour que la grille ait
-                       un rythme sans qu'aucune vignette ne se charge. */
-                    territory={i % 2 === 0 ? 'forme' : 'transforme'}
-                    href={path(`/formations/${formation.slug}`)}
-                    padding={24}
-                    /*
-                     * LA MÉTA ÉTAIT ABSENTE. Le kit ouvre chaque carte par « SEO · 6 modules ·
-                     * 47 leçons · débutant » (`PagesFormations.js:17`) : c'est ce qui permet
-                     * de comparer deux formations sans ouvrir les deux fiches, et c'est la
-                     * seule ligne de la carte qui donne une taille.
-                     *
-                     * Les quatre valeurs viennent de la base — catégorie, modules, leçons
-                     * recomptées, niveau. Aucune n'est estimée, aucune n'est arrondie.
-                     */
-                    /*
-                     * ⚠️ PAS DE COMPTE DE LEÇONS SUR UNE ANNONCE. Les leçons d'une formation
-                     * à venir sont retirées à la lecture : la ligne afficherait « 0 leçon »
-                     * juste à côté d'un prix. On dit le nombre de modules, et « bientôt » —
-                     * qui est la seule information neuve que porte cette carte.
-                     */
-                    meta={[
-                      formation.category,
-                      t('index.cardModules', { count: formation.modules?.length ?? 0 }),
-                      aVenir
+                  <article key={formation.id} className="mm-prod rv" style={{ ['--i' as string]: 6 + i }}>
+                    <CourseCover
+                      title={formation.title}
+                      category={formation.category}
+                      slug={formation.slug}
+                      id={formation.id}
+                      coverImage={formation.coverImage}
+                      kicker={formation.category}
+                      transitionName={`course-${formation.slug}`}
+                      /* Sur une annonce : « Bientôt » ou sa formulation libre. Sinon le
+                         nombre RÉEL de leçons libres — et rien s'il n'y en a aucune. */
+                      tag={aVenir
                         ? (quand?.kind === 'label' ? quand.value : t('comingSoon.tag'))
-                        : t('index.cardLessons', {
-                          count: (formation.modules ?? []).reduce((n, m) => n + (m.lessons?.length ?? 0), 0),
-                        }),
-                      levelLabel[formation.level],
-                    ].filter(Boolean).join(' · ')}
-                    title={formation.title}
-                    /*
-                     * ── LA MINIATURE, S'IL Y EN A UNE ───────────────────────────────────
-                     * `coverImage` était saisi, stocké, envoyé au flux Meta et posé en image
-                     * Open Graph — et le catalogue, lui, n'affichait rien. C'est la page qui
-                     * fait choisir entre deux formations : elle était la seule à décider sans
-                     * l'image.
-                     *
-                     * Elle se pose dans `trailing`, la colonne droite de l'en-tête de carte,
-                     * plutôt qu'en bandeau pleine largeur : la carte est une TerritoryCard,
-                     * son dégradé porte l'identité de section, et une photo pleine largeur
-                     * la recouvrirait au lieu de l'habiter. Format 16:9 comme partout
-                     * ailleurs pour ce champ, largeur figée pour que deux cartes voisines
-                     * alignent leurs titres.
-                     *
-                     * ⚠️ Sans couverture, `FormationArt` ne rend RIEN — aucun repli n'est
-                     * demandé ici. Une carte sans image reste exactement ce qu'elle était,
-                     * au lieu de gagner un rectangle vide.
-                     */
-                    trailing={(
-                      <FormationArt
-                        src={formation.coverImage}
-                        ratio="16 / 9"
-                        radius="var(--r-s)"
-                        style={{ width: '92px', flex: '0 0 auto' }}
-                      />
-                    )}
-                  >
-                    <p className="mt-[10px] mb-0 text-[14px] leading-[1.5]" style={{ color: 'var(--card-ink-2)' }}>
-                      {formation.description}
-                    </p>
-                    <div className="mt-[22px] flex items-end justify-between gap-3">
-                      <PriceBlock
-                        size={27}
-                        amount={{ value: formation.promoPrice ?? formation.price, source: 'db', asOf }}
-                        strike={formation.promoPrice ? { value: formation.price, source: 'db', asOf } : undefined}
-                        currency="FCFA"
-                        approx={<PriceApprox xof={formation.promoPrice ?? formation.price} />}
-                        note={t('index.lifetime')}
-                      />
-                      <Button tone="primary" size="sm" fullWidth={false}>
-                        {aVenir ? t('comingSoon.cardCta') : t('index.see')}
-                      </Button>
+                        : free > 0 ? t('index.cardFree', { count: free }) : undefined}
+                    />
+                    <div className="px-2">
+                      <h2 className="m-0 font-sans text-[17px] font-bold leading-[1.25] text-ink">{formation.title}</h2>
+                      <p className="m-0 mt-[6px] line-clamp-3 text-[14px] leading-[1.5] text-ink-2">{formation.description}</p>
                     </div>
-                  </TerritoryCard>
-                </div>
+                    {/* ⚠️ PAS DE COMPTE DE LEÇONS SUR UNE ANNONCE (elles sont retirées à la
+                        lecture : « 0 leçon » mentirait) — on dit les modules. */}
+                    <div className="mm-prod__stats">
+                      <div><b>{levelLabel[formation.level]}</b><span>{t('index.statLevel')}</span></div>
+                      <div>
+                        <b><Num value={aVenir ? (formation.modules?.length ?? 0) : lessons} source="db" asOf={asOf} /></b>
+                        <span>{aVenir ? t('index.statModules') : t('index.statLessons')}</span>
+                      </div>
+                      <div>
+                        <b>
+                          <Num value={price} source="db" asOf={asOf} unit="F" />
+                          {formation.promoPrice ? (
+                            <s className="ml-1 text-ink-3">
+                              <Num value={formation.price} source="db" asOf={asOf} />
+                            </s>
+                          ) : null}
+                        </b>
+                        <span>{t('index.lifetime')}</span>
+                      </div>
+                    </div>
+                    <div className="px-2 text-small text-ink-2"><PriceApprox xof={price} /></div>
+                    <div className="mm-prod__cta">
+                      <Link className={aVenir ? 'mm-pill is-sm is-plain' : 'mm-pill is-sm'} to={href}>
+                        {aVenir ? t('comingSoon.cardCta') : t('index.seeCourse')}
+                        {!aVenir && <i aria-hidden="true"><Icon name="arrow-up-right" size={15} /></i>}
+                      </Link>
+                    </div>
+                  </article>
                 );
               })}
             </div>
+            {listed.length === 0 && <p className="mt-6 text-ink-2">{t('states.empty')}</p>}
             <PriceFootnote className="mt-5" />
           </>
         )}
@@ -414,7 +419,7 @@ export default function Formations() {
               {t(vide || riencOuvert ? 'index.whyBodyEmpty' : 'index.whyBody')}
             </p>
           </div>
-          <GlassPanel level="flat" padding={24} className="rv" style={{ ['--i' as string]: 2 }}>
+          <Bento padding={24} className="rv" style={{ ['--i' as string]: 2 }}>
             {/* Le sourcil manquait : quatre lignes à coche nues, sans ce qui les qualifie.
                 Le kit ouvre ce panneau par « Ce que comprend chaque formation »
                 (`pages-formations.jsx`), et c'est cette ligne qui dit de quoi la liste parle. */}
@@ -429,7 +434,7 @@ export default function Formations() {
                 </CheckLine>
               ))}
             </div>
-          </GlassPanel>
+          </Bento>
         </div>
       </SiteBand>
 

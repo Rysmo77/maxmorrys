@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, ChipRow, EmptyState, Field, GlassPanel, Icon, IconButton, Segmented, Tag, type IconName } from '@ds';
+import { Button, ChipRow, EmptyState, Field, Icon, IconButton, Segmented, Tag, type IconName } from '@ds';
 import MediaRecorderInput from '../../../components/lms/MediaRecorderInput';
 import { SiteEyebrow, useReveal } from '../../../components/site';
 import { useFormat } from '../../../hooks/useFormat';
@@ -10,6 +10,7 @@ import { XP_REWARDS } from '../../../types/gamification';
 import type { Testimonial } from '../../../types';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * L'ÉCRAN OÙ QUELQU'UN ÉCRIT SON PROPRE TÉMOIGNAGE.
  *
@@ -258,7 +259,7 @@ export default function TestimonialsTab({
       <div className="min-w-0 max-w-2xl">
       {/* ── Ce que tu écris ────────────────────────────────────────────────── */}
       <SiteEyebrow>{t('testimonials.shareTitle')}</SiteEyebrow>
-      <GlassPanel level="flat" padding={18}>
+      <Bento padding={18}>
         {/* Le format — trois options courtes, donc un `Segmented` : un vrai `radiogroup`
             annoncé « 1 sur 3 », que les flèches parcourent. */}
         <Segmented
@@ -388,7 +389,7 @@ export default function TestimonialsTab({
             {submitting ? t('testimonials.sending') : t('testimonials.submit')}
           </Button>
         </div>
-      </GlassPanel>
+      </Bento>
 
       {/* Ce qui arrive au texte après l'envoi, dit avant qu'on le demande. */}
       <p className="text-small text-ink-2 mt-2">{t('testimonials.publishNote')}</p>
@@ -402,22 +403,22 @@ export default function TestimonialsTab({
       <SiteEyebrow>{t('testimonials.myReviews')}</SiteEyebrow>
 
       {loadingTestimonials ? (
-        <GlassPanel level="flat" padding={18}>
+        <Bento padding={18}>
           <div className="h-4 w-2/5 rounded-xs bg-[color:var(--fill-2)]" />
           <div className="h-4 w-4/5 rounded-xs bg-[color:var(--fill-2)] mt-3" />
-        </GlassPanel>
+        </Bento>
       ) : myTestimonials.length === 0 ? (
-        <GlassPanel level="flat" padding={18}>
+        <Bento padding={18}>
           <EmptyState
             glyph={<Icon name="comment" size={26} color="var(--text-muted)" />}
             body={t('testimonials.emptyText')}
             style={{ padding: 0 }}
           />
-        </GlassPanel>
+        </Bento>
       ) : (
         <div className="grid gap-2.5" role="list" aria-label={t('testimonials.listLabel')}>
           {myTestimonials.map((item) => (
-            <GlassPanel key={item.id} level="flat" padding={16} role="listitem">
+            <Bento key={item.id} padding={16} role="listitem">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Tag tone={statusTone(item.status)}>{t(statusLabelKey(item.status))}</Tag>
@@ -444,7 +445,7 @@ export default function TestimonialsTab({
 
               {item.content && <p className="text-meta text-ink-2 italic mt-3 mb-0 leading-[1.5]">« {item.content} »</p>}
               {item.createdAt && <p className="text-small text-ink-2 m-0 mt-2">{formatDate(item.createdAt)}</p>}
-            </GlassPanel>
+            </Bento>
           ))}
         </div>
       )}

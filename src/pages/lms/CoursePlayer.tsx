@@ -15,6 +15,7 @@ import { useCoursePlayer } from './hooks/useCoursePlayer';
 import { estAVenir, ouverture } from '../../types/formationRelease';
 import { useFormat } from '../../hooks/useFormat';
 
+import Bento from '../../components/formations/Bento';
 /**
  * LE LECTEUR DE LEÇON (`ScreensSpace.js` · `Lecteur`).
  *
@@ -72,7 +73,7 @@ function CourseOutline({
   const { t } = useTranslation('lms');
 
   return (
-    <GlassPanel level="flat" padding="4px 18px" as="nav" aria-label={t('player.outlineLabel')}>
+    <Bento padding="4px 18px" as="nav" aria-label={t('player.outlineLabel')}>
       {(formation.modules ?? []).map((module, mi) => {
         const isExpanded = expandedModules.includes(module.id);
         const moduleCompleted = module.lessons.length > 0 && module.lessons.every((l) => completedLessons.includes(l.id));
@@ -119,7 +120,7 @@ function CourseOutline({
           </div>
         );
       })}
-    </GlassPanel>
+    </Bento>
   );
 }
 
@@ -206,9 +207,21 @@ function QuizRenderer({ content, onComplete, readAt }: { content: string; onComp
         </div>
       </div>
 
+      {/* L'avancement compte les réponses DONNÉES sur cet écran — un relevé local, pas un
+          score : il ne dit rien de juste ou de faux avant la validation. */}
+      <div className="flex items-center gap-3">
+        <span className="text-small font-semibold text-ink-2">
+          {t('player.quizAnswered', { done: Object.keys(answers).length, total: questions.length })}
+        </span>
+        <div className="mm-progress flex-1" aria-hidden="true">
+          <i style={{ ['--p' as string]: Object.keys(answers).length / questions.length }} />
+        </div>
+      </div>
+
       {questions.map((q, qi) => (
-        <fieldset key={qi} className="space-y-2.5 border-0 p-0 m-0">
-          <legend className="font-semibold text-ink text-meta p-0 mb-2.5">{qi + 1}. {q.question}</legend>
+        <fieldset key={qi} className="m-0 space-y-2.5 rounded-card border border-[color:var(--line)] bg-bento-2 p-4">
+          <legend className="sr-only">{`${qi + 1}. ${q.question}`}</legend>
+          <p aria-hidden="true" className="mm-d m-0 mb-3 text-[22px] text-ink">{qi + 1}. {q.question}</p>
           <div className="space-y-2" role="group" aria-label={t('player.quizAnswersLabel')}>
             {q.options.map((opt, oi) => {
               const selected = answers[qi] === oi;
@@ -237,8 +250,15 @@ function QuizRenderer({ content, onComplete, readAt }: { content: string; onComp
                     transition: 'transform var(--t-tap) var(--ease),background var(--t-ui) var(--ease),border-color var(--t-ui) var(--ease)',
                   }}
                 >
+                  <b
+                    aria-hidden="true"
+                    className="grid h-7 w-7 shrink-0 place-items-center rounded-xs bg-[color:var(--fill-1)] text-[12px]"
+                  >
+                    {String.fromCharCode(65 + oi)}
+                  </b>
                   <span style={{ flex: 1 }}>{opt.text}</span>
                   {submitted && opt.correct && <Icon name="check" size={15} color="var(--ok)" />}
+                  {submitted && selected && !opt.correct && <Icon name="close" size={15} color="var(--stop)" />}
                 </button>
               );
             })}
@@ -332,14 +352,14 @@ export default function CoursePlayer() {
     return (
       <Frame back={{ href: path('/mon-espace'), label: t('player.backToSpace') }}>
         <SiteDisplay lines={t('player.notFoundLines', { returnObjects: true }) as string[]} size={30} />
-        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+        <Bento padding={20} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="book" size={26} color="var(--text-muted)" />}
             title={t('player.courseNotFoundTitle')}
             action={<Button tone="quiet" fullWidth href={path('/mon-espace')}>{t('player.backToSpace')}</Button>}
             style={{ padding: 0 }}
           />
-        </GlassPanel>
+        </Bento>
       </Frame>
     );
   }
@@ -363,7 +383,7 @@ export default function CoursePlayer() {
     return (
       <Frame back={{ href: path(`/formations/${formation.slug}`), label: t('player.seeFormation') }}>
         <SiteDisplay lines={t('player.lockedLines', { returnObjects: true }) as string[]} size={30} />
-        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+        <Bento padding={20} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="lock" size={26} color="var(--warn)" />}
             title={t('player.comingSoonTitle')}
@@ -379,7 +399,7 @@ export default function CoursePlayer() {
             )}
             style={{ padding: 0 }}
           />
-        </GlassPanel>
+        </Bento>
       </Frame>
     );
   }
@@ -404,7 +424,7 @@ export default function CoursePlayer() {
     return (
       <Frame back={{ href: path(`/formations/${formation.slug}`), label: t('player.seeFormation') }}>
         <SiteDisplay lines={t('player.lockedLines', { returnObjects: true }) as string[]} size={30} />
-        <GlassPanel level="flat" padding={20} className="mt-[18px]">
+        <Bento padding={20} className="mt-[18px]">
           <EmptyState
             glyph={<Icon name="lock" size={26} color="var(--text-muted)" />}
             title={t('player.enrollmentRequiredTitle')}
@@ -431,7 +451,7 @@ export default function CoursePlayer() {
             }
             style={{ padding: 0 }}
           />
-        </GlassPanel>
+        </Bento>
       </Frame>
     );
   }
@@ -489,12 +509,12 @@ export default function CoursePlayer() {
               titres ÉCRITS ligne à ligne). Un titre de données prend donc la même face
               d'affichage, mais il se replie. */}
           {activeLesson
-            ? <h1 className="font-display text-dsp-xs text-ink m-0 mt-1.5">{activeLesson.title}</h1>
+            ? <h1 className="mm-d m-0 mt-1.5 text-[clamp(26px,3.4vw,38px)] text-ink">{activeLesson.title}</h1>
             : <SiteDisplay lines={t('player.selectLines', { returnObjects: true }) as string[]} size={30} />}
 
           {/* ── La leçon ─────────────────────────────────────────────────── */}
           {activeLesson ? (
-            <GlassPanel level="flat" padding={0} className="rv mt-4 overflow-hidden" style={{ ['--i' as string]: 3 }}>
+            <Bento padding={0} className="rv mt-4 overflow-hidden" style={{ ['--i' as string]: 3 }}>
               {activeLesson.type === 'video' ? (
                 <div className="aspect-video bg-[color:var(--surface-night)] grid place-items-center">
                   {activeLesson.videoUrl ? (
@@ -556,16 +576,16 @@ export default function CoursePlayer() {
                   </Button>
                 </div>
               )}
-            </GlassPanel>
+            </Bento>
           ) : (
-            <GlassPanel level="flat" padding={20} className="rv mt-4" style={{ ['--i' as string]: 3 }}>
+            <Bento padding={20} className="rv mt-4" style={{ ['--i' as string]: 3 }}>
               <EmptyState
                 glyph={<Icon name="play" size={26} color="var(--text-muted)" />}
                 title={t('player.selectLessonTitle')}
                 body={t('player.selectLessonText')}
                 style={{ padding: 0 }}
               />
-            </GlassPanel>
+            </Bento>
           )}
 
           {/* ── Le programme ─────────────────────────────────────────────── */}

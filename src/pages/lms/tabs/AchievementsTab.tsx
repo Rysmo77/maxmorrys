@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  Button, EmptyState, GlassPanel, Icon, LessonRow, Num, ProgressBar, Skeleton, StatTile, Tag,
+  Button, EmptyState, Icon, LessonRow, Num, ProgressBar, Skeleton, StatTile, Tag,
   type IconName,
 } from '@ds';
 import SpaceSplit from '../components/SpaceSplit';
@@ -16,6 +16,7 @@ import type { Certificate } from '../../../types';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 import { captureError } from '../../../lib/sentry';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * L'ÉCRAN « MES ACCOMPLISSEMENTS » — un écran de PILE.
@@ -183,6 +184,16 @@ export default function AchievementsTab({
           showAsOf={false}
         />
       </div>
+      {/* La série de la semaine, sept crans plafonnés à sept — rien ne s'allume avant la
+          lecture du profil. */}
+      <div className="mm-bento mt-[10px]" style={{ padding: '16px' }}>
+        <p className="m-0 text-small font-semibold text-ink-2">{t('achievements.streakLabel')}</p>
+        <span className="mm-streak mt-2" aria-hidden="true">
+          {Array.from({ length: 7 }, (_, i) => (
+            <i key={i} className={gamification && i < Math.min(7, gamification.currentStreak) ? 'on' : undefined} style={{ ['--i' as string]: i }} />
+          ))}
+        </span>
+      </div>
       {level && Number.isFinite(levelCeil) && (
         <ProgressBar
           value={levelPct}
@@ -214,29 +225,32 @@ export default function AchievementsTab({
           <Num value={BADGES.length} source={{ cite: 'catalogue des badges du produit' }} asOf={asOf} />
         </p>
       </div>
-      <GlassPanel level="flat" padding="4px 18px" className="mt-[10px]">
-        {BADGES.map((badge, i) => {
+      {/* Les badges en grille (kit v3 `Achievements`) : débloqués en couleur, verrouillés
+          en gris avec cadenas. L'état vient du profil de jeu, jamais d'une supposition. */}
+      <ul className="m-0 mt-[10px] grid list-none grid-cols-2 gap-3 p-0 stack:grid-cols-3">
+        {BADGES.map((badge) => {
           const unlocked = gamification?.badges.includes(badge.id) ?? false;
           return (
-            <LessonRow
-              key={badge.id}
-              state="plain"
-              icon={
-                <Icon
-                  name={unlocked ? (BADGE_GLYPH[badge.id] ?? 'medal') : 'lock'}
-                  size={15}
-                  style={{ color: unlocked ? 'var(--mm-violet-t)' : 'var(--ink-3)' }}
-                />
-              }
-              iconBackground={unlocked ? 'color-mix(in srgb, var(--mm-violet) 12%, transparent)' : 'var(--fill-1)'}
-              title={badge.name}
-              meta={badge.description}
-              trailing={<Tag tone={unlocked ? 'ok' : 'neutral'}>{t(unlocked ? 'achievements.badgeUnlocked' : 'achievements.badgeLocked')}</Tag>}
-              last={i === BADGES.length - 1}
-            />
+            <li key={badge.id} className="mm-bento flex flex-col gap-2" style={{ padding: '16px', opacity: unlocked ? undefined : 0.72 }}>
+              <span
+                aria-hidden="true"
+                className="grid h-11 w-11 place-items-center rounded-m"
+                style={{
+                  background: unlocked ? 'var(--action-transforme)' : 'var(--fill-1)',
+                  color: unlocked ? 'var(--paper-fixed)' : 'var(--ink-3)',
+                }}
+              >
+                <Icon name={unlocked ? (BADGE_GLYPH[badge.id] ?? 'medal') : 'lock'} size={19} />
+              </span>
+              <b className="text-[14.5px] leading-[1.25] text-ink">{badge.name}</b>
+              <span className="text-small leading-[1.45] text-ink-2">{badge.description}</span>
+              <span className="mt-auto pt-1">
+                <Tag tone={unlocked ? 'ok' : 'neutral'}>{t(unlocked ? 'achievements.badgeUnlocked' : 'achievements.badgeLocked')}</Tag>
+              </span>
+            </li>
           );
         })}
-      </GlassPanel>
+      </ul>
 
       {/* ── Les certificats émis ─────────────────────────────────────────────────── */}
       <div className="mt-[24px]">
@@ -249,7 +263,7 @@ export default function AchievementsTab({
           {[0, 1].map((i) => <Skeleton key={i} height={70} radius="var(--r-m)" label={t('achievements.loadingLabel')} />)}
         </div>
       ) : certificates.length === 0 ? (
-        <GlassPanel level="hero" padding={22} className="mt-[12px]">
+        <Bento tone="hero" padding={22} className="mt-[12px]">
           <EmptyState
             glyph={<Icon name="trophy" size={26} style={{ color: 'var(--mm-violet-t)' }} />}
             glyphBackground="color-mix(in srgb, var(--mm-violet) 14%, transparent)"
@@ -265,9 +279,9 @@ export default function AchievementsTab({
               )
             }
           />
-        </GlassPanel>
+        </Bento>
       ) : (
-        <GlassPanel level="flat" padding="4px 18px" className="mt-[12px]">
+        <Bento padding="4px 18px" className="mt-[12px]">
           {certificates.map((cert, i) => (
             <LessonRow
               key={cert.id}
@@ -288,7 +302,7 @@ export default function AchievementsTab({
               last={i === certificates.length - 1}
             />
           ))}
-        </GlassPanel>
+        </Bento>
       )}
 
       {/* ── Ce qui est fini mais pas encore réclamé ──────────────────────────────── */}
@@ -297,7 +311,7 @@ export default function AchievementsTab({
           <p className="mm-eyebrow mt-[24px]">{t('achievements.toClaimTitle')}</p>
           <div className="mt-[10px] grid gap-[10px]">
             {claimable.map(({ enrollment, formation }) => (
-              <GlassPanel key={enrollment.id} level="flat" padding={16}>
+              <Bento key={enrollment.id} padding={16}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="m-0 text-meta font-bold text-ink">
@@ -320,7 +334,7 @@ export default function AchievementsTab({
                     {t('achievements.obtain')}
                   </Button>
                 </div>
-              </GlassPanel>
+              </Bento>
             ))}
           </div>
         </>

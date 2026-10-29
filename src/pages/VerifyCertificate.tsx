@@ -11,6 +11,7 @@ import { getCertificateByCode } from '../lib/firestore';
 import { captureError } from '../lib/sentry';
 import type { CertificateLookup } from '../types';
 
+import Bento from '../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * /verifier — LE CONTRÔLE D'UN CODE.  Kit : `site-public/PagesUtiles.js` § Verifier,
@@ -139,7 +140,7 @@ export default function VerifyCertificate() {
         <div className="grid items-center gap-11 wide:grid-cols-[.95fr_1.05fr]">
           {/* ── La colonne de gauche : le code, et ce que la page ne fait pas ──── */}
           <div>
-            <SiteDisplay lines={t('verify.titleLines', { returnObjects: true }) as string[]} size={50} />
+            <SiteDisplay lines={t('verify.titleLines', { returnObjects: true }) as string[]} size={56} style={{ textTransform: 'uppercase', letterSpacing: '-.045em' }} />
 
             <p className="rv mt-[14px] max-w-[42ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 3 }}>
               {t('verify.lede')}
@@ -163,9 +164,7 @@ export default function VerifyCertificate() {
               grandir, et c'est la hauteur fixe qui fait la silhouette.
             */}
             <form onSubmit={onSubmit} noValidate>
-              <GlassPanel
-                level="flat"
-                padding="0 18px"
+              <Bento padding="0 18px"
                 className="rv mt-[22px] flex items-center gap-3"
                 style={{ ['--i' as string]: 4, height: '62px' }}
               >
@@ -182,7 +181,7 @@ export default function VerifyCertificate() {
                 <Button type="submit" tone="primary" size="sm" fullWidth={false} loading={result.kind === 'searching'}>
                   {t('verify.submit')}
                 </Button>
-              </GlassPanel>
+              </Bento>
 
               <p className="mt-2 mb-0 text-small leading-[1.5] text-ink-2">{t('verify.codeHint')}</p>
               {error && (
@@ -206,7 +205,7 @@ export default function VerifyCertificate() {
             {result.kind === 'found' ? (
               <ValidCertificate certificate={result.certificate} formatDate={formatDate} href={path(`/certificat/${result.certificate.certificateCode}`)} />
             ) : result.kind === 'unknown' ? (
-              <GlassPanel level="hero" padding={30} className="rv-s">
+              <Bento tone="hero" padding={30} className="rv-s">
                 <div className="flex items-start gap-[13px]">
                   <span aria-hidden="true" className="grid h-[42px] w-[42px] flex-none place-items-center rounded-full" style={{ background: 'color-mix(in srgb, var(--warn) 16%, transparent)' }}>
                     <Icon name="alert" size={21} color="var(--warn)" />
@@ -219,9 +218,9 @@ export default function VerifyCertificate() {
                 <Button href={path('/contact')} tone="quiet" size="sm" fullWidth={false} className="mt-5">
                   {t('verify.contact')}
                 </Button>
-              </GlassPanel>
+              </Bento>
             ) : result.kind === 'failed' ? (
-              <GlassPanel level="hero" padding={30} className="rv-s">
+              <Bento tone="hero" padding={30} className="rv-s">
                 <div className="flex items-start gap-[13px]">
                   <span aria-hidden="true" className="grid h-[42px] w-[42px] flex-none place-items-center rounded-full" style={{ background: 'color-mix(in srgb, var(--stop) 16%, transparent)' }}>
                     <Icon name="alert" size={21} color="var(--stop)" />
@@ -231,13 +230,13 @@ export default function VerifyCertificate() {
                     <p className="mt-[6px] mb-0 max-w-[44ch] text-meta leading-[1.6] text-ink-2">{t('verify.failedBody')}</p>
                   </div>
                 </div>
-              </GlassPanel>
+              </Bento>
             ) : (
               /* Avant toute recherche : ce qui s'affichera, et ce qui ne s'affichera pas. */
-              <GlassPanel level="flat" padding={30} className="rv" style={{ ['--i' as string]: 6 }}>
+              <Bento padding={30} className="rv" style={{ ['--i' as string]: 6 }}>
                 <SiteEyebrow style={{ margin: 0 }}>{t('verify.idleTitle')}</SiteEyebrow>
                 <p className="mt-2 mb-0 max-w-[42ch] text-meta leading-[1.6] text-ink-2">{t('verify.idleBody')}</p>
-              </GlassPanel>
+              </Bento>
             )}
           </div>
         </div>
@@ -265,7 +264,7 @@ function ValidCertificate({
   const issuedAt = new Date(certificate.issuedAt);
 
   return (
-    <GlassPanel level="hero" padding={30} className="rv-s" style={{ borderColor: 'color-mix(in srgb, var(--ok) 34%, transparent)' }}>
+    <Bento tone="hero" padding={30} className="rv-s" style={{ borderColor: 'color-mix(in srgb, var(--ok) 34%, transparent)' }}>
       <div className="flex items-start gap-[13px]">
         <span aria-hidden="true" className="grid h-[42px] w-[42px] flex-none place-items-center rounded-full" style={{ background: 'color-mix(in srgb, var(--ok) 16%, transparent)' }}>
           <Icon name="check" size={21} color="var(--ok)" />
@@ -287,6 +286,6 @@ function ValidCertificate({
       <Button href={href} tone="quiet" size="sm" fullWidth={false} className="mt-5">
         {t('verify.openCertificate')}
       </Button>
-    </GlassPanel>
+    </Bento>
   );
 }

@@ -8,6 +8,7 @@ import GoogleIcon from '../../components/auth/GoogleIcon';
 import { AuthPage, SiteEyebrow } from '../../components/site';
 import { useLocalizedPath } from '../../contexts/LanguageContext';
 
+import Bento from '../../components/formations/Bento';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 
@@ -103,7 +104,20 @@ export default function Login() {
       */
       aside={
         <div>
-          <GlassPanel level="flat" padding={26} className="rv" style={{ ['--i' as string]: 1 }}>
+          {/* Le panneau sombre du kit (`Edu-Connexion`) : ce qui attend la personne une fois
+              connectée. Trois faits du produit, aucun chiffre, aucune cohorte (absente). */}
+          <div className="dk relative mb-[14px] overflow-hidden rounded-xl bg-night p-[26px] text-[color:var(--text-body)]">
+            <span className="mm-script block text-[22px]">{t('login.asideKicker')}</span>
+            <ul className="m-0 mt-4 list-none space-y-2 p-0">
+              {(['aside1', 'aside2', 'aside3'] as const).map((k) => (
+                <li key={k} className="flex items-start gap-2 text-meta leading-[1.5] text-ink">
+                  <Icon name="check" size={16} color="var(--ok)" style={{ marginTop: '3px', flex: 'none' }} />
+                  {t(`login.${k}`)}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Bento padding={26} className="rv" style={{ ['--i' as string]: 1 }}>
             <SiteEyebrow style={{ margin: 0 }}>{t('reset.title')}</SiteEyebrow>
             <p className="m-0 mt-2 font-display text-[19px] font-black tracking-[-.03em] text-ink">
               {(t('reset.titleLines', { returnObjects: true }) as string[]).join(' ')}
@@ -117,7 +131,7 @@ export default function Login() {
               <SiteEyebrow style={{ marginBottom: '6px' }}>{t('reset.truthTitle')}</SiteEyebrow>
               <p className="m-0 text-meta-2 leading-[1.55] text-ink-2">{t('reset.truthBody')}</p>
             </GlassPanel>
-          </GlassPanel>
+          </Bento>
 
           {/* Faux verre : cet encart défile avec la page. */}
           <GlassPanel level="truth" className="rv mt-[14px]" style={{ ['--i' as string]: 2 }}>

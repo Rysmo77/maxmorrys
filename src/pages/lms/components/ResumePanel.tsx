@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Button, GlassPanel, Icon, LessonRow, Num, ProgressBar } from '@ds';
+import { Button, Icon, LessonRow, Num, ProgressBar } from '@ds';
 import { useLocalizedPath } from '../../../contexts/LanguageContext';
 import { formatBytes, listKept, offlineSupported, type KeptResource } from '../../../lib/pwa/offline';
 import type { EnrolledFormation } from '../hooks/useStudentData';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * LE PANNEAU DE « MES COURS » — troisième colonne de l'espace apprenant.
@@ -88,7 +89,7 @@ export default function ResumePanel({ resume, asOf }: ResumePanelProps) {
       <p className="mm-eyebrow m-0">{t('courses.resumeEyebrow')}</p>
 
       {resume?.formation ? (
-        <GlassPanel level="flat" padding={16} className="rv mt-2.5" style={{ ['--i' as string]: 1 }}>
+        <Bento padding={16} className="rv mt-2.5" style={{ ['--i' as string]: 1 }}>
           <p className="m-0 text-meta font-semibold leading-[1.35]">{resume.formation.title}</p>
           <p className="m-0 mt-1 text-meta-2 text-ink-2">
             <Num
@@ -119,22 +120,22 @@ export default function ResumePanel({ resume, asOf }: ResumePanelProps) {
           >
             {t('courses.resumeAction')}
           </Button>
-        </GlassPanel>
+        </Bento>
       ) : (
-        <GlassPanel level="flat" padding={16} className="rv mt-2.5" style={{ ['--i' as string]: 1 }}>
+        <Bento padding={16} className="rv mt-2.5" style={{ ['--i' as string]: 1 }}>
           <p className="m-0 text-meta-2 leading-[1.5] text-ink-2">{t('courses.resumeNone')}</p>
-        </GlassPanel>
+        </Bento>
       )}
 
       <p className="mm-eyebrow m-0 mt-6">{t('courses.offlineEyebrow')}</p>
 
       {kept === undefined ? (
-        <GlassPanel level="flat" padding={16} className="mt-2.5">
+        <Bento padding={16} className="mt-2.5">
           <p className="m-0 text-meta-2 text-ink-3">{t('courses.offlineReading')}</p>
-        </GlassPanel>
+        </Bento>
       ) : shown.length > 0 ? (
         <>
-          <GlassPanel level="flat" padding="6px 16px" className="rv mt-2.5" style={{ ['--i' as string]: 2 }}>
+          <Bento padding="6px 16px" className="rv mt-2.5" style={{ ['--i' as string]: 2 }}>
             <ul className="m-0 list-none p-0">
               {shown.map((k, i) => (
                 <li key={k.url}>
@@ -154,7 +155,7 @@ export default function ResumePanel({ resume, asOf }: ResumePanelProps) {
                 </li>
               ))}
             </ul>
-          </GlassPanel>
+          </Bento>
           <p className="m-0 mt-3 text-meta-2 leading-[1.5] text-ink-3">
             {t('courses.offlineNote')}
           </p>
@@ -168,7 +169,7 @@ export default function ResumePanel({ resume, asOf }: ResumePanelProps) {
           </Button>
         </>
       ) : (
-        <GlassPanel level="flat" padding={16} className="rv mt-2.5" style={{ ['--i' as string]: 2 }}>
+        <Bento padding={16} className="rv mt-2.5" style={{ ['--i' as string]: 2 }}>
           <p className="m-0 text-meta-2 leading-[1.5] text-ink-2">{t('courses.offlineEmpty')}</p>
           <Button
             tone="quiet"
@@ -178,7 +179,7 @@ export default function ResumePanel({ resume, asOf }: ResumePanelProps) {
           >
             {t('courses.offlineSetup')}
           </Button>
-        </GlassPanel>
+        </Bento>
       )}
     </>
   );

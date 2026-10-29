@@ -11,6 +11,7 @@ import { tutorName } from '../../../lib/naming';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { updateUserProfile } from '../../../lib/firestore';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * LES PRÉFÉRENCES (`ScreensCompte.js` · `Preferences` et `Suppression`).
  *
@@ -245,7 +246,7 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
 
       {/* ── Le répétiteur ──────────────────────────────────────────────────── */}
       <SiteEyebrow style={{ marginTop: '22px' }}>{t('settings.aiAssistant')}</SiteEyebrow>
-      <GlassPanel level="flat" padding="6px 18px">
+      <Bento padding="6px 18px">
         <LessonRow
           state="plain"
           title={t('settings.rysmoMemory', { tutor })}
@@ -259,7 +260,7 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
           }
           last
         />
-      </GlassPanel>
+      </Bento>
 
       </div>
 
@@ -268,7 +269,7 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
       <div className="mt-[22px] min-w-0 max-w-lg wide:mt-0">
       {/* ── Ce que je t'envoie ─────────────────────────────────────────────── */}
       <SiteEyebrow>{t('settings.sendTitle')}</SiteEyebrow>
-      <GlassPanel level="flat" padding="6px 18px">
+      <Bento padding="6px 18px">
         <LessonRow
           state="plain"
           icon={<Icon name="bell" size={14} />}
@@ -308,7 +309,7 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
           }
           last
         />
-      </GlassPanel>
+      </Bento>
       <GlassPanel level="truth" style={{ marginTop: '12px' }}>
         <p className="mm-eyebrow m-0 mb-1.5">{t('settings.sendTruthTitle')}</p>
         <p className="m-0 text-meta leading-[1.55] text-ink-2">{t('settings.sendTruthBody')}</p>
@@ -317,7 +318,7 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
       {/* ── Tes données ────────────────────────────────────────────────────── */}
       <SiteEyebrow style={{ marginTop: '22px' }}>{t('settings.myData')}</SiteEyebrow>
       <p className="text-small text-ink-2 mb-2.5">{t('settings.myDataDesc')}</p>
-      <GlassPanel level="flat" padding="6px 18px">
+      <Bento padding="6px 18px">
         <LessonRow
           state="plain"
           icon={<Icon name="download" size={14} />}
@@ -334,7 +335,7 @@ export default function SettingsTab({ theme, setTheme, onSignOut }: SettingsTabP
           onClick={() => setShowDeleteConfirm(true)}
           last
         />
-      </GlassPanel>
+      </Bento>
 
       {/* ── Compte ─────────────────────────────────────────────────────────── */}
       <SiteEyebrow style={{ marginTop: '22px' }}>{t('settings.account')}</SiteEyebrow>

@@ -79,7 +79,10 @@
       "coachingDesc": "Suivi et coaching de tes talents",
       "coachingNote": "Sur devis"
     },
-    "titleLines": ["Forme tes équipes", "avec [MAX-MORRYS BUSINESS]."],
+    "titleLines": [
+      "Forme tes équipes",
+      "avec [MAX-MORRYS BUSINESS]."
+    ],
     "offersEyebrow": "Trois façons de travailler ensemble",
     "formEyebrow": "Décris ton besoin",
     "form": {
@@ -125,7 +128,10 @@
       }
     },
     "sent": {
-      "titleLines": ["C'est parti.", "Je te lis."],
+      "titleLines": [
+        "C'est parti.",
+        "Je te lis."
+      ],
       "body": "Ta demande est enregistrée. Je te réponds sous 48 h avec une proposition de programme, ou avec les questions qui me manquent.",
       "recapEyebrow": "Ce qui est enregistré",
       "recapCompany": "Organisation",
@@ -154,7 +160,6 @@
     "free": "Gratuit",
     "save": "Économise {{amount}}",
     "enroll": "S'inscrire maintenant",
-    "guaranteeShort": "Accès à vie · Garantie satisfait 14 jours",
     "includesTitle": "Ce que ce cours inclut",
     "durationContent": "{{duration}} de contenu",
     "lessonsCount": "{{count}} leçons",
@@ -174,7 +179,6 @@
     "descriptionTitle": "Description",
     "reviewsTitle": "Avis des étudiants",
     "ratingSummary": "Note moyenne attribuée par <strong>{{count}} étudiants</strong> inscrits à cette formation.",
-    "guaranteeBanner": "Garantie satisfait ou remboursé pendant 14 jours — sans condition.",
     "crossEyebrow": "À lire aussi",
     "crossTitle": "Je t'informe",
     "crossDescription": "Articles, analyses et conseils gratuits pour approfondir ce que tu sais en marketing digital.",
@@ -240,7 +244,15 @@
       "aura que deux."
     ],
     "whyBodyEmpty": "Je préfère deux formations que je tiens à jour à un catalogue qui fait nombre. Le module d'ouverture de chacune sera en accès libre : tu jugeras avant de payer.",
-    "emptyReadTitle": "En attendant, à lire"
+    "emptyReadTitle": "En attendant, à lire",
+    "cardFree_one": "{{count}} leçon libre",
+    "cardFree_other": "{{count}} leçons libres",
+    "statLevel": "Niveau",
+    "statLessons": "Leçons",
+    "statModules": "Modules",
+    "seeCourse": "Voir la formation",
+    "categoriesLabel": "Catégories",
+    "levelLabel": "Niveau"
   },
   "sheet": {
     "eyebrow": "Je te forme",
@@ -269,15 +281,21 @@
     "faqTitle": [
       "Avant d'acheter."
     ],
-    "q1": "Et si ça ne me convient pas ?",
-    "a1": "Tu as 14 jours. Écris-moi, je rembourse — et si tu me dis pourquoi, ça m'aide à corriger.",
+    "q1": "Et si la formation ne me convient pas ?",
+    "a1": "Les leçons libres sont là pour que tu juges avant d'acheter. Les conditions de vente sont dans les CGV, et ce sont elles qui font foi.",
     "q2": "Combien de temps j'ai accès ?",
     "a2": "À vie. Une formation retravaillée reste accessible dans sa version corrigée, sans repayer.",
     "q3": "Je peux payer en plusieurs fois ?",
     "a3": "Écris-moi avant de payer. Le montant débité est celui recalculé côté serveur, jamais celui affiché par ton navigateur.",
     "moduleMeta_one": "{{count}} leçon",
     "moduleMeta_other": "{{count}} leçons",
-    "translatedOriginal": "Lire l'original"
+    "translatedOriginal": "Lire l'original",
+    "factLessons": "leçons",
+    "factModules": "modules",
+    "factFree": "libres, sans compte",
+    "buy": "Acheter",
+    "cardKicker": "Prix · une fois",
+    "coverKicker": "Max-Morrys Edu"
   },
   "comingSoon": {
     "tag": "Bientôt",

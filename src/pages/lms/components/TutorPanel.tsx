@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
-import { Button, ChatBubble, Field, GlassPanel, Icon, IconButton, Num, QuotaMeter, Skeleton } from '@ds';
+import { Button, ChatBubble, Field, Icon, IconButton, Num, QuotaMeter, Skeleton } from '@ds';
 import { functions } from '../../../config/firebase';
 import { captureError } from '../../../lib/sentry';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -10,6 +10,7 @@ import { useLocalizedPath } from '../../../contexts/LanguageContext';
 import { tutorName } from '../../../lib/naming';
 import { loadConversation, openRysmo } from '../../../lib/rysmo/conversation';
 
+import Bento from '../../../components/formations/Bento';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * LE RÉPÉTITEUR EN PANNEAU PERMANENT — troisième colonne de l'espace apprenant.
@@ -134,14 +135,25 @@ export default function TutorPanel() {
       {loadingQuota ? (
         <Skeleton height={34} radius="var(--r-m)" label={t('dashboard.tutorPanelQuotaLoading')} />
       ) : quota && quotaAsOf ? (
-        <QuotaMeter
-          used={quota.dayCount}
-          total={quota.dailyLimit}
-          source="server"
-          asOf={quotaAsOf}
-          label={t('dashboard.tutorPanelQuotaLabel')}
-          suffix={t('dashboard.tutorPanelQuotaSuffix')}
-        />
+        <div>
+          <QuotaMeter
+            used={quota.dayCount}
+            total={quota.dailyLimit}
+            source="server"
+            asOf={quotaAsOf}
+            label={t('dashboard.tutorPanelQuotaLabel')}
+            suffix={t('dashboard.tutorPanelQuotaSuffix')}
+          />
+          {/* Les segments du kit (`mm-quota`), un par question du jour restante — seulement
+              pour un quota court (le quota gratuit) : cent segments ne se lisent plus. */}
+          {quota.dailyLimit > 0 && quota.dailyLimit <= 10 && (
+            <span className="mm-quota mt-2" aria-hidden="true">
+              {Array.from({ length: quota.dailyLimit }, (_, i) => (
+                <i key={i} className={i < quota.dayRemaining ? 'on' : undefined} style={{ ['--i' as string]: i }} />
+              ))}
+            </span>
+          )}
+        </div>
       ) : (
         <p className="m-0 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
           {t('dashboard.tutorPanelQuotaUnknown')}
@@ -163,7 +175,7 @@ export default function TutorPanel() {
 
       {/* ── Ce qu'il reste, dit en toutes lettres ───────────────────────────── */}
       {quota && quotaAsOf && (
-        <GlassPanel level="flat" padding={14}>
+        <Bento padding={14}>
           <p className="m-0 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
             {/* Le nombre passe par <Num> : c'est un relevé serveur, pas un compte local.
                 La phrase est coupée autour de lui plutôt qu'interpolée — une chaîne
@@ -172,7 +184,7 @@ export default function TutorPanel() {
             <Num value={quota.dayRemaining} source="server" asOf={quotaAsOf} />{' '}
             {t('dashboard.tutorPanelRemainingAfter', { count: quota.dayRemaining })}
           </p>
-        </GlassPanel>
+        </Bento>
       )}
 
       {/* ── Poser une question ──────────────────────────────────────────────── */}

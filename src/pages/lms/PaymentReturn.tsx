@@ -2,7 +2,7 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { Button, GlassPanel, Icon, Mesh, Num, Tag, type TagTone } from '@ds';
+import { Button, Icon, Mesh, Num, Tag, type TagTone } from '@ds';
 import { db } from '../../config/db';
 import { SiteDisplay, useReveal } from '../../components/site';
 import DsNavHost from '../../components/layout/DsNavHost';
@@ -14,6 +14,7 @@ import { getClubSubscription } from '../../lib/firestore';
 import { estMembreActif } from '../../lib/club/membership';
 import type { Transaction } from '../../types';
 
+import Bento from '../../components/formations/Bento';
 /**
  * L'ATTENTE DE PAIEMENT — LE PREMIER DES DEUX SEULS MOMENTS SCÉNARISÉS DU SYSTÈME.
  *
@@ -281,16 +282,24 @@ export default function PaymentReturn() {
             Le glyphe, lui, garde son encre blanche : elle est portée par le `<Icon>`, sur la
             surface colorée qui ne bascule pas.
           */}
+          {/* L'attente porte le moment signature du kit (`mm-payring`) : deux anneaux qui
+              sortent de la tuile, en boucle tant que le paiement n'est pas confirmé. Les
+              anneaux prennent `--mm-bleu`, la seule teinte qui se lit hors de la tuile dans
+              les deux thèmes (voir plus haut). */}
           <div
-            className={`${issue.pulse ? 'pulse ' : ''}rv-s`}
+            className={issue.pulse ? 'mm-payring rv-s' : 'rv-s'}
             aria-hidden="true"
-            style={{
-              width: '70px', height: '70px', borderRadius: '22px', background: issue.bg,
-              display: 'grid', placeItems: 'center', color: 'var(--mm-bleu)',
-              boxShadow: 'var(--sh-bleu)',
-            }}
+            style={issue.pulse ? { color: 'var(--mm-bleu)', marginLeft: '-13px' } : undefined}
           >
-            <Icon name={issue.glyph} size={30} color="var(--text-invert)" strokeWidth={issue.glyph === 'check' ? 3.4 : 2.4} />
+            <div
+              style={{
+                width: '70px', height: '70px', borderRadius: '22px', background: issue.bg,
+                display: 'grid', placeItems: 'center', position: 'relative',
+                boxShadow: 'var(--sh-bleu)',
+              }}
+            >
+              <Icon name={issue.glyph} size={30} color="var(--text-invert)" strokeWidth={issue.glyph === 'check' ? 3.4 : 2.4} />
+            </div>
           </div>
 
           {/* L'attente doit s'ANNONCER, pas seulement pulser : un anneau n'est rien pour qui
@@ -301,7 +310,7 @@ export default function PaymentReturn() {
 
           <p className="rv text-lede text-ink-2 mt-3" style={{ ['--i' as string]: 4 }}>{lede}</p>
 
-          <GlassPanel level="flat" padding={17} className="rv mt-[22px]" style={{ ['--i' as string]: 5 }}>
+          <Bento padding={17} className="rv mt-[22px]" style={{ ['--i' as string]: 5 }}>
             <div className="flex items-center justify-between gap-3">
               <span className="text-meta text-ink-2">{t('paymentReturn.reference')}</span>
               {/* Une référence de transaction est une donnée de base : elle passe par <Num>,
@@ -320,7 +329,7 @@ export default function PaymentReturn() {
                 <Num value={transaction.amount} unit={transaction.currency || 'XOF'} source="server" asOf={asOf} style={{ fontSize: '13px' }} />
               </div>
             )}
-          </GlassPanel>
+          </Bento>
 
           {actions}
 
@@ -344,7 +353,7 @@ export default function PaymentReturn() {
             sur l'écran de quelqu'un qui vient de payer transformerait une porte en relance.
           */}
           {status === 'completed' && clubActif === false && (
-            <GlassPanel level="flat" padding={17} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
+            <Bento padding={17} className="rv mt-3.5" style={{ ['--i' as string]: 8 }}>
               <p className="m-0 text-meta font-bold text-ink">{t('paymentReturn.clubTitle')}</p>
               <p className="m-0 mt-1.5 text-meta-2 leading-[1.55] text-ink-2">
                 {t('paymentReturn.clubBody')}
@@ -358,7 +367,7 @@ export default function PaymentReturn() {
               >
                 {t('paymentReturn.clubCta')}
               </Button>
-            </GlassPanel>
+            </Bento>
           )}
 
           <p className="rv text-small text-ink-2 text-center mt-3.5" style={{ ['--i' as string]: 9 }}>{foot}</p>
