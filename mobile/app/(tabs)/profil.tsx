@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Avatar, Body, Button, Eyebrow, Field, Icon, SansDonnees, Screen, Surface, Switch, TUTOR_DEFAUT,
+  Avatar, Body, Button, Field, Icon, SansDonnees, Screen, Surface, Switch, TUTOR_DEFAUT,
   isIOS, useBandeau, useConfirmation, useScheme, useToken, useTutorNom, veil, Ligne, Liste,
   Rubrique,
 } from '../../ds';
@@ -248,15 +248,15 @@ export default function Profil() {
          Ni l'un ni l'autre n'était visible pour `mobile-controles-morts.test.ts` : la porte
          cherche un `onPress` manquant, pas un `onChange` absent sur un composant à choix.
          Le test est étendu dans le même lot. */}
-      <Eyebrow style={{ marginTop: 22 }}>Apparence</Eyebrow>
+      <Rubrique>Apparence</Rubrique>
       <Body muted style={{ fontSize: 11.5, marginTop: 10 }}>
         L'affichage suit ton téléphone, actuellement en mode {scheme === 'dark' ? 'sombre' : 'clair'}.
         L'application ne le contredit pas.
       </Body>
 
       {/* ── LE TUTEUR ──────────────────────────────────────────────────────────────────── */}
-      <Eyebrow style={{ marginTop: 22 }}>Ton répétiteur</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 17 }}>
+      <Rubrique>Ton répétiteur</Rubrique>
+      <Surface level="flat" style={{ padding: 17 }}>
         <Field
           label="Comment tu l'appelles"
           value={brouillon}

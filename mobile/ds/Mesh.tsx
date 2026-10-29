@@ -145,7 +145,7 @@ export function Mesh({ territory = 'forme', style }: { territory?: Territory; st
         <Defs>
           {/*
             Le voile de lisibilité. Sans lui, le maillage remonte sous le texte.
-            Valeurs d'AD-18 : 60 % en haut, 78 % à mi-hauteur, 90 % en bas — remontées après
+            Valeurs d'AD-18 en haut (60 %, puis 80 %), PLEIN dès 55 % — le maillage du kit v4.5 ne vit qu'en tête d'écran ; remontées après
             mesure, parce qu'à 42 % l'encre secondaire tombait à 3,93:1 sur le fond réel.
           */}
           <LinearGradient id="veil" x1="0" y1="0" x2="0" y2="1">

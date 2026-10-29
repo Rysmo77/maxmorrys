@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import {
   Body, Button, CheckLine, Display, Eyebrow, SansDonnees, Screen, Skeleton, Surface,
-  type IconName, isIOS, Ligne, Liste,
+  type IconName, isIOS, Ligne, Liste, ChipRow, Rubrique,
 } from '../../ds';
 import { QUOTA } from '../../contenu/demo';
 import { ONGLETS_CLUB } from '../../contenu/club';
@@ -59,8 +59,22 @@ export default function Club() {
       onRefresh={rafraichir}
       enRafraichissement={enRafraichissement}
     >
-      <Eyebrow style={{ marginTop: 6 }}>Je te transforme · réservé aux membres</Eyebrow>
-      <Display size={29} lines={['LE CLUB DES', 'DIGITOS.']} style={{ marginTop: 8 }} />
+      {/* Le grand titre du kit v4.5 (`mm-r__large`), puis la bande des huit onglets
+          (`mm-r-band`) : depuis le hub, aucun n'est encore ouvert. */}
+      <Eyebrow style={{ marginTop: 6 }}>Club des Digitos · réservé aux membres</Eyebrow>
+      <Display size={32} lines={['Le Club']} style={{ marginTop: 6 }} />
+      <ChipRow
+        options={ONGLETS_CLUB.map((o) => o.libelle)}
+        value=""
+        height={38}
+        debord={18}
+        icones={ferme ? Object.fromEntries(ONGLETS_CLUB.map((o) => [o.libelle, 'lock' as const])) : undefined}
+        onChange={(libelle) => {
+          const cible = ONGLETS_CLUB.find((o) => o.libelle === libelle);
+          if (cible) router.push(cible.href);
+        }}
+        style={{ marginTop: 14 }}
+      />
       <Body muted style={{ marginTop: 12, fontSize: 14.5, lineHeight: 22 }}>
         Une année avec moi, et avec ceux qui font la même chose que toi. Des sessions en direct,
         des missions qui circulent, et quelqu'un à qui poser la question que tu ne poses à
@@ -114,8 +128,8 @@ export default function Club() {
           Le titre disait « Ce que tu paies, précisément ». Le verbe « payer » n'a plus sa
           place dans une application qui ne vend rien — et il portait la même charge que le
           bouton qu'on vient de retirer. */}
-      <Eyebrow style={{ marginTop: 24 }}>Ce que le Club donne</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
+      <Rubrique>Ce que le Club donne</Rubrique>
+      <Surface level="flat" style={{ padding: 18 }}>
         <CheckLine style={{ marginTop: 0 }}>2 sessions en direct par mois, avec moi</CheckLine>
         <CheckLine>Les missions que je sors de mon carnet</CheckLine>
         <CheckLine>Les ateliers à Dakar, places membres</CheckLine>
@@ -129,7 +143,7 @@ export default function Club() {
       </Surface>
 
       {/* ── LES HUIT ONGLETS, OUVERTS ──────────────────────────────────────────────────── */}
-      <Eyebrow style={{ marginTop: 24 }}>Huit onglets, tous visitables</Eyebrow>
+      <Rubrique>Huit onglets, tous visitables</Rubrique>
       <Liste>
         {ENTREES.map((o) => (
           <Ligne

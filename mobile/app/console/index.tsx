@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import {
-  Body, Button, Eyebrow, Num, Pipeline, SansDonnees, StatTile, useToken, Ligne, Liste,
+  Body, Button, Num, Pipeline, SansDonnees, StatTile, useToken, Ligne, Liste, Rubrique,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
 import { provenance, useConsole } from '../../donnees';
@@ -87,7 +87,7 @@ export default function Console() {
         </Liste>
       )}
 
-      <Eyebrow style={{ marginTop: 24 }}>Ce que ton rôle atteint</Eyebrow>
+      <Rubrique>Ce que ton rôle atteint</Rubrique>
       <Liste>
         {SUPPORT_PORTEE.map((e) => (
           <Ligne

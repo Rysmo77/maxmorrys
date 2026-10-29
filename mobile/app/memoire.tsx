@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import {
   Body, Button, ChipRow, Display, Eyebrow, Field, Icon, IconButton, SansDonnees, Screen, Surface,
   Switch, TUTOR_DEFAUT, haptique, isIOS, useBandeau, useConfirmation, useToken, useTutorNom,
-  Ligne, Liste,
+  Ligne, Liste, Rubrique,
 } from '../ds';
 import { ErreurAppel, effacerLaMemoire, reglerLeRepetiteur, useRepetiteur } from '../donnees';
 import { useSession } from '../donnees/session';
@@ -168,7 +168,7 @@ export default function Memoire() {
         </Body>
       </Surface>
 
-      <Eyebrow style={{ marginTop: 24 }}>Sa mémoire</Eyebrow>
+      <Rubrique>Sa mémoire</Rubrique>
       <Liste>
         <Ligne
           icone="brain"

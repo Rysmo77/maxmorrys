@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import {
-  Body, Button, Display, Eyebrow, Icon, LessonRow, Screen, Surface, Tag, useToken, Ligne,
-  Liste, Rubrique,
+  Body, Button, Display, Eyebrow, Icon, LessonRow, Screen, Surface, Tag, useToken, Ligne, Liste,
+  Rubrique,
 } from '../ds';
 import { envoyerLaFile, oublierEcartees, useHorsLigne } from '../donnees/hors-ligne';
 import { useReseau } from '../donnees/veille-reseau';
@@ -63,8 +63,8 @@ export default function HorsConnexion() {
 
       {gardees.length > 0 ? (
         <>
-          <Eyebrow style={{ marginTop: 22 }}>Disponible sans réseau</Eyebrow>
-          <Surface level="flat" style={{ marginTop: 10, paddingHorizontal: 16 }}>
+          <Rubrique>Disponible sans réseau</Rubrique>
+          <Surface level="flat" style={{ paddingHorizontal: 16 }}>
             {[...gardees].sort((a, b) => b.gardeeLe.localeCompare(a.gardeeLe)).map((l, i, liste) => (
               <LessonRow
                 key={l.cle}

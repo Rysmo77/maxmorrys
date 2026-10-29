@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { openBrowserAsync } from 'expo-web-browser';
 import {
-  Body, Button, EmptyState, Eyebrow, Icon, Num, Pipeline, Surface, useToken, veil,
+  Body, Button, EmptyState, Eyebrow, Icon, Num, Pipeline, Surface, useToken, veil, Rubrique,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
 import { RELEVE, SOURCE } from '../../contenu/demo';
@@ -47,8 +47,8 @@ export default function Temoignages() {
         />
       </Surface>
 
-      <Eyebrow style={{ marginTop: 22 }}>Le relevé</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 17 }}>
+      <Rubrique>Le relevé</Rubrique>
+      <Surface level="flat" style={{ padding: 17 }}>
         <Num value={0} source={SOURCE} asOf={RELEVE} unit="témoignage reçu" style={{ fontSize: 15 }} />
         <Body muted style={{ fontSize: 12, lineHeight: 18, marginTop: 8 }}>
           Et zéro publié, forcément. Le site n'affiche pas de bloc « ils en parlent » vide : il

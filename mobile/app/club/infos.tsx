@@ -38,15 +38,15 @@ export default function ClubInfos() {
           alors « en attente du serveur », pour une promesse que personne n'a jamais eu
           l'intention de ranger dans un serveur. Elles sont l'engagement commercial du
           produit : voir `contenu/engagement.ts`. */}
-      <Eyebrow style={{ marginTop: 22 }}>Garanti</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
+      <Rubrique>Garanti</Rubrique>
+      <Surface level="flat" style={{ padding: 18 }}>
         {CLUB_GARANTI.map((g, i) => (
           <CheckLine key={g} tone="ok" style={i === 0 ? { marginTop: 0 } : undefined}>{g}</CheckLine>
         ))}
       </Surface>
 
-      <Eyebrow style={{ marginTop: 22 }}>Pas garanti</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 18 }}>
+      <Rubrique>Pas garanti</Rubrique>
+      <Surface level="flat" style={{ padding: 18 }}>
         {CLUB_PAS_GARANTI.map((g, i) => (
           <CheckLine key={g} tone="neutre" dash style={i === 0 ? { marginTop: 0 } : undefined}>{g}</CheckLine>
         ))}

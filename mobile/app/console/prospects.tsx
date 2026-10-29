@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, View } from 'react-native';
 import {
   Body, Button, Eyebrow, Num, Pipeline, SansDonnees, Surface, Tag, useToken, Ligne, Liste,
+  Rubrique,
 } from '../../ds';
 import { ConsoleScreen, PiedDePortee } from './_layout';
 import { PROSPECT, RELEVE, SOURCE } from '../../contenu/demo';
@@ -76,8 +77,8 @@ export default function Prospects() {
         </Body>
       </Surface>
 
-      <Eyebrow style={{ marginTop: 22 }}>Le relevé</Eyebrow>
-      <Surface level="flat" style={{ marginTop: 10, padding: 17 }}>
+      <Rubrique>Le relevé</Rubrique>
+      <Surface level="flat" style={{ padding: 17 }}>
         <Num
           value={PROSPECT === null ? null : 1}
           source={SOURCE}
