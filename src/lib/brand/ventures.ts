@@ -61,8 +61,8 @@ export const ventures: readonly Venture[] = [
     operator: MY_ONOMA,
     owner: MY_ONOMA,
     status: 'live',
-    website: 'https://nayo.pro',
-    domain: 'nayo.pro',
+    website: 'https://myonoma.com',
+    domain: 'myonoma.com',
   },
   {
     slug: 'steps',
