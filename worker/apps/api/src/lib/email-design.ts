@@ -26,6 +26,8 @@
  * `worker/` lui est étranger. (Il lisait aussi `mobile/`, supprimé le 05/09/2026.)
  */
 
+import { ligneLegale } from './marque';
+
 /* ─────────────────────────────────────────────────────────────────────────────
    LES JETONS — copie littérale de tokens.generated.ts
    ────────────────────────────────────────────────────────────────────────── */
@@ -305,6 +307,50 @@ function styleSombre(): string {
 </style>`;
 }
 
+/**
+ * LE RETRAIT — le pied propre au MARKETING, et à lui seul.
+ *
+ * Un transactionnel ne le porte jamais : proposer de « se désabonner » d'une facture ou d'un
+ * rappel d'échéance laisserait croire qu'on peut les refuser. Le lien n'est jamais fourni
+ * par l'appelant d'un gabarit — c'est `envoi-modele.ts` et `campagne.ts` qui le signent et le
+ * passent ici. Un appelant qui l'oublierait produirait un courrier marketing sans retrait.
+ */
+export const RETRAIT = {
+  fr: {
+    raison: 'Tu reçois ce message parce que tu as accepté de recevoir la lettre de Max-Morrys.',
+    libelle: 'Me désabonner en un clic',
+  },
+  en: {
+    raison: 'You’re getting this because you signed up for the Max-Morrys newsletter.',
+    libelle: 'Unsubscribe in one click',
+  },
+} as const;
+
+/** Le retrait en version texte : la même phrase, l'URL en clair. */
+export function retraitTexte(langue: 'fr' | 'en', url: string): string {
+  return `${RETRAIT[langue].raison}\n${RETRAIT[langue].libelle}${langue === 'fr' ? '\u00A0: ' : ': '}${url}`;
+}
+
+/** Le pied d'une version texte : la ligne légale, puis le retrait s'il s'agit de marketing. */
+export function piedTexte(langue: 'fr' | 'en', desabonnement?: string): string {
+  return ['—', ligneLegale(langue), ...(desabonnement ? ['', retraitTexte(langue, desabonnement)] : [])].join('\n');
+}
+
+/**
+ * L'ENCADRÉ — une phrase qu'on veut voir lue, sans valeur chiffrée à célébrer.
+ *
+ * `encart` met en scène une VALEUR (un code, un solde) ; `citation` rappelle les mots du
+ * destinataire. Il manquait la forme la plus simple : une phrase posée sur `paper3`. Pas de
+ * couleur de territoire en texte — l'orange et le teal échouent au contraste sur blanc.
+ */
+export function encadre(texte: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;margin:4px 0 22px"><tr>
+    <td bgcolor="${CLAIR.paper3}" style="padding:18px 22px;background:${CLAIR.paper3};border-radius:16px" class="mm-quote">
+      <p style="margin:0;font-size:${ECHELLE.prose};line-height:1.6;color:${CLAIR.ink}" class="mm-ink">${echapper(texte)}</p>
+    </td>
+  </tr></table>`;
+}
+
 export interface Page {
   langue: 'fr' | 'en';
   /** Objet répété dans l'aperçu de la boîte de réception. Une phrase, jamais l'objet à l'identique. */
@@ -313,6 +359,13 @@ export interface Page {
   contenu: string;
   /** Lignes de pied de page : mentions légales, identité de l'émetteur. Facultatif. */
   pied?: string[];
+  /**
+   * La ligne légale (`marque.ts`) est posée par défaut sous le pied. `false` seulement quand
+   * le courrier porte déjà l'identité complète de l'émetteur — la facture.
+   */
+  piedLegal?: boolean;
+  /** URL de retrait signée. Présente ⇔ courrier MARKETING. Voir `RETRAIT`. */
+  desabonnement?: string;
 }
 
 /**
@@ -321,9 +374,13 @@ export interface Page {
  * Table imbriquée et non `<div>` : Outlook ne connaît ni `max-width` ni le centrage par
  * `margin:auto`. La table à trois niveaux est le seul centrage qui tienne depuis vingt ans.
  */
-export function page({ langue, apercu, contenu, pied }: Page): string {
-  const legales = pied?.length
-    ? `<p style="margin:0 0 6px;font-size:${ECHELLE.small};line-height:1.7;color:${CLAIR.ink3}" class="mm-ink2">${pied.map(echapper).join('<br>')}</p>`
+export function page({ langue, apercu, contenu, pied, piedLegal = true, desabonnement }: Page): string {
+  const lignesPied = [...(pied ?? []), ...(piedLegal ? [ligneLegale(langue)] : [])];
+  const legales = lignesPied.length
+    ? `<p style="margin:0 0 6px;font-size:${ECHELLE.small};line-height:1.7;color:${CLAIR.ink3}" class="mm-ink2">${lignesPied.map(echapper).join('<br>')}</p>`
+    : '';
+  const retrait = desabonnement
+    ? `<p style="margin:10px 0 0;font-size:${ECHELLE.small};line-height:1.7;color:${CLAIR.ink3}" class="mm-ink2">${echapper(RETRAIT[langue].raison)}<br><a href="${echapper(desabonnement)}" style="color:${CLAIR.ink3};text-decoration:underline" class="mm-ink2">${echapper(RETRAIT[langue].libelle)}</a></p>`
     : '';
 
   return `<!doctype html>
@@ -357,7 +414,7 @@ ${preEnTete(apercu)}
 ${contenu}
       </td></tr>
 
-      <tr><td style="padding:22px 8px 0">${legales}</td></tr>
+      <tr><td style="padding:22px 8px 0">${legales}${retrait}</td></tr>
 
     </table>
 

@@ -70,8 +70,33 @@ function page(langue: 'fr' | 'en', titre: string, corps: string, lien: string, l
   });
 }
 
+/**
+ * LE RETRAIT EN UN CLIC (RFC 8058) — `POST` sur la même URL.
+ *
+ * Les courriers marketing portent `List-Unsubscribe: <…/desabonnement?e=…&s=…>` et
+ * `List-Unsubscribe-Post: List-Unsubscribe=One-Click`. Gmail, Yahoo et Apple Mail affichent
+ * alors leur propre bouton « Se désabonner » et, au clic, POSTENT sur cette URL sans jamais
+ * l'ouvrir. Il faut donc répondre au POST : sans lui, le bouton du client échoue en silence,
+ * la personne continue de recevoir, et elle finit par cliquer « spam ».
+ *
+ * La réponse est un 200 sans page — personne ne la verra. Le corps de la requête
+ * (`List-Unsubscribe=One-Click`) n'est pas exigé : c'est la signature de l'URL qui autorise.
+ */
+async function unClic(env: Env, email: string, signature: string): Promise<Response> {
+  const valide = email !== '' && signature !== '' && (await verifierAdresse(env, email, signature));
+  if (!valide) return new Response('Invalid link', { status: 400, headers: { 'cache-control': 'no-store' } });
+  try {
+    const bilan = await desabonner(getFirestore(env), email);
+    console.log('Désabonnement en un clic :', email, `${bilan.marques} inscription(s), compte ${bilan.compteMisAJour ? 'mis à jour' : 'inchangé'}`);
+  } catch (error: unknown) {
+    // Même arbitrage que la page : on confirme et on rattrape à la main.
+    console.error('Désabonnement en un clic : écriture impossible pour', email, error);
+  }
+  return new Response('OK', { status: 200, headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' } });
+}
+
 export async function handleUnsubscribe(request: Request, env: Env): Promise<Response> {
-  if (request.method !== 'GET' && request.method !== 'HEAD') {
+  if (request.method !== 'GET' && request.method !== 'HEAD' && request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
   if (!env.EXPORT_SIGNING_KEY) {
@@ -82,6 +107,7 @@ export async function handleUnsubscribe(request: Request, env: Env): Promise<Res
   const url = new URL(request.url);
   const email = url.searchParams.get('e') ?? '';
   const signature = url.searchParams.get('s') ?? '';
+  if (request.method === 'POST') return unClic(env, email, signature);
   const langue: 'fr' | 'en' = url.searchParams.get('l') === 'en' ? 'en' : 'fr';
   const t = T[langue];
 

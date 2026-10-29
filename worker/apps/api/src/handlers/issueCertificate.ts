@@ -1,7 +1,7 @@
 import { HttpsError } from '@mm/shared';
 
 import { type CallContext, requireAuth } from '../context';
-import { envoyerModele } from '../lib/brevo-send';
+import { envoyerModele } from '../lib/envoi-modele';
 import { asText } from '../lib/values';
 import { urlSite } from '../lib/urls';
 

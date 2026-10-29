@@ -41,12 +41,12 @@ type Langue = 'fr' | 'en';
 const T = {
   fr: {
     sujet: (ref: string) => `Ton devis ${ref} expire dans ${PREAVIS_DEVIS_JOURS} jours`,
-    apercu: 'Le tarif de ton devis est garanti jusqu’à cette date.',
+    apercu: 'Le tarif de ton devis tient jusqu’à cette date.',
     surTitre: 'Devis bientôt échu',
     titre: 'Encore une semaine',
     bonjour: (nom: string) => (nom ? `Bonjour ${nom},` : 'Bonjour,'),
     intro: (commerce: string) =>
-      `Le devis établi pour ${commerce} arrive à échéance. Passé cette date, la grille de prix peut changer — d’ici là, celle de ton devis reste garantie.`,
+      `Le devis établi pour ${commerce} arrive à échéance. Passé cette date, la grille de prix peut changer — d’ici là, celle de ton devis ne bouge pas.`,
     ref: 'Référence',
     echeance: 'Valable jusqu’au',
     bouton: 'Revoir mon devis',

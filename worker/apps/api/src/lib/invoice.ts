@@ -328,6 +328,8 @@ export function buildInvoice(
       .filter(Boolean)
       .join('\n'),
     pied: [`${t.emetteur} :`, ...emetteurLignes],
+    // L'émetteur complet est déjà là, RCCM et NINEA compris : la ligne légale le doublerait.
+    piedLegal: false,
   });
 
   const text = [

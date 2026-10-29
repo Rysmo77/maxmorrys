@@ -31,6 +31,7 @@ import { getFirestore, getVerifier, type CallContext } from './context';
 import type { Env } from './env';
 import { handleExportDownload } from './exportDownload';
 import { handleUnsubscribe } from './unsubscribeRoute';
+import { handleMarketing } from './marketingRoute';
 import { estRouteTransfert, handleSessionTransfer } from './sessionTransfer';
 import { proxyToFunctions, proxyWebhook } from './proxy';
 import { HANDLERS } from './registry';
@@ -43,7 +44,7 @@ import { rebuildPublicClubStats } from './lib/public-stats';
 import { sendQuoteExpiryNotices } from './lib/quote-expiry';
 import { sendReengagementNotices } from './lib/reengagement';
 import { synchroniserAudience } from './lib/brevo-contacts';
-import { envoyerBienvenues, relancerPaniers } from './lib/lifecycle';
+import { envoyerBienvenues, envoyerSuitesBienvenue, relancerPaniers } from './lib/lifecycle';
 import { handleBictorysWebhook } from './webhook/bictorys';
 
 function migratedNames(env: Env): Set<string> {
@@ -80,6 +81,12 @@ export default {
      * clique depuis un client de messagerie, pas une fonction qu'on appelle.
      */
     if (name === 'desabonnement') return handleUnsubscribe(request, env);
+
+    /*
+     * Les campagnes marketing : JSON simple pour n8n et les agents, secret en en-tête. Placé
+     * avant le contrôle des callables, qui refuse tout nom contenant un `/`.
+     */
+    if (name === 'marketing/campagne') return handleMarketing(request, env);
 
     /* Le transfert de session entre les trois hôtes : JSON simple, origine contrôlée. */
     if (estRouteTransfert(name)) return handleSessionTransfer(request, env);
@@ -214,15 +221,6 @@ export default {
             return `${b.sessionsTenues} session(s) tenue(s) sur ${b.fenetreJours} jours`;
           }],
           /*
-            LA SYNCHRONISATION MARKETING PASSE EN DERNIER, ET CE N'EST PAS UN DÉTAIL.
-
-            Les cinq travaux au-dessus portent des promesses : un rappel d'échéance annoncé
-            par les CGV, une relance de devis, un classement affiché. Celui-ci pousse une
-            audience vers un service TIERS, sur le réseau, et c'est donc le plus susceptible
-            de traîner ou d'échouer. Placé avant, une API Brevo lente retarderait des courriers
-            contractuels ; placé ici, il ne retarde que lui-même.
-          */
-          /*
             LES DEUX PASSES DE CYCLE DE VIE passent AVANT la synchronisation d'audience et
             APRÈS les courriers contractuels. Elles envoient — donc elles peuvent traîner —
             mais ce qu'elles envoient n'est promis par aucun contrat.
@@ -235,10 +233,29 @@ export default {
             const b = await relancerPaniers(db, env);
             return `${b.envoyes} relance(s), ${b.echecs} échec(s), ${b.ignores} sans adresse, sur ${b.examines} panier(s) à J+1`;
           }],
+          /*
+            LE MARKETING PASSE EN DERNIER, ET CE N'EST PAS UN DÉTAIL : il dépend d'un service
+            TIERS (Brevo), sur le réseau, donc le plus susceptible de traîner ou d'échouer.
+            Placé avant, une API Brevo lente retarderait des courriers contractuels.
+
+            La SYNCHRONISATION précède les SUITES : elle fait d'abord remonter les retraits
+            faits chez Brevo dans Firestore, et les suites lisent le consentement dans
+            Firestore. Dans l'autre ordre, une personne désinscrite hier chez Brevo recevrait
+            sa suite de bienvenue ce matin. La poussée de contacts n'a lieu que si l'accord
+            `MARKETING_ENVOI_REEL = oui` est donné.
+          */
           ['Synchronisation Brevo', async () => {
             const b = await synchroniserAudience(db, env);
             const motifs = b.erreurs.length ? ` — ${b.erreurs.join(' | ')}` : '';
-            return `${b.pousses} poussé(s), ${b.bloques} bloqué(s), ${b.echecs} échec(s), sur ${b.candidats} candidat(s)${motifs}`;
+            return `${b.lus} lu(s), ${b.repris} retrait(s) repris, ${b.ajoutes} ajouté(s), ${b.bloques} bloqué(s), ${b.reabonnes} réabonné(s), ${b.echecs} échec(s)${motifs}`;
+          }],
+          /*
+            LES SUITES DE BIENVENUE (J+2, J+5) sont MARKETING : par Brevo, consentement exigé,
+            retrait posé, et rien ne part sans l'accord ni sans Brevo configuré.
+          */
+          ['Suites de bienvenue', async () => {
+            const b = await envoyerSuitesBienvenue(db, env);
+            return `${b.envoyes} envoyée(s), ${b.echecs} échec(s), ${b.ignores} ignorée(s), sur ${b.examines} compte(s) à J+2 ou J+5`;
           }],
         ];
 

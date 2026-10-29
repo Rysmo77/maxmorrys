@@ -31,7 +31,6 @@ const T = {
     ouvertureLibelle: 'Ouverture',
     tarifLibelle: 'Tarif annoncé',
     boutonFiche: 'Revoir la formation',
-    pied: 'Max-Morrys — Dakar, Sénégal',
 
     surTitreOuvert: 'C’est ouvert',
     titreOuvert: 'Elle est en ligne.',
@@ -54,7 +53,6 @@ const T = {
     ouvertureLibelle: 'Opening',
     tarifLibelle: 'Announced price',
     boutonFiche: 'See the course again',
-    pied: 'Max-Morrys — Dakar, Senegal',
 
     surTitreOuvert: 'It’s open',
     titreOuvert: 'It’s live.',
@@ -114,7 +112,7 @@ export function buildWaitlistConfirmation(
 
   return {
     subject: t.sujetInscrit(f.titre),
-    html: DS.page({ langue, apercu: t.apercuInscrit, contenu, pied: [t.pied] }),
+    html: DS.page({ langue, apercu: t.apercuInscrit, contenu }),
     text,
   };
 }
@@ -142,7 +140,7 @@ export function buildWaitlistOpening(
 
   return {
     subject: t.sujetOuvert(f.titre),
-    html: DS.page({ langue, apercu: t.apercuOuvert, contenu, pied: [t.pied] }),
+    html: DS.page({ langue, apercu: t.apercuOuvert, contenu }),
     text,
   };
 }

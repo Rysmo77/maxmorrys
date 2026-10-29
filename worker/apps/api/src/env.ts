@@ -44,7 +44,16 @@ export interface Env {
    * répond « binding EMAIL absent » plutôt que de lever. Un canal manquant se journalise,
    * il ne fait pas tomber le webhook de paiement.
    */
-  EMAIL?: { send(message: { to: string; from: { email: string; name?: string }; subject: string; html?: string; text?: string }): Promise<unknown> };
+  EMAIL?: {
+    send(message: {
+      to: string;
+      from: { email: string; name?: string };
+      subject: string;
+      html?: string;
+      text?: string;
+      headers?: Record<string, string>;
+    }): Promise<unknown>;
+  };
 
   /** Adresse d'expédition. Sous-domaine `mail.maxmorrys.me`, jamais la racine : la réputation
    *  d'envoi transactionnel reste séparée de celle du domaine principal. */
@@ -84,20 +93,31 @@ export interface Env {
   META_ACCESS_TOKEN?: string;
   /** Secret de signature des liens de téléchargement d'export. */
   EXPORT_SIGNING_KEY?: string;
-  /* ── Brevo : le canal MARKETING ────────────────────────────────────────────
-     Distinct du transactionnel de bout en bout. Le transactionnel passe par le binding
-     `EMAIL` de Cloudflare, sans aucune clé ; le marketing passe par Brevo, avec la sienne.
-     Autre fournisseur, autre sous-domaine d'envoi (`lettre.` et non `mail.`), autre
-     réputation — un incident sur l'un laisse l'autre intact. Et Cloudflare Email Sending
-     interdit de toute façon le marketing sur son propre canal.
+  /* ── Le courrier MARKETING — BREVO, jamais le binding `EMAIL` (décision du 29/10/2026) ──
+     Transactionnel = Cloudflare Email Service (binding `EMAIL`, `EMAIL_FROM`). Marketing (la
+     lettre, la bienvenue n°2/n°3) = Brevo, depuis `lettre.maxmorrys.me` (domaine authentifié
+     chez Brevo). La FAQ Cloudflare : « Email Service supports transactional email only » —
+     une suspension couperait aussi la facture. Voir `lib/brevo-send.ts` et
+     `docs/growth-kb/08-emailing.md`.
 
-     Listmonk a occupé cette place quelques heures puis a été retiré : il relayait vers
-     Brevo, n'apportait donc rien sur le plafond d'envoi, et ne savait pas exécuter de
-     séquences — voir l'en-tête de `brevo-contacts.ts`. */
-  /** Clé API v3. Secret : `npx wrangler secret put BREVO_API_KEY`. */
+     L'envoi réel exige DEUX conditions : Brevo configuré (`BREVO_API_KEY` + `BREVO_LIST_ID` +
+     `BREVO_SENDER_EMAIL`) ET l'accord `MARKETING_ENVOI_REEL = "oui"`. Fermé par défaut. */
+  /** Clé API v3 Brevo. Secret : `npx wrangler secret put BREVO_API_KEY`. */
   BREVO_API_KEY?: string;
-  /** Identifiant de la liste cible dans Brevo (Contacts → Listes). */
+  /** Identifiant de la liste principale de la lettre dans Brevo (Contacts → Listes). */
   BREVO_LIST_ID?: string;
+  /** Expéditeur marketing, sur le domaine authentifié chez Brevo (`lettre@lettre.maxmorrys.me`). */
+  BREVO_SENDER_EMAIL?: string;
+  /** Secret partagé avec n8n et les agents, lu dans `X-Marketing-Key`.
+   *  `npx wrangler secret put MARKETING_API_KEY`. Absent ⇒ la route répond 503. */
+  MARKETING_API_KEY?: string;
+  /** L'ACCORD : `oui` ouvre l'envoi marketing réel (campagnes, bienvenue n°2/n°3). Toute autre
+   *  valeur le ferme ; le mode test reste ouvert. */
+  MARKETING_ENVOI_REEL?: string;
+  /** Adresses autorisées en mode test, séparées par des virgules. La première est le défaut. */
+  MARKETING_TEST_TO?: string;
+  /** Plafond d'envois Brevo par jour UTC, campagnes + bienvenue + épreuves (plan gratuit : 300). */
+  MARKETING_PLAFOND_JOUR?: string;
 
   /** Secret partagé avec le Worker media pour signer les liens de lecture. */
   MEDIA_SIGNING_KEY?: string;

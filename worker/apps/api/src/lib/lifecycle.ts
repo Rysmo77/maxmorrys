@@ -25,7 +25,8 @@
 import type { Firestore } from '@mm/firestore-rest';
 
 import type { Env } from '../env';
-import { envoyerModele, type Langue } from './brevo-send';
+import { brevoConfigure } from './brevo-send';
+import { canalMarketingOuvert, envoyerModele, type Langue } from './envoi-modele';
 import { asText, toNumber } from './values';
 import { urlSite } from './urls';
 
@@ -107,6 +108,76 @@ export async function envoyerBienvenues(
     } else {
       bilan.echecs += 1;
       console.error('Bienvenue non envoyée pour', compte.path, '—', envoi.issue, envoi.erreur ?? '');
+    }
+  }
+
+  return bilan;
+}
+
+/**
+ * LES SUITES DE BIENVENUE — #2 à J+2, #3 à J+5. MARKETING.
+ *
+ * Elles partent par BREVO (envoi unitaire, `envoi-modele.ts`), jamais par le binding
+ * Cloudflare. Elles exigent un consentement que personne n'a à l'inscription — `envoyerModele`
+ * le vérifie lui-même et répond `sansConsentement` sinon, compté ici comme ignoré, pas comme
+ * échec. Au-delà du plafond Brevo du jour (`plafondAtteint`), ignoré aussi : le jour exact
+ * passé, la suite ne repart pas — une suite manquée vaut mieux qu'un arriéré.
+ *
+ * Tant que le canal marketing est fermé (`MARKETING_ENVOI_REEL` ≠ `oui`, ou Brevo non
+ * configuré), la passe sort AVANT toute lecture : pas de requête inutile chaque matin, et
+ * aucun marqueur posé — le jour où le canal s'ouvre, seuls les comptes alors à J+2 ou J+5
+ * reçoivent, jamais un arriéré.
+ *
+ * Un jour EXACT, comme le panier : une borne basse seule ferait écrire, au premier passage,
+ * à tous les comptes plus anciens.
+ */
+export async function envoyerSuitesBienvenue(
+  db: Firestore,
+  env: Env,
+  maintenant = new Date(),
+): Promise<BilanPasse> {
+  const bilan = vide();
+  if (!canalMarketingOuvert(env) || !brevoConfigure(env)) return bilan;
+
+  const comptes = await db.query({
+    collection: 'users',
+    where: [{ field: 'role', op: '==', value: 'student' }],
+    limit: PAGE,
+  });
+
+  const etapes = [
+    { jour: 2, modele: 'bienvenue2', marqueur: 'welcome2SentAt', chemin: '/mon-espace/repetiteur' },
+    { jour: 5, modele: 'bienvenue3', marqueur: 'welcome3SentAt', chemin: '/formations' },
+  ] as const;
+
+  for (const compte of comptes) {
+    const d = compte.data;
+    const age = joursDepuis(d.createdAt, maintenant);
+    const etape = etapes.find((e) => e.jour === age);
+    if (!etape || d[etape.marqueur]) continue;
+    bilan.examines += 1;
+
+    const destinataire = asText(d.email) ?? '';
+    if (!destinataire) { bilan.ignores += 1; continue; }
+
+    const envoi = await envoyerModele(env, {
+      modele: etape.modele,
+      to: destinataire,
+      langue: langueDe(compte),
+      params: {
+        prenom: asText(d.firstName) ?? asText(d.displayName) ?? '',
+        lien: urlSite(env.APP_BASE_URL, etape.chemin, langueDe(compte)),
+      },
+    }, db);
+
+    if (envoi.issue === 'envoye') {
+      await db.update(compte.path, { [etape.marqueur]: maintenant.toISOString() });
+      bilan.envoyes += 1;
+    } else if (envoi.issue === 'sansConsentement' || envoi.issue === 'plafondAtteint') {
+      bilan.ignores += 1;
+    } else {
+      bilan.echecs += 1;
+      console.error('Suite de bienvenue non envoyée pour', compte.path, '—', envoi.issue, envoi.erreur ?? '');
     }
   }
 

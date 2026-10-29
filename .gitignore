@@ -49,3 +49,6 @@ max-morrys-*.json
 # Les URL qu'un passage de `recrawl` n'a pas pu re-balayer, reprises par `--retry`.
 # État de travail local, jamais un artefact du dépôt.
 .recrawl-failed.txt
+
+# Aperçus des e-mails (worker/apps/api/scripts/apercu-emails.mjs) — générés, jamais suivis
+worker/apps/api/.email-preview/

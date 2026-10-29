@@ -1,145 +1,142 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { rassemblerAudience, synchroniserAudience } from '../src/lib/brevo-contacts';
+import { resynchroniserRetraits, synchroniserAudience } from '../src/lib/brevo-contacts';
+import { brevoConfigure } from '../src/lib/brevo-send';
 import type { Env } from '../src/env';
+import { fauxBrevo } from './helpers/faux-brevo';
+import { fauxFirestore } from './helpers/faux-firestore';
 
 /**
- * CE QUI EST TESTÉ ICI EST UNE RÈGLE DE DROIT, PAS UNE PRÉFÉRENCE.
+ * LA SYNCHRONISATION FIRESTORE ⇄ BREVO.
  *
- * Le dépôt porte sept collections contenant des adresses. Une seule recueille un consentement
- * marketing. Pousser une adresse issue des six autres, c'est de la prospection sans base
- * légale — et ça ne se voit sur aucun écran : la campagne part, elle a l'air de fonctionner,
- * et le défaut ne se manifeste qu'en réclamation.
- *
- * D'où des tests qui affirment surtout des ABSENCES.
+ * Deux défauts silencieux à interdire : un retrait fait chez Brevo qui ne remonte pas (la
+ * personne revient dans l'audience le lendemain), et une liste noire de Brevo levée par notre
+ * poussée sans nouvel accord (une plainte ou un rebond dur effacés par erreur).
  */
 
-function fauxDb(collections: Record<string, Array<Record<string, unknown>>>) {
-  return {
-    query: vi.fn(async (q: { collection: string }) =>
-      (collections[q.collection] ?? []).map((data, i) => ({ path: `${q.collection}/d${i}`, data })),
-    ),
-  } as never;
-}
+afterEach(() => { vi.unstubAllGlobals(); });
 
-describe('l’audience rassemblée', () => {
-  it('prend un abonné de la lettre qui a consenti', async () => {
-    const db = fauxDb({ newsletter: [{ email: 'awa@example.com', consent: true, locale: 'fr', source: 'footer' }] });
-    const a = await rassemblerAudience(db);
-    expect(a).toHaveLength(1);
-    expect(a[0].email).toBe('awa@example.com');
-    expect(a[0].bloque).toBe(false);
-    expect(a[0].attributes.LOCALE).toBe('fr');
-  });
+const env = {
+  BREVO_API_KEY: 'xkeysib-test',
+  BREVO_LIST_ID: '4',
+  BREVO_SENDER_EMAIL: 'lettre@lettre.maxmorrys.me',
+  MARKETING_ENVOI_REEL: 'oui',
+} as unknown as Env;
 
-  /*
-   * Un désabonné est POUSSÉ EN `blocklisted`, jamais omis. L'omettre le laisserait
-   * ressortir au prochain import — Listmonk ne saurait pas qu'il est sorti.
-   */
-  it('pousse un désabonné en liste noire au lieu de l’oublier', async () => {
-    const db = fauxDb({
-      newsletter: [{ email: 'sortie@example.com', consent: true, unsubscribedAt: '2026-09-01T00:00:00Z' }],
-    });
-    const a = await rassemblerAudience(db);
-    expect(a).toHaveLength(1);
-    expect(a[0].bloque).toBe(true);
-  });
+const BASE = {
+  'newsletter/n1': { email: 'awa@example.com', consent: true, locale: 'fr' },
+  'newsletter/n2': { email: 'moussa@example.com', consent: true, locale: 'fr' },
+  'newsletter/n4': { email: 'parti@example.com', consent: true, unsubscribedAt: '2026-10-01T00:00:00Z' },
+  'users/u5': { email: 'fatou@example.com', role: 'student', preferences: { newsletter: true } },
+  'users/a1': { email: 'admin@maxmorrys.me', role: 'admin', preferences: { newsletter: true } },
+  'waitlist/w1': { email: 'attente@example.com' },
+  'transactions/t1': { userEmail: 'client@example.com' },
+};
 
-  it('prend un compte qui a coché la préférence', async () => {
-    const db = fauxDb({
-      users: [{ email: 'moussa@example.com', role: 'student', displayName: 'Moussa', preferences: { newsletter: true, language: 'en' } }],
-    });
-    const a = await rassemblerAudience(db);
-    expect(a).toHaveLength(1);
-    expect(a[0].attributes.PRENOM).toBe('Moussa');
-    expect(a[0].attributes.LOCALE).toBe('en');
-    expect(a[0].attributes.COMPTE).toBe(true);
-  });
-
-  /*
-   * LE PERSONNEL N'EST PAS UNE AUDIENCE. Un compte admin fausserait chaque taux d'ouverture,
-   * et un test grandeur nature finirait par partir depuis un compte de service.
-   */
-  it('exclut les comptes admin et support, même consentants', async () => {
-    const db = fauxDb({
-      users: [
-        { email: 'admin@example.com', role: 'admin', preferences: { newsletter: true } },
-        { email: 'support@example.com', role: 'support', preferences: { newsletter: true } },
-        { email: 'eleve@example.com', role: 'student', preferences: { newsletter: true } },
-      ],
-    });
-    const a = await rassemblerAudience(db);
-    expect(a.map((x) => x.email)).toEqual(['eleve@example.com']);
-  });
-
-  it('déduplique, et fait gagner la version du compte', async () => {
-    const db = fauxDb({
-      newsletter: [{ email: 'Awa@Example.com', consent: true, source: 'footer' }],
-      users: [{ email: 'awa@example.com', role: 'student', displayName: 'Awa Diallo', preferences: { newsletter: true } }],
-    });
-    const a = await rassemblerAudience(db);
-    expect(a).toHaveLength(1);
-    expect(a[0].attributes.PRENOM).toBe('Awa Diallo');
-    expect(a[0].attributes.COMPTE).toBe(true);
-  });
-
-  it('ignore une adresse qui n’en est pas une', async () => {
-    const db = fauxDb({ newsletter: [{ email: 'pas-une-adresse', consent: true }, { email: '', consent: true }] });
-    expect(await rassemblerAudience(db)).toHaveLength(0);
-  });
-
-  /*
-   * L'assertion la plus importante du fichier : les six collections interdites ne doivent
-   * JAMAIS être interrogées. Un test sur le résultat ne suffirait pas — il passerait aussi
-   * si on les lisait puis les filtrait, ce qui reste une lecture de données non consenties.
-   */
-  it('n’interroge AUCUNE des six collections sans consentement', async () => {
-    const db = fauxDb({ newsletter: [], users: [] });
-    await rassemblerAudience(db);
-    const interrogees = (db as unknown as { query: { mock: { calls: Array<[{ collection: string }]> } } })
-      .query.mock.calls.map((c) => c[0].collection);
-    expect(interrogees.sort()).toEqual(['newsletter', 'users']);
-    for (const interdite of ['appointments', 'messages', 'agency_leads', 'engagement_leads', 'transactions', 'waitlist']) {
-      expect(interrogees).not.toContain(interdite);
-    }
+describe('la configuration', () => {
+  it('exige la clé, une liste numérique et un expéditeur', () => {
+    expect(brevoConfigure(env)).toBe(true);
+    expect(brevoConfigure({ ...env, BREVO_API_KEY: undefined })).toBe(false);
+    expect(brevoConfigure({ ...env, BREVO_LIST_ID: 'abc' })).toBe(false);
+    expect(brevoConfigure({ ...env, BREVO_SENDER_EMAIL: '' })).toBe(false);
   });
 });
 
-describe('la passe de synchronisation', () => {
-  it('se tait proprement quand Brevo n’est pas configuré', async () => {
-    const db = fauxDb({ newsletter: [{ email: 'awa@example.com', consent: true }] });
-    const bilan = await synchroniserAudience(db, {} as Env);
-    expect(bilan.pousses).toBe(0);
-    expect(bilan.erreurs[0]).toContain('non configuré');
-    // Et surtout : elle n'a RIEN lu. Un canal absent ne justifie pas de parcourir la base.
-    expect((db as unknown as { query: { mock: { calls: unknown[] } } }).query.mock.calls).toHaveLength(0);
+describe('les retraits faits chez Brevo remontent dans Firestore', () => {
+  it('liste noire et désinscription de liste → unsubscribedAt / préférence à false, une seule fois', async () => {
+    const brevo = fauxBrevo({ contacts: [{ email: 'awa@example.com', bloque: true }, { email: 'fatou@example.com', desinscrit: [4] }, { email: 'moussa@example.com' }] });
+    const { db, docs } = fauxFirestore(BASE);
+    const b = await resynchroniserRetraits(db, env);
+    expect(b).toMatchObject({ ok: true, lus: 3, repris: 2 });
+    expect(docs.get('newsletter/n1')?.unsubscribedAt).toBeTruthy();
+    expect(docs.get('newsletter/n2')?.unsubscribedAt).toBeUndefined();
+    expect((docs.get('users/u5')?.preferences as Record<string, unknown>).newsletter).toBe(false);
+
+    const rejeu = await resynchroniserRetraits(db, env);
+    expect(rejeu).toMatchObject({ ok: true, repris: 0 });
+    expect(brevo.appels.every((a) => a.methode === 'GET')).toBe(true); // la reprise ne fait que LIRE Brevo
   });
 
-  it('compte séparément les poussés, les bloqués et les échecs', async () => {
-    const db = fauxDb({
-      newsletter: [
-        { email: 'ok@example.com', consent: true },
-        { email: 'sortie@example.com', consent: true, unsubscribedAt: '2026-09-01T00:00:00Z' },
-        { email: 'casse@example.com', consent: true },
-      ],
-    });
-    const env = { BREVO_API_KEY: 'cle-de-test', BREVO_LIST_ID: '4' } as Env;
+  it('pagine au-delà de 500 contacts', async () => {
+    const contacts = Array.from({ length: 1203 }, (_, i) => ({ email: `c${i}@example.com`, bloque: i === 1202 }));
+    const brevo = fauxBrevo({ contacts });
+    const b = await resynchroniserRetraits(fauxFirestore().db, env);
+    expect(b).toMatchObject({ ok: true, lus: 1203, repris: 1 });
+    expect(brevo.appels.filter((a) => a.chemin === '/contacts/lists/4/contacts')).toHaveLength(3);
+  });
+});
 
-    vi.stubGlobal('fetch', vi.fn(async (_u: string, init: RequestInit) => {
-      const corps = JSON.parse(String(init.body)) as { email: string };
-      // 204 = mis à jour chez Brevo, et c'est un SUCCÈS : le traiter comme un échec ferait
-      // basculer tout le bilan en rouge dès la deuxième synchronisation.
-      return corps.email === 'casse@example.com'
-        ? new Response('boom', { status: 500 })
-        : new Response(null, { status: 204 });
-    }));
+describe('la poussée vers Brevo', () => {
+  it('n’ajoute que les consentants absents de la liste, sans attribut, et jamais personnel/attente/clients', async () => {
+    const brevo = fauxBrevo({ contacts: [{ email: 'moussa@example.com' }] });
+    const b = await synchroniserAudience(fauxFirestore(BASE).db, env);
+    expect(b).toMatchObject({ lus: 1, ajoutes: 2, bloques: 0, echecs: 0 });
+    const ecrits = brevo.appels.filter((a) => a.methode === 'POST' && a.chemin === '/contacts');
+    expect(ecrits.map((a) => (a.corps as { email: string }).email).sort()).toEqual(['awa@example.com', 'fatou@example.com']);
+    for (const a of ecrits) {
+      expect(a.corps).not.toHaveProperty('attributes');
+      expect(a.corps).not.toHaveProperty('emailBlacklisted'); // on ne touche jamais l'état de retrait sans raison
+    }
+  });
 
-    const bilan = await synchroniserAudience(db, env);
-    expect(bilan.candidats).toBe(3);
-    expect(bilan.pousses).toBe(1);
-    expect(bilan.bloques).toBe(1);
-    expect(bilan.echecs).toBe(1);
-    expect(bilan.erreurs[0]).toContain('casse@example.com');
-    vi.unstubAllGlobals();
+  it('incrémentale : un second passage n’écrit rien', async () => {
+    const brevo = fauxBrevo();
+    const { db } = fauxFirestore(BASE);
+    await synchroniserAudience(db, env);
+    const avant = brevo.appels.length;
+    const b = await synchroniserAudience(db, env);
+    expect(b).toMatchObject({ ajoutes: 0, bloques: 0 });
+    expect(brevo.appels.slice(avant).every((a) => a.methode === 'GET')).toBe(true);
+  });
+
+  it('met en liste noire un retiré CHEZ NOUS que Brevo connaît encore — et n’envoie pas un retiré inconnu', async () => {
+    const brevo = fauxBrevo({ contacts: [{ email: 'parti@example.com' }] });
+    const b = await synchroniserAudience(fauxFirestore(BASE).db, env);
+    expect(b.bloques).toBe(1);
+    expect(brevo.contacts.get('parti@example.com')?.bloque).toBe(true);
+
+    const vierge = fauxBrevo();
+    await synchroniserAudience(fauxFirestore(BASE).db, env);
+    expect(vierge.contacts.has('parti@example.com')).toBe(false);
+  });
+
+  it('ne lève une liste noire QUE sur un réabonnement explicite après un retrait repris', async () => {
+    const brevo = fauxBrevo({ contacts: [{ email: 'fatou@example.com', bloque: true }] });
+    const { db, docs } = fauxFirestore(BASE);
+    // Jour 1 : le retrait de Fatou chez Brevo remonte ; on ne la débloque pas.
+    await synchroniserAudience(db, env);
+    expect(brevo.contacts.get('fatou@example.com')?.bloque).toBe(true);
+    expect((docs.get('users/u5')?.preferences as Record<string, unknown>).newsletter).toBe(false);
+
+    // Jour 2 : elle recoche la préférence dans son espace → nouvel accord.
+    docs.set('users/u5', { ...docs.get('users/u5'), preferences: { newsletter: true } });
+    const b = await synchroniserAudience(db, env);
+    expect(b.reabonnes).toBe(1);
+    expect(brevo.contacts.get('fatou@example.com')?.bloque).toBe(false);
+    expect([...docs.keys()].some((k) => k.startsWith('brevo_retraits/'))).toBe(false);
+  });
+
+  it('ne pousse RIEN sans l’accord — mais reprend quand même les retraits', async () => {
+    const brevo = fauxBrevo({ contacts: [{ email: 'awa@example.com', bloque: true }] });
+    const { db, docs } = fauxFirestore(BASE);
+    const b = await synchroniserAudience(db, { ...env, MARKETING_ENVOI_REEL: 'non' });
+    expect(b).toMatchObject({ repris: 1, ajoutes: 0 });
+    expect(brevo.appels.every((a) => a.methode === 'GET')).toBe(true);
+    expect(docs.get('newsletter/n1')?.unsubscribedAt).toBeTruthy();
+  });
+
+  it('ne pousse RIEN si la lecture de Brevo échoue', async () => {
+    const brevo = fauxBrevo();
+    brevo.pannes.set('GET /contacts/lists/4/contacts', 503);
+    const b = await synchroniserAudience(fauxFirestore(BASE).db, env);
+    expect(b.erreurs[0]).toMatch(/lecture des contacts Brevo impossible/);
+    expect(brevo.appels.filter((a) => a.methode === 'POST')).toHaveLength(0);
+  });
+
+  it('sans configuration : aucun appel, une raison', async () => {
+    const brevo = fauxBrevo();
+    const b = await synchroniserAudience(fauxFirestore(BASE).db, { ...env, BREVO_API_KEY: undefined });
+    expect(b.erreurs[0]).toMatch(/non configuré/);
+    expect(brevo.appels).toHaveLength(0);
   });
 });

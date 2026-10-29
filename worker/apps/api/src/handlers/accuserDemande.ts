@@ -1,5 +1,5 @@
 import type { CallContext } from '../context';
-import { envoyerModele, type Langue } from '../lib/brevo-send';
+import { envoyerModele, type Langue } from '../lib/envoi-modele';
 import {
   empreinteAppelant,
   fenetreHoraire,
@@ -35,7 +35,7 @@ import { asText, toNumber } from '../lib/values';
  * TRANSACTIONNELS
  *
  * Ces deux courriers répondent à une demande explicite. Ni consentement, ni lien de retrait —
- * `brevo-send.ts` le sait par la table des modèles, et refuserait tout seul si on les y
+ * `envoi-modele.ts` le sait par la table de `modeles.ts`, et refuserait tout seul si on les y
  * déclarait marketing.
  *
  * Les gardes sont celles de `acknowledgeAppointment`, pour les mêmes raisons : ces callables

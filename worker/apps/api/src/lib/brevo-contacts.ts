@@ -1,220 +1,162 @@
 /**
- * LA SYNCHRONISATION D'AUDIENCE — Firestore vers Brevo.
+ * LA SYNCHRONISATION D'AUDIENCE — Firestore ⇄ Brevo, dans cet ordre.
  *
  * ═══════════════════════════════════════════════════════════════════════════════
- * POURQUOI BREVO SEUL, ET PLUS LISTMONK
+ * FIRESTORE EST LA SOURCE, BREVO UNE COPIE — SAUF POUR LES RETRAITS
  *
- * Listmonk a été installé puis retiré, et l'erreur mérite d'être écrite plutôt qu'effacée.
- * Il RELAYAIT vers Brevo : il n'apportait donc rien sur le plafond de 300 envois par jour,
- * qui est la contrainte dure du programme. Brevo ne facture pas au contact — la raison
- * classique d'auto-héberger tombait aussi. Et surtout, Listmonk envoie des campagnes mais
- * ne sait pas faire de SÉQUENCES, alors que le plan en contient deux : la bienvenue en
- * trois e-mails et le nurture de devis. L'outil ne savait pas faire la moitié du plan.
+ * La preuve du consentement vit dans Firestore (`newsletter.consentAt`, exigée par les règles
+ * serveur) et `audience.ts` décide seul qui est démarchable. Brevo ne reçoit que l'adresse et
+ * l'appartenance à la liste. MAIS une personne peut se retirer CHEZ BREVO (lien
+ * `{{ unsubscribe }}` d'une campagne, bouton « se désabonner » de Gmail, plainte) : ce retrait
+ * doit remonter, sinon le lendemain la synchronisation la ferait revenir. D'où deux temps :
  *
- * L'argument restant — « les données restent chez nous » — était plus faible qu'il n'en
- * avait l'air : la preuve du consentement vit dans Firestore (`newsletter.consentAt`,
- * exigée par les règles serveur), pas dans l'outil d'envoi. Listmonk n'était qu'une copie
- * intermédiaire de plus, susceptible de diverger de la source.
+ *   1. `resynchroniserRetraits` — lit les contacts de la liste ; chaque contact en liste noire
+ *      (ou désinscrit de la liste) est retiré dans Firestore par la MÊME fonction que notre
+ *      lien signé (`desabonner` : `newsletter.unsubscribedAt`, `preferences.newsletter=false`).
+ *      Appelé avant CHAQUE envoi réel de campagne, et chaque matin par le cron.
+ *   2. `synchroniserAudience` — pousse ce qui manque à Brevo. INCRÉMENTAL : on compare à
+ *      l'instantané lu en 1, et on n'écrit que les différences. Jamais avant 1 : pousser sans
+ *      connaître les retraits de Brevo, c'est risquer de lever une liste noire légitime.
  *
- * ── POURQUOI UNE POUSSÉE, ET NON UN IMPORT ──
- * Brevo sait importer depuis une URL. On ne s'en sert pas : cela demanderait d'exposer une
- * liste d'adresses consentantes derrière une URL joignable. Le Worker pousse contact par
- * contact ; rien n'est exposé.
+ * ── LE RÉABONNEMENT, SEUL CAS OÙ L'ON LÈVE UNE LISTE NOIRE ──
+ * Un retrait repris de Brevo laisse une trace `brevo_retraits/{empreinte}`. Si la même adresse
+ * redevient audience APRÈS cette trace (le titulaire d'un compte recoche la préférence : c'est
+ * un nouvel accord explicite), on pousse `emailBlacklisted: false` et on efface la trace. Sans
+ * trace, on ne touche jamais à une liste noire de Brevo : elle peut venir d'une plainte ou d'un
+ * rebond dur, et la lever dégraderait la délivrabilité de tous les autres.
+ * (Un abonné SANS compte ne peut pas se réabonner : un document `newsletter` retiré exclut
+ * l'adresse à vie, règle de `audience.ts` — inchangée.)
  *
  * ═══════════════════════════════════════════════════════════════════════════════
  * ⚠️ CE QUI N'ENTRE JAMAIS DANS CETTE SYNCHRONISATION
  *
- * Le dépôt porte SEPT collections qui contiennent des adresses e-mail. Une seule recueille un
- * consentement marketing. Les six autres sont donc exclues, définitivement :
+ * Le dépôt porte SEPT collections qui contiennent des adresses e-mail. Deux sources seulement
+ * recueillent un consentement marketing — `newsletter` et `users.preferences.newsletter` — et
+ * c'est `audience.ts` qui les lit. Restent exclues, définitivement : `appointments`,
+ * `messages` (l'adresse sert à répondre), `agency_leads`, `engagement_leads` (aucun
+ * consentement), `transactions`, `club_subscriptions` (un achat n'est pas un consentement,
+ * cf. `purchase.ts`) et `waitlist` (« Un seul e-mail, le jour de l'ouverture. Pas de lettre,
+ * pas de relance. » — `waitlist-mail.ts`).
  *
- *   · `appointments`, `messages`  — l'adresse sert à répondre, pas à démarcher. La liste
- *     blanche de `firestore.rules` n'accepte même pas de champ `consent`.
- *   · `agency_leads`, `engagement_leads` — aucun consentement collecté ; l'adresse y est
- *     même optionnelle, parce que le canal réel de ce segment est WhatsApp.
- *   · `transactions`, `club_subscriptions` — un achat n'est pas un consentement marketing.
- *     C'est précisément la confusion que `purchase.ts` interdit en toutes lettres.
- *   · `waitlist` — engagement OPPOSABLE écrit dans `waitlist-mail.ts` : « Un seul e-mail, le
- *     jour de l'ouverture. Pas de lettre, pas de relance. » Ces adresses ne sont pas
- *     démarchables, quelle que soit l'envie qu'on en ait.
- *
- * Restent DEUX sources, et elles seules : la collection `newsletter` (case cochée, horodatée,
- * exigée par les règles Firestore) et `users.preferences.newsletter === true`, qui est un
- * opt-in strict — `undefined` vaut NON, comme `notifyOnPublish`.
+ * ── POURQUOI UNE POUSSÉE, ET NON UN IMPORT ──
+ * Brevo sait importer depuis une URL. On ne s'en sert pas : il faudrait exposer une liste
+ * d'adresses consentantes derrière une URL joignable. Le Worker pousse contact par contact,
+ * et seulement les différences ; rien n'est exposé.
  */
 import type { Firestore } from '@mm/firestore-rest';
+import { sha256Hex } from '@mm/shared';
 
 import type { Env } from '../env';
-import { normaliserAdresse } from './unsubscribe';
+import { lireAudience } from './audience';
+import { brevoConfigure, ecrireContact, lireContactsListe, listePrincipale, type ContactLu } from './brevo-send';
+import { desabonner } from './unsubscribe';
+
+const TRACES = 'brevo_retraits';
+
+export async function cheminTraceRetrait(email: string): Promise<string> {
+  return `${TRACES}/${(await sha256Hex(email)).slice(0, 32)}`;
+}
+
+/** Les adresses dont un retrait a été repris de Brevo (et pas encore levé par un réabonnement). */
+export async function adressesRetireesChezBrevo(db: Firestore): Promise<Set<string>> {
+  const traces = await db.query({ collection: TRACES });
+  return new Set(traces.map((t) => String(t.data.email ?? '')).filter((e) => e.includes('@')));
+}
+
+export type BilanRetraits =
+  | { ok: true; lus: number; repris: number; instantane: Map<string, ContactLu> }
+  | { ok: false; erreur: string };
 
 /**
- * Un contact tel que Brevo l'attend.
+ * Temps 1 — fait remonter dans Firestore les retraits faits chez Brevo.
  *
- * ⚠️ Les clés d'attributs sont en MAJUSCULES et doivent avoir été DÉCLARÉES dans le compte
- * (Contacts → Attributs) avant tout envoi. Brevo rejette un attribut inconnu au lieu de
- * l'ignorer : un champ ajouté ici sans être déclaré là-bas fait échouer le contact entier,
- * silencieusement du point de vue de l'appelant.
+ * Idempotent : un retrait déjà repris (trace présente) n'est pas rejoué. Rend l'instantané de
+ * la liste, que la poussée réutilise sans relire Brevo.
  */
-export interface ContactBrevo {
-  email: string;
-  /** `false` — le contact reçoit ; `true` pour un désabonné, que Brevo met en liste noire. */
-  bloque: boolean;
-  attributes: Record<string, unknown>;
+export async function resynchroniserRetraits(db: Firestore, env: Env, maintenant = new Date()): Promise<BilanRetraits> {
+  if (!brevoConfigure(env)) return { ok: false, erreur: 'Brevo non configuré (BREVO_API_KEY, BREVO_LIST_ID ou BREVO_SENDER_EMAIL absent)' };
+
+  const lecture = await lireContactsListe(env);
+  if (!lecture.ok) return { ok: false, erreur: `lecture des contacts Brevo impossible : ${lecture.erreur}` };
+
+  const instantane = new Map(lecture.contacts.map((c) => [c.email, c]));
+  const deja = await adressesRetireesChezBrevo(db);
+  let repris = 0;
+
+  for (const c of lecture.contacts) {
+    if (!(c.bloque || c.desinscritListe) || deja.has(c.email)) continue;
+    const bilan = await desabonner(db, c.email);
+    await db.set(await cheminTraceRetrait(c.email), {
+      email: c.email,
+      motif: c.bloque ? 'liste noire Brevo' : 'désinscrit de la liste Brevo',
+      reprisLe: maintenant.toISOString(),
+      inscriptionsMarquees: bilan.marques,
+      compteMisAJour: bilan.compteMisAJour,
+    });
+    repris += 1;
+  }
+
+  return { ok: true, lus: lecture.contacts.length, repris, instantane };
 }
 
 export interface BilanSync {
-  candidats: number;
-  pousses: number;
+  lus: number;
+  repris: number;
+  ajoutes: number;
   bloques: number;
+  reabonnes: number;
   echecs: number;
   erreurs: string[];
 }
 
 /**
- * Rassemble les adresses réellement démarchables.
+ * Temps 1 puis temps 2. Appelé par le cron de 08:00.
  *
- * DÉDUPLIQUE PAR ADRESSE NORMALISÉE. Une même personne peut s'être inscrite à la lettre
- * ET avoir coché la préférence de son compte ; deux entrées produiraient deux envois, et
- * c'est le genre de doublon qu'un destinataire remarque immédiatement.
- *
- * La version du compte l'emporte sur celle de la lettre : elle porte un nom, une langue et
- * une ancienneté, là où l'inscription anonyme n'a que l'adresse.
+ * La POUSSÉE n'a lieu que si l'envoi marketing est accordé (`MARKETING_ENVOI_REEL = oui`) :
+ * tant que Max n'a pas ouvert le canal, aucune adresse ne quitte Firestore. La reprise des
+ * retraits, elle, tourne dès que Brevo est configuré — respecter un retrait n'attend personne.
  */
-/**
- * Une date au format que Brevo attend : `YYYY-MM-DD`, jamais un horodatage complet.
- *
- * Brevo REJETTE le contact entier si un attribut de type date ne parse pas — il ne l'ignore
- * pas. Nos valeurs sont des ISO 8601 avec l'heure ; les passer telles quelles ferait échouer
- * chaque contact portant une date, c'est-à-dire tous.
- */
-function jour(valeur: unknown): string {
-  const s = typeof valeur === 'string' ? valeur.slice(0, 10) : '';
-  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
-}
+export async function synchroniserAudience(db: Firestore, env: Env, maintenant = new Date()): Promise<BilanSync> {
+  const bilan: BilanSync = { lus: 0, repris: 0, ajoutes: 0, bloques: 0, reabonnes: 0, echecs: 0, erreurs: [] };
 
-export async function rassemblerAudience(db: Firestore): Promise<ContactBrevo[]> {
-  const par_adresse = new Map<string, ContactBrevo>();
-
-  // ── Source 1 : la collection `newsletter` ──
-  const abonnes = await db.query({
-    collection: 'newsletter',
-    where: [{ field: 'consent', op: '==', value: true }],
-  });
-  for (const a of abonnes) {
-    const email = normaliserAdresse(String(a.data.email ?? ''));
-    if (!email.includes('@')) continue;
-    // Un désabonné n'est pas OMIS : il est poussé avec `emailBlacklisted`, pour que Brevo le
-    // connaisse et refuse de l'inclure. L'omettre le laisserait ressortir au prochain import.
-    par_adresse.set(email, {
-      email,
-      bloque: Boolean(a.data.unsubscribedAt),
-      attributes: {
-        SOURCE: String(a.data.source ?? 'inconnue'),
-        LOCALE: String(a.data.locale ?? 'fr'),
-        CONSENTI_LE: jour(a.data.consentAt ?? a.data.subscribedAt),
-        COMPTE: false,
-      },
-    });
-  }
-
-  // ── Source 2 : les comptes ayant coché la préférence ──
-  const comptes = await db.query({
-    collection: 'users',
-    where: [{ field: 'preferences.newsletter', op: '==', value: true }],
-  });
-  for (const u of comptes) {
-    const email = normaliserAdresse(String(u.data.email ?? ''));
-    if (!email.includes('@')) continue;
-
-    /*
-     * LE PERSONNEL N'EST PAS UNE AUDIENCE. Un compte `admin` ou `support` recevrait ses
-     * propres campagnes, fausserait chaque taux d'ouverture, et un test grandeur nature
-     * finirait par partir depuis un compte de service.
-     */
-    const role = String(u.data.role ?? 'student');
-    if (role !== 'student') continue;
-
-    const prefs = (u.data.preferences ?? {}) as Record<string, unknown>;
-    par_adresse.set(email, {
-      email,
-      bloque: false,
-      attributes: {
-        PRENOM: String(u.data.firstName ?? u.data.displayName ?? '').trim() || email.split('@')[0],
-        NOM: String(u.data.lastName ?? '').trim(),
-        SOURCE: 'compte',
-        LOCALE: prefs.language === 'en' ? 'en' : 'fr',
-        COMPTE: true,
-        VILLE: String(u.data.city ?? ''),
-        INSCRIT_LE: jour(u.data.createdAt),
-        /* Sert aux segments : « les inscrits qui n'ont jamais commencé », par exemple. */
-        ONBOARDING: Boolean(u.data.onboardingCompleted),
-      },
-    });
-  }
-
-  return [...par_adresse.values()];
-}
-
-/**
- * Pousse un contact vers Brevo.
- *
- * `POST /v3/contacts` avec `updateEnabled` : Brevo crée ou met à jour selon l'adresse. Sans
- * ce drapeau, une deuxième synchronisation échouerait sur chaque contact déjà connu, et le
- * bilan ne montrerait plus que des erreurs — l'état où l'on cesse de lire les journaux.
- *
- * ⚠️ `emailBlacklisted` est envoyé DANS LES DEUX SENS, jamais seulement à `true`. Un contact
- * qui se réabonne après s'être retiré doit voir son drapeau retomber ; ne l'écrire qu'au
- * retrait le laisserait bloqué à vie, sans que rien ne le signale.
- */
-async function pousser(env: Env, contact: ContactBrevo): Promise<{ ok: boolean; erreur?: string }> {
-  try {
-    const reponse = await fetch('https://api.brevo.com/v3/contacts', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        accept: 'application/json',
-        'api-key': env.BREVO_API_KEY as string,
-      },
-      body: JSON.stringify({
-        email: contact.email,
-        attributes: contact.attributes,
-        listIds: [Number(env.BREVO_LIST_ID ?? 0)],
-        emailBlacklisted: contact.bloque,
-        updateEnabled: true,
-      }),
-    });
-    // 201 = créé, 204 = mis à jour. Les deux sont des succès.
-    if (reponse.ok || reponse.status === 204) return { ok: true };
-    const corps = await reponse.text();
-    return { ok: false, erreur: `${reponse.status} ${corps.slice(0, 120)}` };
-  } catch (error: unknown) {
-    return { ok: false, erreur: error instanceof Error ? error.message : String(error) };
-  }
-}
-
-export async function synchroniserAudience(db: Firestore, env: Env): Promise<BilanSync> {
-  const bilan: BilanSync = { candidats: 0, pousses: 0, bloques: 0, echecs: 0, erreurs: [] };
-
-  if (!env.BREVO_API_KEY || !env.BREVO_LIST_ID) {
-    // Absence de configuration : ce n'est pas une panne, c'est un canal non branché. On le
-    // dit et on sort, comme `sendEmail` le fait quand son binding manque.
-    bilan.erreurs.push('Brevo non configuré (BREVO_API_KEY ou BREVO_LIST_ID absent)');
+  const retraits = await resynchroniserRetraits(db, env, maintenant);
+  if (!retraits.ok) {
+    // Absence de configuration ou Brevo injoignable : on ne pousse RIEN sans connaître ses retraits.
+    bilan.erreurs.push(retraits.erreur);
     return bilan;
   }
+  bilan.lus = retraits.lus;
+  bilan.repris = retraits.repris;
+  if (env.MARKETING_ENVOI_REEL !== 'oui') return bilan;
 
-  const audience = await rassemblerAudience(db);
-  bilan.candidats = audience.length;
+  const { audience, retires } = await lireAudience(db);
+  const reprises = await adressesRetireesChezBrevo(db);
+  const liste = listePrincipale(env);
+  const noter = (email: string, erreur?: string) => {
+    bilan.echecs += 1;
+    if (bilan.erreurs.length < 5) bilan.erreurs.push(`${email} — ${erreur ?? 'échec'}`);
+  };
 
-  for (const contact of audience) {
-    const r = await pousser(env, contact);
-    if (r.ok) {
-      if (contact.bloque) bilan.bloques += 1;
-      else bilan.pousses += 1;
-    } else {
-      bilan.echecs += 1;
-      // On garde les cinq premiers motifs : au-delà, c'est le même défaut répété, et une
-      // journalisation qui déborde ne se lit plus.
-      if (bilan.erreurs.length < 5) bilan.erreurs.push(`${contact.email} — ${r.erreur}`);
-    }
+  for (const d of audience) {
+    const chez = retraits.instantane.get(d.email);
+    const reabonnement = reprises.has(d.email);
+    if (chez && !reabonnement) continue; // déjà dans la liste, rien à changer
+    const r = await ecrireContact(env, { email: d.email, listIds: [liste], ...(reabonnement ? { bloque: false } : {}) });
+    if (!r.ok) { noter(d.email, r.erreur); continue; }
+    if (reabonnement) {
+      await db.delete(await cheminTraceRetrait(d.email));
+      bilan.reabonnes += 1;
+    } else bilan.ajoutes += 1;
+  }
+
+  // Un retiré CHEZ NOUS que Brevo connaît encore sans liste noire : on l'y met. Un retiré que
+  // Brevo ne connaît pas n'est PAS envoyé — aucune raison de confier son adresse à un tiers.
+  for (const email of retires) {
+    const chez = retraits.instantane.get(email);
+    if (!chez || chez.bloque) continue;
+    const r = await ecrireContact(env, { email, bloque: true });
+    if (r.ok) bilan.bloques += 1;
+    else noter(email, r.erreur);
   }
 
   return bilan;

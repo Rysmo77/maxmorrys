@@ -51,12 +51,19 @@
     // délivrabilité de maxmorrys.me, d'où partent les échanges personnels.
     "EMAIL_FROM": "facture@mail.maxmorrys.me",
     "EMAIL_FROM_NAME": "Max-Morrys",
-    /* ── Brevo : le canal MARKETING ─────────────────────────────────────────
-       Autre fournisseur que le transactionnel, autre sous-domaine d'envoi (`lettre.`),
-       autre réputation. La CLÉ est un secret : `npx wrangler secret put BREVO_API_KEY`.
-       Seul l'identifiant de liste vit ici — il n'a rien de confidentiel et doit se relire
-       dans le dépôt. Liste 4 = « Lettre — apprenants » ; 5 = « Lettre — commerces ». */
+    /* ── Le courrier MARKETING — BREVO, jamais le binding `EMAIL` ─────────────────
+       Transactionnel = binding EMAIL ci-dessus ; marketing (lettre, bienvenue n°2/n°3) =
+       Brevo, depuis le domaine `lettre.maxmorrys.me` authentifié chez Brevo. La FAQ
+       Cloudflare réserve Email Service au transactionnel. La CLÉ est un secret :
+       `npx wrangler secret put BREVO_API_KEY` (déjà posé). L'ACCORD reste FERMÉ ici :
+       le passer à "oui" est une décision de Max, après le test de fumée
+       (docs/growth-kb/08-emailing.md). Fermé, seul le mode test répond.
+       Liste 4 = « Lettre — apprenants » (5 = « Lettre — commerces ») : à reconfirmer
+       avec `node scripts/brevo-verifier.mjs`. */
     "BREVO_LIST_ID": "4",
+    "BREVO_SENDER_EMAIL": "lettre@lettre.maxmorrys.me",
+    "MARKETING_ENVOI_REEL": "non",
+    "MARKETING_PLAFOND_JOUR": "300",
 
 
     // Vide tant que le régime fiscal de MY ONOMA SARL n'est pas confirmé par son comptable.
@@ -114,12 +121,19 @@
         "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com",
         "EMAIL_FROM": "facture@mail.maxmorrys.me",
         "EMAIL_FROM_NAME": "Max-Morrys",
-    /* ── Brevo : le canal MARKETING ─────────────────────────────────────────
-       Autre fournisseur que le transactionnel, autre sous-domaine d'envoi (`lettre.`),
-       autre réputation. La CLÉ est un secret : `npx wrangler secret put BREVO_API_KEY`.
-       Seul l'identifiant de liste vit ici — il n'a rien de confidentiel et doit se relire
-       dans le dépôt. Liste 4 = « Lettre — apprenants » ; 5 = « Lettre — commerces ». */
+    /* ── Le courrier MARKETING — BREVO, jamais le binding `EMAIL` ─────────────────
+       Transactionnel = binding EMAIL ci-dessus ; marketing (lettre, bienvenue n°2/n°3) =
+       Brevo, depuis le domaine `lettre.maxmorrys.me` authentifié chez Brevo. La FAQ
+       Cloudflare réserve Email Service au transactionnel. La CLÉ est un secret :
+       `npx wrangler secret put BREVO_API_KEY` (déjà posé). L'ACCORD reste FERMÉ ici :
+       le passer à "oui" est une décision de Max, après le test de fumée
+       (docs/growth-kb/08-emailing.md). Fermé, seul le mode test répond.
+       Liste 4 = « Lettre — apprenants » (5 = « Lettre — commerces ») : à reconfirmer
+       avec `node scripts/brevo-verifier.mjs`. */
     "BREVO_LIST_ID": "4",
+    "BREVO_SENDER_EMAIL": "lettre@lettre.maxmorrys.me",
+    "MARKETING_ENVOI_REEL": "non",
+    "MARKETING_PLAFOND_JOUR": "300",
 
         "INVOICE_TAX_NOTICE": ""
       },

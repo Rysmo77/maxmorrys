@@ -19,6 +19,14 @@ export interface Message {
   subject: string;
   html: string;
   text: string;
+  /**
+   * En-têtes personnalisés — `List-Unsubscribe`, `List-Unsubscribe-Post`, `X-…`. Cloudflare
+   * n'accepte qu'une liste blanche et REFUSE l'envoi entier sur un en-tête inconnu, au lieu
+   * de l'ignorer (`E_HEADER_NOT_ALLOWED`) : n'y mettre que ce que la doc liste.
+   */
+  headers?: Record<string, string>;
+  /** Expéditeur propre à ce message. Défaut : `EMAIL_FROM` / `EMAIL_FROM_NAME`. */
+  from?: { email: string; name?: string };
 }
 
 /**
@@ -45,13 +53,14 @@ export async function sendEmail(env: Env, msg: Message): Promise<{ sent: boolean
   try {
     await env.EMAIL.send({
       to: msg.to,
-      from: { email: env.EMAIL_FROM, name: env.EMAIL_FROM_NAME },
+      from: msg.from ?? { email: env.EMAIL_FROM, name: env.EMAIL_FROM_NAME },
       subject: msg.subject,
       html: msg.html,
       // `text` n'est pas une politesse : des clients de messagerie n'affichent que lui, et
       // son absence pèse sur le score anti-spam — donc sur la probabilité qu'une facture
       // arrive à destination.
       text: msg.text,
+      ...(msg.headers && Object.keys(msg.headers).length ? { headers: msg.headers } : {}),
     });
     return { sent: true };
   } catch (error: unknown) {
