@@ -140,12 +140,15 @@ export function traduire(source) {
     });
     return `${sel}{${kept.join(';')}}`;
   });
-  // 5 · flou
+  // 5 · replis du flou — AVANT de retirer le flou : sinon la condition du @supports perd
+  // son `backdrop-filter:` et l'en-tête mutilé (`@supports not ((`) n'est plus reconnu,
+  // ce qui laissait un bloc ouvert et faisait ignorer tout le reste du fichier.
+  css = retirerBlocs(css, /@supports not \(\(backdrop-filter/g);
+  // 6 · flou
   css = css.replace(/-webkit-backdrop-filter:[^;}]*;?/g, '').replace(/backdrop-filter:(?!none)[^;}]*;?/g, '');
-  // 6 · replis
+  // 7 · replis
   css = retirerBlocs(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/g);
   css = retirerBlocs(css, /@media\s*\(prefers-reduced-transparency:\s*reduce\)/g);
-  css = retirerBlocs(css, /@supports not \(\(backdrop-filter/g);
   css = deballer(css, /@media\s*\(prefers-reduced-motion:\s*no-preference\)/g);
   // `.lowfi .mm-glass{backdrop-filter:none;…}` : plus rien à éteindre une fois le flou retiré.
   css = css.replace(/\.lowfi \.mm-glass\{backdrop-filter:none;?([^}]*)\}/, '.lowfi .mm-glass{$1}');
