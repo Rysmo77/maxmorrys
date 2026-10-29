@@ -418,7 +418,7 @@ export default function TestimonialsTab({
       ) : (
         <div className="grid gap-2.5" role="list" aria-label={t('testimonials.listLabel')}>
           {myTestimonials.map((item) => (
-            <Bento key={item.id}  padding={16} role="listitem">
+            <Bento key={item.id} padding={16} role="listitem">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Tag tone={statusTone(item.status)}>{t(statusLabelKey(item.status))}</Tag>

@@ -140,7 +140,7 @@ export default function VerifyCertificate() {
         <div className="grid items-center gap-11 wide:grid-cols-[.95fr_1.05fr]">
           {/* ── La colonne de gauche : le code, et ce que la page ne fait pas ──── */}
           <div>
-            <SiteDisplay lines={t('verify.titleLines', { returnObjects: true }) as string[]} size={50} />
+            <SiteDisplay lines={t('verify.titleLines', { returnObjects: true }) as string[]} size={56} style={{ textTransform: 'uppercase', letterSpacing: '-.045em' }} />
 
             <p className="rv mt-[14px] max-w-[42ch] text-[16px] leading-[1.55] text-ink-2" style={{ ['--i' as string]: 3 }}>
               {t('verify.lede')}

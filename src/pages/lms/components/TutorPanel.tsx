@@ -135,14 +135,25 @@ export default function TutorPanel() {
       {loadingQuota ? (
         <Skeleton height={34} radius="var(--r-m)" label={t('dashboard.tutorPanelQuotaLoading')} />
       ) : quota && quotaAsOf ? (
-        <QuotaMeter
-          used={quota.dayCount}
-          total={quota.dailyLimit}
-          source="server"
-          asOf={quotaAsOf}
-          label={t('dashboard.tutorPanelQuotaLabel')}
-          suffix={t('dashboard.tutorPanelQuotaSuffix')}
-        />
+        <div>
+          <QuotaMeter
+            used={quota.dayCount}
+            total={quota.dailyLimit}
+            source="server"
+            asOf={quotaAsOf}
+            label={t('dashboard.tutorPanelQuotaLabel')}
+            suffix={t('dashboard.tutorPanelQuotaSuffix')}
+          />
+          {/* Les segments du kit (`mm-quota`), un par question du jour restante — seulement
+              pour un quota court (le quota gratuit) : cent segments ne se lisent plus. */}
+          {quota.dailyLimit > 0 && quota.dailyLimit <= 10 && (
+            <span className="mm-quota mt-2" aria-hidden="true">
+              {Array.from({ length: quota.dailyLimit }, (_, i) => (
+                <i key={i} className={i < quota.dayRemaining ? 'on' : undefined} style={{ ['--i' as string]: i }} />
+              ))}
+            </span>
+          )}
+        </div>
       ) : (
         <p className="m-0 text-meta-2 leading-[1.5]" style={{ color: 'var(--text-muted)' }}>
           {t('dashboard.tutorPanelQuotaUnknown')}

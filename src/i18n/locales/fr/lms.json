@@ -326,7 +326,8 @@
     "previewCta": "Voir la formation",
     "comingSoonTitle": "Cette formation n’est pas encore ouverte.",
     "comingSoonBody": "Tu l’as bien précommandée, elle t’appartient. Les leçons arrivent — je te préviens dès qu’elles sont en ligne.",
-    "comingSoonBodyDated": "Tu l’as bien précommandée, elle t’appartient. Elle ouvre le {{date}}, et je te préviens ce jour-là."
+    "comingSoonBodyDated": "Tu l’as bien précommandée, elle t’appartient. Elle ouvre le {{date}}, et je te préviens ce jour-là.",
+    "quizAnswered": "{{done}} / {{total}} répondues"
   },
   "rysmoPage": {
     "tabTokens": "Tokens & abonnements",

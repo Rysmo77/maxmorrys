@@ -232,7 +232,7 @@ export default function RysmoStoreTab() {
         </p>
         <div className="mt-[12px] grid gap-[10px] stack:grid-cols-3">
           {PACKS.map((pack) => (
-            <Bento key={pack.id}  padding={18} className="flex flex-col">
+            <Bento key={pack.id} padding={18} className="flex flex-col">
               <div className="flex items-start justify-between gap-2">
                 <p className="m-0 text-meta font-bold text-ink">{t(`rysmoStore.packs.${pack.id}.label`)}</p>
                 {pack.hasBadge && <Tag>{t(`rysmoStore.packs.${pack.id}.badge`)}</Tag>}

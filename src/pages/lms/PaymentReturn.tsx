@@ -282,16 +282,24 @@ export default function PaymentReturn() {
             Le glyphe, lui, garde son encre blanche : elle est portée par le `<Icon>`, sur la
             surface colorée qui ne bascule pas.
           */}
+          {/* L'attente porte le moment signature du kit (`mm-payring`) : deux anneaux qui
+              sortent de la tuile, en boucle tant que le paiement n'est pas confirmé. Les
+              anneaux prennent `--mm-bleu`, la seule teinte qui se lit hors de la tuile dans
+              les deux thèmes (voir plus haut). */}
           <div
-            className={`${issue.pulse ? 'pulse ' : ''}rv-s`}
+            className={issue.pulse ? 'mm-payring rv-s' : 'rv-s'}
             aria-hidden="true"
-            style={{
-              width: '70px', height: '70px', borderRadius: '22px', background: issue.bg,
-              display: 'grid', placeItems: 'center', color: 'var(--mm-bleu)',
-              boxShadow: 'var(--sh-bleu)',
-            }}
+            style={issue.pulse ? { color: 'var(--mm-bleu)', marginLeft: '-13px' } : undefined}
           >
-            <Icon name={issue.glyph} size={30} color="var(--text-invert)" strokeWidth={issue.glyph === 'check' ? 3.4 : 2.4} />
+            <div
+              style={{
+                width: '70px', height: '70px', borderRadius: '22px', background: issue.bg,
+                display: 'grid', placeItems: 'center', position: 'relative',
+                boxShadow: 'var(--sh-bleu)',
+              }}
+            >
+              <Icon name={issue.glyph} size={30} color="var(--text-invert)" strokeWidth={issue.glyph === 'check' ? 3.4 : 2.4} />
+            </div>
           </div>
 
           {/* L'attente doit s'ANNONCER, pas seulement pulser : un anneau n'est rien pour qui

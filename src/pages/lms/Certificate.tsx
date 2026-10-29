@@ -138,36 +138,35 @@ export default function Certificate() {
           <SiteDisplay lines={[t('certificate.doneLine')]} size={30} from={1} />
 
           {/*
-            `.sheen` — la brillance qui passe deux fois. Elle vit sur `.glass-hero`, qui ne
-            porte AUCUN flou : le kit y mettait un `blur(30px)`, et cette carte défile sur un
-            écran étroit. Le voile de .58 tient le contraste sans lui.
+            LE MOMENT SIGNATURE DU KIT (`mm-cert`) — la brillance passe DEUX fois, une seule
+            fois par affichage (`.play`), et ne se rejoue pas. La carte est claire dans les
+            deux thèmes : son encre est `--ink-fixed`, jamais `--ink`, qui basculerait.
+            Aucun flou : cette carte défile sur un écran étroit.
           */}
-          <Bento tone="hero" padding={24} className="sheen rv-s mt-5" style={{ ['--i' as string]: 4 }}>
+          <div className="mm-cert play rv-s mt-5" style={{ ['--i' as string]: 4, color: 'var(--ink-fixed)' }}>
             <div className="flex items-start justify-between gap-3">
               <Wordmark brand="signature" size={26} />
               <Tag tone="ok">{t('certificate.verified')}</Tag>
             </div>
 
-            <SiteEyebrow style={{ marginTop: '22px' }}>{t('certificate.certificateOf')}</SiteEyebrow>
-            <p className="font-display text-dsp-xs text-ink m-0">{certificate.formationTitle}</p>
+            <p className="mm-eyebrow m-0 mt-[22px]" style={{ color: 'inherit', opacity: 0.72 }}>{t('certificate.certificateOf')}</p>
+            <p className="mm-d m-0 mt-1 text-[clamp(26px,5vw,34px)]">{certificate.formationTitle}</p>
 
             {certificate.holderName && (
-              <p className="text-body text-ink-2 mt-2.5 mb-0">
-                {t('certificate.deliveredTo')} <b className="text-ink">{certificate.holderName}</b>
+              <p className="mb-0 mt-2.5 text-body" style={{ opacity: 0.8 }}>
+                {t('certificate.deliveredTo')} <b>{certificate.holderName}</b>
               </p>
             )}
 
-            <div className="h-px bg-[color:var(--border-hair)] my-[19px]" />
+            <div className="my-[19px] h-px" style={{ background: 'currentColor', opacity: 0.16 }} />
 
-            <SiteEyebrow style={{ margin: 0 }}>{t('certificate.verificationCode')}</SiteEyebrow>
-            {/* Le code de vérification passe par <Num> : il vient de la base, il porte donc
-                sa provenance au survol et sa face tabulaire. C'est le seul chemin autorisé
-                vers la monospace (règle 6). */}
-            <p className="mt-1 mb-0" style={{ fontSize: '19px', letterSpacing: '.06em' }}>
+            <p className="mm-eyebrow m-0" style={{ color: 'inherit', opacity: 0.72 }}>{t('certificate.verificationCode')}</p>
+            {/* Le code de vérification passe par <Num> : il vient de la base (règle 6). */}
+            <p className="mb-0 mt-1" style={{ fontSize: '19px', letterSpacing: '.06em' }}>
               <Num value={certificate.certificateCode} source="db" asOf={issuedAt} />
             </p>
-            <p className="text-small text-ink-2 mt-2.5 mb-0 leading-[1.5]">{t('certificate.verifiableBy')}</p>
-          </Bento>
+            <p className="mb-0 mt-2.5 text-small leading-[1.5]" style={{ opacity: 0.75 }}>{t('certificate.verifiableBy')}</p>
+          </div>
 
           {/*
             LINKEDIN GARDE SON BOUTON PROPRE, ET C'EST DÉLIBÉRÉ.

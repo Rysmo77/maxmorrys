@@ -97,7 +97,7 @@ export default function BusinessSection() {
           <SiteEyebrow style={{ margin: 0 }}>{t('business.offersEyebrow')}</SiteEyebrow>
           <div className="mt-3 grid gap-2.5">
             {OFFRES.map((cle) => (
-              <Bento key={cle}  padding={18}>
+              <Bento key={cle} padding={18}>
                 <div className="flex items-start gap-2.5">
                   <Icon name="check" size={14} strokeWidth={3.4} style={{ marginTop: '4px', flexShrink: 0 }} />
                   <div>
